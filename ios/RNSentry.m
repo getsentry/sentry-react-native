@@ -10,12 +10,20 @@
 }
 RCT_EXPORT_MODULE()
 
-RCT_EXPORT_METHOD(startWithDsnString:(NSString *)dsnString)
+RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
 {
-	[SentryClient setLogLevel:SentryLogDebug];
-	[SentryClient setShared:[[SentryClient alloc] initWithDsnString:dsnString]];
-	[[SentryClient shared] startCrashHandler];
-	[[SentryClient shared] captureMessage:@"Some plain message from react native" level:SentrySeverityInfo];
+    [SentryClient setShared:[[SentryClient alloc] initWithDsnString:dsnString]];
+    [[SentryClient shared] startCrashHandler];
+}
+
+RCT_EXPORT_METHOD(captureMessage:(NSString * _Nonnull)message level:(int)level)
+{
+    [[SentryClient shared] captureMessage:message level:level];
+}
+
+RCT_EXPORT_METHOD(setLogLevel:(int)level)
+{
+    [SentryClient setLogLevel:level];
 }
 
 @end
