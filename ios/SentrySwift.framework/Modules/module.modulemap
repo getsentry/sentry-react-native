@@ -1,0 +1,10 @@
+framework module SentrySwift {
+  umbrella header "SentrySwift-iOS-umbrella.h"
+
+  export *
+  module * { export * }
+}
+
+module SentrySwift.Swift {
+    header "SentrySwift-Swift.h"
+}
