@@ -22,6 +22,19 @@ import {
 SentryClient.setLogLevel(SentryLog.Debug);
 SentryClient.shared = new SentryClient("Your DSN");
 
+SentryClient.shared.setExtras({
+  "a_thing": 3,
+  "some_things": {"green": "red"},
+  "foobar": ["a", "b", "c"],
+  "react": true,
+  "float": 2.43
+});
+
+SentryClient.shared.setTags({
+  "environment": "production",
+  "react": true
+});
+
 export default class ReactNativeExample extends Component {
   _throwError() {
     SentryClient.shared.captureMessage("TEST message", SentrySeverity.Warning);
