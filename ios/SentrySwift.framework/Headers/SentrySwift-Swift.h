@@ -459,6 +459,8 @@ SWIFT_CLASS("_TtC11SentrySwift31UserFeedbackTableViewController")
 @interface UserFeedbackTableViewController : UITableViewController <UITextFieldDelegate>
 - (void)viewDidLoad;
 - (void)viewWillAppear:(BOOL)animated;
+- (void)textFieldDidBeginEditing:(UITextField * _Nonnull)textField;
+- (BOOL)textField:(UITextField * _Nonnull)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString * _Nonnull)string;
 - (BOOL)textFieldShouldReturn:(UITextField * _Nonnull)textField;
 - (void)tableView:(UITableView * _Nonnull)tableView didSelectRowAtIndexPath:(NSIndexPath * _Nonnull)indexPath;
 - (nonnull instancetype)initWithStyle:(UITableViewStyle)style OBJC_DESIGNATED_INITIALIZER;
@@ -474,9 +476,9 @@ SWIFT_CLASS("_TtC11SentrySwift21UserFeedbackViewModel")
 @property (nonatomic, copy) NSString * _Nonnull title;
 @property (nonatomic, copy) NSString * _Nonnull subTitle;
 @property (nonatomic, copy) NSString * _Nonnull nameLabel;
-@property (nonatomic, copy) NSString * _Nonnull nameTextFieldValue;
+@property (nonatomic, copy) NSString * _Nullable nameTextFieldValue;
 @property (nonatomic, copy) NSString * _Nonnull emailLabel;
-@property (nonatomic, copy) NSString * _Nonnull emailTextFieldValue;
+@property (nonatomic, copy) NSString * _Nullable emailTextFieldValue;
 @property (nonatomic, copy) NSString * _Nonnull commentsTextFieldPlaceholder;
 @property (nonatomic, copy) NSString * _Nonnull commentsTextFieldValue;
 @property (nonatomic, copy) NSString * _Nonnull submitButtonText;
