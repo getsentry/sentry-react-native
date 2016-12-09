@@ -88,7 +88,6 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
                                   exceptions:nil
                                   stacktrace:stacktrace];
     
-    
     [[SentryClient shared] captureEvent:eventToSend];
 }
 
@@ -129,15 +128,6 @@ NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace) {
         if (methodRange.location != NSNotFound) {
             frame[@"function"] = [line substringToIndex:methodRange.location];
             location = [line substringFromIndex:methodRange.location + 1];
-        }
-        NSRange search = [location rangeOfCharacterFromSet:locationSeparator options:NSBackwardsSearch];
-        if (search.location != NSNotFound) {
-            NSRange matchRange = NSMakeRange(search.location + 1, location.length - search.location - 1);
-            NSNumber *value = [formatter numberFromString:[location substringWithRange:matchRange]];
-            if (value) {
-                frame[@"columnNumber"] = value;
-                location = [location substringToIndex:search.location];
-            }
         }
         search = [location rangeOfCharacterFromSet:locationSeparator options:NSBackwardsSearch];
         if (search.location != NSNotFound) {
