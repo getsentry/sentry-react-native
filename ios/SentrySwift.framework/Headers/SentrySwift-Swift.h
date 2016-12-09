@@ -225,6 +225,10 @@ SWIFT_CLASS("_TtC11SentrySwift5Event")
 
 
 @interface Event (SWIFT_EXTENSION(SentrySwift))
+/**
+  Dictionary version of attributes set in event
+*/
+@property (nonatomic, readonly, copy) NSDictionary<NSString *, id> * _Nonnull serialized;
 @end
 
 

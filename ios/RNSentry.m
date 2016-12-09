@@ -1,9 +1,13 @@
 
 #import "RNSentry.h"
 #import "RCTConvert.h"
+#import "RCTBridge.h"
+
 @import SentrySwift;
 
 @implementation RNSentry
+
+@synthesize bridge = _bridge;
 
 + (NSNumberFormatter *)numberFormatter {
     static dispatch_once_t onceToken;
@@ -19,12 +23,19 @@
 {
     return dispatch_get_main_queue();
 }
+
+- (BOOL)eventDispatcherWillDispatchEvent:(id<RCTEvent>)event {
+    NSLog(@"%@", event);
+    return NO;
+}
+
 RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
 {
     [SentryClient setShared:[[SentryClient alloc] initWithDsnString:dsnString]];
     [[SentryClient shared] startCrashHandler];
+    [self.bridge.eventDispatcher addDispatchObserver:self];
 }
 
 RCT_EXPORT_METHOD(captureMessage:(NSString * _Nonnull)message level:(int)level)
@@ -47,33 +58,54 @@ RCT_EXPORT_METHOD(setTags:(NSDictionary * _Nonnull)tags)
     [SentryClient shared].tags = [self sanitizeDictionary:tags];
 }
 
+RCT_EXPORT_METHOD(crash)
+{
+    [[SentryClient shared] crash];
+}
+
 RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 {
-    NSArray *stacktrace = nil;
-
+    NSArray <Frame *>*frames = nil;
+    Stacktrace *stacktrace = nil;
+    
     if (event[@"stacktrace"]) {
-        stacktrace = SentryParseJavaScriptStacktrace([RCTConvert NSString:event[@"stacktrace"]],
-                                                   [RNSentry numberFormatter]);
-
-        NSLog(@"%@", stacktrace);
+        frames = SentryParseJavaScriptStacktrace([RCTConvert NSString:event[@"stacktrace"]]);
+        stacktrace = [[Stacktrace alloc] initWithFrames:[self convertFramesToObject:frames]];
     }
-
+    
     Event *eventToSend = [[Event alloc] init:[RCTConvert NSString:event[@"errorMessage"]]
-                             timestamp:[NSDate date]
-                                 level:SentrySeverityFatal
-                                logger:nil
-                               culprit:nil
-                            serverName:nil
-                               release:nil
-                                  tags:nil
-                               modules:nil
-                                 extra:nil
-                           fingerprint:nil
-                                  user:nil
-                             exceptions:nil
-                            stacktrace:stacktrace];
+                                   timestamp:[NSDate date]
+                                       level:SentrySeverityFatal
+                                      logger:nil
+                                     culprit:nil
+                                  serverName:nil
+                                     release:nil
+                                        tags:nil
+                                     modules:nil
+                                       extra:nil
+                                 fingerprint:nil
+                                        user:nil
+                                  exceptions:nil
+                                  stacktrace:stacktrace];
+    
     
     [[SentryClient shared] captureEvent:eventToSend];
+}
+
+- (NSArray <Frame *>*)convertFramesToObject:(NSArray *)frames {
+    NSMutableArray <Frame *> *frameObjects = [NSMutableArray array];
+    for (NSDictionary *frame in frames) {
+        if ([frame[@"file"] isEqualToString:@"[native code]"] || nil == frame[@"function"]) {
+            continue;
+        }
+        Frame *newFrame = [[Frame alloc] initWithFile:[NSString stringWithFormat:@"%@", frame[@"file"]]
+                                             function:[NSString stringWithFormat:@"%@", frame[@"function"]]
+                                               module:@"module"
+                                                 line:[frame[@"lineNumber"] integerValue]];
+        newFrame.platform = @"javascript";
+        [frameObjects addObject:newFrame];
+    }
+    return frameObjects;
 }
 
 - (NSDictionary *)sanitizeDictionary:(NSDictionary *)dictionary {
@@ -84,7 +116,8 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
     return [NSDictionary dictionaryWithDictionary:dict];
 }
 
-NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace, NSNumberFormatter *formatter) {
+NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace) {
+    NSNumberFormatter *formatter = [RNSentry numberFormatter];
     NSCharacterSet *methodSeparator = [NSCharacterSet characterSetWithCharactersInString:@"@"];
     NSCharacterSet *locationSeparator = [NSCharacterSet characterSetWithCharactersInString:@":"];
     NSArray *lines = [stacktrace componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
@@ -94,7 +127,7 @@ NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace, NSNumberFormatter
         NSString *location = line;
         NSRange methodRange = [line rangeOfCharacterFromSet:methodSeparator];
         if (methodRange.location != NSNotFound) {
-            frame[@"method"] = [line substringToIndex:methodRange.location];
+            frame[@"function"] = [line substringToIndex:methodRange.location];
             location = [line substringFromIndex:methodRange.location + 1];
         }
         NSRange search = [location rangeOfCharacterFromSet:locationSeparator options:NSBackwardsSearch];
@@ -128,4 +161,3 @@ NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace, NSNumberFormatter
 }
 
 @end
-  
