@@ -216,6 +216,11 @@ SWIFT_CLASS("_TtC11SentrySwift5Event")
 @property (nonatomic, copy) NSArray<Exception *> * _Nullable exceptions;
 @property (nonatomic, strong) Stacktrace * _Nullable stacktrace;
 - (nonnull instancetype)init:(NSString * _Nonnull)message timestamp:(NSDate * _Nonnull)timestamp level:(enum SentrySeverity)level logger:(NSString * _Nullable)logger culprit:(NSString * _Nullable)culprit serverName:(NSString * _Nullable)serverName release:(NSString * _Nullable)release tags:(NSDictionary<NSString *, NSString *> * _Nonnull)tags modules:(NSDictionary<NSString *, NSString *> * _Nullable)modules extra:(NSDictionary<NSString *, id> * _Nonnull)extra fingerprint:(NSArray<NSString *> * _Nullable)fingerprint user:(User * _Nullable)user exceptions:(NSArray<Exception *> * _Nullable)exceptions stacktrace:(Stacktrace * _Nullable)stacktrace OBJC_DESIGNATED_INITIALIZER;
+/**
+  This will set threads and debugMeta if not nil with snapshot of stacktrace if called
+  SentryClient.shared?.snapshotStacktrace()
+*/
+- (void)fetchStacktrace;
 - (nonnull instancetype)init SWIFT_UNAVAILABLE;
 @end
 
@@ -225,10 +230,6 @@ SWIFT_CLASS("_TtC11SentrySwift5Event")
 
 
 @interface Event (SWIFT_EXTENSION(SentrySwift))
-/**
-  Dictionary version of attributes set in event
-*/
-@property (nonatomic, readonly, copy) NSDictionary<NSString *, id> * _Nonnull serialized;
 @end
 
 
@@ -238,6 +239,7 @@ SWIFT_CLASS("_TtC11SentrySwift9Exception")
 @property (nonatomic, readonly, copy) NSString * _Nullable type;
 @property (nonatomic, copy) NSDictionary<NSString *, NSDictionary<NSString *, NSString *> *> * _Nullable mechanism;
 @property (nonatomic, readonly, copy) NSString * _Nullable module;
+@property (nonatomic) BOOL userReported;
 @property (nonatomic, strong) Thread * _Nullable thread;
 /**
   Creates \code
@@ -307,6 +309,7 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, copy) NSString * _No
   Creates a Sentry object iff a valid DSN is provided
 */
 - (nullable instancetype)initWithDsnString:(NSString * _Nonnull)dsnString;
+- (void)snapshotStacktrace;
 - (void)captureMessage:(NSString * _Nonnull)message level:(enum SentrySeverity)level;
 /**
   Reports given event to Sentry
