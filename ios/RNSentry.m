@@ -129,7 +129,7 @@ NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace) {
             frame[@"function"] = [line substringToIndex:methodRange.location];
             location = [line substringFromIndex:methodRange.location + 1];
         }
-        search = [location rangeOfCharacterFromSet:locationSeparator options:NSBackwardsSearch];
+        NSRange search = [location rangeOfCharacterFromSet:locationSeparator options:NSBackwardsSearch];
         if (search.location != NSNotFound) {
             NSRange matchRange = NSMakeRange(search.location + 1, location.length - search.location - 1);
             NSNumber *value = [formatter numberFromString:[location substringWithRange:matchRange]];
