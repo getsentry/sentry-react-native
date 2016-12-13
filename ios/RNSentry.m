@@ -25,7 +25,7 @@
 }
 
 - (BOOL)eventDispatcherWillDispatchEvent:(id<RCTEvent>)event {
-    NSLog(@"%@", event);
+    //NSLog(@"%@", event);
     return NO;
 }
 
@@ -97,10 +97,11 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
         if ([frame[@"file"] isEqualToString:@"[native code]"] || nil == frame[@"function"]) {
             continue;
         }
-        Frame *newFrame = [[Frame alloc] initWithFile:[NSString stringWithFormat:@"%@", frame[@"file"]]
-                                             function:[NSString stringWithFormat:@"%@", frame[@"function"]]
-                                               module:@"module"
-                                                 line:[frame[@"lineNumber"] integerValue]];
+        Frame *newFrame = [[Frame alloc] initWithFileName:[NSString stringWithFormat:@"%@", frame[@"file"]]
+                                                 function:[NSString stringWithFormat:@"%@", frame[@"function"]]
+                                                   module:nil
+                                                     line:[frame[@"lineNumber"] integerValue]
+                                                   column:[frame[@"columnNumber"] integerValue]];
         newFrame.platform = @"javascript";
         [frameObjects addObject:newFrame];
     }
@@ -130,6 +131,15 @@ NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace) {
             location = [line substringFromIndex:methodRange.location + 1];
         }
         NSRange search = [location rangeOfCharacterFromSet:locationSeparator options:NSBackwardsSearch];
+        if (search.location != NSNotFound) {
+            NSRange matchRange = NSMakeRange(search.location + 1, location.length - search.location - 1);
+            NSNumber *value = [formatter numberFromString:[location substringWithRange:matchRange]];
+            if (value) {
+                frame[@"columnNumber"] = value;
+                location = [location substringToIndex:search.location];
+            }
+        }
+        search = [location rangeOfCharacterFromSet:locationSeparator options:NSBackwardsSearch];
         if (search.location != NSNotFound) {
             NSRange matchRange = NSMakeRange(search.location + 1, location.length - search.location - 1);
             NSNumber *value = [formatter numberFromString:[location substringWithRange:matchRange]];
