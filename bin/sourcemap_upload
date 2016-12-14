@@ -1,0 +1,6 @@
+#!/bin/bash
+curl -o "./index.ios.map" "http://localhost:8081/index.ios.map?platform=ios&dev=true&minify=false"
+curl -o "./index.ios.bundle" "http://localhost:8081/index.ios.bundle?platform=ios&dev=true&minify=false"
+sentry-cli releases new $1
+sentry-cli releases files $1 upload-sourcemaps . --ext "bundle" --ext "map"
+rm index.ios.*
