@@ -22,9 +22,9 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		140ED2AC1D01E1AD002B40FF /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
 		146834051AC3E58100842450 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
+		1E54AFF0E112427185BC9E20 /* libRNSentry.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C1687E23A2F46E392111274 /* libRNSentry.a */; };
 		6310CA9D1DF0618300BFFE52 /* KSCrash.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6310CA9B1DF0618300BFFE52 /* KSCrash.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6310CA9E1DF0618300BFFE52 /* SentrySwift.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6310CA9C1DF0618300BFFE52 /* SentrySwift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		72E8D2B2E4394994BD6E412F /* libRNSentry.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 50D53F7CB3D44745B982C0E7 /* libRNSentry.a */; };
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 /* End PBXBuildFile section */
 
@@ -141,9 +141,9 @@
 			remoteGlobalIDString = 2D2A28131D9B038B00D4039D;
 			remoteInfo = "React-tvOS";
 		};
-		6310CBC51DF0790500BFFE52 /* PBXContainerItemProxy */ = {
+		633C37C81E0139F600A74C63 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D924BED448084A4FA25A2FAC /* RNSentry.xcodeproj */;
+			containerPortal = D7F293AEC0AF44759E426931 /* RNSentry.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 134814201AA4EA6300B7C361;
 			remoteInfo = RNSentry;
@@ -198,12 +198,12 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ReactNativeExample/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ReactNativeExample/main.m; sourceTree = "<group>"; };
 		146833FF1AC3E56700842450 /* React.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = React.xcodeproj; path = "../node_modules/react-native/React/React.xcodeproj"; sourceTree = "<group>"; };
-		50D53F7CB3D44745B982C0E7 /* libRNSentry.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNSentry.a; sourceTree = "<group>"; };
+		4C1687E23A2F46E392111274 /* libRNSentry.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNSentry.a; sourceTree = "<group>"; };
 		6310CA9B1DF0618300BFFE52 /* KSCrash.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = KSCrash.framework; path = "../node_modules/sentry-react-native/ios/KSCrash.framework"; sourceTree = "<group>"; };
 		6310CA9C1DF0618300BFFE52 /* SentrySwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SentrySwift.framework; path = "../node_modules/sentry-react-native/ios/SentrySwift.framework"; sourceTree = "<group>"; };
 		78C398B01ACF4ADC00677621 /* RCTLinking.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTLinking.xcodeproj; path = "../node_modules/react-native/Libraries/LinkingIOS/RCTLinking.xcodeproj"; sourceTree = "<group>"; };
 		832341B01AAA6A8300B99B32 /* RCTText.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTText.xcodeproj; path = "../node_modules/react-native/Libraries/Text/RCTText.xcodeproj"; sourceTree = "<group>"; };
-		D924BED448084A4FA25A2FAC /* RNSentry.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNSentry.xcodeproj; path = "../node_modules/sentry-react-native/ios/RNSentry.xcodeproj"; sourceTree = "<group>"; };
+		D7F293AEC0AF44759E426931 /* RNSentry.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNSentry.xcodeproj; path = "../node_modules/sentry-react-native/ios/RNSentry.xcodeproj"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -229,7 +229,7 @@
 				832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */,
 				00C302EA1ABCBA2D00DB3ED1 /* libRCTVibration.a in Frameworks */,
 				139FDEF61B0652A700C62182 /* libRCTWebSocket.a in Frameworks */,
-				72E8D2B2E4394994BD6E412F /* libRNSentry.a in Frameworks */,
+				1E54AFF0E112427185BC9E20 /* libRNSentry.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -336,10 +336,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		6310CBB11DF0790500BFFE52 /* Products */ = {
+		633C37B41E0139F600A74C63 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				6310CBC61DF0790500BFFE52 /* libRNSentry.a */,
+				633C37C91E0139F600A74C63 /* libRNSentry.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -366,7 +366,7 @@
 				832341B01AAA6A8300B99B32 /* RCTText.xcodeproj */,
 				00C302DF1ABCB9EE00DB3ED1 /* RCTVibration.xcodeproj */,
 				139FDEE61B06529A00C62182 /* RCTWebSocket.xcodeproj */,
-				D924BED448084A4FA25A2FAC /* RNSentry.xcodeproj */,
+				D7F293AEC0AF44759E426931 /* RNSentry.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -457,6 +457,9 @@
 						CreatedOnToolsVersion = 6.2;
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
+					13B07F861A680F5B00A75B9A = {
+						DevelopmentTeam = 97JCY7859U;
+					};
 				};
 			};
 			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "ReactNativeExample" */;
@@ -512,8 +515,8 @@
 					ProjectRef = 146833FF1AC3E56700842450 /* React.xcodeproj */;
 				},
 				{
-					ProductGroup = 6310CBB11DF0790500BFFE52 /* Products */;
-					ProjectRef = D924BED448084A4FA25A2FAC /* RNSentry.xcodeproj */;
+					ProductGroup = 633C37B41E0139F600A74C63 /* Products */;
+					ProjectRef = D7F293AEC0AF44759E426931 /* RNSentry.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -630,11 +633,11 @@
 			remoteRef = 6310CA251DF05FD800BFFE52 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		6310CBC61DF0790500BFFE52 /* libRNSentry.a */ = {
+		633C37C91E0139F600A74C63 /* libRNSentry.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libRNSentry.a;
-			remoteRef = 6310CBC51DF0790500BFFE52 /* PBXContainerItemProxy */;
+			remoteRef = 633C37C81E0139F600A74C63 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		78C398B91ACF4ADC00677621 /* libRCTLinking.a */ = {
@@ -787,6 +790,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = NO;
+				DEVELOPMENT_TEAM = 97JCY7859U;
 				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../node_modules/sentry-react-native/ios";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -801,6 +805,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.sentry.ReactNativeExample;
 				PRODUCT_NAME = ReactNativeExample;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -812,6 +817,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 97JCY7859U;
 				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../node_modules/sentry-react-native/ios";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -826,6 +832,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.sentry.ReactNativeExample;
 				PRODUCT_NAME = ReactNativeExample;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
