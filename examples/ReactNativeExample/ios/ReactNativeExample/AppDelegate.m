@@ -11,6 +11,13 @@
 
 #import "RCTBundleURLProvider.h"
 #import "RCTRootView.h"
+#import "RNSentry.h"
+
+@interface AppDelegate()
+
+@property (nonatomic, strong) RNSentry *sentry;
+
+@end
 
 @implementation AppDelegate
 
@@ -20,10 +27,32 @@
 
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
 
+  /*
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
                                                       moduleName:@"ReactNativeExample"
                                                initialProperties:nil
                                                    launchOptions:launchOptions];
+  */
+  /*
+  RCTBridge *bridge = [[RCTBridge alloc] initWithBundleURL:jsCodeLocation
+                                            moduleProvider:^NSArray<id<RCTBridgeModule>> *{
+                                              id<RCTExceptionsManagerDelegate> customDelegate = self;
+                                              return @[[[RCTExceptionsManager alloc] initWithDelegate:customDelegate]];
+                                            }
+                                             launchOptions:launchOptions];
+  
+  */
+  self.sentry = [[RNSentry alloc] init];
+  RCTBridge *bridge = [[RCTBridge alloc] initWithBundleURL:jsCodeLocation
+                                            moduleProvider:^NSArray<id<RCTBridgeModule>> *{
+                                              id<RCTExceptionsManagerDelegate> customDelegate = self.sentry;
+                                              NSLog(@"initWithBundleURL %@", customDelegate);
+                                              return @[[[RCTExceptionsManager alloc] initWithDelegate:customDelegate]];
+                                                    }
+                                             launchOptions:launchOptions];
+   
+  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"ReactNativeExample" initialProperties:nil];
+                                              
   rootView.backgroundColor = [[UIColor alloc] initWithRed:1.0f green:1.0f blue:1.0f alpha:1];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];

@@ -286,6 +286,7 @@ SWIFT_CLASS("_TtC11SentrySwift5Frame")
 
 enum SentryLog : NSInteger;
 @protocol SentryClientUserFeedbackDelegate;
+@class NSError;
 @class UserFeedbackTableViewController;
 @class UINavigationController;
 @class UserFeedbackViewModel;
@@ -311,6 +312,7 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, copy) NSString * _No
 */
 - (nullable instancetype)initWithDsnString:(NSString * _Nonnull)dsnString;
 - (void)snapshotStacktrace;
+- (void)reportReactNativeFatalCrashWithError:(NSError * _Nonnull)error stacktrace:(NSArray * _Nonnull)stacktrace;
 - (void)captureMessage:(NSString * _Nonnull)message level:(enum SentrySeverity)level;
 /**
   Reports given event to Sentry
@@ -335,7 +337,6 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, copy) NSString * _No
 - (void)startCrashHandler;
 @end
 
-@class NSError;
 
 @interface SentryClient (SWIFT_EXTENSION(SentrySwift))
 - (void)captureErrorWithError:(NSError * _Nonnull)error file:(NSString * _Nonnull)file line:(NSInteger)line function:(NSString * _Nonnull)function;
@@ -380,6 +381,11 @@ SWIFT_CLASS("_TtC11SentrySwift10Stacktrace")
 @property (nonatomic, readonly, copy) NSArray<Frame *> * _Nonnull frames;
 - (nonnull instancetype)initWithFrames:(NSArray<Frame *> * _Nullable)frames OBJC_DESIGNATED_INITIALIZER;
 - (nonnull instancetype)init SWIFT_UNAVAILABLE;
+@end
+
+
+@interface Stacktrace (SWIFT_EXTENSION(SentrySwift))
++ (Stacktrace * _Nullable)convertReactNativeStacktraceWithStacktrace:(NSArray<NSDictionary<NSString *, id> *> * _Nullable)stacktrace;
 @end
 
 

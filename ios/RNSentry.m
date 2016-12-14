@@ -1,13 +1,10 @@
 
 #import "RNSentry.h"
 #import "RCTConvert.h"
-#import "RCTBridge.h"
 
 @import SentrySwift;
 
 @implementation RNSentry
-
-@synthesize bridge = _bridge;
 
 + (NSNumberFormatter *)numberFormatter {
     static dispatch_once_t onceToken;
@@ -24,18 +21,13 @@
     return dispatch_get_main_queue();
 }
 
-- (BOOL)eventDispatcherWillDispatchEvent:(id<RCTEvent>)event {
-    //NSLog(@"%@", event);
-    return NO;
-}
-
 RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
 {
     [SentryClient setShared:[[SentryClient alloc] initWithDsnString:dsnString]];
+    NSLog(@"INIT %@", dsnString);
     [[SentryClient shared] startCrashHandler];
-    [self.bridge.eventDispatcher addDispatchObserver:self];
 }
 
 RCT_EXPORT_METHOD(captureMessage:(NSString * _Nonnull)message level:(int)level)
@@ -65,15 +57,14 @@ RCT_EXPORT_METHOD(crash)
 
 RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 {
-    NSArray <Frame *>*frames = nil;
-    Stacktrace *stacktrace = nil;
+    [self captureEvent:[RCTConvert NSString:event[@"errorMessage"]]
+            stacktrace:SentryParseJavaScriptStacktrace([RCTConvert NSString:event[@"stacktrace"]])];
+}
+
+- (void)captureEvent:(NSString *)message stacktrace:(NSArray *)reactStacktrace {
+    Stacktrace *stacktrace = [Stacktrace convertReactNativeStacktraceWithStacktrace:reactStacktrace];
     
-    if (event[@"stacktrace"]) {
-        frames = SentryParseJavaScriptStacktrace([RCTConvert NSString:event[@"stacktrace"]]);
-        stacktrace = [[Stacktrace alloc] initWithFrames:[self convertFramesToObject:frames]];
-    }
-    
-    Event *eventToSend = [[Event alloc] init:[RCTConvert NSString:event[@"errorMessage"]]
+    Event *eventToSend = [[Event alloc] init:message
                                    timestamp:[NSDate date]
                                        level:SentrySeverityFatal
                                       logger:nil
@@ -89,23 +80,6 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
                                   stacktrace:stacktrace];
     
     [[SentryClient shared] captureEvent:eventToSend];
-}
-
-- (NSArray <Frame *>*)convertFramesToObject:(NSArray *)frames {
-    NSMutableArray <Frame *> *frameObjects = [NSMutableArray array];
-    for (NSDictionary *frame in frames) {
-        if ([frame[@"file"] isEqualToString:@"[native code]"] || nil == frame[@"function"]) {
-            continue;
-        }
-        Frame *newFrame = [[Frame alloc] initWithFileName:[NSString stringWithFormat:@"%@", frame[@"file"]]
-                                                 function:[NSString stringWithFormat:@"%@", frame[@"function"]]
-                                                   module:nil
-                                                     line:[frame[@"lineNumber"] integerValue]
-                                                   column:[frame[@"columnNumber"] integerValue]];
-        newFrame.platform = @"javascript";
-        [frameObjects addObject:newFrame];
-    }
-    return frameObjects;
 }
 
 - (NSDictionary *)sanitizeDictionary:(NSDictionary *)dictionary {
@@ -127,7 +101,7 @@ NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace) {
         NSString *location = line;
         NSRange methodRange = [line rangeOfCharacterFromSet:methodSeparator];
         if (methodRange.location != NSNotFound) {
-            frame[@"function"] = [line substringToIndex:methodRange.location];
+            frame[@"methodName"] = [line substringToIndex:methodRange.location];
             location = [line substringFromIndex:methodRange.location + 1];
         }
         NSRange search = [location rangeOfCharacterFromSet:locationSeparator options:NSBackwardsSearch];
@@ -135,7 +109,7 @@ NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace) {
             NSRange matchRange = NSMakeRange(search.location + 1, location.length - search.location - 1);
             NSNumber *value = [formatter numberFromString:[location substringWithRange:matchRange]];
             if (value) {
-                frame[@"columnNumber"] = value;
+                frame[@"column"] = value;
                 location = [location substringToIndex:search.location];
             }
         }
@@ -158,6 +132,20 @@ NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace) {
         [frames addObject:frame];
     }
     return frames;
+}
+
+#pragma mark RCTExceptionsManagerDelegate
+
+- (void)handleSoftJSExceptionWithMessage:(NSString *)message stack:(NSArray *)stack exceptionId:(NSNumber *)exceptionId {
+    [self captureEvent:message stacktrace:stack];
+}
+
+- (void)handleFatalJSExceptionWithMessage:(NSString *)message stack:(NSArray *)stack exceptionId:(NSNumber *)exceptionId {
+    #ifndef DEBUG
+    RCTSetFatalHandler(^(NSError *error){
+        [[SentryClient shared] reportReactNativeFatalCrashWithError:error stacktrace:stack];
+    });
+    #endif
 }
 
 @end

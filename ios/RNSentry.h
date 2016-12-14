@@ -1,8 +1,8 @@
 
 #import "RCTBridgeModule.h"
-#import "RCTEventDispatcher.h"
+#import "RCTExceptionsManager.h"
 
-@interface RNSentry : NSObject <RCTBridgeModule, RCTEventDispatcherObserver>
+@interface RNSentry : NSObject <RCTBridgeModule, RCTExceptionsManagerDelegate>
 
 @end
   

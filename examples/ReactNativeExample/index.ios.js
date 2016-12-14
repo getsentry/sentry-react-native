@@ -36,8 +36,10 @@ SentryClient.shared.setTags({
 });
 
 export default class ReactNativeExample extends Component {
-  _throwError() {
+  _sendMessage() {
     SentryClient.shared.captureMessage("TEST message", SentrySeverity.Warning);
+  }
+  _throwError() {
     throw new Error('SentryClient: Test throw error');
   }
   render() {
@@ -51,6 +53,11 @@ export default class ReactNativeExample extends Component {
           styleDisabled={{color: 'red'}}
           onPress={() => this._throwError()}
           title="throw error!" />
+        <Button
+          style={{fontSize: 20, color: 'green'}}
+          styleDisabled={{color: 'red'}}
+          onPress={() => this._sendMessage()}
+          title="send message" />
       </View>
     );
   }
