@@ -20,7 +20,7 @@ import {
 } from 'sentry-react-native';
 
 SentryClient.setLogLevel(SentryLog.Debug);
-SentryClient.shared = new SentryClient("Your DSN");
+SentryClient.shared = new SentryClient("http://bf9398c8660c42ad89fdeac75c11a266:8eeb1d825c3942b384456c4356477ada@dgriesser-7b0957b1732f38a5e205.eu.ngrok.io/1");
 
 SentryClient.shared.setExtras({
   "a_thing": 3,
@@ -42,6 +42,9 @@ export default class ReactNativeExample extends Component {
   _throwError() {
     throw new Error('SentryClient: Test throw error');
   }
+  _nativeCrash() {
+    SentryClient.shared.nativeCrash();
+  }
   render() {
     return (
       <View style={styles.container}>
@@ -53,6 +56,11 @@ export default class ReactNativeExample extends Component {
           styleDisabled={{color: 'red'}}
           onPress={() => this._throwError()}
           title="throw error!" />
+        <Button
+          style={{fontSize: 20, color: 'green'}}
+          styleDisabled={{color: 'red'}}
+          onPress={() => this._nativeCrash()}
+          title="native crash!" />
         <Button
           style={{fontSize: 20, color: 'green'}}
           styleDisabled={{color: 'red'}}
