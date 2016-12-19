@@ -21,7 +21,7 @@ import {
 } from 'sentry-react-native';
 
 SentryClient.setLogLevel(SentryLog.Debug);
-SentryClient.shared = new SentryClient("http://bf9398c8660c42ad89fdeac75c11a266:8eeb1d825c3942b384456c4356477ada@dgriesser-7b0957b1732f38a5e205.eu.ngrok.io/1");
+SentryClient.shared = new SentryClient("Your DSN");
 
 SentryClient.shared.setExtras({
   "a_thing": 3,

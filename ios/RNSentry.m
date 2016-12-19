@@ -25,13 +25,13 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
 {
-    [SentryClient setShared:[[SentryClient alloc] initWithDsnString:dsnString]];
+    [SentryClient setShared:[[SentryClient alloc] initWithDsnString:[RCTConvert NSString:dsnString]]];
     [[SentryClient shared] startCrashHandler];
 }
 
 RCT_EXPORT_METHOD(captureMessage:(NSString * _Nonnull)message level:(int)level)
 {
-    [[SentryClient shared] captureMessage:message level:level];
+    [[SentryClient shared] captureMessage:[RCTConvert NSString:message] level:level];
 }
 
 RCT_EXPORT_METHOD(setLogLevel:(int)level)
@@ -41,12 +41,12 @@ RCT_EXPORT_METHOD(setLogLevel:(int)level)
 
 RCT_EXPORT_METHOD(setExtras:(NSDictionary * _Nonnull)extras)
 {
-    [SentryClient shared].extra = extras;
+    [SentryClient shared].extra = [RCTConvert NSDictionary:extras];
 }
 
 RCT_EXPORT_METHOD(setTags:(NSDictionary * _Nonnull)tags)
 {
-    [SentryClient shared].tags = [self sanitizeDictionary:tags];
+    [SentryClient shared].tags = [self sanitizeDictionary:[RCTConvert NSDictionary:tags]];
 }
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary * _Nonnull)user)
@@ -148,11 +148,11 @@ NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace) {
 }
 
 - (void)handleFatalJSExceptionWithMessage:(NSString *)message stack:(NSArray *)stack exceptionId:(NSNumber *)exceptionId {
-    #ifndef DEBUG
+#ifndef DEBUG
     RCTSetFatalHandler(^(NSError *error){
         [[SentryClient shared] reportReactNativeFatalCrashWithError:error stacktrace:stack];
     });
-    #endif
+#endif
 }
 
 @end
