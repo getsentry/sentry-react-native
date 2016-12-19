@@ -235,10 +235,10 @@ SWIFT_CLASS("_TtC11SentrySwift5Event")
 
 SWIFT_CLASS("_TtC11SentrySwift9Exception")
 @interface Exception : NSObject
-@property (nonatomic, readonly, copy) NSString * _Nonnull value;
-@property (nonatomic, readonly, copy) NSString * _Nullable type;
+@property (nonatomic, copy) NSString * _Nonnull value;
+@property (nonatomic, copy) NSString * _Nullable type;
 @property (nonatomic, copy) NSDictionary<NSString *, NSDictionary<NSString *, NSString *> *> * _Nullable mechanism;
-@property (nonatomic, readonly, copy) NSString * _Nullable module;
+@property (nonatomic, copy) NSString * _Nullable module;
 @property (nonatomic) BOOL userReported;
 @property (nonatomic, strong) Thread * _Nullable thread;
 /**
@@ -385,7 +385,7 @@ SWIFT_CLASS("_TtC11SentrySwift10Stacktrace")
 
 
 @interface Stacktrace (SWIFT_EXTENSION(SentrySwift))
-+ (Stacktrace * _Nullable)convertReactNativeStacktraceWithStacktrace:(NSArray<NSDictionary<NSString *, id> *> * _Nullable)stacktrace;
++ (Stacktrace * _Nullable)convertReactNativeStacktrace:(NSArray<NSDictionary<NSString *, id> *> * _Nullable)stacktrace;
 @end
 
 

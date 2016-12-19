@@ -26,7 +26,6 @@ RCT_EXPORT_MODULE()
 RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
 {
     [SentryClient setShared:[[SentryClient alloc] initWithDsnString:dsnString]];
-    NSLog(@"INIT %@", dsnString);
     [[SentryClient shared] startCrashHandler];
 }
 
@@ -50,6 +49,14 @@ RCT_EXPORT_METHOD(setTags:(NSDictionary * _Nonnull)tags)
     [SentryClient shared].tags = [self sanitizeDictionary:tags];
 }
 
+RCT_EXPORT_METHOD(setUser:(NSDictionary * _Nonnull)user)
+{
+    [SentryClient shared].user = [[User alloc] initWithId:[RCTConvert NSString:user[@"userID"]]
+                                                    email:[RCTConvert NSString:user[@"email"]]
+                                                 username:[RCTConvert NSString:user[@"username"]]
+                                                    extra:[RCTConvert NSDictionary:user[@"extra"]]];
+}
+
 RCT_EXPORT_METHOD(crash)
 {
     [[SentryClient shared] crash];
@@ -62,7 +69,7 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 }
 
 - (void)captureEvent:(NSString *)message stacktrace:(NSArray *)reactStacktrace {
-    Stacktrace *stacktrace = [Stacktrace convertReactNativeStacktraceWithStacktrace:reactStacktrace];
+    Stacktrace *stacktrace = [Stacktrace convertReactNativeStacktrace:reactStacktrace];
     
     Event *eventToSend = [[Event alloc] init:message
                                    timestamp:[NSDate date]
@@ -126,7 +133,7 @@ NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace) {
         if (bundlePath) {
             search = [location rangeOfString:bundlePath];
             if (search.location != NSNotFound)
-                location = [location substringFromIndex:search.location + search.length + 1];
+            location = [location substringFromIndex:search.location + search.length + 1];
         }
         frame[@"file"] = location;
         [frames addObject:frame];

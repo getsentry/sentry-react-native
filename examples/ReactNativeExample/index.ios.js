@@ -16,7 +16,8 @@ import {
 import { 
   SentryClient, 
   SentrySeverity, 
-  SentryLog 
+  SentryLog,
+  User
 } from 'sentry-react-native';
 
 SentryClient.setLogLevel(SentryLog.Debug);
@@ -34,6 +35,15 @@ SentryClient.shared.setTags({
   "environment": "production",
   "react": true
 });
+
+SentryClient.shared.setUser(new User(
+  "12341",
+  "john@apple.com",
+  "username",
+  {
+    "is_admin": false
+  }
+));
 
 export default class ReactNativeExample extends Component {
   _sendMessage() {
