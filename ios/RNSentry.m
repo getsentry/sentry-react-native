@@ -70,6 +70,8 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 
 - (void)captureEvent:(NSString *)message stacktrace:(NSArray *)reactStacktrace {
     Stacktrace *stacktrace = [Stacktrace convertReactNativeStacktrace:reactStacktrace];
+    Exception *exception = [[Exception alloc] initWithValue:message type:@"type" mechanism:nil module:@""];
+    exception.thread = [[Thread alloc] initWithId:99 crashed:YES current:YES name:@"React Native" stacktrace:stacktrace reason:message];
     
     Event *eventToSend = [[Event alloc] init:message
                                    timestamp:[NSDate date]
@@ -83,8 +85,8 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
                                        extra:nil
                                  fingerprint:nil
                                         user:nil
-                                  exceptions:nil
-                                  stacktrace:stacktrace];
+                                  exceptions:@[exception]
+                                  stacktrace:nil];
     
     [[SentryClient shared] captureEvent:eventToSend];
 }
