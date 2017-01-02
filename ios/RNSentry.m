@@ -51,10 +51,10 @@ RCT_EXPORT_METHOD(setTags:(NSDictionary * _Nonnull)tags)
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary * _Nonnull)user)
 {
-    [SentryClient shared].user = [[User alloc] initWithId:[RCTConvert NSString:user[@"userID"]]
-                                                    email:[RCTConvert NSString:user[@"email"]]
-                                                 username:[RCTConvert NSString:user[@"username"]]
-                                                    extra:[RCTConvert NSDictionary:user[@"extra"]]];
+    [SentryClient shared].user = [[SentryUser alloc] initWithId:[RCTConvert NSString:user[@"userID"]]
+                                                          email:[RCTConvert NSString:user[@"email"]]
+                                                       username:[RCTConvert NSString:user[@"username"]]
+                                                          extra:[RCTConvert NSDictionary:user[@"extra"]]];
 }
 
 RCT_EXPORT_METHOD(crash)
@@ -69,24 +69,24 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 }
 
 - (void)captureEvent:(NSString *)message stacktrace:(NSArray *)reactStacktrace {
-    Stacktrace *stacktrace = [Stacktrace convertReactNativeStacktrace:reactStacktrace];
-    Exception *exception = [[Exception alloc] initWithValue:message type:@"type" mechanism:nil module:@""];
-    exception.thread = [[Thread alloc] initWithId:99 crashed:YES current:YES name:@"React Native" stacktrace:stacktrace reason:message];
+    SentryStacktrace *stacktrace = [SentryStacktrace convertReactNativeStacktrace:reactStacktrace];
+    SentryException *exception = [[SentryException alloc] initWithValue:message type:@"type" mechanism:nil module:@""];
+    exception.thread = [[SentryThread alloc] initWithId:99 crashed:YES current:YES name:@"React Native" stacktrace:stacktrace reason:message];
     
-    Event *eventToSend = [[Event alloc] init:message
-                                   timestamp:[NSDate date]
-                                       level:SentrySeverityFatal
-                                      logger:nil
-                                     culprit:nil
-                                  serverName:nil
-                                     release:nil
-                                        tags:nil
-                                     modules:nil
-                                       extra:nil
-                                 fingerprint:nil
-                                        user:nil
-                                  exceptions:@[exception]
-                                  stacktrace:nil];
+    SentryEvent *eventToSend = [[SentryEvent alloc] init:message
+                                               timestamp:[NSDate date]
+                                                   level:SentrySeverityFatal
+                                                  logger:nil
+                                                 culprit:nil
+                                              serverName:nil
+                                                 release:nil
+                                                    tags:nil
+                                                 modules:nil
+                                                   extra:nil
+                                             fingerprint:nil
+                                                    user:nil
+                                              exceptions:@[exception]
+                                              stacktrace:nil];
     
     [[SentryClient shared] captureEvent:eventToSend];
 }

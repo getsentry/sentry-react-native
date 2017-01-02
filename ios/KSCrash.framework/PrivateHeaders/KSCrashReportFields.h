@@ -165,6 +165,7 @@
 #pragma mark - Report -
 
 #define KSCrashField_Crash                 "crash"
+#define KSCrashField_Debug                 "debug"
 #define KSCrashField_Diagnosis             "diagnosis"
 #define KSCrashField_ID                    "id"
 #define KSCrashField_ProcessName           "process_name"
@@ -182,9 +183,41 @@
 #define KSCrashField_Memory                "memory"
 #define KSCrashField_Threads               "threads"
 #define KSCrashField_User                  "user"
+#define KSCrashField_ConsoleLog            "console_log"
 
 #pragma mark Incomplete
 #define KSCrashField_Incomplete            "incomplete"
 #define KSCrashField_RecrashReport         "recrash_report"
+
+#pragma mark System
+#define KSCrashField_AppStartTime          "app_start_time"
+#define KSCrashField_AppUUID               "app_uuid"
+#define KSCrashField_BootTime              "boot_time"
+#define KSCrashField_BundleID              "CFBundleIdentifier"
+#define KSCrashField_BundleName            "CFBundleName"
+#define KSCrashField_BundleShortVersion    "CFBundleShortVersionString"
+#define KSCrashField_BundleVersion         "CFBundleVersion"
+#define KSCrashField_CPUArch               "cpu_arch"
+#define KSCrashField_CPUType               "cpu_type"
+#define KSCrashField_CPUSubType            "cpu_subtype"
+#define KSCrashField_BinaryCPUType         "binary_cpu_type"
+#define KSCrashField_BinaryCPUSubType      "binary_cpu_subtype"
+#define KSCrashField_DeviceAppHash         "device_app_hash"
+#define KSCrashField_Executable            "CFBundleExecutable"
+#define KSCrashField_ExecutablePath        "CFBundleExecutablePath"
+#define KSCrashField_Jailbroken            "jailbroken"
+#define KSCrashField_KernelVersion         "kernel_version"
+#define KSCrashField_Machine               "machine"
+#define KSCrashField_Model                 "model"
+#define KSCrashField_OSVersion             "os_version"
+#define KSCrashField_ParentProcessID       "parent_process_id"
+#define KSCrashField_ProcessID             "process_id"
+#define KSCrashField_ProcessName           "process_name"
+#define KSCrashField_Size                  "size"
+#define KSCrashField_Storage               "storage"
+#define KSCrashField_SystemName            "system_name"
+#define KSCrashField_SystemVersion         "system_version"
+#define KSCrashField_TimeZone              "time_zone"
+#define KSCrashField_BuildType             "build_type"
 
 #endif

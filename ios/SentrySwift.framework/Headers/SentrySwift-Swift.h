@@ -128,8 +128,8 @@ enum SentrySeverity : NSInteger;
 /**
   A class used to represent the breadcrumbs leading up to an events
 */
-SWIFT_CLASS("_TtC11SentrySwift10Breadcrumb")
-@interface Breadcrumb : NSObject
+SWIFT_CLASS_NAMED("Breadcrumb")
+@interface SentryBreadcrumb : NSObject
 @property (nonatomic, readonly, strong) NSDate * _Nonnull timestamp;
 @property (nonatomic, copy) NSString * _Nonnull category;
 @property (nonatomic, copy) NSString * _Nullable type;
@@ -152,7 +152,7 @@ SWIFT_CLASS("_TtC11SentrySwift10Breadcrumb")
 @end
 
 
-@interface Breadcrumb (SWIFT_EXTENSION(SentrySwift))
+@interface SentryBreadcrumb (SWIFT_EXTENSION(SentrySwift))
 @end
 
 
@@ -166,9 +166,9 @@ SWIFT_CLASS("_TtC11SentrySwift15BreadcrumbStore")
 /**
   Adds given crumb to the client store
 */
-- (void)add:(Breadcrumb * _Nonnull)crumb;
+- (void)add:(SentryBreadcrumb * _Nonnull)crumb;
 /**
-  Clears the store for given type or all if none specified
+  Clears the store if crumbs exist
 */
 - (void)clear;
 - (nonnull instancetype)init OBJC_DESIGNATED_INITIALIZER;
@@ -178,26 +178,16 @@ SWIFT_CLASS("_TtC11SentrySwift15BreadcrumbStore")
 @interface BreadcrumbStore (SWIFT_EXTENSION(SentrySwift))
 @end
 
-
-SWIFT_CLASS("_TtC11SentrySwift8Contexts")
-@interface Contexts : NSObject
-- (nonnull instancetype)init OBJC_DESIGNATED_INITIALIZER;
-@end
-
-
-@interface Contexts (SWIFT_EXTENSION(SentrySwift))
-@end
-
-@class User;
-@class Thread;
-@class Exception;
-@class Stacktrace;
+@class SentryUser;
+@class SentryThread;
+@class SentryException;
+@class SentryStacktrace;
 
 /**
   A class that defines an event to be reported
 */
-SWIFT_CLASS("_TtC11SentrySwift5Event")
-@interface Event : NSObject
+SWIFT_CLASS_NAMED("Event")
+@interface SentryEvent : NSObject
 @property (nonatomic, readonly, copy) NSString * _Nonnull eventID;
 @property (nonatomic, copy) NSString * _Nonnull message;
 @property (nonatomic, strong) NSDate * _Nonnull timestamp;
@@ -211,11 +201,11 @@ SWIFT_CLASS("_TtC11SentrySwift5Event")
 @property (nonatomic, copy) NSDictionary<NSString *, NSString *> * _Nullable modules;
 @property (nonatomic, copy) NSDictionary<NSString *, id> * _Nonnull extra;
 @property (nonatomic, copy) NSArray<NSString *> * _Nullable fingerprint;
-@property (nonatomic, strong) User * _Nullable user;
-@property (nonatomic, copy) NSArray<Thread *> * _Nullable threads;
-@property (nonatomic, copy) NSArray<Exception *> * _Nullable exceptions;
-@property (nonatomic, strong) Stacktrace * _Nullable stacktrace;
-- (nonnull instancetype)init:(NSString * _Nonnull)message timestamp:(NSDate * _Nonnull)timestamp level:(enum SentrySeverity)level logger:(NSString * _Nullable)logger culprit:(NSString * _Nullable)culprit serverName:(NSString * _Nullable)serverName release:(NSString * _Nullable)release tags:(NSDictionary<NSString *, NSString *> * _Nonnull)tags modules:(NSDictionary<NSString *, NSString *> * _Nullable)modules extra:(NSDictionary<NSString *, id> * _Nonnull)extra fingerprint:(NSArray<NSString *> * _Nullable)fingerprint user:(User * _Nullable)user exceptions:(NSArray<Exception *> * _Nullable)exceptions stacktrace:(Stacktrace * _Nullable)stacktrace OBJC_DESIGNATED_INITIALIZER;
+@property (nonatomic, strong) SentryUser * _Nullable user;
+@property (nonatomic, copy) NSArray<SentryThread *> * _Nullable threads;
+@property (nonatomic, copy) NSArray<SentryException *> * _Nullable exceptions;
+@property (nonatomic, strong) SentryStacktrace * _Nullable stacktrace;
+- (nonnull instancetype)init:(NSString * _Nonnull)message timestamp:(NSDate * _Nonnull)timestamp level:(enum SentrySeverity)level logger:(NSString * _Nullable)logger culprit:(NSString * _Nullable)culprit serverName:(NSString * _Nullable)serverName release:(NSString * _Nullable)release tags:(NSDictionary<NSString *, NSString *> * _Nonnull)tags modules:(NSDictionary<NSString *, NSString *> * _Nullable)modules extra:(NSDictionary<NSString *, id> * _Nonnull)extra fingerprint:(NSArray<NSString *> * _Nullable)fingerprint user:(SentryUser * _Nullable)user exceptions:(NSArray<SentryException *> * _Nullable)exceptions stacktrace:(SentryStacktrace * _Nullable)stacktrace OBJC_DESIGNATED_INITIALIZER;
 /**
   This will set threads and debugMeta if not nil with snapshot of stacktrace if called
   SentryClient.shared?.snapshotStacktrace()
@@ -225,22 +215,22 @@ SWIFT_CLASS("_TtC11SentrySwift5Event")
 @end
 
 
-@interface Event (SWIFT_EXTENSION(SentrySwift))
+@interface SentryEvent (SWIFT_EXTENSION(SentrySwift))
 @end
 
 
-@interface Event (SWIFT_EXTENSION(SentrySwift))
+@interface SentryEvent (SWIFT_EXTENSION(SentrySwift))
 @end
 
 
-SWIFT_CLASS("_TtC11SentrySwift9Exception")
-@interface Exception : NSObject
+SWIFT_CLASS_NAMED("Exception")
+@interface SentryException : NSObject
 @property (nonatomic, copy) NSString * _Nonnull value;
 @property (nonatomic, copy) NSString * _Nullable type;
 @property (nonatomic, copy) NSDictionary<NSString *, NSDictionary<NSString *, NSString *> *> * _Nullable mechanism;
 @property (nonatomic, copy) NSString * _Nullable module;
 @property (nonatomic) BOOL userReported;
-@property (nonatomic, strong) Thread * _Nullable thread;
+@property (nonatomic, strong) SentryThread * _Nullable thread;
 /**
   Creates \code
   Exception
@@ -252,12 +242,12 @@ SWIFT_CLASS("_TtC11SentrySwift9Exception")
 @end
 
 
-@interface Exception (SWIFT_EXTENSION(SentrySwift))
+@interface SentryException (SWIFT_EXTENSION(SentrySwift))
 @end
 
 
-SWIFT_CLASS("_TtC11SentrySwift5Frame")
-@interface Frame : NSObject
+SWIFT_CLASS_NAMED("Frame")
+@interface SentryFrame : NSObject
 @property (nonatomic, copy) NSString * _Nullable fileName;
 @property (nonatomic, copy) NSString * _Nullable function;
 @property (nonatomic, copy) NSString * _Nullable module;
@@ -277,19 +267,28 @@ SWIFT_CLASS("_TtC11SentrySwift5Frame")
 @end
 
 
-@interface Frame (SWIFT_EXTENSION(SentrySwift))
+@interface SentryFrame (SWIFT_EXTENSION(SentrySwift))
 @end
+
+typedef SWIFT_ENUM_NAMED(NSInteger, SentryLog, "Log") {
+  SentryLogNone = 0,
+  SentryLogError = 1,
+  SentryLogDebug = 2,
+};
 
 
 @interface NSDate (SWIFT_EXTENSION(SentrySwift))
 @end
 
-enum SentryLog : NSInteger;
-@protocol SentryClientUserFeedbackDelegate;
+
+@interface NSLock (SWIFT_EXTENSION(SentrySwift))
+@end
+
 @class NSError;
 @class UserFeedbackTableViewController;
 @class UINavigationController;
-@class UserFeedbackViewModel;
+@class SentryUserFeedbackViewModel;
+@protocol SentryClientUserFeedbackDelegate;
 
 SWIFT_CLASS("_TtC11SentrySwift12SentryClient")
 @interface SentryClient : NSObject
@@ -302,11 +301,11 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class) enum SentryLog logLevel;)
 SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, copy) NSString * _Nonnull versionString;)
 + (NSString * _Nonnull)versionString;
 @property (nonatomic, strong) BreadcrumbStore * _Nonnull breadcrumbs;
-@property (nonatomic, strong) id <SentryClientUserFeedbackDelegate> _Nullable delegate;
+@property (nonatomic, weak) id <SentryClientUserFeedbackDelegate> _Nullable delegate;
 @property (nonatomic, copy) NSString * _Nullable releaseVersion;
 @property (nonatomic, copy) NSDictionary<NSString *, NSString *> * _Nonnull tags;
 @property (nonatomic, copy) NSDictionary<NSString *, id> * _Nonnull extra;
-@property (nonatomic, strong) User * _Nullable user;
+@property (nonatomic, strong) SentryUser * _Nullable user;
 /**
   Creates a Sentry object iff a valid DSN is provided
 */
@@ -317,7 +316,7 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, copy) NSString * _No
 /**
   Reports given event to Sentry
 */
-- (void)captureEvent:(Event * _Nonnull)event;
+- (void)captureEvent:(SentryEvent * _Nonnull)event;
 - (void)enableAutomaticBreadcrumbTracking;
 /**
   This will make you app crash, use only for test purposes
@@ -328,7 +327,7 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, copy) NSString * _No
 /**
   Call this with your custom UserFeedbackViewModel to configure the UserFeedbackViewController
 */
-- (void)enableUserFeedbackAfterFatalEventWithUserFeedbackViewModel:(UserFeedbackViewModel * _Nonnull)userFeedbackViewModel;
+- (void)enableUserFeedbackAfterFatalEventWithUserFeedbackViewModel:(SentryUserFeedbackViewModel * _Nonnull)userFeedbackViewModel;
 - (nonnull instancetype)init SWIFT_UNAVAILABLE;
 @end
 
@@ -348,10 +347,6 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, copy) NSString * _No
 
 
 @interface SentryClient (SWIFT_EXTENSION(SentrySwift))
-/**
-  Saves given event to disk
-*/
-- (void)saveEvent:(Event * _Nonnull)event;
 @end
 
 
@@ -361,13 +356,7 @@ SWIFT_PROTOCOL("_TtP11SentrySwift32SentryClientUserFeedbackDelegate_")
 - (void)userFeedbackSent;
 @end
 
-typedef SWIFT_ENUM(NSInteger, SentryLog) {
-  SentryLogNone = 0,
-  SentryLogError = 1,
-  SentryLogDebug = 2,
-};
-
-typedef SWIFT_ENUM(NSInteger, SentrySeverity) {
+typedef SWIFT_ENUM_NAMED(NSInteger, SentrySeverity, "Severity") {
   SentrySeverityFatal = 0,
   SentrySeverityError = 1,
   SentrySeverityWarning = 2,
@@ -376,41 +365,41 @@ typedef SWIFT_ENUM(NSInteger, SentrySeverity) {
 };
 
 
-SWIFT_CLASS("_TtC11SentrySwift10Stacktrace")
-@interface Stacktrace : NSObject
-@property (nonatomic, readonly, copy) NSArray<Frame *> * _Nonnull frames;
-- (nonnull instancetype)initWithFrames:(NSArray<Frame *> * _Nullable)frames OBJC_DESIGNATED_INITIALIZER;
+SWIFT_CLASS_NAMED("Stacktrace")
+@interface SentryStacktrace : NSObject
+@property (nonatomic, readonly, copy) NSArray<SentryFrame *> * _Nonnull frames;
+- (nonnull instancetype)initWithFrames:(NSArray<SentryFrame *> * _Nullable)frames OBJC_DESIGNATED_INITIALIZER;
 - (nonnull instancetype)init SWIFT_UNAVAILABLE;
 @end
 
 
-@interface Stacktrace (SWIFT_EXTENSION(SentrySwift))
-+ (Stacktrace * _Nullable)convertReactNativeStacktrace:(NSArray<NSDictionary<NSString *, id> *> * _Nullable)stacktrace;
+@interface SentryStacktrace (SWIFT_EXTENSION(SentrySwift))
++ (SentryStacktrace * _Nullable)convertReactNativeStacktrace:(NSArray<NSDictionary<NSString *, id> *> * _Nullable)stacktrace;
 @end
 
 
-@interface Stacktrace (SWIFT_EXTENSION(SentrySwift))
+@interface SentryStacktrace (SWIFT_EXTENSION(SentrySwift))
 @end
 
 
-SWIFT_CLASS("_TtC11SentrySwift6Thread")
-@interface Thread : NSObject
+SWIFT_CLASS_NAMED("Thread")
+@interface SentryThread : NSObject
 @property (nonatomic, readonly) NSInteger id;
 @property (nonatomic, readonly, copy) NSString * _Nullable name;
-@property (nonatomic, readonly, strong) Stacktrace * _Nullable stacktrace;
+@property (nonatomic, readonly, strong) SentryStacktrace * _Nullable stacktrace;
 @property (nonatomic, readonly, copy) NSString * _Nullable reason;
 /**
   Creates \code
   Exception
   \endcode object
 */
-- (nonnull instancetype)initWithId:(NSInteger)id crashed:(BOOL)crashed current:(BOOL)current name:(NSString * _Nullable)name stacktrace:(Stacktrace * _Nullable)stacktrace reason:(NSString * _Nullable)reason OBJC_DESIGNATED_INITIALIZER;
+- (nonnull instancetype)initWithId:(NSInteger)id crashed:(BOOL)crashed current:(BOOL)current name:(NSString * _Nullable)name stacktrace:(SentryStacktrace * _Nullable)stacktrace reason:(NSString * _Nullable)reason OBJC_DESIGNATED_INITIALIZER;
 @property (nonatomic, readonly, copy) NSString * _Nonnull debugDescription;
 - (nonnull instancetype)init SWIFT_UNAVAILABLE;
 @end
 
 
-@interface Thread (SWIFT_EXTENSION(SentrySwift))
+@interface SentryThread (SWIFT_EXTENSION(SentrySwift))
 @end
 
 
@@ -425,8 +414,8 @@ SWIFT_CLASS("_TtC11SentrySwift6Thread")
 /**
   A class used to represent the user attached to events
 */
-SWIFT_CLASS("_TtC11SentrySwift4User")
-@interface User : NSObject
+SWIFT_CLASS_NAMED("User")
+@interface SentryUser : NSObject
 @property (nonatomic, copy) NSString * _Nonnull userID;
 @property (nonatomic, copy) NSString * _Nullable email;
 @property (nonatomic, copy) NSString * _Nullable username;
@@ -447,21 +436,21 @@ SWIFT_CLASS("_TtC11SentrySwift4User")
 @end
 
 
-@interface User (SWIFT_EXTENSION(SentrySwift))
+@interface SentryUser (SWIFT_EXTENSION(SentrySwift))
 @end
 
 
-SWIFT_CLASS("_TtC11SentrySwift12UserFeedback")
-@interface UserFeedback : NSObject
+SWIFT_CLASS_NAMED("UserFeedback")
+@interface SentryUserFeedback : NSObject
 @property (nonatomic, copy) NSString * _Nonnull name;
 @property (nonatomic, copy) NSString * _Nonnull email;
 @property (nonatomic, copy) NSString * _Nonnull comments;
-@property (nonatomic, strong) Event * _Nullable event;
+@property (nonatomic, strong) SentryEvent * _Nullable event;
 - (nonnull instancetype)init OBJC_DESIGNATED_INITIALIZER;
 @end
 
 
-@interface UserFeedback (SWIFT_EXTENSION(SentrySwift))
+@interface SentryUserFeedback (SWIFT_EXTENSION(SentrySwift))
 @end
 
 @class UITextField;
@@ -484,8 +473,8 @@ SWIFT_CLASS("_TtC11SentrySwift31UserFeedbackTableViewController")
 
 @class UIColor;
 
-SWIFT_CLASS("_TtC11SentrySwift21UserFeedbackViewModel")
-@interface UserFeedbackViewModel : NSObject
+SWIFT_CLASS_NAMED("UserFeedbackViewModel")
+@interface SentryUserFeedbackViewModel : NSObject
 @property (nonatomic, copy) NSString * _Nonnull viewControllerTitle;
 @property (nonatomic, copy) NSString * _Nonnull title;
 @property (nonatomic, copy) NSString * _Nonnull subTitle;
