@@ -1,6 +1,6 @@
 
-#import "RCTBridgeModule.h"
-#import "RCTExceptionsManager.h"
+#import <React/RCTBridgeModule.h>
+#import <React/RCTExceptionsManager.h>
 
 @interface RNSentry : NSObject <RCTBridgeModule, RCTExceptionsManagerDelegate>
 

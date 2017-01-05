@@ -1,6 +1,6 @@
 
 #import "RNSentry.h"
-#import "RCTConvert.h"
+#import <React/RCTConvert.h>
 
 @import SentrySwift;
 
