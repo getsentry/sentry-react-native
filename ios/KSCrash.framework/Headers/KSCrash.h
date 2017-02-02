@@ -104,28 +104,6 @@ typedef enum
  */
 @property(nonatomic,readwrite,assign) double deadlockWatchdogInterval;
 
-/** If YES, attempt to fetch thread names for each running thread.
- *
- * WARNING: There is a chance that this will deadlock on a thread_lock() call!
- * If that happens, your crash report will be cut short.
- *
- * Enable at your own risk.
- *
- * Default: NO
- */
-@property(nonatomic,readwrite,assign) BOOL searchThreadNames;
-
-/** If YES, attempt to fetch dispatch queue names for each running thread.
- *
- * WARNING: There is a chance that this will deadlock on a thread_lock() call!
- * If that happens, your crash report will be cut short.
- *
- * Enable at your own risk.
- *
- * Default: NO
- */
-@property(nonatomic,readwrite,assign) BOOL searchQueueNames;
-
 /** If YES, introspect memory contents during a crash.
  * Any Objective-C objects or C strings near the stack pointer or referenced by
  * cpu registers or exceptions will be recorded in the crash report, along with
@@ -179,6 +157,11 @@ typedef enum
 /** Add a copy of KSCrash's console log messages to the crash report.
  */
 @property(nonatomic,readwrite,assign) BOOL addConsoleLogToReport;
+
+/** Print the previous app run log to the console when installing KSCrash.
+ *  This is primarily for debugging purposes.
+ */
+@property(nonatomic,readwrite,assign) BOOL printPreviousLog;
 
 /** Which languages to demangle when getting stack traces (default KSCrashDemangleLanguageAll) */
 @property(nonatomic,readwrite,assign) KSCrashDemangleLanguage demangleLanguages;

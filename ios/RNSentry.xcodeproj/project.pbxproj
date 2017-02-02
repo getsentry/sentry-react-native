@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6310CA2D1DF0607E00BFFE52 /* KSCrash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6310CA2B1DF0607E00BFFE52 /* KSCrash.framework */; };
-		6310CA2E1DF0607E00BFFE52 /* SentrySwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6310CA2C1DF0607E00BFFE52 /* SentrySwift.framework */; };
+		633299481E4338900099D77A /* Sentry.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 633299471E4338900099D77A /* Sentry.framework */; };
 		6350257B1E1E845F00408AE7 /* RNSentry.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = B3E7B5881CC2AC0600A0062D /* RNSentry.h */; };
 		B3E7B58A1CC2AC0600A0062D /* RNSentry.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* RNSentry.m */; };
 /* End PBXBuildFile section */
@@ -30,7 +30,7 @@
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libRNSentry.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNSentry.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		6310CA2B1DF0607E00BFFE52 /* KSCrash.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = KSCrash.framework; sourceTree = "<group>"; };
-		6310CA2C1DF0607E00BFFE52 /* SentrySwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SentrySwift.framework; sourceTree = "<group>"; };
+		633299471E4338900099D77A /* Sentry.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Sentry.framework; sourceTree = "<group>"; };
 		B3E7B5881CC2AC0600A0062D /* RNSentry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSentry.h; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* RNSentry.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNSentry.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -41,7 +41,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6310CA2D1DF0607E00BFFE52 /* KSCrash.framework in Frameworks */,
-				6310CA2E1DF0607E00BFFE52 /* SentrySwift.framework in Frameworks */,
+				633299481E4338900099D77A /* Sentry.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -69,8 +69,8 @@
 		6310CA2A1DF0607E00BFFE52 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				633299471E4338900099D77A /* Sentry.framework */,
 				6310CA2B1DF0607E00BFFE52 /* KSCrash.framework */,
-				6310CA2C1DF0607E00BFFE52 /* SentrySwift.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
