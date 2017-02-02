@@ -9,7 +9,7 @@
 	"dependencies": {
 		"react": "~15.4.0-rc.4",
 		"react-native": "0.40.0",
-    "sentry-react-native": "file:../../"
+		"sentry-react-native": "file:../../"
 	},
 	"devDependencies": {
 		"babel-jest": "18.0.0",

@@ -334,7 +334,7 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, copy) NSString * _No
 */
 - (nullable instancetype)initWithDsnString:(NSString * _Nonnull)dsnString;
 - (void)snapshotStacktrace;
-- (void)reportReactNativeFatalCrashWithError:(NSError * _Nonnull)error stacktrace:(NSArray * _Nonnull)stacktrace;
+- (void)reportReactNativeCrashWithError:(NSError * _Nonnull)error stacktrace:(NSArray * _Nonnull)stacktrace terminateProgram:(BOOL)terminateProgram;
 - (void)captureMessage:(NSString * _Nonnull)message level:(enum SentrySeverity)level;
 /**
   Reports given event to Sentry
