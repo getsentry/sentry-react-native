@@ -390,7 +390,7 @@ typedef SWIFT_ENUM_NAMED(NSInteger, SentrySeverity, "Severity") {
 
 SWIFT_CLASS_NAMED("Stacktrace")
 @interface SentryStacktrace : NSObject
-@property (nonatomic, readonly, copy) NSArray<SentryFrame *> * _Nonnull frames;
+@property (nonatomic, copy) NSArray<SentryFrame *> * _Nonnull frames;
 @property (nonatomic, readonly, strong, getter=register) SentryRegister * _Nullable register_;
 - (nonnull instancetype)initWithFrames:(NSArray<SentryFrame *> * _Nullable)frames OBJC_DESIGNATED_INITIALIZER;
 - (nonnull instancetype)initWithFrames:(NSArray<SentryFrame *> * _Nullable)frames register:(SentryRegister * _Nullable)register_ OBJC_DESIGNATED_INITIALIZER;

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		6310CA2D1DF0607E00BFFE52 /* KSCrash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6310CA2B1DF0607E00BFFE52 /* KSCrash.framework */; };
 		633299481E4338900099D77A /* Sentry.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 633299471E4338900099D77A /* Sentry.framework */; };
+		63329BC71E47AB8D0099D77A /* RSSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = 63329BC61E47AB8D0099D77A /* RSSwizzle.m */; };
 		6350257B1E1E845F00408AE7 /* RNSentry.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = B3E7B5881CC2AC0600A0062D /* RNSentry.h */; };
 		B3E7B58A1CC2AC0600A0062D /* RNSentry.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* RNSentry.m */; };
 /* End PBXBuildFile section */
@@ -31,6 +32,8 @@
 		134814201AA4EA6300B7C361 /* libRNSentry.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNSentry.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		6310CA2B1DF0607E00BFFE52 /* KSCrash.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = KSCrash.framework; sourceTree = "<group>"; };
 		633299471E4338900099D77A /* Sentry.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Sentry.framework; sourceTree = "<group>"; };
+		63329BC51E47AB8D0099D77A /* RSSwizzle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RSSwizzle.h; sourceTree = "<group>"; };
+		63329BC61E47AB8D0099D77A /* RSSwizzle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RSSwizzle.m; sourceTree = "<group>"; };
 		B3E7B5881CC2AC0600A0062D /* RNSentry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSentry.h; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* RNSentry.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNSentry.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -59,6 +62,7 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				63329BC41E47AB790099D77A /* Vendor */,
 				B3E7B5881CC2AC0600A0062D /* RNSentry.h */,
 				B3E7B5891CC2AC0600A0062D /* RNSentry.m */,
 				134814211AA4EA7D00B7C361 /* Products */,
@@ -73,6 +77,15 @@
 				6310CA2B1DF0607E00BFFE52 /* KSCrash.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		63329BC41E47AB790099D77A /* Vendor */ = {
+			isa = PBXGroup;
+			children = (
+				63329BC51E47AB8D0099D77A /* RSSwizzle.h */,
+				63329BC61E47AB8D0099D77A /* RSSwizzle.m */,
+			);
+			name = Vendor;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -132,6 +145,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B3E7B58A1CC2AC0600A0062D /* RNSentry.m in Sources */,
+				63329BC71E47AB8D0099D77A /* RSSwizzle.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

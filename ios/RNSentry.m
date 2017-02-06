@@ -1,20 +1,11 @@
 
 #import "RNSentry.h"
+#import "RSSwizzle.h"
 #import <React/RCTConvert.h>
 
 @import Sentry;
 
 @implementation RNSentry
-
-+ (NSNumberFormatter *)numberFormatter {
-    static dispatch_once_t onceToken;
-    static NSNumberFormatter *formatter = nil;
-    dispatch_once(&onceToken, ^{
-        formatter = [NSNumberFormatter new];
-        formatter.numberStyle = NSNumberFormatterNoStyle;
-    });
-    return formatter;
-}
 
 - (dispatch_queue_t)methodQueue
 {
@@ -27,6 +18,35 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
 {
     [SentryClient setShared:[[SentryClient alloc] initWithDsnString:[RCTConvert NSString:dsnString]]];
     [[SentryClient shared] startCrashHandler];
+}
+
+RCT_EXPORT_METHOD(activateStacktraceMerging)
+{
+    static const void *key = &key;
+    Class RCTBatchedBridge = NSClassFromString(@"RCTBatchedBridge");
+    uintptr_t callNativeModuleAddress = [RCTBatchedBridge instanceMethodForSelector:@selector(callNativeModule:method:params:)];
+
+    RSSwizzleInstanceMethod(RCTBatchedBridge,
+                            @selector(callNativeModule:method:params:),
+                            RSSWReturnType(id),
+                            RSSWArguments(NSUInteger moduleID, NSUInteger methodID, NSArray *params),
+                            RSSWReplacement({
+        NSMutableArray *newParams = [NSMutableArray array];
+        if (params != nil && params.count > 0) {
+            for (id param in params) {
+                if ([param isKindOfClass:NSDictionary.class] && param[@"__sentry_stack"]) {
+                    [SentryClient shared].extra = @{@"__sentry_address": [NSNumber numberWithUnsignedInteger:callNativeModuleAddress],
+                                                    @"__sentry_stack": param[@"__sentry_stack"]};
+                } else {
+                    if (param != nil) {
+                        [newParams addObject:param];
+                    }
+                }
+            }
+        }
+
+        return RSSWCallOriginal(moduleID, methodID, newParams);
+    }), RSSwizzleModeOncePerClassAndSuperclasses, key);
 }
 
 RCT_EXPORT_METHOD(captureMessage:(NSString * _Nonnull)message level:(int)level)
