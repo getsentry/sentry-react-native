@@ -20,7 +20,8 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
     [[SentryClient shared] startCrashHandler];
 }
 
-RCT_EXPORT_METHOD(activateStacktraceMerging)
+RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     static const void *key = &key;
     Class RCTBatchedBridge = NSClassFromString(@"RCTBatchedBridge");
@@ -44,9 +45,10 @@ RCT_EXPORT_METHOD(activateStacktraceMerging)
                 }
             }
         }
-
         return RSSWCallOriginal(moduleID, methodID, newParams);
     }), RSSwizzleModeOncePerClassAndSuperclasses, key);
+
+    resolve(@YES);
 }
 
 RCT_EXPORT_METHOD(captureMessage:(NSString * _Nonnull)message level:(int)level)

@@ -5,6 +5,7 @@
  */
 
 import React, { Component } from 'react';
+
 import {
   AppRegistry,
   StyleSheet,
@@ -13,15 +14,16 @@ import {
   Button
 } from 'react-native';
 
-import { 
-  SentryClient, 
-  SentrySeverity, 
+import {
+  SentryClient,
+  SentrySeverity,
   SentryLog,
   User
 } from 'sentry-react-native';
 
 SentryClient.setLogLevel(SentryLog.Debug);
 SentryClient.shared = new SentryClient("Your DSN");
+SentryClient.shared.activateStacktraceMerging(require('BatchedBridge'), require('parseErrorStack'));
 
 SentryClient.shared.setExtras({
   "a_thing": 3,
