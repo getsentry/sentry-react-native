@@ -303,9 +303,6 @@ SWIFT_CLASS_NAMED("Register")
 @end
 
 @class NSError;
-@class UserFeedbackTableViewController;
-@class UINavigationController;
-@class SentryUserFeedbackViewModel;
 @protocol SentryClientUserFeedbackDelegate;
 
 SWIFT_CLASS("_TtC6Sentry12SentryClient")
@@ -335,22 +332,11 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, copy) NSString * _No
 - (nullable instancetype)initWithDsnString:(NSString * _Nonnull)dsnString;
 - (void)snapshotStacktrace;
 - (void)reportReactNativeCrashWithError:(NSError * _Nonnull)error stacktrace:(NSArray * _Nonnull)stacktrace terminateProgram:(BOOL)terminateProgram;
-- (void)captureMessage:(NSString * _Nonnull)message level:(enum SentrySeverity)level;
-/**
-  Reports given event to Sentry
-*/
-- (void)captureEvent:(SentryEvent * _Nonnull)event;
 - (void)enableAutomaticBreadcrumbTracking;
 /**
   This will make you app crash, use only for test purposes
 */
 - (void)crash;
-- (UserFeedbackTableViewController * _Nullable)userFeedbackTableViewController;
-- (UINavigationController * _Nullable)userFeedbackNavigationViewController;
-/**
-  Call this with your custom UserFeedbackViewModel to configure the UserFeedbackViewController
-*/
-- (void)enableUserFeedbackAfterFatalEventWithUserFeedbackViewModel:(SentryUserFeedbackViewModel * _Nonnull)userFeedbackViewModel;
 - (nonnull instancetype)init SWIFT_UNAVAILABLE;
 @end
 
@@ -366,6 +352,30 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, copy) NSString * _No
 
 
 @interface SentryClient (SWIFT_EXTENSION(Sentry))
+@end
+
+@class UserFeedbackTableViewController;
+@class UINavigationController;
+@class SentryUserFeedbackViewModel;
+
+@interface SentryClient (SWIFT_EXTENSION(Sentry))
+- (UserFeedbackTableViewController * _Nullable)userFeedbackTableViewController;
+- (UINavigationController * _Nullable)userFeedbackNavigationViewController;
+/**
+  Call this with your custom UserFeedbackViewModel to configure the UserFeedbackViewController
+*/
+- (void)enableUserFeedbackAfterFatalEventWithUserFeedbackViewModel:(SentryUserFeedbackViewModel * _Nonnull)userFeedbackViewModel;
+@end
+
+
+@interface SentryClient (SWIFT_EXTENSION(Sentry))
+- (void)setExtra:(NSString * _Nonnull)key value:(id _Nonnull)value;
+- (void)setTag:(NSString * _Nonnull)key value:(NSString * _Nonnull)value;
+- (void)captureMessage:(NSString * _Nonnull)message level:(enum SentrySeverity)level;
+/**
+  Reports given event to Sentry
+*/
+- (void)captureEvent:(SentryEvent * _Nonnull)event;
 @end
 
 
