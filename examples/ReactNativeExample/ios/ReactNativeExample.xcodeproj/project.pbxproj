@@ -22,11 +22,11 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		140ED2AC1D01E1AD002B40FF /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
 		146834051AC3E58100842450 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
-		354EBFF5B90C4586AFA637EA /* libRNSentry.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 16F1903030C54D9EB18FD54D /* libRNSentry.a */; };
 		5E9157361DD0AC6A00FF2AA8 /* libRCTAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E9157331DD0AC6500FF2AA8 /* libRCTAnimation.a */; };
 		633299191E4337CF0099D77A /* Sentry.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 633299171E4337CF0099D77A /* Sentry.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6350253F1E1E816B00408AE7 /* KSCrash.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6350253D1E1E816B00408AE7 /* KSCrash.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
+		C3C8A3CB24F24D1D9789CE7C /* libRNSentry.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DF366BAB48A4CB19EB75CBF /* libRNSentry.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -198,9 +198,9 @@
 			remoteGlobalIDString = 2D2A28201D9B03D100D4039D;
 			remoteInfo = "RCTAnimation-tvOS";
 		};
-		6332997B1E4338C90099D77A /* PBXContainerItemProxy */ = {
+		63183DEE1E548CE800E154CF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = F358087451124EFEBD8B9F59 /* RNSentry.xcodeproj */;
+			containerPortal = 752248BE2CD14E918BB9CF2E /* RNSentry.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 134814201AA4EA6300B7C361;
 			remoteInfo = RNSentry;
@@ -255,13 +255,13 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ReactNativeExample/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ReactNativeExample/main.m; sourceTree = "<group>"; };
 		146833FF1AC3E56700842450 /* React.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = React.xcodeproj; path = "../node_modules/react-native/React/React.xcodeproj"; sourceTree = "<group>"; };
-		16F1903030C54D9EB18FD54D /* libRNSentry.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNSentry.a; sourceTree = "<group>"; };
+		3DF366BAB48A4CB19EB75CBF /* libRNSentry.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNSentry.a; sourceTree = "<group>"; };
 		5E91572D1DD0AC6500FF2AA8 /* RCTAnimation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTAnimation.xcodeproj; path = "../node_modules/react-native/Libraries/NativeAnimation/RCTAnimation.xcodeproj"; sourceTree = "<group>"; };
 		633299171E4337CF0099D77A /* Sentry.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sentry.framework; path = "../node_modules/sentry-react-native/ios/Sentry.framework"; sourceTree = "<group>"; };
 		6350253D1E1E816B00408AE7 /* KSCrash.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = KSCrash.framework; path = "../node_modules/sentry-react-native/ios/KSCrash.framework"; sourceTree = "<group>"; };
+		752248BE2CD14E918BB9CF2E /* RNSentry.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNSentry.xcodeproj; path = "../node_modules/sentry-react-native/ios/RNSentry.xcodeproj"; sourceTree = "<group>"; };
 		78C398B01ACF4ADC00677621 /* RCTLinking.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTLinking.xcodeproj; path = "../node_modules/react-native/Libraries/LinkingIOS/RCTLinking.xcodeproj"; sourceTree = "<group>"; };
 		832341B01AAA6A8300B99B32 /* RCTText.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTText.xcodeproj; path = "../node_modules/react-native/Libraries/Text/RCTText.xcodeproj"; sourceTree = "<group>"; };
-		F358087451124EFEBD8B9F59 /* RNSentry.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNSentry.xcodeproj; path = "../node_modules/sentry-react-native/ios/RNSentry.xcodeproj"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -288,7 +288,7 @@
 				832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */,
 				00C302EA1ABCBA2D00DB3ED1 /* libRCTVibration.a in Frameworks */,
 				139FDEF61B0652A700C62182 /* libRCTWebSocket.a in Frameworks */,
-				354EBFF5B90C4586AFA637EA /* libRNSentry.a in Frameworks */,
+				C3C8A3CB24F24D1D9789CE7C /* libRNSentry.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -410,10 +410,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		6332995F1E4338C90099D77A /* Products */ = {
+		63183DD21E548CE800E154CF /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				6332997C1E4338C90099D77A /* libRNSentry.a */,
+				63183DEF1E548CE800E154CF /* libRNSentry.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -441,7 +441,7 @@
 				832341B01AAA6A8300B99B32 /* RCTText.xcodeproj */,
 				00C302DF1ABCB9EE00DB3ED1 /* RCTVibration.xcodeproj */,
 				139FDEE61B06529A00C62182 /* RCTWebSocket.xcodeproj */,
-				F358087451124EFEBD8B9F59 /* RNSentry.xcodeproj */,
+				752248BE2CD14E918BB9CF2E /* RNSentry.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -594,8 +594,8 @@
 					ProjectRef = 146833FF1AC3E56700842450 /* React.xcodeproj */;
 				},
 				{
-					ProductGroup = 6332995F1E4338C90099D77A /* Products */;
-					ProjectRef = F358087451124EFEBD8B9F59 /* RNSentry.xcodeproj */;
+					ProductGroup = 63183DD21E548CE800E154CF /* Products */;
+					ProjectRef = 752248BE2CD14E918BB9CF2E /* RNSentry.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -768,11 +768,11 @@
 			remoteRef = 5E9157341DD0AC6500FF2AA8 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		6332997C1E4338C90099D77A /* libRNSentry.a */ = {
+		63183DEF1E548CE800E154CF /* libRNSentry.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libRNSentry.a;
-			remoteRef = 6332997B1E4338C90099D77A /* PBXContainerItemProxy */;
+			remoteRef = 63183DEE1E548CE800E154CF /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		78C398B91ACF4ADC00677621 /* libRCTLinking.a */ = {
@@ -836,7 +836,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which sentry-cli >/dev/null; then\nexport SENTRY_ORG=sentry\nexport SENTRY_PROJECT=internal\nexport SENTRY_AUTH_TOKEN=533044fed9f449a4801fbc529fad8dbaa518a8cdf1074c05b5291e93d3583038\nexport SENTRY_URL=http://dgriesser-7b0957b1732f38a5e205.eu.ngrok.io/\nERROR=$(sentry-cli upload-dsym 2>&1 >/dev/null)\nif [ ! -z \"$ERROR\" ]; then\necho \"warning: sentry-cli - $ERROR\"\nfi\nRELEASE=$(/usr/libexec/PlistBuddy -c \"print :CFBundleShortVersionString\" $INFOPLIST_FILE)\n../node_modules/sentry-react-native/bin/sourcemap_upload $RELEASE\nelse\necho \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi";
+			shellScript = "if which sentry-cli >/dev/null; then\nexport SENTRY_ORG=org\nexport SENTRY_PROJECT=project\nexport SENTRY_AUTH_TOKEN=token\n#export SENTRY_URL=\nERROR=$(sentry-cli upload-dsym 2>&1 >/dev/null)\nif [ ! -z \"$ERROR\" ]; then\necho \"warning: sentry-cli - $ERROR\"\nfi\nRELEASE=$(/usr/libexec/PlistBuddy -c \"print :CFBundleShortVersionString\" $INFOPLIST_FILE)\nBUILD=$(/usr/libexec/PlistBuddy -c \"print :CFBundleVersion\" $INFOPLIST_FILE)\n../node_modules/sentry-react-native/bin/sourcemap_upload $RELEASE $BUILD\nelse\necho \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi";
 		};
 /* End PBXShellScriptBuildPhase section */
 
