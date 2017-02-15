@@ -163,6 +163,7 @@ SWIFT_CLASS_NAMED("Breadcrumb")
 */
 SWIFT_CLASS("_TtC6Sentry15BreadcrumbStore")
 @interface BreadcrumbStore : NSObject
+@property (nonatomic) NSInteger maxCrumbs;
 /**
   Adds given crumb to the client store
 */
@@ -224,8 +225,24 @@ SWIFT_CLASS_NAMED("Event")
 @end
 
 
+SWIFT_PROTOCOL("_TtP6Sentry21EventPropertiesSetter_")
+@protocol EventPropertiesSetter
+- (void)addExtra:(NSString * _Nonnull)key value:(id _Nonnull)value;
+- (void)addTag:(NSString * _Nonnull)key value:(NSString * _Nonnull)value;
+@property (nonatomic, copy) NSDictionary<NSString *, id> * _Nonnull extra;
+@property (nonatomic, copy) NSDictionary<NSString *, NSString *> * _Nonnull tags;
+@end
+
+
+@interface SentryEvent (SWIFT_EXTENSION(Sentry)) <EventPropertiesSetter>
+- (void)addExtra:(NSString * _Nonnull)key value:(id _Nonnull)value;
+- (void)addTag:(NSString * _Nonnull)key value:(NSString * _Nonnull)value;
+@end
+
+
 @interface SentryEvent (SWIFT_EXTENSION(Sentry))
 @end
+
 
 
 SWIFT_CLASS_NAMED("Exception")
@@ -351,7 +368,22 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, copy) NSString * _No
 @end
 
 
+@interface SentryClient (SWIFT_EXTENSION(Sentry)) <EventPropertiesSetter>
+- (void)addExtra:(NSString * _Nonnull)key value:(id _Nonnull)value;
+- (void)addTag:(NSString * _Nonnull)key value:(NSString * _Nonnull)value;
+@end
+
+
 @interface SentryClient (SWIFT_EXTENSION(Sentry))
+@end
+
+
+@interface SentryClient (SWIFT_EXTENSION(Sentry))
+- (void)captureMessage:(NSString * _Nonnull)message level:(enum SentrySeverity)level;
+/**
+  Reports given event to Sentry
+*/
+- (void)captureEvent:(SentryEvent * _Nonnull)event;
 @end
 
 @class UserFeedbackTableViewController;
@@ -365,17 +397,6 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, copy) NSString * _No
   Call this with your custom UserFeedbackViewModel to configure the UserFeedbackViewController
 */
 - (void)enableUserFeedbackAfterFatalEventWithUserFeedbackViewModel:(SentryUserFeedbackViewModel * _Nonnull)userFeedbackViewModel;
-@end
-
-
-@interface SentryClient (SWIFT_EXTENSION(Sentry))
-- (void)setExtra:(NSString * _Nonnull)key value:(id _Nonnull)value;
-- (void)setTag:(NSString * _Nonnull)key value:(NSString * _Nonnull)value;
-- (void)captureMessage:(NSString * _Nonnull)message level:(enum SentrySeverity)level;
-/**
-  Reports given event to Sentry
-*/
-- (void)captureEvent:(SentryEvent * _Nonnull)event;
 @end
 
 
