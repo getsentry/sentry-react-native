@@ -3,5 +3,5 @@ curl -o "./index.ios.map" "http://localhost:8081/index.ios.map"
 curl -o "./index.ios.bundle" "http://localhost:8081/index.ios.bundle"
 sentry-cli releases new "$1 ($2)"
 sentry-cli releases files "$1 ($2)" delete --all
-sentry-cli releases files "$1 ($2)" upload-sourcemaps . --url-prefix="/" --rewrite --strip-common-prefix
+sentry-cli releases files "$1 ($2)" upload-sourcemaps . --url-prefix="~" --rewrite --strip-common-prefix
 rm index.ios.* > /dev/null 2>&1

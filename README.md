@@ -1,5 +1,5 @@
 
-# sentry-react-native
+# sentry-react-native (beta iOS only)
 
 ## Getting started
 
