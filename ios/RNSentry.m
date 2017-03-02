@@ -36,8 +36,10 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
         if (params != nil && params.count > 0) {
             for (id param in params) {
                 if ([param isKindOfClass:NSDictionary.class] && param[@"__sentry_stack"]) {
-                    [[SentryClient shared] addExtra:@"__sentry_address" value:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress]];
-                    [[SentryClient shared] addExtra:@"__sentry_stack" value:param[@"__sentry_stack"]];
+                    @synchronized ([SentryClient shared]) {
+                        [[SentryClient shared] addExtra:@"__sentry_address" value:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress]];
+                        [[SentryClient shared] addExtra:@"__sentry_stack" value:param[@"__sentry_stack"]];
+                    }
                 } else {
                     if (param != nil) {
                         [newParams addObject:param];

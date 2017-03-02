@@ -19,7 +19,7 @@ import {
   SentrySeverity,
   SentryLog,
   User
-} from 'sentry-react-native';
+} from 'react-native-sentry';
 
 SentryClient.setLogLevel(SentryLog.Debug);
 SentryClient.shared = new SentryClient("Your DSN");
