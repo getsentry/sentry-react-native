@@ -837,7 +837,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which sentry-cli >/dev/null; then\nexport SENTRY_ORG=org\nexport SENTRY_PROJECT=project\nexport SENTRY_AUTH_TOKEN=token\n#export SENTRY_URL=\nERROR=$(sentry-cli upload-dsym 2>&1 >/dev/null)\nif [ ! -z \"$ERROR\" ]; then\necho \"warning: sentry-cli - $ERROR\"\nfi\nRELEASE=$(/usr/libexec/PlistBuddy -c \"print :CFBundleShortVersionString\" $INFOPLIST_FILE)\nBUILD=$(/usr/libexec/PlistBuddy -c \"print :CFBundleVersion\" $INFOPLIST_FILE)\n../node_modules/sentry-react-native/bin/sourcemap_upload $RELEASE $BUILD\nelse\necho \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi";
+			shellScript = "if which sentry-cli >/dev/null; then\nexport SENTRY_ORG=org\nexport SENTRY_PROJECT=project\nexport SENTRY_AUTH_TOKEN=token\n#export SENTRY_URL=\nERROR=$(sentry-cli upload-dsym 2>&1 >/dev/null)\nif [ ! -z \"$ERROR\" ]; then\necho \"warning: sentry-cli - $ERROR\"\nfi\nRELEASE=$(/usr/libexec/PlistBuddy -c \"print :CFBundleShortVersionString\" $INFOPLIST_FILE)\nBUILD=$(/usr/libexec/PlistBuddy -c \"print :CFBundleVersion\" $INFOPLIST_FILE)\n../node_modules/react-native-sentry/bin/sourcemap_upload $RELEASE $BUILD\nelse\necho \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi";
 		};
 /* End PBXShellScriptBuildPhase section */
 
