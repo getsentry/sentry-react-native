@@ -96,17 +96,17 @@ RCT_EXPORT_METHOD(crash)
 
 - (void)handleSoftJSExceptionWithMessage:(NSString *)message stack:(NSArray *)stack exceptionId:(NSNumber *)exceptionId {
     NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: message };
-    NSError *error = [[NSError alloc] initWithDomain:nil code:exceptionId.integerValue userInfo:userInfo];
+    NSError *error = [[NSError alloc] initWithDomain:@"" code:exceptionId.integerValue userInfo:userInfo];
     [[SentryClient shared] reportReactNativeCrashWithError:error stacktrace:stack terminateProgram:NO];
 }
 
 - (void)handleFatalJSExceptionWithMessage:(NSString *)message stack:(NSArray *)stack exceptionId:(NSNumber *)exceptionId {
 #ifndef DEBUG
-    RCTSetFatalHandler(^(NSError *error){
+    RCTSetFatalHandler(^(NSError *error) {
         [[SentryClient shared] reportReactNativeCrashWithError:error stacktrace:stack terminateProgram:YES];
     });
 #else
-    RCTSetFatalHandler(^(NSError *error){
+    RCTSetFatalHandler(^(NSError *error) {
         [[SentryClient shared] reportReactNativeCrashWithError:error stacktrace:stack terminateProgram:NO];
     });
 #endif
