@@ -1,53 +1,117 @@
 
-# sentry-react-native (beta iOS only)
+# react-native-sentry (alpha iOS only)
+
+Requirments `react-native >= 0.41`
 
 ## Getting started
 
-`$ npm install sentry-react-native --save`
+If you don't have a react native project up and running follow this guide.
+https://facebook.github.io/react-native/docs/getting-started.html
+
+Start with adding sentry:
+
+`$ npm install react-native-sentry --save`
 
 ### Mostly automatic installation
 
-`$ react-native link sentry-react-native`
+`$ react-native link react-native-sentry`
 
-### Manual installation
+### How to integrate it into you Xcode project
 
+`react-native init AwesomeProject`
+`cd AwesomeProject`
 
-#### iOS
+Add framework search paths:
+`$(SRCROOT)/../node_modules/react-native-sentry/ios`
+![Framework Search Paths](assets/framework-search-path.png?raw=1)
 
-1. In XCode, in the project navigator, right click `Libraries` ➜ `Add Files to [your project's name]`
-2. Go to `node_modules` ➜ `sentry-react-native` and add `RNSentry.xcodeproj`
-3. In XCode, in the project navigator, select your project. Add `libRNSentry.a` to your project's `Build Phases` ➜ `Link Binary With Libraries`
-4. Run your project (`Cmd+R`)<
+Always embed swift libraries:
+![Always embed swift libraries](assets/embed-swift.png?raw=1)
 
-#### Android
+Copy files phase:
+![Copy files phase](assets/copy-files.png?raw=1)
 
-1. Open up `android/app/src/main/java/[...]/MainActivity.java`
-  - Add `import com.reactlibrary.RNSentryPackage;` to the imports at the top of the file
-  - Add `new RNSentryPackage()` to the list returned by the `getPackages()` method
-2. Append the following lines to `android/settings.gradle`:
-  	```
-  	include ':sentry-react-native'
-  	project(':sentry-react-native').projectDir = new File(rootProject.projectDir, 	'../node_modules/sentry-react-native/android')
-  	```
-3. Insert the following lines inside the dependencies block in `android/app/build.gradle`:
-  	```
-      compile project(':sentry-react-native')
-  	```
+Copy frameworks:
+![Copy frameworks](assets/copy-frameworks.png?raw=1)
 
-#### Windows
-[Read it! :D](https://github.com/ReactWindows/react-native)
+Add sentry to your `index.ios.js`
 
-1. In Visual Studio add the `RNSentry.sln` in `node_modules/sentry-react-native/windows/RNSentry.sln` folder to their solution, reference from their app.
-2. Open up your `MainPage.cs` app
-  - Add `using Cl.Json.RNSentry;` to the usings at the top of the file
-  - Add `new RNSentryPackage()` to the `List<IReactPackage>` returned by the `Packages` method
-
-
-## Usage
-```javascript
-import RNSentry from 'sentry-react-native';
-
-// TODO: What do with the module?
-RNSentry;
 ```
+...
+import {
+  AppRegistry,
+  StyleSheet,
+  Text,
+  View
+} from 'react-native';
+
+import {
+  SentryClient,
+  SentrySeverity,
+  SentryLog,
+  User
+} from 'react-native-sentry';
+
+SentryClient.setLogLevel(SentryLog.Debug);
+SentryClient.shared = new SentryClient("Your DSN");
+SentryClient.shared.activateStacktraceMerging(require('BatchedBridge'), require('parseErrorStack'));
+
+export default class AwesomeProject extends Component {
+...
+```
+
+Change `AppDelegate.m`
+
+```
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
+
+#import "AppDelegate.h"
+
+#import <React/RCTBundleURLProvider.h>
+#import <React/RCTRootView.h>
+#import <React/RNSentry.h>
+
+
+@interface AppDelegate()
+
+@property (nonatomic, strong) RNSentry *sentry;
+
+@end
+
+@implementation AppDelegate
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  NSURL *jsCodeLocation;
+
+  jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
+
+  self.sentry = [[RNSentry alloc] init];
+  RCTBridge *bridge = [[RCTBridge alloc] initWithBundleURL:jsCodeLocation
+                                            moduleProvider:^NSArray<id<RCTBridgeModule>> *{
+                                              id<RCTExceptionsManagerDelegate> customDelegate = self.sentry;
+                                              return @[[[RCTExceptionsManager alloc] initWithDelegate:customDelegate]];
+                                            }
+                                             launchOptions:launchOptions];
   
+  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"AwesomeProject" initialProperties:nil];
+  
+  rootView.backgroundColor = [[UIColor alloc] initWithRed:1.0f green:1.0f blue:1.0f alpha:1];
+
+  self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+  UIViewController *rootViewController = [UIViewController new];
+  rootViewController.view = rootView;
+  self.window.rootViewController = rootViewController;
+  [self.window makeKeyAndVisible];
+  return YES;
+}
+
+@end
+```

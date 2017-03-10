@@ -1,18 +1,22 @@
 
 {
   "name": "react-native-sentry",
+  "homepage": "https://github.com/getsentry/react-native-sentry.git",
   "version": "0.1.0",
-  "description": "",
+  "description": "Official Sentry client for react-native (currently iOS only)",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "react-native"
+    "react-native",
+    "sentry",
+    "crashreporting",
+    "ios"
   ],
   "author": "Sentry",
   "license": "MIT",
   "peerDependencies": {
-    "react-native": "^0.41.0"
+    "react-native": ">=0.41.0"
   }
 }
