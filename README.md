@@ -15,7 +15,7 @@ OR
 
 Sentry can provide mixed stacktraces, which means if your app happens to crash on the native side you will also see the last call from javascript.
 
-![Mixed Stacktrace](assets/mixed-stacktrace.png?raw=1)
+![Mixed Stacktrace](https://github.com/getsentry/react-native-sentry/raw/master/assets/mixed-stacktrace.png)
 
 ## Getting started
 
@@ -39,19 +39,19 @@ Start with adding sentry:
 Add framework search paths:
 
 `$(SRCROOT)/../node_modules/react-native-sentry/ios`
-![Framework Search Paths](assets/framework-search-path.png?raw=1)
+![Framework Search Paths](https://github.com/getsentry/react-native-sentry/raw/master/assets/framework-search-path.png)
 
 Always embed swift libraries:
-![Always embed swift libraries](assets/embed-swift.png?raw=1)
+![Always embed swift libraries](https://github.com/getsentry/react-native-sentry/raw/master/assets/embed-swift.png)
 
 Copy files phase:
-![Copy files phase](assets/copy-files.png?raw=1)
+![Copy files phase](https://github.com/getsentry/react-native-sentry/raw/master/assets/copy-files.png)
 
 Copy frameworks:
-![Copy frameworks](assets/copy-frameworks.png?raw=1)
+![Copy frameworks](https://github.com/getsentry/react-native-sentry/raw/master/assets/copy-frameworks.png)
 
 Add run script phase to upload your debug symbols and source maps:
-![Run script](assets/run-script.png?raw=1)
+![Run script](https://github.com/getsentry/react-native-sentry/raw/master/assets/run-script.png)
 
 Change this variables with your values: 
 `SENTRY_ORG`
