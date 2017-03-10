@@ -158,6 +158,8 @@ Change `AppDelegate.m`
 
 ## Documentation
 
+These are functions you can call in your javascript code:
+
 ```js
 SentryClient.shared.setExtras({
   "a_thing": 3,
