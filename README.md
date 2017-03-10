@@ -1,9 +1,16 @@
 
 # react-native-sentry (alpha iOS only)
 
-Requirments `react-native >= 0.41`
-sentry-cli > 0.25: https://github.com/getsentry/sentry-cli
+*Requirments:*
+
+`react-native >= 0.41`
+
+sentry-cli > 0.25: 
+
+https://github.com/getsentry/sentry-cli
+
 OR
+
 `brew install getsentry/tools/sentry-cli`
 
 Sentry can provide mixed stacktraces, which means if your app happens to crash on the native side you will also see the last call from javascript.
@@ -46,6 +53,10 @@ Copy frameworks:
 Add run script phase to upload your debug symbols and source maps:
 ![Run script](assets/run-script.png?raw=1)
 
+Change this variables with your values: 
+`SENTRY_ORG`
+`SENTRY_PROJECT`
+`SENTRY_AUTH_TOKEN`
 ```shell
 if which sentry-cli >/dev/null; then
 export SENTRY_ORG=YOUR-ORG
