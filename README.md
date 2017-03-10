@@ -2,6 +2,13 @@
 # react-native-sentry (alpha iOS only)
 
 Requirments `react-native >= 0.41`
+sentry-cli > 0.25: https://github.com/getsentry/sentry-cli
+OR
+`brew install getsentry/tools/sentry-cli`
+
+Sentry can provide mixed stacktraces, which means if your app happens to crash on the native side you will also see the last call from javascript.
+
+![Mixed Stacktrace](assets/mixed-stacktrace.png?raw=1)
 
 ## Getting started
 
@@ -19,9 +26,11 @@ Start with adding sentry:
 ### How to integrate it into you Xcode project
 
 `react-native init AwesomeProject`
+
 `cd AwesomeProject`
 
 Add framework search paths:
+
 `$(SRCROOT)/../node_modules/react-native-sentry/ios`
 ![Framework Search Paths](assets/framework-search-path.png?raw=1)
 
@@ -34,9 +43,29 @@ Copy files phase:
 Copy frameworks:
 ![Copy frameworks](assets/copy-frameworks.png?raw=1)
 
+Add run script phase to upload your debug symbols and source maps:
+![Run script](assets/run-script.png?raw=1)
+
+```shell
+if which sentry-cli >/dev/null; then
+export SENTRY_ORG=YOUR-ORG
+export SENTRY_PROJECT=YOUR-PROJECT
+export SENTRY_AUTH_TOKEN=YOUR-AUTH-TOKEN
+ERROR=$(sentry-cli upload-dsym 2>&1 >/dev/null)
+if [ ! -z "$ERROR" ]; then
+echo "warning: sentry-cli - $ERROR"
+fi
+RELEASE=$(/usr/libexec/PlistBuddy -c "print :CFBundleShortVersionString" $INFOPLIST_FILE)
+BUILD=$(/usr/libexec/PlistBuddy -c "print :CFBundleVersion" $INFOPLIST_FILE)
+../node_modules/react-native-sentry/bin/sourcemap_upload $RELEASE $BUILD
+else
+echo "warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases"
+fi
+```
+
 Add sentry to your `index.ios.js`
 
-```
+```js
 ...
 import {
   AppRegistry,
@@ -62,7 +91,7 @@ export default class AwesomeProject extends Component {
 
 Change `AppDelegate.m`
 
-```
+```objc
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
