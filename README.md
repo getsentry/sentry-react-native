@@ -155,3 +155,34 @@ Change `AppDelegate.m`
 
 @end
 ```
+
+## Documentation
+
+```js
+SentryClient.shared.setExtras({
+  "a_thing": 3,
+  "some_things": {"green": "red"},
+  "foobar": ["a", "b", "c"],
+  "react": true,
+  "float": 2.43
+});
+
+SentryClient.shared.setTags({
+  "environment": "production",
+  "react": true
+});
+
+SentryClient.shared.setUser(new User(
+  "12341",
+  "john@apple.com",
+  "username",
+  {
+    "is_admin": false
+  }
+));
+
+SentryClient.shared.captureMessage("TEST message", SentrySeverity.Warning);
+
+// This will trigger a crash in the native sentry client
+//SentryClient.shared.nativeCrash();
+```
