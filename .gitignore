@@ -1,5 +1,6 @@
 # Node
 node_modules
+*.log
 
 # Mac OS X
 .DS_Store
