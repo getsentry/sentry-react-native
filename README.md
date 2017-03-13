@@ -29,9 +29,27 @@ change the "Bundle React Native code and images" build script.  The script that
 is currently there needs to be adjusted as follows:
 
 ```
+export SENTRY_ORG=YOUR_ORG_SLUG
+export SENTRY_PROJECT=YOUR_PROJECT_SLUG
+export SENTRY_AUTH_TOKEN=YOUR_AUTH_TOKEN
 export NODE_BINARY=node
 sentry-cli react-native-xcode ../node_modules/react-native/packager/react-native-xcode.sh
 ```
+
+You can find the slugs in the URL of your project (sentry.io/your-org-slug/your-project-slug)
+If you don't have an auth token yet you can [create an auth token here](https://sentry.io/api/).
+
+## Debug Symbol Uploading
+
+To also upload debug symbols you can add an additional line into the build step
+at the end:
+
+```
+sentry-cli upload-dsym
+```
+
+For working with bitcode and more advanced setups consult the [main documentation
+on symbol handling](https://docs.sentry.io/clients/cocoa/dsym/).
 
 ## Client Configuration
 
