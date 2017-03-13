@@ -36,20 +36,6 @@ Start with adding sentry:
 
 `cd AwesomeProject`
 
-Add framework search paths:
-
-`$(SRCROOT)/../node_modules/react-native-sentry/ios`
-![Framework Search Paths](https://github.com/getsentry/react-native-sentry/raw/master/assets/framework-search-path.png)
-
-Always embed swift libraries:
-![Always embed swift libraries](https://github.com/getsentry/react-native-sentry/raw/master/assets/embed-swift.png)
-
-Copy files phase:
-![Copy files phase](https://github.com/getsentry/react-native-sentry/raw/master/assets/copy-files.png)
-
-Copy frameworks:
-![Copy frameworks](https://github.com/getsentry/react-native-sentry/raw/master/assets/copy-frameworks.png)
-
 Add run script phase to upload your debug symbols and source maps:
 ![Run script](https://github.com/getsentry/react-native-sentry/raw/master/assets/run-script.png)
 
@@ -62,13 +48,12 @@ if which sentry-cli >/dev/null; then
 export SENTRY_ORG=YOUR-ORG
 export SENTRY_PROJECT=YOUR-PROJECT
 export SENTRY_AUTH_TOKEN=YOUR-AUTH-TOKEN
-ERROR=$(sentry-cli upload-dsym 2>&1 >/dev/null)
+#export SENTRY_URL=
+ERROR=$(export NODE_BINARY=node
+sentry-cli react-native-xcode ../node_modules/react-native/packager/react-native-xcode.sh 2>&1 >/dev/null)
 if [ ! -z "$ERROR" ]; then
 echo "warning: sentry-cli - $ERROR"
 fi
-RELEASE=$(/usr/libexec/PlistBuddy -c "print :CFBundleShortVersionString" $INFOPLIST_FILE)
-BUILD=$(/usr/libexec/PlistBuddy -c "print :CFBundleVersion" $INFOPLIST_FILE)
-../node_modules/react-native-sentry/bin/sourcemap_upload $RELEASE $BUILD
 else
 echo "warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases"
 fi
@@ -86,12 +71,9 @@ import {
 } from 'react-native';
 
 import {
-  Sentry,
-  SentrySeverity,
-  SentryLog
+  Sentry
 } from 'react-native-sentry';
 
-Sentry.setLogLevel(SentryLog.Debug);
 Sentry.config('Your DSN').install();
 Sentry.activateStacktraceMerging(require('BatchedBridge'), require('parseErrorStack'));
 
@@ -141,6 +123,15 @@ Change `AppDelegate.m`
 These are functions you can call in your javascript code:
 
 ```js
+
+import {
+  Sentry,
+  SentrySeverity,
+  SentryLog
+} from 'react-native-sentry';
+
+Sentry.setLogLevel(SentryLog.Debug);
+
 Sentry.setExtraContext({
   "a_thing": 3,
   "some_things": {"green": "red"},
@@ -165,7 +156,7 @@ Sentry.setUserContext({
 
 Sentry.captureMessage("TEST message", {
   level: SentrySeverity.Warning
-});
+}); // Default SentrySeverity.Error
 
 // This will trigger a crash in the native sentry client
 //Sentry.nativeCrash();
