@@ -1,19 +1,12 @@
-
 # react-native-sentry (alpha iOS only)
 
-*Requirments:*
+*Requirements:*
 
-`react-native >= 0.41`
+* `react-native >= 0.41`
+* sentry-cli > 0.26 (`brew install getsentry/tools/sentry-cli`)
 
-sentry-cli > 0.26: 
-
-https://github.com/getsentry/sentry-cli
-
-OR
-
-`brew install getsentry/tools/sentry-cli`
-
-Sentry can provide mixed stacktraces, which means if your app happens to crash on the native side you will also see the last call from javascript.
+Sentry can provide mixed stacktraces, which means if your app happens to crash
+on the native side you will also see the last call from javascript.
 
 ![Mixed Stacktrace](https://github.com/getsentry/react-native-sentry/raw/master/assets/mixed-stacktrace.png)
 
@@ -22,15 +15,14 @@ Sentry can provide mixed stacktraces, which means if your app happens to crash o
 If you don't have a react native project up and running follow this guide.
 https://facebook.github.io/react-native/docs/getting-started.html
 
-Start with adding sentry:
+Start with adding sentry and linking it:
 
-`$ npm install react-native-sentry --save`
+```
+$ npm install react-native-sentry --save
+$ react-native link react-native-sentry
+```
 
-### Mostly automatic installation
-
-`$ react-native link react-native-sentry`
-
-### How to integrate it into your Xcode project
+## Sourcemap Uploading
 
 Open up your xcode project in the iOS folder, go to your project's target and
 change the "Bundle React Native code and images" build script.  The script that
@@ -41,66 +33,29 @@ export NODE_BINARY=node
 sentry-cli react-native-xcode ../node_modules/react-native/packager/react-native-xcode.sh
 ```
 
-Add sentry to your `index.ios.js`
+## Client Configuration
+
+Add sentry to your `index.ios.js`:
 
 ```js
 ...
-import {
-  AppRegistry,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
-
-import {
-  Sentry
-} from 'react-native-sentry';
+import { Sentry } from 'react-native-sentry';
 
 Sentry.config('Your DSN').install();
 Sentry.activateStacktraceMerging(require('BatchedBridge'), require('parseErrorStack'));
-
-export default class AwesomeProject extends Component {
 ...
 ```
 
-Change `AppDelegate.m`
+Additionally you need to register the native crash handler in your `AppDelegate.m`:
 
 ```objc
-#import "AppDelegate.h"
-
-#import <React/RCTBundleURLProvider.h>
-#import <React/RCTRootView.h>
 #import <React/RNSentry.h>
 
-@implementation AppDelegate
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-  NSURL *jsCodeLocation;
-
-  jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
-  
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
-                                                      moduleName:@"AwesomeProject"
-                                               initialProperties:nil
-                                                   launchOptions:launchOptions];
-  
-  [RNSentry installWithRootView:rootView]; // Install Sentry Exception Handler
-
-  rootView.backgroundColor = [[UIColor alloc] initWithRed:1.0f green:1.0f blue:1.0f alpha:1];
-
-  self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-  UIViewController *rootViewController = [UIViewController new];
-  rootViewController.view = rootView;
-  self.window.rootViewController = rootViewController;
-  [self.window makeKeyAndVisible];
-  return YES;
-}
-
-@end
+/* ... */
+[RNSentry installWithRootView:rootView];
 ```
 
-## Documentation
+## Additional Configuration
 
 These are functions you can call in your javascript code:
 
