@@ -30,33 +30,15 @@ Start with adding sentry:
 
 `$ react-native link react-native-sentry`
 
-### How to integrate it into you Xcode project
+### How to integrate it into your Xcode project
 
-`react-native init AwesomeProject`
+Open up your xcode project in the iOS folder, go to your project's target and
+change the "Bundle React Native code and images" build script.  The script that
+is currently there needs to be adjusted as follows:
 
-`cd AwesomeProject`
-
-Add run script phase to upload your debug symbols and source maps:
-![Run script](https://github.com/getsentry/react-native-sentry/raw/master/assets/run-script.png)
-
-Change this variables with your values: 
-`SENTRY_ORG`
-`SENTRY_PROJECT`
-`SENTRY_AUTH_TOKEN`
-```shell
-if which sentry-cli >/dev/null; then
-export SENTRY_ORG=YOUR-ORG
-export SENTRY_PROJECT=YOUR-PROJECT
-export SENTRY_AUTH_TOKEN=YOUR-AUTH-TOKEN
-#export SENTRY_URL=
-ERROR=$(export NODE_BINARY=node
-sentry-cli react-native-xcode ../node_modules/react-native/packager/react-native-xcode.sh 2>&1 >/dev/null)
-if [ ! -z "$ERROR" ]; then
-echo "warning: sentry-cli - $ERROR"
-fi
-else
-echo "warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases"
-fi
+```
+export NODE_BINARY=node
+sentry-cli react-native-xcode ../node_modules/react-native/packager/react-native-xcode.sh
 ```
 
 Add sentry to your `index.ios.js`
