@@ -21,8 +21,7 @@ import {
 } from 'react-native-sentry';
 
 Sentry.setLogLevel(SentryLog.Debug);
-Sentry.config('Your DSN').install();
-Sentry.activateStacktraceMerging(require('BatchedBridge'), require('parseErrorStack'));
+Sentry.config("Your DSN").install();
 
 Sentry.setExtraContext({
   "a_thing": 3,

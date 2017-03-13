@@ -224,7 +224,7 @@
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
-			dstSubfolderSpec = 10;
+			dstSubfolderSpec = 11;
 			files = (
 			);
 			name = "Copy Files";
@@ -501,7 +501,6 @@
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				6350253C1E1E816100408AE7 /* Copy Files */,
-				635024841E1E7DF500408AE7 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -816,20 +815,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/packager/react-native-xcode.sh";
-		};
-		635024841E1E7DF500408AE7 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "if which sentry-cli >/dev/null; then\nexport SENTRY_ORG=org\nexport SENTRY_PROJECT=project\nexport SENTRY_AUTH_TOKEN=token\n#export SENTRY_URL=\nERROR=$(export NODE_BINARY=node\nsentry-cli react-native-xcode ../node_modules/react-native/packager/react-native-xcode.sh 2>&1 >/dev/null)\nif [ ! -z \"$ERROR\" ]; then\necho \"warning: sentry-cli - $ERROR\"\nfi\nelse\necho \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi";
+			shellScript = "export SENTRY_ORG=org\nexport SENTRY_PROJECT=project\nexport SENTRY_AUTH_TOKEN=token\n#export SENTRY_URL=\nexport NODE_BINARY=node\ncp -r ${CONFIGURATION_BUILD_DIR}/Sentry.framework ${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_NAME}.app/Frameworks\ncp -r ${CONFIGURATION_BUILD_DIR}/KSCrash.framework ${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_NAME}.app/Frameworks\nsentry-cli react-native-xcode ../node_modules/react-native/packager/react-native-xcode.sh";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -914,12 +900,11 @@
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = 97JCY7859U;
-				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)";
+				FRAMEWORK_SEARCH_PATHS = "";
 				INFOPLIST_FILE = ReactNativeExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -936,11 +921,10 @@
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 97JCY7859U;
-				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)";
+				FRAMEWORK_SEARCH_PATHS = "";
 				INFOPLIST_FILE = ReactNativeExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (

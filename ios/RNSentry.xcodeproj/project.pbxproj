@@ -69,13 +69,6 @@
 			remoteGlobalIDString = 63CDAB5E1DDB164500B63921;
 			remoteInfo = iOS;
 		};
-		632232B11E76C58400F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632232591E76C4A500F58A1F /* Sentry.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 03E94B0A1C22596A009F8F29;
-			remoteInfo = "Sentry-iOS";
-		};
 		632235EC1E76E24300F58A1F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */;
@@ -104,7 +97,14 @@
 			remoteGlobalIDString = EDF2BF211CCF15AD004BADF4;
 			remoteInfo = KSCrash_static;
 		};
-		632235F41E76E24800F58A1F /* PBXContainerItemProxy */ = {
+		632237221E76F6A900F58A1F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 632232591E76C4A500F58A1F /* Sentry.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 03E94B0A1C22596A009F8F29;
+			remoteInfo = "Sentry-iOS";
+		};
+		632237241E76F6AC00F58A1F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */;
 			proxyType = 1;
@@ -225,8 +225,8 @@
 			buildRules = (
 			);
 			dependencies = (
-				632235F51E76E24800F58A1F /* PBXTargetDependency */,
-				632232B21E76C58400F58A1F /* PBXTargetDependency */,
+				632237251E76F6AC00F58A1F /* PBXTargetDependency */,
+				632237231E76F6A900F58A1F /* PBXTargetDependency */,
 			);
 			name = RNSentry;
 			productName = RCTDataManager;
@@ -374,15 +374,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		632232B21E76C58400F58A1F /* PBXTargetDependency */ = {
+		632237231E76F6A900F58A1F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Sentry-iOS";
-			targetProxy = 632232B11E76C58400F58A1F /* PBXContainerItemProxy */;
+			targetProxy = 632237221E76F6A900F58A1F /* PBXContainerItemProxy */;
 		};
-		632235F51E76E24800F58A1F /* PBXTargetDependency */ = {
+		632237251E76F6AC00F58A1F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = KSCrash;
-			targetProxy = 632235F41E76E24800F58A1F /* PBXContainerItemProxy */;
+			targetProxy = 632237241E76F6AC00F58A1F /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
