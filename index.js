@@ -1,3 +1,3 @@
 'use strict';
-import * as sentry from './lib/SentryClient';
+import * as sentry from './lib/Sentry';
 module.exports = sentry;

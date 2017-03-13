@@ -1,4 +1,3 @@
-
 #import "RNSentry.h"
 #import "RSSwizzle.h"
 #import <React/RCTConvert.h>
@@ -10,6 +9,11 @@
 - (dispatch_queue_t)methodQueue
 {
     return dispatch_get_main_queue();
+}
+
++ (void)installWithRootView:(RCTRootView *)rootView {
+    RNSentry *sentry = [rootView.bridge moduleForName:@"RNSentry"];
+    [[rootView.bridge moduleForName:@"ExceptionsManager"] initWithDelegate:sentry];
 }
 
 RCT_EXPORT_MODULE()

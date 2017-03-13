@@ -15,17 +15,17 @@ import {
 } from 'react-native';
 
 import {
-  SentryClient,
+  Sentry,
   SentrySeverity,
   SentryLog,
   User
 } from 'react-native-sentry';
 
-SentryClient.setLogLevel(SentryLog.Debug);
-SentryClient.shared = new SentryClient("Your DSN");
-SentryClient.shared.activateStacktraceMerging(require('BatchedBridge'), require('parseErrorStack'));
+Sentry.setLogLevel(SentryLog.Debug);
+Sentry.config('Your DSN').install();
+Sentry.activateStacktraceMerging(require('BatchedBridge'), require('parseErrorStack'));
 
-SentryClient.shared.setExtras({
+Sentry.setExtraContext({
   "a_thing": 3,
   "some_things": {"green": "red"},
   "foobar": ["a", "b", "c"],
@@ -33,29 +33,31 @@ SentryClient.shared.setExtras({
   "float": 2.43
 });
 
-SentryClient.shared.setTags({
+Sentry.setTagsContext({
   "environment": "production",
   "react": true
 });
 
-SentryClient.shared.setUser(new User(
-  "12341",
-  "john@apple.com",
-  "username",
-  {
+Sentry.setUserContext({
+  email: "john@apple.com",
+  userID: "12341",
+  username: "username",
+  extra: {
     "is_admin": false
   }
-));
+});
 
 export default class ReactNativeExample extends Component {
   _sendMessage() {
-    SentryClient.shared.captureMessage("TEST message", SentrySeverity.Warning);
+    Sentry.captureMessage("TEST message", {
+      level: SentrySeverity.Warning
+    });
   }
   _throwError() {
-    throw new Error('SentryClient: Test throw error');
+    throw new Error('Sentry: Test throw error');
   }
   _nativeCrash() {
-    SentryClient.shared.nativeCrash();
+    Sentry.nativeCrash();
   }
   render() {
     return (
