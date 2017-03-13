@@ -1,0 +1,14 @@
+{
+  "support_level": "beta",
+  "platforms": {
+    "cocoa": {
+      "name": "React-Native",
+      "type": "language",
+      "doc_link": "",
+      "wizard": [
+        "index#installation",
+        "index#updating-build-steps"
+      ]
+    }
+  }
+}
