@@ -5,7 +5,7 @@
 
 `react-native >= 0.41`
 
-sentry-cli > 0.25: 
+sentry-cli > 0.26: 
 
 https://github.com/getsentry/sentry-cli
 
@@ -86,15 +86,14 @@ import {
 } from 'react-native';
 
 import {
-  SentryClient,
+  Sentry,
   SentrySeverity,
-  SentryLog,
-  User
+  SentryLog
 } from 'react-native-sentry';
 
-SentryClient.setLogLevel(SentryLog.Debug);
-SentryClient.shared = new SentryClient("Your DSN");
-SentryClient.shared.activateStacktraceMerging(require('BatchedBridge'), require('parseErrorStack'));
+Sentry.setLogLevel(SentryLog.Debug);
+Sentry.config('Your DSN').install();
+Sentry.activateStacktraceMerging(require('BatchedBridge'), require('parseErrorStack'));
 
 export default class AwesomeProject extends Component {
 ...
@@ -103,27 +102,11 @@ export default class AwesomeProject extends Component {
 Change `AppDelegate.m`
 
 ```objc
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- */
-
 #import "AppDelegate.h"
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
 #import <React/RNSentry.h>
-
-
-@interface AppDelegate()
-
-@property (nonatomic, strong) RNSentry *sentry;
-
-@end
 
 @implementation AppDelegate
 
@@ -132,17 +115,14 @@ Change `AppDelegate.m`
   NSURL *jsCodeLocation;
 
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
+  
+  RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
+                                                      moduleName:@"AwesomeProject"
+                                               initialProperties:nil
+                                                   launchOptions:launchOptions];
+  
+  [RNSentry installWithRootView:rootView]; // Install Sentry Exception Handler
 
-  self.sentry = [[RNSentry alloc] init];
-  RCTBridge *bridge = [[RCTBridge alloc] initWithBundleURL:jsCodeLocation
-                                            moduleProvider:^NSArray<id<RCTBridgeModule>> *{
-                                              id<RCTExceptionsManagerDelegate> customDelegate = self.sentry;
-                                              return @[[[RCTExceptionsManager alloc] initWithDelegate:customDelegate]];
-                                            }
-                                             launchOptions:launchOptions];
-  
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"AwesomeProject" initialProperties:nil];
-  
   rootView.backgroundColor = [[UIColor alloc] initWithRed:1.0f green:1.0f blue:1.0f alpha:1];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
@@ -161,7 +141,7 @@ Change `AppDelegate.m`
 These are functions you can call in your javascript code:
 
 ```js
-SentryClient.shared.setExtras({
+Sentry.setExtraContext({
   "a_thing": 3,
   "some_things": {"green": "red"},
   "foobar": ["a", "b", "c"],
@@ -169,22 +149,24 @@ SentryClient.shared.setExtras({
   "float": 2.43
 });
 
-SentryClient.shared.setTags({
+Sentry.setTagsContext({
   "environment": "production",
   "react": true
 });
 
-SentryClient.shared.setUser(new User(
-  "12341",
-  "john@apple.com",
-  "username",
-  {
+Sentry.setUserContext({
+  email: "john@apple.com",
+  userID: "12341",
+  username: "username",
+  extra: {
     "is_admin": false
   }
-));
+});
 
-SentryClient.shared.captureMessage("TEST message", SentrySeverity.Warning);
+Sentry.captureMessage("TEST message", {
+  level: SentrySeverity.Warning
+});
 
 // This will trigger a crash in the native sentry client
-//SentryClient.shared.nativeCrash();
+//Sentry.nativeCrash();
 ```

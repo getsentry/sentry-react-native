@@ -17,8 +17,7 @@ import {
 import {
   Sentry,
   SentrySeverity,
-  SentryLog,
-  User
+  SentryLog
 } from 'react-native-sentry';
 
 Sentry.setLogLevel(SentryLog.Debug);
