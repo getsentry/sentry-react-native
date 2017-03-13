@@ -1,4 +1,6 @@
-# react-native-sentry (alpha iOS only)
+# react-native-sentry
+
+**This is an early beta release that only supports iOS**
 
 *Requirements:*
 
