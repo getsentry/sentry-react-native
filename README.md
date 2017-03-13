@@ -31,6 +31,8 @@ change the "Bundle React Native code and images" build script.  The script that
 is currently there needs to be adjusted as follows:
 
 ```
+cp -r ${CONFIGURATION_BUILD_DIR}/Sentry.framework ${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_NAME}.app/Frameworks
+cp -r ${CONFIGURATION_BUILD_DIR}/KSCrash.framework ${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_NAME}.app/Frameworks
 export SENTRY_ORG=YOUR_ORG_SLUG
 export SENTRY_PROJECT=YOUR_PROJECT_SLUG
 export SENTRY_AUTH_TOKEN=YOUR_AUTH_TOKEN
