@@ -1,5 +1,9 @@
 # react-native-sentry
 
+[![npm version](https://img.shields.io/npm/v/react-native-sentry.svg)](https://img.shields.io/npm/v/react-native-sentry.svg)
+[![npm dm](https://img.shields.io/npm/dm/react-native-sentry.svg)](https://img.shields.io/npm/dm/react-native-sentry.svg)
+[![npm dt](https://img.shields.io/npm/dt/react-native-sentry.svg)](https://img.shields.io/npm/dt/react-native-sentry.svg)
+
 **This is an early beta release that only supports iOS**
 
 *Requirements:*
