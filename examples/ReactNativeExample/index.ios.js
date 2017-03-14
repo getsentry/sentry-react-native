@@ -20,7 +20,6 @@ import {
   SentryLog
 } from 'react-native-sentry';
 
-Sentry.setLogLevel(SentryLog.Debug);
 Sentry.config("Your DSN").install();
 
 Sentry.setExtraContext({
