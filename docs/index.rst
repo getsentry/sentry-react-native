@@ -73,6 +73,17 @@ If you do get sourcemaps you can upload them with ``sentry-cli``.  However
 make sure to pass ``--rewrite`` to the ``upload-sourcemaps`` command which
 will fix up the sourcemaps before upload (inlines sources etc.).
 
+Example:
+
+.. code-block:: bash
+
+    react-native bundle \
+      --dev false \
+      --platform android \
+      --entry-file index.android.js \
+      --bundle-output android.main.bundle \
+      --sourcemap-output android.main.bundle.map
+
 Client Configuration
 --------------------
 
