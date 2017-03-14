@@ -7,7 +7,7 @@ React Native
 
 This is the documentation for our beta clients for React-Native.
 
-.. admonition:: note
+.. admonition:: Note
 
    This is an early beta release with various different levels of support.
    iOS is best supported if you are also using the native extension and if
