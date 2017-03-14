@@ -9,9 +9,11 @@ This is the documentation for our beta clients for React-Native.
 
 .. admonition:: Note
 
-   This is an early beta release with various different levels of support.
-   iOS is best supported if you are also using the native extension and if
-   not we fall back to raven-js' basic react-native support.
+   This is an early release with various different levels of support.  iOS
+   is best supported if you are also using the native extension and if not
+   we fall back to raven-js' basic react-native support.
+
+   We would love to get your feedback!
 
 Installation
 ------------
