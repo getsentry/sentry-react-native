@@ -1,6 +1,8 @@
 
-package com.reactlibrary;
+package io.sentry;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import com.facebook.react.bridge.ReactApplicationContext;

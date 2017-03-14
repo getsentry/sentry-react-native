@@ -5,27 +5,78 @@
  */
 
 import React, { Component } from 'react';
+
 import {
   AppRegistry,
   StyleSheet,
   Text,
-  View
+  View,
+  Button
 } from 'react-native';
 
+import {
+  Sentry,
+  SentrySeverity,
+  SentryLog
+} from 'react-native-sentry';
+
+Sentry.config("Your DSN").install();
+
+Sentry.setExtraContext({
+  "a_thing": 3,
+  "some_things": {"green": "red"},
+  "foobar": ["a", "b", "c"],
+  "react": true,
+  "float": 2.43
+});
+
+Sentry.setTagsContext({
+  "environment": "production",
+  "react": true
+});
+
+Sentry.setUserContext({
+  email: "john@apple.com",
+  userID: "12341",
+  username: "username",
+  extra: {
+    "is_admin": false
+  }
+});
+
 export default class ReactNativeExample extends Component {
+  _sendMessage() {
+    Sentry.captureMessage("TEST message", {
+      level: SentrySeverity.Warning
+    });
+  }
+  _throwError() {
+    throw new Error('Sentry: Test throw error');
+  }
+  _nativeCrash() {
+    Sentry.nativeCrash();
+  }
   render() {
     return (
       <View style={styles.container}>
         <Text style={styles.welcome}>
-          Welcome to React Native!
+          Welcome to React Native Sentry example
         </Text>
-        <Text style={styles.instructions}>
-          To get started, edit index.android.js
-        </Text>
-        <Text style={styles.instructions}>
-          Double tap R on your keyboard to reload,{'\n'}
-          Shake or press menu button for dev menu
-        </Text>
+        <Button
+          style={{fontSize: 20, color: 'green'}}
+          styleDisabled={{color: 'red'}}
+          onPress={() => this._throwError()}
+          title="throw error!" />
+        <Button
+          style={{fontSize: 20, color: 'green'}}
+          styleDisabled={{color: 'red'}}
+          onPress={() => this._nativeCrash()}
+          title="native crash!" />
+        <Button
+          style={{fontSize: 20, color: 'green'}}
+          styleDisabled={{color: 'red'}}
+          onPress={() => this._sendMessage()}
+          title="send message" />
       </View>
     );
   }
