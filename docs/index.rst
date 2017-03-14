@@ -51,7 +51,7 @@ is currently there needs to be adjusted as follows::
     sentry-cli upload-dsym
 
 You can find the slugs in the URL of your project (sentry.io/your-org-slug/your-project-slug)
-If you don't have an auth token yet you can [create an auth token here](https://sentry.io/api/).
+If you don't have an auth token yet you can `create an auth token here <https://sentry.io/api/>`_.
 
 This also uploads debug symbols in the last line which however will not work for
 bitcode enabled builds.  If you are using bitcode you need to remove that
