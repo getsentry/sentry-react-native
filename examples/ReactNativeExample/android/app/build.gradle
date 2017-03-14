@@ -65,6 +65,10 @@ import com.android.build.OutputFile
  * ]
  */
 
+project.ext.react = [
+        extraPackagerArgs: ["--sourcemap-output", "$buildDir/intermediates/assets/release/index.android.bundle.map"]
+]
+
 apply from: "../../node_modules/react-native/react.gradle"
 
 /**
