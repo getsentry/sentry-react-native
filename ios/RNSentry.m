@@ -18,6 +18,11 @@
 
 RCT_EXPORT_MODULE()
 
+- (NSDictionary<NSString *, id> *)constantsToExport
+{
+    return @{@"nativeClientAvailable": @YES};
+}
+
 RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
 {
     [SentryClient setShared:[[SentryClient alloc] initWithDsnString:[RCTConvert NSString:dsnString]]];
