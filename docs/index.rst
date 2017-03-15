@@ -35,19 +35,20 @@ Xcode Build Settings
 --------------------
 
 Since we use our `Swift Client
-<https://github.com/getsentry/sentry-swift>`_ in the background, your project has to embed the swift standard libraries.
+<https://github.com/getsentry/sentry-swift>`_ in the background, your
+project has to embed the swift standard libraries.
 
-Search for ``ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES`` in your Xcode project build settings and set it to ``YES``.
+Search for ``ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES`` in your Xcode project
+build settings and set it to ``YES``.
 
-You will get this error message if you forget to set it:
-
-.. code-block:: bash
+You will get this error message if you forget to set it::
 
     dyld: Library not loaded: @rpath/libswiftCore.dylib
     Referenced from: [Redacted]/Sentry.framework/Sentry
     Reason: image not found
 
-Also note that if you build the project without setting this, you have to run clean in order to make the change work.
+Also note that if you build the project without setting this, you have to
+run clean in order to make the change work.
 
 Xcode Build Steps
 -----------------
@@ -59,11 +60,11 @@ Open up your xcode project in the iOS folder, go to your project's target and
 change the "Bundle React Native code and images" build script.  The script that
 is currently there needs to be adjusted as follows::
 
-    ../node_modules/react-native-sentry/bin/bundle-frameworks
     export SENTRY_ORG=YOUR_ORG_SLUG
     export SENTRY_PROJECT=YOUR_PROJECT_SLUG
     export SENTRY_AUTH_TOKEN=YOUR_AUTH_TOKEN
     export NODE_BINARY=node
+    ../node_modules/react-native-sentry/bin/bundle-frameworks
     sentry-cli react-native-xcode ../node_modules/react-native/packager/react-native-xcode.sh
     sentry-cli upload-dsym
 
