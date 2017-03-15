@@ -31,6 +31,22 @@ Note that we only support ``react-native >= 0.41`` at the moment and you
 will have to make sure a recent version of :ref:`sentry-cli <sentry-cli>`
 installed.
 
+Xcode Build Settings
+--------------------
+
+Since we use our `Swift Client
+<https://github.com/getsentry/sentry-swift>` in the background, your project has to embed the swift standard libraries.
+
+Search for ``ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES`` in your Xcode project build settings and set it to ``YES``.
+
+You will get this error message if you forget to set it:
+
+.. code-block:: bash
+
+    dyld: Library not loaded: @rpath/libswiftCore.dylib
+    Referenced from: [Redacted]/Sentry.framework/Sentry
+    Reason: image not found
+
 Xcode Build Steps
 -----------------
 
