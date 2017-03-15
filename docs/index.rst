@@ -35,7 +35,7 @@ Xcode Build Settings
 --------------------
 
 Since we use our `Swift Client
-<https://github.com/getsentry/sentry-swift>` in the background, your project has to embed the swift standard libraries.
+<https://github.com/getsentry/sentry-swift>`_ in the background, your project has to embed the swift standard libraries.
 
 Search for ``ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES`` in your Xcode project build settings and set it to ``YES``.
 
@@ -46,6 +46,8 @@ You will get this error message if you forget to set it:
     dyld: Library not loaded: @rpath/libswiftCore.dylib
     Referenced from: [Redacted]/Sentry.framework/Sentry
     Reason: image not found
+
+Also note that if you build the project without setting this, you have to run clean in order to make the change work.
 
 Xcode Build Steps
 -----------------
