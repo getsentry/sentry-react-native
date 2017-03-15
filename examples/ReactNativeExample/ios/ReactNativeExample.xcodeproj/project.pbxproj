@@ -815,7 +815,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export SENTRY_ORG=org\nexport SENTRY_PROJECT=project\nexport SENTRY_AUTH_TOKEN=token\n#export SENTRY_URL=\nexport NODE_BINARY=node\ncp -r ${CONFIGURATION_BUILD_DIR}/Sentry.framework ${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_NAME}.app/Frameworks\ncp -r ${CONFIGURATION_BUILD_DIR}/KSCrash.framework ${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_NAME}.app/Frameworks\nsentry-cli react-native-xcode ../node_modules/react-native/packager/react-native-xcode.sh";
+			shellScript = "../node_modules/react-native-sentry/bin/bundle-frameworks\nexport SENTRY_ORG=org\nexport SENTRY_PROJECT=project\nexport SENTRY_AUTH_TOKEN=token\n#export SENTRY_URL=\nexport NODE_BINARY=node\nsentry-cli react-native-xcode ../node_modules/react-native/packager/react-native-xcode.sh";
 		};
 /* End PBXShellScriptBuildPhase section */
 

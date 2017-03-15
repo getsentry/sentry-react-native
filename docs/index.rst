@@ -41,8 +41,7 @@ Open up your xcode project in the iOS folder, go to your project's target and
 change the "Bundle React Native code and images" build script.  The script that
 is currently there needs to be adjusted as follows::
 
-    cp -r ${CONFIGURATION_BUILD_DIR}/Sentry.framework ${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_NAME}.app/Frameworks
-    cp -r ${CONFIGURATION_BUILD_DIR}/KSCrash.framework ${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_NAME}.app/Frameworks
+    ../node_modules/react-native-sentry/bin/bundle-frameworks
     export SENTRY_ORG=YOUR_ORG_SLUG
     export SENTRY_PROJECT=YOUR_PROJECT_SLUG
     export SENTRY_AUTH_TOKEN=YOUR_AUTH_TOKEN
@@ -123,11 +122,9 @@ These are functions you can call in your javascript code:
 
     // disable stacktrace merging
     Sentry.config("___DSN___", {
-      deactivateStacktraceMerging: true
+      deactivateStacktraceMerging: true,
+      logLevel: SentryLog.Debug
     }).install();
-
-    // change log level
-    Sentry.setLogLevel(SentryLog.Debug);
 
     // export an extra context
     Sentry.setExtraContext({
