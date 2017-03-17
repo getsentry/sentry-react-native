@@ -142,7 +142,13 @@ These are functions you can call in your javascript code:
     // disable stacktrace merging
     Sentry.config("___DSN___", {
       deactivateStacktraceMerging: true,
-      logLevel: SentryLog.Debug
+      logLevel: SentryLog.Debug,
+      // These two options will only be considered if stacktrace merging is active
+      // Here you can add modules that should be ignored or exclude modules
+      // that should no longer be ignored from stacktrace merging
+      // ignore_modules_exclude: ["I18nManager"], // Exclude is always stronger than include
+      // ignore_modules_include: ["RNSentry"], // Include modules that should be ignored too
+      // ---------------------------------
     }).install();
 
     // export an extra context
