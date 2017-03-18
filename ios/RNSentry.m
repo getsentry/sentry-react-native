@@ -16,12 +16,54 @@
     [[rootView.bridge moduleForName:@"ExceptionsManager"] initWithDelegate:sentry];
 }
 
++ (NSNumberFormatter *)numberFormatter {
+    static dispatch_once_t onceToken;
+    static NSNumberFormatter *formatter = nil;
+    dispatch_once(&onceToken, ^{
+        formatter = [NSNumberFormatter new];
+        formatter.numberStyle = NSNumberFormatterNoStyle;
+    });
+    return formatter;
+}
+
++ (NSRegularExpression *)frameRegex {
+    static dispatch_once_t onceTokenRegex;
+    static NSRegularExpression *regex = nil;
+    dispatch_once(&onceTokenRegex, ^{
+//        NSString *pattern = @"at (.+?) \\((?:(.+?):([0-9]+?):([0-9]+?))\\)"; // Regex with debugger
+        NSString *pattern = @"(?:([^@]+)@(.+?):([0-9]+?):([0-9]+))"; // Regex without debugger
+        regex = [NSRegularExpression regularExpressionWithPattern:pattern options:0 error:nil];
+    });
+    return regex;
+}
+
+NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace) {
+    NSNumberFormatter *formatter = [RNSentry numberFormatter];
+    NSArray *lines = [stacktrace componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+    NSMutableArray *frames = [NSMutableArray array];
+    for (NSString *line in lines) {
+        NSRange searchedRange = NSMakeRange(0, [line length]);
+        NSArray *matches = [[RNSentry frameRegex] matchesInString:line options:0 range:searchedRange];
+        for (NSTextCheckingResult *match in matches) {
+            NSString *matchText = [line substringWithRange:[match range]];
+            [frames addObject:@{
+                @"methodName": [line substringWithRange:[match rangeAtIndex:1]],
+                @"column": [formatter numberFromString:[line substringWithRange:[match rangeAtIndex:4]]],
+                @"lineNumber":  [formatter numberFromString:[line substringWithRange:[match rangeAtIndex:3]]],
+                @"file": [line substringWithRange:[match rangeAtIndex:2]]
+            }];
+        }
+    }
+    return frames;
+}
+
 RCT_EXPORT_MODULE()
 
 - (NSDictionary<NSString *, id> *)constantsToExport
 {
     return @{@"nativeClientAvailable": @YES};
 }
+
 
 RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
 {
@@ -47,7 +89,7 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
                 if ([param isKindOfClass:NSDictionary.class] && param[@"__sentry_stack"]) {
                     @synchronized ([SentryClient shared]) {
                         [[SentryClient shared] addExtra:@"__sentry_address" value:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress]];
-                        [[SentryClient shared] addExtra:@"__sentry_stack" value:param[@"__sentry_stack"]];
+                        [[SentryClient shared] addExtra:@"__sentry_stack" value:SentryParseJavaScriptStacktrace([RCTConvert NSString:param[@"__sentry_stack"]])];
                     }
                 } else {
                     if (param != nil) {
