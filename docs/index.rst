@@ -111,12 +111,14 @@ In order to use Sentry with cocoapods you have to install the packages with
 ``npm`` or ``yarn`` and link them locally in your ``Podfile``.
 
 .. sourcecode:: bash
+
     npm install --save react react-native react-native-sentry
 
 After that change your ``Podfile`` to reference to the packages in your
 ``node_modules`` folder.
 
 .. sourcecode:: ruby
+
     platform :ios, '8.0'
     use_frameworks!
 
