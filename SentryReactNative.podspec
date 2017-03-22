@@ -17,7 +17,7 @@ Pod::Spec.new do |s|
 
   s.preserve_paths = '*.js'
 
-  s.dependency 'Yoga'
+  s.dependency 'React'
   s.dependency 'Sentry', '~> 2.1.3'
   s.dependency 'RSSwizzle', '~> 0.1.0'
 
