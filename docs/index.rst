@@ -110,13 +110,13 @@ Setup With Cocoapods
 In order to use Sentry with cocoapods you have to install the packages with
 ``npm`` or ``yarn`` and link them locally in your ``Podfile``.
 
-.. code-block:: bash
+.. sourcecode:: bash
     npm install --save react react-native react-native-sentry
 
 After that change your ``Podfile`` to reference to the packages in your
 ``node_modules`` folder.
 
-.. code-block:: bash
+.. sourcecode:: ruby
     platform :ios, '8.0'
     use_frameworks!
 
@@ -187,13 +187,14 @@ These are functions you can call in your javascript code:
 
     // disable stacktrace merging
     Sentry.config("___DSN___", {
-      deactivateStacktraceMerging: true,
-      logLevel: SentryLog.Debug,
+      deactivateStacktraceMerging: true, // default: false | Deactivates the stacktrace merging feature
+      logLevel: SentryLog.Debug, // default SentryLog.None | Possible values:  .None, .Error, .Debug, .Verbose
+      forceRavenClient: true // default false | This will force sentry to use the raven client instead the native client
       // These two options will only be considered if stacktrace merging is active
       // Here you can add modules that should be ignored or exclude modules
       // that should no longer be ignored from stacktrace merging
-      // ignoreModulesExclude: ["I18nManager"], // Exclude is always stronger than include
-      // ignoreModulesInclude: ["RNSentry"], // Include modules that should be ignored too
+      // ignoreModulesExclude: ["I18nManager"], // default: [] | Exclude is always stronger than include
+      // ignoreModulesInclude: ["RNSentry"], // default: [] | Include modules that should be ignored too
       // ---------------------------------
     }).install();
 
