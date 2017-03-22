@@ -27,7 +27,7 @@ The `link` step will pull in the native dependency.  If you are using
 Android or expo you don't have to (or can't) run that step.  In that case
 we fall back automatically.
 
-Note that we only support ``react-native >= 0.41`` at the moment and you
+Note that we only support ``react-native >= 0.38`` at the moment and you
 will have to make sure a recent version of :ref:`sentry-cli <sentry-cli>`
 installed.
 

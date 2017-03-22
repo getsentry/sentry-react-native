@@ -16,7 +16,7 @@
   "author": "Sentry",
   "license": "MIT",
   "peerDependencies": {
-    "react-native": ">=0.41.0"
+    "react-native": ">=0.38.0"
   },
   "dependencies": {
     "raven-js": "3.12.1"

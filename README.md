@@ -8,7 +8,7 @@
 
 *Requirements:*
 
-* `react-native >= 0.41`
+* `react-native >= 0.38`
 * sentry-cli > 0.26 (`brew install getsentry/tools/sentry-cli`)
 
 With this SDK, Sentry is now able to provide mixed stacktraces. This means that if a JavaScript call causes a crash in native code, you will see the last call from JavaScript before the crash. This also means that with the new SDK, native crashes are properly handled on iOS.
