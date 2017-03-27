@@ -1,26 +1,22 @@
 package io.sentry;
 
-import android.content.Context;
+import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableMap;
+import com.getsentry.raven.android.Raven;
+import com.getsentry.raven.dsn.Dsn;
+import com.getsentry.raven.event.Event;
+import com.getsentry.raven.event.EventBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import com.facebook.react.bridge.Promise;
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.Callback;
-import com.facebook.react.bridge.ReadableMap;
-import com.getsentry.raven.Raven;
-import com.getsentry.raven.dsn.Dsn;
-import com.getsentry.raven.event.Event;
-import com.getsentry.raven.event.EventBuilder;
-
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
-    private Raven raven = null;
     final static Logger logger = Logger.getLogger("react-native-sentry");
 
     public RNSentryModule(ReactApplicationContext reactContext) {
@@ -42,9 +38,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startWithDsnString(String dsnString) {
-        Dsn dsn = new Dsn(dsnString);
-        this.raven = RNSentryRavenFactory.ravenInstance(dsn);
-        logger.info(String.format("startWithDsnString '%s'", dsn));
+        Raven.init(this.reactContext, new Dsn(dsnString));
+        logger.info(String.format("startWithDsnString '%s'", dsnString));
     }
 
     @ReactMethod
@@ -68,11 +63,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 eventLevel = Event.Level.ERROR;
                 break;
         }
-        EventBuilder eventBuilder = new EventBuilder().withMessage(message)
+        EventBuilder eventBuilder = new EventBuilder()
+                .withMessage(message)
                 .withLevel(eventLevel);
-        this.raven.runBuilderHelpers(eventBuilder);
-        Event event = eventBuilder.build();
-        this.raven.sendEvent(event);
+        Raven.capture(eventBuilder.build());
     }
 
     @ReactMethod
