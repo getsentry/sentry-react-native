@@ -17,6 +17,11 @@ android {
     lintOptions {
        warning 'InvalidPackage'
     }
+    libraryVariants.all { variant ->
+        variant.assemble.doLast {
+            sentryCli.execute()
+        }
+    }
 }
 
 dependencies {
@@ -24,3 +29,7 @@ dependencies {
     compile 'com.getsentry.raven:raven-android:7.8.6'
 }
 
+task sentryCli(type: Exec) {
+    executable "bash"
+    args "-c", "/usr/local/bin/sentry-cli react-native-gradle"
+}
