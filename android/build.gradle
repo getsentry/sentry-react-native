@@ -21,5 +21,6 @@ android {
 
 dependencies {
     compile 'com.facebook.react:react-native:+'
+    compile 'com.getsentry.raven:raven-android:7.8.6'
 }
 
