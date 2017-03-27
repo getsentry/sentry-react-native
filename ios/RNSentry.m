@@ -1,6 +1,11 @@
 #import "RNSentry.h"
 #import "RSSwizzle.h"
+#if __has_include(<React/RCTConvert.h>)
 #import <React/RCTConvert.h>
+#else
+#import "RCTConvert.h"
+#endif
+
 
 @import Sentry;
 
