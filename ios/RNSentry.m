@@ -50,7 +50,6 @@ NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace) {
         NSRange searchedRange = NSMakeRange(0, [line length]);
         NSArray *matches = [[RNSentry frameRegex] matchesInString:line options:0 range:searchedRange];
         for (NSTextCheckingResult *match in matches) {
-            NSString *matchText = [line substringWithRange:[match range]];
             [frames addObject:@{
                 @"methodName": [line substringWithRange:[match rangeAtIndex:1]],
                 @"column": [formatter numberFromString:[line substringWithRange:[match rangeAtIndex:4]]],
@@ -91,7 +90,6 @@ RCT_EXPORT_MODULE()
 {
     return @{@"nativeClientAvailable": @YES};
 }
-
 
 RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
 {
@@ -155,10 +153,21 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary * _Nonnull)user)
                                                           extra:[RCTConvert NSDictionary:user[@"extra"]]];
 }
 
+RCT_EXPORT_METHOD(captureBreadcrumb:(NSDictionary * _Nonnull)breadcrumb)
+{
+    NSDictionary *convertedBreadcrumb = [RCTConvert NSDictionary:breadcrumb];
+    SentryBreadcrumb *crumb = [[SentryBreadcrumb alloc] initWithCategory:convertedBreadcrumb[@"category"]
+                                                               timestamp:[NSDate dateWithTimeIntervalSince1970:[convertedBreadcrumb[@"timestamp"] integerValue]]
+                                                                 message:convertedBreadcrumb[@"message"]
+                                                                    type:nil
+                                                                   level:SentrySeverityInfo // TODO pass string instead of severity
+                                                                    data:nil];
+    [[SentryClient shared].breadcrumbs add:crumb];
+}
+
 RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 {
     NSDictionary *capturedEvent = [RCTConvert NSDictionary:event];
-
 
     SentrySeverity level = SentrySeverityError;
     switch ([capturedEvent[@"level"] integerValue]) {
@@ -186,12 +195,8 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
                                         extra:[RCTConvert NSDictionary:capturedEvent[@"user"][@"extra"]]];
     }
 
-    NSString *message = nil;
-    SentryException *exception = nil;
-    SentryStacktrace *stacktrace = nil;
     if (capturedEvent[@"message"]) {
-        message = capturedEvent[@"message"];
-        SentryEvent *sentryEvent = [[SentryEvent alloc] init:message
+        SentryEvent *sentryEvent = [[SentryEvent alloc] init:capturedEvent[@"message"]
                                                    timestamp:[NSDate date]
                                                        level:level
                                                       logger:capturedEvent[@"logger"]
@@ -204,16 +209,14 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
                                                        extra:capturedEvent[@"extra"]
                                                  fingerprint:nil
                                                         user:user
-                                                  exceptions:exception ? @[exception] : nil
-                                                  stacktrace:stacktrace];
-
+                                                  exceptions:nil
+                                                  stacktrace:nil];
         [[SentryClient shared] captureEvent:sentryEvent];
     } else if (capturedEvent[@"exception"]) {
-        message = [NSString stringWithFormat:@"Unhandled JS Exception: %@", capturedEvent[@"exception"][@"values"][0][@"value"]];
-        //exception = [[SentryException alloc] initWithValue:message type:message mechanism:nil module:nil];
-        //stacktrace = [[SentryStacktrace alloc] initWithFrames:SentryParseRavenFrames(capturedEvent[@"exception"][@"values"][0][@"stacktrace"][@"frames"])];
-        [self handleSoftJSExceptionWithMessage:message stack:SentryParseRavenFrames(capturedEvent[@"exception"][@"values"][0][@"stacktrace"][@"frames"]) exceptionId:@1];
-//        [[SentryClient shared] reportReactNativeCrashWithError:error stacktrace:stack terminateProgram:NO];
+        // TODO what do we do here with extra/tags/users that are not global?
+        [self handleSoftJSExceptionWithMessage:[NSString stringWithFormat:@"Unhandled JS Exception: %@", capturedEvent[@"exception"][@"values"][0][@"value"]]
+                                         stack:SentryParseRavenFrames(capturedEvent[@"exception"][@"values"][0][@"stacktrace"][@"frames"])
+                                   exceptionId:@99];
     }
 
 }
