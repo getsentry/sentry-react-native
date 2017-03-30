@@ -54,8 +54,31 @@ NSArray *SentryParseJavaScriptStacktrace(NSString *stacktrace) {
             [frames addObject:@{
                 @"methodName": [line substringWithRange:[match rangeAtIndex:1]],
                 @"column": [formatter numberFromString:[line substringWithRange:[match rangeAtIndex:4]]],
-                @"lineNumber":  [formatter numberFromString:[line substringWithRange:[match rangeAtIndex:3]]],
+                @"lineNumber": [formatter numberFromString:[line substringWithRange:[match rangeAtIndex:3]]],
                 @"file": [line substringWithRange:[match rangeAtIndex:2]]
+            }];
+        }
+    }
+    return frames;
+}
+
+NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
+    NSNumberFormatter *formatter = [RNSentry numberFormatter];
+    NSMutableArray *frames = [NSMutableArray array];
+    for (NSDictionary *ravenFrame in ravenFrames) {
+        if (ravenFrame[@"lineno"] != NSNull.null) {
+//            SentryFrame *frame = [[SentryFrame alloc] initWithFileName:ravenFrame[@"filename"]
+//                                                              function:ravenFrame[@"function"]
+//                                                                module:nil
+//                                                                  line:[[formatter numberFromString:[NSString stringWithFormat:@"%@", ravenFrame[@"lineno"]]] integerValue]
+//                                                                column: [[formatter numberFromString:[NSString stringWithFormat:@"%@", ravenFrame[@"colno"]]] integerValue]];
+//            [frame setPlatform:@"javascript"];
+//            [frames addObject:frame];
+            [frames addObject:@{
+                @"methodName": ravenFrame[@"function"],
+                @"column": [formatter numberFromString:[NSString stringWithFormat:@"%@", ravenFrame[@"colno"]]],
+                @"lineNumber": [formatter numberFromString:[NSString stringWithFormat:@"%@", ravenFrame[@"lineno"]]],
+                @"file": ravenFrame[@"filename"]
             }];
         }
     }
@@ -109,24 +132,19 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
     resolve(@YES);
 }
 
-RCT_EXPORT_METHOD(captureMessage:(NSString * _Nonnull)message level:(int)level)
-{
-    [[SentryClient shared] captureMessage:[RCTConvert NSString:message] level:level];
-}
-
 RCT_EXPORT_METHOD(setLogLevel:(int)level)
 {
     [SentryClient setLogLevel:level];
 }
 
-RCT_EXPORT_METHOD(setExtras:(NSDictionary * _Nonnull)extras)
-{
-    [SentryClient shared].extra = [RCTConvert NSDictionary:extras];
-}
-
 RCT_EXPORT_METHOD(setTags:(NSDictionary * _Nonnull)tags)
 {
     [SentryClient shared].tags = [self sanitizeDictionary:[RCTConvert NSDictionary:tags]];
+}
+
+RCT_EXPORT_METHOD(setExtras:(NSDictionary * _Nonnull)extras)
+{
+    [SentryClient shared].extra = [RCTConvert NSDictionary:extras];
 }
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary * _Nonnull)user)
@@ -135,6 +153,69 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary * _Nonnull)user)
                                                           email:[RCTConvert NSString:user[@"email"]]
                                                        username:[RCTConvert NSString:user[@"username"]]
                                                           extra:[RCTConvert NSDictionary:user[@"extra"]]];
+}
+
+RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
+{
+    NSDictionary *capturedEvent = [RCTConvert NSDictionary:event];
+
+
+    SentrySeverity level = SentrySeverityError;
+    switch ([capturedEvent[@"level"] integerValue]) {
+        case 0:
+            level = SentrySeverityFatal;
+            break;
+        case 2:
+            level = SentrySeverityWarning;
+            break;
+        case 3:
+            level = SentrySeverityInfo;
+            break;
+        case 4:
+            level = SentrySeverityDebug;
+            break;
+        default:
+            break;
+    }
+
+    SentryUser *user = nil;
+    if (capturedEvent[@"user"] != nil) {
+        user = [[SentryUser alloc] initWithId:[RCTConvert NSString:capturedEvent[@"user"][@"userID"]]
+                                        email:[RCTConvert NSString:capturedEvent[@"user"][@"email"]]
+                                     username:[RCTConvert NSString:capturedEvent[@"user"][@"username"]]
+                                        extra:[RCTConvert NSDictionary:capturedEvent[@"user"][@"extra"]]];
+    }
+
+    NSString *message = nil;
+    SentryException *exception = nil;
+    SentryStacktrace *stacktrace = nil;
+    if (capturedEvent[@"message"]) {
+        message = capturedEvent[@"message"];
+        SentryEvent *sentryEvent = [[SentryEvent alloc] init:message
+                                                   timestamp:[NSDate date]
+                                                       level:level
+                                                      logger:capturedEvent[@"logger"]
+                                                     culprit:nil
+                                                  serverName:nil
+                                                     release:nil
+                                                 buildNumber:nil
+                                                        tags:[self sanitizeDictionary:capturedEvent[@"tags"]]
+                                                     modules:nil
+                                                       extra:capturedEvent[@"extra"]
+                                                 fingerprint:nil
+                                                        user:user
+                                                  exceptions:exception ? @[exception] : nil
+                                                  stacktrace:stacktrace];
+
+        [[SentryClient shared] captureEvent:sentryEvent];
+    } else if (capturedEvent[@"exception"]) {
+        message = [NSString stringWithFormat:@"Unhandled JS Exception: %@", capturedEvent[@"exception"][@"values"][0][@"value"]];
+        //exception = [[SentryException alloc] initWithValue:message type:message mechanism:nil module:nil];
+        //stacktrace = [[SentryStacktrace alloc] initWithFrames:SentryParseRavenFrames(capturedEvent[@"exception"][@"values"][0][@"stacktrace"][@"frames"])];
+        [self handleSoftJSExceptionWithMessage:message stack:SentryParseRavenFrames(capturedEvent[@"exception"][@"values"][0][@"stacktrace"][@"frames"]) exceptionId:@1];
+//        [[SentryClient shared] reportReactNativeCrashWithError:error stacktrace:stack terminateProgram:NO];
+    }
+
 }
 
 RCT_EXPORT_METHOD(crash)
