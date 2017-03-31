@@ -130,6 +130,13 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
     resolve(@YES);
 }
 
+RCT_EXPORT_METHOD(clearContext)
+{
+    [SentryClient shared].tags = @{};
+    [SentryClient shared].extra = @{};
+    [SentryClient shared].user = nil;
+}
+
 RCT_EXPORT_METHOD(setLogLevel:(int)level)
 {
     [SentryClient setLogLevel:level];
