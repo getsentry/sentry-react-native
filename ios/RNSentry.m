@@ -166,30 +166,14 @@ RCT_EXPORT_METHOD(captureBreadcrumb:(NSDictionary * _Nonnull)breadcrumb)
                                                                timestamp:[NSDate dateWithTimeIntervalSince1970:[breadcrumb[@"timestamp"] integerValue]]
                                                                  message:breadcrumb[@"message"]
                                                                     type:nil
-                                                                   level:SentrySeverityInfo // TODO pass string instead of severity
+                                                                   level:[self sentrySeverityFromLevel:[breadcrumb[@"level"] integerValue]]
                                                                     data:nil];
     [[SentryClient shared].breadcrumbs add:crumb];
 }
 
 RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 {
-    SentrySeverity level = SentrySeverityError;
-    switch ([event[@"level"] integerValue]) {
-        case 0:
-            level = SentrySeverityFatal;
-            break;
-        case 2:
-            level = SentrySeverityWarning;
-            break;
-        case 3:
-            level = SentrySeverityInfo;
-            break;
-        case 4:
-            level = SentrySeverityDebug;
-            break;
-        default:
-            break;
-    }
+    SentrySeverity level = [self sentrySeverityFromLevel:[event[@"level"] integerValue]];
 
     SentryUser *user = nil;
     if (event[@"user"] != nil) {
@@ -228,6 +212,22 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 RCT_EXPORT_METHOD(crash)
 {
     [[SentryClient shared] crash];
+}
+
+- (SentrySeverity)sentrySeverityFromLevel:(NSInteger)level {
+    switch (level) {
+        case 0:
+            return SentrySeverityFatal;
+        case 2:
+            return SentrySeverityWarning;
+        case 3:
+            return SentrySeverityInfo;
+        case 4:
+            return SentrySeverityDebug;
+        default:
+            return SentrySeverityError;
+    }
+    return level;
 }
 
 - (NSDictionary *)sanitizeDictionary:(NSDictionary *)dictionary {
