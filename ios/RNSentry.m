@@ -140,9 +140,9 @@ RCT_EXPORT_METHOD(setTags:(NSDictionary * _Nonnull)tags)
     [SentryClient shared].tags = [self sanitizeDictionary:[RCTConvert NSDictionary:tags]];
 }
 
-RCT_EXPORT_METHOD(setExtras:(NSDictionary * _Nonnull)extras)
+RCT_EXPORT_METHOD(setExtra:(NSDictionary * _Nonnull)extra)
 {
-    [SentryClient shared].extra = [RCTConvert NSDictionary:extras];
+    [SentryClient shared].extra = [RCTConvert NSDictionary:extra];
 }
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary * _Nonnull)user)
