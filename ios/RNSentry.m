@@ -66,13 +66,6 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
     NSMutableArray *frames = [NSMutableArray array];
     for (NSDictionary *ravenFrame in ravenFrames) {
         if (ravenFrame[@"lineno"] != NSNull.null) {
-//            SentryFrame *frame = [[SentryFrame alloc] initWithFileName:ravenFrame[@"filename"]
-//                                                              function:ravenFrame[@"function"]
-//                                                                module:nil
-//                                                                  line:[[formatter numberFromString:[NSString stringWithFormat:@"%@", ravenFrame[@"lineno"]]] integerValue]
-//                                                                column: [[formatter numberFromString:[NSString stringWithFormat:@"%@", ravenFrame[@"colno"]]] integerValue]];
-//            [frame setPlatform:@"javascript"];
-//            [frames addObject:frame];
             [frames addObject:@{
                 @"methodName": ravenFrame[@"function"],
                 @"column": [formatter numberFromString:[NSString stringWithFormat:@"%@", ravenFrame[@"colno"]]],
@@ -116,6 +109,7 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
                     @synchronized ([SentryClient shared]) {
                         [[SentryClient shared] addExtra:@"__sentry_address" value:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress]];
                         [[SentryClient shared] addExtra:@"__sentry_stack" value:SentryParseJavaScriptStacktrace([RCTConvert NSString:param[@"__sentry_stack"]])];
+                        // [RCTConvert NSArray:param[@"__sentry_breadcrumbs"]] // we will add this in the objc client
                     }
                 } else {
                     if (param != nil) {
