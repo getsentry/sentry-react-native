@@ -93,7 +93,7 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
 {
-    [SentryClient setShared:[[SentryClient alloc] initWithDsnString:[RCTConvert NSString:dsnString]]];
+    [SentryClient setShared:[[SentryClient alloc] initWithDsnString:dsnString]];
     [[SentryClient shared] startCrashHandler];
 }
 
@@ -137,12 +137,12 @@ RCT_EXPORT_METHOD(setLogLevel:(int)level)
 
 RCT_EXPORT_METHOD(setTags:(NSDictionary * _Nonnull)tags)
 {
-    [SentryClient shared].tags = [self sanitizeDictionary:[RCTConvert NSDictionary:tags]];
+    [SentryClient shared].tags = [self sanitizeDictionary:tags];
 }
 
 RCT_EXPORT_METHOD(setExtra:(NSDictionary * _Nonnull)extra)
 {
-    [SentryClient shared].extra = [RCTConvert NSDictionary:extra];
+    [SentryClient shared].extra = extra;
 }
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary * _Nonnull)user)
