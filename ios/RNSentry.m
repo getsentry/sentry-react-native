@@ -109,7 +109,6 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
                     @synchronized ([SentryClient shared]) {
                         [[SentryClient shared] addExtra:@"__sentry_address" value:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress]];
                         [[SentryClient shared] addExtra:@"__sentry_stack" value:SentryParseJavaScriptStacktrace([RCTConvert NSString:param[@"__sentry_stack"]])];
-                        // [RCTConvert NSArray:param[@"__sentry_breadcrumbs"]] // we will add this in the objc client
                     }
                 } else {
                     if (param != nil) {
