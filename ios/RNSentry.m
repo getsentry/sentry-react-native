@@ -162,10 +162,9 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary * _Nonnull)user)
 
 RCT_EXPORT_METHOD(captureBreadcrumb:(NSDictionary * _Nonnull)breadcrumb)
 {
-    NSDictionary *convertedBreadcrumb = [RCTConvert NSDictionary:breadcrumb];
-    SentryBreadcrumb *crumb = [[SentryBreadcrumb alloc] initWithCategory:convertedBreadcrumb[@"category"]
-                                                               timestamp:[NSDate dateWithTimeIntervalSince1970:[convertedBreadcrumb[@"timestamp"] integerValue]]
-                                                                 message:convertedBreadcrumb[@"message"]
+    SentryBreadcrumb *crumb = [[SentryBreadcrumb alloc] initWithCategory:breadcrumb[@"category"]
+                                                               timestamp:[NSDate dateWithTimeIntervalSince1970:[breadcrumb[@"timestamp"] integerValue]]
+                                                                 message:breadcrumb[@"message"]
                                                                     type:nil
                                                                    level:SentrySeverityInfo // TODO pass string instead of severity
                                                                     data:nil];
@@ -174,10 +173,8 @@ RCT_EXPORT_METHOD(captureBreadcrumb:(NSDictionary * _Nonnull)breadcrumb)
 
 RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 {
-    NSDictionary *capturedEvent = [RCTConvert NSDictionary:event];
-
     SentrySeverity level = SentrySeverityError;
-    switch ([capturedEvent[@"level"] integerValue]) {
+    switch ([event[@"level"] integerValue]) {
         case 0:
             level = SentrySeverityFatal;
             break;
@@ -195,34 +192,34 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
     }
 
     SentryUser *user = nil;
-    if (capturedEvent[@"user"] != nil) {
-        user = [[SentryUser alloc] initWithId:[RCTConvert NSString:capturedEvent[@"user"][@"userID"]]
-                                        email:[RCTConvert NSString:capturedEvent[@"user"][@"email"]]
-                                     username:[RCTConvert NSString:capturedEvent[@"user"][@"username"]]
-                                        extra:[RCTConvert NSDictionary:capturedEvent[@"user"][@"extra"]]];
+    if (event[@"user"] != nil) {
+        user = [[SentryUser alloc] initWithId:[RCTConvert NSString:event[@"user"][@"userID"]]
+                                        email:[RCTConvert NSString:event[@"user"][@"email"]]
+                                     username:[RCTConvert NSString:event[@"user"][@"username"]]
+                                        extra:[RCTConvert NSDictionary:event[@"user"][@"extra"]]];
     }
 
-    if (capturedEvent[@"message"]) {
-        SentryEvent *sentryEvent = [[SentryEvent alloc] init:capturedEvent[@"message"]
+    if (event[@"message"]) {
+        SentryEvent *sentryEvent = [[SentryEvent alloc] init:event[@"message"]
                                                    timestamp:[NSDate date]
                                                        level:level
-                                                      logger:capturedEvent[@"logger"]
+                                                      logger:event[@"logger"]
                                                      culprit:nil
                                                   serverName:nil
                                                      release:nil
                                                  buildNumber:nil
-                                                        tags:[self sanitizeDictionary:capturedEvent[@"tags"]]
+                                                        tags:[self sanitizeDictionary:event[@"tags"]]
                                                      modules:nil
-                                                       extra:capturedEvent[@"extra"]
+                                                       extra:event[@"extra"]
                                                  fingerprint:nil
                                                         user:user
                                                   exceptions:nil
                                                   stacktrace:nil];
         [[SentryClient shared] captureEvent:sentryEvent];
-    } else if (capturedEvent[@"exception"]) {
+    } else if (event[@"exception"]) {
         // TODO what do we do here with extra/tags/users that are not global?
-        [self handleSoftJSExceptionWithMessage:[NSString stringWithFormat:@"Unhandled JS Exception: %@", capturedEvent[@"exception"][@"values"][0][@"value"]]
-                                         stack:SentryParseRavenFrames(capturedEvent[@"exception"][@"values"][0][@"stacktrace"][@"frames"])
+        [self handleSoftJSExceptionWithMessage:[NSString stringWithFormat:@"Unhandled JS Exception: %@", event[@"exception"][@"values"][0][@"value"]]
+                                         stack:SentryParseRavenFrames(event[@"exception"][@"values"][0][@"stacktrace"][@"frames"])
                                    exceptionId:@99];
     }
 
