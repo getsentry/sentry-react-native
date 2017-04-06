@@ -17,5 +17,6 @@
 @interface RNSentry : NSObject <RCTBridgeModule, RCTExceptionsManagerDelegate>
 
 + (void)installWithRootView:(RCTRootView *)rootView;
++ (void)installWithBridge:(RCTBridge *)bridge;
 
 @end

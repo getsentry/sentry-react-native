@@ -16,9 +16,13 @@
     return dispatch_get_main_queue();
 }
 
++ (void)installWithBridge:(RCTBridge *)bridge {
+    RNSentry *sentry = [bridge moduleForName:@"RNSentry"];
+    [[bridge moduleForName:@"ExceptionsManager"] initWithDelegate:sentry];
+}
+
 + (void)installWithRootView:(RCTRootView *)rootView {
-    RNSentry *sentry = [rootView.bridge moduleForName:@"RNSentry"];
-    [[rootView.bridge moduleForName:@"ExceptionsManager"] initWithDelegate:sentry];
+    [RNSentry installWithBridge: rootView.bridge];
 }
 
 + (NSNumberFormatter *)numberFormatter {
