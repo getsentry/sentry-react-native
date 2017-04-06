@@ -8,7 +8,9 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
-import com.getsentry.raven.android.Raven;
+import com.getsentry.raven.RavenFactory;
+import com.getsentry.raven.Raven;
+import com.getsentry.raven.android.AndroidRavenFactory;
 import com.getsentry.raven.android.event.helper.AndroidEventBuilderHelper;
 import com.getsentry.raven.dsn.Dsn;
 import com.getsentry.raven.event.Breadcrumb;
@@ -30,6 +32,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
     final static Logger logger = Logger.getLogger("react-native-sentry");
+    private volatile com.getsentry.raven.Raven raven;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -50,7 +53,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startWithDsnString(String dsnString) {
-        Raven.init(this.getReactApplicationContext(), new Dsn(dsnString));
+        AndroidRavenFactory factory = new AndroidRavenFactory(this.getReactApplicationContext());
+        raven = factory.createRavenInstance(new Dsn(dsnString));
         logger.info(String.format("startWithDsnString '%s'", dsnString));
     }
 
@@ -71,7 +75,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void setUser(ReadableMap user) {
-        logger.info("TODO: implement setUser");
+        raven.getContext().setUser(
+                new UserBuilder()
+                        .setEmail(user.getString("email"))
+                        .setId(user.getString("userID"))
+                        .setUsername(user.getString("username"))
+                        .build()
+        );
     }
 
     @ReactMethod
@@ -82,7 +92,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void captureBreadcrumb(ReadableMap breadcrumb) {
         logger.info(String.format("captureEvent '%s'", breadcrumb));
-        Breadcrumbs.record(
+        raven.getContext().recordBreadcrumb(
                 new BreadcrumbBuilder()
                         .setMessage(breadcrumb.getString("message"))
                         .setCategory(breadcrumb.getString("category"))
@@ -119,11 +129,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
 
         Raven.capture(eventBuilder.build());
-        logger.info(String.format("captureEvent '%s'", recursivelyDeconstructReadableMap(event.getMap("extra"))));
     }
 
     @ReactMethod
     public void clearContext() {
+        raven.getContext().clear();
     }
 
     @ReactMethod
