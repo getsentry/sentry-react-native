@@ -159,14 +159,14 @@ RCT_EXPORT_METHOD(captureBreadcrumb:(NSDictionary * _Nonnull)breadcrumb)
                                                                timestamp:[NSDate dateWithTimeIntervalSince1970:[breadcrumb[@"timestamp"] integerValue]]
                                                                  message:breadcrumb[@"message"]
                                                                     type:nil
-                                                                   level:[self sentrySeverityFromLevel:[breadcrumb[@"level"] integerValue]]
+                                                                   level:[self sentrySeverityFromLevel:breadcrumb[@"level"]]
                                                                     data:nil];
     [[SentryClient shared].breadcrumbs add:crumb];
 }
 
 RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 {
-    SentrySeverity level = [self sentrySeverityFromLevel:[event[@"level"] integerValue]];
+    SentrySeverity level = [self sentrySeverityFromLevel:event[@"level"]];
 
     SentryUser *user = nil;
     if (event[@"user"] != nil) {
@@ -207,20 +207,19 @@ RCT_EXPORT_METHOD(crash)
     [[SentryClient shared] crash];
 }
 
-- (SentrySeverity)sentrySeverityFromLevel:(NSInteger)level {
-    switch (level) {
-        case 0:
-            return SentrySeverityFatal;
-        case 2:
-            return SentrySeverityWarning;
-        case 3:
-            return SentrySeverityInfo;
-        case 4:
-            return SentrySeverityDebug;
-        default:
-            return SentrySeverityError;
+- (SentrySeverity)sentrySeverityFromLevel:(NSString *)level {
+    if ([level isEqualToString:@"fatal"]) {
+        return SentrySeverityFatal;
+    } else if ([level isEqualToString:@"warning"]) {
+        return SentrySeverityWarning;
+    } else if ([level isEqualToString:@"info"]) {
+        return SentrySeverityInfo;
+    } else if ([level isEqualToString:@"debug"]) {
+        return SentrySeverityDebug;
+    } else if ([level isEqualToString:@"error"]) {
+        return SentrySeverityError;
     }
-    return level;
+    return SentrySeverityFatal;
 }
 
 - (NSDictionary *)sanitizeDictionary:(NSDictionary *)dictionary {

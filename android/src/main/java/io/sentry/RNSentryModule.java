@@ -4,13 +4,25 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableType;
 import com.getsentry.raven.android.Raven;
+import com.getsentry.raven.android.event.helper.AndroidEventBuilderHelper;
 import com.getsentry.raven.dsn.Dsn;
+import com.getsentry.raven.event.Breadcrumb;
 import com.getsentry.raven.event.Event;
 import com.getsentry.raven.event.EventBuilder;
+import com.getsentry.raven.context.Context;
+import com.getsentry.raven.event.BreadcrumbBuilder;
+import com.getsentry.raven.event.Breadcrumbs;
+import com.getsentry.raven.event.UserBuilder;
+import com.getsentry.raven.event.interfaces.UserInterface;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -38,35 +50,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startWithDsnString(String dsnString) {
-        Raven.init(this.reactContext, new Dsn(dsnString));
+        Raven.init(this.getReactApplicationContext(), new Dsn(dsnString));
         logger.info(String.format("startWithDsnString '%s'", dsnString));
-    }
-
-    @ReactMethod
-    public void captureMessage(String message, int level) {
-        logger.info(String.format("captureMessage '%s'", message));
-        Event.Level eventLevel = null;
-        switch (level) {
-            case 0:
-                eventLevel = Event.Level.FATAL;
-                break;
-            case 2:
-                eventLevel = Event.Level.WARNING;
-                break;
-            case 3:
-                eventLevel = Event.Level.INFO;
-                break;
-            case 4:
-                eventLevel = Event.Level.DEBUG;
-                break;
-            default:
-                eventLevel = Event.Level.ERROR;
-                break;
-        }
-        EventBuilder eventBuilder = new EventBuilder()
-                .withMessage(message)
-                .withLevel(eventLevel);
-        Raven.capture(eventBuilder.build());
     }
 
     @ReactMethod
@@ -75,8 +60,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void setExtras(ReadableMap extras) {
-        logger.info("TODO: implement setExtras");
+    public void setExtra(ReadableMap extras) {
+        logger.info("TODO: implement setExtra");
     }
 
     @ReactMethod
@@ -95,12 +80,152 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void captureBreadcrumb(ReadableMap breadcrumb) {
+        logger.info(String.format("captureEvent '%s'", breadcrumb));
+        Breadcrumbs.record(
+                new BreadcrumbBuilder()
+                        .setMessage(breadcrumb.getString("message"))
+                        .setCategory(breadcrumb.getString("category"))
+                        .setLevel(breadcrumbLevel(breadcrumb.getString("level")))
+                        .build()
+        );
+    }
+
+    @ReactMethod
+    public void captureEvent(ReadableMap event) {
+        AndroidEventBuilderHelper helper = new AndroidEventBuilderHelper(this.getReactApplicationContext());
+        EventBuilder eventBuilder = new EventBuilder()
+                .withMessage(event.getString("message"))
+                .withLogger(event.getString("logger"))
+                .withLevel(eventLevel(event.getString("level")));
+
+        eventBuilder.withSentryInterface(
+                new UserInterface(
+                        event.getMap("user").getString("userID"),
+                        event.getMap("user").getString("username"),
+                        null,
+                        event.getMap("user").getString("email")
+                )
+        );
+
+        helper.helpBuildingEvent(eventBuilder);
+
+        for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("extra")).entrySet()) {
+            eventBuilder.withExtra(entry.getKey(), entry.getValue());
+        }
+
+        for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("tags")).entrySet()) {
+            eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
+        }
+
+        Raven.capture(eventBuilder.build());
+        logger.info(String.format("captureEvent '%s'", recursivelyDeconstructReadableMap(event.getMap("extra"))));
+    }
+
+    @ReactMethod
+    public void clearContext() {
+    }
+
+    @ReactMethod
     public void activateStacktraceMerging(Promise promise) {
         logger.info("TODO: implement activateStacktraceMerging");
 //        try {
-            promise.resolve(true);
+        promise.resolve(true);
 //        } catch (IllegalViewOperationException e) {
 //            promise.reject(E_LAYOUT_ERROR, e);
 //        }
+    }
+
+    private Breadcrumb.Level breadcrumbLevel(String level) {
+        switch (level) {
+            case "critical":
+                return Breadcrumb.Level.CRITICAL;
+            case "warning":
+                return Breadcrumb.Level.WARNING;
+            case "info":
+                return Breadcrumb.Level.INFO;
+            case "debug":
+                return Breadcrumb.Level.DEBUG;
+            default:
+                return Breadcrumb.Level.ERROR;
+        }
+    }
+
+    private Event.Level eventLevel(String level) {
+        switch (level) {
+            case "fatal":
+                return Event.Level.FATAL;
+            case "warning":
+                return Event.Level.WARNING;
+            case "info":
+                return Event.Level.INFO;
+            case "debug":
+                return Event.Level.DEBUG;
+            default:
+                return Event.Level.ERROR;
+        }
+    }
+
+    private Map<String, Object> recursivelyDeconstructReadableMap(ReadableMap readableMap) {
+        ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
+        Map<String, Object> deconstructedMap = new HashMap<>();
+        while (iterator.hasNextKey()) {
+            String key = iterator.nextKey();
+            ReadableType type = readableMap.getType(key);
+            switch (type) {
+                case Null:
+                    deconstructedMap.put(key, null);
+                    break;
+                case Boolean:
+                    deconstructedMap.put(key, readableMap.getBoolean(key));
+                    break;
+                case Number:
+                    deconstructedMap.put(key, readableMap.getDouble(key));
+                    break;
+                case String:
+                    deconstructedMap.put(key, readableMap.getString(key));
+                    break;
+                case Map:
+                    deconstructedMap.put(key, recursivelyDeconstructReadableMap(readableMap.getMap(key)));
+                    break;
+                case Array:
+                    deconstructedMap.put(key, recursivelyDeconstructReadableArray(readableMap.getArray(key)));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Could not convert object with key: " + key + ".");
+            }
+
+        }
+        return deconstructedMap;
+    }
+
+    private List<Object> recursivelyDeconstructReadableArray(ReadableArray readableArray) {
+        List<Object> deconstructedList = new ArrayList<>(readableArray.size());
+        for (int i = 0; i < readableArray.size(); i++) {
+            ReadableType indexType = readableArray.getType(i);
+            switch (indexType) {
+                case Null:
+                    deconstructedList.add(i, null);
+                    break;
+                case Boolean:
+                    deconstructedList.add(i, readableArray.getBoolean(i));
+                    break;
+                case Number:
+                    deconstructedList.add(i, readableArray.getDouble(i));
+                    break;
+                case String:
+                    deconstructedList.add(i, readableArray.getString(i));
+                    break;
+                case Map:
+                    deconstructedList.add(i, recursivelyDeconstructReadableMap(readableArray.getMap(i)));
+                    break;
+                case Array:
+                    deconstructedList.add(i, recursivelyDeconstructReadableArray(readableArray.getArray(i)));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Could not convert object at index " + i + ".");
+            }
+        }
+        return deconstructedList;
     }
 }
