@@ -195,7 +195,6 @@ These are functions you can call in your javascript code:
     Sentry.config("___DSN___", {
       deactivateStacktraceMerging: true, // default: false | Deactivates the stacktrace merging feature
       logLevel: SentryLog.Debug, // default SentryLog.None | Possible values:  .None, .Error, .Debug, .Verbose
-      forceRavenClient: true // default false | This will force sentry to use the raven client instead the native client
       // These two options will only be considered if stacktrace merging is active
       // Here you can add modules that should be ignored or exclude modules
       // that should no longer be ignored from stacktrace merging
@@ -233,6 +232,21 @@ These are functions you can call in your javascript code:
     Sentry.captureMessage("TEST message", {
       level: SentrySeverity.Warning
     }); // Default SentrySeverity.Error
+
+    // capture an exception
+    Sentry.captureException(new Error('Oops!'), {
+      logger: 'my.module'
+    });
+
+    // capture an exception
+    Sentry.captureBreadcrumb({
+      message: 'Item added to shopping cart',
+      category: 'action',
+      data: {
+         isbn: '978-1617290541',
+         cartSize: '3'
+      }
+    });
 
     // This will trigger a crash in the native sentry client
     //Sentry.nativeCrash();
