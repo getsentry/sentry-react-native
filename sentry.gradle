@@ -1,16 +1,8 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
 gradle.projectsEvaluated {
-    def bundleTasks = tasks.findAll { task -> task.name.startsWith("bundle") && task.name.endsWith("JsAndAssets") }
-    android.applicationVariants.each { item ->
-        //println(item.getVersionCode());
-        //xprintln(item.getName());
-        def task = item.getAssemble() as Task;
-        def checkTask = item.getCheckManifest() as Task;
-        checkTask.doLast {
-            println(task.getProperties());
-            println("this shit ran ${item.getName()}")
-        }
+    def bundleTasks = tasks.findAll { task ->
+        task.name.startsWith("bundle") && task.name.endsWith("JsAndAssets")
     }
 
     bundleTasks.each { bundleTask ->
@@ -45,7 +37,8 @@ gradle.projectsEvaluated {
                 "/Users/mitsuhiko/Development/sentry-cli/target/debug/sentry-cli",
                 "react-native-gradle",
                 "--bundle", bundleOutput,
-                "--sourcemap", sourcemapOutput
+                "--sourcemap", sourcemapOutput,
+                "--release", "XXX"
             ];
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine("cmd", "/c", *args)
