@@ -92,43 +92,49 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void captureBreadcrumb(ReadableMap breadcrumb) {
         logger.info(String.format("captureEvent '%s'", breadcrumb));
-        raven.getContext().recordBreadcrumb(
-                new BreadcrumbBuilder()
-                        .setMessage(breadcrumb.getString("message"))
-                        .setCategory(breadcrumb.getString("category"))
-                        .setLevel(breadcrumbLevel(breadcrumb.getString("level")))
-                        .build()
-        );
+        if (breadcrumb.hasKey("message")) {
+            raven.getContext().recordBreadcrumb(
+                    new BreadcrumbBuilder()
+                            .setMessage(breadcrumb.getString("message"))
+                            .setCategory(breadcrumb.getString("category"))
+                            .setLevel(breadcrumbLevel(breadcrumb.getString("level")))
+                            .build()
+            );
+        }
     }
 
     @ReactMethod
     public void captureEvent(ReadableMap event) {
-        AndroidEventBuilderHelper helper = new AndroidEventBuilderHelper(this.getReactApplicationContext());
-        EventBuilder eventBuilder = new EventBuilder()
-                .withMessage(event.getString("message"))
-                .withLogger(event.getString("logger"))
-                .withLevel(eventLevel(event.getString("level")));
+        if (event.hasKey("message")) {
+            AndroidEventBuilderHelper helper = new AndroidEventBuilderHelper(this.getReactApplicationContext());
+            EventBuilder eventBuilder = new EventBuilder()
+                    .withMessage(event.getString("message"))
+                    .withLogger(event.getString("logger"))
+                    .withLevel(eventLevel(event.getString("level")));
 
-        eventBuilder.withSentryInterface(
-                new UserInterface(
-                        event.getMap("user").getString("userID"),
-                        event.getMap("user").getString("username"),
-                        null,
-                        event.getMap("user").getString("email")
-                )
-        );
+            eventBuilder.withSentryInterface(
+                    new UserInterface(
+                            event.getMap("user").getString("userID"),
+                            event.getMap("user").getString("username"),
+                            null,
+                            event.getMap("user").getString("email")
+                    )
+            );
 
-        helper.helpBuildingEvent(eventBuilder);
+            helper.helpBuildingEvent(eventBuilder);
 
-        for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("extra")).entrySet()) {
-            eventBuilder.withExtra(entry.getKey(), entry.getValue());
+            for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("extra")).entrySet()) {
+                eventBuilder.withExtra(entry.getKey(), entry.getValue());
+            }
+
+            for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("tags")).entrySet()) {
+                eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
+            }
+
+            Raven.capture(eventBuilder.build());
+        } else {
+            logger.info("event has no key message that means it is a js error");
         }
-
-        for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("tags")).entrySet()) {
-            eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
-        }
-
-        Raven.capture(eventBuilder.build());
     }
 
     @ReactMethod
