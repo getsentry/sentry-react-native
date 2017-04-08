@@ -49,6 +49,12 @@ gradle.projectsEvaluated {
         def bundleOutput = null;
         def sourcemapOutput = null;
         def reactRoot = props.get("workingDir");
+        def propertiesFile = "$reactRoot/android/sentry.properties";
+        Properties sentryProps = new Properties();
+        try {
+            sentryProps.load(new FileInputStream(propertiesFile));
+        } catch (FileNotFoundException e) {}
+        def cliExecutable = sentryProps.get("cli.executable", "sentry-cli");
 
         cmdArgs.eachWithIndex{ String arg, int i ->
             if (arg == "--bundle-output") {
@@ -75,9 +81,9 @@ gradle.projectsEvaluated {
             description = "upload debug symbols to sentry"
 
             workingDir reactRoot
-            environment("SENTRY_PROPERTIES", "$reactRoot/android/sentry.properties")
+            environment("SENTRY_PROPERTIES", propertiesFile)
             def args = [
-                "sentry-cli",
+                cliExecutable,
                 "react-native-gradle",
                 "--bundle", bundleOutput,
                 "--sourcemap", sourcemapOutput
