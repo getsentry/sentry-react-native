@@ -77,8 +77,7 @@ gradle.projectsEvaluated {
             workingDir reactRoot
             environment("SENTRY_PROPERTIES", "$reactRoot/android/sentry.properties")
             def args = [
-                "/Users/mitsuhiko/Development/sentry-cli/target/debug/sentry-cli",
-                "--log-level", "debug",
+                "sentry-cli",
                 "react-native-gradle",
                 "--bundle", bundleOutput,
                 "--sourcemap", sourcemapOutput
