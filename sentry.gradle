@@ -1,0 +1,111 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+gradle.projectsEvaluated {
+    // to find out which releases are being generated we hook into the process
+    // resources task.  From the "assetsDir" property we can extract in which
+    // assets folder the task is operating.  This folder matches where react native
+    // will place the bundles.
+    def releasesForAssets = [:];
+    android.applicationVariants.each { variant ->
+        def versionName = variant.getVersionName();
+        variant.outputs.each { output ->
+            def processTask = output.getProcessResources() as Task;
+            def assetDir = processTask.getProperties().get("assetsDir");
+            def releases = releasesForAssets.get(assetDir.toString()) as List<String>;
+            if (releases == null) {
+                releases = [];
+                releasesForAssets.put(assetDir.toString(), releases);
+            }
+            def versionCode = output.getVersionCode();
+            def releaseName = "$versionName ($versionCode)";
+            releases.add(releaseName);
+        }
+    }
+
+    // separately we then hook into the bundle task of react native to inject
+    // sourcemap generation parameters.  In case for whatever reason no release
+    // was found for the asset folder we just bail.
+    def bundleTasks = tasks.findAll { task ->
+        task.name.startsWith("bundle") && task.name.endsWith("JsAndAssets")
+    }
+    bundleTasks.each { bundleTask ->
+        def outputs = bundleTask.getOutputs();
+        def allReleases = [];
+        outputs.getFiles().each { file ->
+            def releases = releasesForAssets.get(file.toString());
+            if (releases != null) {
+                allReleases.addAll(releases);
+            }
+        }
+
+        // this really should not happen but better be safe than sorry.
+        if (allReleases.size() == 0) {
+            return;
+        }
+
+        def props = bundleTask.getProperties();
+        def cmd = props.get("commandLine") as List<String>;
+        def cmdArgs = props.get("args") as List<String>;
+        def bundleOutput = null;
+        def sourcemapOutput = null;
+        def reactRoot = props.get("workingDir");
+        def propertiesFile = "$reactRoot/android/sentry.properties";
+        Properties sentryProps = new Properties();
+        try {
+            sentryProps.load(new FileInputStream(propertiesFile));
+        } catch (FileNotFoundException e) {}
+        def cliExecutable = sentryProps.get("cli.executable", "sentry-cli");
+
+        cmdArgs.eachWithIndex{ String arg, int i ->
+            if (arg == "--bundle-output") {
+                bundleOutput = cmdArgs[i + 1];
+            } else if (arg == "--sourcemap-output") {
+                sourcemapOutput = cmdArgs[i + 1];
+            }
+        }
+
+        if (sourcemapOutput == null) {
+            sourcemapOutput = bundleOutput + ".map";
+            cmd.push("--sourcemap-output");
+            cmd.push(sourcemapOutput);
+            cmdArgs.push("--sourcemap-output");
+            cmdArgs.push(sourcemapOutput);
+        }
+
+        bundleTask.setProperty("commandLine", cmd);
+        bundleTask.setProperty("args", cmdArgs);
+
+        def cliTask = tasks.create(
+            name: bundleTask.getName() + "SentryUpload",
+            type: Exec) {
+            description = "upload debug symbols to sentry"
+
+            workingDir reactRoot
+            environment("SENTRY_PROPERTIES", propertiesFile)
+            def args = [
+                cliExecutable,
+                "react-native-gradle",
+                "--bundle", bundleOutput,
+                "--sourcemap", sourcemapOutput
+            ];
+
+            allReleases.each { release ->
+                args.add("--release");
+                args.add(release);
+            }
+
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine("cmd", "/c", *args)
+            } else {
+                commandLine(*args)
+            }
+            enabled true
+        }
+
+        bundleTask.doLast {
+            cliTask.execute();
+        }
+
+        cliTask.dependsOn(bundleTask)
+    }
+}
