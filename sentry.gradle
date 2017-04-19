@@ -98,7 +98,7 @@ gradle.projectsEvaluated {
                 ];
 
                 versionCodes.each { versionCode ->
-                    args.add("--distribution");
+                    args.add("--dist");
                     args.add(versionCode);
                 }
 
