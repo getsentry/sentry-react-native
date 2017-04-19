@@ -8,36 +8,30 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
-import com.getsentry.raven.RavenFactory;
 import com.getsentry.raven.Raven;
 import com.getsentry.raven.android.AndroidRaven;
-import com.getsentry.raven.android.AndroidRavenFactory;
 import com.getsentry.raven.android.event.helper.AndroidEventBuilderHelper;
 import com.getsentry.raven.dsn.Dsn;
 import com.getsentry.raven.event.Breadcrumb;
+import com.getsentry.raven.event.BreadcrumbBuilder;
 import com.getsentry.raven.event.Event;
 import com.getsentry.raven.event.EventBuilder;
-import com.getsentry.raven.context.Context;
-import com.getsentry.raven.event.BreadcrumbBuilder;
 import com.getsentry.raven.event.UserBuilder;
-import com.getsentry.raven.event.interfaces.ExceptionInterface;
-import com.getsentry.raven.event.interfaces.SentryException;
-import com.getsentry.raven.event.interfaces.SentryStackTraceElement;
-import com.getsentry.raven.event.interfaces.StackTraceInterface;
 import com.getsentry.raven.event.interfaces.UserInterface;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
     final static Logger logger = Logger.getLogger("react-native-sentry");
+    private ReadableMap extra;
+    private ReadableMap tags;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -64,17 +58,17 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void setLogLevel(int level) {
-        logger.info("TODO: implement setLogLevel");
+        logger.setLevel(this.logLevel(level));
     }
 
     @ReactMethod
-    public void setExtra(ReadableMap extras) {
-        logger.info("TODO: implement setExtra");
+    public void setExtra(ReadableMap extra) {
+        this.extra = extra;
     }
 
     @ReactMethod
     public void setTags(ReadableMap tags) {
-        logger.info("TODO: implement setTags");
+        this.tags = tags;
     }
 
     @ReactMethod
@@ -90,7 +84,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void crash() {
-        throw new RuntimeException("Sentry TEST Crash");
+        throw new RuntimeException("TEST - Sentry Client Crash");
     }
 
     @ReactMethod
@@ -130,14 +124,24 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("extra")).entrySet()) {
                 eventBuilder.withExtra(entry.getKey(), entry.getValue());
             }
+            if (this.extra != null) {
+                for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(this.extra).entrySet()) {
+                    eventBuilder.withExtra(entry.getKey(), entry.getValue());
+                }
+            }
 
             for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("tags")).entrySet()) {
                 eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
             }
+            if (this.tags != null) {
+                for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(this.tags).entrySet()) {
+                    eventBuilder.withExtra(entry.getKey(), entry.getValue());
+                }
+            }
 
             Raven.capture(eventBuilder.build());
         } else {
-            logger.info("event has no key message that means it is a js error");
+            logger.info("Event has no key message which means it is a js error");
         }
     }
 
@@ -149,11 +153,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void activateStacktraceMerging(Promise promise) {
         logger.info("TODO: implement activateStacktraceMerging");
-//        try {
         promise.resolve(true);
-//        } catch (IllegalViewOperationException e) {
-//            promise.reject(E_LAYOUT_ERROR, e);
-//        }
     }
 
     private Breadcrumb.Level breadcrumbLevel(String level) {
@@ -183,6 +183,19 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 return Event.Level.DEBUG;
             default:
                 return Event.Level.ERROR;
+        }
+    }
+
+    private Level logLevel(int level) {
+        switch (level) {
+            case 1:
+                return Level.SEVERE;
+            case 2:
+                return Level.INFO;
+            case 3:
+                return Level.ALL;
+            default:
+                return Level.OFF;
         }
     }
 
