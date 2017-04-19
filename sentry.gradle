@@ -17,8 +17,7 @@ gradle.projectsEvaluated {
                 releasesForAssets.put(assetDir.toString(), releases);
             }
             def versionCode = output.getVersionCode();
-            def releaseName = "$versionName ($versionCode)";
-            releases.add(releaseName);
+            releases.add([versionName, versionCode]);
         }
     }
 
@@ -30,11 +29,18 @@ gradle.projectsEvaluated {
     }
     bundleTasks.each { bundleTask ->
         def outputs = bundleTask.getOutputs();
-        def allReleases = [];
+        def allReleases = [:];
         outputs.getFiles().each { file ->
             def releases = releasesForAssets.get(file.toString());
             if (releases != null) {
-                allReleases.addAll(releases);
+                releases.each { item ->
+                    def codes = allReleases[item[0]] as List<String>;
+                    if (codes == null) {
+                        codes = [];
+                        allReleases[item[0]] = codes;
+                    }
+                    codes.add(item[1]);
+                }
             }
         }
 
@@ -75,37 +81,40 @@ gradle.projectsEvaluated {
         bundleTask.setProperty("commandLine", cmd);
         bundleTask.setProperty("args", cmdArgs);
 
-        def cliTask = tasks.create(
-            name: bundleTask.getName() + "SentryUpload",
-            type: Exec) {
-            description = "upload debug symbols to sentry"
+        allReleases.each { releaseName, versionCodes ->
+            def cliTask = tasks.create(
+                name: bundleTask.getName() + "SentryUpload",
+                type: Exec) {
+                description = "upload debug symbols to sentry"
 
-            workingDir reactRoot
-            environment("SENTRY_PROPERTIES", propertiesFile)
-            def args = [
-                cliExecutable,
-                "react-native-gradle",
-                "--bundle", bundleOutput,
-                "--sourcemap", sourcemapOutput
-            ];
+                workingDir reactRoot
+                environment("SENTRY_PROPERTIES", propertiesFile)
+                def args = [
+                    cliExecutable,
+                    "react-native-gradle",
+                    "--bundle", bundleOutput,
+                    "--sourcemap", sourcemapOutput,
+                    "--release", releaseName
+                ];
 
-            allReleases.each { release ->
-                args.add("--release");
-                args.add(release);
+                versionCodes.each { versionCode ->
+                    args.add("--distribution");
+                    args.add(versionCode);
+                }
+
+                if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                    commandLine("cmd", "/c", *args)
+                } else {
+                    commandLine(*args)
+                }
+                enabled true
             }
 
-            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine("cmd", "/c", *args)
-            } else {
-                commandLine(*args)
+            bundleTask.doLast {
+                cliTask.execute();
             }
-            enabled true
-        }
 
-        bundleTask.doLast {
-            cliTask.execute();
+            cliTask.dependsOn(bundleTask)
         }
-
-        cliTask.dependsOn(bundleTask)
     }
 }
