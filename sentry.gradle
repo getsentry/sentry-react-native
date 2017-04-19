@@ -7,7 +7,7 @@ gradle.projectsEvaluated {
     // will place the bundles.
     def releasesForAssets = [:];
     android.applicationVariants.each { variant ->
-        def versionName = variant.getVersionName();
+        def releaseName = "${variant.getApplicationId()}-${variant.getVersionName()}";
         variant.outputs.each { output ->
             def processTask = output.getProcessResources() as Task;
             def assetDir = processTask.getProperties().get("assetsDir");
@@ -17,7 +17,7 @@ gradle.projectsEvaluated {
                 releasesForAssets.put(assetDir.toString(), releases);
             }
             def versionCode = output.getVersionCode();
-            releases.add([versionName, versionCode]);
+            releases.add([releaseName, versionCode]);
         }
     }
 
