@@ -17,19 +17,9 @@ android {
     lintOptions {
        warning 'InvalidPackage'
     }
-    libraryVariants.all { variant ->
-        variant.assemble.doLast {
-            sentryCli.execute()
-        }
-    }
 }
 
 dependencies {
     compile 'com.facebook.react:react-native:+'
-    compile 'com.getsentry.raven:raven-android:8.0.0'
-}
-
-task sentryCli(type: Exec) {
-    executable "bash"
-    args "-c", "/usr/local/bin/sentry-cli react-native-gradle"
+    compile 'com.getsentry.raven:raven-android:+'
 }

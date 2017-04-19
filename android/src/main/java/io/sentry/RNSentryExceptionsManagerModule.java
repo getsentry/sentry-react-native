@@ -8,9 +8,16 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.common.ReactConstants;
 import com.getsentry.raven.Raven;
+import com.getsentry.raven.event.Event;
+import com.getsentry.raven.event.EventBuilder;
+import com.getsentry.raven.event.interfaces.ExceptionInterface;
+import com.getsentry.raven.event.interfaces.SentryException;
+import com.getsentry.raven.event.interfaces.SentryStackTraceElement;
+import com.getsentry.raven.event.interfaces.StackTraceInterface;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -97,23 +104,24 @@ public class RNSentryExceptionsManagerModule extends BaseJavaModule implements E
 
     private void convertAndCaptureReactNativeException(String title, ReadableArray stack) {
         FLog.e(ReactConstants.TAG, stackTraceToString(title, stack));
-        List<StackTraceElement> synthStackTrace = convertToNativeStacktrace(stack);
 
-        StackTraceElement[] stackTrace = synthStackTrace.toArray(new StackTraceElement[synthStackTrace.size()]);
-        ReactNativeException reactNativeException = new ReactNativeException(title);
-        reactNativeException.setStackTrace(stackTrace);
-        Raven.capture(reactNativeException);
+        StackTraceInterface stackTraceInterface = new StackTraceInterface(convertToNativeStacktrace(stack));
+        Deque<SentryException> exceptions = new ArrayDeque<>();
+        exceptions.push(new SentryException(title, "", "", stackTraceInterface));
+        EventBuilder eventBuilder = new EventBuilder().withMessage(title)
+                .withLevel(Event.Level.FATAL)
+                .withSentryInterface(new ExceptionInterface(exceptions));
+        Raven.capture(eventBuilder);
     }
 
-    private List<StackTraceElement> convertToNativeStacktrace(ReadableArray stack) {
+    private SentryStackTraceElement[] convertToNativeStacktrace(ReadableArray stack) {
         final int stackFrameSize = stack.size();
-        List<StackTraceElement> synthStackTrace = new ArrayList<>(stackFrameSize);
+        SentryStackTraceElement[] synthStackTrace = new SentryStackTraceElement[stackFrameSize];
         for (int i = 0; i < stackFrameSize; i++) {
             ReadableMap frame = stack.getMap(i);
-            final String className = "";
             final String fileName = frame.getString("file");
             final String methodName = frame.getString("methodName");
-            final String lineNumber = stackFrameToModuleId(frame) + frame.getInt("lineNumber");
+            int lineNumber = frame.getInt("lineNumber");
             int column = 0;
             if (frame.hasKey("column") &&
                     !frame.isNull("column") &&
@@ -121,11 +129,14 @@ public class RNSentryExceptionsManagerModule extends BaseJavaModule implements E
                 column = frame.getInt("column");
             }
 
-            // TODO add colum
-            // (String cls, String method, String file, int line)
-            StackTraceElement stackFrame = new StackTraceElement(className, methodName,
-                    fileName, frame.getInt("lineNumber"));
-            synthStackTrace.add(stackFrame);
+            String localFileName = new File(fileName).getName();
+            String[] fileNameSegments = localFileName.split("/");
+            String lastPathComponent = fileNameSegments[fileNameSegments.length-1];
+            String[] lastFileNameSegments = lastPathComponent.split("\\?");
+            StringBuilder finalFileName = new StringBuilder("app:///").append(lastFileNameSegments[0]);
+
+            SentryStackTraceElement stackFrame = new SentryStackTraceElement(finalFileName.toString(), methodName, stackFrameToModuleId(frame), lineNumber, column, "", "javascript");
+            synthStackTrace[i] = stackFrame;
         }
         return synthStackTrace;
     }

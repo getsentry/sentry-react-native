@@ -10,6 +10,7 @@ import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
 import com.getsentry.raven.RavenFactory;
 import com.getsentry.raven.Raven;
+import com.getsentry.raven.android.AndroidRaven;
 import com.getsentry.raven.android.AndroidRavenFactory;
 import com.getsentry.raven.android.event.helper.AndroidEventBuilderHelper;
 import com.getsentry.raven.dsn.Dsn;
@@ -18,11 +19,16 @@ import com.getsentry.raven.event.Event;
 import com.getsentry.raven.event.EventBuilder;
 import com.getsentry.raven.context.Context;
 import com.getsentry.raven.event.BreadcrumbBuilder;
-import com.getsentry.raven.event.Breadcrumbs;
 import com.getsentry.raven.event.UserBuilder;
+import com.getsentry.raven.event.interfaces.ExceptionInterface;
+import com.getsentry.raven.event.interfaces.SentryException;
+import com.getsentry.raven.event.interfaces.SentryStackTraceElement;
+import com.getsentry.raven.event.interfaces.StackTraceInterface;
 import com.getsentry.raven.event.interfaces.UserInterface;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +38,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
     final static Logger logger = Logger.getLogger("react-native-sentry");
-    private volatile com.getsentry.raven.Raven raven;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -53,8 +58,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startWithDsnString(String dsnString) {
-        AndroidRavenFactory factory = new AndroidRavenFactory(this.getReactApplicationContext());
-        raven = factory.createRavenInstance(new Dsn(dsnString));
+        AndroidRaven.init(this.getReactApplicationContext(), new Dsn(dsnString));
         logger.info(String.format("startWithDsnString '%s'", dsnString));
     }
 
@@ -75,7 +79,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void setUser(ReadableMap user) {
-        raven.getContext().setUser(
+        Raven.getStoredInstance().getContext().setUser(
                 new UserBuilder()
                         .setEmail(user.getString("email"))
                         .setId(user.getString("userID"))
@@ -86,14 +90,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void crash() {
-        logger.info("TODO: implement crash");
+        throw new RuntimeException();
     }
 
     @ReactMethod
     public void captureBreadcrumb(ReadableMap breadcrumb) {
         logger.info(String.format("captureEvent '%s'", breadcrumb));
         if (breadcrumb.hasKey("message")) {
-            raven.getContext().recordBreadcrumb(
+            Raven.record(
                     new BreadcrumbBuilder()
                             .setMessage(breadcrumb.getString("message"))
                             .setCategory(breadcrumb.getString("category"))
@@ -139,7 +143,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void clearContext() {
-        raven.getContext().clear();
+        Raven.getStoredInstance().getContext().clear();
     }
 
     @ReactMethod
@@ -244,4 +248,5 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
         return deconstructedList;
     }
+
 }
