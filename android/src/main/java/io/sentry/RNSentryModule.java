@@ -90,7 +90,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void crash() {
-        throw new RuntimeException();
+        throw new RuntimeException("Sentry TEST Crash");
     }
 
     @ReactMethod

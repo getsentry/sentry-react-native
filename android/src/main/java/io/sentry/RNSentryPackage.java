@@ -12,11 +12,16 @@ import com.facebook.react.uimanager.ViewManager;
 import com.facebook.react.bridge.JavaScriptModule;
 
 public class RNSentryPackage implements ReactPackage {
+
+    static public boolean useDeveloperSupport = false;
+
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
-        return Arrays.<NativeModule>asList(
-                new RNSentryModule(reactContext),
-                new RNSentryExceptionsManagerModule());
+        List<NativeModule> modules = Arrays.<NativeModule>asList(new RNSentryModule(reactContext));
+        if (!useDeveloperSupport) {
+            modules.add(new RNSentryExceptionsManagerModule());
+        }
+        return modules;
     }
 
     @Override

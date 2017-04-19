@@ -24,6 +24,7 @@ public class MainApplication extends Application implements ReactApplication {
 
         @Override
         protected List<ReactPackage> getPackages() {
+            RNSentryPackage.useDeveloperSupport = this.getUseDeveloperSupport();
             return Arrays.<ReactPackage>asList(
                     new MainReactPackage(),
                     new RNSentryPackage()
