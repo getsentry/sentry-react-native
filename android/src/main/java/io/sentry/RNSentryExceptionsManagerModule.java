@@ -82,7 +82,7 @@ public class RNSentryExceptionsManagerModule extends BaseJavaModule implements E
     @Override
     public void reportFatalException(String title, ReadableArray details, int exceptionId) {
         convertAndCaptureReactNativeException(title, details);
-        // TODO pass fatal and close app -> see https://github.com/facebook/react-native/blob/8e382fd0065af5080e5d69bd5e458f81c2b7d8c5/ReactAndroid/src/main/java/com/facebook/react/modules/core/ExceptionsManagerModule.java#L99
+        System.exit(0);
     }
 
     @ReactMethod
@@ -108,7 +108,7 @@ public class RNSentryExceptionsManagerModule extends BaseJavaModule implements E
         StackTraceInterface stackTraceInterface = new StackTraceInterface(convertToNativeStacktrace(stack));
         Deque<SentryException> exceptions = new ArrayDeque<>();
         exceptions.push(new SentryException(title, "", "", stackTraceInterface));
-        EventBuilder eventBuilder = new EventBuilder().withMessage(title)
+        EventBuilder eventBuilder = new EventBuilder().withMessage("Unhandled JS Exception: " + title)
                 .withLevel(Event.Level.FATAL)
                 .withSentryInterface(new ExceptionInterface(exceptions));
         Sentry.capture(eventBuilder);
@@ -128,7 +128,6 @@ public class RNSentryExceptionsManagerModule extends BaseJavaModule implements E
                     frame.getType("column") == ReadableType.Number) {
                 column = frame.getInt("column");
             }
-
             String localFileName = new File(fileName).getName();
             String[] fileNameSegments = localFileName.split("/");
             String lastPathComponent = fileNameSegments[fileNameSegments.length-1];

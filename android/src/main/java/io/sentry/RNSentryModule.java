@@ -73,7 +73,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void setUser(ReadableMap user) {
-        Sentry.getStoredClient().getContext().setUser(
+        Sentry.setUser(
                 new UserBuilder()
                         .setEmail(user.getString("email"))
                         .setId(user.getString("userID"))
@@ -147,7 +147,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void clearContext() {
-        Sentry.getStoredClient().getContext().clear();
+        Sentry.clearContext();
     }
 
     @ReactMethod
