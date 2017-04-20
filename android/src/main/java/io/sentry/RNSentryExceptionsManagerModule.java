@@ -82,6 +82,7 @@ public class RNSentryExceptionsManagerModule extends BaseJavaModule implements E
     @Override
     public void reportFatalException(String title, ReadableArray details, int exceptionId) {
         convertAndCaptureReactNativeException(title, details);
+        // TODO pass fatal and close app -> see https://github.com/facebook/react-native/blob/8e382fd0065af5080e5d69bd5e458f81c2b7d8c5/ReactAndroid/src/main/java/com/facebook/react/modules/core/ExceptionsManagerModule.java#L99
     }
 
     @ReactMethod
@@ -104,7 +105,6 @@ public class RNSentryExceptionsManagerModule extends BaseJavaModule implements E
 
     private void convertAndCaptureReactNativeException(String title, ReadableArray stack) {
         FLog.e(ReactConstants.TAG, stackTraceToString(title, stack));
-
         StackTraceInterface stackTraceInterface = new StackTraceInterface(convertToNativeStacktrace(stack));
         Deque<SentryException> exceptions = new ArrayDeque<>();
         exceptions.push(new SentryException(title, "", "", stackTraceInterface));
@@ -135,7 +135,7 @@ public class RNSentryExceptionsManagerModule extends BaseJavaModule implements E
             String[] lastFileNameSegments = lastPathComponent.split("\\?");
             StringBuilder finalFileName = new StringBuilder("app:///").append(lastFileNameSegments[0]);
 
-            SentryStackTraceElement stackFrame = new SentryStackTraceElement(finalFileName.toString(), methodName, stackFrameToModuleId(frame), lineNumber, column, "", "javascript");
+            SentryStackTraceElement stackFrame = new SentryStackTraceElement("", methodName, stackFrameToModuleId(frame), lineNumber, column, finalFileName.toString(), "javascript");
             synthStackTrace[i] = stackFrame;
         }
         return synthStackTrace;

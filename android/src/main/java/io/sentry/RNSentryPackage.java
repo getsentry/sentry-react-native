@@ -17,11 +17,10 @@ public class RNSentryPackage implements ReactPackage {
 
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
-        List<NativeModule> modules = Arrays.<NativeModule>asList(new RNSentryModule(reactContext));
         if (!useDeveloperSupport) {
-            modules.add(new RNSentryExceptionsManagerModule());
+            return Arrays.<NativeModule>asList(new RNSentryModule(reactContext), new RNSentryExceptionsManagerModule());
         }
-        return modules;
+        return Arrays.<NativeModule>asList(new RNSentryModule(reactContext));
     }
 
     @Override
