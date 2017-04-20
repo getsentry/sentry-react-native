@@ -7,13 +7,13 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.common.ReactConstants;
-import com.getsentry.raven.Raven;
-import com.getsentry.raven.event.Event;
-import com.getsentry.raven.event.EventBuilder;
-import com.getsentry.raven.event.interfaces.ExceptionInterface;
-import com.getsentry.raven.event.interfaces.SentryException;
-import com.getsentry.raven.event.interfaces.SentryStackTraceElement;
-import com.getsentry.raven.event.interfaces.StackTraceInterface;
+import io.sentry.Sentry;
+import io.sentry.event.Event;
+import io.sentry.event.EventBuilder;
+import io.sentry.event.interfaces.ExceptionInterface;
+import io.sentry.event.interfaces.SentryException;
+import io.sentry.event.interfaces.SentryStackTraceElement;
+import io.sentry.event.interfaces.StackTraceInterface;
 
 import java.io.File;
 import java.util.ArrayDeque;
@@ -111,7 +111,7 @@ public class RNSentryExceptionsManagerModule extends BaseJavaModule implements E
         EventBuilder eventBuilder = new EventBuilder().withMessage(title)
                 .withLevel(Event.Level.FATAL)
                 .withSentryInterface(new ExceptionInterface(exceptions));
-        Raven.capture(eventBuilder);
+        Sentry.capture(eventBuilder);
     }
 
     private SentryStackTraceElement[] convertToNativeStacktrace(ReadableArray stack) {

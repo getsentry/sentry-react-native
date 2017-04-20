@@ -8,16 +8,16 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
-import com.getsentry.raven.Raven;
-import com.getsentry.raven.android.AndroidRaven;
-import com.getsentry.raven.android.event.helper.AndroidEventBuilderHelper;
-import com.getsentry.raven.dsn.Dsn;
-import com.getsentry.raven.event.Breadcrumb;
-import com.getsentry.raven.event.BreadcrumbBuilder;
-import com.getsentry.raven.event.Event;
-import com.getsentry.raven.event.EventBuilder;
-import com.getsentry.raven.event.UserBuilder;
-import com.getsentry.raven.event.interfaces.UserInterface;
+import io.sentry.Sentry;
+import io.sentry.android.SentryAndroid;
+import io.sentry.android.event.helper.AndroidEventBuilderHelper;
+import io.sentry.dsn.Dsn;
+import io.sentry.event.Breadcrumb;
+import io.sentry.event.BreadcrumbBuilder;
+import io.sentry.event.Event;
+import io.sentry.event.EventBuilder;
+import io.sentry.event.UserBuilder;
+import io.sentry.event.interfaces.UserInterface;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,7 +52,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startWithDsnString(String dsnString) {
-        AndroidRaven.init(this.getReactApplicationContext(), new Dsn(dsnString));
+        SentryAndroid.init(this.getReactApplicationContext(), new Dsn(dsnString));
         logger.info(String.format("startWithDsnString '%s'", dsnString));
     }
 
@@ -73,7 +73,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void setUser(ReadableMap user) {
-        Raven.getStoredInstance().getContext().setUser(
+        Sentry.getStoredClient().getContext().setUser(
                 new UserBuilder()
                         .setEmail(user.getString("email"))
                         .setId(user.getString("userID"))
@@ -91,7 +91,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void captureBreadcrumb(ReadableMap breadcrumb) {
         logger.info(String.format("captureEvent '%s'", breadcrumb));
         if (breadcrumb.hasKey("message")) {
-            Raven.record(
+            Sentry.record(
                     new BreadcrumbBuilder()
                             .setMessage(breadcrumb.getString("message"))
                             .setCategory(breadcrumb.getString("category"))
@@ -139,7 +139,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 }
             }
 
-            Raven.capture(eventBuilder.build());
+            Sentry.capture(eventBuilder.build());
         } else {
             logger.info("Event has no key message which means it is a js error");
         }
@@ -147,7 +147,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void clearContext() {
-        Raven.getStoredInstance().getContext().clear();
+        Sentry.getStoredClient().getContext().clear();
     }
 
     @ReactMethod
