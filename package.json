@@ -20,6 +20,7 @@
     "react-native": ">=0.38.0"
   },
   "dependencies": {
-    "raven-js": "3.12.1"
+    "raven-js": "^3.14.2",
+    "sentry-cli-binary": "^1.5.0"
   }
 }

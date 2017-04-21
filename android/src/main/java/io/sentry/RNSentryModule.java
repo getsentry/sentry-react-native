@@ -121,24 +121,24 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
             helper.helpBuildingEvent(eventBuilder);
 
-            for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("extra")).entrySet()) {
-                eventBuilder.withExtra(entry.getKey(), entry.getValue());
-            }
             if (this.extra != null) {
                 for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(this.extra).entrySet()) {
                     eventBuilder.withExtra(entry.getKey(), entry.getValue());
                 }
             }
-
-            for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("tags")).entrySet()) {
-                eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
+            for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("extra")).entrySet()) {
+                eventBuilder.withExtra(entry.getKey(), entry.getValue());
             }
+            
             if (this.tags != null) {
                 for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(this.tags).entrySet()) {
                     eventBuilder.withExtra(entry.getKey(), entry.getValue());
                 }
             }
-
+            for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("tags")).entrySet()) {
+                eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
+            }
+            
             Sentry.capture(eventBuilder.build());
         } else {
             logger.info("Event has no key message which means it is a js error");

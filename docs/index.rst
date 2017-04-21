@@ -27,9 +27,7 @@ The `link` step will pull in the native dependency.  If you are using
 Android or expo you don't have to (or can't) run that step.  In that case
 we fall back automatically.
 
-Note that we only support ``react-native >= 0.38`` at the moment and you
-will have to make sure a recent version of :ref:`sentry-cli <sentry-cli>`
-installed.
+Note that we only support ``react-native >= 0.38`` at the moment.
 
 Xcode Build Settings
 --------------------
@@ -65,15 +63,15 @@ is currently there needs to be adjusted as follows::
     export SENTRY_AUTH_TOKEN=YOUR_AUTH_TOKEN
     export NODE_BINARY=node
     ../node_modules/react-native-sentry/bin/bundle-frameworks
-    sentry-cli react-native-xcode ../node_modules/react-native/packager/react-native-xcode.sh
-    sentry-cli upload-dsym
+    ../node_modules/sentry-cli-binary/bin/sentry-cli react-native-xcode ../node_modules/react-native/packager/react-native-xcode.sh
+    ../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym
 
 You can find the slugs in the URL of your project (sentry.io/your-org-slug/your-project-slug)
 If you don't have an auth token yet you can `create an auth token here <https://sentry.io/api/>`_.
 
 This also uploads debug symbols in the last line which however will not work for
 bitcode enabled builds.  If you are using bitcode you need to remove that
-line (``sentry-cli upload-dsym``) and consult the documentation on dsym
+line (``../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym``) and consult the documentation on dsym
 handling instead (see :ref:`dsym-with-bitcode`).
 
 Note that uploading of debug simulator builds by default is disabled for
@@ -177,6 +175,17 @@ crash handler in your `AppDelegate.m` after the root view was created:
 
     /* ... */
     [RNSentry installWithRootView:rootView];
+
+For Android you have to add this in the first line of ``getPackages()`` in `MainApplication.java`:
+
+.. sourcecode:: java
+    /* ... */
+    @Override
+    protected List<ReactPackage> getPackages() {
+        RNSentryPackage.useDeveloperSupport = this.getUseDeveloperSupport();
+        /* ... */
+    }
+
 
 Additional Configuration
 ------------------------

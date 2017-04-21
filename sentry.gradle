@@ -60,7 +60,7 @@ gradle.projectsEvaluated {
         try {
             sentryProps.load(new FileInputStream(propertiesFile));
         } catch (FileNotFoundException e) {}
-        def cliExecutable = sentryProps.get("cli.executable", "sentry-cli");
+        def cliExecutable = sentryProps.get("cli.executable", "$reactRoot/node_modules/sentry-cli-binary/bin/sentry-cli");
 
         cmdArgs.eachWithIndex{ String arg, int i ->
             if (arg == "--bundle-output") {
