@@ -1,5 +1,6 @@
 package io.sentry;
 
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -8,7 +9,8 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
-import io.sentry.Sentry;
+import com.facebook.react.bridge.WritableMap;
+
 import io.sentry.android.SentryAndroid;
 import io.sentry.android.event.helper.AndroidEventBuilderHelper;
 import io.sentry.dsn.Dsn;
@@ -138,8 +140,17 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("tags")).entrySet()) {
                 eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
             }
-            
-            Sentry.capture(eventBuilder.build());
+            Event builtEvent = eventBuilder.build();
+            Sentry.capture(builtEvent);
+
+            // TODO we need to use a callback instead of this
+            // could be that the event has not been sent yet
+            // Also this is very dirty proof of concept on sending a event
+            WritableMap params = Arguments.createMap();
+            recursivelySetMap(params, event);
+            params.putString("event_id", builtEvent.getId().toString());
+            RNSentryEventEmitter.sendEvent(this.reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, params);
+            // ----------
         } else {
             logger.info("Event has no key message which means it is a js error");
         }
@@ -153,7 +164,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void activateStacktraceMerging(Promise promise) {
         logger.info("TODO: implement activateStacktraceMerging");
-        promise.resolve(true);
+//        promise.resolve(true);
+        promise.reject("bla", "blub");
     }
 
     private Breadcrumb.Level breadcrumbLevel(String level) {
@@ -196,6 +208,37 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 return Level.ALL;
             default:
                 return Level.OFF;
+        }
+    }
+
+    private void recursivelySetMap(WritableMap params, ReadableMap readableMap) {
+        ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
+        while (iterator.hasNextKey()) {
+            String key = iterator.nextKey();
+            ReadableType type = readableMap.getType(key);
+            switch (type) {
+                case Null:
+                    params.putNull(key);
+                    break;
+                case Boolean:
+                    params.putBoolean(key, readableMap.getBoolean(key));
+                    break;
+                case Number:
+                    params.putDouble(key, readableMap.getDouble(key));
+                    break;
+                case String:
+                    params.putString(key, readableMap.getString(key));
+                    break;
+                case Map:
+                    params.putMap(key, MapUtil.toWritableMap(recursivelyDeconstructReadableMap(readableMap.getMap(key))));
+                    break;
+                case Array:
+                    params.putArray(key, ArrayUtil.toWritableArray(recursivelyDeconstructReadableArray(readableMap.getArray(key)).toArray()));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Could not convert object with key: " + key + ".");
+            }
+
         }
     }
 

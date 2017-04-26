@@ -8,14 +8,14 @@
 
 #import "RNSentryEventEmitter.h"
 
-NSString *const kEventSuccessfullySent = @"Sentry/eventSentSuccessfully";
+NSString *const kEventSentSuccessfully = @"Sentry/eventSentSuccessfully";
 
 @implementation RNSentryEventEmitter
 
 RCT_EXPORT_MODULE();
 
 - (NSDictionary<NSString *, NSString *> *)constantsToExport {
-    return @{ @"EVENT_SUCCESSFULLY_SENT": kEventSuccessfullySent};
+    return @{ @"EVENT_SENT_SUCCESSFULLY": kEventSentSuccessfully};
 }
 
 - (NSArray<NSString *> *)supportedEvents {
@@ -37,7 +37,7 @@ RCT_EXPORT_MODULE();
 }
 
 + (void)successfullySentEventWithId:(NSString *)eventId {
-    [self postNotificationName:kEventSuccessfullySent withPayload:eventId];
+    [self postNotificationName:kEventSentSuccessfully withPayload:eventId];
 }
 
 + (void)postNotificationName:(NSString *)name withPayload:(NSObject *)object {
