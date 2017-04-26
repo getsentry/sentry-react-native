@@ -1,11 +1,11 @@
 #import "RNSentry.h"
+#import "RNSentryEventEmitter.h"
 #import "RSSwizzle.h"
 #if __has_include(<React/RCTConvert.h>)
 #import <React/RCTConvert.h>
 #else
 #import "RCTConvert.h"
 #endif
-
 
 @import Sentry;
 
@@ -162,9 +162,9 @@ RCT_EXPORT_METHOD(captureBreadcrumb:(NSDictionary * _Nonnull)breadcrumb)
     SentryBreadcrumb *crumb = [[SentryBreadcrumb alloc] initWithCategory:breadcrumb[@"category"]
                                                                timestamp:[NSDate dateWithTimeIntervalSince1970:[breadcrumb[@"timestamp"] integerValue]]
                                                                  message:breadcrumb[@"message"]
-                                                                    type:nil
+                                                                    type:breadcrumb[@"type"]
                                                                    level:[self sentrySeverityFromLevel:breadcrumb[@"level"]]
-                                                                    data:nil];
+                                                                    data:[RCTConvert NSDictionary:breadcrumb[@"data"]]];
     [[SentryClient shared].breadcrumbs add:crumb];
 }
 
@@ -182,6 +182,7 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 
     if (event[@"message"]) {
         SentryEvent *sentryEvent = [[SentryEvent alloc] init:event[@"message"]
+                                                     eventID:event[@"event_id"]
                                                    timestamp:[NSDate date]
                                                        level:level
                                                       logger:event[@"logger"]
