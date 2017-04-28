@@ -212,6 +212,14 @@ These are functions you can call in your javascript code:
       // ---------------------------------
     }).install();
 
+    // set a callback after an event was successfully sentry
+    // its only garantueed that this event contains `event_id` & `level`
+    Sentry.setEventSentSuccessfully((event) => {
+      // can also be called outside this block but maybe null
+      // Sentry.lastEventId(); -> returns the last event_id after the first successfully sent event
+      // Sentry.lastException(); -> returns the last event after the first successfully sent event
+    });
+
     // export an extra context
     Sentry.setExtraContext({
       "a_thing": 3,

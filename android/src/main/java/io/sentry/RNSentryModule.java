@@ -13,6 +13,7 @@ import com.facebook.react.bridge.WritableMap;
 
 import io.sentry.android.SentryAndroid;
 import io.sentry.android.event.helper.AndroidEventBuilderHelper;
+import io.sentry.connection.EventSendCallback;
 import io.sentry.dsn.Dsn;
 import io.sentry.event.Breadcrumb;
 import io.sentry.event.BreadcrumbBuilder;
@@ -54,7 +55,21 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startWithDsnString(String dsnString) {
-        SentryAndroid.init(this.getReactApplicationContext(), new Dsn(dsnString));
+        SentryClient sentryClient = SentryAndroid.init(this.getReactApplicationContext(), new Dsn(dsnString));
+        sentryClient.addEventSendCallback(new EventSendCallback() {
+            @Override
+            public void onFailure(Event event, Exception exception) {
+
+            }
+
+            @Override
+            public void onSuccess(Event event) {
+                WritableMap params = Arguments.createMap();
+                params.putString("event_id", event.getId().toString());
+                params.putString("level", event.getLevel().toString().toLowerCase());
+                RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, params);
+            }
+        });
         logger.info(String.format("startWithDsnString '%s'", dsnString));
     }
 
@@ -131,7 +146,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("extra")).entrySet()) {
                 eventBuilder.withExtra(entry.getKey(), entry.getValue());
             }
-            
+
             if (this.tags != null) {
                 for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(this.tags).entrySet()) {
                     eventBuilder.withExtra(entry.getKey(), entry.getValue());
@@ -142,15 +157,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
             Event builtEvent = eventBuilder.build();
             Sentry.capture(builtEvent);
-
-            // TODO we need to use a callback instead of this
-            // could be that the event has not been sent yet
-            // Also this is very dirty proof of concept on sending a event
-            WritableMap params = Arguments.createMap();
-            recursivelySetMap(params, event);
-            params.putString("event_id", builtEvent.getId().toString());
-            RNSentryEventEmitter.sendEvent(this.reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, params);
-            // ----------
         } else {
             logger.info("Event has no key message which means it is a js error");
         }
