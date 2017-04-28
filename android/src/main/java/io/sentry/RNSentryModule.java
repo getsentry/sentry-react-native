@@ -1,5 +1,6 @@
 package io.sentry;
 
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -8,9 +9,11 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
-import io.sentry.Sentry;
+import com.facebook.react.bridge.WritableMap;
+
 import io.sentry.android.SentryAndroid;
 import io.sentry.android.event.helper.AndroidEventBuilderHelper;
+import io.sentry.connection.EventSendCallback;
 import io.sentry.dsn.Dsn;
 import io.sentry.event.Breadcrumb;
 import io.sentry.event.BreadcrumbBuilder;
@@ -52,7 +55,21 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startWithDsnString(String dsnString) {
-        SentryAndroid.init(this.getReactApplicationContext(), new Dsn(dsnString));
+        SentryClient sentryClient = SentryAndroid.init(this.getReactApplicationContext(), new Dsn(dsnString));
+        sentryClient.addEventSendCallback(new EventSendCallback() {
+            @Override
+            public void onFailure(Event event, Exception exception) {
+
+            }
+
+            @Override
+            public void onSuccess(Event event) {
+                WritableMap params = Arguments.createMap();
+                params.putString("event_id", event.getId().toString());
+                params.putString("level", event.getLevel().toString().toLowerCase());
+                RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, params);
+            }
+        });
         logger.info(String.format("startWithDsnString '%s'", dsnString));
     }
 
@@ -129,7 +146,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("extra")).entrySet()) {
                 eventBuilder.withExtra(entry.getKey(), entry.getValue());
             }
-            
+
             if (this.tags != null) {
                 for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(this.tags).entrySet()) {
                     eventBuilder.withExtra(entry.getKey(), entry.getValue());
@@ -138,8 +155,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             for (Map.Entry<String, Object> entry : recursivelyDeconstructReadableMap(event.getMap("tags")).entrySet()) {
                 eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
             }
-            
-            Sentry.capture(eventBuilder.build());
+            Event builtEvent = eventBuilder.build();
+            Sentry.capture(builtEvent);
         } else {
             logger.info("Event has no key message which means it is a js error");
         }
@@ -153,7 +170,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void activateStacktraceMerging(Promise promise) {
         logger.info("TODO: implement activateStacktraceMerging");
-        promise.resolve(true);
+//        promise.resolve(true);
+        promise.reject("bla", "blub");
     }
 
     private Breadcrumb.Level breadcrumbLevel(String level) {
@@ -196,6 +214,37 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 return Level.ALL;
             default:
                 return Level.OFF;
+        }
+    }
+
+    private void recursivelySetMap(WritableMap params, ReadableMap readableMap) {
+        ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
+        while (iterator.hasNextKey()) {
+            String key = iterator.nextKey();
+            ReadableType type = readableMap.getType(key);
+            switch (type) {
+                case Null:
+                    params.putNull(key);
+                    break;
+                case Boolean:
+                    params.putBoolean(key, readableMap.getBoolean(key));
+                    break;
+                case Number:
+                    params.putDouble(key, readableMap.getDouble(key));
+                    break;
+                case String:
+                    params.putString(key, readableMap.getString(key));
+                    break;
+                case Map:
+                    params.putMap(key, MapUtil.toWritableMap(recursivelyDeconstructReadableMap(readableMap.getMap(key))));
+                    break;
+                case Array:
+                    params.putArray(key, ArrayUtil.toWritableArray(recursivelyDeconstructReadableArray(readableMap.getArray(key)).toArray()));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Could not convert object with key: " + key + ".");
+            }
+
         }
     }
 

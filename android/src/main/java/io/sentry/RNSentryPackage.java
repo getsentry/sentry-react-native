@@ -18,9 +18,9 @@ public class RNSentryPackage implements ReactPackage {
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
         if (!useDeveloperSupport) {
-            return Arrays.<NativeModule>asList(new RNSentryModule(reactContext), new RNSentryExceptionsManagerModule());
+            return Arrays.<NativeModule>asList(new RNSentryModule(reactContext), new RNSentryEventEmitter(reactContext), new RNSentryExceptionsManagerModule());
         }
-        return Arrays.<NativeModule>asList(new RNSentryModule(reactContext));
+        return Arrays.<NativeModule>asList(new RNSentryModule(reactContext), new RNSentryEventEmitter(reactContext));
     }
 
     @Override
