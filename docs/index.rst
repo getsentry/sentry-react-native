@@ -213,7 +213,7 @@ These are functions you can call in your javascript code:
     }).install();
 
     // set a callback after an event was successfully sentry
-    // its only garantueed that this event contains `event_id` & `level`
+    // its only guaranteed that this event contains `event_id` & `level`
     Sentry.setEventSentSuccessfully((event) => {
       // can also be called outside this block but maybe null
       // Sentry.lastEventId(); -> returns the last event_id after the first successfully sent event
