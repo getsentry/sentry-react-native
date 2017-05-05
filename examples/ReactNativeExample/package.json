@@ -7,17 +7,8 @@
     "test": "jest"
   },
   "dependencies": {
-    "react": "~15.4.0-rc.4",
-    "react-native": "^0.41.0",
+    "react": "^16.0.0-alpha.6",
+    "react-native": "^0.43.4",
     "react-native-sentry": "file:../../"
-  },
-  "devDependencies": {
-    "babel-jest": "18.0.0",
-    "babel-preset-react-native": "1.9.1",
-    "jest": "18.1.0",
-    "react-test-renderer": "~15.4.0-rc.4"
-  },
-  "jest": {
-    "preset": "react-native"
   }
 }
