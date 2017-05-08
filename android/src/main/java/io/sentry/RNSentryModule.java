@@ -5,31 +5,24 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.bridge.ReadableMapKeySetIterator;
-import com.facebook.react.bridge.ReadableNativeArray;
 import com.facebook.react.bridge.ReadableNativeMap;
-import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
 
-import io.sentry.android.SentryAndroid;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import io.sentry.android.AndroidSentryClientFactory;
 import io.sentry.android.event.helper.AndroidEventBuilderHelper;
 import io.sentry.connection.EventSendCallback;
-import io.sentry.dsn.Dsn;
 import io.sentry.event.Breadcrumb;
 import io.sentry.event.BreadcrumbBuilder;
 import io.sentry.event.Event;
 import io.sentry.event.EventBuilder;
 import io.sentry.event.UserBuilder;
 import io.sentry.event.interfaces.UserInterface;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
@@ -57,7 +50,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startWithDsnString(String dsnString) {
-        SentryClient sentryClient = SentryAndroid.init(this.getReactApplicationContext(), new Dsn(dsnString));
+        SentryClient sentryClient = Sentry.init(dsnString, new AndroidSentryClientFactory(this.getReactApplicationContext()));
         sentryClient.addEventSendCallback(new EventSendCallback() {
             @Override
             public void onFailure(Event event, Exception exception) {
