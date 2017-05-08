@@ -5,16 +5,16 @@ gradle.projectsEvaluated {
     // resources task.  From the "assetsDir" property we can extract in which
     // assets folder the task is operating.  This folder matches where react native
     // will place the bundles.
-    def releasesForAssets = [:];
+    def releasesForFolder = [:];
     android.applicationVariants.each { variant ->
         def releaseName = "${variant.getApplicationId()}-${variant.getVersionName()}";
         variant.outputs.each { output ->
-            def processTask = output.getProcessResources() as Task;
-            def assetDir = processTask.getProperties().get("assetsDir");
-            def releases = releasesForAssets.get(assetDir.toString()) as List<String>;
+            def processTask = output.getProcessResources();
+            def resDir = processTask.getResDir();
+            def releases = releasesForFolder.get(resDir.toString()) as List<String>;
             if (releases == null) {
                 releases = [];
-                releasesForAssets.put(assetDir.toString(), releases);
+                releasesForFolder.put(resDir.toString(), releases);
             }
             def versionCode = output.getVersionCode();
             releases.add([releaseName, versionCode]);
@@ -31,7 +31,7 @@ gradle.projectsEvaluated {
         def outputs = bundleTask.getOutputs();
         def allReleases = [:];
         outputs.getFiles().each { file ->
-            def releases = releasesForAssets.get(file.toString());
+            def releases = releasesForFolder.get(file.toString());
             if (releases != null) {
                 releases.each { item ->
                     def codes = allReleases[item[0]] as List<String>;
