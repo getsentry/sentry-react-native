@@ -9,11 +9,11 @@ let OBJC_HEADER = '\
 #import "RNSentry.h" // This is used for versions of react < 0.40\n\
 #endif';
 
-let dsn = null;
+let cachedDsn = null;
 
 function getDsn() {
-  if (dsn !== null) {
-    return Promise.resolve(dsn);
+  if (cachedDsn !== null) {
+    return Promise.resolve(cachedDsn);
   }
 
   return inquirer.prompt([{
@@ -22,6 +22,7 @@ function getDsn() {
     message: 'The DSN for your mobile application',
     name: 'dsn',
   }]).then(function(answers) {
+    cachedDsn = answers.dsn;
     return Promise.resolve(answers.dsn);
   });
 }
@@ -83,23 +84,25 @@ function patchMatchingFile(pattern, func) {
   let matches = glob.sync(pattern, {
     ignore: 'node_modules/**'
   });
-  for (let match of matches) {
+  let rv = Promise.resolve();
+  matches.forEach(function(match) {
     let contents = fs.readFileSync(match, {
       encoding: 'utf-8'
     });
-    func(contents).then(function(newContents) {
+    rv = rv.then(() => func(contents)).then(function(newContents) {
       if (contents != newContents) {
         fs.writeFileSync(match, newContents);
       }
     });
-  }
+  });
+  return rv;
 }
 
-Promise.all([
-  patchMatchingFile('**/AppDelegate.m', patchAppDelegate),
-  patchMatchingFile('index.*.js', patchIndexJs),
-  patchMatchingFile('**/app/build.gradle', patchBuildGradle),
-]).catch(function(e) {
-  console.log('Could not link react-native-sentry: ' + e);
-  return Promise.resolve();
-});
+Promise.resolve()
+  .then(() => patchMatchingFile('**/AppDelegate.m', patchAppDelegate))
+  .then(() => patchMatchingFile('index.*.js', patchIndexJs))
+  .then(() => patchMatchingFile('**/app/build.gradle', patchBuildGradle))
+  .catch(function(e) {
+    console.log('Could not link react-native-sentry: ' + e);
+    return Promise.resolve();
+  });
