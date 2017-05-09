@@ -9,6 +9,12 @@
 
 @import Sentry;
 
+@interface RNSentry()
+
+@property (nonatomic, strong) NSDictionary *lastReceivedException;
+
+@end
+
 @implementation RNSentry
 
 - (dispatch_queue_t)methodQueue
@@ -174,9 +180,9 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 
     SentryUser *user = nil;
     if (event[@"user"] != nil) {
-        user = [[SentryUser alloc] initWithId:[RCTConvert NSString:event[@"user"][@"userID"]]
-                                        email:[RCTConvert NSString:event[@"user"][@"email"]]
-                                     username:[RCTConvert NSString:event[@"user"][@"username"]]
+        user = [[SentryUser alloc] initWithId:[NSString stringWithFormat:@"%@", event[@"user"][@"userID"]]
+                                        email:[NSString stringWithFormat:@"%@", event[@"user"][@"email"]]
+                                     username:[NSString stringWithFormat:@"%@", event[@"user"][@"username"]]
                                         extra:[RCTConvert NSDictionary:event[@"user"][@"extra"]]];
     }
 
@@ -200,9 +206,7 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
         [[SentryClient shared] captureEvent:sentryEvent];
     } else if (event[@"exception"]) {
         // TODO what do we do here with extra/tags/users that are not global?
-        [self handleSoftJSExceptionWithMessage:[NSString stringWithFormat:@"Unhandled JS Exception: %@", event[@"exception"][@"values"][0][@"value"]]
-                                         stack:SentryParseRavenFrames(event[@"exception"][@"values"][0][@"stacktrace"][@"frames"])
-                                   exceptionId:@99];
+        self.lastReceivedException = event;
     }
 
 }
@@ -235,22 +239,30 @@ RCT_EXPORT_METHOD(crash)
     return [NSDictionary dictionaryWithDictionary:dict];
 }
 
+- (void)reportReactNativeCrashWithMessage:(NSString *)message stacktrace:(NSArray *)stack terminateProgram:(BOOL)terminateProgram {
+    NSString *newMessage = message;
+    if (nil != self.lastReceivedException) {
+        newMessage = [NSString stringWithFormat:@"%@:%@", self.lastReceivedException[@"exception"][@"values"][0][@"type"], self.lastReceivedException[@"exception"][@"values"][0][@"value"]];
+    }
+    NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: newMessage };
+    NSError *error = [[NSError alloc] initWithDomain:@"" code:99 userInfo:userInfo];
+    [[SentryClient shared] reportReactNativeCrashWithError:error stacktrace:stack terminateProgram:terminateProgram];
+}
+
 #pragma mark RCTExceptionsManagerDelegate
 
 - (void)handleSoftJSExceptionWithMessage:(NSString *)message stack:(NSArray *)stack exceptionId:(NSNumber *)exceptionId {
-    NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: message };
-    NSError *error = [[NSError alloc] initWithDomain:@"" code:exceptionId.integerValue userInfo:userInfo];
-    [[SentryClient shared] reportReactNativeCrashWithError:error stacktrace:stack terminateProgram:NO];
+    [self reportReactNativeCrashWithMessage:message stacktrace:stack terminateProgram:NO];
 }
 
 - (void)handleFatalJSExceptionWithMessage:(NSString *)message stack:(NSArray *)stack exceptionId:(NSNumber *)exceptionId {
 #ifndef DEBUG
     RCTSetFatalHandler(^(NSError *error) {
-        [[SentryClient shared] reportReactNativeCrashWithError:error stacktrace:stack terminateProgram:YES];
+        [self reportReactNativeCrashWithMessage:message stacktrace:stack terminateProgram:YES];
     });
 #else
     RCTSetFatalHandler(^(NSError *error) {
-        [[SentryClient shared] reportReactNativeCrashWithError:error stacktrace:stack terminateProgram:NO];
+        [self reportReactNativeCrashWithMessage:message stacktrace:stack terminateProgram:NO];
     });
 #endif
 }

@@ -5,11 +5,14 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableNativeArray;
 import com.facebook.react.bridge.ReadableNativeMap;
 import com.facebook.react.bridge.WritableMap;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -154,7 +157,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             Event builtEvent = eventBuilder.build();
             Sentry.capture(builtEvent);
         } else {
-            logger.info("Event has no key message which means it is a js error");
+            RNSentryExceptionsManagerModule.lastReceivedException = event;
+            if (RNSentryPackage.useDeveloperSupport == true) {
+                ReadableNativeArray exceptionValues = ((ReadableNativeArray)RNSentryExceptionsManagerModule.lastReceivedException.getMap("exception").getArray("values"));
+                ReadableNativeMap exception = exceptionValues.getMap(0);
+                ReadableNativeMap stacktrace = exception.getMap("stacktrace");
+                RNSentryExceptionsManagerModule.convertAndCaptureReactNativeException("", stacktrace.getArray("frames"));
+            }
         }
     }
 
