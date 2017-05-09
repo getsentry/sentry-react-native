@@ -1,6 +1,7 @@
 {
   "name": "react-native-sentry",
   "homepage": "https://github.com/getsentry/react-native-sentry",
+  "repository": "https://github.com/getsentry/react-native-sentry",
   "version": "0.7.0",
   "description": "Official Sentry client for react-native (currently iOS only)",
   "main": "index.js",
@@ -19,6 +20,14 @@
     "react-native": ">=0.38.0"
   },
   "dependencies": {
-    "raven-js": "3.12.1"
+    "raven-js": "^3.15.0",
+    "sentry-cli-binary": "^1.9.0",
+    "inquirer": "3.0.6",
+    "glob": "7.1.1"
+  },
+  "rnpm": {
+    "commands": {
+      "postlink": "node node_modules/react-native-sentry/scripts/postlink"
+    }
   }
 }

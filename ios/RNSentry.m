@@ -1,4 +1,5 @@
 #import "RNSentry.h"
+#import "RNSentryEventEmitter.h"
 #import "RSSwizzle.h"
 #if __has_include(<React/RCTConvert.h>)
 #import <React/RCTConvert.h>
@@ -6,8 +7,13 @@
 #import "RCTConvert.h"
 #endif
 
-
 @import Sentry;
+
+@interface RNSentry()
+
+@property (nonatomic, strong) NSDictionary *lastReceivedException;
+
+@end
 
 @implementation RNSentry
 
@@ -162,26 +168,27 @@ RCT_EXPORT_METHOD(captureBreadcrumb:(NSDictionary * _Nonnull)breadcrumb)
     SentryBreadcrumb *crumb = [[SentryBreadcrumb alloc] initWithCategory:breadcrumb[@"category"]
                                                                timestamp:[NSDate dateWithTimeIntervalSince1970:[breadcrumb[@"timestamp"] integerValue]]
                                                                  message:breadcrumb[@"message"]
-                                                                    type:nil
-                                                                   level:[self sentrySeverityFromLevel:[breadcrumb[@"level"] integerValue]]
-                                                                    data:nil];
+                                                                    type:breadcrumb[@"type"]
+                                                                   level:[self sentrySeverityFromLevel:breadcrumb[@"level"]]
+                                                                    data:[RCTConvert NSDictionary:breadcrumb[@"data"]]];
     [[SentryClient shared].breadcrumbs add:crumb];
 }
 
 RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 {
-    SentrySeverity level = [self sentrySeverityFromLevel:[event[@"level"] integerValue]];
+    SentrySeverity level = [self sentrySeverityFromLevel:event[@"level"]];
 
     SentryUser *user = nil;
     if (event[@"user"] != nil) {
-        user = [[SentryUser alloc] initWithId:[RCTConvert NSString:event[@"user"][@"userID"]]
-                                        email:[RCTConvert NSString:event[@"user"][@"email"]]
-                                     username:[RCTConvert NSString:event[@"user"][@"username"]]
+        user = [[SentryUser alloc] initWithId:[NSString stringWithFormat:@"%@", event[@"user"][@"userID"]]
+                                        email:[NSString stringWithFormat:@"%@", event[@"user"][@"email"]]
+                                     username:[NSString stringWithFormat:@"%@", event[@"user"][@"username"]]
                                         extra:[RCTConvert NSDictionary:event[@"user"][@"extra"]]];
     }
 
     if (event[@"message"]) {
         SentryEvent *sentryEvent = [[SentryEvent alloc] init:event[@"message"]
+                                                     eventID:event[@"event_id"]
                                                    timestamp:[NSDate date]
                                                        level:level
                                                       logger:event[@"logger"]
@@ -199,9 +206,7 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
         [[SentryClient shared] captureEvent:sentryEvent];
     } else if (event[@"exception"]) {
         // TODO what do we do here with extra/tags/users that are not global?
-        [self handleSoftJSExceptionWithMessage:[NSString stringWithFormat:@"Unhandled JS Exception: %@", event[@"exception"][@"values"][0][@"value"]]
-                                         stack:SentryParseRavenFrames(event[@"exception"][@"values"][0][@"stacktrace"][@"frames"])
-                                   exceptionId:@99];
+        self.lastReceivedException = event;
     }
 
 }
@@ -211,20 +216,19 @@ RCT_EXPORT_METHOD(crash)
     [[SentryClient shared] crash];
 }
 
-- (SentrySeverity)sentrySeverityFromLevel:(NSInteger)level {
-    switch (level) {
-        case 0:
-            return SentrySeverityFatal;
-        case 2:
-            return SentrySeverityWarning;
-        case 3:
-            return SentrySeverityInfo;
-        case 4:
-            return SentrySeverityDebug;
-        default:
-            return SentrySeverityError;
+- (SentrySeverity)sentrySeverityFromLevel:(NSString *)level {
+    if ([level isEqualToString:@"fatal"]) {
+        return SentrySeverityFatal;
+    } else if ([level isEqualToString:@"warning"]) {
+        return SentrySeverityWarning;
+    } else if ([level isEqualToString:@"info"]) {
+        return SentrySeverityInfo;
+    } else if ([level isEqualToString:@"debug"]) {
+        return SentrySeverityDebug;
+    } else if ([level isEqualToString:@"error"]) {
+        return SentrySeverityError;
     }
-    return level;
+    return SentrySeverityFatal;
 }
 
 - (NSDictionary *)sanitizeDictionary:(NSDictionary *)dictionary {
@@ -235,22 +239,30 @@ RCT_EXPORT_METHOD(crash)
     return [NSDictionary dictionaryWithDictionary:dict];
 }
 
+- (void)reportReactNativeCrashWithMessage:(NSString *)message stacktrace:(NSArray *)stack terminateProgram:(BOOL)terminateProgram {
+    NSString *newMessage = message;
+    if (nil != self.lastReceivedException) {
+        newMessage = [NSString stringWithFormat:@"%@:%@", self.lastReceivedException[@"exception"][@"values"][0][@"type"], self.lastReceivedException[@"exception"][@"values"][0][@"value"]];
+    }
+    NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: newMessage };
+    NSError *error = [[NSError alloc] initWithDomain:@"" code:99 userInfo:userInfo];
+    [[SentryClient shared] reportReactNativeCrashWithError:error stacktrace:stack terminateProgram:terminateProgram];
+}
+
 #pragma mark RCTExceptionsManagerDelegate
 
 - (void)handleSoftJSExceptionWithMessage:(NSString *)message stack:(NSArray *)stack exceptionId:(NSNumber *)exceptionId {
-    NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: message };
-    NSError *error = [[NSError alloc] initWithDomain:@"" code:exceptionId.integerValue userInfo:userInfo];
-    [[SentryClient shared] reportReactNativeCrashWithError:error stacktrace:stack terminateProgram:NO];
+    [self reportReactNativeCrashWithMessage:message stacktrace:stack terminateProgram:NO];
 }
 
 - (void)handleFatalJSExceptionWithMessage:(NSString *)message stack:(NSArray *)stack exceptionId:(NSNumber *)exceptionId {
 #ifndef DEBUG
     RCTSetFatalHandler(^(NSError *error) {
-        [[SentryClient shared] reportReactNativeCrashWithError:error stacktrace:stack terminateProgram:YES];
+        [self reportReactNativeCrashWithMessage:message stacktrace:stack terminateProgram:YES];
     });
 #else
     RCTSetFatalHandler(^(NSError *error) {
-        [[SentryClient shared] reportReactNativeCrashWithError:error stacktrace:stack terminateProgram:NO];
+        [self reportReactNativeCrashWithMessage:message stacktrace:stack terminateProgram:NO];
     });
 #endif
 }
