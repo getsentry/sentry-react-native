@@ -1,0 +1,108 @@
+let glob = require('glob');
+let fs = require('fs');
+let inquirer = require('inquirer');
+
+let OBJC_HEADER = '\
+#if __has_include(<React/RNSentry.h>)\n\
+#import <React/RNSentry.h> // This is used for versions of react >= 0.40\n\
+#else\n\
+#import "RNSentry.h" // This is used for versions of react < 0.40\n\
+#endif';
+
+let cachedDsn = null;
+
+function getDsn() {
+  if (cachedDsn !== null) {
+    return Promise.resolve(cachedDsn);
+  }
+
+  return inquirer.prompt([{
+    type: 'input',
+    default: 'YOUR_DSN_HERE',
+    message: 'The DSN for your mobile application',
+    name: 'dsn',
+  }]).then(function(answers) {
+    cachedDsn = answers.dsn;
+    return Promise.resolve(answers.dsn);
+  });
+}
+
+function patchAppDelegate(contents) {
+  // add the header if it's not there yet.
+  if (!contents.match(/#import "RNSentry.h"/)) {
+    contents = contents.replace(
+      /(#import <React\/RCTRootView.h>)/,
+      '$1\n' + OBJC_HEADER
+    );
+  }
+
+  // add root view init.
+  let rootViewMatch = contents.match(/RCTRootView\s*\*\s*([^\s=]+)\s*=\s*\[/);
+  if (rootViewMatch) {
+    let rootViewInit = '[RNSentry installWithRootView:' + rootViewMatch[1] + '];';
+    if (contents.indexOf(rootViewInit) < 0) {
+      contents = contents.replace(
+        /^(\s*)RCTRootView\s*\*\s*[^\s=]+\s*=\s*\[([^]*?\s*\]\s*;\s*$)/m,
+        function(match, indent) {
+          return match.trimRight() + '\n' + indent + rootViewInit + '\n';
+        }
+      );
+    }
+  }
+
+  return Promise.resolve(contents);
+}
+
+function patchIndexJs(contents) {
+  if (contents.match(/Sentry.config\(/)) {
+    return Promise.resolve(contents);
+  }
+
+  return getDsn().then(function(dsn) {
+    return Promise.resolve(contents.replace(/^([^]*)(import\s+[^;]*?;$)/m, function(match) {
+      return match + '\n\nimport { Sentry } from \'react-native-sentry\';\n\n' +
+        'Sentry.config(' + JSON.stringify(dsn) + ').install();\n';
+    }));
+  });
+}
+
+function patchBuildGradle(contents) {
+  let applyFrom = 'apply from: "../../node_modules/react-native-sentry/sentry.gradle"';
+  if (contents.indexOf(applyFrom) >= 0) {
+    return Promise.resolve(contents);
+  }
+
+  return Promise.resolve(contents.replace(
+    /^apply from: "..\/..\/node_modules\/react-native\/react.gradle"/m,
+    function(match) {
+      return match + '\n' + applyFrom;
+    }
+  ));
+}
+
+function patchMatchingFile(pattern, func) {
+  let matches = glob.sync(pattern, {
+    ignore: 'node_modules/**'
+  });
+  let rv = Promise.resolve();
+  matches.forEach(function(match) {
+    let contents = fs.readFileSync(match, {
+      encoding: 'utf-8'
+    });
+    rv = rv.then(() => func(contents)).then(function(newContents) {
+      if (contents != newContents) {
+        fs.writeFileSync(match, newContents);
+      }
+    });
+  });
+  return rv;
+}
+
+Promise.resolve()
+  .then(() => patchMatchingFile('**/AppDelegate.m', patchAppDelegate))
+  .then(() => patchMatchingFile('index.*.js', patchIndexJs))
+  .then(() => patchMatchingFile('**/app/build.gradle', patchBuildGradle))
+  .catch(function(e) {
+    console.log('Could not link react-native-sentry: ' + e);
+    return Promise.resolve();
+  });
