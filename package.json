@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "raven-js": "^3.15.0",
-    "sentry-cli-binary": "^1.6.0",
+    "sentry-cli-binary": "^1.9.0",
     "inquirer": "3.0.6",
     "glob": "7.1.1"
   },
