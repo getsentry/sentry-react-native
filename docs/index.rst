@@ -179,6 +179,7 @@ crash handler in your `AppDelegate.m` after the root view was created:
 For Android you have to add this in the first line of ``getPackages()`` in `MainApplication.java`:
 
 .. sourcecode:: java
+
     /* ... */
     @Override
     protected List<ReactPackage> getPackages() {
