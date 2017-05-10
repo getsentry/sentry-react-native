@@ -28,6 +28,9 @@
   "rnpm": {
     "commands": {
       "postlink": "node node_modules/react-native-sentry/scripts/postlink"
+    },
+    "android": {
+      "packageInstance": "new RNSentryPackage(MainApplication.this)"
     }
   }
 }

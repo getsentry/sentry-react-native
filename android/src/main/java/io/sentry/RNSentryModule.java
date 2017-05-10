@@ -1,18 +1,17 @@
 package io.sentry;
 
+import com.facebook.react.ReactApplication;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableNativeArray;
 import com.facebook.react.bridge.ReadableNativeMap;
 import com.facebook.react.bridge.WritableMap;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,13 +29,20 @@ import io.sentry.event.interfaces.UserInterface;
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
+    private final ReactApplication reactApplication;
+
     final static Logger logger = Logger.getLogger("react-native-sentry");
     private ReadableMap extra;
     private ReadableMap tags;
 
-    public RNSentryModule(ReactApplicationContext reactContext) {
+    public RNSentryModule(ReactApplicationContext reactContext, ReactApplication reactApplication) {
         super(reactContext);
         this.reactContext = reactContext;
+        this.reactApplication = reactApplication;
+    }
+
+    public ReactApplication getReactApplication() {
+        return reactApplication;
     }
 
     @Override
@@ -158,7 +164,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             Sentry.capture(builtEvent);
         } else {
             RNSentryExceptionsManagerModule.lastReceivedException = event;
-            if (RNSentryPackage.useDeveloperSupport == true) {
+            if (this.getReactApplication().getReactNativeHost().getUseDeveloperSupport() == true) {
                 ReadableNativeArray exceptionValues = ((ReadableNativeArray)RNSentryExceptionsManagerModule.lastReceivedException.getMap("exception").getArray("values"));
                 ReadableNativeMap exception = exceptionValues.getMap(0);
                 ReadableNativeMap stacktrace = exception.getMap("stacktrace");
