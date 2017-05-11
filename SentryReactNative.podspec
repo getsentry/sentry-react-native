@@ -21,6 +21,6 @@ Pod::Spec.new do |s|
   s.dependency 'Sentry', '~> 2.1.9'
   s.dependency 'RSSwizzle', '~> 0.1.0'
 
-  s.source_files = 'ios/RNSentry.{h,m}'
+  s.source_files = 'ios/RNSentry*.{h,m}'
   s.public_header_files = 'ios/RNSentry.h'
 end
