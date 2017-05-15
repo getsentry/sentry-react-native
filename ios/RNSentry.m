@@ -19,7 +19,7 @@
 
 - (dispatch_queue_t)methodQueue
 {
-    return dispatch_get_main_queue();
+    return dispatch_queue_create("io.sentry.RNSentry", DISPATCH_QUEUE_SERIAL);
 }
 
 + (void)installWithBridge:(RCTBridge *)bridge {
