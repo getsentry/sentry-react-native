@@ -184,6 +184,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void clearContext() {
         Sentry.clearContext();
+        this.extra = null;
+        this.tags = null;
     }
 
     @ReactMethod
