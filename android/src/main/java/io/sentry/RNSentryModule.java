@@ -132,14 +132,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     .withLogger(event.getString("logger"))
                     .withLevel(eventLevel(event.getString("level")));
 
-            eventBuilder.withSentryInterface(
-                    new UserInterface(
-                            event.getMap("user").getString("userID"),
-                            event.getMap("user").getString("username"),
-                            null,
-                            event.getMap("user").getString("email")
-                    )
-            );
+            if (event.hasKey("user")) {
+                UserInterface userInterface = new UserInterface(
+                        event.getMap("user").getString("userID"),
+                        event.getMap("user").getString("username"),
+                        null,
+                        event.getMap("user").getString("email")
+                );
+                eventBuilder.withSentryInterface(userInterface);
+            }
 
             helper.helpBuildingEvent(eventBuilder);
 
@@ -148,8 +149,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     eventBuilder.withExtra(entry.getKey(), entry.getValue());
                 }
             }
-            for (Map.Entry<String, Object> entry : castEvent.getMap("extra").toHashMap().entrySet()) {
-                eventBuilder.withExtra(entry.getKey(), entry.getValue());
+
+            if (castEvent.hasKey("extra")) {
+                for (Map.Entry<String, Object> entry : castEvent.getMap("extra").toHashMap().entrySet()) {
+                    eventBuilder.withExtra(entry.getKey(), entry.getValue());
+                }
             }
 
             if (this.tags != null) {
@@ -157,9 +161,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     eventBuilder.withExtra(entry.getKey(), entry.getValue());
                 }
             }
-            for (Map.Entry<String, Object> entry : castEvent.getMap("tags").toHashMap().entrySet()) {
-                eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
+
+            if (castEvent.hasKey("tags")) {
+                for (Map.Entry<String, Object> entry : castEvent.getMap("tags").toHashMap().entrySet()) {
+                    eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
+                }
             }
+
             Event builtEvent = eventBuilder.build();
             Sentry.capture(builtEvent);
         } else {
