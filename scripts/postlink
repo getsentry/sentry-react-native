@@ -11,15 +11,14 @@ let OBJC_HEADER = '\
 
 let cachedDsn = null;
 
-function getDsn() {
-  if (cachedDsn !== null) {
-    return Promise.resolve(cachedDsn);
-  }
-
+function getDsn(platform) {
   return inquirer.prompt([{
     type: 'input',
-    default: 'YOUR_DSN_HERE',
-    message: 'The DSN for your mobile application',
+    default: cachedDsn || process.env.SENTRY_DSN || 'YOUR_DSN_HERE',
+    message: 'The DSN for ' + {
+      'android': 'Android',
+      'ios': 'iOS',
+    }[platform] || platform,
     name: 'dsn',
   }]).then(function(answers) {
     cachedDsn = answers.dsn;
@@ -53,12 +52,13 @@ function patchAppDelegate(contents) {
   return Promise.resolve(contents);
 }
 
-function patchIndexJs(contents) {
+function patchIndexJs(contents, filename) {
   if (contents.match(/Sentry.config\(/)) {
     return Promise.resolve(contents);
   }
 
-  return getDsn().then(function(dsn) {
+  let platform = filename.match(/index\.([^.]+?)\.js/)[1];
+  return getDsn(platform).then(function(dsn) {
     return Promise.resolve(contents.replace(/^([^]*)(import\s+[^;]*?;$)/m, function(match) {
       return match + '\n\nimport { Sentry } from \'react-native-sentry\';\n\n' +
         'Sentry.config(' + JSON.stringify(dsn) + ').install();\n';
@@ -89,7 +89,7 @@ function patchMatchingFile(pattern, func) {
     let contents = fs.readFileSync(match, {
       encoding: 'utf-8'
     });
-    rv = rv.then(() => func(contents)).then(function(newContents) {
+    rv = rv.then(() => func(contents, match)).then(function(newContents) {
       if (contents != newContents) {
         fs.writeFileSync(match, newContents);
       }
