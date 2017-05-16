@@ -27,7 +27,8 @@
   },
   "rnpm": {
     "commands": {
-      "postlink": "node node_modules/react-native-sentry/scripts/postlink"
+      "postlink": "node node_modules/react-native-sentry/scripts/postlink",
+      "postunlink": "node node_modules/react-native-sentry/scripts/postunlink"
     },
     "android": {
       "packageInstance": "new RNSentryPackage(MainApplication.this)"

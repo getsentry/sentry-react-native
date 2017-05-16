@@ -1,0 +1,47 @@
+let glob = require('glob');
+let fs = require('fs');
+
+function unpatchAppDelegate(contents) {
+  return Promise.resolve(contents
+    .replace(/^#if __has_include\(<React\/RNSentry.h>)[^]*?\#endif\r?\n/m, '')
+    .replace(/^\s*\[RNSentry\s+installWithRootView:.*?\];\r?\n/m, ''));
+}
+
+function unpatchIndexJs(contents, filename) {
+  return Promise.resolve(contents
+    .replace(/^\s*Sentry\.config\((.*?)\);?\s*\r?\n/mg, '');
+    .replace(/(\r?\n){,2}import\s*\{[^]*?\}\s*from\s+['"]react-native-sentry['"];\s*(\r?\n){,2}/mg, ''));
+}
+
+function unpatchBuildGradle(contents) {
+  return Promise.resolve(contents.replace(
+    /^\s*apply from: ["']..\/..\/node_modules\/react-native-sentry\/sentry.gradle["'];\s*\r?\n/m,
+    ''));
+}
+
+function patchMatchingFile(pattern, func) {
+  let matches = glob.sync(pattern, {
+    ignore: 'node_modules/**'
+  });
+  let rv = Promise.resolve();
+  matches.forEach(function(match) {
+    let contents = fs.readFileSync(match, {
+      encoding: 'utf-8'
+    });
+    rv = rv.then(() => func(contents, match)).then(function(newContents) {
+      if (contents != newContents) {
+        fs.writeFileSync(match, newContents);
+      }
+    });
+  });
+  return rv;
+}
+
+Promise.resolve()
+  .then(() => patchMatchingFile('**/AppDelegate.m', unpatchAppDelegate))
+  .then(() => patchMatchingFile('index.*.js', unpatchIndexJs))
+  .then(() => patchMatchingFile('**/app/build.gradle', unpatchBuildGradle))
+  .catch(function(e) {
+    console.log('Could not unlink react-native-sentry: ' + e);
+    return Promise.resolve();
+  });
