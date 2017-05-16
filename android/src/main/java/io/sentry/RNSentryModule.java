@@ -94,7 +94,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void setUser(ReadableMap user) {
-        if (user.hasKey("email") && user.getString("userID") && user.getString("username")) {
+        if (user.hasKey("email") && user.hasKey("userID") && user.hasKey("username")) {
             Sentry.setUser(
                     new UserBuilder()
                             .setEmail(user.getString("email"))
