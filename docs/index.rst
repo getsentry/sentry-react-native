@@ -63,29 +63,31 @@ is currently there needs to be adjusted as follows::
     export SENTRY_AUTH_TOKEN=YOUR_AUTH_TOKEN
     export NODE_BINARY=node
     ../node_modules/react-native-sentry/bin/bundle-frameworks
-    ../node_modules/sentry-cli-binary/bin/sentry-cli react-native-xcode ../node_modules/react-native/packager/react-native-xcode.sh
+    ../node_modules/sentry-cli-binary/bin/sentry-cli react-native-xcode \
+      ../node_modules/react-native/packager/react-native-xcode.sh
     ../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym
 
-You can find the slugs in the URL of your project (sentry.io/your-org-slug/your-project-slug)
-If you don't have an auth token yet you can `create an auth token here <https://sentry.io/api/>`_.
+You can find the slugs in the URL of your project
+(sentry.io/your-org-slug/your-project-slug) If you don't have an auth
+token yet you can `create an auth token here <https://sentry.io/api/>`_.
 
-This also uploads debug symbols in the last line which however will not work for
-bitcode enabled builds.  If you are using bitcode you need to remove that
-line (``../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym``) and consult the documentation on dsym
-handling instead (see :ref:`dsym-with-bitcode`).
+This also uploads debug symbols in the last line which however will not
+work for bitcode enabled builds.  If you are using bitcode you need to
+remove that line (``../node_modules/sentry-cli-binary/bin/sentry-cli
+upload-dsym``) and consult the documentation on dsym handling instead (see
+:ref:`dsym-with-bitcode`).
 
 Note that uploading of debug simulator builds by default is disabled for
 speed reasons.  If you do want to also generate debug symbols for debug
-builds you can pass `--allow-fetch` as a parameter to
-``react-native-xcode``.
+builds you can pass `--allow-fetch` as a parameter to ``react-native-xcode``.
 
 Sourcemaps for Other Platforms
 ------------------------------
 
 Currently automatic sourcemap handling is only implemented for iOS with
-Xcode.  If you manually invoke the `react-native packager
-<https://github.com/facebook/react-native/tree/master/packager>`__ you can
-however get sourcemaps anyways by passing `--sourcemap-output` to it.
+Xcode and Android with gradle.  If you manually invoke the `react-native
+packager <https://github.com/facebook/react-native/tree/master/packager>`__
+you can however get sourcemaps anyways by passing `--sourcemap-output` to it.
 
 If you do get sourcemaps you can upload them with ``sentry-cli``.  However
 make sure to pass ``--rewrite`` to the ``upload-sourcemaps`` command which
@@ -101,6 +103,29 @@ Example:
       --entry-file index.android.js \
       --bundle-output android.main.bundle \
       --sourcemap-output android.main.bundle.map
+
+To then upload you should use this:
+
+.. code-block:: bash
+
+    sentry-cli releases \
+        files RELEASE_NAME \
+        upload-sourcemaps \
+        --dist DISTRIBUTION_NAME \
+        --strip-prefix /path/to/project/root \
+        --rewrite /path/to/your/files
+
+The values for ``RELEASE_NAME`` and ``DISTRIBUTION_NAME`` are as follows:
+
+``RELEASE_NAME``:
+    the bundle ID or package name (reverse dns notation of your app)
+    followed by a dash and the human readable version name that is set for
+    your release.  So for instance ``com.example.myapp-1.0``.
+
+``DISTRIBUTION_NAME``:
+    This is the version code or build id depending on your platform.  So
+    for instance just set this to whatever is set in your `Info.plist` or
+    what your gradle setup generates (eg: ``52``).
 
 Setup With Cocoapods
 --------------------
