@@ -81,100 +81,6 @@ Note that uploading of debug simulator builds by default is disabled for
 speed reasons.  If you do want to also generate debug symbols for debug
 builds you can pass `--allow-fetch` as a parameter to ``react-native-xcode``.
 
-Sourcemaps for Other Platforms
-------------------------------
-
-Currently automatic sourcemap handling is only implemented for iOS with
-Xcode and Android with gradle.  If you manually invoke the `react-native
-packager <https://github.com/facebook/react-native/tree/master/packager>`__
-you can however get sourcemaps anyways by passing `--sourcemap-output` to it.
-
-If you do get sourcemaps you can upload them with ``sentry-cli``.  However
-make sure to pass ``--rewrite`` to the ``upload-sourcemaps`` command which
-will fix up the sourcemaps before upload (inlines sources etc.).
-
-Example:
-
-.. code-block:: bash
-
-    react-native bundle \
-      --dev false \
-      --platform android \
-      --entry-file index.android.js \
-      --bundle-output android.main.bundle \
-      --sourcemap-output android.main.bundle.map
-
-To then upload you should use this:
-
-.. code-block:: bash
-
-    sentry-cli releases \
-        files RELEASE_NAME \
-        upload-sourcemaps \
-        --dist DISTRIBUTION_NAME \
-        --strip-prefix /path/to/project/root \
-        --rewrite /path/to/your/files
-
-The values for ``RELEASE_NAME`` and ``DISTRIBUTION_NAME`` are as follows:
-
-``RELEASE_NAME``:
-    the bundle ID or package name (reverse dns notation of your app)
-    followed by a dash and the human readable version name that is set for
-    your release.  So for instance ``com.example.myapp-1.0``.
-
-``DISTRIBUTION_NAME``:
-    This is the version code or build id depending on your platform.  So
-    for instance just set this to whatever is set in your `Info.plist` or
-    what your gradle setup generates (eg: ``52``).
-
-Setup With Cocoapods
---------------------
-
-In order to use Sentry with cocoapods you have to install the packages with
-``npm`` or ``yarn`` and link them locally in your ``Podfile``.
-
-.. sourcecode:: bash
-
-    npm install --save react react-native react-native-sentry
-
-After that change your ``Podfile`` to reference to the packages in your
-``node_modules`` folder.
-
-.. sourcecode:: ruby
-
-    platform :ios, '8.0'
-    use_frameworks!
-
-    node_modules_path = './node_modules'
-    react_path = File.join(node_modules_path, 'react-native')
-    yoga_path = File.join(react_path, 'ReactCommon/yoga')
-    sentry_path = File.join(node_modules_path, 'react-native-sentry')
-
-    target 'YOUR-TARGET' do
-        pod 'Yoga', :path => yoga_path
-        pod 'React', :path => react_path, :subspecs => [
-          'Core',
-          'RCTImage',
-          'RCTNetwork',
-          'RCTText',
-          'RCTWebSocket',
-          # Add any other subspecs you want to use in your project
-        ]
-        pod 'SentryReactNative', :path => sentry_path
-    end
-
-    post_install do |installer|
-      installer.pods_project.build_configurations.each do |config|
-        config.build_settings['SWIFT_VERSION'] = '3.0'
-        config.build_settings['ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES'] = 'YES'
-      end
-    end
-
-After that run ``pod install`` which then should link everything correctly.
-If you need more information about how to load the react view check out
-`this tutorial.
-<https://facebook.github.io/react-native/releases/0.23/docs/embedded-app-ios.html>`_
-
 Client Configuration
 --------------------
 
@@ -282,3 +188,14 @@ These are functions you can call in your javascript code:
 
     // This will trigger a crash in the native sentry client
     //Sentry.nativeCrash();
+
+Deep Dive
+---------
+
+.. toctree::
+   :maxdepth: 2
+
+   expo
+   sourcemaps
+   cocoapods
+
