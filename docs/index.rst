@@ -24,13 +24,13 @@ Start with adding sentry and linking it::
     $ react-native link react-native-sentry
 
 The `link` step will pull in the native dependency.  If you are using
-Android or expo you don't have to (or can't) run that step.  In that case
-we fall back automatically.
+expo you don't have to (or can't) run that step.  In that case we fall
+back automatically.
 
 Note that we only support ``react-native >= 0.38`` at the moment.
 
-Xcode Build Settings
---------------------
+iOS Specifics
+-------------
 
 Since we use our `Swift Client
 <https://github.com/getsentry/sentry-swift>`_ in the background, your
@@ -48,18 +48,14 @@ You will get this error message if you forget to set it::
 Also note that if you build the project without setting this, you have to
 run clean in order to make the change work.
 
-Xcode Build Steps
------------------
+When you use xcode you can hook directly into the build process to upload
+debug symbols.  Open up your xcode project in the iOS folder, go to your
+project's target and change the "Bundle React Native code and images"
+build script.  The script that is currently there needs to be adjusted as
+follows::
 
-If you are using iOS (and not expo) you can hook directly into the build
-process to upload debug symbols.
-
-Open up your xcode project in the iOS folder, go to your project's target and
-change the "Bundle React Native code and images" build script.  The script that
-is currently there needs to be adjusted as follows::
-
-    export SENTRY_ORG=YOUR_ORG_SLUG
-    export SENTRY_PROJECT=YOUR_PROJECT_SLUG
+    export SENTRY_ORG=___ORG_NAME___
+    export SENTRY_PROJECT=___PROJECT_NAME___
     export SENTRY_AUTH_TOKEN=YOUR_AUTH_TOKEN
     export NODE_BINARY=node
     ../node_modules/react-native-sentry/bin/bundle-frameworks
@@ -81,10 +77,38 @@ Note that uploading of debug simulator builds by default is disabled for
 speed reasons.  If you do want to also generate debug symbols for debug
 builds you can pass `--allow-fetch` as a parameter to ``react-native-xcode``.
 
+Android Specifics
+-----------------
+
+For Android we hook into gradle for the sourcemap build process.  When you
+run ``react-native link`` the gradle files are automatically updated but
+in case you are not using linked frameworks you might have to do it
+manually.  Whenever you run ``./gradlew assembleRelease`` sourcemaps are
+automatically built and uploaded to Sentry.
+
+To enable the gradle integration you need to change your
+``android/app/build.gradle`` file and add the following line after the
+``react.gradle`` one::
+
+    apply from: "../../node_modules/react-native-sentry/sentry.gradle"
+
+Additionally you need to create an ``android/sentry.properties`` file with
+the access credentials:
+
+.. sourcecode:: ini
+
+    defaults.org=___ORG_NAME___
+    defaults.project=___PROJECT_NAME___
+    auth.token=YOUR_AUTH_TOKEN
+
 Client Configuration
 --------------------
 
-Add sentry to your `index.ios.js`:
+Note: When you run ``react-native link`` we will attempt to automatically
+patch your code so you might notice that some of these changes were
+already performed.
+
+Add Sentry to your `index.ios.js` and `index.android.js`:
 
 .. sourcecode:: javascript
 
@@ -94,7 +118,8 @@ Add sentry to your `index.ios.js`:
 
 If you are using the binary version of the package (eg: you ran
 ``react-native link``) then you additionally need to register the native
-crash handler in your `AppDelegate.m` after the root view was created:
+crash handler in your `AppDelegate.m` after the root view was created for
+iOS:
 
 .. sourcecode:: objc
 
@@ -104,90 +129,8 @@ crash handler in your `AppDelegate.m` after the root view was created:
     #import "RNSentry.h" // This is used for versions of react < 0.40
     #endif
 
-    /* ... */
+    /* in your didFinishLaunchingWithOptions */
     [RNSentry installWithRootView:rootView];
-
-
-Additional Configuration
-------------------------
-
-These are functions you can call in your javascript code:
-
-.. sourcecode:: javascript
-
-    import {
-      Sentry,
-      SentrySeverity,
-      SentryLog
-    } from 'react-native-sentry';
-
-    // disable stacktrace merging
-    Sentry.config("___DSN___", {
-      deactivateStacktraceMerging: true, // default: false | Deactivates the stacktrace merging feature
-      logLevel: SentryLog.Debug, // default SentryLog.None | Possible values:  .None, .Error, .Debug, .Verbose
-      // These two options will only be considered if stacktrace merging is active
-      // Here you can add modules that should be ignored or exclude modules
-      // that should no longer be ignored from stacktrace merging
-      // ignoreModulesExclude: ["I18nManager"], // default: [] | Exclude is always stronger than include
-      // ignoreModulesInclude: ["RNSentry"], // default: [] | Include modules that should be ignored too
-      // ---------------------------------
-    }).install();
-
-    // set a callback after an event was successfully sentry
-    // its only guaranteed that this event contains `event_id` & `level`
-    Sentry.setEventSentSuccessfully((event) => {
-      // can also be called outside this block but maybe null
-      // Sentry.lastEventId(); -> returns the last event_id after the first successfully sent event
-      // Sentry.lastException(); -> returns the last event after the first successfully sent event
-    });
-
-    // export an extra context
-    Sentry.setExtraContext({
-      "a_thing": 3,
-      "some_things": {"green": "red"},
-      "foobar": ["a", "b", "c"],
-      "react": true,
-      "float": 2.43
-    });
-
-    // set the tag context
-    Sentry.setTagsContext({
-      "environment": "production",
-      "react": true
-    });
-
-    // set the user context
-    Sentry.setUserContext({
-      email: "john@apple.com",
-      userID: "12341",
-      username: "username",
-      extra: {
-        "is_admin": false
-      }
-    });
-
-    // set a custom message
-    Sentry.captureMessage("TEST message", {
-      level: SentrySeverity.Warning
-    }); // Default SentrySeverity.Error
-
-    // capture an exception
-    Sentry.captureException(new Error('Oops!'), {
-      logger: 'my.module'
-    });
-
-    // capture an exception
-    Sentry.captureBreadcrumb({
-      message: 'Item added to shopping cart',
-      category: 'action',
-      data: {
-         isbn: '978-1617290541',
-         cartSize: '3'
-      }
-    });
-
-    // This will trigger a crash in the native sentry client
-    //Sentry.nativeCrash();
 
 More
 ----
@@ -195,7 +138,7 @@ More
 .. toctree::
    :maxdepth: 2
 
+   config
    expo
    sourcemaps
    cocoapods
-
