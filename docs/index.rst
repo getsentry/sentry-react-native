@@ -189,8 +189,8 @@ These are functions you can call in your javascript code:
     // This will trigger a crash in the native sentry client
     //Sentry.nativeCrash();
 
-Deep Dive
----------
+More
+----
 
 .. toctree::
    :maxdepth: 2
