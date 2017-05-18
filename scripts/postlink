@@ -10,6 +10,7 @@ let OBJC_HEADER = '\
 #endif';
 
 let cachedDsn = null;
+let patchedAny = false;
 
 function getDsn(platform) {
   return inquirer.prompt([{
@@ -53,7 +54,9 @@ function patchAppDelegate(contents) {
 }
 
 function patchIndexJs(contents, filename) {
-  if (contents.match(/Sentry.config\(/)) {
+  // since the init call could live in other places too, we really only
+  // want to do this if we managed to patch any of the other files as well.
+  if (contents.match(/Sentry.config\(/) && patchedAny) {
     return Promise.resolve(contents);
   }
 
@@ -91,6 +94,7 @@ function patchMatchingFile(pattern, func) {
     });
     rv = rv.then(() => func(contents, match)).then(function(newContents) {
       if (contents != newContents) {
+        patchedAny = true;
         fs.writeFileSync(match, newContents);
       }
     });
@@ -100,8 +104,8 @@ function patchMatchingFile(pattern, func) {
 
 Promise.resolve()
   .then(() => patchMatchingFile('**/AppDelegate.m', patchAppDelegate))
-  .then(() => patchMatchingFile('index.*.js', patchIndexJs))
   .then(() => patchMatchingFile('**/app/build.gradle', patchBuildGradle))
+  .then(() => patchMatchingFile('index.*.js', patchIndexJs))
   .catch(function(e) {
     console.log('Could not link react-native-sentry: ' + e);
     return Promise.resolve();
