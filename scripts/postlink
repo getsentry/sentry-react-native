@@ -141,6 +141,32 @@ function patchBuildGradle(contents) {
   ));
 }
 
+function patchAlwaysIncludeSwift(proj) {
+  let nativeTargets = proj.hash.project.objects.PBXNativeTarget;
+  let buildConfigs = proj.pbxXCBuildConfigurationSection();
+
+  for (let key in nativeTargets) {
+    let data = nativeTargets[key];
+    if (typeof data === 'string') {
+      continue;
+    }
+
+    if (!data.productReference_comment.match(/\.app$/)) {
+      continue;
+    }
+
+    let cfgList = proj.pbxXCConfigurationList()[data.buildConfigurationList];
+    if (!cfgList) {
+      continue;
+    }
+
+    for (let cfgRef of cfgList.buildConfigurations) {
+      let cfg = buildConfigs[cfgRef.value];
+      cfg.buildSettings.ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = 'YES';
+    }
+  }
+}
+
 function patchExistingXcodeBuildScripts(buildScripts) {
   for (let script of buildScripts) {
     if (!script.shellScript.match(/packager\/react-native-xcode\.sh\b/) ||
@@ -173,8 +199,8 @@ function addNewXcodeBuildPhaseForSymbols(buildScripts, proj) {
     {
       shellPath: '/bin/sh',
       shellScript: (
-        'export SENTRY_PROPERTIES=sentry.properties\n' +
-        '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym'
+        '"export SENTRY_PROPERTIES=sentry.properties\\n' +
+        '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym"'
       )
     }
   );
@@ -195,7 +221,7 @@ function addNewXcodeBuildPhaseForBundleFw(buildScripts, proj) {
     {
       shellPath: '/bin/sh',
       shellScript: (
-        '../node_modules/react-native-sentry/bin/bundle-frameworks'
+        '"../node_modules/react-native-sentry/bin/bundle-frameworks"'
       )
     }
   );
@@ -210,18 +236,16 @@ function patchXcodeProj(contents, filename) {
         return;
       }
 
-      proj.addBuildProperty('ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES', 'YES');
-
       let buildScripts = Object.values(
           proj.hash.project.objects.PBXShellScriptBuildPhase || {})
         .filter((val) => val.isa);
-      resolve(Promise.resolve()
-        .then(patchExistingXcodeBuildScripts(buildScripts))
-        .then(addNewXcodeBuildPhaseForSymbols(buildScripts, proj))
-        .then(addNewXcodeBuildPhaseForBundleFw(buildScripts, proj))
-        .then(() => {
-          return proj.writeSync();
-        }));
+
+      patchAlwaysIncludeSwift(proj);
+      patchExistingXcodeBuildScripts(buildScripts);
+      addNewXcodeBuildPhaseForSymbols(buildScripts, proj);
+      addNewXcodeBuildPhaseForBundleFw(buildScripts, proj);
+
+      resolve(proj.writeSync());
     });
   });
 }
