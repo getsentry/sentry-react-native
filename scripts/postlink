@@ -1,7 +1,9 @@
 let glob = require('glob');
 let fs = require('fs');
 let inquirer = require('inquirer');
+let xcode = require('xcode');
 
+let PLATFORMS = ['android', 'ios'];
 let OBJC_HEADER = '\
 #if __has_include(<React/RNSentry.h>)\n\
 #import <React/RNSentry.h> // This is used for versions of react >= 0.40\n\
@@ -10,21 +12,77 @@ let OBJC_HEADER = '\
 #endif';
 
 let cachedDsn = null;
+let cachedProps = {};
 let patchedAny = false;
+
+function getPlatformName(platform) {
+  return {
+    'android': 'Android',
+    'ios': 'iOS',
+  }[platform] || platform;
+}
 
 function getDsn(platform) {
   return inquirer.prompt([{
     type: 'input',
     default: cachedDsn || process.env.SENTRY_DSN || 'YOUR_DSN_HERE',
-    message: 'The DSN for ' + {
-      'android': 'Android',
-      'ios': 'iOS',
-    }[platform] || platform,
+    message: 'The DSN for ' + getPlatformName(platform),
     name: 'dsn',
   }]).then(function(answers) {
     cachedDsn = answers.dsn;
     return Promise.resolve(answers.dsn);
   });
+}
+
+function getDefaultUrl() {
+  if (cachedDsn) {
+    let match = cachedDsn.match(/^(https?).*?@(.*?)\//);
+    if (match) {
+      return match[1] + '://' + match[2] + '/';
+    }
+  }
+  return 'https://sentry.io/';
+}
+
+function getProperties(platform) {
+  return inquirer.prompt([{
+    type: 'input',
+    default: cachedProps['defaults/url'] || process.env.SENTRY_URL || getDefaultUrl(),
+    message: 'The Sentry Server URL for ' + getPlatformName(platform),
+    name: 'defaults/url',
+  }, {
+    type: 'input',
+    default: cachedProps['defaults/org'] || process.env.SENTRY_ORG || 'your-org-slug',
+    message: 'The Organization for ' + getPlatformName(platform),
+    name: 'defaults/org',
+  }, {
+    type: 'input',
+    default: cachedProps['defaults/project'] || process.env.SENTRY_PROJECT || 'your-project-slug',
+    message: 'The Project for ' + getPlatformName(platform),
+    name: 'defaults/project',
+  }, {
+    type: 'password',
+    default: cachedProps['auth/token'] || process.env.SENTRY_AUTH_TOKEN || 'YOUR_AUTH_TOKEN',
+    message: 'The Auth-Token for ' + getPlatformName(platform),
+    name: 'auth/token',
+  }]).then(function(answers) {
+    cachedProps = answers;
+    return Promise.resolve(answers);
+  });
+}
+
+function dumpProperties(props) {
+  let rv = [];
+  for (let key in props) {
+    let value = props[key];
+    key = key.replace(/\//g, '.');
+    if (value === undefined || value === null) {
+      rv.push('#' + key + '=');
+    } else {
+      rv.push(key + '=' + value);
+    }
+  }
+  return rv.join('\n');
 }
 
 function patchAppDelegate(contents) {
@@ -56,7 +114,7 @@ function patchAppDelegate(contents) {
 function patchIndexJs(contents, filename) {
   // since the init call could live in other places too, we really only
   // want to do this if we managed to patch any of the other files as well.
-  if (contents.match(/Sentry.config\(/) && patchedAny) {
+  if (contents.match(/Sentry.config\(/) || !patchedAny) {
     return Promise.resolve(contents);
   }
 
@@ -83,6 +141,91 @@ function patchBuildGradle(contents) {
   ));
 }
 
+function patchExistingXcodeBuildScripts(buildScripts) {
+  for (let script of buildScripts) {
+    if (!script.shellScript.match(/packager\/react-native-xcode\.sh\b/) ||
+        script.shellScript.match(/sentry-cli\s+react-native-xcode/)) {
+      continue;
+    }
+    let code = JSON.parse(script.shellScript);
+    code = (
+      'export SENTRY_PROPERTIES=sentry.properties\n' +
+      code.replace(/^.*?\/packager\/react-native-xcode\.sh\s*/m, function(match) {
+        return '../node_modules/sentry-cli-binary/bin/sentry-cli react-native-xcode ' + match;
+      })
+    );
+    script.shellScript = JSON.stringify(code);
+  }
+}
+
+function addNewXcodeBuildPhaseForSymbols(buildScripts, proj) {
+  for (let script of buildScripts) {
+    if (script.shellScript.match(/sentry-cli\s+upload-dsym/)) {
+      return;
+    }
+  }
+
+  proj.addBuildPhase(
+    [],
+    'PBXShellScriptBuildPhase',
+    'Upload Debug Symbols to Sentry',
+    null,
+    {
+      shellPath: '/bin/sh',
+      shellScript: (
+        'export SENTRY_PROPERTIES=sentry.properties\n' +
+        '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym'
+      )
+    }
+  );
+}
+
+function addNewXcodeBuildPhaseForBundleFw(buildScripts, proj) {
+  for (let script of buildScripts) {
+    if (script.shellScript.match(/react-native-sentry\/bin\/bundle-frameworks/)) {
+      return;
+    }
+  }
+
+  proj.addBuildPhase(
+    [],
+    'PBXShellScriptBuildPhase',
+    'Bundle react-native-sentry Frameworks',
+    null,
+    {
+      shellPath: '/bin/sh',
+      shellScript: (
+        '../node_modules/react-native-sentry/bin/bundle-frameworks'
+      )
+    }
+  );
+}
+
+function patchXcodeProj(contents, filename) {
+  let proj = xcode.project(filename);
+  return new Promise(function(resolve, reject) {
+    proj.parse(function(err) {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      proj.addBuildProperty('ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES', 'YES');
+
+      let buildScripts = Object.values(
+          proj.hash.project.objects.PBXShellScriptBuildPhase || {})
+        .filter((val) => val.isa);
+      resolve(Promise.resolve()
+        .then(patchExistingXcodeBuildScripts(buildScripts))
+        .then(addNewXcodeBuildPhaseForSymbols(buildScripts, proj))
+        .then(addNewXcodeBuildPhaseForBundleFw(buildScripts, proj))
+        .then(() => {
+          return proj.writeSync();
+        }));
+    });
+  });
+}
+
 function patchMatchingFile(pattern, func) {
   let matches = glob.sync(pattern, {
     ignore: 'node_modules/**'
@@ -102,10 +245,34 @@ function patchMatchingFile(pattern, func) {
   return rv;
 }
 
+function addSentryProperties() {
+  let rv = null;
+
+  for (let platform of PLATFORMS) {
+    let fn = platform + '/sentry.properties';
+    if (fs.existsSync(fn)) {
+      continue;
+    }
+
+    let p = () => getProperties(platform).then((props) => {
+      fs.writeFileSync(fn, dumpProperties(props));
+    });
+    if (rv === null) {
+      rv = p();
+    } else {
+      rv = rv.then(p);
+    }
+  }
+
+  return rv;
+}
+
 Promise.resolve()
+  .then(() => patchMatchingFile('**/*.xcodeproj/project.pbxproj', patchXcodeProj))
   .then(() => patchMatchingFile('**/AppDelegate.m', patchAppDelegate))
   .then(() => patchMatchingFile('**/app/build.gradle', patchBuildGradle))
   .then(() => patchMatchingFile('index.*.js', patchIndexJs))
+  .then(() => addSentryProperties())
   .catch(function(e) {
     console.log('Could not link react-native-sentry: ' + e);
     return Promise.resolve();
