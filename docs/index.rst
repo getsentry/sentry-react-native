@@ -5,15 +5,12 @@
 React Native
 ============
 
-This is the documentation for our beta clients for React-Native.
+This is the documentation for our beta clients for React-Native.  This is
+an early release with various different levels of support.  iOS is best
+supported if you are also using the native extension and if not we fall
+back to pure JavaScript for basic support.
 
-.. admonition:: Note
-
-   This is an early release with various different levels of support.  iOS
-   is best supported if you are also using the native extension and if not
-   we fall back to raven-js' basic react-native support.
-
-   We would love to get your feedback!
+We would love to get your feedback!
 
 Installation
 ------------
@@ -26,6 +23,17 @@ Start with adding sentry and linking it::
 The `link` step will pull in the native dependency.  If you are using
 expo you don't have to (or can't) run that step.  In that case we fall
 back automatically.
+
+On linking you will usually be prompted for your DSN and we will configure
+your app automatically for react-native and change files accordingly.
+Upon linking the following changes will be performed:
+
+* added the raven-java package for native crash reporting on android
+* added the sentry-swift package for native crash reporting on iOS
+* enabled the sentry gradle build step for android
+* patch `AppDelegate.m` for iOS
+* patch `MainApplication.java` for Android
+* configured Sentry for the supplied DSN in your `index.js` files
 
 Note that we only support ``react-native >= 0.38`` at the moment.
 
