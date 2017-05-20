@@ -27,6 +27,13 @@ function shouldConfigurePlatform(platform) {
   if (configurePlatform[platform] !== undefined) {
     return Promise.resolve(configurePlatform[platform]);
   }
+  // if a sentry.properties file exists for the platform we want to configure
+  // without asking the user.  This means that re-linking later will not
+  // bring up a useless dialog.
+  if (fs.existsSync(platform + '/sentry.properties')) {
+    configurePlatform[platform] = true;
+    return Promise.resolve(true);
+  }
   return inquirer.prompt([{
     type: 'list',
     name: 'configure',
