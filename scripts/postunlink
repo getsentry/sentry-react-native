@@ -5,6 +5,7 @@ let xcode = require('xcode');
 function unpatchAppDelegate(contents) {
   return Promise.resolve(contents
     .replace(/^#if __has_include\(<React\/RNSentry.h>\)[^]*?\#endif\r?\n/m, '')
+    .replace(/^#import\s+(?:<React\/RNSentry.h>|"RNSentry.h")\s*?\r?\n/m '')
     .replace(/(\r?\n|^)\s*\[RNSentry\s+installWithRootView:.*?\];\s*?\r?\n/m, ''));
 }
 
@@ -19,6 +20,52 @@ function unpatchXcodeBuildScripts(proj) {
   let firstTarget = proj.getFirstTarget().uuid;
   let nativeTargets = proj.hash.project.objects.PBXNativeTarget;
 
+  // scripts to patch partially.  Run this first so that we don't
+  // accidentally delete some scripts later entirely that we only want to
+  // rewrite.
+  for (let key of Object.keys(scripts)) {
+    let script = scripts[key];
+
+    // ignore comments
+    if (typeof script === 'string') {
+      continue;
+    }
+
+    // ignore scripts that do not invoke the react-native-xcode command.
+    if (!script.shellScript.match(/sentry-cli\s+react-native-xcode\b/)) {
+      continue;
+    }
+
+    script.shellScript = script.shellScript
+      // "legacy" location for this.  This is what happens if users followed
+      // the old documentation for where to add the bundle command
+      .replace(
+        /^..\/node_modules\/react-native-sentry\/bin\/bundle-frameworks\s*?\r\n?/m,
+        '')
+      // legacy location for dsym upload
+      .replace(
+        /^..\/node_modules\/sentry-cli-binary\/bin\/sentry-cli upload-dsym\s*?\r?\n/m,
+        '')
+      // remove sentry properties export
+      .replace(
+        /^export SENTRY_PROPERTIES=sentry.properties\r?\n/m,
+        '')
+      // unwrap react-native-xcode.sh command.  In case someone replaced it
+      // entirely with the sentry-cli command we need to put the original
+      // version back in.
+      .replace(
+        /^(?:..\/node_modules\/sentry-cli-binary\/bin\/)?sentry-cli\s+react-native-xcode(\s+.*?)$/m,
+        function(match, m1) {
+          let rv = m1.trim();
+          if (rv === '') {
+            return '../node_modules/react-native/packager/react-native-xcode.sh';
+          } else {
+            return rv;
+          }
+        });
+  }
+
+  // scripts to kill entirely.
   for (let key of Object.keys(scripts)) {
     let script = scripts[key];
 
@@ -27,7 +74,6 @@ function unpatchXcodeBuildScripts(proj) {
       continue;
     }
 
-    // scripts to kill entirely.
     if (script.shellScript.match(/react-native-sentry\/bin\/bundle-frameworks\b/) ||
         script.shellScript.match(/sentry-cli-binary\/bin\/sentry-cli\s+upload-dsym\b/)) {
       delete scripts[key];
@@ -43,15 +89,6 @@ function unpatchXcodeBuildScripts(proj) {
       }
       continue;
     }
-
-    // scripts to patch partially
-    script.shellScript = script.shellScript
-      .replace(
-        /^export SENTRY_PROPERTIES=sentry.properties\r?\n/m,
-        '')
-      .replace(
-        /^..\/node_modules\/sentry-cli-binary\/bin\/sentry-cli\s+react-native-xcode\s+(.*?)$/m,
-        '$1');
   }
 }
 
