@@ -36,7 +36,7 @@ function unpatchXcodeBuildScripts(proj) {
       continue;
     }
 
-    script.shellScript = script.shellScript
+    script.shellScript = JSON.stringify(JSON.parse(script.shellScript)
       // "legacy" location for this.  This is what happens if users followed
       // the old documentation for where to add the bundle command
       .replace(
@@ -62,7 +62,7 @@ function unpatchXcodeBuildScripts(proj) {
           } else {
             return rv;
           }
-        });
+        }));
   }
 
   // scripts to kill entirely.

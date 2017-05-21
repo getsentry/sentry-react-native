@@ -281,8 +281,8 @@ function addNewXcodeBuildPhaseForSymbols(buildScripts, proj) {
     {
       shellPath: '/bin/sh',
       shellScript: (
-        '"export SENTRY_PROPERTIES=sentry.properties\\n' +
-        '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym"'
+        'export SENTRY_PROPERTIES=sentry.properties\\n' +
+        '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym'
       )
     }
   );
@@ -303,7 +303,7 @@ function addNewXcodeBuildPhaseForBundleFw(buildScripts, proj) {
     {
       shellPath: '/bin/sh',
       shellScript: (
-        '"../node_modules/react-native-sentry/bin/bundle-frameworks"'
+        '../node_modules/react-native-sentry/bin/bundle-frameworks'
       )
     }
   );
