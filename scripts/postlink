@@ -29,20 +29,20 @@ function considerShowingInfoHint() {
   if (didShowInfoHint) {
     return;
   }
-  console.log('');
-  console.log(chalk.green(
-    'You are about to configure Sentry for React Native'));
-  console.log(chalk.dim(
-    'We will ask you a bunch of questions to configure Sentry for you.'));
-  console.log(chalk.dim(
-    'If you chose not to configure an integration you can run link again'));
-  console.log(chalk.dim(
-    'later to configure that platform.'));
-  console.log('');
-  console.log('You will need the DSN and an API key for the application.');
-  console.log('You can find these in the project settings and the API key');
-  console.log('at https://sentry.io/api/');
-  console.log('');
+
+  let {green, dim} = chalk;
+  function l(msg) { console.log(msg); }
+
+
+  l('');
+  l(green('You are about to configure Sentry for React Native'));
+  l(dim('We will ask you a bunch of questions to configure Sentry for you.'));
+  l(dim('If you chose not to configure an integration you can run link again'));
+  l(dim('later to configure that platform.'));
+  l('');
+  l('You will need the DSN and an API key for the application to proceed.');
+  l('The keys can be found the project settings and at sentry.io/api/');
+  l('');
   didShowInfoHint = true;
 }
 
