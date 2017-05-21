@@ -1,10 +1,11 @@
-let glob = require('glob');
-let fs = require('fs');
-let inquirer = require('inquirer');
-let xcode = require('xcode');
+const glob = require('glob');
+const fs = require('fs');
+const inquirer = require('inquirer');
+const xcode = require('xcode');
+const chalk = require('chalk');
 
-let PLATFORMS = ['android', 'ios'];
-let OBJC_HEADER = '\
+const PLATFORMS = ['android', 'ios'];
+const OBJC_HEADER = '\
 #if __has_include(<React/RNSentry.h>)\n\
 #import <React/RNSentry.h> // This is used for versions of react >= 0.40\n\
 #else\n\
@@ -14,6 +15,7 @@ let OBJC_HEADER = '\
 let cachedDsn = null;
 let cachedProps = {};
 let patchedAny = false;
+let didShowInfoHint = false;
 let configurePlatform = {};
 
 function getPlatformName(platform) {
@@ -21,6 +23,26 @@ function getPlatformName(platform) {
     'android': 'Android',
     'ios': 'iOS',
   }[platform] || platform;
+}
+
+function considerShowingInfoHint() {
+  if (didShowInfoHint) {
+    return;
+  }
+  console.log('');
+  console.log(chalk.green(
+    'You are about to configure Sentry for React Native'));
+  console.log(chalk.dim(
+    'We will ask you a bunch of questions to configure Sentry for you.'));
+  console.log(chalk.dim(
+    'If you chose not to configure an integration you can run link again'));
+  console.log(chalk.dim(
+    'later to configure that platform.'));
+  console.log('');
+  console.log('You will need an API key and the DSN for the application');
+  console.log('You can find these at https://sentry.io/api/');
+  console.log('');
+  didShowInfoHint = true;
 }
 
 function shouldConfigurePlatform(platform) {
@@ -34,6 +56,7 @@ function shouldConfigurePlatform(platform) {
     configurePlatform[platform] = true;
     return Promise.resolve(true);
   }
+  considerShowingInfoHint();
   return inquirer.prompt([{
     type: 'list',
     name: 'configure',
@@ -55,11 +78,25 @@ function shouldConfigurePlatform(platform) {
 }
 
 function getDsn(platform) {
+  considerShowingInfoHint();
   return inquirer.prompt([{
     type: 'input',
     default: cachedDsn || process.env.SENTRY_DSN || 'YOUR_DSN_HERE',
     message: 'The DSN for ' + getPlatformName(platform),
     name: 'dsn',
+    validate: function(value) {
+      let m = value.match(/^(?:(\w+):)?\/\/(?:(\w+)(:\w+)?@)?([\w\.-]+)(?::(\d+))?(\/.*)$/);
+      if (!m) {
+        return 'invalid dsn format';
+      }
+      if (m[1] !== 'http' && m[1] !== 'https') {
+        return 'unsupported protocol for dsn: ' + m[1];
+      }
+      if (!m[3]) {
+        return 'missing secret in dsn';
+      }
+      return true;
+    }
   }]).then(function(answers) {
     cachedDsn = answers.dsn;
     return Promise.resolve(answers.dsn);
