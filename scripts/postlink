@@ -362,6 +362,14 @@ function patchMatchingFile(pattern, func) {
   return rv;
 }
 
+function addSentryInit() {
+  let rv = Promise.resolve();
+  for (let platform of PLATFORMS) {
+    rv = rv.then(() => patchMatchingFile(`index.${platform}.js`, patchIndexJs));
+  }
+  return rv;
+}
+
 function addSentryProperties() {
   let rv = Promise.resolve();
 
@@ -385,11 +393,14 @@ function addSentryProperties() {
 }
 
 Promise.resolve()
+  /* these steps patch the build files without user interactions */
   .then(() => patchMatchingFile('**/app/build.gradle', patchBuildGradle))
   .then(() => patchMatchingFile('**/*.xcodeproj/project.pbxproj', patchXcodeProj))
   .then(() => patchMatchingFile('**/AppDelegate.m', patchAppDelegate))
-  .then(() => patchMatchingFile('index.android.js', patchIndexJs))
-  .then(() => patchMatchingFile('index.ios.js', patchIndexJs))
+  /* if any of the previous steps did something, this will patch
+     the index.PLATFORM.js files with the necessary initialization code */
+  .then(() => addSentryInit())
+  /* writes sentry.properties files with the API key and other settings */
   .then(() => addSentryProperties())
   .catch(function(e) {
     console.log('Could not link react-native-sentry: ' + e);
