@@ -39,8 +39,9 @@ function considerShowingInfoHint() {
   console.log(chalk.dim(
     'later to configure that platform.'));
   console.log('');
-  console.log('You will need an API key and the DSN for the application');
-  console.log('You can find these at https://sentry.io/api/');
+  console.log('You will need the DSN and an API key for the application.');
+  console.log('You can find these in the project settings and the API key');
+  console.log('at https://sentry.io/api/');
   console.log('');
   didShowInfoHint = true;
 }
