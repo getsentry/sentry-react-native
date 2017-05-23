@@ -5,24 +5,21 @@
 React Native
 ============
 
-This is the documentation for our beta clients for React-Native.  This is
-an early release with various different levels of support.  iOS is best
-supported if you are also using the native extension and if not we fall
-back to pure JavaScript for basic support.
-
-We would love to get your feedback!
+This is the documentation for our beta clients for React-Native.  The
+React-Native client uses a native extension for iOS and Android but can
+fall back to a pure JavaScript version if needed.
 
 Installation
 ------------
 
-Start with adding Sentry and linking it::
+Start by adding Sentry and then linking it::
 
     $ npm install react-native-sentry --save
     $ react-native link react-native-sentry
 
 The `link` step will pull in the native dependency and patch your project
 accordingly.  If you are using expo you don't have to (or can't) run that
-step.  For more information about that see :doc:`expo`.
+link step.  For more information about that see :doc:`expo`.
 
 On linking you will automatically be prompted for your DSN and other
 information and we will configure your app automatically for react-native
@@ -45,10 +42,10 @@ Upon linking the following changes will be performed:
 * store build credentials in `ios/sentry.properties` and
   `android/sentry.properties`.
 
-Note that we only support ``react-native >= 0.38`` at the moment.
-
 To see what is happening during linking you can refer to
-:doc:`manual-setup` which will give you the details.
+:doc:`manual-setup` which will give you all the details.
+
+Note that we only support ``react-native >= 0.38`` at the moment.
 
 Upgrading
 ---------
