@@ -1,7 +1,0 @@
-#!/bin/sh
-set -ex
-mkdir -p "${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_NAME}.app/Frameworks"
-cp -r "${CONFIGURATION_BUILD_DIR}/Sentry.framework" "${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_NAME}.app/Frameworks"
-cp -r "${CONFIGURATION_BUILD_DIR}/KSCrash.framework" "${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_NAME}.app/Frameworks"
-/usr/bin/xcrun codesign --force --sign "$EXPANDED_CODE_SIGN_IDENTITY" --preserve-metadata=identifier,entitlement "${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_NAME}.app/Frameworks/Sentry.framework"
-/usr/bin/xcrun codesign --force --sign "$EXPANDED_CODE_SIGN_IDENTITY" --preserve-metadata=identifier,entitlement "${CONFIGURATION_BUILD_DIR}/${EXECUTABLE_NAME}.app/Frameworks/KSCrash.framework"

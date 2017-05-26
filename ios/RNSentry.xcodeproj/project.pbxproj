@@ -10,66 +10,12 @@
 		63329BC71E47AB8D0099D77A /* RSSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = 63329BC61E47AB8D0099D77A /* RSSwizzle.m */; };
 		6350257B1E1E845F00408AE7 /* RNSentry.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = B3E7B5881CC2AC0600A0062D /* RNSentry.h */; };
 		6378C6FB1EAF630500A1F1EE /* RNSentryEventEmitter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6378C6FA1EAF630500A1F1EE /* RNSentryEventEmitter.m */; };
+		6387B7BC1ED84D350045A84C /* libKSCrashLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 632235ED1E76E24300F58A1F /* libKSCrashLib.a */; };
+		6387B8591ED8521B0045A84C /* libSentryStatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6387B8561ED8520D0045A84C /* libSentryStatic.a */; };
 		B3E7B58A1CC2AC0600A0062D /* RNSentry.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* RNSentry.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		632232681E76C4A500F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632232591E76C4A500F58A1F /* Sentry.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 03E94AEC1C22595B009F8F29;
-			remoteInfo = "Sentry-OSX";
-		};
-		6322326A1E76C4A500F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632232591E76C4A500F58A1F /* Sentry.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 03E94B0B1C22596A009F8F29;
-			remoteInfo = "Sentry-iOS";
-		};
-		6322326C1E76C4A500F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632232591E76C4A500F58A1F /* Sentry.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 03C7150C1CE4DB540080AE60;
-			remoteInfo = "Sentry-tvOS";
-		};
-		6322326E1E76C4A500F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632232591E76C4A500F58A1F /* Sentry.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 63CDAB1A1DD9D45900B63921;
-			remoteInfo = "Sentry-WatchOS";
-		};
-		632232701E76C4A500F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632232591E76C4A500F58A1F /* Sentry.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 03E94AF61C22595C009F8F29;
-			remoteInfo = "Sentry-OSXTests";
-		};
-		632232721E76C4A500F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632232591E76C4A500F58A1F /* Sentry.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 03E94B141C22596A009F8F29;
-			remoteInfo = "Sentry-iOSTests";
-		};
-		632232741E76C4A500F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632232591E76C4A500F58A1F /* Sentry.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 03C715151CE4DB540080AE60;
-			remoteInfo = "Sentry-tvOSTests";
-		};
-		632232761E76C4A500F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632232591E76C4A500F58A1F /* Sentry.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 63CDAB5E1DDB164500B63921;
-			remoteInfo = iOS;
-		};
 		632235EC1E76E24300F58A1F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */;
@@ -98,19 +44,54 @@
 			remoteGlobalIDString = EDF2BF211CCF15AD004BADF4;
 			remoteInfo = KSCrash_static;
 		};
-		632237221E76F6A900F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632232591E76C4A500F58A1F /* Sentry.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 03E94B0A1C22596A009F8F29;
-			remoteInfo = "Sentry-iOS";
-		};
-		632237241E76F6AC00F58A1F /* PBXContainerItemProxy */ = {
+		6387B7BA1ED84D2F0045A84C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 03DE7B691C84DEF700F789BA;
-			remoteInfo = KSCrash;
+			remoteGlobalIDString = CB6D132517EB749A00BC2C04;
+			remoteInfo = KSCrashLib;
+		};
+		6387B84D1ED8520D0045A84C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 63AA759B1EB8AEF500D153DE;
+			remoteInfo = Sentry;
+		};
+		6387B84F1ED8520D0045A84C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 63AA76651EB8CB2F00D153DE;
+			remoteInfo = SentryTests;
+		};
+		6387B8511ED8520D0045A84C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 63AA76B61EB9ED8E00D153DE;
+			remoteInfo = SentrySwift;
+		};
+		6387B8531ED8520D0045A84C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 63AA76BE1EB9ED8E00D153DE;
+			remoteInfo = SentrySwiftTests;
+		};
+		6387B8551ED8520D0045A84C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6387B7C21ED84F910045A84C;
+			remoteInfo = SentryStatic;
+		};
+		6387B8571ED852170045A84C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 6387B7C11ED84F910045A84C;
+			remoteInfo = SentryStatic;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -130,12 +111,13 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libRNSentry.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNSentry.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		632232591E76C4A500F58A1F /* Sentry.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Sentry.xcodeproj; path = Sentry/Sentry.xcodeproj; sourceTree = "<group>"; };
 		632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "KSCrash-iOS.xcodeproj"; path = "KSCrash/iOS/KSCrash-iOS.xcodeproj"; sourceTree = "<group>"; };
 		63329BC51E47AB8D0099D77A /* RSSwizzle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RSSwizzle.h; sourceTree = "<group>"; };
 		63329BC61E47AB8D0099D77A /* RSSwizzle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RSSwizzle.m; sourceTree = "<group>"; };
 		6378C6F91EAF630500A1F1EE /* RNSentryEventEmitter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSentryEventEmitter.h; sourceTree = "<group>"; };
 		6378C6FA1EAF630500A1F1EE /* RNSentryEventEmitter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNSentryEventEmitter.m; sourceTree = "<group>"; };
+		6387B7971ED84BA70045A84C /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		6387B8441ED8520D0045A84C /* Sentry.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Sentry.xcodeproj; path = Sentry/Sentry.xcodeproj; sourceTree = "<group>"; };
 		B3E7B5881CC2AC0600A0062D /* RNSentry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSentry.h; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* RNSentry.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNSentry.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -145,6 +127,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6387B7BC1ED84D350045A84C /* libKSCrashLib.a in Frameworks */,
+				6387B8591ED8521B0045A84C /* libSentryStatic.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -169,6 +153,7 @@
 				B3E7B5881CC2AC0600A0062D /* RNSentry.h */,
 				B3E7B5891CC2AC0600A0062D /* RNSentry.m */,
 				134814211AA4EA7D00B7C361 /* Products */,
+				6387B7961ED84BA70045A84C /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -176,24 +161,9 @@
 			isa = PBXGroup;
 			children = (
 				632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */,
-				632232591E76C4A500F58A1F /* Sentry.xcodeproj */,
+				6387B8441ED8520D0045A84C /* Sentry.xcodeproj */,
 			);
 			name = Libraries;
-			sourceTree = "<group>";
-		};
-		6322325A1E76C4A500F58A1F /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				632232691E76C4A500F58A1F /* Sentry.framework */,
-				6322326B1E76C4A500F58A1F /* Sentry.framework */,
-				6322326D1E76C4A500F58A1F /* Sentry.framework */,
-				6322326F1E76C4A500F58A1F /* Sentry.framework */,
-				632232711E76C4A500F58A1F /* SentryTests.xctest */,
-				632232731E76C4A500F58A1F /* Sentry-iOSTests.xctest */,
-				632232751E76C4A500F58A1F /* Sentry-tvOSTests.xctest */,
-				632232771E76C4A500F58A1F /* iOS.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		632235E61E76E24300F58A1F /* Products */ = {
@@ -216,6 +186,26 @@
 			name = Vendor;
 			sourceTree = "<group>";
 		};
+		6387B7961ED84BA70045A84C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6387B7971ED84BA70045A84C /* libz.tbd */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		6387B8451ED8520D0045A84C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6387B84E1ED8520D0045A84C /* Sentry.framework */,
+				6387B8501ED8520D0045A84C /* SentryTests.xctest */,
+				6387B8521ED8520D0045A84C /* SentrySwift.framework */,
+				6387B8541ED8520D0045A84C /* SentrySwiftTests.xctest */,
+				6387B8561ED8520D0045A84C /* libSentryStatic.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -230,8 +220,8 @@
 			buildRules = (
 			);
 			dependencies = (
-				632237251E76F6AC00F58A1F /* PBXTargetDependency */,
-				632237231E76F6A900F58A1F /* PBXTargetDependency */,
+				6387B7BB1ED84D2F0045A84C /* PBXTargetDependency */,
+				6387B8581ED852170045A84C /* PBXTargetDependency */,
 			);
 			name = RNSentry;
 			productName = RCTDataManager;
@@ -268,8 +258,8 @@
 					ProjectRef = 632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */;
 				},
 				{
-					ProductGroup = 6322325A1E76C4A500F58A1F /* Products */;
-					ProjectRef = 632232591E76C4A500F58A1F /* Sentry.xcodeproj */;
+					ProductGroup = 6387B8451ED8520D0045A84C /* Products */;
+					ProjectRef = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -280,62 +270,6 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		632232691E76C4A500F58A1F /* Sentry.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Sentry.framework;
-			remoteRef = 632232681E76C4A500F58A1F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		6322326B1E76C4A500F58A1F /* Sentry.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Sentry.framework;
-			remoteRef = 6322326A1E76C4A500F58A1F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		6322326D1E76C4A500F58A1F /* Sentry.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Sentry.framework;
-			remoteRef = 6322326C1E76C4A500F58A1F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		6322326F1E76C4A500F58A1F /* Sentry.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Sentry.framework;
-			remoteRef = 6322326E1E76C4A500F58A1F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		632232711E76C4A500F58A1F /* SentryTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = SentryTests.xctest;
-			remoteRef = 632232701E76C4A500F58A1F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		632232731E76C4A500F58A1F /* Sentry-iOSTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = "Sentry-iOSTests.xctest";
-			remoteRef = 632232721E76C4A500F58A1F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		632232751E76C4A500F58A1F /* Sentry-tvOSTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = "Sentry-tvOSTests.xctest";
-			remoteRef = 632232741E76C4A500F58A1F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		632232771E76C4A500F58A1F /* iOS.app */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.application;
-			path = iOS.app;
-			remoteRef = 632232761E76C4A500F58A1F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		632235ED1E76E24300F58A1F /* libKSCrashLib.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -364,6 +298,41 @@
 			remoteRef = 632235F21E76E24300F58A1F /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		6387B84E1ED8520D0045A84C /* Sentry.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Sentry.framework;
+			remoteRef = 6387B84D1ED8520D0045A84C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6387B8501ED8520D0045A84C /* SentryTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = SentryTests.xctest;
+			remoteRef = 6387B84F1ED8520D0045A84C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6387B8521ED8520D0045A84C /* SentrySwift.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SentrySwift.framework;
+			remoteRef = 6387B8511ED8520D0045A84C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6387B8541ED8520D0045A84C /* SentrySwiftTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = SentrySwiftTests.xctest;
+			remoteRef = 6387B8531ED8520D0045A84C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6387B8561ED8520D0045A84C /* libSentryStatic.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSentryStatic.a;
+			remoteRef = 6387B8551ED8520D0045A84C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -380,15 +349,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		632237231E76F6A900F58A1F /* PBXTargetDependency */ = {
+		6387B7BB1ED84D2F0045A84C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = "Sentry-iOS";
-			targetProxy = 632237221E76F6A900F58A1F /* PBXContainerItemProxy */;
+			name = KSCrashLib;
+			targetProxy = 6387B7BA1ED84D2F0045A84C /* PBXContainerItemProxy */;
 		};
-		632237251E76F6AC00F58A1F /* PBXTargetDependency */ = {
+		6387B8581ED852170045A84C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = KSCrash;
-			targetProxy = 632237241E76F6AC00F58A1F /* PBXContainerItemProxy */;
+			name = SentryStatic;
+			targetProxy = 6387B8571ED852170045A84C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
