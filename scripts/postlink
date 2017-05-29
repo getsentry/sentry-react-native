@@ -252,14 +252,14 @@ function patchAlwaysIncludeSwift(proj) {
 function patchExistingXcodeBuildScripts(buildScripts) {
   for (let script of buildScripts) {
     if (!script.shellScript.match(/packager\/react-native-xcode\.sh\b/) ||
-        script.shellScript.match(/sentry-cli\s+react-native-xcode/)) {
+        script.shellScript.match(/sentry-cli\s+react-native[\s-]xcode/)) {
       continue;
     }
     let code = JSON.parse(script.shellScript);
     code = (
       'export SENTRY_PROPERTIES=sentry.properties\n' +
       code.replace(/^.*?\/packager\/react-native-xcode\.sh\s*/m, function(match) {
-        return '../node_modules/sentry-cli-binary/bin/sentry-cli react-native-xcode ' + match;
+        return '../node_modules/sentry-cli-binary/bin/sentry-cli react-native xcode ' + match;
       })
     );
     script.shellScript = JSON.stringify(code);
