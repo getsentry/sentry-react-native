@@ -3,6 +3,7 @@ const fs = require('fs');
 const inquirer = require('inquirer');
 const xcode = require('xcode');
 const chalk = require('chalk');
+const pbxFile = require('xcode/lib/pbxFile');
 
 const PLATFORMS = ['android', 'ios'];
 const OBJC_HEADER = '\
@@ -326,6 +327,17 @@ function patchXcodeProj(contents, filename) {
       patchExistingXcodeBuildScripts(buildScripts);
       addNewXcodeBuildPhaseForSymbols(buildScripts, proj);
       addNewXcodeBuildPhaseForBundleFw(buildScripts, proj);
+
+      var file = new pbxFile('usr/lib/libz.tbd');
+
+      file.uuid = proj.generateUuid();
+      file.fileRef = proj.generateUuid();
+
+      proj.addToPbxBuildFileSection(file);        // PBXBuildFile
+      proj.addToPbxFileReferenceSection(file);    // PBXFileReference
+      proj.addToFrameworksPbxGroup(file);         // PBXGroup
+      proj.addToPbxFrameworksBuildPhase(file);    // PBXFrameworksBuildPhase
+
 
       // we always modify the xcode file in memory but we only want to save it
       // in case the user wants configuration for ios.  This is why we check
