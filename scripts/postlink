@@ -224,32 +224,6 @@ function patchBuildGradle(contents) {
   });
 }
 
-function patchAlwaysIncludeSwift(proj) {
-  let nativeTargets = proj.hash.project.objects.PBXNativeTarget;
-  let buildConfigs = proj.pbxXCBuildConfigurationSection();
-
-  for (let key in nativeTargets) {
-    let data = nativeTargets[key];
-    if (typeof data === 'string') {
-      continue;
-    }
-
-    if (!data.productReference_comment.match(/\.app$/)) {
-      continue;
-    }
-
-    let cfgList = proj.pbxXCConfigurationList()[data.buildConfigurationList];
-    if (!cfgList) {
-      continue;
-    }
-
-    for (let cfgRef of cfgList.buildConfigurations) {
-      let cfg = buildConfigs[cfgRef.value];
-      cfg.buildSettings.ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = 'YES';
-    }
-  }
-}
-
 function patchExistingXcodeBuildScripts(buildScripts) {
   for (let script of buildScripts) {
     if (!script.shellScript.match(/packager\/react-native-xcode\.sh\b/) ||
@@ -289,25 +263,11 @@ function addNewXcodeBuildPhaseForSymbols(buildScripts, proj) {
   );
 }
 
-function addNewXcodeBuildPhaseForBundleFw(buildScripts, proj) {
-  for (let script of buildScripts) {
-    if (script.shellScript.match(/react-native-sentry\/bin\/bundle-frameworks/)) {
-      return;
-    }
-  }
-
-  proj.addBuildPhase(
-    [],
-    'PBXShellScriptBuildPhase',
-    'Bundle react-native-sentry Frameworks',
-    null,
-    {
-      shellPath: '/bin/sh',
-      shellScript: (
-        '../node_modules/react-native-sentry/bin/bundle-frameworks'
-      )
-    }
-  );
+function addZLibToXcode(proj) {
+  proj.addFramework('libz.tbd', {
+    link: true,
+    target: proj.getFirstTarget().uuid
+  });
 }
 
 function patchXcodeProj(contents, filename) {
@@ -323,21 +283,9 @@ function patchXcodeProj(contents, filename) {
           proj.hash.project.objects.PBXShellScriptBuildPhase || {})
         .filter((val) => val.isa);
 
-      patchAlwaysIncludeSwift(proj);
       patchExistingXcodeBuildScripts(buildScripts);
       addNewXcodeBuildPhaseForSymbols(buildScripts, proj);
-      addNewXcodeBuildPhaseForBundleFw(buildScripts, proj);
-
-      var file = new pbxFile('usr/lib/libz.tbd');
-
-      file.uuid = proj.generateUuid();
-      file.fileRef = proj.generateUuid();
-
-      proj.addToPbxBuildFileSection(file);        // PBXBuildFile
-      proj.addToPbxFileReferenceSection(file);    // PBXFileReference
-      proj.addToFrameworksPbxGroup(file);         // PBXGroup
-      proj.addToPbxFrameworksBuildPhase(file);    // PBXFrameworksBuildPhase
-
+      addZLibToXcode(proj);
 
       // we always modify the xcode file in memory but we only want to save it
       // in case the user wants configuration for ios.  This is why we check
