@@ -40,7 +40,7 @@ To this::
 
     export NODE_BINARY=node
     export SENTRY_PROPERTIES=sentry.properties
-    ../node_modules/sentry-cli-binary/bin/sentry-cli react-native-xcode \
+    ../node_modules/sentry-cli-binary/bin/sentry-cli react-native xcode \
       ../node_modules/react-native/packager/react-native-xcode.sh
 
 Additionally we add a build script called "Bundle react-native-sentry
