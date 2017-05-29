@@ -23,7 +23,7 @@
 		140ED2AC1D01E1AD002B40FF /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
 		146834051AC3E58100842450 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
 		5E9157361DD0AC6A00FF2AA8 /* libRCTAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E9157331DD0AC6500FF2AA8 /* libRCTAnimation.a */; };
-		6387B8621ED857B60045A84C /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 6387B79B1ED84BE10045A84C /* libz.tbd */; };
+		63AF65D41EDC0EA300EBCFF7 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 6387B79B1ED84BE10045A84C /* libz.tbd */; };
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 		C0D5AD675F9445918A2A5F71 /* libRNSentry.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D1D4EF2667C40A491FCA3A2 /* libRNSentry.a */; };
 /* End PBXBuildFile section */
@@ -274,7 +274,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6387B8621ED857B60045A84C /* libz.tbd in Frameworks */,
+				63AF65D41EDC0EA300EBCFF7 /* libz.tbd in Frameworks */,
 				5E9157361DD0AC6A00FF2AA8 /* libRCTAnimation.a in Frameworks */,
 				146834051AC3E58100842450 /* libReact.a in Frameworks */,
 				00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */,

@@ -88,6 +88,76 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
     return frames;
 }
 
+- (NSInteger)indexOfReactNativeCallFrame:(NSArray<SentryFrame *> *)frames nativeCallAddress:(NSUInteger)nativeCallAddress {
+    NSInteger smallestDiff = NSIntegerMax;
+    NSInteger index = -1;
+    NSUInteger counter = 0;
+    for (SentryFrame *frame in frames) {
+        NSUInteger instructionAddress;
+        [[NSScanner scannerWithString:frame.instructionAddress] scanHexLongLong:&instructionAddress];
+        if (instructionAddress < nativeCallAddress) {
+            continue;
+        }
+        NSInteger diff = instructionAddress - nativeCallAddress;
+        if (diff < smallestDiff) {
+            smallestDiff = diff;
+            index = counter;
+        }
+        counter++;
+    }
+    if (index > -1) {
+        return index + 1;
+    }
+    return index;
+}
+
+- (NSArray<SentryFrame *> *)convertReactNativeStacktrace:(NSDictionary *)stacktrace {
+    NSMutableArray<SentryFrame *> *frames = [NSMutableArray new];
+    for (NSDictionary *frame in stacktrace) {
+        if (nil == frame[@"methodName"]) {
+            continue;
+        }
+        NSString *simpleFilename = [[[frame[@"file"] lastPathComponent] componentsSeparatedByString:@"?"] firstObject];
+        SentryFrame *sentryFrame = [[SentryFrame alloc] init];
+        sentryFrame.fileName = [NSString stringWithFormat:@"app:///%@", simpleFilename];
+        sentryFrame.function = frame[@"methodName"];
+        sentryFrame.lineNumber = frame[@"lineNumber"];
+        sentryFrame.columnNumber = frame[@"column"];
+        sentryFrame.platform = @"javascript";
+        [frames addObject:sentryFrame];
+    }
+    return [frames reverseObjectEnumerator].allObjects;
+}
+
+- (void)injectReactNativeFrames:(SentryEvent *)event {
+    NSString *address = event.extra[@"__sentry_address"];
+    SentryThread *crashedThread = nil;
+    for (SentryThread *thread in event.threads) {
+        if ([thread.crashed boolValue]) {
+            crashedThread = thread;
+            break;
+        }
+    }
+    NSArray<SentryFrame *> *frames = crashedThread.stacktrace.frames;
+    NSInteger indexOfReactFrames = [self indexOfReactNativeCallFrame:frames
+                                                   nativeCallAddress:[address integerValue]];
+    if (indexOfReactFrames == -1) {
+        return;
+    }
+    
+    NSMutableArray<SentryFrame *> *finalFrames = [NSMutableArray new];
+
+    NSArray<SentryFrame *> *reactFrames = [self convertReactNativeStacktrace:event.extra[@"__sentry_stack"]];
+    for (NSInteger i = 0; i < frames.count; i++) {
+        [finalFrames addObject:[frames objectAtIndex:i]];
+        if (i == indexOfReactFrames) {
+            [finalFrames addObjectsFromArray:reactFrames];
+        }
+    }
+    
+    crashedThread.stacktrace.frames = finalFrames;
+}
+
 RCT_EXPORT_MODULE()
 
 - (NSDictionary<NSString *, id> *)constantsToExport
@@ -101,6 +171,11 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
     SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:nil];
     [SentryClient setSharedClient:client];
     [SentryClient.sharedClient startCrashHandlerWithError:nil];
+    SentryClient.sharedClient.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
+        [self injectReactNativeFrames:event];
+        NSLog(@"%@", event.serialized);
+        NSLog(@"aaa");
+    };
 }
 
 RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
@@ -109,7 +184,7 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
     static const void *key = &key;
     Class RCTBatchedBridge = NSClassFromString(@"RCTBatchedBridge");
     uintptr_t callNativeModuleAddress = [RCTBatchedBridge instanceMethodForSelector:@selector(callNativeModule:method:params:)];
-    
+
     RSSwizzleInstanceMethod(RCTBatchedBridge,
                             @selector(callNativeModule:method:params:),
                             RSSWReturnType(id),
@@ -120,8 +195,10 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
             for (id param in params) {
                 if ([param isKindOfClass:NSDictionary.class] && param[@"__sentry_stack"]) {
                     @synchronized (SentryClient.sharedClient) {
-                        [SentryClient.sharedClient.extra setValue:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress] forKey:@"__sentry_address"];
-                        [SentryClient.sharedClient.extra setValue:SentryParseJavaScriptStacktrace([RCTConvert NSString:param[@"__sentry_stack"]]) forKey:@"__sentry_address"];
+                        NSMutableDictionary *prevExtra = SentryClient.sharedClient.extra.mutableCopy;
+                        [prevExtra setValue:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress] forKey:@"__sentry_address"];
+                        [prevExtra setValue:SentryParseJavaScriptStacktrace([RCTConvert NSString:param[@"__sentry_stack"]]) forKey:@"__sentry_stack"];
+                        SentryClient.sharedClient.extra = prevExtra;
                     }
                 } else {
                     if (param != nil) {
@@ -132,15 +209,13 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
         }
         return RSSWCallOriginal(moduleID, methodID, newParams);
     }), RSSwizzleModeOncePerClassAndSuperclasses, key);
-    
+
     resolve(@YES);
 }
 
 RCT_EXPORT_METHOD(clearContext)
 {
-    SentryClient.sharedClient.tags = @{};
-    SentryClient.sharedClient.extra = @{};
-    SentryClient.sharedClient.user = nil;
+    [SentryClient.sharedClient clearContext];
 }
 
 RCT_EXPORT_METHOD(setLogLevel:(int)level)
@@ -181,7 +256,7 @@ RCT_EXPORT_METHOD(captureBreadcrumb:(NSDictionary * _Nonnull)breadcrumb)
 RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 {
     SentrySeverity level = [self sentrySeverityFromLevel:event[@"level"]];
-    
+
     SentryUser *user = nil;
     if (event[@"user"] != nil) {
         user = [[SentryUser alloc] initWithUserId:[NSString stringWithFormat:@"%@", event[@"user"][@"userID"]]];
@@ -189,7 +264,7 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
         user.username = [NSString stringWithFormat:@"%@", event[@"user"][@"username"]];
         user.extra = [RCTConvert NSDictionary:event[@"user"][@"extra"]];
     }
-    
+
     if (event[@"message"]) {
         SentryEvent *sentryEvent = [[SentryEvent alloc] initWithLevel:level];
         sentryEvent.eventId = event[@"event_id"];
@@ -204,7 +279,7 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
         // TODO what do we do here with extra/tags/users that are not global?
         self.lastReceivedException = event;
     }
-    
+
 }
 
 RCT_EXPORT_METHOD(crash)
