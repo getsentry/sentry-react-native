@@ -91,7 +91,7 @@ gradle.projectsEvaluated {
                 environment("SENTRY_PROPERTIES", propertiesFile)
                 def args = [
                     cliExecutable,
-                    "react-native-gradle",
+                    "react-native gradle",
                     "--bundle", bundleOutput,
                     "--sourcemap", sourcemapOutput,
                     "--release", releaseName
