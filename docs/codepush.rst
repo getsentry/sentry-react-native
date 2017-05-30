@@ -9,7 +9,7 @@ If you want to use sentry together with codepush you have to send us the codepus
 
     CodePush.getUpdateMetadata().then((update) => {
       if (update) {
-        Sentry.setVersion('version', 'codepush:' + update.label);
+        Sentry.setVersion('codepush:' + update.label);
       }
     });
 
