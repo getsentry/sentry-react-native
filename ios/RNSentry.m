@@ -158,6 +158,19 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
     crashedThread.stacktrace.frames = finalFrames;
 }
 
+- (void)setReleaseVersionDist:(SentryEvent *)event {
+    if (event.extra[@"__sentry_version"]) {
+        NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
+        event.releaseName = [NSString stringWithFormat:@"%@-%@", infoDict[@"CFBundleIdentifier"], event.extra[@"__sentry_version"]];
+    }
+    if (event.extra[@"__sentry_release"]) {
+        event.releaseName = [NSString stringWithFormat:@"%@", event.extra[@"__sentry_release"]];
+    }
+    if (event.extra[@"__sentry_dist"]) {
+        event.dist = [NSString stringWithFormat:@"%@", event.extra[@"__sentry_dist"]];
+    }
+}
+
 RCT_EXPORT_MODULE()
 
 - (NSDictionary<NSString *, id> *)constantsToExport
@@ -167,14 +180,16 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
 {
-    // TODO error
-    SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:nil];
+    NSError *error = nil;
+    SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:&error];
     [SentryClient setSharedClient:client];
-    [SentryClient.sharedClient startCrashHandlerWithError:nil];
+    [SentryClient.sharedClient startCrashHandlerWithError:&error];
+    if (error) {
+        [NSException raise:@"SentryReactNative" format:@"%@", error.localizedDescription];
+    }
     SentryClient.sharedClient.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
         [self injectReactNativeFrames:event];
-        NSLog(@"%@", event.serialized);
-        NSLog(@"aaa");
+        [self setReleaseVersionDist:event];
     };
 }
 
@@ -223,17 +238,24 @@ RCT_EXPORT_METHOD(setLogLevel:(int)level)
     [SentryClient setLogLevel:[self sentryLogLevelFromLevel:level]];
 }
 
-RCT_EXPORT_METHOD(setTags:(NSDictionary * _Nonnull)tags)
+RCT_EXPORT_METHOD(setTags:(NSDictionary *_Nonnull)tags)
 {
     SentryClient.sharedClient.tags = [self sanitizeDictionary:tags];
 }
 
-RCT_EXPORT_METHOD(setExtra:(NSDictionary * _Nonnull)extra)
+RCT_EXPORT_METHOD(setExtra:(NSDictionary *_Nonnull)extra)
 {
     SentryClient.sharedClient.extra = extra;
 }
 
-RCT_EXPORT_METHOD(setUser:(NSDictionary * _Nonnull)user)
+RCT_EXPORT_METHOD(addExtra:(NSString *_Nonnull)key value:(id)value)
+{
+    NSMutableDictionary *prevExtra = SentryClient.sharedClient.extra.mutableCopy;
+    [prevExtra setValue:value forKey:key];
+    SentryClient.sharedClient.extra = prevExtra;
+}
+
+RCT_EXPORT_METHOD(setUser:(NSDictionary *_Nonnull)user)
 {
     SentryUser *sentryUser = [[SentryUser alloc] initWithUserId:[RCTConvert NSString:user[@"userID"]]];
     sentryUser.email = [RCTConvert NSString:user[@"email"]];
@@ -273,10 +295,8 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
         sentryEvent.tags = [self sanitizeDictionary:event[@"tags"]];
         sentryEvent.extra = event[@"extra"];
         sentryEvent.user = user;
-        // TODO sent?
         [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
     } else if (event[@"exception"]) {
-        // TODO what do we do here with extra/tags/users that are not global?
         self.lastReceivedException = event;
     }
 
