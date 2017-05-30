@@ -32,7 +32,7 @@ function unpatchXcodeBuildScripts(proj) {
     }
 
     // ignore scripts that do not invoke the react-native-xcode command.
-    if (!script.shellScript.match(/sentry-cli\s+react-native-xcode\b/)) {
+    if (!script.shellScript.match(/sentry-cli\s+react-native[\s-]xcode\b/)) {
       continue;
     }
 
@@ -54,7 +54,7 @@ function unpatchXcodeBuildScripts(proj) {
       // entirely with the sentry-cli command we need to put the original
       // version back in.
       .replace(
-        /^(?:..\/node_modules\/sentry-cli-binary\/bin\/)?sentry-cli\s+react-native-xcode(\s+.*?)$/m,
+        /^(?:..\/node_modules\/sentry-cli-binary\/bin\/)?sentry-cli\s+react-native[\s-]xcode(\s+.*?)$/m,
         function(match, m1) {
           let rv = m1.trim();
           if (rv === '') {
