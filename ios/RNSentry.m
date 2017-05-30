@@ -188,12 +188,8 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
         [NSException raise:@"SentryReactNative" format:@"%@", error.localizedDescription];
     }
     SentryClient.sharedClient.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
-        if (nil == event.extra) {
-            event.extra = [NSMutableDictionary new];
-        }
         [self injectReactNativeFrames:event];
         [self setReleaseVersionDist:event];
-        event.extra[@"react-native"] = @(YES);
     };
 }
 
