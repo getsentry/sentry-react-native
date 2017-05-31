@@ -280,9 +280,13 @@ function patchXcodeProj(contents, filename) {
         return;
       }
 
-      let buildScripts = Object.values(
-          proj.hash.project.objects.PBXShellScriptBuildPhase || {})
-        .filter((val) => val.isa);
+      let buildScripts = [];
+      for (let key in proj.hash.project.objects.PBXShellScriptBuildPhase || {}) {
+        let value = proj.hash.project.objects.PBXShellScriptBuildPhase[key];
+        if (val.isa) {
+          buildScripts.push(val);
+        }
+      }
 
       patchExistingXcodeBuildScripts(buildScripts);
       addNewXcodeBuildPhaseForSymbols(buildScripts, proj);
