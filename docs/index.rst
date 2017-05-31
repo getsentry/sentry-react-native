@@ -25,7 +25,8 @@ On linking you will automatically be prompted for your DSN and other
 information and we will configure your app automatically for react-native
 and change files accordingly.  You will need to provide the following
 data: your DSN, the slug of your organization in Sentry, the slug of your
-project in Sentry as well as the API key.
+project in Sentry as well as the Auth token. We  need the Auth token for
+uploading the sourcemaps.
 
 You can find the slugs in the URL of your project
 (``sentry.io/your-org-slug/your-project-slug``) If you don't have an auth
@@ -59,11 +60,6 @@ latest version::
 
 iOS Specifics
 -------------
-
-Since we use our `Swift Client
-<https://github.com/getsentry/sentry-swift>`_ in the background, your
-project has to embed the swift standard libraries.  The link step will do
-this automatically for your project.
 
 When you use xcode you can hook directly into the build process to upload
 debug symbols and sourcemaps.  If you however are using bitcode you will
