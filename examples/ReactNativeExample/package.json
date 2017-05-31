@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "react": "^16.0.0-alpha.6",
-    "react-native": "^0.44.1",
+    "react-native": "^0.44.2",
     "react-native-sentry": "file:../../"
   }
 }

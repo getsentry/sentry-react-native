@@ -126,7 +126,7 @@ public class RNSentryExceptionsManagerModule extends BaseJavaModule implements E
         EventBuilder eventBuilder = new EventBuilder()
                 .withLevel(Event.Level.FATAL)
                 .withSentryInterface(new ExceptionInterface(exceptions));
-        Sentry.capture(eventBuilder);
+        Sentry.capture(RNSentryModule.buildEvent(eventBuilder));
     }
 
     private static SentryStackTraceElement[] convertToNativeStacktrace(ReadableNativeArray stack) {

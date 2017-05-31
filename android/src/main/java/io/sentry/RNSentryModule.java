@@ -1,5 +1,10 @@
 package io.sentry;
 
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.util.Log;
+
 import com.facebook.react.ReactApplication;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -10,6 +15,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableNativeArray;
 import com.facebook.react.bridge.ReadableNativeMap;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,14 +37,18 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     private final ReactApplicationContext reactContext;
     private final ReactApplication reactApplication;
 
+    private static AndroidEventBuilderHelper androidHelper;
+    private static PackageInfo packageInfo;
     final static Logger logger = Logger.getLogger("react-native-sentry");
-    private ReadableMap extra;
-    private ReadableMap tags;
+    private static WritableNativeMap extra;
+    private static ReadableMap tags;
 
     public RNSentryModule(ReactApplicationContext reactContext, ReactApplication reactApplication) {
         super(reactContext);
         this.reactContext = reactContext;
         this.reactApplication = reactApplication;
+        RNSentryModule.extra = new WritableNativeMap();
+        RNSentryModule.packageInfo = getPackageInfo(reactContext);
     }
 
     public ReactApplication getReactApplication() {
@@ -60,6 +70,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void startWithDsnString(String dsnString) {
         SentryClient sentryClient = Sentry.init(dsnString, new AndroidSentryClientFactory(this.getReactApplicationContext()));
+        androidHelper = new AndroidEventBuilderHelper(this.getReactApplicationContext());
         sentryClient.addEventSendCallback(new EventSendCallback() {
             @Override
             public void onFailure(Event event, Exception exception) {
@@ -84,12 +95,18 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void setExtra(ReadableMap extra) {
-        this.extra = extra;
+        RNSentryModule.extra.merge(extra);
+    }
+
+    @ReactMethod
+    public void addExtra(String key, String value) {
+        RNSentryModule.extra.putString(key, value);
+        logger.info(String.format("addExtra '%s' '%s'", key, value));
     }
 
     @ReactMethod
     public void setTags(ReadableMap tags) {
-        this.tags = tags;
+        RNSentryModule.tags = tags;
     }
 
     @ReactMethod
@@ -128,7 +145,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void captureEvent(ReadableMap event) {
         ReadableNativeMap castEvent = (ReadableNativeMap)event;
         if (event.hasKey("message")) {
-            AndroidEventBuilderHelper helper = new AndroidEventBuilderHelper(this.getReactApplicationContext());
             EventBuilder eventBuilder = new EventBuilder()
                     .withMessage(event.getString("message"))
                     .withLogger(event.getString("logger"))
@@ -144,22 +160,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 eventBuilder.withSentryInterface(userInterface);
             }
 
-            helper.helpBuildingEvent(eventBuilder);
-
-            if (this.extra != null) {
-                for (Map.Entry<String, Object> entry : ((ReadableNativeMap)this.extra).toHashMap().entrySet()) {
-                    eventBuilder.withExtra(entry.getKey(), entry.getValue());
-                }
-            }
-
             if (castEvent.hasKey("extra")) {
                 for (Map.Entry<String, Object> entry : castEvent.getMap("extra").toHashMap().entrySet()) {
-                    eventBuilder.withExtra(entry.getKey(), entry.getValue());
-                }
-            }
-
-            if (this.tags != null) {
-                for (Map.Entry<String, Object> entry : ((ReadableNativeMap)this.tags).toHashMap().entrySet()) {
                     eventBuilder.withExtra(entry.getKey(), entry.getValue());
                 }
             }
@@ -170,8 +172,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 }
             }
 
-            Event builtEvent = eventBuilder.build();
-            Sentry.capture(builtEvent);
+            Sentry.capture(buildEvent(eventBuilder));
         } else {
             RNSentryExceptionsManagerModule.lastReceivedException = event;
             if (this.getReactApplication().getReactNativeHost().getUseDeveloperSupport() == true) {
@@ -186,8 +187,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void clearContext() {
         Sentry.clearContext();
-        this.extra = null;
-        this.tags = null;
+        RNSentryModule.extra = new WritableNativeMap();
+        RNSentryModule.tags = null;
     }
 
     @ReactMethod
@@ -195,6 +196,61 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         logger.info("TODO: implement activateStacktraceMerging");
 //        promise.resolve(true);
         promise.reject("Sentry", "Stacktrace merging not yet implemented");
+    }
+
+    public static Event buildEvent(EventBuilder eventBuilder) {
+        androidHelper.helpBuildingEvent(eventBuilder);
+
+        setRelease(eventBuilder);
+        stripInternalSentry(eventBuilder);
+
+        if (extra != null) {
+            for (Map.Entry<String, Object> entry : extra.toHashMap().entrySet()) {
+                if (entry.getValue() != null) {
+                    eventBuilder.withExtra(entry.getKey(), entry.getValue());
+                    logger.info(String.format("addExtra '%s' '%s'", entry.getKey(), entry.getValue()));
+                }
+            }
+        }
+        if (tags != null) {
+            for (Map.Entry<String, Object> entry : ((ReadableNativeMap)tags).toHashMap().entrySet()) {
+                eventBuilder.withExtra(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return eventBuilder.build();
+    }
+
+    private static void stripInternalSentry(EventBuilder eventBuilder) {
+        if (extra != null) {
+            for (Map.Entry<String, Object> entry : extra.toHashMap().entrySet()) {
+                if (entry.getKey().startsWith("__sentry")) {
+                    extra.putNull(entry.getKey());
+                }
+            }
+        }
+    }
+
+    private static void setRelease(EventBuilder eventBuilder) {
+        if (extra.hasKey("__sentry_version")) {
+            eventBuilder.withRelease(packageInfo.packageName + "-" + extra.getString("__sentry_version"));
+            eventBuilder.withDist(null);
+        }
+        if (extra.hasKey("__sentry_release")) {
+            eventBuilder.withRelease(extra.getString("__sentry_release"));
+        }
+        if (extra.hasKey("__sentry_dist")) {
+            eventBuilder.withDist(extra.getString("__sentry_dist"));
+        }
+    }
+
+    private static PackageInfo getPackageInfo(Context ctx) {
+        try {
+            return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            logger.info("Error getting package info.");
+            return null;
+        }
     }
 
     private Breadcrumb.Level breadcrumbLevel(String level) {

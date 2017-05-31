@@ -15,3 +15,4 @@ If you want to use sentry together with codepush you have to send us the codepus
 
 Put this somewhere in you code where you already use codepush. This makes sure that we can
 associate crashes with the right sourcemaps.
+``Sentry.setVersion`` sets the the release to ``bundle_id-version`` this works for iOS aswell as Android.
