@@ -282,7 +282,7 @@ function patchXcodeProj(contents, filename) {
 
       let buildScripts = [];
       for (let key in proj.hash.project.objects.PBXShellScriptBuildPhase || {}) {
-        let value = proj.hash.project.objects.PBXShellScriptBuildPhase[key];
+        let val = proj.hash.project.objects.PBXShellScriptBuildPhase[key];
         if (val.isa) {
           buildScripts.push(val);
         }
