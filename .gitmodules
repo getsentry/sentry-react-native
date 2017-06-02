@@ -3,4 +3,4 @@
   url = https://github.com/getsentry/sentry-swift
 [submodule "ios/KSCrash"]
   path = ios/KSCrash
-  url=https://github.com/HazAT/KSCrash
+  url=https://github.com/kstenerud/KSCrash
