@@ -18,7 +18,8 @@ Pod::Spec.new do |s|
   s.preserve_paths = '*.js'
 
   s.dependency 'React'
-  s.dependency 'Sentry', '~> 2.1.9'
+  s.dependency 'Sentry', '~> 3.0.1'
+  s.dependency 'KSCrash', '~> 1.15.8'
   s.dependency 'RSSwizzle', '~> 0.1.0'
 
   s.source_files = 'ios/RNSentry*.{h,m}'

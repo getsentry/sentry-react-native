@@ -36,13 +36,6 @@ After that change your ``Podfile`` to reference to the packages in your
         pod 'SentryReactNative', :path => sentry_path
     end
 
-    post_install do |installer|
-      installer.pods_project.build_configurations.each do |config|
-        config.build_settings['SWIFT_VERSION'] = '3.0'
-        config.build_settings['ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES'] = 'YES'
-      end
-    end
-
 After that run ``pod install`` which then should link everything correctly.
 If you need more information about how to load the react view check out
 `this tutorial.
