@@ -1,6 +1,5 @@
 #import "RNSentry.h"
 #import "RNSentryEventEmitter.h"
-#import "RSSwizzle.h"
 #if __has_include(<React/RCTConvert.h>)
 #import <React/RCTConvert.h>
 #else
@@ -144,7 +143,7 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
     if (indexOfReactFrames == -1) {
         return;
     }
-    
+
     NSMutableArray<SentryFrame *> *finalFrames = [NSMutableArray new];
 
     NSArray<SentryFrame *> *reactFrames = [self convertReactNativeStacktrace:event.extra[@"__sentry_stack"]];
@@ -154,7 +153,7 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
             [finalFrames addObjectsFromArray:reactFrames];
         }
     }
-    
+
     crashedThread.stacktrace.frames = finalFrames;
 }
 
@@ -199,15 +198,27 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
 RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    static const void *key = &key;
-    Class RCTBatchedBridge = NSClassFromString(@"RCTBatchedBridge");
-    uintptr_t callNativeModuleAddress = [RCTBatchedBridge instanceMethodForSelector:@selector(callNativeModule:method:params:)];
+    // React Native < 0.45
+    if (NSClassFromString(@"RCTBatchedBridge")) {
+        [self swizzleCallNativeModule:NSClassFromString(@"RCTBatchedBridge")];
+    } else {
+        // TODO fix stacktrace merging
+        reject(@"SentryException", @"stacktrace merging not supported", nil);
+        return;
+    }
+    resolve(@YES);
+}
 
-    RSSwizzleInstanceMethod(RCTBatchedBridge,
-                            @selector(callNativeModule:method:params:),
-                            RSSWReturnType(id),
-                            RSSWArguments(NSUInteger moduleID, NSUInteger methodID, NSArray *params),
-                            RSSWReplacement({
+- (void)swizzleCallNativeModule:(Class)class {
+    static const void *key = &key;
+    SEL selctor = @selector(callNativeModule:method:params:);
+    uintptr_t callNativeModuleAddress = [class instanceMethodForSelector:selctor];
+
+    SentrySwizzleInstanceMethod(class,
+                                selctor,
+                                SentrySWReturnType(id),
+                                SentrySWArguments(NSUInteger moduleID, NSUInteger methodID, NSArray *params),
+                                SentrySWReplacement({
         NSMutableArray *newParams = [NSMutableArray array];
         if (params != nil && params.count > 0) {
             for (id param in params) {
@@ -225,10 +236,8 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
                 }
             }
         }
-        return RSSWCallOriginal(moduleID, methodID, newParams);
-    }), RSSwizzleModeOncePerClassAndSuperclasses, key);
-
-    resolve(@YES);
+        return SentrySWCallOriginal(moduleID, methodID, newParams);
+    }), SentrySwizzleModeOncePerClassAndSuperclasses, key);
 }
 
 RCT_EXPORT_METHOD(clearContext)

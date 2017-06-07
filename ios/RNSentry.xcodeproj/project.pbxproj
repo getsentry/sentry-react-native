@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		63329BC71E47AB8D0099D77A /* RSSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = 63329BC61E47AB8D0099D77A /* RSSwizzle.m */; };
 		6350257B1E1E845F00408AE7 /* RNSentry.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = B3E7B5881CC2AC0600A0062D /* RNSentry.h */; };
 		6378C6FB1EAF630500A1F1EE /* RNSentryEventEmitter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6378C6FA1EAF630500A1F1EE /* RNSentryEventEmitter.m */; };
 		6387B7BC1ED84D350045A84C /* libKSCrashLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 632235ED1E76E24300F58A1F /* libKSCrashLib.a */; };
@@ -65,20 +64,6 @@
 			remoteGlobalIDString = 63AA76651EB8CB2F00D153DE;
 			remoteInfo = SentryTests;
 		};
-		6387B8511ED8520D0045A84C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 63AA76B61EB9ED8E00D153DE;
-			remoteInfo = SentrySwift;
-		};
-		6387B8531ED8520D0045A84C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 63AA76BE1EB9ED8E00D153DE;
-			remoteInfo = SentrySwiftTests;
-		};
 		6387B8551ED8520D0045A84C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
@@ -112,8 +97,6 @@
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libRNSentry.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNSentry.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "KSCrash-iOS.xcodeproj"; path = "KSCrash/iOS/KSCrash-iOS.xcodeproj"; sourceTree = "<group>"; };
-		63329BC51E47AB8D0099D77A /* RSSwizzle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RSSwizzle.h; sourceTree = "<group>"; };
-		63329BC61E47AB8D0099D77A /* RSSwizzle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RSSwizzle.m; sourceTree = "<group>"; };
 		6378C6F91EAF630500A1F1EE /* RNSentryEventEmitter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSentryEventEmitter.h; sourceTree = "<group>"; };
 		6378C6FA1EAF630500A1F1EE /* RNSentryEventEmitter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNSentryEventEmitter.m; sourceTree = "<group>"; };
 		6387B7971ED84BA70045A84C /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
@@ -147,7 +130,6 @@
 			isa = PBXGroup;
 			children = (
 				632232581E76C45800F58A1F /* Libraries */,
-				63329BC41E47AB790099D77A /* Vendor */,
 				B3E7B5881CC2AC0600A0062D /* RNSentry.h */,
 				B3E7B5891CC2AC0600A0062D /* RNSentry.m */,
 				6378C6F91EAF630500A1F1EE /* RNSentryEventEmitter.h */,
@@ -177,15 +159,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		63329BC41E47AB790099D77A /* Vendor */ = {
-			isa = PBXGroup;
-			children = (
-				63329BC51E47AB8D0099D77A /* RSSwizzle.h */,
-				63329BC61E47AB8D0099D77A /* RSSwizzle.m */,
-			);
-			name = Vendor;
-			sourceTree = "<group>";
-		};
 		6387B7961ED84BA70045A84C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -199,8 +172,6 @@
 			children = (
 				6387B84E1ED8520D0045A84C /* Sentry.framework */,
 				6387B8501ED8520D0045A84C /* SentryTests.xctest */,
-				6387B8521ED8520D0045A84C /* SentrySwift.framework */,
-				6387B8541ED8520D0045A84C /* SentrySwiftTests.xctest */,
 				6387B8561ED8520D0045A84C /* libSentryStatic.a */,
 			);
 			name = Products;
@@ -312,20 +283,6 @@
 			remoteRef = 6387B84F1ED8520D0045A84C /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		6387B8521ED8520D0045A84C /* SentrySwift.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = SentrySwift.framework;
-			remoteRef = 6387B8511ED8520D0045A84C /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		6387B8541ED8520D0045A84C /* SentrySwiftTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = SentrySwiftTests.xctest;
-			remoteRef = 6387B8531ED8520D0045A84C /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		6387B8561ED8520D0045A84C /* libSentryStatic.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -341,7 +298,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B3E7B58A1CC2AC0600A0062D /* RNSentry.m in Sources */,
-				63329BC71E47AB8D0099D77A /* RSSwizzle.m in Sources */,
 				6378C6FB1EAF630500A1F1EE /* RNSentryEventEmitter.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
