@@ -6,7 +6,8 @@
   "description": "Official Sentry client for react-native",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "precommit": "lint-staged"
   },
   "keywords": [
     "react-native",
@@ -35,5 +36,16 @@
     "android": {
       "packageInstance": "new RNSentryPackage(MainApplication.this)"
     }
+  },
+  "devDependencies": {
+    "husky": "^0.13.4",
+    "lint-staged": "^3.6.0",
+    "prettier": "^1.4.2"
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write --single-quote --bracket-spacing=false --print-width=90",
+      "git add"
+    ]
   }
 }
