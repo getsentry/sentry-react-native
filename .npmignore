@@ -2,3 +2,7 @@ assets
 examples
 docs
 .idea
+
+# KSCrash
+ios/Sentry/KSCrash
+ios/Sentry/Srouces/KSCrash
