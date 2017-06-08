@@ -3,7 +3,7 @@ package io.sentry;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.util.Log;
+import android.support.annotation.NonNull;
 
 import com.facebook.react.ReactApplication;
 import com.facebook.react.bridge.Arguments;
@@ -29,6 +29,7 @@ import io.sentry.event.Breadcrumb;
 import io.sentry.event.BreadcrumbBuilder;
 import io.sentry.event.Event;
 import io.sentry.event.EventBuilder;
+import io.sentry.event.User;
 import io.sentry.event.UserBuilder;
 import io.sentry.event.interfaces.UserInterface;
 
@@ -111,14 +112,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void setUser(ReadableMap user) {
-        if (user.hasKey("email") && user.hasKey("userID") && user.hasKey("username")) {
-            Sentry.setUser(
-                    new UserBuilder()
-                            .setEmail(user.getString("email"))
-                            .setId(user.getString("userID"))
-                            .setUsername(user.getString("username"))
-                            .build()
-            );
+        UserBuilder userBuilder = getUserBuilder(user);
+        User builtUser = userBuilder.build();
+        if (builtUser.getId() != null) {
+            Sentry.setUser(builtUser);
         }
     }
 
@@ -135,7 +132,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     new BreadcrumbBuilder()
                             .setMessage(breadcrumb.getString("message"))
                             .setCategory(breadcrumb.getString("category"))
-                            .setLevel(breadcrumbLevel(breadcrumb.getString("level")))
+                            .setLevel(breadcrumbLevel((ReadableNativeMap)breadcrumb))
                             .build()
             );
         }
@@ -147,17 +144,24 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         if (event.hasKey("message")) {
             EventBuilder eventBuilder = new EventBuilder()
                     .withMessage(event.getString("message"))
-                    .withLogger(event.getString("logger"))
-                    .withLevel(eventLevel(event.getString("level")));
+                    .withLevel(eventLevel(castEvent));
+
+            if (event.hasKey("logger")) {
+                eventBuilder.withLogger(event.getString("logger"));
+            }
 
             if (event.hasKey("user")) {
-                UserInterface userInterface = new UserInterface(
-                        event.getMap("user").getString("userID"),
-                        event.getMap("user").getString("username"),
-                        null,
-                        event.getMap("user").getString("email")
-                );
-                eventBuilder.withSentryInterface(userInterface);
+                UserBuilder userBuilder = getUserBuilder(event.getMap("user"));
+                User builtUser = userBuilder.build();
+                if (builtUser.getId() != null) {
+                    UserInterface userInterface = new UserInterface(
+                            builtUser.getId(),
+                            builtUser.getUsername(),
+                            null,
+                            builtUser.getEmail()
+                    );
+                    eventBuilder.withSentryInterface(userInterface);
+                }
             }
 
             if (castEvent.hasKey("extra")) {
@@ -196,6 +200,23 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         logger.info("TODO: implement activateStacktraceMerging");
 //        promise.resolve(true);
         promise.reject("Sentry", "Stacktrace merging not yet implemented");
+    }
+
+    @NonNull
+    private UserBuilder getUserBuilder(ReadableMap user) {
+        UserBuilder userBuilder = new UserBuilder();
+        if (user.hasKey("email")) {
+            userBuilder.setEmail(user.getString("email"));
+        }
+        if (user.hasKey("userID")) {
+            userBuilder.setId(user.getString("userID"));
+        } else if (user.hasKey("id")) {
+            userBuilder.setId(user.getString("id"));
+        }
+        if (user.hasKey("username")) {
+            userBuilder.setUsername(user.getString("username"));
+        }
+        return userBuilder;
     }
 
     public static Event buildEvent(EventBuilder eventBuilder) {
@@ -253,7 +274,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private Breadcrumb.Level breadcrumbLevel(String level) {
+    private Breadcrumb.Level breadcrumbLevel(ReadableNativeMap breadcrumb) {
+        String level = "";
+        if (breadcrumb.hasKey("level")) {
+            level = breadcrumb.getString("level");
+        }
         switch (level) {
             case "critical":
                 return Breadcrumb.Level.CRITICAL;
@@ -268,7 +293,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private Event.Level eventLevel(String level) {
+    private Event.Level eventLevel(ReadableNativeMap event) {
+        String level = "";
+        if (event.hasKey("level")) {
+            level = event.getString("level");
+        }
         switch (level) {
             case "fatal":
                 return Event.Level.FATAL;
