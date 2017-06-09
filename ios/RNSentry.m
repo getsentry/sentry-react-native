@@ -211,11 +211,11 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
 
 - (void)swizzleCallNativeModule:(Class)class {
     static const void *key = &key;
-    SEL selctor = @selector(callNativeModule:method:params:);
-    uintptr_t callNativeModuleAddress = [class instanceMethodForSelector:selctor];
+    SEL selector = @selector(callNativeModule:method:params:);
+    uintptr_t callNativeModuleAddress = [class instanceMethodForSelector:selector];
 
     SentrySwizzleInstanceMethod(class,
-                                selctor,
+                                selector,
                                 SentrySWReturnType(id),
                                 SentrySWArguments(NSUInteger moduleID, NSUInteger methodID, NSArray *params),
                                 SentrySWReplacement({
