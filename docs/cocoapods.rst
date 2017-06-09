@@ -1,9 +1,9 @@
 .. _cocoapods:
 
-Setup With Cocoapods
+Setup With CocoaPods
 --------------------
 
-In order to use Sentry with cocoapods you have to install the packages with
+In order to use Sentry with CocoaPods you have to install the packages with
 ``npm`` or ``yarn`` and link them locally in your ``Podfile``.
 
 .. sourcecode:: bash
