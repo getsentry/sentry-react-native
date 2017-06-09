@@ -339,6 +339,11 @@ function addSentryProperties() {
   let rv = Promise.resolve();
 
   for (let platform of PLATFORMS) {
+    // This will create the ios/android folder before trying to write
+    // sentry.properties in it which would fail otherwise
+    if (!fs.existsSync(platform)) {
+      fs.mkdirSync(platform);
+    }
     let fn = platform + '/sentry.properties';
     if (fs.existsSync(fn)) {
       continue;
@@ -360,7 +365,7 @@ function addSentryProperties() {
 Promise.resolve()
   /* these steps patch the build files without user interactions */
   .then(() => patchMatchingFile('**/app/build.gradle', patchBuildGradle))
-  .then(() => patchMatchingFile('**/*.xcodeproj/project.pbxproj', patchXcodeProj))
+  .then(() => patchMatchingFile('./*.xcodeproj/project.pbxproj', patchXcodeProj))
   .then(() => patchMatchingFile('**/AppDelegate.m', patchAppDelegate))
   /* if any of the previous steps did something, this will patch
      the index.PLATFORM.js files with the necessary initialization code */
