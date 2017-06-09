@@ -343,7 +343,7 @@ function patchXcodeProj(contents, filename) {
 
 function patchMatchingFile(pattern, func) {
   let matches = glob.sync(pattern, {
-    ignore: 'node_modules/**'
+    ignore: ['node_modules/**', 'ios/Pods/**', '**/Pods/**']
   });
   let rv = Promise.resolve();
   matches.forEach(function(match) {
@@ -400,7 +400,7 @@ function addSentryProperties() {
 Promise.resolve()
   /* these steps patch the build files without user interactions */
   .then(() => patchMatchingFile('**/app/build.gradle', patchBuildGradle))
-  .then(() => patchMatchingFile('./*.xcodeproj/project.pbxproj', patchXcodeProj))
+  .then(() => patchMatchingFile('**/*.xcodeproj/project.pbxproj', patchXcodeProj))
   .then(() => patchMatchingFile('**/AppDelegate.m', patchAppDelegate))
   /* if any of the previous steps did something, this will patch
      the index.PLATFORM.js files with the necessary initialization code */
