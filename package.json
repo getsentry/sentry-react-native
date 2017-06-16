@@ -26,7 +26,6 @@
     "inquirer": "3.0.6",
     "sentry-cli-binary": "git+https://github.com/ZoetropeLabs/sentry-cli.git",
     "raven-js": "^3.16.0",
-    "sentry-cli-binary": "^1.13.3",
     "xcode": "0.9.3"
   },
   "rnpm": {
