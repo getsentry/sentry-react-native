@@ -43,13 +43,10 @@ To this::
     ../node_modules/sentry-cli-binary/bin/sentry-cli react-native xcode \
       ../node_modules/react-native/packager/react-native-xcode.sh
 
-Additionally we add a build script called "Bundle react-native-sentry
-Frameworks" which bundles necessary frameworks as well as a build
-step called "Upload Debug Symbols to Sentry" which uploads debug symbols
-to Sentry.  The latter needs to be disabled if you use bitcode.
+Additionally we add a build script called "Upload Debug Symbols to Sentry" which uploads debug symbols
+to Sentry.
 
-This also uploads debug symbols in the last line which however will not
-work for bitcode enabled builds.  If you are using bitcode you need to
+However this will not work for bitcode enabled builds.  If you are using bitcode you need to
 remove that line (``../node_modules/sentry-cli-binary/bin/sentry-cli
 upload-dsym``) and consult the documentation on dsym handling instead (see
 :ref:`dsym-with-bitcode`).

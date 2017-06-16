@@ -202,11 +202,41 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
     if (NSClassFromString(@"RCTBatchedBridge")) {
         [self swizzleCallNativeModule:NSClassFromString(@"RCTBatchedBridge")];
     } else {
-        // TODO fix stacktrace merging
-        reject(@"SentryException", @"stacktrace merging not supported", nil);
-        return;
+        [self swizzleInvokeWithBridge:NSClassFromString(@"RCTModuleMethod")];
     }
     resolve(@YES);
+}
+
+- (void)swizzleInvokeWithBridge:(Class)class {
+    static const void *key = &key;
+    SEL selector = @selector(invokeWithBridge:module:arguments:);
+    uintptr_t callNativeModuleAddress = [class instanceMethodForSelector:selector];
+
+    SentrySwizzleInstanceMethod(class,
+                                selector,
+                                SentrySWReturnType(id),
+                                SentrySWArguments(RCTBridge *bridge, id module, NSArray *arguments),
+                                SentrySWReplacement({
+        // TODO: refactor this block, its used twice
+        NSMutableArray *newParams = [NSMutableArray array];
+        if (arguments != nil && arguments.count > 0) {
+            for (id param in arguments) {
+                if ([param isKindOfClass:NSDictionary.class] && param[@"__sentry_stack"]) {
+                    @synchronized (SentryClient.sharedClient) {
+                        NSMutableDictionary *prevExtra = SentryClient.sharedClient.extra.mutableCopy;
+                        [prevExtra setValue:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress] forKey:@"__sentry_address"];
+                        [prevExtra setValue:SentryParseJavaScriptStacktrace([RCTConvert NSString:param[@"__sentry_stack"]]) forKey:@"__sentry_stack"];
+                        SentryClient.sharedClient.extra = prevExtra;
+                    }
+                } else {
+                    if (param != nil) {
+                        [newParams addObject:param];
+                    }
+                }
+            }
+        }
+        return SentrySWCallOriginal(bridge, module, newParams);
+    }), SentrySwizzleModeOncePerClassAndSuperclasses, key);
 }
 
 - (void)swizzleCallNativeModule:(Class)class {
@@ -219,6 +249,7 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
                                 SentrySWReturnType(id),
                                 SentrySWArguments(NSUInteger moduleID, NSUInteger methodID, NSArray *params),
                                 SentrySWReplacement({
+        // TODO: refactor this block, its used twice
         NSMutableArray *newParams = [NSMutableArray array];
         if (params != nil && params.count > 0) {
             for (id param in params) {

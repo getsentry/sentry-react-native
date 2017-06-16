@@ -6,7 +6,8 @@ const chalk = require('chalk');
 const pbxFile = require('xcode/lib/pbxFile');
 
 const PLATFORMS = ['android', 'ios'];
-const OBJC_HEADER = '\
+const OBJC_HEADER =
+  '\
 #if __has_include(<React/RNSentry.h>)\n\
 #import <React/RNSentry.h> // This is used for versions of react >= 0.40\n\
 #else\n\
@@ -20,10 +21,12 @@ let didShowInfoHint = false;
 let configurePlatform = {};
 
 function getPlatformName(platform) {
-  return {
-    'android': 'Android',
-    'ios': 'iOS',
-  }[platform] || platform;
+  return (
+    {
+      android: 'Android',
+      ios: 'iOS'
+    }[platform] || platform
+  );
 }
 
 function considerShowingInfoHint() {
@@ -32,8 +35,9 @@ function considerShowingInfoHint() {
   }
 
   let {green, dim} = chalk;
-  function l(msg) { console.log(msg); }
-
+  function l(msg) {
+    console.log(msg);
+  }
 
   l('');
   l(green('You are about to configure Sentry for React Native'));
@@ -59,50 +63,60 @@ function shouldConfigurePlatform(platform) {
     return Promise.resolve(true);
   }
   considerShowingInfoHint();
-  return inquirer.prompt([{
-    type: 'list',
-    name: 'configure',
-    message: `Do you want to configure Sentry for ${getPlatformName(platform)}?`,
-    choices: [
+  return inquirer
+    .prompt([
       {
-        name: 'Yes',
-        value: true
-      },
-      {
-        name: 'No (or later)',
-        value: false
+        type: 'list',
+        name: 'configure',
+        message: `Do you want to configure Sentry for ${getPlatformName(platform)}?`,
+        choices: [
+          {
+            name: 'Yes',
+            value: true
+          },
+          {
+            name: 'No (or later)',
+            value: false
+          }
+        ]
       }
-    ]
-  }]).then(function(answers) {
-    configurePlatform[platform] = answers.configure;
-    return Promise.resolve(answers.configure);
-  });
+    ])
+    .then(function(answers) {
+      configurePlatform[platform] = answers.configure;
+      return Promise.resolve(answers.configure);
+    });
 }
 
 function getDsn(platform) {
   considerShowingInfoHint();
-  return inquirer.prompt([{
-    type: 'input',
-    default: cachedDsn || process.env.SENTRY_DSN || 'YOUR_DSN_HERE',
-    message: 'The DSN for ' + getPlatformName(platform),
-    name: 'dsn',
-    validate: function(value) {
-      let m = value.match(/^(?:(\w+):)?\/\/(?:(\w+)(:\w+)?@)?([\w\.-]+)(?::(\d+))?(\/.*)$/);
-      if (!m) {
-        return 'invalid dsn format';
+  return inquirer
+    .prompt([
+      {
+        type: 'input',
+        default: cachedDsn || process.env.SENTRY_DSN || 'YOUR_DSN_HERE',
+        message: 'The DSN for ' + getPlatformName(platform),
+        name: 'dsn',
+        validate: function(value) {
+          let m = value.match(
+            /^(?:(\w+):)?\/\/(?:(\w+)(:\w+)?@)?([\w\.-]+)(?::(\d+))?(\/.*)$/
+          );
+          if (!m) {
+            return 'invalid dsn format';
+          }
+          if (m[1] !== 'http' && m[1] !== 'https') {
+            return 'unsupported protocol for dsn: ' + m[1];
+          }
+          if (!m[3]) {
+            return 'missing secret in dsn';
+          }
+          return true;
+        }
       }
-      if (m[1] !== 'http' && m[1] !== 'https') {
-        return 'unsupported protocol for dsn: ' + m[1];
-      }
-      if (!m[3]) {
-        return 'missing secret in dsn';
-      }
-      return true;
-    }
-  }]).then(function(answers) {
-    cachedDsn = answers.dsn;
-    return Promise.resolve(answers.dsn);
-  });
+    ])
+    .then(function(answers) {
+      cachedDsn = answers.dsn;
+      return Promise.resolve(answers.dsn);
+    });
 }
 
 function getDefaultUrl() {
@@ -116,30 +130,41 @@ function getDefaultUrl() {
 }
 
 function getProperties(platform) {
-  return inquirer.prompt([{
-    type: 'input',
-    default: cachedProps['defaults/url'] || process.env.SENTRY_URL || getDefaultUrl(),
-    message: 'The Sentry Server URL for ' + getPlatformName(platform),
-    name: 'defaults/url',
-  }, {
-    type: 'input',
-    default: cachedProps['defaults/org'] || process.env.SENTRY_ORG || 'your-org-slug',
-    message: 'The Organization for ' + getPlatformName(platform),
-    name: 'defaults/org',
-  }, {
-    type: 'input',
-    default: cachedProps['defaults/project'] || process.env.SENTRY_PROJECT || 'your-project-slug',
-    message: 'The Project for ' + getPlatformName(platform),
-    name: 'defaults/project',
-  }, {
-    type: 'password',
-    default: cachedProps['auth/token'] || process.env.SENTRY_AUTH_TOKEN || 'YOUR_AUTH_TOKEN',
-    message: 'The Auth-Token for ' + getPlatformName(platform),
-    name: 'auth/token',
-  }]).then(function(answers) {
-    cachedProps = answers;
-    return Promise.resolve(answers);
-  });
+  return inquirer
+    .prompt([
+      {
+        type: 'input',
+        default: cachedProps['defaults/url'] || process.env.SENTRY_URL || getDefaultUrl(),
+        message: 'The Sentry Server URL for ' + getPlatformName(platform),
+        name: 'defaults/url'
+      },
+      {
+        type: 'input',
+        default: cachedProps['defaults/org'] || process.env.SENTRY_ORG || 'your-org-slug',
+        message: 'The Organization for ' + getPlatformName(platform),
+        name: 'defaults/org'
+      },
+      {
+        type: 'input',
+        default:
+          cachedProps['defaults/project'] ||
+            process.env.SENTRY_PROJECT ||
+            'your-project-slug',
+        message: 'The Project for ' + getPlatformName(platform),
+        name: 'defaults/project'
+      },
+      {
+        type: 'password',
+        default:
+          cachedProps['auth/token'] || process.env.SENTRY_AUTH_TOKEN || 'YOUR_AUTH_TOKEN',
+        message: 'The Auth-Token for ' + getPlatformName(platform),
+        name: 'auth/token'
+      }
+    ])
+    .then(function(answers) {
+      cachedProps = answers;
+      return Promise.resolve(answers);
+    });
 }
 
 function dumpProperties(props) {
@@ -159,10 +184,7 @@ function dumpProperties(props) {
 function patchAppDelegate(contents) {
   // add the header if it's not there yet.
   if (!contents.match(/#import "RNSentry.h"/)) {
-    contents = contents.replace(
-      /(#import <React\/RCTRootView.h>)/,
-      '$1\n' + OBJC_HEADER
-    );
+    contents = contents.replace(/(#import <React\/RCTRootView.h>)/, '$1\n' + OBJC_HEADER);
   }
 
   // add root view init.
@@ -190,16 +212,23 @@ function patchIndexJs(contents, filename) {
   }
 
   let platform = filename.match(/index\.([^.]+?)\.js/)[1];
-  return shouldConfigurePlatform(platform).then((shouldConfigure) => {
+  return shouldConfigurePlatform(platform).then(shouldConfigure => {
     if (!shouldConfigure) {
       return null;
     }
 
     return getDsn(platform).then(function(dsn) {
-      return Promise.resolve(contents.replace(/^([^]*)(import\s+[^;]*?;$)/m, function(match) {
-        return match + '\n\nimport { Sentry } from \'react-native-sentry\';\n\n' +
-          'Sentry.config(' + JSON.stringify(dsn) + ').install();\n';
-      }));
+      return Promise.resolve(
+        contents.replace(/^([^]*)(import\s+[^;]*?;$)/m, function(match) {
+          return (
+            match +
+            "\n\nimport { Sentry } from 'react-native-sentry';\n\n" +
+            'Sentry.config(' +
+            JSON.stringify(dsn) +
+            ').install();\n'
+          );
+        })
+      );
     });
   });
 }
@@ -210,33 +239,38 @@ function patchBuildGradle(contents) {
     return Promise.resolve(null);
   }
 
-  return shouldConfigurePlatform('android').then((shouldConfigure) => {
+  return shouldConfigurePlatform('android').then(shouldConfigure => {
     if (!shouldConfigure) {
       return null;
     }
 
-    return Promise.resolve(contents.replace(
-      /^apply from: "..\/..\/node_modules\/react-native\/react.gradle"/m,
-      function(match) {
-        return match + '\n' + applyFrom;
-      }
-    ));
+    return Promise.resolve(
+      contents.replace(
+        /^apply from: "..\/..\/node_modules\/react-native\/react.gradle"/m,
+        function(match) {
+          return match + '\n' + applyFrom;
+        }
+      )
+    );
   });
 }
 
 function patchExistingXcodeBuildScripts(buildScripts) {
   for (let script of buildScripts) {
-    if (!script.shellScript.match(/packager\/react-native-xcode\.sh\b/) ||
-        script.shellScript.match(/sentry-cli\s+react-native[\s-]xcode/)) {
+    if (
+      !script.shellScript.match(/packager\/react-native-xcode\.sh\b/) ||
+      script.shellScript.match(/sentry-cli\s+react-native[\s-]xcode/)
+    ) {
       continue;
     }
     let code = JSON.parse(script.shellScript);
-    code = (
+    code =
       'export SENTRY_PROPERTIES=sentry.properties\n' +
       code.replace(/^.*?\/packager\/react-native-xcode\.sh\s*/m, function(match) {
-        return '../node_modules/sentry-cli-binary/bin/sentry-cli react-native xcode ' + match;
-      })
-    );
+        return (
+          '../node_modules/sentry-cli-binary/bin/sentry-cli react-native xcode ' + match
+        );
+      });
     script.shellScript = JSON.stringify(code);
   }
 }
@@ -255,10 +289,9 @@ function addNewXcodeBuildPhaseForSymbols(buildScripts, proj) {
     null,
     {
       shellPath: '/bin/sh',
-      shellScript: (
+      shellScript:
         'export SENTRY_PROPERTIES=sentry.properties\\n' +
-        '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym'
-      )
+          '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym'
     }
   );
 }
@@ -300,7 +333,7 @@ function patchXcodeProj(contents, filename) {
       if (newContents === contents) {
         resolve(null);
       } else {
-        return shouldConfigurePlatform('ios').then((shouldConfigure) => {
+        return shouldConfigurePlatform('ios').then(shouldConfigure => {
           resolve(shouldConfigure ? newContents : null);
         });
       }
@@ -310,7 +343,7 @@ function patchXcodeProj(contents, filename) {
 
 function patchMatchingFile(pattern, func) {
   let matches = glob.sync(pattern, {
-    ignore: 'node_modules/**'
+    ignore: ['node_modules/**', 'ios/Pods/**', '**/Pods/**']
   });
   let rv = Promise.resolve();
   matches.forEach(function(match) {
@@ -339,19 +372,26 @@ function addSentryProperties() {
   let rv = Promise.resolve();
 
   for (let platform of PLATFORMS) {
+    // This will create the ios/android folder before trying to write
+    // sentry.properties in it which would fail otherwise
+    if (!fs.existsSync(platform)) {
+      fs.mkdirSync(platform);
+    }
     let fn = platform + '/sentry.properties';
     if (fs.existsSync(fn)) {
       continue;
     }
 
-    rv = rv.then(() => shouldConfigurePlatform(platform).then((shouldConfigure) => {
-      if (!shouldConfigure) {
-        return null;
-      }
-      return getProperties(platform).then((props) => {
-        fs.writeFileSync(fn, dumpProperties(props));
-      });
-    }));
+    rv = rv.then(() =>
+      shouldConfigurePlatform(platform).then(shouldConfigure => {
+        if (!shouldConfigure) {
+          return null;
+        }
+        return getProperties(platform).then(props => {
+          fs.writeFileSync(fn, dumpProperties(props));
+        });
+      })
+    );
   }
 
   return rv;
