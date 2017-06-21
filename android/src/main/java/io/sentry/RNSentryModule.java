@@ -14,13 +14,18 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableNativeArray;
 import com.facebook.react.bridge.ReadableNativeMap;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.sentry.android.AndroidSentryClientFactory;
 import io.sentry.android.event.helper.AndroidEventBuilderHelper;
@@ -31,9 +36,15 @@ import io.sentry.event.Event;
 import io.sentry.event.EventBuilder;
 import io.sentry.event.User;
 import io.sentry.event.UserBuilder;
+import io.sentry.event.interfaces.ExceptionInterface;
+import io.sentry.event.interfaces.SentryException;
+import io.sentry.event.interfaces.SentryStackTraceElement;
+import io.sentry.event.interfaces.StackTraceInterface;
 import io.sentry.event.interfaces.UserInterface;
 
 public class RNSentryModule extends ReactContextBaseJavaModule {
+
+    private static final Pattern mJsModuleIdPattern = Pattern.compile("(?:^|[/\\\\])(\\d+\\.js)$");
 
     private final ReactApplicationContext reactContext;
     private final ReactApplication reactApplication;
@@ -141,51 +152,52 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void captureEvent(ReadableMap event) {
         ReadableNativeMap castEvent = (ReadableNativeMap)event;
+
+        EventBuilder eventBuilder = new EventBuilder()
+                .withLevel(eventLevel(castEvent));
+
         if (event.hasKey("message")) {
-            EventBuilder eventBuilder = new EventBuilder()
-                    .withMessage(event.getString("message"))
-                    .withLevel(eventLevel(castEvent));
+            eventBuilder.withMessage(event.getString("message"));
+        }
 
-            if (event.hasKey("logger")) {
-                eventBuilder.withLogger(event.getString("logger"));
-            }
+        if (event.hasKey("logger")) {
+            eventBuilder.withLogger(event.getString("logger"));
+        }
 
-            if (event.hasKey("user")) {
-                UserBuilder userBuilder = getUserBuilder(event.getMap("user"));
-                User builtUser = userBuilder.build();
-                if (builtUser.getId() != null) {
-                    UserInterface userInterface = new UserInterface(
-                            builtUser.getId(),
-                            builtUser.getUsername(),
-                            null,
-                            builtUser.getEmail()
-                    );
-                    eventBuilder.withSentryInterface(userInterface);
-                }
-            }
-
-            if (castEvent.hasKey("extra")) {
-                for (Map.Entry<String, Object> entry : castEvent.getMap("extra").toHashMap().entrySet()) {
-                    eventBuilder.withExtra(entry.getKey(), entry.getValue());
-                }
-            }
-
-            if (castEvent.hasKey("tags")) {
-                for (Map.Entry<String, Object> entry : castEvent.getMap("tags").toHashMap().entrySet()) {
-                    eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
-                }
-            }
-
-            Sentry.capture(buildEvent(eventBuilder));
-        } else {
-            RNSentryExceptionsManagerModule.lastReceivedException = event;
-            if (this.getReactApplication().getReactNativeHost().getUseDeveloperSupport() == true) {
-                ReadableNativeArray exceptionValues = ((ReadableNativeArray)RNSentryExceptionsManagerModule.lastReceivedException.getMap("exception").getArray("values"));
-                ReadableNativeMap exception = exceptionValues.getMap(0);
-                ReadableNativeMap stacktrace = exception.getMap("stacktrace");
-                RNSentryExceptionsManagerModule.convertAndCaptureReactNativeException("", stacktrace.getArray("frames"));
+        if (event.hasKey("user")) {
+            UserBuilder userBuilder = getUserBuilder(event.getMap("user"));
+            User builtUser = userBuilder.build();
+            if (builtUser.getId() != null) {
+                UserInterface userInterface = new UserInterface(
+                        builtUser.getId(),
+                        builtUser.getUsername(),
+                        null,
+                        builtUser.getEmail()
+                );
+                eventBuilder.withSentryInterface(userInterface);
             }
         }
+
+        if (castEvent.hasKey("extra")) {
+            for (Map.Entry<String, Object> entry : castEvent.getMap("extra").toHashMap().entrySet()) {
+                eventBuilder.withExtra(entry.getKey(), entry.getValue());
+            }
+        }
+
+        if (castEvent.hasKey("tags")) {
+            for (Map.Entry<String, Object> entry : castEvent.getMap("tags").toHashMap().entrySet()) {
+                eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
+            }
+        }
+
+        if (event.hasKey("exception")) {
+            ReadableNativeArray exceptionValues = (ReadableNativeArray)event.getMap("exception").getArray("values");
+            ReadableNativeMap exception = exceptionValues.getMap(0);
+            ReadableNativeMap stacktrace = exception.getMap("stacktrace");
+            addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("value"), stacktrace.getArray("frames"));
+        }
+
+        Sentry.capture(buildEvent(eventBuilder));
     }
 
     @ReactMethod
@@ -240,6 +252,80 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
 
         return eventBuilder.build();
+    }
+
+    private static void addExceptionInterface(EventBuilder eventBuilder, String type, String value, ReadableNativeArray stack) {
+        StackTraceInterface stackTraceInterface = new StackTraceInterface(convertToNativeStacktrace(stack));
+        Deque<SentryException> exceptions = new ArrayDeque<>();
+
+        exceptions.push(new SentryException(value, type, "", stackTraceInterface));
+
+        eventBuilder.withSentryInterface(new ExceptionInterface(exceptions));
+    }
+
+    private static SentryStackTraceElement[] convertToNativeStacktrace(ReadableNativeArray stack) {
+        final int stackFrameSize = stack.size();
+        SentryStackTraceElement[] synthStackTrace = new SentryStackTraceElement[stackFrameSize];
+        for (int i = 0; i < stackFrameSize; i++) {
+            ReadableNativeMap frame = stack.getMap(i);
+
+            String fileName = "";
+            if (frame.hasKey("file")) {
+                fileName = frame.getString("file");
+            } else if (frame.hasKey("filename")) {
+                fileName = frame.getString("filename");
+            }
+
+            String methodName = "";
+            if (frame.hasKey("methodName")) {
+                methodName = frame.getString("methodName");
+            } else if (frame.hasKey("function")) {
+                methodName = frame.getString("function");
+            }
+
+            int lineNumber = 0;
+            if (frame.hasKey("lineNumber") &&
+                    !frame.isNull("lineNumber") &&
+                    frame.getType("lineNumber") == ReadableType.Number) {
+                lineNumber = frame.getInt("lineNumber");
+            } else if (frame.hasKey("lineno") &&
+                    !frame.isNull("lineno") &&
+                    frame.getType("lineno") == ReadableType.Number) {
+                lineNumber = frame.getInt("lineno");
+            }
+
+            int column = 0;
+            if (frame.hasKey("column") &&
+                    !frame.isNull("column") &&
+                    frame.getType("column") == ReadableType.Number) {
+                column = frame.getInt("column");
+            } else if (frame.hasKey("colno") &&
+                    !frame.isNull("colno") &&
+                    frame.getType("colno") == ReadableType.Number) {
+                column = frame.getInt("colno");
+            }
+
+            String[] lastFileNameSegments = fileName.split("\\?");
+            String lastPathComponent = lastFileNameSegments[0];
+            String[] fileNameSegments = lastPathComponent.split("/");
+            StringBuilder finalFileName = new StringBuilder("app:///").append(fileNameSegments[fileNameSegments.length-1]);
+
+            SentryStackTraceElement stackFrame = new SentryStackTraceElement("", methodName, stackFrameToModuleId(frame), lineNumber, column, finalFileName.toString(), "javascript");
+            synthStackTrace[i] = stackFrame;
+        }
+        return synthStackTrace;
+    }
+
+    private static String stackFrameToModuleId(ReadableMap frame) {
+        if (frame.hasKey("file") &&
+                !frame.isNull("file") &&
+                frame.getType("file") == ReadableType.String) {
+            final Matcher matcher = mJsModuleIdPattern.matcher(frame.getString("file"));
+            if (matcher.find()) {
+                return matcher.group(1) + ":";
+            }
+        }
+        return "";
     }
 
     private static void stripInternalSentry(EventBuilder eventBuilder) {
