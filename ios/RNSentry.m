@@ -23,12 +23,11 @@
 }
 
 + (void)installWithBridge:(RCTBridge *)bridge {
-    RNSentry *sentry = [bridge moduleForName:@"RNSentry"];
-    [[bridge moduleForName:@"ExceptionsManager"] initWithDelegate:sentry];
+    // For now we don't need this anymore
 }
 
 + (void)installWithRootView:(RCTRootView *)rootView {
-    [RNSentry installWithBridge: rootView.bridge];
+    // For now we don't need this anymore
 }
 
 + (NSNumberFormatter *)numberFormatter {
@@ -110,7 +109,7 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
     return index;
 }
 
-- (NSArray<SentryFrame *> *)convertReactNativeStacktrace:(NSDictionary *)stacktrace {
+- (NSArray<SentryFrame *> *)convertReactNativeStacktrace:(NSArray *)stacktrace {
     NSMutableArray<SentryFrame *> *frames = [NSMutableArray new];
     for (NSDictionary *frame in stacktrace) {
         if (nil == frame[@"methodName"]) {
@@ -146,7 +145,7 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
 
     NSMutableArray<SentryFrame *> *finalFrames = [NSMutableArray new];
 
-    NSArray<SentryFrame *> *reactFrames = [self convertReactNativeStacktrace:event.extra[@"__sentry_stack"]];
+    NSArray<SentryFrame *> *reactFrames = [self convertReactNativeStacktrace:SentryParseJavaScriptStacktrace(event.extra[@"__sentry_stack"])];
     for (NSInteger i = 0; i < frames.count; i++) {
         [finalFrames addObject:[frames objectAtIndex:i]];
         if (i == indexOfReactFrames) {
@@ -189,6 +188,15 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
     if (error) {
         [NSException raise:@"SentryReactNative" format:@"%@", error.localizedDescription];
     }
+    SentryClient.sharedClient.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
+        // We don't want to send an event after startup that came from a NSException of react native
+        // Because we sent it already before the app crashed.
+        if ([event.exceptions.firstObject.type rangeOfString:@"RCTFatalException"].location != NSNotFound) {
+            NSLog(@"RCTFatalException");
+            return NO;
+        }
+        return YES;
+    };
     SentryClient.sharedClient.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
         [self injectReactNativeFrames:event];
         [self setReleaseVersionDist:event];
@@ -225,7 +233,7 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
                     @synchronized (SentryClient.sharedClient) {
                         NSMutableDictionary *prevExtra = SentryClient.sharedClient.extra.mutableCopy;
                         [prevExtra setValue:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress] forKey:@"__sentry_address"];
-                        [prevExtra setValue:SentryParseJavaScriptStacktrace([RCTConvert NSString:param[@"__sentry_stack"]]) forKey:@"__sentry_stack"];
+                        [prevExtra setValue:[RCTConvert NSString:param[@"__sentry_stack"]] forKey:@"__sentry_stack"];
                         SentryClient.sharedClient.extra = prevExtra;
                     }
                 } else {
@@ -257,7 +265,7 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
                     @synchronized (SentryClient.sharedClient) {
                         NSMutableDictionary *prevExtra = SentryClient.sharedClient.extra.mutableCopy;
                         [prevExtra setValue:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress] forKey:@"__sentry_address"];
-                        [prevExtra setValue:SentryParseJavaScriptStacktrace([RCTConvert NSString:param[@"__sentry_stack"]]) forKey:@"__sentry_stack"];
+                        [prevExtra setValue:[RCTConvert NSString:param[@"__sentry_stack"]] forKey:@"__sentry_stack"];
                         SentryClient.sharedClient.extra = prevExtra;
                     }
                 } else {
@@ -329,20 +337,33 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
         user.username = [NSString stringWithFormat:@"%@", event[@"user"][@"username"]];
         user.extra = [RCTConvert NSDictionary:event[@"user"][@"extra"]];
     }
-
-    if (event[@"message"]) {
-        SentryEvent *sentryEvent = [[SentryEvent alloc] initWithLevel:level];
-        sentryEvent.eventId = event[@"event_id"];
-        sentryEvent.message = event[@"message"];
-        sentryEvent.logger = event[@"logger"];
-        sentryEvent.tags = [self sanitizeDictionary:event[@"tags"]];
-        sentryEvent.extra = event[@"extra"];
-        sentryEvent.user = user;
-        [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
-    } else if (event[@"exception"]) {
-        self.lastReceivedException = event;
+    
+    SentryEvent *sentryEvent = [[SentryEvent alloc] initWithLevel:level];
+    sentryEvent.eventId = event[@"event_id"];
+    sentryEvent.message = event[@"message"];
+    sentryEvent.logger = event[@"logger"];
+    sentryEvent.tags = [self sanitizeDictionary:event[@"tags"]];
+    sentryEvent.extra = event[@"extra"];
+    sentryEvent.user = user;
+    if (event[@"exception"]) {
+        NSDictionary *exception = event[@"exception"][@"values"][0];
+        NSMutableArray *frames = [NSMutableArray array];
+        NSArray<SentryFrame *> *stacktrace = [self convertReactNativeStacktrace:SentryParseRavenFrames(exception[@"stacktrace"][@"frames"])];
+        for (NSInteger i = (stacktrace.count-1); i > 0; i--) {
+            [frames addObject:[stacktrace objectAtIndex:i]];
+        }
+        [self addExceptionToEvent:sentryEvent type:exception[@"type"] value:exception[@"value"] frames:frames];
     }
+    [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
+}
 
+- (void)addExceptionToEvent:(SentryEvent *)event type:(NSString *)type value:(NSString *)value frames:(NSArray *)frames {
+    SentryException *sentryException = [[SentryException alloc] initWithValue:value type:type];
+    SentryThread *thread = [[SentryThread alloc] initWithThreadId:@(99)];
+    thread.crashed = @(YES);
+    thread.stacktrace = [[SentryStacktrace alloc] initWithFrames:frames registers:@{}];
+    sentryException.thread = thread;
+    event.exceptions = @[sentryException];
 }
 
 RCT_EXPORT_METHOD(crash)
@@ -384,32 +405,6 @@ RCT_EXPORT_METHOD(crash)
         [dict setObject:[NSString stringWithFormat:@"%@", [dictionary objectForKey:key]] forKey:key];
     }
     return [NSDictionary dictionaryWithDictionary:dict];
-}
-
-- (void)reportReactNativeCrashWithMessage:(NSString *)message stacktrace:(NSArray *)stack terminateProgram:(BOOL)terminateProgram {
-    NSString *newMessage = message;
-    if (nil != self.lastReceivedException) {
-        newMessage = [NSString stringWithFormat:@"%@:%@", self.lastReceivedException[@"exception"][@"values"][0][@"type"], self.lastReceivedException[@"exception"][@"values"][0][@"value"]];
-    }
-    [SentryClient.sharedClient reportUserException:@"ReactNativeException" reason:newMessage language:@"cocoa" lineOfCode:@"" stackTrace:stack logAllThreads:YES terminateProgram:terminateProgram];
-}
-
-#pragma mark RCTExceptionsManagerDelegate
-
-- (void)handleSoftJSExceptionWithMessage:(NSString *)message stack:(NSArray *)stack exceptionId:(NSNumber *)exceptionId {
-    [self reportReactNativeCrashWithMessage:message stacktrace:stack terminateProgram:NO];
-}
-
-- (void)handleFatalJSExceptionWithMessage:(NSString *)message stack:(NSArray *)stack exceptionId:(NSNumber *)exceptionId {
-#ifndef DEBUG
-    RCTSetFatalHandler(^(NSError *error) {
-        [self reportReactNativeCrashWithMessage:message stacktrace:stack terminateProgram:YES];
-    });
-#else
-    RCTSetFatalHandler(^(NSError *error) {
-        [self reportReactNativeCrashWithMessage:message stacktrace:stack terminateProgram:NO];
-    });
-#endif
 }
 
 @end
