@@ -191,7 +191,8 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
     SentryClient.sharedClient.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
         // We don't want to send an event after startup that came from a NSException of react native
         // Because we sent it already before the app crashed.
-        if ([event.exceptions.firstObject.type rangeOfString:@"RCTFatalException"].location != NSNotFound) {
+        if (nil != event.exceptions.firstObject.type &&
+            [event.exceptions.firstObject.type rangeOfString:@"RCTFatalException"].location != NSNotFound) {
             NSLog(@"RCTFatalException");
             return NO;
         }

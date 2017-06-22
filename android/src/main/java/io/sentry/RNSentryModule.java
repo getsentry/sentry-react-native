@@ -36,6 +36,7 @@ import io.sentry.event.Event;
 import io.sentry.event.EventBuilder;
 import io.sentry.event.User;
 import io.sentry.event.UserBuilder;
+import io.sentry.event.helper.ShouldSendEventCallback;
 import io.sentry.event.interfaces.ExceptionInterface;
 import io.sentry.event.interfaces.SentryException;
 import io.sentry.event.interfaces.SentryStackTraceElement;
@@ -95,6 +96,20 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 params.putString("event_id", event.getId().toString());
                 params.putString("level", event.getLevel().toString().toLowerCase());
                 RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, params);
+            }
+        });
+        sentryClient.addShouldSendEvent(new ShouldSendEventCallback() {
+            @Override
+            public boolean shouldSend(Event event) {
+                // We don't want to send events that are from ExceptionsManagerModule.
+                // Because we sent it already from raven.
+                if (event.getSentryInterfaces().containsKey(ExceptionInterface.EXCEPTION_INTERFACE)) {
+                    ExceptionInterface exceptionInterface = ((ExceptionInterface)event.getSentryInterfaces().get(ExceptionInterface.EXCEPTION_INTERFACE));
+                    if (exceptionInterface.getExceptions().getFirst().getExceptionClassName().contains("JavascriptException")) {
+                        return false;
+                    }
+                }
+                return true;
             }
         });
         logger.info(String.format("startWithDsnString '%s'", dsnString));
