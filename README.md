@@ -15,8 +15,23 @@
 With this SDK, Sentry is now able to provide mixed stacktraces. This means that if a JavaScript call causes a crash in native code, you will see the last call from JavaScript before the crash. This also means that with the new SDK, native crashes are properly handled on iOS.
 Full Android support coming soon but it will gracefully downgrade to use [raven-js](https://github.com/getsentry/raven-js).
 
+## Additional device information
+
+When using this library you will get alot more information about the device surrounding your crashes.
+
+**Without native integration**
+![Raven js only](https://github.com/getsentry/react-native-sentry/raw/master/assets/raven.png)
+
+**With native integration**
+![Enriched](https://github.com/getsentry/react-native-sentry/raw/master/assets/enriched.png)
+![Additional](https://github.com/getsentry/react-native-sentry/raw/master/assets/additional-device.png)
+
+
+**Mixed Stacktraces**<sup>(1)</sup>
 ![Mixed Stacktrace](https://github.com/getsentry/react-native-sentry/raw/master/assets/mixed-stacktrace.png)
 
 ## Documentation
 
 https://docs.sentry.io/clients/react-native/
+
+<sup>(1)</sup>only suppored on iOS
