@@ -25,7 +25,7 @@
     "glob": "7.1.1",
     "inquirer": "3.0.6",
     "raven-js": "^3.16.0",
-    "sentry-cli-binary": "^1.13.3",
+    "sentry-cli-binary": "^1.16.0",
     "xcode": "0.9.3"
   },
   "rnpm": {

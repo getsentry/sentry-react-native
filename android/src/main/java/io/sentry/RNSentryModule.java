@@ -98,7 +98,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, params);
             }
         });
-        sentryClient.addShouldSendEvent(new ShouldSendEventCallback() {
+        sentryClient.addShouldSendEventCallback(new ShouldSendEventCallback() {
             @Override
             public boolean shouldSend(Event event) {
                 // We don't want to send events that are from ExceptionsManagerModule.
