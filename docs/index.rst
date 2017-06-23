@@ -88,6 +88,13 @@ Note: When you run ``react-native link`` we will automatically update your
 You can pass additional configuration options to the `config()` method if
 you want to do so.
 
+Mixed Stacktraces
+-----------------
+
+Currently we only support mixed stacktraces on iOS. By default this feature is
+enabled. If you encounter performance issues we recommend try turning it
+off ``deactivateStacktraceMerging: true`` see: :doc:`config`.
+
 Deep Dive
 ---------
 
