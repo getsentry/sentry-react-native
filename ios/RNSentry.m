@@ -168,7 +168,7 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
         event.dist = [NSString stringWithFormat:@"%@", event.extra[@"__sentry_dist"]];
     }
     NSMutableDictionary *prevExtra = SentryClient.sharedClient.extra.mutableCopy;
-    [prevExtra setValue:@"react-native" forKey:@"__sentry_sdk_detail"];
+    [prevExtra setValue:@[@"react-native"] forKey:@"__sentry_sdk_integrations"];
     SentryClient.sharedClient.extra = prevExtra;
 }
 
@@ -338,7 +338,7 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
         user.username = [NSString stringWithFormat:@"%@", event[@"user"][@"username"]];
         user.extra = [RCTConvert NSDictionary:event[@"user"][@"extra"]];
     }
-    
+
     SentryEvent *sentryEvent = [[SentryEvent alloc] initWithLevel:level];
     sentryEvent.eventId = event[@"event_id"];
     sentryEvent.message = event[@"message"];
