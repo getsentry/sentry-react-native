@@ -34,4 +34,4 @@ When using this library you will get alot more information about the device surr
 
 https://docs.sentry.io/clients/react-native/
 
-<sup>(1)</sup>only suppored on iOS
+<sup>(1)</sup>only supported on iOS
