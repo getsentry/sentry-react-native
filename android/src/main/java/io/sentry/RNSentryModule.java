@@ -266,6 +266,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
         }
 
+        eventBuilder.withSdkIntegration("react-native");
         return eventBuilder.build();
     }
 
