@@ -21,6 +21,7 @@ import com.facebook.react.bridge.WritableNativeMap;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -284,9 +285,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     private static SentryStackTraceElement[] convertToNativeStacktrace(ReadableNativeArray stack) {
-        final int stackFrameSize = stack.size();
-        SentryStackTraceElement[] synthStackTrace = new SentryStackTraceElement[stackFrameSize];
-        for (int i = 0; i < stackFrameSize; i++) {
+        Deque<SentryStackTraceElement> frames = new ArrayDeque<>();
+        for (int i = 0; i < stack.size(); i++) {
             ReadableNativeMap frame = stack.getMap(i);
 
             String fileName = "";
@@ -328,10 +328,23 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             String[] lastFileNameSegments = fileName.split("\\?");
             String lastPathComponent = lastFileNameSegments[0];
             String[] fileNameSegments = lastPathComponent.split("/");
-            StringBuilder finalFileName = new StringBuilder("app:///").append(fileNameSegments[fileNameSegments.length-1]);
+            String calculatedFileName = fileNameSegments[fileNameSegments.length-1];
+            StringBuilder finalFileName = new StringBuilder("app:///").append(calculatedFileName);
+
+            // We want to skip native code frames without function
+            if (methodName.equals("?") && calculatedFileName.equals("[native code]")) {
+                continue;
+            }
 
             SentryStackTraceElement stackFrame = new SentryStackTraceElement("", methodName, stackFrameToModuleId(frame), lineNumber, column, finalFileName.toString(), "javascript");
-            synthStackTrace[i] = stackFrame;
+            frames.add(stackFrame);
+        }
+        SentryStackTraceElement[] synthStackTrace = new SentryStackTraceElement[frames.size()];
+        Iterator<SentryStackTraceElement> iterator = frames.iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            synthStackTrace[i] = iterator.next();
+            i++;
         }
         return synthStackTrace;
     }
