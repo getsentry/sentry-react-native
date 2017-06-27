@@ -187,7 +187,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                         builtUser.getId(),
                         builtUser.getUsername(),
                         null,
-                        builtUser.getEmail()
+                        builtUser.getEmail(),
+                        builtUser.getData()
                 );
                 eventBuilder.withSentryInterface(userInterface);
             }
@@ -242,6 +243,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
         if (user.hasKey("username")) {
             userBuilder.setUsername(user.getString("username"));
+        }
+        if (user.hasKey("extra")) {
+            userBuilder.setData(((ReadableNativeMap)user.getMap("extra")).toHashMap());
         }
         return userBuilder;
     }
