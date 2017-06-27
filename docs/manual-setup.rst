@@ -7,22 +7,6 @@ is happening on each platform.
 iOS
 ---
 
-Since we use our `Swift Client
-<https://github.com/getsentry/sentry-swift>`_ in the background, your
-project has to embed the swift standard libraries.
-
-Xcode Settings
-``````````````
-
-The link step sets ``ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES`` in your Xcode
-project's build settings to ``YES``.
-
-You will get this error message if that setting is not set::
-
-    dyld: Library not loaded: @rpath/libswiftCore.dylib
-    Referenced from: [Redacted]/Sentry.framework/Sentry
-    Reason: image not found
-
 Build Steps
 ```````````
 
@@ -53,7 +37,7 @@ upload-dsym``) and consult the documentation on dsym handling instead (see
 
 Note that uploading of debug simulator builds by default is disabled for
 speed reasons.  If you do want to also generate debug symbols for debug
-builds you can pass `--allow-fetch` as a parameter to ``react-native-xcode``
+builds you can pass ``--allow-fetch`` as a parameter to ``react-native-xcode``
 in the above mentioned build phase.
 
 Android

@@ -1,5 +1,5 @@
 Additional Configuration
-========================
+------------------------
 
 These are functions you can call in your javascript code:
 
