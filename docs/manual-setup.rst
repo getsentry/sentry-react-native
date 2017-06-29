@@ -7,22 +7,6 @@ is happening on each platform.
 iOS
 ---
 
-Since we use our `Swift Client
-<https://github.com/getsentry/sentry-swift>`_ in the background, your
-project has to embed the swift standard libraries.
-
-Xcode Settings
-``````````````
-
-The link step sets ``ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES`` in your Xcode
-project's build settings to ``YES``.
-
-You will get this error message if that setting is not set::
-
-    dyld: Library not loaded: @rpath/libswiftCore.dylib
-    Referenced from: [Redacted]/Sentry.framework/Sentry
-    Reason: image not found
-
 Build Steps
 ```````````
 
@@ -43,20 +27,17 @@ To this::
     ../node_modules/sentry-cli-binary/bin/sentry-cli react-native xcode \
       ../node_modules/react-native/packager/react-native-xcode.sh
 
-Additionally we add a build script called "Bundle react-native-sentry
-Frameworks" which bundles necessary frameworks as well as a build
-step called "Upload Debug Symbols to Sentry" which uploads debug symbols
-to Sentry.  The latter needs to be disabled if you use bitcode.
+Additionally we add a build script called "Upload Debug Symbols to Sentry" which uploads debug symbols
+to Sentry.
 
-This also uploads debug symbols in the last line which however will not
-work for bitcode enabled builds.  If you are using bitcode you need to
+However this will not work for bitcode enabled builds.  If you are using bitcode you need to
 remove that line (``../node_modules/sentry-cli-binary/bin/sentry-cli
 upload-dsym``) and consult the documentation on dsym handling instead (see
 :ref:`dsym-with-bitcode`).
 
 Note that uploading of debug simulator builds by default is disabled for
 speed reasons.  If you do want to also generate debug symbols for debug
-builds you can pass `--allow-fetch` as a parameter to ``react-native-xcode``
+builds you can pass ``--allow-fetch`` as a parameter to ``react-native-xcode``
 in the above mentioned build phase.
 
 Android

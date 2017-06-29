@@ -21,5 +21,5 @@ android {
 
 dependencies {
     compile 'com.facebook.react:react-native:+'
-    compile 'io.sentry:sentry-android:1.0.0'
+    compile 'io.sentry:sentry-android:1.2.0'
 }
