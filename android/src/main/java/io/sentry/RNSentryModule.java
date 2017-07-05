@@ -336,11 +336,18 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 continue;
             }
 
+            // We remove the url and add native code the method name so its in the stacktrace
+            // but not
+            if (calculatedFileName.equals("[native code]")) {
+                finalFileName = new StringBuilder("");
+                methodName = new StringBuilder("[native code] ").append(methodName).toString();
+            }
+
             SentryStackTraceElement stackFrame = new SentryStackTraceElement("", methodName, stackFrameToModuleId(frame), lineNumber, column, finalFileName.toString(), "javascript");
             frames.add(stackFrame);
         }
         SentryStackTraceElement[] synthStackTrace = new SentryStackTraceElement[frames.size()];
-        Iterator<SentryStackTraceElement> iterator = frames.iterator();
+        Iterator<SentryStackTraceElement> iterator = frames.descendingIterator();
         int i = 0;
         while (iterator.hasNext()) {
             synthStackTrace[i] = iterator.next();

@@ -3,7 +3,13 @@
 buildscript {
     repositories {
         jcenter()
+        mavenLocal()
+        mavenCentral()
+        maven {
+            url "/Users/haza/Projects/sentry-java/gradle/build/repo"
+        }
     }
+
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.3'
         // NOTE: Do not place your application dependencies here; they belong

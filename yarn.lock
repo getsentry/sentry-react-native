@@ -556,9 +556,9 @@ pseudomap@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/pseudomap/-/pseudomap-1.0.2.tgz#f052a28da70e618917ef0a8ac34c1ae5a68286b3"
 
-raven-js@^3.15.0:
-  version "3.15.0"
-  resolved "https://registry.yarnpkg.com/raven-js/-/raven-js-3.15.0.tgz#ebf95466b7d40fbbc3d6a5085af7c1431607926c"
+raven-js@^3.16.1:
+  version "3.16.1"
+  resolved "https://registry.yarnpkg.com/raven-js/-/raven-js-3.16.1.tgz#4aab8ba7c57bc261604db970c41c49137340c450"
 
 repeating@^2.0.0:
   version "2.0.1"
@@ -600,9 +600,9 @@ rxjs@^5.0.0-beta.11:
   dependencies:
     symbol-observable "^1.0.1"
 
-sentry-cli-binary@^1.12.0:
-  version "1.13.1"
-  resolved "https://registry.yarnpkg.com/sentry-cli-binary/-/sentry-cli-binary-1.13.1.tgz#df010aa2151bf7fe1bca1cb0ff47ba321194f2ae"
+sentry-cli-binary@^1.16.0:
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/sentry-cli-binary/-/sentry-cli-binary-1.16.0.tgz#10fbdde9e6e86d8a864c96f8adeb97b0064ea427"
   dependencies:
     progress "2.0.0"
 
