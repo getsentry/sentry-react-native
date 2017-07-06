@@ -58,10 +58,13 @@ function shouldConfigurePlatform(platform) {
   // if a sentry.properties file exists for the platform we want to configure
   // without asking the user.  This means that re-linking later will not
   // bring up a useless dialog.
-  if (fs.existsSync(platform + '/sentry.properties')) {
+  if (fs.existsSync(platform + '/sentry.properties') || fs.existsSync(process.cwd() + platform + '/sentry.properties')) {
     configurePlatform[platform] = true;
+    let {dim} = chalk;
+    console.log(dim(platform + '/sentry.properties already exists'));
     return Promise.resolve(true);
   }
+
   considerShowingInfoHint();
   return inquirer
     .prompt([
@@ -216,7 +219,11 @@ function patchIndexJs(contents, filename) {
     if (!shouldConfigure) {
       return null;
     }
-
+    // if we match react-native-sentry somewhere, we already patched the file
+    // and no longer need to
+    if (contents.match('react-native-sentry')) {
+      Promise.resolve(contents);
+    }
     return getDsn(platform).then(function(dsn) {
       return Promise.resolve(
         contents.replace(/^([^]*)(import\s+[^;]*?;$)/m, function(match) {
@@ -258,7 +265,7 @@ function patchBuildGradle(contents) {
 function patchExistingXcodeBuildScripts(buildScripts) {
   for (let script of buildScripts) {
     if (
-      !script.shellScript.match(/packager\/react-native-xcode\.sh\b/) ||
+      !script.shellScript.match(/(packager|scripts)\/react-native-xcode\.sh\b/) ||
       script.shellScript.match(/sentry-cli\s+react-native[\s-]xcode/)
     ) {
       continue;
@@ -266,7 +273,7 @@ function patchExistingXcodeBuildScripts(buildScripts) {
     let code = JSON.parse(script.shellScript);
     code =
       'export SENTRY_PROPERTIES=sentry.properties\n' +
-      code.replace(/^.*?\/packager\/react-native-xcode\.sh\s*/m, function(match) {
+      code.replace(/^.*?\/(packager|scripts)\/react-native-xcode\.sh\s*/m, function(match) {
         return (
           '../node_modules/sentry-cli-binary/bin/sentry-cli react-native xcode ' + match
         );
