@@ -181,27 +181,30 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
 {
-    NSError *error = nil;
-    SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:&error];
-    [SentryClient setSharedClient:client];
-    [SentryClient.sharedClient startCrashHandlerWithError:&error];
-    if (error) {
-        [NSException raise:@"SentryReactNative" format:@"%@", error.localizedDescription];
-    }
-    SentryClient.sharedClient.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
-        // We don't want to send an event after startup that came from a NSException of react native
-        // Because we sent it already before the app crashed.
-        if (nil != event.exceptions.firstObject.type &&
-            [event.exceptions.firstObject.type rangeOfString:@"RCTFatalException"].location != NSNotFound) {
-            NSLog(@"RCTFatalException");
-            return NO;
+    static dispatch_once_t onceStartToken;
+    dispatch_once(&onceStartToken, ^{
+        NSError *error = nil;
+        SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:&error];
+        [SentryClient setSharedClient:client];
+        [SentryClient.sharedClient startCrashHandlerWithError:&error];
+        if (error) {
+            [NSException raise:@"SentryReactNative" format:@"%@", error.localizedDescription];
         }
-        return YES;
-    };
-    SentryClient.sharedClient.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
-        [self injectReactNativeFrames:event];
-        [self setReleaseVersionDist:event];
-    };
+        SentryClient.sharedClient.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
+            // We don't want to send an event after startup that came from a NSException of react native
+            // Because we sent it already before the app crashed.
+            if (nil != event.exceptions.firstObject.type &&
+                [event.exceptions.firstObject.type rangeOfString:@"RCTFatalException"].location != NSNotFound) {
+                NSLog(@"RCTFatalException");
+                return NO;
+            }
+            return YES;
+        };
+        SentryClient.sharedClient.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
+            [self injectReactNativeFrames:event];
+            [self setReleaseVersionDist:event];
+        };
+    });
 }
 
 RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve

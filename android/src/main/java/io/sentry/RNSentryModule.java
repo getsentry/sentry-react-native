@@ -56,6 +56,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     final static Logger logger = Logger.getLogger("react-native-sentry");
     private static WritableNativeMap extra;
     private static ReadableMap tags;
+    private static SentryClient sentryClient;
 
     public RNSentryModule(ReactApplicationContext reactContext, ReactApplication reactApplication) {
         super(reactContext);
@@ -83,7 +84,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startWithDsnString(String dsnString) {
-        SentryClient sentryClient = Sentry.init(dsnString, new AndroidSentryClientFactory(this.getReactApplicationContext()));
+        if (sentryClient != null) {
+            logger.info(String.format("Already started, use existing client '%s'", dsnString));
+            return;
+        }
+        sentryClient = Sentry.init(dsnString, new AndroidSentryClientFactory(this.getReactApplicationContext()));
         androidHelper = new AndroidEventBuilderHelper(this.getReactApplicationContext());
         sentryClient.addEventSendCallback(new EventSendCallback() {
             @Override
