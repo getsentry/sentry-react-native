@@ -334,7 +334,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             String lastPathComponent = lastFileNameSegments[0];
             String[] fileNameSegments = lastPathComponent.split("/");
             String calculatedFileName = fileNameSegments[fileNameSegments.length-1];
-            StringBuilder finalFileName = new StringBuilder("app:///").append(calculatedFileName);
+            StringBuilder finalFileName = new StringBuilder("/").append(calculatedFileName);
 
             // We want to skip native code frames without function
             if (methodName.equals("?") && calculatedFileName.equals("[native code]")) {
