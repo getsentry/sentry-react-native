@@ -117,7 +117,7 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
         }
         NSString *simpleFilename = [[[frame[@"file"] lastPathComponent] componentsSeparatedByString:@"?"] firstObject];
         SentryFrame *sentryFrame = [[SentryFrame alloc] init];
-        sentryFrame.fileName = [NSString stringWithFormat:@"app:///%@", simpleFilename];
+        sentryFrame.fileName = [NSString stringWithFormat:@"/%@", simpleFilename];
         sentryFrame.function = frame[@"methodName"];
         sentryFrame.lineNumber = frame[@"lineNumber"];
         sentryFrame.columnNumber = frame[@"column"];
