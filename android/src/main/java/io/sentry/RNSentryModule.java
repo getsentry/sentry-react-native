@@ -19,9 +19,11 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -159,14 +161,23 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void captureBreadcrumb(ReadableMap breadcrumb) {
         logger.info(String.format("captureEvent '%s'", breadcrumb));
+
+        BreadcrumbBuilder breadcrumbBuilder = new BreadcrumbBuilder();
+        if (breadcrumb.hasKey("category")) {
+            breadcrumbBuilder.setCategory(breadcrumb.getString("category"));
+        }
+        if (breadcrumb.hasKey("data")) {
+            Map<String, String> newData = new HashMap<>();
+            for (Map.Entry<String, Object> data : breadcrumb.getMap("data").toHashMap().entrySet()) {
+                newData.put(data.getKey(), data.getValue().toString());
+            }
+            breadcrumbBuilder.setData(newData);
+        }
+        breadcrumbBuilder.setLevel(breadcrumbLevel((ReadableNativeMap)breadcrumb));
+
         if (breadcrumb.hasKey("message")) {
-            Sentry.record(
-                    new BreadcrumbBuilder()
-                            .setMessage(breadcrumb.getString("message"))
-                            .setCategory(breadcrumb.getString("category"))
-                            .setLevel(breadcrumbLevel((ReadableNativeMap)breadcrumb))
-                            .build()
-            );
+            breadcrumbBuilder.setMessage(breadcrumb.getString("message"));
+            Sentry.record(breadcrumbBuilder.build());
         }
     }
 
@@ -261,6 +272,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
         setRelease(eventBuilder);
         stripInternalSentry(eventBuilder);
+        eventBuilder.withBreadcrumbs(copyIterator(Sentry.getStoredClient().getContext().getBreadcrumbs()));
 
         if (extra != null) {
             for (Map.Entry<String, Object> entry : extra.toHashMap().entrySet()) {
@@ -278,6 +290,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
         eventBuilder.withSdkIntegration("react-native");
         return eventBuilder.build();
+    }
+
+    public static <T> List<T> copyIterator(Iterator<T> iter) {
+        List<T> copy = new ArrayList<T>();
+        while (iter.hasNext())
+            copy.add(iter.next());
+        return copy;
     }
 
     private static void addExceptionInterface(EventBuilder eventBuilder, String type, String value, ReadableNativeArray stack) {
