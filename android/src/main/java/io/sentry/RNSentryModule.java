@@ -255,6 +255,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
         if (user.hasKey("userID")) {
             userBuilder.setId(user.getString("userID"));
+        } else if (user.hasKey("userId")) {
+            userBuilder.setId(user.getString("userId"));
         } else if (user.hasKey("id")) {
             userBuilder.setId(user.getString("id"));
         }

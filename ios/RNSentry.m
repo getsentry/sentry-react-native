@@ -312,11 +312,7 @@ RCT_EXPORT_METHOD(addExtra:(NSString *_Nonnull)key value:(id)value)
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary *_Nonnull)user)
 {
-    SentryUser *sentryUser = [[SentryUser alloc] initWithUserId:[RCTConvert NSString:user[@"userID"]]];
-    sentryUser.email = [RCTConvert NSString:user[@"email"]];
-    sentryUser.username = [RCTConvert NSString:user[@"username"]];
-    sentryUser.extra = [RCTConvert NSDictionary:user[@"extra"]];
-    SentryClient.sharedClient.user = sentryUser;
+    SentryClient.sharedClient.user = [self createUser:user];
 }
 
 RCT_EXPORT_METHOD(captureBreadcrumb:(NSDictionary * _Nonnull)breadcrumb)
@@ -334,13 +330,7 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 {
     SentrySeverity level = [self sentrySeverityFromLevel:event[@"level"]];
 
-    SentryUser *user = nil;
-    if (event[@"user"] != nil) {
-        user = [[SentryUser alloc] initWithUserId:[NSString stringWithFormat:@"%@", event[@"user"][@"userID"]]];
-        user.email = [NSString stringWithFormat:@"%@", event[@"user"][@"email"]];
-        user.username = [NSString stringWithFormat:@"%@", event[@"user"][@"username"]];
-        user.extra = [RCTConvert NSDictionary:event[@"user"][@"extra"]];
-    }
+    SentryUser *user = [self createUser:event[@"user"]];
 
     SentryEvent *sentryEvent = [[SentryEvent alloc] initWithLevel:level];
     sentryEvent.eventId = event[@"event_id"];
@@ -368,6 +358,23 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
     thread.stacktrace = [[SentryStacktrace alloc] initWithFrames:frames registers:@{}];
     sentryException.thread = thread;
     event.exceptions = @[sentryException];
+}
+
+- (SentryUser *_Nullable)createUser:(NSDictionary *_Nonnull)user {
+    NSString *userId = nil;
+    if (nil != user[@"userID"]) {
+        userId = [NSString stringWithFormat:@"%@", user[@"userID"]];
+    } else if (nil != user[@"userId"]) {
+        userId = [NSString stringWithFormat:@"%@", user[@"userId"]];
+    } else if (nil != user[@"id"]) {
+        userId = [NSString stringWithFormat:@"%@", user[@"id"]];
+    }
+    SentryUser *sentryUser = nil;
+    sentryUser = [[SentryUser alloc] initWithUserId:userId];
+    sentryUser.email = [NSString stringWithFormat:@"%@", user[@"email"]];
+    sentryUser.username = [NSString stringWithFormat:@"%@", user[@"username"]];
+    sentryUser.extra = [RCTConvert NSDictionary:user[@"extra"]];
+    return sentryUser;
 }
 
 RCT_EXPORT_METHOD(crash)
