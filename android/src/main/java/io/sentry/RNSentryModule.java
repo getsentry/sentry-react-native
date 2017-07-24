@@ -169,9 +169,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         if (breadcrumb.hasKey("data") && breadcrumb.getMap("data") != null) {
             Map<String, String> newData = new HashMap<>();
             for (Map.Entry<String, Object> data : breadcrumb.getMap("data").toHashMap().entrySet()) {
-                if (data.getValue() != null) {
-                    newData.put(data.getKey(), data.getValue().toString());
-                }
+                newData.put(data.getKey(), data.getValue() != null ? data.getValue().toString() : null);
             }
             breadcrumbBuilder.setData(newData);
         }
