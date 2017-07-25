@@ -119,8 +119,12 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
         SentryFrame *sentryFrame = [[SentryFrame alloc] init];
         sentryFrame.fileName = [NSString stringWithFormat:@"app:///%@", simpleFilename];
         sentryFrame.function = frame[@"methodName"];
-        sentryFrame.lineNumber = frame[@"lineNumber"];
-        sentryFrame.columnNumber = frame[@"column"];
+        if (nil != frame[@"lineNumber"]) {
+            sentryFrame.lineNumber = frame[@"lineNumber"];
+        }
+        if (nil != frame[@"column"]) {
+            sentryFrame.columnNumber = frame[@"column"];
+        }
         sentryFrame.platform = @"javascript";
         [frames addObject:sentryFrame];
     }
@@ -330,15 +334,13 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 {
     SentrySeverity level = [self sentrySeverityFromLevel:event[@"level"]];
 
-    SentryUser *user = [self createUser:event[@"user"]];
-
     SentryEvent *sentryEvent = [[SentryEvent alloc] initWithLevel:level];
     sentryEvent.eventId = event[@"event_id"];
     sentryEvent.message = event[@"message"];
     sentryEvent.logger = event[@"logger"];
     sentryEvent.tags = [self sanitizeDictionary:event[@"tags"]];
     sentryEvent.extra = event[@"extra"];
-    sentryEvent.user = user;
+    sentryEvent.user = [self createUser:event[@"user"]];
     if (event[@"exception"]) {
         NSDictionary *exception = event[@"exception"][@"values"][0];
         NSMutableArray *frames = [NSMutableArray array];
@@ -370,10 +372,12 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
         userId = [NSString stringWithFormat:@"%@", user[@"id"]];
     }
     SentryUser *sentryUser = nil;
-    sentryUser = [[SentryUser alloc] initWithUserId:userId];
-    sentryUser.email = [NSString stringWithFormat:@"%@", user[@"email"]];
-    sentryUser.username = [NSString stringWithFormat:@"%@", user[@"username"]];
-    sentryUser.extra = [RCTConvert NSDictionary:user[@"extra"]];
+    if (nil != userId) {
+        sentryUser = [[SentryUser alloc] initWithUserId:userId];
+        sentryUser.email = [NSString stringWithFormat:@"%@", user[@"email"]];
+        sentryUser.username = [NSString stringWithFormat:@"%@", user[@"username"]];
+        sentryUser.extra = [RCTConvert NSDictionary:user[@"extra"]];
+    }
     return sentryUser;
 }
 
