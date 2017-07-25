@@ -24,11 +24,11 @@ To this::
 
     export NODE_BINARY=node
     export SENTRY_PROPERTIES=sentry.properties
-    
+
     # If you are using RN 0.46+
     ../node_modules/sentry-cli-binary/bin/sentry-cli react-native xcode \
       ../node_modules/react-native/scripts/react-native-xcode.sh
-      
+
     # For RN < 0.46
     ../node_modules/sentry-cli-binary/bin/sentry-cli react-native xcode \
       ../node_modules/react-native/packager/react-native-xcode.sh
@@ -37,7 +37,7 @@ Additionally we add a build script called "Upload Debug Symbols to Sentry" which
 to Sentry.
 
 However this will not work for bitcode enabled builds.  If you are using bitcode you need to
-remove that line (``../node_modules/sentry-cli-binary/bin/sentry-cli
+remove that line (``sentry-cli
 upload-dsym``) and consult the documentation on dsym handling instead (see
 :ref:`dsym-with-bitcode`).
 
@@ -45,6 +45,36 @@ Note that uploading of debug simulator builds by default is disabled for
 speed reasons.  If you do want to also generate debug symbols for debug
 builds you can pass ``--allow-fetch`` as a parameter to ``react-native-xcode``
 in the above mentioned build phase.
+
+Using node with nvm
+```````````````````
+
+If you are using nvm, Xcode seems to have problems locating the default node binary.
+In that case you should change the scripts to this::
+
+    # Setup nvm and set node
+    [ -z "$NVM_DIR" ] && export NVM_DIR="$HOME/.nvm"
+
+    if [[ -s "$HOME/.nvm/nvm.sh" ]]; then
+    . "$HOME/.nvm/nvm.sh"
+    elif [[ -x "$(command -v brew)" && -s "$(brew --prefix nvm)/nvm.sh" ]]; then
+    . "$(brew --prefix nvm)/nvm.sh"
+    fi
+
+    # Set up the nodenv node version manager if present
+    if [[ -x "$HOME/.nodenv/bin/nodenv" ]]; then
+    eval "$("$HOME/.nodenv/bin/nodenv" init -)"
+    fi
+
+    [ -z "$NODE_BINARY" ] && export NODE_BINARY="node"
+
+    # Run sentry cli script to upload debug symbols
+    $NODE_BINARY ../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym
+
+    # OR
+
+    $NODE_BINARY ../node_modules/sentry-cli-binary/bin/sentry-cli react-native xcode \
+      ../node_modules/react-native/scripts/react-native-xcode.sh
 
 Android
 -------
