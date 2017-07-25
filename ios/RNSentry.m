@@ -132,7 +132,11 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
 }
 
 - (void)injectReactNativeFrames:(SentryEvent *)event {
-    NSString *address = event.extra[@"__sentry_address"];
+    NSString *address = [event.extra valueForKey:@"__sentry_address"];
+    if (nil == address) {
+        // We bail out here since __sentry_address is not set
+        return;
+    }
     SentryThread *crashedThread = nil;
     for (SentryThread *thread in event.threads) {
         if ([thread.crashed boolValue]) {
