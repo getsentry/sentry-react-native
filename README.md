@@ -1,4 +1,10 @@
-# react-native-sentry
+<p align="center">
+    <a href="https://sentry.io" target="_blank" align="center">
+        <img src="https://sentry-brand.storage.googleapis.com/sentry-logo-black.png" width="280">
+    </a>
+<br/>
+    <h1>react-native-sentry</h1>
+</p>
 
 [![npm version](https://img.shields.io/npm/v/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)
 [![npm dm](https://img.shields.io/npm/dm/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)
