@@ -5,6 +5,7 @@ cache:
 - pip
 before_install:
   - brew update
+  - brew install yarn
   - brew outdated yarn || brew upgrade yarn
 script:
 - travis_retry .travis/run.sh
