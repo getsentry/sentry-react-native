@@ -1,0 +1,65 @@
+fastlane_version "2.48.0"
+
+default_platform :ios
+
+platform :ios do
+  before_all do
+    # ENV["SLACK_URL"] = "https://hooks.slack.com/services/..."
+
+  end
+
+  desc "Runs all the tests"
+  lane :test do
+    scan
+  end
+
+  lane :aws_device_run_ios do
+    #update_project_team(path: "example/ios/AwesomeProject.xcodeproj")
+
+    xcodebuild(
+      scheme: "AwesomeProject",
+      project: "example/ios/AwesomeProject.xcodeproj",
+      destination: "generic/platform=iOS",
+      configuration: "Release",
+      derivedDataPath: "aws",
+      xcargs: "GCC_PREPROCESSOR_DEFINITIONS='AWS_UI_TEST' ENABLE_BITCODE=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO build-for-testing"
+    )
+  end
+
+  lane :aws_ios_upload_and_run do
+    # ENV['AWS_ACCESS_KEY_ID']     = ''
+    # ENV['AWS_SECRET_ACCESS_KEY'] = ''
+    ENV['AWS_REGION']            = 'us-west-2'
+
+    # Transform .app into AWS compatible IPA
+    aws_device_farm_package(
+      derrived_data_path: "aws",
+      configuration: "Release"
+    )
+
+    # RUN tests on AWS Device Farm
+    aws_device_farm(
+      name: "react-native",
+      test_binary_path: "test_bundle.zip",
+      test_package_type: "APPIUM_PYTHON_TEST_PACKAGE",
+      test_type: 'APPIUM_PYTHON'
+    )
+  end
+
+  # You can define as many lanes as you want
+
+  after_all do |lane|
+    # This block is called, only if the executed lane was successful
+
+    # slack(
+    #   message: "Successfully deployed new App Update."
+    # )
+  end
+
+  error do |lane, exception|
+    # slack(
+    #   message: exception.message,
+    #   success: false
+    # )
+  end
+end

@@ -4,3 +4,6 @@
 [submodule "ios/KSCrash"]
   path = ios/KSCrash
   url=https://github.com/kstenerud/KSCrash
+[submodule "examples"]
+	path = examples
+	url = https://github.com/getsentry/examples

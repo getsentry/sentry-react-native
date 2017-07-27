@@ -1,0 +1,9 @@
+language: objective-c
+osx_image: xcode8.3
+cache:
+- bundler
+- pip
+script:
+- travis_retry .travis/run.sh
+notifications:
+  email: false

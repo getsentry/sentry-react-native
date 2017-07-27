@@ -48,6 +48,15 @@ Carthage/Checkouts
 **/Pods
 
 # Fastlane
-fastlane/test_output/
-report.xml
-.env
+appium/fastlane/test_output/
+appium/fastlane/report.xml
+appium/.env
+appium/fastlane/README.md
+
+# Appium
+
+aws
+test_bundle.zip
+__pycache__
+.cache
+wheelhouse
