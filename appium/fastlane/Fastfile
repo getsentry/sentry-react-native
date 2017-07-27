@@ -8,14 +8,18 @@ platform :ios do
 
   end
 
-  desc "Runs all the tests"
-  lane :test do
-    scan
+  lane :build_for_local_appium do
+    xcodebuild(
+      scheme: "AwesomeProject",
+      project: "example/ios/AwesomeProject.xcodeproj",
+      destination: "generic/platform=iOS Simulator",
+      configuration: "Release",
+      derivedDataPath: "aws",
+      xcargs: "GCC_PREPROCESSOR_DEFINITIONS='AWS_UI_TEST' ENABLE_BITCODE=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO build-for-testing"
+    )
   end
 
-  lane :aws_device_run_ios do
-    #update_project_team(path: "example/ios/AwesomeProject.xcodeproj")
-
+  lane :build_for_device_farm do
     xcodebuild(
       scheme: "AwesomeProject",
       project: "example/ios/AwesomeProject.xcodeproj",
@@ -45,8 +49,6 @@ platform :ios do
       test_type: 'APPIUM_PYTHON'
     )
   end
-
-  # You can define as many lanes as you want
 
   after_all do |lane|
     # This block is called, only if the executed lane was successful

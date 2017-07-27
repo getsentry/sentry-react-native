@@ -17,21 +17,57 @@ def test_send_message(driver):
     assert event['extra']['react']
     assert event['tags']['react'] == '1'
     assert len(event['user']) > 0
-    #assert value == 'button3'
 
-    # def test_scroll(self):
-    #     els = self.driver.find_elements_by_class_name('XCUIElementTypeButton')
-    #     els[5].click()
+def test_throw_error(no_reset_driver):
 
-    #     sleep(1)
-    #     try:
-    #         el = self.driver.find_element_by_accessibility_id('Allow')
-    #         el.click()
-    #         sleep(1)
-    #     except:
-    #         pass
+    no_reset_driver.find_element_by_accessibility_id('throw error').click()
 
-    #     el = self.driver.find_element_by_xpath('//XCUIElementTypeMap[1]')
+    sleep(1)
 
-    #     location = el.location
-    #     self.driver.swipe(start_x=location['x'], start_y=location['y'], end_x=0.5, end_y=location['y'], duration=800)
+    no_reset_driver.launch_app()
+
+    sleep(3)
+
+    value = no_reset_driver.find_element_by_accessibility_id('textarea').get_attribute("value")
+
+    assert value != None
+
+    event = json.loads(value)
+
+    assert len(event['breadcrumbs']) > 0
+    assert len(event['contexts']) > 0
+    assert event['exception']['values'][0]['value'] == 'Sentry: Test throw error'
+    assert event['platform'] == 'cocoa'
+    assert event['level'] == 'fatal'
+    assert event['dist'] == '1'
+    assert event['logger'] == 'javascript'
+    assert event['extra']['react']
+    assert event['tags']['react'] == '1'
+    assert len(event['user']) > 0
+
+def test_native_crash(no_reset_driver):
+
+    no_reset_driver.find_element_by_accessibility_id('native crash').click()
+
+    sleep(1)
+
+    no_reset_driver.launch_app()
+
+    sleep(3)
+
+    value = no_reset_driver.find_element_by_accessibility_id('textarea').get_attribute("value")
+
+    assert value != None
+
+    event = json.loads(value)
+
+    assert len(event['breadcrumbs']) > 0
+    assert len(event['contexts']) > 0
+    assert len(event['threads']['values']) > 0
+    assert len(event['exception']['values']) > 0
+    assert len(event['debug_meta']['images']) > 0
+    assert event['platform'] == 'cocoa'
+    assert event['level'] == 'fatal'
+    assert event['extra']['react']
+    assert event['tags']['react'] == '1'
+    assert len(event['user']) > 0
