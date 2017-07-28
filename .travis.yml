@@ -1,13 +1,13 @@
 language: objective-c
 osx_image: xcode8.3
 cache:
-- bundler
-- pip
+  - bundler
+  - pip
 before_install:
   - brew update
   - brew install yarn
   - brew outdated yarn || brew upgrade yarn
 script:
-- travis_retry .travis/run.sh
+  - .travis/run.sh
 notifications:
   email: false
