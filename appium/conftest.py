@@ -11,7 +11,7 @@ def driver(request):
 @pytest.fixture(scope='function')
 def no_reset_driver(request):
     desired_caps = default_capabilities()
-    desired_caps['noReset'] = True
+    desired_caps['noReset'] = (runs_on_aws() == True and False or True)
     return get_driver(request, desired_caps)
 
 def get_driver(request, desired_caps):
@@ -23,14 +23,15 @@ def get_driver(request, desired_caps):
 
     return _driver
 
+def runs_on_aws():
+    return os.getenv('SCREENSHOT_PATH', False) != False
+
 def default_capabilities():
     app = os.path.abspath('aws/Build/Products/Release-iphonesimulator/AwesomeProject.app')
 
-    screenshot_folder = os.getenv('SCREENSHOT_PATH', '')
-
     desired_caps = {}
 
-    if screenshot_folder == '':
+    if runs_on_aws() == False:
         desired_caps['platformName'] = 'iOS'
         desired_caps['platformVersion'] = '10.3'
         desired_caps['deviceName'] = 'iPhone Simulator'
