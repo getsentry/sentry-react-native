@@ -6,9 +6,11 @@ from time import sleep
 def test_send_message(driver):
     driver.find_element_by_accessibility_id('send message').click()
 
-    sleep(1)
+    sleep(3)
 
     value = driver.find_element_by_accessibility_id('textarea').get_attribute("value")
+
+    assert value != None
     event = json.loads(value)
 
     assert len(event['breadcrumbs']) > 0
@@ -18,8 +20,10 @@ def test_send_message(driver):
     assert event['tags']['react'] == '1'
     assert len(event['user']) > 0
 
-def test_throw_error(no_reset_driver):
-    no_reset_driver.reset()
+def test_throw_error(no_reset_driver, on_aws):
+    if not on_aws:
+        no_reset_driver.reset()
+
     no_reset_driver.find_element_by_accessibility_id('throw error').click()
     sleep(1)
     no_reset_driver.launch_app()
@@ -40,8 +44,10 @@ def test_throw_error(no_reset_driver):
     assert event['tags']['react'] == '1'
     assert len(event['user']) > 0
 
-def test_native_crash(no_reset_driver):
-    no_reset_driver.reset()
+def test_native_crash(no_reset_driver, on_aws):
+    if not on_aws:
+        no_reset_driver.reset()
+
     no_reset_driver.find_element_by_accessibility_id('native crash').click()
     sleep(1)
     no_reset_driver.launch_app()

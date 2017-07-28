@@ -23,6 +23,10 @@ def get_driver(request, desired_caps):
 
     return _driver
 
+@pytest.fixture(scope='function')
+def on_aws():
+    return runs_on_aws()
+
 def runs_on_aws():
     return os.getenv('SCREENSHOT_PATH', False) != False
 
