@@ -19,19 +19,14 @@ def test_send_message(driver):
     assert len(event['user']) > 0
 
 def test_throw_error(no_reset_driver):
-
+    no_reset_driver.reset()
     no_reset_driver.find_element_by_accessibility_id('throw error').click()
-
     sleep(1)
-
     no_reset_driver.launch_app()
-
     sleep(3)
-
     value = no_reset_driver.find_element_by_accessibility_id('textarea').get_attribute("value")
 
     assert value != None
-
     event = json.loads(value)
 
     assert len(event['breadcrumbs']) > 0
@@ -46,19 +41,14 @@ def test_throw_error(no_reset_driver):
     assert len(event['user']) > 0
 
 def test_native_crash(no_reset_driver):
-
+    no_reset_driver.reset()
     no_reset_driver.find_element_by_accessibility_id('native crash').click()
-
     sleep(1)
-
     no_reset_driver.launch_app()
-
     sleep(3)
-
     value = no_reset_driver.find_element_by_accessibility_id('textarea').get_attribute("value")
 
     assert value != None
-
     event = json.loads(value)
 
     assert len(event['breadcrumbs']) > 0
