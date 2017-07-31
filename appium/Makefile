@@ -7,10 +7,10 @@ install:
 
 copy-local-files-to-example:
 	rm -rf example/node_modules/react-native-sentry/lib/*
-	rm -rf example/node_modules/react-native-sentry/ios/*
+	find example/node_modules/react-native-sentry/ios -name 'RN*.[h|m]' -exec rm {} \;
 	rm -rf example/node_modules/react-native-sentry/android/*
 	cp -r ../lib/* example/node_modules/react-native-sentry/lib/
-	cp -r ../ios/* example/node_modules/react-native-sentry/ios/
+	find ../ios -name 'RN*.[h|m]' -exec cp {} example/node_modules/react-native-sentry/ios/ \;
 	cp -r ../android/* example/node_modules/react-native-sentry/android/
 
 test: create-test-bundle install copy-local-files-to-example
