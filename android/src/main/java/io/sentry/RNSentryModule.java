@@ -231,6 +231,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
 
         Sentry.capture(buildEvent(eventBuilder));
+        RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new WritableNativeMap());
     }
 
     @ReactMethod

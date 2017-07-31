@@ -11,6 +11,7 @@ import java.util.Map;
 public class RNSentryEventEmitter extends ReactContextBaseJavaModule {
 
     public static final String SENTRY_EVENT_SENT_SUCCESSFULLY = "Sentry/eventSentSuccessfully";
+    public static final String SENTRY_EVENT_STORED = "Sentry/eventStored";
 
     public RNSentryEventEmitter(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -25,6 +26,7 @@ public class RNSentryEventEmitter extends ReactContextBaseJavaModule {
     public Map<String, Object> getConstants() {
         final Map<String, Object> constants = new HashMap<>();
         constants.put("EVENT_SENT_SUCCESSFULLY", SENTRY_EVENT_SENT_SUCCESSFULLY);
+        constants.put("EVENT_STORED", SENTRY_EVENT_STORED);
         return constants;
     }
 

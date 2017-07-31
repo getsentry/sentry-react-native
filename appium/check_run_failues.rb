@@ -12,7 +12,10 @@ problems = client.list_unique_problems({
 problems.unique_problems.each do |up|
     raise RuntimeError, "No failed tests: #{up.inspect}" unless up.length == 2
     up[1].each do |p|
-        exception = p.message.match(/crashed: EXC_/)
-        raise RuntimeError, "No crash: #{p.inspect}" unless !exception.nil?
+        if p.problems[0].test.name == 'test_native_crash' ||
+            p.problems[0].test.name == 'test_throw_error'
+            exception = p.message.match(/crashed: EXC_/)
+            raise RuntimeError, "No crash: #{p.inspect}" unless !exception.nil?
+        end
     end
 end

@@ -355,6 +355,7 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
         [self addExceptionToEvent:sentryEvent type:exception[@"type"] value:exception[@"value"] frames:frames];
     }
     [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
+    [RNSentryEventEmitter emitStoredEvent];
 }
 
 - (void)addExceptionToEvent:(SentryEvent *)event type:(NSString *)type value:(NSString *)value frames:(NSArray *)frames {
