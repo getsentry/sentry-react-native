@@ -35,7 +35,7 @@ class DriverProxy(object):
         self._driver = None
 
     def relaunch_app(self):
-        self.quit()
+        #self.quit() if we quit here, we loose connection to the app
 
         # this fails but actually succeeds
         try:

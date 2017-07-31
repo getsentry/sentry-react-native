@@ -46,8 +46,15 @@ platform :ios do
       name: "react-native",
       test_binary_path: "test_bundle.zip",
       test_package_type: "APPIUM_PYTHON_TEST_PACKAGE",
-      test_type: 'APPIUM_PYTHON'
+      test_type: 'APPIUM_PYTHON',
+      allow_failed_tests: true
     )
+
+    store_run_arn
+  end
+
+  lane :store_run_arn do
+    sh("echo #{ENV['AWS_DEVICE_FARM_RUN_ARN']} > .aws.run.arn")
   end
 
   after_all do |lane|

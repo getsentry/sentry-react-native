@@ -6,8 +6,9 @@ install:
 	cd example; yarn install
 
 test: create-test-bundle install
-	fastlane build_for_device_farm
-	fastlane aws_ios_upload_and_run
+	fastlane build_for_device_farm --verbose
+	fastlane aws_ios_upload_and_run --verbose
+	ruby check_run_failues.rb
 
 local-test:
 	fastlane build_for_local_appium
