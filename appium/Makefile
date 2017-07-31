@@ -14,8 +14,8 @@ copy-local-files-to-example:
 	cp -r ../android/* example/node_modules/react-native-sentry/android/
 
 test: create-test-bundle install copy-local-files-to-example
-	fastlane build_for_device_farm --verbose
-	fastlane aws_ios_upload_and_run --verbose
+	fastlane build_for_device_farm
+	fastlane aws_ios_upload_and_run
 	ruby check_run_failues.rb
 
 local-test:
