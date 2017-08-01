@@ -22,8 +22,8 @@ problems.unique_problems.each do |up|
             artifacts.artifacts.each do |a|
                 if a.name == 'Syslog'
                     content = open(a.url).read
-                    exception = content.match(/Sentry - Verbose:: Sending JSON/)
-                    raise RuntimeError, "No JSON SENT: #{p.inspect}" unless !exception.nil?
+                    exception = content.scan(/Sentry - Verbose:: Sending JSON/).size
+                    raise RuntimeError, "No JSON SENT: #{p.inspect}" unless exception == 1
                     exception = nil
                 end
             end
