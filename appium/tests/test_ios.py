@@ -18,6 +18,8 @@ def test_send_message(driver):
     assert event['message'] == 'TEST message'
     assert event['extra']['react']
     assert event['tags']['react'] == '1'
+    assert event['sdk'] == False
+    assert event['sdk']['integrations'][0] == 'react-native'
     assert len(event['user']) > 0
 
 def test_throw_error(driver):

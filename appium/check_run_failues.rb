@@ -22,9 +22,9 @@ problems.unique_problems.each do |up|
             artifacts.artifacts.each do |a|
                 if a.name == 'Syslog'
                     content = open(a.url).read
-                    exception = content.scan(/Sentry - Verbose:: Sending JSON/).size
-                    raise RuntimeError, "No JSON SENT: #{p.inspect}" unless exception == 1
-                    exception = nil
+                    raise RuntimeError, "No JSON SENT: #{p.inspect}" unless content.scan(/Sentry - Verbose:: Sending JSON/).size == 1
+                    raise RuntimeError, "Wrong exception value: #{p.inspect}" unless content.scan(/"value" : "Sentry: Test throw error"/).size == 1
+                    raise RuntimeError, "No javascript frames: #{p.inspect}" unless content.scan(/"platform" : "javascript"/).size >= 1
                 end
             end
         end
