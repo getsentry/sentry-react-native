@@ -2,4 +2,11 @@
 cd appium
 bundle install
 pip wheel --wheel-dir wheelhouse -r requirements.txt
-make test
+
+if [ "$LANE" = "ios" ];
+then
+    make test
+else
+    make test-android
+fi
+fastlane $LANE

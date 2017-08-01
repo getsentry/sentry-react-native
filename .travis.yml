@@ -9,5 +9,9 @@ before_install:
   - brew outdated yarn || brew upgrade yarn
 script:
   - .travis/run.sh
+env:
+  matrix:
+  - LANE=ios
+  - LANE=android
 notifications:
   email: false

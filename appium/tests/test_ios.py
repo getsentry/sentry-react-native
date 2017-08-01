@@ -28,18 +28,6 @@ def test_throw_error(driver):
     value = driver.find_element_by_accessibility_id('textarea').get_attribute("value")
     # the crash should have been already sent
     assert value is None
-    # event = json.loads(value)
-
-    # assert len(event['breadcrumbs']) > 0
-    # assert len(event['contexts']) > 0
-    # assert event['exception']['values'][0]['value'] == 'Sentry: Test throw error'
-    # assert event['platform'] == 'cocoa'
-    # assert event['level'] == 'fatal'
-    # assert event['dist'] == '1'
-    # assert event['logger'] == 'javascript'
-    # assert event['extra']['react']
-    # assert event['tags']['react'] == '1'
-    # assert len(event['user']) > 0
 
 def test_native_crash(driver):
     sleep(2)

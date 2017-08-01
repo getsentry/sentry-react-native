@@ -77,16 +77,20 @@ def runs_on_aws():
 
 
 def default_capabilities():
-    app = os.path.abspath('aws/Build/Products/Release-iphonesimulator/AwesomeProject.app')
-
     desired_caps = {}
 
     desired_caps['noReset'] = True
     desired_caps['showIOSLog'] = True
     if not runs_on_aws():
-        desired_caps['platformName'] = 'iOS'
-        desired_caps['platformVersion'] = '10.3'
-        desired_caps['deviceName'] = 'iPhone Simulator'
-        desired_caps['app'] = app
+        if os.environ.get('ANDROID') == '1':
+            desired_caps['app'] = os.path.abspath('example/android/app/build/outputs/apk/app-release-unsigned.apk')
+            desired_caps['platformName'] = 'Android'
+            desired_caps['deviceName'] = 'Android'
+        else:
+            desired_caps['app'] = os.path.abspath('aws/Build/Products/Release-iphonesimulator/AwesomeProject.app')
+            desired_caps['platformName'] = 'iOS'
+            desired_caps['platformVersion'] = '10.3'
+            desired_caps['deviceName'] = 'iPhone Simulator'
+
 
     return desired_caps

@@ -1,6 +1,10 @@
 create-test-bundle:
 	rm test_bundle.zip | true
-	zip -r test_bundle.zip tests/ wheelhouse/ requirements.txt conftest.py
+	zip -r test_bundle.zip tests/test_ios.py wheelhouse/ requirements.txt conftest.py
+
+create-android-test-bundle:
+	rm test_bundle.zip | true
+	zip -r test_bundle.zip tests/test_android.py wheelhouse/ requirements.txt conftest.py
 
 install:
 	cd example; yarn install
@@ -20,6 +24,15 @@ test: create-test-bundle install copy-local-files-to-example
 	fastlane aws_ios_upload_and_run
 	ruby check_run_failues.rb
 
+test-android: create-android-test-bundle install copy-local-files-to-example
+	fastlane build_android_for_device_farm
+	fastlane aws_android_upload_and_run
+	ANDROID=1 ruby check_run_failues.rb
+
+local-android-test:
+	fastlane build_android_for_device_farm
+	ANDROID=1 pytest -vv tests/test_android.py
+
 local-test:
 	fastlane build_for_local_appium
-	pytest -vv tests/
+	pytest -vv tests/test_ios.py
