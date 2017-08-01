@@ -7,6 +7,9 @@ before_install:
   - brew update
   - brew install yarn
   - brew outdated yarn || brew upgrade yarn
+  - export ANDROID_HOME=$PWD/android-sdk-macosx
+  - export ANDROID_SDK=$ANDROID_HOME
+  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
 script:
   - .travis/run.sh
 env:
