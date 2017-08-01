@@ -349,7 +349,7 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
         NSDictionary *exception = event[@"exception"][@"values"][0];
         NSMutableArray *frames = [NSMutableArray array];
         NSArray<SentryFrame *> *stacktrace = [self convertReactNativeStacktrace:SentryParseRavenFrames(exception[@"stacktrace"][@"frames"])];
-        for (NSInteger i = (stacktrace.count-1); i > 0; i--) {
+        for (NSInteger i = (stacktrace.count-1); i >= 0; i--) {
             [frames addObject:[stacktrace objectAtIndex:i]];
         }
         [self addExceptionToEvent:sentryEvent type:exception[@"type"] value:exception[@"value"] frames:frames];
