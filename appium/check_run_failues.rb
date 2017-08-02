@@ -37,7 +37,6 @@ def android_check
                     if a.name == 'Logcat'
                         content = open(a.url).read
                         raise RuntimeError, "Missing native crash: #{p.inspect}" unless content.scan(/java.lang.RuntimeException: TEST - Sentry Client Crash/).size == 1
-                        raise RuntimeError, "Must start twice: #{p.inspect}" unless content.scan(/startWithDsnString/).size == 2
                     end
                 end
             end
