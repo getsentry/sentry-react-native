@@ -2,6 +2,8 @@
     "files.trimTrailingWhitespace": true,
     "files.ensureSingleFinalNewline": true,
 
+    "python.linting.pylintEnabled": false,
+
     "prettier.bracketSpacing": false,
     "prettier.singleQuote": true,
     "prettier.printWidth": 90,

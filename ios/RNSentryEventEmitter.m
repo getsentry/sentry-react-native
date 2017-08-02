@@ -9,17 +9,21 @@
 #import "RNSentryEventEmitter.h"
 
 NSString *const kEventSentSuccessfully = @"Sentry/eventSentSuccessfully";
+NSString *const kEventStored = @"Sentry/eventStored";
 
 @implementation RNSentryEventEmitter
 
 RCT_EXPORT_MODULE();
 
 - (NSDictionary<NSString *, NSString *> *)constantsToExport {
-    return @{ @"EVENT_SENT_SUCCESSFULLY": kEventSentSuccessfully};
+    return @{
+             @"EVENT_SENT_SUCCESSFULLY": kEventSentSuccessfully,
+             @"EVENT_STORED": kEventStored
+             };
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-    return @[@"Sentry/eventSentSuccessfully"];
+    return @[kEventSentSuccessfully, kEventStored];
 }
 
 
@@ -36,13 +40,13 @@ RCT_EXPORT_MODULE();
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-+ (void)successfullySentEventWithId:(NSString *)eventId {
-    [self postNotificationName:kEventSentSuccessfully withPayload:eventId];
++ (void)emitStoredEvent {
+    [self postNotificationName:kEventStored withPayload:@""];
 }
 
 + (void)postNotificationName:(NSString *)name withPayload:(NSObject *)object {
     NSDictionary<NSString *, id> *payload = @{@"payload": object};
-    
+
     [[NSNotificationCenter defaultCenter] postNotificationName:name
                                                         object:self
                                                       userInfo:payload];

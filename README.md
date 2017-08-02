@@ -3,9 +3,10 @@
         <img src="https://sentry-brand.storage.googleapis.com/sentry-logo-black.png" width="280">
     </a>
 <br/>
-    <h1>react-native-sentry</h1>
+    <h1>Sentry SDK for React Native</h1>
 </p>
 
+[![Travis](https://img.shields.io/travis/getsentry/react-native-sentry.svg?maxAge=2592000)](https://travis-ci.org/getsentry/react-native-sentry)
 [![npm version](https://img.shields.io/npm/v/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)
 [![npm dm](https://img.shields.io/npm/dm/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)
 [![npm dt](https://img.shields.io/npm/dt/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)

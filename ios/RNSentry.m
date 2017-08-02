@@ -175,9 +175,7 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
     if (event.extra[@"__sentry_dist"]) {
         event.dist = [NSString stringWithFormat:@"%@", event.extra[@"__sentry_dist"]];
     }
-    NSMutableDictionary *prevExtra = SentryClient.sharedClient.extra.mutableCopy;
-    [prevExtra setValue:@[@"react-native"] forKey:@"__sentry_sdk_integrations"];
-    SentryClient.sharedClient.extra = prevExtra;
+    [event.extra setValue:@[@"react-native"] forKey:@"__sentry_sdk_integrations"];
 }
 
 RCT_EXPORT_MODULE()
@@ -193,12 +191,11 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
     dispatch_once(&onceStartToken, ^{
         NSError *error = nil;
         SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:&error];
-        [SentryClient setSharedClient:client];
-        [SentryClient.sharedClient startCrashHandlerWithError:&error];
-        if (error) {
-            [NSException raise:@"SentryReactNative" format:@"%@", error.localizedDescription];
-        }
-        SentryClient.sharedClient.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
+        client.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
+            [self injectReactNativeFrames:event];
+            [self setReleaseVersionDist:event];
+        };
+        client.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
             // We don't want to send an event after startup that came from a NSException of react native
             // Because we sent it already before the app crashed.
             if (nil != event.exceptions.firstObject.type &&
@@ -208,10 +205,11 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
             }
             return YES;
         };
-        SentryClient.sharedClient.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
-            [self injectReactNativeFrames:event];
-            [self setReleaseVersionDist:event];
-        };
+        [SentryClient setSharedClient:client];
+        [SentryClient.sharedClient startCrashHandlerWithError:&error];
+        if (error) {
+            [NSException raise:@"SentryReactNative" format:@"%@", error.localizedDescription];
+        }
     });
 }
 
@@ -355,6 +353,7 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
         [self addExceptionToEvent:sentryEvent type:exception[@"type"] value:exception[@"value"] frames:frames];
     }
     [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
+    [RNSentryEventEmitter emitStoredEvent];
 }
 
 - (void)addExceptionToEvent:(SentryEvent *)event type:(NSString *)type value:(NSString *)value frames:(NSArray *)frames {
