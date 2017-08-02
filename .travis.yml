@@ -1,20 +1,47 @@
-language: objective-c
-osx_image: xcode8.3
-cache:
-  - bundler
-  - pip
-before_install:
-  - brew update
-  - brew install yarn
-  - brew outdated yarn || brew upgrade yarn
-  - export ANDROID_HOME=$PWD/android-sdk-macosx
-  - export ANDROID_SDK=$ANDROID_HOME
-  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
-script:
-  - .travis/run.sh
-env:
-  matrix:
-  - LANE=ios
-  - LANE=android
+matrix:
+  include:
+    - language: android
+      os: linux
+      jdk: oraclejdk8
+      before_cache:
+        - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+        - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+      sudo: required
+      node_js: false
+      before_install:
+        - nvm install 7
+        - node --version
+        - travis_retry curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+        - echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+        - travis_retry sudo apt-get update -qq
+        - travis_retry sudo apt-get install -y -qq yarn
+      install:
+        - yarn
+      android:
+        components:
+          - build-tools-23.0.1
+          - android-23
+          - extra-android-m2repository
+          - extra-google-google_play_services
+          - extra-google-m2repository
+          - addon-google_apis-google-16
+      script:
+        - .travis/run.sh
+    - language: objective-c
+      os: osx
+      osx_image: xcode8.3
+      cache:
+        - bundler
+        - pip
+      env:
+        - LANE='ios'
+      before_install:
+        - brew update
+        - brew install yarn
+        - brew outdated yarn || brew upgrade yarn
+      install:
+        - travis_retry gem install fastlane
+      script:
+        - .travis/run.sh
 notifications:
   email: false
