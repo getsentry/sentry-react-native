@@ -3,16 +3,17 @@ import json
 
 from time import sleep
 
+
+def extractText(driver):
+    return driver.find_element_by_accessibility_id('textarea').get_attribute("value")
+
+
 def test_send_message(driver):
     driver.find_element_by_accessibility_id('send message').click()
-
     sleep(3)
-
-    value = driver.find_element_by_accessibility_id('textarea').get_attribute("value")
-
+    value = extractText(driver)
     assert value != None
     event = json.loads(value)
-
     assert len(event['breadcrumbs']) > 0
     assert len(event['contexts']) > 0
     assert event['message'] == 'TEST message'
@@ -21,10 +22,41 @@ def test_send_message(driver):
     assert event['sdk']['integrations'][0] == 'react-native'
     assert len(event['user']) > 0
 
+
+def test_version(driver):
+    driver.find_element_by_accessibility_id('set version').click()
+    driver.find_element_by_accessibility_id('send message').click()
+    sleep(3)
+    value = extractText(driver)
+    assert value != None
+    event = json.loads(value)
+    assert event['release'] == 'org.reactjs.native.example.AwesomeProject-1337'
+
+
+def test_release(driver):
+    driver.find_element_by_accessibility_id('set release').click()
+    driver.find_element_by_accessibility_id('send message').click()
+    sleep(3)
+    value = extractText(driver)
+    assert value != None
+    event = json.loads(value)
+    assert event['release'] == 'myversion'
+
+
+def test_dist(driver):
+    driver.find_element_by_accessibility_id('set dist').click()
+    driver.find_element_by_accessibility_id('send message').click()
+    sleep(3)
+    value = extractText(driver)
+    assert value != None
+    event = json.loads(value)
+    assert event['dist'] == '500'
+
+
 def test_throw_error(driver):
     driver.find_element_by_accessibility_id('throw error').click()
     driver.relaunch_app()
-    value = driver.find_element_by_accessibility_id('textarea').get_attribute("value")
+    value = extractText(driver)
     # the crash should have been already sent
     assert value is None
 
@@ -33,7 +65,7 @@ def test_native_crash(driver):
     driver.find_element_by_accessibility_id('native crash').click()
     driver.relaunch_app()
     sleep(3)
-    value = driver.find_element_by_accessibility_id('textarea').get_attribute("value")
+    value = extractText(driver)
     # the crash should have been already sent
     assert value != None
     event = json.loads(value)
