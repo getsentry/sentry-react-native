@@ -43,5 +43,13 @@ matrix:
         - brew outdated yarn || brew upgrade yarn
       script:
         - .travis/run.sh
+jobs:
+  include:
+  - stage: npm-publish
+    deploy:
+      provider: npm
+      skip_cleanup: true
+      on:
+        tags: true
 notifications:
   email: false
