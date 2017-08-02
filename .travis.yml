@@ -21,7 +21,6 @@ matrix:
         - travis_retry sudo apt-get install -y -qq yarn
       install:
         - yarn
-        - bundle install
       android:
         components:
           - build-tools-23.0.1
@@ -44,8 +43,6 @@ matrix:
         - brew update
         - brew install yarn
         - brew outdated yarn || brew upgrade yarn
-      install:
-        - bundle install
       script:
         - .travis/run.sh
 notifications:
