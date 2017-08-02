@@ -45,7 +45,7 @@ matrix:
         - .travis/run.sh
 jobs:
   include:
-  - stage: npm-publish
+  - stage: publish
     deploy:
       provider: npm
       email: $NPM_EMAIL
