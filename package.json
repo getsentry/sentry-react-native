@@ -40,7 +40,7 @@
   "devDependencies": {
     "husky": "^0.13.4",
     "lint-staged": "^3.6.0",
-    "prettier": "^1.4.2"
+    "prettier": "^1.4.4"
   },
   "lint-staged": {
     "*.js": [
