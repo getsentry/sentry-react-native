@@ -9,4 +9,3 @@ then
 else
     make test-android
 fi
-fastlane $LANE

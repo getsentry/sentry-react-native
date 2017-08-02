@@ -20,19 +20,27 @@ def android_check
                     type: "FILE",
                     arn: p.problems[0].test.arn
                 })
-                puts artifacts.inspect
                 artifacts.artifacts.each do |a|
                     if a.name == 'Logcat'
                         content = open(a.url).read
-                        raise RuntimeError, "Missing value raven: #{p.inspect}" unless content.scan(/"Raven about to send:', {"/).size == 1
+                        raise RuntimeError, "Missing value raven: #{p.inspect}" unless content.scan(/Raven about to send:/).size == 1
+                        raise RuntimeError, "Missing value: #{p.inspect}" unless content.scan(/value: 'Sentry: Test throw error'/).size == 1
                     end
                 end
             end
-            # if p.problems[0].test.name == 'test_native_crash'
-            #     exception = p.message.match(/crashed: EXC_/)
-            #     raise RuntimeError, "No crash: #{p.inspect}" unless !exception.nil?
-            #     exception = nil
-            # end
+            if p.problems[0].test.name == 'test_native_crash'
+                artifacts = @client.list_artifacts({
+                    type: "FILE",
+                    arn: p.problems[0].test.arn
+                })
+                artifacts.artifacts.each do |a|
+                    if a.name == 'Logcat'
+                        content = open(a.url).read
+                        raise RuntimeError, "Missing native crash: #{p.inspect}" unless content.scan(/java.lang.RuntimeException: TEST - Sentry Client Crash/).size == 1
+                        raise RuntimeError, "Must start twice: #{p.inspect}" unless content.scan(/startWithDsnString/).size == 2
+                    end
+                end
+            end
         end
     end
 end

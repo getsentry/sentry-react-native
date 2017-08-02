@@ -5,9 +5,13 @@ matrix:
       jdk: oraclejdk8
       before_cache:
         - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-        - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+        - rm -rf $HOME/.gradle/caches/*/plugin-resolution/
+      cache:
+        directories:
+          - $HOME/.yarn-cache
+          - $HOME/.gradle/caches/
+          - $HOME/.gradle/wrapper/
       sudo: required
-      node_js: false
       before_install:
         - nvm install 7
         - node --version
@@ -17,6 +21,7 @@ matrix:
         - travis_retry sudo apt-get install -y -qq yarn
       install:
         - yarn
+        - bundle install
       android:
         components:
           - build-tools-23.0.1
@@ -31,6 +36,8 @@ matrix:
       os: osx
       osx_image: xcode8.3
       cache:
+        directories:
+          - $HOME/.yarn-cache
         - bundler
         - pip
       env:
@@ -40,7 +47,7 @@ matrix:
         - brew install yarn
         - brew outdated yarn || brew upgrade yarn
       install:
-        - travis_retry gem install fastlane
+        - bundle install
       script:
         - .travis/run.sh
 notifications:
