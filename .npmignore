@@ -2,6 +2,8 @@ assets
 examples
 docs
 .idea
+appium
+.vscode
 
 # KSCrash
 ios/Sentry/KSCrash
