@@ -1,3 +1,25 @@
+language: node_js
+node_js:
+  - "6.9"
+  - "7.1"
+sudo: false
+cache:
+  directories:
+    - $HOME/.yarn-cache
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+jobs:
+  include:
+  - stage: npm-publish
+    deploy:
+      provider: script
+      script:
+        - if [ -n "$TRAVIS_TAG" ]; then
+        - make npm-publish
+        - fi
+      skip_cleanup: true
+      on:
+        tags: true
 matrix:
   include:
     - language: android
@@ -6,11 +28,6 @@ matrix:
       before_cache:
         - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
         - rm -rf $HOME/.gradle/caches/*/plugin-resolution/
-      cache:
-        directories:
-          - $HOME/.yarn-cache
-          - $HOME/.gradle/caches/
-          - $HOME/.gradle/wrapper/
       sudo: required
       before_install:
         - nvm install 7
@@ -29,18 +46,6 @@ matrix:
           - addon-google_apis-google-16
       script:
         - .travis/run.sh
-      jobs:
-        include:
-        - stage: npm-publish
-          deploy:
-            provider: script
-            script:
-              - if [ -n "$TRAVIS_TAG" ]; then
-              - make npm-publish
-              - fi
-            skip_cleanup: true
-            on:
-              tags: true
     - language: objective-c
       os: osx
       osx_image: xcode8.3
