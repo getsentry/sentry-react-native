@@ -37,21 +37,11 @@ cache:
     - $HOME/.gradle
     - $HOME/.yarn-cache
 
-# deploy:
-#   - provider: npm
-#     skip_cleanup: true
-#     api_key: $NPM_API_KEY
-#     on: tags
-
-jobs:
-  include:
-    - stage: npm release
-      node_js: "7"
-      script: echo "Deploying to npm ..."
-      deploy:
-        provider: npm
-        api_key: $NPM_API_KEY
-        on: tags
+deploy:
+  - provider: npm
+    skip_cleanup: true
+    api_key: $NPM_API_KEY
+    on: tags
 
 notifications:
   email: false
