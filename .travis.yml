@@ -1,3 +1,6 @@
+branches:
+  only:
+    - master
 matrix:
   include:
     - language: android
@@ -29,9 +32,6 @@ matrix:
           - addon-google_apis-google-16
       script:
         - .travis/run.sh
-      branches:
-        only:
-          - master
     - language: objective-c
       os: osx
       osx_image: xcode8.3
@@ -46,8 +46,5 @@ matrix:
         - brew outdated yarn || brew upgrade yarn
       script:
         - .travis/run.sh
-      branches:
-        only:
-          - master
 notifications:
   email: false
