@@ -45,11 +45,13 @@ matrix:
         - .travis/run.sh
 jobs:
   include:
-  - stage: publish
+  - stage: npm-publish
     deploy:
-      provider: npm
-      email: $NPM_EMAIL
-      api_key: $NPM_AUTH_TOKEN
+      provider: script
+      script:
+        - if [ -n "$TRAVIS_TAG" ]; then
+        - make npm-publish
+        - fi
       skip_cleanup: true
       on:
         tags: true
