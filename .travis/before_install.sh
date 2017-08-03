@@ -1,4 +1,4 @@
-if [ "$LANE" = "ios" ];
+if [ "$LANE" = "ios" ]; then
 brew update
 brew install yarn
 brew outdated yarn || brew upgrade yarn
