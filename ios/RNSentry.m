@@ -9,6 +9,9 @@
 #import <KSCrash/KSCrash.h>
 #import <Sentry/Sentry.h>
 
+NSString *const RNSentryVersionString = @"0.15.2";
+NSString *const RNSentrySdkName = @"sentry-react-native";
+
 @interface RNSentry()
 
 @property (nonatomic, strong) NSDictionary *lastReceivedException;
@@ -175,7 +178,9 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
     if (event.extra[@"__sentry_dist"]) {
         event.dist = [NSString stringWithFormat:@"%@", event.extra[@"__sentry_dist"]];
     }
-    [event.extra setValue:@[@"react-native"] forKey:@"__sentry_sdk_integrations"];
+    event.sdk = @{@"name": RNSentrySdkName,
+                  @"version": RNSentryVersionString,
+                  @"integrations": @[@"sentry-cocoa"]};
 }
 
 RCT_EXPORT_MODULE()
