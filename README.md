@@ -24,7 +24,7 @@ Full Android support coming soon but it will gracefully downgrade to use [raven-
 
 ## Additional device information
 
-When using this library you will get alot more information about the device surrounding your crashes.
+When using this library you will get a lot more information about the device surrounding your crashes.
 
 **Without native integration**
 ![Raven js only](https://github.com/getsentry/react-native-sentry/raw/master/assets/raven.png)
