@@ -22,9 +22,11 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -37,6 +39,7 @@ import io.sentry.event.Breadcrumb;
 import io.sentry.event.BreadcrumbBuilder;
 import io.sentry.event.Event;
 import io.sentry.event.EventBuilder;
+import io.sentry.event.Sdk;
 import io.sentry.event.User;
 import io.sentry.event.UserBuilder;
 import io.sentry.event.helper.ShouldSendEventCallback;
@@ -49,6 +52,8 @@ import io.sentry.event.interfaces.UserInterface;
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private static final Pattern mJsModuleIdPattern = Pattern.compile("(?:^|[/\\\\])(\\d+\\.js)$");
+    private static final String versionString = "0.15.2";
+    private static final String sdkName = "sentry-react-native";
 
     private final ReactApplicationContext reactContext;
     private final ReactApplication reactApplication;
@@ -291,8 +296,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
         }
 
-        eventBuilder.withSdkIntegration("react-native");
-        return eventBuilder.build();
+        Event event = eventBuilder.build();
+        Set<String> sdkIntegrations = new HashSet<>();
+        sdkIntegrations.add("sentry-java");
+        event.setSdk(new Sdk(sdkName, versionString, sdkIntegrations));
+        return event;
     }
 
     public static <T> List<T> copyIterator(Iterator<T> iter) {
