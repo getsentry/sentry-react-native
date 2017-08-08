@@ -423,7 +423,7 @@ function addSentryProperties() {
 Promise.resolve()
   /* these steps patch the build files without user interactions */
   .then(() => patchMatchingFile('**/app/build.gradle', patchBuildGradle))
-  .then(() => patchMatchingFile('*/*.xcodeproj/project.pbxproj', patchXcodeProj))
+  .then(() => patchMatchingFile('ios/*.xcodeproj/project.pbxproj', patchXcodeProj))
   .then(() => patchMatchingFile('**/AppDelegate.m', patchAppDelegate))
   /* if any of the previous steps did something, this will patch
      the index.PLATFORM.js files with the necessary initialization code */

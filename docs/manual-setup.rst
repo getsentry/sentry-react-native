@@ -7,6 +7,20 @@ is happening on each platform.
 iOS
 ---
 
+AppDelegate
+```````````
+
+.. sourcecode:: objc
+
+    #if __has_include(<React/RNSentry.h>)
+    #import <React/RNSentry.h> // This is used for versions of react >= 0.40
+    #else
+    #import "RNSentry.h" // This is used for versions of react < 0.40
+    #endif
+
+    /* in your didFinishLaunchingWithOptions */
+    [RNSentry installWithRootView:rootView];
+
 Build Steps
 ```````````
 
