@@ -280,7 +280,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
         setRelease(eventBuilder);
         stripInternalSentry(eventBuilder);
-        eventBuilder.withBreadcrumbs(copyIterator(Sentry.getStoredClient().getContext().getBreadcrumbs()));
+        eventBuilder.withBreadcrumbs(Sentry.getStoredClient().getContext().getBreadcrumbs());
 
         if (extra != null) {
             for (Map.Entry<String, Object> entry : extra.toHashMap().entrySet()) {
@@ -301,13 +301,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         sdkIntegrations.add("sentry-java");
         event.setSdk(new Sdk(sdkName, versionString, sdkIntegrations));
         return event;
-    }
-
-    public static <T> List<T> copyIterator(Iterator<T> iter) {
-        List<T> copy = new ArrayList<T>();
-        while (iter.hasNext())
-            copy.add(iter.next());
-        return copy;
     }
 
     private static void addExceptionInterface(EventBuilder eventBuilder, String type, String value, ReadableNativeArray stack) {
