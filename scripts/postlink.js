@@ -58,7 +58,10 @@ function shouldConfigurePlatform(platform) {
   // if a sentry.properties file exists for the platform we want to configure
   // without asking the user.  This means that re-linking later will not
   // bring up a useless dialog.
-  if (fs.existsSync(platform + '/sentry.properties') || fs.existsSync(process.cwd() + platform + '/sentry.properties')) {
+  if (
+    fs.existsSync(platform + '/sentry.properties') ||
+    fs.existsSync(process.cwd() + platform + '/sentry.properties')
+  ) {
     configurePlatform[platform] = true;
     let {dim} = chalk;
     console.log(dim(platform + '/sentry.properties already exists'));
@@ -151,8 +154,8 @@ function getProperties(platform) {
         type: 'input',
         default:
           cachedProps['defaults/project'] ||
-            process.env.SENTRY_PROJECT ||
-            'your-project-slug',
+          process.env.SENTRY_PROJECT ||
+          'your-project-slug',
         message: 'The Project for ' + getPlatformName(platform),
         name: 'defaults/project'
       },
@@ -273,7 +276,9 @@ function patchExistingXcodeBuildScripts(buildScripts) {
     let code = JSON.parse(script.shellScript);
     code =
       'export SENTRY_PROPERTIES=sentry.properties\n' +
-      code.replace(/^.*?\/(packager|scripts)\/react-native-xcode\.sh\s*/m, function(match) {
+      code.replace(/^.*?\/(packager|scripts)\/react-native-xcode\.sh\s*/m, function(
+        match
+      ) {
         return (
           '../node_modules/sentry-cli-binary/bin/sentry-cli react-native xcode ' + match
         );
@@ -298,7 +303,7 @@ function addNewXcodeBuildPhaseForSymbols(buildScripts, proj) {
       shellPath: '/bin/sh',
       shellScript:
         'export SENTRY_PROPERTIES=sentry.properties\\n' +
-          '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym'
+        '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym'
     }
   );
 }
@@ -375,6 +380,17 @@ function addSentryInit() {
   return rv;
 }
 
+function resolveSentryCliBinaryPath(props) {
+  return new Promise(function(resolve, reject) {
+    try {
+      props['cli/executable'] = require.resolve('sentry-cli-binary/bin/sentry-cli');
+    } catch (e) {
+      // we do nothing and leave everyting as it is
+    }
+    resolve(props);
+  });
+}
+
 function addSentryProperties() {
   let rv = Promise.resolve();
 
@@ -394,7 +410,7 @@ function addSentryProperties() {
         if (!shouldConfigure) {
           return null;
         }
-        return getProperties(platform).then(props => {
+        return getProperties(platform).then(resolveSentryCliBinaryPath).then(props => {
           fs.writeFileSync(fn, dumpProperties(props));
         });
       })
@@ -407,7 +423,7 @@ function addSentryProperties() {
 Promise.resolve()
   /* these steps patch the build files without user interactions */
   .then(() => patchMatchingFile('**/app/build.gradle', patchBuildGradle))
-  .then(() => patchMatchingFile('*/*.xcodeproj/project.pbxproj', patchXcodeProj))
+  .then(() => patchMatchingFile('ios/*.xcodeproj/project.pbxproj', patchXcodeProj))
   .then(() => patchMatchingFile('**/AppDelegate.m', patchAppDelegate))
   /* if any of the previous steps did something, this will patch
      the index.PLATFORM.js files with the necessary initialization code */

@@ -7,6 +7,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "version": "node script/version-bump.js",
     "precommit": "lint-staged"
   },
   "keywords": [
@@ -30,8 +31,8 @@
   },
   "rnpm": {
     "commands": {
-      "postlink": "node node_modules/react-native-sentry/scripts/postlink",
-      "postunlink": "node node_modules/react-native-sentry/scripts/postunlink"
+      "postlink": "node node_modules/react-native-sentry/scripts/postlink.js",
+      "postunlink": "node node_modules/react-native-sentry/scripts/postunlink.js"
     },
     "android": {
       "packageInstance": "new RNSentryPackage(MainApplication.this)"
@@ -40,7 +41,8 @@
   "devDependencies": {
     "husky": "^0.13.4",
     "lint-staged": "^3.6.0",
-    "prettier": "^1.4.2"
+    "prettier": "^1.4.2",
+    "replace-in-file": "^2.5.3"
   },
   "lint-staged": {
     "*.js": [
