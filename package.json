@@ -3,11 +3,11 @@
   "homepage": "https://github.com/getsentry/react-native-sentry",
   "repository": "https://github.com/getsentry/react-native-sentry",
   "version": "0.15.1",
-  "description": "Official Sentry client for react-native",
+  "description": "Official Sentry SDK for react-native",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "version": "node script/version-bump.js",
+    "version": "node ./script/version-bump.js",
     "precommit": "lint-staged"
   },
   "keywords": [
