@@ -6,8 +6,8 @@ create-android-test-bundle:
 	rm test_bundle.zip | true
 	zip -r test_bundle.zip tests/test_android.py wheelhouse/ requirements.txt conftest.py
 
-install:
-	cd example; yarn install
+new-demo-project:
+	cd ../examples/react-native; make clean-project
 
 copy-local-files-to-example:
 	rm -rf example/node_modules/react-native-sentry/lib/*
@@ -19,12 +19,12 @@ copy-local-files-to-example:
 	cp -r ../android/* example/node_modules/react-native-sentry/android/
 	cp -r ../ios/Sentry/Sources/Sentry/* example/node_modules/react-native-sentry/ios/Sentry/Sources/Sentry/
 
-test: create-test-bundle install copy-local-files-to-example
+test: create-test-bundle new-demo-project copy-local-files-to-example
 	fastlane build_for_device_farm
 	fastlane aws_ios_upload_and_run
 	ruby check_run_failues.rb
 
-test-android: create-android-test-bundle install copy-local-files-to-example
+test-android: create-android-test-bundle new-demo-project copy-local-files-to-example
 	fastlane build_android_for_device_farm
 	fastlane aws_android_upload_and_run
 	ANDROID=1 ruby check_run_failues.rb
