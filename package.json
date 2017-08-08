@@ -7,7 +7,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "version": "node ./scripts/version-bump.js",
+    "version": "node ./scripts/version-bump.js && git add -A",
     "precommit": "lint-staged"
   },
   "keywords": [
