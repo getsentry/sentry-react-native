@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
   s.name           = 'SentryReactNative'
   s.version        = package['version']
   s.license        = 'MIT'
-  s.summary        = 'Official Sentry client for react-native'
+  s.summary        = 'Official Sentry SDK for react-native'
   s.author         = 'Sentry'
   s.homepage       = "https://github.com/getsentry/react-native-sentry"
   s.source         = { :git => 'https://github.com/getsentry/react-native-sentry.git', :tag => "#{s.version}"}
@@ -18,8 +18,8 @@ Pod::Spec.new do |s|
   s.preserve_paths = '*.js'
 
   s.dependency 'React'
-  s.dependency 'Sentry', '~> 3.3.3'
-  s.dependency 'Sentry/KSCrash', '~> 3.3.3'
+  s.dependency 'Sentry', '~> 3.4.0'
+  s.dependency 'Sentry/KSCrash', '~> 3.4.0'
 
   s.source_files = 'ios/RNSentry*.{h,m}'
   s.public_header_files = 'ios/RNSentry.h'
