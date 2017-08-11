@@ -22,7 +22,12 @@ NSString *const RNSentrySdkName = @"sentry-react-native";
 
 - (dispatch_queue_t)methodQueue
 {
-    return dispatch_queue_create("io.sentry.RNSentry", DISPATCH_QUEUE_SERIAL);
+    static dispatch_queue_t sentryMethodQueue;
+    static dispatch_once_t onceQueueToken;
+    dispatch_once(&onceQueueToken, ^{
+        sentryMethodQueue = dispatch_queue_create("io.sentry.RNSentry", DISPATCH_QUEUE_SERIAL);
+    });
+    return sentryMethodQueue;
 }
 
 + (void)installWithBridge:(RCTBridge *)bridge {
@@ -135,7 +140,7 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
 }
 
 - (void)injectReactNativeFrames:(SentryEvent *)event {
-    NSString *address = [event.extra valueForKey:@"__sentry_address"];
+    NSString *address = [[NSUserDefaults standardUserDefaults] objectForKey:@"RNSentry.__sentry_address"];
     if (nil == address) {
         // We bail out here since __sentry_address is not set
         return;
@@ -156,7 +161,8 @@ NSArray *SentryParseRavenFrames(NSArray *ravenFrames) {
 
     NSMutableArray<SentryFrame *> *finalFrames = [NSMutableArray new];
 
-    NSArray<SentryFrame *> *reactFrames = [self convertReactNativeStacktrace:SentryParseJavaScriptStacktrace(event.extra[@"__sentry_stack"])];
+    NSString *stacktrace = [[NSUserDefaults standardUserDefaults] objectForKey:@"RNSentry.__sentry_stack"];
+    NSArray<SentryFrame *> *reactFrames = [self convertReactNativeStacktrace:SentryParseJavaScriptStacktrace(stacktrace)];
     for (NSInteger i = 0; i < frames.count; i++) {
         [finalFrames addObject:[frames objectAtIndex:i]];
         if (i == indexOfReactFrames) {
@@ -245,12 +251,9 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
         if (arguments != nil && arguments.count > 0) {
             for (id param in arguments) {
                 if ([param isKindOfClass:NSDictionary.class] && param[@"__sentry_stack"]) {
-                    @synchronized (SentryClient.sharedClient) {
-                        NSMutableDictionary *prevExtra = SentryClient.sharedClient.extra.mutableCopy;
-                        [prevExtra setValue:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress] forKey:@"__sentry_address"];
-                        [prevExtra setValue:[RCTConvert NSString:param[@"__sentry_stack"]] forKey:@"__sentry_stack"];
-                        SentryClient.sharedClient.extra = prevExtra;
-                    }
+                    [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress] forKey:@"RNSentry.__sentry_address"];
+                    [[NSUserDefaults standardUserDefaults] setObject:[RCTConvert NSString:param[@"__sentry_stack"]] forKey:@"RNSentry.__sentry_stack"];
+                    [[NSUserDefaults standardUserDefaults] synchronize];
                 } else {
                     if (param != nil) {
                         [newParams addObject:param];
@@ -277,12 +280,9 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
         if (params != nil && params.count > 0) {
             for (id param in params) {
                 if ([param isKindOfClass:NSDictionary.class] && param[@"__sentry_stack"]) {
-                    @synchronized (SentryClient.sharedClient) {
-                        NSMutableDictionary *prevExtra = SentryClient.sharedClient.extra.mutableCopy;
-                        [prevExtra setValue:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress] forKey:@"__sentry_address"];
-                        [prevExtra setValue:[RCTConvert NSString:param[@"__sentry_stack"]] forKey:@"__sentry_stack"];
-                        SentryClient.sharedClient.extra = prevExtra;
-                    }
+                    [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress] forKey:@"RNSentry.__sentry_address"];
+                    [[NSUserDefaults standardUserDefaults] setObject:[RCTConvert NSString:param[@"__sentry_stack"]] forKey:@"RNSentry.__sentry_stack"];
+                    [[NSUserDefaults standardUserDefaults] synchronize];
                 } else {
                     if (param != nil) {
                         [newParams addObject:param];
