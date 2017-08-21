@@ -25,8 +25,8 @@
     "chalk": "^1.1.1",
     "glob": "7.1.1",
     "inquirer": "3.0.6",
-    "raven-js": "^3.16.1",
-    "sentry-cli-binary": "^1.16.0",
+    "raven-js": "^3.17.0",
+    "sentry-cli-binary": "^1.19.1",
     "xcode": "0.9.3"
   },
   "rnpm": {
