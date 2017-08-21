@@ -35,6 +35,6 @@ local-android-test:
 	fastlane build_android_for_device_farm
 	ANDROID=1 pytest -vv tests/test_android.py
 
-local-test:
+local-test: create-test-bundle new-demo-project copy-local-files-to-example
 	fastlane build_for_local_appium
 	pytest -vv tests/test_ios.py
