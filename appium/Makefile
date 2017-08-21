@@ -14,7 +14,9 @@ copy-local-files-to-example:
 	find example/node_modules/react-native-sentry/ios -name 'RN*.[h|m]' -exec rm {} \;
 	rm -rf example/node_modules/react-native-sentry/ios/Sentry/Sources/Sentry/*
 	rm -rf example/node_modules/react-native-sentry/android/*
+	rm -rf example/node_modules/react-native-sentry/scripts/*
 	cp -r ../lib/* example/node_modules/react-native-sentry/lib/
+	cp -r ../scripts/* example/node_modules/react-native-sentry/scripts/
 	find ../ios -name 'RN*.[h|m]' -exec cp {} example/node_modules/react-native-sentry/ios/ \;
 	cp -r ../android/* example/node_modules/react-native-sentry/android/
 	cp -r ../ios/Sentry/Sources/Sentry/* example/node_modules/react-native-sentry/ios/Sentry/Sources/Sentry/
