@@ -141,7 +141,10 @@ function getProperties(platform) {
       {
         type: 'input',
         default: cachedProps['defaults/url'] || process.env.SENTRY_URL || getDefaultUrl(),
-        message: 'The Sentry Server URL for ' + getPlatformName(platform),
+        message:
+          'The Sentry Server URL for ' +
+          getPlatformName(platform) +
+          '. Only needed if you use self hosted Sentry, press enter to use default.',
         name: 'defaults/url'
       },
       {
