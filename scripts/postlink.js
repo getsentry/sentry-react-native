@@ -4,7 +4,7 @@ const inquirer = require('inquirer');
 const xcode = require('xcode');
 const chalk = require('chalk');
 const pbxFile = require('xcode/lib/pbxFile');
-
+const path = require('path');
 const PLATFORMS = ['android', 'ios'];
 const OBJC_HEADER =
   '\
@@ -141,7 +141,10 @@ function getProperties(platform) {
       {
         type: 'input',
         default: cachedProps['defaults/url'] || process.env.SENTRY_URL || getDefaultUrl(),
-        message: 'The Sentry Server URL for ' + getPlatformName(platform),
+        message:
+          'The Sentry Server URL for ' +
+          getPlatformName(platform) +
+          '. Only needed if you use self hosted Sentry, press enter to use default.',
         name: 'defaults/url'
       },
       {
@@ -383,7 +386,8 @@ function addSentryInit() {
 function resolveSentryCliBinaryPath(props) {
   return new Promise(function(resolve, reject) {
     try {
-      props['cli/executable'] = require.resolve('sentry-cli-binary/bin/sentry-cli');
+      const cliPath = require.resolve('sentry-cli-binary/bin/sentry-cli');
+      props['cli/executable'] = path.relative(process.cwd(), cliPath);
     } catch (e) {
       // we do nothing and leave everyting as it is
     }

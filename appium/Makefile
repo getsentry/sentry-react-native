@@ -14,7 +14,9 @@ copy-local-files-to-example:
 	find example/node_modules/react-native-sentry/ios -name 'RN*.[h|m]' -exec rm {} \;
 	rm -rf example/node_modules/react-native-sentry/ios/Sentry/Sources/Sentry/*
 	rm -rf example/node_modules/react-native-sentry/android/*
+	rm -rf example/node_modules/react-native-sentry/scripts/*
 	cp -r ../lib/* example/node_modules/react-native-sentry/lib/
+	cp -r ../scripts/* example/node_modules/react-native-sentry/scripts/
 	find ../ios -name 'RN*.[h|m]' -exec cp {} example/node_modules/react-native-sentry/ios/ \;
 	cp -r ../android/* example/node_modules/react-native-sentry/android/
 	cp -r ../ios/Sentry/Sources/Sentry/* example/node_modules/react-native-sentry/ios/Sentry/Sources/Sentry/
@@ -33,6 +35,6 @@ local-android-test:
 	fastlane build_android_for_device_farm
 	ANDROID=1 pytest -vv tests/test_android.py
 
-local-test:
+local-test: create-test-bundle new-demo-project copy-local-files-to-example
 	fastlane build_for_local_appium
 	pytest -vv tests/test_ios.py
