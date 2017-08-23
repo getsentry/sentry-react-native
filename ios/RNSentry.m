@@ -9,7 +9,7 @@
 #import <KSCrash/KSCrash.h>
 #import <Sentry/Sentry.h>
 
-NSString *const RNSentryVersionString = @"0.18.0";
+NSString *const RNSentryVersionString = @"0.17.1";
 NSString *const RNSentrySdkName = @"sentry-react-native";
 
 @interface RNSentry()
@@ -379,13 +379,11 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
     } else if (nil != user[@"id"]) {
         userId = [NSString stringWithFormat:@"%@", user[@"id"]];
     }
-    SentryUser *sentryUser = nil;
-    if (nil != userId) {
-        sentryUser = [[SentryUser alloc] initWithUserId:userId];
-        sentryUser.email = [NSString stringWithFormat:@"%@", user[@"email"]];
-        sentryUser.username = [NSString stringWithFormat:@"%@", user[@"username"]];
-        sentryUser.extra = [RCTConvert NSDictionary:user[@"extra"]];
-    }
+    SentryUser *sentryUser = [[SentryUser alloc] init];
+    sentryUser.userId = userId;
+    sentryUser.email = [NSString stringWithFormat:@"%@", user[@"email"]];
+    sentryUser.username = [NSString stringWithFormat:@"%@", user[@"username"]];
+    sentryUser.extra = [RCTConvert NSDictionary:user[@"extra"]];
     return sentryUser;
 }
 
