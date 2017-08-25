@@ -206,6 +206,16 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
             [self injectReactNativeFrames:event];
             [self setReleaseVersionDist:event];
         };
+        client.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
+            // We don't want to send an event after startup that came from a NSException of react native
+            // Because we sent it already before the app crashed.
+            if (nil != event.exceptions.firstObject.type &&
+                [event.exceptions.firstObject.type rangeOfString:@"RCTFatalException"].location != NSNotFound) {
+                NSLog(@"RCTFatalException");
+                return NO;
+            }
+            return YES;
+        };
         [SentryClient setSharedClient:client];
         [SentryClient.sharedClient startCrashHandlerWithError:&error];
         if (error) {
@@ -346,8 +356,16 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
             [frames addObject:[stacktrace objectAtIndex:i]];
         }
         [self addExceptionToEvent:sentryEvent type:exception[@"type"] value:exception[@"value"] frames:frames];
+        #if DEBUG
+        // We want to send the exception instead of storing it because in debug
+        // the app does not crash it will restart
+        [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
+        #else
+        [SentryClient.sharedClient storeEvent:sentryEvent];
+        #endif
+    } else {
+        [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
     }
-    [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
     [RNSentryEventEmitter emitStoredEvent];
 }
 
