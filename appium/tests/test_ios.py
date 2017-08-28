@@ -75,6 +75,8 @@ def test_throw_error(driver):
                 js_frames += 1
         assert js_frames > 0
     assert len(event['exception']['values']) > 0
+    assert event['exception']['values'][0]['value'] == "Sentry: Test throw error"
+    assert event['exception']['values'][0]['type'] == "Error"
     assert event['platform'] == 'cocoa'
     assert event['level'] == 'fatal'
     assert event['extra']['react']
@@ -106,6 +108,8 @@ def test_native_crash(driver):
         assert cocoa_frames > 0
     assert len(event['exception']['values']) > 0
     assert len(event['debug_meta']['images']) > 0
+    assert event['exception']['values'][0]['value'] == 'crash'
+    assert event['exception']['values'][0]['type'] == 'EXC_BAD_INSTRUCTION'
     assert event['platform'] == 'cocoa'
     assert event['level'] == 'fatal'
     assert event['extra']['react']
