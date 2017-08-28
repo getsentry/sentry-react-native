@@ -109,7 +109,6 @@ def test_native_crash(driver):
     assert len(event['exception']['values']) > 0
     assert len(event['debug_meta']['images']) > 0
     assert event['exception']['values'][0]['value'] == 'crash'
-    assert event['exception']['values'][0]['type'] == 'EXC_BAD_INSTRUCTION'
     assert event['platform'] == 'cocoa'
     assert event['level'] == 'fatal'
     assert event['extra']['react']
