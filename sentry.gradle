@@ -1,23 +1,13 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
 gradle.projectsEvaluated {
-    // to find out which releases are being generated we hook into the process
-    // resources task.  From the "assetsDir" property we can extract in which
-    // assets folder the task is operating.  This folder matches where react native
-    // will place the bundles.
-    def releasesForFolder = [:];
+    def releases = [];
     android.applicationVariants.each { variant ->
         def releaseName = "${variant.getApplicationId()}-${variant.getVersionName()}";
         variant.outputs.each { output ->
             def processTask = output.getProcessResources();
-            def resDir = processTask.getResDir();
-            def releases = releasesForFolder.get(resDir.toString()) as List<String>;
-            if (releases == null) {
-                releases = [];
-                releasesForFolder.put(resDir.toString(), releases);
-            }
             def versionCode = output.getVersionCode();
-            releases.add([releaseName, versionCode]);
+            releases.add([output.getName(), releaseName, versionCode]);
         }
     }
 
@@ -28,27 +18,6 @@ gradle.projectsEvaluated {
         task.name.startsWith("bundle") && task.name.endsWith("JsAndAssets")
     }
     bundleTasks.each { bundleTask ->
-        def outputs = bundleTask.getOutputs();
-        def allReleases = [:];
-        outputs.getFiles().each { file ->
-            def releases = releasesForFolder.get(file.toString());
-            if (releases != null) {
-                releases.each { item ->
-                    def codes = allReleases[item[0]] as List<String>;
-                    if (codes == null) {
-                        codes = [];
-                        allReleases[item[0]] = codes;
-                    }
-                    codes.add(item[1]);
-                }
-            }
-        }
-
-        // this really should not happen but better be safe than sorry.
-        if (allReleases.size() == 0) {
-            return;
-        }
-
         def props = bundleTask.getProperties();
         def cmd = props.get("commandLine") as List<String>;
         def cmdArgs = props.get("args") as List<String>;
@@ -81,9 +50,9 @@ gradle.projectsEvaluated {
         bundleTask.setProperty("commandLine", cmd);
         bundleTask.setProperty("args", cmdArgs);
 
-        allReleases.each { releaseName, versionCodes ->
+        releases.each { variant, releaseName, versionCodes ->
             def cliTask = tasks.create(
-                name: bundleTask.getName() + "SentryUpload",
+                name: bundleTask.getName() + variant + "SentryUpload",
                 type: Exec) {
                 description = "upload debug symbols to sentry"
 
