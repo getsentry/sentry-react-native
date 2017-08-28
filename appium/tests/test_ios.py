@@ -64,7 +64,6 @@ def test_throw_error(driver):
 
     assert len(event['breadcrumbs']) > 0
     assert len(event['contexts']) > 0
-    assert len(event['threads']['values']) > 0
     for thread in event['exception']['values']:
         assert len(thread['stacktrace']['frames']) > 0
         cocoa_frames = 0
@@ -74,10 +73,8 @@ def test_throw_error(driver):
                 cocoa_frames += 1
             if frame.get('platform', None) == 'javascript':
                 js_frames += 1
-        assert cocoa_frames > 0
-        assert js_frames > 0 # does not work in release build
+        assert js_frames > 0
     assert len(event['exception']['values']) > 0
-    assert len(event['debug_meta']['images']) > 0
     assert event['platform'] == 'cocoa'
     assert event['level'] == 'fatal'
     assert event['extra']['react']
@@ -107,7 +104,6 @@ def test_native_crash(driver):
             if frame.get('platform', None) == 'javascript':
                 js_frames += 1
         assert cocoa_frames > 0
-        assert js_frames > 0 # does not work in release build
     assert len(event['exception']['values']) > 0
     assert len(event['debug_meta']['images']) > 0
     assert event['platform'] == 'cocoa'
