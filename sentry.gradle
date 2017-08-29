@@ -58,14 +58,22 @@ gradle.projectsEvaluated {
 
                 workingDir reactRoot
                 environment("SENTRY_PROPERTIES", propertiesFile)
+
                 def args = [
-                    cliExecutable,
-                    "react-native",
-                    "gradle",
-                    "--bundle", bundleOutput,
-                    "--sourcemap", sourcemapOutput,
-                    "--release", releaseName
+                    cliExecutable
                 ];
+                if (project.hasProperty("sentryloglevel") ) {
+                    args.push("--log-level");
+                    args.push(sentryloglevel);
+                }
+                args.push("react-native");
+                args.push("gradle");
+                args.push("--bundle");
+                args.push(bundleOutput);
+                args.push("--sourcemap");
+                args.push(sourcemapOutput);
+                args.push("--release");
+                args.push(releaseName);
 
                 versionCodes.each { versionCode ->
                     args.add("--dist");
