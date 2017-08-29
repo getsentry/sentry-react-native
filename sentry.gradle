@@ -24,12 +24,6 @@ gradle.projectsEvaluated {
         def bundleOutput = null;
         def sourcemapOutput = null;
         def reactRoot = props.get("workingDir");
-        def propertiesFile = "$reactRoot/android/sentry.properties";
-        Properties sentryProps = new Properties();
-        try {
-            sentryProps.load(new FileInputStream(propertiesFile));
-        } catch (FileNotFoundException e) {}
-        def cliExecutable = sentryProps.get("cli.executable", "$reactRoot/node_modules/sentry-cli-binary/bin/sentry-cli");
 
         cmdArgs.eachWithIndex{ String arg, int i ->
             if (arg == "--bundle-output") {
@@ -50,11 +44,28 @@ gradle.projectsEvaluated {
         bundleTask.setProperty("commandLine", cmd);
         bundleTask.setProperty("args", cmdArgs);
 
+        if (project.hasProperty("flavoraware")) {
+            println "********************************"
+            println "*Flavor aware sentry properties*"
+            println "********************************"
+        }
+
         releases.each { variant, releaseName, versionCodes ->
             def cliTask = tasks.create(
                 name: bundleTask.getName() + variant + "SentryUpload",
                 type: Exec) {
                 description = "upload debug symbols to sentry"
+
+                def propertiesFile = "$reactRoot/android/sentry.properties";
+                if (project.hasProperty("flavoraware")) {
+                    propertiesFile = "$reactRoot/android/sentry-$variant"+".properties"
+                    println "For $variant using: $propertiesFile"
+                }
+                Properties sentryProps = new Properties();
+                try {
+                    sentryProps.load(new FileInputStream(propertiesFile));
+                } catch (FileNotFoundException e) {}
+                def cliExecutable = sentryProps.get("cli.executable", "$reactRoot/node_modules/sentry-cli-binary/bin/sentry-cli");
 
                 workingDir reactRoot
                 environment("SENTRY_PROPERTIES", propertiesFile)
@@ -62,7 +73,7 @@ gradle.projectsEvaluated {
                 def args = [
                     cliExecutable
                 ];
-                if (project.hasProperty("sentryloglevel") ) {
+                if (project.hasProperty("sentryloglevel")) {
                     args.push("--log-level");
                     args.push(sentryloglevel);
                 }
