@@ -2,6 +2,20 @@ fastlane_version "2.48.0"
 
 default_platform :ios
 
+def validate_android_build_output(output)
+  UI.user_error!("1 Missing output in log") unless output.scan(/POST \/api\/0\/projects\/sentry-test\/react-native\/releases\/com.awesomeproject.full-1.0-full\/files\//).size >1
+  UI.user_error!("2 Missing output in log") unless output.scan(/POST \/api\/0\/projects\/sentry-test\/react-native\/releases\/com.awesomeproject.demo-1.0-demo\/files\//).size >1
+  UI.user_error!("3 Missing output in log") unless output.scan(/"dist": "4", "name": "~\/index.android.bundle"/).size >1
+  UI.user_error!("4 Missing output in log") unless output.scan(/"dist": "3", "name": "~\/index.android.bundle"/).size >1
+  UI.user_error!("5 Missing output in log") unless output.scan(/"dist": "4", "name": "~\/index.android.bundle.map"/).size >1
+  UI.user_error!("6 Missing output in log") unless output.scan(/"dist": "3", "name": "~\/index.android.bundle.map"/).size >1
+  UI.user_error!("7 Missing output in log") unless output.scan(/sentry_cli::commands::react_native_gradle.*intermediates\/assets\/full\/release\/index.android.bundle$/).size >1
+  UI.user_error!("8 Missing output in log") unless output.scan(/sentry_cli::commands::react_native_gradle.*intermediates\/assets\/full\/release\/index.android.bundle.map$/).size >1
+  UI.user_error!("9 Missing output in log") unless output.scan(/sentry_cli::commands::react_native_gradle.*intermediates\/assets\/demo\/release\/index.android.bundle$/).size >1
+  UI.user_error!("10 Missing output in log") unless output.scan(/sentry_cli::commands::react_native_gradle.*intermediates\/assets\/demo\/release\/index.android.bundle.map$/).size >1
+  UI.success("Android build output validated")
+end
+
 platform :ios do
   before_all do
     # ENV["SLACK_URL"] = "https://hooks.slack.com/services/..."
@@ -54,14 +68,15 @@ platform :ios do
   end
 
   lane :build_android_for_device_farm do
-    sh("cd ../example/android/; ./gradlew assembleRelease --stacktrace")
-    sh("jarsigner -verbose  -digestalg SHA1 -sigalg MD5withRSA -keystore release.keystore -storepass 123456 ../example/android/app/build/outputs/apk/app-release-unsigned.apk release")
+    android_build_output = sh("cd ../example/android/; ./gradlew -Psentryloglevel=debug assembleRelease --stacktrace")
+    validate_android_build_output(android_build_output)
+    sh("jarsigner -verbose  -digestalg SHA1 -sigalg MD5withRSA -keystore release.keystore -storepass 123456 ../example/android/app/build/outputs/apk/app-full-release-unsigned.apk release")
   end
 
   lane :aws_android_upload_and_run do
     aws_device_farm(
       name: "react-native",
-      binary_path: "example/android/app/build/outputs/apk/app-release-unsigned.apk",
+      binary_path: "example/android/app/build/outputs/apk/app-full-release-unsigned.apk",
       device_pool: "Android",
       test_binary_path: "test_bundle.zip",
       test_package_type: "APPIUM_PYTHON_TEST_PACKAGE",
