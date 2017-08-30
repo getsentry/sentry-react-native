@@ -109,7 +109,7 @@ You can also enable logging for ``sentry-cli`` by adding this config before the 
     ]
 
 We also support fetching different ``sentry.properties`` files for different flavors.
-For that you need to add:
+For that you need to add::
 
     project.ext.sentry = [
         logLevel: "debug",
