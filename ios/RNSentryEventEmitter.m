@@ -10,6 +10,7 @@
 
 NSString *const kEventSentSuccessfully = @"Sentry/eventSentSuccessfully";
 NSString *const kEventStored = @"Sentry/eventStored";
+NSString *const kModuleTable = @"Sentry/moduleTable";
 
 @implementation RNSentryEventEmitter
 
@@ -18,12 +19,13 @@ RCT_EXPORT_MODULE();
 - (NSDictionary<NSString *, NSString *> *)constantsToExport {
     return @{
              @"EVENT_SENT_SUCCESSFULLY": kEventSentSuccessfully,
-             @"EVENT_STORED": kEventStored
+             @"EVENT_STORED": kEventStored,
+             @"MODULE_TABLE": kModuleTable
              };
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-    return @[kEventSentSuccessfully, kEventStored];
+    return @[kEventSentSuccessfully, kEventStored, kModuleTable];
 }
 
 
@@ -42,6 +44,13 @@ RCT_EXPORT_MODULE();
 
 + (void)emitStoredEvent {
     [self postNotificationName:kEventStored withPayload:@""];
+}
+
++ (void)emitModuleTableUpdate:(NSDictionary *)moduleTable {
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:moduleTable
+                                                       options:0
+                                                         error:nil];
+    [self postNotificationName:kModuleTable withPayload:[[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding]];
 }
 
 + (void)postNotificationName:(NSString *)name withPayload:(NSObject *)object {

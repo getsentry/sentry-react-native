@@ -14,7 +14,7 @@ NSString *const RNSentrySdkName = @"sentry-react-native";
 
 @interface RNSentry()
 
-@property (nonatomic, strong) NSDictionary *lastReceivedException;
+@property (nonatomic, strong) NSMutableDictionary *moduleMapping;
 
 @end
 
@@ -201,6 +201,7 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
     static dispatch_once_t onceStartToken;
     dispatch_once(&onceStartToken, ^{
         NSError *error = nil;
+        self.moduleMapping = [[NSMutableDictionary alloc] init];
         SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:&error];
         client.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
             [self injectReactNativeFrames:event];
@@ -240,7 +241,7 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
     static const void *key = &key;
     SEL selector = @selector(invokeWithBridge:module:arguments:);
     uintptr_t callNativeModuleAddress = [class instanceMethodForSelector:selector];
-
+    __block RNSentry *_self = self;
     SentrySwizzleInstanceMethod(class,
                                 selector,
                                 SentrySWReturnType(id),
@@ -251,6 +252,8 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
         if (arguments != nil && arguments.count > 0) {
             for (id param in arguments) {
                 if ([param isKindOfClass:NSDictionary.class] && param[@"__sentry_stack"]) {
+                    [_self.moduleMapping setValue:[NSString stringWithFormat:@"%@", [module class]] forKey:[NSString stringWithFormat:@"%@", param[@"__sentry_moduleID"]]];
+                    [RNSentryEventEmitter emitModuleTableUpdate:_self.moduleMapping];
                     [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress] forKey:@"RNSentry.__sentry_address"];
                     [[NSUserDefaults standardUserDefaults] setObject:[RCTConvert NSString:param[@"__sentry_stack"]] forKey:@"RNSentry.__sentry_stack"];
                     [[NSUserDefaults standardUserDefaults] synchronize];
