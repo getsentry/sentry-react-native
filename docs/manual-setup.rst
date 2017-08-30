@@ -102,7 +102,7 @@ by adding the following line after the ``react.gradle`` one::
     apply from: "../../node_modules/react-native-sentry/sentry.gradle"
 
 You can also enable logging for ``sentry-cli`` by adding this config before the above
-``apply from:`` line.
+``apply from:`` line::
 
     project.ext.sentry = [
         logLevel: "debug"
