@@ -100,3 +100,21 @@ We enable the gradle integration in your ``android/app/build.gradle`` file
 by adding the following line after the ``react.gradle`` one::
 
     apply from: "../../node_modules/react-native-sentry/sentry.gradle"
+
+You can also enable logging for ``sentry-cli`` by adding this config before the above
+``apply from:`` line.
+
+    project.ext.sentry = [
+        logLevel: "debug"
+    ]
+
+We also support fetching different ``sentry.properties`` files for different flavors.
+For that you need to add:
+
+    project.ext.sentry = [
+        logLevel: "debug",
+        flavorAware: true
+    ]
+
+We recommend leaving ``logLevel: "debug"`` since we look for specific ``sentry.properties``
+files depending on your flavors name.
