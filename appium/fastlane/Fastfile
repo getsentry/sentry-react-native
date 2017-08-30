@@ -68,7 +68,7 @@ platform :ios do
   end
 
   lane :build_android_for_device_farm do
-    android_build_output = sh("cd ../example/android/; ./gradlew -Psentryloglevel=debug assembleRelease --stacktrace")
+    android_build_output = sh("cd ../example/android/; ./gradlew assembleRelease --stacktrace")
     validate_android_build_output(android_build_output)
     sh("jarsigner -verbose  -digestalg SHA1 -sigalg MD5withRSA -keystore release.keystore -storepass 123456 ../example/android/app/build/outputs/apk/app-full-release-unsigned.apk release")
   end

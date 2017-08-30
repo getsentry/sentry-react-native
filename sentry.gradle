@@ -1,5 +1,7 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
+def config = project.hasProperty("sentry") ? project.sentry : [];
+
 gradle.projectsEvaluated {
     def releases = [];
     android.applicationVariants.each { variant ->
@@ -24,12 +26,6 @@ gradle.projectsEvaluated {
         def bundleOutput = null;
         def sourcemapOutput = null;
         def reactRoot = props.get("workingDir");
-        def propertiesFile = "$reactRoot/android/sentry.properties";
-        Properties sentryProps = new Properties();
-        try {
-            sentryProps.load(new FileInputStream(propertiesFile));
-        } catch (FileNotFoundException e) {}
-        def cliExecutable = sentryProps.get("cli.executable", "$reactRoot/node_modules/sentry-cli-binary/bin/sentry-cli");
 
         cmdArgs.eachWithIndex{ String arg, int i ->
             if (arg == "--bundle-output") {
@@ -50,22 +46,50 @@ gradle.projectsEvaluated {
         bundleTask.setProperty("commandLine", cmd);
         bundleTask.setProperty("args", cmdArgs);
 
+        if (config.flavorAware) {
+            println "**********************************"
+            println "* Flavor aware sentry properties *"
+            println "**********************************"
+        }
+
         releases.each { variant, releaseName, versionCodes ->
             def cliTask = tasks.create(
                 name: bundleTask.getName() + variant + "SentryUpload",
                 type: Exec) {
                 description = "upload debug symbols to sentry"
 
+                def propertiesFile = "$reactRoot/android/sentry.properties";
+                if (config.flavorAware) {
+                    propertiesFile = "$reactRoot/android/sentry-$variant"+".properties"
+                    println "For $variant using: $propertiesFile"
+                } else {
+                    environment("SENTRY_PROPERTIES", propertiesFile)
+                }
+                Properties sentryProps = new Properties();
+                try {
+                    sentryProps.load(new FileInputStream(propertiesFile));
+                } catch (FileNotFoundException e) {
+                    println "File not found: $propertiesFile"
+                }
+                def cliExecutable = sentryProps.get("cli.executable", "$reactRoot/node_modules/sentry-cli-binary/bin/sentry-cli");
+
                 workingDir reactRoot
-                environment("SENTRY_PROPERTIES", propertiesFile)
 
                 def args = [
                     cliExecutable
                 ];
-                if (project.hasProperty("sentryloglevel") ) {
+                if (config.logLevel) {
                     args.push("--log-level");
-                    args.push(sentryloglevel);
+                    args.push(config.logLevel);
                 }
+
+                if (config.flavorAware) {
+                    args.push("--url");
+                    args.push(sentryProps.get("defaults.url"));
+                    args.push("--auth-token");
+                    args.push(sentryProps.get("auth.token"));
+                }
+
                 args.push("react-native");
                 args.push("gradle");
                 args.push("--bundle");
@@ -75,11 +99,21 @@ gradle.projectsEvaluated {
                 args.push("--release");
                 args.push(releaseName);
 
+                if (config.flavorAware) {
+                    args.push("--org");
+                    args.push(sentryProps.get("defaults.org"));
+                    args.push("--project");
+                    args.push(sentryProps.get("defaults.project"));
+                }
+
                 versionCodes.each { versionCode ->
                     args.add("--dist");
                     args.add(versionCode);
                 }
 
+                if (config.logLevel) {
+                    println args
+                }
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                     commandLine("cmd", "/c", *args)
                 } else {
