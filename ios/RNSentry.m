@@ -391,9 +391,15 @@ RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
         userId = [NSString stringWithFormat:@"%@", user[@"id"]];
     }
     SentryUser *sentryUser = [[SentryUser alloc] init];
-    sentryUser.userId = userId;
-    sentryUser.email = [NSString stringWithFormat:@"%@", user[@"email"]];
-    sentryUser.username = [NSString stringWithFormat:@"%@", user[@"username"]];
+    if (nil != userId) {
+        sentryUser.userId = userId;
+    }
+    if (nil != user[@"email"]) {
+        sentryUser.email = [NSString stringWithFormat:@"%@", user[@"email"]];
+    }
+    if (nil != user[@"username"]) {
+        sentryUser.username = [NSString stringWithFormat:@"%@", user[@"username"]];
+    }
     sentryUser.extra = [RCTConvert NSDictionary:user[@"extra"]];
     return sentryUser;
 }
