@@ -83,7 +83,7 @@ def default_capabilities():
     desired_caps['showIOSLog'] = True
     if not runs_on_aws():
         if os.environ.get('ANDROID') == '1':
-            desired_caps['app'] = os.path.abspath('example/android/app/build/outputs/apk/app-release-unsigned.apk')
+            desired_caps['app'] = os.path.abspath('example/android/app/build/outputs/apk/app-full-release-unsigned.apk')
             desired_caps['platformName'] = 'Android'
             desired_caps['deviceName'] = 'Android'
         else:
