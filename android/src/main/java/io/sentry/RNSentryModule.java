@@ -19,12 +19,11 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -108,6 +107,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 WritableMap params = Arguments.createMap();
                 params.putString("event_id", event.getId().toString());
                 params.putString("level", event.getLevel().toString().toLowerCase());
+                params.putString("message", event.getMessage());
+                params.putString("release", event.getRelease());
+                params.putString("dist", event.getDist());
+                params.putMap("extra", MapUtil.toWritableMap(event.getExtra()));
+                params.putMap("tags", MapUtil.toWritableMap(Collections.<String, Object>unmodifiableMap(event.getTags())));
                 RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, params);
             }
         });

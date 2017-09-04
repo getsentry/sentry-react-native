@@ -33,7 +33,7 @@ test-android: create-android-test-bundle new-demo-project copy-local-files-to-ex
 	fastlane aws_android_upload_and_run
 	ANDROID=1 ruby check_run_failues.rb
 
-local-android-test:
+local-android-test: create-android-test-bundle new-demo-project copy-local-files-to-example
 	fastlane build_android_for_device_farm
 	ANDROID=1 pytest -vv tests/test_android.py
 
