@@ -1,8 +1,13 @@
+OS:
+- [ ]  Windows
+- [ ]  MacOS
+- [ ]  Linux
+
 _Platform:_
 - [ ]  iOS
 - [ ]  Android
 
-Output of `npm ls --prod --depth=0`
+Output of `node -v && npm -v && npm ls --prod --depth=0`
 
 ```
 <!-- Replace this -->
