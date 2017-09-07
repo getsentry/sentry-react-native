@@ -10,6 +10,8 @@ matrix:
         - LANE='node'
       cache:
         yarn: true
+      script:
+        - .travis/run.sh
     - language: android
       os: linux
       jdk: oraclejdk8
