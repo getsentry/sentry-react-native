@@ -1,96 +1,96 @@
-declare namespace Sentry {
-    enum LogLevel {
-        None = 0,
-        Error = 1,
-        Debug = 2,
-        Verbose = 3
-    }
+// Type definitions for react-native-sentry
+// Project: https://sentry.io
+// Definitions by: Daniel Griesser <https://github.com/hazat>
+// Definitions: https://github.com/getsentry/react-native-sentry
+// TypeScript Version: 2.3
 
-    type BreadcrumbType = "navigation" | "http";
+type SentryBreadcrumbType = "navigation" | "http";
 
-    type Severity = "critical" | "error" | "warning" | "info" | "debug" | "fatal";
-
-    interface Options {
-        logLevel?: LogLevel;
-        instrument?: boolean;
-        disableNativeIntegration?: boolean;
-        ignoreModulesExclude?: [string];
-        ignoreModulesInclude?: [string];
-    }
-
-    interface Breadcrumb {
-        message?: string;
-        category?: string;
-        level?: Severity;
-        data?: object;
-        type?: BreadcrumbType;
-    }
-
-    interface SentryStatic {
-        install(): void;
-
-        config(dsn: string, options?: Options): SentryStatic;
-
-        isNativeClientAvailable(): boolean;
-
-        install(): void;
-
-        crash(): void;
-
-        nativeCrash(): void;
-
-        setEventSentSuccessfully(callback: Function): void;
-
-        setDataCallback(callback: Function): void;
-
-        setUserContext(user: {
-            id?: string;
-            username?: string;
-            email?: string;
-            extra?: object;
-        }): void;
-
-        setTagsContext(tags: Object): void;
-
-        setExtraContext(extra: Object): void;
-
-        captureMessage(message: string, options?: object): void;
-
-        captureException(ex: Error, options?: object): void;
-
-        captureBreadcrumb(breadcrumb: Breadcrumb): void;
-
-        clearContext(): void;
-
-        context(func: Function, ...args: any[]): void;
-        context(options: Options, func: Function, ...args: any[]): void;
-
-        wrap(func: Function): Function;
-        wrap(options: Options, func: Function): Function;
-        wrap<T extends Function>(func: T): T;
-        wrap<T extends Function>(options: Options, func: T): T;
-
-        lastException(): object;
-        lastException(): null;
-
-        lastEventId(): object;
-        lastEventId(): null;
-
-        setRelease(release: string): void;
-
-        setDist(dist: string): void;
-
-        setVersion(version: string): void;
-    }
+interface SentryBreadcrumb {
+    message?: string;
+    category?: string;
+    level?: SentrySeverity;
+    data?: object;
+    type?: SentryBreadcrumbType;
 }
 
-declare module 'Sentry' {
-    interface Sentry extends Sentry.SentryStatic {
-        Options: Sentry.Options,
-        LogLevel: Sentry.LogLevel,
-        Severity: Sentry.Severity,
-    }
-    var Sentry: Sentry;
+export enum SentrySeverity {
+    Fatal = "fatal",
+    Error = "error",
+    Warning = "warning",
+    Info = "info",
+    Debug = "debug",
+    Critical = "critical"
+}
 
-    export = Sentry;
+export enum SentryLog {
+    None = 0,
+    Error = 1,
+    Debug = 2,
+    Verbose = 3
+}
+
+interface SentryOptions {
+    logLevel?: SentryLog;
+    instrument?: boolean;
+    disableNativeIntegration?: boolean;
+    ignoreModulesExclude?: [string];
+    ignoreModulesInclude?: [string];
+}
+
+export default Sentry;
+
+export class Sentry {
+    install(): void;
+
+    static config(dsn: string, options?: SentryOptions): Sentry;
+
+    static isNativeClientAvailable(): boolean;
+
+    static crash(): void;
+
+    static nativeCrash(): void;
+
+    static setEventSentSuccessfully(callback: Function): void;
+
+    static setDataCallback(callback: Function): void;
+
+    static setUserContext(user: {
+        id?: string;
+        username?: string;
+        email?: string;
+        extra?: object;
+    }): void;
+
+    static setTagsContext(tags: Object): void;
+
+    static setExtraContext(extra: Object): void;
+
+    static captureMessage(message: string, options?: object): void;
+
+    static captureException(ex: Error, options?: object): void;
+
+    static captureBreadcrumb(breadcrumb: SentryBreadcrumb): void;
+
+    static clearContext(): void;
+
+    static context(func: Function, ...args: any[]): void;
+    static context(options: object, func: Function, ...args: any[]): void;
+
+    static wrap(func: Function): Function;
+    static wrap(options: object, func: Function): Function;
+    static wrap<T extends Function>(func: T): T;
+    static wrap<T extends Function>(options: object, func: T): T;
+
+    static lastException(): object;
+    static lastException(): null;
+
+    static lastEventId(): object;
+    static lastEventId(): null;
+
+    static setRelease(release: string): void;
+
+    static setDist(dist: string): void;
+
+    static setVersion(version: string): void;
 }

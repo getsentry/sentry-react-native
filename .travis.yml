@@ -3,6 +3,13 @@ branches:
     - master
 matrix:
   include:
+    - language: node_js
+      node_js:
+        - "8"
+      env:
+        - LANE='node'
+      cache:
+        yarn: true
     - language: android
       os: linux
       jdk: oraclejdk8
