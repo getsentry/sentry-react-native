@@ -37,6 +37,8 @@ matrix:
           - extra-google-google_play_services
           - extra-google-m2repository
           - addon-google_apis-google-16
+      env:
+        - LANE='android'
       script:
         - .travis/run.sh
     - language: objective-c

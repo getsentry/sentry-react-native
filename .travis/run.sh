@@ -2,8 +2,10 @@
 
 if [ "$LANE" = "node" ];
 then
+yarn install
 npm run test-typescript
 cd appium
+npm install -g react-native-cli
 make install
 cd example
 npm run test
