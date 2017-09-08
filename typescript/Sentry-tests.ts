@@ -1,5 +1,4 @@
-// import Sentry = require('./Sentry'); // or import * as Sentry from '..'
-import {Sentry, SentryLog, SentrySeverity} from '../lib/Sentry';
+import Sentry, {SentryLog, SentrySeverity} from '../lib/Sentry';
 
 Sentry.config(null).install();
 
@@ -9,3 +8,9 @@ var options = {
 Sentry.config('https://public@sentry.io/1', options).install();
 
 Sentry.captureMessage("test");
+
+Sentry.clearContext();
+
+Sentry.captureBreadcrumb({
+    message: 'Message'
+});
