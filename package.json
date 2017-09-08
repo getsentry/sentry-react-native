@@ -8,7 +8,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "version": "node ./scripts/version-bump.js && git add -A",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "test-typescript": "node_modules/typescript/bin/tsc --noImplicitAny --allowJs typescript/Sentry-tests.ts"
   },
   "keywords": [
     "react-native",
@@ -42,7 +43,8 @@
     "husky": "^0.13.4",
     "lint-staged": "^3.6.0",
     "prettier": "^1.4.2",
-    "replace-in-file": "^2.5.3"
+    "replace-in-file": "^2.5.3",
+    "typescript": "^2.5.2"
   },
   "lint-staged": {
     "*.js": [
