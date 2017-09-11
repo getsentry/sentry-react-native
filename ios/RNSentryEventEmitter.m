@@ -47,10 +47,16 @@ RCT_EXPORT_MODULE();
 }
 
 + (void)emitModuleTableUpdate:(NSDictionary *)moduleTable {
+    if (![NSJSONSerialization isValidJSONObject:moduleTable]) {
+        return;
+    }
+    NSError *error = nil;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:moduleTable
                                                        options:0
-                                                         error:nil];
-    [self postNotificationName:kModuleTable withPayload:[[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding]];
+                                                         error:&error];
+    if (nil == error) {
+        [self postNotificationName:kModuleTable withPayload:[[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding]];
+    }
 }
 
 + (void)postNotificationName:(NSString *)name withPayload:(NSObject *)object {
