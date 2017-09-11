@@ -253,7 +253,7 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
             for (id param in arguments) {
                 if ([param isKindOfClass:NSDictionary.class] && param[@"__sentry_stack"]) {
                     [_self.moduleMapping setValue:[NSString stringWithFormat:@"%@", [module class]] forKey:[NSString stringWithFormat:@"%@", param[@"__sentry_moduleID"]]];
-                    [RNSentryEventEmitter emitModuleTableUpdate:_self.moduleMapping];
+                    [RNSentryEventEmitter emitModuleTableUpdate:_self.moduleMapping.mutableCopy];
                     [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress] forKey:@"RNSentry.__sentry_address"];
                     [[NSUserDefaults standardUserDefaults] setObject:[RCTConvert NSString:param[@"__sentry_stack"]] forKey:@"RNSentry.__sentry_stack"];
                     [[NSUserDefaults standardUserDefaults] synchronize];
