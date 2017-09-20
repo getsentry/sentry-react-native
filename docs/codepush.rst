@@ -1,7 +1,7 @@
 Using Sentry with CodePush
 --------------------------
 
-If you want to use sentry together with CodePush you have to send us the CodePush version::
+If you want to use sentry together with CodePush you have to send us the CodePush version:
 
 .. sourcecode:: javascript
 
