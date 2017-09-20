@@ -1,7 +1,7 @@
 Using Sentry with CodePush
 --------------------------
 
-If you want to use sentry together with CodePush you have to send us the CodePush version:
+If you want to use sentry together with CodePush you have to send us the CodePush version::
 
 .. sourcecode:: javascript
 
@@ -9,7 +9,7 @@ If you want to use sentry together with CodePush you have to send us the CodePus
 
     CodePush.getUpdateMetadata().then((update) => {
       if (update) {
-        Sentry.setVersion('codepush:' + update.label);
+        Sentry.setVersion(update.appVersion + '-codepush:' + update.label);
       }
     });
 
