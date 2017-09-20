@@ -15,6 +15,10 @@ Installation
 Start by adding Sentry and then linking it::
 
     $ npm install react-native-sentry --save
+    # or
+    # yarn add react-native-sentry
+    # if you are using yarn
+    # this is for linking
     $ react-native link react-native-sentry
 
 The `link` step will pull in the native dependency and patch your project
