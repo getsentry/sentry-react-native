@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -89,11 +90,12 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startWithDsnString(String dsnString) {
+    public void startWithDsnString(String dsnString, final ReadableMap options) {
         if (sentryClient != null) {
             logger.info(String.format("Already started, use existing client '%s'", dsnString));
             return;
         }
+
         sentryClient = Sentry.init(dsnString, new AndroidSentryClientFactory(this.getReactApplicationContext()));
         androidHelper = new AndroidEventBuilderHelper(this.getReactApplicationContext());
         sentryClient.addEventSendCallback(new EventSendCallback() {
@@ -125,6 +127,12 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     if (exceptionInterface.getExceptions().getFirst().getExceptionClassName().contains("JavascriptException")) {
                         return false;
                     }
+                }
+                // Since we set shouldSendEvent for react-native we need to duplicate the code for sampling here
+                // I know you could add multiple shouldSendCallbacks but I want to be consistent with ios
+                if (options.hasKey("sampleRate")) {
+                    double randomDouble = new Random().nextDouble();
+                    return options.getDouble("sampleRate") >= Math.abs(randomDouble);
                 }
                 return true;
             }
