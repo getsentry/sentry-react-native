@@ -196,7 +196,7 @@ RCT_EXPORT_MODULE()
     return @{@"nativeClientAvailable": @YES};
 }
 
-RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
+RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString options:(NSDictionary *_Nonnull)options)
 {
     static dispatch_once_t onceStartToken;
     dispatch_once(&onceStartToken, ^{
@@ -214,6 +214,10 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString)
                 [event.exceptions.firstObject.type rangeOfString:@"RCTFatalException"].location != NSNotFound) {
                 NSLog(@"RCTFatalException");
                 return NO;
+            }
+            // Since we set shouldSendEvent for react-native we need to duplicate the code for sampling here
+            if (nil != options[@"sampleRate"]) {
+                return ([options[@"sampleRate"] floatValue] >= ((double)arc4random() / 0x100000000));
             }
             return YES;
         };

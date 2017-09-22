@@ -16,6 +16,7 @@ These are functions you can call in your javascript code:
       deactivateStacktraceMerging: true, // default: false | Deactivates the stacktrace merging feature
       logLevel: SentryLog.Debug, // default SentryLog.None | Possible values:  .None, .Error, .Debug, .Verbose
       disableNativeIntegration: false // default: false | Deactivates the native integration and only uses raven-js
+      // sampleRate: 0.5 // default: 1.0 | Only set this if you don't want to send every event so e.g.: 0.5 will send 50% of all events
       // These two options will only be considered if stacktrace merging is active
       // Here you can add modules that should be ignored or exclude modules
       // that should no longer be ignored from stacktrace merging
