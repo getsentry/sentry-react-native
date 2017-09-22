@@ -13,10 +13,10 @@ If you want to use sentry together with CodePush you have to send us the CodePus
       }
     });
 
-Put this somewhere in you code where you already use CodePush. This makes sure that we can
+Put this somewhere in your code where you already use CodePush. This makes sure that we can
 associate crashes with the right sourcemaps.
-``Sentry.setVersion`` sets the the release to ``bundle_id-version`` this works for iOS aswell as Android.
-Make sure that you call this function, otherwise Sentry is not able to symbolicate your crashes correctly.
+``Sentry.setVersion`` sets the release to ``bundle_id-version`` this works for iOS as well as Android.
+Make sure that you call this function otherwise Sentry is not able to symbolicate your crashes correctly.
 
 After updating your CodePush release you have to upload the new assets to Sentry::
 
@@ -27,6 +27,6 @@ After updating your CodePush release you have to upload the new assets to Sentry
 .. admonition:: Note
 
     Exporting the ``SENTRY_PROPERTIES`` will tell sentry-cli to use the
-    the properties in your project. Alternatively you can either pass it via
-    paramerts or a global settings file.
+     properties in your project. Alternatively, you can either pass it via
+    parameters or a global settings file.
     To find more about this refer to :ref:`sentry-cli-working-with-projects`.
