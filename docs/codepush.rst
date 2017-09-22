@@ -27,6 +27,6 @@ After updating your CodePush release you have to upload the new assets to Sentry
 .. admonition:: Note
 
     Exporting the ``SENTRY_PROPERTIES`` will tell sentry-cli to use the
-     properties in your project. Alternatively, you can either pass it via
+    properties in your project. Alternatively, you can either pass it via
     parameters or a global settings file.
     To find more about this refer to :ref:`sentry-cli-working-with-projects`.
