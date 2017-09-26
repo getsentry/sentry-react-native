@@ -3,16 +3,16 @@ fastlane_version "2.48.0"
 default_platform :ios
 
 def validate_android_build_output(output)
-  UI.user_error!("1 Missing output in log") unless output.scan(/POST \/api\/0\/projects\/sentry-test\/react-native\/releases\/com.awesomeproject.full-1.0-full\/files\//).size >1
-  UI.user_error!("2 Missing output in log") unless output.scan(/POST \/api\/0\/projects\/sentry-test\/react-native\/releases\/com.awesomeproject.demo-1.0-demo\/files\//).size >1
-  UI.user_error!("3 Missing output in log") unless output.scan(/"dist": "4", "name": "~\/index.android.bundle"/).size >1
-  UI.user_error!("4 Missing output in log") unless output.scan(/"dist": "3", "name": "~\/index.android.bundle"/).size >1
-  UI.user_error!("5 Missing output in log") unless output.scan(/"dist": "4", "name": "~\/index.android.bundle.map"/).size >1
-  UI.user_error!("6 Missing output in log") unless output.scan(/"dist": "3", "name": "~\/index.android.bundle.map"/).size >1
-  UI.user_error!("7 Missing output in log") unless output.scan(/sentry_cli::commands::react_native_gradle.*intermediates\/assets\/full\/release\/index.android.bundle$/).size >1
-  UI.user_error!("8 Missing output in log") unless output.scan(/sentry_cli::commands::react_native_gradle.*intermediates\/assets\/full\/release\/index.android.bundle.map$/).size >1
-  UI.user_error!("9 Missing output in log") unless output.scan(/sentry_cli::commands::react_native_gradle.*intermediates\/assets\/demo\/release\/index.android.bundle$/).size >1
-  UI.user_error!("10 Missing output in log") unless output.scan(/sentry_cli::commands::react_native_gradle.*intermediates\/assets\/demo\/release\/index.android.bundle.map$/).size >1
+  UI.user_error!("1 Missing output in log") unless output.scan(/POST \/api\/0\/projects\/sentry-test\/react-native\/releases\/com.awesomeproject.full-1.0-full\/files\//).size >= 1
+  UI.user_error!("2 Missing output in log") unless output.scan(/POST \/api\/0\/projects\/sentry-test\/react-native\/releases\/com.awesomeproject.demo-1.0-demo\/files\//).size >= 1
+  UI.user_error!("3 Missing output in log") unless output.scan(/"dist": "4", "name": "~\/index.android.bundle"/).size >= 1
+  UI.user_error!("4 Missing output in log") unless output.scan(/"dist": "3", "name": "~\/index.android.bundle"/).size >= 1
+  UI.user_error!("5 Missing output in log") unless output.scan(/"dist": "4", "name": "~\/index.android.bundle.map"/).size >= 1
+  UI.user_error!("6 Missing output in log") unless output.scan(/"dist": "3", "name": "~\/index.android.bundle.map"/).size >= 1
+  UI.user_error!("7 Missing output in log") unless output.scan(/sentry_cli::commands::react_native_gradle.*intermediates\/assets\/full\/release\/index.android.bundle$/).size >= 1
+  UI.user_error!("8 Missing output in log") unless output.scan(/sentry_cli::commands::react_native_gradle.*intermediates\/assets\/full\/release\/index.android.bundle.map$/).size >= 1
+  UI.user_error!("9 Missing output in log") unless output.scan(/sentry_cli::commands::react_native_gradle.*intermediates\/assets\/demo\/release\/index.android.bundle$/).size >= 1
+  UI.user_error!("10 Missing output in log") unless output.scan(/sentry_cli::commands::react_native_gradle.*intermediates\/assets\/demo\/release\/index.android.bundle.map$/).size >= 1
   UI.success("Android build output validated")
 end
 
