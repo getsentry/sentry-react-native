@@ -3,13 +3,13 @@ import org.apache.tools.ant.taskdefs.condition.Os
 def config = project.hasProperty("sentry") ? project.sentry : [];
 
 gradle.projectsEvaluated {
-    def releases = [];
+    def releases = [:];
     android.applicationVariants.each { variant ->
         def releaseName = "${variant.getApplicationId()}-${variant.getVersionName()}";
         variant.outputs.each { output ->
             def processTask = output.getProcessResources();
             def versionCode = output.getVersionCode();
-            releases.add([output.getName(), releaseName, versionCode]);
+            releases[releaseName] = [output.getName(), releaseName, versionCode];
         }
     }
 
@@ -52,7 +52,18 @@ gradle.projectsEvaluated {
             println "**********************************"
         }
 
-        releases.each { variant, releaseName, versionCodes ->
+        // Lets leave this here if we need to debug
+        // println bundleTask.properties
+        //     .sort{it.key}
+        //     .collect{it}
+        //     .findAll{!['class', 'active'].contains(it.key)}
+        //     .join('\n')
+
+        releases.each { key, release ->
+            def variant = release[0]
+            def releaseName = release[1]
+            def versionCodes = release[2]
+
             def cliTask = tasks.create(
                 name: bundleTask.getName() + variant + "SentryUpload",
                 type: Exec) {
