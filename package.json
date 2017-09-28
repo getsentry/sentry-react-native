@@ -2,7 +2,7 @@
   "name": "react-native-sentry",
   "homepage": "https://github.com/getsentry/react-native-sentry",
   "repository": "https://github.com/getsentry/react-native-sentry",
-  "version": "0.24.2",
+  "version": "0.25.0",
   "description": "Official Sentry SDK for react-native",
   "main": "index.js",
   "scripts": {
