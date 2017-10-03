@@ -53,6 +53,8 @@ export class Sentry {
 
   static setEventSentSuccessfully(callback: Function): void;
 
+  static setShouldSendCallback(callback: Function): void;
+
   static setDataCallback(callback: Function): void;
 
   static setUserContext(user: {
