@@ -33,6 +33,13 @@ These are functions you can call in your javascript code:
       // Sentry.lastException(); -> returns the last event after the first successfully sent event
     });
 
+    Sentry.setShouldSendCallback((event) => {
+      return true; // if return false, event will not be sent
+    });
+
+    // Sentry.lastException(); // Will return the last sent error event
+    // Sentry.lastEventId(); // Will return the last event id
+
     // export an extra context
     Sentry.setExtraContext({
       "a_thing": 3,
