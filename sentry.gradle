@@ -1,5 +1,8 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 def config = project.hasProperty("sentry") ? project.sentry : [];
 
 gradle.projectsEvaluated {
@@ -7,12 +10,10 @@ gradle.projectsEvaluated {
     android.applicationVariants.each { variant ->
         def releaseName = "${variant.getApplicationId()}-${variant.getVersionName()}";
         variant.outputs.each { output ->
-            def processTask = output.getProcessResources();
             def versionCode = output.getVersionCode();
-            releases[releaseName] = [output.getName(), releaseName, versionCode];
+            releases[variant.getName()] = [output.getName(), releaseName, versionCode];
         }
     }
-
     // separately we then hook into the bundle task of react native to inject
     // sourcemap generation parameters.  In case for whatever reason no release
     // was found for the asset folder we just bail.
@@ -59,85 +60,100 @@ gradle.projectsEvaluated {
         //     .findAll{!['class', 'active'].contains(it.key)}
         //     .join('\n')
 
-        releases.each { key, release ->
-            def variant = release[0]
-            def releaseName = release[1]
-            def versionCodes = release[2]
-
-            def cliTask = tasks.create(
-                name: bundleTask.getName() + variant + "SentryUpload",
-                type: Exec) {
-                description = "upload debug symbols to sentry"
-
-                def propertiesFile = "$reactRoot/android/sentry.properties";
-                if (config.flavorAware) {
-                    propertiesFile = "$reactRoot/android/sentry-$variant"+".properties"
-                    println "For $variant using: $propertiesFile"
-                } else {
-                    environment("SENTRY_PROPERTIES", propertiesFile)
-                }
-                Properties sentryProps = new Properties();
-                try {
-                    sentryProps.load(new FileInputStream(propertiesFile));
-                } catch (FileNotFoundException e) {
-                    println "File not found: $propertiesFile"
-                }
-                def cliExecutable = sentryProps.get("cli.executable", "$reactRoot/node_modules/sentry-cli-binary/bin/sentry-cli");
-
-                workingDir reactRoot
-
-                def args = [
-                    cliExecutable
-                ];
-                if (config.logLevel) {
-                    args.push("--log-level");
-                    args.push(config.logLevel);
-                }
-
-                if (config.flavorAware) {
-                    args.push("--url");
-                    args.push(sentryProps.get("defaults.url"));
-                    args.push("--auth-token");
-                    args.push(sentryProps.get("auth.token"));
-                }
-
-                args.push("react-native");
-                args.push("gradle");
-                args.push("--bundle");
-                args.push(bundleOutput);
-                args.push("--sourcemap");
-                args.push(sourcemapOutput);
-                args.push("--release");
-                args.push(releaseName);
-
-                if (config.flavorAware) {
-                    args.push("--org");
-                    args.push(sentryProps.get("defaults.org"));
-                    args.push("--project");
-                    args.push(sentryProps.get("defaults.project"));
-                }
-
-                versionCodes.each { versionCode ->
-                    args.add("--dist");
-                    args.add(versionCode);
-                }
-
-                if (config.logLevel) {
-                    println args
-                }
-                if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                    commandLine("cmd", "/c", *args)
-                } else {
-                    commandLine(*args)
-                }
-                enabled true
-            }
-
-            bundleTask.doLast {
-                cliTask.execute();
-            }
-
-            cliTask.dependsOn(bundleTask)
+        def currentVariant = "";
+        def pattern = Pattern.compile("bundle([A-Z][A-Za-z]+)JsAndAssets")
+        Matcher matcher = pattern.matcher(bundleTask.name)
+        if (matcher.find()) {
+            def match = matcher.group(1);
+            currentVariant = match.substring(0, 1).toLowerCase() + match.substring(1);
         }
+
+        def currentRelease = null;
+        releases.each { key, release ->
+            if (key == currentVariant) {
+                currentRelease = release;
+            }
+        }
+
+        if (currentRelease == null) return;
+
+        def variant = currentRelease[0]
+        def releaseName = currentRelease[1]
+        def versionCodes = currentRelease[2]
+
+        def cliTask = tasks.create(
+            name: bundleTask.getName() + variant + "SentryUpload",
+            type: Exec) {
+            description = "upload debug symbols to sentry"
+
+            def propertiesFile = "$reactRoot/android/sentry.properties";
+            if (config.flavorAware) {
+                propertiesFile = "$reactRoot/android/sentry-$variant"+".properties"
+                println "For $variant using: $propertiesFile"
+            } else {
+                environment("SENTRY_PROPERTIES", propertiesFile)
+            }
+            Properties sentryProps = new Properties();
+            try {
+                sentryProps.load(new FileInputStream(propertiesFile));
+            } catch (FileNotFoundException e) {
+                println "File not found: $propertiesFile"
+            }
+            def cliExecutable = sentryProps.get("cli.executable", "$reactRoot/node_modules/sentry-cli-binary/bin/sentry-cli");
+
+            workingDir reactRoot
+
+            def args = [
+                cliExecutable
+            ];
+            if (config.logLevel) {
+                args.push("--log-level");
+                args.push(config.logLevel);
+            }
+
+            if (config.flavorAware) {
+                args.push("--url");
+                args.push(sentryProps.get("defaults.url"));
+                args.push("--auth-token");
+                args.push(sentryProps.get("auth.token"));
+            }
+
+            args.push("react-native");
+            args.push("gradle");
+            args.push("--bundle");
+            args.push(bundleOutput);
+            args.push("--sourcemap");
+            args.push(sourcemapOutput);
+            args.push("--release");
+            args.push(releaseName);
+
+            if (config.flavorAware) {
+                args.push("--org");
+                args.push(sentryProps.get("defaults.org"));
+                args.push("--project");
+                args.push(sentryProps.get("defaults.project"));
+            }
+
+            versionCodes.each { versionCode ->
+                args.add("--dist");
+                args.add(versionCode);
+            }
+
+            if (config.logLevel) {
+                println args
+            }
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine("cmd", "/c", *args)
+            } else {
+                commandLine(*args)
+            }
+            enabled true
+        }
+
+        bundleTask.doLast {
+            cliTask.execute();
+        }
+
+        cliTask.dependsOn(bundleTask)
     }
 }
