@@ -360,6 +360,14 @@ function addNewXcodeBuildPhaseForSymbols(buildScripts, proj) {
   );
 }
 
+function addZLibToXcode(proj) {
+  proj.addPbxGroup([], 'Frameworks', 'Application');
+  proj.addFramework('libz.tbd', {
+    link: true,
+    target: proj.getFirstTarget().uuid
+  });
+}
+
 function patchXcodeProj(contents, filename) {
   let proj = xcode.project(filename);
   return new Promise(function(resolve, reject) {
@@ -379,6 +387,7 @@ function patchXcodeProj(contents, filename) {
 
       patchExistingXcodeBuildScripts(buildScripts);
       addNewXcodeBuildPhaseForSymbols(buildScripts, proj);
+      addZLibToXcode(proj);
 
       // we always modify the xcode file in memory but we only want to save it
       // in case the user wants configuration for ios.  This is why we check
