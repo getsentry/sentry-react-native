@@ -22,12 +22,11 @@ NSString *const RNSentrySdkName = @"sentry-react-native";
 
 - (dispatch_queue_t)methodQueue
 {
-    static dispatch_queue_t sentryMethodQueue;
-    static dispatch_once_t onceQueueToken;
-    dispatch_once(&onceQueueToken, ^{
-        sentryMethodQueue = dispatch_queue_create("io.sentry.RNSentry", DISPATCH_QUEUE_SERIAL);
-    });
-    return sentryMethodQueue;
+    return dispatch_get_main_queue();
+}
+
++ (BOOL)requiresMainQueueSetup {
+    return YES;
 }
 
 + (void)installWithBridge:(RCTBridge *)bridge {
