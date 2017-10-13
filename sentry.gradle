@@ -3,7 +3,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-def config = project.hasProperty("sentry") ? project.sentry : [];
+def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
 
 gradle.projectsEvaluated {
     def releases = [:];

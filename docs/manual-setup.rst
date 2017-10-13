@@ -104,14 +104,14 @@ by adding the following line after the ``react.gradle`` one::
 You can also enable logging for ``sentry-cli`` by adding this config before the above
 ``apply from:`` line::
 
-    project.ext.sentry = [
+    project.ext.sentryCli = [
         logLevel: "debug"
     ]
 
 We also support fetching different ``sentry.properties`` files for different flavors.
 For that you need to add::
 
-    project.ext.sentry = [
+    project.ext.sentryCli = [
         logLevel: "debug",
         flavorAware: true
     ]
