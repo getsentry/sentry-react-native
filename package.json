@@ -37,6 +37,11 @@
     },
     "android": {
       "packageInstance": "new RNSentryPackage(MainApplication.this)"
+    },
+    "ios": {
+      "sharedLibraries": [
+        "libz"
+      ]
     }
   },
   "devDependencies": {

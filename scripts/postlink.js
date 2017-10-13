@@ -143,8 +143,8 @@ function getProperties(platform) {
         default: cachedProps['defaults/url'] || process.env.SENTRY_URL || getDefaultUrl(),
         message:
           'The Sentry Server URL for ' +
-          getPlatformName(platform) +
-          '. Only needed if you use self hosted Sentry, press enter to use default.',
+            getPlatformName(platform) +
+            '. Only needed if you use self hosted Sentry, press enter to use default.',
         name: 'defaults/url'
       },
       {
@@ -157,8 +157,8 @@ function getProperties(platform) {
         type: 'input',
         default:
           cachedProps['defaults/project'] ||
-          process.env.SENTRY_PROJECT ||
-          'your-project-slug',
+            process.env.SENTRY_PROJECT ||
+            'your-project-slug',
         message: 'The Project for ' + getPlatformName(platform),
         name: 'defaults/project'
       },
@@ -211,6 +211,55 @@ function patchAppDelegate(contents) {
   }
 
   return Promise.resolve(contents);
+}
+
+function patchAppJs(contents, filename) {
+  // since the init call could live in other places too, we really only
+  // want to do this if we managed to patch any of the other files as well.
+  if (contents.match(/Sentry.config\(/) || !patchedAny) {
+    return Promise.resolve(null);
+  }
+
+  // if we match react-native-sentry somewhere, we already patched the file
+  // and no longer need to
+  if (contents.match('react-native-sentry')) {
+    Promise.resolve(contents);
+  }
+
+  return new Promise((resolve, reject) => {
+    let promises = [];
+    for (let platform of PLATFORMS) {
+      promises.push(
+        shouldConfigurePlatform(platform).then(shouldConfigure => {
+          if (!shouldConfigure) {
+            return Promise.resolve(null);
+          }
+          return getDsn(platform).then(dsn => {
+            let platformDsn = {};
+            platformDsn[platform] = dsn;
+            return Promise.resolve(platformDsn);
+          });
+        })
+      );
+    }
+    Promise.all(promises).then(dsns => {
+      let config = {};
+      dsns.forEach(value => {
+        if (value) Object.assign(config, value);
+      });
+      if (Object.keys(config).length === 0) resolve(null);
+      resolve(
+        contents.replace(/^([^]*)(import\s+[^;]*?;$)/m, match => {
+          return (
+            match +
+            "\n\nimport { Sentry } from 'react-native-sentry';\n\n" +
+            `const sentryDsn = Platform.select(${JSON.stringify(config)});\n` +
+            'Sentry.config(sentryDsn).install();\n'
+          );
+        })
+      );
+    });
+  });
 }
 
 function patchIndexJs(contents, filename) {
@@ -306,17 +355,9 @@ function addNewXcodeBuildPhaseForSymbols(buildScripts, proj) {
       shellPath: '/bin/sh',
       shellScript:
         'export SENTRY_PROPERTIES=sentry.properties\\n' +
-        '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym'
+          '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym'
     }
   );
-}
-
-function addZLibToXcode(proj) {
-  proj.addPbxGroup([], 'Frameworks', 'Application');
-  proj.addFramework('libz.tbd', {
-    link: true,
-    target: proj.getFirstTarget().uuid
-  });
 }
 
 function patchXcodeProj(contents, filename) {
@@ -338,7 +379,6 @@ function patchXcodeProj(contents, filename) {
 
       patchExistingXcodeBuildScripts(buildScripts);
       addNewXcodeBuildPhaseForSymbols(buildScripts, proj);
-      addZLibToXcode(proj);
 
       // we always modify the xcode file in memory but we only want to save it
       // in case the user wants configuration for ios.  This is why we check
@@ -377,6 +417,8 @@ function patchMatchingFile(pattern, func) {
 
 function addSentryInit() {
   let rv = Promise.resolve();
+  // rm 0.49 introduced an App.js for both platforms
+  rv = rv.then(() => patchMatchingFile('App.js', patchAppJs));
   for (let platform of PLATFORMS) {
     rv = rv.then(() => patchMatchingFile(`index.${platform}.js`, patchIndexJs));
   }
