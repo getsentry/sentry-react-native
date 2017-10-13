@@ -13,7 +13,7 @@ These are functions you can call in your javascript code:
 
     // disable stacktrace merging
     Sentry.config("___DSN___", {
-      deactivateStacktraceMerging: true, // default: false | Deactivates the stacktrace merging feature
+      deactivateStacktraceMerging: false, // default: true | Deactivates the stacktrace merging feature
       logLevel: SentryLog.Debug, // default SentryLog.None | Possible values:  .None, .Error, .Debug, .Verbose
       disableNativeIntegration: false // default: false | Deactivates the native integration and only uses raven-js
       // sampleRate: 0.5 // default: 1.0 | Only set this if you don't want to send every event so e.g.: 0.5 will send 50% of all events
