@@ -47,7 +47,7 @@ gradle.projectsEvaluated {
         bundleTask.setProperty("commandLine", cmd);
         bundleTask.setProperty("args", cmdArgs);
 
-        if (config.flavorAware) {
+        if (config.hasProperty("flavorAware") && config.flavorAware) {
             println "**********************************"
             println "* Flavor aware sentry properties *"
             println "**********************************"
@@ -87,7 +87,7 @@ gradle.projectsEvaluated {
             description = "upload debug symbols to sentry"
 
             def propertiesFile = "$reactRoot/android/sentry.properties";
-            if (config.flavorAware) {
+            if (config.hasProperty("flavorAware") && config.flavorAware) {
                 propertiesFile = "$reactRoot/android/sentry-$variant"+".properties"
                 println "For $variant using: $propertiesFile"
             } else {
@@ -106,12 +106,12 @@ gradle.projectsEvaluated {
             def args = [
                 cliExecutable
             ];
-            if (config.logLevel) {
+            if (config.hasProperty("logLevel") && config.logLevel) {
                 args.push("--log-level");
                 args.push(config.logLevel);
             }
 
-            if (config.flavorAware) {
+            if (config.hasProperty("flavorAware") && config.flavorAware) {
                 args.push("--url");
                 args.push(sentryProps.get("defaults.url"));
                 args.push("--auth-token");
@@ -127,7 +127,7 @@ gradle.projectsEvaluated {
             args.push("--release");
             args.push(releaseName);
 
-            if (config.flavorAware) {
+            if (config.hasProperty("flavorAware") && config.flavorAware) {
                 args.push("--org");
                 args.push(sentryProps.get("defaults.org"));
                 args.push("--project");
@@ -139,7 +139,7 @@ gradle.projectsEvaluated {
                 args.add(versionCode);
             }
 
-            if (config.logLevel) {
+            if (config.hasProperty("logLevel") && config.logLevel) {
                 println args
             }
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
