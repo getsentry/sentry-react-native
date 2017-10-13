@@ -96,8 +96,8 @@ Mixed Stacktraces
 -----------------
 
 Currently we only support mixed stacktraces on iOS. By default this feature is
-enabled. If you encounter performance issues we recommend try turning it
-off ``deactivateStacktraceMerging: true`` see: :doc:`config`.
+disabled. We recommend testing your app thoroughly when activating this, to turn
+it on ``deactivateStacktraceMerging: false`` see: :doc:`config`.
 
 Deep Dive
 ---------

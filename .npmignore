@@ -4,6 +4,8 @@ docs
 .idea
 appium
 .vscode
+.travis
+.github
 
 # KSCrash
 ios/Sentry/KSCrash
