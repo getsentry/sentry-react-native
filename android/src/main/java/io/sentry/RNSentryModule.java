@@ -469,8 +469,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             level = event.getString("level");
         }
         switch (level) {
-            case "error":
-                return Event.Level.ERROR;
+            case "fatal":
+                return Event.Level.FATAL;
             case "warning":
                 return Event.Level.WARNING;
             case "info":
@@ -478,7 +478,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             case "debug":
                 return Event.Level.DEBUG;
             default:
-                return Event.Level.FATAL;
+                return Event.Level.ERROR;
         }
     }
 

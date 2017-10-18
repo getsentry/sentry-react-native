@@ -424,7 +424,7 @@ RCT_EXPORT_METHOD(crash)
     } else if ([level isEqualToString:@"error"]) {
         return kSentrySeverityError;
     }
-    return kSentrySeverityFatal;
+    return kSentrySeverityError;
 }
 
 - (SentryLogLevel)sentryLogLevelFromLevel:(int)level {
