@@ -194,8 +194,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
         if (breadcrumb.hasKey("message")) {
             breadcrumbBuilder.setMessage(breadcrumb.getString("message"));
-            Sentry.record(breadcrumbBuilder.build());
         }
+        Sentry.record(breadcrumbBuilder.build());
     }
 
     @ReactMethod
