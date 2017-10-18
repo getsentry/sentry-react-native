@@ -114,6 +114,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 params.putString("dist", event.getDist());
                 params.putMap("extra", MapUtil.toWritableMap(event.getExtra()));
                 params.putMap("tags", MapUtil.toWritableMap(Collections.<String, Object>unmodifiableMap(event.getTags())));
+                if (event.getSentryInterfaces().containsKey(ExceptionInterface.EXCEPTION_INTERFACE)) {
+                    ExceptionInterface exceptionInterface = ((ExceptionInterface)event.getSentryInterfaces().get(ExceptionInterface.EXCEPTION_INTERFACE));
+                    params.putString("message", exceptionInterface.getExceptions().getFirst().getExceptionMessage());
+                }
                 RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, params);
             }
         });
