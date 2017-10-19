@@ -5,7 +5,7 @@ from time import sleep
 
 
 def extractText(driver):
-    return driver.find_element_by_accessibility_id('textarea').get_attribute("value")
+    return driver.find_elements_by_xpath('//XCUIElementTypeTextField[@name="status"]')[0].text
 
 
 def test_send_message(driver):
@@ -108,7 +108,7 @@ def test_native_crash(driver):
         assert cocoa_frames > 0
     assert len(event['exception']['values']) > 0
     assert len(event['debug_meta']['images']) > 0
-    assert event['exception']['values'][0]['value'] == 'crash'
+    assert event['exception']['values'][0]['value'] == 'Attempted to dereference null pointer.\nOriginated at or in a subcall of -[SentryClient crash]'
     assert event['platform'] == 'cocoa'
     assert event['level'] == 'fatal'
     assert event['extra']['react']
