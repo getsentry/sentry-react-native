@@ -89,7 +89,7 @@ def default_capabilities():
         else:
             desired_caps['app'] = os.path.abspath('aws/Build/Products/Release-iphonesimulator/AwesomeProject.app')
             desired_caps['platformName'] = 'iOS'
-            desired_caps['platformVersion'] = '10.3'
+            desired_caps['platformVersion'] = '11.0'
             desired_caps['deviceName'] = 'iPhone Simulator'
 
 
