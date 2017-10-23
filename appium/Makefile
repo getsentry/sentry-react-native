@@ -22,6 +22,8 @@ copy-local-files-to-example:
 	find ../ios -name 'RN*.[h|m]' -exec cp {} example/node_modules/react-native-sentry/ios/ \;
 	cp -r ../android/* example/node_modules/react-native-sentry/android/
 	cp -r ../ios/Sentry/Sources/Sentry/* example/node_modules/react-native-sentry/ios/Sentry/Sources/Sentry/
+	rm -rf example/node_modules/react-native-sentry/ios/Sentry/Sentry.xcodeproj
+	cp -r ../ios/Sentry/Sentry.xcodeproj example/node_modules/react-native-sentry/ios/Sentry/Sentry.xcodeproj
 
 install: new-demo-project copy-local-files-to-example
 
