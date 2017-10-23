@@ -12,6 +12,7 @@
 NSString *const RNSentryVersionString = @"0.29.0";
 NSString *const RNSentrySdkName = @"sentry-react-native";
 
+
 @interface RNSentry()
 
 @property (nonatomic, strong) NSMutableDictionary *moduleMapping;
@@ -302,7 +303,9 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
 
 RCT_EXPORT_METHOD(clearContext)
 {
-    [SentryClient.sharedClient clearContext];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0ul), ^{
+        [SentryClient.sharedClient clearContext];
+    });
 }
 
 RCT_EXPORT_METHOD(setLogLevel:(int)level)
@@ -334,45 +337,49 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary *_Nonnull)user)
 
 RCT_EXPORT_METHOD(captureBreadcrumb:(NSDictionary * _Nonnull)breadcrumb)
 {
-    SentryBreadcrumb *crumb = [[SentryBreadcrumb alloc] initWithLevel:[self sentrySeverityFromLevel:breadcrumb[@"level"]]
-                                                             category:breadcrumb[@"category"]];
-    crumb.message = breadcrumb[@"message"];
-    crumb.timestamp = [NSDate dateWithTimeIntervalSince1970:[breadcrumb[@"timestamp"] integerValue]];
-    crumb.type = breadcrumb[@"type"];
-    crumb.data = [RCTConvert NSDictionary:breadcrumb[@"data"]];
-    [SentryClient.sharedClient.breadcrumbs addBreadcrumb:crumb];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0ul), ^{
+        SentryBreadcrumb *crumb = [[SentryBreadcrumb alloc] initWithLevel:[self sentrySeverityFromLevel:breadcrumb[@"level"]]
+                                                                 category:breadcrumb[@"category"]];
+        crumb.message = breadcrumb[@"message"];
+        crumb.timestamp = [NSDate dateWithTimeIntervalSince1970:[breadcrumb[@"timestamp"] integerValue]];
+        crumb.type = breadcrumb[@"type"];
+        crumb.data = [RCTConvert NSDictionary:breadcrumb[@"data"]];
+        [SentryClient.sharedClient.breadcrumbs addBreadcrumb:crumb];
+    });
 }
 
 RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
 {
-    SentrySeverity level = [self sentrySeverityFromLevel:event[@"level"]];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0ul), ^{
+        SentrySeverity level = [self sentrySeverityFromLevel:event[@"level"]];
 
-    SentryEvent *sentryEvent = [[SentryEvent alloc] initWithLevel:level];
-    sentryEvent.eventId = event[@"event_id"];
-    sentryEvent.message = event[@"message"];
-    sentryEvent.logger = event[@"logger"];
-    sentryEvent.tags = [self sanitizeDictionary:event[@"tags"]];
-    sentryEvent.extra = event[@"extra"];
-    sentryEvent.user = [self createUser:event[@"user"]];
-    if (event[@"exception"]) {
-        NSDictionary *exception = event[@"exception"][@"values"][0];
-        NSMutableArray *frames = [NSMutableArray array];
-        NSArray<SentryFrame *> *stacktrace = [self convertReactNativeStacktrace:SentryParseRavenFrames(exception[@"stacktrace"][@"frames"])];
-        for (NSInteger i = (stacktrace.count-1); i >= 0; i--) {
-            [frames addObject:[stacktrace objectAtIndex:i]];
+        SentryEvent *sentryEvent = [[SentryEvent alloc] initWithLevel:level];
+        sentryEvent.eventId = event[@"event_id"];
+        sentryEvent.message = event[@"message"];
+        sentryEvent.logger = event[@"logger"];
+        sentryEvent.tags = [self sanitizeDictionary:event[@"tags"]];
+        sentryEvent.extra = event[@"extra"];
+        sentryEvent.user = [self createUser:event[@"user"]];
+        if (event[@"exception"]) {
+            NSDictionary *exception = event[@"exception"][@"values"][0];
+            NSMutableArray *frames = [NSMutableArray array];
+            NSArray<SentryFrame *> *stacktrace = [self convertReactNativeStacktrace:SentryParseRavenFrames(exception[@"stacktrace"][@"frames"])];
+            for (NSInteger i = (stacktrace.count-1); i >= 0; i--) {
+                [frames addObject:[stacktrace objectAtIndex:i]];
+            }
+            [self addExceptionToEvent:sentryEvent type:exception[@"type"] value:exception[@"value"] frames:frames];
+#if DEBUG
+            // We want to send the exception instead of storing it because in debug
+            // the app does not crash it will restart
+            [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
+#else
+            [SentryClient.sharedClient storeEvent:sentryEvent];
+#endif
+        } else {
+            [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
         }
-        [self addExceptionToEvent:sentryEvent type:exception[@"type"] value:exception[@"value"] frames:frames];
-        #if DEBUG
-        // We want to send the exception instead of storing it because in debug
-        // the app does not crash it will restart
-        [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
-        #else
-        [SentryClient.sharedClient storeEvent:sentryEvent];
-        #endif
-    } else {
-        [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
-    }
-    [RNSentryEventEmitter emitStoredEvent];
+        [RNSentryEventEmitter emitStoredEvent];
+    });
 }
 
 - (void)addExceptionToEvent:(SentryEvent *)event type:(NSString *)type value:(NSString *)value frames:(NSArray *)frames {
