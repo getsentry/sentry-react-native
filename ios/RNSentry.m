@@ -44,6 +44,10 @@ NSString *const RNSentrySdkName = @"sentry-react-native";
     NSUInteger counter = 0;
     for (SentryFrame *frame in frames) {
         NSUInteger instructionAddress;
+        // We skip js frames because they don't have an instructionAddress
+        if (frame.instructionAddress == nil) {
+            continue;
+        }
         [[NSScanner scannerWithString:frame.instructionAddress] scanHexLongLong:&instructionAddress];
         if (instructionAddress < nativeCallAddress) {
             continue;
