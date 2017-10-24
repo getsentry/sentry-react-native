@@ -56,14 +56,8 @@ def ios_check
                 artifacts.artifacts.each do |a|
                     if a.name == 'Syslog'
                         content = open(a.url).read
-                        if p.problems[0].test.name == 'test_throw_error'
-                            raise RuntimeError, "Sentry should start twice: #{p.inspect}" unless content.scan(/Sentry Started -- Version/).size == 2
-                            raise RuntimeError, "No JSON SENT: #{p.inspect}" unless content.scan(/Sentry - Debug:: Request status: 200/).size == 1
-                        elsif p.problems[0].test.name == 'test_native_crash'
-                            raise RuntimeError, "Sentry should start twice: #{p.inspect}" unless content.scan(/Sentry Started -- Version/).size == 2
-                            raise RuntimeError, "No JSON SENT: #{p.inspect}" unless content.scan(/Sentry - Debug:: Request status: 200/).size == 1
-                            raise RuntimeError, "exception_name should be EXC_BREAKPOINT: #{p.inspect}" unless content.scan(/"exception_name" : "EXC_BREAKPOINT"/).size == 1
-                        end
+                        raise RuntimeError, "test_throw_error Sentry should start twice: #{p.inspect}" unless content.scan(/Sentry Started -- Version/).size == 2
+                        raise RuntimeError, "test_throw_error No JSON SENT: #{p.inspect}" unless content.scan(/Sentry - Debug:: Request status: 200/).size == 1
                     end
                 end
             end

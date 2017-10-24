@@ -106,9 +106,10 @@ def test_native_crash(driver):
             if frame.get('platform', None) == 'javascript':
                 js_frames += 1
         assert cocoa_frames > 0
+        assert js_frames > 0
     assert len(event['exception']['values']) > 0
     assert len(event['debug_meta']['images']) > 0
-    assert event['exception']['values'][0]['value'] == 'Attempted to dereference null pointer.\nOriginated at or in a subcall of -[SentryClient crash]'
+    assert event['exception']['values'][0]['value'] != None
     assert event['platform'] == 'cocoa'
     assert event['level'] == 'fatal'
     assert event['extra']['react']
