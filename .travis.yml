@@ -1,4 +1,6 @@
-if: branch = master OR tag IS present
+branches:
+  only:
+    - master
 matrix:
   include:
     - language: node_js
@@ -41,7 +43,6 @@ matrix:
       before_install: .travis/before_install.sh
       script: .travis/run.sh
     - stage: deploy
-      if: tag IS present
       script: .travis/deploy.sh
       deploy:
         provider: s3
@@ -54,4 +55,4 @@ matrix:
         upload-dir: $TRAVIS_REPO_SLUG/$TRAVIS_COMMIT
         acl: public_read
         on:
-          tags: true
+          branch: master
