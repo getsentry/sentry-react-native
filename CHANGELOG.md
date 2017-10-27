@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.30.1
+
+Deploy and release over Probot
+
 ## v0.30.0
 
 Refactored iOS to use shared component from sentry-cocoa.
