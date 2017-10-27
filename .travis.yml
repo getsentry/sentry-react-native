@@ -46,6 +46,7 @@ matrix:
       script: .travis/run.sh
     - stage: deploy
       language: node_js
+      node_js: 8
       script: .travis/deploy.sh
       deploy:
         provider: s3
