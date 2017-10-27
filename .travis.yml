@@ -4,14 +4,11 @@ branches:
 matrix:
   include:
     - language: node_js
-      node_js:
-        - "8"
-      env:
-        - LANE='node'
+      node_js: 8
+      env: LANE='node'
       cache:
         yarn: true
-      script:
-        - .travis/run.sh
+      script: .travis/run.sh
     - language: android
       os: linux
       jdk: oraclejdk8
@@ -24,13 +21,7 @@ matrix:
           - $HOME/.gradle/caches/
           - $HOME/.gradle/wrapper/
       sudo: required
-      before_install:
-        - nvm install 8
-        - node --version
-        - travis_retry curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-        - echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-        - travis_retry sudo apt-get update -qq
-        - travis_retry sudo apt-get install -y -qq yarn
+      before_install: .travis/before_install.sh
       android:
         components:
           - build-tools-23.0.1
@@ -39,23 +30,30 @@ matrix:
           - extra-google-google_play_services
           - extra-google-m2repository
           - addon-google_apis-google-16
-      env:
-        - LANE='android'
-      script:
-        - .travis/run.sh
+      env: LANE='android'
+      script: .travis/run.sh
     - language: objective-c
       os: osx
       osx_image: xcode8.3
       cache:
         - bundler
         - pip
-      env:
-        - LANE='ios'
-      before_install:
-        - brew update
-        - brew install yarn
-        - brew outdated yarn || brew upgrade yarn
-      script:
-        - .travis/run.sh
-notifications:
-  email: false
+        - yarn
+      env: LANE='ios'
+      before_install: .travis/before_install.sh
+      script: .travis/run.sh
+    - stage: deploy
+      if: tag IS present
+      script: .travis/deploy.sh
+      deploy:
+        provider: s3
+        access_key_id: AKIAJKYWAF3QS7SFL75Q
+        secret_access_key:
+          secure: nCp4HC3PewZ6nfmnymdPn15UbZCFHXZEjzZbWtRhjDxR62fycRZSqvF47F4SMxod2DR3h7xT5k0Yj0WkfaKaLWPcVLeuyhI5LsB2tL/1jZQWvde6wQRoL23oE+Fs2hw8AFpg3V/tOO5K/yco1isToq4nKyNo0VDhRhHDguj+F2lLX9t04DWxg1zQABPgSFJCGHVj1QjILnPQ6k+VD2FGecx8a9sfcG2XiRvRIbYRhCZDwOd/D0L52GJqOIfcXrbb9p/dVw0QI1oijUT76+6CRiNvbzx+koAkrMXKY+Ko32PUQ68LxhY0J9sTdyCfRSE24Unb/hbTbWwlZElou0+hF0WloLyZKUWn5OT7hY0Q8O2oTY6U27MpiARYaN2kfhQYnLwOc0osGC8IwT4I8ThFzVxgeTzBXSS/PFiXjFmjRAvjPt7aYN02PAMuRB2WxW+gN80S+B8TBh07g99PcHQ1HZXPbcXBTyDXbeJHCBi5ut1wrIjIxLvGJq/vmB+lkU2LHeTPdKuzi1cLBKRLD8Qdg9tzeMrAFDtCp0zSFe0cFZqzgtCIvLcyGBDBQTj8LiKSD2X6Fmmxg6zdnzU7tVqvcqvkXk+2Qjgb5NWxJlLeGtvBxyrbw/ig+kQaVak63i3GpHijLqsC9Z5FlAM53xuN7yMD/Xyb50HFdkDAUg43324=
+        bucket: getsentry-builds
+        skip_cleanup: true
+        local_dir: build
+        upload-dir: $TRAVIS_REPO_SLUG/$TRAVIS_COMMIT
+        acl: public_read
+        on:
+          tags: true
