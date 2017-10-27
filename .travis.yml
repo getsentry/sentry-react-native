@@ -1,6 +1,4 @@
-branches:
-  only:
-    - master
+if: branch = master OR tag IS present
 matrix:
   include:
     - language: node_js
