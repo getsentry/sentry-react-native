@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -e
 if [ "$LANE" = "node" ];
 then
 yarn install

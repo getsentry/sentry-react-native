@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -e
 if [ "$LANE" = "ios" ]; then
     brew update
     brew install yarn
