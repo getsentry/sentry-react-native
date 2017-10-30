@@ -5,7 +5,6 @@
         "dzannotti.vscode-babel-coloring",
         "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
-        "lextudio.restructuredtext",
-        "jmlntw.vscode-ensure-single-final-newline"
+        "lextudio.restructuredtext"
     ]
 }

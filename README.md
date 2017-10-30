@@ -10,6 +10,9 @@
 [![npm version](https://img.shields.io/npm/v/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)
 [![npm dm](https://img.shields.io/npm/dm/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)
 [![npm dt](https://img.shields.io/npm/dt/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)
+[![deps](https://david-dm.org/getsentry/react-native-sentry/status.svg)](https://david-dm.org/getsentry/react-native-sentry?view=list)
+[![deps dev](https://david-dm.org/getsentry/react-native-sentry/dev-status.svg)](https://david-dm.org/getsentry/react-native-sentry?type=dev&view=list)
+[![deps peer](https://david-dm.org/getsentry/react-native-sentry/peer-status.svg)](https://david-dm.org/getsentry/react-native-sentry?type=peer&view=list)
 
 **This is a beta release**
 
