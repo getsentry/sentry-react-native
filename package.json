@@ -24,12 +24,12 @@
     "react-native": ">=0.38.0"
   },
   "dependencies": {
-    "chalk": "^1.1.1",
-    "glob": "7.1.1",
-    "inquirer": "3.0.6",
-    "raven-js": "^3.17.0",
-    "sentry-cli-binary": "^1.20.0",
-    "xcode": "0.9.3"
+    "chalk": "^2.3.0",
+    "glob": "^7.1.1",
+    "inquirer": "^3.3.0",
+    "raven-js": "^3.19.1",
+    "sentry-cli-binary": "^1.21.0",
+    "xcode": "^1.0.0"
   },
   "rnpm": {
     "commands": {
@@ -46,11 +46,11 @@
     }
   },
   "devDependencies": {
-    "husky": "^0.13.4",
-    "lint-staged": "^3.6.0",
-    "prettier": "^1.4.2",
-    "replace-in-file": "^2.5.3",
-    "typescript": "^2.5.2"
+    "husky": "^0.14.3",
+    "lint-staged": "^4.3.0",
+    "prettier": "^1.7.4",
+    "replace-in-file": "^2.6.4",
+    "typescript": "^2.5.3"
   },
   "lint-staged": {
     "*.js": [
