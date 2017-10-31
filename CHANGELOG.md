@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.30.2
+
+Updated npm dependencies
+
 ## v0.30.1
 
 Deploy and release over Probot
