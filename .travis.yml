@@ -44,8 +44,7 @@ matrix:
       env: LANE='ios'
       before_install: .travis/before_install.sh
       script: .travis/run.sh
-    - stage: deploy
-      language: node_js
+    - language: node_js
       node_js: 8
       script: .travis/deploy.sh
       deploy:
