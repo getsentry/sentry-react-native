@@ -1,6 +1,7 @@
 branches:
   only:
     - master
+
 matrix:
   include:
     - language: node_js
@@ -9,8 +10,9 @@ matrix:
       cache:
         yarn: true
       script: .travis/run.sh
+
     - language: android
-      os: linux
+      sudo: required
       jdk: oraclejdk8
       before_cache:
         - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -20,7 +22,6 @@ matrix:
           - $HOME/.yarn-cache
           - $HOME/.gradle/caches/
           - $HOME/.gradle/wrapper/
-      sudo: required
       before_install:
         - nvm install 8
         - .travis/before_install.sh
@@ -34,6 +35,7 @@ matrix:
           - addon-google_apis-google-16
       env: LANE='android'
       script: .travis/run.sh
+
     - language: objective-c
       os: osx
       osx_image: xcode8.3
@@ -43,7 +45,12 @@ matrix:
         - yarn
       env: LANE='ios'
       before_install: .travis/before_install.sh
+      before_script:
+        - sudo easy_install virtualenv
+        - virtualenv ~/virtualenv
+        - source ~/virtualenv/bin/activate
       script: .travis/run.sh
+
     - language: node_js
       node_js: 8
       script: .travis/deploy.sh
