@@ -54,15 +54,16 @@ matrix:
     - language: node_js
       node_js: 8
       script: .travis/deploy.sh
-      deploy:
-        provider: s3
-        access_key_id: AKIAJKYWAF3QS7SFL75Q
-        secret_access_key:
-          secure: nCp4HC3PewZ6nfmnymdPn15UbZCFHXZEjzZbWtRhjDxR62fycRZSqvF47F4SMxod2DR3h7xT5k0Yj0WkfaKaLWPcVLeuyhI5LsB2tL/1jZQWvde6wQRoL23oE+Fs2hw8AFpg3V/tOO5K/yco1isToq4nKyNo0VDhRhHDguj+F2lLX9t04DWxg1zQABPgSFJCGHVj1QjILnPQ6k+VD2FGecx8a9sfcG2XiRvRIbYRhCZDwOd/D0L52GJqOIfcXrbb9p/dVw0QI1oijUT76+6CRiNvbzx+koAkrMXKY+Ko32PUQ68LxhY0J9sTdyCfRSE24Unb/hbTbWwlZElou0+hF0WloLyZKUWn5OT7hY0Q8O2oTY6U27MpiARYaN2kfhQYnLwOc0osGC8IwT4I8ThFzVxgeTzBXSS/PFiXjFmjRAvjPt7aYN02PAMuRB2WxW+gN80S+B8TBh07g99PcHQ1HZXPbcXBTyDXbeJHCBi5ut1wrIjIxLvGJq/vmB+lkU2LHeTPdKuzi1cLBKRLD8Qdg9tzeMrAFDtCp0zSFe0cFZqzgtCIvLcyGBDBQTj8LiKSD2X6Fmmxg6zdnzU7tVqvcqvkXk+2Qjgb5NWxJlLeGtvBxyrbw/ig+kQaVak63i3GpHijLqsC9Z5FlAM53xuN7yMD/Xyb50HFdkDAUg43324=
-        bucket: getsentry-builds
-        skip_cleanup: true
-        local_dir: build
-        upload-dir: $TRAVIS_REPO_SLUG/$TRAVIS_COMMIT
-        acl: public_read
-        on:
-          branch: master
+      after_success:
+        - npm install -g zeus-ci
+        - zeus-ci upload -t "application/tar+npm" *.tgz
+
+notifications:
+  webhooks:
+    urls:
+      - https://zeus.ci/hooks/bc7a3e5c-c58e-11e7-ab9f-0a580a280304/public/provider/travis/webhook
+    on_success: always
+    on_failure: always
+    on_start: always
+    on_cancel: always
+    on_error: always
