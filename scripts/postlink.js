@@ -143,8 +143,8 @@ function getProperties(platform) {
         default: cachedProps['defaults/url'] || process.env.SENTRY_URL || getDefaultUrl(),
         message:
           'The Sentry Server URL for ' +
-            getPlatformName(platform) +
-            '. Only needed if you use self hosted Sentry, press enter to use default.',
+          getPlatformName(platform) +
+          '. Only needed if you use self hosted Sentry, press enter to use default.',
         name: 'defaults/url'
       },
       {
@@ -157,8 +157,8 @@ function getProperties(platform) {
         type: 'input',
         default:
           cachedProps['defaults/project'] ||
-            process.env.SENTRY_PROJECT ||
-            'your-project-slug',
+          process.env.SENTRY_PROJECT ||
+          'your-project-slug',
         message: 'The Project for ' + getPlatformName(platform),
         name: 'defaults/project'
       },
@@ -354,8 +354,12 @@ function addNewXcodeBuildPhaseForSymbols(buildScripts, proj) {
     {
       shellPath: '/bin/sh',
       shellScript:
+        'if [ -z ${UPLOAD_DSYM+x} ]; then\\n' +
+        '    echo "Not uploading symbols"\\n' +
+        '    exit 0\\n' +
+        'fi\\n' +
         'export SENTRY_PROPERTIES=sentry.properties\\n' +
-          '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym'
+        '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym'
     }
   );
 }
@@ -385,7 +389,7 @@ function patchXcodeProj(contents, filename) {
         }
       }
 
-      patchExistingXcodeBuildScripts(buildScripts);
+      // patchExistingXcodeBuildScripts(buildScripts);
       addNewXcodeBuildPhaseForSymbols(buildScripts, proj);
       addZLibToXcode(proj);
 
@@ -465,9 +469,11 @@ function addSentryProperties() {
         if (!shouldConfigure) {
           return null;
         }
-        return getProperties(platform).then(resolveSentryCliBinaryPath).then(props => {
-          fs.writeFileSync(fn, dumpProperties(props));
-        });
+        return getProperties(platform)
+          .then(resolveSentryCliBinaryPath)
+          .then(props => {
+            fs.writeFileSync(fn, dumpProperties(props));
+          });
       })
     );
   }
@@ -477,7 +483,7 @@ function addSentryProperties() {
 
 Promise.resolve()
   /* these steps patch the build files without user interactions */
-  .then(() => patchMatchingFile('**/app/build.gradle', patchBuildGradle))
+  //.then(() => patchMatchingFile('**/app/build.gradle', patchBuildGradle))
   .then(() => patchMatchingFile('ios/*.xcodeproj/project.pbxproj', patchXcodeProj))
   .then(() => patchMatchingFile('**/AppDelegate.m', patchAppDelegate))
   /* if any of the previous steps did something, this will patch

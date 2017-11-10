@@ -24,10 +24,14 @@
     "react-native": ">=0.38.0"
   },
   "dependencies": {
+    "@expo/spawn-async": "^1.3.0",
     "chalk": "^2.3.0",
+    "commander": "^2.11.0",
     "glob": "^7.1.1",
     "inquirer": "^3.3.0",
+    "plist": "^2.1.0",
     "raven-js": "^3.19.1",
+    "rimraf": "^2.6.2",
     "sentry-cli-binary": "^1.21.0",
     "xcode": "^1.0.0"
   },
@@ -57,5 +61,8 @@
       "prettier --write --single-quote --bracket-spacing=false --print-width=90",
       "git add"
     ]
+  },
+  "bin": {
+    "sentry": "./scripts/sentryReleaseAndSourcemaps.js"
   }
 }
