@@ -75,7 +75,7 @@ These are functions you can call in your javascript code:
       logger: 'my.module'
     });
 
-    // capture an exception
+    // capture a breadcrumb
     Sentry.captureBreadcrumb({
       message: 'Item added to shopping cart',
       category: 'action',
