@@ -1,4 +1,5 @@
-// TODO this code in an npm module so it can be shared between projects
+#!/usr/bin/env node
+'use strict';
 
 const spawnAsync = require('@expo/spawn-async');
 const path = require('path');
