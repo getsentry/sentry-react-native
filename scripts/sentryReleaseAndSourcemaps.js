@@ -103,6 +103,7 @@ async function generateAndUploadSourceMaps() {
       const bundleOut = path.resolve(tmpdir, platforms[platform].bundle);
       const sourceMapOut = path.resolve(tmpdir, platforms[platform].map);
       console.log(`Bundling index.${platform}.js`, bundleOut, sourceMapOut);
+      await spawnAsync('watchman', ['watch-del-all']);
       const bundleOutput = await spawnAsync('react-native', [
         'bundle',
         '--platform',
@@ -114,7 +115,8 @@ async function generateAndUploadSourceMaps() {
         '--sourcemap-output',
         sourceMapOut,
         '--dev',
-        'false'
+        'false',
+        '--reset-cache'
       ]);
       output = bundleOutput.stdout.toString();
       console.log(output);
