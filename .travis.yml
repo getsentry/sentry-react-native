@@ -55,8 +55,8 @@ matrix:
       node_js: 8
       script: .travis/deploy.sh
       after_success:
-        - npm install -g zeus-ci
-        - zeus-ci upload -t "application/tar+npm" *.tgz
+        - npm install -g @zeus-ci/cli
+        - zeus upload -t "application/tar+npm" *.tgz
 
 notifications:
   webhooks:
