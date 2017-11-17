@@ -4,6 +4,7 @@
   "repository": "https://github.com/getsentry/react-native-sentry",
   "version": "0.30.2",
   "description": "Official Sentry SDK for react-native",
+  "typings": "lib/Sentry.d.ts",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
