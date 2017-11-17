@@ -6,7 +6,6 @@ const path = require('path');
 const rimraf = require('rimraf');
 const mkdirp = require('mkdirp');
 const fs = require('fs');
-const sentryCliBinary = require('sentry-cli-binary');
 const assert = require('assert');
 const plist = require('plist');
 
@@ -126,12 +125,10 @@ async function generateAndUploadSourceMaps() {
       SENTRY_PROPERTIES: propertiesFile
     });
 
-    const sentryCliBinaryPath = sentryCliBinary.getPath();
-
     console.log(`Sentry cli binary`, sentryCliBinaryPath, version, propertiesFile);
 
     let createReleaseResult = await spawnAsync(
-      sentryCliBinaryPath,
+      'sentry-cli',
       ['releases', 'new', version],
       {
         cwd: tmpdir,
@@ -143,7 +140,7 @@ async function generateAndUploadSourceMaps() {
     console.log(output);
 
     let uploadResult = await spawnAsync(
-      sentryCliBinaryPath,
+      'sentry-cli',
       [
         'releases',
         'files',

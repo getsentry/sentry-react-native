@@ -331,9 +331,7 @@ function patchExistingXcodeBuildScripts(buildScripts) {
       code.replace(/^.*?\/(packager|scripts)\/react-native-xcode\.sh\s*/m, function(
         match
       ) {
-        return (
-          '../node_modules/sentry-cli-binary/bin/sentry-cli react-native xcode ' + match
-        );
+        return 'sentry-cli react-native xcode ' + match;
       });
     script.shellScript = JSON.stringify(code);
   }
@@ -359,7 +357,7 @@ function addNewXcodeBuildPhaseForSymbols(buildScripts, proj) {
         '    exit 0\\n' +
         'fi\\n' +
         'export SENTRY_PROPERTIES=sentry.properties\\n' +
-        '../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym'
+        'sentry-cli upload-dsym'
     }
   );
 }
