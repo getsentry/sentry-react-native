@@ -66,6 +66,9 @@ Using node with nvm
 If you are using nvm, Xcode seems to have problems locating the default node binary.
 In that case you should change the scripts to this::
 
+    # First set the path to sentry.properties
+    export SENTRY_PROPERTIES=sentry.properties
+
     # Setup nvm and set node
     [ -z "$NVM_DIR" ] && export NVM_DIR="$HOME/.nvm"
 
