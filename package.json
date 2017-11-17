@@ -31,7 +31,8 @@
     "inquirer": "^3.3.0",
     "plist": "^2.1.0",
     "raven-js": "^3.19.1",
-    "rimraf": "^2.6.2",
+    "rimraf": "^2.6.2", 
+    "sentry-cli-binary": "^1.21.0",
     "xcode": "^1.0.0"
   },
   "rnpm": {
