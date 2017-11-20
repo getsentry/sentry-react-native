@@ -130,8 +130,6 @@ async function generateAndUploadSourceMaps() {
       SENTRY_PROPERTIES: propertiesFile
     });
 
-    console.log(`Sentry cli binary`, sentryCliBinaryPath, version, propertiesFile);
-
     let createReleaseResult = await spawnAsync(
       'sentry-cli',
       ['releases', 'new', version],
