@@ -102,7 +102,12 @@ async function generateAndUploadSourceMaps() {
       const bundleOut = path.resolve(tmpdir, platforms[platform].bundle);
       const sourceMapOut = path.resolve(tmpdir, platforms[platform].map);
       console.log(`Bundling index.${platform}.js`, bundleOut, sourceMapOut);
-      await spawnAsync('watchman', ['watch-del-all']);
+      try {
+        await spawnAsync('watchman', ['watch-del-all']);
+      } catch (err) {
+        // watchman might not be installed, lets ignore that
+        console.log(err);
+      }
       const bundleOutput = await spawnAsync('react-native', [
         'bundle',
         '--platform',
