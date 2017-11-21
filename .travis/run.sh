@@ -11,6 +11,11 @@ if [ "$LANE" = "node" ]; then
     cd example
     npm run test
 else
+    if [ "$TRAVIS_SECURE_ENV_VARS" != "true" ] ; then
+        echo "SKIPPING device tests since not secure env"
+        exit 0
+    fi
+
     cd appium
     bundle install
     pip wheel --wheel-dir wheelhouse -r requirements.txt
