@@ -61,7 +61,7 @@ gradle.projectsEvaluated {
         //     .join('\n')
 
         def currentVariant = "";
-        def pattern = Pattern.compile("bundle([A-Z][A-Za-z]+)JsAndAssets")
+        def pattern = Pattern.compile("bundle([A-Z][A-Za-z0-9]+)JsAndAssets")
         Matcher matcher = pattern.matcher(bundleTask.name)
         if (matcher.find()) {
             def match = matcher.group(1);
