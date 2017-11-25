@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.30.3
+
+- Fix podspec file
+- Fix gradle regex to allow number in projectname
+
 ## v0.30.2
 
 Updated npm dependencies
