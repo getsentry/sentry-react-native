@@ -2,6 +2,10 @@ branches:
   only:
     - master
 
+before_install:
+  - curl -o- -L https://yarnpkg.com/install.sh | bash
+  - export PATH="$HOME/.yarn/bin:$PATH"
+
 matrix:
   include:
     - language: node_js
@@ -54,6 +58,7 @@ matrix:
     - language: node_js
       node_js: 8
       script: .travis/deploy.sh
+      env: LANE='deploy'
       after_success:
         - npm install -g @zeus-ci/cli
         - zeus upload -t "application/tar+npm" *.tgz
