@@ -22,20 +22,18 @@
   "author": "Sentry",
   "license": "MIT",
   "peerDependencies": {
-    "react-native": ">=0.38.0"
+    "react-native": ">=0.38.0",
+    "@sentry/wizard": "^0.4.0"
   },
   "dependencies": {
-    "chalk": "^2.3.0",
-    "glob": "^7.1.1",
-    "inquirer": "^3.3.0",
     "raven-js": "^3.19.1",
-    "sentry-cli-binary": "^1.21.0",
-    "xcode": "^1.0.0"
+    "@sentry/wizard": "^0.4.0",
+    "sentry-cli-binary": "^1.21.0"
   },
   "rnpm": {
     "commands": {
-      "postlink": "node node_modules/react-native-sentry/scripts/postlink.js",
-      "postunlink": "node node_modules/react-native-sentry/scripts/postunlink.js"
+      "postlink": "node node_modules/react-native-sentry/node_modules/@sentry/wizard/dist/bin.js -t reactNative -p ios android",
+      "postunlink": "node node_modules/react-native-sentry/node_modules/@sentry/wizard/dist/bin.js -t reactNative -p ios android --uninstall"
     },
     "android": {
       "packageInstance": "new RNSentryPackage(MainApplication.this)"
