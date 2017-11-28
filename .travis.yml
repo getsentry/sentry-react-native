@@ -27,6 +27,8 @@ matrix:
           - $HOME/.gradle/caches/
           - $HOME/.gradle/wrapper/
       before_install:
+        - curl -o- -L https://yarnpkg.com/install.sh | bash
+        - export PATH="$HOME/.yarn/bin:$PATH"
         - nvm install 8
         - .travis/before_install.sh
       android:
@@ -48,7 +50,10 @@ matrix:
         - pip
         - yarn
       env: LANE='ios'
-      before_install: .travis/before_install.sh
+      before_install:
+        - curl -o- -L https://yarnpkg.com/install.sh | bash
+        - export PATH="$HOME/.yarn/bin:$PATH"
+        - .travis/before_install.sh
       before_script:
         - sudo easy_install virtualenv
         - virtualenv ~/virtualenv
