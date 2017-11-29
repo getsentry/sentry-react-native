@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@sentry/wizard@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-0.4.0.tgz#bd0afc2774ae470f520911c1993a7fa34ef6af56"
+"@sentry/wizard@^0.5.2":
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-0.5.2.tgz#5ff96d5b54d3ccd6e882366857d05acb85df3254"
   dependencies:
     chalk "^2.3.0"
     glob "^7.1.2"
@@ -12,6 +12,7 @@
     lodash "^4.17.4"
     open "^0.0.5"
     r2 "^2.0.0"
+    read-env "^1.1.1"
     sentry-cli-binary "^1.21.0"
     xcode "^1.0.0"
     yargs "^10.0.3"
@@ -802,6 +803,12 @@ r2@^2.0.0:
 raven-js@^3.19.1:
   version "3.20.1"
   resolved "https://registry.yarnpkg.com/raven-js/-/raven-js-3.20.1.tgz#3170bdb35c05098ddb8548ee5be0687f9d763330"
+
+read-env@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/read-env/-/read-env-1.1.1.tgz#561f16438792b19ed10ffede0315bde37f9f87fc"
+  dependencies:
+    camelcase "^4.1.0"
 
 read-pkg-up@^2.0.0:
   version "2.0.0"

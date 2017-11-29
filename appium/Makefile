@@ -9,6 +9,7 @@ create-android-test-bundle:
 new-demo-project:
 	cd ../examples/react-native; make clean-project
 
+# We can probably delete this
 copy-local-files-to-example:
 	rm -rf example/node_modules/react-native-sentry/lib/*
 	find example/node_modules/react-native-sentry/ios -name 'RN*.[h|m]' -exec rm {} \;
@@ -25,7 +26,7 @@ copy-local-files-to-example:
 	rm -rf example/node_modules/react-native-sentry/ios/Sentry/Sentry.xcodeproj
 	cp -r ../ios/Sentry/Sentry.xcodeproj example/node_modules/react-native-sentry/ios/Sentry/Sentry.xcodeproj
 
-install: new-demo-project copy-local-files-to-example
+install: new-demo-project
 
 test: create-test-bundle install
 	fastlane build_for_device_farm
