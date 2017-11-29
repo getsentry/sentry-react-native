@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@sentry/wizard@^0.5.2":
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-0.5.2.tgz#5ff96d5b54d3ccd6e882366857d05acb85df3254"
+"@sentry/wizard@^0.5.3":
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-0.5.3.tgz#18236ea9fb9c3638c3829b22218ce02590d51744"
   dependencies:
     chalk "^2.3.0"
     glob "^7.1.2"

@@ -7,6 +7,7 @@ create-android-test-bundle:
 	zip -r test_bundle.zip tests/test_android.py wheelhouse/ requirements.txt conftest.py
 
 new-demo-project:
+	cd ../; npm run test:replace
 	cd ../examples/react-native; make clean-project
 
 # We can probably delete this
