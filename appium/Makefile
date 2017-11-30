@@ -15,7 +15,7 @@ new-demo-project:
 copy-local-files-to-example:
 	rm -rf example/node_modules/react-native-sentry/lib/*
 	find example/node_modules/react-native-sentry/ios -name 'RN*.[h|m]' -exec rm {} \;
-	rm -rf example/node_modules/react-native-sentry/ios/Sentry/Sources/Sentry/*
+	rm -rf example/node_modules/react-native-sentry/ios/Sentry/Sources/Sentry
 	rm -rf example/node_modules/react-native-sentry/android/*
 	rm -rf example/node_modules/react-native-sentry/scripts/*
 	rm -rf example/node_modules/react-native-sentry/sentry.gradle
@@ -24,7 +24,7 @@ copy-local-files-to-example:
 	cp -r ../scripts/* example/node_modules/react-native-sentry/scripts/
 	find ../ios -name 'RN*.[h|m]' -exec cp {} example/node_modules/react-native-sentry/ios/ \;
 	cp -r ../android/* example/node_modules/react-native-sentry/android/
-	cp -r ../ios/Sentry/Sources/Sentry/* example/node_modules/react-native-sentry/ios/Sentry/Sources/Sentry/
+	cp -r ../ios/Sentry/Sources/Sentry example/node_modules/react-native-sentry/ios/Sentry/Sources/Sentry
 	rm -rf example/node_modules/react-native-sentry/ios/Sentry/Sentry.xcodeproj
 	cp -r ../ios/Sentry/Sentry.xcodeproj example/node_modules/react-native-sentry/ios/Sentry/Sentry.xcodeproj
 
