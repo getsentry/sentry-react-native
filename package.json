@@ -32,8 +32,8 @@
   },
   "rnpm": {
     "commands": {
-      "postlink": "node node_modules/react-native-sentry/node_modules/@sentry/wizard/dist/bin.js -t reactNative -p ios android",
-      "postunlink": "node node_modules/react-native-sentry/node_modules/@sentry/wizard/dist/bin.js -t reactNative -p ios android --uninstall"
+      "postlink": "node node_modules/@sentry/wizard/dist/bin.js -t reactNative -p ios android",
+      "postunlink": "node node_modules/@sentry/wizard/dist/bin.js -t reactNative -p ios android --uninstall"
     },
     "android": {
       "packageInstance": "new RNSentryPackage(MainApplication.this)"

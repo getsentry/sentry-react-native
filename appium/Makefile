@@ -12,7 +12,6 @@ new-demo-project:
 	rm -rf ../ios/Sentry/KSCrash #this fixes the module map dupe since we use yarn link
 	rm -rf ../ios/Sentry/Sources/KSCrash #this fixes the module map dupe since we use yarn link
 
-# We can probably delete this
 copy-local-files-to-example:
 	rm -rf example/node_modules/react-native-sentry/lib/*
 	find example/node_modules/react-native-sentry/ios -name 'RN*.[h|m]' -exec rm {} \;
@@ -29,7 +28,7 @@ copy-local-files-to-example:
 	rm -rf example/node_modules/react-native-sentry/ios/Sentry/Sentry.xcodeproj
 	cp -r ../ios/Sentry/Sentry.xcodeproj example/node_modules/react-native-sentry/ios/Sentry/Sentry.xcodeproj
 
-install: new-demo-project
+install: new-demo-project copy-local-files-to-example
 
 test: create-test-bundle install
 	fastlane build_for_device_farm
