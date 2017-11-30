@@ -8,9 +8,9 @@ create-android-test-bundle:
 
 new-demo-project:
 	cd ../examples/react-native; make clean-project
-	cd ../; npm run test:replace
-	rm -rf ../ios/Sentry/KSCrash #this fixes the module map dupe since we use yarn link
-	rm -rf ../ios/Sentry/Sources/KSCrash #this fixes the module map dupe since we use yarn link
+	# cd ../; npm run test:replace
+	# rm -rf ../ios/Sentry/KSCrash #this fixes the module map dupe since we use yarn link
+	# rm -rf ../ios/Sentry/Sources/KSCrash #this fixes the module map dupe since we use yarn link
 
 copy-local-files-to-example:
 	rm -rf example/node_modules/react-native-sentry/lib/*
