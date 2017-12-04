@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "raven-js": "^3.19.1",
-    "@sentry/wizard": "^0.5.3",
+    "@sentry/wizard": "^0.6.0",
     "sentry-cli-binary": "^1.21.0"
   },
   "rnpm": {
