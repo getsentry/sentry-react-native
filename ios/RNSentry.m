@@ -9,7 +9,7 @@
 #import <KSCrash/KSCrash.h>
 #import <Sentry/Sentry.h>
 
-NSString *const RNSentryVersionString = @"0.30.3";
+NSString *const RNSentryVersionString = @"0.31.0";
 NSString *const RNSentrySdkName = @"sentry-react-native";
 
 @interface RNSentry()
