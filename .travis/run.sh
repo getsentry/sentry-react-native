@@ -2,7 +2,7 @@
 set -e
 if [ "$LANE" = "node" ]; then
     yarn install
-    npm run test-typescript
+    npm run test:typescript
 
     cd appium
     npm install -g react-native-cli
