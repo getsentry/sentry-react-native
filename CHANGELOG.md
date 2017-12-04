@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.31.0
+
+- Use https://github.com/getsentry/sentry-wizard for setup process
+
 ## v0.30.3
 
 - Fix podspec file
