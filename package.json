@@ -5,6 +5,9 @@
   "version": "0.31.0",
   "description": "Official Sentry SDK for react-native",
   "typings": "lib/Sentry.d.ts",
+  "typescript": {
+    "definition": "lib/Sentry.d.ts"
+  },
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
