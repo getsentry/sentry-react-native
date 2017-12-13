@@ -25,9 +25,8 @@
     "react-native": ">=0.38.0"
   },
   "dependencies": {
-    "raven-js": "^3.19.1",
-    "@sentry/wizard": "^0.6.0",
-    "sentry-cli-binary": "^1.21.0"
+    "@sentry/wizard": "^0.7.3",
+    "raven-js": "^3.19.1"
   },
   "rnpm": {
     "commands": {
@@ -45,9 +44,9 @@
   },
   "devDependencies": {
     "husky": "^0.14.3",
-    "lint-staged": "^4.3.0",
-    "prettier": "^1.7.4",
-    "replace-in-file": "^2.6.4",
+    "lint-staged": "^6.0.0",
+    "prettier": "^1.9.2",
+    "replace-in-file": "^3.0.0",
     "typescript": "^2.5.3"
   },
   "lint-staged": {

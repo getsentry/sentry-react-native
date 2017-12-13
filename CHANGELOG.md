@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.32.0
+
+- Bump `@sentry/wizard` to `0.7.3`
+- Bump `sentry-cocoa` to `3.10.0`
+- Fixed #169
+
 ## v0.31.0
 
 - Use https://github.com/getsentry/sentry-wizard for setup process
