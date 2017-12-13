@@ -118,6 +118,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     ExceptionInterface exceptionInterface = ((ExceptionInterface)event.getSentryInterfaces().get(ExceptionInterface.EXCEPTION_INTERFACE));
                     params.putString("message", exceptionInterface.getExceptions().getFirst().getExceptionMessage());
                 }
+                RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new WritableNativeMap());
                 RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, params);
             }
         });
@@ -252,7 +253,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
 
         Sentry.capture(buildEvent(eventBuilder));
-        RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new WritableNativeMap());
     }
 
     @ReactMethod
