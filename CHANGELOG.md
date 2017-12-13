@@ -2,7 +2,7 @@
 
 ## v0.32.0
 
-# Breaking changes
+### Breaking changes
 
 ### Migration guide upgrading from < 0.32.0
 
