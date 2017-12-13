@@ -2,6 +2,34 @@
 
 ## v0.32.0
 
+# Breaking changes
+
+### Migration guide upgrading from < 0.32.0
+
+Since we now use `@sentry/wizard` for linking with out new `@sentry/cli` package, the old
+`sentry-cli-bin` package has been deprecated.
+You have to search your codebase for `sentry-cli-binary` and replace it with `@sentry/cli`.
+There are few places where we put it during the link process:
+
+- In both `sentry.properties` files in `ios`/`android` folder
+- In your Xcode build scripts once in `Bundle React Native code and images` and once in `Upload Debug Symbols to Sentry`
+
+So e.g.:
+
+The `Upload Debug Symbols to Sentry` build script looks like this:
+
+```
+export SENTRY_PROPERTIES=sentry.properties
+../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym
+```
+should be changed to this:
+```
+export SENTRY_PROPERTIES=sentry.properties
+../node_modules/@sentry/cli/bin/sentry-cli upload-dsym
+```
+
+# General
+
 - Bump `@sentry/wizard` to `0.7.3`
 - Bump `sentry-cocoa` to `3.10.0`
 - Fixed #169

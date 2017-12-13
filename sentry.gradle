@@ -99,7 +99,7 @@ gradle.projectsEvaluated {
             } catch (FileNotFoundException e) {
                 println "File not found: $propertiesFile"
             }
-            def cliExecutable = sentryProps.get("cli.executable", "$reactRoot/node_modules/sentry-cli-binary/bin/sentry-cli");
+            def cliExecutable = sentryProps.get("cli.executable", "$reactRoot/node_modules/@sentry/cli/bin/sentry-cli");
 
             workingDir reactRoot
 

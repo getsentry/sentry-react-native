@@ -27,7 +27,7 @@ To then upload you should use this:
 
 .. code-block:: bash
 
-    node_modules/sentry-cli-binary/bin/sentry-cli releases \
+    node_modules/@sentry/cli/bin/sentry-cli releases \
         files RELEASE_NAME \
         upload-sourcemaps \
         --dist DISTRIBUTION_NAME \
