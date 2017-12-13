@@ -28,7 +28,7 @@ export SENTRY_PROPERTIES=sentry.properties
 ../node_modules/@sentry/cli/bin/sentry-cli upload-dsym
 ```
 
-# General
+### General
 
 - Bump `@sentry/wizard` to `0.7.3`
 - Bump `sentry-cocoa` to `3.10.0`
