@@ -5,9 +5,9 @@
 React Native
 ============
 
-This is the documentation for our beta clients for React-Native.  The
-React-Native client uses a native extension for iOS and Android but can
-fall back to a pure JavaScript version if needed.
+This is the documentation for our React-Native SDK.  The
+React-Native SDK uses a native extension for iOS and Android but will
+fall back to a pure JavaScript version if necessary.
 
 Installation
 ------------
@@ -25,25 +25,17 @@ The `link` step will pull in the native dependency and patch your project
 accordingly.  If you are using expo you don't have to (or can't) run that
 link step.  For more information about that see :doc:`expo`.
 
-On linking you will automatically be prompted for your DSN and other
-information and we will configure your app automatically for react-native
-and change files accordingly.  You will need to provide the following
-data: your DSN, the slug of your organization in Sentry, the slug of your
-project in Sentry as well as the Auth token. We  need the Auth token for
-uploading the sourcemaps.
-
-You can find the slugs in the URL of your project
-(``sentry.io/your-org-slug/your-project-slug``) If you don't have an auth
-token yet you can `create an auth token here <https://sentry.io/api/>`_.
+On linking the new `Sentry Wizard <https://github.com/getsentry/sentry-wizard>`_ 
+will help you to configure your project and change files accordingly.  
 
 Upon linking the following changes will be performed:
 
-* add the raven-java package for native crash reporting on Android
+* add the sentry-java package for native crash reporting on Android
 * add the sentry-swift package for native crash reporting on iOS
 * enable the sentry gradle build step for android
 * patch `AppDelegate.m` for iOS
 * patch `MainApplication.java` for Android
-* configure Sentry for the supplied DSN in your `index.js` files
+* configure Sentry for the supplied DSN in your `index.js/App.js` files
 * store build credentials in `ios/sentry.properties` and
   `android/sentry.properties`.
 
@@ -65,7 +57,7 @@ latest version::
 iOS Specifics
 -------------
 
-When you use xcode you can hook directly into the build process to upload
+When you use Xcode you can hook directly into the build process to upload
 debug symbols and sourcemaps.  If you however are using bitcode you will
 need to disable the "Upload Debug Symbols to Sentry" build phase and then
 separately upload debug symbols from iTunes Connect to Sentry.

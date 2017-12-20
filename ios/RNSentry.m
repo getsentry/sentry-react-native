@@ -118,35 +118,32 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString options:(NSDictionary *_Nonnull)options)
 {
-    static dispatch_once_t onceStartToken;
-    dispatch_once(&onceStartToken, ^{
-        NSError *error = nil;
-        self.moduleMapping = [[NSMutableDictionary alloc] init];
-        SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:&error];
-        client.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
-            [self injectReactNativeFrames:event];
-            [self setReleaseVersionDist:event];
-        };
-        client.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
-            // We don't want to send an event after startup that came from a NSException of react native
-            // Because we sent it already before the app crashed.
-            if (nil != event.exceptions.firstObject.type &&
-                [event.exceptions.firstObject.type rangeOfString:@"RCTFatalException"].location != NSNotFound) {
-                NSLog(@"RCTFatalException");
-                return NO;
-            }
-            // Since we set shouldSendEvent for react-native we need to duplicate the code for sampling here
-            if (nil != options[@"sampleRate"]) {
-                return ([options[@"sampleRate"] floatValue] >= ((double)arc4random() / 0x100000000));
-            }
-            return YES;
-        };
-        [SentryClient setSharedClient:client];
-        [SentryClient.sharedClient startCrashHandlerWithError:&error];
-        if (error) {
-            [NSException raise:@"SentryReactNative" format:@"%@", error.localizedDescription];
+    NSError *error = nil;
+    self.moduleMapping = [[NSMutableDictionary alloc] init];
+    SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:&error];
+    client.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
+        [self injectReactNativeFrames:event];
+        [self setReleaseVersionDist:event];
+    };
+    client.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
+        // We don't want to send an event after startup that came from a NSException of react native
+        // Because we sent it already before the app crashed.
+        if (nil != event.exceptions.firstObject.type &&
+            [event.exceptions.firstObject.type rangeOfString:@"RCTFatalException"].location != NSNotFound) {
+            NSLog(@"RCTFatalException");
+            return NO;
         }
-    });
+        // Since we set shouldSendEvent for react-native we need to duplicate the code for sampling here
+        if (nil != options[@"sampleRate"]) {
+            return ([options[@"sampleRate"] floatValue] >= ((double)arc4random() / 0x100000000));
+        }
+        return YES;
+    };
+    [SentryClient setSharedClient:client];
+    [SentryClient.sharedClient startCrashHandlerWithError:&error];
+    if (error) {
+        [NSException raise:@"SentryReactNative" format:@"%@", error.localizedDescription];
+    }
 }
 
 RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
