@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.32.1
+
+- Update sentry-wizard
+
 ## v0.32.0
 
 ### Breaking changes

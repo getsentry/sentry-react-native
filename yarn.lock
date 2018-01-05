@@ -2,17 +2,17 @@
 # yarn lockfile v1
 
 
-"@sentry/cli@^1.26.1":
-  version "1.26.1"
-  resolved "https://registry.yarnpkg.com/@sentry/cli/-/cli-1.26.1.tgz#2c803e985b1b662b9a05eadb15b65d5b6ba2921d"
+"@sentry/cli@^1.27.1":
+  version "1.27.1"
+  resolved "https://registry.yarnpkg.com/@sentry/cli/-/cli-1.27.1.tgz#4b54a4f2eebe31225758c3b5bd7ee3606cc2d49f"
   dependencies:
     progress "2.0.0"
 
-"@sentry/wizard@^0.7.3":
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-0.7.3.tgz#76782f79aedb3774e79e60b7dd73cee32308ad18"
+"@sentry/wizard@^0.7":
+  version "0.7.4"
+  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-0.7.4.tgz#fcf9f2d2e9973da93c4475c399716625080ffe5a"
   dependencies:
-    "@sentry/cli" "^1.26.1"
+    "@sentry/cli" "^1.27.1"
     chalk "^2.3.0"
     glob "^7.1.2"
     inquirer "^4.0.0"
