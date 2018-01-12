@@ -27,6 +27,7 @@ gradle.projectsEvaluated {
         def bundleOutput = null;
         def sourcemapOutput = null;
         def reactRoot = props.get("workingDir");
+        def shouldCleanUp = false;
 
         cmdArgs.eachWithIndex{ String arg, int i ->
             if (arg == "--bundle-output") {
@@ -42,6 +43,8 @@ gradle.projectsEvaluated {
             cmd.push(sourcemapOutput);
             cmdArgs.push("--sourcemap-output");
             cmdArgs.push(sourcemapOutput);
+
+            shouldCleanUp = true
         }
 
         bundleTask.setProperty("commandLine", cmd);
@@ -150,8 +153,19 @@ gradle.projectsEvaluated {
             enabled true
         }
 
+        def cliCleanUpTask = tasks.create(
+            name: bundleTask.getName() + variant + "SentryUploadCleanUp",
+            type: Delete) {
+            description = "clean up extra sourcemap"
+
+            delete sourcemapOutput
+        };
+
         bundleTask.doLast {
             cliTask.execute();
+            if (shouldCleanUp) {
+                cliCleanUpTask.execute();
+            }
         }
 
         cliTask.dependsOn(bundleTask)
