@@ -28,8 +28,8 @@
     "react-native": ">=0.38.0"
   },
   "dependencies": {
-    "@sentry/wizard": "^0.7",
-    "raven-js": "^3.19.1"
+    "@sentry/wizard": "^0.8.1",
+    "raven-js": "^3.22.1"
   },
   "rnpm": {
     "commands": {
@@ -47,9 +47,9 @@
   },
   "devDependencies": {
     "husky": "^0.14.3",
-    "lint-staged": "^6.0.0",
-    "prettier": "^1.9.2",
-    "replace-in-file": "^3.0.0",
+    "lint-staged": "^6.0.1",
+    "prettier": "^1.10.2",
+    "replace-in-file": "^3.1.0",
     "typescript": "^2.5.3"
   },
   "lint-staged": {
