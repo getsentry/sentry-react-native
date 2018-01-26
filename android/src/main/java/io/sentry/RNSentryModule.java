@@ -295,7 +295,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         androidHelper.helpBuildingEvent(eventBuilder);
 
         setRelease(eventBuilder);
-        stripInternalSentry(eventBuilder);
         eventBuilder.withBreadcrumbs(Sentry.getStoredClient().getContext().getBreadcrumbs());
 
         if (extra != null) {
@@ -410,16 +409,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
         }
         return "";
-    }
-
-    private static void stripInternalSentry(EventBuilder eventBuilder) {
-        if (extra != null) {
-            for (Map.Entry<String, Object> entry : extra.toHashMap().entrySet()) {
-                if (entry.getKey().startsWith("__sentry")) {
-                    extra.putNull(entry.getKey());
-                }
-            }
-        }
     }
 
     private static void setRelease(EventBuilder eventBuilder) {

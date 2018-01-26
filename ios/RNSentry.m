@@ -16,8 +16,6 @@ NSString *const RNSentrySdkName = @"sentry-react-native";
 
 @property (nonatomic, strong) NSMutableDictionary *moduleMapping;
 
-@property (nonatomic, strong) SentryClient *client;
-
 @end
 
 
@@ -121,8 +119,7 @@ RCT_EXPORT_MODULE()
 RCT_EXPORT_METHOD(crashedLastLaunch:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
     NSNumber *crashedLastLaunch = @NO;
-
-    if ([self.client crashedLastLaunch]) {
+    if (SentryClient.sharedClient && [SentryClient.sharedClient crashedLastLaunch]) {
         crashedLastLaunch = @YES;
     }
     resolve(crashedLastLaunch);
@@ -133,7 +130,6 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString options:(NSD
     NSError *error = nil;
     self.moduleMapping = [[NSMutableDictionary alloc] init];
     SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:&error];
-    self.client = client;
     client.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
         [self injectReactNativeFrames:event];
         [self setReleaseVersionDist:event];
