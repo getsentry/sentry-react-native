@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.33.0
+
+- Add pro guard default rule @kazy1991
+- Exposed crashedLastLaunch for iOS @monotkate
+- Fixed #337
+- Fixed #333
+- Fixed #331
+- Fixed #322
+
 ## v0.32.1
 
 - Update sentry-wizard
