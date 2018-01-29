@@ -86,11 +86,11 @@ In that case you should change the scripts to this::
     [ -z "$NODE_BINARY" ] && export NODE_BINARY="node"
 
     # Run sentry cli script to upload debug symbols
-    $NODE_BINARY ../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym
+    $NODE_BINARY ../node_modules/@sentry/cli/bin/sentry-cli upload-dsym
 
     # OR
 
-    $NODE_BINARY ../node_modules/sentry-cli-binary/bin/sentry-cli react-native xcode \
+    $NODE_BINARY ../node_modules/@sentry/cli/bin/sentry-cli react-native xcode \
       ../node_modules/react-native/scripts/react-native-xcode.sh
 
 Android
