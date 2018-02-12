@@ -241,7 +241,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
         if (castEvent.hasKey("tags")) {
             for (Map.Entry<String, Object> entry : castEvent.getMap("tags").toHashMap().entrySet()) {
-                eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
+                String tagValue = entry.getValue() != null ? entry.getValue().toString() : "INVALID_TAG";
+                eventBuilder.withTag(entry.getKey(), tagValue);
             }
         }
 
