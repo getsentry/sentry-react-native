@@ -151,7 +151,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
         });
         logger.info(String.format("startWithDsnString '%s'", dsnString));
-        successCallback.invoke("good job");
+        successCallback.invoke();
     }
 
     @ReactMethod
