@@ -90,13 +90,20 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startWithDsnString(String dsnString, final ReadableMap options) {
+    public void startWithDsnString(String dsnString, final ReadableMap options, Promise promise) {
         if (sentryClient != null) {
             logger.info(String.format("Already started, use existing client '%s'", dsnString));
             return;
         }
 
-        sentryClient = Sentry.init(dsnString, new AndroidSentryClientFactory(this.getReactApplicationContext()));
+        try {
+            sentryClient = Sentry.init(dsnString, new AndroidSentryClientFactory(this.getReactApplicationContext()));
+        } catch (Exception e) {
+            logger.info(String.format("Catching on startWithDsnString, calling callback" + e.getMessage()));
+            promise.reject("SentryError", "Error during init", e);
+            return;
+        }
+
         androidHelper = new AndroidEventBuilderHelper(this.getReactApplicationContext());
         sentryClient.addEventSendCallback(new EventSendCallback() {
             @Override
@@ -143,6 +150,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
         });
         logger.info(String.format("startWithDsnString '%s'", dsnString));
+        promise.resolve(true);
     }
 
     @ReactMethod
