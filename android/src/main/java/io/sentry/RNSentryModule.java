@@ -7,7 +7,6 @@ import android.support.annotation.NonNull;
 
 import com.facebook.react.ReactApplication;
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -91,7 +90,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startWithDsnString(String dsnString, final ReadableMap options, Callback successCallback, Callback errorCallback) {
+    public void startWithDsnString(String dsnString, final ReadableMap options, Promise promise) {
         if (sentryClient != null) {
             logger.info(String.format("Already started, use existing client '%s'", dsnString));
             return;
@@ -101,7 +100,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             sentryClient = Sentry.init(dsnString, new AndroidSentryClientFactory(this.getReactApplicationContext()));
         } catch (Exception e) {
             logger.info(String.format("Catching on startWithDsnString, calling callback" + e.getMessage()));
-            errorCallback.invoke(e.getMessage());
+            promise.reject("SentryError", "Error during init", e);
             return;
         }
 
@@ -151,7 +150,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
         });
         logger.info(String.format("startWithDsnString '%s'", dsnString));
-        successCallback.invoke();
+        promise.resolve(true);
     }
 
     @ReactMethod
