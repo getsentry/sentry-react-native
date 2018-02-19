@@ -11,7 +11,12 @@ gradle.projectsEvaluated {
         def releaseName = "${variant.getApplicationId()}-${variant.getVersionName()}";
         variant.outputs.each { output ->
             def versionCode = output.getVersionCode();
-            releases[variant.getName()] = [output.getName(), releaseName, versionCode];
+            def variantName = variant.getName();
+            def outputName = output.getName();
+            if (releases[variantName] == null) {
+                releases[variantName] = [:];
+            }
+            releases[variantName][outputName] = [outputName, releaseName, versionCode];
         }
     }
     // separately we then hook into the bundle task of react native to inject
@@ -63,26 +68,32 @@ gradle.projectsEvaluated {
         //     .findAll{!['class', 'active'].contains(it.key)}
         //     .join('\n')
 
-        def currentVariant = "";
+        def currentRelease = "";
         def pattern = Pattern.compile("bundle([A-Z][A-Za-z0-9]+)JsAndAssets")
         Matcher matcher = pattern.matcher(bundleTask.name)
         if (matcher.find()) {
             def match = matcher.group(1);
-            currentVariant = match.substring(0, 1).toLowerCase() + match.substring(1);
+            currentRelease = match.substring(0, 1).toLowerCase() + match.substring(1);
         }
 
-        def currentRelease = null;
+        def currentVariants = null;
         releases.each { key, release ->
-            if (key == currentVariant) {
-                currentRelease = release;
+            if (key == currentRelease) {
+                currentVariants = release;
             }
         }
 
-        if (currentRelease == null) return;
+        def variant = null;
+        def releaseName = null;
+        def versionCodes = new ArrayList<Integer>(currentVariants.size());
 
-        def variant = currentRelease[0]
-        def releaseName = currentRelease[1]
-        def versionCodes = currentRelease[2]
+        if (currentVariants == null) return;
+
+        currentVariants.each { key, currentVariant ->
+            variant = currentVariant[0];
+            releaseName = currentVariant[1];
+            versionCodes.push(currentVariant[2]);
+        }
 
         def cliTask = tasks.create(
             name: bundleTask.getName() + variant + "SentryUpload",
