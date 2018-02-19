@@ -93,6 +93,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void startWithDsnString(String dsnString, final ReadableMap options, Promise promise) {
         if (sentryClient != null) {
             logger.info(String.format("Already started, use existing client '%s'", dsnString));
+            promise.resolve(false);
             return;
         }
 
