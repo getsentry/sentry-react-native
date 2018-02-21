@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.34.0
+
+- Fixed #353
+- Fixed #347
+- Fixed #346
+- Fixed #342
+
 ## v0.33.0
 
 - Add pro guard default rule @kazy1991

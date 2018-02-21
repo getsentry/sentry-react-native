@@ -9,7 +9,7 @@
 #import <KSCrash/KSCrash.h>
 #import <Sentry/Sentry.h>
 
-NSString *const RNSentryVersionString = @"0.33.0";
+NSString *const RNSentryVersionString = @"0.34.0";
 NSString *const RNSentrySdkName = @"sentry-react-native";
 
 @interface RNSentry()
@@ -125,7 +125,10 @@ RCT_EXPORT_METHOD(crashedLastLaunch:(RCTPromiseResolveBlock)resolve
     resolve(crashedLastLaunch);
 }
 
-RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString options:(NSDictionary *_Nonnull)options)
+RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString
+                  options:(NSDictionary *_Nonnull)options
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSError *error = nil;
     self.moduleMapping = [[NSMutableDictionary alloc] init];
@@ -152,7 +155,10 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString options:(NSD
     [SentryClient.sharedClient startCrashHandlerWithError:&error];
     if (error) {
         [NSException raise:@"SentryReactNative" format:@"%@", error.localizedDescription];
+        reject(@"SentryReactNative", error.localizedDescription, error);
+        return;
     }
+    resolve(@YES);
 }
 
 RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
