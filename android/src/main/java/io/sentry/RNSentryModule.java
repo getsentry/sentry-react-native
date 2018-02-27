@@ -93,6 +93,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void startWithDsnString(String dsnString, final ReadableMap options, Promise promise) {
         if (sentryClient != null) {
             logger.info(String.format("Already started, use existing client '%s'", dsnString));
+            promise.resolve(false);
             return;
         }
 
@@ -258,12 +259,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             ReadableNativeArray exceptionValues = (ReadableNativeArray)event.getMap("exception").getArray("values");
             ReadableNativeMap exception = exceptionValues.getMap(0);
             ReadableNativeMap stacktrace = exception.getMap("stacktrace");
+            ReadableNativeArray frames = (ReadableNativeArray)stacktrace.getArray("frames");
             if (exception.hasKey("value")) {
-                addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("value"), stacktrace.getArray("frames"));
+                addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("value"), frames);
             } else {
                 // We use type/type here since this indicates an Unhandled Promise Rejection
                 // https://github.com/getsentry/react-native-sentry/issues/353
-                addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("type"), stacktrace.getArray("frames"));
+                addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("type"), frames);
             }
         }
 

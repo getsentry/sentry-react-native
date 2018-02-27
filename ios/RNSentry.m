@@ -154,7 +154,6 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString
     [SentryClient setSharedClient:client];
     [SentryClient.sharedClient startCrashHandlerWithError:&error];
     if (error) {
-        [NSException raise:@"SentryReactNative" format:@"%@", error.localizedDescription];
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
