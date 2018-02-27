@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.34.1
+
+- Fixed #354
+
 ## v0.34.0
 
 - Fixed #353
