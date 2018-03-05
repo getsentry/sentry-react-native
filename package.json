@@ -14,7 +14,8 @@
     "preversion:changelog": "grep -q -F \"## v$npm_package_version\" CHANGELOG.md",
     "version": "npm run preversion:changelog && node ./scripts/version-bump.js && git add -A",
     "precommit": "lint-staged",
-    "test:typescript": "node_modules/typescript/bin/tsc --noImplicitAny --allowJs typescript/Sentry-tests.ts"
+    "test:typescript": "node_modules/typescript/bin/tsc --noImplicitAny --allowJs typescript/Sentry-tests.ts",
+    "postinstall": "node scripts/postinstall.js"
   },
   "keywords": [
     "react-native",
@@ -28,7 +29,7 @@
     "react-native": ">=0.38.0"
   },
   "dependencies": {
-    "@sentry/wizard": "^0.8.1",
+    "@sentry/wizard": "^0.9.1",
     "raven-js": "^3.22.1"
   },
   "rnpm": {

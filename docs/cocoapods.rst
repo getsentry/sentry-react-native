@@ -11,33 +11,15 @@ In order to use Sentry with CocoaPods you have to install the packages with
     npm install --save react react-native react-native-sentry
 
 After that change your ``Podfile`` to reference to the packages in your
-``node_modules`` folder.
+``node_modules`` folder. For the latest reference of how to use react-native with
+CocoaPods see: `https://facebook.github.io/react-native/docs/integration-with-existing-apps.html#configuring-cocoapods-dependencies`_
 
 .. sourcecode:: ruby
 
-    platform :ios, '8.0'
-    use_frameworks!
-
-    node_modules_path = './node_modules' # This path can be different depending on you setup
-    react_path = File.join(node_modules_path, 'react-native')
-    yoga_path = File.join(react_path, 'ReactCommon/yoga')
-    sentry_path = File.join(node_modules_path, 'react-native-sentry')
-
     target 'YOUR-TARGET' do
-        pod 'Yoga', :path => yoga_path
-        pod 'React', :path => react_path, :subspecs => [
-          'Core',
-          'BatchedBridge',
-          'RCTImage',
-          'RCTNetwork',
-          'RCTText',
-          'RCTWebSocket'
-          # Add any other subspecs you want to use in your project
-        ]
-        pod 'SentryReactNative', :path => sentry_path
+        # Your react-native and other pods
+
+        pod 'SentryReactNative', :path => '../node_modules/react-native-sentry/SentryReactNative.podspec' # or your path to node_modules
     end
 
 After that run ``pod install`` which then should link everything correctly.
-If you need more information about how to load the react view check out
-`this tutorial.
-<https://facebook.github.io/react-native/releases/docs/embedded-app-ios.html>`_
