@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.35.1
+
+- Bump sentry-cocoa to 3.12.0
+
 ## v0.35.0
 
 - Fixes an issue where error will not be reported to Sentry.
