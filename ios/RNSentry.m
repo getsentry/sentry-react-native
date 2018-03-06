@@ -138,11 +138,11 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString
         [self setReleaseVersionDist:event];
     };
     client.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
-        // We don't want to send an event after startup that came from a NSException of react native
+        // We don't want to send an event after startup that came from a Unhandled JS Exception of react native
         // Because we sent it already before the app crashed.
         if (nil != event.exceptions.firstObject.type &&
-            [event.exceptions.firstObject.type rangeOfString:@"RCTFatalException"].location != NSNotFound) {
-            NSLog(@"RCTFatalException");
+            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
+            NSLog(@"Unhandled JS Exception");
             return NO;
         }
         // Since we set shouldSendEvent for react-native we need to duplicate the code for sampling here

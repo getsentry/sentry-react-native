@@ -28,7 +28,7 @@
     "react-native": ">=0.38.0"
   },
   "dependencies": {
-    "@sentry/wizard": "^0.8.1",
+    "@sentry/wizard": "^0.9.1",
     "raven-js": "^3.22.1"
   },
   "rnpm": {
