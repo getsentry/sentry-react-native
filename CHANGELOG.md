@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.35.0
+
+- Fixes an issue where error will not be reported to Sentry.
+
 ## v0.34.1
 
 - Fixed #354
