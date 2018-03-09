@@ -82,12 +82,12 @@ gradle.projectsEvaluated {
                 currentVariants = release;
             }
         }
+        
+        if (currentVariants == null) return;
 
         def variant = null;
         def releaseName = null;
         def versionCodes = new ArrayList<Integer>(currentVariants.size());
-
-        if (currentVariants == null) return;
 
         currentVariants.each { key, currentVariant ->
             variant = currentVariant[0];
