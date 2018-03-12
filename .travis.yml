@@ -52,6 +52,7 @@ matrix:
       before_install:
         - .travis/before_install.sh
       before_script:
+        - nvm install 8
         - sudo easy_install virtualenv
         - virtualenv ~/virtualenv
         - source ~/virtualenv/bin/activate
