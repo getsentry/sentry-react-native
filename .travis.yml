@@ -43,14 +43,13 @@ matrix:
     - language: objective-c
       os: osx
       osx_image: xcode8.3
+      node_js: 8
       cache:
         - bundler
         - pip
         - yarn
       env: LANE='ios'
       before_install:
-        - curl -o- -L https://yarnpkg.com/install.sh | bash
-        - export PATH="$HOME/.yarn/bin:$PATH"
         - .travis/before_install.sh
       before_script:
         - sudo easy_install virtualenv
