@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.35.2
+
+- Fixed #374
+
 ## v0.35.1
 
 - Bump sentry-cocoa to 3.12.0
