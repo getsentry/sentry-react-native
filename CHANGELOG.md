@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.35.3
+
+- Fix wizard command
+
 ## v0.35.2
 
 - Fixed #374
