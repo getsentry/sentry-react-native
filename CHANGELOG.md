@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.35.4
+
+- Bump sentry-cocoa to 3.12.4
+
 ## v0.35.3
 
 - Fix wizard command
