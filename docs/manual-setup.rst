@@ -122,21 +122,20 @@ For that you need to add::
 We recommend leaving ``logLevel: "debug"`` since we look for specific ``sentry.properties``
 files depending on your flavors name.
 
-Please make sure your ``MainApplication.java`` looks something like this::
+Please make sure your ``MainApplication.java`` looks something like this:
 
 .. sourcecode:: java
-    ...
+
     import io.sentry.RNSentryPackage;
-    ...
 
     public class MainApplication extends Application implements ReactApplication {
 
-        ....
         @Override
         protected List<ReactPackage> getPackages() {
-        return Arrays.<ReactPackage>asList(
-                new MainReactPackage(),
-                new RNSentryPackage(MainApplication.this)
-        );
+            return Arrays.<ReactPackage>asList(
+                    new MainReactPackage(),
+                    new RNSentryPackage(MainApplication.this)
+            );
         }
-        ...
+
+    }
