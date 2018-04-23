@@ -52,7 +52,7 @@ import io.sentry.event.interfaces.UserInterface;
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private static final Pattern mJsModuleIdPattern = Pattern.compile("(?:^|[/\\\\])(\\d+\\.js)$");
-    private static final String versionString = "0.35.3";
+    private static final String versionString = "0.35.4";
     private static final String sdkName = "sentry-react-native";
 
     private final ReactApplicationContext reactContext;
