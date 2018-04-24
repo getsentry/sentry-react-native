@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.36.0
+
+- Bump raven-js to 3.24.2
+- Fixed #391
+
 ## v0.35.4
 
 - Bump sentry-cocoa to 3.12.4
