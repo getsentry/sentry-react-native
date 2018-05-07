@@ -36,6 +36,7 @@ interface SentryOptions {
   disableNativeIntegration?: boolean;
   ignoreModulesExclude?: [string];
   ignoreModulesInclude?: [string];
+  deactivateStacktraceMerging: boolean;
 }
 
 export default Sentry;
