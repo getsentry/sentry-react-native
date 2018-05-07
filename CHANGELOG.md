@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.37.0
+
+- Bump sentry-java to 1.7.3
+
 ## v0.36.0
 
 - Bump raven-js to 3.24.2
