@@ -248,7 +248,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             ReadableNativeArray exceptionValues = (ReadableNativeArray)event.getMap("exception").getArray("values");
             ReadableNativeMap exception = exceptionValues.getMap(0);
             ReadableNativeMap stacktrace = exception.getMap("stacktrace");
-            addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("value"), stacktrace.getArray("frames"));
+            ReadableNativeArray frames = (ReadableNativeArray)stacktrace.getArray("frames");
+            addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("value"), frames);
         }
 
         Sentry.capture(buildEvent(eventBuilder));
