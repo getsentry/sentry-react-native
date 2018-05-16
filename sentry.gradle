@@ -78,7 +78,7 @@ gradle.projectsEvaluated {
 
         def currentVariants = null;
         releases.each { key, release ->
-            if (key == currentRelease) {
+            if (key.equalsIgnoreCase(currentRelease)) {
                 currentVariants = release;
             }
         }
