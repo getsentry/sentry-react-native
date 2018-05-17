@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.37.1
+
+- Revert change to podspec file
+- Add support for transaction instead of culprit
+- Add equalsIgnoreCase to gradle release name compare
+
 ## v0.37.0
 
 - Bump sentry-java to 1.7.3
