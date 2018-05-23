@@ -5,9 +5,9 @@ If you want to use sentry together with CodePush you have to send us the CodePus
 
 .. sourcecode:: javascript
 
-    import CodePush from "react-native-code-push";
+    import codePush from "react-native-code-push";
 
-    CodePush.getUpdateMetadata().then((update) => {
+    codePush.getUpdateMetadata().then((update) => {
       if (update) {
         Sentry.setVersion(update.appVersion + '-codepush:' + update.label);
       }
@@ -20,7 +20,7 @@ Make sure that you call this function otherwise Sentry is not able to symbolicat
 
 After updating your CodePush release you have to upload the new assets to Sentry::
 
-    $ code-push release-react YourApp ios --outputDir build
+    $ appcenter codepush release-react YourApp ios --outputDir build
     $ export SENTRY_PROPERTIES=./ios/sentry.properties
     $ sentry-cli react-native codepush YourApp ios ./build
 
