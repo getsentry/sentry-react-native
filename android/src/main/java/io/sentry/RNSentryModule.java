@@ -109,8 +109,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         sentryClient.addEventSendCallback(new EventSendCallback() {
             @Override
             public void onFailure(Event event, Exception exception) {
-                // This needs to be there, otherwise in case of not internet the users app will not
-                // crash since we do not propagate the error further.
+                // This needs to be there, otherwise in case of no internet the users app will not
+                // crash since we do not propagate the error further. The system needs to be
+                // overhauled to remove this "hack".
                 RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new WritableNativeMap());
                 RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, new WritableNativeMap());
             }

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.37.1
+
+- [Android] Call event callbacks even on failure to trigger crashes when device is offline
+
 ## v0.37.0
 
 - Revert change to podspec file
