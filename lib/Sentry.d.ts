@@ -42,7 +42,7 @@ interface SentryOptions {
 export default Sentry;
 
 export class Sentry {
-  install(): void;
+  install(): Promise<void>;
 
   static config(dsn: string, options?: SentryOptions): Sentry;
 
