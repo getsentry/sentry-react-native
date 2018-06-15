@@ -79,7 +79,7 @@ Note: When you run ``react-native link`` we will automatically update your
 .. sourcecode:: javascript
 
     import { Sentry } from 'react-native-sentry';
-    Sentry.config('___DSN___').install();
+    Sentry.config('___PUBLIC_DSN___').install();
 
 You can pass additional configuration options to the `config()` method if
 you want to do so.
