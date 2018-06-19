@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.38.0
+
+- [Android] Remove requirement to pass in `MainApplication` `new RNSentryPackage(MainApplication.this)`
+
 ## v0.37.1
 
 - [Android] Call event callbacks even on failure to trigger crashes when device is offline

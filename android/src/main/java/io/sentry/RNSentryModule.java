@@ -51,7 +51,7 @@ import io.sentry.event.interfaces.UserInterface;
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private static final Pattern mJsModuleIdPattern = Pattern.compile("(?:^|[/\\\\])(\\d+\\.js)$");
-    private static final String versionString = "0.35.4";
+    private static final String versionString = "0.37.1";
     private static final String sdkName = "sentry-react-native";
 
     private final ReactApplicationContext reactContext;
@@ -102,8 +102,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         sentryClient.addEventSendCallback(new EventSendCallback() {
             @Override
             public void onFailure(Event event, Exception exception) {
-                // This needs to be there, otherwise in case of not internet the users app will not
-                // crash since we do not propagate the error further.
+                // This needs to be there, otherwise in case of no internet the users app will not
+                // crash since we do not propagate the error further. The system needs to be
+                // overhauled to remove this "hack".
                 RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new WritableNativeMap());
                 RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, new WritableNativeMap());
             }

@@ -134,7 +134,7 @@ Please make sure your ``MainApplication.java`` looks something like this:
         protected List<ReactPackage> getPackages() {
             return Arrays.<ReactPackage>asList(
                     new MainReactPackage(),
-                    new RNSentryPackage(MainApplication.this)
+                    new RNSentryPackage()
             );
         }
 
