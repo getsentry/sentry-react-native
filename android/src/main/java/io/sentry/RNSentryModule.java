@@ -5,7 +5,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
-import com.facebook.react.ReactApplication;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -52,11 +51,10 @@ import io.sentry.event.interfaces.UserInterface;
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private static final Pattern mJsModuleIdPattern = Pattern.compile("(?:^|[/\\\\])(\\d+\\.js)$");
-    private static final String versionString = "0.37.1";
+    private static final String versionString = "0.35.4";
     private static final String sdkName = "sentry-react-native";
 
     private final ReactApplicationContext reactContext;
-    private final ReactApplication reactApplication;
 
     private static AndroidEventBuilderHelper androidHelper;
     private static PackageInfo packageInfo;
@@ -65,16 +63,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     private static ReadableMap tags;
     private static SentryClient sentryClient;
 
-    public RNSentryModule(ReactApplicationContext reactContext, ReactApplication reactApplication) {
+    public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
-        this.reactApplication = reactApplication;
         RNSentryModule.extra = new WritableNativeMap();
         RNSentryModule.packageInfo = getPackageInfo(reactContext);
-    }
-
-    public ReactApplication getReactApplication() {
-        return reactApplication;
     }
 
     @Override
@@ -109,9 +102,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         sentryClient.addEventSendCallback(new EventSendCallback() {
             @Override
             public void onFailure(Event event, Exception exception) {
-                // This needs to be there, otherwise in case of no internet the users app will not
-                // crash since we do not propagate the error further. The system needs to be
-                // overhauled to remove this "hack".
+                // This needs to be there, otherwise in case of not internet the users app will not
+                // crash since we do not propagate the error further.
                 RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new WritableNativeMap());
                 RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, new WritableNativeMap());
             }

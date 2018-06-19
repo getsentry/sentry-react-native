@@ -37,7 +37,7 @@
       "postunlink": "node node_modules/@sentry/wizard/dist/bin.js -i reactNative -p ios android --uninstall"
     },
     "android": {
-      "packageInstance": "new RNSentryPackage(MainApplication.this)"
+      "packageInstance": "new RNSentryPackage()"
     },
     "ios": {
       "sharedLibraries": [
