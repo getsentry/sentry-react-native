@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.38.1
+
+- [Android] set empty message to prevent breadcrumb exception
+
 ## v0.38.0
 
 - [Android] Remove requirement to pass in `MainApplication` `new RNSentryPackage(MainApplication.this)`
