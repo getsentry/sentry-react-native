@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.38.2
+
+- [Android] Use `sentry-android` `1.7.4`
+
 ## v0.38.1
 
 - [Android] set empty message to prevent breadcrumb exception
