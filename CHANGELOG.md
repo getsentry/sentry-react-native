@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.38.3
+
+- Bump `@sentry/wizard` `0.10.2`
+
 ## v0.38.2
 
 - [Android] Use `sentry-android` `1.7.4`
