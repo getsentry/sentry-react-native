@@ -36,7 +36,11 @@ matrix:
           - extra-android-m2repository
           - extra-google-google_play_services
           - extra-google-m2repository
-          - addon-google_apis-google-16
+          - addon-google_apis-google-26
+        licenses:
+          - 'android-sdk-preview-.+'
+          - 'android-sdk-license-.+'
+          - 'google-gdk-license-.+'
       env: LANE='android'
       script: .travis/run.sh
 
