@@ -25,10 +25,10 @@
   "author": "Sentry",
   "license": "MIT",
   "peerDependencies": {
-    "react-native": ">=0.38.0"
+    "react-native": ">=0.56.0"
   },
   "dependencies": {
-    "@sentry/wizard": "^0.10.2",
+    "@sentry/wizard": "^0.11.0",
     "raven-js": "^3.24.2"
   },
   "rnpm": {
