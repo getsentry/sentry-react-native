@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.39.0
+
+- `react-native-sentry >= 0.39.0` requires `react-native >= 0.56.0`
+- [Android] Bumping of gradle deps
+```
+compileSdkVersion 26
+buildToolsVersion '26.0.3'
+...
+targetSdkVersion 26
+```
+- [Android] Use `sentry-android` `1.7.5`
+- Bump `@sentry/wizard` `0.11.0`
+- Bump `sentry-cocoa` `4.0.1`
+- Use new SDK identifier `sentry.javascript.react-native`
+
 ## v0.38.3
 
 - Bump `@sentry/wizard` `0.10.2`

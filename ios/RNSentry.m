@@ -6,11 +6,10 @@
 #import "RCTConvert.h"
 #endif
 
-#import <KSCrash/KSCrash.h>
 #import <Sentry/Sentry.h>
 
 NSString *const RNSentryVersionString = @"0.38.3";
-NSString *const RNSentrySdkName = @"sentry-react-native";
+NSString *const RNSentrySdkName = @"sentry.javascript.react-native";
 
 @interface RNSentry()
 

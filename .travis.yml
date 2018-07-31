@@ -29,14 +29,13 @@ matrix:
       before_install:
         - nvm install 8
         - .travis/before_install.sh
+        - echo yes | sdkmanager "platforms;android-26"
       android:
         components:
-          - build-tools-23.0.1
-          - android-23
-          - extra-android-m2repository
-          - extra-google-google_play_services
-          - extra-google-m2repository
-          - addon-google_apis-google-16
+          - tools
+          - platform-tools
+          - build-tools-26.0.3
+          - tools
       env: LANE='android'
       script: .travis/run.sh
 
