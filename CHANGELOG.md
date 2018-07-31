@@ -12,6 +12,8 @@ targetSdkVersion 26
 ```
 - [Android] Use `sentry-android` `1.7.5`
 - Bump `@sentry/wizard` `0.11.0`
+- Bump `sentry-cocoa` `4.0.1`
+- Use new SDK identifier `sentry.javascript.react-native`
 
 ## v0.38.3
 
