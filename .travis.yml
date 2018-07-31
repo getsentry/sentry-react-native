@@ -29,8 +29,7 @@ matrix:
       before_install:
         - nvm install 8
         - .travis/before_install.sh
-        - echo yes | sdkmanager "platforms;android-26"
-        - echo yes | sdkmanager "build-tools;26.0.3"
+        - yes | sudo sdkmanager --licenses
       android:
         components:
           - tools
@@ -42,10 +41,6 @@ matrix:
           - extra-google-google_play_services
           - extra-google-m2repository
           - addon-google_apis-google-26
-        licenses:
-          - 'android-sdk-preview-.+'
-          - 'android-sdk-license-.+'
-          - 'google-gdk-license-.+'
       env: LANE='android'
       script: .travis/run.sh
 
