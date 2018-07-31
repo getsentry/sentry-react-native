@@ -1,9 +1,6 @@
 [submodule "ios/Sentry"]
   path = ios/Sentry
 url=https://github.com/getsentry/sentry-cocoa
-[submodule "ios/KSCrash"]
-  path = ios/KSCrash
-  url=https://github.com/kstenerud/KSCrash
 [submodule "examples"]
 	path = examples
 	url = https://github.com/getsentry/examples

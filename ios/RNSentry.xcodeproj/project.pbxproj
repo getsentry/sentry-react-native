@@ -9,47 +9,11 @@
 /* Begin PBXBuildFile section */
 		6350257B1E1E845F00408AE7 /* RNSentry.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = B3E7B5881CC2AC0600A0062D /* RNSentry.h */; };
 		6378C6FB1EAF630500A1F1EE /* RNSentryEventEmitter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6378C6FA1EAF630500A1F1EE /* RNSentryEventEmitter.m */; };
-		6387B7BC1ED84D350045A84C /* libKSCrashLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 632235ED1E76E24300F58A1F /* libKSCrashLib.a */; };
 		6387B8591ED8521B0045A84C /* libSentryStatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6387B8561ED8520D0045A84C /* libSentryStatic.a */; };
 		B3E7B58A1CC2AC0600A0062D /* RNSentry.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* RNSentry.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		632235EC1E76E24300F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = CB6D132617EB749A00BC2C04;
-			remoteInfo = KSCrashLib;
-		};
-		632235EE1E76E24300F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = CB6D133317EB749A00BC2C04;
-			remoteInfo = KSCrashTests;
-		};
-		632235F01E76E24300F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 03DE7B6A1C84DEF700F789BA;
-			remoteInfo = KSCrash;
-		};
-		632235F21E76E24300F58A1F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = EDF2BF211CCF15AD004BADF4;
-			remoteInfo = KSCrash_static;
-		};
-		6387B7BA1ED84D2F0045A84C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = CB6D132517EB749A00BC2C04;
-			remoteInfo = KSCrashLib;
-		};
 		6387B84D1ED8520D0045A84C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
@@ -96,7 +60,6 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libRNSentry.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNSentry.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "KSCrash-iOS.xcodeproj"; path = "KSCrash/iOS/KSCrash-iOS.xcodeproj"; sourceTree = "<group>"; };
 		6378C6F91EAF630500A1F1EE /* RNSentryEventEmitter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSentryEventEmitter.h; sourceTree = "<group>"; };
 		6378C6FA1EAF630500A1F1EE /* RNSentryEventEmitter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNSentryEventEmitter.m; sourceTree = "<group>"; };
 		6387B7971ED84BA70045A84C /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
@@ -110,7 +73,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6387B7BC1ED84D350045A84C /* libKSCrashLib.a in Frameworks */,
 				6387B8591ED8521B0045A84C /* libSentryStatic.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -142,21 +104,9 @@
 		632232581E76C45800F58A1F /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */,
 				6387B8441ED8520D0045A84C /* Sentry.xcodeproj */,
 			);
 			name = Libraries;
-			sourceTree = "<group>";
-		};
-		632235E61E76E24300F58A1F /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				632235ED1E76E24300F58A1F /* libKSCrashLib.a */,
-				632235EF1E76E24300F58A1F /* KSCrashTests.xctest */,
-				632235F11E76E24300F58A1F /* KSCrash.framework */,
-				632235F31E76E24300F58A1F /* KSCrash.framework */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		6387B7961ED84BA70045A84C /* Frameworks */ = {
@@ -191,7 +141,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				6387B7BB1ED84D2F0045A84C /* PBXTargetDependency */,
 				6387B8581ED852170045A84C /* PBXTargetDependency */,
 			);
 			name = RNSentry;
@@ -225,10 +174,6 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 632235E61E76E24300F58A1F /* Products */;
-					ProjectRef = 632235E51E76E24300F58A1F /* KSCrash-iOS.xcodeproj */;
-				},
-				{
 					ProductGroup = 6387B8451ED8520D0045A84C /* Products */;
 					ProjectRef = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
 				},
@@ -241,34 +186,6 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		632235ED1E76E24300F58A1F /* libKSCrashLib.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libKSCrashLib.a;
-			remoteRef = 632235EC1E76E24300F58A1F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		632235EF1E76E24300F58A1F /* KSCrashTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = KSCrashTests.xctest;
-			remoteRef = 632235EE1E76E24300F58A1F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		632235F11E76E24300F58A1F /* KSCrash.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = KSCrash.framework;
-			remoteRef = 632235F01E76E24300F58A1F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		632235F31E76E24300F58A1F /* KSCrash.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = KSCrash.framework;
-			remoteRef = 632235F21E76E24300F58A1F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		6387B84E1ED8520D0045A84C /* Sentry.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -305,11 +222,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		6387B7BB1ED84D2F0045A84C /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = KSCrashLib;
-			targetProxy = 6387B7BA1ED84D2F0045A84C /* PBXContainerItemProxy */;
-		};
 		6387B8581ED852170045A84C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = SentryStatic;
