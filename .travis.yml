@@ -29,8 +29,12 @@ matrix:
       before_install:
         - nvm install 8
         - .travis/before_install.sh
+        - yes | sdkmanager "platforms;android-26"
       android:
         components:
+          - tools
+          - platform-tools
+          - tools
           - build-tools-26.0.3
           - android-26
           - extra-android-m2repository
