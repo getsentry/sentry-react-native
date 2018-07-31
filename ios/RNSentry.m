@@ -6,7 +6,6 @@
 #import "RCTConvert.h"
 #endif
 
-#import <KSCrash/KSCrash.h>
 #import <Sentry/Sentry.h>
 
 NSString *const RNSentryVersionString = @"0.38.3";
