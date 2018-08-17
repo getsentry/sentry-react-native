@@ -20,9 +20,9 @@ Make sure that you call this function otherwise Sentry is not able to symbolicat
 
 After updating your CodePush release you have to upload the new assets to Sentry::
 
-    $ appcenter codepush release-react YourApp ios --outputDir build
+    $ appcenter codepush release-react YourApp --output-dir ./build
     $ export SENTRY_PROPERTIES=./ios/sentry.properties
-    $ sentry-cli react-native codepush YourApp ios ./build
+    $ sentry-cli react-native appcenter YourApp ios ./build/codePush
 
 .. admonition:: Note
 
