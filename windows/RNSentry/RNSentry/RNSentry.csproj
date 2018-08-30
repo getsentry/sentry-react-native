@@ -107,6 +107,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RNSentryEventEmitter.cs" />
     <Compile Include="RNSentryModule.cs" />
     <Compile Include="RNSentryPackage.cs" />
     <EmbeddedResource Include="Properties\RNSentry.rd.xml" />

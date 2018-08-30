@@ -12,7 +12,8 @@ namespace RNSentry
         {
             return new List<INativeModule>
             {
-                new RNSentryModule(reactContext)
+                new RNSentryModule(reactContext),
+                new RNSentryEventEmitter(reactContext)
             };
         }
 

@@ -14,7 +14,7 @@ namespace RNSentry
         private const string SENTRY_EVENT_SENT_SUCCESSFULLY = "Sentry/eventSentSuccessfully";
         private const string SENTRY_EVENT_STORED = "Sentry/eventStored";
 
-        public override string Name => "RNSentry";
+        public override string Name => "RNSentryEventEmitter";
 
         public RNSentryEventEmitter(ReactContext reactContext)
             : base(reactContext)
@@ -28,8 +28,8 @@ namespace RNSentry
             {
                 return new Dictionary<string, object>
                 {
-                    { SENTRY_EVENT_SENT_SUCCESSFULLY, SENTRY_EVENT_SENT_SUCCESSFULLY },
-                    { SENTRY_EVENT_STORED, SENTRY_EVENT_STORED },
+                    { "EVENT_SENT_SUCCESSFULLY", SENTRY_EVENT_SENT_SUCCESSFULLY },
+                    { "EVENT_STORED", SENTRY_EVENT_STORED },
                 };
             }
         }

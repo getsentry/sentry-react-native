@@ -11,7 +11,7 @@ namespace RNSentry
     public class RNSentryModule : ReactContextNativeModuleBase
     {
         static RavenClient raven;
-        
+
         public RNSentryModule(ReactContext reactContext)
             : base(reactContext)
         {
@@ -24,71 +24,73 @@ namespace RNSentry
             get
             {
                 return new Dictionary<string, object>
-                { };
+                {
+                    { "nativeClientAvailable", true },
+                };
             }
         }
 
         [ReactMethod]
-        public void GetMessage(ICallback callback)
+        public void startWithDsnString(string dsn, JObject options)
         {
-            var message = "Hello from Windows";
-            callback.Invoke(message);
-        }
+            RavenClient.InitializeAsync(new Sentry.Dsn(dsn), true);
 
-        [ReactMethod]
-        public void StartWithDsnString(Sentry.Dsn dsn)
-        {
-            RavenClient.InitializeAsync(dsn, true);
             raven = RavenClient.Instance;
+            raven.DefaultExtra = new Dictionary<string, object>();
         }
 
         [ReactMethod]
-        public void Crash()
+        public void crash()
         {
-            throw new Exception("TEST - RNSentry Windows Native Crash");
+            Exception e = new Exception("TEST - RNSentry Windows Native Crash");
+            throw e;
         }
 
         [ReactMethod]
-        public async void CaptureEvent(JObject evt)
+        public async void captureEvent(JObject evt)
         {
             var e = new Exception(evt.ToString());
+
             await raven.CaptureExceptionAsync(e, false);
         }
 
         [ReactMethod]
-        public async void CaptureBreadcrumb(JObject breadCrumb)
+        public void captureBreadcrumb(JObject breadCrumb)
         {
-            await raven.CaptureMessageAsync(breadCrumb.ToString(), false);
+            // await raven.CaptureMessageAsync(breadCrumb.ToString(), false);
         }
 
         [ReactMethod]
-        public void ClearContext()
+        public void clearContext()
         {
             raven.FlushAsync();
         }
 
         [ReactMethod]
-        public void SetLogLevel(string logLevel)
+        public void setLogLevel(string logLevel)
         {
-           
+
         }
 
         [ReactMethod]
-        public void SetUser(string userId)
+        public void setUser(JObject user)
         {
-            raven.SetUser(userId);
+            var userId = user.Value<string>("id") ?? user.Value<string>("userId") ?? "";
+            var username = user.Value<string>("username") ?? "";
+            var email = user.Value<string>("email") ?? "";
+            raven.SetUser(userId, username, email);
         }
 
         [ReactMethod]
-        public void SetTags(Dictionary<string, string> tags)
+        public void setTags(Dictionary<string, string> tags)
         {
             raven.DefaultTags = tags;
         }
 
         [ReactMethod]
-        public void AddExtra(string key, string value)
+        public void addExtra(string key, object value)
         {
             raven.DefaultExtra.Add(key, value);
         }
-    }   
+    }
 }
