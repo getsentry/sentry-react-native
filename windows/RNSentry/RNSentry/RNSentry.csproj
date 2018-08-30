@@ -18,7 +18,7 @@
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -112,12 +112,20 @@
     <EmbeddedResource Include="Properties\RNSentry.rd.xml" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="DeveloperInTheFlow.Sentry.UWP">
+      <Version>0.2.2.2</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.0.6</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>11.0.2</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ReactNative">
+      <HintPath>..\..\..\..\react-app\FSL\node_modules\react-native-windows\ReactWindows\ReactNative\bin\x64\Debug\ReactNative.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

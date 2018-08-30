@@ -2,6 +2,18 @@
   "version": 3,
   "targets": {
     "UAP,Version=v10.0.10240": {
+      "DeveloperInTheFlow.Sentry.UWP/0.2.2.2": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "7.0.1"
+        },
+        "compile": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        },
+        "runtime": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        }
+      },
       "Microsoft.CSharp/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -2455,6 +2467,18 @@
       }
     },
     "UAP,Version=v10.0.10240/win10-arm": {
+      "DeveloperInTheFlow.Sentry.UWP/0.2.2.2": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "7.0.1"
+        },
+        "compile": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        },
+        "runtime": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        }
+      },
       "Microsoft.CSharp/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -4945,6 +4969,18 @@
       }
     },
     "UAP,Version=v10.0.10240/win10-arm-aot": {
+      "DeveloperInTheFlow.Sentry.UWP/0.2.2.2": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "7.0.1"
+        },
+        "compile": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        },
+        "runtime": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        }
+      },
       "Microsoft.CSharp/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -7471,6 +7507,18 @@
       }
     },
     "UAP,Version=v10.0.10240/win10-x64": {
+      "DeveloperInTheFlow.Sentry.UWP/0.2.2.2": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "7.0.1"
+        },
+        "compile": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        },
+        "runtime": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        }
+      },
       "Microsoft.CSharp/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -9970,6 +10018,18 @@
       }
     },
     "UAP,Version=v10.0.10240/win10-x64-aot": {
+      "DeveloperInTheFlow.Sentry.UWP/0.2.2.2": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "7.0.1"
+        },
+        "compile": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        },
+        "runtime": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        }
+      },
       "Microsoft.CSharp/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -12505,6 +12565,18 @@
       }
     },
     "UAP,Version=v10.0.10240/win10-x86": {
+      "DeveloperInTheFlow.Sentry.UWP/0.2.2.2": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "7.0.1"
+        },
+        "compile": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        },
+        "runtime": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        }
+      },
       "Microsoft.CSharp/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -15004,6 +15076,18 @@
       }
     },
     "UAP,Version=v10.0.10240/win10-x86-aot": {
+      "DeveloperInTheFlow.Sentry.UWP/0.2.2.2": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "7.0.1"
+        },
+        "compile": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        },
+        "runtime": {
+          "lib/uap10.0/Sentry.UWP.dll": {}
+        }
+      },
       "Microsoft.CSharp/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -17540,6 +17624,17 @@
     }
   },
   "libraries": {
+    "DeveloperInTheFlow.Sentry.UWP/0.2.2.2": {
+      "sha512": "vwKGYT247zaVKKnzTHcLPk33+V+270axbvFqXr2GcDK/eEZ62iRYA54cLPCJEA1E2Sz/H60CnUSWBMpVkTrqbA==",
+      "type": "package",
+      "path": "developerintheflow.sentry.uwp/0.2.2.2",
+      "files": [
+        "developerintheflow.sentry.uwp.0.2.2.2.nupkg.sha512",
+        "developerintheflow.sentry.uwp.nuspec",
+        "lib/uap10.0/Sentry.UWP.dll",
+        "lib/uap10.0/Sentry.UWP.pdb"
+      ]
+    },
     "Microsoft.CSharp/4.3.0": {
       "sha512": "P+MBhIM0YX+JqROuf7i306ZLJEjQYA9uUyRDE+OqwUI5sh41e2ZbPQV3LfAPh+29cmceE1pUffXsGfR4eMY3KA==",
       "type": "package",
@@ -27434,6 +27529,7 @@
   },
   "projectFileDependencyGroups": {
     "UAP,Version=v10.0.10240": [
+      "DeveloperInTheFlow.Sentry.UWP >= 0.2.2.2",
       "Microsoft.NETCore.UniversalWindowsPlatform >= 6.0.6",
       "Newtonsoft.Json >= 11.0.2"
     ]
@@ -27476,6 +27572,10 @@
     "frameworks": {
       "uap10.0.10240": {
         "dependencies": {
+          "DeveloperInTheFlow.Sentry.UWP": {
+            "target": "Package",
+            "version": "[0.2.2.2, )"
+          },
           "Microsoft.NETCore.UniversalWindowsPlatform": {
             "target": "Package",
             "version": "[6.0.6, )"
