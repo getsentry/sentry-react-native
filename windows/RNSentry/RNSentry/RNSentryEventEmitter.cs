@@ -11,8 +11,8 @@ namespace RNSentry
     class RNSentryEventEmitter : ReactContextNativeModuleBase
     {
 
-        private const string SENTRY_EVENT_SENT_SUCCESSFULLY = "Sentry/eventSentSuccessfully";
-        private const string SENTRY_EVENT_STORED = "Sentry/eventStored";
+        public const string SENTRY_EVENT_SENT_SUCCESSFULLY = "Sentry/eventSentSuccessfully";
+        public const string SENTRY_EVENT_STORED = "Sentry/eventStored";
 
         public override string Name => "RNSentryEventEmitter";
 

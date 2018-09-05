@@ -11,10 +11,12 @@ namespace RNSentry
     public class RNSentryModule : ReactContextNativeModuleBase
     {
         static RavenClient raven;
+        static ReactContext reactContext;
 
-        public RNSentryModule(ReactContext reactContext)
-            : base(reactContext)
+        public RNSentryModule(ReactContext ctxt)
+            : base(ctxt)
         {
+            reactContext = ctxt;
         }
 
         public override string Name => "RNSentry";
@@ -41,7 +43,7 @@ namespace RNSentry
 
         private void throwError()
         {
-            throw new Exception("TEST - RNSentry Windows Native Crash");
+            throw new Exception("TEST - RNSentry Windows Native Exception");
         }
 
         [ReactMethod]
@@ -50,17 +52,46 @@ namespace RNSentry
             throwError();
         }
 
+        private void addExtraContextForKey(JObject evt, string key)
+        {
+            if (evt.ContainsKey(key))
+            {
+                var value = evt.Value<JObject>(key);
+                this.addExtra(key, value);
+            }
+        }
+
         [ReactMethod]
         public async void captureEvent(JObject evt)
         {
-            // var e = new Exception(evt.ToString());
-            var e = new Exception("TEST - RNSentry Windows Native Crash");
+            addExtraContextForKey(evt, "stacktrace");
+            addExtraContextForKey(evt, "extra");
+
+            // set user
+            if (evt.ContainsKey("user"))
+            {
+                var user = evt.Value<JObject>("user");
+                this.setUser(user);
+            }
+
+            if (evt.ContainsKey("logger"))
+            {
+                raven.Logger = evt.Value<string>("logger");
+            }
+
+            // capture exception
+            var msg = evt.Value<string>("message") ?? "";
+            var e = new Exception(msg);
             await raven.CaptureExceptionAsync(e, false);
+
+            RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new Object());
+
         }
 
         [ReactMethod]
         public void captureBreadcrumb(JObject breadCrumb)
         {
+            // hacking extra context to store breadcrumbs
             this.addExtra($"breadcrumb_{Guid.NewGuid()}", breadCrumb.ToString());
         }
 
@@ -68,12 +99,14 @@ namespace RNSentry
         public void clearContext()
         {
             raven.FlushAsync();
+            raven.DefaultExtra = new Dictionary<string, object>();
+            raven.DefaultTags = null;
         }
 
         [ReactMethod]
         public void setLogLevel(string logLevel)
         {
-
+            // TODO
         }
 
         [ReactMethod]
