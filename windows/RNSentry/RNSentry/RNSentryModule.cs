@@ -39,25 +39,29 @@ namespace RNSentry
             raven.DefaultExtra = new Dictionary<string, object>();
         }
 
+        private void throwError()
+        {
+            throw new Exception("TEST - RNSentry Windows Native Crash");
+        }
+
         [ReactMethod]
         public void crash()
         {
-            Exception e = new Exception("TEST - RNSentry Windows Native Crash");
-            throw e;
+            throwError();
         }
 
         [ReactMethod]
         public async void captureEvent(JObject evt)
         {
-            var e = new Exception(evt.ToString());
-
+            // var e = new Exception(evt.ToString());
+            var e = new Exception("TEST - RNSentry Windows Native Crash");
             await raven.CaptureExceptionAsync(e, false);
         }
 
         [ReactMethod]
         public void captureBreadcrumb(JObject breadCrumb)
         {
-            // await raven.CaptureMessageAsync(breadCrumb.ToString(), false);
+            this.addExtra($"breadcrumb_{Guid.NewGuid()}", breadCrumb.ToString());
         }
 
         [ReactMethod]
