@@ -176,9 +176,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void setUser(ReadableMap user) {
         UserBuilder userBuilder = getUserBuilder(user);
         User builtUser = userBuilder.build();
-        if (builtUser.getId() != null) {
-            Sentry.setUser(builtUser);
-        }
+        Sentry.setUser(builtUser);
     }
 
     @ReactMethod
@@ -229,16 +227,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         if (event.hasKey("user")) {
             UserBuilder userBuilder = getUserBuilder(event.getMap("user"));
             User builtUser = userBuilder.build();
-            if (builtUser.getId() != null) {
-                UserInterface userInterface = new UserInterface(
-                        builtUser.getId(),
-                        builtUser.getUsername(),
-                        null,
-                        builtUser.getEmail(),
-                        builtUser.getData()
-                );
-                eventBuilder.withSentryInterface(userInterface);
-            }
+            UserInterface userInterface = new UserInterface(
+                    builtUser.getId(),
+                    builtUser.getUsername(),
+                    null,
+                    builtUser.getEmail(),
+                    builtUser.getData()
+            );
+            eventBuilder.withSentryInterface(userInterface);
         }
 
         if (castEvent.hasKey("extra")) {
