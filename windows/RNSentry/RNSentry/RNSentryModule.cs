@@ -81,7 +81,9 @@ namespace RNSentry
 
             // capture exception
             var msg = evt.Value<string>("message") ?? "";
-            var e = new Exception(msg);
+            var stacktrace = evt.Value<JObject>("stacktrace");
+            var e = new RNException(msg, stacktrace.ToString());
+
             await raven.CaptureExceptionAsync(e, false);
 
             RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new Object());
