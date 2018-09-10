@@ -32,7 +32,7 @@ export enum SentryLog {
 
 interface SentryOptions {
   /** Deactivates the stacktrace merging feature. Default: true */
-  deactivateStacktraceMerging: boolean;
+  deactivateStacktraceMerging?: boolean;
   /** Deactivates the native integration and only uses raven-js */
   disableNativeIntegration?: boolean;
   /** Handle unhandled promise rejections. Default: true */
