@@ -31,12 +31,12 @@ export enum SentryLog {
 }
 
 interface SentryOptions {
-  logLevel?: SentryLog;
-  instrument?: boolean;
+  deactivateStacktraceMerging: boolean;
   disableNativeIntegration?: boolean;
   ignoreModulesExclude?: [string];
   ignoreModulesInclude?: [string];
-  deactivateStacktraceMerging: boolean;
+  instrument?: boolean;
+  logLevel?: SentryLog;
 }
 
 export default Sentry;
