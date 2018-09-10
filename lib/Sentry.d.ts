@@ -35,6 +35,8 @@ interface SentryOptions {
   deactivateStacktraceMerging: boolean;
   /** Deactivates the native integration and only uses raven-js */
   disableNativeIntegration?: boolean;
+  /** Handle unhandled promise rejections. Default: true */
+  handlePromiseRejection?: boolean;
   ignoreModulesExclude?: string[];
   ignoreModulesInclude?: string[];
   instrument?: boolean;
