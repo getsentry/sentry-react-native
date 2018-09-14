@@ -31,12 +31,17 @@ export enum SentryLog {
 }
 
 interface SentryOptions {
-  logLevel?: SentryLog;
-  instrument?: boolean;
+  /** Deactivates the stacktrace merging feature. Default: true */
+  deactivateStacktraceMerging?: boolean;
+  /** Deactivates the native integration and only uses raven-js */
   disableNativeIntegration?: boolean;
-  ignoreModulesExclude?: [string];
-  ignoreModulesInclude?: [string];
-  deactivateStacktraceMerging: boolean;
+  /** Handle unhandled promise rejections. Default: true */
+  handlePromiseRejection?: boolean;
+  ignoreModulesExclude?: string[];
+  ignoreModulesInclude?: string[];
+  instrument?: boolean;
+  /** Sentry log level. Default: SentryLog.None */
+  logLevel?: SentryLog;
 }
 
 export default Sentry;
