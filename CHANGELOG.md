@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.39.1
+
+- Bump `@sentry/wizard` `0.12.1`
+- Add constructor for `RNSentryPackage.java`, Fixes #490
+
 ## v0.39.0
 
 - `react-native-sentry >= 0.39.0` requires `react-native >= 0.56.0`

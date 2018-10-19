@@ -12,6 +12,9 @@ import com.facebook.react.uimanager.ViewManager;
 import com.facebook.react.bridge.JavaScriptModule;
 
 public class RNSentryPackage implements ReactPackage {
+    public RNSentryPackage() {
+    }
+
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
         return Arrays.<NativeModule>asList(new RNSentryModule(reactContext), new RNSentryEventEmitter(reactContext));
