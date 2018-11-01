@@ -12,11 +12,13 @@ namespace RNSentry
     {
         static RavenClient raven;
         static ReactContext reactContext;
+        static JArray breadcrumbs;
 
         public RNSentryModule(ReactContext ctxt)
             : base(ctxt)
         {
             reactContext = ctxt;
+            breadcrumbs = new JArray();
         }
 
         public override string Name => "RNSentry";
@@ -38,6 +40,7 @@ namespace RNSentry
             RavenClient.InitializeAsync(new Sentry.Dsn(dsn), true);
 
             raven = RavenClient.Instance;
+
             raven.DefaultExtra = new Dictionary<string, object>();
         }
 
@@ -64,7 +67,7 @@ namespace RNSentry
         [ReactMethod]
         public async void captureEvent(JObject evt)
         {
-            addExtraContextForKey(evt, "stacktrace");
+            addExtraContextForKey(evt, "exception");
             addExtraContextForKey(evt, "extra");
 
             // set user
@@ -80,11 +83,15 @@ namespace RNSentry
             }
 
             // capture exception
-            var msg = evt.Value<string>("message") ?? "";
-            var stacktrace = evt.Value<JObject>("stacktrace");
-            var e = new RNException(msg, stacktrace.ToString());
+            var exception = evt.Value<JObject>("exception");
+            var values = exception.Value<JArray>("values");
+            var msg = values[0].Value<string>("value") ?? "Unknown exception";
+            var stacktrace = values[0].Value<JObject>("stacktrace");
+            this.addExtra("stacktrace", stacktrace);
+            this.addExtra("breadcrumbs", breadcrumbs);
+            var e = new Exception(msg);
 
-            await raven.CaptureExceptionAsync(e, false);
+            await raven.CaptureExceptionAsync(e, true);
 
             RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new Object());
 
@@ -94,7 +101,11 @@ namespace RNSentry
         public void captureBreadcrumb(JObject breadCrumb)
         {
             // hacking extra context to store breadcrumbs
-            this.addExtra($"breadcrumb_{Guid.NewGuid()}", breadCrumb.ToString());
+            breadcrumbs.Add(breadCrumb);
+            if (breadcrumbs.Count > 20)
+            {
+                breadcrumbs.RemoveAt(0);
+            }
         }
 
         [ReactMethod]
@@ -102,6 +113,7 @@ namespace RNSentry
         {
             raven.FlushAsync();
             raven.DefaultExtra = new Dictionary<string, object>();
+            breadcrumbs = new JArray();
             raven.DefaultTags = null;
         }
 
@@ -129,7 +141,10 @@ namespace RNSentry
         [ReactMethod]
         public void addExtra(string key, object value)
         {
-            raven.DefaultExtra.Add(key, value);
+            if (!raven.DefaultExtra.ContainsKey(key))
+            {
+                raven.DefaultExtra.Add(key, value);
+            }
         }
     }
 }
