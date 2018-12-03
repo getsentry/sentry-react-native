@@ -243,6 +243,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
         }
 
+        if (event.hasKey("fingerprint")) {
+            ReadableArray fingerprint = event.getArray("fingerprint");
+            ArrayList<String> print = new ArrayList<String>(fingerprint.size());
+            for(int i = 0; i < fingerprint.size(); ++i) {
+                print.add(i, fingerprint.getString(i));
+            }
+            eventBuilder.withFingerprint(print);
+        }
+
         if (castEvent.hasKey("tags")) {
             for (Map.Entry<String, Object> entry : castEvent.getMap("tags").toHashMap().entrySet()) {
                 String tagValue = entry.getValue() != null ? entry.getValue().toString() : "INVALID_TAG";
