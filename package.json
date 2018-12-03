@@ -11,8 +11,6 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "preversion:changelog": "grep -q -F \"## v$npm_package_version\" CHANGELOG.md",
-    "version": "npm run preversion:changelog && node ./scripts/version-bump.js && git add -A",
     "precommit": "lint-staged",
     "test:typescript": "node_modules/typescript/bin/tsc --noImplicitAny --allowJs typescript/Sentry-tests.ts"
   },
