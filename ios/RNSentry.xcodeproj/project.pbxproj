@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		274692BA21B4414400BF91A8 /* RNSentry.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* RNSentry.m */; };
+		274692BB21B4414400BF91A8 /* RNSentryEventEmitter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6378C6FA1EAF630500A1F1EE /* RNSentryEventEmitter.m */; };
+		274692BD21B4414400BF91A8 /* libSentryStatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6387B8561ED8520D0045A84C /* libSentryStatic.a */; };
+		274692BF21B4414400BF91A8 /* RNSentry.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = B3E7B5881CC2AC0600A0062D /* RNSentry.h */; };
 		6350257B1E1E845F00408AE7 /* RNSentry.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = B3E7B5881CC2AC0600A0062D /* RNSentry.h */; };
 		6378C6FB1EAF630500A1F1EE /* RNSentryEventEmitter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6378C6FA1EAF630500A1F1EE /* RNSentryEventEmitter.m */; };
 		6387B8591ED8521B0045A84C /* libSentryStatic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6387B8561ED8520D0045A84C /* libSentryStatic.a */; };
@@ -14,6 +18,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		274692B821B4414400BF91A8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 6387B7C11ED84F910045A84C;
+			remoteInfo = SentryStatic;
+		};
 		6387B84D1ED8520D0045A84C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6387B8441ED8520D0045A84C /* Sentry.xcodeproj */;
@@ -45,6 +56,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		274692BE21B4414400BF91A8 /* Copy Headers */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = include/React;
+			dstSubfolderSpec = 16;
+			files = (
+				274692BF21B4414400BF91A8 /* RNSentry.h in Copy Headers */,
+			);
+			name = "Copy Headers";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6350257A1E1E845100408AE7 /* Copy Headers */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -60,6 +82,7 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libRNSentry.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNSentry.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		274692C321B4414400BF91A8 /* libRNSentry-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libRNSentry-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6378C6F91EAF630500A1F1EE /* RNSentryEventEmitter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSentryEventEmitter.h; sourceTree = "<group>"; };
 		6378C6FA1EAF630500A1F1EE /* RNSentryEventEmitter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNSentryEventEmitter.m; sourceTree = "<group>"; };
 		6387B7971ED84BA70045A84C /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
@@ -69,6 +92,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		274692BC21B4414400BF91A8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				274692BD21B4414400BF91A8 /* libSentryStatic.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		58B511D81A9E6C8500147676 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -84,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				134814201AA4EA6300B7C361 /* libRNSentry.a */,
+				274692C321B4414400BF91A8 /* libRNSentry-tvOS.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -130,6 +162,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		274692B621B4414400BF91A8 /* RNSentry-tvOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 274692C021B4414400BF91A8 /* Build configuration list for PBXNativeTarget "RNSentry-tvOS" */;
+			buildPhases = (
+				274692B921B4414400BF91A8 /* Sources */,
+				274692BC21B4414400BF91A8 /* Frameworks */,
+				274692BE21B4414400BF91A8 /* Copy Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				274692B721B4414400BF91A8 /* PBXTargetDependency */,
+			);
+			name = "RNSentry-tvOS";
+			productName = RCTDataManager;
+			productReference = 274692C321B4414400BF91A8 /* libRNSentry-tvOS.a */;
+			productType = "com.apple.product-type.library.static";
+		};
 		58B511DA1A9E6C8500147676 /* RNSentry */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 58B511EF1A9E6C8500147676 /* Build configuration list for PBXNativeTarget "RNSentry" */;
@@ -181,6 +231,7 @@
 			projectRoot = "";
 			targets = (
 				58B511DA1A9E6C8500147676 /* RNSentry */,
+				274692B621B4414400BF91A8 /* RNSentry-tvOS */,
 			);
 		};
 /* End PBXProject section */
@@ -210,6 +261,15 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
+		274692B921B4414400BF91A8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				274692BA21B4414400BF91A8 /* RNSentry.m in Sources */,
+				274692BB21B4414400BF91A8 /* RNSentryEventEmitter.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		58B511D71A9E6C8500147676 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -222,6 +282,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		274692B721B4414400BF91A8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = SentryStatic;
+			targetProxy = 274692B821B4414400BF91A8 /* PBXContainerItemProxy */;
+		};
 		6387B8581ED852170045A84C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = SentryStatic;
@@ -230,6 +295,44 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		274692C121B4414400BF91A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../../react-native/React/**",
+				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		274692C221B4414400BF91A8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../../react-native/React/**",
+				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
 		58B511ED1A9E6C8500147676 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -343,6 +446,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		274692C021B4414400BF91A8 /* Build configuration list for PBXNativeTarget "RNSentry-tvOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				274692C121B4414400BF91A8 /* Debug */,
+				274692C221B4414400BF91A8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		58B511D61A9E6C8500147676 /* Build configuration list for PBXProject "RNSentry" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
