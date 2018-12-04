@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.40.0
+## 0.40.0
 
 - Add fingerprint support for iOS/Android, Fixes #407
 - Add support for tvOS
