@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.40.0
+
+- Add fingerprint support for iOS/Android, Fixes #407
+- Add support for tvOS
+
 ## v0.39.1
 
 - Bump `@sentry/wizard` `0.12.1`

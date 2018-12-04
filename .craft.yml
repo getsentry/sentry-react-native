@@ -1,0 +1,15 @@
+minVersion: '0.6.0'
+github:
+  owner: getsentry
+  repo: react-native-sentry
+changelogPolicy: simple
+preReleaseCommand: bash scripts/craft-pre-release.sh
+targets:
+  - name: npm
+  - name: github
+  # - name: cocoapods
+  #   specPath: Sentry.podspec
+  # - name: registry
+  #   type: sdk
+  #   config:
+  #     canonical: 'cocoapods:sentry-cocoa'
