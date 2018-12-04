@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.40.1
+
+- Use `buildToolsVersion` in build.gradle
+
 ## 0.40.0
 
 - Add fingerprint support for iOS/Android, Fixes #407
