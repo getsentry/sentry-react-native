@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.40.2
+
+- Fix import for ArrayList and ReadableArray on Android, Fixes #511
+
 ## 0.40.1
 
 - Use `buildToolsVersion` in build.gradle
