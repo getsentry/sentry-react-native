@@ -27,6 +27,6 @@ android {
 }
 
 dependencies {
-    implementaion 'com.facebook.react:react-native:+'
-    implementaion 'io.sentry:sentry-android:1.7.5'
+    implementation 'com.facebook.react:react-native:+'
+    implementation 'io.sentry:sentry-android:1.7.5'
 }
