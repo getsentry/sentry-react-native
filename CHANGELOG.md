@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.40.3
+
+- Bump `sentry-cocoa` `4.1.3`
+
 ## 0.40.2
 
 - Fix import for ArrayList and ReadableArray on Android, Fixes #511
