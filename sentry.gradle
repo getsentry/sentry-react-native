@@ -6,7 +6,7 @@ import java.util.regex.Pattern
 def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
 
 gradle.projectsEvaluated {
-    Object releases = extractReleasesInfo()
+    def releases = extractReleasesInfo()
 
     // separately we then hook into the bundle task of react native to inject
     // sourcemap generation parameters.  In case for whatever reason no release
@@ -75,7 +75,7 @@ gradle.projectsEvaluated {
 
             // fix path separator for Windows
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                cliExecutable = cliExecutable.replaceAll("/","\\\\");
+                cliExecutable = cliExecutable.replaceAll("/", "\\\\")
             }
 
             //
@@ -100,13 +100,13 @@ gradle.projectsEvaluated {
                 "--org", sentryProps.get("defaults.org"),
                 "--project", sentryProps.get("defaults.project")
                 ])
-            
+
             // The names of the distributions to publish. Can be supplied multiple times.
             versionCodes.each { versionCode -> args.addAll(["--dist", versionCode]) }
 
             project.logger.info("Sentry-CLI arguments: ${args}")
 
-            def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c'] : []
+            def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
             commandLine(*osCompatibility, *args)
 
             enabled true
