@@ -116,6 +116,10 @@ gradle.projectsEvaluated {
             def cliExecutable = sentryProps.get("cli.executable", "$reactRoot/node_modules/@sentry/cli/bin/sentry-cli");
 
             workingDir reactRoot
+            
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                cliExecutable = cliExecutable.replaceAll("/","\\\\");
+            }
 
             def args = [
                 cliExecutable
@@ -157,7 +161,7 @@ gradle.projectsEvaluated {
                 println args
             }
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine("cmd", "/c", *args)
+                commandLine("cmd", "/c", "node", *args)
             } else {
                 commandLine(*args)
             }
