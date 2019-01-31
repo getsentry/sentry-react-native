@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.41.1
+
+- Fix bump version script
+
 ## 0.41.0
 
 - Update android build tools and gradle scripts to be compatible with latest version
