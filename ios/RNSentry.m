@@ -8,7 +8,7 @@
 
 #import <Sentry/Sentry.h>
 
-NSString *const RNSentryVersionString = @"0.39.1";
+NSString *const RNSentryVersionString = @"0.41.1";
 NSString *const RNSentrySdkName = @"sentry.javascript.react-native";
 
 @interface RNSentry()
