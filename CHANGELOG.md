@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.41.0
+
+- Update android build tools and gradle scripts to be compatible with latest version
+- Fix support to build on windows
+
 ## 0.40.3
 
 - Bump `sentry-cocoa` `4.1.3`
