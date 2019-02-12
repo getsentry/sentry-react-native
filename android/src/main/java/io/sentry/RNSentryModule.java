@@ -275,6 +275,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
         }
 
+        if (event.hasKey("environment")) {
+            eventBuilder.withEnvironment(event.getString("environment"));
+        }
+
         Sentry.capture(buildEvent(eventBuilder));
     }
 
