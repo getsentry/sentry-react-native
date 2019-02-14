@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.42.0
+
+- Bump `sentry-cocoa` `4.2.1`
+- Fix a bug where environment was correctly set
+- Only upload source maps in gradle if non debug build
+
 ## 0.41.1
 
 - Fix bump version script
