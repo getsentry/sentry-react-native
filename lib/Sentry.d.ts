@@ -4,9 +4,9 @@
 // Definitions: https://github.com/getsentry/react-native-sentry
 // TypeScript Version: 2.3
 
-type SentryBreadcrumbType = "navigation" | "http";
+export type SentryBreadcrumbType = "navigation" | "http";
 
-interface SentryBreadcrumb {
+export interface SentryBreadcrumb {
   message?: string;
   category?: string;
   level?: SentrySeverity;
@@ -30,7 +30,7 @@ export enum SentryLog {
   Verbose = 3
 }
 
-interface SentryOptions {
+export interface SentryOptions {
   /** Deactivates the stacktrace merging feature. Default: true */
   deactivateStacktraceMerging?: boolean;
   /** Deactivates the native integration and only uses raven-js */
