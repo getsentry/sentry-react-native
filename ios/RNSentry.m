@@ -5,6 +5,16 @@
 #else
 #import "RCTConvert.h"
 #endif
+#if __has_include(<React/RCTBridgeMethod.h>)
+#import <React/RCTBridgeMethod.h>
+#else
+#import "RCTBridgeMethod.h"
+#endif
+#if __has_include(<React/RCTBridge+Private>)
+#import <React/RCTBridge+Private.h>
+#else
+#import "RCTBridge+Private.h"
+#endif
 
 #import <Sentry/Sentry.h>
 
@@ -16,7 +26,6 @@ NSString *const RNSentrySdkName = @"sentry.javascript.react-native";
 @property (nonatomic, strong) NSMutableDictionary *moduleMapping;
 
 @end
-
 
 @implementation RNSentry
 
@@ -42,7 +51,7 @@ NSString *const RNSentrySdkName = @"sentry.javascript.react-native";
     NSInteger index = -1;
     NSUInteger counter = 0;
     for (SentryFrame *frame in frames) {
-        NSUInteger instructionAddress;
+        unsigned long long instructionAddress;
         // We skip js frames because they don't have an instructionAddress
         if (frame.instructionAddress == nil) {
             continue;
@@ -51,7 +60,7 @@ NSString *const RNSentrySdkName = @"sentry.javascript.react-native";
         if (instructionAddress < nativeCallAddress) {
             continue;
         }
-        NSInteger diff = instructionAddress - nativeCallAddress;
+        NSInteger diff = (NSUInteger)instructionAddress - nativeCallAddress;
         if (diff < smallestDiff) {
             smallestDiff = diff;
             index = counter;
@@ -77,9 +86,9 @@ NSString *const RNSentrySdkName = @"sentry.javascript.react-native";
     if (indexOfReactFrames == -1) {
         return;
     }
-
+    
     NSMutableArray<SentryFrame *> *finalFrames = [NSMutableArray new];
-
+    
     NSString *stacktrace = [[NSUserDefaults standardUserDefaults] objectForKey:@"RNSentry.__sentry_stack"];
     NSArray<SentryFrame *> *reactFrames = [SentryJavaScriptBridgeHelper convertReactNativeStacktrace:[SentryJavaScriptBridgeHelper parseJavaScriptStacktrace:stacktrace]];
     for (NSInteger i = 0; i < frames.count; i++) {
@@ -88,7 +97,7 @@ NSString *const RNSentrySdkName = @"sentry.javascript.react-native";
             [finalFrames addObjectsFromArray:reactFrames];
         }
     }
-
+    
     crashedThread.stacktrace.frames = finalFrames;
 }
 
@@ -174,7 +183,7 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
 - (void)swizzleInvokeWithBridge:(Class)class {
     static const void *key = &key;
     SEL selector = @selector(invokeWithBridge:module:arguments:);
-    uintptr_t callNativeModuleAddress = [class instanceMethodForSelector:selector];
+    IMP callNativeModuleAddress = [class instanceMethodForSelector:selector];
     __block RNSentry *_self = self;
     SentrySwizzleInstanceMethod(class,
                                 selector,
@@ -188,7 +197,7 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
                 if ([param isKindOfClass:NSDictionary.class] && param[@"__sentry_stack"]) {
                     [_self.moduleMapping setValue:[NSString stringWithFormat:@"%@", [module class]] forKey:[NSString stringWithFormat:@"%@", param[@"__sentry_moduleID"]]];
                     [RNSentryEventEmitter emitModuleTableUpdate:_self.moduleMapping.mutableCopy];
-                    [[NSUserDefaults standardUserDefaults] setObject:[NSString stringWithFormat:@"%lu", callNativeModuleAddress] forKey:@"RNSentry.__sentry_address"];
+                    [[NSUserDefaults standardUserDefaults] setObject:[NSString stringWithFormat:@"%lu", (uintptr_t)callNativeModuleAddress] forKey:@"RNSentry.__sentry_address"];
                     [[NSUserDefaults standardUserDefaults] setObject:[RCTConvert NSString:param[@"__sentry_stack"]] forKey:@"RNSentry.__sentry_stack"];
                     [[NSUserDefaults standardUserDefaults] synchronize];
                 } else {
@@ -205,8 +214,8 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
 - (void)swizzleCallNativeModule:(Class)class {
     static const void *key = &key;
     SEL selctor = @selector(callNativeModule:method:params:);
-    uintptr_t callNativeModuleAddress = [class instanceMethodForSelector:selctor];
-
+    IMP callNativeModuleAddress = [class instanceMethodForSelector:selctor];
+    
     SentrySwizzleInstanceMethod(class,
                                 selctor,
                                 SentrySWReturnType(id),
@@ -217,7 +226,7 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
         if (params != nil && params.count > 0) {
             for (id param in params) {
                 if ([param isKindOfClass:NSDictionary.class] && param[@"__sentry_stack"]) {
-                    [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithUnsignedInteger:callNativeModuleAddress] forKey:@"RNSentry.__sentry_address"];
+                    [[NSUserDefaults standardUserDefaults] setObject:@((uintptr_t)callNativeModuleAddress) forKey:@"RNSentry.__sentry_address"];
                     [[NSUserDefaults standardUserDefaults] setObject:[RCTConvert NSString:param[@"__sentry_stack"]] forKey:@"RNSentry.__sentry_stack"];
                     [[NSUserDefaults standardUserDefaults] synchronize];
                 } else {
