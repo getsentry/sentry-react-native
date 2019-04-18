@@ -4,7 +4,9 @@
 // Definitions: https://github.com/getsentry/react-native-sentry
 // TypeScript Version: 2.3
 
-type SentryBreadcrumbType = "navigation" | "http";
+import {RavenOptions} from 'raven-js';
+
+type SentryBreadcrumbType = 'navigation' | 'http';
 
 interface SentryBreadcrumb {
   message?: string;
@@ -15,12 +17,12 @@ interface SentryBreadcrumb {
 }
 
 export enum SentrySeverity {
-  Fatal = "fatal",
-  Error = "error",
-  Warning = "warning",
-  Info = "info",
-  Debug = "debug",
-  Critical = "critical"
+  Fatal = 'fatal',
+  Error = 'error',
+  Warning = 'warning',
+  Info = 'info',
+  Debug = 'debug',
+  Critical = 'critical'
 }
 
 export enum SentryLog {
@@ -70,13 +72,13 @@ export class Sentry {
     extra?: object;
   }): void;
 
-  static setTagsContext(tags: Object): void;
+  static setTagsContext(tags: object): void;
 
-  static setExtraContext(extra: Object): void;
+  static setExtraContext(extra: object): void;
 
-  static captureMessage(message: string, options?: object): void;
+  static captureMessage(message: string, options?: RavenOptions): void;
 
-  static captureException(ex: Error, options?: object): void;
+  static captureException(ex: Error, options?: RavenOptions): void;
 
   static captureBreadcrumb(breadcrumb: SentryBreadcrumb): void;
 
