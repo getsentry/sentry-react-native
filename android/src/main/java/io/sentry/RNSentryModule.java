@@ -61,14 +61,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     private static AndroidEventBuilderHelper androidHelper;
     private static PackageInfo packageInfo;
     final static Logger logger = Logger.getLogger("react-native-sentry");
-    private static WritableNativeMap extra;
+    private static Map<String, Object> extra;
     private static ReadableMap tags;
     private static SentryClient sentryClient;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
-        RNSentryModule.extra = new WritableNativeMap();
+        RNSentryModule.extra = new HashMap<>();
         RNSentryModule.packageInfo = getPackageInfo(reactContext);
     }
 
@@ -160,12 +160,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void setExtra(ReadableMap extra) {
-        RNSentryModule.extra.merge(extra);
+        Map<String, Object> extraMap = MapUtil.toMap(extra);
+        RNSentryModule.extra.putAll(extraMap);
     }
 
     @ReactMethod
     public void addExtra(String key, String value) {
-        RNSentryModule.extra.putString(key, value);
+        RNSentryModule.extra.put(key, value);
         logger.info(String.format("addExtra '%s' '%s'", key, value));
     }
 
@@ -285,7 +286,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void clearContext() {
         Sentry.clearContext();
-        RNSentryModule.extra = new WritableNativeMap();
+        RNSentryModule.extra = new HashMap<>();
         RNSentryModule.tags = null;
     }
 
@@ -325,7 +326,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         eventBuilder.withBreadcrumbs(Sentry.getStoredClient().getContext().getBreadcrumbs());
 
         if (extra != null) {
-            for (Map.Entry<String, Object> entry : extra.toHashMap().entrySet()) {
+            for (Map.Entry<String, Object> entry : extra.entrySet()) {
                 if (entry.getValue() != null) {
                     eventBuilder.withExtra(entry.getKey(), entry.getValue());
                     logger.info(String.format("addExtra '%s' '%s'", entry.getKey(), entry.getValue()));
@@ -439,15 +440,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     private static void setRelease(EventBuilder eventBuilder) {
-        if (extra.hasKey("__sentry_version")) {
-            eventBuilder.withRelease(packageInfo.packageName + "-" + extra.getString("__sentry_version"));
+        if (extra.containsKey("__sentry_version")) {
+            eventBuilder.withRelease(packageInfo.packageName + "-" + extra.get("__sentry_version"));
             eventBuilder.withDist(null);
         }
-        if (extra.hasKey("__sentry_release")) {
-            eventBuilder.withRelease(extra.getString("__sentry_release"));
+        if (extra.containsKey("__sentry_release")) {
+            eventBuilder.withRelease((String) extra.get("__sentry_release"));
         }
-        if (extra.hasKey("__sentry_dist")) {
-            eventBuilder.withDist(extra.getString("__sentry_dist"));
+        if (extra.containsKey("__sentry_dist")) {
+            eventBuilder.withDist((String) extra.get("__sentry_dist"));
         }
     }
 
