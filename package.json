@@ -12,7 +12,6 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "precommit": "lint-staged",
     "test:typescript": "node_modules/typescript/bin/tsc --noImplicitAny --allowJs typescript/Sentry-tests.ts"
   },
   "keywords": [
@@ -45,16 +44,8 @@
     }
   },
   "devDependencies": {
-    "husky": "^0.14.3",
-    "lint-staged": "^7.0.4",
     "prettier": "^1.12.1",
     "replace-in-file": "^3.4.0",
     "typescript": "^2.8.3"
-  },
-  "lint-staged": {
-    "*.js": [
-      "prettier --write --single-quote --bracket-spacing=false --print-width=90",
-      "git add"
-    ]
   }
 }
