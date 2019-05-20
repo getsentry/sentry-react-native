@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.43.0
+
+- Bump `sentry-wizard` `0.13.0`
+
 ## 0.42.0
 
 - Bump `sentry-cocoa` `4.2.1`
