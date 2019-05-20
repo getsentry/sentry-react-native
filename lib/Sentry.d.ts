@@ -100,6 +100,8 @@ export class Sentry {
 
   static setRelease(release: string): void;
 
+  static setEnvironment(environment: string): void;
+
   static setDist(dist: string): void;
 
   static setVersion(version: string): void;
