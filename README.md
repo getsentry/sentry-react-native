@@ -14,8 +14,6 @@
 [![deps dev](https://david-dm.org/getsentry/react-native-sentry/dev-status.svg)](https://david-dm.org/getsentry/react-native-sentry?type=dev&view=list)
 [![deps peer](https://david-dm.org/getsentry/react-native-sentry/peer-status.svg)](https://david-dm.org/getsentry/react-native-sentry?type=peer&view=list)
 
-**This is a beta release**
-
 *Requirements:*
 
 * `react-native >= 0.38` for iOS
