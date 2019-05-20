@@ -1,14 +1,15 @@
 {
-  "name": "react-native-sentry",
-  "homepage": "https://github.com/getsentry/react-native-sentry",
-  "repository": "https://github.com/getsentry/react-native-sentry",
+  "name": "@sentry/react-native",
+  "homepage": "https://github.com/getsentry/sentry-react-native",
+  "repository": "https://github.com/getsentry/sentry-react-native",
   "version": "0.42.0",
   "description": "Official Sentry SDK for react-native",
-  "typings": "lib/Sentry.d.ts",
+  "typings": "dist/index.d.ts",
+  "types": "dist/index.d.ts",
   "typescript": {
-    "definition": "lib/Sentry.d.ts"
+    "definition": "dist/index.d.ts"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "clean": "rimraf dist coverage"
@@ -29,7 +30,7 @@
     "@sentry/core": "^5.2.0",
     "@sentry/types": "^5.2.0",
     "@sentry/utils": "^5.2.0",
-    "@sentry/wizard": "^0.12.1"
+    "@sentry/wizard": "^0.13.0"
   },
   "rnpm": {
     "commands": {
