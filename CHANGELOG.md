@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.43.1
+
+- Bump `raven-js` `3.27.1`
+
 ## 0.43.0
 
 - Bump `sentry-wizard` `0.13.0`
