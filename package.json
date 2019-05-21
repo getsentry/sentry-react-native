@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@sentry/wizard": "^0.13.0",
-    "raven-js": "^3.24.2"
+    "raven-js": "^3.27.1"
   },
   "rnpm": {
     "commands": {
