@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.43.1
+
+- Use local version of raven-js to support ram-bundles
+
 ## 0.43.0
 
 - Bump `sentry-wizard` `0.13.0`
