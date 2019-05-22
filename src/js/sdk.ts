@@ -1,18 +1,43 @@
-import { defaultIntegrations } from '@sentry/browser';
-import { initAndBind } from '@sentry/core';
-import { configureScope } from '@sentry/minimal';
-import { Scope } from '@sentry/types';
+import { defaultIntegrations, Integrations, Transports } from "@sentry/browser";
+import { RewriteFrames } from "@sentry/integrations";
+import { initAndBind } from "@sentry/core";
+import { configureScope } from "@sentry/minimal";
+import { Scope, StackFrame } from "@sentry/types";
 
-import { ReactNativeOptions } from './backend';
-import { ReactNativeClient } from './client';
-import { ReactNative } from './integrations';
+import { ReactNativeOptions } from "./backend";
+import { ReactNativeClient } from "./client";
+import { ReactNative } from "./integrations";
 
 /**
  * Inits the SDK
  */
 export function init(options: ReactNativeOptions): void {
   if (options.defaultIntegrations === undefined) {
-    options.defaultIntegrations = [...defaultIntegrations, new ReactNative()];
+    options.defaultIntegrations = [
+      new ReactNative(),
+      ...defaultIntegrations.filter(
+        integration =>
+          integration.name !== "GlobalHandlers" &&
+          integration.name !== "Breadcrumbs" &&
+          integration.name !== "TryCatch"
+      ),
+      new Integrations.Breadcrumbs({
+        fetch: false
+      }),
+      new RewriteFrames({
+        iteratee: (frame: StackFrame) => {
+          if (frame.filename) {
+            frame.filename
+              .replace(/^file\:\/\//, "")
+              .replace(/^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/, "");
+          }
+          return frame;
+        }
+      })
+    ];
+  }
+  if (options.transport === undefined) {
+    options.transport = Transports.XHRTransport;
   }
   initAndBind(ReactNativeClient, options);
 }
@@ -22,7 +47,7 @@ export function init(options: ReactNativeOptions): void {
  */
 export function setRelease(release: string): void {
   configureScope((scope: Scope) => {
-    scope.setExtra('__sentry_release', release);
+    scope.setExtra("__sentry_release", release);
   });
 }
 
@@ -31,6 +56,6 @@ export function setRelease(release: string): void {
  */
 export function setDist(dist: string): void {
   configureScope((scope: Scope) => {
-    scope.setExtra('__sentry_dist', dist);
+    scope.setExtra("__sentry_dist", dist);
   });
 }

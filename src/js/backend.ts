@@ -1,13 +1,11 @@
-import { BrowserOptions } from '@sentry/browser';
-import { BrowserBackend } from '@sentry/browser/dist/backend';
-import { BaseBackend } from '@sentry/core';
-import { Breadcrumb, Event, EventHint, Scope, Severity } from '@sentry/types';
-import { forget, getGlobalObject, logger, SyncPromise } from '@sentry/utils';
-import {NativeModules, NativeEventEmitter} from 'react-native';
+import { BrowserOptions } from "@sentry/browser";
+import { BrowserBackend } from "@sentry/browser/dist/backend";
+import { BaseBackend, getCurrentHub } from "@sentry/core";
+import { Event, EventHint, Scope, Severity } from "@sentry/types";
+import { SyncPromise } from "@sentry/utils";
+import { NativeModules, NativeEventEmitter } from "react-native";
 
-const {RNSentry, RNSentryEventEmitter} = NativeModules;
-
-const PLUGIN_NAME = 'Sentry';
+const { RNSentry, RNSentryEventEmitter } = NativeModules;
 
 /**
  * Configuration options for the Sentry ReactNative SDK.
@@ -30,10 +28,13 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
   public constructor(protected readonly _options: ReactNativeOptions = {}) {
     super(_options);
     this._browserBackend = new BrowserBackend(_options);
-
-    if (RNSentry &&
-      RNSentry.nativeClientAvailable &&_options.enableNative !== false) {
-
+    // console.log("start");
+    if (
+      RNSentry &&
+      RNSentry.nativeClientAvailable &&
+      _options.enableNative !== false
+    ) {
+      // console.log("lllloooooghggg");
       // Sentry._nativeClient = new NativeClient(Sentry._dsn, Sentry.options);
       this._eventEmitter = new NativeEventEmitter(RNSentryEventEmitter);
       this._eventEmitter.addListener(
@@ -43,24 +44,56 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
           // if (Sentry._eventSentSuccessfully) Sentry._eventSentSuccessfully(event);
         }
       );
+
+      RNSentry.startWithDsnString(_options.dsn, _options).then(() => {
+        // if (_options.deactivateStacktraceMerging === false) {
+        //   this._activateStacktraceMerging();
+        //   const eventEmitter = new NativeEventEmitter(RNSentryEventEmitter);
+        //   eventEmitter.addListener(RNSentryEventEmitter.MODULE_TABLE, moduleTable => {
+        //     try {
+        //       this._updateIgnoredModules(JSON.parse(moduleTable.payload));
+        //     } catch (e) {
+        //       // https://github.com/getsentry/react-native-sentry/issues/241
+        //       // under some circumstances the the JSON is not valid
+        //       // the reason for this is yet to be found
+        //     }
+        //   });
+        // }
+        // RNSentry.setLogLevel(this.options.logLevel);
+        getCurrentHub().configureScope((scope: Scope) => {
+          // console.log("here2");
+          (scope as any).addScopeListener((innerScope: any) => {
+            RNSentry.setBreadcrumbs(innerScope._breadcrumbs);
+            RNSentry.setExtra(innerScope._extra);
+            RNSentry.setTags(innerScope._tags);
+            RNSentry.setUser(innerScope._user);
+          });
+        });
+      });
       // Sentry.eventEmitter.addListener(RNSentryEventEmitter.EVENT_STORED, () => {
       //   if (Sentry._internalEventStored) Sentry._internalEventStored();
       // });
-
     }
   }
 
   /**
    * @inheritDoc
    */
-  public eventFromException(exception: any, hint?: EventHint): SyncPromise<Event> {
+  public eventFromException(
+    exception: any,
+    hint?: EventHint
+  ): SyncPromise<Event> {
     return this._browserBackend.eventFromException(exception, hint);
   }
 
   /**
    * @inheritDoc
    */
-  public eventFromMessage(message: string, level: Severity = Severity.Info, hint?: EventHint): SyncPromise<Event> {
+  public eventFromMessage(
+    message: string,
+    level: Severity = Severity.Info,
+    hint?: EventHint
+  ): SyncPromise<Event> {
     return this._browserBackend.eventFromMessage(message, level, hint);
   }
 
@@ -68,56 +101,8 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    * @inheritDoc
    */
   public sendEvent(event: Event): void {
-    this._nativeCall('sendEvent', event).catch(e => {
-      logger.warn(e);
-      this._browserBackend.sendEvent(event);
-    });
-  }
-
-  // ReactNative --------------------
-  /**
-   * Uses exec to call ReactNative functions
-   * @param action name of the action
-   * @param args Arguments
-   */
-  private async _nativeCall(action: string, ...args: any[]): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      if (this._options.enableNative === false) {
-        reject('enableNative = false, using browser transport');
-        return;
-      }
-
-      const _window = getGlobalObject<any>();
-      // tslint:disable-next-line: no-unsafe-any
-      const exec = _window && _window.ReactNative && _window.ReactNative.exec;
-      if (!exec) {
-        reject('ReactNative.exec not available');
-      } else {
-        try {
-          // tslint:disable-next-line: no-unsafe-any
-          _window.ReactNative.exec(resolve, reject, PLUGIN_NAME, action, args);
-        } catch (e) {
-          reject('ReactNative.exec not available');
-        }
-      }
-    });
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public storeBreadcrumb(breadcrumb: Breadcrumb): boolean {
-    forget(this._nativeCall('addBreadcrumb', breadcrumb));
-    return true;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public storeScope(scope: Scope): void {
-    forget(this._nativeCall('setExtraContext', (scope as any).extra));
-    forget(this._nativeCall('setTagsContext', (scope as any).tags));
-    forget(this._nativeCall('setUserContext', (scope as any).user));
+    console.log("sending event");
+    RNSentry.captureEvent(event);
   }
 }
 
@@ -183,22 +168,22 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
 //   }
 
 //   async install() {
-//     return RNSentry.startWithDsnString(this._dsn, this.options).then(() => {
-//       if (this.options.deactivateStacktraceMerging === false) {
-//         this._activateStacktraceMerging();
-//         const eventEmitter = new NativeEventEmitter(RNSentryEventEmitter);
-//         eventEmitter.addListener(RNSentryEventEmitter.MODULE_TABLE, moduleTable => {
-//           try {
-//             this._updateIgnoredModules(JSON.parse(moduleTable.payload));
-//           } catch (e) {
-//             // https://github.com/getsentry/react-native-sentry/issues/241
-//             // under some circumstances the the JSON is not valid
-//             // the reason for this is yet to be found
-//           }
-//         });
+// return RNSentry.startWithDsnString(this._dsn, this.options).then(() => {
+//   if (this.options.deactivateStacktraceMerging === false) {
+//     this._activateStacktraceMerging();
+//     const eventEmitter = new NativeEventEmitter(RNSentryEventEmitter);
+//     eventEmitter.addListener(RNSentryEventEmitter.MODULE_TABLE, moduleTable => {
+//       try {
+//         this._updateIgnoredModules(JSON.parse(moduleTable.payload));
+//       } catch (e) {
+//         // https://github.com/getsentry/react-native-sentry/issues/241
+//         // under some circumstances the the JSON is not valid
+//         // the reason for this is yet to be found
 //       }
-//       RNSentry.setLogLevel(this.options.logLevel);
 //     });
+//   }
+//   RNSentry.setLogLevel(this.options.logLevel);
+// });
 //   }
 
 //   _cloneObject(obj) {
@@ -315,8 +300,6 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
 //   }
 // }
 
-
-
 // --------------------------
 // raven-plugin.js
 // --------------------------
@@ -356,22 +339,6 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
 
 // // Example React Native path format (iOS):
 // // /var/containers/Bundle/Application/{DEVICE_ID}/HelloWorld.app/main.jsbundle
-
-// var PATH_STRIP_RE = /^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/;
-// var FATAL_ERROR_KEY = '--rn-fatal--';
-// var ASYNC_STORAGE_KEY = '--raven-js-global-error-payload--';
-
-// /**
-//  * Strip device-specific IDs from React Native file:// paths
-//  * Ensure path begins with / (after app://) to ensure source code and map path can be found
-//  */
-// function normalizeUrl(url, pathStripRe) {
-//   const normUrl = url.replace(/^file\:\/\//, '').replace(pathStripRe, '');
-//   if (normUrl.indexOf('/') !== 0) {
-//     return 'app:///' + normUrl;
-//   }
-//   return 'app://' + normUrl;
-// }
 
 // /**
 //  * Extract key/value pairs from an object and encode them for
@@ -497,56 +464,6 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
 // }
 
 // /**
-//  * Saves the payload for a globally-thrown error, so that we can report it on
-//  * next launch.
-//  *
-//  * Returns a promise that guarantees never to reject.
-//  */
-// reactNativePlugin._persistPayload = function(payload) {
-//   var AsyncStorage = require('react-native').AsyncStorage;
-//   return AsyncStorage.setItem(ASYNC_STORAGE_KEY, JSON.stringify(payload))[
-//     'catch'
-//   ](function() {
-//     return null;
-//   });
-// };
-
-// /**
-//  * Checks for any previously persisted errors (e.g. from last crash)
-//  *
-//  * Returns a promise that guarantees never to reject.
-//  */
-// reactNativePlugin._restorePayload = function() {
-//   var AsyncStorage = require('react-native').AsyncStorage;
-//   var promise = AsyncStorage.getItem(ASYNC_STORAGE_KEY).then(function(payload) {
-//     return JSON.parse(payload);
-//   })['catch'](function() {
-//     return null;
-//   });
-//   // Make sure that we fetch ASAP.
-//   var RCTAsyncSQLiteStorage = NativeModules.AsyncSQLiteDBStorage;
-//   var RCTAsyncRocksDBStorage = NativeModules.AsyncRocksDBStorage;
-//   var RCTAsyncFileStorage = NativeModules.AsyncLocalStorage;
-//   var RCTAsyncStorage =
-//     RCTAsyncRocksDBStorage || RCTAsyncSQLiteStorage || RCTAsyncFileStorage;
-//   if (RCTAsyncStorage.multiGet) {
-//     AsyncStorage.flushGetRequests();
-//   }
-
-//   return promise;
-// };
-
-// /**
-//  * Clears any persisted payloads.
-//  */
-// reactNativePlugin._clearPayload = function() {
-//   var AsyncStorage = require('react-native').AsyncStorage;
-//   return AsyncStorage.removeItem(ASYNC_STORAGE_KEY)['catch'](function() {
-//     return null;
-//   });
-// };
-
-// /**
 //  * Custom HTTP transport for use with React Native applications.
 //  */
 // reactNativePlugin._transport = function(options) {
@@ -581,37 +498,6 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
 //   // to whitelist specific origins.
 //   request.setRequestHeader('Origin', 'react-native://');
 //   request.send(JSON.stringify(options.data));
-// };
-
-// /**
-//  * Strip device-specific IDs found in transaction and frame filenames
-//  * when running React Native applications on a physical device.
-//  */
-// reactNativePlugin._normalizeData = function(data, pathStripRe) {
-//   if (!pathStripRe) {
-//     pathStripRe = PATH_STRIP_RE;
-//   }
-
-//   if (data.culprit) {
-//     data.culprit = normalizeUrl(data.culprit, pathStripRe);
-//   }
-
-//   if (data.transaction) {
-//     data.transaction = normalizeUrl(data.transaction, pathStripRe);
-//   }
-
-//   // NOTE: if data.exception exists, exception.values and exception.values[0] are
-//   // guaranteed to exist
-//   var stacktrace =
-//     data.stacktrace || (data.exception && data.exception.values[0].stacktrace);
-//   if (stacktrace) {
-//     stacktrace.frames.forEach(function(frame) {
-//       if (frame.filename !== '[native code]') {
-//         frame.filename = normalizeUrl(frame.filename, pathStripRe);
-//       }
-//     });
-//   }
-//   return data;
 // };
 
 // module.exports = reactNativePlugin;
@@ -730,7 +616,6 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
 //     return Raven.wrap(options, func, _before);
 //   }
 // }
-
 
 // --------------------------
 // Sentry.js

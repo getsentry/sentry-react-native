@@ -253,13 +253,6 @@ RCT_EXPORT_METHOD(setExtra:(NSDictionary *_Nonnull)extra)
     SentryClient.sharedClient.extra = extra;
 }
 
-RCT_EXPORT_METHOD(addExtra:(NSString *_Nonnull)key value:(id)value)
-{
-    NSMutableDictionary *prevExtra = SentryClient.sharedClient.extra.mutableCopy;
-    [prevExtra setValue:value forKey:key];
-    SentryClient.sharedClient.extra = prevExtra;
-}
-
 RCT_EXPORT_METHOD(setUser:(NSDictionary *_Nonnull)user)
 {
     SentryUser *sentryUser = [SentryJavaScriptBridgeHelper createSentryUserFromJavaScriptUser:user];
@@ -268,10 +261,13 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary *_Nonnull)user)
     }
 }
 
-RCT_EXPORT_METHOD(captureBreadcrumb:(NSDictionary * _Nonnull)breadcrumb)
+RCT_EXPORT_METHOD(setBreadcrumbs:(NSArray * _Nonnull)breadcrumbs)
 {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0ul), ^{
-        [SentryClient.sharedClient.breadcrumbs addBreadcrumb:[SentryJavaScriptBridgeHelper createSentryBreadcrumbFromJavaScriptBreadcrumb:breadcrumb]];
+        [SentryClient.sharedClient.breadcrumbs clear];
+        for (NSDictionary *crumb in breadcrumbs) {
+            [SentryClient.sharedClient.breadcrumbs addBreadcrumb:[SentryJavaScriptBridgeHelper createSentryBreadcrumbFromJavaScriptBreadcrumb:crumb]];
+        }
     });
 }
 
