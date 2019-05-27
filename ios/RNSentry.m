@@ -29,6 +29,14 @@ NSString *const RNSentrySdkName = @"sentry.javascript.react-native";
     return YES;
 }
 
++ (void)installWithBridge:(RCTBridge *)bridge {
+    // For now we don't need this anymore
+}
+
++ (void)installWithRootView:(RCTRootView *)rootView {
+    // For now we don't need this anymore
+}
+
 - (NSInteger)indexOfReactNativeCallFrame:(NSArray<SentryFrame *> *)frames nativeCallAddress:(NSUInteger)nativeCallAddress {
     NSInteger smallestDiff = NSIntegerMax;
     NSInteger index = -1;

@@ -11,7 +11,9 @@ import { ReactNative } from "./integrations";
 /**
  * Inits the SDK
  */
-export function init(options: ReactNativeOptions): void {
+export function init(
+  options: ReactNativeOptions = { enableNative: true }
+): void {
   if (options.defaultIntegrations === undefined) {
     options.defaultIntegrations = [
       new ReactNative(),
@@ -35,6 +37,9 @@ export function init(options: ReactNativeOptions): void {
         }
       })
     ];
+  }
+  if (options.enableNative === undefined) {
+    options.enableNative = true;
   }
   initAndBind(ReactNativeClient, options);
 }

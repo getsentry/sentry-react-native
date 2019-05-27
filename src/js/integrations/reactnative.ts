@@ -1,5 +1,5 @@
 import { addGlobalEventProcessor, getCurrentHub } from "@sentry/core";
-import { Event, Integration } from "@sentry/types";
+import { Event, Integration, Severity } from "@sentry/types";
 // import { NativeModules } from "react-native";
 
 // const { RNSentry } = NativeModules;
@@ -93,10 +93,6 @@ export class ReactNative implements Integration {
         ErrorUtils.getGlobalHandler && ErrorUtils.getGlobalHandler();
 
       ErrorUtils.setGlobalHandler((error: any, isFatal?: boolean) => {
-        if (isFatal) {
-          // captureOptions.level = 'fatal';
-          // TODO
-        }
         // We want to handle fatals, but only in production mode.
         const shouldHandleFatal = isFatal && !global.__DEV__;
         if (shouldHandleFatal) {
@@ -108,33 +104,23 @@ export class ReactNative implements Integration {
             return;
           }
           handlingFatal = true;
-          // We need to preserve the original error so that it can be rethrown
-          // after it is persisted (see our shouldSendCallback above).
-          // captureOptions[FATAL_ERROR_KEY] = error;
-          // TODO
         }
+
+        getCurrentHub().withScope(scope => {
+          if (isFatal) {
+            scope.setLevel(Severity.Fatal);
+          }
+          getCurrentHub().captureException(error, {
+            originalException: error
+          });
+        });
+
         const client = getCurrentHub().getClient();
         if (client) {
           client.flush(2000).then(() => {
             defaultHandler(error, isFatal);
           });
         }
-        // getCurrentHub().captureException(error);
-        // Raven.captureException(error, captureOptions);
-        // TODO
-        // if (options.nativeClientAvailable) {
-        //   // We always want to tunnel errors to the default handler
-        //   Sentry._setInternalEventStored(() => {
-        //     defaultHandler(error, isFatal);
-        //   });
-        // } else {
-        //   // if we don't have a native
-        //   defaultHandler(error, isFatal);
-        // }
-        console.log(defaultHandler);
-        console.log(error);
-        console.log(isFatal);
-        // defaultHandler(error, isFatal);
       });
     }
   }

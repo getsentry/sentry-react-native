@@ -19,7 +19,7 @@ export interface ReactNativeOptions extends BrowserOptions {
    * Enables crash reporting for native crashes.
    * Defaults to `true`.
    */
-  enableNative?: boolean;
+  enableNative: boolean;
 }
 
 /** The Sentry ReactNative SDK Backend. */
@@ -27,9 +27,12 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
   private readonly _browserBackend: BrowserBackend;
 
   /** Creates a new ReactNative backend instance. */
-  public constructor(protected readonly _options: ReactNativeOptions = {}) {
+  public constructor(protected readonly _options: ReactNativeOptions) {
     super(_options);
-    this._browserBackend = new BrowserBackend(_options);
+    this._browserBackend = new BrowserBackend({
+      transport: Transports.XHRTransport, // We need this here to make sure browser internally uses XHR
+      ..._options
+    });
 
     if (
       RNSentry &&
@@ -50,7 +53,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
         //     }
         //   });
         // }
-        // RNSentry.setLogLevel(this.options.logLevel);
+        RNSentry.setLogLevel(_options.debug ? 2 : 1);
         getCurrentHub().configureScope((scope: Scope) => {
           (scope as any).addScopeListener((innerScope: any) => {
             RNSentry.setBreadcrumbs(innerScope._breadcrumbs);
@@ -91,7 +94,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    * If true, native client is availabe and active
    */
   private _isNativeAvailable(): boolean {
-    return !!this._options.enableNative && RNSentry.nativeClientAvailable;
+    return this._options.enableNative && RNSentry.nativeClientAvailable;
   }
 
   /**
@@ -120,7 +123,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    */
   public sendEvent(event: Event): void {
     if (this._isNativeAvailable()) {
-      RNSentry.captureEvent(event);
+      this._transport.sendEvent(event);
     } else {
       this._browserBackend.sendEvent(event);
     }
