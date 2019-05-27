@@ -29,14 +29,6 @@ NSString *const RNSentrySdkName = @"sentry.javascript.react-native";
     return YES;
 }
 
-+ (void)installWithBridge:(RCTBridge *)bridge {
-    // For now we don't need this anymore
-}
-
-+ (void)installWithRootView:(RCTRootView *)rootView {
-    // For now we don't need this anymore
-}
-
 - (NSInteger)indexOfReactNativeCallFrame:(NSArray<SentryFrame *> *)frames nativeCallAddress:(NSUInteger)nativeCallAddress {
     NSInteger smallestDiff = NSIntegerMax;
     NSInteger index = -1;
@@ -231,13 +223,6 @@ RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
     }), SentrySwizzleModeOncePerClassAndSuperclasses, key);
 }
 
-RCT_EXPORT_METHOD(clearContext)
-{
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0ul), ^{
-        [SentryClient.sharedClient clearContext];
-    });
-}
-
 RCT_EXPORT_METHOD(setLogLevel:(int)level)
 {
     [SentryClient setLogLevel:[SentryJavaScriptBridgeHelper sentryLogLevelFromJavaScriptLevel:level]];
@@ -271,22 +256,19 @@ RCT_EXPORT_METHOD(setBreadcrumbs:(NSArray * _Nonnull)breadcrumbs)
     });
 }
 
-RCT_EXPORT_METHOD(captureEvent:(NSDictionary * _Nonnull)event)
+RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
+                       resolve:(RCTPromiseResolveBlock)resolve
+                      rejecter:(RCTPromiseRejectBlock)reject)
 {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0ul), ^{
         SentryEvent *sentryEvent = [SentryJavaScriptBridgeHelper createSentryEventFromJavaScriptEvent:event];
-        if (sentryEvent.exceptions) {
-#if DEBUG
-            // We want to send the exception instead of storing it because in debug
-            // the app does not crash it will restart
-            [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
-#else
-            [SentryClient.sharedClient storeEvent:sentryEvent];
-#endif
-        } else {
-            [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:NULL];
-        }
-        [RNSentryEventEmitter emitStoredEvent];
+        [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:^(NSError * _Nullable error) {
+            if (nil != error) {
+                reject(@"SentryReactNative", error.localizedDescription, error);
+            } else {
+                resolve(@YES);
+            }
+        }];
     });
 }
 

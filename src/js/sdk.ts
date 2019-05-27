@@ -1,4 +1,4 @@
-import { defaultIntegrations, Integrations, Transports } from "@sentry/browser";
+import { defaultIntegrations, Integrations } from "@sentry/browser";
 import { RewriteFrames } from "@sentry/integrations";
 import { initAndBind } from "@sentry/core";
 import { configureScope } from "@sentry/minimal";
@@ -17,9 +17,9 @@ export function init(options: ReactNativeOptions): void {
       new ReactNative(),
       ...defaultIntegrations.filter(
         integration =>
-          integration.name !== "GlobalHandlers" &&
-          integration.name !== "Breadcrumbs" &&
-          integration.name !== "TryCatch"
+          integration.name !== "GlobalHandlers" && // We will use the react-native internal handlers
+          integration.name !== "Breadcrumbs" && // We add it later, just not patching fetch
+          integration.name !== "TryCatch" // We don't need this
       ),
       new Integrations.Breadcrumbs({
         fetch: false
@@ -35,9 +35,6 @@ export function init(options: ReactNativeOptions): void {
         }
       })
     ];
-  }
-  if (options.transport === undefined) {
-    options.transport = Transports.XHRTransport;
   }
   initAndBind(ReactNativeClient, options);
 }

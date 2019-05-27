@@ -1,11 +1,14 @@
-import { BrowserOptions } from "@sentry/browser";
+import { BrowserOptions, Transports } from "@sentry/browser";
+import { NoopTransport } from "@sentry/core";
 import { BrowserBackend } from "@sentry/browser/dist/backend";
 import { BaseBackend, getCurrentHub } from "@sentry/core";
-import { Event, EventHint, Scope, Severity } from "@sentry/types";
+import { Event, EventHint, Scope, Severity, Transport } from "@sentry/types";
 import { SyncPromise } from "@sentry/utils";
-import { NativeModules, NativeEventEmitter } from "react-native";
+import { NativeModules } from "react-native";
 
-const { RNSentry, RNSentryEventEmitter } = NativeModules;
+import { NativeTransport } from "./transports/native";
+
+const { RNSentry } = NativeModules;
 
 /**
  * Configuration options for the Sentry ReactNative SDK.
@@ -22,29 +25,17 @@ export interface ReactNativeOptions extends BrowserOptions {
 /** The Sentry ReactNative SDK Backend. */
 export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
   private readonly _browserBackend: BrowserBackend;
-  private readonly _eventEmitter?: NativeEventEmitter;
 
   /** Creates a new ReactNative backend instance. */
   public constructor(protected readonly _options: ReactNativeOptions = {}) {
     super(_options);
     this._browserBackend = new BrowserBackend(_options);
-    // console.log("start");
+
     if (
       RNSentry &&
       RNSentry.nativeClientAvailable &&
       _options.enableNative !== false
     ) {
-      // console.log("lllloooooghggg");
-      // Sentry._nativeClient = new NativeClient(Sentry._dsn, Sentry.options);
-      this._eventEmitter = new NativeEventEmitter(RNSentryEventEmitter);
-      this._eventEmitter.addListener(
-        RNSentryEventEmitter.EVENT_SENT_SUCCESSFULLY,
-        _event => {
-          // Sentry._lastEvent = event;
-          // if (Sentry._eventSentSuccessfully) Sentry._eventSentSuccessfully(event);
-        }
-      );
-
       RNSentry.startWithDsnString(_options.dsn, _options).then(() => {
         // if (_options.deactivateStacktraceMerging === false) {
         //   this._activateStacktraceMerging();
@@ -61,7 +52,6 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
         // }
         // RNSentry.setLogLevel(this.options.logLevel);
         getCurrentHub().configureScope((scope: Scope) => {
-          // console.log("here2");
           (scope as any).addScopeListener((innerScope: any) => {
             RNSentry.setBreadcrumbs(innerScope._breadcrumbs);
             RNSentry.setExtra(innerScope._extra);
@@ -70,10 +60,38 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
           });
         });
       });
-      // Sentry.eventEmitter.addListener(RNSentryEventEmitter.EVENT_STORED, () => {
-      //   if (Sentry._internalEventStored) Sentry._internalEventStored();
-      // });
     }
+  }
+
+  /**
+   * @inheritDoc
+   */
+  protected _setupTransport(): Transport {
+    if (!this._options.dsn) {
+      // We return the noop transport here in case there is no Dsn.
+      return new NoopTransport();
+    }
+
+    const transportOptions = this._options.transportOptions
+      ? this._options.transportOptions
+      : { dsn: this._options.dsn };
+
+    if (this._options.transport) {
+      return new this._options.transport(transportOptions);
+    }
+
+    if (this._isNativeAvailable()) {
+      return new NativeTransport();
+    }
+
+    return new Transports.XHRTransport(transportOptions);
+  }
+
+  /**
+   * If true, native client is availabe and active
+   */
+  private _isNativeAvailable(): boolean {
+    return !!this._options.enableNative && RNSentry.nativeClientAvailable;
   }
 
   /**
@@ -101,8 +119,11 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    * @inheritDoc
    */
   public sendEvent(event: Event): void {
-    console.log("sending event");
-    RNSentry.captureEvent(event);
+    if (this._isNativeAvailable()) {
+      RNSentry.captureEvent(event);
+    } else {
+      this._browserBackend.sendEvent(event);
+    }
   }
 }
 

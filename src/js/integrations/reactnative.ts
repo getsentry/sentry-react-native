@@ -91,7 +91,7 @@ export class ReactNative implements Integration {
 
       let defaultHandler =
         ErrorUtils.getGlobalHandler && ErrorUtils.getGlobalHandler();
-      console.log("here");
+
       ErrorUtils.setGlobalHandler((error: any, isFatal?: boolean) => {
         if (isFatal) {
           // captureOptions.level = 'fatal';
@@ -112,6 +112,12 @@ export class ReactNative implements Integration {
           // after it is persisted (see our shouldSendCallback above).
           // captureOptions[FATAL_ERROR_KEY] = error;
           // TODO
+        }
+        const client = getCurrentHub().getClient();
+        if (client) {
+          client.flush(2000).then(() => {
+            defaultHandler(error, isFatal);
+          });
         }
         // getCurrentHub().captureException(error);
         // Raven.captureException(error, captureOptions);
