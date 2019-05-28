@@ -98,6 +98,16 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
   }
 
   /**
+   * If native client is available it will trigger a native crash.
+   * Use this only for testing purposes.
+   */
+  public nativeCrash(): void {
+    if (this._isNativeAvailable()) {
+      RNSentry.crash();
+    }
+  }
+
+  /**
    * @inheritDoc
    */
   public eventFromException(
@@ -189,61 +199,6 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
 //       deactivateStacktraceMerging: true
 //     };
 //     Object.assign(this.options, options);
-//   }
-
-//   async install() {
-// return RNSentry.startWithDsnString(this._dsn, this.options).then(() => {
-//   if (this.options.deactivateStacktraceMerging === false) {
-//     this._activateStacktraceMerging();
-//     const eventEmitter = new NativeEventEmitter(RNSentryEventEmitter);
-//     eventEmitter.addListener(RNSentryEventEmitter.MODULE_TABLE, moduleTable => {
-//       try {
-//         this._updateIgnoredModules(JSON.parse(moduleTable.payload));
-//       } catch (e) {
-//         // https://github.com/getsentry/react-native-sentry/issues/241
-//         // under some circumstances the the JSON is not valid
-//         // the reason for this is yet to be found
-//       }
-//     });
-//   }
-//   RNSentry.setLogLevel(this.options.logLevel);
-// });
-//   }
-
-//   _cloneObject(obj) {
-//     return JSON.parse(JSON.stringify(obj));
-//   }
-
-//   nativeCrash() {
-//     RNSentry.crash();
-//   }
-
-//   captureEvent(event) {
-//     RNSentry.captureEvent(this._cloneObject(event));
-//   }
-
-//   setUserContext(user) {
-//     RNSentry.setUser(this._cloneObject(user));
-//   }
-
-//   setTagsContext(tags) {
-//     RNSentry.setTags(this._cloneObject(tags));
-//   }
-
-//   setExtraContext(extra) {
-//     RNSentry.setExtra(this._cloneObject(extra));
-//   }
-
-//   addExtraContext(key, value) {
-//     RNSentry.addExtra(key, value);
-//   }
-
-//   captureBreadcrumb(breadcrumb) {
-//     RNSentry.captureBreadcrumb(this._cloneObject(breadcrumb));
-//   }
-
-//   clearContext() {
-//     RNSentry.clearContext();
 //   }
 
 //   _updateIgnoredModules(modules) {
@@ -453,39 +408,6 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
 //       onHandled: function() {}
 //     });
 //   }
-
-//   ErrorUtils.setGlobalHandler(function(error, isFatal) {
-//     var captureOptions = {
-//       timestamp: new Date() / 1000
-//     };
-//     var error = arguments[0];
-//     if (isFatal) {
-//       captureOptions.level = 'fatal';
-//     }
-//     // We want to handle fatals, but only in production mode.
-//     var shouldHandleFatal = isFatal && !global.__DEV__;
-//     if (shouldHandleFatal) {
-//       if (handlingFatal) {
-//         console.log('Encountered multiple fatals in a row. The latest:', error);
-//         return;
-//       }
-//       handlingFatal = true;
-//       // We need to preserve the original error so that it can be rethrown
-//       // after it is persisted (see our shouldSendCallback above).
-//       captureOptions[FATAL_ERROR_KEY] = error;
-//     }
-//     Raven.captureException(error, captureOptions);
-//     if (options.nativeClientAvailable) {
-//       // We always want to tunnel errors to the default handler
-//       Sentry._setInternalEventStored(() => {
-//         defaultHandler(error, isFatal);
-//       });
-//     } else {
-//       // if we don't have a native
-//       defaultHandler(error, isFatal);
-//     }
-//   });
-// }
 
 // /**
 //  * Custom HTTP transport for use with React Native applications.

@@ -8,9 +8,6 @@
 
 #import <Sentry/Sentry.h>
 
-NSString *const RNSentryVersionString = @"0.43.1";
-NSString *const RNSentrySdkName = @"sentry.javascript.react-native";
-
 @interface RNSentry()
 
 @property (nonatomic, strong) NSMutableDictionary *moduleMapping;
@@ -103,9 +100,6 @@ NSString *const RNSentrySdkName = @"sentry.javascript.react-native";
     if (event.extra[@"__sentry_dist"]) {
         event.dist = [NSString stringWithFormat:@"%@", event.extra[@"__sentry_dist"]];
     }
-    event.sdk = @{@"name": RNSentrySdkName,
-                  @"version": RNSentryVersionString,
-                  @"integrations": @[@"sentry-cocoa"]};
 }
 
 RCT_EXPORT_MODULE()
@@ -143,10 +137,6 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString
             [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
             NSLog(@"Unhandled JS Exception");
             return NO;
-        }
-        // Since we set shouldSendEvent for react-native we need to duplicate the code for sampling here
-        if (nil != options[@"sampleRate"]) {
-            return ([options[@"sampleRate"] floatValue] >= ((double)arc4random() / 0x100000000));
         }
         return YES;
     };

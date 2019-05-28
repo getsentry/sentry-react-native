@@ -1,1 +1,1 @@
-export { ReactNative } from './reactnative';
+export { ReactNativeErrorHandlers } from "./reactnativeerrorhandlers";

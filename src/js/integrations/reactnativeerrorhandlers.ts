@@ -1,36 +1,31 @@
-import { addGlobalEventProcessor, getCurrentHub } from "@sentry/core";
-import { Event, Integration, Severity } from "@sentry/types";
-// import { NativeModules } from "react-native";
+import { getCurrentHub } from "@sentry/core";
+import { Integration, Severity } from "@sentry/types";
 
-// const { RNSentry } = NativeModules;
-
-// import { normalizeData } from '../normalize';
-
-/** JSDoc */
-interface ReactNativeOptions {
+/** ReactNativeErrorHandlers Options */
+interface ReactNativeErrorHandlersOptions {
   onerror: boolean;
   onunhandledrejection: boolean;
 }
 
 declare const global: any;
 
-/** ReactNative Integration */
-export class ReactNative implements Integration {
+/** ReactNativeErrorHandlers Integration */
+export class ReactNativeErrorHandlers implements Integration {
   /**
    * @inheritDoc
    */
-  public name: string = ReactNative.id;
+  public name: string = ReactNativeErrorHandlers.id;
 
   /**
    * @inheritDoc
    */
   public static id: string = "ReactNative";
 
-  /** JSDoc */
-  private readonly _options: ReactNativeOptions;
+  /** ReactNativeOptions */
+  private readonly _options: ReactNativeErrorHandlersOptions;
 
-  /** JSDoc */
-  public constructor(options?: ReactNativeOptions) {
+  /** Constructor */
+  public constructor(options?: ReactNativeErrorHandlersOptions) {
     this._options = {
       onerror: true,
       onunhandledrejection: true,
@@ -44,32 +39,7 @@ export class ReactNative implements Integration {
   public setupOnce(): void {
     this._handleUnhandledRejections();
     this._handleOnError();
-
-    addGlobalEventProcessor((event: Event) => {
-      const self = getCurrentHub().getIntegration(ReactNative);
-      if (self) {
-        // getCurrentHub().configureScope(scope => {
-        //   scope.addScopeListener();
-        // });
-      }
-      return event;
-    });
   }
-
-  /**
-   * Extract key/value pairs from an object and encode them for
-   * use in a query string
-   */
-  //  private urlencode(obj) {
-  //    var pairs = [];
-  //    for (var key in obj) {
-  //      if ({}.hasOwnProperty.call(obj, key))
-  //        pairs.push(
-  //          encodeURIComponent(key) + "=" + encodeURIComponent(obj[key])
-  //        );
-  //    }
-  //    return pairs.join("&");
-  //  }
 
   private _handleUnhandledRejections(): void {
     if (this._options.onunhandledrejection) {
@@ -78,7 +48,10 @@ export class ReactNative implements Integration {
       tracking.enable({
         allRejections: true,
         onUnhandled: (id: any, error: any) => {
-          console.log(id, error);
+          getCurrentHub().captureException(error, {
+            data: { id },
+            originalException: error
+          });
         },
         onHandled: function() {}
       });
@@ -120,6 +93,9 @@ export class ReactNative implements Integration {
           client.flush(2000).then(() => {
             defaultHandler(error, isFatal);
           });
+        } else {
+          // If there is no client something is fishy, anyway we call the default handler
+          defaultHandler(error, isFatal);
         }
       });
     }

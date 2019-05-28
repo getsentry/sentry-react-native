@@ -1,4 +1,8 @@
-import { defaultIntegrations, Integrations } from "@sentry/browser";
+import {
+  defaultIntegrations,
+  getCurrentHub,
+  Integrations
+} from "@sentry/browser";
 import { RewriteFrames } from "@sentry/integrations";
 import { initAndBind } from "@sentry/core";
 import { configureScope } from "@sentry/minimal";
@@ -6,7 +10,7 @@ import { Scope, StackFrame } from "@sentry/types";
 
 import { ReactNativeOptions } from "./backend";
 import { ReactNativeClient } from "./client";
-import { ReactNative } from "./integrations";
+import { ReactNativeErrorHandlers } from "./integrations";
 
 /**
  * Inits the SDK
@@ -16,7 +20,7 @@ export function init(
 ): void {
   if (options.defaultIntegrations === undefined) {
     options.defaultIntegrations = [
-      new ReactNative(),
+      new ReactNativeErrorHandlers(),
       ...defaultIntegrations.filter(
         integration =>
           integration.name !== "GlobalHandlers" && // We will use the react-native internal handlers
@@ -29,9 +33,11 @@ export function init(
       new RewriteFrames({
         iteratee: (frame: StackFrame) => {
           if (frame.filename) {
-            frame.filename
-              .replace(/^file\:\/\//, "")
-              .replace(/^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/, "");
+            frame.filename =
+              "app://" +
+              frame.filename
+                .replace(/^file\:\/\//, "")
+                .replace(/^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/, "");
           }
           return frame;
         }
@@ -60,4 +66,15 @@ export function setDist(dist: string): void {
   configureScope((scope: Scope) => {
     scope.setExtra("__sentry_dist", dist);
   });
+}
+
+/**
+ * If native client is available it will trigger a native crash.
+ * Use this only for testing purposes.
+ */
+export function nativeCrash(): void {
+  const client = getCurrentHub().getClient<ReactNativeClient>();
+  if (client) {
+    client.nativeCrash();
+  }
 }
