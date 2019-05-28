@@ -1,8 +1,8 @@
 import { BrowserOptions, Transports } from "@sentry/browser";
 import { NoopTransport } from "@sentry/core";
 import { BrowserBackend } from "@sentry/browser/dist/backend";
-import { BaseBackend, getCurrentHub } from "@sentry/core";
-import { Event, EventHint, Scope, Severity, Transport } from "@sentry/types";
+import { BaseBackend } from "@sentry/core";
+import { Event, EventHint, Severity, Transport } from "@sentry/types";
 import { SyncPromise } from "@sentry/utils";
 import { NativeModules } from "react-native";
 
@@ -40,28 +40,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       _options.enableNative !== false
     ) {
       RNSentry.startWithDsnString(_options.dsn, _options).then(() => {
-        // if (_options.deactivateStacktraceMerging === false) {
-        //   this._activateStacktraceMerging();
-        //   const eventEmitter = new NativeEventEmitter(RNSentryEventEmitter);
-        //   eventEmitter.addListener(RNSentryEventEmitter.MODULE_TABLE, moduleTable => {
-        //     try {
-        //       this._updateIgnoredModules(JSON.parse(moduleTable.payload));
-        //     } catch (e) {
-        //       // https://github.com/getsentry/react-native-sentry/issues/241
-        //       // under some circumstances the the JSON is not valid
-        //       // the reason for this is yet to be found
-        //     }
-        //   });
-        // }
         RNSentry.setLogLevel(_options.debug ? 2 : 1);
-        getCurrentHub().configureScope((scope: Scope) => {
-          (scope as any).addScopeListener((innerScope: any) => {
-            RNSentry.setBreadcrumbs(innerScope._breadcrumbs);
-            RNSentry.setExtra(innerScope._extra);
-            RNSentry.setTags(innerScope._tags);
-            RNSentry.setUser(innerScope._user);
-          });
-        });
       });
     }
   }

@@ -10,7 +10,11 @@ import { Scope, StackFrame } from "@sentry/types";
 
 import { ReactNativeOptions } from "./backend";
 import { ReactNativeClient } from "./client";
-import { ReactNativeErrorHandlers } from "./integrations";
+import {
+  DeviceContext,
+  ReactNativeErrorHandlers,
+  Release
+} from "./integrations";
 
 /**
  * Inits the SDK
@@ -21,6 +25,7 @@ export function init(
   if (options.defaultIntegrations === undefined) {
     options.defaultIntegrations = [
       new ReactNativeErrorHandlers(),
+      new Release(),
       ...defaultIntegrations.filter(
         integration =>
           integration.name !== "GlobalHandlers" && // We will use the react-native internal handlers
@@ -41,7 +46,8 @@ export function init(
           }
           return frame;
         }
-      })
+      }),
+      new DeviceContext()
     ];
   }
   if (options.enableNative === undefined) {
