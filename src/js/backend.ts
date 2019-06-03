@@ -4,7 +4,7 @@ import { BrowserBackend } from "@sentry/browser/dist/backend";
 import { BaseBackend } from "@sentry/core";
 import { Event, EventHint, Severity, Transport } from "@sentry/types";
 import { SyncPromise } from "@sentry/utils";
-import { NativeModules } from "react-native";
+import { NativeModules, YellowBox } from "react-native";
 
 import { NativeTransport } from "./transports/native";
 
@@ -30,9 +30,12 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
   public constructor(protected readonly _options: ReactNativeOptions) {
     super(_options);
     this._browserBackend = new BrowserBackend({
-      transport: Transports.XHRTransport, // We need this here to make sure browser internally uses XHR
+      transport: Transports.FetchTransport, // We need this here to make sure browser internally uses XHR
       ..._options
     });
+
+    // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
+    YellowBox.ignoreWarnings(["Require cycle:"]);
 
     if (
       RNSentry &&
@@ -62,18 +65,18 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       return new this._options.transport(transportOptions);
     }
 
-    if (this._isNativeAvailable()) {
+    if (this._isNativeTransportAvailable()) {
       return new NativeTransport();
     }
 
-    return new Transports.XHRTransport(transportOptions);
+    return new Transports.FetchTransport(transportOptions);
   }
 
   /**
    * If true, native client is availabe and active
    */
-  private _isNativeAvailable(): boolean {
-    return this._options.enableNative && RNSentry.nativeClientAvailable;
+  private _isNativeTransportAvailable(): boolean {
+    return this._options.enableNative && RNSentry.nativeTransport;
   }
 
   /**
@@ -81,7 +84,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    * Use this only for testing purposes.
    */
   public nativeCrash(): void {
-    if (this._isNativeAvailable()) {
+    if (this._isNativeTransportAvailable()) {
       RNSentry.crash();
     }
   }
@@ -111,7 +114,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    * @inheritDoc
    */
   public sendEvent(event: Event): void {
-    if (this._isNativeAvailable()) {
+    if (this._isNativeTransportAvailable()) {
       this._transport.sendEvent(event);
     } else {
       this._browserBackend.sendEvent(event);

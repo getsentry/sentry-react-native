@@ -38,7 +38,7 @@ RCT_EXPORT_MODULE()
 
 - (NSDictionary<NSString *, id> *)constantsToExport
 {
-    return @{@"nativeClientAvailable": @YES};
+    return @{@"nativeClientAvailable": @YES, @"nativeTransport": @YES};
 }
 
 RCT_EXPORT_METHOD(crashedLastLaunch:(RCTPromiseResolveBlock)resolve
