@@ -29,10 +29,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
   /** Creates a new ReactNative backend instance. */
   public constructor(protected readonly _options: ReactNativeOptions) {
     super(_options);
-    this._browserBackend = new BrowserBackend({
-      transport: Transports.FetchTransport, // We need this here to make sure browser internally uses XHR
-      ..._options
-    });
+    this._browserBackend = new BrowserBackend(_options);
 
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
     YellowBox.ignoreWarnings(["Require cycle:"]);
@@ -108,17 +105,6 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
     hint?: EventHint
   ): SyncPromise<Event> {
     return this._browserBackend.eventFromMessage(message, level, hint);
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public sendEvent(event: Event): void {
-    if (this._isNativeTransportAvailable()) {
-      this._transport.sendEvent(event);
-    } else {
-      this._browserBackend.sendEvent(event);
-    }
   }
 }
 
