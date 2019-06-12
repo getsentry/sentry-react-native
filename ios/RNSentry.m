@@ -1,5 +1,5 @@
 #import "RNSentry.h"
-#import "RNSentryEventEmitter.h"
+
 #if __has_include(<React/RCTConvert.h>)
 #import <React/RCTConvert.h>
 #else
@@ -9,8 +9,6 @@
 #import <Sentry/Sentry.h>
 
 @interface RNSentry()
-
-@property (nonatomic, strong) NSMutableDictionary *moduleMapping;
 
 @end
 
@@ -24,14 +22,6 @@
 
 + (BOOL)requiresMainQueueSetup {
     return YES;
-}
-
-+ (void)installWithBridge:(RCTBridge *)bridge {
-    // For now we don't need this anymore
-}
-
-+ (void)installWithRootView:(RCTRootView *)rootView {
-    // For now we don't need this anymore
 }
 
 RCT_EXPORT_MODULE()
@@ -69,7 +59,9 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString
         return YES;
     };
     [SentryClient setSharedClient:client];
-    [SentryClient.sharedClient startCrashHandlerWithError:&error];
+    if ([[options objectForKey:@"enableNativeCrashHandling"] boolValue]) {
+        [SentryClient.sharedClient startCrashHandlerWithError:&error];
+    }
     if (error) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;

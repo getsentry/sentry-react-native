@@ -47,7 +47,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public Map<String, Object> getConstants() {
         final Map<String, Object> constants = new HashMap<>();
         constants.put("nativeClientAvailable", true);
-        constants.put("nativeTransport", false);
+        constants.put("nativeTransport", true);
         return constants;
     }
 
@@ -99,6 +99,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
 
         promise.resolve(params);
+    }
+
+    @ReactMethod
+    public void sendEvent(ReadableMap event, Promise promise) {
+        EventBuilder eventBuilder = new EventBuilder();
+        androidHelper.helpBuildingEvent(eventBuilder);
+        // androidHelper.buildEventFrom(eventBuilder, MapUtil.toMap(event));
+        Map<String, Object> event2 = MapUtil.toMap(event);
+        Sentry.capture(eventBuilder.build());
     }
 
     @ReactMethod

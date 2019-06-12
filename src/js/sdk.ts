@@ -20,7 +20,10 @@ import {
  * Inits the SDK
  */
 export function init(
-  options: ReactNativeOptions = { enableNative: true }
+  options: ReactNativeOptions = {
+    enableNative: true,
+    enableNativeCrashHandling: true
+  }
 ): void {
   if (options.defaultIntegrations === undefined) {
     options.defaultIntegrations = [
@@ -52,6 +55,9 @@ export function init(
   }
   if (options.enableNative === undefined) {
     options.enableNative = true;
+  }
+  if (options.enableNativeCrashHandling === undefined) {
+    options.enableNativeCrashHandling = true;
   }
   initAndBind(ReactNativeClient, options);
 }
