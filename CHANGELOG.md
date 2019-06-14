@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.43.2
+
+- Add a check for an empty stacktrace on Android (#594)
+
 ## 0.43.1
 
 - Bump `raven-js` `3.27.1`
