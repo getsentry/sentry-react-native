@@ -139,6 +139,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         EventBuilder eventBuilder = new EventBuilder()
                 .withLevel(eventLevel(castEvent));
 
+        androidHelper.helpBuildingEvent(eventBuilder);
+
+        eventBuilder.withBreadcrumbs(Sentry.getStoredClient().getContext().getBreadcrumbs());
+
         if (event.hasKey("message")) {
             eventBuilder.withMessage(event.getString("message"));
         }
@@ -200,7 +204,20 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             eventBuilder.withEnvironment(event.getString("environment"));
         }
 
-        Event builtEvent = buildEvent(eventBuilder);
+
+        if (event.hasKey("release")) {
+            eventBuilder.withRelease(event.getString("release"));
+        } else {
+            eventBuilder.withRelease(null);
+        }
+
+        if (event.hasKey("dist")) {
+            eventBuilder.withDist(event.getString("dist"));
+        } else {
+            eventBuilder.withDist(null);
+        }
+
+        Event builtEvent = eventBuilder.build();
 
         if (event.hasKey("sdk")) {
             ReadableNativeMap sdk = (ReadableNativeMap)event.getMap("sdk");
@@ -213,6 +230,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
             builtEvent.setSdk(new Sdk(sdk.getString("name"), sdk.getString("version"), sdkIntegrations));
         }
+
 
         Sentry.capture(builtEvent);
         promise.resolve(true);
@@ -238,14 +256,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             userBuilder.setData(((ReadableNativeMap)user.getMap("extra")).toHashMap());
         }
         return userBuilder;
-    }
-
-    public static Event buildEvent(EventBuilder eventBuilder) {
-        androidHelper.helpBuildingEvent(eventBuilder);
-
-        eventBuilder.withBreadcrumbs(Sentry.getStoredClient().getContext().getBreadcrumbs());
-
-        return eventBuilder.build();
     }
 
     private static void addExceptionInterface(EventBuilder eventBuilder, String type, String value, ReadableNativeArray stack) {

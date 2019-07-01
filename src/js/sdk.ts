@@ -5,8 +5,8 @@ import {
 } from "@sentry/browser";
 import { RewriteFrames } from "@sentry/integrations";
 import { initAndBind } from "@sentry/core";
-import { configureScope } from "@sentry/minimal";
-import { Scope, StackFrame } from "@sentry/types";
+import { setExtra } from "@sentry/minimal";
+import { StackFrame } from "@sentry/types";
 
 import { ReactNativeOptions } from "./backend";
 import { ReactNativeClient } from "./client";
@@ -66,18 +66,14 @@ export function init(
  * Sets the release on the event.
  */
 export function setRelease(release: string): void {
-  configureScope((scope: Scope) => {
-    scope.setExtra("__sentry_release", release);
-  });
+  setExtra("__sentry_release", release);
 }
 
 /**
  * Sets the dist on the event.
  */
 export function setDist(dist: string): void {
-  configureScope((scope: Scope) => {
-    scope.setExtra("__sentry_dist", dist);
-  });
+  setExtra("__sentry_dist", dist);
 }
 
 /**
