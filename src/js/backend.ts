@@ -17,6 +17,8 @@ const { RNSentry } = NativeModules;
 export interface ReactNativeOptions extends BrowserOptions {
   /**
    * Enables native transport + device info + offline caching.
+   * Be careful, disabling this also breaks automatic release setting.
+   * This means you have to manage setting the release yourself.
    * Defaults to `true`.
    */
   enableNative: boolean;

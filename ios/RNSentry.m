@@ -46,7 +46,6 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSError *error = nil;
-    self.moduleMapping = [[NSMutableDictionary alloc] init];
     SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:&error];
     client.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
         // We don't want to send an event after startup that came from a Unhandled JS Exception of react native
@@ -70,9 +69,22 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString
 }
 
 RCT_EXPORT_METHOD(deviceContexts:(RCTPromiseResolveBlock)resolve
-                        rejecter:(RCTPromiseRejectBlock)reject) {
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
     resolve([[[SentryContext alloc] init] serialize]);
 }
+
+RCT_EXPORT_METHOD(fetchRelease:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
+    resolve(@{
+              @"id": infoDict[@"CFBundleIdentifier"],
+              @"version": infoDict[@"CFBundleShortVersionString"],
+              @"build": infoDict[@"CFBundleVersion"],
+              });
+}
+
 
 RCT_EXPORT_METHOD(setLogLevel:(int)level)
 {
@@ -80,8 +92,8 @@ RCT_EXPORT_METHOD(setLogLevel:(int)level)
 }
 
 RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
-                       resolve:(RCTPromiseResolveBlock)resolve
-                      rejecter:(RCTPromiseRejectBlock)reject)
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0ul), ^{
         if ([NSJSONSerialization isValidJSONObject:event]) {

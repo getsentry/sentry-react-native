@@ -1,5 +1,8 @@
 import { addGlobalEventProcessor, getCurrentHub } from "@sentry/core";
 import { Event, Integration } from "@sentry/types";
+import { NativeModules } from "react-native";
+
+const { RNSentry } = NativeModules;
 
 /** Release integration responsible to load release from file. */
 export class Release implements Integration {
@@ -16,10 +19,24 @@ export class Release implements Integration {
    * @inheritDoc
    */
   public setupOnce(): void {
-    addGlobalEventProcessor((event: Event) => {
+    addGlobalEventProcessor(async (event: Event) => {
       const self = getCurrentHub().getIntegration(Release);
       if (!self) {
         return event;
+      }
+
+      try {
+        const release = (await RNSentry.fetchRelease()) as {
+          build: string;
+          id: string;
+          version: string;
+        };
+        if (release) {
+          event.release = `${release.id}-${release.version}`;
+          event.dist = `${release.build}`;
+        }
+      } catch (_Oo) {
+        // Something went wrong, we just continue
       }
 
       // __sentry_release & __sentry_dist will be picked up by our native integration.

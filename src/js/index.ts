@@ -20,11 +20,18 @@ export {
   captureEvent,
   captureMessage,
   configureScope,
-  withScope,
   getHubFromCarrier,
   getCurrentHub,
   Hub,
-  Scope
+  Scope,
+  setContext,
+  setExtra,
+  setExtras,
+  setTag,
+  setTags,
+  setUser,
+  Span,
+  withScope
 } from "@sentry/core";
 
 export { ReactNativeBackend, ReactNativeOptions } from "./backend";

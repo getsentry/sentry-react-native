@@ -52,9 +52,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     final static Logger logger = Logger.getLogger("react-native-sentry");
     private static SentryClient sentryClient;
+    private static PackageInfo packageInfo;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
+        RNSentryModule.packageInfo = getPackageInfo(reactContext);
     }
 
     @Override
@@ -115,6 +117,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void crash() {
         throw new RuntimeException("TEST - Sentry Client Crash");
+    }
+
+    @ReactMethod
+    public void fetchRelease(Promise promise) {
+        WritableMap release = Arguments.createMap();
+        release.putString("id", packageInfo.packageName);
+        release.putString("version", packageInfo.versionName);
+        release.putString("build", String.valueOf(packageInfo.versionCode));
+        promise.resolve(release);
     }
 
     @ReactMethod
