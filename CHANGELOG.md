@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.0.0
+
+This is a new major release of the Sentry's React Native SDK rewritten in TypeScript.
+This SDK is now is unified and published under a new name `@sentry/react-native`.
+It uses `@sentry/browser` and both `sentry-cocoa` and `sentry-android` for native handling.
+
+This release is a breaking change an code changes are necessary.
+
+New way to import and init the SDK:
+
+```js
+import * as Sentry from "@sentry/react-native";
+
+Sentry.init({
+  dsn: "DSN"
+});
+```
+
 ## 0.43.1
 
 - Bump `raven-js` `3.27.1`
@@ -49,12 +67,14 @@
 
 - `react-native-sentry >= 0.39.0` requires `react-native >= 0.56.0`
 - [Android] Bumping of gradle deps
+
 ```
 compileSdkVersion 26
 buildToolsVersion '26.0.3'
 ...
 targetSdkVersion 26
 ```
+
 - [Android] Use `sentry-android` `1.7.5`
 - Bump `@sentry/wizard` `0.11.0`
 - Bump `sentry-cocoa` `4.1.0`
@@ -158,7 +178,9 @@ The `Upload Debug Symbols to Sentry` build script looks like this:
 export SENTRY_PROPERTIES=sentry.properties
 ../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym
 ```
+
 should be changed to this:
+
 ```
 export SENTRY_PROPERTIES=sentry.properties
 ../node_modules/@sentry/cli/bin/sentry-cli upload-dsym
@@ -206,15 +228,16 @@ Also squashed many little bugs on iOS.
 
 We had to rename `project.ext.sentry` to `project.ext.sentryCli` because our own proguard gradle plugin was conflicting with the name.
 The docs already reflect this change.
+
 - #257
 
 We now use the `mainThread` to report errors to `RNSentry`. This change is necessary in order for react-native to export constants.
 This change shouldn't impact anyone using `react-native-sentry` since most of the "heavy" load was handled by `sentry-cocoa` in its own background queue anyway.
+
 - #259
 - #244
 
 Bump `sentry-cocoa` to `3.8.3`
-
 
 ## v0.27.0
 
@@ -223,7 +246,7 @@ To activate it set:
 
 ```js
 Sentry.config("___DSN___", {
-      deactivateStacktraceMerging: false
+  deactivateStacktraceMerging: false
 });
 ```
 
@@ -353,7 +376,6 @@ Also added integration tests running on AWS Device Farm.
 
 - Updated to `sentry-cocoa` `3.1.2`
 - Fixed #156
-
 
 ## v0.14.11
 

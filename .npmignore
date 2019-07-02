@@ -7,8 +7,4 @@ appium
 .travis
 .github
 
-# KSCrash
-ios/Sentry/KSCrash
-ios/Sentry/Sources/KSCrash
-
 !/dist/**/*
