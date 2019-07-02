@@ -4,7 +4,7 @@ import { BrowserBackend } from "@sentry/browser/dist/backend";
 import { BaseBackend } from "@sentry/core";
 import { Event, EventHint, Severity, Transport } from "@sentry/types";
 import { SyncPromise } from "@sentry/utils";
-import { NativeModules, YellowBox } from "react-native";
+import { Alert, NativeModules, YellowBox } from "react-native";
 
 import { NativeTransport } from "./transports/native";
 
@@ -50,6 +50,13 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       RNSentry.startWithDsnString(_options.dsn, _options).then(() => {
         RNSentry.setLogLevel(_options.debug ? 2 : 1);
       });
+    } else {
+      if (__DEV__) {
+        Alert.alert(
+          "Sentry",
+          "Warning, could not connect to Sentry native SDK.\nDid you forget to run \n`react-native link @sentry/react-native`?\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/clients/react-native/ for more details."
+        );
+      }
     }
   }
 
