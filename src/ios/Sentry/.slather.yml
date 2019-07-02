@@ -1,5 +1,0 @@
-coverage_service: cobertura_xml
-xcodeproj: Sentry.xcodeproj
-ignore:
-  - Tests/*
-  - Sources/SentryCrash/*

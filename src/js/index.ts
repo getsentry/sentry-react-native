@@ -10,8 +10,8 @@ export {
   Stacktrace,
   Status,
   Thread,
-  User,
-} from '@sentry/types';
+  User
+} from "@sentry/types";
 
 export {
   addGlobalEventProcessor,
@@ -20,17 +20,24 @@ export {
   captureEvent,
   captureMessage,
   configureScope,
-  withScope,
   getHubFromCarrier,
   getCurrentHub,
   Hub,
   Scope,
-} from '@sentry/core';
+  setContext,
+  setExtra,
+  setExtras,
+  setTag,
+  setTags,
+  setUser,
+  Span,
+  withScope
+} from "@sentry/core";
 
-export { ReactNativeBackend, ReactNativeOptions } from './backend';
-export { ReactNativeClient } from './client';
-export { init, setDist, setRelease } from './sdk';
-export { SDK_NAME, SDK_VERSION } from './version';
+export { ReactNativeBackend, ReactNativeOptions } from "./backend";
+export { ReactNativeClient } from "./client";
+export { init, setDist, setRelease } from "./sdk";
+export { SDK_NAME, SDK_VERSION } from "./version";
 
-// import * as Integrations from './integrations';
-// export { Integrations };
+import * as Integrations from "./integrations";
+export { Integrations };

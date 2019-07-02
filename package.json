@@ -27,11 +27,11 @@
     "react-native": ">=0.56.0"
   },
   "dependencies": {
-    "@sentry/browser": "^5.2.1",
-    "@sentry/core": "^5.2.0",
-    "@sentry/integrations": "^5.2.0",
-    "@sentry/types": "^5.2.0",
-    "@sentry/utils": "^5.2.0",
+    "@sentry/browser": "^5.4.3",
+    "@sentry/core": "^5.4.3",
+    "@sentry/integrations": "^5.4.2",
+    "@sentry/types": "^5.4.2",
+    "@sentry/utils": "^5.4.2",
     "@sentry/wizard": "^0.13.0"
   },
   "rnpm": {

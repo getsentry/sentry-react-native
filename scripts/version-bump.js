@@ -1,14 +1,14 @@
-const replace = require('replace-in-file');
-const pjson = require('../package.json');
+const replace = require("replace-in-file");
+const pjson = require("../package.json");
 
 replace({
-  files: ['ios/RNSentry.m', 'android/src/main/java/io/sentry/RNSentryModule.java'],
+  files: ["src/version.ts"],
   from: /\d+\.\d+.\d+/g,
   to: pjson.version
 })
   .then(changedFiles => {
-    console.log('Modified files:', changedFiles.join(', '));
+    console.log("Modified files:", changedFiles.join(", "));
   })
   .catch(error => {
-    console.error('Error occurred:', error);
+    console.error("Error occurred:", error);
   });

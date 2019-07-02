@@ -1,25 +1,39 @@
-import { defaultIntegrations, Integrations, Transports } from "@sentry/browser";
+import {
+  defaultIntegrations,
+  getCurrentHub,
+  Integrations
+} from "@sentry/browser";
 import { RewriteFrames } from "@sentry/integrations";
 import { initAndBind } from "@sentry/core";
-import { configureScope } from "@sentry/minimal";
-import { Scope, StackFrame } from "@sentry/types";
+import { setExtra } from "@sentry/minimal";
+import { StackFrame } from "@sentry/types";
 
 import { ReactNativeOptions } from "./backend";
 import { ReactNativeClient } from "./client";
-import { ReactNative } from "./integrations";
+import {
+  DeviceContext,
+  ReactNativeErrorHandlers,
+  Release
+} from "./integrations";
 
 /**
  * Inits the SDK
  */
-export function init(options: ReactNativeOptions): void {
+export function init(
+  options: ReactNativeOptions = {
+    enableNative: true,
+    enableNativeCrashHandling: true
+  }
+): void {
   if (options.defaultIntegrations === undefined) {
     options.defaultIntegrations = [
-      new ReactNative(),
+      new ReactNativeErrorHandlers(),
+      new Release(),
       ...defaultIntegrations.filter(
         integration =>
-          integration.name !== "GlobalHandlers" &&
-          integration.name !== "Breadcrumbs" &&
-          integration.name !== "TryCatch"
+          integration.name !== "GlobalHandlers" && // We will use the react-native internal handlers
+          integration.name !== "Breadcrumbs" && // We add it later, just not patching fetch
+          integration.name !== "TryCatch" // We don't need this
       ),
       new Integrations.Breadcrumbs({
         fetch: false
@@ -27,17 +41,23 @@ export function init(options: ReactNativeOptions): void {
       new RewriteFrames({
         iteratee: (frame: StackFrame) => {
           if (frame.filename) {
-            frame.filename
-              .replace(/^file\:\/\//, "")
-              .replace(/^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/, "");
+            frame.filename =
+              "app://" +
+              frame.filename
+                .replace(/^file\:\/\//, "")
+                .replace(/^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/, "");
           }
           return frame;
         }
-      })
+      }),
+      new DeviceContext()
     ];
   }
-  if (options.transport === undefined) {
-    options.transport = Transports.XHRTransport;
+  if (options.enableNative === undefined) {
+    options.enableNative = true;
+  }
+  if (options.enableNativeCrashHandling === undefined) {
+    options.enableNativeCrashHandling = true;
   }
   initAndBind(ReactNativeClient, options);
 }
@@ -46,16 +66,23 @@ export function init(options: ReactNativeOptions): void {
  * Sets the release on the event.
  */
 export function setRelease(release: string): void {
-  configureScope((scope: Scope) => {
-    scope.setExtra("__sentry_release", release);
-  });
+  setExtra("__sentry_release", release);
 }
 
 /**
  * Sets the dist on the event.
  */
 export function setDist(dist: string): void {
-  configureScope((scope: Scope) => {
-    scope.setExtra("__sentry_dist", dist);
-  });
+  setExtra("__sentry_dist", dist);
+}
+
+/**
+ * If native client is available it will trigger a native crash.
+ * Use this only for testing purposes.
+ */
+export function nativeCrash(): void {
+  const client = getCurrentHub().getClient<ReactNativeClient>();
+  if (client) {
+    client.nativeCrash();
+  }
 }
