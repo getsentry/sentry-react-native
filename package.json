@@ -32,7 +32,7 @@
     "@sentry/integrations": "^5.4.2",
     "@sentry/types": "^5.4.2",
     "@sentry/utils": "^5.4.2",
-    "@sentry/wizard": "^0.13.0"
+    "@sentry/wizard": "^1.0.0"
   },
   "rnpm": {
     "commands": {
