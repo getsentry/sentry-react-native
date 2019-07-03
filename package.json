@@ -21,6 +21,9 @@
     "crashreporting",
     "ios"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "Sentry",
   "license": "MIT",
   "peerDependencies": {
