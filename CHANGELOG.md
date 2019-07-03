@@ -3,7 +3,7 @@
 ## 1.0.0-beta
 
 This is a new major release of the Sentry's React Native SDK rewritten in TypeScript.
-This SDK is now is unified and published under a new name `@sentry/react-native`.
+This SDK is now unified with the rest of our JavaScript SDKs and published under a new name `@sentry/react-native`.
 It uses `@sentry/browser` and both `sentry-cocoa` and `sentry-android` for native handling.
 
 This release is a breaking change an code changes are necessary.
