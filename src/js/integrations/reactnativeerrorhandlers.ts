@@ -1,5 +1,6 @@
 import { getCurrentHub } from "@sentry/core";
 import { Integration, Severity } from "@sentry/types";
+import { ReactNativeClient } from "../client";
 
 /** ReactNativeErrorHandlers Options */
 interface ReactNativeErrorHandlersOptions {
@@ -88,9 +89,9 @@ export class ReactNativeErrorHandlers implements Integration {
           });
         });
 
-        const client = getCurrentHub().getClient();
+        const client = getCurrentHub().getClient<ReactNativeClient>();
         if (client) {
-          client.flush(2000).then(() => {
+          client.flush(client.getOptions().shutdownTimeout || 2000).then(() => {
             defaultHandler(error, isFatal);
           });
         } else {

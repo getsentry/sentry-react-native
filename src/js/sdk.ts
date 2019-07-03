@@ -16,6 +16,12 @@ import {
   Release
 } from "./integrations";
 
+const IGNORED_DEFAULT_INTEGRATIONS = [
+  "GlobalHandlers", // We will use the react-native internal handlers
+  "Breadcrumbs", // We add it later, just not patching fetch
+  "TryCatch" // We don't need this
+];
+
 /**
  * Inits the SDK
  */
@@ -30,10 +36,7 @@ export function init(
       new ReactNativeErrorHandlers(),
       new Release(),
       ...defaultIntegrations.filter(
-        integration =>
-          integration.name !== "GlobalHandlers" && // We will use the react-native internal handlers
-          integration.name !== "Breadcrumbs" && // We add it later, just not patching fetch
-          integration.name !== "TryCatch" // We don't need this
+        i => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
       ),
       new Integrations.Breadcrumbs({
         fetch: false

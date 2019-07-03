@@ -6,7 +6,7 @@
     "baseUrl": ".",
     "outDir": "dist",
     "rootDir": "src",
-    "lib": ["es6"],
+    "lib": ["es7"],
     "types": ["react-native"],
     "target": "es6",
     "module": "es6"

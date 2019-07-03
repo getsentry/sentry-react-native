@@ -28,6 +28,9 @@ export interface ReactNativeOptions extends BrowserOptions {
    * Defaults to `true`.
    */
   enableNativeCrashHandling: boolean;
+
+  /** Maximum time to wait to drain the request queue, before the process is allowed to exit. */
+  shutdownTimeout?: number;
 }
 
 /** The Sentry ReactNative SDK Backend. */
@@ -69,9 +72,10 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       return new NoopTransport();
     }
 
-    const transportOptions = this._options.transportOptions
-      ? this._options.transportOptions
-      : { dsn: this._options.dsn };
+    const transportOptions = {
+      ...this._options.transportOptions,
+      dsn: this._options.dsn
+    };
 
     if (this._options.transport) {
       return new this._options.transport(transportOptions);
