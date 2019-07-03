@@ -2,7 +2,7 @@ const replace = require("replace-in-file");
 const pjson = require("../package.json");
 
 replace({
-  files: ["src/version.ts"],
+  files: ["src/js/version.ts"],
   from: /\d+\.\d+.\d+/g,
   to: pjson.version
 })
