@@ -1,7 +1,7 @@
 minVersion: "0.6.0"
 github:
   owner: getsentry
-  repo: react-native-sentry
+  repo: sentry-react-native
 changelogPolicy: simple
 preReleaseCommand: bash scripts/craft-pre-release.sh
 targets:
