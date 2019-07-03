@@ -16,17 +16,14 @@ import com.facebook.react.bridge.ReadableNativeArray;
 import com.facebook.react.bridge.ReadableNativeMap;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.WritableNativeMap;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,9 +32,6 @@ import java.util.regex.Pattern;
 
 import io.sentry.android.AndroidSentryClientFactory;
 import io.sentry.android.event.helper.AndroidEventBuilderHelper;
-import io.sentry.connection.EventSendCallback;
-import io.sentry.event.Breadcrumb;
-import io.sentry.event.BreadcrumbBuilder;
 import io.sentry.event.Event;
 import io.sentry.event.EventBuilder;
 import io.sentry.event.Sdk;
@@ -53,22 +47,15 @@ import io.sentry.event.interfaces.UserInterface;
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private static final Pattern mJsModuleIdPattern = Pattern.compile("(?:^|[/\\\\])(\\d+\\.js)$");
-    private static final String versionString = "0.43.2";
-    private static final String sdkName = "sentry-react-native";
-
-    private final ReactApplicationContext reactContext;
 
     private static AndroidEventBuilderHelper androidHelper;
-    private static PackageInfo packageInfo;
+
     final static Logger logger = Logger.getLogger("react-native-sentry");
-    private static Map<String, Object> extra;
-    private static ReadableMap tags;
     private static SentryClient sentryClient;
+    private static PackageInfo packageInfo;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
-        this.reactContext = reactContext;
-        RNSentryModule.extra = new HashMap<>();
         RNSentryModule.packageInfo = getPackageInfo(reactContext);
     }
 
@@ -81,8 +68,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public Map<String, Object> getConstants() {
         final Map<String, Object> constants = new HashMap<>();
         constants.put("nativeClientAvailable", true);
+        constants.put("nativeTransport", true);
         return constants;
     }
+
 
     @ReactMethod
     public void startWithDsnString(String dsnString, final ReadableMap options, Promise promise) {
@@ -101,34 +90,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
 
         androidHelper = new AndroidEventBuilderHelper(this.getReactApplicationContext());
-        sentryClient.addEventSendCallback(new EventSendCallback() {
-            @Override
-            public void onFailure(Event event, Exception exception) {
-                // This needs to be there, otherwise in case of no internet the users app will not
-                // crash since we do not propagate the error further. The system needs to be
-                // overhauled to remove this "hack".
-                RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new WritableNativeMap());
-                RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, new WritableNativeMap());
-            }
 
-            @Override
-            public void onSuccess(Event event) {
-                WritableMap params = Arguments.createMap();
-                params.putString("event_id", event.getId().toString());
-                params.putString("level", event.getLevel().toString().toLowerCase());
-                params.putString("message", event.getMessage());
-                params.putString("release", event.getRelease());
-                params.putString("dist", event.getDist());
-                params.putMap("extra", MapUtil.toWritableMap(event.getExtra()));
-                params.putMap("tags", MapUtil.toWritableMap(Collections.<String, Object>unmodifiableMap(event.getTags())));
-                if (event.getSentryInterfaces().containsKey(ExceptionInterface.EXCEPTION_INTERFACE)) {
-                    ExceptionInterface exceptionInterface = ((ExceptionInterface)event.getSentryInterfaces().get(ExceptionInterface.EXCEPTION_INTERFACE));
-                    params.putString("message", exceptionInterface.getExceptions().getFirst().getExceptionMessage());
-                }
-                RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new WritableNativeMap());
-                RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, params);
-            }
-        });
         sentryClient.addShouldSendEventCallback(new ShouldSendEventCallback() {
             @Override
             public boolean shouldSend(Event event) {
@@ -139,12 +101,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     if (exceptionInterface.getExceptions().getFirst().getExceptionClassName().contains("JavascriptException")) {
                         return false;
                     }
-                }
-                // Since we set shouldSendEvent for react-native we need to duplicate the code for sampling here
-                // I know you could add multiple shouldSendCallbacks but I want to be consistent with ios
-                if (options.hasKey("sampleRate")) {
-                    double randomDouble = new Random().nextDouble();
-                    return options.getDouble("sampleRate") >= Math.abs(randomDouble);
                 }
                 return true;
             }
@@ -159,65 +115,44 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void setExtra(ReadableMap extra) {
-        Map<String, Object> extraMap = MapUtil.toMap(extra);
-        RNSentryModule.extra.putAll(extraMap);
-    }
-
-    @ReactMethod
-    public void addExtra(String key, String value) {
-        RNSentryModule.extra.put(key, value);
-        logger.info(String.format("addExtra '%s' '%s'", key, value));
-    }
-
-    @ReactMethod
-    public void setTags(ReadableMap tags) {
-        RNSentryModule.tags = tags;
-    }
-
-    @ReactMethod
-    public void setUser(ReadableMap user) {
-        UserBuilder userBuilder = getUserBuilder(user);
-        User builtUser = userBuilder.build();
-        Sentry.setUser(builtUser);
-    }
-
-    @ReactMethod
     public void crash() {
         throw new RuntimeException("TEST - Sentry Client Crash");
     }
 
     @ReactMethod
-    public void captureBreadcrumb(ReadableMap breadcrumb) {
-        logger.info(String.format("captureEvent '%s'", breadcrumb));
-
-        BreadcrumbBuilder breadcrumbBuilder = new BreadcrumbBuilder();
-        if (breadcrumb.hasKey("category")) {
-            breadcrumbBuilder.setCategory(breadcrumb.getString("category"));
-        }
-        if (breadcrumb.hasKey("data") && breadcrumb.getMap("data") != null) {
-            Map<String, String> newData = new HashMap<>();
-            for (Map.Entry<String, Object> data : ((ReadableNativeMap)breadcrumb.getMap("data")).toHashMap().entrySet()) {
-                newData.put(data.getKey(), data.getValue() != null ? data.getValue().toString() : null);
-            }
-            breadcrumbBuilder.setData(newData);
-        }
-        breadcrumbBuilder.setLevel(breadcrumbLevel((ReadableNativeMap)breadcrumb));
-
-        if (breadcrumb.hasKey("message")) {
-            breadcrumbBuilder.setMessage(breadcrumb.getString("message"));
-        } else {
-            breadcrumbBuilder.setMessage("");
-        }
-        Sentry.record(breadcrumbBuilder.build());
+    public void fetchRelease(Promise promise) {
+        WritableMap release = Arguments.createMap();
+        release.putString("id", packageInfo.packageName);
+        release.putString("version", packageInfo.versionName);
+        release.putString("build", String.valueOf(packageInfo.versionCode));
+        promise.resolve(release);
     }
 
     @ReactMethod
-    public void captureEvent(ReadableMap event) {
+    public void deviceContexts(Promise promise) {
+        EventBuilder eventBuilder = new EventBuilder();
+        androidHelper.helpBuildingEvent(eventBuilder);
+        Event event = eventBuilder.build();
+
+        WritableMap params = Arguments.createMap();
+
+        for (Map.Entry<String, Map<String, Object>> data : event.getContexts().entrySet()) {
+            params.putMap(data.getKey(), MapUtil.toWritableMap(data.getValue()));
+        }
+
+        promise.resolve(params);
+    }
+
+    @ReactMethod
+    public void sendEvent(ReadableMap event, Promise promise) {
         ReadableNativeMap castEvent = (ReadableNativeMap)event;
 
         EventBuilder eventBuilder = new EventBuilder()
                 .withLevel(eventLevel(castEvent));
+
+        androidHelper.helpBuildingEvent(eventBuilder);
+
+        eventBuilder.withBreadcrumbs(Sentry.getStoredClient().getContext().getBreadcrumbs());
 
         if (event.hasKey("message")) {
             eventBuilder.withMessage(event.getString("message"));
@@ -282,21 +217,36 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             eventBuilder.withEnvironment(event.getString("environment"));
         }
 
-        Sentry.capture(buildEvent(eventBuilder));
-    }
 
-    @ReactMethod
-    public void clearContext() {
-        Sentry.clearContext();
-        RNSentryModule.extra = new HashMap<>();
-        RNSentryModule.tags = null;
-    }
+        if (event.hasKey("release")) {
+            eventBuilder.withRelease(event.getString("release"));
+        } else {
+            eventBuilder.withRelease(null);
+        }
 
-    @ReactMethod
-    public void activateStacktraceMerging(Promise promise) {
-        logger.info("TODO: implement activateStacktraceMerging");
-//        promise.resolve(true);
-        promise.reject("Sentry", "Stacktrace merging not yet implemented");
+        if (event.hasKey("dist")) {
+            eventBuilder.withDist(event.getString("dist"));
+        } else {
+            eventBuilder.withDist(null);
+        }
+
+        Event builtEvent = eventBuilder.build();
+
+        if (event.hasKey("sdk")) {
+            ReadableNativeMap sdk = (ReadableNativeMap)event.getMap("sdk");
+            Set<String> sdkIntegrations = new HashSet<>();
+            if (sdk.hasKey("integrations")) {
+                ReadableNativeArray integrations = (ReadableNativeArray)sdk.getArray("integrations");
+                for(int i = 0; i < integrations.size(); ++i) {
+                    sdkIntegrations.add(integrations.getString(i));
+                }
+            }
+            builtEvent.setSdk(new Sdk(sdk.getString("name"), sdk.getString("version"), sdkIntegrations));
+        }
+
+
+        Sentry.capture(builtEvent);
+        promise.resolve(true);
     }
 
     @NonNull
@@ -319,33 +269,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             userBuilder.setData(((ReadableNativeMap)user.getMap("extra")).toHashMap());
         }
         return userBuilder;
-    }
-
-    public static Event buildEvent(EventBuilder eventBuilder) {
-        androidHelper.helpBuildingEvent(eventBuilder);
-
-        setRelease(eventBuilder);
-        eventBuilder.withBreadcrumbs(Sentry.getStoredClient().getContext().getBreadcrumbs());
-
-        if (extra != null) {
-            for (Map.Entry<String, Object> entry : extra.entrySet()) {
-                if (entry.getValue() != null) {
-                    eventBuilder.withExtra(entry.getKey(), entry.getValue());
-                    logger.info(String.format("addExtra '%s' '%s'", entry.getKey(), entry.getValue()));
-                }
-            }
-        }
-        if (tags != null) {
-            for (Map.Entry<String, Object> entry : ((ReadableNativeMap)tags).toHashMap().entrySet()) {
-                eventBuilder.withExtra(entry.getKey(), entry.getValue());
-            }
-        }
-
-        Event event = eventBuilder.build();
-        Set<String> sdkIntegrations = new HashSet<>();
-        sdkIntegrations.add("sentry-java");
-        event.setSdk(new Sdk(sdkName, versionString, sdkIntegrations));
-        return event;
     }
 
     private static void addExceptionInterface(EventBuilder eventBuilder, String type, String value, ReadableNativeArray stack) {
@@ -398,25 +321,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 column = frame.getInt("colno");
             }
 
-            String[] lastFileNameSegments = fileName.split("\\?");
-            String lastPathComponent = lastFileNameSegments[0];
-            String[] fileNameSegments = lastPathComponent.split("/");
-            String calculatedFileName = fileNameSegments[fileNameSegments.length-1];
-            StringBuilder finalFileName = new StringBuilder("app:///").append(calculatedFileName);
-
-            // We want to skip native code frames without function
-            if (methodName.equals("?") && calculatedFileName.equals("[native code]")) {
-                continue;
-            }
-
-            // We remove the url and add native code the method name so its in the stacktrace
-            // but not
-            if (calculatedFileName.equals("[native code]")) {
-                finalFileName = new StringBuilder("");
-                methodName = new StringBuilder("[native code] ").append(methodName).toString();
-            }
-
-            SentryStackTraceElement stackFrame = new SentryStackTraceElement("", methodName, stackFrameToModuleId(frame), lineNumber, column, finalFileName.toString(), "javascript");
+            SentryStackTraceElement stackFrame = new SentryStackTraceElement("", methodName, stackFrameToModuleId(frame), lineNumber, column, fileName, "javascript");
             frames.add(stackFrame);
         }
         SentryStackTraceElement[] synthStackTrace = new SentryStackTraceElement[frames.size()];
@@ -441,44 +346,12 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         return "";
     }
 
-    private static void setRelease(EventBuilder eventBuilder) {
-        if (extra.containsKey("__sentry_version")) {
-            eventBuilder.withRelease(packageInfo.packageName + "-" + extra.get("__sentry_version"));
-            eventBuilder.withDist(null);
-        }
-        if (extra.containsKey("__sentry_release")) {
-            eventBuilder.withRelease((String) extra.get("__sentry_release"));
-        }
-        if (extra.containsKey("__sentry_dist")) {
-            eventBuilder.withDist((String) extra.get("__sentry_dist"));
-        }
-    }
-
     private static PackageInfo getPackageInfo(Context ctx) {
         try {
             return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException e) {
             logger.info("Error getting package info.");
             return null;
-        }
-    }
-
-    private Breadcrumb.Level breadcrumbLevel(ReadableNativeMap breadcrumb) {
-        String level = "";
-        if (breadcrumb.hasKey("level")) {
-            level = breadcrumb.getString("level");
-        }
-        switch (level) {
-            case "critical":
-                return Breadcrumb.Level.CRITICAL;
-            case "warning":
-                return Breadcrumb.Level.WARNING;
-            case "info":
-                return Breadcrumb.Level.INFO;
-            case "debug":
-                return Breadcrumb.Level.DEBUG;
-            default:
-                return Breadcrumb.Level.ERROR;
         }
     }
 

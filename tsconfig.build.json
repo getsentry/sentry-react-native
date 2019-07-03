@@ -1,0 +1,14 @@
+{
+  "extends": "./node_modules/@sentry/typescript/tsconfig.json",
+  "include": ["src/js/*.ts"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "dist",
+    "rootDir": "src",
+    "lib": ["es7"],
+    "types": ["react-native"],
+    "target": "es6",
+    "module": "es6"
+  }
+}

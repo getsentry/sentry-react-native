@@ -1,6 +1,6 @@
-[submodule "ios/Sentry"]
-  path = ios/Sentry
-url=https://github.com/getsentry/sentry-cocoa
 [submodule "examples"]
 	path = examples
 	url = https://github.com/getsentry/examples
+[submodule "ios/Sentry"]
+	path = ios/Sentry
+	url=https://github.com/getsentry/sentry-cocoa

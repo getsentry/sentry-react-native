@@ -1,18 +1,19 @@
 {
-  "name": "react-native-sentry",
-  "homepage": "https://github.com/getsentry/react-native-sentry",
-  "repository": "https://github.com/getsentry/react-native-sentry",
-  "version": "0.43.2",
+  "name": "@sentry/react-native",
+  "homepage": "https://github.com/getsentry/sentry-react-native",
+  "repository": "https://github.com/getsentry/sentry-react-native",
+  "version": "1.0.0",
   "description": "Official Sentry SDK for react-native",
-  "typings": "lib/Sentry.d.ts",
-  "types": "./lib/Sentry.d.ts",
+  "typings": "dist/js/index.d.ts",
+  "types": "dist/js/index.d.ts",
   "typescript": {
-    "definition": "lib/Sentry.d.ts"
+    "definition": "dist/js/index.d.ts"
   },
-  "main": "index.js",
+  "main": "dist/js/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "test:typescript": "node_modules/typescript/bin/tsc --noImplicitAny --allowJs typescript/Sentry-tests.ts"
+    "build": "tsc -p tsconfig.build.json",
+    "build:watch": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
+    "clean": "rimraf dist coverage"
   },
   "keywords": [
     "react-native",
@@ -26,8 +27,12 @@
     "react-native": ">=0.56.0"
   },
   "dependencies": {
-    "@sentry/wizard": "^0.13.0",
-    "raven-js": "^3.27.1"
+    "@sentry/browser": "^5.4.3",
+    "@sentry/core": "^5.4.3",
+    "@sentry/integrations": "^5.4.2",
+    "@sentry/types": "^5.4.2",
+    "@sentry/utils": "^5.4.2",
+    "@sentry/wizard": "^1.0.0"
   },
   "rnpm": {
     "commands": {
@@ -44,8 +49,11 @@
     }
   },
   "devDependencies": {
-    "prettier": "^1.12.1",
-    "replace-in-file": "^3.4.0",
-    "typescript": "^2.8.3"
+    "@sentry/typescript": "5.*",
+    "@types/react-native": "^0.57.57",
+    "prettier": "^1.17.0",
+    "replace-in-file": "^4.0.0",
+    "rimraf": "^2.6.3",
+    "typescript": "^3.4.5"
   }
 }
