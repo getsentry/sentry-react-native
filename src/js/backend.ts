@@ -94,6 +94,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
   private _isNativeTransportAvailable(): boolean {
     return (
       this._options.enableNative &&
+      RNSentry &&
       RNSentry.nativeClientAvailable &&
       RNSentry.nativeTransport
     );

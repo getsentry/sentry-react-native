@@ -39,7 +39,8 @@ export function init(
         i => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
       ),
       new Integrations.Breadcrumbs({
-        fetch: false
+        fetch: false,
+        console: false // If this in enabled it causes problems to native calls on >= RN 0.60
       }),
       new RewriteFrames({
         iteratee: (frame: StackFrame) => {

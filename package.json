@@ -37,6 +37,14 @@
     "@sentry/utils": "^5.4.2",
     "@sentry/wizard": "^1.0.0"
   },
+  "devDependencies": {
+    "@sentry/typescript": "5.*",
+    "@types/react-native": "^0.57.57",
+    "prettier": "^1.17.0",
+    "replace-in-file": "^4.0.0",
+    "rimraf": "^2.6.3",
+    "typescript": "^3.4.5"
+  },
   "rnpm": {
     "commands": {
       "postlink": "node node_modules/@sentry/wizard/dist/bin.js -i reactNative -p ios android",
@@ -50,13 +58,5 @@
         "libz"
       ]
     }
-  },
-  "devDependencies": {
-    "@sentry/typescript": "5.*",
-    "@types/react-native": "^0.57.57",
-    "prettier": "^1.17.0",
-    "replace-in-file": "^4.0.0",
-    "rimraf": "^2.6.3",
-    "typescript": "^3.4.5"
   }
 }
