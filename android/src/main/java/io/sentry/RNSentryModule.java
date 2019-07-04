@@ -3,7 +3,6 @@ package io.sentry;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -249,7 +248,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         promise.resolve(true);
     }
 
-    @NonNull
     private UserBuilder getUserBuilder(ReadableMap user) {
         UserBuilder userBuilder = new UserBuilder();
         if (user.hasKey("email")) {

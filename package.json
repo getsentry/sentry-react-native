@@ -37,20 +37,6 @@
     "@sentry/utils": "^5.4.2",
     "@sentry/wizard": "^1.0.0"
   },
-  "rnpm": {
-    "commands": {
-      "postlink": "node node_modules/@sentry/wizard/dist/bin.js -i reactNative -p ios android",
-      "postunlink": "node node_modules/@sentry/wizard/dist/bin.js -i reactNative -p ios android --uninstall"
-    },
-    "android": {
-      "packageInstance": "new RNSentryPackage()"
-    },
-    "ios": {
-      "sharedLibraries": [
-        "libz"
-      ]
-    }
-  },
   "devDependencies": {
     "@sentry/typescript": "5.*",
     "@types/react-native": "^0.57.57",
