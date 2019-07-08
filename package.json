@@ -13,7 +13,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "build:watch": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
-    "clean": "rimraf dist coverage"
+    "clean": "rimraf dist coverage",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "keywords": [
     "react-native",
@@ -35,7 +37,8 @@
     "@sentry/integrations": "^5.4.2",
     "@sentry/types": "^5.4.2",
     "@sentry/utils": "^5.4.2",
-    "@sentry/wizard": "^1.0.0"
+    "@sentry/wizard": "^1.0.0",
+    "snyk": "^1.192.3"
   },
   "devDependencies": {
     "@sentry/typescript": "5.*",
@@ -58,5 +61,6 @@
         "libz"
       ]
     }
-  }
+  },
+  "snyk": true
 }
