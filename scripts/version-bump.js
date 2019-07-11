@@ -3,7 +3,7 @@ const pjson = require("../package.json");
 
 replace({
   files: ["src/js/version.ts"],
-  from: /\d+\.\d+.\d+/g,
+  from: /\d+\.\d+.\d+(?:-\w+(?:\.\w+)?)?/g,
   to: pjson.version
 })
   .then(changedFiles => {
