@@ -45,11 +45,17 @@ export function init(
       new RewriteFrames({
         iteratee: (frame: StackFrame) => {
           if (frame.filename) {
-            frame.filename =
-              "app://" +
-              frame.filename
-                .replace(/^file\:\/\//, "")
-                .replace(/^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/, "");
+            frame.filename = frame.filename
+              .replace(/^file\:\/\//, "")
+              .replace(/^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/, "");
+
+            const appPrefix = "app://";
+            if (frame.filename.indexOf("/") === 0) {
+              frame.filename = `${appPrefix}${frame.filename}`;
+            } else {
+              // We always want to have a tripple slash
+              frame.filename = `${appPrefix}/${frame.filename}`;
+            }
           }
           return frame;
         }
