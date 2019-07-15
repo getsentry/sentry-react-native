@@ -38,7 +38,7 @@
     "@sentry/types": "^5.5.0",
     "@sentry/utils": "^5.5.0",
     "@sentry/wizard": "^1.0.0",
-    "snyk": "^1.192.3"
+    "snyk": "^1.193.1"
   },
   "devDependencies": {
     "@sentry/typescript": "5.*",
