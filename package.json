@@ -2,7 +2,7 @@
   "name": "@sentry/react-native",
   "homepage": "https://github.com/getsentry/sentry-react-native",
   "repository": "https://github.com/getsentry/sentry-react-native",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "Official Sentry SDK for react-native",
   "typings": "dist/js/index.d.ts",
   "types": "dist/js/index.d.ts",
@@ -37,8 +37,7 @@
     "@sentry/integrations": "^5.5.0",
     "@sentry/types": "^5.5.0",
     "@sentry/utils": "^5.5.0",
-    "@sentry/wizard": "^1.0.0",
-    "snyk": "^1.192.3"
+    "@sentry/wizard": "^1.0.0"
   },
   "devDependencies": {
     "@sentry/typescript": "5.*",
@@ -46,6 +45,7 @@
     "prettier": "^1.17.0",
     "replace-in-file": "^4.0.0",
     "rimraf": "^2.6.3",
+    "snyk": "^1.193.1",
     "typescript": "^3.4.5"
   },
   "rnpm": {
