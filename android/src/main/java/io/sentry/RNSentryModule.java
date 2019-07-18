@@ -31,6 +31,8 @@ import java.util.regex.Pattern;
 
 import io.sentry.android.AndroidSentryClientFactory;
 import io.sentry.android.event.helper.AndroidEventBuilderHelper;
+import io.sentry.event.Breadcrumb;
+import io.sentry.event.BreadcrumbBuilder;
 import io.sentry.event.Event;
 import io.sentry.event.EventBuilder;
 import io.sentry.event.Sdk;
@@ -151,7 +153,35 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
         androidHelper.helpBuildingEvent(eventBuilder);
 
-        eventBuilder.withBreadcrumbs(Sentry.getStoredClient().getContext().getBreadcrumbs());
+        if (event.hasKey("breadcrumbs")) {
+            ReadableNativeArray breadcrumbs = (ReadableNativeArray)event.getArray("breadcrumbs");
+            ArrayList<Breadcrumb> eventBreadcrumbs = new ArrayList<Breadcrumb>();
+            for (int i = 0; i < breadcrumbs.size(); i++) {
+                ReadableNativeMap breadcrumb = breadcrumbs.getMap(i);
+                BreadcrumbBuilder breadcrumbBuilder = new BreadcrumbBuilder();
+                if (breadcrumb.hasKey("category")) {
+                    breadcrumbBuilder.setCategory(breadcrumb.getString("category"));
+                }
+                if (breadcrumb.hasKey("data") && breadcrumb.getMap("data") != null) {
+                    Map<String, String> newData = new HashMap<>();
+                    for (Map.Entry<String, Object> data : ((ReadableNativeMap)breadcrumb.getMap("data")).toHashMap().entrySet()) {
+                        newData.put(data.getKey(), data.getValue() != null ? data.getValue().toString() : null);
+                    }
+                    breadcrumbBuilder.setData(newData);
+                }
+                breadcrumbBuilder.setLevel(breadcrumbLevel((ReadableNativeMap)breadcrumb));
+
+                if (breadcrumb.hasKey("message")) {
+                    breadcrumbBuilder.setMessage(breadcrumb.getString("message"));
+                } else {
+                    breadcrumbBuilder.setMessage("");
+                }
+                eventBreadcrumbs.add(i, breadcrumbBuilder.build());
+            }
+            if (eventBreadcrumbs.size() > 0) {
+                eventBuilder.withBreadcrumbs(eventBreadcrumbs);
+            }
+        }
 
         if (event.hasKey("message")) {
             eventBuilder.withMessage(event.getString("message"));
@@ -382,6 +412,25 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 return Level.ALL;
             default:
                 return Level.OFF;
+        }
+    }
+
+    private Breadcrumb.Level breadcrumbLevel(ReadableNativeMap breadcrumb) {
+        String level = "";
+        if (breadcrumb.hasKey("level")) {
+            level = breadcrumb.getString("level");
+        }
+        switch (level) {
+            case "critical":
+                return Breadcrumb.Level.CRITICAL;
+            case "warning":
+                return Breadcrumb.Level.WARNING;
+            case "info":
+                return Breadcrumb.Level.INFO;
+            case "debug":
+                return Breadcrumb.Level.DEBUG;
+            default:
+                return Breadcrumb.Level.INFO;
         }
     }
 }
