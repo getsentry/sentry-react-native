@@ -6,7 +6,7 @@
     <h1>Sentry SDK for React Native</h1>
 </p>
 
-[![Travis](https://img.shields.io/travis/getsentry/react-native-sentry.svg?maxAge=2592000)](https://travis-ci.org/getsentry/react-native-sentry)
+[![Travis](https://travis-ci.com/getsentry/sentry-react-native.svg?branch=master)](https://travis-ci.com/getsentry/sentry-react-native)
 [![npm version](https://img.shields.io/npm/v/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)
 [![npm dm](https://img.shields.io/npm/dm/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)
 [![npm dt](https://img.shields.io/npm/dt/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)
