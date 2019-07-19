@@ -39,12 +39,11 @@ export class Release implements Integration {
         // Something went wrong, we just continue
       }
 
-      // __sentry_release & __sentry_dist will be picked up by our native integration.
-      // It should live in extra, native will pick it up there and set it in the event.
-      if (event.extra && event.extra.__sentry_release && !event.release) {
+      // If __sentry_release or __sentry_dist it should be stronger because the user set it
+      if (event.extra && event.extra.__sentry_release) {
         event.release = `${event.extra.__sentry_release}`;
       }
-      if (event.extra && event.extra.__sentry_dist && !event.dist) {
+      if (event.extra && event.extra.__sentry_dist) {
         event.dist = `${event.extra.__sentry_dist}`;
       }
 
