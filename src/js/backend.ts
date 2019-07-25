@@ -21,13 +21,13 @@ export interface ReactNativeOptions extends BrowserOptions {
    * This means you have to manage setting the release yourself.
    * Defaults to `true`.
    */
-  enableNative: boolean;
+  enableNative?: boolean;
 
   /**
    * Enables native crashHandling. This only works if `enableNative` is `true`.
    * Defaults to `true`.
    */
-  enableNativeCrashHandling: boolean;
+  enableNativeCrashHandling?: boolean;
 
   /** Maximum time to wait to drain the request queue, before the process is allowed to exit. */
   shutdownTimeout?: number;
@@ -57,7 +57,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       if (__DEV__) {
         Alert.alert(
           "Sentry",
-          "Warning, could not connect to Sentry native SDK.\nDid you forget to run \n`react-native link @sentry/react-native`?\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/clients/react-native/ for more details."
+          "Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/clients/react-native/ for more details."
         );
       }
     }
