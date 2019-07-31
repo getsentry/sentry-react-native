@@ -11,6 +11,7 @@ import { StackFrame } from "@sentry/types";
 import { ReactNativeOptions } from "./backend";
 import { ReactNativeClient } from "./client";
 import {
+  DebugSymbolicator,
   DeviceContext,
   ReactNativeErrorHandlers,
   Release
@@ -61,6 +62,7 @@ export function init(
         }
       }),
       new DeviceContext()
+      new DebugSymbolicator()
     ];
   }
   if (options.enableNative === undefined) {
