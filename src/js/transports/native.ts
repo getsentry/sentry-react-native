@@ -1,6 +1,5 @@
 import { Event, Response, Transport } from "@sentry/types";
 import { PromiseBuffer } from "@sentry/utils";
-
 import { NativeModules } from "react-native";
 
 const { RNSentry } = NativeModules;
@@ -14,6 +13,7 @@ export class NativeTransport implements Transport {
    * @inheritDoc
    */
   public sendEvent(event: Event): Promise<Response> {
+    // tslint:disable-next-line: no-unsafe-any
     return this._buffer.add(RNSentry.sendEvent(event));
   }
 

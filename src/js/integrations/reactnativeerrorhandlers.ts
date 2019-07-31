@@ -1,5 +1,7 @@
 import { getCurrentHub } from "@sentry/core";
 import { Integration, Severity } from "@sentry/types";
+import { logger } from "@sentry/utils";
+
 import { ReactNativeClient } from "../client";
 
 /** ReactNativeErrorHandlers Options */
@@ -42,28 +44,37 @@ export class ReactNativeErrorHandlers implements Integration {
     this._handleOnError();
   }
 
+  // tslint:disable: no-unsafe-any
+
+  /**
+   * Handle Promises
+   */
   private _handleUnhandledRejections(): void {
     if (this._options.onunhandledrejection) {
+      // tslint:disable-next-line: no-implicit-dependencies
       const tracking = require("promise/setimmediate/rejection-tracking");
       tracking.disable();
       tracking.enable({
         allRejections: true,
+        onHandled: () => {},
         onUnhandled: (id: any, error: any) => {
           getCurrentHub().captureException(error, {
             data: { id },
             originalException: error
           });
-        },
-        onHandled: function() {}
+        }
       });
     }
   }
 
+  /**
+   * Handle erros
+   */
   private _handleOnError(): void {
     if (this._options.onerror) {
       let handlingFatal = false;
 
-      let defaultHandler =
+      const defaultHandler =
         ErrorUtils.getGlobalHandler && ErrorUtils.getGlobalHandler();
 
       ErrorUtils.setGlobalHandler((error: any, isFatal?: boolean) => {
@@ -71,7 +82,7 @@ export class ReactNativeErrorHandlers implements Integration {
         const shouldHandleFatal = isFatal && !global.__DEV__;
         if (shouldHandleFatal) {
           if (handlingFatal) {
-            console.log(
+            logger.log(
               "Encountered multiple fatals in a row. The latest:",
               error
             );
@@ -91,9 +102,14 @@ export class ReactNativeErrorHandlers implements Integration {
 
         const client = getCurrentHub().getClient<ReactNativeClient>();
         if (client) {
-          client.flush(client.getOptions().shutdownTimeout || 2000).then(() => {
-            defaultHandler(error, isFatal);
-          });
+          client
+            .flush(client.getOptions().shutdownTimeout || 2000)
+            .then(() => {
+              defaultHandler(error, isFatal);
+            })
+            .catch(e => {
+              logger.error(e);
+            });
         } else {
           // If there is no client something is fishy, anyway we call the default handler
           defaultHandler(error, isFatal);
@@ -101,4 +117,6 @@ export class ReactNativeErrorHandlers implements Integration {
       });
     }
   }
+
+  // tslint:enable: no-unsafe-any
 }

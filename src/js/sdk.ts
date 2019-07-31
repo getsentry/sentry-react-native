@@ -32,6 +32,7 @@ export function init(
     enableNativeCrashHandling: true
   }
 ): void {
+  // tslint:disable: strict-comparisons
   if (options.defaultIntegrations === undefined) {
     options.defaultIntegrations = [
       new ReactNativeErrorHandlers(),
@@ -40,8 +41,8 @@ export function init(
         i => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
       ),
       new Integrations.Breadcrumbs({
-        fetch: false,
-        console: false // If this in enabled it causes problems to native calls on >= RN 0.60
+        console: false, // If this in enabled it causes problems to native calls on >= RN 0.60
+        fetch: false
       }),
       new RewriteFrames({
         iteratee: (frame: StackFrame) => {
@@ -51,12 +52,11 @@ export function init(
               .replace(/^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/, "");
 
             const appPrefix = "app://";
-            if (frame.filename.indexOf("/") === 0) {
-              frame.filename = `${appPrefix}${frame.filename}`;
-            } else {
-              // We always want to have a tripple slash
-              frame.filename = `${appPrefix}/${frame.filename}`;
-            }
+            // We always want to have a tripple slash
+            frame.filename =
+              frame.filename.indexOf("/") === 0
+                ? `${appPrefix}${frame.filename}`
+                : `${appPrefix}/${frame.filename}`;
           }
           return frame;
         }
@@ -71,6 +71,7 @@ export function init(
   if (options.enableNativeCrashHandling === undefined) {
     options.enableNativeCrashHandling = true;
   }
+  // tslint:enable: strict-comparisons
   initAndBind(ReactNativeClient, options);
 }
 

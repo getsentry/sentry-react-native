@@ -1,7 +1,6 @@
 import { BrowserOptions, Transports } from "@sentry/browser";
-import { NoopTransport } from "@sentry/core";
 import { BrowserBackend } from "@sentry/browser/dist/backend";
-import { BaseBackend } from "@sentry/core";
+import { BaseBackend, NoopTransport } from "@sentry/core";
 import { Event, EventHint, Severity, Transport } from "@sentry/types";
 import { SyncPromise } from "@sentry/utils";
 import { Alert, NativeModules, YellowBox } from "react-native";
@@ -45,6 +44,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
     YellowBox.ignoreWarnings(["Require cycle:"]);
 
+    // tslint:disable: no-unsafe-any
     if (
       RNSentry &&
       RNSentry.nativeClientAvailable &&
@@ -61,6 +61,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
         );
       }
     }
+    // tslint:enable: no-unsafe-any
   }
 
   /**
@@ -92,12 +93,14 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    * If true, native client is availabe and active
    */
   private _isNativeTransportAvailable(): boolean {
+    // tslint:disable: no-unsafe-any
     return (
       this._options.enableNative &&
       RNSentry &&
       RNSentry.nativeClientAvailable &&
       RNSentry.nativeTransport
     );
+    // tslint:enable: no-unsafe-any
   }
 
   /**
@@ -106,6 +109,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    */
   public nativeCrash(): void {
     if (this._options.enableNative) {
+      // tslint:disable-next-line: no-unsafe-any
       RNSentry.crash();
     }
   }

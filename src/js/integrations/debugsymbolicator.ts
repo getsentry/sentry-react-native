@@ -9,6 +9,9 @@ const INTERNAL_CALLSITES_REGEX = new RegExp(
   ].join("|")
 );
 
+/**
+ * React Native Stack Frame
+ */
 interface ReactNativeFrame {
   // arguments: []
   column: number;
@@ -34,10 +37,12 @@ export class DebugSymbolicator implements Integration {
   public setupOnce(): void {
     addGlobalEventProcessor(async (event: Event, hint?: EventHint) => {
       const self = getCurrentHub().getIntegration(DebugSymbolicator);
+      // tslint:disable: strict-comparisons
       if ((!self && !__DEV__) || hint === undefined) {
         return event;
       }
 
+      // tslint:disable: no-unsafe-any
       const parseErrorStack = require("react-native/Libraries/Core/Devtools/parseErrorStack");
       const stack = parseErrorStack(hint.originalException);
 
@@ -79,15 +84,14 @@ export class DebugSymbolicator implements Integration {
           ) {
             event.exception.values[0].stacktrace.frames = symbolicatedFrames.reverse();
           }
-
-          console.log(symbolicatedFrames);
         } else {
           logger.error("The stack is null");
         }
       } catch (error) {
         logger.warn(`Unable to symbolicate stack trace: ${error.message}`);
       }
-
+      // tslint:enable: no-unsafe-any
+      // tslint:enable: strict-comparisons
       return event;
     });
   }

@@ -26,6 +26,7 @@ export class Release implements Integration {
       }
 
       try {
+        // tslint:disable-next-line: no-unsafe-any
         const release = (await RNSentry.fetchRelease()) as {
           build: string;
           id: string;
