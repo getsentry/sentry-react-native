@@ -61,7 +61,7 @@ export function init(
           return frame;
         }
       }),
-      new DeviceContext()
+      new DeviceContext(),
       new DebugSymbolicator()
     ];
   }
