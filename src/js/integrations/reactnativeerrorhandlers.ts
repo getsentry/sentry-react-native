@@ -22,7 +22,7 @@ export class ReactNativeErrorHandlers implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = "ReactNative";
+  public static id: string = "ReactNativeErrorHandlers";
 
   /** ReactNativeOptions */
   private readonly _options: ReactNativeErrorHandlersOptions;
@@ -56,7 +56,9 @@ export class ReactNativeErrorHandlers implements Integration {
       tracking.disable();
       tracking.enable({
         allRejections: true,
-        onHandled: () => {},
+        onHandled: () => {
+          // We do nothing
+        },
         onUnhandled: (id: any, error: any) => {
           getCurrentHub().captureException(error, {
             data: { id },
@@ -101,7 +103,9 @@ export class ReactNativeErrorHandlers implements Integration {
         });
 
         const client = getCurrentHub().getClient<ReactNativeClient>();
-        if (client) {
+        // If in dev, we call the default handler anyway and hope the error will be sent
+        // Just for a better dev experience
+        if (client && !__DEV__) {
           client
             .flush(client.getOptions().shutdownTimeout || 2000)
             .then(() => {

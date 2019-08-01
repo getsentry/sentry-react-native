@@ -3,9 +3,8 @@ import {
   getCurrentHub,
   Integrations
 } from "@sentry/browser";
+import { initAndBind, setExtra } from "@sentry/core";
 import { RewriteFrames } from "@sentry/integrations";
-import { initAndBind } from "@sentry/core";
-import { setExtra } from "@sentry/minimal";
 import { StackFrame } from "@sentry/types";
 
 import { ReactNativeOptions } from "./backend";
@@ -70,6 +69,9 @@ export function init(
   }
   if (options.enableNativeCrashHandling === undefined) {
     options.enableNativeCrashHandling = true;
+  }
+  if (options.enableNativeNagger === undefined) {
+    options.enableNativeNagger = true;
   }
   // tslint:enable: strict-comparisons
   initAndBind(ReactNativeClient, options);

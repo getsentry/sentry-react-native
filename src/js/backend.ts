@@ -30,6 +30,9 @@ export interface ReactNativeOptions extends BrowserOptions {
 
   /** Maximum time to wait to drain the request queue, before the process is allowed to exit. */
   shutdownTimeout?: number;
+
+  /** Should the native nagger alert be shown or not. */
+  enableNativeNagger?: boolean;
 }
 
 /** The Sentry ReactNative SDK Backend. */
@@ -54,7 +57,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
         RNSentry.setLogLevel(_options.debug ? 2 : 1);
       });
     } else {
-      if (__DEV__) {
+      if (__DEV__ && _options.enableNativeNagger) {
         Alert.alert(
           "Sentry",
           "Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/clients/react-native/ for more details."
