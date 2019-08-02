@@ -43,11 +43,13 @@ export function init(
         console: false, // If this in enabled it causes problems to native calls on >= RN 0.60
         fetch: false
       }),
+      new DebugSymbolicator(),
       new RewriteFrames({
         iteratee: (frame: StackFrame) => {
           if (frame.filename) {
             frame.filename = frame.filename
               .replace(/^file\:\/\//, "")
+              .replace(/^address at /, "")
               .replace(/^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/, "");
 
             const appPrefix = "app://";
@@ -60,8 +62,7 @@ export function init(
           return frame;
         }
       }),
-      new DeviceContext(),
-      new DebugSymbolicator()
+      new DeviceContext()
     ];
   }
   if (options.enableNative === undefined) {
