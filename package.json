@@ -49,19 +49,5 @@
     "tslint": "^5.11.0",
     "typescript": "^3.4.5"
   },
-  "rnpm": {
-    "commands": {
-      "postlink": "node node_modules/@sentry/wizard/dist/bin.js -i reactNative -p ios android",
-      "postunlink": "node node_modules/@sentry/wizard/dist/bin.js -i reactNative -p ios android --uninstall"
-    },
-    "android": {
-      "packageInstance": "new RNSentryPackage()"
-    },
-    "ios": {
-      "sharedLibraries": [
-        "libz"
-      ]
-    }
-  },
   "snyk": true
 }
