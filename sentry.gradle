@@ -126,7 +126,7 @@ gradle.projectsEvaluated {
 
         // register clean task extension
         cliCleanUpTask.onlyIf { shouldCleanUp }
-        project.tasks.clean.dependsOn cliCleanUpTask
+        cliTask.finalizedBy cliCleanUpTask
     }
 }
 
