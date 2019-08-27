@@ -118,6 +118,7 @@ gradle.projectsEvaluated {
             group = 'sentry.io'
 
             delete sourcemapOutput
+            delete "$buildDir/intermediates/assets/release/index.android.bundle.map" // react native default bundle dir
         }
 
         // dependsOn, mustRunAfter, shouldRunAfter, doFirst, doLast, finalizedBy
@@ -126,7 +127,7 @@ gradle.projectsEvaluated {
 
         // register clean task extension
         cliCleanUpTask.onlyIf { shouldCleanUp }
-        project.tasks.clean.dependsOn cliCleanUpTask
+        cliTask.finalizedBy cliCleanUpTask
     }
 }
 
