@@ -7,39 +7,39 @@
 </p>
 
 [![Travis](https://travis-ci.com/getsentry/sentry-react-native.svg?branch=master)](https://travis-ci.com/getsentry/sentry-react-native)
-[![npm version](https://img.shields.io/npm/v/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)
-[![npm dm](https://img.shields.io/npm/dm/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)
-[![npm dt](https://img.shields.io/npm/dt/react-native-sentry.svg)](https://www.npmjs.com/package/react-native-sentry)
-[![deps](https://david-dm.org/getsentry/react-native-sentry/status.svg)](https://david-dm.org/getsentry/react-native-sentry?view=list)
-[![deps dev](https://david-dm.org/getsentry/react-native-sentry/dev-status.svg)](https://david-dm.org/getsentry/react-native-sentry?type=dev&view=list)
-[![deps peer](https://david-dm.org/getsentry/react-native-sentry/peer-status.svg)](https://david-dm.org/getsentry/react-native-sentry?type=peer&view=list)
+[![npm version](https://img.shields.io/npm/v/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
+[![npm dm](https://img.shields.io/npm/dm/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
+[![npm dt](https://img.shields.io/npm/dt/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
+[![deps](https://david-dm.org/getsentry/@sentry/react-native/status.svg)](https://david-dm.org/getsentry/@sentry/react-native?view=list)
+[![deps dev](https://david-dm.org/getsentry/@sentry/react-native/dev-status.svg)](https://david-dm.org/getsentry/@sentry/react-native?type=dev&view=list)
+[![deps peer](https://david-dm.org/getsentry/@sentry/react-native/peer-status.svg)](https://david-dm.org/getsentry/@sentry/react-native?type=peer&view=list)
 
-*Requirements:*
+## Requirements
 
-* `react-native >= 0.38` for iOS
-* `react-native >= 0.41` for Android
-* `react-native-sentry >= 0.39.0` requires `react-native >= 0.56.0`
-* `sentry-cli   >= 1.9.0` (`brew install getsentry/tools/sentry-cli`)
+- `react-native >= 0.56.0`
 
-With this SDK, Sentry is now able to provide mixed stacktraces. This means that if a JavaScript call causes a crash in native code, you will see the last call from JavaScript before the crash. This also means that with the new SDK, native crashes are properly handled on iOS.
+## Installation and Usage
 
-## Additional device information
+To install the SDK simply do
 
-When using this library you will get a lot more information about the device surrounding your crashes.
+```sh
+yarn add @sentry/react-native
+```
 
-**Without native integration**
-![Raven js only](https://github.com/getsentry/react-native-sentry/raw/master/assets/raven.png)
+```javascript
+import * as Sentry from "@sentry/react-native";
 
-**With native integration**
-![Enriched](https://github.com/getsentry/react-native-sentry/raw/master/assets/enriched.png)
-![Additional](https://github.com/getsentry/react-native-sentry/raw/master/assets/additional-device.png)
+Sentry.init({
+  dsn: "__DSN__"
+});
 
+Sentry.setTag("myTag", "tag-value");
+Sentry.setExtra("myExtra", "extra-value");
+Sentry.addBreadcrumb({ message: "test" });
 
-**Mixed Stacktraces**<sup>(1)</sup>
-![Mixed Stacktrace](https://github.com/getsentry/react-native-sentry/raw/master/assets/mixed-stacktrace.png)
+Sentry.captureMessage("Hello, world!");
+```
 
 ## Documentation
 
-https://docs.sentry.io/clients/react-native/
-
-<sup>(1)</sup>only supported on iOS
+https://docs.sentry.io/platforms/react-native/
