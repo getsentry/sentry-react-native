@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- Fixed typo in `RNSentry.m` (#658)
+
 ## 1.0.0
 
 This is a new major release of the Sentry's React Native SDK rewritten in TypeScript.

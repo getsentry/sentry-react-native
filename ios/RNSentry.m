@@ -122,11 +122,11 @@ RCT_EXPORT_METHOD(crash)
 
 RCT_EXPORT_METHOD(extraUpdated:(NSDictionary * _Nonnull)extra)
 {
-    if (nil != [scope objectForKey:@"__sentry_release"]) {
-        SentryClient.sharedClient.releaseName = [scope objectForKey:@"__sentry_release"];
+    if (nil != [extra objectForKey:@"__sentry_release"]) {
+        SentryClient.sharedClient.releaseName = [extra objectForKey:@"__sentry_release"];
     }
-    if (nil != [scope objectForKey:@"__sentry_dist"]) {
-        SentryClient.sharedClient.dist = [scope objectForKey:@"__sentry_dist"];
+    if (nil != [extra objectForKey:@"__sentry_dist"]) {
+        SentryClient.sharedClient.dist = [extra objectForKey:@"__sentry_dist"];
     }
 }
 
