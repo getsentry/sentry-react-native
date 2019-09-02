@@ -77,7 +77,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         return constants;
     }
 
-
     @ReactMethod
     public void startWithDsnString(String dsnString, final ReadableMap options, Promise promise) {
         if (sentryClient != null) {
@@ -146,6 +145,16 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
 
         promise.resolve(params);
+    }
+
+    @ReactMethod
+    public void extraUpdated(ReadableMap extra) {
+        if (extra.hasKey("__sentry_release")) {
+            sentryClient.release = extra.getString("__sentry_release");
+        }
+        if (extra.hasKey("__sentry_dist")) {
+            sentryClient.dist = extra.getString("__sentry_dist");
+        }
     }
 
     @ReactMethod
