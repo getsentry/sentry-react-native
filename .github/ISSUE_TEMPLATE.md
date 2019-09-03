@@ -7,18 +7,20 @@ _Platform:_
 - [ ]  iOS
 - [ ]  Android
 
-Output of `node -v && npm -v && npm ls --prod --depth=0`
+
+SDK:
+- [ ]  `@sentry/react-native`
+- [ ]  `react-native-sentry`
+
+
+Version: 
+
+Init Code:
 
 ```
-<!-- Replace this -->
-```
-
-Config:
-
-```
-Sentry.config('https://...@sentry.io/...', {
-....
-}).install()
+Sentry.init({
+  dsn: 'https://...@sentry.io/...'
+});
 ```
 
 
