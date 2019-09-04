@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4
+
+- Also catch `ClassCastException` to support react-native versions < 0.60 (#651)
+
 ## 1.0.3
 
 - Expose `BrowserIntegrations` to change browser integrations (#639)

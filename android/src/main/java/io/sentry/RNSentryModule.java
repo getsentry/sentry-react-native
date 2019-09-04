@@ -187,6 +187,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     }
                 } catch (UnexpectedNativeTypeException e) {
                     logger.warning("Discarded breadcrumb.data since it was not an object");
+                } catch (ClassCastException e) { // This needs to be here for RN < 0.60
+                    logger.warning("Discarded breadcrumb.data since it was not an object");
                 }
 
                 breadcrumbBuilder.setLevel(breadcrumbLevel((ReadableNativeMap)breadcrumb));
