@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+- Expose `BrowserIntegrations` to change browser integrations (#639)
+
 ## 1.0.2
 
 - Fixes `breadcrumb.data` cast if it's not a hashmap (#651)
