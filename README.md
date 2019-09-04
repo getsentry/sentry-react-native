@@ -10,21 +10,34 @@
 [![npm version](https://img.shields.io/npm/v/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
 [![npm dm](https://img.shields.io/npm/dm/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
 [![npm dt](https://img.shields.io/npm/dt/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
-[![deps](https://david-dm.org/getsentry/@sentry/react-native/status.svg)](https://david-dm.org/getsentry/@sentry/react-native?view=list)
-[![deps dev](https://david-dm.org/getsentry/@sentry/react-native/dev-status.svg)](https://david-dm.org/getsentry/@sentry/react-native?type=dev&view=list)
-[![deps peer](https://david-dm.org/getsentry/@sentry/react-native/peer-status.svg)](https://david-dm.org/getsentry/@sentry/react-native?type=peer&view=list)
 
 ## Requirements
 
 - `react-native >= 0.56.0`
 
+## Features
+
+- Automatic JS Error Tracking (using [@sentry/browser](https://github.com/getsentry/sentry-javascript))
+- Automatic Native Crash Error Tracking (using [sentry-cocoa](https://github.com/getsentry/sentry-cocoa) & [sentry-android](https://github.com/getsentry/sentry-java) under the hood)
+- Offline storage of events
+- On Device symbolication for JS (in Debug)
+- [Autolinking](https://facebook.github.io/react-native/blog/2019/07/03/version-60#native-modules-are-now-autolinked)
+- Events with enriched device data
+- RAM bundle support
+- Hermes support (coming soon see [#649](https://github.com/getsentry/sentry-react-native/issues/649))
+- Expo support ([sentry-expo](https://github.com/expo/sentry-expo))
+
 ## Installation and Usage
 
-To install the SDK simply do
+To install the package:
 
 ```sh
+npm install --save @sentry/react-native
+# OR
 yarn add @sentry/react-native
 ```
+
+How to use it:
 
 ```javascript
 import * as Sentry from "@sentry/react-native";
@@ -37,7 +50,7 @@ Sentry.setTag("myTag", "tag-value");
 Sentry.setExtra("myExtra", "extra-value");
 Sentry.addBreadcrumb({ message: "test" });
 
-Sentry.captureMessage("Hello, world!");
+Sentry.captureMessage("Hello Sentry!");
 ```
 
 ## Documentation
