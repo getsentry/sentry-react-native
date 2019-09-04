@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+- Fixes `breadcrumb.data` cast if it's not a hashmap (#651)
+
 ## 1.0.1
 
 - Fixed typo in `RNSentry.m` (#658)

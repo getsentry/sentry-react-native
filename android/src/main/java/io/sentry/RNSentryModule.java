@@ -14,6 +14,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableNativeArray;
 import com.facebook.react.bridge.ReadableNativeMap;
 import com.facebook.react.bridge.ReadableType;
+import com.facebook.react.bridge.UnexpectedNativeTypeException;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 
@@ -175,13 +176,19 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 if (breadcrumb.hasKey("category")) {
                     breadcrumbBuilder.setCategory(breadcrumb.getString("category"));
                 }
-                if (breadcrumb.hasKey("data") && breadcrumb.getMap("data") != null) {
-                    Map<String, String> newData = new HashMap<>();
-                    for (Map.Entry<String, Object> data : ((ReadableNativeMap)breadcrumb.getMap("data")).toHashMap().entrySet()) {
-                        newData.put(data.getKey(), data.getValue() != null ? data.getValue().toString() : null);
+
+                try {
+                    if (breadcrumb.hasKey("data") && breadcrumb.getMap("data") != null) {
+                        Map<String, String> newData = new HashMap<>();
+                        for (Map.Entry<String, Object> data : ((ReadableNativeMap)breadcrumb.getMap("data")).toHashMap().entrySet()) {
+                            newData.put(data.getKey(), data.getValue() != null ? data.getValue().toString() : null);
+                        }
+                        breadcrumbBuilder.setData(newData);
                     }
-                    breadcrumbBuilder.setData(newData);
+                } catch (UnexpectedNativeTypeException e) {
+                    logger.warning("Discarded breadcrumb.data since it was not an object");
                 }
+
                 breadcrumbBuilder.setLevel(breadcrumbLevel((ReadableNativeMap)breadcrumb));
 
                 if (breadcrumb.hasKey("message")) {
