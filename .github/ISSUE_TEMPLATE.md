@@ -13,7 +13,7 @@ SDK:
 - [ ]  `react-native-sentry`
 
 
-Version: 
+`react-native` version: 0.0.0
 
 Init Code:
 
@@ -22,8 +22,6 @@ Sentry.init({
   dsn: 'https://...@sentry.io/...'
 });
 ```
-
-
 
 ---
 I have following issue:
