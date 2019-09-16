@@ -206,7 +206,23 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
 
         if (event.hasKey("message")) {
-            eventBuilder.withMessage(event.getString("message"));
+            String message = "";
+            try {
+                message = event.getString("message");
+            } catch (UnexpectedNativeTypeException e) {
+                // Do nothing
+            } catch (ClassCastException e) { // This needs to be here for RN < 0.60
+                // Do nothing
+            } finally {
+                try {
+                    message = event.getMap("message").toString();
+                } catch (UnexpectedNativeTypeException e) {
+                    // Do nothing
+                } catch (ClassCastException e) { // This needs to be here for RN < 0.60
+                    // Do nothing
+                }
+            }
+            eventBuilder.withMessage(message);
         }
 
         if (event.hasKey("logger")) {

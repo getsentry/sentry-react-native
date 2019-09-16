@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.5
+
+- Convert `message` in Java to string if it's a map (#653)
+
 ## 1.0.4
 
 - Also catch `ClassCastException` to support react-native versions < 0.60 (#651)
