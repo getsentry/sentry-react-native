@@ -67,7 +67,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       if (__DEV__ && _options.enableNativeNagger) {
         Alert.alert(
           "Sentry",
-          "Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/clients/react-native/ for more details."
+          "Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details."
         );
       }
     }

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.6
+
+- Fix error message to guide towards correct docs page
+
 ## 1.0.5
 
 - Convert `message` in Java to string if it's a map (#653)
