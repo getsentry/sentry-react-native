@@ -110,6 +110,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 return true;
             }
         });
+        if (options.hasKey("environment") && options.getString("environment") != null) {
+            sentryClient.environment = options.getString("environment");
+        }
+        if (options.hasKey("release") && options.getString("release") != null) {
+            sentryClient.release = options.getString("release");
+        }
+        if (options.hasKey("dist") && options.getString("dist") != null) {
+            sentryClient.dist = options.getString("dist");
+        }
         logger.info(String.format("startWithDsnString '%s'", dsnString));
         promise.resolve(true);
     }

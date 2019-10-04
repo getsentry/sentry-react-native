@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.7
+
+- Store `environment`, `release` & `dist` on native iOS and Android clients in case of an native crash
+
 ## 1.0.6
 
 - Fix error message to guide towards correct docs page

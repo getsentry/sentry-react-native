@@ -61,6 +61,15 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString
     if ([[options objectForKey:@"enableNativeCrashHandling"] boolValue]) {
         [SentryClient.sharedClient startCrashHandlerWithError:&error];
     }
+    if (nil != [options objectForKey:@"environment"]) {
+        SentryClient.sharedClient.environment = [NSString stringWithFormat:@"%@", [options objectForKey:@"environment"]];
+    }
+    if (nil != [options objectForKey:@"release"]) {
+        SentryClient.sharedClient.releaseName = [NSString stringWithFormat:@"%@", [options objectForKey:@"release"]];
+    }
+    if (nil != [options objectForKey:@"dist"]) {
+        SentryClient.sharedClient.dist = [NSString stringWithFormat:@"%@", [options objectForKey:@"dist"]];
+    }
     if (error) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
