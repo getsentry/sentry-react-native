@@ -14,3 +14,6 @@ patch:
         patched: '2019-07-15T05:10:29.905Z'
     - snyk > snyk-nuget-plugin > lodash:
         patched: '2019-07-15T05:10:29.905Z'
+  SNYK-JS-HTTPSPROXYAGENT-469131:
+    - '@sentry/wizard > @sentry/cli > https-proxy-agent':
+        patched: '2019-10-07T05:12:56.327Z'
