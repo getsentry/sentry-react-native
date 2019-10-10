@@ -185,6 +185,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 if (breadcrumb.hasKey("category")) {
                     breadcrumbBuilder.setCategory(breadcrumb.getString("category"));
                 }
+                
+                if (breadcrumb.hasKey("type")) {
+                    breadcrumbBuilder.setType(breadcrumb.getString("type"));
+                }
 
                 try {
                     if (breadcrumb.hasKey("data") && breadcrumb.getMap("data") != null) {
@@ -192,6 +196,16 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                         for (Map.Entry<String, Object> data : ((ReadableNativeMap)breadcrumb.getMap("data")).toHashMap().entrySet()) {
                             newData.put(data.getKey(), data.getValue() != null ? data.getValue().toString() : null);
                         }
+                        
+                        // in case a `status_code` entry got accidentally stringified as a float
+                        if (newData.containsKey("status_code")) {
+                              String value = newData.get("status_code");
+                              newData.put(
+                                  "status_code",
+                                  value.endsWith(".0") ? value.replace(".0", "") : value
+                              );
+                        }
+                        
                         breadcrumbBuilder.setData(newData);
                     }
                 } catch (UnexpectedNativeTypeException e) {
