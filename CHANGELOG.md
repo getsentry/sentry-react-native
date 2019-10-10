@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.8
+
+- Fix missing `type`, miscast `status_code` entries in Android breadcrumbs
+
 ## 1.0.7
 
 - Store `environment`, `release` & `dist` on native iOS and Android clients in case of an native crash
