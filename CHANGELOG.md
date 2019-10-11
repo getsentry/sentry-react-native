@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.9
+
+- Fixed an issue where breadcrumbs failed to be copied correctly
+
 ## 1.0.8
 
 - Fix missing `type`, miscast `status_code` entries in Android breadcrumbs
