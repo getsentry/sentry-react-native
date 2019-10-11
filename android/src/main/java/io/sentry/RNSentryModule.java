@@ -187,7 +187,17 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 }
                 
                 if (breadcrumb.hasKey("type")) {
-                    breadcrumbBuilder.setType(breadcrumb.getString("type"));
+                    String breadcrumbType = breadcrumb.getString("type");
+
+                    if (Breadcrumb.Type.HTTP.getValue().equals(breadcrumbType)) {
+                      breadcrumbBuilder.setType(Breadcrumb.Type.HTTP);
+                    } else if (Breadcrumb.Type.NAVIGATION.getValue().equals(breadcrumbType)) {
+                      breadcrumbBuilder.setType(Breadcrumb.Type.NAVIGATION);
+                    } else if (Breadcrumb.Type.USER.getValue().equals(breadcrumbType)) {
+                      breadcrumbBuilder.setType(Breadcrumb.Type.USER);
+                    } else {
+                      breadcrumbBuilder.setType(Breadcrumb.Type.DEFAULT);
+                    }
                 }
 
                 try {
