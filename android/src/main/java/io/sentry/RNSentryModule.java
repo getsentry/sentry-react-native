@@ -185,19 +185,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 if (breadcrumb.hasKey("category")) {
                     breadcrumbBuilder.setCategory(breadcrumb.getString("category"));
                 }
-                
-                if (breadcrumb.hasKey("type")) {
-                    String breadcrumbType = breadcrumb.getString("type");
 
-                    if (Breadcrumb.Type.HTTP.getValue().equals(breadcrumbType)) {
-                      breadcrumbBuilder.setType(Breadcrumb.Type.HTTP);
-                    } else if (Breadcrumb.Type.NAVIGATION.getValue().equals(breadcrumbType)) {
-                      breadcrumbBuilder.setType(Breadcrumb.Type.NAVIGATION);
-                    } else if (Breadcrumb.Type.USER.getValue().equals(breadcrumbType)) {
-                      breadcrumbBuilder.setType(Breadcrumb.Type.USER);
-                    } else {
-                      breadcrumbBuilder.setType(Breadcrumb.Type.DEFAULT);
-                    }
+                if (breadcrumb.hasKey("type")) {
+                    String typeString = breadcrumb.getString("type").toUpperCase();
+                    breadcrumbBuilder.setType(Breadcrumb.Type.valueOf(typeString));
                 }
 
                 try {
@@ -206,7 +197,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                         for (Map.Entry<String, Object> data : ((ReadableNativeMap)breadcrumb.getMap("data")).toHashMap().entrySet()) {
                             newData.put(data.getKey(), data.getValue() != null ? data.getValue().toString() : null);
                         }
-                        
+
                         // in case a `status_code` entry got accidentally stringified as a float
                         if (newData.containsKey("status_code")) {
                               String value = newData.get("status_code");
@@ -215,7 +206,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                                   value.endsWith(".0") ? value.replace(".0", "") : value
                               );
                         }
-                        
+
                         breadcrumbBuilder.setData(newData);
                     }
                 } catch (UnexpectedNativeTypeException e) {
