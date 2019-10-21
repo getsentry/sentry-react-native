@@ -186,9 +186,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     breadcrumbBuilder.setCategory(breadcrumb.getString("category"));
                 }
 
-                if (breadcrumb.hasKey("type")) {
+                if (breadcrumb.hasKey("type") && breadcrumb.getString("type") != null) {
                     String typeString = breadcrumb.getString("type").toUpperCase();
-                    breadcrumbBuilder.setType(Breadcrumb.Type.valueOf(typeString));
+                    try {
+                        breadcrumbBuilder.setType(Breadcrumb.Type.valueOf(typeString));
+                    } catch (IllegalArgumentException e) {
+                        //don't copy over invalid breadcrumb 'type' value
+                    }
+                }
                 }
 
                 try {
