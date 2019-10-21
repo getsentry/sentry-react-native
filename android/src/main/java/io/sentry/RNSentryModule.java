@@ -194,6 +194,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                         //don't copy over invalid breadcrumb 'type' value
                     }
                 }
+
+                if (breadcrumb.hasKey("level") && breadcrumb.getString("level") != null) {
+                    String levelString = breadcrumb.getString("level").toUpperCase();
+                    try {
+                        breadcrumbBuilder.setLevel(Breadcrumb.Level.valueOf(levelString));
+                    } catch (IllegalArgumentException e) {
+                        //don't copy over invalid breadcrumb 'level' value
+                    }
                 }
 
                 try {
@@ -219,8 +227,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 } catch (ClassCastException e) { // This needs to be here for RN < 0.60
                     logger.warning("Discarded breadcrumb.data since it was not an object");
                 }
-
-                breadcrumbBuilder.setLevel(breadcrumbLevel((ReadableNativeMap)breadcrumb));
 
                 if (breadcrumb.hasKey("message")) {
                     breadcrumbBuilder.setMessage(breadcrumb.getString("message"));
@@ -479,25 +485,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 return Level.ALL;
             default:
                 return Level.OFF;
-        }
-    }
-
-    private Breadcrumb.Level breadcrumbLevel(ReadableNativeMap breadcrumb) {
-        String level = "";
-        if (breadcrumb.hasKey("level")) {
-            level = breadcrumb.getString("level");
-        }
-        switch (level) {
-            case "critical":
-                return Breadcrumb.Level.CRITICAL;
-            case "warning":
-                return Breadcrumb.Level.WARNING;
-            case "info":
-                return Breadcrumb.Level.INFO;
-            case "debug":
-                return Breadcrumb.Level.DEBUG;
-            default:
-                return Breadcrumb.Level.INFO;
         }
     }
 }
