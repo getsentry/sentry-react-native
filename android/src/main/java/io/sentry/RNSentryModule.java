@@ -18,6 +18,8 @@ import com.facebook.react.bridge.UnexpectedNativeTypeException;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 
+import java.util.UUID;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -171,8 +173,19 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void sendEvent(ReadableMap event, Promise promise) {
         ReadableNativeMap castEvent = (ReadableNativeMap)event;
 
-        EventBuilder eventBuilder = new EventBuilder()
-                .withLevel(eventLevel(castEvent));
+//        EventBuilder eventBuilder = new EventBuilder()
+//                .withLevel(eventLevel(castEvent));
+
+        EventBuilder eventBuilder;
+        if (event.hasKey("event_id")) {
+            UUID eventId = UUID.fromString(event.getString("event_id").replaceFirst(
+                    "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)",
+                    "$1-$2-$3-$4-$5"));
+            eventBuilder = new EventBuilder(eventId).withLevel(eventLevel(castEvent));
+        } else {
+            logger.info("Event has no event_id");
+            eventBuilder = new EventBuilder().withLevel(eventLevel(castEvent));
+        }
 
         androidHelper.helpBuildingEvent(eventBuilder);
 
