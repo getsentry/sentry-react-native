@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+- Bump `@sentry/*` to `5.8.0`
+- fix(android): Feedback not working (#706)
+- fix(types): Fix type mismatch when copying breadcrumb `type` (#693)
+
 ## 1.0.9
 
 - Fixed an issue where breadcrumbs failed to be copied correctly
