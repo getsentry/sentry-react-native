@@ -2,7 +2,7 @@
 
 ## 1.1.0
 
-- Bump `@sentry/*` to `5.8.0`
+- Bump `@sentry/*` to `^5.9.0`
 - fix(android): Feedback not working (#706)
 - fix(types): Fix type mismatch when copying breadcrumb `type` (#693)
 

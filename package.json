@@ -32,10 +32,10 @@
     "react-native": ">=0.56.0"
   },
   "dependencies": {
-    "@sentry/browser": "^5.8.0",
+    "@sentry/browser": "^5.9.0",
     "@sentry/core": "^5.8.0",
     "@sentry/integrations": "^5.8.0",
-    "@sentry/types": "^5.8.0",
+    "@sentry/types": "^5.7.1",
     "@sentry/utils": "^5.8.0",
     "@sentry/wizard": "^1.0.0"
   },
