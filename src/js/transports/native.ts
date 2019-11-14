@@ -12,7 +12,7 @@ export class NativeTransport implements Transport {
   /**
    * @inheritDoc
    */
-  public sendEvent(event: Event): Promise<Response> {
+  public sendEvent(event: Event): PromiseLike<Response> {
     // tslint:disable-next-line: no-unsafe-any
     return this._buffer.add(RNSentry.sendEvent(event));
   }
@@ -20,7 +20,7 @@ export class NativeTransport implements Transport {
   /**
    * @inheritDoc
    */
-  public close(timeout?: number): Promise<boolean> {
+  public close(timeout?: number): PromiseLike<boolean> {
     return this._buffer.drain(timeout);
   }
 }

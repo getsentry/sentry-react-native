@@ -106,14 +106,9 @@ export class ReactNativeErrorHandlers implements Integration {
         // If in dev, we call the default handler anyway and hope the error will be sent
         // Just for a better dev experience
         if (client && !__DEV__) {
-          client
-            .flush(client.getOptions().shutdownTimeout || 2000)
-            .then(() => {
-              defaultHandler(error, isFatal);
-            })
-            .catch(e => {
-              logger.error(e);
-            });
+          client.flush(client.getOptions().shutdownTimeout || 2000).then(() => {
+            defaultHandler(error, isFatal);
+          });
         } else {
           // If there is no client something is fishy, anyway we call the default handler
           defaultHandler(error, isFatal);

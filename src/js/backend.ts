@@ -2,7 +2,6 @@ import { BrowserOptions, Transports } from "@sentry/browser";
 import { BrowserBackend } from "@sentry/browser/dist/backend";
 import { BaseBackend, getCurrentHub, NoopTransport } from "@sentry/core";
 import { Event, EventHint, Severity, Transport } from "@sentry/types";
-import { SyncPromise } from "@sentry/utils";
 import { Alert, NativeModules, YellowBox } from "react-native";
 
 import { NativeTransport } from "./transports/native";
@@ -130,7 +129,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
   public eventFromException(
     exception: any,
     hint?: EventHint
-  ): SyncPromise<Event> {
+  ): PromiseLike<Event> {
     return this._browserBackend.eventFromException(exception, hint);
   }
 
@@ -141,7 +140,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
     message: string,
     level: Severity = Severity.Info,
     hint?: EventHint
-  ): SyncPromise<Event> {
+  ): PromiseLike<Event> {
     return this._browserBackend.eventFromMessage(message, level, hint);
   }
 }
