@@ -8,6 +8,29 @@ def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
 gradle.projectsEvaluated {
     def releases = extractReleasesInfo()
 
+    if (config.flavorAware && config.sentryProperties) {
+        throw new GradleException("Incompatible sentry configuration. " +
+            "You cannot use both `flavorAware` and `sentryProperties`. " +
+            "Please remove one of these from the project.ext.sentryCli configuration.")
+    }
+
+    if (config.sentryProperties instanceof String) {
+        config.sentryProperties = file(config.sentryProperties)
+    }
+
+    if (config.sentryProperties) {
+        if (!config.sentryProperties.exists()) {
+            throw new GradleException("project.ext.sentryCli configuration defines a non-existant 'sentryProperties' file: " + config.sentryProperties.getAbsolutePath())
+        }
+        logger.info("Using 'sentry.properties' at: " + config.sentryProperties.getAbsolutePath())
+    }
+
+    if (config.flavorAware) {
+        println "**********************************"
+        println "* Flavor aware sentry properties *"
+        println "**********************************"
+    }
+
     // separately we then hook into the bundle task of react native to inject
     // sourcemap generation parameters.  In case for whatever reason no release
     // was found for the asset folder we just bail.
@@ -20,12 +43,6 @@ gradle.projectsEvaluated {
         def reactRoot = props.get("workingDir")
 
         (shouldCleanUp, bundleOutput, sourcemapOutput) = forceSourceMapOutputFromBundleTask(bundleTask)
-
-        if (config.flavorAware) {
-            println "**********************************"
-            println "* Flavor aware sentry properties *"
-            println "**********************************"
-        }
 
         // Lets leave this here if we need to debug
         // println bundleTask.properties
@@ -57,7 +74,10 @@ gradle.projectsEvaluated {
 
             workingDir reactRoot
 
-            def propertiesFile = "$reactRoot/android/sentry.properties"
+            def propertiesFile = config.sentryProperties
+                ? config.sentryProperties
+                : "$reactRoot/android/sentry.properties"
+
             if (config.flavorAware) {
                 propertiesFile = "$reactRoot/android/sentry-${variant}.properties"
                 project.logger.info("For $variant using: $propertiesFile")
