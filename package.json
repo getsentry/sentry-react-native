@@ -32,21 +32,21 @@
     "react-native": ">=0.56.0"
   },
   "dependencies": {
-    "@sentry/browser": "^5.9.0",
-    "@sentry/core": "^5.8.0",
-    "@sentry/integrations": "^5.8.0",
-    "@sentry/types": "^5.7.1",
-    "@sentry/utils": "^5.8.0",
-    "@sentry/wizard": "^1.0.0"
+    "@sentry/browser": "^5.10.0",
+    "@sentry/core": "^5.10.0",
+    "@sentry/integrations": "^5.10.0",
+    "@sentry/types": "^5.10.0",
+    "@sentry/utils": "^5.10.0",
+    "@sentry/wizard": "^1.0.2"
   },
   "devDependencies": {
-    "@sentry/typescript": "5.*",
-    "@types/react-native": "^0.57.57",
-    "prettier": "^1.17.0",
-    "replace-in-file": "^4.0.0",
-    "rimraf": "^2.6.3",
-    "snyk": "^1.193.1",
-    "tslint": "^5.11.0",
+    "@sentry/typescript": "5.10.0",
+    "@types/react-native": "^0.60.23",
+    "prettier": "^1.19.1",
+    "replace-in-file": "^4.2.0",
+    "rimraf": "^3.0.0",
+    "snyk": "^1.256.0",
+    "tslint": "^5.20.1",
     "typescript": "^3.4.5"
   },
   "rnpm": {

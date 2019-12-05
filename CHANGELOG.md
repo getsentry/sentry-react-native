@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- Bump `@sentry/*` to `^5.10.0`
+- Allow overriding sentry.properties location (#722)
+
 ## 1.1.0
 
 - Bump `@sentry/*` to `^5.9.0`
