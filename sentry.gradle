@@ -11,7 +11,7 @@ gradle.projectsEvaluated {
     if (config.flavorAware && config.sentryProperties) {
         throw new GradleException("Incompatible sentry configuration. " +
             "You cannot use both `flavorAware` and `sentryProperties`. " +
-            "Please remove one of these from the project.ext.sentry configuration.")
+            "Please remove one of these from the project.ext.sentryCli configuration.")
     }
 
     if (config.sentryProperties instanceof String) {
@@ -20,7 +20,7 @@ gradle.projectsEvaluated {
 
     if (config.sentryProperties) {
         if (!config.sentryProperties.exists()) {
-            throw new GradleException("project.ext.sentry configuration defines a non-existant 'sentryProperties' file: " + config.sentryProperties.getAbsolutePath())
+            throw new GradleException("project.ext.sentryCli configuration defines a non-existant 'sentryProperties' file: " + config.sentryProperties.getAbsolutePath())
         }
         logger.info("Using 'sentry.properties' at: " + config.sentryProperties.getAbsolutePath())
     }
