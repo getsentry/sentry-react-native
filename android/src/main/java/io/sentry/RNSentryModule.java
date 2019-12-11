@@ -380,7 +380,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             userBuilder.setUsername(user.getString("username"));
         }
         if (user.hasKey("extra")) {
-            userBuilder.setData(((ReadableNativeMap)user.getMap("extra")).toHashMap());
+            userBuilder.setData(user.getMap("extra").toHashMap());
         }
         return userBuilder;
     }
