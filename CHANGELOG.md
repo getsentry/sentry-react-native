@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- Bump `io.sentry:sentry-android:1.7.29`
+
 ## 1.2.0
 
 - Bump `@sentry/*` to `^5.10.0`
