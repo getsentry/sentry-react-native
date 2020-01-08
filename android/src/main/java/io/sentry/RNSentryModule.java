@@ -220,7 +220,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 try {
                     if (breadcrumb.hasKey("data") && breadcrumb.getMap("data") != null) {
                         Map<String, String> newData = new HashMap<>();
-                        for (Map.Entry<String, Object> data : ((ReadableNativeMap)breadcrumb.getMap("data")).toHashMap().entrySet()) {
+                        for (Map.Entry<String, Object> data : breadcrumb.getMap("data").toHashMap().entrySet()) {
                             newData.put(data.getKey(), data.getValue() != null ? data.getValue().toString() : null);
                         }
 
@@ -380,7 +380,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             userBuilder.setUsername(user.getString("username"));
         }
         if (user.hasKey("extra")) {
-            userBuilder.setData(((ReadableNativeMap)user.getMap("extra")).toHashMap());
+            userBuilder.setData(user.getMap("extra").toHashMap());
         }
         return userBuilder;
     }
