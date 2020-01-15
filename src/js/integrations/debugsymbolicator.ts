@@ -1,6 +1,6 @@
 import { addGlobalEventProcessor, getCurrentHub } from "@sentry/core";
 import { Event, EventHint, Integration, StackFrame } from "@sentry/types";
-import { logger } from "@sentry/utils";
+import { addContextToFrame, logger } from "@sentry/utils";
 
 const INTERNAL_CALLSITES_REGEX = new RegExp(
   ["ReactNativeRenderer-dev\\.js$", "MessageQueue\\.js$"].join("|")
@@ -201,10 +201,7 @@ export class DebugSymbolicator implements Integration {
     const content = await response.text();
     const lines = content.split("\n");
 
-    const line = Math.max(frame.lineno! - 1, 0);
-    frame.pre_context = lines.slice(line - 6, line);
-    frame.post_context = lines.slice(line, line + 5);
-    frame.context_line = lines[line];
+    addContextToFrame(lines, frame);
     // tslint:enable: no-unsafe-any no-non-null-assertion
   }
 }

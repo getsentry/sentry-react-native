@@ -14,6 +14,8 @@
     "build": "tsc -p tsconfig.build.json",
     "build:watch": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
     "clean": "rimraf dist coverage",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "snyk-protect": "snyk protect",
     "prepublish": "npm run snyk-protect"
   },
@@ -32,20 +34,23 @@
     "react-native": ">=0.56.0"
   },
   "dependencies": {
-    "@sentry/browser": "^5.10.0",
-    "@sentry/core": "^5.10.0",
-    "@sentry/integrations": "^5.10.0",
-    "@sentry/types": "^5.10.0",
-    "@sentry/utils": "^5.10.0",
+    "@sentry/browser": "^5.11.1",
+    "@sentry/core": "^5.11.1",
+    "@sentry/integrations": "^5.11.1",
+    "@sentry/types": "^5.11.0",
+    "@sentry/utils": "^5.11.1",
     "@sentry/wizard": "^1.0.2"
   },
   "devDependencies": {
     "@sentry/typescript": "5.10.0",
+    "@types/jest": "^24.0.25",
     "@types/react-native": "^0.60.23",
+    "jest": "^24.9.0",
     "prettier": "^1.19.1",
     "replace-in-file": "^4.2.0",
     "rimraf": "^3.0.0",
     "snyk": "^1.256.0",
+    "ts-jest": "^24.3.0",
     "tslint": "^5.20.1",
     "typescript": "^3.4.5"
   },
@@ -61,6 +66,26 @@
       "sharedLibraries": [
         "libz"
       ]
+    }
+  },
+  "jest": {
+    "collectCoverage": true,
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "moduleFileExtensions": [
+      "js",
+      "ts"
+    ],
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/*.test.ts"
+    ],
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "./tsconfig.json",
+        "diagnostics": false
+      }
     }
   },
   "snyk": true
