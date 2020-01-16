@@ -58,8 +58,8 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       // Workaround for setting release/dist on native
       const scope = getCurrentHub().getScope();
       if (scope) {
-        scope.addScopeListener(scope =>
-          RNSentry.extraUpdated((scope as any)._extra)
+        scope.addScopeListener(internalScope =>
+          RNSentry.extraUpdated((internalScope as any)._extra)
         );
       }
     } else {

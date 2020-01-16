@@ -1,8 +1,7 @@
 import { Event, Response, Transport } from "@sentry/types";
 import { PromiseBuffer } from "@sentry/utils";
-import { NativeModules } from "react-native";
 
-const { RNSentry } = NativeModules;
+import { NATIVE } from "../wrapper";
 
 /** Native Transport class implementation */
 export class NativeTransport implements Transport {
@@ -13,8 +12,8 @@ export class NativeTransport implements Transport {
    * @inheritDoc
    */
   public sendEvent(event: Event): PromiseLike<Response> {
-    // tslint:disable-next-line: no-unsafe-any
-    return this._buffer.add(RNSentry.sendEvent(event));
+    // TODO check if buffer is full like in node
+    return this._buffer.add(NATIVE.sendEvent(event));
   }
 
   /**
