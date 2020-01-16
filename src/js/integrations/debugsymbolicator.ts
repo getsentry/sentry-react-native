@@ -1,12 +1,9 @@
 import { addGlobalEventProcessor, getCurrentHub } from "@sentry/core";
 import { Event, EventHint, Integration, StackFrame } from "@sentry/types";
-import { logger } from "@sentry/utils";
+import { addContextToFrame, logger } from "@sentry/utils";
 
 const INTERNAL_CALLSITES_REGEX = new RegExp(
-  [
-    "/Libraries/Renderer/oss/ReactNativeRenderer-dev\\.js$",
-    "/Libraries/BatchedBridge/MessageQueue\\.js$"
-  ].join("|")
+  ["ReactNativeRenderer-dev\\.js$", "MessageQueue\\.js$"].join("|")
 );
 
 /**
@@ -70,7 +67,7 @@ export class DebugSymbolicator implements Integration {
         await self._symbolicate(event, stack);
       }
       if (reactError.jsEngine === "hermes") {
-        const convertedFrames = this._convertReactNativeFramesToSentryFrames(
+        const convertedFrames = await this._convertReactNativeFramesToSentryFrames(
           stack
         );
         this._replaceFramesInEvent(event, convertedFrames);
@@ -103,7 +100,7 @@ export class DebugSymbolicator implements Integration {
             frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null
         );
 
-        const symbolicatedFrames = this._convertReactNativeFramesToSentryFrames(
+        const symbolicatedFrames = await this._convertReactNativeFramesToSentryFrames(
           stackWithoutInternalCallsites
         );
         this._replaceFramesInEvent(event, symbolicatedFrames);
@@ -121,25 +118,47 @@ export class DebugSymbolicator implements Integration {
    * Converts ReactNativeFrames to frames in the Sentry format
    * @param frames ReactNativeFrame[]
    */
-  private _convertReactNativeFramesToSentryFrames(
+  private async _convertReactNativeFramesToSentryFrames(
     frames: ReactNativeFrame[]
-  ): StackFrame[] {
+  ): Promise<StackFrame[]> {
+    let getDevServer: any;
+    try {
+      if (__DEV__) {
+        getDevServer = require("react-native/Libraries/Core/Devtools/getDevServer");
+      }
+    } catch (_oO) {
+      // We can't load devserver URL
+    }
     // Below you will find lines marked with :HACK to prevent showing errors in the sentry ui
     // But since this is a debug only feature: This is Fine (TM)
-    return frames.map(
-      (frame: ReactNativeFrame): StackFrame => {
-        const inApp =
-          (frame.file && !frame.file.includes("node_modules")) ||
-          (!!frame.column && !!frame.lineNumber);
-        return {
-          colno: frame.column,
-          filename: frame.file,
-          function: frame.methodName,
-          in_app: inApp,
-          lineno: inApp ? frame.lineNumber : undefined, // :HACK
-          platform: inApp ? "javascript" : "node" // :HACK
-        };
-      }
+    return Promise.all(
+      frames.map(
+        async (frame: ReactNativeFrame): Promise<StackFrame> => {
+          let inApp = !!frame.column && !!frame.lineNumber;
+          inApp =
+            inApp &&
+            // tslint:disable-next-line: strict-type-predicates
+            frame.file !== undefined &&
+            !frame.file.includes("node_modules") &&
+            !frame.file.includes("native code");
+
+          const newFrame: StackFrame = {
+            colno: frame.column,
+            filename: frame.file,
+            function: frame.methodName,
+            in_app: inApp,
+            lineno: inApp ? frame.lineNumber : undefined, // :HACK
+            platform: inApp ? "javascript" : "node" // :HACK
+          };
+
+          if (inApp && __DEV__) {
+            // tslint:disable-next-line: no-unsafe-any
+            await this._addSourceContext(newFrame, getDevServer);
+          }
+
+          return newFrame;
+        }
+      )
     );
   }
 
@@ -157,5 +176,32 @@ export class DebugSymbolicator implements Integration {
     ) {
       event.exception.values[0].stacktrace.frames = frames.reverse();
     }
+  }
+
+  /**
+   * This tries to add source context for in_app Frames
+   *
+   * @param frame StackFrame
+   * @param getDevServer function from RN to get DevServer URL
+   */
+  private async _addSourceContext(
+    frame: StackFrame,
+    getDevServer?: any
+  ): Promise<void> {
+    // tslint:disable: no-unsafe-any no-non-null-assertion
+    const response = await fetch(
+      `${getDevServer().url}${frame
+        .filename!.replace(/\/+$/, "")
+        .replace(/.*\//, "")}`,
+      {
+        method: "GET"
+      }
+    );
+
+    const content = await response.text();
+    const lines = content.split("\n");
+
+    addContextToFrame(lines, frame);
+    // tslint:enable: no-unsafe-any no-non-null-assertion
   }
 }

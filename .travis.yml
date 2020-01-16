@@ -16,7 +16,8 @@ matrix:
     #     yarn: true
     #   script: .travis/run.sh
 
-    - language: android
+    - name: "Android"
+      language: android
       sudo: required
       jdk: oraclejdk8
       before_cache:
@@ -40,7 +41,8 @@ matrix:
       env: LANE='android'
       script: .travis/run.sh
 
-    - language: objective-c
+    - name: "iOS"
+      language: objective-c
       os: osx
       osx_image: xcode9.4
       node_js: 8
@@ -58,7 +60,8 @@ matrix:
         - source ~/virtualenv/bin/activate
       script: .travis/run.sh
 
-    - language: node_js
+    - name: "Deploy"
+      language: node_js
       node_js: 8
       script: .travis/deploy.sh
       env: LANE='Deploy'
