@@ -13,7 +13,7 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion safeExtGet('minSdkVersion', 16)
+        minSdkVersion safeExtGet('minSdkVersion', 21)
         targetSdkVersion safeExtGet('targetSdkVersion', 26)
         versionCode 1
         versionName "1.0"
@@ -21,6 +21,12 @@ android {
             abiFilters "armeabi-v7a", "x86"
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     lintOptions {
        warning 'InvalidPackage'
     }
@@ -28,5 +34,5 @@ android {
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
-    implementation 'io.sentry:sentry-android:1.7.29'
+    implementation 'io.sentry:sentry-android:2+'
 }
