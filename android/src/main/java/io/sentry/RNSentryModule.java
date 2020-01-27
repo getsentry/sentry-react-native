@@ -71,11 +71,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
 
             options.setBeforeSend((event, hint) -> {
-                // TODO: Check if ok
-//                SentryException ex = event.getExceptions().get(0);
-//                if (null != ex && ex.getValue().contains("JavascriptException")) {
-//                    return null;
-//                }
+                // React native internally throws a JavascriptException
+                // Since we catch it before that, we don't want to send this one
+                // because we would send it twice
+                SentryException ex = event.getExceptions().get(0);
+                if (null != ex && ex.getType().contains("JavascriptException")) {
+                    return null;
+                }
                 return event;
             });
 
@@ -106,33 +108,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void deviceContexts(Promise promise) {
-        // TODO
-//        EventBuilder eventBuilder = new EventBuilder();
-//        androidHelper.helpBuildingEvent(eventBuilder);
-//        Event event = eventBuilder.build();
-
-        WritableMap params = Arguments.createMap();
-
-//        for (Map.Entry<String, Map<String, Object>> data : event.getContexts().entrySet()) {
-//            params.putMap(data.getKey(), MapUtil.toWritableMap(data.getValue()));
-//        }
-
-        promise.resolve(params);
-    }
-
-    @ReactMethod
-    public void extraUpdated(ReadableMap extra) {
-        // TODO
-//        if (extra.hasKey("__sentry_release")) {
-//            sentryClient.release = extra.getString("__sentry_release");
-//        }
-//        if (extra.hasKey("__sentry_dist")) {
-//            sentryClient.dist = extra.getString("__sentry_dist");
-//        }
-    }
-
-    @ReactMethod
     public void captureEnvelope(String envelope, Promise promise) {
         try {
             File installation = new File(sentryOptions.getOutboxPath(), UUID.randomUUID().toString());
@@ -145,8 +120,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         promise.resolve(true);
     }
 
-
-
     private static PackageInfo getPackageInfo(Context ctx) {
         try {
             return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
@@ -155,8 +128,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             return null;
         }
     }
-
-
 
     private Level logLevel(int level) {
         switch (level) {
