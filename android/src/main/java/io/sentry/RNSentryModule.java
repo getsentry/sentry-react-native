@@ -74,9 +74,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 // React native internally throws a JavascriptException
                 // Since we catch it before that, we don't want to send this one
                 // because we would send it twice
-                SentryException ex = event.getExceptions().get(0);
-                if (null != ex && ex.getType().contains("JavascriptException")) {
-                    return null;
+                try {
+                    SentryException ex = event.getExceptions().get(0);
+                    if (null != ex && ex.getType().contains("JavascriptException")) {
+                        return null;
+                    }
+                } catch (Exception e) {
+                    // We do nothing
                 }
                 return event;
             });
@@ -111,9 +115,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void captureEnvelope(String envelope, Promise promise) {
         try {
             File installation = new File(sentryOptions.getOutboxPath(), UUID.randomUUID().toString());
-            FileOutputStream out = new FileOutputStream(installation);
-            out.write(envelope.getBytes(Charset.forName("UTF-8")));
-            out.close();
+            try(FileOutputStream out = new FileOutputStream(installation)) {
+                out.write(envelope.getBytes(Charset.forName("UTF-8")));
+            }
         } catch (Exception e) {
             logger.info("Error reading envelope");
         }
