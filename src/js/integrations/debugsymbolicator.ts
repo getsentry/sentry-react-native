@@ -63,15 +63,7 @@ export class DebugSymbolicator implements Integration {
         jsEngine: reactError.jsEngine
       };
 
-      if (__DEV__) {
-        await self._symbolicate(event, stack);
-      }
-      if (reactError.jsEngine === "hermes") {
-        const convertedFrames = await this._convertReactNativeFramesToSentryFrames(
-          stack
-        );
-        this._replaceFramesInEvent(event, convertedFrames);
-      }
+      await self._symbolicate(event, stack);
 
       event.platform = "node"; // Setting platform node makes sure we do not show source maps errors
 
@@ -123,9 +115,7 @@ export class DebugSymbolicator implements Integration {
   ): Promise<StackFrame[]> {
     let getDevServer: any;
     try {
-      if (__DEV__) {
-        getDevServer = require("react-native/Libraries/Core/Devtools/getDevServer");
-      }
+      getDevServer = require("react-native/Libraries/Core/Devtools/getDevServer");
     } catch (_oO) {
       // We can't load devserver URL
     }
@@ -151,7 +141,20 @@ export class DebugSymbolicator implements Integration {
             platform: inApp ? "javascript" : "node" // :HACK
           };
 
-          if (inApp && __DEV__) {
+          // The upstream `react-native@0.61` delegates parsing of stacks to `stacktrace-parser`, which is buggy and
+          // leaves a trailing `(address at` in the function name.
+          // `react-native@0.62` seems to have custom logic to parse hermes frames specially.
+          // Anyway, all we do here is throw away the bogus suffix.
+          if (newFrame.function) {
+            const addressAtPos = newFrame.function.indexOf("(address at");
+            if (addressAtPos >= 0) {
+              newFrame.function = newFrame.function
+                .substr(0, addressAtPos)
+                .trim();
+            }
+          }
+
+          if (inApp) {
             // tslint:disable-next-line: no-unsafe-any
             await this._addSourceContext(newFrame, getDevServer);
           }

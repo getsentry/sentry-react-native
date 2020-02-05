@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2
+
+- fix(android): Crash if stacktrace.frames is empty (#742)
+
 ## 1.2.1
 
 - Bump `io.sentry:sentry-android:1.7.29`
