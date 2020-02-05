@@ -64,12 +64,6 @@ export class DebugSymbolicator implements Integration {
       };
 
       await self._symbolicate(event, stack);
-      if (reactError.jsEngine === "hermes") {
-        const convertedFrames = await this._convertReactNativeFramesToSentryFrames(
-          stack
-        );
-        this._replaceFramesInEvent(event, convertedFrames);
-      }
 
       event.platform = "node"; // Setting platform node makes sure we do not show source maps errors
 
