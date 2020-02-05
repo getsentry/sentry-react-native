@@ -6,6 +6,8 @@ import {
 import { initAndBind, setExtra } from "@sentry/core";
 import { RewriteFrames } from "@sentry/integrations";
 import { StackFrame } from "@sentry/types";
+import { getGlobalObject } from "@sentry/utils";
+// import { NativeModules } from "react-native";
 
 import { ReactNativeOptions } from "./backend";
 import { ReactNativeClient } from "./client";
@@ -15,6 +17,8 @@ import {
   ReactNativeErrorHandlers,
   Release
 } from "./integrations";
+
+// const { RNSentry } = NativeModules;
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   "GlobalHandlers", // We will use the react-native internal handlers
@@ -56,6 +60,10 @@ export function init(
               .replace(/^address at /, "")
               .replace(/^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/, "");
 
+            if (frame.filename === "native") {
+              frame.in_app = false;
+            }
+
             const appPrefix = "app://";
             // We always want to have a tripple slash
             frame.filename =
@@ -80,6 +88,21 @@ export function init(
   }
   // tslint:enable: strict-comparisons
   initAndBind(ReactNativeClient, options);
+
+  // TODO: Regist scope syncing here
+  // Workaround for setting release/dist on native
+  // const scope = getCurrentHub().getScope();
+  // if (scope) {
+  //   scope.addScopeListener(internalScope => {
+  //     console.log(internalScope);
+  //     // RNSentry.extraUpdated((internalScope as any)._extra)
+  //   });
+  // }
+
+  // tslint:disable-next-line: no-unsafe-any
+  if (getGlobalObject<any>().HermesInternal) {
+    getCurrentHub().setTag("hermes", "true");
+  }
 }
 
 /**

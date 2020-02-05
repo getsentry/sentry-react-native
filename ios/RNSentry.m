@@ -129,14 +129,4 @@ RCT_EXPORT_METHOD(crash)
     [SentryClient.sharedClient crash];
 }
 
-RCT_EXPORT_METHOD(extraUpdated:(NSDictionary * _Nonnull)extra)
-{
-    if (nil != [extra objectForKey:@"__sentry_release"]) {
-        SentryClient.sharedClient.releaseName = [extra objectForKey:@"__sentry_release"];
-    }
-    if (nil != [extra objectForKey:@"__sentry_dist"]) {
-        SentryClient.sharedClient.dist = [extra objectForKey:@"__sentry_dist"];
-    }
-}
-
 @end

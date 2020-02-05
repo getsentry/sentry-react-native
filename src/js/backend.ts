@@ -1,6 +1,6 @@
 import { BrowserOptions, Transports } from "@sentry/browser";
 import { BrowserBackend } from "@sentry/browser/dist/backend";
-import { BaseBackend, getCurrentHub, NoopTransport } from "@sentry/core";
+import { BaseBackend, NoopTransport } from "@sentry/core";
 import { Event, EventHint, Severity, Transport } from "@sentry/types";
 import { Alert, NativeModules, YellowBox } from "react-native";
 
@@ -55,13 +55,6 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       RNSentry.startWithDsnString(_options.dsn, _options).then(() => {
         RNSentry.setLogLevel(_options.debug ? 2 : 1);
       });
-      // Workaround for setting release/dist on native
-      const scope = getCurrentHub().getScope();
-      if (scope) {
-        scope.addScopeListener(internalScope =>
-          RNSentry.extraUpdated((internalScope as any)._extra)
-        );
-      }
     } else {
       if (__DEV__ && _options.enableNativeNagger) {
         Alert.alert(

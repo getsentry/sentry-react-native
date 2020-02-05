@@ -17,13 +17,18 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.sentry.android.core.AnrIntegration;
+import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
+import io.sentry.core.Integration;
 import io.sentry.core.SentryOptions;
+import io.sentry.core.UncaughtExceptionHandlerIntegration;
 import io.sentry.core.protocol.SentryException;
 
 
@@ -60,6 +65,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
             options.setDsn(dsnString);
 
+            if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
+                options.setDebug(true);
+            }
             if (rnOptions.hasKey("environment") && rnOptions.getString("environment") != null) {
                 options.setEnvironment(rnOptions.getString("environment"));
             }
@@ -85,6 +93,20 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 return event;
             });
 
+
+            for (Iterator<Integration> iterator = options.getIntegrations().iterator(); iterator.hasNext(); ) {
+            Integration integration = iterator.next();
+                if (rnOptions.hasKey("enableNativeCrashHandling") &&
+                        !rnOptions.getBoolean("enableNativeCrashHandling")) {
+                    if (integration instanceof UncaughtExceptionHandlerIntegration ||
+                            integration instanceof AnrIntegration ||
+                            integration instanceof NdkIntegration) {
+                        iterator.remove();
+                    }
+                }
+            }
+
+            logger.info(String.format("Native Integrations '%s'", options.getIntegrations().toString()));
             sentryOptions = options;
         });
 
@@ -99,7 +121,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void crash() {
-        throw new RuntimeException("TEST - Sentry Client Crash");
+        throw new RuntimeException("TEST - Sentry Client Crash (only works in release mode)");
     }
 
     @ReactMethod

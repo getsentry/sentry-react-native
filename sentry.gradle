@@ -156,10 +156,10 @@ def extractReleasesInfo() {
     def releases = [:]
 
     android.applicationVariants.each { variant ->
-        def releaseName = "${variant.getApplicationId()}-${variant.getVersionName()}"
 
         variant.outputs.each { output ->
             def versionCode = output.getVersionCode()
+            def releaseName = "${variant.getApplicationId()}@${variant.getVersionName()}+${versionCode}"
             def variantName = variant.getName()
             def outputName = output.getName()
             if (releases[variantName] == null) {
