@@ -42,8 +42,12 @@ export function init(
       new Integrations.Breadcrumbs({
         console: false, // If this in enabled it causes problems to native calls on >= RN 0.60
         fetch: false
-      }),
-      new DebugSymbolicator(),
+      })
+    ];
+    if (__DEV__) {
+      options.defaultIntegrations.push(new DebugSymbolicator());
+    }
+    options.defaultIntegrations.push(
       new RewriteFrames({
         iteratee: (frame: StackFrame) => {
           if (frame.filename) {
@@ -63,7 +67,7 @@ export function init(
         }
       }),
       new DeviceContext()
-    ];
+    );
   }
   if (options.enableNative === undefined) {
     options.enableNative = true;
