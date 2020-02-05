@@ -185,6 +185,18 @@ static extractBundleTaskArguments(cmdArgs){
         }
     }
 
+    // Best thing would be if we just had access to the local gradle variables here:
+    // https://github.com/facebook/react-native/blob/ff3b839e9a5a6c9e398a1327cde6dd49a3593092/react.gradle#L89-L97
+    // Now, the issue is that hermes builds have a different pipeline:
+    // `metro -> hermes -> compose-source-maps`, which then combines both intermediate sourcemaps into the final one.
+    // In this function here, we only grep through the first `metro` step, which only generates an intermediate sourcemap,
+    // which is wrong. We need the final one. Luckily, we can just generate the path from the `bundleOutput`, since
+    // the paths seem to be well defined.
+    if (bundleOutput != null) {
+        // not quite sure how gradle handles this, but try to be extra careful supporting backslashes for windows paths
+        sourcemapOutput = bundleOutput.replaceAll("(/|\\\\)generated\\1assets\\1react\\1", "\$1generated\$1sourcemaps\$1react\$1") + ".map"
+    }
+
     return [ bundleOutput, sourcemapOutput ]
 }
 
