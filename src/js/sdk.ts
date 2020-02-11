@@ -43,10 +43,7 @@ export function init(
       ...defaultIntegrations.filter(
         i => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
       ),
-      new Integrations.Breadcrumbs({
-        console: false, // If this in enabled it causes problems to native calls on >= RN 0.60
-        fetch: false
-      })
+      new Integrations.Breadcrumbs()
     ];
     if (__DEV__) {
       options.defaultIntegrations.push(new DebugSymbolicator());
