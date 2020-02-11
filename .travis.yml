@@ -11,6 +11,7 @@ install: yarn --ignore-engines
 os: linux
 
 language: node_js
+node_js: "12"
 dist: bionic
 
 cache:
@@ -20,12 +21,10 @@ cache:
 
 matrix:
   include:
-    - language: node_js
+    - name: "Test"
       script: yarn test
 
     - name: "Deploy"
-      language: node_js
-      node_js: 8
       script: .travis/deploy.sh
       after_success:
         - npm install -g @zeus-ci/cli
