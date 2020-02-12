@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0
+
+- Bump `io.sentry:sentry-android:2.0.0-rc04`
+- Added support for Hermes runtime!!
+- Fixed a lot of issues on Android
+- NDK support
+
 ## 1.2.2
 
 - fix(android): Crash if stacktrace.frames is empty (#742)

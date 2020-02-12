@@ -7,64 +7,25 @@ before_install:
   - curl -o- -L https://yarnpkg.com/install.sh | bash
   - export PATH="$HOME/.yarn/bin:$PATH"
 
+install: yarn --ignore-engines
+os: linux
+
+language: node_js
+node_js: "12"
+dist: bionic
+
+cache:
+  yarn: true
+  directories:
+    - node_modules
+
 matrix:
   include:
-    # - language: node_js
-    #   node_js: 8
-    #   env: LANE='node'
-    #   cache:
-    #     yarn: true
-    #   script: .travis/run.sh
-
-    - name: "Android"
-      language: android
-      sudo: required
-      jdk: oraclejdk8
-      before_cache:
-        - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-        - rm -rf $HOME/.gradle/caches/*/plugin-resolution/
-      cache:
-        directories:
-          - $HOME/.yarn-cache
-          - $HOME/.gradle/caches/
-          - $HOME/.gradle/wrapper/
-      before_install:
-        - nvm install 8
-        - .travis/before_install.sh
-        - echo yes | sdkmanager "platforms;android-26"
-      android:
-        components:
-          - tools
-          - platform-tools
-          - build-tools-28.0.3
-          - tools
-      env: LANE='android'
-      script: .travis/run.sh
-
-    - name: "iOS"
-      language: objective-c
-      os: osx
-      osx_image: xcode9.4
-      node_js: 8
-      cache:
-        - bundler
-        - pip
-        - yarn
-      env: LANE='ios'
-      before_install:
-        - .travis/before_install.sh
-      before_script:
-        - nvm install 8
-        - sudo easy_install virtualenv
-        - virtualenv ~/virtualenv
-        - source ~/virtualenv/bin/activate
-      script: .travis/run.sh
+    - name: "Test"
+      script: yarn test
 
     - name: "Deploy"
-      language: node_js
-      node_js: 8
       script: .travis/deploy.sh
-      env: LANE='Deploy'
       after_success:
         - npm install -g @zeus-ci/cli
         - zeus upload -t "application/tar+npm" *.tgz

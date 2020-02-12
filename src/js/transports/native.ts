@@ -1,5 +1,5 @@
 import { Event, Response, Transport } from "@sentry/types";
-import { PromiseBuffer } from "@sentry/utils";
+import { PromiseBuffer, SentryError } from "@sentry/utils";
 
 import { NATIVE } from "../wrapper";
 
@@ -12,7 +12,11 @@ export class NativeTransport implements Transport {
    * @inheritDoc
    */
   public sendEvent(event: Event): PromiseLike<Response> {
-    // TODO check if buffer is full like in node
+    if (!this._buffer.isReady()) {
+      return Promise.reject(
+        new SentryError("Not adding Promise due to buffer limit reached.")
+      );
+    }
     return this._buffer.add(NATIVE.sendEvent(event));
   }
 

@@ -33,7 +33,7 @@ export class Release implements Integration {
           version: string;
         };
         if (release) {
-          event.release = `${release.id}-${release.version}`;
+          event.release = `${release.id}@${release.version}+${release.build}`;
           event.dist = `${release.build}`;
         }
       } catch (_Oo) {
