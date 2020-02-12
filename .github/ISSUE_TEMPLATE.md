@@ -3,7 +3,7 @@ OS:
 - [ ]  MacOS
 - [ ]  Linux
 
-_Platform:_
+Platform:
 - [ ]  iOS
 - [ ]  Android
 
@@ -13,6 +13,7 @@ SDK:
 - [ ]  `react-native-sentry`
 
 
+SDK version: 0.0.0
 `react-native` version: 0.0.0
 
 Init Code:
