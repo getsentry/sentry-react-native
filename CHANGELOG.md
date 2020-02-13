@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1
+
+- Bump `@sentry/wizard` to `1.1.1` fixing iOS release identifiers
+- console.warn und unhandled rejections in DEV
+
 ## 1.3.0
 
 - Bump `io.sentry:sentry-android:2.0.0-rc04`
