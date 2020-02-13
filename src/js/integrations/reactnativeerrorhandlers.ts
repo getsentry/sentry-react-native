@@ -60,6 +60,9 @@ export class ReactNativeErrorHandlers implements Integration {
           // We do nothing
         },
         onUnhandled: (id: any, error: any) => {
+          if (__DEV__) {
+            console.warn(id, error);
+          }
           getCurrentHub().captureException(error, {
             data: { id },
             originalException: error
