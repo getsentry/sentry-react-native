@@ -7,3 +7,8 @@ preReleaseCommand: bash scripts/craft-pre-release.sh
 targets:
   - name: npm
   - name: github
+  - name: registry
+    type: sdk
+    includeNames: /none/
+    config:
+      canonical: "npm:@sentry/react-native"
