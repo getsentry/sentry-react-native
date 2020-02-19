@@ -24,7 +24,7 @@
 - [Autolinking](https://facebook.github.io/react-native/blog/2019/07/03/version-60#native-modules-are-now-autolinked)
 - Events with enriched device data
 - RAM bundle support
-- Hermes support (coming soon see [#649](https://github.com/getsentry/sentry-react-native/issues/649))
+- Hermes support
 - Expo support ([sentry-expo](https://github.com/expo/sentry-expo))
 
 ## Installation and Usage
