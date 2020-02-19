@@ -146,6 +146,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         promise.resolve(true);
     }
 
+    @ReactMethod
+    public void getStringBytesLength(String str) {
+        return str.getBytes("UTF-8").length;
+    }
+
     private static PackageInfo getPackageInfo(Context ctx) {
         try {
             return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);

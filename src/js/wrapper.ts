@@ -21,7 +21,7 @@ export const NATIVE = {
       const payload = JSON.stringify(event);
       const item = JSON.stringify({
         content_type: "application/json",
-        length: payload.length,
+        length: RNSentry.getStringBytesLength(payload),
         type: "event"
       });
       const envelope = `${header}\n${item}\n${payload}`;
