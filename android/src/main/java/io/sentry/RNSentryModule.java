@@ -147,7 +147,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getStringBytesLength(String str) {
+    public int getStringBytesLength(String str) {
         return str.getBytes("UTF-8").length;
     }
 
