@@ -15,6 +15,7 @@ import com.facebook.react.module.annotations.ReactModule;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -144,6 +145,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             logger.info("Error reading envelope");
         }
         promise.resolve(true);
+    }
+
+    @ReactMethod
+    public void getStringBytesLength(String payload, Promise promise) {
+        try {
+            promise.resolve(payload.getBytes("UTF-8").length);
+        } catch (UnsupportedEncodingException e) {
+            promise.reject(e);
+        }
     }
 
     private static PackageInfo getPackageInfo(Context ctx) {

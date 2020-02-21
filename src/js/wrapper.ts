@@ -11,7 +11,7 @@ export const NATIVE = {
    * Sending the event over the bridge to native
    * @param event Event
    */
-  sendEvent(event: Event): PromiseLike<Response> {
+  async sendEvent(event: Event): Promise<Response> {
     if (NATIVE.platform === "android") {
       const header = JSON.stringify({ event_id: event.event_id });
 
@@ -19,9 +19,16 @@ export const NATIVE = {
         message: event.message
       };
       const payload = JSON.stringify(event);
+      let length = payload.length;
+      try {
+        // tslint:disable-next-line: no-unsafe-any
+        length = await RNSentry.getStringBytesLength(payload);
+      } catch {
+        // The native call failed, we do nothing, we have payload.length as a fallback
+      }
       const item = JSON.stringify({
         content_type: "application/json",
-        length: payload.length,
+        length,
         type: "event"
       });
       const envelope = `${header}\n${item}\n${payload}`;
