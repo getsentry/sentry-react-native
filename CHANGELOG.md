@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.2
+
+- Bump `io.sentry:sentry-android:2.0.0`
+- Fixes a bug on Android when sending events with wrong envelope size
+
 ## 1.3.1
 
 - Bump `@sentry/wizard` to `1.1.1` fixing iOS release identifiers
