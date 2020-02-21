@@ -192,9 +192,15 @@ static extractBundleTaskArguments(cmdArgs){
     // In this function here, we only grep through the first `metro` step, which only generates an intermediate sourcemap,
     // which is wrong. We need the final one. Luckily, we can just generate the path from the `bundleOutput`, since
     // the paths seem to be well defined.
-    if (bundleOutput != null) {
+    // if sourcemapOutput is not null, it means react-native passed --sourcemap-output and we are good to go
+    if (bundleOutput != null && sourcemapOutput == null) {
+        // react-native < 0.60.1
         // not quite sure how gradle handles this, but try to be extra careful supporting backslashes for windows paths
         sourcemapOutput = bundleOutput.replaceAll("(/|\\\\)generated\\1assets\\1react\\1", "\$1generated\$1sourcemaps\$1react\$1") + ".map"
+        if (!new File(sourcemapOutput).exists()) {
+            // react-native >= 0.60.1
+            sourcemapOutput = bundleOutput.replaceAll("(/|\\\\)generated\\1assets\\1react\\1", "\$1intermediates\$1sourcemaps\$1react\$1") + ".map"
+        }
     }
 
     return [ bundleOutput, sourcemapOutput ]
