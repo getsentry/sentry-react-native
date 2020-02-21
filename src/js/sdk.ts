@@ -1,8 +1,4 @@
-import {
-  defaultIntegrations,
-  getCurrentHub,
-  Integrations
-} from "@sentry/browser";
+import { defaultIntegrations, getCurrentHub } from "@sentry/browser";
 import { initAndBind, setExtra } from "@sentry/core";
 import { RewriteFrames } from "@sentry/integrations";
 import { StackFrame } from "@sentry/types";
@@ -22,7 +18,6 @@ import {
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   "GlobalHandlers", // We will use the react-native internal handlers
-  "Breadcrumbs", // We add it later, just not patching fetch
   "TryCatch" // We don't need this
 ];
 
@@ -42,8 +37,7 @@ export function init(
       new Release(),
       ...defaultIntegrations.filter(
         i => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
-      ),
-      new Integrations.Breadcrumbs()
+      )
     ];
     if (__DEV__) {
       options.defaultIntegrations.push(new DebugSymbolicator());
