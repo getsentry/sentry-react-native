@@ -20,11 +20,9 @@ export const NATIVE = {
       };
       const payload = JSON.stringify(event);
       let length = payload.length;
-      console.log(length, "pre");
       try {
         // tslint:disable-next-line: no-unsafe-any
         length = await RNSentry.getStringBytesLength(payload);
-        console.log(length, "post");
       } catch {
         // The native call failed, we do nothing, we have payload.length as a fallback
       }
