@@ -205,10 +205,10 @@ static extractBundleTaskArguments(cmdArgs, Project project) {
         // react-native < 0.60.1
         def pattern = Pattern.compile("(/|\\\\)intermediates\\1sourcemaps\\1react\\1")
         Matcher matcher = pattern.matcher(sourcemapOutput)
-        // so if its intermediates/sourcemaps/react then it should be generated/sourcemaps/react
+        // if its intermediates/sourcemaps/react then it should be generated/sourcemaps/react
         if (matcher.find()) {
             project.logger.info("sourcemapOutput has the wrong path, let's fix it.")
-            // replacing from bundleOut which is more reliable
+            // replacing from bundleOutput which is more reliable
             sourcemapOutput = bundleOutput.replaceAll("(/|\\\\)generated\\1assets\\1react\\1", "\$1generated\$1sourcemaps\$1react\$1") + ".map"
             project.logger.info("sourcemapOutput new path: `${sourcemapOutput}`")
         }
