@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.3
+
+- Fix sourcemap path for Android and `react-native` version `< 0.61`
+- Expose Android SDK in Java
+
 ## 1.3.2
 
 - Bump `io.sentry:sentry-android:2.0.0`
