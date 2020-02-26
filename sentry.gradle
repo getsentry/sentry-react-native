@@ -10,8 +10,8 @@ gradle.projectsEvaluated {
 
     if (config.flavorAware && config.sentryProperties) {
         throw new GradleException("Incompatible sentry configuration. " +
-            "You cannot use both `flavorAware` and `sentryProperties`. " +
-            "Please remove one of these from the project.ext.sentryCli configuration.")
+                "You cannot use both `flavorAware` and `sentryProperties`. " +
+                "Please remove one of these from the project.ext.sentryCli configuration.")
     }
 
     if (config.sentryProperties instanceof String) {
@@ -34,7 +34,7 @@ gradle.projectsEvaluated {
     // separately we then hook into the bundle task of react native to inject
     // sourcemap generation parameters.  In case for whatever reason no release
     // was found for the asset folder we just bail.
-    def bundleTasks = tasks.findAll { task -> task.name.startsWith("bundle") && task.name.endsWith("JsAndAssets") && !task.name.contains("Debug")}
+    def bundleTasks = tasks.findAll { task -> task.name.startsWith("bundle") && task.name.endsWith("JsAndAssets") && !task.name.contains("Debug") }
     bundleTasks.each { bundleTask ->
         def shouldCleanUp
         def sourcemapOutput
@@ -75,8 +75,8 @@ gradle.projectsEvaluated {
             workingDir reactRoot
 
             def propertiesFile = config.sentryProperties
-                ? config.sentryProperties
-                : "$reactRoot/android/sentry.properties"
+                    ? config.sentryProperties
+                    : "$reactRoot/android/sentry.properties"
 
             if (config.flavorAware) {
                 propertiesFile = "$reactRoot/android/sentry-${variant}.properties"
@@ -104,22 +104,22 @@ gradle.projectsEvaluated {
             //
             def args = [cliExecutable]
 
-            args.addAll( !config.logLevel ? [] : [
-                "--log-level", config.logLevel      // control verbosity of the output
-                ])
+            args.addAll(!config.logLevel ? [] : [
+                    "--log-level", config.logLevel      // control verbosity of the output
+            ])
             args.addAll(!config.flavorAware ? [] : [
-                "--url", sentryProps.get("defaults.url"),
-                "--auth-token", sentryProps.get("auth.token")
-                ])
+                    "--url", sentryProps.get("defaults.url"),
+                    "--auth-token", sentryProps.get("auth.token")
+            ])
             args.addAll(["react-native", "gradle",
-                "--bundle", bundleOutput,           // The path to a bundle that should be uploaded.
-                "--sourcemap", sourcemapOutput,     // The path to a sourcemap that should be uploaded.
-                "--release", releaseName            // The name of the release to publish.
-                ])
+                         "--bundle", bundleOutput,           // The path to a bundle that should be uploaded.
+                         "--sourcemap", sourcemapOutput,     // The path to a sourcemap that should be uploaded.
+                         "--release", releaseName            // The name of the release to publish.
+            ])
             args.addAll(!config.flavorAware ? [] : [
-                "--org", sentryProps.get("defaults.org"),
-                "--project", sentryProps.get("defaults.project")
-                ])
+                    "--org", sentryProps.get("defaults.org"),
+                    "--project", sentryProps.get("defaults.project")
+            ])
 
             // The names of the distributions to publish. Can be supplied multiple times.
             versionCodes.each { versionCode -> args.addAll(["--dist", versionCode]) }
@@ -173,15 +173,17 @@ def extractReleasesInfo() {
 }
 
 /** Extract from arguments collection bundle and sourcemap files output names. */
-static extractBundleTaskArguments(cmdArgs){
+static extractBundleTaskArguments(cmdArgs, Project project) {
     def bundleOutput = null
     def sourcemapOutput = null
 
     cmdArgs.eachWithIndex { String arg, int i ->
         if (arg == "--bundle-output") {
             bundleOutput = cmdArgs[i + 1]
+            project.logger.info("--bundle-output: `${bundleOutput}`")
         } else if (arg == "--sourcemap-output") {
             sourcemapOutput = cmdArgs[i + 1]
+            project.logger.info("--sourcemap-output param: `${sourcemapOutput}`")
         }
     }
 
@@ -192,16 +194,31 @@ static extractBundleTaskArguments(cmdArgs){
     // In this function here, we only grep through the first `metro` step, which only generates an intermediate sourcemap,
     // which is wrong. We need the final one. Luckily, we can just generate the path from the `bundleOutput`, since
     // the paths seem to be well defined.
-    if (bundleOutput != null) {
-        // not quite sure how gradle handles this, but try to be extra careful supporting backslashes for windows paths
-        sourcemapOutput = bundleOutput.replaceAll("(/|\\\\)generated\\1assets\\1react\\1", "\$1generated\$1sourcemaps\$1react\$1") + ".map"
+
+    // if sourcemapOutput is null, it means there's no source maps at all
+    // if hermes is enabled and has intermediates folder, we need to fix paths
+    // if hermes is disabled, sourcemapOutput is already ok
+    def enableHermes = project.ext.react.get("enableHermes", false);
+    project.logger.info("enableHermes: `${enableHermes}`")
+
+    if (bundleOutput != null && sourcemapOutput != null && enableHermes) {
+        // react-native < 0.60.1
+        def pattern = Pattern.compile("(/|\\\\)intermediates\\1sourcemaps\\1react\\1")
+        Matcher matcher = pattern.matcher(sourcemapOutput)
+        // if its intermediates/sourcemaps/react then it should be generated/sourcemaps/react
+        if (matcher.find()) {
+            project.logger.info("sourcemapOutput has the wrong path, let's fix it.")
+            // replacing from bundleOutput which is more reliable
+            sourcemapOutput = bundleOutput.replaceAll("(/|\\\\)generated\\1assets\\1react\\1", "\$1generated\$1sourcemaps\$1react\$1") + ".map"
+            project.logger.info("sourcemapOutput new path: `${sourcemapOutput}`")
+        }
     }
 
-    return [ bundleOutput, sourcemapOutput ]
+    return [bundleOutput, sourcemapOutput]
 }
 
 /** Force Bundle task to produce sourcemap files if they are not pre-configured by user yet. */
-def forceSourceMapOutputFromBundleTask(bundleTask){
+def forceSourceMapOutputFromBundleTask(bundleTask) {
     def props = bundleTask.getProperties()
     def cmd = props.get("commandLine") as List<String>
     def cmdArgs = props.get("args") as List<String>
@@ -209,7 +226,7 @@ def forceSourceMapOutputFromBundleTask(bundleTask){
     def bundleOutput = null
     def sourcemapOutput = null
 
-    (bundleOutput, sourcemapOutput) = extractBundleTaskArguments(cmdArgs)
+    (bundleOutput, sourcemapOutput) = extractBundleTaskArguments(cmdArgs, project)
 
     if (sourcemapOutput == null) {
         sourcemapOutput = bundleOutput + ".map"
