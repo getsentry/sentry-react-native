@@ -7,7 +7,6 @@ Platform:
 - [ ]  iOS
 - [ ]  Android
 
-
 SDK:
 - [ ]  `@sentry/react-native`
 - [ ]  `react-native-sentry`
@@ -16,7 +15,16 @@ SDK:
 SDK version: 0.0.0
 `react-native` version: 0.0.0
 
-Init Code:
+Are you using Expo?
+- [ ]  Yes
+- [ ]  No
+
+Are you using sentry.io or on-premise?
+- [ ]  sentry.io (SaaS)
+- [ ]  on-premise
+<!-- Please post a link to your issue so we can take a look -->
+
+Configuration:
 
 ```
 Sentry.init({
