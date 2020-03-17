@@ -37,7 +37,7 @@ npm install --save @sentry/react-native
 yarn add @sentry/react-native
 ```
 
-If you are using a version of React Native <= 0.60.x link the package using `react-native`.
+If you are using a version of React Native < 0.60 link the package using `react-native`.
 
 ```sh
 react-native link @sentry/react-native
