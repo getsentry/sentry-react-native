@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.5
+
+- Bump `@sentry/*` to `^5.15.2`
+
 ## 1.3.4
 
 - Bump `@sentry/*` to `^5.15.1`
