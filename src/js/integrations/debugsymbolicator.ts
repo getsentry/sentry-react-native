@@ -191,20 +191,28 @@ export class DebugSymbolicator implements Integration {
     frame: StackFrame,
     getDevServer?: any
   ): Promise<void> {
+    let response;
     // tslint:disable: no-unsafe-any no-non-null-assertion
-    const response = await fetch(
-      `${getDevServer().url}${frame
-        .filename!.replace(/\/+$/, "")
-        .replace(/.*\//, "")}`,
-      {
-        method: "GET"
+    const segments = frame.filename!.split("/");
+    // tslint:disable
+    for (const idx in segments) {
+      response = await fetch(
+        `${getDevServer().url}${segments.slice(-idx).join("/")}`,
+        {
+          method: "GET"
+        }
+      );
+      if (response.ok) {
+        break;
       }
-    );
+    }
+    // tslint:enable
+    if (response && response.ok) {
+      const content = await response.text();
+      const lines = content.split("\n");
 
-    const content = await response.text();
-    const lines = content.split("\n");
-
-    addContextToFrame(lines, frame);
+      addContextToFrame(lines, frame);
+    }
     // tslint:enable: no-unsafe-any no-non-null-assertion
   }
 }

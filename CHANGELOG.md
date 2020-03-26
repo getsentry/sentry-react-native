@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.4
+
+- Bump `@sentry/*` to `^5.15.1`
+- Fix a bug in DebugSymbolicator to fetch the correct file
+- Bump to `io.sentry:sentry-android:2.0.2`
+
 ## 1.3.3
 
 - Fix sourcemap path for Android and `react-native` version `< 0.61`
