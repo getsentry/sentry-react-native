@@ -9,10 +9,6 @@ android {
     buildToolsVersion safeExtGet('buildToolsVersion', '28.0.3')
 
     defaultConfig {
-        consumerProguardFiles 'proguard-rules.pro'
-    }
-
-    defaultConfig {
         minSdkVersion safeExtGet('minSdkVersion', 16)
         targetSdkVersion safeExtGet('targetSdkVersion', 28)
         versionCode 1
@@ -25,10 +21,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    lintOptions {
-       warning 'InvalidPackage'
     }
 }
 
