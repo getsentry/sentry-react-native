@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.7
+
+- Bump `@sentry/wizard` to `1.1.2`
+
 ## 1.3.6
 
 - Bump `@sentry/*` to `^5.15.4`
@@ -105,7 +109,7 @@ New way to import and init the SDK:
 import * as Sentry from "@sentry/react-native";
 
 Sentry.init({
-  dsn: "DSN"
+  dsn: "DSN",
 });
 ```
 
@@ -341,7 +345,7 @@ To activate it set:
 
 ```js
 Sentry.config("___DSN___", {
-  deactivateStacktraceMerging: false
+  deactivateStacktraceMerging: false,
 });
 ```
 
