@@ -209,7 +209,7 @@ static extractBundleTaskArguments(cmdArgs, Project project) {
         if (matcher.find()) {
             project.logger.info("sourcemapOutput has the wrong path, let's fix it.")
             // replacing from bundleOutput which is more reliable
-            sourcemapOutput = bundleOutput.replaceAll("(/|\\\\)generated\\1assets\\1react\\1", "\$1generated\$1sourcemaps\$1react\$1") + ".map"
+            sourcemapOutput = bundleOutput.replaceAll("(/|\\\\)generated\\1assets\\1react\\1", "\$1intermediates\$1sourcemaps\$1react\$1") + ".packager.map"
             project.logger.info("sourcemapOutput new path: `${sourcemapOutput}`")
         }
     }
