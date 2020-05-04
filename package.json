@@ -39,7 +39,8 @@
     "@sentry/integrations": "^5.15.4",
     "@sentry/types": "^5.15.4",
     "@sentry/utils": "^5.15.4",
-    "@sentry/wizard": "^1.1.1"
+    "@sentry/wizard": "^1.1.1",
+    "snyk": "^1.317.0"
   },
   "devDependencies": {
     "@sentry/typescript": "5.15.4",
@@ -49,7 +50,6 @@
     "prettier": "^1.19.1",
     "replace-in-file": "^4.2.0",
     "rimraf": "^3.0.0",
-    "snyk": "^1.290.2",
     "ts-jest": "^24.3.0",
     "tslint": "^5.20.1",
     "typescript": "^3.4.5"
