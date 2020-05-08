@@ -17,7 +17,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "snyk-protect": "snyk protect",
-    "prepublish": "npm run snyk-protect"
+    "prepublish": "npm run snyk-protect",
+    "run-ios": "cd sample && yarn react-native run-ios",
+    "run-android": "cd sample && yarn react-native run-android"
   },
   "keywords": [
     "react-native",

@@ -1,10 +1,12 @@
-assets
-examples
-docs
-.idea
-appium
-.vscode
-.travis
-.github
+*
 
+# Included to the final package
+!LICENSE.md
+!CHANGELOG.md
+!README.md
 !/dist/**/*
+!RNSentry.podspec
+!sentry.gradle
+!react-native.config.js
+!/ios/**/*
+!/android/**/*
