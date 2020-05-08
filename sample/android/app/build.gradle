@@ -188,7 +188,7 @@ android {
 }
 
 dependencies {
-    implementation project(':sentry-react-native')
+    implementation project(':sentry_react-native')
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
