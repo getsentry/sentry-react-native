@@ -8,9 +8,10 @@
 const path = require('path');
 const blacklist = require('metro-config/src/defaults/blacklist');
 
-const reactNativeLib = path.resolve(__dirname, '../dist');
+const reactNativeLib = path.resolve(__dirname, '..');
 
 module.exports = {
+  projectRoot: __dirname,
   watchFolders: [path.resolve(__dirname, 'node_modules'), reactNativeLib],
   resolver: {
     blacklistRE: blacklist([
@@ -24,5 +25,18 @@ module.exports = {
         inlineRequires: false,
       },
     }),
+  },
+  resolver: {
+    extraNodeModules: new Proxy(
+      {},
+      {
+        get: (target, name) => {
+          if (target.hasOwnProperty(name)) {
+            return target[name];
+          }
+          return path.join(process.cwd(), `node_modules/${name}`);
+        },
+      },
+    ),
   },
 };

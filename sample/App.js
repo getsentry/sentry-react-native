@@ -30,8 +30,8 @@ Sentry.init({
   dsn:
     // Replace the example DSN below with your own DSN:
     'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053',
+  debug: true,
 });
-
 const App: () => React$Node = () => {
   return (
     <>
@@ -48,6 +48,34 @@ const App: () => React$Node = () => {
           )}
           <View style={styles.body}>
             <View style={styles.sectionContainer}>
+              <Text
+                style={styles.sectionTitle}
+                onPress={() => {
+                  Sentry.captureMessage('React Native Test Message');
+                }}>
+                captureMessage
+              </Text>
+              <Text
+                style={styles.sectionTitle}
+                onPress={() => {
+                  Sentry.captureException(new Error('captureException test'));
+                }}>
+                captureException
+              </Text>
+              <Text
+                style={styles.sectionTitle}
+                onPress={() => {
+                  throw new Error('throw new error test');
+                }}>
+                throw new Error
+              </Text>
+              <Text
+                style={styles.sectionTitle}
+                onPress={() => {
+                  Sentry.nativeCrash();
+                }}>
+                nativeCrash
+              </Text>
               <Text style={styles.sectionTitle}>Step One</Text>
               <Text style={styles.sectionDescription}>
                 Edit <Text style={styles.highlight}>App.js</Text> to change this
