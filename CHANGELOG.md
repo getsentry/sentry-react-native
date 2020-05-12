@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+## 1.3.8
+
+- Fixes a bug in `DebugSymbolicator`
+
 ## 1.3.7
 
 - Bump `@sentry/wizard` to `1.1.2`
