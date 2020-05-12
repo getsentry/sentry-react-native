@@ -46,6 +46,7 @@ export class DebugSymbolicator implements Integration {
     addGlobalEventProcessor(async (event: Event, hint?: EventHint) => {
       const self = getCurrentHub().getIntegration(DebugSymbolicator);
       // tslint:disable: strict-comparisons
+
       if (!self || hint === undefined || hint.originalException === undefined) {
         return event;
       }
@@ -60,7 +61,7 @@ export class DebugSymbolicator implements Integration {
       event.extra = {
         ...event.extra,
         componentStack: reactError.componentStack,
-        jsEngine: reactError.jsEngine
+        jsEngine: reactError.jsEngine,
       };
 
       await self._symbolicate(event, stack);
@@ -86,8 +87,14 @@ export class DebugSymbolicator implements Integration {
     try {
       const symbolicateStackTrace = require("react-native/Libraries/Core/Devtools/symbolicateStackTrace");
       const prettyStack = await symbolicateStackTrace(stack);
+
       if (prettyStack) {
-        const stackWithoutInternalCallsites = prettyStack.filter(
+        let newStack = prettyStack;
+        if (prettyStack.stack) {
+          // This has been changed in an react-native version so stack is contained in here
+          newStack = prettyStack.stack;
+        }
+        const stackWithoutInternalCallsites = newStack.filter(
           (frame: any) =>
             frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null
         );
@@ -138,7 +145,7 @@ export class DebugSymbolicator implements Integration {
             function: frame.methodName,
             in_app: inApp,
             lineno: inApp ? frame.lineNumber : undefined, // :HACK
-            platform: inApp ? "javascript" : "node" // :HACK
+            platform: inApp ? "javascript" : "node", // :HACK
           };
 
           // The upstream `react-native@0.61` delegates parsing of stacks to `stacktrace-parser`, which is buggy and
@@ -199,7 +206,7 @@ export class DebugSymbolicator implements Integration {
       response = await fetch(
         `${getDevServer().url}${segments.slice(-idx).join("/")}`,
         {
-          method: "GET"
+          method: "GET",
         }
       );
       if (response.ok) {

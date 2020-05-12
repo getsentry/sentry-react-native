@@ -11,14 +11,14 @@ import {
   DebugSymbolicator,
   DeviceContext,
   ReactNativeErrorHandlers,
-  Release
+  Release,
 } from "./integrations";
 
 // const { RNSentry } = NativeModules;
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   "GlobalHandlers", // We will use the react-native internal handlers
-  "TryCatch" // We don't need this
+  "TryCatch", // We don't need this
 ];
 
 /**
@@ -27,7 +27,7 @@ const IGNORED_DEFAULT_INTEGRATIONS = [
 export function init(
   options: ReactNativeOptions = {
     enableNative: true,
-    enableNativeCrashHandling: true
+    enableNativeCrashHandling: true,
   }
 ): void {
   // tslint:disable: strict-comparisons
@@ -36,8 +36,8 @@ export function init(
       new ReactNativeErrorHandlers(),
       new Release(),
       ...defaultIntegrations.filter(
-        i => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
-      )
+        (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
+      ),
     ];
     if (__DEV__) {
       options.defaultIntegrations.push(new DebugSymbolicator());
@@ -63,7 +63,7 @@ export function init(
                 : `${appPrefix}/${frame.filename}`;
           }
           return frame;
-        }
+        },
       }),
       new DeviceContext()
     );
