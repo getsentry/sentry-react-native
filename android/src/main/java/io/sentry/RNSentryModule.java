@@ -32,7 +32,6 @@ import io.sentry.core.SentryOptions;
 import io.sentry.core.UncaughtExceptionHandlerIntegration;
 import io.sentry.core.protocol.SentryException;
 
-
 @ReactModule(name = RNSentryModule.NAME)
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
@@ -94,14 +93,12 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 return event;
             });
 
-
-            for (Iterator<Integration> iterator = options.getIntegrations().iterator(); iterator.hasNext(); ) {
-            Integration integration = iterator.next();
-                if (rnOptions.hasKey("enableNativeCrashHandling") &&
-                        !rnOptions.getBoolean("enableNativeCrashHandling")) {
-                    if (integration instanceof UncaughtExceptionHandlerIntegration ||
-                            integration instanceof AnrIntegration ||
-                            integration instanceof NdkIntegration) {
+            for (Iterator<Integration> iterator = options.getIntegrations().iterator(); iterator.hasNext();) {
+                Integration integration = iterator.next();
+                if (rnOptions.hasKey("enableNativeCrashHandling")
+                        && !rnOptions.getBoolean("enableNativeCrashHandling")) {
+                    if (integration instanceof UncaughtExceptionHandlerIntegration
+                            || integration instanceof AnrIntegration || integration instanceof NdkIntegration) {
                         iterator.remove();
                     }
                 }
@@ -138,7 +135,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void captureEnvelope(String envelope, Promise promise) {
         try {
             File installation = new File(sentryOptions.getOutboxPath(), UUID.randomUUID().toString());
-            try(FileOutputStream out = new FileOutputStream(installation)) {
+            try (FileOutputStream out = new FileOutputStream(installation)) {
                 out.write(envelope.getBytes(Charset.forName("UTF-8")));
             }
         } catch (Exception e) {

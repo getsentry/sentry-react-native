@@ -1,5 +1,6 @@
 import { addGlobalEventProcessor, getCurrentHub } from "@sentry/core";
 import { Event, Integration } from "@sentry/types";
+import { logger } from "@sentry/utils";
 import { NativeModules } from "react-native";
 
 const { RNSentry } = NativeModules;
@@ -29,8 +30,8 @@ export class DeviceContext implements Integration {
         // tslint:disable-next-line: no-unsafe-any
         const deviceContexts = await RNSentry.deviceContexts();
         event.contexts = { ...deviceContexts, ...event.contexts };
-      } catch (_Oo) {
-        // Something went wrong, we just continue
+      } catch (e) {
+        logger.log(`Failed to get device context from native: ${e}`);
       }
 
       return event;
