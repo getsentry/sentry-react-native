@@ -38,12 +38,6 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString
 {
     NSError *error = nil;
     
-    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:options didFailWithError:&error];
-    if (error) {
-        reject(@"SentryReactNative", error.localizedDescription, error);
-        return;
-    }
-    
     SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
         // We don't want to send an event after startup that came from a Unhandled JS Exception of react native
         // Because we sent it already before the app crashed.
@@ -52,22 +46,28 @@ RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString
             NSLog(@"Unhandled JS Exception");
             return nil;
         }
+      
         return event;
     };
     
     [options setValue:beforeSend forKey:@"beforeSend"];
     
+    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:options didFailWithError:&error];
+    if (error) {
+        reject(@"SentryReactNative", error.localizedDescription, error);
+        return;
+    }
     [SentrySDK startWithOptionsObject:sentryOptions];
-
+    
     resolve(@YES);
 }
 
 // TODO: Need to expose device context from sentry-cocoa
-////RCT_EXPORT_METHOD(deviceContexts:(RCTPromiseResolveBlock)resolve
-////                  rejecter:(RCTPromiseRejectBlock)reject)
-////{
-////    resolve([[[SentryContext alloc] init] serialize]);
-////}
+//RCT_EXPORT_METHOD(deviceContexts:(RCTPromiseResolveBlock)resolve
+//                  rejecter:(RCTPromiseRejectBlock)reject)
+//{
+//    resolve([[[SentryContext alloc] init] serialize]);
+//}
 
 RCT_EXPORT_METHOD(setLogLevel:(int)level)
 {
@@ -105,9 +105,7 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
             NSData *jsonData = [NSJSONSerialization dataWithJSONObject:event
                                                                options:0
                                                                  error:nil];
-
-            SentryEvent *sentryEvent = [[SentryEvent alloc] initWithJSON:jsonData];
-            [SentrySDK captureEvent:sentryEvent];
+            [SentrySDK captureEvent:[[SentryEvent alloc] initWithJSON:jsonData]];
             resolve(@YES);
         } else {
             reject(@"SentryReactNative", @"Cannot serialize event", nil);
