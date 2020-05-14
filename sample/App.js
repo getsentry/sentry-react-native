@@ -31,6 +31,14 @@ Sentry.init({
     // Replace the example DSN below with your own DSN:
     'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053',
   debug: true,
+  beforeSend: e => {
+    if (!e.tags) {
+      e.tags = {};
+    }
+    e.tags["beforeSend"] = "JS layer";
+    return e;
+  },
+  enableAutoSessionTracking: true
 });
 const App: () => React$Node = () => {
   return (

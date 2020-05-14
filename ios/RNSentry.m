@@ -31,56 +31,70 @@ RCT_EXPORT_MODULE()
     return @{@"nativeClientAvailable": @YES, @"nativeTransport": @YES};
 }
 
-RCT_EXPORT_METHOD(crashedLastLaunch:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
-    NSNumber *crashedLastLaunch = @NO;
-    if (SentryClient.sharedClient && [SentryClient.sharedClient crashedLastLaunch]) {
-        crashedLastLaunch = @YES;
-    }
-    resolve(crashedLastLaunch);
-}
-
 RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString
                   options:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSError *error = nil;
-    SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:&error];
-    client.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
+
+    SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
         // We don't want to send an event after startup that came from a Unhandled JS Exception of react native
         // Because we sent it already before the app crashed.
         if (nil != event.exceptions.firstObject.type &&
             [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
             NSLog(@"Unhandled JS Exception");
-            return NO;
+            return nil;
         }
-        return YES;
+
+        return event;
     };
-    [SentryClient setSharedClient:client];
-    if ([[options objectForKey:@"enableNativeCrashHandling"] boolValue]) {
-        [SentryClient.sharedClient startCrashHandlerWithError:&error];
-    }
-    if (nil != [options objectForKey:@"environment"]) {
-        SentryClient.sharedClient.environment = [NSString stringWithFormat:@"%@", [options objectForKey:@"environment"]];
-    }
-    if (nil != [options objectForKey:@"release"]) {
-        SentryClient.sharedClient.releaseName = [NSString stringWithFormat:@"%@", [options objectForKey:@"release"]];
-    }
-    if (nil != [options objectForKey:@"dist"]) {
-        SentryClient.sharedClient.dist = [NSString stringWithFormat:@"%@", [options objectForKey:@"dist"]];
-    }
+
+    [options setValue:beforeSend forKey:@"beforeSend"];
+
+    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:options didFailWithError:&error];
     if (error) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
+    [SentrySDK startWithOptionsObject:sentryOptions];
+
     resolve(@YES);
 }
 
 RCT_EXPORT_METHOD(deviceContexts:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    resolve([[[SentryContext alloc] init] serialize]);
+    NSLog(@"Bridge call to: deviceContexts");
+    // Temp work around until sorted out this API in sentry-cocoa.
+    // TODO: If the callback isnt' executed the promise wouldn't be resolved.
+    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+        NSDictionary<NSString *, id> *serializedScope = [scope serialize];
+        // Scope serializes as 'context' instead of 'contexts' as it does for the event.
+        NSDictionary<NSString *, id> *contexts = [serializedScope valueForKey:@"context"];
+#if DEBUG
+        NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
+        NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+        NSLog(@"Contexts: %@", debugContext);
+#endif
+        resolve(contexts);
+    }];
+}
+
+RCT_EXPORT_METHOD(setLogLevel:(int)level)
+{
+    SentryLogLevel cocoaLevel;
+    switch (level) {
+        case 1:
+            cocoaLevel = kSentryLogLevelError;
+        case 2:
+            cocoaLevel = kSentryLogLevelDebug;
+        case 3:
+            cocoaLevel = kSentryLogLevelVerbose;
+        default:
+            cocoaLevel = kSentryLogLevelNone;
+    }
+    [SentrySDK setLogLevel:cocoaLevel];
 }
 
 RCT_EXPORT_METHOD(fetchRelease:(RCTPromiseResolveBlock)resolve
@@ -94,12 +108,6 @@ RCT_EXPORT_METHOD(fetchRelease:(RCTPromiseResolveBlock)resolve
               });
 }
 
-
-RCT_EXPORT_METHOD(setLogLevel:(int)level)
-{
-    [SentryClient setLogLevel:[SentryJavaScriptBridgeHelper sentryLogLevelFromJavaScriptLevel:level]];
-}
-
 RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
@@ -109,15 +117,8 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
             NSData *jsonData = [NSJSONSerialization dataWithJSONObject:event
                                                                options:0
                                                                  error:nil];
-
-            SentryEvent *sentryEvent = [[SentryEvent alloc] initWithJSON:jsonData];
-            [SentryClient.sharedClient sendEvent:sentryEvent withCompletionHandler:^(NSError * _Nullable error) {
-                if (nil != error) {
-                    reject(@"SentryReactNative", error.localizedDescription, error);
-                } else {
-                    resolve(@YES);
-                }
-            }];
+            [SentrySDK captureEvent:[[SentryEvent alloc] initWithJSON:jsonData]];
+            resolve(@YES);
         } else {
             reject(@"SentryReactNative", @"Cannot serialize event", nil);
         }
@@ -126,7 +127,7 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
 
 RCT_EXPORT_METHOD(crash)
 {
-    [SentryClient.sharedClient crash];
+    [SentrySDK crash];
 }
 
 @end

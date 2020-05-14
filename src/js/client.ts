@@ -38,10 +38,10 @@ export class ReactNativeClient extends BaseClient<
         ...((event.sdk && event.sdk.packages) || []),
         {
           name: "npm:@sentry/react-native",
-          version: SDK_VERSION
-        }
+          version: SDK_VERSION,
+        },
       ],
-      version: SDK_VERSION
+      version: SDK_VERSION,
     };
 
     return super._prepareEvent(event, scope, hint);
