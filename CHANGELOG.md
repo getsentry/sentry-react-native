@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.3.9
+
+- Bump `@sentry/wizard` to `1.1.4`
+
 ## 1.3.8
 
 - Fixes a bug in `DebugSymbolicator`
