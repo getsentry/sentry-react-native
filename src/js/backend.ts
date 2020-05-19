@@ -5,6 +5,7 @@ import { Event, EventHint, Severity, Transport } from "@sentry/types";
 import { Alert, NativeModules, YellowBox } from "react-native";
 
 import { NativeTransport } from "./transports/native";
+import { NATIVE } from "./wrapper";
 
 const { RNSentry } = NativeModules;
 
@@ -111,8 +112,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    */
   public nativeCrash(): void {
     if (this._options.enableNative) {
-      // tslint:disable-next-line: no-unsafe-any
-      RNSentry.crash();
+      NATIVE.crash();
     }
   }
 

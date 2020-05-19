@@ -39,5 +39,23 @@ export const NATIVE = {
     return RNSentry.sendEvent(event);
   },
 
+  /**
+   * Triggers a native crash.
+   * Use this only for testing purposes.
+   */
+  crash(): void {
+    if (this.isModuleLoaded()) {
+      // tslint:disable-next-line: no-unsafe-any
+      RNSentry.crash();
+    }
+  },
+
+  /**
+   * Checks whether the RNSentry module is loaded.
+   */
+  isModuleLoaded(): boolean {
+    return !!RNSentry;
+  },
+
   platform: Platform.OS
 };
