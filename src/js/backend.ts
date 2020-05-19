@@ -2,12 +2,10 @@ import { BrowserOptions, Transports } from "@sentry/browser";
 import { BrowserBackend } from "@sentry/browser/dist/backend";
 import { BaseBackend, NoopTransport } from "@sentry/core";
 import { Event, EventHint, Severity, Transport } from "@sentry/types";
-import { Alert, NativeModules, YellowBox } from "react-native";
+import { Alert, YellowBox } from "react-native";
 
 import { NativeTransport } from "./transports/native";
 import { NATIVE } from "./wrapper";
-
-const { RNSentry } = NativeModules;
 
 /**
  * Configuration options for the Sentry ReactNative SDK.
@@ -47,10 +45,13 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
     YellowBox.ignoreWarnings(["Require cycle:"]);
 
-    // tslint:disable: no-unsafe-any
-    if (NATIVE.isNativeClientAvailable() && _options.enableNative !== false) {
-      RNSentry.startWithDsnString(_options.dsn, _options).then(() => {
-        RNSentry.setLogLevel(_options.debug ? 2 : 1);
+    if (_options.enableNative !== false && NATIVE.isNativeClientAvailable()) {
+      // tslint:disable-next-line: no-floating-promises
+      NATIVE.startWithDsnString(
+        typeof _options.dsn === "string" ? _options.dsn : "",
+        _options
+      ).then(() => {
+        NATIVE.setLogLevel(_options.debug ? 2 : 1);
       });
     } else {
       if (__DEV__ && _options.enableNativeNagger) {
@@ -60,7 +61,6 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
         );
       }
     }
-    // tslint:enable: no-unsafe-any
   }
 
   /**

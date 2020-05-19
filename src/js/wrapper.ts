@@ -1,6 +1,8 @@
 import { Event, Response } from "@sentry/types";
 import { NativeModules, Platform } from "react-native";
 
+import { ReactNativeOptions } from "./backend";
+
 const { RNSentry } = NativeModules;
 
 /**
@@ -37,6 +39,28 @@ export const NATIVE = {
     }
     // tslint:disable-next-line: no-unsafe-any
     return RNSentry.sendEvent(event);
+  },
+
+  /**
+   * Starts native with dsn string and options.
+   * @param dsn string
+   * @param options ReactNativeOptions
+   */
+  async startWithDsnString(
+    dsn: string,
+    options: ReactNativeOptions
+  ): Promise<Response> {
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.startWithDsnString(dsn, options);
+  },
+
+  /**
+   * Sets log level in native
+   * @param level number
+   */
+  setLogLevel(level: number): void {
+    // tslint:disable-next-line: no-unsafe-any
+    RNSentry.setLogLevel(level);
   },
 
   /**
