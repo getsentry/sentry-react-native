@@ -57,5 +57,21 @@ export const NATIVE = {
     return !!RNSentry;
   },
 
+  /**
+   *  Checks whether the RNSentry module is loaded and the native client is available
+   */
+  isNativeClientAvailable(): boolean {
+    // tslint:disable-next-line: no-unsafe-any
+    return this.isModuleLoaded() && RNSentry.nativeClientAvailable;
+  },
+
+  /**
+   *  Checks whether the RNSentry module is loaded and native transport is available
+   */
+  isNativeTransportAvailable(): boolean {
+    // tslint:disable-next-line: no-unsafe-any
+    return this.isModuleLoaded() && RNSentry.nativeTransport;
+  },
+
   platform: Platform.OS
 };

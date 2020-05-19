@@ -48,11 +48,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
     YellowBox.ignoreWarnings(["Require cycle:"]);
 
     // tslint:disable: no-unsafe-any
-    if (
-      RNSentry &&
-      RNSentry.nativeClientAvailable &&
-      _options.enableNative !== false
-    ) {
+    if (NATIVE.isNativeClientAvailable() && _options.enableNative !== false) {
       RNSentry.startWithDsnString(_options.dsn, _options).then(() => {
         RNSentry.setLogLevel(_options.debug ? 2 : 1);
       });
@@ -96,14 +92,11 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    * If true, native client is availabe and active
    */
   private _isNativeTransportAvailable(): boolean {
-    // tslint:disable: no-unsafe-any
     return (
-      this._options.enableNative &&
-      RNSentry &&
-      RNSentry.nativeClientAvailable &&
-      RNSentry.nativeTransport
+      this._options.enableNative === true &&
+      NATIVE.isNativeClientAvailable() &&
+      NATIVE.isNativeTransportAvailable()
     );
-    // tslint:enable: no-unsafe-any
   }
 
   /**

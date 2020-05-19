@@ -5,7 +5,9 @@ jest.mock(
   () => ({
     NativeModules: {
       RNSentry: {
-        crash: jest.fn()
+        crash: jest.fn(),
+        nativeClientAvailable: true,
+        nativeTransport: true
       }
     },
     Platform: {
@@ -22,6 +24,7 @@ describe("Tests Native Wrapper", () => {
       expect(NATIVE.isModuleLoaded()).toBe(true);
     });
   });
+
   describe("crash", () => {
     test("calls the native crash", () => {
       const RN = require("react-native");
@@ -30,6 +33,18 @@ describe("Tests Native Wrapper", () => {
 
       // tslint:disable-next-line: no-unsafe-any
       expect(RN.NativeModules.RNSentry.crash).toBeCalled();
+    });
+  });
+
+  describe("isNativeClientAvailable", () => {
+    test("checks if native client is available", () => {
+      expect(NATIVE.isNativeClientAvailable()).toBe(true);
+    });
+  });
+
+  describe("isNativeTransportAvailable", () => {
+    test("checks if native transport is available", () => {
+      expect(NATIVE.isNativeTransportAvailable()).toBe(true);
     });
   });
 });
