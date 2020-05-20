@@ -15,18 +15,63 @@ jest.mock(
           })
         ),
         nativeClientAvailable: true,
-        nativeTransport: true
+        nativeTransport: true,
+        sendEvent: jest.fn(() => Promise.resolve()),
+        getStringBytesLength: jest.fn(() => Promise.resolve(1)),
+        captureEnvelope: jest.fn((envelope) => Promise.resolve(envelope))
       }
     },
     Platform: {
-      OS: "mock"
+      OS: "iOS"
     }
   }),
   /* virtual allows us to mock modules that aren't in package.json */
   { virtual: true }
 );
 
+beforeEach(() => {
+  NATIVE.platform = "ios";
+});
+
 describe("Tests Native Wrapper", () => {
+  describe("sendEvent", () => {
+    test("calls sendEvent on iOS", async () => {
+      const RN = require("react-native");
+
+      await NATIVE.sendEvent({});
+      // tslint:disable-next-line: no-unsafe-any
+      expect(RN.NativeModules.RNSentry.sendEvent).toBeCalled();
+    });
+    test("calls getStringByteLength and captureEnvelope on android", async () => {
+      const RN = require("react-native");
+
+      NATIVE.platform = "android";
+
+      const event = {
+        event_id: "event0",
+        message: "test"
+      };
+
+      const payload = JSON.stringify({
+        ...event,
+        message: {
+          message: event.message
+        }
+      });
+      const header = JSON.stringify({ event_id: event.event_id });
+      const item = JSON.stringify({
+        content_type: "application/json",
+        length: 1,
+        type: "event"
+      });
+
+      // tslint:disable-next-line: no-unsafe-any
+      await expect(NATIVE.sendEvent(event)).resolves.toMatch(
+        `${header}\n${item}\n${payload}`
+      );
+    });
+  });
+
   describe("fetchRelease", () => {
     test("fetches the release from native", async () => {
       await expect(NATIVE.fetchRelease()).resolves.toMatchObject({
@@ -54,7 +99,6 @@ describe("Tests Native Wrapper", () => {
       const RN = require("react-native");
 
       NATIVE.crash();
-
       // tslint:disable-next-line: no-unsafe-any
       expect(RN.NativeModules.RNSentry.crash).toBeCalled();
     });
