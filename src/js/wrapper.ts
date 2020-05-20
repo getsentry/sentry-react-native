@@ -73,6 +73,17 @@ export const NATIVE = {
   },
 
   /**
+   * Fetches the device contexts. Not used on Android.
+   */
+  async deviceContexts(): Promise<object> {
+    if (this.isNativeClientAvailable()) {
+      // tslint:disable-next-line: no-unsafe-any
+      return RNSentry.deviceContexts();
+    }
+    return Promise.reject();
+  },
+
+  /**
    * Sets log level in native
    * @param level number
    */

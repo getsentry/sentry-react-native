@@ -6,6 +6,7 @@ jest.mock(
     NativeModules: {
       RNSentry: {
         crash: jest.fn(),
+        deviceContexts: jest.fn(() => Promise.resolve({})),
         fetchRelease: jest.fn(() =>
           Promise.resolve({
             build: "1.0.0.1",
@@ -33,6 +34,12 @@ describe("Tests Native Wrapper", () => {
         id: "test-mock",
         version: "1.0.0"
       });
+    });
+  });
+
+  describe("deviceContexts", () => {
+    test("fetches the contexts from native", async () => {
+      await expect(NATIVE.deviceContexts()).resolves.toMatchObject({});
     });
   });
 
