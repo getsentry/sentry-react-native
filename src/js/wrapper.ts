@@ -2,6 +2,7 @@ import { Event, Response } from "@sentry/types";
 import { NativeModules, Platform } from "react-native";
 
 import { ReactNativeOptions } from "./backend";
+import { SentryError } from "@sentry/utils";
 
 const { RNSentry } = NativeModules;
 
@@ -14,6 +15,10 @@ export const NATIVE = {
    * @param event Event
    */
   async sendEvent(event: Event): Promise<Response> {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
     if (NATIVE.platform === "android") {
       const header = JSON.stringify({ event_id: event.event_id });
 
@@ -50,11 +55,11 @@ export const NATIVE = {
     dsn: string,
     options: ReactNativeOptions
   ): Promise<boolean> {
-    if (this.isNativeClientAvailable()) {
-      // tslint:disable-next-line: no-unsafe-any
-      return RNSentry.startWithDsnString(dsn, options);
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
     }
-    return Promise.reject();
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.startWithDsnString(dsn, options);
   },
 
   /**
@@ -65,22 +70,22 @@ export const NATIVE = {
     id: string;
     version: string;
   }> {
-    if (this.isNativeClientAvailable()) {
-      // tslint:disable-next-line: no-unsafe-any
-      return RNSentry.fetchRelease();
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
     }
-    return Promise.reject();
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.fetchRelease();
   },
 
   /**
    * Fetches the device contexts. Not used on Android.
    */
   async deviceContexts(): Promise<object> {
-    if (this.isNativeClientAvailable()) {
-      // tslint:disable-next-line: no-unsafe-any
-      return RNSentry.deviceContexts();
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
     }
-    return Promise.reject();
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.deviceContexts();
   },
 
   /**
@@ -88,8 +93,11 @@ export const NATIVE = {
    * @param level number
    */
   setLogLevel(level: number): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
     // tslint:disable-next-line: no-unsafe-any
-    RNSentry.setLogLevel(level);
+    return RNSentry.setLogLevel(level);
   },
 
   /**
@@ -97,10 +105,11 @@ export const NATIVE = {
    * Use this only for testing purposes.
    */
   crash(): void {
-    if (this.isNativeClientAvailable()) {
-      // tslint:disable-next-line: no-unsafe-any
-      RNSentry.crash();
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
     }
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.crash();
   },
 
   /**
@@ -125,6 +134,10 @@ export const NATIVE = {
     // tslint:disable-next-line: no-unsafe-any
     return this.isModuleLoaded() && RNSentry.nativeTransport;
   },
+
+  _NativeClientError: new SentryError(
+    "Native Client is not available, can't start on native."
+  ),
 
   platform: Platform.OS
 };
