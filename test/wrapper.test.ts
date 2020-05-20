@@ -5,6 +5,13 @@ jest.mock(
   () => ({
     NativeModules: {
       RNSentry: {
+        fetchRelease: jest.fn(() =>
+          Promise.resolve({
+            build: "1.0.0.1",
+            id: "test-mock",
+            version: "1.0.0"
+          })
+        ),
         crash: jest.fn(),
         nativeClientAvailable: true,
         nativeTransport: true
@@ -19,6 +26,16 @@ jest.mock(
 );
 
 describe("Tests Native Wrapper", () => {
+  describe("fetchRelease", () => {
+    test("fetches the release from native", async () => {
+      await expect(NATIVE.fetchRelease()).resolves.toMatchObject({
+        build: "1.0.0.1",
+        id: "test-mock",
+        version: "1.0.0"
+      });
+    });
+  });
+
   describe("isModuleLoaded", () => {
     test("returns true when module is loaded", () => {
       expect(NATIVE.isModuleLoaded()).toBe(true);

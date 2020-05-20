@@ -1,8 +1,7 @@
 import { addGlobalEventProcessor, getCurrentHub } from "@sentry/core";
 import { Event, Integration } from "@sentry/types";
-import { NativeModules } from "react-native";
 
-const { RNSentry } = NativeModules;
+import { NATIVE } from "../wrapper";
 
 /** Release integration responsible to load release from file. */
 export class Release implements Integration {
@@ -27,11 +26,7 @@ export class Release implements Integration {
 
       try {
         // tslint:disable-next-line: no-unsafe-any
-        const release = (await RNSentry.fetchRelease()) as {
-          build: string;
-          id: string;
-          version: string;
-        };
+        const release = await NATIVE.fetchRelease();
         if (release) {
           event.release = `${release.id}@${release.version}+${release.build}`;
           event.dist = `${release.build}`;

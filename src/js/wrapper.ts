@@ -50,8 +50,26 @@ export const NATIVE = {
     dsn: string,
     options: ReactNativeOptions
   ): Promise<Response> {
-    // tslint:disable-next-line: no-unsafe-any
-    return RNSentry.startWithDsnString(dsn, options);
+    if (this.isNativeClientAvailable()) {
+      // tslint:disable-next-line: no-unsafe-any
+      return RNSentry.startWithDsnString(dsn, options);
+    }
+    return Promise.reject();
+  },
+
+  /**
+   * Fetches the release from native
+   */
+  async fetchRelease(): Promise<{
+    build: string;
+    id: string;
+    version: string;
+  }> {
+    if (this.isNativeClientAvailable()) {
+      // tslint:disable-next-line: no-unsafe-any
+      return RNSentry.fetchRelease();
+    }
+    return Promise.reject();
   },
 
   /**
@@ -68,7 +86,7 @@ export const NATIVE = {
    * Use this only for testing purposes.
    */
   crash(): void {
-    if (this.isModuleLoaded()) {
+    if (this.isNativeClientAvailable()) {
       // tslint:disable-next-line: no-unsafe-any
       RNSentry.crash();
     }
