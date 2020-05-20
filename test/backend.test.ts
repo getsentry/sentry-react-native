@@ -11,6 +11,8 @@ jest.mock(
       RNSentry: {
         crash: jest.fn(),
         setLogLevel: jest.fn(),
+        nativeClientAvailable: true,
+        nativeTransport: true,
         startWithDsnString: jest.fn((dsn) => {
           if (typeof dsn !== "string") {
             throw new Error();
