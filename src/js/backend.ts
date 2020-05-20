@@ -45,21 +45,39 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
     YellowBox.ignoreWarnings(["Require cycle:"]);
 
-    if (_options.enableNative !== false && NATIVE.isNativeClientAvailable()) {
+    if (this._options.enableNative) {
       // tslint:disable-next-line: no-floating-promises
-      NATIVE.startWithDsnString(
-        typeof _options.dsn === "string" ? _options.dsn : "",
-        _options
-      ).then(() => {
-        NATIVE.setLogLevel(_options.debug ? 2 : 1);
-      });
+      this._startWithDsnString();
     } else {
-      if (__DEV__ && _options.enableNativeNagger) {
-        Alert.alert(
-          "Sentry",
-          "Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details."
-        );
-      }
+      this._showCannotConnectDialog();
+    }
+  }
+
+  /**
+   * Starts native client with dsn and options
+   */
+  private _startWithDsnString(): Promise<void> {
+    return NATIVE.startWithDsnString(
+      typeof this._options.dsn === "string" ? this._options.dsn : "",
+      this._options
+    )
+      .then(() => {
+        NATIVE.setLogLevel(this._options.debug ? 2 : 1);
+      })
+      .catch(() => {
+        this._showCannotConnectDialog();
+      });
+  }
+
+  /**
+   * If the user is in development mode, and the native nagger is enabled then it will show an alert.
+   */
+  private _showCannotConnectDialog(): void {
+    if (__DEV__ && this._options.enableNativeNagger) {
+      Alert.alert(
+        "Sentry",
+        "Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details."
+      );
     }
   }
 

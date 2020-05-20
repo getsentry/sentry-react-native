@@ -25,7 +25,6 @@ export class Release implements Integration {
       }
 
       try {
-        // tslint:disable-next-line: no-unsafe-any
         const release = await NATIVE.fetchRelease();
         if (release) {
           event.release = `${release.id}@${release.version}+${release.build}`;

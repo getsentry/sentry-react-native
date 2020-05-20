@@ -5,6 +5,7 @@ jest.mock(
   () => ({
     NativeModules: {
       RNSentry: {
+        crash: jest.fn(),
         fetchRelease: jest.fn(() =>
           Promise.resolve({
             build: "1.0.0.1",
@@ -12,7 +13,6 @@ jest.mock(
             version: "1.0.0"
           })
         ),
-        crash: jest.fn(),
         nativeClientAvailable: true,
         nativeTransport: true
       }

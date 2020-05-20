@@ -49,7 +49,7 @@ export const NATIVE = {
   async startWithDsnString(
     dsn: string,
     options: ReactNativeOptions
-  ): Promise<Response> {
+  ): Promise<boolean> {
     if (this.isNativeClientAvailable()) {
       // tslint:disable-next-line: no-unsafe-any
       return RNSentry.startWithDsnString(dsn, options);
