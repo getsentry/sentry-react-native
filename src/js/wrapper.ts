@@ -1,6 +1,9 @@
 import { Event, Response } from "@sentry/types";
 import { NativeModules, Platform } from "react-native";
 
+import { ReactNativeOptions } from "./backend";
+import { SentryError } from "@sentry/utils";
+
 const { RNSentry } = NativeModules;
 
 /**
@@ -12,6 +15,10 @@ export const NATIVE = {
    * @param event Event
    */
   async sendEvent(event: Event): Promise<Response> {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
     if (NATIVE.platform === "android") {
       const header = JSON.stringify({ event_id: event.event_id });
 
@@ -38,6 +45,99 @@ export const NATIVE = {
     // tslint:disable-next-line: no-unsafe-any
     return RNSentry.sendEvent(event);
   },
+
+  /**
+   * Starts native with dsn string and options.
+   * @param dsn string
+   * @param options ReactNativeOptions
+   */
+  async startWithDsnString(
+    dsn: string,
+    options: ReactNativeOptions
+  ): Promise<boolean> {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.startWithDsnString(dsn, options);
+  },
+
+  /**
+   * Fetches the release from native
+   */
+  async fetchRelease(): Promise<{
+    build: string;
+    id: string;
+    version: string;
+  }> {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.fetchRelease();
+  },
+
+  /**
+   * Fetches the device contexts. Not used on Android.
+   */
+  async deviceContexts(): Promise<object> {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.deviceContexts();
+  },
+
+  /**
+   * Sets log level in native
+   * @param level number
+   */
+  setLogLevel(level: number): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.setLogLevel(level);
+  },
+
+  /**
+   * Triggers a native crash.
+   * Use this only for testing purposes.
+   */
+  crash(): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.crash();
+  },
+
+  /**
+   * Checks whether the RNSentry module is loaded.
+   */
+  isModuleLoaded(): boolean {
+    return !!RNSentry;
+  },
+
+  /**
+   *  Checks whether the RNSentry module is loaded and the native client is available
+   */
+  isNativeClientAvailable(): boolean {
+    // tslint:disable-next-line: no-unsafe-any
+    return this.isModuleLoaded() && RNSentry.nativeClientAvailable;
+  },
+
+  /**
+   *  Checks whether the RNSentry module is loaded and native transport is available
+   */
+  isNativeTransportAvailable(): boolean {
+    // tslint:disable-next-line: no-unsafe-any
+    return this.isModuleLoaded() && RNSentry.nativeTransport;
+  },
+
+  _NativeClientError: new SentryError(
+    "Native Client is not available, can't start on native."
+  ),
 
   platform: Platform.OS
 };

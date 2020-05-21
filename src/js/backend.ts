@@ -2,11 +2,10 @@ import { BrowserOptions, Transports } from "@sentry/browser";
 import { BrowserBackend } from "@sentry/browser/dist/backend";
 import { BaseBackend, NoopTransport } from "@sentry/core";
 import { Event, EventHint, Severity, Transport } from "@sentry/types";
-import { Alert, NativeModules, YellowBox } from "react-native";
+import { Alert, YellowBox } from "react-native";
 
 import { NativeTransport } from "./transports/native";
-
-const { RNSentry } = NativeModules;
+import { NATIVE } from "./wrapper";
 
 /**
  * Configuration options for the Sentry ReactNative SDK.
@@ -46,24 +45,39 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
     YellowBox.ignoreWarnings(["Require cycle:"]);
 
-    // tslint:disable: no-unsafe-any
-    if (
-      RNSentry &&
-      RNSentry.nativeClientAvailable &&
-      _options.enableNative !== false
-    ) {
-      RNSentry.startWithDsnString(_options.dsn, _options).then(() => {
-        RNSentry.setLogLevel(_options.debug ? 2 : 1);
-      });
+    if (this._options.enableNative) {
+      // tslint:disable-next-line: no-floating-promises
+      this._startWithDsnString();
     } else {
-      if (__DEV__ && _options.enableNativeNagger) {
-        Alert.alert(
-          "Sentry",
-          "Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details."
-        );
-      }
+      this._showCannotConnectDialog();
     }
-    // tslint:enable: no-unsafe-any
+  }
+
+  /**
+   * Starts native client with dsn and options
+   */
+  private async _startWithDsnString(): Promise<void> {
+    try {
+      await NATIVE.startWithDsnString(
+        typeof this._options.dsn === "string" ? this._options.dsn : "",
+        this._options
+      );
+      NATIVE.setLogLevel(this._options.debug ? 2 : 1);
+    } catch (_) {
+      this._showCannotConnectDialog();
+    }
+  }
+
+  /**
+   * If the user is in development mode, and the native nagger is enabled then it will show an alert.
+   */
+  private _showCannotConnectDialog(): void {
+    if (__DEV__ && this._options.enableNativeNagger) {
+      Alert.alert(
+        "Sentry",
+        "Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details."
+      );
+    }
   }
 
   /**
@@ -95,14 +109,11 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    * If true, native client is availabe and active
    */
   private _isNativeTransportAvailable(): boolean {
-    // tslint:disable: no-unsafe-any
     return (
-      this._options.enableNative &&
-      RNSentry &&
-      RNSentry.nativeClientAvailable &&
-      RNSentry.nativeTransport
+      this._options.enableNative === true &&
+      NATIVE.isNativeClientAvailable() &&
+      NATIVE.isNativeTransportAvailable()
     );
-    // tslint:enable: no-unsafe-any
   }
 
   /**
@@ -111,8 +122,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    */
   public nativeCrash(): void {
     if (this._options.enableNative) {
-      // tslint:disable-next-line: no-unsafe-any
-      RNSentry.crash();
+      NATIVE.crash();
     }
   }
 
