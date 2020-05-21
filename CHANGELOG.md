@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Remove usages of RNSentry to a native wrapper (#857)
+- Bump android 2.1.3 (#858)
+
 ## 1.3.9
 
 - Bump `@sentry/wizard` to `1.1.4`
