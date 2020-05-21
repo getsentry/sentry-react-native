@@ -1,8 +1,8 @@
 import { Event, Response } from "@sentry/types";
+import { SentryError } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
 
 import { ReactNativeOptions } from "./backend";
-import { SentryError } from "@sentry/utils";
 
 const { RNSentry } = NativeModules;
 
@@ -47,19 +47,22 @@ export const NATIVE = {
   },
 
   /**
-   * Starts native with dsn string and options.
-   * @param dsn string
+   * Starts native with the provided options.
    * @param options ReactNativeOptions
    */
-  async startWithDsnString(
-    dsn: string,
-    options: ReactNativeOptions
-  ): Promise<boolean> {
+  async startWithOptions(options: ReactNativeOptions = {}): Promise<boolean> {
     if (!this.isNativeClientAvailable()) {
       throw this._NativeClientError;
     }
+
+    if (__DEV__ && !options.dsn) {
+      console.warn(
+        "Warning: No DSN was provided. The Sentry SDK will be disabled."
+      );
+    }
+
     // tslint:disable-next-line: no-unsafe-any
-    return RNSentry.startWithDsnString(dsn, options);
+    return RNSentry.startWithOptions(options);
   },
 
   /**

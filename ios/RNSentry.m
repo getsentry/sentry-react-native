@@ -31,8 +31,7 @@ RCT_EXPORT_MODULE()
     return @{@"nativeClientAvailable": @YES, @"nativeTransport": @YES};
 }
 
-RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString
-                  options:(NSDictionary *_Nonnull)options
+RCT_EXPORT_METHOD(startWithOptions:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
