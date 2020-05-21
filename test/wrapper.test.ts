@@ -5,6 +5,7 @@ jest.mock(
   () => ({
     NativeModules: {
       RNSentry: {
+        captureEnvelope: jest.fn((envelope) => Promise.resolve(envelope)),
         crash: jest.fn(),
         deviceContexts: jest.fn(() => Promise.resolve({})),
         fetchRelease: jest.fn(() =>
@@ -14,11 +15,11 @@ jest.mock(
             version: "1.0.0"
           })
         ),
+        getStringBytesLength: jest.fn(() => Promise.resolve(1)),
         nativeClientAvailable: true,
         nativeTransport: true,
         sendEvent: jest.fn(() => Promise.resolve()),
-        getStringBytesLength: jest.fn(() => Promise.resolve(1)),
-        captureEnvelope: jest.fn((envelope) => Promise.resolve(envelope))
+        startWithOptions: jest.fn((options) => Promise.resolve(options))
       }
     },
     Platform: {
@@ -34,6 +35,26 @@ beforeEach(() => {
 });
 
 describe("Tests Native Wrapper", () => {
+  describe("startWithOptions", () => {
+    test("calls native module", async () => {
+      const RN = require("react-native");
+
+      await NATIVE.startWithOptions({ dsn: "test" });
+
+      expect(RN.NativeModules.RNSentry.startWithOptions).toBeCalled();
+    });
+
+    test("warns if there is no dsn", async () => {
+      const RN = require("react-native");
+      console.warn = jest.fn();
+
+      await NATIVE.startWithOptions({});
+
+      expect(RN.NativeModules.RNSentry.startWithOptions).toBeCalled();
+      expect(console.warn).toBeCalled();
+    });
+  });
+
   describe("sendEvent", () => {
     test("calls sendEvent on iOS", async () => {
       const RN = require("react-native");
