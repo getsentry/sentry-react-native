@@ -61,10 +61,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startWithDsnString(String dsnString, final ReadableMap rnOptions, Promise promise) {
+    public void startWithOptions(final ReadableMap rnOptions, Promise promise) {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
-            options.setDsn(dsnString);
-
+            if (rnOptions.hasKey("dsn") && rnOptions.getString("dsn") != null) {
+                options.setDsn(rnOptions.getString("dsn"));
+            } else {
+                // SentryAndroid needs an empty string fallback for the dsn.
+                options.setDsn("");
+            }
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
             }
@@ -108,7 +112,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             sentryOptions = options;
         });
 
-        logger.info(String.format("startWithDsnString '%s'", dsnString));
+        if (rnOptions.hasKey("dsn")) {
+            logger.info(String.format("startWithDsnString '%s'", rnOptions.getString("dsn")));
+        }
+
         promise.resolve(true);
     }
 
