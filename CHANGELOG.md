@@ -4,6 +4,10 @@
 
 - Remove usages of RNSentry to a native wrapper (#857)
 - Bump android 2.1.3 (#858)
+- Bump cocoa 5.1.0 (#870)
+- Accept enableAutoSessionTracking (#870)
+- Don't attach Android Threads (#866)
+- Refactored startWithDsnString to be startWithOptions. (#860)
 
 ## 1.3.9
 
