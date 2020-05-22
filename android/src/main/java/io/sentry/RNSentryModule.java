@@ -83,6 +83,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("dist") && rnOptions.getString("dist") != null) {
                 options.setDist(rnOptions.getString("dist"));
             }
+            if (rnOptions.hasKey("enableAutoSessionTracking") && rnOptions.getBoolean("enableAutoSessionTracking")) {
+                options.setEnableSessionTracking(true);
+            }
 
             // JS use top level stacktraces and android attaches Threads which hides them so by default we hide.
             boolean attachThreads = rnOptions.hasKey("attachThreads") && rnOptions.getBoolean("attachThreads");
