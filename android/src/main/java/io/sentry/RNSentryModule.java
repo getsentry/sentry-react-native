@@ -64,7 +64,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void startWithOptions(final ReadableMap rnOptions, Promise promise) {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
             if (rnOptions.hasKey("dsn") && rnOptions.getString("dsn") != null) {
-                options.setDsn(rnOptions.getString("dsn"));
+                String dsn = rnOptions.getString("dsn");
+                logger.info(String.format("Starting with DSN: '%s'", dsn));
+                options.setDsn(dsn);
             } else {
                 // SentryAndroid needs an empty string fallback for the dsn.
                 options.setDsn("");
@@ -81,6 +83,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("dist") && rnOptions.getString("dist") != null) {
                 options.setDist(rnOptions.getString("dist"));
             }
+
+            // JS use top level stacktraces and android attaches Threads which hides them so by default we hide.
+            boolean attachThreads = rnOptions.hasKey("attachThreads") && rnOptions.getBoolean("attachThreads");
+            options.setAttachThreads(attachThreads);
 
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException
@@ -111,10 +117,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             logger.info(String.format("Native Integrations '%s'", options.getIntegrations().toString()));
             sentryOptions = options;
         });
-
-        if (rnOptions.hasKey("dsn")) {
-            logger.info(String.format("startWithDsnString '%s'", rnOptions.getString("dsn")));
-        }
 
         promise.resolve(true);
     }
