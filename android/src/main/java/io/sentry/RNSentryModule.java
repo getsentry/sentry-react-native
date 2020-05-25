@@ -19,6 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -106,13 +107,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 return event;
             });
 
-            for (Iterator<Integration> iterator = options.getIntegrations().iterator(); iterator.hasNext();) {
-                Integration integration = iterator.next();
-                if (rnOptions.hasKey("enableNativeCrashHandling")
-                        && !rnOptions.getBoolean("enableNativeCrashHandling")) {
-                    if (integration instanceof UncaughtExceptionHandlerIntegration
-                            || integration instanceof AnrIntegration || integration instanceof NdkIntegration) {
-                        iterator.remove();
+            if (rnOptions.hasKey("enableNativeCrashHandling")
+                    && !rnOptions.getBoolean("enableNativeCrashHandling")) {
+                final List<Integration> integrations = options.getIntegrations();
+                for (final Integration integration : integrations) {
+                    if (integration instanceof UncaughtExceptionHandlerIntegration ||
+                            integration instanceof AnrIntegration ||
+                            integration instanceof NdkIntegration) {
+                        integrations.remove(integration);
                     }
                 }
             }
