@@ -56,80 +56,88 @@ gradle.projectsEvaluated {
 
         def variant = null
         def releaseName = null
-        def versionCodes = new ArrayList<Integer>(currentVariants.size())
+        def versionCode = null
+        def previousCliTask = null
 
-        currentVariants.each { key, currentVariant ->
-            variant = currentVariant[0]
-            releaseName = currentVariant[1]
-            versionCodes.push(currentVariant[2])
-        }
-
-        def nameCliTask = "${bundleTask.name}_SentryUpload"
         def nameCleanup = "${bundleTask.name}_SentryUploadCleanUp"
+        // create an upload task per variant
+        currentVariants.each { key, currentVariant ->
+          variant = currentVariant[0]
+          releaseName = currentVariant[1]
+          versionCode = currentVariant[2]
 
-        /** Upload source map file to the sentry server via CLI call. */
-        def cliTask = tasks.create(name: nameCliTask, type: Exec) {
-            description = "upload debug symbols to sentry"
-            group = 'sentry.io'
+          def nameCliTask = "${bundleTask.name}_SentryUpload_${versionCode}"
 
-            workingDir reactRoot
+          /** Upload source map file to the sentry server via CLI call. */
+          def cliTask = tasks.create(name: nameCliTask, type: Exec) {
+              description = "upload debug symbols to sentry"
+              group = 'sentry.io'
 
-            def propertiesFile = config.sentryProperties
-                    ? config.sentryProperties
-                    : "$reactRoot/android/sentry.properties"
+              workingDir reactRoot
 
-            if (config.flavorAware) {
-                propertiesFile = "$reactRoot/android/sentry-${variant}.properties"
-                project.logger.info("For $variant using: $propertiesFile")
-            } else {
-                environment("SENTRY_PROPERTIES", propertiesFile)
+              def propertiesFile = config.sentryProperties
+                      ? config.sentryProperties
+                      : "$reactRoot/android/sentry.properties"
+
+              if (config.flavorAware) {
+                  propertiesFile = "$reactRoot/android/sentry-${variant}.properties"
+                  project.logger.info("For $variant using: $propertiesFile")
+              } else {
+                  environment("SENTRY_PROPERTIES", propertiesFile)
+              }
+
+              Properties sentryProps = new Properties()
+              try {
+                  sentryProps.load(new FileInputStream(propertiesFile))
+              } catch (FileNotFoundException e) {
+                  project.logger.info("file not found '$propertiesFile' for '$variant'")
+              }
+              def cliExecutable = sentryProps.get("cli.executable", "$reactRoot/node_modules/@sentry/cli/bin/sentry-cli")
+
+              // fix path separator for Windows
+              if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                  cliExecutable = cliExecutable.replaceAll("/", "\\\\")
+              }
+
+              //
+              // based on:
+              //   https://github.com/getsentry/sentry-cli/blob/master/src/commands/react_native_gradle.rs
+              //
+              def args = [cliExecutable]
+
+              args.addAll(!config.logLevel ? [] : [
+                      "--log-level", config.logLevel      // control verbosity of the output
+              ])
+              args.addAll(!config.flavorAware ? [] : [
+                      "--url", sentryProps.get("defaults.url"),
+                      "--auth-token", sentryProps.get("auth.token")
+              ])
+              args.addAll(["react-native", "gradle",
+                           "--bundle", bundleOutput,           // The path to a bundle that should be uploaded.
+                           "--sourcemap", sourcemapOutput,     // The path to a sourcemap that should be uploaded.
+                           "--release", releaseName,            // The name of the release to publish.
+                           "--dist", versionCode
+              ])
+              args.addAll(!config.flavorAware ? [] : [
+                      "--org", sentryProps.get("defaults.org"),
+                      "--project", sentryProps.get("defaults.project")
+              ])
+
+              project.logger.info("Sentry-CLI arguments: ${args}")
+
+              def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
+              commandLine(*osCompatibility, *args)
+
+              enabled true
             }
-
-            Properties sentryProps = new Properties()
-            try {
-                sentryProps.load(new FileInputStream(propertiesFile))
-            } catch (FileNotFoundException e) {
-                project.logger.info("file not found '$propertiesFile' for '$variant'")
-            }
-            def cliExecutable = sentryProps.get("cli.executable", "$reactRoot/node_modules/@sentry/cli/bin/sentry-cli")
-
-            // fix path separator for Windows
-            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                cliExecutable = cliExecutable.replaceAll("/", "\\\\")
-            }
-
-            //
-            // based on:
-            //   https://github.com/getsentry/sentry-cli/blob/master/src/commands/react_native_gradle.rs
-            //
-            def args = [cliExecutable]
-
-            args.addAll(!config.logLevel ? [] : [
-                    "--log-level", config.logLevel      // control verbosity of the output
-            ])
-            args.addAll(!config.flavorAware ? [] : [
-                    "--url", sentryProps.get("defaults.url"),
-                    "--auth-token", sentryProps.get("auth.token")
-            ])
-            args.addAll(["react-native", "gradle",
-                         "--bundle", bundleOutput,           // The path to a bundle that should be uploaded.
-                         "--sourcemap", sourcemapOutput,     // The path to a sourcemap that should be uploaded.
-                         "--release", releaseName            // The name of the release to publish.
-            ])
-            args.addAll(!config.flavorAware ? [] : [
-                    "--org", sentryProps.get("defaults.org"),
-                    "--project", sentryProps.get("defaults.project")
-            ])
-
-            // The names of the distributions to publish. Can be supplied multiple times.
-            versionCodes.each { versionCode -> args.addAll(["--dist", versionCode]) }
-
-            project.logger.info("Sentry-CLI arguments: ${args}")
-
-            def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
-            commandLine(*osCompatibility, *args)
-
-            enabled true
+          // chain the upload tasks so they run sequentially in order to run
+          // the cliCleanUpTask after the final upload task is run
+          if (previousCliTask != null) {
+            previousCliTask.finalizedBy cliTask
+          } else {
+            bundleTask.finalizedBy cliTask
+          }
+          previousCliTask = cliTask
         }
 
         /** Delete sourcemap files */
@@ -141,13 +149,11 @@ gradle.projectsEvaluated {
             delete "$buildDir/intermediates/assets/release/index.android.bundle.map" // react native default bundle dir
         }
 
-        // dependsOn, mustRunAfter, shouldRunAfter, doFirst, doLast, finalizedBy
-        // bundleTask --> cliTask
-        bundleTask.finalizedBy cliTask
-
         // register clean task extension
         cliCleanUpTask.onlyIf { shouldCleanUp }
-        cliTask.finalizedBy cliCleanUpTask
+        // due to chaining the last value of previousCliTask will be the final
+        // upload task, after which the cleanup can be done
+        previousCliTask.finalizedBy cliCleanUpTask
     }
 }
 
