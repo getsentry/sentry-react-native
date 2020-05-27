@@ -31,6 +31,9 @@ export interface ReactNativeOptions extends BrowserOptions {
 
   /** Should the native nagger alert be shown or not. */
   enableNativeNagger?: boolean;
+  
+  /** Should sessions be tracked to Sentry Health or not. */
+  enableAutoSessionTracking?: boolean;
 }
 
 /** The Sentry ReactNative SDK Backend. */
