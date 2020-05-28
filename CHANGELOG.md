@@ -134,7 +134,7 @@ New way to import and init the SDK:
 import * as Sentry from "@sentry/react-native";
 
 Sentry.init({
-  dsn: "DSN",
+  dsn: "DSN"
 });
 ```
 
@@ -370,7 +370,7 @@ To activate it set:
 
 ```js
 Sentry.config("___DSN___", {
-  deactivateStacktraceMerging: false,
+  deactivateStacktraceMerging: false
 });
 ```
 
