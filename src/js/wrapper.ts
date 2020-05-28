@@ -61,8 +61,18 @@ export const NATIVE = {
       );
     }
 
+    // filter out all the options that would crash native.
+    const {
+      beforeSend,
+      beforeBreadcrumb,
+      integrations,
+      defaultIntegrations,
+      transport,
+      ...filteredOptions
+    } = options;
+
     // tslint:disable-next-line: no-unsafe-any
-    return RNSentry.startWithOptions(options);
+    return RNSentry.startWithOptions(filteredOptions);
   },
 
   /**
