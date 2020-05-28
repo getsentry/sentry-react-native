@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Filtered out `options` keys passed to `init` that would crash native. #885
+
 ## 1.4.0
 
 - Remove usages of RNSentry to a native wrapper (#857)
@@ -128,7 +130,7 @@ New way to import and init the SDK:
 import * as Sentry from "@sentry/react-native";
 
 Sentry.init({
-  dsn: "DSN",
+  dsn: "DSN"
 });
 ```
 
@@ -364,7 +366,7 @@ To activate it set:
 
 ```js
 Sentry.config("___DSN___", {
-  deactivateStacktraceMerging: false,
+  deactivateStacktraceMerging: false
 });
 ```
 
