@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expose session timeout. #887
+
 ## 1.4.1
 
 - Filtered out `options` keys passed to `init` that would crash native. #885

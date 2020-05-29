@@ -38,7 +38,9 @@ Sentry.init({
     e.tags["beforeSend"] = "JS layer";
     return e;
   },
-  enableAutoSessionTracking: true
+  enableAutoSessionTracking: true,
+  // For testing, session close when 5 seconds (instead of the default 30) in the background.
+  sessionTrackingIntervalMillis: 5000
 });
 const App: () => React$Node = () => {
   return (
