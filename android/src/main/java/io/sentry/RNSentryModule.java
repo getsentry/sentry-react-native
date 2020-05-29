@@ -87,8 +87,12 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("enableAutoSessionTracking") && rnOptions.getBoolean("enableAutoSessionTracking")) {
                 options.setEnableSessionTracking(true);
             }
+            if (rnOptions.hasKey("sessionTrackingIntervalMillis")) {
+                options.setSessionTrackingIntervalMillis(rnOptions.getInt("sessionTrackingIntervalMillis"));
+            }
 
-            // JS use top level stacktraces and android attaches Threads which hides them so by default we hide.
+            // JS use top level stacktraces and android attaches Threads which hides them so
+            // by default we hide.
             boolean attachThreads = rnOptions.hasKey("attachThreads") && rnOptions.getBoolean("attachThreads");
             options.setAttachThreads(attachThreads);
 
@@ -107,13 +111,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 return event;
             });
 
-            if (rnOptions.hasKey("enableNativeCrashHandling")
-                    && !rnOptions.getBoolean("enableNativeCrashHandling")) {
+            if (rnOptions.hasKey("enableNativeCrashHandling") && !rnOptions.getBoolean("enableNativeCrashHandling")) {
                 final List<Integration> integrations = options.getIntegrations();
                 for (final Integration integration : integrations) {
-                    if (integration instanceof UncaughtExceptionHandlerIntegration ||
-                            integration instanceof AnrIntegration ||
-                            integration instanceof NdkIntegration) {
+                    if (integration instanceof UncaughtExceptionHandlerIntegration
+                            || integration instanceof AnrIntegration || integration instanceof NdkIntegration) {
                         integrations.remove(integration);
                     }
                 }
