@@ -117,18 +117,16 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 if (sdkVersion != null) {
                     String sdkName = sdkVersion.getName();
                     if (sdkName != null) {
-                        switch (sdkName) {
-                            case "sentry.javascript.react-native":
-                                event.setTag("event.origin", "javascript");
-                                break;
-                            case "sentry.native":
-                                event.setTag("event.origin", "ndk");
-                                break;
-                            case "sentry.java.android":
-                                event.setTag("event.origin", "android");
-                                break;
-                            default:
-                                break;
+                        if (sdkName.equals("sentry.javascript.react-native")) {
+                            event.setTag("event.origin", "javascript");
+                        } else if (sdkName.equals("sentry.java.android") || sdkName.equals("sentry.native")) {
+                            event.setTag("event.origin", "android");
+
+                            if (sdkName.equals("sentry.native")) {
+                                event.setTag("event.environment", "native");
+                            } else {
+                                event.setTag("event.environment", "java");
+                            }
                         }
                     }
                 }
