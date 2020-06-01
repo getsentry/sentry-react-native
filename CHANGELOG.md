@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Expose session timeout. #887
+- Added `event.origin` and `event.environment` tags to determine where events originate from. #890
 
 ## 1.4.1
 
