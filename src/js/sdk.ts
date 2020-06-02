@@ -90,6 +90,9 @@ export function init(
   //   });
   // }
 
+  // set the event.origin tag.
+  getCurrentHub().setTag("event.origin", "javascript");
+
   // tslint:disable-next-line: no-unsafe-any
   if (getGlobalObject<any>().HermesInternal) {
     getCurrentHub().setTag("hermes", "true");

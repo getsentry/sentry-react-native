@@ -28,9 +28,11 @@ import java.util.logging.Logger;
 import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
+import io.sentry.core.Sentry;
 import io.sentry.core.Integration;
 import io.sentry.core.SentryOptions;
 import io.sentry.core.UncaughtExceptionHandlerIntegration;
+import io.sentry.core.protocol.SdkVersion;
 import io.sentry.core.protocol.SentryException;
 
 @ReactModule(name = RNSentryModule.NAME)
@@ -108,6 +110,27 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 } catch (Exception e) {
                     // We do nothing
                 }
+
+                // Add on the correct event.origin tag.
+                // it needs to be here so we can determine where it originated from.
+                SdkVersion sdkVersion = event.getSdk();
+                if (sdkVersion != null) {
+                    String sdkName = sdkVersion.getName();
+                    if (sdkName != null) {
+                        if (sdkName.equals("sentry.javascript.react-native")) {
+                            event.setTag("event.origin", "javascript");
+                        } else if (sdkName.equals("sentry.java.android") || sdkName.equals("sentry.native")) {
+                            event.setTag("event.origin", "android");
+
+                            if (sdkName.equals("sentry.native")) {
+                                event.setTag("event.environment", "native");
+                            } else {
+                                event.setTag("event.environment", "java");
+                            }
+                        }
+                    }
+                }
+
                 return event;
             });
 

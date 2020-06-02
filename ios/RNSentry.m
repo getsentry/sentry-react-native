@@ -46,6 +46,14 @@ RCT_EXPORT_METHOD(startWithOptions:(NSDictionary *_Nonnull)options
             return nil;
         }
 
+        // set the event.origin tag to be ios if the event originated from the sentry-cocoa sdk.
+        if (event.sdk && [event.sdk[@"name"] isEqualToString:@"sentry.cocoa"]) {
+            NSMutableDictionary *newTags = [NSMutableDictionary new];
+            [newTags addEntriesFromDictionary:event.tags];
+            [newTags setValue:@"ios" forKey:@"event.origin"];
+            event.tags = newTags;
+        }
+
         return event;
     };
 
