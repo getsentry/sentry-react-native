@@ -31,18 +31,51 @@ Sentry.init({
     // Replace the example DSN below with your own DSN:
     'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053',
   debug: true,
-  beforeSend: e => {
+  beforeSend: (e) => {
     if (!e.tags) {
       e.tags = {};
     }
-    e.tags["beforeSend"] = "JS layer";
+    e.tags['beforeSend'] = 'JS layer';
+
+    console.log('Event beforeSend:', e);
     return e;
   },
   enableAutoSessionTracking: true,
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
-  sessionTrackingIntervalMillis: 5000
+  sessionTrackingIntervalMillis: 5000,
 });
 const App: () => React$Node = () => {
+  const setScopeProps = React.useCallback(() => {
+    const dateString = new Date().toString();
+
+    Sentry.setUser({
+      id: 'test-id-0',
+      email: 'testing@testing.test',
+      username: 'USER-TEST',
+    });
+
+    Sentry.setTag('SINGLE-TAG', dateString);
+    Sentry.setTags({
+      'MULTI-TAG-0': dateString,
+      'MULTI-TAG-1': dateString,
+      'MULTI-TAG-2': dateString,
+    });
+
+    Sentry.setExtra('SINGLE-EXTRA', dateString);
+    Sentry.setExtras({
+      'MULTI-EXTRA-0': dateString,
+      'MULTI-EXTRA-1': dateString,
+      'MULTI-EXTRA-2': dateString,
+    });
+
+    Sentry.addBreadcrumb({
+      level: 'info',
+      message: `TEST-BREADCRUMB: ${dateString}`,
+    });
+
+    console.log('Test scope properties were set.');
+  }, []);
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
@@ -85,6 +118,9 @@ const App: () => React$Node = () => {
                   Sentry.nativeCrash();
                 }}>
                 nativeCrash
+              </Text>
+              <Text style={styles.sectionTitle} onPress={setScopeProps}>
+                Set Scope Properties
               </Text>
               <Text style={styles.sectionTitle}>Step One</Text>
               <Text style={styles.sectionDescription}>
