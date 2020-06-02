@@ -213,4 +213,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 return Level.OFF;
         }
     }
+
+    @ReactMethod
+    public void setTag(String key, String value) {
+        Sentry.setTag(key, value);
+    }
 }

@@ -126,6 +126,19 @@ export const NATIVE = {
   },
 
   /**
+   * Sets a tag in the native module.
+   * @param key string
+   * @param value string
+   */
+  setTag(key: string, value: string): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.setTag(key, value);
+  },
+
+  /**
    * Checks whether the RNSentry module is loaded.
    */
   isModuleLoaded(): boolean {

@@ -132,6 +132,15 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
     });
 }
 
+RCT_EXPORT_METHOD(setTag:(NSString *)key
+                  value:(NSString *)value
+)
+{
+    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+        [scope setTagValue:value forKey:key];
+    }];
+}
+
 RCT_EXPORT_METHOD(crash)
 {
     [SentrySDK crash];
