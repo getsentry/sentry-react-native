@@ -55,6 +55,7 @@ const App: () => React$Node = () => {
     });
 
     Sentry.setTag('SINGLE-TAG', dateString);
+    Sentry.setTag('SINGLE-TAG-NUMBER', 100);
     Sentry.setTags({
       'MULTI-TAG-0': dateString,
       'MULTI-TAG-1': dateString,
@@ -62,6 +63,7 @@ const App: () => React$Node = () => {
     });
 
     Sentry.setExtra('SINGLE-EXTRA', dateString);
+    Sentry.setExtra('SINGLE-EXTRA-NUMBER', 100);
     Sentry.setExtras({
       'MULTI-EXTRA-0': dateString,
       'MULTI-EXTRA-1': dateString,
