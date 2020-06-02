@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 1.4.2
+
+- Bump android 2.1.4 #891
 - Expose session timeout. #887
 - Added `event.origin` and `event.environment` tags to determine where events originate from. #890
 
@@ -135,7 +138,7 @@ New way to import and init the SDK:
 import * as Sentry from "@sentry/react-native";
 
 Sentry.init({
-  dsn: "DSN"
+  dsn: "DSN",
 });
 ```
 
@@ -371,7 +374,7 @@ To activate it set:
 
 ```js
 Sentry.config("___DSN___", {
-  deactivateStacktraceMerging: false
+  deactivateStacktraceMerging: false,
 });
 ```
 
