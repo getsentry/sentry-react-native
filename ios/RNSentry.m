@@ -132,6 +132,15 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
     });
 }
 
+RCT_EXPORT_METHOD(setExtra:(NSString *)key
+                  extra:(NSString *)extra
+)
+{
+    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+        [scope setExtraValue:extra forKey:key];
+    }];
+}
+
 RCT_EXPORT_METHOD(setTag:(NSString *)key
                   value:(NSString *)value
 )

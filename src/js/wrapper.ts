@@ -139,6 +139,25 @@ export const NATIVE = {
   },
 
   /**
+   * Sets an extra in the native scope, will stringify
+   * extra value if it isn't already a string.
+   * @param key string
+   * @param extra any
+   */
+  setExtra(key: string, extra: any): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    // we stringify the extra as native only takes in strings.
+    const stringifiedExtra =
+      typeof extra === "string" ? extra : JSON.stringify(extra);
+
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.setExtra(key, stringifiedExtra);
+  },
+
+  /**
    * Checks whether the RNSentry module is loaded.
    */
   isModuleLoaded(): boolean {

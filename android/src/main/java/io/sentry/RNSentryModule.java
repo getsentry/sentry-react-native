@@ -215,6 +215,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void setExtra(String key, String extra) {
+        Sentry.setExtra(key, extra);
+    }
+
+    @ReactMethod
     public void setTag(String key, String value) {
         Sentry.setTag(key, value);
     }
