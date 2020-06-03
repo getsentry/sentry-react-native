@@ -64,6 +64,11 @@ const App: () => React$Node = () => {
 
     Sentry.setExtra('SINGLE-EXTRA', dateString);
     Sentry.setExtra('SINGLE-EXTRA-NUMBER', 100);
+    Sentry.setExtra('SINGLE-EXTRA-OBJECT', {
+      message: 'I am a teapot',
+      status: 418,
+      array: ['boo', 100, 400, {objectInsideArray: 'foobar'}],
+    });
     Sentry.setExtras({
       'MULTI-EXTRA-0': dateString,
       'MULTI-EXTRA-1': dateString,
