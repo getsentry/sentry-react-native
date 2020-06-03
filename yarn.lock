@@ -374,10 +374,15 @@
     "@sentry/types" "5.15.5"
     tslib "^1.9.3"
 
-"@sentry/types@5.15.5", "@sentry/types@^5.15.5":
+"@sentry/types@5.15.5":
   version "5.15.5"
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-5.15.5.tgz#16c97e464cf09bbd1d2e8ce90d130e781709076e"
   integrity sha512-F9A5W7ucgQLJUG4LXw1ZIy4iLevrYZzbeZ7GJ09aMlmXH9PqGThm1t5LSZlVpZvUfQ2rYA8NU6BdKJSt7B5LPw==
+
+"@sentry/types@5.16.0", "@sentry/types@^5.15.5":
+  version "5.16.0"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-5.16.0.tgz#6f5fc48e4f2f5d94bbd7331cac42a4734f4cc02b"
+  integrity sha512-VQB/zPfPz5yEXNLAv0lov+p3gt+YPBuExz7n33OuXAgvDedxzYfC1066Y6YM/ryBwwl6TDTV3M6JTDEYu3pulA==
 
 "@sentry/typescript@5.15.5":
   version "5.15.5"
@@ -387,12 +392,20 @@
     tslint-config-prettier "^1.18.0"
     tslint-consistent-codestyle "^1.15.1"
 
-"@sentry/utils@5.15.5", "@sentry/utils@^5.15.5":
+"@sentry/utils@5.15.5":
   version "5.15.5"
   resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-5.15.5.tgz#dec1d4c79037c4da08b386f5d34409234dcbfb15"
   integrity sha512-Nl9gl/MGnzSkuKeo3QaefoD/OJrFLB8HmwQ7HUbTXb6E7yyEzNKAQMHXGkwNAjbdYyYbd42iABP6Y5F/h39NtA==
   dependencies:
     "@sentry/types" "5.15.5"
+    tslib "^1.9.3"
+
+"@sentry/utils@^5.15.5":
+  version "5.16.0"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-5.16.0.tgz#4e3722dac03957b989734cc2a64649eb488c4a9f"
+  integrity sha512-9y8StFaLQaGaqAleSJ9pswp2MSEwJ6W3trULIziZvz2XrmqdT7n23vVZXJ3peSflxfkENtYeI+5FIp+zQXfKJQ==
+  dependencies:
+    "@sentry/types" "5.16.0"
     tslib "^1.9.3"
 
 "@sentry/wizard@^1.1.4":
@@ -3775,11 +3788,7 @@ ts-jest@^24.3.0:
     semver "^5.5"
     yargs-parser "10.x"
 
-tslib@^1.7.1, tslib@^1.8.1, tslib@^1.9.0, tslib@^1.9.3:
-  version "1.9.3"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.3.tgz#d7e4dd79245d85428c4d7e4822a79917954ca286"
-
-tslib@^1.8.0:
+tslib@^1.7.1, tslib@^1.8.0, tslib@^1.8.1, tslib@^1.9.0, tslib@^1.9.3:
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.10.0.tgz#c3c19f95973fb0a62973fb09d90d961ee43e5c8a"
   integrity sha512-qOebF53frne81cf0S9B41ByenJ3/IuH8yJKngAX35CmiZySA0khhkovshKK+jGCaMnVomla7gVlIcc3EvKPbTQ==
