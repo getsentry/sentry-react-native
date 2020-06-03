@@ -132,8 +132,7 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
     });
 }
 
-RCT_EXPORT_METHOD(setUser:(NSDictionary *)user
-)
+RCT_EXPORT_METHOD(setUser:(NSDictionary *)user)
 {
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
         if (nil == user) {
@@ -147,6 +146,38 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary *)user
 
             [scope setUser:userInstance];
         }
+    }];
+}
+
+RCT_EXPORT_METHOD(addBreadcrumb:(NSDictionary *)breadcrumb)
+{
+    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+        SentryBreadcrumb* breadcrumbInstance = [[SentryBreadcrumb alloc] init];
+
+        NSString * levelString = breadcrumb[@"level"];
+        SentryLevel sentryLevel;
+        if ([levelString isEqualToString:@"fatal"]) {
+            sentryLevel = kSentryLevelFatal;
+        } else if ([levelString isEqualToString:@"warning"]) {
+            sentryLevel = kSentryLevelWarning;
+        } else if ([levelString isEqualToString:@"info"]) {
+            sentryLevel = kSentryLevelInfo;
+        } else if ([levelString isEqualToString:@"debug"]) {
+            sentryLevel = kSentryLevelDebug;
+        } else {
+            sentryLevel = kSentryLevelError;
+        }
+        [breadcrumbInstance setLevel:sentryLevel];
+
+        [breadcrumbInstance setCategory:breadcrumb[@"category"]];
+
+        [breadcrumbInstance setType:breadcrumb[@"type"]];
+
+        [breadcrumbInstance setMessage:breadcrumb[@"message"]];
+
+        [breadcrumbInstance setData:breadcrumb[@"data"]];
+
+        [scope addBreadcrumb:breadcrumbInstance];
     }];
 }
 
@@ -167,6 +198,13 @@ RCT_EXPORT_METHOD(setTag:(NSString *)key
         [scope setTagValue:value forKey:key];
     }];
 }
+
+// RCT_EXPORT_METHOD(setFingerprint:(NSArray<NSString *> *)fingerprint)
+// {
+//     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+//         [scope setFingerprint:fingerprint];
+//     }];
+// }
 
 RCT_EXPORT_METHOD(crash)
 {

@@ -10,6 +10,8 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 
@@ -17,6 +19,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -29,7 +32,9 @@ import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.core.Sentry;
+import io.sentry.core.Breadcrumb;
 import io.sentry.core.Integration;
+import io.sentry.core.SentryLevel;
 import io.sentry.core.SentryOptions;
 import io.sentry.core.UncaughtExceptionHandlerIntegration;
 import io.sentry.core.protocol.SdkVersion;
@@ -250,6 +255,70 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             Sentry.setUser(userInstance);
         }
     }
+
+    @ReactMethod
+    public void addBreadcrumb(final ReadableMap breadcrumb) {
+        Breadcrumb breadcrumbInstance = new Breadcrumb();
+
+        if (breadcrumb.hasKey("message")) {
+            breadcrumbInstance.setMessage(breadcrumb.getString("message"));
+        }
+
+        if (breadcrumb.hasKey("type")) {
+            breadcrumbInstance.setType(breadcrumb.getString("type"));
+        }
+
+        if (breadcrumb.hasKey("category")) {
+            breadcrumbInstance.setCategory(breadcrumb.getString("category"));
+        }
+
+        if (breadcrumb.hasKey("level")) {
+            switch (breadcrumb.getString("level")) {
+                case "fatal":
+                    breadcrumbInstance.setLevel(SentryLevel.FATAL);
+                    break;
+                case "warning":
+                    breadcrumbInstance.setLevel(SentryLevel.WARNING);
+                    break;
+                case "info":
+                    breadcrumbInstance.setLevel(SentryLevel.INFO);
+                    break;
+                case "debug":
+                    breadcrumbInstance.setLevel(SentryLevel.DEBUG);
+                    break;
+                case "error":
+                    breadcrumbInstance.setLevel(SentryLevel.ERROR);
+                    break;
+                default:
+                    breadcrumbInstance.setLevel(SentryLevel.ERROR);
+                    break;
+            }
+        }
+
+        if (breadcrumb.hasKey("data")) {
+            ReadableMap data = breadcrumb.getMap("data");
+            ReadableMapKeySetIterator it = data.keySetIterator();
+            while (it.hasNextKey()) {
+                String key = it.nextKey();
+                String value = data.getString(key);
+
+                breadcrumbInstance.setData(key, value);
+            }
+        }
+
+        Sentry.addBreadcrumb(breadcrumbInstance);
+    }
+
+    // @ReactMethod
+    // public void setFingerprint(ReadableArray fingerprint) {
+    //     ArrayList<String> fingerprintList = new ArrayList<String>();
+
+    //     for (int i = 0; i < fingerprint.size(); i++) {
+    //         fingerprintList.add(fingerprint.getString(i));
+    //     }
+
+    //     Sentry.setFingerprint(fingerprintList);
+    // }
 
     @ReactMethod
     public void setExtra(String key, String extra) {

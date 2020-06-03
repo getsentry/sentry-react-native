@@ -1,4 +1,4 @@
-import { Event, Response, User } from "@sentry/types";
+import { Event, Response, User, Breadcrumb } from "@sentry/types";
 import { SentryError } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
 
@@ -170,6 +170,46 @@ export const NATIVE = {
     // tslint:disable-next-line: no-unsafe-any
     return RNSentry.setExtra(key, stringifiedExtra);
   },
+
+  /**
+   * Adds breadcrumb to the native scope.
+   * @param breadcrumb Breadcrumb
+   */
+  addBreadcrumb(breadcrumb: Breadcrumb): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    const stringifiedData: { [key: string]: any } = {};
+    if (typeof breadcrumb.data !== "undefined") {
+      Object.keys(breadcrumb.data).forEach((dataKey) => {
+        if (typeof breadcrumb.data !== "undefined") {
+          const value = breadcrumb.data[dataKey];
+          stringifiedData[dataKey] =
+            typeof value === "string" ? value : JSON.stringify(value);
+        }
+      });
+    }
+
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.addBreadcrumb({
+      ...breadcrumb,
+      data: stringifiedData
+    });
+  },
+
+  // /**
+  //  *
+  //  * @param fingerprint string[]
+  //  */
+  // setFingerprint(fingerprint: string[]): void {
+  //   if (!this.isNativeClientAvailable()) {
+  //     throw this._NativeClientError;
+  //   }
+
+  //   // tslint:disable-next-line: no-unsafe-any
+  //   return RNSentry.setFingerprint(fingerprint);
+  // },
 
   /**
    * Checks whether the RNSentry module is loaded.

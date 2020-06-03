@@ -1,5 +1,6 @@
 import { Scope } from "@sentry/hub";
-import { User } from "@sentry/types";
+import { Breadcrumb, User } from "@sentry/types";
+import { timestampWithMs } from "@sentry/utils";
 
 import { NATIVE } from "./wrapper";
 
@@ -76,4 +77,36 @@ export class ReactNativeScope extends Scope {
     this._notifyScopeListeners();
     return this;
   }
+
+  /**
+   * @inheritDoc
+   */
+  public addBreadcrumb(breadcrumb: Breadcrumb, maxBreadcrumbs?: number): this {
+    const mergedBreadcrumb = {
+      timestamp: timestampWithMs(),
+      ...breadcrumb
+    };
+
+    this._breadcrumbs =
+      maxBreadcrumbs !== undefined && maxBreadcrumbs >= 0
+        ? [...this._breadcrumbs, mergedBreadcrumb].slice(-maxBreadcrumbs)
+        : [...this._breadcrumbs, mergedBreadcrumb];
+
+    NATIVE.addBreadcrumb(breadcrumb);
+
+    this._notifyScopeListeners();
+    return this;
+  }
+
+  // /**
+  //  * @inheritDoc
+  //  */
+  // public setFingerprint(fingerprint: string[]): this {
+  //   this._fingerprint = fingerprint;
+
+  //   NATIVE.setFingerprint(fingerprint);
+
+  //   this._notifyScopeListeners();
+  //   return this;
+  // }
 }
