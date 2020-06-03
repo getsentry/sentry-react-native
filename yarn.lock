@@ -336,7 +336,7 @@
     progress "^2.0.3"
     proxy-from-env "^1.1.0"
 
-"@sentry/core@5.15.5", "@sentry/core@^5.15.5":
+"@sentry/core@5.15.5":
   version "5.15.5"
   resolved "https://registry.yarnpkg.com/@sentry/core/-/core-5.15.5.tgz#40ea79bff5272d3fbbeeb4a98cdc59e1adbd2c92"
   integrity sha512-enxBLv5eibBMqcWyr+vApqeix8uqkfn0iGsD3piKvoMXCgKsrfMwlb/qo9Ox0lKr71qIlZVt+9/A2vZohdgnlg==
@@ -347,6 +347,17 @@
     "@sentry/utils" "5.15.5"
     tslib "^1.9.3"
 
+"@sentry/core@^5.15.5":
+  version "5.16.0"
+  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-5.16.0.tgz#c6cf535a80473160254b76c1e9ccff59524820e4"
+  integrity sha512-xHmlZ7eQK9uVQZWsT+q0pTMDAOvrKDoR4X0c/RKIrOttkKD5vb35yt3/v8NMfLO0Or3vRvmq55OUjxEvDouPuw==
+  dependencies:
+    "@sentry/hub" "5.16.0"
+    "@sentry/minimal" "5.16.0"
+    "@sentry/types" "5.16.0"
+    "@sentry/utils" "5.16.0"
+    tslib "^1.9.3"
+
 "@sentry/hub@5.15.5":
   version "5.15.5"
   resolved "https://registry.yarnpkg.com/@sentry/hub/-/hub-5.15.5.tgz#f5abbcdbe656a70e2ff02c02a5a4cffa0f125935"
@@ -354,6 +365,15 @@
   dependencies:
     "@sentry/types" "5.15.5"
     "@sentry/utils" "5.15.5"
+    tslib "^1.9.3"
+
+"@sentry/hub@5.16.0":
+  version "5.16.0"
+  resolved "https://registry.yarnpkg.com/@sentry/hub/-/hub-5.16.0.tgz#99bea03969ac66291ad2dff8a6e2ccb19d7ed109"
+  integrity sha512-+eMJdLZB9SMFki81VMG5hQHxC7/QkIWPbaht770a30pKEz4Emj5tIJV5zlVP0ugp6B3ScKfKWHYlUrDDWFRgLA==
+  dependencies:
+    "@sentry/types" "5.16.0"
+    "@sentry/utils" "5.16.0"
     tslib "^1.9.3"
 
 "@sentry/integrations@^5.15.5":
@@ -374,10 +394,24 @@
     "@sentry/types" "5.15.5"
     tslib "^1.9.3"
 
-"@sentry/types@5.15.5", "@sentry/types@^5.15.5":
+"@sentry/minimal@5.16.0":
+  version "5.16.0"
+  resolved "https://registry.yarnpkg.com/@sentry/minimal/-/minimal-5.16.0.tgz#a98d0f7b6d833405d1ecb5a9b01752d7aba4f2ab"
+  integrity sha512-PWOqjy1uybMMKtTTt8ShR8Jha4FbK5sAIkzmZIN+pJHdHifhy4uKhxGP06aK2mLgMPr70igQRC0GBiEro+R3/A==
+  dependencies:
+    "@sentry/hub" "5.16.0"
+    "@sentry/types" "5.16.0"
+    tslib "^1.9.3"
+
+"@sentry/types@5.15.5":
   version "5.15.5"
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-5.15.5.tgz#16c97e464cf09bbd1d2e8ce90d130e781709076e"
   integrity sha512-F9A5W7ucgQLJUG4LXw1ZIy4iLevrYZzbeZ7GJ09aMlmXH9PqGThm1t5LSZlVpZvUfQ2rYA8NU6BdKJSt7B5LPw==
+
+"@sentry/types@5.16.0", "@sentry/types@^5.15.5":
+  version "5.16.0"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-5.16.0.tgz#6f5fc48e4f2f5d94bbd7331cac42a4734f4cc02b"
+  integrity sha512-VQB/zPfPz5yEXNLAv0lov+p3gt+YPBuExz7n33OuXAgvDedxzYfC1066Y6YM/ryBwwl6TDTV3M6JTDEYu3pulA==
 
 "@sentry/typescript@5.15.5":
   version "5.15.5"
@@ -387,12 +421,20 @@
     tslint-config-prettier "^1.18.0"
     tslint-consistent-codestyle "^1.15.1"
 
-"@sentry/utils@5.15.5", "@sentry/utils@^5.15.5":
+"@sentry/utils@5.15.5":
   version "5.15.5"
   resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-5.15.5.tgz#dec1d4c79037c4da08b386f5d34409234dcbfb15"
   integrity sha512-Nl9gl/MGnzSkuKeo3QaefoD/OJrFLB8HmwQ7HUbTXb6E7yyEzNKAQMHXGkwNAjbdYyYbd42iABP6Y5F/h39NtA==
   dependencies:
     "@sentry/types" "5.15.5"
+    tslib "^1.9.3"
+
+"@sentry/utils@5.16.0", "@sentry/utils@^5.15.5":
+  version "5.16.0"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-5.16.0.tgz#4e3722dac03957b989734cc2a64649eb488c4a9f"
+  integrity sha512-9y8StFaLQaGaqAleSJ9pswp2MSEwJ6W3trULIziZvz2XrmqdT7n23vVZXJ3peSflxfkENtYeI+5FIp+zQXfKJQ==
+  dependencies:
+    "@sentry/types" "5.16.0"
     tslib "^1.9.3"
 
 "@sentry/wizard@^1.1.4":
@@ -3775,11 +3817,7 @@ ts-jest@^24.3.0:
     semver "^5.5"
     yargs-parser "10.x"
 
-tslib@^1.7.1, tslib@^1.8.1, tslib@^1.9.0, tslib@^1.9.3:
-  version "1.9.3"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.3.tgz#d7e4dd79245d85428c4d7e4822a79917954ca286"
-
-tslib@^1.8.0:
+tslib@^1.7.1, tslib@^1.8.0, tslib@^1.8.1, tslib@^1.9.0, tslib@^1.9.3:
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.10.0.tgz#c3c19f95973fb0a62973fb09d90d961ee43e5c8a"
   integrity sha512-qOebF53frne81cf0S9B41ByenJ3/IuH8yJKngAX35CmiZySA0khhkovshKK+jGCaMnVomla7gVlIcc3EvKPbTQ==
