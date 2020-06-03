@@ -1,4 +1,4 @@
-import { Event, Response } from "@sentry/types";
+import { Event, Response, User } from "@sentry/types";
 import { SentryError } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
 
@@ -123,6 +123,20 @@ export const NATIVE = {
     }
     // tslint:disable-next-line: no-unsafe-any
     return RNSentry.crash();
+  },
+
+  /**
+   * Sets the user in the native scope.
+   * Passing null clears the user.
+   * @param key string
+   * @param value string
+   */
+  setUser(user: User | null): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.setUser(user);
   },
 
   /**

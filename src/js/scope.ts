@@ -1,8 +1,21 @@
 import { Scope } from "@sentry/hub";
+import { User } from "@sentry/types";
 
 import { NATIVE } from "./wrapper";
 
 export class ReactNativeScope extends Scope {
+  /**
+   * @inheritDoc
+   */
+  public setUser(user: User | null): this {
+    this._user = user || {};
+
+    NATIVE.setUser(user);
+
+    this._notifyScopeListeners();
+    return this;
+  }
+
   /**
    * @inheritDoc
    */
