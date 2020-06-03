@@ -77,7 +77,34 @@ const App: () => React$Node = () => {
 
     Sentry.addBreadcrumb({
       level: 'info',
-      message: `TEST-BREADCRUMB: ${dateString}`,
+      message: `TEST-BREADCRUMB-INFO: ${dateString}`,
+    });
+    Sentry.addBreadcrumb({
+      level: 'debug',
+      message: `TEST-BREADCRUMB-DEBUG: ${dateString}`,
+    });
+    Sentry.addBreadcrumb({
+      level: 'error',
+      message: `TEST-BREADCRUMB-ERROR: ${dateString}`,
+    });
+    Sentry.addBreadcrumb({
+      level: 'fatal',
+      message: `TEST-BREADCRUMB-FATAL: ${dateString}`,
+    });
+    Sentry.addBreadcrumb({
+      level: 'info',
+      message: `TEST-BREADCRUMB-DATA: ${dateString}`,
+      data: {
+        stringTest: 'Hello',
+        numberTest: 404,
+        objectTest: {
+          foo: 'bar',
+        },
+        arrayTest: ['foo', 'bar', 400],
+        nullTest: null,
+        undefinedTest: undefined,
+      },
+      category: 'TEST-CATEGORY',
     });
 
     console.log('Test scope properties were set.');
