@@ -379,10 +379,10 @@
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-5.15.5.tgz#16c97e464cf09bbd1d2e8ce90d130e781709076e"
   integrity sha512-F9A5W7ucgQLJUG4LXw1ZIy4iLevrYZzbeZ7GJ09aMlmXH9PqGThm1t5LSZlVpZvUfQ2rYA8NU6BdKJSt7B5LPw==
 
-"@sentry/typescript@5.15.5":
-  version "5.15.5"
-  resolved "https://registry.yarnpkg.com/@sentry/typescript/-/typescript-5.15.5.tgz#e96991c9f1514802e751a02103cba2fbf75cf436"
-  integrity sha512-XocrvBL2zo93Pidg5UAg/slwS8iO3GSIhxBfQxshPXZe4mNbYKsQMjujiP7NCSogdljwsriNTp4WdwyoWH0PPw==
+"@sentry/typescript@5.16.0":
+  version "5.16.0"
+  resolved "https://registry.yarnpkg.com/@sentry/typescript/-/typescript-5.16.0.tgz#e06a9cdb56b283626cc5b76f0054e45cac649aa4"
+  integrity sha512-79Ub7w5Qsbx/8NwefzxKlpd4avMZacDOV7R+zHBwT6oZ9ehmYWctWwrF52sJy6zkTtQOfCqZ8NqZXbJyBFRMsw==
   dependencies:
     tslint-config-prettier "^1.18.0"
     tslint-consistent-codestyle "^1.15.1"
