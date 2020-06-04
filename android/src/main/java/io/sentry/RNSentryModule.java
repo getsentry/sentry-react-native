@@ -221,27 +221,41 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void setUser(final ReadableMap user) {
-        if (user == null) {
+    public void setUser(final ReadableMap user, final ReadableMap otherUserKeys) {
+        if (user == null && otherUserKeys == null) {
             Sentry.setUser(null);
         } else {
             User userInstance = new User();
 
-            // only support these defined keys for now.
-            if (user.hasKey("email")) {
-                userInstance.setEmail(user.getString("email"));
+            if (user != null) {
+                if (user.hasKey("email")) {
+                    userInstance.setEmail(user.getString("email"));
+                }
+
+                if (user.hasKey("id")) {
+                    userInstance.setId(user.getString("id"));
+                }
+
+                if (user.hasKey("username")) {
+                    userInstance.setUsername(user.getString("username"));
+                }
+
+                if (user.hasKey("ip_address")) {
+                    userInstance.setIpAddress(user.getString("ip_address"));
+                }
             }
 
-            if (user.hasKey("id")) {
-                userInstance.setId(user.getString("id"));
-            }
+            if (otherUserKeys != null) {
+                HashMap<String, String> otherUserKeysMap = new HashMap<String, String>();
+                ReadableMapKeySetIterator it = otherUserKeys.keySetIterator();
+                while (it.hasNextKey()) {
+                    String key = it.nextKey();
+                    String value = otherUserKeys.getString(key);
 
-            if (user.hasKey("username")) {
-                userInstance.setUsername(user.getString("username"));
-            }
+                    otherUserKeysMap.put(key, value);
+                }
 
-            if (user.hasKey("ip_address")) {
-                userInstance.setIpAddress(user.getString("ip_address"));
+                userInstance.setOthers(otherUserKeysMap);
             }
 
             Sentry.setUser(userInstance);

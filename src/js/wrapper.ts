@@ -135,8 +135,23 @@ export const NATIVE = {
     if (!this.isNativeClientAvailable()) {
       throw this._NativeClientError;
     }
+
+    // separate and serialze all non-default user keys.
+    let defaultUserKeys = null;
+    let otherUserKeys = null;
+    if (user) {
+      const { id, ip_address, email, username, ...otherKeys } = user;
+      defaultUserKeys = {
+        email,
+        id,
+        ip_address,
+        username
+      };
+      otherUserKeys = this._serializeObject(otherKeys);
+    }
+
     // tslint:disable-next-line: no-unsafe-any
-    return RNSentry.setUser(user);
+    return RNSentry.setUser(defaultUserKeys, otherUserKeys);
   },
 
   /**

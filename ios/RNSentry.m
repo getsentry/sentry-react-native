@@ -132,17 +132,25 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
     });
 }
 
-RCT_EXPORT_METHOD(setUser:(NSDictionary *)user)
+RCT_EXPORT_METHOD(setUser:(NSDictionary *)user
+                  otherUserKeys:(NSDictionary *)otherUserKeys
+)
 {
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        if (nil == user) {
+        if (nil == user && nil == otherUserKeys) {
             [scope setUser:nil];
         } else {
             SentryUser* userInstance = [[SentryUser alloc] init];
 
-            [userInstance setUserId:user[@"id"]];
-            [userInstance setEmail:user[@"email"]];
-            [userInstance setUsername:user[@"username"]];
+            if (nil != user) {
+                [userInstance setUserId:user[@"id"]];
+                [userInstance setEmail:user[@"email"]];
+                [userInstance setUsername:user[@"username"]];
+            }
+
+            if (nil != otherUserKeys) {
+                [userInstance setData:otherUserKeys];
+            }
 
             [scope setUser:userInstance];
         }
