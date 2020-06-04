@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Extend Scope methods to set native scope too. #902
+
 ## 1.4.2
 
 - Bump android 2.1.4 #891
