@@ -66,6 +66,9 @@ const App: () => React$Node = () => {
       'MULTI-TAG-2': dateString,
     });
 
+    Sentry.setRelease(packageVersion);
+    Sentry.setDist(`${packageVersion}.0`);
+
     Sentry.setExtra('SINGLE-EXTRA', dateString);
     Sentry.setExtra('SINGLE-EXTRA-NUMBER', 100);
     Sentry.setExtra('SINGLE-EXTRA-OBJECT', {
