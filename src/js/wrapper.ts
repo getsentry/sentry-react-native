@@ -163,8 +163,13 @@ export const NATIVE = {
     if (!this.isNativeClientAvailable()) {
       throw this._NativeClientError;
     }
+
+    const stringifiedValue =
+      // tslint:disable-next-line: strict-type-predicates
+      typeof value === "string" ? value : JSON.stringify(value);
+
     // tslint:disable-next-line: no-unsafe-any
-    return RNSentry.setTag(key, value);
+    return RNSentry.setTag(key, stringifiedValue);
   },
 
   /**
