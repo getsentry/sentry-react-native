@@ -213,12 +213,11 @@ export const NATIVE = {
     }
 
     if (this.platform === "android") {
-      console.warn(
-        "Note: Sentry.setContext currently does not pass down to native Android events."
-      );
+      // setContext not available on the Android SDK yet.
+      this.setExtra(key, context);
     } else {
       // tslint:disable-next-line: no-unsafe-any
-      return RNSentry.setContext(
+      RNSentry.setContext(
         key,
         context !== null ? this._serializeObject(context) : null
       );
