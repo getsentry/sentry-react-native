@@ -1,4 +1,4 @@
-package com.sample;
+package io.sentry.sample;
 
 import com.facebook.react.ReactActivity;
 

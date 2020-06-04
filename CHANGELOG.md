@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 1.4.2
+
+- Bump android 2.1.4 #891
 - Expose session timeout. #887
 - Added `event.origin` and `event.environment` tags to determine where events originate from. #890
 

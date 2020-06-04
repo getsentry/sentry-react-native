@@ -1,4 +1,3 @@
-
 package io.sentry;
 
 import java.util.Arrays;
