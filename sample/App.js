@@ -52,6 +52,8 @@ const App: () => React$Node = () => {
       id: 'test-id-0',
       email: 'testing@testing.test',
       username: 'USER-TEST',
+      specialField: 'special user field',
+      specialFieldNumber: 418,
     });
 
     Sentry.setTag('SINGLE-TAG', dateString);
