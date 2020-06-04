@@ -16,7 +16,6 @@ export class ReactNativeScope extends Scope {
    * @inheritDoc
    */
   public setTag(key: string, value: string): this {
-    // Stringify the value as user could pass other types such as a number which would crash native.
     NATIVE.setTag(key, value);
     return super.setTag(key, value);
   }
@@ -27,7 +26,6 @@ export class ReactNativeScope extends Scope {
   public setTags(tags: { [key: string]: string }): this {
     // As native only has setTag, we just loop through each tag key.
     Object.keys(tags).forEach((key) => {
-      // Stringify the value as user could pass other types such as a number which would crash native.
       NATIVE.setTag(key, tags[key]);
     });
     return super.setTags(tags);
