@@ -75,6 +75,17 @@ const App: () => React$Node = () => {
       'MULTI-EXTRA-2': dateString,
     });
 
+    Sentry.setContext('TEST-CONTEXT', {
+      stringTest: 'Hello',
+      numberTest: 404,
+      objectTest: {
+        foo: 'bar',
+      },
+      arrayTest: ['foo', 'bar', 400],
+      nullTest: null,
+      undefinedTest: undefined,
+    });
+
     Sentry.addBreadcrumb({
       level: 'info',
       message: `TEST-BREADCRUMB-INFO: ${dateString}`,
