@@ -230,26 +230,18 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             // only support these defined keys for now.
             if (user.hasKey("email")) {
                 userInstance.setEmail(user.getString("email"));
-            } else {
-                userInstance.setEmail(null);
             }
 
             if (user.hasKey("id")) {
                 userInstance.setId(user.getString("id"));
-            } else {
-                userInstance.setId(null);
             }
 
             if (user.hasKey("username")) {
                 userInstance.setUsername(user.getString("username"));
-            } else {
-                userInstance.setUsername(null);
             }
 
             if (user.hasKey("ip_address")) {
                 userInstance.setIpAddress(user.getString("ip_address"));
-            } else {
-                userInstance.setIpAddress(null);
             }
 
             Sentry.setUser(userInstance);
