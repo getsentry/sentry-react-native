@@ -222,13 +222,6 @@ RCT_EXPORT_METHOD(setTag:(NSString *)key
     }];
 }
 
-// RCT_EXPORT_METHOD(setFingerprint:(NSArray<NSString *> *)fingerprint)
-// {
-//     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-//         [scope setFingerprint:fingerprint];
-//     }];
-// }
-
 RCT_EXPORT_METHOD(crash)
 {
     [SentrySDK crash];
