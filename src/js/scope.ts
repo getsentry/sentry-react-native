@@ -98,15 +98,15 @@ export class ReactNativeScope extends Scope {
     return this;
   }
 
-  // /**
-  //  * @inheritDoc
-  //  */
-  // public setFingerprint(fingerprint: string[]): this {
-  //   this._fingerprint = fingerprint;
+  /**
+   * @inheritDoc
+   */
+  public setContext(key: string, context: { [key: string]: any } | null): this {
+    this._context = { ...this._context, [key]: context };
 
-  //   NATIVE.setFingerprint(fingerprint);
+    NATIVE.setContext(key, context);
 
-  //   this._notifyScopeListeners();
-  //   return this;
-  // }
+    this._notifyScopeListeners();
+    return this;
+  }
 }

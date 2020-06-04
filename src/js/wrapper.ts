@@ -180,36 +180,52 @@ export const NATIVE = {
       throw this._NativeClientError;
     }
 
-    const stringifiedData: { [key: string]: any } = {};
-    if (typeof breadcrumb.data !== "undefined") {
-      Object.keys(breadcrumb.data).forEach((dataKey) => {
-        if (typeof breadcrumb.data !== "undefined") {
-          const value = breadcrumb.data[dataKey];
-          stringifiedData[dataKey] =
-            typeof value === "string" ? value : JSON.stringify(value);
-        }
-      });
-    }
-
     // tslint:disable-next-line: no-unsafe-any
     return RNSentry.addBreadcrumb({
       ...breadcrumb,
-      data: stringifiedData
+      data: breadcrumb.data ? this._serializeObject(breadcrumb.data) : undefined
     });
   },
 
-  // /**
-  //  *
-  //  * @param fingerprint string[]
-  //  */
-  // setFingerprint(fingerprint: string[]): void {
-  //   if (!this.isNativeClientAvailable()) {
-  //     throw this._NativeClientError;
-  //   }
+  /**
+   * Sets context on the native scope. Not implemented in Android yet.
+   * @param key string
+   * @param context key-value map
+   */
+  setContext(key: string, context: { [key: string]: any } | null): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
 
-  //   // tslint:disable-next-line: no-unsafe-any
-  //   return RNSentry.setFingerprint(fingerprint);
-  // },
+    if (this.platform === "android") {
+      console.warn(
+        "Note: Sentry.setContext currently does not pass down to native Android events."
+      );
+    } else {
+      // tslint:disable-next-line: no-unsafe-any
+      return RNSentry.setContext(
+        key,
+        context !== null ? this._serializeObject(context) : null
+      );
+    }
+  },
+
+  /**
+   * Serializes all values of root-level keys into strings.
+   * @param data key-value map.
+   * @returns An object where all root-level values are strings.
+   */
+  _serializeObject(data: { [key: string]: any }): { [key: string]: string } {
+    const serialized: { [key: string]: any } = {};
+
+    Object.keys(data).forEach((dataKey) => {
+      const value = data[dataKey];
+      serialized[dataKey] =
+        typeof value === "string" ? value : JSON.stringify(value);
+    });
+
+    return serialized;
+  },
 
   /**
    * Checks whether the RNSentry module is loaded.

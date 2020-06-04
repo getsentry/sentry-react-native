@@ -190,6 +190,15 @@ RCT_EXPORT_METHOD(setExtra:(NSString *)key
     }];
 }
 
+RCT_EXPORT_METHOD(setContext:(NSString *)key
+                  context:(NSDictionary *)context
+)
+{
+    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+        [scope setContextValue:context forKey:key];
+    }];
+}
+
 RCT_EXPORT_METHOD(setTag:(NSString *)key
                   value:(NSString *)value
 )
