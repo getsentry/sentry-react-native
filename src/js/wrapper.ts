@@ -203,6 +203,18 @@ export const NATIVE = {
   },
 
   /**
+   * Clears breadcrumsb on the native scope.
+   */
+  clearBreadcrumbs(): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.clearBreadcrumbs();
+  },
+
+  /**
    * Sets context on the native scope. Not implemented in Android yet.
    * @param key string
    * @param context key-value map

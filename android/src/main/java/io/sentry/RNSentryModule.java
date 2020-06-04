@@ -320,6 +320,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void clearBreadcrumbs() {
+        Sentry.configureScope(scope -> {
+            scope.clearBreadcrumbs();
+        });
+    }
+
+    @ReactMethod
     public void setExtra(String key, String extra) {
         Sentry.configureScope(scope -> {
             scope.setExtra(key, extra);

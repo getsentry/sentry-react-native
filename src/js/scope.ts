@@ -101,6 +101,18 @@ export class ReactNativeScope extends Scope {
   /**
    * @inheritDoc
    */
+  public clearBreadcrumbs(): this {
+    this._breadcrumbs = [];
+
+    NATIVE.clearBreadcrumbs();
+
+    this._notifyScopeListeners();
+    return this;
+  }
+
+  /**
+   * @inheritDoc
+   */
   public setContext(key: string, context: { [key: string]: any } | null): this {
     this._context = { ...this._context, [key]: context };
 

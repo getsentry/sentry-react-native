@@ -189,6 +189,12 @@ RCT_EXPORT_METHOD(addBreadcrumb:(NSDictionary *)breadcrumb)
     }];
 }
 
+RCT_EXPORT_METHOD(clearBreadcrumbs) {
+    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+        [scope clearBreadcrumbs];
+    }];
+}
+
 RCT_EXPORT_METHOD(setExtra:(NSString *)key
                   extra:(NSString *)extra
 )
