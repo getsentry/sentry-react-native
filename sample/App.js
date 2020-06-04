@@ -26,6 +26,8 @@ import {
 
 import * as Sentry from '@sentry/react-native';
 
+import {version as packageVersion} from './package.json';
+
 Sentry.init({
   dsn:
     // Replace the example DSN below with your own DSN:
@@ -121,7 +123,13 @@ const App: () => React$Node = () => {
     });
 
     console.log('Test scope properties were set.');
-  }, []);
+  }, [Sentry]);
+
+  const clearBreadcrumbs = React.useCallback(() => {
+    Sentry.configureScope((scope) => {
+      scope.clearBreadcrumbs();
+    });
+  }, [Sentry]);
 
   return (
     <>
@@ -168,6 +176,9 @@ const App: () => React$Node = () => {
               </Text>
               <Text style={styles.sectionTitle} onPress={setScopeProps}>
                 Set Scope Properties
+              </Text>
+              <Text style={styles.sectionTitle} onPress={clearBreadcrumbs}>
+                Clear Breadcrumbs
               </Text>
               <Text style={styles.sectionTitle}>Step One</Text>
               <Text style={styles.sectionDescription}>
