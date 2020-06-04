@@ -1,4 +1,4 @@
-import { Event, Response, User, Breadcrumb } from "@sentry/types";
+import { Breadcrumb, Event, Response, User } from "@sentry/types";
 import { SentryError } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
 
