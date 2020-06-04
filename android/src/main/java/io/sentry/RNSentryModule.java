@@ -222,117 +222,114 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void setUser(final ReadableMap user, final ReadableMap otherUserKeys) {
-        if (user == null && otherUserKeys == null) {
-            Sentry.setUser(null);
-        } else {
-            User userInstance = new User();
+        Sentry.configureScope(scope -> {
+            if (user == null && otherUserKeys == null) {
+                scope.setUser(null);
+            } else {
+                User userInstance = new User();
 
-            if (user != null) {
-                if (user.hasKey("email")) {
-                    userInstance.setEmail(user.getString("email"));
+                if (user != null) {
+                    if (user.hasKey("email")) {
+                        userInstance.setEmail(user.getString("email"));
+                    }
+
+                    if (user.hasKey("id")) {
+                        userInstance.setId(user.getString("id"));
+                    }
+
+                    if (user.hasKey("username")) {
+                        userInstance.setUsername(user.getString("username"));
+                    }
+
+                    if (user.hasKey("ip_address")) {
+                        userInstance.setIpAddress(user.getString("ip_address"));
+                    }
                 }
 
-                if (user.hasKey("id")) {
-                    userInstance.setId(user.getString("id"));
+                if (otherUserKeys != null) {
+                    HashMap<String, String> otherUserKeysMap = new HashMap<String, String>();
+                    ReadableMapKeySetIterator it = otherUserKeys.keySetIterator();
+                    while (it.hasNextKey()) {
+                        String key = it.nextKey();
+                        String value = otherUserKeys.getString(key);
+
+                        otherUserKeysMap.put(key, value);
+                    }
+
+                    userInstance.setOthers(otherUserKeysMap);
                 }
 
-                if (user.hasKey("username")) {
-                    userInstance.setUsername(user.getString("username"));
-                }
-
-                if (user.hasKey("ip_address")) {
-                    userInstance.setIpAddress(user.getString("ip_address"));
-                }
+                scope.setUser(userInstance);
             }
-
-            if (otherUserKeys != null) {
-                HashMap<String, String> otherUserKeysMap = new HashMap<String, String>();
-                ReadableMapKeySetIterator it = otherUserKeys.keySetIterator();
-                while (it.hasNextKey()) {
-                    String key = it.nextKey();
-                    String value = otherUserKeys.getString(key);
-
-                    otherUserKeysMap.put(key, value);
-                }
-
-                userInstance.setOthers(otherUserKeysMap);
-            }
-
-            Sentry.setUser(userInstance);
-        }
+        });
     }
 
     @ReactMethod
     public void addBreadcrumb(final ReadableMap breadcrumb) {
-        Breadcrumb breadcrumbInstance = new Breadcrumb();
+        Sentry.configureScope(scope -> {
+            Breadcrumb breadcrumbInstance = new Breadcrumb();
 
-        if (breadcrumb.hasKey("message")) {
-            breadcrumbInstance.setMessage(breadcrumb.getString("message"));
-        }
-
-        if (breadcrumb.hasKey("type")) {
-            breadcrumbInstance.setType(breadcrumb.getString("type"));
-        }
-
-        if (breadcrumb.hasKey("category")) {
-            breadcrumbInstance.setCategory(breadcrumb.getString("category"));
-        }
-
-        if (breadcrumb.hasKey("level")) {
-            switch (breadcrumb.getString("level")) {
-                case "fatal":
-                    breadcrumbInstance.setLevel(SentryLevel.FATAL);
-                    break;
-                case "warning":
-                    breadcrumbInstance.setLevel(SentryLevel.WARNING);
-                    break;
-                case "info":
-                    breadcrumbInstance.setLevel(SentryLevel.INFO);
-                    break;
-                case "debug":
-                    breadcrumbInstance.setLevel(SentryLevel.DEBUG);
-                    break;
-                case "error":
-                    breadcrumbInstance.setLevel(SentryLevel.ERROR);
-                    break;
-                default:
-                    breadcrumbInstance.setLevel(SentryLevel.ERROR);
-                    break;
+            if (breadcrumb.hasKey("message")) {
+                breadcrumbInstance.setMessage(breadcrumb.getString("message"));
             }
-        }
 
-        if (breadcrumb.hasKey("data")) {
-            ReadableMap data = breadcrumb.getMap("data");
-            ReadableMapKeySetIterator it = data.keySetIterator();
-            while (it.hasNextKey()) {
-                String key = it.nextKey();
-                String value = data.getString(key);
-
-                breadcrumbInstance.setData(key, value);
+            if (breadcrumb.hasKey("type")) {
+                breadcrumbInstance.setType(breadcrumb.getString("type"));
             }
-        }
 
-        Sentry.addBreadcrumb(breadcrumbInstance);
+            if (breadcrumb.hasKey("category")) {
+                breadcrumbInstance.setCategory(breadcrumb.getString("category"));
+            }
+
+            if (breadcrumb.hasKey("level")) {
+                switch (breadcrumb.getString("level")) {
+                    case "fatal":
+                        breadcrumbInstance.setLevel(SentryLevel.FATAL);
+                        break;
+                    case "warning":
+                        breadcrumbInstance.setLevel(SentryLevel.WARNING);
+                        break;
+                    case "info":
+                        breadcrumbInstance.setLevel(SentryLevel.INFO);
+                        break;
+                    case "debug":
+                        breadcrumbInstance.setLevel(SentryLevel.DEBUG);
+                        break;
+                    case "error":
+                        breadcrumbInstance.setLevel(SentryLevel.ERROR);
+                        break;
+                    default:
+                        breadcrumbInstance.setLevel(SentryLevel.ERROR);
+                        break;
+                }
+            }
+
+            if (breadcrumb.hasKey("data")) {
+                ReadableMap data = breadcrumb.getMap("data");
+                ReadableMapKeySetIterator it = data.keySetIterator();
+                while (it.hasNextKey()) {
+                    String key = it.nextKey();
+                    String value = data.getString(key);
+
+                    breadcrumbInstance.setData(key, value);
+                }
+            }
+
+            scope.addBreadcrumb(breadcrumbInstance);
+        });
     }
-
-    // @ReactMethod
-    // public void setFingerprint(ReadableArray fingerprint) {
-    //     ArrayList<String> fingerprintList = new ArrayList<String>();
-
-    //     for (int i = 0; i < fingerprint.size(); i++) {
-    //         fingerprintList.add(fingerprint.getString(i));
-    //     }
-
-    //     Sentry.setFingerprint(fingerprintList);
-    // }
 
     @ReactMethod
     public void setExtra(String key, String extra) {
-        Sentry.setExtra(key, extra);
+        Sentry.configureScope(scope -> {
+            scope.setExtra(key, extra);
+        });
     }
 
     @ReactMethod
     public void setTag(String key, String value) {
-        Sentry.setTag(key, value);
+        Sentry.configureScope(scope -> {
+            scope.setTag(key, value);
+        });
     }
 }
