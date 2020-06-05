@@ -55,7 +55,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       // tslint:disable-next-line: no-floating-promises
       this._startWithOptions();
     } else {
-      this._showCannotConnectDialog();
+      NATIVE.disableNative();
     }
   }
 
