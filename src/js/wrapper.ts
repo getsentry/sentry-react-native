@@ -23,7 +23,7 @@ export const NATIVE = {
       const header = JSON.stringify({ event_id: event.event_id });
 
       (event as any).message = {
-        message: event.message
+        message: event.message,
       };
       const payload = JSON.stringify(event);
       let length = payload.length;
@@ -36,7 +36,7 @@ export const NATIVE = {
       const item = JSON.stringify({
         content_type: "application/json",
         length,
-        type: "event"
+        type: "event",
       });
       const envelope = `${header}\n${item}\n${payload}`;
       // tslint:disable-next-line: no-unsafe-any
@@ -57,8 +57,9 @@ export const NATIVE = {
 
     if (__DEV__ && !options.dsn) {
       console.warn(
-        "Warning: No DSN was provided. The Sentry SDK will be disabled."
+        "Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized."
       );
+      return false;
     }
 
     // filter out all the options that would crash native.
@@ -145,7 +146,7 @@ export const NATIVE = {
         email,
         id,
         ip_address,
-        username
+        username,
       };
       otherUserKeys = this._serializeObject(otherKeys);
     }
@@ -203,7 +204,9 @@ export const NATIVE = {
     // tslint:disable-next-line: no-unsafe-any
     return RNSentry.addBreadcrumb({
       ...breadcrumb,
-      data: breadcrumb.data ? this._serializeObject(breadcrumb.data) : undefined
+      data: breadcrumb.data
+        ? this._serializeObject(breadcrumb.data)
+        : undefined,
     });
   },
 
@@ -285,5 +288,5 @@ export const NATIVE = {
     "Native Client is not available, can't start on native."
   ),
 
-  platform: Platform.OS
+  platform: Platform.OS,
 };

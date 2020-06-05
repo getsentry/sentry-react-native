@@ -7,6 +7,7 @@
 - Extend Scope methods to set native scope too. #902
 - Bump android 2.1.6
 - Bump `@sentry/*` to `^5.16.1`
+- Bump cocoa 5.1.3
 
 ## 1.4.2
 
