@@ -119,17 +119,29 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0ul), ^{
-        if ([NSJSONSerialization isValidJSONObject:event]) {
-            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:event
-                                                               options:0
-                                                                 error:nil];
-            [SentrySDK captureEvent:[[SentryEvent alloc] initWithJSON:jsonData]];
-            resolve(@YES);
+    if ([NSJSONSerialization isValidJSONObject:event]) {
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:event
+                                                           options:0
+                                                             error:nil];
+        
+        SentryEvent *sentryEvent = [[SentryEvent alloc] initWithJSON:jsonData];
+#if DEBUG
+        [SentrySDK captureEvent:sentryEvent];
+#else
+        // We check this against the dictionary
+        if ([event[@"level"] isEqualToString:@"fatal"]) {
+            // captureEvent queues the event for submission, so storing to disk happens asynchronously
+            // We need to make sure the event is written to disk before resolving the promise.
+            // This could be replaced by SentrySDK.flush() when available.
+            [[[[SentrySDK currentHub] getClient] fileManager] storeEvent:sentryEvent];
         } else {
-            reject(@"SentryReactNative", @"Cannot serialize event", nil);
+            [SentrySDK captureEvent:sentryEvent];
         }
-    });
+#endif
+        resolve(@YES);
+    } else {
+        reject(@"SentryReactNative", @"Cannot serialize event", nil);
+    }
 }
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary *)user
