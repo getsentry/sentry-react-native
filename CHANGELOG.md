@@ -2,7 +2,11 @@
 
 ## Unreleased
 
+## 1.5.0
+
 - Extend Scope methods to set native scope too. #902
+- Bump android 2.1.6
+- Bump `@sentry/*` to `^5.16.1`
 
 ## 1.4.2
 
@@ -140,7 +144,7 @@ New way to import and init the SDK:
 import * as Sentry from "@sentry/react-native";
 
 Sentry.init({
-  dsn: "DSN"
+  dsn: "DSN",
 });
 ```
 
@@ -376,7 +380,7 @@ To activate it set:
 
 ```js
 Sentry.config("___DSN___", {
-  deactivateStacktraceMerging: false
+  deactivateStacktraceMerging: false,
 });
 ```
 
