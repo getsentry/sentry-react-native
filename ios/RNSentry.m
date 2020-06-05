@@ -132,6 +132,96 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
     });
 }
 
+RCT_EXPORT_METHOD(setUser:(NSDictionary *)user
+                  otherUserKeys:(NSDictionary *)otherUserKeys
+)
+{
+    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+        if (nil == user && nil == otherUserKeys) {
+            [scope setUser:nil];
+        } else {
+            SentryUser* userInstance = [[SentryUser alloc] init];
+
+            if (nil != user) {
+                [userInstance setUserId:user[@"id"]];
+                [userInstance setEmail:user[@"email"]];
+                [userInstance setUsername:user[@"username"]];
+            }
+
+            if (nil != otherUserKeys) {
+                [userInstance setData:otherUserKeys];
+            }
+
+            [scope setUser:userInstance];
+        }
+    }];
+}
+
+RCT_EXPORT_METHOD(addBreadcrumb:(NSDictionary *)breadcrumb)
+{
+    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+        SentryBreadcrumb* breadcrumbInstance = [[SentryBreadcrumb alloc] init];
+
+        NSString * levelString = breadcrumb[@"level"];
+        SentryLevel sentryLevel;
+        if ([levelString isEqualToString:@"fatal"]) {
+            sentryLevel = kSentryLevelFatal;
+        } else if ([levelString isEqualToString:@"warning"]) {
+            sentryLevel = kSentryLevelWarning;
+        } else if ([levelString isEqualToString:@"info"]) {
+            sentryLevel = kSentryLevelInfo;
+        } else if ([levelString isEqualToString:@"debug"]) {
+            sentryLevel = kSentryLevelDebug;
+        } else {
+            sentryLevel = kSentryLevelError;
+        }
+        [breadcrumbInstance setLevel:sentryLevel];
+
+        [breadcrumbInstance setCategory:breadcrumb[@"category"]];
+
+        [breadcrumbInstance setType:breadcrumb[@"type"]];
+
+        [breadcrumbInstance setMessage:breadcrumb[@"message"]];
+
+        [breadcrumbInstance setData:breadcrumb[@"data"]];
+
+        [scope addBreadcrumb:breadcrumbInstance];
+    }];
+}
+
+RCT_EXPORT_METHOD(clearBreadcrumbs) {
+    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+        [scope clearBreadcrumbs];
+    }];
+}
+
+RCT_EXPORT_METHOD(setExtra:(NSString *)key
+                  extra:(NSString *)extra
+)
+{
+    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+        [scope setExtraValue:extra forKey:key];
+    }];
+}
+
+RCT_EXPORT_METHOD(setContext:(NSString *)key
+                  context:(NSDictionary *)context
+)
+{
+    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+        [scope setContextValue:context forKey:key];
+    }];
+}
+
+RCT_EXPORT_METHOD(setTag:(NSString *)key
+                  value:(NSString *)value
+)
+{
+    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+        [scope setTagValue:value forKey:key];
+    }];
+}
+
 RCT_EXPORT_METHOD(crash)
 {
     [SentrySDK crash];

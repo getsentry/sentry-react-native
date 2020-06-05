@@ -1,4 +1,4 @@
-import { Event, Response } from "@sentry/types";
+import { Breadcrumb, Event, Response, User } from "@sentry/types";
 import { SentryError } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
 
@@ -123,6 +123,139 @@ export const NATIVE = {
     }
     // tslint:disable-next-line: no-unsafe-any
     return RNSentry.crash();
+  },
+
+  /**
+   * Sets the user in the native scope.
+   * Passing null clears the user.
+   * @param key string
+   * @param value string
+   */
+  setUser(user: User | null): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    // separate and serialze all non-default user keys.
+    let defaultUserKeys = null;
+    let otherUserKeys = null;
+    if (user) {
+      const { id, ip_address, email, username, ...otherKeys } = user;
+      defaultUserKeys = {
+        email,
+        id,
+        ip_address,
+        username
+      };
+      otherUserKeys = this._serializeObject(otherKeys);
+    }
+
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.setUser(defaultUserKeys, otherUserKeys);
+  },
+
+  /**
+   * Sets a tag in the native module.
+   * @param key string
+   * @param value string
+   */
+  setTag(key: string, value: string): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    const stringifiedValue =
+      // tslint:disable-next-line: strict-type-predicates
+      typeof value === "string" ? value : JSON.stringify(value);
+
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.setTag(key, stringifiedValue);
+  },
+
+  /**
+   * Sets an extra in the native scope, will stringify
+   * extra value if it isn't already a string.
+   * @param key string
+   * @param extra any
+   */
+  setExtra(key: string, extra: any): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    // we stringify the extra as native only takes in strings.
+    const stringifiedExtra =
+      typeof extra === "string" ? extra : JSON.stringify(extra);
+
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.setExtra(key, stringifiedExtra);
+  },
+
+  /**
+   * Adds breadcrumb to the native scope.
+   * @param breadcrumb Breadcrumb
+   */
+  addBreadcrumb(breadcrumb: Breadcrumb): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.addBreadcrumb({
+      ...breadcrumb,
+      data: breadcrumb.data ? this._serializeObject(breadcrumb.data) : undefined
+    });
+  },
+
+  /**
+   * Clears breadcrumsb on the native scope.
+   */
+  clearBreadcrumbs(): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.clearBreadcrumbs();
+  },
+
+  /**
+   * Sets context on the native scope. Not implemented in Android yet.
+   * @param key string
+   * @param context key-value map
+   */
+  setContext(key: string, context: { [key: string]: any } | null): void {
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    if (this.platform === "android") {
+      // setContext not available on the Android SDK yet.
+      this.setExtra(key, context);
+    } else {
+      // tslint:disable-next-line: no-unsafe-any
+      RNSentry.setContext(
+        key,
+        context !== null ? this._serializeObject(context) : null
+      );
+    }
+  },
+
+  /**
+   * Serializes all values of root-level keys into strings.
+   * @param data key-value map.
+   * @returns An object where all root-level values are strings.
+   */
+  _serializeObject(data: { [key: string]: any }): { [key: string]: string } {
+    const serialized: { [key: string]: any } = {};
+
+    Object.keys(data).forEach((dataKey) => {
+      const value = data[dataKey];
+      serialized[dataKey] =
+        typeof value === "string" ? value : JSON.stringify(value);
+    });
+
+    return serialized;
   },
 
   /**

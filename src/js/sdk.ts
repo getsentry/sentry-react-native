@@ -1,9 +1,9 @@
 import { defaultIntegrations, getCurrentHub } from "@sentry/browser";
 import { initAndBind, setExtra } from "@sentry/core";
+import { Hub, makeMain } from "@sentry/hub";
 import { RewriteFrames } from "@sentry/integrations";
 import { StackFrame } from "@sentry/types";
 import { getGlobalObject } from "@sentry/utils";
-// import { NativeModules } from "react-native";
 
 import { ReactNativeOptions } from "./backend";
 import { ReactNativeClient } from "./client";
@@ -11,14 +11,15 @@ import {
   DebugSymbolicator,
   DeviceContext,
   ReactNativeErrorHandlers,
-  Release,
+  Release
 } from "./integrations";
+import { ReactNativeScope } from "./scope";
 
 // const { RNSentry } = NativeModules;
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   "GlobalHandlers", // We will use the react-native internal handlers
-  "TryCatch", // We don't need this
+  "TryCatch" // We don't need this
 ];
 
 /**
@@ -27,9 +28,12 @@ const IGNORED_DEFAULT_INTEGRATIONS = [
 export function init(
   options: ReactNativeOptions = {
     enableNative: true,
-    enableNativeCrashHandling: true,
+    enableNativeCrashHandling: true
   }
 ): void {
+  const reactNativeHub = new Hub(undefined, new ReactNativeScope());
+  makeMain(reactNativeHub);
+
   // tslint:disable: strict-comparisons
   if (options.defaultIntegrations === undefined) {
     options.defaultIntegrations = [
@@ -37,7 +41,7 @@ export function init(
       new Release(),
       ...defaultIntegrations.filter(
         (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
-      ),
+      )
     ];
     if (__DEV__) {
       options.defaultIntegrations.push(new DebugSymbolicator());
@@ -63,7 +67,7 @@ export function init(
                 : `${appPrefix}/${frame.filename}`;
           }
           return frame;
-        },
+        }
       }),
       new DeviceContext()
     );

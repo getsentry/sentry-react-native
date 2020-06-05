@@ -10,6 +10,8 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 
@@ -17,6 +19,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -29,11 +32,14 @@ import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.core.Sentry;
+import io.sentry.core.Breadcrumb;
 import io.sentry.core.Integration;
+import io.sentry.core.SentryLevel;
 import io.sentry.core.SentryOptions;
 import io.sentry.core.UncaughtExceptionHandlerIntegration;
 import io.sentry.core.protocol.SdkVersion;
 import io.sentry.core.protocol.SentryException;
+import io.sentry.core.protocol.User;
 
 @ReactModule(name = RNSentryModule.NAME)
 public class RNSentryModule extends ReactContextBaseJavaModule {
@@ -212,5 +218,125 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             default:
                 return Level.OFF;
         }
+    }
+
+    @ReactMethod
+    public void setUser(final ReadableMap user, final ReadableMap otherUserKeys) {
+        Sentry.configureScope(scope -> {
+            if (user == null && otherUserKeys == null) {
+                scope.setUser(null);
+            } else {
+                User userInstance = new User();
+
+                if (user != null) {
+                    if (user.hasKey("email")) {
+                        userInstance.setEmail(user.getString("email"));
+                    }
+
+                    if (user.hasKey("id")) {
+                        userInstance.setId(user.getString("id"));
+                    }
+
+                    if (user.hasKey("username")) {
+                        userInstance.setUsername(user.getString("username"));
+                    }
+
+                    if (user.hasKey("ip_address")) {
+                        userInstance.setIpAddress(user.getString("ip_address"));
+                    }
+                }
+
+                if (otherUserKeys != null) {
+                    HashMap<String, String> otherUserKeysMap = new HashMap<String, String>();
+                    ReadableMapKeySetIterator it = otherUserKeys.keySetIterator();
+                    while (it.hasNextKey()) {
+                        String key = it.nextKey();
+                        String value = otherUserKeys.getString(key);
+
+                        otherUserKeysMap.put(key, value);
+                    }
+
+                    userInstance.setOthers(otherUserKeysMap);
+                }
+
+                scope.setUser(userInstance);
+            }
+        });
+    }
+
+    @ReactMethod
+    public void addBreadcrumb(final ReadableMap breadcrumb) {
+        Sentry.configureScope(scope -> {
+            Breadcrumb breadcrumbInstance = new Breadcrumb();
+
+            if (breadcrumb.hasKey("message")) {
+                breadcrumbInstance.setMessage(breadcrumb.getString("message"));
+            }
+
+            if (breadcrumb.hasKey("type")) {
+                breadcrumbInstance.setType(breadcrumb.getString("type"));
+            }
+
+            if (breadcrumb.hasKey("category")) {
+                breadcrumbInstance.setCategory(breadcrumb.getString("category"));
+            }
+
+            if (breadcrumb.hasKey("level")) {
+                switch (breadcrumb.getString("level")) {
+                    case "fatal":
+                        breadcrumbInstance.setLevel(SentryLevel.FATAL);
+                        break;
+                    case "warning":
+                        breadcrumbInstance.setLevel(SentryLevel.WARNING);
+                        break;
+                    case "info":
+                        breadcrumbInstance.setLevel(SentryLevel.INFO);
+                        break;
+                    case "debug":
+                        breadcrumbInstance.setLevel(SentryLevel.DEBUG);
+                        break;
+                    case "error":
+                        breadcrumbInstance.setLevel(SentryLevel.ERROR);
+                        break;
+                    default:
+                        breadcrumbInstance.setLevel(SentryLevel.ERROR);
+                        break;
+                }
+            }
+
+            if (breadcrumb.hasKey("data")) {
+                ReadableMap data = breadcrumb.getMap("data");
+                ReadableMapKeySetIterator it = data.keySetIterator();
+                while (it.hasNextKey()) {
+                    String key = it.nextKey();
+                    String value = data.getString(key);
+
+                    breadcrumbInstance.setData(key, value);
+                }
+            }
+
+            scope.addBreadcrumb(breadcrumbInstance);
+        });
+    }
+
+    @ReactMethod
+    public void clearBreadcrumbs() {
+        Sentry.configureScope(scope -> {
+            scope.clearBreadcrumbs();
+        });
+    }
+
+    @ReactMethod
+    public void setExtra(String key, String extra) {
+        Sentry.configureScope(scope -> {
+            scope.setExtra(key, extra);
+        });
+    }
+
+    @ReactMethod
+    public void setTag(String key, String value) {
+        Sentry.configureScope(scope -> {
+            scope.setTag(key, value);
+        });
     }
 }

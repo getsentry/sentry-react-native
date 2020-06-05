@@ -26,23 +26,114 @@ import {
 
 import * as Sentry from '@sentry/react-native';
 
+import {version as packageVersion} from './package.json';
+
 Sentry.init({
   dsn:
     // Replace the example DSN below with your own DSN:
     'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053',
   debug: true,
-  beforeSend: e => {
+  beforeSend: (e) => {
     if (!e.tags) {
       e.tags = {};
     }
-    e.tags["beforeSend"] = "JS layer";
+    e.tags['beforeSend'] = 'JS layer';
+
+    console.log('Event beforeSend:', e);
     return e;
   },
   enableAutoSessionTracking: true,
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
-  sessionTrackingIntervalMillis: 5000
+  sessionTrackingIntervalMillis: 5000,
 });
 const App: () => React$Node = () => {
+  const setScopeProps = React.useCallback(() => {
+    const dateString = new Date().toString();
+
+    Sentry.setUser({
+      id: 'test-id-0',
+      email: 'testing@testing.test',
+      username: 'USER-TEST',
+      specialField: 'special user field',
+      specialFieldNumber: 418,
+    });
+
+    Sentry.setTag('SINGLE-TAG', dateString);
+    Sentry.setTag('SINGLE-TAG-NUMBER', 100);
+    Sentry.setTags({
+      'MULTI-TAG-0': dateString,
+      'MULTI-TAG-1': dateString,
+      'MULTI-TAG-2': dateString,
+    });
+
+    Sentry.setRelease(packageVersion);
+    Sentry.setDist(`${packageVersion}.0`);
+
+    Sentry.setExtra('SINGLE-EXTRA', dateString);
+    Sentry.setExtra('SINGLE-EXTRA-NUMBER', 100);
+    Sentry.setExtra('SINGLE-EXTRA-OBJECT', {
+      message: 'I am a teapot',
+      status: 418,
+      array: ['boo', 100, 400, {objectInsideArray: 'foobar'}],
+    });
+    Sentry.setExtras({
+      'MULTI-EXTRA-0': dateString,
+      'MULTI-EXTRA-1': dateString,
+      'MULTI-EXTRA-2': dateString,
+    });
+
+    Sentry.setContext('TEST-CONTEXT', {
+      stringTest: 'Hello',
+      numberTest: 404,
+      objectTest: {
+        foo: 'bar',
+      },
+      arrayTest: ['foo', 'bar', 400],
+      nullTest: null,
+      undefinedTest: undefined,
+    });
+
+    Sentry.addBreadcrumb({
+      level: 'info',
+      message: `TEST-BREADCRUMB-INFO: ${dateString}`,
+    });
+    Sentry.addBreadcrumb({
+      level: 'debug',
+      message: `TEST-BREADCRUMB-DEBUG: ${dateString}`,
+    });
+    Sentry.addBreadcrumb({
+      level: 'error',
+      message: `TEST-BREADCRUMB-ERROR: ${dateString}`,
+    });
+    Sentry.addBreadcrumb({
+      level: 'fatal',
+      message: `TEST-BREADCRUMB-FATAL: ${dateString}`,
+    });
+    Sentry.addBreadcrumb({
+      level: 'info',
+      message: `TEST-BREADCRUMB-DATA: ${dateString}`,
+      data: {
+        stringTest: 'Hello',
+        numberTest: 404,
+        objectTest: {
+          foo: 'bar',
+        },
+        arrayTest: ['foo', 'bar', 400],
+        nullTest: null,
+        undefinedTest: undefined,
+      },
+      category: 'TEST-CATEGORY',
+    });
+
+    console.log('Test scope properties were set.');
+  }, [Sentry]);
+
+  const clearBreadcrumbs = React.useCallback(() => {
+    Sentry.configureScope((scope) => {
+      scope.clearBreadcrumbs();
+    });
+  }, [Sentry]);
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
@@ -85,6 +176,12 @@ const App: () => React$Node = () => {
                   Sentry.nativeCrash();
                 }}>
                 nativeCrash
+              </Text>
+              <Text style={styles.sectionTitle} onPress={setScopeProps}>
+                Set Scope Properties
+              </Text>
+              <Text style={styles.sectionTitle} onPress={clearBreadcrumbs}>
+                Clear Breadcrumbs
               </Text>
               <Text style={styles.sectionTitle}>Step One</Text>
               <Text style={styles.sectionDescription}>
