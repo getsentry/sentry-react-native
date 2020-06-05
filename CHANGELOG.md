@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.4.4
+
+- Bump cocoa 5.1.3
+- fix(ios): We only store the event in release mode #917
+
 ## 1.4.3
 
 - Extend Scope methods to set native scope too. #902
