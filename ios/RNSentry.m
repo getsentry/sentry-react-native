@@ -130,7 +130,9 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
 #else
         // We check this against the dictionary
         if ([event[@"level"] isEqualToString:@"fatal"]) {
-            // In release for fatal crashes the only thing we do is store the event to send it after restart
+            // captureEvent queues the event for submission, so storing to disk happens asynchronously
+            // We need to make sure the event is written to disk before resolving the promise.
+            // This could be replaced by SentrySDK.flush() when available.
             [[[[SentrySDK currentHub] getClient] fileManager] storeEvent:sentryEvent];
         } else {
             [SentrySDK captureEvent:sentryEvent];
