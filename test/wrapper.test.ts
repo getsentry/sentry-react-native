@@ -32,26 +32,47 @@ jest.mock(
 
 beforeEach(() => {
   NATIVE.platform = "ios";
+  NATIVE.enableNative = true;
+});
+
+afterEach(() => {
+  jest.clearAllMocks();
 });
 
 describe("Tests Native Wrapper", () => {
   describe("startWithOptions", () => {
     test("calls native module", async () => {
       const RN = require("react-native");
+      // tslint:disable-next-line: no-unsafe-any
+      RN.NativeModules.RNSentry.startWithOptions = jest.fn();
 
       await NATIVE.startWithOptions({ dsn: "test", enableNative: true });
 
+      // tslint:disable-next-line: no-unsafe-any
       expect(RN.NativeModules.RNSentry.startWithOptions).toBeCalled();
     });
 
     test("warns if there is no dsn", async () => {
       const RN = require("react-native");
+      // tslint:disable-next-line: no-unsafe-any
+      RN.NativeModules.RNSentry.startWithOptions = jest.fn();
       console.warn = jest.fn();
 
       await NATIVE.startWithOptions({ enableNative: true });
-
-      expect(RN.NativeModules.RNSentry.startWithOptions).toBeCalled();
+      // tslint:disable-next-line: no-unsafe-any
+      expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
+      // tslint:disable-next-line: no-unbound-method
       expect(console.warn).toBeCalled();
+    });
+
+    test("does not call native module with enableNative: false", async () => {
+      const RN = require("react-native");
+      // tslint:disable-next-line: no-unsafe-any
+      RN.NativeModules.RNSentry.startWithOptions = jest.fn();
+
+      await NATIVE.startWithOptions({ dsn: "test", enableNative: false });
+      // tslint:disable-next-line: no-unsafe-any
+      expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
     });
   });
 
@@ -64,8 +85,6 @@ describe("Tests Native Wrapper", () => {
       expect(RN.NativeModules.RNSentry.sendEvent).toBeCalled();
     });
     test("calls getStringByteLength and captureEnvelope on android", async () => {
-      const RN = require("react-native");
-
       NATIVE.platform = "android";
 
       const event = {
@@ -90,6 +109,22 @@ describe("Tests Native Wrapper", () => {
       await expect(NATIVE.sendEvent(event)).resolves.toMatch(
         `${header}\n${item}\n${payload}`
       );
+    });
+    test("does not call RNSentry at all if enableNative is false", async () => {
+      const RN = require("react-native");
+
+      NATIVE.disableNative();
+      try {
+        await NATIVE.sendEvent({});
+      } catch (e) {
+        // tslint:disable-next-line: no-unsafe-any
+        expect(e).toMatch("Native Disabled");
+      }
+      /* tslint:disable: no-unsafe-any */
+      expect(RN.NativeModules.RNSentry.sendEvent).not.toBeCalled();
+      expect(RN.NativeModules.RNSentry.getStringBytesLength).not.toBeCalled();
+      expect(RN.NativeModules.RNSentry.captureEnvelope).not.toBeCalled();
+      /* tslint:enable: no-unsafe-any */
     });
   });
 
@@ -122,6 +157,14 @@ describe("Tests Native Wrapper", () => {
       NATIVE.crash();
       // tslint:disable-next-line: no-unsafe-any
       expect(RN.NativeModules.RNSentry.crash).toBeCalled();
+    });
+    test("does not call crash if enableNative is false", () => {
+      const RN = require("react-native");
+
+      NATIVE.disableNative();
+      NATIVE.crash();
+      // tslint:disable-next-line: no-unsafe-any
+      expect(RN.NativeModules.RNSentry.crash).not.toBeCalled();
     });
   });
 
