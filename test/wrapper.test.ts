@@ -39,7 +39,7 @@ describe("Tests Native Wrapper", () => {
     test("calls native module", async () => {
       const RN = require("react-native");
 
-      await NATIVE.startWithOptions({ dsn: "test" });
+      await NATIVE.startWithOptions({ dsn: "test", enableNative: true });
 
       expect(RN.NativeModules.RNSentry.startWithOptions).toBeCalled();
     });
@@ -48,7 +48,7 @@ describe("Tests Native Wrapper", () => {
       const RN = require("react-native");
       console.warn = jest.fn();
 
-      await NATIVE.startWithOptions({});
+      await NATIVE.startWithOptions({ enableNative: true });
 
       expect(RN.NativeModules.RNSentry.startWithOptions).toBeCalled();
       expect(console.warn).toBeCalled();
