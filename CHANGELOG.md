@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: Fix Native Wrapper not checking enableNative setting #919
+
 ## 1.4.4
 
 - Bump cocoa 5.1.4
