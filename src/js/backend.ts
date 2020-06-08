@@ -51,12 +51,8 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
     YellowBox.ignoreWarnings(["Require cycle:"]);
 
-    if (this._options.enableNative) {
-      // tslint:disable-next-line: no-floating-promises
-      this._startWithOptions();
-    } else {
-      NATIVE.disableNative();
-    }
+    // tslint:disable-next-line: no-floating-promises
+    this._startWithOptions();
   }
 
   /**

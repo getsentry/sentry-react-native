@@ -1,3 +1,5 @@
+import { logger } from "@sentry/utils";
+
 import { NATIVE } from "../src/js/wrapper";
 
 jest.mock(
@@ -56,23 +58,30 @@ describe("Tests Native Wrapper", () => {
       const RN = require("react-native");
       // tslint:disable-next-line: no-unsafe-any
       RN.NativeModules.RNSentry.startWithOptions = jest.fn();
-      console.warn = jest.fn();
+      logger.warn = jest.fn();
 
       await NATIVE.startWithOptions({ enableNative: true });
       // tslint:disable-next-line: no-unsafe-any
       expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
       // tslint:disable-next-line: no-unbound-method
-      expect(console.warn).toBeCalled();
+      expect(logger.warn).toHaveBeenLastCalledWith(
+        "Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized."
+      );
     });
 
     test("does not call native module with enableNative: false", async () => {
       const RN = require("react-native");
       // tslint:disable-next-line: no-unsafe-any
       RN.NativeModules.RNSentry.startWithOptions = jest.fn();
+      logger.warn = jest.fn();
 
       await NATIVE.startWithOptions({ dsn: "test", enableNative: false });
       // tslint:disable-next-line: no-unsafe-any
       expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
+      // tslint:disable-next-line: no-unbound-method
+      expect(logger.warn).toHaveBeenLastCalledWith(
+        "Note: Native Sentry SDK is disabled."
+      );
     });
   });
 
@@ -113,8 +122,8 @@ describe("Tests Native Wrapper", () => {
     test("does not call RNSentry at all if enableNative is false", async () => {
       const RN = require("react-native");
 
-      NATIVE.disableNative();
       try {
+        await NATIVE.startWithOptions({ dsn: "test-dsn", enableNative: false });
         await NATIVE.sendEvent({});
       } catch (e) {
         // tslint:disable-next-line: no-unsafe-any
@@ -158,10 +167,10 @@ describe("Tests Native Wrapper", () => {
       // tslint:disable-next-line: no-unsafe-any
       expect(RN.NativeModules.RNSentry.crash).toBeCalled();
     });
-    test("does not call crash if enableNative is false", () => {
+    test("does not call crash if enableNative is false", async () => {
       const RN = require("react-native");
 
-      NATIVE.disableNative();
+      await NATIVE.startWithOptions({ dsn: "test-dsn", enableNative: false });
       NATIVE.crash();
       // tslint:disable-next-line: no-unsafe-any
       expect(RN.NativeModules.RNSentry.crash).not.toBeCalled();

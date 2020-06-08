@@ -1,5 +1,5 @@
 import { Breadcrumb, Event, Response, User } from "@sentry/types";
-import { SentryError } from "@sentry/utils";
+import { logger, SentryError } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
 
 import { ReactNativeOptions } from "./backend";
@@ -54,18 +54,20 @@ export const NATIVE = {
    * @param options ReactNativeOptions
    */
   async startWithOptions(options: ReactNativeOptions = {}): Promise<boolean> {
-    if (!this.enableNative || !options.enableNative) {
-      return false;
-    }
-    if (!this.isNativeClientAvailable()) {
-      throw this._NativeClientError;
-    }
-
-    if (__DEV__ && !options.dsn) {
-      console.warn(
+    if (!options.dsn) {
+      logger.warn(
         "Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized."
       );
       return false;
+    }
+    if (!options.enableNative) {
+      this.enableNative = false;
+      logger.warn("Note: Native Sentry SDK is disabled.");
+      return false;
+    }
+
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
     }
 
     // filter out all the options that would crash native.
@@ -296,13 +298,6 @@ export const NATIVE = {
     });
 
     return serialized;
-  },
-
-  /**
-   * Sets the nativeEnabled key to false
-   */
-  disableNative(): void {
-    this.enableNative = false;
   },
 
   /**
