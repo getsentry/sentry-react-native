@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.4.5
+
 - fix: Fix Native Wrapper not checking enableNative setting #919
 
 ## 1.4.4
