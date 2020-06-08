@@ -118,7 +118,7 @@ describe("Tests Native Wrapper", () => {
         await NATIVE.sendEvent({});
       } catch (e) {
         // tslint:disable-next-line: no-unsafe-any
-        expect(e).toMatch("Native Disabled");
+        expect(e.message).toMatch("Native is disabled");
       }
       /* tslint:disable: no-unsafe-any */
       expect(RN.NativeModules.RNSentry.sendEvent).not.toBeCalled();

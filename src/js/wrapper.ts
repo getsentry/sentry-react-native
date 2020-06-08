@@ -16,7 +16,7 @@ export const NATIVE = {
    */
   async sendEvent(event: Event): Promise<Response> {
     if (!this.enableNative) {
-      return Promise.reject("Native Disabled");
+      throw this._DisabledNativeError;
     }
     if (!this.isNativeClientAvailable()) {
       throw this._NativeClientError;
@@ -90,28 +90,28 @@ export const NATIVE = {
     id: string;
     version: string;
   }> {
-    if (this.enableNative) {
-      if (!this.isNativeClientAvailable()) {
-        throw this._NativeClientError;
-      }
-      // tslint:disable-next-line: no-unsafe-any
-      return RNSentry.fetchRelease();
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
     }
-    return Promise.reject();
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.fetchRelease();
   },
 
   /**
    * Fetches the device contexts. Not used on Android.
    */
   async deviceContexts(): Promise<object> {
-    if (this.enableNative) {
-      if (!this.isNativeClientAvailable()) {
-        throw this._NativeClientError;
-      }
-      // tslint:disable-next-line: no-unsafe-any
-      return RNSentry.deviceContexts();
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
     }
-    return Promise.reject("Native Disabled");
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+    // tslint:disable-next-line: no-unsafe-any
+    return RNSentry.deviceContexts();
   },
 
   /**
@@ -119,13 +119,15 @@ export const NATIVE = {
    * @param level number
    */
   setLogLevel(level: number): void {
-    if (this.enableNative) {
-      if (!this.isNativeClientAvailable()) {
-        throw this._NativeClientError;
-      }
-      // tslint:disable-next-line: no-unsafe-any
-      return RNSentry.setLogLevel(level);
+    if (!this.enableNative) {
+      return;
     }
+
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+    // tslint:disable-next-line: no-unsafe-any
+    RNSentry.setLogLevel(level);
   },
 
   /**
@@ -133,13 +135,14 @@ export const NATIVE = {
    * Use this only for testing purposes.
    */
   crash(): void {
-    if (this.enableNative) {
-      if (!this.isNativeClientAvailable()) {
-        throw this._NativeClientError;
-      }
-      // tslint:disable-next-line: no-unsafe-any
-      return RNSentry.crash();
+    if (!this.enableNative) {
+      return;
     }
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+    // tslint:disable-next-line: no-unsafe-any
+    RNSentry.crash();
   },
 
   /**
@@ -149,28 +152,29 @@ export const NATIVE = {
    * @param value string
    */
   setUser(user: User | null): void {
-    if (this.enableNative) {
-      if (!this.isNativeClientAvailable()) {
-        throw this._NativeClientError;
-      }
-
-      // separate and serialze all non-default user keys.
-      let defaultUserKeys = null;
-      let otherUserKeys = null;
-      if (user) {
-        const { id, ip_address, email, username, ...otherKeys } = user;
-        defaultUserKeys = {
-          email,
-          id,
-          ip_address,
-          username,
-        };
-        otherUserKeys = this._serializeObject(otherKeys);
-      }
-
-      // tslint:disable-next-line: no-unsafe-any
-      return RNSentry.setUser(defaultUserKeys, otherUserKeys);
+    if (!this.enableNative) {
+      return;
     }
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    // separate and serialze all non-default user keys.
+    let defaultUserKeys = null;
+    let otherUserKeys = null;
+    if (user) {
+      const { id, ip_address, email, username, ...otherKeys } = user;
+      defaultUserKeys = {
+        email,
+        id,
+        ip_address,
+        username,
+      };
+      otherUserKeys = this._serializeObject(otherKeys);
+    }
+
+    // tslint:disable-next-line: no-unsafe-any
+    RNSentry.setUser(defaultUserKeys, otherUserKeys);
   },
 
   /**
@@ -179,18 +183,19 @@ export const NATIVE = {
    * @param value string
    */
   setTag(key: string, value: string): void {
-    if (this.enableNative) {
-      if (!this.isNativeClientAvailable()) {
-        throw this._NativeClientError;
-      }
-
-      const stringifiedValue =
-        // tslint:disable-next-line: strict-type-predicates
-        typeof value === "string" ? value : JSON.stringify(value);
-
-      // tslint:disable-next-line: no-unsafe-any
-      return RNSentry.setTag(key, stringifiedValue);
+    if (!this.enableNative) {
+      return;
     }
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    const stringifiedValue =
+      // tslint:disable-next-line: strict-type-predicates
+      typeof value === "string" ? value : JSON.stringify(value);
+
+    // tslint:disable-next-line: no-unsafe-any
+    RNSentry.setTag(key, stringifiedValue);
   },
 
   /**
@@ -200,18 +205,19 @@ export const NATIVE = {
    * @param extra any
    */
   setExtra(key: string, extra: any): void {
-    if (this.enableNative) {
-      if (!this.isNativeClientAvailable()) {
-        throw this._NativeClientError;
-      }
-
-      // we stringify the extra as native only takes in strings.
-      const stringifiedExtra =
-        typeof extra === "string" ? extra : JSON.stringify(extra);
-
-      // tslint:disable-next-line: no-unsafe-any
-      return RNSentry.setExtra(key, stringifiedExtra);
+    if (!this.enableNative) {
+      return;
     }
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    // we stringify the extra as native only takes in strings.
+    const stringifiedExtra =
+      typeof extra === "string" ? extra : JSON.stringify(extra);
+
+    // tslint:disable-next-line: no-unsafe-any
+    RNSentry.setExtra(key, stringifiedExtra);
   },
 
   /**
@@ -219,33 +225,35 @@ export const NATIVE = {
    * @param breadcrumb Breadcrumb
    */
   addBreadcrumb(breadcrumb: Breadcrumb): void {
-    if (this.enableNative) {
-      if (!this.isNativeClientAvailable()) {
-        throw this._NativeClientError;
-      }
-
-      // tslint:disable-next-line: no-unsafe-any
-      return RNSentry.addBreadcrumb({
-        ...breadcrumb,
-        data: breadcrumb.data
-          ? this._serializeObject(breadcrumb.data)
-          : undefined,
-      });
+    if (!this.enableNative) {
+      return;
     }
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    // tslint:disable-next-line: no-unsafe-any
+    RNSentry.addBreadcrumb({
+      ...breadcrumb,
+      data: breadcrumb.data
+        ? this._serializeObject(breadcrumb.data)
+        : undefined,
+    });
   },
 
   /**
    * Clears breadcrumsb on the native scope.
    */
   clearBreadcrumbs(): void {
-    if (this.enableNative) {
-      if (!this.isNativeClientAvailable()) {
-        throw this._NativeClientError;
-      }
-
-      // tslint:disable-next-line: no-unsafe-any
-      return RNSentry.clearBreadcrumbs();
+    if (!this.enableNative) {
+      return;
     }
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    // tslint:disable-next-line: no-unsafe-any
+    RNSentry.clearBreadcrumbs();
   },
 
   /**
@@ -254,21 +262,22 @@ export const NATIVE = {
    * @param context key-value map
    */
   setContext(key: string, context: { [key: string]: any } | null): void {
-    if (this.enableNative) {
-      if (!this.isNativeClientAvailable()) {
-        throw this._NativeClientError;
-      }
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
 
-      if (this.platform === "android") {
-        // setContext not available on the Android SDK yet.
-        this.setExtra(key, context);
-      } else {
-        // tslint:disable-next-line: no-unsafe-any
-        RNSentry.setContext(
-          key,
-          context !== null ? this._serializeObject(context) : null
-        );
-      }
+    if (this.platform === "android") {
+      // setContext not available on the Android SDK yet.
+      this.setExtra(key, context);
+    } else {
+      // tslint:disable-next-line: no-unsafe-any
+      RNSentry.setContext(
+        key,
+        context !== null ? this._serializeObject(context) : null
+      );
     }
   },
 
@@ -318,6 +327,8 @@ export const NATIVE = {
     // tslint:disable-next-line: no-unsafe-any
     return this.isModuleLoaded() && RNSentry.nativeTransport;
   },
+
+  _DisabledNativeError: new SentryError("Native is disabled"),
 
   _NativeClientError: new SentryError(
     "Native Client is not available, can't start on native."
