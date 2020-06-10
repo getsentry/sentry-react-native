@@ -21,6 +21,9 @@ jest.mock(
         nativeClientAvailable: true,
         nativeTransport: true,
         sendEvent: jest.fn(() => Promise.resolve()),
+        setUser: jest.fn(() => {
+          return;
+        }),
         startWithOptions: jest.fn((options) => Promise.resolve(options))
       }
     },
@@ -174,6 +177,29 @@ describe("Tests Native Wrapper", () => {
       NATIVE.crash();
       // tslint:disable-next-line: no-unsafe-any
       expect(RN.NativeModules.RNSentry.crash).not.toBeCalled();
+    });
+  });
+
+  describe("setUser", () => {
+    test("serializes all user object keys", async () => {
+      const RN = require("react-native");
+
+      NATIVE.setUser({
+        email: "hello@sentry.io",
+        // @ts-ignore
+        id: 3.14159265359,
+        unique: 123,
+      });
+      // tslint:disable-next-line: no-unsafe-any
+      expect(RN.NativeModules.RNSentry.setUser).toBeCalledWith(
+        {
+          email: "hello@sentry.io",
+          id: "3.14159265359",
+        },
+        {
+          unique: "123",
+        }
+      );
     });
   });
 
