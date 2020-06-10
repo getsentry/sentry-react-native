@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: Serialize the default user keys in setUser #926
+
 ## 1.4.5
 
 - fix: Fix Native Wrapper not checking enableNative setting #919
