@@ -166,12 +166,12 @@ export const NATIVE = {
     let otherUserKeys = null;
     if (user) {
       const { id, ip_address, email, username, ...otherKeys } = user;
-      defaultUserKeys = {
+      defaultUserKeys = this._serializeObject({
         email,
         id,
         ip_address,
         username,
-      };
+      });
       otherUserKeys = this._serializeObject(otherKeys);
     }
 
