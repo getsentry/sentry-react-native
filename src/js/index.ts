@@ -38,6 +38,10 @@ export { ReactNativeBackend, ReactNativeOptions } from "./backend";
 export { ReactNativeClient } from "./client";
 export { init, setDist, setRelease, nativeCrash } from "./sdk";
 export { SDK_NAME, SDK_VERSION } from "./version";
+export {
+  InteractionEventBoundary,
+  withInteractionEventBoundary
+} from "./interactionevents";
 
 import * as Integrations from "./integrations";
 export { Integrations };
