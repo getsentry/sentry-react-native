@@ -4,6 +4,7 @@
   "exclude": ["dist"],
   "compilerOptions": {
     "rootDir": ".",
+    "jsx": "react-native",
     "types": ["jest"]
   }
 }
