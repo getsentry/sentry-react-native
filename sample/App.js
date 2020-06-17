@@ -139,6 +139,7 @@ const App: () => React$Node = () => {
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
         <ScrollView
+          accessibilityLabel="ScrollView"
           contentInsetAdjustmentBehavior="automatic"
           style={styles.scrollView}>
           <Header />
@@ -151,6 +152,7 @@ const App: () => React$Node = () => {
             <View style={styles.sectionContainer}>
               <Text
                 style={styles.sectionTitle}
+                sentryID="captureMessage"
                 onPress={() => {
                   Sentry.captureMessage('React Native Test Message');
                 }}>
@@ -158,6 +160,7 @@ const App: () => React$Node = () => {
               </Text>
               <Text
                 style={styles.sectionTitle}
+                sentryID="captureException"
                 onPress={() => {
                   Sentry.captureException(new Error('captureException test'));
                 }}>
@@ -165,6 +168,7 @@ const App: () => React$Node = () => {
               </Text>
               <Text
                 style={styles.sectionTitle}
+                sentryID="throwNewError"
                 onPress={() => {
                   throw new Error('throw new error test');
                 }}>
@@ -172,15 +176,22 @@ const App: () => React$Node = () => {
               </Text>
               <Text
                 style={styles.sectionTitle}
+                sentryID="nativeCrash"
                 onPress={() => {
                   Sentry.nativeCrash();
                 }}>
                 nativeCrash
               </Text>
-              <Text style={styles.sectionTitle} onPress={setScopeProps}>
+              <Text
+                sentryID="setScopeProperties"
+                style={styles.sectionTitle}
+                onPress={setScopeProps}>
                 Set Scope Properties
               </Text>
-              <Text style={styles.sectionTitle} onPress={clearBreadcrumbs}>
+              <Text
+                sentryID="clearBreadcrumbs"
+                style={styles.sectionTitle}
+                onPress={clearBreadcrumbs}>
                 Clear Breadcrumbs
               </Text>
               <Text style={styles.sectionTitle}>Step One</Text>
@@ -254,4 +265,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default Sentry.withInteractionEventBoundary(App);
