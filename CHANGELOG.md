@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- feat: Track interaction events as breadcrumbs #939
 - fix: Serialize the default user keys in setUser #926
 
 ## 1.4.5
