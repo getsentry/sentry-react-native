@@ -6,13 +6,13 @@ import { StyleSheet, View } from "react-native";
 // tslint:disable-next-line: interface-over-type-literal
 export type InteractionEventBoundaryProps = {
   breadcrumbCategory?: string;
-  elementIdKey?: string;
+  breadcrumbType?: string;
 };
 
 // tslint:disable-next-line: interface-over-type-literal
 type InteractionEventBoundaryDefaultProps = {
   breadcrumbCategory: string;
-  elementIdKey: string;
+  breadcrumbType: string;
 };
 
 const interactionEventStyles = StyleSheet.create({
@@ -21,8 +21,10 @@ const interactionEventStyles = StyleSheet.create({
   },
 });
 
-const DEFAULT_BREADCRUMB_CATEGORY = "interaction";
-const DEFAULT_ELEMENT_ID_KEY = "sentryID";
+const DEFAULT_BREADCRUMB_CATEGORY = "touch";
+const DEFAULT_BREADCRUMB_TYPE = "user";
+
+const DEFAULT_ELEMENT_DISPLAY_NAMES = ["View", "Text"];
 
 /**
  * Boundary to log breadcrumbs for interaction events.
@@ -32,20 +34,15 @@ class InteractionEventBoundary extends React.Component<
 > {
   public static defaultProps: InteractionEventBoundaryDefaultProps = {
     breadcrumbCategory: DEFAULT_BREADCRUMB_CATEGORY,
-    elementIdKey: DEFAULT_ELEMENT_ID_KEY,
+    breadcrumbType: DEFAULT_BREADCRUMB_TYPE,
   };
 
-  private readonly _logInteraction = (
-    elementId: string,
-    source: "elementIdKey" | "accessibilityLabel"
-  ): void => {
+  private readonly _logInteraction = (displayName: string): void => {
     const breadcrumb: Breadcrumb = {
       category: this.props.breadcrumbCategory,
+      type: this.props.breadcrumbType,
       level: Severity.Info,
-      message:
-        source === "elementIdKey"
-          ? `Touch event within element: ${elementId}`
-          : `Touch event within element with accessibilityLabel: ${elementId}`,
+      message: `Touch event within element: ${displayName}`,
     };
 
     addBreadcrumb(breadcrumb);
@@ -53,41 +50,29 @@ class InteractionEventBoundary extends React.Component<
 
   private readonly _onTouchStart = (e: any): void => {
     /* tslint:disable: no-unsafe-any */
-    if (e._targetInst && this.props.elementIdKey) {
+    if (e._targetInst) {
       let currentInst = e._targetInst;
+      let name = null;
 
       /* While there is an instance, and props do not contain the elementIdKey, we keep moving up the instance
         tree to its parent until we find one with the prop key defined. We also fallback to accessibilityLabel. */
       while (currentInst) {
         if (
-          currentInst.memoizedProps &&
-          (typeof currentInst.memoizedProps[this.props.elementIdKey] !==
-            "undefined" ||
-            typeof currentInst.memoizedProps.accessibilityLabel !== "undefined")
+          currentInst.elementType &&
+          typeof currentInst.elementType.displayName === "string" &&
+          !DEFAULT_ELEMENT_DISPLAY_NAMES.includes(
+            currentInst.elementType.displayName
+          )
         ) {
+          name = currentInst.elementType.displayName;
           break;
         }
 
         currentInst = currentInst.return;
       }
 
-      if (currentInst && currentInst.memoizedProps) {
-        if (
-          typeof currentInst.memoizedProps[this.props.elementIdKey] !==
-          "undefined"
-        ) {
-          this._logInteraction(
-            currentInst.memoizedProps[this.props.elementIdKey],
-            "elementIdKey"
-          );
-        } else if (
-          typeof currentInst.memoizedProps.accessibilityLabel !== "undefined"
-        ) {
-          this._logInteraction(
-            currentInst.memoizedProps.accessibilityLabel,
-            "accessibilityLabel"
-          );
-        }
+      if (name !== null) {
+        this._logInteraction(name);
       }
     }
     /* tslint:enable: no-unsafe-any */
