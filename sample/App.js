@@ -265,4 +265,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Sentry.withInteractionEventBoundary(App);
+export default Sentry.withTouchEventBoundary(App);

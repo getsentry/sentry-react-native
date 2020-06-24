@@ -4,7 +4,7 @@ import * as React from "react";
 import { StyleSheet, View } from "react-native";
 
 // tslint:disable-next-line: interface-over-type-literal
-export type InteractionEventBoundaryProps = {
+export type TouchEventBoundaryProps = {
   /**
    * The category assigned to the breadcrumb that is logged by the touch event.
    */
@@ -26,7 +26,7 @@ export type InteractionEventBoundaryProps = {
   ignoredDisplayNames?: string[];
 };
 
-const interactionEventStyles = StyleSheet.create({
+const touchEventStyles = StyleSheet.create({
   wrapperView: {
     flex: 1,
   },
@@ -40,18 +40,16 @@ const DEFAULT_IGNORED_DISPLAY_NAMES = ["View", "Text"];
 /**
  * Boundary to log breadcrumbs for interaction events.
  */
-class InteractionEventBoundary extends React.Component<
-  InteractionEventBoundaryProps
-> {
-  public static displayName: string = "InteractionEventBoundary";
-  public static defaultProps: Partial<InteractionEventBoundaryProps> = {
+class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
+  public static displayName: string = "TouchEventBoundary";
+  public static defaultProps: Partial<TouchEventBoundaryProps> = {
     breadcrumbCategory: DEFAULT_BREADCRUMB_CATEGORY,
     breadcrumbType: DEFAULT_BREADCRUMB_TYPE,
     ignoredDisplayNames: DEFAULT_IGNORED_DISPLAY_NAMES,
     maxComponentTreeSize: DEFAULT_MAX_COMPONENT_TREE_SIZE,
   };
 
-  private readonly _logInteractionInElement = (displayName: string): void => {
+  private readonly _logTouchInElement = (displayName: string): void => {
     addBreadcrumb({
       category: this.props.breadcrumbCategory,
       level: Severity.Info,
@@ -60,9 +58,7 @@ class InteractionEventBoundary extends React.Component<
     });
   };
 
-  private readonly _logInteractionInTree = (
-    componentTreeNames: string[]
-  ): void => {
+  private readonly _logTouchInTree = (componentTreeNames: string[]): void => {
     addBreadcrumb({
       category: this.props.breadcrumbCategory,
       data: { componentTree: componentTreeNames },
@@ -90,7 +86,7 @@ class InteractionEventBoundary extends React.Component<
           if (
             // If the loop gets to the boundary itself, break.
             currentInst.elementType.displayName ===
-            InteractionEventBoundary.displayName
+            TouchEventBoundary.displayName
           ) {
             break;
           }
@@ -118,9 +114,9 @@ class InteractionEventBoundary extends React.Component<
       }
 
       if (displayName !== null) {
-        this._logInteractionInElement(displayName);
+        this._logTouchInElement(displayName);
       } else if (componentTreeNames.length > 0) {
-        this._logInteractionInTree(componentTreeNames);
+        this._logTouchInTree(componentTreeNames);
       }
     }
     /* tslint:enable: no-unsafe-any */
@@ -130,7 +126,7 @@ class InteractionEventBoundary extends React.Component<
   public render(): React.ReactNode {
     return (
       <View
-        style={interactionEventStyles.wrapperView}
+        style={touchEventStyles.wrapperView}
         onTouchStart={this._onTouchStart}
       >
         {this.props.children}
@@ -140,19 +136,19 @@ class InteractionEventBoundary extends React.Component<
 }
 
 /**
- * Convenience Higher-Order-Component for InteractionEventBoundary
+ * Convenience Higher-Order-Component for TouchEventBoundary
  * @param WrappedComponent any React Component
- * @param boundaryProps InteractionEventBoundaryProps
+ * @param boundaryProps TouchEventBoundaryProps
  */
-const withInteractionEventBoundary = (
+const withTouchEventBoundary = (
   // tslint:disable-next-line: variable-name
   WrappedComponent: React.ComponentType<any>,
-  boundaryProps: InteractionEventBoundaryProps
+  boundaryProps: TouchEventBoundaryProps
 ) => (props: any) => (
-  <InteractionEventBoundary {...boundaryProps}>
+  <TouchEventBoundary {...boundaryProps}>
     {/* tslint:disable-next-line: no-unsafe-any */}
     <WrappedComponent {...props} />
-  </InteractionEventBoundary>
+  </TouchEventBoundary>
 );
 
-export { InteractionEventBoundary, withInteractionEventBoundary };
+export { TouchEventBoundary, withTouchEventBoundary };
