@@ -14,6 +14,7 @@ import {
   View,
   Text,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 
 import {
@@ -46,6 +47,17 @@ Sentry.init({
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
   sessionTrackingIntervalMillis: 5000,
 });
+
+const SetScopePropertiesButton = (props) => {
+  return (
+    <TouchableOpacity onPress={props.setScopeProps}>
+      <Text style={styles.sectionTitle}>Set Scope Properties</Text>
+    </TouchableOpacity>
+  );
+};
+
+SetScopePropertiesButton.displayName = 'SetScopeProperties';
+
 const App: () => React$Node = () => {
   const setScopeProps = React.useCallback(() => {
     const dateString = new Date().toString();
@@ -139,6 +151,7 @@ const App: () => React$Node = () => {
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
         <ScrollView
+          accessibilityLabel="ScrollView"
           contentInsetAdjustmentBehavior="automatic"
           style={styles.scrollView}>
           <Header />
@@ -177,10 +190,8 @@ const App: () => React$Node = () => {
                 }}>
                 nativeCrash
               </Text>
-              <Text style={styles.sectionTitle} onPress={setScopeProps}>
-                Set Scope Properties
-              </Text>
-              <Text style={styles.sectionTitle} onPress={clearBreadcrumbs}>
+              <SetScopePropertiesButton setScopeProps={setScopeProps} />
+              <Text onPress={clearBreadcrumbs} style={styles.sectionTitle}>
                 Clear Breadcrumbs
               </Text>
               <Text style={styles.sectionTitle}>Step One</Text>
@@ -254,4 +265,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default Sentry.withTouchEventBoundary(App);

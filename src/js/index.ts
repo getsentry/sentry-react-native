@@ -10,7 +10,7 @@ export {
   Stacktrace,
   Status,
   Thread,
-  User
+  User,
 } from "@sentry/types";
 
 export {
@@ -30,7 +30,7 @@ export {
   setTag,
   setTags,
   setUser,
-  withScope
+  withScope,
 } from "@sentry/core";
 
 import { Integrations as BrowserIntegrations } from "@sentry/browser";
@@ -38,6 +38,7 @@ export { ReactNativeBackend, ReactNativeOptions } from "./backend";
 export { ReactNativeClient } from "./client";
 export { init, setDist, setRelease, nativeCrash } from "./sdk";
 export { SDK_NAME, SDK_VERSION } from "./version";
+export { TouchEventBoundary, withTouchEventBoundary } from "./touchevents";
 
 import * as Integrations from "./integrations";
 export { Integrations };

@@ -30,7 +30,12 @@
   },
   "author": "Sentry",
   "license": "MIT",
+  "//": [
+    "React version to be compatible with RN",
+    "When bumping make sure to update the version of react, i.e:  https://github.com/facebook/react-native/blob/v0.56.0/package.json"
+  ],
   "peerDependencies": {
+    "react": ">=16.4.1",
     "react-native": ">=0.56.0"
   },
   "dependencies": {
