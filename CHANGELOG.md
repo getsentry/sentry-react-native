@@ -3,6 +3,8 @@
 ## Unreleased
 
 - fix: Serialize the default user keys in setUser #926
+- Bump android 2.2.0
+- fix(android): Fix unmapped context keys being overwritten on Android.
 
 ## 1.4.5
 
