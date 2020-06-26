@@ -2,9 +2,11 @@
 
 ## Unreleased
 
+## 1.5.0
+
 - feat: Track touch events as breadcrumbs #939
 - fix: Serialize the default user keys in setUser #926
-- Bump android 2.2.0
+- Bump android 2.2.0 #942
 - fix(android): Fix unmapped context keys being overwritten on Android.
 
 ## 1.4.5
