@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: Fix appending app:/// prefix to [native code] #946
+
 ## 1.5.0
 
 - feat: Track touch events as breadcrumbs #939
