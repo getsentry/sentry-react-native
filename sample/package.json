@@ -13,7 +13,10 @@
     "react": "16.13.1",
     "react-native": "0.63.1",
     "react-redux": "^7.2.1",
-    "redux": "^4.0.5"
+    "redux": "^4.0.5",
+    "appium": "^1.17.1",
+    "appium-doctor": "^1.15.3",
+    "wd": "^1.12.1"
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",
@@ -21,6 +24,7 @@
     "@react-native-community/eslint-config": "^1.1.0",
     "babel-jest": "^25.1.0",
     "babel-plugin-module-resolver": "^4.0.0",
+    "dotenv": "^8.2.0",
     "eslint": "^6.5.1",
     "jest": "^25.1.0",
     "metro-react-native-babel-preset": "^0.59.0",
