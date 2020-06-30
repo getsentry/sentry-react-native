@@ -55,16 +55,14 @@ export function init(
               .replace(/^address at /, "")
               .replace(/^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/, "");
 
-            if (frame.filename === "native") {
-              frame.in_app = false;
+            if (frame.filename !== "[native code]") {
+              const appPrefix = "app://";
+              // We always want to have a triple slash
+              frame.filename =
+                frame.filename.indexOf("/") === 0
+                  ? `${appPrefix}${frame.filename}`
+                  : `${appPrefix}/${frame.filename}`;
             }
-
-            const appPrefix = "app://";
-            // We always want to have a tripple slash
-            frame.filename =
-              frame.filename.indexOf("/") === 0
-                ? `${appPrefix}${frame.filename}`
-                : `${appPrefix}/${frame.filename}`;
           }
           return frame;
         }
