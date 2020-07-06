@@ -2,8 +2,12 @@
 
 ## Unreleased
 
-- feat: Log component tree with all touch events. #952
+## 1.6.0
+
+- feat: Log component tree with all touch events #952
 - fix: Fix appending app:/// prefix to [native code] #946
+- Bump `@sentry/*` to `^5.19.0`
+- Bump `sentry-cocoa` `5.1.6`
 
 ## 1.5.0
 
