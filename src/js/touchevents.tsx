@@ -41,7 +41,7 @@ const DEFAULT_IGNORED_DISPLAY_NAMES = ["View", "Text"];
  * Boundary to log breadcrumbs for interaction events.
  */
 class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
-  public static displayName: string = "TouchEventBoundary";
+  public static displayName: string = "__Sentry.TouchEventBoundary";
   public static defaultProps: Partial<TouchEventBoundaryProps> = {
     breadcrumbCategory: DEFAULT_BREADCRUMB_CATEGORY,
     breadcrumbType: DEFAULT_BREADCRUMB_TYPE,
@@ -49,21 +49,17 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     maxComponentTreeSize: DEFAULT_MAX_COMPONENT_TREE_SIZE,
   };
 
-  private readonly _logTouchInElement = (displayName: string): void => {
-    addBreadcrumb({
-      category: this.props.breadcrumbCategory,
-      level: Severity.Info,
-      message: `Touch event within element: ${displayName}`,
-      type: this.props.breadcrumbType,
-    });
-  };
-
-  private readonly _logTouchInTree = (componentTreeNames: string[]): void => {
+  private readonly _logTouchEvent = (
+    componentTreeNames: string[],
+    displayName: string | null
+  ): void => {
     addBreadcrumb({
       category: this.props.breadcrumbCategory,
       data: { componentTree: componentTreeNames },
       level: Severity.Info,
-      message: `Touch event within component tree`,
+      message: displayName
+        ? `Touch event within element: ${displayName}`
+        : `Touch event within component tree`,
       type: this.props.breadcrumbType,
     });
   };
@@ -91,21 +87,18 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
             break;
           }
 
-          if (
-            typeof currentInst.elementType.displayName === "string" &&
-            // ignore some displayNames for ux
-            this.props.ignoredDisplayNames &&
-            !this.props.ignoredDisplayNames.includes(
-              currentInst.elementType.displayName
-            )
-          ) {
-            /* Break when a displayName is detected, we don't need to log the whole tree now. */
-            displayName = currentInst.elementType.displayName;
-            break;
-          }
+          if (typeof currentInst.elementType.displayName === "string") {
+            if (
+              Array.isArray(this.props.ignoredDisplayNames) &&
+              !this.props.ignoredDisplayNames.includes(
+                currentInst.elementType.displayName
+              )
+            ) {
+              displayName = currentInst.elementType.displayName;
+            }
 
-          if (typeof currentInst.elementType.name === "string") {
-            /* If this doesn't have a displayName, we log the name and keep going. */
+            componentTreeNames.push(currentInst.elementType.displayName);
+          } else if (typeof currentInst.elementType.name === "string") {
             componentTreeNames.push(currentInst.elementType.name);
           }
         }
@@ -113,10 +106,8 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
         currentInst = currentInst.return;
       }
 
-      if (displayName !== null) {
-        this._logTouchInElement(displayName);
-      } else if (componentTreeNames.length > 0) {
-        this._logTouchInTree(componentTreeNames);
+      if (componentTreeNames.length > 0 || displayName) {
+        this._logTouchEvent(componentTreeNames, displayName);
       }
     }
     /* tslint:enable: no-unsafe-any */

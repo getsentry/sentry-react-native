@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- feat: Log component tree with all touch events. #952
 - fix: Fix appending app:/// prefix to [native code] #946
 
 ## 1.5.0
