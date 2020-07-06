@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- feat: Log component tree with all touch events. #952
+
 ## 1.5.0
 
 - feat: Track touch events as breadcrumbs #939
