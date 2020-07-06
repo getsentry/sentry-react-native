@@ -41,7 +41,7 @@ const DEFAULT_IGNORED_DISPLAY_NAMES = ["View", "Text"];
  * Boundary to log breadcrumbs for interaction events.
  */
 class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
-  public static displayName: string = "TouchEventBoundary";
+  public static displayName: string = "__Sentry.TouchEventBoundary";
   public static defaultProps: Partial<TouchEventBoundaryProps> = {
     breadcrumbCategory: DEFAULT_BREADCRUMB_CATEGORY,
     breadcrumbType: DEFAULT_BREADCRUMB_TYPE,
