@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.6.1
+
+- Bump `sentry-cocoa` `5.1.8`
+
 ## 1.6.0
 
 - feat: Log component tree with all touch events #952
