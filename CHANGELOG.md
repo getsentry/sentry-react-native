@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: Don't prefix app:/// to "native" filename as well #957
+
 ## 1.6.1
 
 - Bump `sentry-cocoa` `5.1.8`
