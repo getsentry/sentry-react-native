@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- feat: Add sdk_info to envelope header on Android.
+
 ## 1.6.1
 
 - Bump `sentry-cocoa` `5.1.8`
