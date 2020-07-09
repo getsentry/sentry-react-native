@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- feat: Add sdk_info to envelope header on Android.
+- feat: Add sdk_info to envelope header on Android. #958
 
 ## 1.6.1
 
