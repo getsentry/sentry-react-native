@@ -55,7 +55,7 @@ export function init(
               .replace(/^address at /, "")
               .replace(/^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/, "");
 
-            if (frame.filename !== "[native code]") {
+            if (frame.filename !== "[native code]" && frame.filename !== "native") {
               const appPrefix = "app://";
               // We always want to have a triple slash
               frame.filename =
