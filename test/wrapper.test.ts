@@ -14,7 +14,7 @@ jest.mock(
           Promise.resolve({
             build: "1.0.0.1",
             id: "test-mock",
-            version: "1.0.0"
+            version: "1.0.0",
           })
         ),
         getStringBytesLength: jest.fn(() => Promise.resolve(1)),
@@ -24,12 +24,12 @@ jest.mock(
         setUser: jest.fn(() => {
           return;
         }),
-        startWithOptions: jest.fn((options) => Promise.resolve(options))
-      }
+        startWithOptions: jest.fn((options) => Promise.resolve(options)),
+      },
     },
     Platform: {
-      OS: "iOS"
-    }
+      OS: "iOS",
+    },
   }),
   /* virtual allows us to mock modules that aren't in package.json */
   { virtual: true }
@@ -101,20 +101,27 @@ describe("Tests Native Wrapper", () => {
 
       const event = {
         event_id: "event0",
-        message: "test"
+        message: "test",
+        sdk: {
+          name: "test-sdk-name",
+          version: "2.1.3",
+        },
       };
 
       const payload = JSON.stringify({
         ...event,
         message: {
-          message: event.message
-        }
+          message: event.message,
+        },
       });
-      const header = JSON.stringify({ event_id: event.event_id });
+      const header = JSON.stringify({
+        event_id: event.event_id,
+        sdk_info: event.sdk,
+      });
       const item = JSON.stringify({
         content_type: "application/json",
         length: 1,
-        type: "event"
+        type: "event",
       });
 
       // tslint:disable-next-line: no-unsafe-any
@@ -145,7 +152,7 @@ describe("Tests Native Wrapper", () => {
       await expect(NATIVE.fetchRelease()).resolves.toMatchObject({
         build: "1.0.0.1",
         id: "test-mock",
-        version: "1.0.0"
+        version: "1.0.0",
       });
     });
   });
