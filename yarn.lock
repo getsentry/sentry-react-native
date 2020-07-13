@@ -374,10 +374,15 @@
     "@sentry/types" "5.19.0"
     tslib "^1.9.3"
 
-"@sentry/types@5.19.0", "@sentry/types@^5.19.0":
+"@sentry/types@5.19.0":
   version "5.19.0"
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-5.19.0.tgz#30c6a05040b644d90337ef8b50d9d59c0872744d"
   integrity sha512-NlHLS9mwCEimKUA5vClAwVhXFLsqSF3VJEXU+K61fF6NZx8zfJi/HTrIBtoM4iNSAt9o4XLQatC1liIpBC06tg==
+
+"@sentry/types@^5.19.0":
+  version "5.19.1"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-5.19.1.tgz#8762f668d3fc2416fbde31d15d13009544caeb54"
+  integrity sha512-M5MhTLnjqYFwxMwcFPBpBgYQqI9hCvtVuj/A+NvcBHpe7VWOXdn/Sys+zD6C76DWGFYQdw3OWCsZimP24dL8mA==
 
 "@sentry/typescript@^5.19.0":
   version "5.19.0"
