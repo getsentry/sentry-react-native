@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.6.2
+
 - fix: Don't prefix app:/// to "native" filename as well #957
 - feat: Add sdk_info to envelope header on Android. #958
 
