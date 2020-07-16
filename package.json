@@ -51,8 +51,11 @@
     "@sentry/typescript": "^5.19.0",
     "@types/jest": "^25.1.4",
     "@types/react-native": "^0.62.10",
+    "babel-jest": "^26.1.0",
     "jest": "^24.9.0",
     "prettier": "^2.0.5",
+    "react": ">=16.4.1",
+    "react-native": ">=0.56.0",
     "replace-in-file": "^6.0.0",
     "rimraf": "^3.0.0",
     "ts-jest": "^24.3.0",
@@ -75,23 +78,26 @@
   },
   "jest": {
     "collectCoverage": true,
+    "preset": "react-native",
     "transform": {
-      "^.+\\.ts$": "ts-jest"
+      "^.+\\.(tsx)$": "<rootDir>/node_modules/react-native/jest/preprocessor.js",
+      "^.+\\.(ts|tsx)$": "ts-jest"
     },
-    "moduleFileExtensions": [
-      "js",
-      "ts"
-    ],
-    "testEnvironment": "node",
-    "testMatch": [
-      "**/*.test.ts"
-    ],
     "globals": {
       "__DEV__": true,
       "ts-jest": {
         "tsConfig": "./tsconfig.json",
         "diagnostics": false
       }
-    }
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/*.test.(ts|tsx)"
+    ]
   }
 }
