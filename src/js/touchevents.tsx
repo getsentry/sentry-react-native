@@ -24,6 +24,7 @@ export type TouchEventBoundaryProps = {
   ignoreNames?: Array<string | RegExp>;
   /**
    * Deprecated, use ignoreNames instead
+   * @deprecated
    */
   ignoredDisplayNames?: Array<string | RegExp>;
 };
