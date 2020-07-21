@@ -2,7 +2,8 @@ import { BrowserOptions, Transports } from "@sentry/browser";
 import { BrowserBackend } from "@sentry/browser/dist/backend";
 import { BaseBackend, NoopTransport } from "@sentry/core";
 import { Event, EventHint, Severity, Transport } from "@sentry/types";
-import * as ReactNative from "react-native";
+// @ts-ignore
+import { Alert, LogBox, YellowBox } from "react-native";
 
 import { NativeTransport } from "./transports/native";
 import { NATIVE } from "./wrapper";
@@ -50,13 +51,11 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
 
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
     // YellowBox deprecated and replaced with with LogBox in RN 0.63
-    // @ts-ignore
-    if (ReactNative.LogBox) {
-      // @ts-ignore
+    if (LogBox) {
       // tslint:disable-next-line: no-unsafe-any
-      ReactNative.LogBox.ignoreLogs(["Require cycle:"]);
+      LogBox.ignoreLogs(["Require cycle:"]);
     } else {
-      ReactNative.YellowBox.ignoreWarnings(["Require cycle:"]);
+      YellowBox.ignoreWarnings(["Require cycle:"]);
     }
 
     // tslint:disable-next-line: no-floating-promises
@@ -80,7 +79,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    */
   private _showCannotConnectDialog(): void {
     if (__DEV__ && this._options.enableNativeNagger) {
-      ReactNative.Alert.alert(
+      Alert.alert(
         "Sentry",
         "Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details."
       );
