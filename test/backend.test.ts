@@ -1,3 +1,4 @@
+import * as RN from "react-native";
 import { ReactNativeBackend } from "../src/js/backend";
 
 const EXAMPLE_DSN =
@@ -18,13 +19,16 @@ jest.mock(
           }
           return Promise.resolve();
         })
-      }
+      },
     },
     Platform: {
       OS: "mock"
     },
     LogBox: {
       ignoreLogs: jest.fn(),
+    },
+    YellowBox: {
+      ignoreWarnings: jest.fn()
     }
   }),
   /* virtual allows us to mock modules that aren't in package.json */
@@ -36,10 +40,11 @@ describe("Tests ReactNativeBackend", () => {
     test("backend initializes", async () => {
       const backend = new ReactNativeBackend({
         dsn: EXAMPLE_DSN,
-        enableNative: true
+        enableNative: true,
       });
 
       await expect(backend.eventFromMessage("test")).resolves.toBeDefined();
+      await expect(RN.LogBox.ignoreLogs).toBeCalled();
     });
 
     test("invalid dsn is thrown", () => {
@@ -65,6 +70,18 @@ describe("Tests ReactNativeBackend", () => {
 
         return expect(backend.eventFromMessage("test")).resolves.toBeDefined();
       }).not.toThrow();
+    });
+
+    test("falls back to YellowBox if no LogBox", async () => {
+      RN.LogBox = undefined;
+
+      const backend = new ReactNativeBackend({
+        dsn: EXAMPLE_DSN,
+        enableNative: true,
+      });
+
+      await expect(backend.eventFromMessage("test")).resolves.toBeDefined();
+      await expect(RN.YellowBox.ignoreWarnings).toBeCalled();
     });
   });
 
