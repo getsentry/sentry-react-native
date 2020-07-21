@@ -1,5 +1,4 @@
 import { ReactNativeBackend } from "../src/js/backend";
-import { SentryError } from "@sentry/utils";
 
 const EXAMPLE_DSN =
   "https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053";
@@ -10,9 +9,9 @@ jest.mock(
     NativeModules: {
       RNSentry: {
         crash: jest.fn(),
-        setLogLevel: jest.fn(),
         nativeClientAvailable: true,
         nativeTransport: true,
+        setLogLevel: jest.fn(),
         startWithDsnString: jest.fn((dsn) => {
           if (typeof dsn !== "string") {
             throw new Error();
@@ -24,8 +23,8 @@ jest.mock(
     Platform: {
       OS: "mock"
     },
-    YellowBox: {
-      ignoreWarnings: jest.fn()
+    LogBox: {
+      ignoreLogs: jest.fn(),
     }
   }),
   /* virtual allows us to mock modules that aren't in package.json */
