@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: Use `LogBox` instead of `YellowBox` if possible. #989
+
 ## 1.6.3
 
 - feat: Touch events take Regex for ignoreNames & add tests #973

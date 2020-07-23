@@ -17,16 +17,6 @@ module.exports = {
     blacklistRE: blacklist([
       new RegExp(`${reactNativeLib}/node_modules/react-native/.*`),
     ]),
-  },
-  transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: false,
-      },
-    }),
-  },
-  resolver: {
     extraNodeModules: new Proxy(
       {},
       {
@@ -38,5 +28,13 @@ module.exports = {
         },
       },
     ),
+  },
+  transformer: {
+    getTransformOptions: async () => ({
+      transform: {
+        experimentalImportSupport: false,
+        inlineRequires: false,
+      },
+    }),
   },
 };
