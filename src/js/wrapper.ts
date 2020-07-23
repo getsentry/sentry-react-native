@@ -25,7 +25,7 @@ export const NATIVE = {
     if (NATIVE.platform === "android") {
       const header = JSON.stringify({
         event_id: event.event_id,
-        sdk_info: event.sdk,
+        sdk: event.sdk,
       });
 
       (event as any).message = {
