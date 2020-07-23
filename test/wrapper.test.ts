@@ -208,6 +208,21 @@ describe("Tests Native Wrapper", () => {
         }
       );
     });
+
+    test("Calls native setUser with empty object as second param if no unique keys", async () => {
+      const RN = require("react-native");
+
+      NATIVE.setUser({
+        id: "Hello",
+      });
+      // tslint:disable-next-line: no-unsafe-any
+      expect(RN.NativeModules.RNSentry.setUser).toBeCalledWith(
+        {
+          id: "Hello",
+        },
+        {}
+      );
+    });
   });
 
   describe("isNativeClientAvailable", () => {
