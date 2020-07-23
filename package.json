@@ -39,16 +39,17 @@
     "react-native": ">=0.56.0"
   },
   "dependencies": {
-    "@sentry/browser": "^5.19.0",
-    "@sentry/core": "^5.19.0",
-    "@sentry/hub": "^5.19.0",
-    "@sentry/integrations": "^5.19.0",
-    "@sentry/types": "^5.19.0",
-    "@sentry/utils": "^5.19.0",
+    "@sentry/react": "^5.20.0",
+    "@sentry/browser": "^5.20.0",
+    "@sentry/core": "^5.20.0",
+    "@sentry/hub": "^5.20.0",
+    "@sentry/integrations": "^5.20.0",
+    "@sentry/types": "^5.20.0",
+    "@sentry/utils": "^5.20.0",
     "@sentry/wizard": "^1.1.4"
   },
   "devDependencies": {
-    "@sentry/typescript": "^5.19.0",
+    "@sentry/typescript": "^5.20.0",
     "@types/jest": "^25.1.4",
     "@types/react-native": "^0.62.10",
     "babel-jest": "^26.1.0",

@@ -49,6 +49,8 @@ Sentry.init({
 });
 
 const SetScopePropertiesButton = (props) => {
+  Sentry.useProfiler('SetScopeProperties');
+
   return (
     <TouchableOpacity onPress={props.setScopeProps}>
       <Text style={styles.sectionTitle}>Set Scope Properties</Text>
@@ -58,8 +60,11 @@ const SetScopePropertiesButton = (props) => {
 
 SetScopePropertiesButton.displayName = 'SetScopeProperties';
 
-const App: () => React$Node = () => {
-  const setScopeProps = React.useCallback(() => {
+const App = () => {
+  // Show bad code inside error boundary to trigger it.
+  const [showBadCode, setShowBadCode] = React.useState(false);
+
+  const setScopeProps = () => {
     const dateString = new Date().toString();
 
     Sentry.setUser({
@@ -138,13 +143,13 @@ const App: () => React$Node = () => {
     });
 
     console.log('Test scope properties were set.');
-  }, [Sentry]);
+  };
 
-  const clearBreadcrumbs = React.useCallback(() => {
+  const clearBreadcrumbs = () => {
     Sentry.configureScope((scope) => {
       scope.clearBreadcrumbs();
     });
-  }, [Sentry]);
+  };
 
   return (
     <>
@@ -194,6 +199,19 @@ const App: () => React$Node = () => {
               <Text onPress={clearBreadcrumbs} style={styles.sectionTitle}>
                 Clear Breadcrumbs
               </Text>
+              <Sentry.ErrorBoundary
+                fallback={({eventId}) => (
+                  <Text>Error boundary caught with event id: {eventId}</Text>
+                )}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowBadCode(true);
+                  }}>
+                  <Text style={styles.sectionTitle}>
+                    Activate Error Boundary {showBadCode && <div></div>}
+                  </Text>
+                </TouchableOpacity>
+              </Sentry.ErrorBoundary>
               <Text style={styles.sectionTitle}>Step One</Text>
               <Text style={styles.sectionDescription}>
                 Edit <Text style={styles.highlight}>App.js</Text> to change this
