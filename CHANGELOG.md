@@ -3,6 +3,8 @@
 ## Unreleased
 
 - fix: Use `LogBox` instead of `YellowBox` if possible. #989
+- fix: Don't add `DeviceContext` default integration if `enableNative` is set to `false`. #993
+- fix: Don't log "Native Sentry SDK is disabled" if `enableNativeNagger` is set to `false`. #993
 
 ## 1.6.3
 

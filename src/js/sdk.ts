@@ -65,20 +65,15 @@ export function init(
             }
           }
           return frame;
-        }
-      }),
-      new DeviceContext()
+        },
+      })
     );
+    if (options.enableNative) {
+      options.defaultIntegrations.push(new DeviceContext());
+    }
+    options = assignDefaultOptions(options);
   }
-  if (options.enableNative === undefined) {
-    options.enableNative = true;
-  }
-  if (options.enableNativeCrashHandling === undefined) {
-    options.enableNativeCrashHandling = true;
-  }
-  if (options.enableNativeNagger === undefined) {
-    options.enableNativeNagger = true;
-  }
+
   // tslint:enable: strict-comparisons
   initAndBind(ReactNativeClient, options);
 
@@ -124,4 +119,15 @@ export function nativeCrash(): void {
   if (client) {
     client.nativeCrash();
   }
+}
+
+function assignDefaultOptions(
+  providedOptions: ReactNativeOptions
+): ReactNativeOptions {
+  const defaultOptions: ReactNativeOptions = {
+    enableNative: true,
+    enableNativeCrashHandling: true,
+    enableNativeNagger: true,
+  };
+  return { ...defaultOptions, ...providedOptions };
 }
