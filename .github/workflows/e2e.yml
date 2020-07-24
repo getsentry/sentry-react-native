@@ -8,6 +8,7 @@ on:
 
 jobs:
   test:
+    # Android emulator said to perform best with macos HAXM
     runs-on: macos-latest
 
     env:
@@ -33,6 +34,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
+          script: ./sample/android/gradlew
       - name: Start Appium Server
         run: cd sample && yarn run appium &
       - name: Poll until Appium Server starts
