@@ -30,11 +30,6 @@ jobs:
         run: yarn build
       - name: Install Sample Dependencies
         run: cd sample && yarn install
-      - name: Run Android Emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          script: ./sample/android/gradlew
       - name: Start Appium Server
         run: cd sample && yarn run appium &
       - name: Poll until Appium Server starts
@@ -42,7 +37,10 @@ jobs:
           until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions); do
             sleep 5
           done
-      - name: Run Android Sim
-        run: cd sample && react-native android --variant=release
+      - name: Run Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          script: cd sample && react-native android --variant=release
       - name: Run Tests
         run: cd sample && yarn test
