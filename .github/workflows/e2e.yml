@@ -37,10 +37,8 @@ jobs:
           until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions); do
             sleep 5
           done
-      - name: Run Android Emulator
+      - name: Run Android Emulator & Test
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
-          script: cd sample && react-native run-android --variant=release
-      - name: Run Tests
-        run: cd sample && yarn test
+          script: cd sample && react-native run-android --variant=release && yarn test
