@@ -41,6 +41,6 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
-          script: cd sample && react-native android --variant=release
+          script: cd sample && react-native run-android --variant=release
       - name: Run Tests
         run: cd sample && yarn test
