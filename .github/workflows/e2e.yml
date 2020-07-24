@@ -1,0 +1,49 @@
+name: e2e
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      SENTRY_EVENT_AUTH_KEY: ${{ secrets.SENTRY_EVENT_AUTH_KEY }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Node JS 12.18.3
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.18.3"
+      - name: Install yarn
+        run: npm install -g yarn
+      - name: Install React Native CLI
+        run: yarn global add react-native-cli
+      - name: Install Dependencies
+        run: yarn install
+      - name: Build SDK
+        run: yarn build
+      - name: Install Sample Dependencies
+        run: cd sample && yarn install
+      - name: Install Sample Dependencies
+        run: cd sample && yarn install
+      - name: Run Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          script: ./gradlew connectedCheck
+      - name: Start Appium Server
+        run: cd sample && yarn run appium &
+      - name: Poll until Appium Server starts
+        run: |
+          until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions); do
+            sleep 5
+          done
+      - name: Run Android Sim
+        run: cd sample && react-native android --variant=release
+      - name: Run Tests
+        run: cd sample && yarn test
