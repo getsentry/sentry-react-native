@@ -56,7 +56,9 @@ export const NATIVE = {
    * Starts native with the provided options.
    * @param options ReactNativeOptions
    */
-  async startWithOptions(options: ReactNativeOptions = {}): Promise<boolean> {
+  async startWithOptions(
+    options: ReactNativeOptions = { enableNative: true }
+  ): Promise<boolean> {
     if (!options.dsn) {
       logger.warn(
         "Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized."
@@ -64,8 +66,10 @@ export const NATIVE = {
       return false;
     }
     if (!options.enableNative) {
+      if (!options.enableNativeNagger) {
+        logger.warn("Note: Native Sentry SDK is disabled.");
+      }
       this.enableNative = false;
-      logger.warn("Note: Native Sentry SDK is disabled.");
       return false;
     }
 
