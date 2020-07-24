@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 
 /*
   You will need:
-    .env with your SENTRY_EVENT_AUTH_KEY
+    .env with your SENTRY_AUTH_TOKEN
     appium server running = `yarn run appium`
     a release build for android (throw new error won't work in debug) = `yarn android --variant=release`
     then run the tests with jest = `yarn test`
@@ -35,7 +35,7 @@ const fetchEventFromSentryApi = async (eventId) => {
     headers: {
       'Content-Type': 'application/json',
       // Note: Don't forget to set this environment variable.
-      Authorization: `Bearer ${process.env.SENTRY_EVENT_AUTH_KEY}`,
+      Authorization: `Bearer ${process.env.SENTRY_AUTH_TOKEN}`,
     },
   });
 

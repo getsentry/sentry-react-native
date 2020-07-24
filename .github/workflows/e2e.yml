@@ -12,7 +12,7 @@ jobs:
     runs-on: macos-latest
 
     env:
-      SENTRY_EVENT_AUTH_KEY: ${{ secrets.SENTRY_EVENT_AUTH_KEY }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
     steps:
       - uses: actions/checkout@v2
