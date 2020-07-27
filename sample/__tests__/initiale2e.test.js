@@ -42,16 +42,20 @@ const fetchEventFromSentryApi = async (eventId) => {
   let retries = 0;
   const retryer = (json) =>
     new Promise((resolve, reject) => {
-      if (json.detail === 'Event not found' && retries < 6) {
-        setTimeout(() => {
-          retries++;
-          console.log(`Retrying api request. Retry number: ${retries}`);
-          resolve(
-            fetch(request)
-              .then((res) => res.json())
-              .then(retryer),
-          );
-        }, 30000);
+      if (json.detail === 'Event not found') {
+        if (retries < 6) {
+          setTimeout(() => {
+            retries++;
+            console.log(`Retrying api request. Retry number: ${retries}`);
+            resolve(
+              fetch(request)
+                .then((res) => res.json())
+                .then(retryer),
+            );
+          }, 30000);
+        } else {
+          reject(new Error('Could not fetch event within retry limit.'));
+        }
       } else {
         resolve(json);
       }
