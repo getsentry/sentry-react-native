@@ -116,7 +116,7 @@ describe("Tests Native Wrapper", () => {
       });
       const header = JSON.stringify({
         event_id: event.event_id,
-        sdk_info: event.sdk,
+        sdk: event.sdk,
       });
       const item = JSON.stringify({
         content_type: "application/json",
