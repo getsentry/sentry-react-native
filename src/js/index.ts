@@ -36,9 +36,6 @@ export {
 
 export {
   Integrations as BrowserIntegrations,
-  Profiler,
-  withProfiler,
-  useProfiler,
   ErrorBoundary,
   withErrorBoundary,
   createReduxEnhancer,
