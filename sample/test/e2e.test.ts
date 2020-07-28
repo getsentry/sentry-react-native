@@ -1,74 +1,32 @@
+// tslint:disable: no-unsafe-any
 import wd from 'wd';
-import fetch from 'node-fetch';
 
-/*
-  You will need:
-    .env with your SENTRY_AUTH_TOKEN
-    appium server running = `yarn run appium`
-    a release build for android (throw new error won't work in debug) = `yarn android --variant=release`
-    then run the tests with jest = `yarn test`
-*/
+import {fetchEvent} from '../utils/fetchEvent';
 
 // 10 minutes timeout.
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 300000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 3e5;
 const PORT = 4723;
-
-const config = {
-  platformName: 'Android',
-
-  deviceName: 'Android Emulator',
-
-  app: './android/app/build/outputs/apk/release/app-release.apk',
-};
 
 const driver = wd.promiseChainRemote('localhost', PORT);
 
-const domain = 'sentry.io';
-const getEventEndpoint = `/api/0/projects/sentry-test/react-native/events/`;
-
-const fetchEventFromSentryApi = async (eventId) => {
-  const url = `https://${domain}${getEventEndpoint}${eventId}/`;
-
-  // @ts-ignore
-  const request = new fetch.Request(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      // Note: Don't forget to set this environment variable.
-      Authorization: `Bearer ${process.env.SENTRY_AUTH_TOKEN}`,
-    },
-  });
-
-  let retries = 0;
-  const retryer = (json) =>
-    new Promise((resolve, reject) => {
-      if (json.detail === 'Event not found') {
-        if (retries < 6) {
-          setTimeout(() => {
-            retries++;
-            console.log(`Retrying api request. Retry number: ${retries}`);
-            resolve(
-              fetch(request)
-                .then((res) => res.json())
-                .then(retryer),
-            );
-          }, 30000);
-        } else {
-          reject(new Error('Could not fetch event within retry limit.'));
-        }
-      } else {
-        resolve(json);
-      }
-    });
-
-  const json = await fetch(request)
-    .then((res) => res.json())
-    .then(retryer);
-
-  return json;
-};
-
 beforeAll(async () => {
+  const config =
+    process.env.PLATFORM === 'android'
+      ? {
+          platformName: 'Android',
+
+          deviceName: 'Android Emulator',
+
+          app: './android/app/build/outputs/apk/release/app-release.apk',
+        }
+      : {
+          app:
+            './ios/DerivedData/Build/Products/Debug-iphonesimulator/sample.app',
+          deviceName: 'iPhone 11',
+          platformName: 'iOS',
+          platformVersion: '13.5',
+        };
+
   await driver.init(config);
   await driver.sleep(10000);
 });
@@ -97,7 +55,7 @@ describe('End to end tests for common events', () => {
 
     await driver.sleep(10000);
 
-    const sentryEvent = await fetchEventFromSentryApi(eventId);
+    const sentryEvent = await fetchEvent(eventId);
 
     expect(sentryEvent.eventID).toMatch(eventId);
   });
@@ -119,7 +77,7 @@ describe('End to end tests for common events', () => {
 
     await driver.sleep(10000);
 
-    const sentryEvent = await fetchEventFromSentryApi(eventId);
+    const sentryEvent = await fetchEvent(eventId);
 
     expect(sentryEvent.eventID).toMatch(eventId);
   });
@@ -141,7 +99,7 @@ describe('End to end tests for common events', () => {
 
     await driver.sleep(10000);
 
-    const sentryEvent = await fetchEventFromSentryApi(eventId);
+    const sentryEvent = await fetchEvent(eventId);
 
     expect(sentryEvent.eventID).toMatch(eventId);
   });

@@ -1,4 +1,4 @@
-name: e2e
+name: e2e-ios
 
 on:
   push:
@@ -13,6 +13,7 @@ jobs:
 
     env:
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      PLATFORM: ios
 
     steps:
       - uses: actions/checkout@v2
@@ -30,6 +31,13 @@ jobs:
         run: yarn build
       - name: Install Sample Dependencies
         run: cd sample && yarn install
+      - name: Build and run iOS emulator
+        uses: sersoft-gmbh/xcodebuild-action@v1
+        with:
+          workspace: ./ios/sample.xcworkspace
+          scheme: sample
+          destination: "platform=iOS Simulator,name=iPhone 11,OS=13.5"
+          configuration: Release
       - name: Start Appium Server
         run: cd sample && yarn run appium &
       - name: Poll until Appium Server starts
@@ -37,8 +45,5 @@ jobs:
           until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions); do
             sleep 5
           done
-      - name: Run Android Emulator & Test
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          script: cd sample && react-native run-android --variant=release && yarn test
+      - name: Run Tests
+        run: cd sample && yarn test
