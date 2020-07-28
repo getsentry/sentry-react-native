@@ -70,6 +70,9 @@ jobs:
       - name: Install Sample Dependencies
         run: yarn install
         working-directory: ./sample
+      - name: Insall iOS pods
+        run: pod install
+        working-directory: ./sample/ios
       - name: Build and run iOS emulator
         uses: sersoft-gmbh/xcodebuild-action@v1
         with:
