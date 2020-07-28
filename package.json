@@ -51,7 +51,7 @@
   "devDependencies": {
     "@sentry/typescript": "^5.20.0",
     "@types/jest": "^25.1.4",
-    "@types/react-native": "^0.62.10",
+    "@types/react-native": "^0.63.2",
     "babel-jest": "^26.1.0",
     "jest": "^24.9.0",
     "prettier": "^2.0.5",
