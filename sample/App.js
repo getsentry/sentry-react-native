@@ -49,8 +49,6 @@ Sentry.init({
 });
 
 const SetScopePropertiesButton = (props) => {
-  Sentry.useProfiler('SetScopeProperties');
-
   return (
     <TouchableOpacity onPress={props.setScopeProps}>
       <Text style={styles.sectionTitle}>Set Scope Properties</Text>
