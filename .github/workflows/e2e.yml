@@ -75,7 +75,7 @@ jobs:
         with:
           workspace: ./sample/ios/sample.xcworkspace
           scheme: sample
-          destination: "platform=iOS Simulator,name=iPhone 11,OS=13.5"
+          destination: "platform=iOS Simulator,name=iPhone 11"
           configuration: Release
           derived-data-path: ./sample/ios
       - name: Start Appium Server
