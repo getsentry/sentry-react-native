@@ -25,9 +25,13 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+import {Provider} from 'react-redux';
 import * as Sentry from '@sentry/react-native';
 
 import {version as packageVersion} from './package.json';
+
+import {store} from './reduxApp';
+import Counter from './Counter';
 
 Sentry.init({
   dsn:
@@ -150,7 +154,7 @@ const App = () => {
   };
 
   return (
-    <>
+    <Provider store={store}>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
         <ScrollView
@@ -210,6 +214,7 @@ const App = () => {
                   </Text>
                 </TouchableOpacity>
               </Sentry.ErrorBoundary>
+              <Counter />
               <Text style={styles.sectionTitle}>Step One</Text>
               <Text style={styles.sectionDescription}>
                 Edit <Text style={styles.highlight}>App.js</Text> to change this
@@ -238,7 +243,7 @@ const App = () => {
           </View>
         </ScrollView>
       </SafeAreaView>
-    </>
+    </Provider>
   );
 };
 
