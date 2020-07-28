@@ -25,9 +25,13 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+import {Provider} from 'react-redux';
 import * as Sentry from '@sentry/react-native';
 
 import {version as packageVersion} from './package.json';
+
+import {store} from './reduxApp';
+import Counter from './Counter';
 
 Sentry.init({
   dsn:
@@ -58,8 +62,11 @@ const SetScopePropertiesButton = (props) => {
 
 SetScopePropertiesButton.displayName = 'SetScopeProperties';
 
-const App: () => React$Node = () => {
-  const setScopeProps = React.useCallback(() => {
+const App = () => {
+  // Show bad code inside error boundary to trigger it.
+  const [showBadCode, setShowBadCode] = React.useState(false);
+
+  const setScopeProps = () => {
     const dateString = new Date().toString();
 
     Sentry.setUser({
@@ -138,16 +145,16 @@ const App: () => React$Node = () => {
     });
 
     console.log('Test scope properties were set.');
-  }, [Sentry]);
+  };
 
-  const clearBreadcrumbs = React.useCallback(() => {
+  const clearBreadcrumbs = () => {
     Sentry.configureScope((scope) => {
       scope.clearBreadcrumbs();
     });
-  }, [Sentry]);
+  };
 
   return (
-    <>
+    <Provider store={store}>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
         <ScrollView
@@ -194,6 +201,20 @@ const App: () => React$Node = () => {
               <Text onPress={clearBreadcrumbs} style={styles.sectionTitle}>
                 Clear Breadcrumbs
               </Text>
+              <Sentry.ErrorBoundary
+                fallback={({eventId}) => (
+                  <Text>Error boundary caught with event id: {eventId}</Text>
+                )}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowBadCode(true);
+                  }}>
+                  <Text style={styles.sectionTitle}>
+                    Activate Error Boundary {showBadCode && <div></div>}
+                  </Text>
+                </TouchableOpacity>
+              </Sentry.ErrorBoundary>
+              <Counter />
               <Text style={styles.sectionTitle}>Step One</Text>
               <Text style={styles.sectionDescription}>
                 Edit <Text style={styles.highlight}>App.js</Text> to change this
@@ -222,7 +243,7 @@ const App: () => React$Node = () => {
           </View>
         </ScrollView>
       </SafeAreaView>
-    </>
+    </Provider>
   );
 };
 

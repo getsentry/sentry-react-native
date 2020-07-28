@@ -1,8 +1,6 @@
-import { BaseClient, Scope } from "@sentry/core";
-import { Event, EventHint } from "@sentry/types";
+import { BaseClient } from "@sentry/core";
 
 import { ReactNativeBackend, ReactNativeOptions } from "./backend";
-import { SDK_NAME, SDK_VERSION } from "./version";
 
 /**
  * The Sentry React Native SDK Client.
@@ -20,31 +18,6 @@ export class ReactNativeClient extends BaseClient<
    */
   public constructor(options: ReactNativeOptions) {
     super(ReactNativeBackend, options);
-  }
-
-  /**
-   * @inheritDoc
-   */
-  protected _prepareEvent(
-    event: Event,
-    scope?: Scope,
-    hint?: EventHint
-  ): PromiseLike<Event | null> {
-    event.platform = event.platform || "javascript";
-    event.sdk = {
-      ...event.sdk,
-      name: SDK_NAME,
-      packages: [
-        ...((event.sdk && event.sdk.packages) || []),
-        {
-          name: "npm:@sentry/react-native",
-          version: SDK_VERSION,
-        },
-      ],
-      version: SDK_VERSION,
-    };
-
-    return super._prepareEvent(event, scope, hint);
   }
 
   /**
