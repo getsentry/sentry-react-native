@@ -39,13 +39,13 @@
     "react-native": ">=0.56.0"
   },
   "dependencies": {
-    "@sentry/react": "^5.20.0",
-    "@sentry/browser": "^5.20.0",
-    "@sentry/core": "^5.20.0",
-    "@sentry/hub": "^5.20.0",
-    "@sentry/integrations": "^5.20.0",
-    "@sentry/types": "^5.20.0",
-    "@sentry/utils": "^5.20.0",
+    "@sentry/react": "^5.20.1",
+    "@sentry/browser": "^5.20.1",
+    "@sentry/core": "^5.20.1",
+    "@sentry/hub": "^5.20.1",
+    "@sentry/integrations": "^5.20.1",
+    "@sentry/types": "^5.20.1",
+    "@sentry/utils": "^5.20.1",
     "@sentry/wizard": "^1.1.4"
   },
   "devDependencies": {
