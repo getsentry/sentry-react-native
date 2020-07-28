@@ -6,13 +6,15 @@ on:
   pull_request:
     branches: [master]
 
+env:
+  ENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
 jobs:
   android:
     # Android emulator said to perform best with macos HAXM
     runs-on: macos-latest
 
     env:
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       PLATFORM: android
 
     steps:
@@ -30,9 +32,11 @@ jobs:
       - name: Build SDK
         run: yarn build
       - name: Install Sample Dependencies
-        run: cd sample && yarn install
+        run: yarn install
+        working-directory: ./sample
       - name: Start Appium Server
-        run: cd sample && yarn run appium &
+        run: yarn run appium &
+        working-directory: ./sample
       - name: Poll until Appium Server starts
         run: |
           until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions); do
@@ -47,7 +51,6 @@ jobs:
     runs-on: macos-latest
 
     env:
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       PLATFORM: ios
 
     steps:
@@ -65,20 +68,24 @@ jobs:
       - name: Build SDK
         run: yarn build
       - name: Install Sample Dependencies
-        run: cd sample && yarn install
+        run: yarn install
+        working-directory: ./sample
       - name: Build and run iOS emulator
         uses: sersoft-gmbh/xcodebuild-action@v1
         with:
-          workspace: ./ios/sample.xcworkspace
+          workspace: ./sample/ios/sample.xcworkspace
           scheme: sample
           destination: "platform=iOS Simulator,name=iPhone 11,OS=13.5"
           configuration: Release
+          derived-data-path: ./sample/ios
       - name: Start Appium Server
-        run: cd sample && yarn run appium &
+        run: yarn run appium &
+        working-directory: ./sample
       - name: Poll until Appium Server starts
         run: |
           until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions); do
             sleep 5
           done
       - name: Run Tests
-        run: cd sample && yarn test
+        run: yarn test
+        working-directory: ./sample
