@@ -76,6 +76,8 @@ jobs:
         run: npm install -g yarn
       - name: Install React Native CLI
         run: yarn global add react-native-cli
+      - name: Install Sentry CLI
+        run: yarn global add @sentry/cli
       - name: Install Dependencies
         run: yarn install
       - name: Build SDK
