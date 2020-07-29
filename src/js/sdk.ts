@@ -71,10 +71,10 @@ export function init(
         },
       })
     );
+    options = assignDefaultOptions(options);
     if (options.enableNative) {
       options.defaultIntegrations.push(new DeviceContext());
     }
-    options = assignDefaultOptions(options);
   }
 
   // tslint:enable: strict-comparisons
