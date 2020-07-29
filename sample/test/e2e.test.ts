@@ -20,8 +20,7 @@ beforeAll(async () => {
           app: './android/app/build/outputs/apk/release/app-release.apk',
         }
       : {
-          app:
-            './ios/DerivedData/Build/Products/Debug-iphonesimulator/sample.app',
+          app: '/tmp/iosbuild/Build/Products/Debug-iphonesimulator/sample.app',
           deviceName: 'iPhone 11',
           platformName: 'iOS',
           platformVersion: '13.5',

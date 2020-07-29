@@ -63,6 +63,8 @@ jobs:
 
     env:
       PLATFORM: ios
+      # xcodebuild output directory
+      CONFIGURATION_BUILD_DIR: /tmp/iosbuild
 
     steps:
       - uses: actions/checkout@v2
@@ -85,13 +87,7 @@ jobs:
         run: pod install
         working-directory: ./sample/ios
       - name: Build and run iOS emulator
-        uses: sersoft-gmbh/xcodebuild-action@v1
-        with:
-          workspace: ./sample/ios/sample.xcworkspace
-          scheme: sample
-          destination: "platform=iOS Simulator,name=iPhone 11"
-          configuration: Release
-          derived-data-path: ./sample/ios
+        run: react-native run-ios --configuration Release
       - name: Start Appium Server
         run: yarn run appium &
         working-directory: ./sample
