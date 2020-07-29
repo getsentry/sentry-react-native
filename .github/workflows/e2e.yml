@@ -34,14 +34,19 @@ jobs:
       - name: Install Sample Dependencies
         run: yarn install
         working-directory: ./sample
-      - name: Run Android Emulator and Install App
+      - name: Run Android Emulator
+        run: |
+          echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install 'system-images;android-28;google_apis;x86_64'
+          echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd -n test_device -k 'system-images;android-28;google_apis;x86_64' --force
+          echo $ANDROID_HOME/emulator/emulator -list-avds
+          echo "Starting emulator"
+          nohup $ANDROID_HOME/emulator/emulator -avd test_device -no-snapshot > /dev/null 2>&1 &
+          $ANDROID_HOME/platform-tools/adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed | tr -d '\r') ]]; do sleep 1; done; input keyevent 82'
+          $ANDROID_HOME/platform-tools/adb devices
+          echo "Emulator started"
+      - name: Install App to emulator
         run: react-native run-android --variant=release
         working-directory: ./sample
-      - name: Poll until Android Emulator starts
-        run: |
-          until $(adb shell getprop sys.boot_completed); do
-            sleep 5
-          done
       - name: Start Appium Server
         run: yarn run appium &
         working-directory: ./sample
