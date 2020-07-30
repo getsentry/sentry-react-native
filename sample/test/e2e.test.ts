@@ -23,7 +23,7 @@ beforeAll(async () => {
           app: '/tmp/iosbuild/Build/Products/Debug-iphonesimulator/sample.app',
           deviceName: 'iPhone 11',
           platformName: 'iOS',
-          platformVersion: '13.5',
+          platformVersion: '13.6',
         };
 
   await driver.init(config);
