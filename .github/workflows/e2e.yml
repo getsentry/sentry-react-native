@@ -52,7 +52,7 @@ jobs:
         with:
           time: 30s
       - name: Start Appium Server
-        run: yarn run appium &
+        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
         working-directory: ./sample
       - name: Poll until Appium Server starts
         run: |
@@ -62,6 +62,11 @@ jobs:
       - name: Run Tests
         run: yarn test
         working-directory: ./sample
+      - name: Upload Appium logs
+        uses: actions/upload-artifact@v1
+        with:
+          name: appium.log
+          path: ./sample/appium.log
   ios:
     runs-on: macos-latest
 
@@ -96,7 +101,7 @@ jobs:
         run: react-native run-ios --configuration Release
         working-directory: ./sample
       - name: Start Appium Server
-        run: yarn run appium &
+        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
         working-directory: ./sample
       - name: Poll until Appium Server starts
         run: |
@@ -106,3 +111,8 @@ jobs:
       - name: Run Tests
         run: yarn test
         working-directory: ./sample
+      - name: Upload Appium logs
+        uses: actions/upload-artifact@v1
+        with:
+          name: appium.log
+          path: ./sample/appium.log
