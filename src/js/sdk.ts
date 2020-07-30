@@ -38,6 +38,10 @@ export function init(
 ): void {
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
   makeMain(reactNativeHub);
+  options = {
+    ...DEFAULT_OPTIONS,
+    ...options
+  }
 
   // tslint:disable: strict-comparisons
   if (options.defaultIntegrations === undefined) {
@@ -76,10 +80,6 @@ export function init(
         },
       })
     );
-    options = {
-        ...DEFAULT_OPTIONS,
-        ...options
-    }
     if (options.enableNative) {
       options.defaultIntegrations.push(new DeviceContext());
     }
