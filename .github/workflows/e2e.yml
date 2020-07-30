@@ -48,9 +48,9 @@ jobs:
         run: react-native run-android --variant=release
         working-directory: ./sample
       - name: Sleep for 30 seconds to wait for app to open
-        uses: jakejarvis/wait-action@v0.1.0
+        uses: juliangruber/sleep-action@v1
         with:
-          time: "30s"
+          time: 30s
       - name: Start Appium Server
         run: yarn run appium &
         working-directory: ./sample
