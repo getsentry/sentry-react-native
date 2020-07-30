@@ -63,6 +63,7 @@ jobs:
         run: yarn test
         working-directory: ./sample
       - name: Upload Appium logs
+        if: ${{ always() }}
         uses: actions/upload-artifact@v1
         with:
           name: appium.log
@@ -112,6 +113,7 @@ jobs:
         run: yarn test
         working-directory: ./sample
       - name: Upload Appium logs
+        if: ${{ always() }}
         uses: actions/upload-artifact@v1
         with:
           name: appium.log
