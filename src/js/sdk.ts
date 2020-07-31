@@ -21,6 +21,11 @@ const IGNORED_DEFAULT_INTEGRATIONS = [
   "GlobalHandlers", // We will use the react-native internal handlers
   "TryCatch", // We don't need this
 ];
+const DEFAULT_OPTIONS: ReactNativeOptions = {
+  enableNative: true,
+  enableNativeCrashHandling: true,
+  enableNativeNagger: true,
+};
 
 /**
  * Inits the SDK
@@ -33,6 +38,10 @@ export function init(
 ): void {
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
   makeMain(reactNativeHub);
+  options = {
+    ...DEFAULT_OPTIONS,
+    ...options
+  }
 
   // tslint:disable: strict-comparisons
   if (options.defaultIntegrations === undefined) {
@@ -74,7 +83,6 @@ export function init(
     if (options.enableNative) {
       options.defaultIntegrations.push(new DeviceContext());
     }
-    options = assignDefaultOptions(options);
   }
 
   // tslint:enable: strict-comparisons
@@ -126,15 +134,4 @@ export function nativeCrash(): void {
   if (client) {
     client.nativeCrash();
   }
-}
-
-function assignDefaultOptions(
-  providedOptions: ReactNativeOptions
-): ReactNativeOptions {
-  const defaultOptions: ReactNativeOptions = {
-    enableNative: true,
-    enableNativeCrashHandling: true,
-    enableNativeNagger: true,
-  };
-  return { ...defaultOptions, ...providedOptions };
 }
