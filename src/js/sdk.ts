@@ -100,16 +100,18 @@ export function init(
 }
 
 /**
- * Legacy. Sets the release on the event.
+ * Deprecated. Sets the release on the event.
  * NOTE: Does not set the release on sessions.
+ * @deprecated
  */
 export function setRelease(release: string): void {
   setExtra("__sentry_release", release);
 }
 
 /**
- * Legacy. Sets the dist on the event.
+ * Deprecated. Sets the dist on the event.
  * NOTE: Does not set the dist on sessions.
+ * @deprecated
  */
 export function setDist(dist: string): void {
   setExtra("__sentry_dist", dist);
