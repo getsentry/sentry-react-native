@@ -1,8 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.7.1
 
 - build: Bump sentry-cocoa to 5.2 #1011
+- fix: App Store submission for Mac apps getsentry/sentry-cocoa#635
+- fix: Use the release and dist set in init options over native release #1009
 
 ## 1.7.0
 
