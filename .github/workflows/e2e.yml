@@ -44,6 +44,9 @@ jobs:
           $ANDROID_HOME/platform-tools/adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed | tr -d '\r') ]]; do sleep 1; done; input keyevent 82'
           $ANDROID_HOME/platform-tools/adb devices
           echo "Emulator started"
+      - name: Start Appium Server
+        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
+        working-directory: ./sample
       - name: Install App to emulator
         run: react-native run-android --variant=release
         working-directory: ./sample
@@ -51,14 +54,8 @@ jobs:
         uses: juliangruber/sleep-action@v1
         with:
           time: 30s
-      - name: Start Appium Server
-        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
-        working-directory: ./sample
-      - name: Poll until Appium Server starts
-        run: |
-          until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions); do
-            sleep 5
-          done
+      - name: Check that the appium server is started
+        run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
       - name: Run Tests
         run: yarn test
         working-directory: ./sample
@@ -66,7 +63,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v1
         with:
-          name: appium.log
+          name: appium.android.log
           path: ./sample/appium.log
   ios:
     runs-on: macos-latest
@@ -116,5 +113,5 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v1
         with:
-          name: appium.log
+          name: appium.ios.log
           path: ./sample/appium.log
