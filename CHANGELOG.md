@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- build: Bump sentry-cocoa to 5.2 #1011
+
 ## 1.7.0
 
 - fix: Use `LogBox` instead of `YellowBox` if possible. #989
