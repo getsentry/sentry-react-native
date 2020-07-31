@@ -298,7 +298,7 @@ PODS:
     - React-jsi (= 0.63.1)
   - RNSentry (1.6.3):
     - React
-    - Sentry (~> 5.1.8)
+    - Sentry (~> 5.2.0)
   - Sentry (5.1.9):
     - Sentry/Core (= 5.1.9)
   - Sentry/Core (5.1.9)

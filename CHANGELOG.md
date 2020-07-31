@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.7.1
+
+- Bump `sentry-cocoa` `5.2.0`
 
 ## 1.7.0
 
