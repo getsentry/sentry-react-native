@@ -7,15 +7,16 @@
 
 const path = require('path');
 const blacklist = require('metro-config/src/defaults/blacklist');
+const resolve = require('metro-resolver/src/resolve');
 
-const reactNativeLib = path.resolve(__dirname, '..');
+const parentDir = path.resolve(__dirname, '..');
 
 module.exports = {
   projectRoot: __dirname,
-  watchFolders: [path.resolve(__dirname, 'node_modules'), reactNativeLib],
+  watchFolders: [path.resolve(__dirname, 'node_modules'), parentDir],
   resolver: {
     blacklistRE: blacklist([
-      new RegExp(`${reactNativeLib}/node_modules/react-native/.*`),
+      new RegExp(`${parentDir}/node_modules/react-native/.*`),
     ]),
     extraNodeModules: new Proxy(
       {
