@@ -32,6 +32,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
+  await driver.hasElementByAccessibilityId('clearEventId');
   const element = await driver.elementByAccessibilityId('clearEventId');
   await element.click();
   await driver.sleep(2000);
