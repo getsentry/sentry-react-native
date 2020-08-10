@@ -18,7 +18,14 @@ module.exports = {
       new RegExp(`${reactNativeLib}/node_modules/react-native/.*`),
     ]),
     extraNodeModules: new Proxy(
-      {},
+      {
+        /*
+          As the parent dir node_modules is blacklisted as you can see above. So it won't be able
+          to find react-native to build the code from the parent folder,
+          so we'll have to redirect it to use the react-native inside sample's node_modules.
+        */
+        'react-native': path.resolve(__dirname, 'node_modules/react-native'),
+      },
       {
         get: (target, name) => {
           if (target.hasOwnProperty(name)) {
