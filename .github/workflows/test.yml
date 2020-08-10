@@ -30,9 +30,9 @@ jobs:
       - name: Archive Build Artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: build
+          name: dist
           path: |
-            build
+            dist/
 
   job_bundle:
     name: Bundle
@@ -48,7 +48,7 @@ jobs:
       - name: Download Build Artifacts From Previous Job
         uses: actions/download-artifact@v2
         with:
-          name: build
+          name: dist
       - name: Install
         run: yarn install
       - name: Install in Sample
