@@ -14,6 +14,9 @@ module.exports = {
   projectRoot: __dirname,
   watchFolders: [path.resolve(__dirname, 'node_modules'), reactNativeLib],
   resolver: {
+    blacklistRE: blacklist([
+      new RegExp(`${reactNativeLib}/node_modules/react-native/.*`),
+    ]),
     extraNodeModules: new Proxy(
       {
         /*
