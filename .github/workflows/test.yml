@@ -1,0 +1,72 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  job_test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+      - name: Install
+        run: yarn install
+      - name: Test
+        run: yarn test
+
+  job_build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+      - name: Install
+        run: yarn install
+      - name: Build
+        run: yarn build
+      - name: Archive Build Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: |
+            build
+
+  job_bundle:
+    name: Bundle
+    runs-on: ubuntu-latest
+    needs: [job_test, job_build]
+    strategy:
+      matrix:
+        platform: ["ios", "android"]
+        dev: [true, false]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+      - name: Download Build Artifacts From Previous Job
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+      - name: Install
+        run: yarn install
+      - name: Install in Sample
+        run: yarn install
+        working-directory: sample
+      - name: Bundle
+        run: |
+          yarn run react-native bundle \
+          --entry-file index.js \
+          --platform ${{ matrix.platform }} \
+          --dev ${{ matrix.dev }} \
+          --reset-cache \
+          --bundle-output build/bundle.${{ matrix.platform }}.js \
+          --sourcemap-output build/bundle.${{ matrix.platform }}.map
+        working-directory: sample
+      - name: Archive Bundle Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: bundle-${{ matrix.platform }}
+          path: |
+            sample/build
