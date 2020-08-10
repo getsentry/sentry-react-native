@@ -31,8 +31,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: build
-          path: |
-            dist/
+          path: dist/
 
   job_bundle:
     name: Bundle
@@ -55,6 +54,9 @@ jobs:
       - name: Install in Sample
         run: yarn install
         working-directory: sample
+      - name: Make Build Directory
+        run: mkdir build
+        working-directory: sample
       - name: Bundle
         run: |
           yarn run react-native bundle \
@@ -69,5 +71,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: bundle-${{ matrix.platform }}
-          path: |
-            sample/build
+          path: sample/build
