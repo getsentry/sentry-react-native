@@ -164,7 +164,7 @@ const App = () => {
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
         <ScrollView
-          accessibilityLabel="ScrollView"
+          testID="ScrollView"
           contentInsetAdjustmentBehavior="automatic"
           style={styles.scrollView}>
           <Header />
@@ -175,9 +175,9 @@ const App = () => {
           )}
           <View style={styles.body}>
             <View style={styles.sectionContainer}>
-              <Text accessibilityLabel="eventId">{eventId}</Text>
+              <Text testID="eventId">{eventId}</Text>
               <Text
-                accessibilityLabel="captureMessage"
+                testID="captureMessage"
                 style={styles.sectionTitle}
                 onPress={() => {
                   Sentry.captureMessage('React Native Test Message');
@@ -185,7 +185,7 @@ const App = () => {
                 captureMessage
               </Text>
               <Text
-                accessibilityLabel="captureException"
+                testID="captureException"
                 style={styles.sectionTitle}
                 onPress={() => {
                   Sentry.captureException(new Error('captureException test'));
@@ -193,7 +193,7 @@ const App = () => {
                 captureException
               </Text>
               <Text
-                accessibilityLabel="throwNewError"
+                testID="throwNewError"
                 style={styles.sectionTitle}
                 onPress={() => {
                   throw new Error('throw new error test');
@@ -227,7 +227,7 @@ const App = () => {
               <Counter />
               <Text
                 style={styles.sectionTitle}
-                accessibilityLabel="clearEventId"
+                testID="clearEventId"
                 onPress={() => setEventId(null)}>
                 Clear Event Id
               </Text>
