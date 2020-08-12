@@ -31,6 +31,7 @@ import * as Sentry from '@sentry/react-native';
 
 import {version as packageVersion} from './package.json';
 
+import {getTestProps} from './utils/getTestProps';
 import {store} from './reduxApp';
 import Counter from './Counter';
 
@@ -171,8 +172,7 @@ const App = () => {
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
         <ScrollView
-          testID="ScrollView"
-          accessibilityLabel="ScrollView"
+          {...getTestProps('ScrollView', Platform.OS)}
           contentInsetAdjustmentBehavior="automatic"
           style={styles.scrollView}>
           <Header />
@@ -183,23 +183,15 @@ const App = () => {
           )}
           <View style={styles.body}>
             <View style={styles.sectionContainer}>
+              <Text {...getTestProps('eventId', Platform.OS)}>{eventId}</Text>
               <Text
-                testID="eventId"
-                accessibilityLabel={
-                  Platform.OS === 'android' ? 'eventId' : undefined
-                }>
-                {eventId}
-              </Text>
-              <Text
+                {...getTestProps('clearEventId', Platform.OS)}
                 style={styles.sectionTitle}
-                testID="clearEventId"
-                accessibilityLabel="clearEventId"
                 onPress={() => setEventId(null)}>
                 Clear Event Id
               </Text>
               <Text
-                testID="captureMessage"
-                accessibilityLabel="captureMessage"
+                {...getTestProps('captureMessage', Platform.OS)}
                 style={styles.sectionTitle}
                 onPress={() => {
                   Sentry.captureMessage('React Native Test Message');
@@ -207,8 +199,7 @@ const App = () => {
                 captureMessage
               </Text>
               <Text
-                testID="captureException"
-                accessibilityLabel="captureException"
+                {...getTestProps('captureException', Platform.OS)}
                 style={styles.sectionTitle}
                 onPress={() => {
                   Sentry.captureException(new Error('captureException test'));
@@ -216,8 +207,7 @@ const App = () => {
                 captureException
               </Text>
               <Text
-                testID="throwNewError"
-                accessibilityLabel="throwNewError"
+                {...getTestProps('throwNewError', Platform.OS)}
                 style={styles.sectionTitle}
                 onPress={() => {
                   throw new Error('throw new error test');
