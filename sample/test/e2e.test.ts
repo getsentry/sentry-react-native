@@ -47,7 +47,7 @@ describe('End to end tests for common events', () => {
     const element = await driver.elementByAccessibilityId('captureMessage');
     await element.click();
 
-    await driver.sleep(500);
+    await driver.sleep(100);
 
     expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
 
@@ -69,7 +69,7 @@ describe('End to end tests for common events', () => {
     const element = await driver.elementByAccessibilityId('captureException');
     await element.click();
 
-    await driver.sleep(500);
+    await driver.sleep(100);
 
     expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
 
@@ -91,7 +91,7 @@ describe('End to end tests for common events', () => {
     const element = await driver.elementByAccessibilityId('throwNewError');
     await element.click();
 
-    await driver.sleep(500);
+    await driver.sleep(100);
 
     expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
 
