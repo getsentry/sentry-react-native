@@ -1,13 +1,20 @@
 // tslint:disable: no-implicit-dependencies no-unsafe-any no-console
+import {Event} from '@sentry/types';
 import fetch from 'node-fetch';
 
 const domain = 'sentry.io';
 const eventEndpoint = `/api/0/projects/sentry-test/react-native/events/`;
 
-const fetchEvent = async (eventId) => {
+interface ApiEvent extends Event {
+  /**
+   * The event returned from the API uses eventID
+   */
+  eventID: string;
+}
+
+const fetchEvent = async (eventId): Promise<ApiEvent> => {
   const url = `https://${domain}${eventEndpoint}${eventId}/`;
 
-  // @ts-ignore
   const request = new fetch.Request(url, {
     headers: {
       Authorization: `Bearer ${process.env.SENTRY_AUTH_TOKEN}`,
@@ -20,7 +27,7 @@ const fetchEvent = async (eventId) => {
   const retryer = (jsonResponse: any) =>
     new Promise((resolve, reject) => {
       if (jsonResponse.detail === 'Event not found') {
-        if (retries < 6) {
+        if (retries < 8) {
           setTimeout(() => {
             retries++;
             console.log(`Retrying api request. Retry number: ${retries}`);
@@ -38,8 +45,7 @@ const fetchEvent = async (eventId) => {
       }
     });
 
-  // @ts-ignore
-  const json = await fetch(request)
+  const json: ApiEvent = await fetch(request)
     // tslint:disable-next-line: no-unsafe-any
     .then((res) => res.json())
     .then(retryer);
