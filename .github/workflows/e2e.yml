@@ -50,10 +50,6 @@ jobs:
       - name: Install App to emulator
         run: react-native run-android --variant=release
         working-directory: ./sample
-      - name: Sleep for 30 seconds to wait for app to open
-        uses: juliangruber/sleep-action@v1
-        with:
-          time: 30s
       - name: Check that the appium server is started
         run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
       - name: Run Tests
