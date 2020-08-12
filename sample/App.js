@@ -161,12 +161,6 @@ const App = () => {
     });
   };
 
-  /**
-   * ! Note: The elements here use both testID and accessibilityLabel for end-to-end testing.
-   * There is a bug in Appium where accessibilityLabel does not work on iOS so we need testID,
-   * and testID does not work on Android.
-   */
-
   return (
     <Provider store={store}>
       <StatusBar barStyle="dark-content" />
