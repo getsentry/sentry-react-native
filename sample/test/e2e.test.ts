@@ -83,25 +83,25 @@ describe('End to end tests for common events', () => {
     expect(sentryEvent.eventID).toMatch(eventId);
   });
 
-  test('uncaught error', async () => {
-    expect(await driver.hasElementByAccessibilityId('throwNewError')).toBe(
-      true,
-    );
+  // test('uncaught error', async () => {
+  //   expect(await driver.hasElementByAccessibilityId('throwNewError')).toBe(
+  //     true,
+  //   );
 
-    const element = await driver.elementByAccessibilityId('throwNewError');
-    await element.click();
+  //   const element = await driver.elementByAccessibilityId('throwNewError');
+  //   await element.click();
 
-    await driver.sleep(100);
+  //   await driver.sleep(100);
 
-    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
+  //   expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
 
-    const eventIdElement = await driver.elementByAccessibilityId('eventId');
-    const eventId = await eventIdElement.text();
+  //   const eventIdElement = await driver.elementByAccessibilityId('eventId');
+  //   const eventId = await eventIdElement.text();
 
-    await driver.sleep(10000);
+  //   await driver.sleep(10000);
 
-    const sentryEvent = await fetchEvent(eventId);
+  //   const sentryEvent = await fetchEvent(eventId);
 
-    expect(sentryEvent.eventID).toMatch(eventId);
-  });
+  //   expect(sentryEvent.eventID).toMatch(eventId);
+  // });
 });
