@@ -159,12 +159,19 @@ const App = () => {
     });
   };
 
+  /**
+   * ! Note: The elements here use both testID and accessibilityLabel for end-to-end testing.
+   * There is a bug in Appium where accessibilityLabel does not work on iOS so we need testID,
+   * and testID does not work on Android.
+   */
+
   return (
     <Provider store={store}>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
         <ScrollView
           testID="ScrollView"
+          accessibilityLabel="ScrollView"
           contentInsetAdjustmentBehavior="automatic"
           style={styles.scrollView}>
           <Header />
@@ -175,9 +182,12 @@ const App = () => {
           )}
           <View style={styles.body}>
             <View style={styles.sectionContainer}>
-              <Text testID="eventId">{eventId}</Text>
+              <Text testID="eventId" accessibilityLabel="eventId">
+                {eventId}
+              </Text>
               <Text
                 testID="captureMessage"
+                accessibilityLabel="captureMessage"
                 style={styles.sectionTitle}
                 onPress={() => {
                   Sentry.captureMessage('React Native Test Message');
@@ -186,6 +196,7 @@ const App = () => {
               </Text>
               <Text
                 testID="captureException"
+                accessibilityLabel="captureException"
                 style={styles.sectionTitle}
                 onPress={() => {
                   Sentry.captureException(new Error('captureException test'));
@@ -194,6 +205,7 @@ const App = () => {
               </Text>
               <Text
                 testID="throwNewError"
+                accessibilityLabel="throwNewError"
                 style={styles.sectionTitle}
                 onPress={() => {
                   throw new Error('throw new error test');
@@ -228,6 +240,7 @@ const App = () => {
               <Text
                 style={styles.sectionTitle}
                 testID="clearEventId"
+                accessibilityLabel="clearEventId"
                 onPress={() => setEventId(null)}>
                 Clear Event Id
               </Text>
