@@ -15,6 +15,7 @@ import {
   Text,
   StatusBar,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 
 import {
@@ -182,8 +183,19 @@ const App = () => {
           )}
           <View style={styles.body}>
             <View style={styles.sectionContainer}>
-              <Text testID="eventId" accessibilityLabel="eventId">
+              <Text
+                testID="eventId"
+                accessibilityLabel={
+                  Platform.OS === 'android' ? 'eventId' : undefined
+                }>
                 {eventId}
+              </Text>
+              <Text
+                style={styles.sectionTitle}
+                testID="clearEventId"
+                accessibilityLabel="clearEventId"
+                onPress={() => setEventId(null)}>
+                Clear Event Id
               </Text>
               <Text
                 testID="captureMessage"
@@ -237,13 +249,6 @@ const App = () => {
                 </TouchableOpacity>
               </Sentry.ErrorBoundary>
               <Counter />
-              <Text
-                style={styles.sectionTitle}
-                testID="clearEventId"
-                accessibilityLabel="clearEventId"
-                onPress={() => setEventId(null)}>
-                Clear Event Id
-              </Text>
               <Text style={styles.sectionTitle}>Step One</Text>
               <Text style={styles.sectionDescription}>
                 Edit <Text style={styles.highlight}>App.js</Text> to change this
