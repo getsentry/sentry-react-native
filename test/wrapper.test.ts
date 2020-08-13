@@ -137,11 +137,9 @@ describe("Tests Native Wrapper", () => {
       } catch (e) {
         expect(e.message).toMatch("Native is disabled");
       }
-      /* tslint:disable: no-unsafe-any */
       expect(RN.NativeModules.RNSentry.sendEvent).not.toBeCalled();
       expect(RN.NativeModules.RNSentry.getStringBytesLength).not.toBeCalled();
       expect(RN.NativeModules.RNSentry.captureEnvelope).not.toBeCalled();
-      /* tslint:enable: no-unsafe-any */
     });
   });
 
