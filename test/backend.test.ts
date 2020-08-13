@@ -1,4 +1,5 @@
 import * as RN from "react-native";
+
 import { ReactNativeBackend } from "../src/js/backend";
 
 const EXAMPLE_DSN =
@@ -18,18 +19,18 @@ jest.mock(
             throw new Error();
           }
           return Promise.resolve();
-        })
+        }),
       },
     },
     Platform: {
-      OS: "mock"
+      OS: "mock",
     },
     LogBox: {
       ignoreLogs: jest.fn(),
     },
     YellowBox: {
-      ignoreWarnings: jest.fn()
-    }
+      ignoreWarnings: jest.fn(),
+    },
   }),
   /* virtual allows us to mock modules that aren't in package.json */
   { virtual: true }
@@ -44,28 +45,26 @@ describe("Tests ReactNativeBackend", () => {
       });
 
       await expect(backend.eventFromMessage("test")).resolves.toBeDefined();
+      // @ts-ignore: Is Mocked
       await expect(RN.LogBox.ignoreLogs).toBeCalled();
     });
 
     test("invalid dsn is thrown", () => {
       try {
-        // tslint:disable-next-line: no-unused-expression
         new ReactNativeBackend({
           dsn: "not a dsn",
-          enableNative: true
+          enableNative: true,
         });
       } catch (e) {
-        // tslint:disable-next-line: no-unsafe-any
         expect(e.message).toBe("Invalid Dsn");
       }
     });
 
     test("undefined dsn doesn't crash", () => {
       expect(() => {
-        // tslint:disable-next-line: no-unused-expression
         const backend = new ReactNativeBackend({
           dsn: undefined,
-          enableNative: true
+          enableNative: true,
         });
 
         return expect(backend.eventFromMessage("test")).resolves.toBeDefined();
@@ -73,6 +72,7 @@ describe("Tests ReactNativeBackend", () => {
     });
 
     test("falls back to YellowBox if no LogBox", async () => {
+      // @ts-ignore: Is Mocked
       RN.LogBox = undefined;
 
       const backend = new ReactNativeBackend({
@@ -90,11 +90,10 @@ describe("Tests ReactNativeBackend", () => {
       const RN = require("react-native");
 
       const backend = new ReactNativeBackend({
-        enableNative: true
+        enableNative: true,
       });
       backend.nativeCrash();
 
-      // tslint:disable-next-line: no-unsafe-any
       expect(RN.NativeModules.RNSentry.crash).toBeCalled();
     });
   });

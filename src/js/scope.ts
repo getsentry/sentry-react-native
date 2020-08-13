@@ -3,6 +3,9 @@ import { Breadcrumb, User } from "@sentry/types";
 
 import { NATIVE } from "./wrapper";
 
+/**
+ * Extends the scope methods to set scope on the Native SDKs
+ */
 export class ReactNativeScope extends Scope {
   /**
    * @inheritDoc

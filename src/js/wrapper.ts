@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { Breadcrumb, Event, Response, User } from "@sentry/types";
 import { logger, SentryError } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
@@ -28,13 +29,16 @@ export const NATIVE = {
         sdk: event.sdk,
       });
 
-      (event as any).message = {
-        message: event.message,
-      };
-      const payload = JSON.stringify(event);
+      const payload = JSON.stringify({
+        ...event,
+        message: {
+          message: event.message,
+        },
+      });
+
       let length = payload.length;
       try {
-        // tslint:disable-next-line: no-unsafe-any
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         length = await RNSentry.getStringBytesLength(payload);
       } catch {
         // The native call failed, we do nothing, we have payload.length as a fallback
@@ -45,10 +49,11 @@ export const NATIVE = {
         type: "event",
       });
       const envelope = `${header}\n${item}\n${payload}`;
-      // tslint:disable-next-line: no-unsafe-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return RNSentry.captureEnvelope(envelope);
     }
-    // tslint:disable-next-line: no-unsafe-any
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return RNSentry.sendEvent(event);
   },
 
@@ -78,6 +83,7 @@ export const NATIVE = {
     }
 
     // filter out all the options that would crash native.
+    /* eslint-disable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
     const {
       beforeSend,
       beforeBreadcrumb,
@@ -86,8 +92,9 @@ export const NATIVE = {
       transport,
       ...filteredOptions
     } = options;
+    /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
 
-    // tslint:disable-next-line: no-unsafe-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return RNSentry.startWithOptions(filteredOptions);
   },
 
@@ -105,21 +112,21 @@ export const NATIVE = {
     if (!this.isNativeClientAvailable()) {
       throw this._NativeClientError;
     }
-    // tslint:disable-next-line: no-unsafe-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return RNSentry.fetchRelease();
   },
 
   /**
    * Fetches the device contexts. Not used on Android.
    */
-  async deviceContexts(): Promise<object> {
+  async deviceContexts(): Promise<{ [key: string]: Record<string, unknown> }> {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
     if (!this.isNativeClientAvailable()) {
       throw this._NativeClientError;
     }
-    // tslint:disable-next-line: no-unsafe-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return RNSentry.deviceContexts();
   },
 
@@ -135,7 +142,7 @@ export const NATIVE = {
     if (!this.isNativeClientAvailable()) {
       throw this._NativeClientError;
     }
-    // tslint:disable-next-line: no-unsafe-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     RNSentry.setLogLevel(level);
   },
 
@@ -150,7 +157,7 @@ export const NATIVE = {
     if (!this.isNativeClientAvailable()) {
       throw this._NativeClientError;
     }
-    // tslint:disable-next-line: no-unsafe-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     RNSentry.crash();
   },
 
@@ -182,7 +189,7 @@ export const NATIVE = {
       otherUserKeys = this._serializeObject(otherKeys);
     }
 
-    // tslint:disable-next-line: no-unsafe-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     RNSentry.setUser(defaultUserKeys, otherUserKeys);
   },
 
@@ -200,10 +207,9 @@ export const NATIVE = {
     }
 
     const stringifiedValue =
-      // tslint:disable-next-line: strict-type-predicates
       typeof value === "string" ? value : JSON.stringify(value);
 
-    // tslint:disable-next-line: no-unsafe-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     RNSentry.setTag(key, stringifiedValue);
   },
 
@@ -213,7 +219,7 @@ export const NATIVE = {
    * @param key string
    * @param extra any
    */
-  setExtra(key: string, extra: any): void {
+  setExtra(key: string, extra: unknown): void {
     if (!this.enableNative) {
       return;
     }
@@ -225,7 +231,7 @@ export const NATIVE = {
     const stringifiedExtra =
       typeof extra === "string" ? extra : JSON.stringify(extra);
 
-    // tslint:disable-next-line: no-unsafe-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     RNSentry.setExtra(key, stringifiedExtra);
   },
 
@@ -241,7 +247,7 @@ export const NATIVE = {
       throw this._NativeClientError;
     }
 
-    // tslint:disable-next-line: no-unsafe-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     RNSentry.addBreadcrumb({
       ...breadcrumb,
       data: breadcrumb.data
@@ -261,7 +267,7 @@ export const NATIVE = {
       throw this._NativeClientError;
     }
 
-    // tslint:disable-next-line: no-unsafe-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     RNSentry.clearBreadcrumbs();
   },
 
@@ -270,7 +276,7 @@ export const NATIVE = {
    * @param key string
    * @param context key-value map
    */
-  setContext(key: string, context: { [key: string]: any } | null): void {
+  setContext(key: string, context: { [key: string]: unknown } | null): void {
     if (!this.enableNative) {
       return;
     }
@@ -282,7 +288,7 @@ export const NATIVE = {
       // setContext not available on the Android SDK yet.
       this.setExtra(key, context);
     } else {
-      // tslint:disable-next-line: no-unsafe-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       RNSentry.setContext(
         key,
         context !== null ? this._serializeObject(context) : null
@@ -295,8 +301,10 @@ export const NATIVE = {
    * @param data key-value map.
    * @returns An object where all root-level values are strings.
    */
-  _serializeObject(data: { [key: string]: any }): { [key: string]: string } {
-    const serialized: { [key: string]: any } = {};
+  _serializeObject(data: {
+    [key: string]: unknown;
+  }): { [key: string]: string } {
+    const serialized: { [key: string]: string } = {};
 
     Object.keys(data).forEach((dataKey) => {
       const value = data[dataKey];
@@ -318,7 +326,7 @@ export const NATIVE = {
    *  Checks whether the RNSentry module is loaded and the native client is available
    */
   isNativeClientAvailable(): boolean {
-    // tslint:disable-next-line: no-unsafe-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return this.isModuleLoaded() && RNSentry.nativeClientAvailable;
   },
 
@@ -326,7 +334,7 @@ export const NATIVE = {
    *  Checks whether the RNSentry module is loaded and native transport is available
    */
   isNativeTransportAvailable(): boolean {
-    // tslint:disable-next-line: no-unsafe-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return this.isModuleLoaded() && RNSentry.nativeTransport;
   },
 
