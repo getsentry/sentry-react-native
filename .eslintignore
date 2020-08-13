@@ -1,1 +1,5 @@
+# Ignore build generated dir
 dist
+
+# Ignore sample folder
+sample
