@@ -20,7 +20,6 @@ export class DeviceContext implements Integration {
    * @inheritDoc
    */
   public setupOnce(): void {
-    // eslint-disable-next-line @sentry-internal/sdk/no-async-await
     addGlobalEventProcessor(async (event: Event) => {
       const self = getCurrentHub().getIntegration(DeviceContext);
       if (!self) {

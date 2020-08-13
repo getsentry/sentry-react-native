@@ -46,7 +46,6 @@ export class DebugSymbolicator implements Integration {
    * @inheritDoc
    */
   public setupOnce(): void {
-    // eslint-disable-next-line @sentry-internal/sdk/no-async-await
     addGlobalEventProcessor(async (event: Event, hint?: EventHint) => {
       const self = getCurrentHub().getIntegration(DebugSymbolicator);
 
@@ -134,7 +133,6 @@ export class DebugSymbolicator implements Integration {
     // But since this is a debug only feature: This is Fine (TM)
     return Promise.all(
       frames.map(
-        // eslint-disable-next-line @sentry-internal/sdk/no-async-await
         async (frame: ReactNativeFrame): Promise<StackFrame> => {
           let inApp = !!frame.column && !!frame.lineNumber;
           inApp =
