@@ -1,7 +1,7 @@
-import { defaultIntegrations, getCurrentHub } from "@sentry/react";
 import { initAndBind, setExtra } from "@sentry/core";
 import { Hub, makeMain } from "@sentry/hub";
 import { RewriteFrames } from "@sentry/integrations";
+import { defaultIntegrations, getCurrentHub } from "@sentry/react";
 import { StackFrame } from "@sentry/types";
 import { getGlobalObject } from "@sentry/utils";
 
@@ -14,8 +14,6 @@ import {
   Release,
 } from "./integrations";
 import { ReactNativeScope } from "./scope";
-
-// const { RNSentry } = NativeModules;
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   "GlobalHandlers", // We will use the react-native internal handlers
@@ -31,19 +29,19 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
  * Inits the SDK
  */
 export function init(
-  options: ReactNativeOptions = {
+  passedOptions: ReactNativeOptions = {
     enableNative: true,
     enableNativeCrashHandling: true,
   }
 ): void {
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
   makeMain(reactNativeHub);
-  options = {
-    ...DEFAULT_OPTIONS,
-    ...options
-  }
 
-  // tslint:disable: strict-comparisons
+  const options = {
+    ...DEFAULT_OPTIONS,
+    ...passedOptions,
+  };
+
   if (options.defaultIntegrations === undefined) {
     options.defaultIntegrations = [
       new ReactNativeErrorHandlers(),
@@ -60,9 +58,9 @@ export function init(
         iteratee: (frame: StackFrame) => {
           if (frame.filename) {
             frame.filename = frame.filename
-              .replace(/^file\:\/\//, "")
+              .replace(/^file:\/\//, "")
               .replace(/^address at /, "")
-              .replace(/^.*\/[^\.]+(\.app|CodePush|.*(?=\/))/, "");
+              .replace(/^.*\/[^.]+(\.app|CodePush|.*(?=\/))/, "");
 
             if (
               frame.filename !== "[native code]" &&
@@ -85,23 +83,12 @@ export function init(
     }
   }
 
-  // tslint:enable: strict-comparisons
   initAndBind(ReactNativeClient, options);
-
-  // TODO: Regist scope syncing here
-  // Workaround for setting release/dist on native
-  // const scope = getCurrentHub().getScope();
-  // if (scope) {
-  //   scope.addScopeListener(internalScope => {
-  //     console.log(internalScope);
-  //     // RNSentry.extraUpdated((internalScope as any)._extra)
-  //   });
-  // }
 
   // set the event.origin tag.
   getCurrentHub().setTag("event.origin", "javascript");
 
-  // tslint:disable-next-line: no-unsafe-any
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   if (getGlobalObject<any>().HermesInternal) {
     getCurrentHub().setTag("hermes", "true");
   }

@@ -8,11 +8,11 @@ export class Release implements Integration {
   /**
    * @inheritDoc
    */
-  public name: string = Release.id;
+  public static id: string = "Release";
   /**
    * @inheritDoc
    */
-  public static id: string = "Release";
+  public name: string = Release.id;
 
   /**
    * @inheritDoc

@@ -34,16 +34,16 @@ describe("Tests the Release integration", () => {
     const releaseIntegration = new Release();
 
     let eventProcessor: EventProcessor = () => null;
-    // @ts-expect-error
-    // tslint:disable-next-line: no-unsafe-any
+
+    // @ts-ignore Mock
     addGlobalEventProcessor.mockImplementation((e) => (eventProcessor = e));
     releaseIntegration.setupOnce();
 
     expect(addGlobalEventProcessor).toBeCalled();
 
     const client = getCurrentHub().getClient();
-    // @ts-expect-error
-    // tslint:disable-next-line: no-unsafe-any
+
+    // @ts-ignore Mock
     client.getOptions.mockImplementation(() => ({}));
 
     const event = await eventProcessor({});
@@ -56,16 +56,16 @@ describe("Tests the Release integration", () => {
     const releaseIntegration = new Release();
 
     let eventProcessor: EventProcessor = () => null;
-    // @ts-expect-error
-    // tslint:disable-next-line: no-unsafe-any
+
+    // @ts-ignore Mock
     addGlobalEventProcessor.mockImplementation((e) => (eventProcessor = e));
     releaseIntegration.setupOnce();
 
     expect(addGlobalEventProcessor).toBeCalled();
 
     const client = getCurrentHub().getClient();
-    // @ts-expect-error
-    // tslint:disable-next-line: no-unsafe-any
+
+    // @ts-ignore Mock
     client.getOptions.mockImplementation(() => ({
       dist: "options_dist",
       release: "options_release",
@@ -81,16 +81,16 @@ describe("Tests the Release integration", () => {
     const releaseIntegration = new Release();
 
     let eventProcessor: EventProcessor = () => null;
-    // @ts-expect-error
-    // tslint:disable-next-line: no-unsafe-any
+
+    // @ts-ignore Mock
     addGlobalEventProcessor.mockImplementation((e) => (eventProcessor = e));
     releaseIntegration.setupOnce();
 
     expect(addGlobalEventProcessor).toBeCalled();
 
     const client = getCurrentHub().getClient();
-    // @ts-expect-error
-    // tslint:disable-next-line: no-unsafe-any
+
+    // @ts-ignore Mock
     client.getOptions.mockImplementation(() => ({
       dist: "options_dist",
       release: "options_release",

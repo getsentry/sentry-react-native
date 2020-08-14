@@ -48,25 +48,25 @@ describe("Tests Native Wrapper", () => {
   describe("startWithOptions", () => {
     test("calls native module", async () => {
       const RN = require("react-native");
-      // tslint:disable-next-line: no-unsafe-any
+
       RN.NativeModules.RNSentry.startWithOptions = jest.fn();
 
       await NATIVE.startWithOptions({ dsn: "test", enableNative: true });
 
-      // tslint:disable-next-line: no-unsafe-any
       expect(RN.NativeModules.RNSentry.startWithOptions).toBeCalled();
     });
 
     test("warns if there is no dsn", async () => {
       const RN = require("react-native");
-      // tslint:disable-next-line: no-unsafe-any
+
       RN.NativeModules.RNSentry.startWithOptions = jest.fn();
       logger.warn = jest.fn();
 
       await NATIVE.startWithOptions({ enableNative: true });
-      // tslint:disable-next-line: no-unsafe-any
+
       expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
-      // tslint:disable-next-line: no-unbound-method
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenLastCalledWith(
         "Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized."
       );
@@ -74,14 +74,14 @@ describe("Tests Native Wrapper", () => {
 
     test("does not call native module with enableNative: false", async () => {
       const RN = require("react-native");
-      // tslint:disable-next-line: no-unsafe-any
+
       RN.NativeModules.RNSentry.startWithOptions = jest.fn();
       logger.warn = jest.fn();
 
       await NATIVE.startWithOptions({ dsn: "test", enableNative: false });
-      // tslint:disable-next-line: no-unsafe-any
+
       expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
-      // tslint:disable-next-line: no-unbound-method
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenLastCalledWith(
         "Note: Native Sentry SDK is disabled."
       );
@@ -93,7 +93,7 @@ describe("Tests Native Wrapper", () => {
       const RN = require("react-native");
 
       await NATIVE.sendEvent({});
-      // tslint:disable-next-line: no-unsafe-any
+
       expect(RN.NativeModules.RNSentry.sendEvent).toBeCalled();
     });
     test("calls getStringByteLength and captureEnvelope on android", async () => {
@@ -124,7 +124,6 @@ describe("Tests Native Wrapper", () => {
         type: "event",
       });
 
-      // tslint:disable-next-line: no-unsafe-any
       await expect(NATIVE.sendEvent(event)).resolves.toMatch(
         `${header}\n${item}\n${payload}`
       );
@@ -136,14 +135,11 @@ describe("Tests Native Wrapper", () => {
         await NATIVE.startWithOptions({ dsn: "test-dsn", enableNative: false });
         await NATIVE.sendEvent({});
       } catch (e) {
-        // tslint:disable-next-line: no-unsafe-any
         expect(e.message).toMatch("Native is disabled");
       }
-      /* tslint:disable: no-unsafe-any */
       expect(RN.NativeModules.RNSentry.sendEvent).not.toBeCalled();
       expect(RN.NativeModules.RNSentry.getStringBytesLength).not.toBeCalled();
       expect(RN.NativeModules.RNSentry.captureEnvelope).not.toBeCalled();
-      /* tslint:enable: no-unsafe-any */
     });
   });
 
@@ -174,7 +170,7 @@ describe("Tests Native Wrapper", () => {
       const RN = require("react-native");
 
       NATIVE.crash();
-      // tslint:disable-next-line: no-unsafe-any
+
       expect(RN.NativeModules.RNSentry.crash).toBeCalled();
     });
     test("does not call crash if enableNative is false", async () => {
@@ -182,7 +178,7 @@ describe("Tests Native Wrapper", () => {
 
       await NATIVE.startWithOptions({ dsn: "test-dsn", enableNative: false });
       NATIVE.crash();
-      // tslint:disable-next-line: no-unsafe-any
+
       expect(RN.NativeModules.RNSentry.crash).not.toBeCalled();
     });
   });
@@ -193,11 +189,11 @@ describe("Tests Native Wrapper", () => {
 
       NATIVE.setUser({
         email: "hello@sentry.io",
-        // @ts-ignore
+        // @ts-ignore Intentional incorrect type to simulate using a double as an id (We had a user open an issue because this didn't work before)
         id: 3.14159265359,
         unique: 123,
       });
-      // tslint:disable-next-line: no-unsafe-any
+
       expect(RN.NativeModules.RNSentry.setUser).toBeCalledWith(
         {
           email: "hello@sentry.io",
@@ -215,7 +211,7 @@ describe("Tests Native Wrapper", () => {
       NATIVE.setUser({
         id: "Hello",
       });
-      // tslint:disable-next-line: no-unsafe-any
+
       expect(RN.NativeModules.RNSentry.setUser).toBeCalledWith(
         {
           id: "Hello",

@@ -1,9 +1,9 @@
-import * as core from "@sentry/core";
+import * as minimal from "@sentry/minimal";
 import { Severity } from "@sentry/types";
 
 import { TouchEventBoundary } from "../src/js/touchevents";
 
-const addBreadcrumb = jest.spyOn(core, "addBreadcrumb");
+const addBreadcrumb = jest.spyOn(minimal, "addBreadcrumb");
 
 afterEach(() => {
   jest.resetAllMocks();
@@ -37,7 +37,7 @@ describe("TouchEventBoundary._onTouchStart", () => {
       },
     };
 
-    // @ts-ignore
+    // @ts-ignore Calling private member
     boundary._onTouchStart(event);
 
     expect(addBreadcrumb).toBeCalledWith({
@@ -73,7 +73,7 @@ describe("TouchEventBoundary._onTouchStart", () => {
       },
     };
 
-    // @ts-ignore
+    // @ts-ignore Calling private member
     boundary._onTouchStart(event);
 
     expect(addBreadcrumb).toBeCalledWith({
@@ -122,7 +122,7 @@ describe("TouchEventBoundary._onTouchStart", () => {
       },
     };
 
-    // @ts-ignore
+    // @ts-ignore Calling private member
     boundary._onTouchStart(event);
 
     expect(addBreadcrumb).toBeCalledWith({
@@ -171,7 +171,7 @@ describe("TouchEventBoundary._onTouchStart", () => {
       },
     };
 
-    // @ts-ignore
+    // @ts-ignore Calling private member
     boundary._onTouchStart(event);
 
     expect(addBreadcrumb).toBeCalledWith({

@@ -9,11 +9,12 @@ export class DeviceContext implements Integration {
   /**
    * @inheritDoc
    */
-  public name: string = DeviceContext.id;
+  public static id: string = "DeviceContext";
+
   /**
    * @inheritDoc
    */
-  public static id: string = "DeviceContext";
+  public name: string = DeviceContext.id;
 
   /**
    * @inheritDoc

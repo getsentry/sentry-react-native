@@ -6,6 +6,10 @@ const INTERNAL_CALLSITES_REGEX = new RegExp(
   ["ReactNativeRenderer-dev\\.js$", "MessageQueue\\.js$"].join("|")
 );
 
+interface GetDevServer {
+  (): { url: string };
+}
+
 /**
  * React Native Stack Frame
  */
@@ -32,20 +36,18 @@ export class DebugSymbolicator implements Integration {
   /**
    * @inheritDoc
    */
-  public name: string = DebugSymbolicator.id;
+  public static id: string = "DebugSymbolicator";
   /**
    * @inheritDoc
    */
-  public static id: string = "DebugSymbolicator";
+  public name: string = DebugSymbolicator.id;
 
   /**
    * @inheritDoc
    */
   public setupOnce(): void {
-    // tslint:disable-next-line: cyclomatic-complexity
     addGlobalEventProcessor(async (event: Event, hint?: EventHint) => {
       const self = getCurrentHub().getIntegration(DebugSymbolicator);
-      // tslint:disable: strict-comparisons
 
       if (!self || hint === undefined || hint.originalException === undefined) {
         return event;
@@ -53,7 +55,7 @@ export class DebugSymbolicator implements Integration {
 
       const reactError = hint.originalException as ReactNativeError;
 
-      // tslint:disable: no-unsafe-any
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const parseErrorStack = require("react-native/Libraries/Core/Devtools/parseErrorStack");
       const stack = parseErrorStack(reactError);
 
@@ -68,8 +70,6 @@ export class DebugSymbolicator implements Integration {
 
       event.platform = "node"; // Setting platform node makes sure we do not show source maps errors
 
-      // tslint:enable: no-unsafe-any
-      // tslint:enable: strict-comparisons
       return event;
     });
   }
@@ -82,20 +82,23 @@ export class DebugSymbolicator implements Integration {
     event: Event,
     stack: string | undefined
   ): Promise<void> {
-    // tslint:disable: no-unsafe-any
-    // tslint:disable: strict-comparisons
     try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const symbolicateStackTrace = require("react-native/Libraries/Core/Devtools/symbolicateStackTrace");
       const prettyStack = await symbolicateStackTrace(stack);
 
       if (prettyStack) {
         let newStack = prettyStack;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (prettyStack.stack) {
           // This has been changed in an react-native version so stack is contained in here
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           newStack = prettyStack.stack;
         }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         const stackWithoutInternalCallsites = newStack.filter(
-          (frame: any) =>
+          (frame: { file?: string }) =>
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null
         );
 
@@ -107,10 +110,10 @@ export class DebugSymbolicator implements Integration {
         logger.error("The stack is null");
       }
     } catch (error) {
-      logger.warn(`Unable to symbolicate stack trace: ${error.message}`);
+      if (error instanceof Error) {
+        logger.warn(`Unable to symbolicate stack trace: ${error.message}`);
+      }
     }
-    // tslint:enable: no-unsafe-any
-    // tslint:enable: strict-comparisons
   }
 
   /**
@@ -120,7 +123,7 @@ export class DebugSymbolicator implements Integration {
   private async _convertReactNativeFramesToSentryFrames(
     frames: ReactNativeFrame[]
   ): Promise<StackFrame[]> {
-    let getDevServer: any;
+    let getDevServer: GetDevServer;
     try {
       getDevServer = require("react-native/Libraries/Core/Devtools/getDevServer");
     } catch (_oO) {
@@ -134,7 +137,6 @@ export class DebugSymbolicator implements Integration {
           let inApp = !!frame.column && !!frame.lineNumber;
           inApp =
             inApp &&
-            // tslint:disable-next-line: strict-type-predicates
             frame.file !== undefined &&
             !frame.file.includes("node_modules") &&
             !frame.file.includes("native code");
@@ -162,7 +164,6 @@ export class DebugSymbolicator implements Integration {
           }
 
           if (inApp) {
-            // tslint:disable-next-line: no-unsafe-any
             await this._addSourceContext(newFrame, getDevServer);
           }
 
@@ -196,30 +197,34 @@ export class DebugSymbolicator implements Integration {
    */
   private async _addSourceContext(
     frame: StackFrame,
-    getDevServer?: any
+    getDevServer?: GetDevServer
   ): Promise<void> {
     let response;
-    // tslint:disable: no-unsafe-any no-non-null-assertion
-    const segments = frame.filename!.split("/");
-    // tslint:disable
-    for (const idx in segments) {
-      response = await fetch(
-        `${getDevServer().url}${segments.slice(-idx).join("/")}`,
-        {
-          method: "GET",
+
+    const segments = frame.filename?.split("/") ?? [];
+
+    if (getDevServer) {
+      for (const idx in segments) {
+        if (Object.prototype.hasOwnProperty.call(segments, idx)) {
+          response = await fetch(
+            `${getDevServer().url}${segments.slice(-idx).join("/")}`,
+            {
+              method: "GET",
+            }
+          );
+
+          if (response.ok) {
+            break;
+          }
         }
-      );
-      if (response.ok) {
-        break;
       }
     }
-    // tslint:enable
+
     if (response && response.ok) {
       const content = await response.text();
       const lines = content.split("\n");
 
       addContextToFrame(lines, frame);
     }
-    // tslint:enable: no-unsafe-any no-non-null-assertion
   }
 }

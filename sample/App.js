@@ -42,7 +42,7 @@ Sentry.init({
     if (!e.tags) {
       e.tags = {};
     }
-    e.tags['beforeSend'] = 'JS layer';
+    e.tags.beforeSend = 'JS layer';
 
     console.log('Event beforeSend:', e);
     return e;
@@ -210,7 +210,7 @@ const App = () => {
                     setShowBadCode(true);
                   }}>
                   <Text style={styles.sectionTitle}>
-                    Activate Error Boundary {showBadCode && <div></div>}
+                    Activate Error Boundary {showBadCode && <div />}
                   </Text>
                 </TouchableOpacity>
               </Sentry.ErrorBoundary>

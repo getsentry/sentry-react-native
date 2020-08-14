@@ -19,6 +19,17 @@ jobs:
       - name: Test
         run: yarn test
 
+  job_lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+      - name: Install
+        run: yarn install
+      - name: Lint
+        run: yarn lint
+
   job_build:
     name: Build
     runs-on: ubuntu-latest
