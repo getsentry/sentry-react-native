@@ -21,6 +21,7 @@ beforeAll(async () => {
           deviceName: 'Android Emulator',
 
           app: './android/app/build/outputs/apk/release/app-release.apk',
+          newCommandTimeout: 600000,
         }
       : {
           app:
@@ -28,6 +29,7 @@ beforeAll(async () => {
           deviceName: 'iPhone 11',
           platformName: 'iOS',
           platformVersion: '13.6',
+          newCommandTimeout: 600000,
         };
 
   await driver.init(config);
