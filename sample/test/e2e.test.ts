@@ -9,6 +9,9 @@ const PORT = 4723;
 
 const driver = wd.promiseChainRemote('localhost', PORT);
 
+// 20 min timeout why not
+jest.setTimeout(600000);
+
 beforeAll(async () => {
   const config =
     process.env.PLATFORM === 'android'
