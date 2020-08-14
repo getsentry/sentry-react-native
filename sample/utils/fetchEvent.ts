@@ -27,7 +27,7 @@ const fetchEvent = async (eventId): Promise<ApiEvent> => {
   const retryer = (jsonResponse: any) =>
     new Promise((resolve, reject) => {
       if (jsonResponse.detail === 'Event not found') {
-        if (retries < 8) {
+        if (retries < 20) {
           setTimeout(() => {
             retries++;
             console.log(`Retrying api request. Retry number: ${retries}`);
