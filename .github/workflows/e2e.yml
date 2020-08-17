@@ -1,4 +1,4 @@
-name: End-to-End Testing
+name: End-to-End Tests
 
 on:
   push:
