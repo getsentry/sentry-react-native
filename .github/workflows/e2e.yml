@@ -72,7 +72,8 @@ jobs:
         with:
           path: |
             sample/ios/Pods
-          key: ${{ runner.os }}-${{ hashFiles('sample/ios/podfile.lock') }}
+            ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-${{ hashFiles('sample/ios/Podfile.lock') }}
       - name: Install Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
