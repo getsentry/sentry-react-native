@@ -1,10 +1,11 @@
-name: e2e
+name: End-to-End Testing
 
 on:
   push:
     branches: [master]
   pull_request:
-    branches: [master]
+    branches:
+      - "*"
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -13,22 +14,29 @@ jobs:
   android:
     # Android emulator said to perform best with macos HAXM
     runs-on: macos-latest
-
     env:
       PLATFORM: android
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
-      - name: Install React Native CLI
-        run: yarn global add react-native-cli
+      - name: Install Global Dependencies
+        run: yarn global add react-native-cli @sentry/cli
+      - uses: actions/cache@v2
+        id: deps-cache
+        with:
+          path: |
+            node_modules
+            sample/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
       - name: Install Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
-      - name: Build SDK
-        run: yarn build
       - name: Install Sample Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
         working-directory: ./sample
+      - name: Build SDK
+        run: yarn build
       - name: Start Appium Server
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
         working-directory: ./sample
@@ -45,27 +53,37 @@ jobs:
           path: ./sample/appium.log
   ios:
     runs-on: macos-latest
-
     env:
       PLATFORM: ios
-      # xcodebuild output directory
-      CONFIGURATION_BUILD_DIR: /tmp/iosbuild
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
-      - name: Install React Native CLI
-        run: yarn global add react-native-cli
-      - name: Install Sentry CLI
-        run: yarn global add @sentry/cli
+      - name: Install Global Dependencies
+        run: yarn global add react-native-cli @sentry/cli
+      - uses: actions/cache@v2
+        id: deps-cache
+        with:
+          path: |
+            node_modules
+            sample/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+      - uses: actions/cache@v2
+        id: pods-cache
+        with:
+          path: |
+            sample/ios/Pods
+          key: ${{ runner.os }}-${{ hashFiles('sample/ios/podfile.lock') }}
       - name: Install Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
-      - name: Build SDK
-        run: yarn build
       - name: Install Sample Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
         working-directory: ./sample
-      - name: Insall iOS pods
+      - name: Build SDK
+        run: yarn build
+      - name: Install iOS pods
+        if: steps.pods-cache.outputs['cache-hit'] != 'true'
         run: pod install
         working-directory: ./sample/ios
       - name: Build and run iOS emulator
