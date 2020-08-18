@@ -84,7 +84,6 @@ jobs:
       - name: Build SDK
         run: yarn build
       - name: Install iOS pods
-        if: steps.pods-cache.outputs['cache-hit'] != 'true'
         run: pod install
         working-directory: ./sample/ios
       - name: Build and run iOS emulator
