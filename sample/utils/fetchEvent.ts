@@ -12,6 +12,9 @@ interface ApiEvent extends Event {
   eventID: string;
 }
 
+const RETRY_COUNT = 20;
+const RETRY_INTERVAL = 30000;
+
 const fetchEvent = async (eventId): Promise<ApiEvent> => {
   const url = `https://${domain}${eventEndpoint}${eventId}/`;
 
@@ -27,7 +30,7 @@ const fetchEvent = async (eventId): Promise<ApiEvent> => {
   const retryer = (jsonResponse: any) =>
     new Promise((resolve, reject) => {
       if (jsonResponse.detail === 'Event not found') {
-        if (retries < 20) {
+        if (retries < RETRY_COUNT) {
           setTimeout(() => {
             retries++;
             console.log(`Retrying api request. Retry number: ${retries}`);
@@ -36,7 +39,7 @@ const fetchEvent = async (eventId): Promise<ApiEvent> => {
                 .then((res) => res.json())
                 .then(retryer),
             );
-          }, 30000);
+          }, RETRY_INTERVAL);
         } else {
           reject(new Error('Could not fetch event within retry limit.'));
         }
