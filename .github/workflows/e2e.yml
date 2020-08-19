@@ -33,19 +33,22 @@ jobs:
         run: yarn install
       - name: Install Sample Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
-        run: yarn install
         working-directory: ./sample
+        run: yarn install
       - name: Build SDK
         run: yarn build
       - name: Start Appium Server
-        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
         working-directory: ./sample
+        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
       - name: Run Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
+          # All the tests need to be run in this script as the emulator is killed after this command.
           script: cd sample && react-native run-android --variant=release && curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions && yarn test
       - name: Upload Appium logs
+        # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
+        # otherwise it would not run if the previous step failed
         if: ${{ always() }}
         uses: actions/upload-artifact@v1
         with:
@@ -79,28 +82,29 @@ jobs:
         run: yarn install
       - name: Install Sample Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
-        run: yarn install
         working-directory: ./sample
+        run: yarn install
       - name: Build SDK
         run: yarn build
       - name: Install iOS pods
-        run: pod install
+        # Even though we cache the pods, we call it regardless
         working-directory: ./sample/ios
-      - name: Build and run iOS emulator
-        run: react-native run-ios --configuration Release
-        working-directory: ./sample
+        run: pod install
       - name: Start Appium Server
+        working-directory: ./sample
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
+      - name: Build and run iOS emulator
         working-directory: ./sample
-      - name: Poll until Appium Server starts
-        run: |
-          until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions); do
-            sleep 5
-          done
+        run: react-native run-ios --configuration Release
+        # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
+      - name: Ping Appium Server
+        run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
       - name: Run Tests
-        run: yarn test
         working-directory: ./sample
+        run: yarn test
       - name: Upload Appium logs
+        # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
+        # otherwise it would not run if the previous step failed
         if: ${{ always() }}
         uses: actions/upload-artifact@v1
         with:
