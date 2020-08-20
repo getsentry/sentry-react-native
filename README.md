@@ -7,6 +7,7 @@
 </p>
 
 [![Travis](https://travis-ci.com/getsentry/sentry-react-native.svg?branch=master)](https://travis-ci.com/getsentry/sentry-react-native)
+[![E2E Tests](https://img.shields.io/github/workflow/status/getsentry/sentry-react-native/End-to-End%20Tests?label=E2E%20Tests)](https://github.com/getsentry/sentry-react-native/actions?query=workflow%3A"End-to-End%20Tests")
 [![npm version](https://img.shields.io/npm/v/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
 [![npm dm](https://img.shields.io/npm/dm/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
 [![npm dt](https://img.shields.io/npm/dt/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
