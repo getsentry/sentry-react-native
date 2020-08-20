@@ -15,6 +15,7 @@ import {
   Text,
   StatusBar,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 
 import {
@@ -30,27 +31,9 @@ import * as Sentry from '@sentry/react-native';
 
 import {version as packageVersion} from './package.json';
 
+import {getTestProps} from './utils/getTestProps';
 import {store} from './reduxApp';
 import Counter from './Counter';
-
-Sentry.init({
-  dsn:
-    // Replace the example DSN below with your own DSN:
-    'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053',
-  debug: true,
-  beforeSend: (e) => {
-    if (!e.tags) {
-      e.tags = {};
-    }
-    e.tags.beforeSend = 'JS layer';
-
-    console.log('Event beforeSend:', e);
-    return e;
-  },
-  enableAutoSessionTracking: true,
-  // For testing, session close when 5 seconds (instead of the default 30) in the background.
-  sessionTrackingIntervalMillis: 5000,
-});
 
 const SetScopePropertiesButton = (props) => {
   return (
@@ -65,6 +48,31 @@ SetScopePropertiesButton.displayName = 'SetScopeProperties';
 const App = () => {
   // Show bad code inside error boundary to trigger it.
   const [showBadCode, setShowBadCode] = React.useState(false);
+  const [eventId, setEventId] = React.useState(null);
+
+  React.useEffect(() => {
+    Sentry.init({
+      dsn:
+        // Replace the example DSN below with your own DSN:
+        'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053',
+      debug: true,
+      beforeSend: (e) => {
+        if (!e.tags) {
+          e.tags = {};
+        }
+        e.tags['beforeSend'] = 'JS layer';
+
+        console.log('Event beforeSend:', e);
+
+        setEventId(e.event_id);
+
+        return e;
+      },
+      enableAutoSessionTracking: true,
+      // For testing, session close when 5 seconds (instead of the default 30) in the background.
+      sessionTrackingIntervalMillis: 5000,
+    });
+  }, []);
 
   const setScopeProps = () => {
     const dateString = new Date().toString();
@@ -158,7 +166,7 @@ const App = () => {
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
         <ScrollView
-          accessibilityLabel="ScrollView"
+          {...getTestProps('ScrollView', Platform.OS)}
           contentInsetAdjustmentBehavior="automatic"
           style={styles.scrollView}>
           <Header />
@@ -169,7 +177,15 @@ const App = () => {
           )}
           <View style={styles.body}>
             <View style={styles.sectionContainer}>
+              <Text {...getTestProps('eventId', Platform.OS)}>{eventId}</Text>
               <Text
+                {...getTestProps('clearEventId', Platform.OS)}
+                style={styles.sectionTitle}
+                onPress={() => setEventId(null)}>
+                Clear Event Id
+              </Text>
+              <Text
+                {...getTestProps('captureMessage', Platform.OS)}
                 style={styles.sectionTitle}
                 onPress={() => {
                   Sentry.captureMessage('React Native Test Message');
@@ -177,6 +193,7 @@ const App = () => {
                 captureMessage
               </Text>
               <Text
+                {...getTestProps('captureException', Platform.OS)}
                 style={styles.sectionTitle}
                 onPress={() => {
                   Sentry.captureException(new Error('captureException test'));
@@ -184,6 +201,7 @@ const App = () => {
                 captureException
               </Text>
               <Text
+                {...getTestProps('throwNewError', Platform.OS)}
                 style={styles.sectionTitle}
                 onPress={() => {
                   throw new Error('throw new error test');

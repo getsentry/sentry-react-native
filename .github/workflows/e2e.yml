@@ -1,0 +1,112 @@
+name: End-to-End Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches:
+      - "*"
+
+env:
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+jobs:
+  android:
+    # Android emulator said to perform best with macos HAXM
+    runs-on: macos-latest
+    env:
+      PLATFORM: android
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+      - name: Install Global Dependencies
+        run: yarn global add react-native-cli @sentry/cli
+      - uses: actions/cache@v2
+        id: deps-cache
+        with:
+          path: |
+            node_modules
+            sample/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+      - name: Install Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        run: yarn install
+      - name: Install Sample Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        working-directory: ./sample
+        run: yarn install
+      - name: Build SDK
+        run: yarn build
+      - name: Start Appium Server
+        working-directory: ./sample
+        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
+      - name: Run Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          # All the tests need to be run in this script as the emulator is killed after this command.
+          script: cd sample && react-native run-android --variant=release && curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions && yarn test
+      - name: Upload Appium logs
+        # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
+        # otherwise it would not run if the previous step failed
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v1
+        with:
+          name: appium.android.log
+          path: ./sample/appium.log
+  ios:
+    runs-on: macos-latest
+    env:
+      PLATFORM: ios
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+      - name: Install Global Dependencies
+        run: yarn global add react-native-cli @sentry/cli
+      - uses: actions/cache@v2
+        id: deps-cache
+        with:
+          path: |
+            node_modules
+            sample/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+      - uses: actions/cache@v2
+        id: pods-cache
+        with:
+          path: |
+            sample/ios/Pods
+            ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-${{ hashFiles('sample/ios/Podfile.lock') }}
+      - name: Install Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        run: yarn install
+      - name: Install Sample Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        working-directory: ./sample
+        run: yarn install
+      - name: Build SDK
+        run: yarn build
+      - name: Install iOS pods
+        # Even though we cache the pods, we call it regardless
+        working-directory: ./sample/ios
+        run: pod install
+      - name: Start Appium Server
+        working-directory: ./sample
+        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
+      - name: Build and run iOS emulator
+        working-directory: ./sample
+        run: react-native run-ios --configuration Release
+        # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
+      - name: Ping Appium Server
+        run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
+      - name: Run Tests
+        working-directory: ./sample
+        run: yarn test
+      - name: Upload Appium logs
+        # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
+        # otherwise it would not run if the previous step failed
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v1
+        with:
+          name: appium.ios.log
+          path: ./sample/appium.log

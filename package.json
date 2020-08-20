@@ -101,6 +101,7 @@
       "tsx",
       "js"
     ],
+    "testPathIgnorePatterns": ["<rootDir>/sample/"],
     "testEnvironment": "node",
     "testMatch": [
       "**/*.test.(ts|tsx)"
