@@ -62,3 +62,6 @@ test_bundle.zip
 __pycache__
 .cache
 wheelhouse
+
+# Android
+.idea/
