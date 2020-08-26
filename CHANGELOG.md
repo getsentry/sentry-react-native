@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.2
+
+- meta: Move from Travis CI to Github Actions #1019
+- ref: Drop TSLint in favor of ESLint #1023
+- test: Add basic end-to-end tests workflow #945
+- Bump: sentry-android to v2.3.1
+
 ## 1.7.1
 
 - build: Bump sentry-cocoa to 5.2 #1011
