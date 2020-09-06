@@ -103,6 +103,7 @@ RCT_EXPORT_METHOD(setLogLevel:(int)level)
             break;
         default:
             cocoaLevel = kSentryLogLevelNone;
+            break; 
     }
     [SentrySDK setLogLevel:cocoaLevel];
 }
