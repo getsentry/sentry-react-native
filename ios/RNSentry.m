@@ -94,12 +94,16 @@ RCT_EXPORT_METHOD(setLogLevel:(int)level)
     switch (level) {
         case 1:
             cocoaLevel = kSentryLogLevelError;
+            break;
         case 2:
             cocoaLevel = kSentryLogLevelDebug;
+            break;
         case 3:
             cocoaLevel = kSentryLogLevelVerbose;
+            break;
         default:
             cocoaLevel = kSentryLogLevelNone;
+            break; 
     }
     [SentrySDK setLogLevel:cocoaLevel];
 }
