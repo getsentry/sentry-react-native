@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { Breadcrumb, Event, Response, User } from "@sentry/types";
+import { Breadcrumb, Event, Response, Severity, User } from "@sentry/types";
 import { logger, SentryError } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
 
@@ -22,6 +22,9 @@ export const NATIVE = {
     if (!this.isNativeClientAvailable()) {
       throw this._NativeClientError;
     }
+
+    // Process and convert deprecated levels
+    event.level = event.level ? this._processLevel(event.level) : undefined;
 
     if (NATIVE.platform === "android") {
       const header = JSON.stringify({
@@ -250,6 +253,10 @@ export const NATIVE = {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     RNSentry.addBreadcrumb({
       ...breadcrumb,
+      // Process and convert deprecated levels
+      level: breadcrumb.level
+        ? this._processLevel(breadcrumb.level)
+        : undefined,
       data: breadcrumb.data
         ? this._serializeObject(breadcrumb.data)
         : undefined,
@@ -257,7 +264,7 @@ export const NATIVE = {
   },
 
   /**
-   * Clears breadcrumsb on the native scope.
+   * Clears breadcrumbs on the native scope.
    */
   clearBreadcrumbs(): void {
     if (!this.enableNative) {
@@ -313,6 +320,22 @@ export const NATIVE = {
     });
 
     return serialized;
+  },
+
+  /**
+   * Convert js severity level which has critical and log to more widely supported levels.
+   * @param level
+   * @returns More widely supported Severity level strings
+   */
+  _processLevel(level: Severity): Severity {
+    if (level === Severity.Critical) {
+      return Severity.Fatal;
+    }
+    if (level === Severity.Log) {
+      return Severity.Debug;
+    }
+
+    return level;
   },
 
   /**
