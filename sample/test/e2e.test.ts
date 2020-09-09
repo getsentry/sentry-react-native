@@ -28,7 +28,6 @@ beforeAll(async () => {
             '/Users/runner/Library/Developer/Xcode/DerivedData/sample-dnujahkswllvjvfnwwwzqheuvdsm/Build/Products/Release-iphonesimulator/sample.app',
           deviceName: 'iPhone 11',
           platformName: 'iOS',
-          platformVersion: '13.6',
           newCommandTimeout: 600000,
         };
 
