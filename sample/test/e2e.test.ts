@@ -29,6 +29,7 @@ beforeAll(async () => {
           deviceName: 'iPhone 11',
           platformName: 'iOS',
           newCommandTimeout: 600000,
+          automationName: 'XCUITest',
         };
 
   await driver.init(config);
