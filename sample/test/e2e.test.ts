@@ -10,7 +10,7 @@ const PORT = 4723;
 const driver = wd.promiseChainRemote('localhost', PORT);
 
 // 20 min timeout why not
-jest.setTimeout(600000);
+jest.setTimeout(1.2e6);
 
 beforeAll(async () => {
   const config =
