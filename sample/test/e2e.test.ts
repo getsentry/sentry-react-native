@@ -10,7 +10,7 @@ const PORT = 4723;
 const driver = wd.promiseChainRemote('localhost', PORT);
 
 // 20 min timeout why not
-jest.setTimeout(600000);
+jest.setTimeout(1.2e6);
 
 beforeAll(async () => {
   const config =
@@ -28,8 +28,8 @@ beforeAll(async () => {
             '/Users/runner/Library/Developer/Xcode/DerivedData/sample-dnujahkswllvjvfnwwwzqheuvdsm/Build/Products/Release-iphonesimulator/sample.app',
           deviceName: 'iPhone 11',
           platformName: 'iOS',
-          platformVersion: '13.6',
           newCommandTimeout: 600000,
+          automationName: 'XCUITest',
         };
 
   await driver.init(config);
