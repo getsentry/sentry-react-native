@@ -11,7 +11,7 @@ jest.mock(
         addBreadcrumb: jest.fn(),
         captureEnvelope: jest.fn((envelope) => Promise.resolve(envelope)),
         crash: jest.fn(),
-        deviceContexts: jest.fn(() => Promise.resolve({})),
+        deviceContexts: jest.fn(() => Promise.resolve({ someContext: 0 })),
         fetchRelease: jest.fn(() =>
           Promise.resolve({
             build: "1.0.0.1",
@@ -30,7 +30,7 @@ jest.mock(
       },
     },
     Platform: {
-      OS: "iOS",
+      OS: "ios",
     },
   }),
   /* virtual allows us to mock modules that aren't in package.json */
@@ -156,8 +156,25 @@ describe("Tests Native Wrapper", () => {
   });
 
   describe("deviceContexts", () => {
-    test("fetches the contexts from native", async () => {
+    test("returns context object from native module on ios", async () => {
+      const RN = require("react-native");
+
+      NATIVE.platform = "ios";
+
+      await expect(NATIVE.deviceContexts()).resolves.toMatchObject({
+        someContext: 0,
+      });
+
+      expect(RN.NativeModules.RNSentry.deviceContexts).toBeCalled();
+    });
+    test("returns empty object on android", async () => {
+      const RN = require("react-native");
+
+      NATIVE.platform = "android";
+
       await expect(NATIVE.deviceContexts()).resolves.toMatchObject({});
+
+      expect(RN.NativeModules.RNSentry.deviceContexts).not.toBeCalled();
     });
   });
 

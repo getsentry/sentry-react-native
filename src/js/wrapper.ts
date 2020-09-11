@@ -129,6 +129,12 @@ export const NATIVE = {
     if (!this.isNativeClientAvailable()) {
       throw this._NativeClientError;
     }
+
+    if (this.platform !== "ios") {
+      // Only ios uses deviceContexts, return an empty object.
+      return {};
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return RNSentry.deviceContexts();
   },
