@@ -1,3 +1,4 @@
+import { Severity } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
 import { NATIVE } from "../src/js/wrapper";
@@ -7,6 +8,7 @@ jest.mock(
   () => ({
     NativeModules: {
       RNSentry: {
+        addBreadcrumb: jest.fn(),
         captureEnvelope: jest.fn((envelope) => Promise.resolve(envelope)),
         crash: jest.fn(),
         deviceContexts: jest.fn(() => Promise.resolve({})),
@@ -218,6 +220,20 @@ describe("Tests Native Wrapper", () => {
         },
         {}
       );
+    });
+  });
+
+  describe("_processLevel", () => {
+    test("converts deprecated levels", () => {
+      expect(NATIVE._processLevel(Severity.Log)).toBe(Severity.Debug);
+      expect(NATIVE._processLevel(Severity.Critical)).toBe(Severity.Fatal);
+    });
+    test("returns non-deprecated levels", () => {
+      expect(NATIVE._processLevel(Severity.Debug)).toBe(Severity.Debug);
+      expect(NATIVE._processLevel(Severity.Fatal)).toBe(Severity.Fatal);
+      expect(NATIVE._processLevel(Severity.Info)).toBe(Severity.Info);
+      expect(NATIVE._processLevel(Severity.Warning)).toBe(Severity.Warning);
+      expect(NATIVE._processLevel(Severity.Error)).toBe(Severity.Error);
     });
   });
 
