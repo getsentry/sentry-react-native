@@ -3,7 +3,7 @@ import * as RN from "react-native";
 import { ReactNativeBackend } from "../src/js/backend";
 
 const EXAMPLE_DSN =
-  "https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053";
+  "https://d870ad989e7046a8b9715a57f59b23b5@o447951.ingest.sentry.io/5428561";
 
 jest.mock(
   "react-native",

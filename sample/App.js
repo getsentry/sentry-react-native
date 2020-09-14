@@ -26,13 +26,13 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
-import {Provider} from 'react-redux';
+import { Provider } from 'react-redux';
 import * as Sentry from '@sentry/react-native';
 
-import {version as packageVersion} from './package.json';
+import { version as packageVersion } from './package.json';
 
-import {getTestProps} from './utils/getTestProps';
-import {store} from './reduxApp';
+import { getTestProps } from './utils/getTestProps';
+import { store } from './reduxApp';
 import Counter from './Counter';
 
 const SetScopePropertiesButton = (props) => {
@@ -54,7 +54,7 @@ const App = () => {
     Sentry.init({
       dsn:
         // Replace the example DSN below with your own DSN:
-        'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053',
+        'https://d870ad989e7046a8b9715a57f59b23b5@o447951.ingest.sentry.io/5428561',
       debug: true,
       beforeSend: (e) => {
         if (!e.tags) {
@@ -101,7 +101,7 @@ const App = () => {
     Sentry.setExtra('SINGLE-EXTRA-OBJECT', {
       message: 'I am a teapot',
       status: 418,
-      array: ['boo', 100, 400, {objectInsideArray: 'foobar'}],
+      array: ['boo', 100, 400, { objectInsideArray: 'foobar' }],
     });
     Sentry.setExtras({
       'MULTI-EXTRA-0': dateString,
@@ -220,7 +220,7 @@ const App = () => {
                 Clear Breadcrumbs
               </Text>
               <Sentry.ErrorBoundary
-                fallback={({eventId}) => (
+                fallback={({ eventId }) => (
                   <Text>Error boundary caught with event id: {eventId}</Text>
                 )}>
                 <TouchableOpacity
