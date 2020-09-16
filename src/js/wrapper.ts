@@ -74,7 +74,7 @@ export const NATIVE = {
       return false;
     }
     if (!options.enableNative) {
-      if (options.enableNativeNagger) {
+      if (options.enableNativeNagger !== false) {
         logger.warn("Note: Native Sentry SDK is disabled.");
       }
       this.enableNative = false;
