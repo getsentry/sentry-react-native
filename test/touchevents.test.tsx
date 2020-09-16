@@ -1,9 +1,9 @@
-import * as minimal from "@sentry/minimal";
+import * as core from "@sentry/core";
 import { Severity } from "@sentry/types";
 
 import { TouchEventBoundary } from "../src/js/touchevents";
 
-const addBreadcrumb = jest.spyOn(minimal, "addBreadcrumb");
+const addBreadcrumb = jest.spyOn(core, "addBreadcrumb");
 
 afterEach(() => {
   jest.resetAllMocks();
