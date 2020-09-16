@@ -46,6 +46,7 @@ describe("Tests ReactNativeBackend", () => {
 
       await expect(backend.eventFromMessage("test")).resolves.toBeDefined();
       // @ts-ignore: Is Mocked
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       await expect(RN.LogBox.ignoreLogs).toBeCalled();
     });
 
