@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.8.0
+
 - feat: Support MacOS #1068
 - build: Bump @sentry/javascript dependencies to 5.23.0 #1079
 - fix: Only call native deviceContexts on iOS #1061
