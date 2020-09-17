@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- feat: Support MacOS #1068
+- build: Bump @sentry/javascript dependencies to 5.23.0 #1079
+- fix: Only call native deviceContexts on iOS #1061
+- fix: Don't send over Log and Critical levels over native bridge #1063
+
 ## 1.7.2
 
 - meta: Move from Travis CI to Github Actions #1019
