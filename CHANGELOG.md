@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.8.2
+
 - build: Bump @sentry/javascript dependencies to 5.24.2 #1091
 - fix: Add a check that `performance` exists before using it. #1091
 
