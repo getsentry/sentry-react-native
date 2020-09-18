@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- build: Bump @sentry/javascript dependencies to 5.24.1 #1088
+- fix: Fix timestamp offset issues due to issues with `performance.now()` introduced in React Native 0.63. #1088
+
 ## 1.8.0
 
 - feat: Support MacOS #1068
