@@ -1,4 +1,4 @@
-package io.sentry;
+package io.sentry.react;
 
 import java.util.Arrays;
 import java.util.Collections;

@@ -11,7 +11,7 @@ import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-import io.sentry.RNSentryPackage;
+import io.sentry.react.RNSentryPackage;
 
 public class MainApplication extends Application implements ReactApplication {
 

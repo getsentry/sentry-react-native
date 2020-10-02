@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- build: Changes android package name from `io.sentry.RNSentryPackage` to `io.sentry.react.RNSentryPackage` (Breaking).
+
 ## 1.9.0
 
 - fix: Only show the "Native Sentry SDK is disabled" warning when `enableNative` is false and `enableNativeNagger` is true. #1084
