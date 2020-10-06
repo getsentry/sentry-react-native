@@ -54,7 +54,7 @@ const App = () => {
     Sentry.init({
       dsn:
         // Replace the example DSN below with your own DSN:
-        'https://e39cc598149f46899082d1348c4abac1@o447951.ingest.sentry.io/5429216',
+        'https://d870ad989e7046a8b9715a57f59b23b5@o447951.ingest.sentry.io/5428561',
       debug: true,
       beforeSend: (e) => {
         if (!e.tags) {
