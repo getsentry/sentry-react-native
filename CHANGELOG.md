@@ -3,6 +3,7 @@
 ## Unreleased
 
 - build: Changes android package name from `io.sentry.RNSentryPackage` to `io.sentry.react.RNSentryPackage` (Breaking).
+- fix: As auto session tracking is now on by default, allow user to pass `false` to disable it.
 
 ## 1.9.0
 

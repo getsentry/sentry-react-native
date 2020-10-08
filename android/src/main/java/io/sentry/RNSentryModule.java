@@ -92,8 +92,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("dist") && rnOptions.getString("dist") != null) {
                 options.setDist(rnOptions.getString("dist"));
             }
-            if (rnOptions.hasKey("enableAutoSessionTracking") && rnOptions.getBoolean("enableAutoSessionTracking")) {
-                options.setEnableSessionTracking(true);
+            if (rnOptions.hasKey("enableAutoSessionTracking")) {
+                options.setEnableSessionTracking(rnOptions.getBoolean("enableAutoSessionTracking"));
             }
             if (rnOptions.hasKey("sessionTrackingIntervalMillis")) {
                 options.setSessionTrackingIntervalMillis(rnOptions.getInt("sessionTrackingIntervalMillis"));
