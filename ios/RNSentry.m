@@ -7,6 +7,7 @@
 #endif
 
 #import <Sentry/Sentry.h>
+#import <Sentry/SentrySdkInfo.h>
 
 @interface RNSentry()
 
@@ -103,7 +104,7 @@ RCT_EXPORT_METHOD(setLogLevel:(int)level)
             break;
         default:
             cocoaLevel = kSentryLogLevelNone;
-            break; 
+            break;
     }
     [SentrySDK setLogLevel:cocoaLevel];
 }
@@ -119,29 +120,45 @@ RCT_EXPORT_METHOD(fetchRelease:(RCTPromiseResolveBlock)resolve
               });
 }
 
-RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
+RCT_EXPORT_METHOD(getStringBytesLengh:(NSString * _Nonnull) eventString
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if ([NSJSONSerialization isValidJSONObject:event]) {
-        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:event
+    NSUInteger bytes = [eventString lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+    resolve(bytes);
+}
+
+RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if ([NSJSONSerialization isValidJSONObject:envelopeDict]) {
+        SentrySdkInfo *sdkInfo = [[SentrySdkInfo alloc] initWithDict: envelopeDict[@"header"][@"sdk"]];
+        SentryEnvelopeHeader *envelopeHeader = [[SentryEnvelopeHeader alloc] initWithId:envelopeDict[@"header"][@"eventId"] andSdkInfo:sdkInfo];
+
+        SentryEnvelopeItemHeader *envelopeItemHeader = [[SentryEnvelopeItemHeader alloc] initWithType:@"event" length:envelopeDict[@"item"][@"length"]];
+        NSData *envelopeItemData = [NSJSONSerialization dataWithJSONObject:envelopeDict[@"item"]
                                                            options:0
                                                              error:nil];
-        
-        SentryEvent *sentryEvent = [[SentryEvent alloc] initWithJSON:jsonData];
-#if DEBUG
-        [SentrySDK captureEvent:sentryEvent];
-#else
-        // We check this against the dictionary
-        if ([event[@"level"] isEqualToString:@"fatal"]) {
-            // captureEvent queues the event for submission, so storing to disk happens asynchronously
-            // We need to make sure the event is written to disk before resolving the promise.
-            // This could be replaced by SentrySDK.flush() when available.
-            [[[[SentrySDK currentHub] getClient] fileManager] storeEvent:sentryEvent];
-        } else {
-            [SentrySDK captureEvent:sentryEvent];
-        }
-#endif
+        SentryEnvelopeItem *envelopeItem = [[SentryEnvelopeItem alloc] initWithHeader:envelopeItemHeader data:envelopeItemData];
+
+        SentryEnvelope *envelope = [[SentryEnvelope alloc] initWithHeader:envelopeHeader singleItem:envelopeItem];
+
+        [[[SentrySDK currentHub] getClient] captureEnvelope: envelope];
+
+// #if DEBUG
+//         [[[[SentrySDK currentHub] getClient]sentryEvent];
+// #else
+//         // We check this against the dictionary
+//         if ([event[@"level"] isEqualToString:@"fatal"]) {
+//             // captureEvent queues the event for submission, so storing to disk happens asynchronously
+//             // We need to make sure the event is written to disk before resolving the promise.
+//             // This could be replaced by SentrySDK.flush() when available.
+//             [[[[SentrySDK currentHub] getClient] fileManager] storeEvent:sentryEvent];
+//         } else {
+//             [SentrySDK captureEvent:sentryEvent];
+//         }
+// #endif
         resolve(@YES);
     } else {
         reject(@"SentryReactNative", @"Cannot serialize event", nil);

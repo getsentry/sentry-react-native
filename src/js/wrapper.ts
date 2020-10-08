@@ -26,38 +26,46 @@ export const NATIVE = {
     // Process and convert deprecated levels
     event.level = event.level ? this._processLevel(event.level) : undefined;
 
-    if (NATIVE.platform === "android") {
-      const header = JSON.stringify({
-        event_id: event.event_id,
-        sdk: event.sdk,
-      });
+    const header = {
+      event_id: event.event_id,
+      sdk: event.sdk,
+    };
 
-      const payload = JSON.stringify({
-        ...event,
-        message: {
-          message: event.message,
-        },
-      });
-
-      let length = payload.length;
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        length = await RNSentry.getStringBytesLength(payload);
-      } catch {
-        // The native call failed, we do nothing, we have payload.length as a fallback
-      }
-      const item = JSON.stringify({
-        content_type: "application/json",
-        length,
-        type: "event",
-      });
-      const envelope = `${header}\n${item}\n${payload}`;
+    const payload = {
+      ...event,
+      message: {
+        message: event.message,
+      },
+    };
+    const payloadString = JSON.stringify(payload);
+    let length = payloadString.length;
+    try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      return RNSentry.captureEnvelope(envelope);
+      length = await RNSentry.getStringBytesLength(payload);
+    } catch {
+      // The native call failed, we do nothing, we have payload.length as a fallback
     }
 
+    const item = {
+      content_type: "application/json",
+      length,
+      type: "event",
+    };
+
+    if (NATIVE.platform === "android") {
+      const envelopeString = `${header}\n${item}\n${payload}`;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      return RNSentry.captureEnvelope(envelopeString);
+    }
+
+    const envelope = {
+      header,
+      item,
+      payload,
+    };
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return RNSentry.sendEvent(event);
+    return RNSentry.captureEnvelope(envelope);
   },
 
   /**
