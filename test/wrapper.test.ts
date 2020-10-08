@@ -80,7 +80,11 @@ describe("Tests Native Wrapper", () => {
       RN.NativeModules.RNSentry.startWithOptions = jest.fn();
       logger.warn = jest.fn();
 
-      await NATIVE.startWithOptions({ dsn: "test", enableNative: false });
+      await NATIVE.startWithOptions({
+        dsn: "test",
+        enableNative: false,
+        enableNativeNagger: true,
+      });
 
       expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
       // eslint-disable-next-line @typescript-eslint/unbound-method
