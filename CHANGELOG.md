@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.9.0
+
 - fix: Only show the "Native Sentry SDK is disabled" warning when `enableNative` is false and `enableNativeNagger` is true. #1084
 - build: Bump @sentry/javascript dependencies to 5.25.0. #1118
 
