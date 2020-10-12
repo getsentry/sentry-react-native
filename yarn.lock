@@ -1113,12 +1113,12 @@
     wcwidth "^1.0.1"
 
 "@sentry-internal/eslint-config-sdk@^5.25.0":
-  version "5.25.0"
-  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-config-sdk/-/eslint-config-sdk-5.25.0.tgz#cd720f636f503d27edff150c15fa58589235a08d"
-  integrity sha512-dv/KaELomObmyBfP/tpueWmL+8cI075WOtJUTreLUJPKSrZ67ZeYy1rg5FqiDR3VTJaQCICnKS6UgG1DWniA2A==
+  version "5.26.0"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-config-sdk/-/eslint-config-sdk-5.26.0.tgz#5744c9d818b9cb173f25ee28dfdb119e10476e3c"
+  integrity sha512-lC65lqrf5EuHm4sBU/EcErKAw6OzAVju3r2PLWOJTEPEcLBOkOwEQ6dEHjJma93BXTYCu/Q6Tv9DOGeUoDMHzA==
   dependencies:
-    "@sentry-internal/eslint-plugin-sdk" "5.25.0"
-    "@sentry-internal/typescript" "5.25.0"
+    "@sentry-internal/eslint-plugin-sdk" "5.26.0"
+    "@sentry-internal/typescript" "5.26.0"
     "@typescript-eslint/eslint-plugin" "^3.9.0"
     "@typescript-eslint/parser" "^3.9.0"
     eslint-config-prettier "^6.11.0"
@@ -1127,17 +1127,17 @@
     eslint-plugin-jsdoc "^30.0.3"
     eslint-plugin-simple-import-sort "^5.0.3"
 
-"@sentry-internal/eslint-plugin-sdk@5.25.0", "@sentry-internal/eslint-plugin-sdk@^5.25.0":
-  version "5.25.0"
-  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-plugin-sdk/-/eslint-plugin-sdk-5.25.0.tgz#24e2f3c1d88d804d60d1f5fb04085cb9e2a3d2b5"
-  integrity sha512-NJDBNWcVqoivcLqmfB1BgapVnmZzHbVXAJkAUL/8T2vVmXFbEEG74hYgDzTYFW3nIKG7g41eHCBlpfQ+SKBPPg==
+"@sentry-internal/eslint-plugin-sdk@5.26.0", "@sentry-internal/eslint-plugin-sdk@^5.25.0":
+  version "5.26.0"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-plugin-sdk/-/eslint-plugin-sdk-5.26.0.tgz#c20297024a913411fbc52f18d17bffc52498fcbb"
+  integrity sha512-YFDww8kZUPG4BRkJd7z/846vOYolzXtS0yBCG+SoHlbyioghc57iU9VbS58sk+AkAOxsJOceyB/vRzRY4auQFA==
   dependencies:
     requireindex "~1.1.0"
 
-"@sentry-internal/typescript@5.25.0":
-  version "5.25.0"
-  resolved "https://registry.yarnpkg.com/@sentry-internal/typescript/-/typescript-5.25.0.tgz#47be0a621db3c39e618b364f576069bcbeb222d2"
-  integrity sha512-olCd3/1qxH4wpV0EOJ/t/brJAtZiNn2urM9HZ8hxwajvn+HSjd2J/yz8FdBcMrjwYvSQ+3iBmeZZQJFQ/M8KsQ==
+"@sentry-internal/typescript@5.26.0":
+  version "5.26.0"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/typescript/-/typescript-5.26.0.tgz#122b514fecc9890fc9b34cc39adf8aa52ed496cc"
+  integrity sha512-HU2JviedY6JS8ZiaWfDMsriqguclFhlpaMXIRfzCNqckZoZhqP4gaXA8Xzi1LC9TWRjqtGm6UHuB5D2jJmD5Nw==
   dependencies:
     tslint-config-prettier "^1.18.0"
     tslint-consistent-codestyle "^1.15.1"
