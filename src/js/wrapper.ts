@@ -42,6 +42,8 @@ export const NATIVE = {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       length = await RNSentry.getStringBytesLength(payload);
+
+      console.log(`Length: ${length}`);
     } catch {
       // The native call failed, we do nothing, we have payload.length as a fallback
     }

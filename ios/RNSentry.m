@@ -8,6 +8,7 @@
 
 #import <Sentry/Sentry.h>
 #import <Sentry/SentrySdkInfo.h>
+#import <Sentry/SentryFileManager.h>
 
 @interface RNSentry()
 
@@ -125,7 +126,9 @@ RCT_EXPORT_METHOD(getStringBytesLengh:(NSString * _Nonnull) eventString
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSUInteger bytes = [eventString lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-    resolve(bytes);
+    resolve(@{
+        @"bytes": @(bytes)
+    });
 }
 
 RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
@@ -144,7 +147,9 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
 
         SentryEnvelope *envelope = [[SentryEnvelope alloc] initWithHeader:envelopeHeader singleItem:envelopeItem];
 
-        [[[SentrySDK currentHub] getClient] captureEnvelope: envelope];
+        // [[[SentrySDK currentHub] getClient] captureEnvelope: envelope];
+
+        [[[[SentrySDK currentHub] getClient] fileManager] storeEnvelope:envelope];
 
 // #if DEBUG
 //         [[[[SentrySDK currentHub] getClient]sentryEvent];

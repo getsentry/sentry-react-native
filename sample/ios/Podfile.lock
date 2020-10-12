@@ -296,7 +296,7 @@ PODS:
     - React-Core (= 0.63.1)
     - React-cxxreact (= 0.63.1)
     - React-jsi (= 0.63.1)
-  - RNSentry (1.8.2):
+  - RNSentry (1.9.0):
     - React-Core
     - Sentry (~> 6.0.0)
   - Sentry (6.0.0):
@@ -465,7 +465,7 @@ SPEC CHECKSUMS:
   React-RCTText: 4f95d322b7e6da72817284abf8a2cdcec18b9cd8
   React-RCTVibration: f3a9123c244f35c40d3c9f3ec3f0b9e5717bb292
   ReactCommon: 2905859f84a94a381bb0d8dd3921ccb1a0047cb8
-  RNSentry: 628e08d4b7b624973e2cf08947f04873a9fb3c90
+  RNSentry: 1ff8ff09c92a2736c17226d1039b848afadd5af8
   Sentry: 9f6ac6d0412a09a8d610497f873ccbcf7abbe3f8
   Yoga: d5bd05a2b6b94c52323745c2c2b64557c8c66f64
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
