@@ -121,16 +121,6 @@ RCT_EXPORT_METHOD(fetchRelease:(RCTPromiseResolveBlock)resolve
               });
 }
 
-RCT_EXPORT_METHOD(getStringBytesLengh:(NSString * _Nonnull) eventString
-                  resolve:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-    NSUInteger bytes = [eventString lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-    resolve(@{
-        @"bytes": @(bytes)
-    });
-}
-
 RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
@@ -139,31 +129,26 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
         SentrySdkInfo *sdkInfo = [[SentrySdkInfo alloc] initWithDict: envelopeDict[@"header"][@"sdk"]];
         SentryEnvelopeHeader *envelopeHeader = [[SentryEnvelopeHeader alloc] initWithId:envelopeDict[@"header"][@"eventId"] andSdkInfo:sdkInfo];
 
-        SentryEnvelopeItemHeader *envelopeItemHeader = [[SentryEnvelopeItemHeader alloc] initWithType:@"event" length:envelopeDict[@"item"][@"length"]];
-        NSData *envelopeItemData = [NSJSONSerialization dataWithJSONObject:envelopeDict[@"item"]
+        NSData *envelopeItemData = [NSJSONSerialization dataWithJSONObject:envelopeDict[@"payload"]
                                                            options:0
                                                              error:nil];
+        SentryEnvelopeItemHeader *envelopeItemHeader = [[SentryEnvelopeItemHeader alloc] initWithType:envelopeDict[@"payload"][@"type"] length:envelopeItemData.length];
         SentryEnvelopeItem *envelopeItem = [[SentryEnvelopeItem alloc] initWithHeader:envelopeItemHeader data:envelopeItemData];
 
         SentryEnvelope *envelope = [[SentryEnvelope alloc] initWithHeader:envelopeHeader singleItem:envelopeItem];
 
-        // [[[SentrySDK currentHub] getClient] captureEnvelope: envelope];
-
-        [[[[SentrySDK currentHub] getClient] fileManager] storeEnvelope:envelope];
-
-// #if DEBUG
-//         [[[[SentrySDK currentHub] getClient]sentryEvent];
-// #else
-//         // We check this against the dictionary
-//         if ([event[@"level"] isEqualToString:@"fatal"]) {
-//             // captureEvent queues the event for submission, so storing to disk happens asynchronously
-//             // We need to make sure the event is written to disk before resolving the promise.
-//             // This could be replaced by SentrySDK.flush() when available.
-//             [[[[SentrySDK currentHub] getClient] fileManager] storeEvent:sentryEvent];
-//         } else {
-//             [SentrySDK captureEvent:sentryEvent];
-//         }
-// #endif
+        #if DEBUG
+            [[[SentrySDK currentHub] getClient] captureEnvelope: envelope];
+        #else
+            if ([envelopeDict[@"payload"][@"level"] isEqualToString:@"fatal"]) {
+                // Storing to disk happens asynchronously with captureEnvelope
+                // We need to make sure the event is written to disk before resolving the promise.
+                // This could be replaced by SentrySDK.flush() when available.
+                [[[[SentrySDK currentHub] getClient] fileManager] storeEnvelope:envelope];
+            } else {
+                [[[SentrySDK currentHub] getClient] captureEnvelope: envelope];
+            }
+        #endif
         resolve(@YES);
     } else {
         reject(@"SentryReactNative", @"Cannot serialize event", nil);

@@ -33,41 +33,40 @@ export const NATIVE = {
 
     const payload = {
       ...event,
+      type: event.type ?? 'event',
       message: {
         message: event.message,
       },
     };
-    const payloadString = JSON.stringify(payload);
-    let length = payloadString.length;
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      length = await RNSentry.getStringBytesLength(payload);
-
-      console.log(`Length: ${length}`);
-    } catch {
-      // The native call failed, we do nothing, we have payload.length as a fallback
-    }
-
-    const item = {
-      content_type: "application/json",
-      length,
-      type: "event",
-    };
 
     if (NATIVE.platform === "android") {
+      const payloadString = JSON.stringify(payload);
+
+      let length = payloadString.length;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        length = await RNSentry.getStringBytesLength(payloadString);
+      } catch {
+        // The native call failed, we do nothing, we have payload.length as a fallback
+      }
+
+      const item = {
+        content_type: "application/json",
+        length,
+        type: payload.type
+      };
+
       const envelopeString = `${header}\n${item}\n${payload}`;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return RNSentry.captureEnvelope(envelopeString);
     }
 
-    const envelope = {
-      header,
-      item,
-      payload,
-    };
-
+    // The envelope item is created (and its length determined) on the iOS side of the native bridge.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return RNSentry.captureEnvelope(envelope);
+    return RNSentry.captureEnvelope({
+      header,
+      payload,
+    });
   },
 
   /**
