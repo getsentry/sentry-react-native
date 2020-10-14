@@ -38,6 +38,9 @@ export interface ReactNativeOptions extends BrowserOptions {
 
   /** The interval to end a session if the App goes to the background. */
   sessionTrackingIntervalMillis?: number;
+
+  /** Enable scope sync from Java to NDK on Android */
+  enableNdkScopeSync?: boolean;
 }
 
 /** The Sentry ReactNative SDK Backend. */

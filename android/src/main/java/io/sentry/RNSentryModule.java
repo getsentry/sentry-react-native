@@ -98,6 +98,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("sessionTrackingIntervalMillis")) {
                 options.setSessionTrackingIntervalMillis(rnOptions.getInt("sessionTrackingIntervalMillis"));
             }
+            if (rnOptions.hasKey("enableNdkScopeSync")) {
+                options.setEnableScopeSync(rnOptions.getBoolean("enableNdkScopeSync"));
+            }
 
             // JS use top level stacktraces and android attaches Threads which hides them so
             // by default we hide.
