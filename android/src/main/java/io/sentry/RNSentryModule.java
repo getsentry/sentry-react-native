@@ -101,6 +101,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("enableNdkScopeSync")) {
                 options.setEnableScopeSync(rnOptions.getBoolean("enableNdkScopeSync"));
             }
+            if (rnOptions.hasKey("attachStacktrace")) {
+                options.setAttachStacktrace(rnOptions.getBoolean("attachStacktrace"))
+            }
 
             // JS use top level stacktraces and android attaches Threads which hides them so
             // by default we hide.
