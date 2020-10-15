@@ -4,6 +4,10 @@
 
 - build: Changes android package name from `io.sentry.RNSentryPackage` to `io.sentry.react.RNSentryPackage` (Breaking).
 - fix: As auto session tracking is now on by default, allow user to pass `false` to disable it.
+- build: Bump `sentry-android` to 3.0.0.
+- build: Bump `sentry-cocoa` to 6.0.3.
+- feat: Use `captureEnvelope` on iOS/Mac.
+- feat: Support envelopes with type other than `event`.
 
 ## 1.9.0
 
