@@ -33,15 +33,16 @@ export const NATIVE = {
 
     const payload = {
       ...event,
-      type: event.type ?? 'event',
+      type: event.type,
       message: {
         message: event.message,
       },
     };
 
     if (NATIVE.platform === "android") {
-      const payloadString = JSON.stringify(payload);
+      const headerString = JSON.stringify(header);
 
+      const payloadString = JSON.stringify(payload);
       let length = payloadString.length;
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -53,10 +54,12 @@ export const NATIVE = {
       const item = {
         content_type: "application/json",
         length,
-        type: payload.type
+        type: payload.type,
       };
 
-      const envelopeString = `${header}\n${item}\n${payload}`;
+      const itemString = JSON.stringify(item);
+
+      const envelopeString = `${headerString}\n${itemString}\n${payloadString}`;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return RNSentry.captureEnvelope(envelopeString);
     }

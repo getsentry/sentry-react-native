@@ -95,12 +95,32 @@ describe("Tests Native Wrapper", () => {
   });
 
   describe("sendEvent", () => {
-    test("calls sendEvent on iOS", async () => {
+    test("calls only captureEnvelope on iOS", async () => {
       const RN = require("react-native");
 
-      await NATIVE.sendEvent({});
+      const event = {
+        event_id: "event0",
+        message: "test",
+        sdk: {
+          name: "test-sdk-name",
+          version: "2.1.3",
+        },
+      };
 
-      expect(RN.NativeModules.RNSentry.sendEvent).toBeCalled();
+      await NATIVE.sendEvent(event);
+
+      expect(RN.NativeModules.RNSentry.captureEnvelope).toBeCalledWith({
+        header: {
+          event_id: event.event_id,
+          sdk: event.sdk,
+        },
+        payload: {
+          ...event,
+          message: {
+            message: event.message,
+          },
+        },
+      });
     });
     test("calls getStringByteLength and captureEnvelope on android", async () => {
       NATIVE.platform = "android";
@@ -127,7 +147,6 @@ describe("Tests Native Wrapper", () => {
       const item = JSON.stringify({
         content_type: "application/json",
         length: 1,
-        type: "event",
       });
 
       await expect(NATIVE.sendEvent(event)).resolves.toMatch(
