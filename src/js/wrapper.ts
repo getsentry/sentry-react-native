@@ -33,7 +33,7 @@ export const NATIVE = {
 
     const payload = {
       ...event,
-      type: event.type,
+      type: event.type ?? 'event',
       message: {
         message: event.message,
       },

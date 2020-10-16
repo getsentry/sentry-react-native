@@ -116,6 +116,7 @@ describe("Tests Native Wrapper", () => {
         },
         payload: {
           ...event,
+          type: 'event',
           message: {
             message: event.message,
           },
@@ -139,6 +140,7 @@ describe("Tests Native Wrapper", () => {
         message: {
           message: event.message,
         },
+        type: 'event',
       });
       const header = JSON.stringify({
         event_id: event.event_id,
@@ -147,6 +149,7 @@ describe("Tests Native Wrapper", () => {
       const item = JSON.stringify({
         content_type: "application/json",
         length: 1,
+        type: 'event',
       });
 
       await expect(NATIVE.sendEvent(event)).resolves.toMatch(
