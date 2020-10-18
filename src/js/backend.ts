@@ -41,6 +41,9 @@ export interface ReactNativeOptions extends BrowserOptions {
 
   /** Enable scope sync from Java to NDK on Android */
   enableNdkScopeSync?: boolean;
+
+  /** When enabled, all the threads are automatically attached to all logged events on Android */
+  attachThreads?: boolean;
 }
 
 /** The Sentry ReactNative SDK Backend. */

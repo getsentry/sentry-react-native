@@ -104,11 +104,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("attachStacktrace")) {
                 options.setAttachStacktrace(rnOptions.getBoolean("attachStacktrace"));
             }
-
-            // JS use top level stacktraces and android attaches Threads which hides them so
-            // by default we hide.
-            boolean attachThreads = rnOptions.hasKey("attachThreads") && rnOptions.getBoolean("attachThreads");
-            options.setAttachThreads(attachThreads);
+            if (rnOptions.hasKey("attachThreads")) {
+                // JS use top level stacktraces and android attaches Threads which hides them so
+                // by default we hide.
+                options.setAttachThreads(rnOptions.getBoolean("attachThreads"));
+            }
 
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException
