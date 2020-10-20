@@ -39,6 +39,7 @@ import io.sentry.SentryOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
+import io.sentry.protocol.SentryThread;
 import io.sentry.protocol.User;
 
 @ReactModule(name = RNSentryModule.NAME)
@@ -141,6 +142,32 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                             }
                         }
                     }
+                }
+
+                // If there are exceptions, move it to threads.
+                // This is due to `threads` taking precedent over `exception` on the dashboard, hiding the JS Stack Trace.
+                if (event.getExceptions() != null) {
+                    List<SentryThread> threads = new ArrayList<SentryThread>();
+
+                    for (SentryException exception : event.getExceptions()) {
+                        SentryThread thread = new SentryThread();
+                        thread.setId(1L);
+                        thread.setName("Javascript");
+                        thread.setCrashed(true);
+                        thread.setCurrent(true);
+                        thread.setStacktrace(exception.getStacktrace());
+
+                        threads.add(thread);
+                    }
+
+                    // We add the JS thread before every other thread so it displays first.
+                    List<SentryThread> javaThreads = event.getThreads();
+                    if (javaThreads != null) {
+                        threads.addAll(javaThreads);
+                    }
+
+
+                    event.setThreads(threads);
                 }
 
                 return event;
