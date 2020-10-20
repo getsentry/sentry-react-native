@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- build(android): Changes android package name from `io.sentry.RNSentryPackage` to `io.sentry.react.RNSentryPackage` (Breaking). #1131
+- fix: As auto session tracking is now on by default, allow user to pass `false` to disable it. #1131
+- build: Bump `sentry-android` to 3.1.0. #1131
+- build: Bump `sentry-cocoa` to 6.0.3. #1131
+- feat(ios): Use `captureEnvelope` on iOS/Mac. #1131
+- feat: Support envelopes with type other than `event`. #1131
+- feat(android): Add enableNdkScopeSync property to ReactNativeOptions. #1131
+- feat(android): Pass attachStacktrace option property down to android SDK. #1131
+
 ## 1.9.0
 
 - fix: Only show the "Native Sentry SDK is disabled" warning when `enableNative` is false and `enableNativeNagger` is true. #1084

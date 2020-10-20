@@ -1,4 +1,4 @@
-package io.sentry;
+package io.sentry.react;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -31,15 +31,15 @@ import java.util.logging.Logger;
 import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
-import io.sentry.core.Sentry;
-import io.sentry.core.Breadcrumb;
-import io.sentry.core.Integration;
-import io.sentry.core.SentryLevel;
-import io.sentry.core.SentryOptions;
-import io.sentry.core.UncaughtExceptionHandlerIntegration;
-import io.sentry.core.protocol.SdkVersion;
-import io.sentry.core.protocol.SentryException;
-import io.sentry.core.protocol.User;
+import io.sentry.Sentry;
+import io.sentry.Breadcrumb;
+import io.sentry.Integration;
+import io.sentry.SentryLevel;
+import io.sentry.SentryOptions;
+import io.sentry.UncaughtExceptionHandlerIntegration;
+import io.sentry.protocol.SdkVersion;
+import io.sentry.protocol.SentryException;
+import io.sentry.protocol.User;
 
 @ReactModule(name = RNSentryModule.NAME)
 public class RNSentryModule extends ReactContextBaseJavaModule {
@@ -92,17 +92,23 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("dist") && rnOptions.getString("dist") != null) {
                 options.setDist(rnOptions.getString("dist"));
             }
-            if (rnOptions.hasKey("enableAutoSessionTracking") && rnOptions.getBoolean("enableAutoSessionTracking")) {
-                options.setEnableSessionTracking(true);
+            if (rnOptions.hasKey("enableAutoSessionTracking")) {
+                options.setEnableSessionTracking(rnOptions.getBoolean("enableAutoSessionTracking"));
             }
             if (rnOptions.hasKey("sessionTrackingIntervalMillis")) {
                 options.setSessionTrackingIntervalMillis(rnOptions.getInt("sessionTrackingIntervalMillis"));
             }
-
-            // JS use top level stacktraces and android attaches Threads which hides them so
-            // by default we hide.
-            boolean attachThreads = rnOptions.hasKey("attachThreads") && rnOptions.getBoolean("attachThreads");
-            options.setAttachThreads(attachThreads);
+            if (rnOptions.hasKey("enableNdkScopeSync")) {
+                options.setEnableScopeSync(rnOptions.getBoolean("enableNdkScopeSync"));
+            }
+            if (rnOptions.hasKey("attachStacktrace")) {
+                options.setAttachStacktrace(rnOptions.getBoolean("attachStacktrace"));
+            }
+            if (rnOptions.hasKey("attachThreads")) {
+                // JS use top level stacktraces and android attaches Threads which hides them so
+                // by default we hide.
+                options.setAttachThreads(rnOptions.getBoolean("attachThreads"));
+            }
 
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException

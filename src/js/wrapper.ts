@@ -26,38 +26,50 @@ export const NATIVE = {
     // Process and convert deprecated levels
     event.level = event.level ? this._processLevel(event.level) : undefined;
 
+    const header = {
+      event_id: event.event_id,
+      sdk: event.sdk,
+    };
+
+    const payload = {
+      ...event,
+      type: event.type ?? 'event',
+      message: {
+        message: event.message,
+      },
+    };
+
     if (NATIVE.platform === "android") {
-      const header = JSON.stringify({
-        event_id: event.event_id,
-        sdk: event.sdk,
-      });
+      const headerString = JSON.stringify(header);
 
-      const payload = JSON.stringify({
-        ...event,
-        message: {
-          message: event.message,
-        },
-      });
-
-      let length = payload.length;
+      const payloadString = JSON.stringify(payload);
+      let length = payloadString.length;
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        length = await RNSentry.getStringBytesLength(payload);
+        length = await RNSentry.getStringBytesLength(payloadString);
       } catch {
         // The native call failed, we do nothing, we have payload.length as a fallback
       }
-      const item = JSON.stringify({
+
+      const item = {
         content_type: "application/json",
         length,
-        type: "event",
-      });
-      const envelope = `${header}\n${item}\n${payload}`;
+        type: payload.type,
+      };
+
+      const itemString = JSON.stringify(item);
+
+      const envelopeString = `${headerString}\n${itemString}\n${payloadString}`;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      return RNSentry.captureEnvelope(envelope);
+      return RNSentry.captureEnvelope(envelopeString);
     }
 
+    // The envelope item is created (and its length determined) on the iOS side of the native bridge.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return RNSentry.sendEvent(event);
+    return RNSentry.captureEnvelope({
+      header,
+      payload,
+    });
   },
 
   /**

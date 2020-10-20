@@ -7,6 +7,8 @@
 #endif
 
 #import <Sentry/Sentry.h>
+#import <Sentry/SentrySdkInfo.h>
+#import <Sentry/SentryFileManager.h>
 
 @interface RNSentry()
 
@@ -103,7 +105,7 @@ RCT_EXPORT_METHOD(setLogLevel:(int)level)
             break;
         default:
             cocoaLevel = kSentryLogLevelNone;
-            break; 
+            break;
     }
     [SentrySDK setLogLevel:cocoaLevel];
 }
@@ -119,29 +121,38 @@ RCT_EXPORT_METHOD(fetchRelease:(RCTPromiseResolveBlock)resolve
               });
 }
 
-RCT_EXPORT_METHOD(sendEvent:(NSDictionary * _Nonnull)event
+RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if ([NSJSONSerialization isValidJSONObject:event]) {
-        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:event
-                                                           options:0
-                                                             error:nil];
-        
-        SentryEvent *sentryEvent = [[SentryEvent alloc] initWithJSON:jsonData];
-#if DEBUG
-        [SentrySDK captureEvent:sentryEvent];
-#else
-        // We check this against the dictionary
-        if ([event[@"level"] isEqualToString:@"fatal"]) {
-            // captureEvent queues the event for submission, so storing to disk happens asynchronously
-            // We need to make sure the event is written to disk before resolving the promise.
-            // This could be replaced by SentrySDK.flush() when available.
-            [[[[SentrySDK currentHub] getClient] fileManager] storeEvent:sentryEvent];
-        } else {
-            [SentrySDK captureEvent:sentryEvent];
+    if ([NSJSONSerialization isValidJSONObject:envelopeDict]) {
+        SentrySdkInfo *sdkInfo = [[SentrySdkInfo alloc] initWithDict:envelopeDict[@"header"]];
+        SentryId *eventId = [[SentryId alloc] initWithUUIDString:envelopeDict[@"header"][@"event_id"]];
+        SentryEnvelopeHeader *envelopeHeader = [[SentryEnvelopeHeader alloc] initWithId:eventId andSdkInfo:sdkInfo];
+
+        NSError *error;
+        NSData *envelopeItemData = [NSJSONSerialization dataWithJSONObject:envelopeDict[@"payload"] options:0 error:&error];
+        if (nil != error) {
+            reject(@"SentryReactNative", @"Cannot serialize event", error);
         }
-#endif
+
+        SentryEnvelopeItemHeader *envelopeItemHeader = [[SentryEnvelopeItemHeader alloc] initWithType:envelopeDict[@"payload"][@"type"] length:envelopeItemData.length];
+        SentryEnvelopeItem *envelopeItem = [[SentryEnvelopeItem alloc] initWithHeader:envelopeItemHeader data:envelopeItemData];
+
+        SentryEnvelope *envelope = [[SentryEnvelope alloc] initWithHeader:envelopeHeader singleItem:envelopeItem];
+
+        #if DEBUG
+            [[[SentrySDK currentHub] getClient] captureEnvelope: envelope];
+        #else
+            if ([envelopeDict[@"payload"][@"level"] isEqualToString:@"fatal"]) {
+                // Storing to disk happens asynchronously with captureEnvelope
+                // We need to make sure the event is written to disk before resolving the promise.
+                // This could be replaced by SentrySDK.flush() when available.
+                [[[[SentrySDK currentHub] getClient] fileManager] storeEnvelope:envelope];
+            } else {
+                [[[SentrySDK currentHub] getClient] captureEnvelope: envelope];
+            }
+        #endif
         resolve(@YES);
     } else {
         reject(@"SentryReactNative", @"Cannot serialize event", nil);
