@@ -144,9 +144,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     }
                 }
 
-                // If there are exceptions, move it to threads.
+                // If there are exceptions and the event originated from js, move it to threads.
                 // This is due to `threads` taking precedent over `exception` on the dashboard, hiding the JS Stack Trace.
-                if (event.getExceptions() != null) {
+                if (event.getTag("event.origin") != null && event.getTag("event.origin").equals("javascript") && event.getExceptions() != null) {
                     List<SentryThread> threads = new ArrayList<SentryThread>();
 
                     for (SentryException exception : event.getExceptions()) {
