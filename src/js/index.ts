@@ -44,7 +44,8 @@ export {
 import * as Integrations from "./integrations";
 import { SDK_NAME, SDK_VERSION } from "./version";
 
-export { ReactNativeBackend, ReactNativeOptions } from "./backend";
+export { ReactNativeBackend } from "./backend";
+export { ReactNativeOptions } from './reactNativeOptions';
 export { ReactNativeClient } from "./client";
 // eslint-disable-next-line deprecation/deprecation
 export { init, setDist, setRelease, nativeCrash } from "./sdk";
