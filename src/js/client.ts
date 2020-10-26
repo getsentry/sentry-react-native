@@ -1,6 +1,7 @@
 import { BaseClient } from "@sentry/core";
 
-import { ReactNativeBackend, ReactNativeOptions } from "./backend";
+import { ReactNativeBackend } from "./backend";
+import { ReactNativeOptions } from "./reactNativeOptions";
 
 /**
  * The Sentry React Native SDK Client.
@@ -11,7 +12,7 @@ import { ReactNativeBackend, ReactNativeOptions } from "./backend";
 export class ReactNativeClient extends BaseClient<
   ReactNativeBackend,
   ReactNativeOptions
-> {
+  > {
   /**
    * Creates a new React Native SDK instance.
    * @param options Configuration options for this SDK.

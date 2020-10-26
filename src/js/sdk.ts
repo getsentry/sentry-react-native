@@ -5,7 +5,6 @@ import { defaultIntegrations, getCurrentHub } from "@sentry/react";
 import { StackFrame } from "@sentry/types";
 import { getGlobalObject } from "@sentry/utils";
 
-import { ReactNativeOptions } from "./backend";
 import { ReactNativeClient } from "./client";
 import {
   DebugSymbolicator,
@@ -13,6 +12,7 @@ import {
   ReactNativeErrorHandlers,
   Release,
 } from "./integrations";
+import { ReactNativeOptions } from "./reactNativeOptions";
 import { ReactNativeScope } from "./scope";
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
