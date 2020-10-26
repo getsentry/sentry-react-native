@@ -5,7 +5,7 @@ import { Event, EventHint, Severity, Transport } from "@sentry/types";
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from "react-native";
 
-import { ReactNativeOptions } from './reactNativeOptions';
+import { ReactNativeOptions } from "./options";
 import { NativeTransport } from "./transports/native";
 import { NATIVE } from "./wrapper";
 

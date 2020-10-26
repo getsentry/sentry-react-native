@@ -12,7 +12,7 @@ import {
   ReactNativeErrorHandlers,
   Release,
 } from "./integrations";
-import { ReactNativeOptions } from "./reactNativeOptions";
+import { ReactNativeOptions } from "./options";
 import { ReactNativeScope } from "./scope";
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
