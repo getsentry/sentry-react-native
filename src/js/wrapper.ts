@@ -3,7 +3,7 @@ import { Breadcrumb, Event, Response, Severity, User } from "@sentry/types";
 import { logger, SentryError } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
 
-import { ReactNativeOptions } from "./backend";
+import { ReactNativeOptions } from "./options";
 
 const { RNSentry } = NativeModules;
 
