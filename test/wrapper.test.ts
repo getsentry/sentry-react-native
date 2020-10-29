@@ -116,12 +116,94 @@ describe("Tests Native Wrapper", () => {
         },
         payload: {
           ...event,
-          type: 'event',
+          type: "event",
           message: {
             message: event.message,
           },
         },
       });
+    });
+    test("serializes class instances on iOS", async () => {
+      const RN = require("react-native");
+
+      class TestInstance {
+        value: number = 0;
+        method = () => null;
+      }
+
+      const event = {
+        event_id: "event0",
+        message: "test",
+        sdk: {
+          name: "test-sdk-name",
+          version: "2.1.3",
+        },
+        instance: new TestInstance(),
+      };
+
+      await NATIVE.sendEvent(event as any);
+
+      expect(RN.NativeModules.RNSentry.captureEnvelope).toBeCalledWith({
+        header: {
+          event_id: event.event_id,
+          sdk: event.sdk,
+        },
+        payload: {
+          ...event,
+          type: "event",
+          message: {
+            message: event.message,
+          },
+          instance: {
+            value: 0,
+          },
+        },
+      });
+    });
+    test("serializes class instances on Android", async () => {
+      const RN = require("react-native");
+      NATIVE.platform = "android";
+
+      class TestInstance {
+        value: number = 0;
+        method = () => null;
+      }
+
+      const event = {
+        event_id: "event0",
+        message: "test",
+        sdk: {
+          name: "test-sdk-name",
+          version: "2.1.3",
+        },
+        instance: new TestInstance(),
+      };
+
+      await NATIVE.sendEvent(event as any);
+
+      const headerString = JSON.stringify({
+        event_id: event.event_id,
+        sdk: event.sdk,
+      });
+      const itemString = JSON.stringify({
+        content_type: "application/json",
+        length: 1,
+        type: "event",
+      });
+      const payloadString = JSON.stringify({
+        ...event,
+        type: "event",
+        message: {
+          message: event.message,
+        },
+        instance: {
+          value: 0,
+        },
+      });
+
+      expect(RN.NativeModules.RNSentry.captureEnvelope).toBeCalledWith(
+        `${headerString}\n${itemString}\n${payloadString}`
+      );
     });
     test("calls getStringByteLength and captureEnvelope on android", async () => {
       NATIVE.platform = "android";
