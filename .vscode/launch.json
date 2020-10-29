@@ -1,0 +1,11 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+      {
+          "name": "Attach to packager",
+          "cwd": "${workspaceFolder}",
+          "type": "reactnative",
+          "request": "attach"
+      },
+  ]
+}
