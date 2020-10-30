@@ -64,11 +64,14 @@ export const NATIVE = {
       return RNSentry.captureEnvelope(envelopeString);
     }
 
+    // Serialize and remove any instances that will crash the native bridge such as Spans
+    const serializedPayload = JSON.parse(JSON.stringify(payload));
+
     // The envelope item is created (and its length determined) on the iOS side of the native bridge.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return RNSentry.captureEnvelope({
       header,
-      payload,
+      payload: serializedPayload,
     });
   },
 
