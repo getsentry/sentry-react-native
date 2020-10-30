@@ -1,9 +1,13 @@
-minVersion: "0.6.0"
+minVersion: "0.13.2"
 github:
   owner: getsentry
   repo: sentry-react-native
 changelogPolicy: simple
 preReleaseCommand: bash scripts/craft-pre-release.sh
+statusProvider:
+  name: github
+artifactProvider:
+  name: github
 targets:
   - name: npm
   - name: github
