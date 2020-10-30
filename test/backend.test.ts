@@ -82,6 +82,7 @@ describe("Tests ReactNativeBackend", () => {
       });
 
       await expect(backend.eventFromMessage("test")).resolves.toBeDefined();
+      // eslint-disable-next-line deprecation/deprecation
       await expect(RN.YellowBox.ignoreWarnings).toBeCalled();
     });
   });

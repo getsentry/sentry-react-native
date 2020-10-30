@@ -24,6 +24,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       LogBox.ignoreLogs(["Require cycle:"]);
     } else {
+      // eslint-disable-next-line deprecation/deprecation
       YellowBox.ignoreWarnings(["Require cycle:"]);
     }
 
