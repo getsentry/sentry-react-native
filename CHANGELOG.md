@@ -10,6 +10,7 @@
 - feat: Support envelopes with type other than `event`. #1131
 - feat(android): Add enableNdkScopeSync property to ReactNativeOptions. #1131
 - feat(android): Pass attachStacktrace option property down to android SDK. #1131
+- build(js): Bump @sentry/javascript dependencies to 5.27.1. #1156
 
 ## 1.9.0
 
