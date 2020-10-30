@@ -59,6 +59,8 @@ jobs:
         run: yarn install
       - name: Build
         run: yarn build
+      - name: Pack
+        run: yarn pack
       - name: Archive Artifacts
         uses: actions/upload-artifact@v2
         with:
