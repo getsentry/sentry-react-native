@@ -13,6 +13,8 @@ import PerformanceTestScreen from './screens/PerformanceTestScreen';
 
 import {store} from './reduxApp';
 
+import {version as packageVersion} from '../../package.json';
+
 Sentry.init({
   dsn:
     // Replace the example DSN below with your own DSN:
@@ -31,6 +33,9 @@ Sentry.init({
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
   sessionTrackingIntervalMillis: 5000,
   tracesSampleRate: 1.0,
+
+  release: packageVersion,
+  dist: `${packageVersion}.0`,
 });
 
 const Stack = createStackNavigator();

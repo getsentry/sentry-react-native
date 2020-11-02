@@ -20,8 +20,6 @@ import {StackNavigationProp} from '@react-navigation/stack';
 
 import * as Sentry from '@sentry/react-native';
 
-import {version as packageVersion} from '../../package.json';
-
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
 }
@@ -53,9 +51,6 @@ const HomeScreen = (props: Props) => {
       'MULTI-TAG-1': dateString,
       'MULTI-TAG-2': dateString,
     });
-
-    Sentry.setRelease(packageVersion);
-    Sentry.setDist(`${packageVersion}.0`);
 
     Sentry.setExtra('SINGLE-EXTRA', dateString);
     Sentry.setExtra('SINGLE-EXTRA-NUMBER', 100);
