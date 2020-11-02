@@ -46,6 +46,7 @@ const HomeScreen = (props: Props) => {
     });
 
     Sentry.setTag('SINGLE-TAG', dateString);
+    // @ts-ignore
     Sentry.setTag('SINGLE-TAG-NUMBER', 100);
     Sentry.setTags({
       'MULTI-TAG-0': dateString,
@@ -81,23 +82,23 @@ const HomeScreen = (props: Props) => {
     });
 
     Sentry.addBreadcrumb({
-      level: 'info',
+      level: Sentry.Severity.Info,
       message: `TEST-BREADCRUMB-INFO: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: 'debug',
+      level: Sentry.Severity.Debug,
       message: `TEST-BREADCRUMB-DEBUG: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: 'error',
+      level: Sentry.Severity.Error,
       message: `TEST-BREADCRUMB-ERROR: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: 'fatal',
+      level: Sentry.Severity.Fatal,
       message: `TEST-BREADCRUMB-FATAL: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: 'info',
+      level: Sentry.Severity.Info,
       message: `TEST-BREADCRUMB-DATA: ${dateString}`,
       data: {
         stringTest: 'Hello',

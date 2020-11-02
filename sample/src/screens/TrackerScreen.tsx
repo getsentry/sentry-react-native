@@ -15,7 +15,7 @@ const TrackerScreen = () => {
   React.useEffect(() => {
     // Initialize the transaction for the screen.
     transaction.current = Sentry.startTransaction({
-      description: 'Tracker Screen',
+      name: 'Tracker Screen',
     });
 
     return () => {
@@ -30,7 +30,6 @@ const TrackerScreen = () => {
     // Create a child span for the API call.
     const span = transaction.current?.startChild({
       op: 'http',
-      name: 'fetch',
       description: 'Fetch Covid19 data from API',
     });
 
