@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- build(ios): Bump `sentry-cocoa` to 6.0.8
+
 ## 2.0.0
 
 - build(android): Changes android package name from `io.sentry.RNSentryPackage` to `io.sentry.react.RNSentryPackage` (Breaking). #1131
