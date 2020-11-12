@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-- build(ios): Bump `sentry-cocoa` to 6.0.8
-- fix(ios): Remove private imports and call `storeEnvelope` on the client.
-- fix(ios): Lock specific version in podspec.
+- build(ios): Bump `sentry-cocoa` to 6.0.8. #1188
+- fix(ios): Remove private imports and call `storeEnvelope` on the client. #1188
+- fix(ios): Lock specific version in podspec. #1188
 
 ## 2.0.0
 
