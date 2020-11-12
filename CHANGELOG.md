@@ -3,6 +3,7 @@
 ## Unreleased
 
 - build(ios): Bump `sentry-cocoa` to 6.0.8
+- fix(ios): Remove private imports and call `storeEnvelope` on the client.
 
 ## 2.0.0
 

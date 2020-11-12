@@ -7,8 +7,6 @@
 #endif
 
 #import <Sentry/Sentry.h>
-#import <Sentry/SentrySdkInfo.h>
-#import <Sentry/SentryFileManager.h>
 
 @interface RNSentry()
 
@@ -148,7 +146,7 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
                 // Storing to disk happens asynchronously with captureEnvelope
                 // We need to make sure the event is written to disk before resolving the promise.
                 // This could be replaced by SentrySDK.flush() when available.
-                [[[[SentrySDK currentHub] getClient] fileManager] storeEnvelope:envelope];
+                [[[SentrySDK currentHub] getClient] storeEnvelope:envelope];
             } else {
                 [[[SentrySDK currentHub] getClient] captureEnvelope: envelope];
             }
