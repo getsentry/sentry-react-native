@@ -148,7 +148,7 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
                 // This could be replaced by SentrySDK.flush() when available.
                 [[[SentrySDK currentHub] getClient] storeEnvelope:envelope];
             } else {
-                [[[SentrySDK currentHub] getClient] captureEnvelope: envelope];
+                [[[SentrySDK currentHub] getClient] captureEnvelope:envelope];
             }
         #endif
         resolve(@YES);
