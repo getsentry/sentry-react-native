@@ -296,12 +296,12 @@ PODS:
     - React-Core (= 0.63.1)
     - React-cxxreact (= 0.63.1)
     - React-jsi (= 0.63.1)
-  - RNSentry (1.9.0):
+  - RNSentry (2.0.0):
     - React-Core
-    - Sentry (~> 6.0.3)
-  - Sentry (6.0.3):
-    - Sentry/Core (= 6.0.3)
-  - Sentry/Core (6.0.3)
+    - Sentry (= 6.0.8)
+  - Sentry (6.0.8):
+    - Sentry/Core (= 6.0.8)
+  - Sentry/Core (6.0.8)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -465,11 +465,11 @@ SPEC CHECKSUMS:
   React-RCTText: 4f95d322b7e6da72817284abf8a2cdcec18b9cd8
   React-RCTVibration: f3a9123c244f35c40d3c9f3ec3f0b9e5717bb292
   ReactCommon: 2905859f84a94a381bb0d8dd3921ccb1a0047cb8
-  RNSentry: 967713f6aac06484165449067160494529cb90d3
-  Sentry: 286e33636e0be9b559e2ebe2eae63ec53f83816e
+  RNSentry: 1c93d9d6b68748a6857d49e26c3e88fbe983caba
+  Sentry: 6ab9f44a413dec7ebf5e82b166048afb5f60b895
   Yoga: d5bd05a2b6b94c52323745c2c2b64557c8c66f64
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
 PODFILE CHECKSUM: 9d75e167307300a63add2b53a03e1d19bb02cd35
 
-COCOAPODS: 1.9.3
+COCOAPODS: 1.9.2
