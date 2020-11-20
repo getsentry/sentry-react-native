@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- build(ios): Bump `sentry-cocoa` to 6.0.9 #1200
+
 ## 2.0.1
 
 - build(ios): Bump `sentry-cocoa` to 6.0.8. #1188
@@ -428,7 +430,7 @@ export SENTRY_PROPERTIES=sentry.properties
 
 ## v0.31.0
 
-- Use https://github.com/getsentry/sentry-wizard for setup process
+- Use <https://github.com/getsentry/sentry-wizard> for setup process
 
 ## v0.30.3
 
@@ -498,7 +500,7 @@ We are looking into ways making this more stable and plan to re-enable it again 
 
 ## v0.24.2
 
-- Fixed https://github.com/getsentry/react-native-sentry/issues/241
+- Fixed <https://github.com/getsentry/react-native-sentry/issues/241>
 
 ## v0.24.1
 
@@ -753,7 +755,7 @@ Update Podspec to use `Sentry/KSCrash`
 
 ## v0.11.5
 
-- Fix https://github.com/getsentry/react-native-sentry/issues/77
+- Fix <https://github.com/getsentry/react-native-sentry/issues/77>
 
 ## v0.11.4
 
@@ -775,13 +777,13 @@ Update Podspec to use `Sentry/KSCrash`
 
 This is a big release because we switched our internal iOS client from swift to objc which drastically improve the setup experience and compatibility.
 
-We also added support for codepush, please check the docs https://docs.sentry.io/clients/react-native/codepush/ for more information.
+We also added support for codepush, please check the docs <https://docs.sentry.io/clients/react-native/codepush/> for more information.
 
 After updating run `react-native unlink react-native-sentry` and `react-native link react-native-sentry` again in order to setup everything correctly.
 
 ## v0.10.0
 
-- Greatly improved the linking process. Check out our docs for more information https://docs.sentry.io/clients/react-native/
+- Greatly improved the linking process. Check out our docs for more information <https://docs.sentry.io/clients/react-native/>
 
 ## v0.9.1
 
@@ -852,7 +854,7 @@ Alot of API changes to more like `raven-js`
 
 ## v0.5.0
 
-- Added support for installation with cocoapods see https://docs.sentry.io/clients/react-native/#setup-with-cocoapods
+- Added support for installation with cocoapods see <https://docs.sentry.io/clients/react-native/#setup-with-cocoapods>
 - Lowered minimum version requirement for `react-native` to `0.38.0`
 
 ## v0.4.0
