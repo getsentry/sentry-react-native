@@ -54,7 +54,7 @@
     "@sentry-internal/eslint-plugin-sdk": "5.27.4",
     "@sentry/typescript": "^5.20.0",
     "@types/jest": "^26.0.15",
-    "@types/react": "^16.9.49",
+    "@types/react": "^17.0.0",
     "@types/react-native": "^0.63.18",
     "babel-jest": "^26.1.0",
     "eslint": "^7.6.0",
