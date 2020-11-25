@@ -20,7 +20,7 @@ beforeAll(async () => {
 
           deviceName: 'Android Emulator',
 
-          app: './android/app/build/outputs/apk/release/app-release.apk',
+          app: './android/app/build/outputs/apk/debug/app-debug.apk',
           newCommandTimeout: 600000,
         }
       : {
