@@ -14,8 +14,8 @@
     "@react-navigation/native": "^5.7.3",
     "@react-navigation/stack": "^5.9.0",
     "@sentry/tracing": "^5.27.1",
-    "appium": "^1.17.1",
-    "appium-doctor": "^1.15.3",
+    "appium": "^1.19.0",
+    "appium-doctor": "^1.15.4",
     "react": "16.13.1",
     "react-native": "0.63.3",
     "react-native-gesture-handler": "^1.7.0",
@@ -24,7 +24,7 @@
     "react-native-screens": "^2.10.1",
     "react-redux": "^7.2.1",
     "redux": "^4.0.5",
-    "wd": "^1.12.1"
+    "wd": "^1.13.0"
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",

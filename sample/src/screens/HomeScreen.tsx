@@ -19,6 +19,7 @@ import {
 import {StackNavigationProp} from '@react-navigation/stack';
 
 import * as Sentry from '@sentry/react-native';
+import {getTestProps} from '../../utils/getTestProps';
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -207,6 +208,14 @@ const HomeScreen = (props: Props) => {
                 props.navigation.navigate('PerformanceTest');
               }}>
               <Text style={styles.buttonText}>Performance Test</Text>
+            </TouchableOpacity>
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              {...getTestProps('openEndToEndTests')}
+              onPress={() => {
+                props.navigation.navigate('EndToEndTests');
+              }}>
+              <Text style={styles.buttonText}>End to End Tests</Text>
             </TouchableOpacity>
           </View>
         </View>

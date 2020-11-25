@@ -10,15 +10,15 @@ import * as Sentry from '@sentry/react-native';
 import HomeScreen from './screens/HomeScreen';
 import TrackerScreen from './screens/TrackerScreen';
 import PerformanceTestScreen from './screens/PerformanceTestScreen';
+import EndToEndTestsScreen from './screens/EndToEndTestsScreen';
 
 import {store} from './reduxApp';
-
 import {version as packageVersion} from '../../package.json';
+import {SENTRY_INTERNAL_DSN} from './dsn';
 
 Sentry.init({
-  dsn:
-    // Replace the example DSN below with your own DSN:
-    'https://d870ad989e7046a8b9715a57f59b23b5@o447951.ingest.sentry.io/5428561',
+  // Replace the example DSN below with your own DSN:
+  dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   beforeSend: (e) => {
     if (!e.tags) {
@@ -51,6 +51,7 @@ const App = () => {
             name="PerformanceTest"
             component={PerformanceTestScreen}
           />
+          <Stack.Screen name="EndToEndTests" component={EndToEndTestsScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
