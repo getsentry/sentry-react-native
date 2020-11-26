@@ -23,7 +23,7 @@ const EndToEndTestsScreen = () => {
   return (
     <ScrollView>
       <Text {...getTestProps('eventId')}>{eventId}</Text>
-      <Text {...getTestProps('clearEventId')} onPress={() => setEventId(null)}>
+      <Text {...getTestProps('clearEventId')} onPress={() => setEventId('')}>
         Clear Event Id
       </Text>
       <Text

@@ -137,6 +137,13 @@ const HomeScreen = (props: Props) => {
             This is a simple sample app for you to try out the Sentry React
             Native SDK.
           </Text>
+          <TouchableOpacity
+            {...getTestProps('openEndToEndTests')}
+            onPress={() => {
+              props.navigation.navigate('EndToEndTests');
+            }}>
+            <Text style={styles.hiddenE2e}>End to End Tests</Text>
+          </TouchableOpacity>
           {currentDSN === ourDSN && (
             <View style={styles.warningBlock}>
               <Text style={styles.warningText}>
@@ -209,14 +216,6 @@ const HomeScreen = (props: Props) => {
               }}>
               <Text style={styles.buttonText}>Performance Test</Text>
             </TouchableOpacity>
-            <View style={styles.spacer} />
-            <TouchableOpacity
-              {...getTestProps('openEndToEndTests')}
-              onPress={() => {
-                props.navigation.navigate('EndToEndTests');
-              }}>
-              <Text style={styles.buttonText}>End to End Tests</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -282,6 +281,11 @@ const styles = StyleSheet.create({
     height: 1,
     width: '100%',
     backgroundColor: '#c6becf',
+  },
+  hiddenE2e: {
+    width: 1,
+    height: 1,
+    opacity: 0,
   },
 });
 
