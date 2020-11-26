@@ -24,8 +24,7 @@ beforeAll(async () => {
           newCommandTimeout: 600000,
         }
       : {
-          app:
-            '/Users/runner/Library/Developer/Xcode/DerivedData/sample-dnujahkswllvjvfnwwwzqheuvdsm/Build/Products/Release-iphonesimulator/sample.app',
+          app: 'io.sentry.sample',
           deviceName: 'iPhone 11',
           platformName: 'iOS',
           newCommandTimeout: 600000,
