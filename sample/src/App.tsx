@@ -32,6 +32,7 @@ Sentry.init({
   enableAutoSessionTracking: true,
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
   sessionTrackingIntervalMillis: 5000,
+  // This will capture ALL TRACES and likely use up all your quota
   tracesSampleRate: 1.0,
 
   release: packageVersion,
