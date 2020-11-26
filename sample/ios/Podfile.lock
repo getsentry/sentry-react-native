@@ -306,7 +306,7 @@ PODS:
     - React
   - RNScreens (2.10.1):
     - React
-  - RNSentry (2.0.0):
+  - RNSentry (2.0.2):
     - React-Core
     - Sentry (= 6.0.9)
   - Sentry (6.0.9):
@@ -495,11 +495,11 @@ SPEC CHECKSUMS:
   RNGestureHandler: b6b359bb800ae399a9c8b27032bdbf7c18f08a08
   RNReanimated: 89f5e0a04d1dd52fbf27e7e7030d8f80a646a3fc
   RNScreens: b748efec66e095134c7166ca333b628cd7e6f3e2
-  RNSentry: cb4ef23400fb6690f6ac8f6acef0c023a8a4f37d
-  Sentry: 286e33636e0be9b559e2ebe2eae63ec53f83816e
+  RNSentry: 5ebc2926dbcbb9b77857ba6df0754a869037123d
+  Sentry: 388c9dc093b2fd3a264466a5c5b21e25959610a9
   Yoga: 7d13633d129fd179e01b8953d38d47be90db185a
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
 PODFILE CHECKSUM: 9d75e167307300a63add2b53a03e1d19bb02cd35
 
-COCOAPODS: 1.10.0
+COCOAPODS: 1.9.3
