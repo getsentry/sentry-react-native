@@ -29,7 +29,8 @@ Sentry.init({
   sessionTrackingIntervalMillis: 5000,
   // This will capture ALL TRACES and likely use up all your quota
   tracesSampleRate: 1.0,
-
+  // Sets the `release` and `dist` on Sentry events. Make sure this matches EXACTLY with the values on your sourcemaps
+  // otherwise they will not work.
   release: packageVersion,
   dist: `${packageVersion}.0`,
 });
