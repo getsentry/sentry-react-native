@@ -21,11 +21,6 @@ Sentry.init({
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   beforeSend: (e) => {
-    if (!e.tags) {
-      e.tags = {};
-    }
-    e.tags.beforeSend = 'JS layer';
-
     console.log('Event beforeSend:', e);
     return e;
   },
