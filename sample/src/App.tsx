@@ -1,5 +1,4 @@
 import * as React from 'react';
-import {View, Text} from 'react-native';
 import {Provider} from 'react-redux';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
