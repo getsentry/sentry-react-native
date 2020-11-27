@@ -10,6 +10,7 @@ const EndToEndTestsScreen = () => {
   const [eventId, setEventId] = React.useState(null);
 
   // !!! WARNING: Do not put Sentry.init inside React.useEffect like we do here. This is only for testing purposes.
+  // We only do this to render the eventId onto the UI for end to end tests.
   React.useEffect(() => {
     Sentry.init({
       dsn: SENTRY_INTERNAL_DSN,
