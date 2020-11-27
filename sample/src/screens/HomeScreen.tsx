@@ -19,7 +19,9 @@ import {
 import {StackNavigationProp} from '@react-navigation/stack';
 
 import * as Sentry from '@sentry/react-native';
+
 import {getTestProps} from '../../utils/getTestProps';
+import {SENTRY_INTERNAL_DSN} from '../dsn';
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -27,8 +29,6 @@ interface Props {
 
 const HomeScreen = (props: Props) => {
   const currentDSN = Sentry.getCurrentHub().getClient().getOptions().dsn;
-  const ourDSN =
-    'https://d870ad989e7046a8b9715a57f59b23b5@o447951.ingest.sentry.io/5428561';
 
   // Show bad code inside error boundary to trigger it.
   const [showBadCode, setShowBadCode] = React.useState(false);
@@ -144,7 +144,7 @@ const HomeScreen = (props: Props) => {
             }}>
             <Text style={styles.hiddenE2e}>End to End Tests</Text>
           </TouchableOpacity>
-          {currentDSN === ourDSN && (
+          {currentDSN === SENTRY_INTERNAL_DSN && (
             <View style={styles.warningBlock}>
               <Text style={styles.warningText}>
                 😃 Hey! You need to replace the DSN inside Sentry.init with your
