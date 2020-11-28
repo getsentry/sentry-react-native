@@ -50,6 +50,13 @@ async function checkChangelog() {
   }
 }
 
+async function checkIfFeature() {
+   const title = danger.github.pr.title;
+   if(title.startsWith('feat:')){
+     message('Do not forget to update <a href="https://github.com/getsentry/sentry-docs">Sentry-docs</a> with your feature once the pull request gets approved.');
+   }
+  
+}
 
 async function checkAll() {
   // See: https://spectrum.chat/danger/javascript/support-for-github-draft-prs~82948576-ce84-40e7-a043-7675e5bf5690
@@ -59,6 +66,7 @@ async function checkAll() {
     return;
   }
 
+  await checkIfFeature();
   await checkChangelog();
 }
 
