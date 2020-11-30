@@ -43,7 +43,7 @@
     "@sentry/browser": "5.27.4",
     "@sentry/core": "5.27.4",
     "@sentry/hub": "5.27.4",
-    "@sentry/integrations": "5.27.4",
+    "@sentry/integrations": "5.27.6",
     "@sentry/react": "5.27.4",
     "@sentry/types": "5.27.4",
     "@sentry/utils": "5.27.4",
