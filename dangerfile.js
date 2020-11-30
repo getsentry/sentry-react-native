@@ -13,9 +13,9 @@ function getChangelogDetails() {
 <summary><b>Instructions and example for changelog</b></summary>
 
 Please add an entry to \`CHANGELOG.md\` to the "Unreleased" section under the following heading:
- 1. **Feat**: For new user-visible functionality.
- 2. **Fix**: For user-visible bug fixes.
- 3. **Ref**: For features, refactory and bug fixes in internal operation.
+ 1. **feat**: For new user-visible functionality.
+ 2. **fix**: For user-visible bug fixes.
+ 3. **fef**: For features, refactors and bug fixes in internal operations.
 
 To the changelog entry, please add a link to this PR (consider a more descriptive message):
 
