@@ -3,3 +3,6 @@ dist
 
 # Ignore sample folder
 sample
+
+# Ignore dangerfile
+dangerfile.js
