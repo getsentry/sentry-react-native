@@ -3,6 +3,7 @@
 ## Unreleased
 
 - feat: A better sample app to showcase the SDK and especially tracing #1168
+- build(js): Bump @sentry/javascript dependencies to 5.28.0.
 
 ## 2.0.2
 
