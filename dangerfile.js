@@ -1,6 +1,5 @@
 const PR_NUMBER = danger.github.pr.number;
 const PR_URL = danger.github.pr.html_url;
-const PR_LINK = `[#${PR_NUMBER}](${PR_URL})`;
 
 function getCleanTitle() {
   const title = danger.github.pr.title;
@@ -20,7 +19,7 @@ Please add an entry to \`CHANGELOG.md\` to the "Unreleased" section under the fo
 To the changelog entry, please add a link to this PR (consider a more descriptive message):
 
 \`\`\`md
-- ${getCleanTitle()}. (${PR_LINK})
+- ${getCleanTitle()}. (${PR_NUMBER})
 \`\`\`
 
 If none of the above apply, you can opt out by adding _#skip-changelog_ to the PR description.
@@ -31,7 +30,7 @@ If none of the above apply, you can opt out by adding _#skip-changelog_ to the P
 
 async function containsChangelog(path) {
   const contents = await danger.github.utils.fileContents(path);
-  return contents.includes(PR_LINK);
+  return contents.includes(PR_NUMBER);
 }
 
 async function checkChangelog() {
@@ -51,10 +50,10 @@ async function checkChangelog() {
 }
 
 async function checkIfFeature() {
-   const title = danger.github.pr.title;
-   if(title.startsWith('feat:')){
-     message('Do not forget to update <a href="https://github.com/getsentry/sentry-docs">Sentry-docs</a> with your feature once the pull request gets approved.');
-   }
+  const title = danger.github.pr.title;
+  if(title.startsWith('feat:')){
+    message('Do not forget to update <a href="https://github.com/getsentry/sentry-docs">Sentry-docs</a> with your feature once the pull request gets approved.');
+  }
   
 }
 
