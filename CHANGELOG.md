@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- feat: A better sample app to showcase the SDK and especially tracing #1168
+
 ## 2.0.2
 
 - build(ios): Bump `sentry-cocoa` to 6.0.9 #1200
