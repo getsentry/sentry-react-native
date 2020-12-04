@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+# Unreleased
 
+## 2.1.0
+
+- feat: Include @sentry/tracing and expose startTransaction #1167
 - feat: A better sample app to showcase the SDK and especially tracing #1168
 - build(js): Bump @sentry/javascript dependencies to 5.28.0. #1228
 - build(android): Bump `sentry-android` to 3.2.0 #1208
