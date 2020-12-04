@@ -1,4 +1,5 @@
-import React, {useEffect} from 'react';
+// This screen is used solely for E2E tests and are not visible through the UI (no button to load it).
+import React, { useEffect } from 'react';
 import {ScrollView, Text, Platform} from 'react-native';
 
 import * as Sentry from '@sentry/react-native';

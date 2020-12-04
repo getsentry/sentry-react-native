@@ -8,7 +8,7 @@ import * as Sentry from '@sentry/react-native';
 
 import HomeScreen from './screens/HomeScreen';
 import TrackerScreen from './screens/TrackerScreen';
-import PerformanceTestScreen from './screens/PerformanceTestScreen';
+import PerformanceTimingScreen from './screens/PerformanceTimingScreen';
 import EndToEndTestsScreen from './screens/EndToEndTestsScreen';
 
 import {store} from './reduxApp';
@@ -44,8 +44,8 @@ const App = () => {
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Tracker" component={TrackerScreen} />
           <Stack.Screen
-            name="PerformanceTest"
-            component={PerformanceTestScreen}
+            name="PerformanceTiming"
+            component={PerformanceTimingScreen}
           />
           <Stack.Screen name="EndToEndTests" component={EndToEndTestsScreen} />
         </Stack.Navigator>

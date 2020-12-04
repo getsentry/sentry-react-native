@@ -3,6 +3,13 @@ import {Button, View, StyleSheet, Text, ActivityIndicator} from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
 
+/**
+ * An example of how to add a Sentry Transaction to a React component manually.
+ * So you can control all spans that belong to that one transaction.
+ *
+ * This screen calls an API to get the latest COVID-19 Data to display. We attach a span
+ * to the fetch call and track the time it takes for Promise to resolve.
+ */
 const TrackerScreen = () => {
   const [cases, setCases] = React.useState<{
     TotalConfirmed: number;
@@ -19,6 +26,7 @@ const TrackerScreen = () => {
     });
 
     return () => {
+      // Finishing the transaction triggers sending the data to Sentry.
       transaction.current?.finish();
       transaction.current = null;
     };

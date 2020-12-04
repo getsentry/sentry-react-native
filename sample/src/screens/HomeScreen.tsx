@@ -212,9 +212,9 @@ const HomeScreen = (props: Props) => {
             <View style={styles.spacer} />
             <TouchableOpacity
               onPress={() => {
-                props.navigation.navigate('PerformanceTest');
+                props.navigation.navigate('PerformanceTiming');
               }}>
-              <Text style={styles.buttonText}>Performance Test</Text>
+              <Text style={styles.buttonText}>Performance Timing</Text>
             </TouchableOpacity>
           </View>
         </View>
