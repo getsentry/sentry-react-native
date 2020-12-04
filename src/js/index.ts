@@ -35,6 +35,8 @@ export {
   withScope,
 } from "@sentry/core";
 
+// We need to import it so we patch the hub with global functions
+// aka. this has side effects
 import "@sentry/tracing";
 
 export {
