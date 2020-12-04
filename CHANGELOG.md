@@ -3,6 +3,7 @@
 ## Unreleased
 
 - feat: A better sample app to showcase the SDK and especially tracing #1168
+- build(android): Bump `sentry-android` to 3.2.0 #1208
 
 ## 2.0.2
 
