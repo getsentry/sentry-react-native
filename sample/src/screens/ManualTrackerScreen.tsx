@@ -13,15 +13,39 @@ import {ParamList} from '../types';
  * This screen calls an API to get the latest COVID-19 Data to display. We attach a span
  * to the fetch call and track the time it takes for Promise to resolve.
  */
-const ManualTrackerScreen = () => {
+const TrackerScreen = () => {
   const [cases, setCases] = React.useState<{
     TotalConfirmed: number;
     TotalDeaths: number;
     TotalRecovered: number;
   } | null>(null);
 
+  const transaction = React.useRef(null);
+
+  React.useEffect(() => {
+    // Initialize the transaction for the screen.
+    transaction.current = Sentry.startTransaction({
+      name: 'Tracker Screen',
+    });
+
+    return () => {
+      // Finishing the transaction triggers sending the data to Sentry.
+      transaction.current?.finish();
+      transaction.current = null;
+      Sentry.configureScope((scope) => {
+        scope.setSpan(undefined);
+      });
+    };
+  }, []);
+
   const loadData = () => {
     setCases(null);
+
+    // Create a child span for the API call.
+    const span = transaction.current?.startChild({
+      op: 'http',
+      description: 'Fetch Covid19 data from API',
+    });
 
     fetch('https://api.covid19api.com/world/total', {
       method: 'GET',
@@ -33,6 +57,9 @@ const ManualTrackerScreen = () => {
       .then((response) => response.json())
       .then((json) => {
         setCases(json);
+
+        span?.setData('json', json);
+        span?.finish();
       });
   };
 
@@ -73,7 +100,7 @@ const ManualTrackerScreen = () => {
   );
 };
 
-export default Sentry.withProfiler(ManualTrackerScreen);
+export default Sentry.withProfiler(TrackerScreen);
 
 const Statistic = (props: {
   title: string;

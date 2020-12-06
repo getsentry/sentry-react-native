@@ -207,7 +207,14 @@ const HomeScreen = (props: Props) => {
               onPress={() => {
                 props.navigation.navigate('Tracker');
               }}>
-              <Text style={styles.buttonText}>Tracing Example</Text>
+              <Text style={styles.buttonText}>Auto Tracing Example</Text>
+            </TouchableOpacity>
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={() => {
+                props.navigation.navigate('ManualTracker');
+              }}>
+              <Text style={styles.buttonText}>Manual Tracing Example</Text>
             </TouchableOpacity>
             <View style={styles.spacer} />
             <TouchableOpacity
