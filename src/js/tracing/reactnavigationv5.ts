@@ -38,7 +38,7 @@ const DEFAULT_OPTIONS: ReactNavigationInstrumentationOptions = {
 /**
  * Instrumentation for React-Navigation V5. See docs or sample app for usage.
  */
-export class ReactNavigationInstrumentation extends RoutingInstrumentation {
+export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   static instrumentationName: string = "react-navigation-v5";
 
   private _options: ReactNavigationInstrumentationOptions;
@@ -85,7 +85,7 @@ export class ReactNavigationInstrumentation extends RoutingInstrumentation {
       op: "navigation",
       tags: {
         "routing.instrumentation":
-          ReactNavigationInstrumentation.instrumentationName,
+          ReactNavigationV5Instrumentation.instrumentationName,
         "routing.route.key": payload.key,
       },
       data: payload.params,

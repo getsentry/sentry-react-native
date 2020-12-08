@@ -1,3 +1,3 @@
 export { ReactNativeTracing } from "./reactnativetracing";
-export { ReactNavigationInstrumentation } from "./reactnavigation";
+export { ReactNavigationV5Instrumentation } from "./reactnavigationv5";
 export { RoutingInstrumentation } from "./router";
