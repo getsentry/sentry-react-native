@@ -1,9 +1,7 @@
 import {
   defaultRequestInstrumentationOptions,
-  IdleTransaction,
   registerRequestInstrumentation,
   RequestInstrumentationOptions,
-  SpanStatus,
   startIdleTransaction,
 } from "@sentry/tracing";
 import {
@@ -16,39 +14,7 @@ import {
 import { logger } from "@sentry/utils";
 
 import { RoutingInstrumentation } from "../tracing/router";
-
-/**
- * Converts from milliseconds to seconds
- * @param time time in ms
- */
-export function msToSec(time: number): number {
-  return time / 1000;
-}
-
-/**
- * Converts from seconds to milliseconds
- * @param time time in seconds
- */
-export function secToMs(time: number): number {
-  return time * 1000;
-}
-
-/**
- *
- */
-function adjustTransactionDuration(
-  maxDuration: number,
-  transaction: IdleTransaction,
-  endTimestamp: number
-): void {
-  const diff = endTimestamp - transaction.startTimestamp;
-  const isOutdatedTransaction =
-    endTimestamp && (diff > maxDuration || diff < 0);
-  if (isOutdatedTransaction) {
-    transaction.setStatus(SpanStatus.DeadlineExceeded);
-    transaction.setTag("maxTransactionDurationExceeded", "true");
-  }
-}
+import { adjustTransactionDuration, secToMs } from "./utils";
 
 export interface ReactNativeTracingOptions
   extends RequestInstrumentationOptions {
@@ -70,6 +36,10 @@ export interface ReactNativeTracingOptions
    */
   maxTransactionDuration: number;
 
+  /**
+   * The routing instrumentation to be used with the tracing integration.
+   * There is no routing instrumentation if nothing is passed.
+   */
   routingInstrumentation?: RoutingInstrumentation;
 }
 
@@ -80,7 +50,7 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
 };
 
 /**
- *
+ * Tracing integration for React Native.
  */
 export class ReactNativeTracing implements Integration {
   /**
@@ -94,7 +64,7 @@ export class ReactNativeTracing implements Integration {
 
   /** ReactNativeTracing options */
   public options: ReactNativeTracingOptions;
-  // @ts-ignore TODO
+
   private _getCurrentHub?: () => Hub;
 
   constructor(options: Partial<ReactNativeTracingOptions> = {}) {
@@ -105,7 +75,7 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
-   *
+   *  Registers routing and request instrumentation.
    */
   public setupOnce(
     // @ts-ignore TODO
@@ -127,6 +97,12 @@ export class ReactNativeTracing implements Integration {
     routingInstrumentation?.registerListener(
       this._onRouteWillChange.bind(this)
     );
+
+    if (!routingInstrumentation) {
+      logger.log(
+        `[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.`
+      );
+    }
 
     registerRequestInstrumentation({
       traceFetch,
