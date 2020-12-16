@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {Provider} from 'react-redux';
-import {NavigationContainer} from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
+import { Provider } from 'react-redux';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
@@ -11,9 +11,9 @@ import TrackerScreen from './screens/TrackerScreen';
 import PerformanceTimingScreen from './screens/PerformanceTimingScreen';
 import EndToEndTestsScreen from './screens/EndToEndTestsScreen';
 
-import {store} from './reduxApp';
-import {version as packageVersion} from '../../package.json';
-import {SENTRY_INTERNAL_DSN} from './dsn';
+import { store } from './reduxApp';
+import { version as packageVersion } from '../../package.json';
+import { SENTRY_INTERNAL_DSN } from './dsn';
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
@@ -23,6 +23,7 @@ Sentry.init({
     console.log('Event beforeSend:', e);
     return e;
   },
+  maxBreadcrumbs: 150, // Extend from the default 100 breadcrumbs.
   enableAutoSessionTracking: true,
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
   sessionTrackingIntervalMillis: 5000,
