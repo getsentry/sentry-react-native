@@ -2,6 +2,8 @@
 
 # Unreleased
 
+- fix: pas maxBreadcrumbs to Android init
+
 ## 2.1.0
 
 - feat: Include @sentry/tracing and expose startTransaction #1167
