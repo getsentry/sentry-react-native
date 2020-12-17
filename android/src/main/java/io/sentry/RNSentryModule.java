@@ -83,6 +83,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
             }
+            if (rnOptions.hasKey("maxBreadcrumbs")) {
+                options.setMaxBreadcrumbs(rnOptions.getInt("maxBreadcrumbs"));
+            }
             if (rnOptions.hasKey("environment") && rnOptions.getString("environment") != null) {
                 options.setEnvironment(rnOptions.getString("environment"));
             }
