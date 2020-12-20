@@ -104,7 +104,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
     });
 
     this._stateChangeTimeout = setTimeout(
-      this._cancelLatestTransaction.bind(this),
+      this._discardLatestTransaction.bind(this),
       STATE_CHANGE_TIMEOUT_DURATION
     );
   }
@@ -140,7 +140,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   }
 
   /** Cancels the latest transaction so it does not get sent to Sentry. */
-  private _cancelLatestTransaction(): void {
+  private _discardLatestTransaction(): void {
     if (this._latestTransaction) {
       this._latestTransaction.sampled = false;
       this._latestTransaction.finish();
