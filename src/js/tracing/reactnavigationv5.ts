@@ -1,50 +1,65 @@
-import { TransactionContext } from "@sentry/types";
+import { Transaction as TransactionType } from "@sentry/types";
 
 import { RoutingInstrumentation } from "./router";
-
-interface NavigationPayload {
-  key: string;
+interface NavigationRoute {
   name: string;
-  params?: any;
-}
-
-interface DispatchProp {
-  data: {
-    action: {
-      type: string;
-      payload: NavigationPayload;
-    };
-  };
+  key: string;
+  params?: Record<any, any>;
 }
 
 interface NavigationContainer {
-  addListener: (type: string, listener: any) => void;
+  addListener: (type: string, listener: () => void) => void;
+  getCurrentRoute: () => NavigationRoute;
 }
 
 interface ReactNavigationInstrumentationOptions {
-  /**
-   * The action types that will trigger a transaction to be set on the scope.
-   * If you set this property, this will completely overwrite the default and not merge.
-   *
-   * Default: ["NAVIGATE", "PUSH", "POP", "REPLACE"]
-   */
-  navigationActionTypes: string[];
+  shouldAttachTransaction(
+    route: NavigationRoute,
+    previousRoute?: NavigationRoute
+  ): boolean;
 }
 
-const DEFAULT_OPTIONS: ReactNavigationInstrumentationOptions = {
-  navigationActionTypes: ["NAVIGATE", "PUSH", "POP", "REPLACE"],
+type NavigationContainerRef = {
+  current: NavigationContainer | null;
 };
+
+const defaultShouldAttachTransaction = (
+  route: NavigationRoute,
+  previousRoute?: NavigationRoute
+): boolean => {
+  return !previousRoute || previousRoute.key !== route.key;
+};
+
+const DEFAULT_OPTIONS: ReactNavigationInstrumentationOptions = {
+  shouldAttachTransaction: defaultShouldAttachTransaction,
+};
+
+const STATE_CHANGE_TIMEOUT_DURATION = 200;
 
 /**
  * Instrumentation for React-Navigation V5. See docs or sample app for usage.
+ *
+ * How this works:
+ * - `_onDispatch` is called every time a dispatch happens and sets an IdleTransaction on the scope without any route context.
+ * - `_onStateChange` is then called AFTER the state change happens due to a dispatch and sets the route context onto the active transaction.
+ * - If `_onStateChange` isn't called within `STATE_CHANGE_TIMEOUT_DURATION` of the dispatch, then the transaction is not sampled and finished.
  */
 export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   static instrumentationName: string = "react-navigation-v5";
 
   private _options: ReactNavigationInstrumentationOptions;
 
-  constructor(_options: Partial<ReactNavigationInstrumentationOptions>) {
+  private _navigationContainerRef: NavigationContainerRef = {
+    current: null,
+  };
+
+  private _latestRoute?: NavigationRoute;
+  private _latestTransaction?: TransactionType;
+  private _stateChangeTimeout?: number | undefined;
+
+  constructor(_options: Partial<ReactNavigationInstrumentationOptions> = {}) {
     super();
+
     this._options = {
       ...DEFAULT_OPTIONS,
       ..._options,
@@ -55,40 +70,81 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
    * Pass the ref to the navigation container to register it to the instrumentation
    * @param navigationContainerRef Ref to a `NavigationContainer`
    */
-  public registerNavigationContainer(navigationContainerRef: {
-    current?: NavigationContainer;
-  }): void {
+  public registerNavigationContainer(
+    navigationContainerRef: NavigationContainerRef
+  ): void {
+    this._navigationContainerRef = navigationContainerRef;
     navigationContainerRef.current?.addListener(
       "__unsafe_action__", // This action is emitted on every dispatch
       this._onDispatch.bind(this)
     );
+    navigationContainerRef.current?.addListener(
+      "state", // This action is emitted on every state change
+      this._onStateChange.bind(this)
+    );
+
+    // This will set a transaction for the initial screen.
+    this._onDispatch();
+    this._onStateChange();
   }
 
-  /** To be called on every React-Navigation action dispatch */
-  private _onDispatch(dispatchProp: DispatchProp): void {
-    const action = dispatchProp.data?.action;
-    if (action) {
-      const { type, payload } = action;
-      if (this._options.navigationActionTypes.includes(type) && payload) {
-        const routeContext = this._getRouteContextFromPayload(payload);
-        this.onRouteWillChange(routeContext);
-      }
-    }
-  }
-
-  /** Transforms the React-Navigation NavigationState into our RouteContext */
-  private _getRouteContextFromPayload(
-    payload: NavigationPayload
-  ): TransactionContext {
-    return {
-      name: payload.name,
+  /**
+   * To be called on every React-Navigation action dispatch.
+   * It does not name the transaction or populate it with route information. Instead, it waits for the state to fully change
+   * and gets the route information from there, @see _onStateChange
+   */
+  private _onDispatch(): void {
+    this._latestTransaction = this.onRouteWillChange({
+      name: "Route Change",
       op: "navigation",
       tags: {
         "routing.instrumentation":
           ReactNavigationV5Instrumentation.instrumentationName,
-        "routing.route.key": payload.key,
       },
-      data: payload.params,
-    };
+    });
+
+    this._stateChangeTimeout = setTimeout(
+      this._cancelLatestTransaction.bind(this),
+      STATE_CHANGE_TIMEOUT_DURATION
+    );
+  }
+
+  /**
+   * To be called AFTER the state has been changed to populate the transaction with the current route.
+   */
+  private _onStateChange(): void {
+    // Use the getCurrentRoute method to be accurate.
+    const route = this._navigationContainerRef?.current?.getCurrentRoute();
+
+    if (route) {
+      if (
+        this._latestTransaction &&
+        this._options.shouldAttachTransaction(route, this._latestRoute)
+      ) {
+        // Clear the timeout so the transaction does not get cancelled.
+        if (typeof this._stateChangeTimeout !== "undefined") {
+          clearTimeout(this._stateChangeTimeout);
+          this._stateChangeTimeout = undefined;
+        }
+
+        this._latestTransaction.setName(`Navigation Focus: ${route.name}`);
+        this._latestTransaction.setTag("routing.route.key", route.key);
+        this._latestTransaction.setData("routing.params", route.params);
+
+        // Remove the latest transaction to not overwrite.
+        this._latestTransaction = undefined;
+      }
+
+      this._latestRoute = route;
+    }
+  }
+
+  /** Cancels the latest transaction so it does not get sent to Sentry. */
+  private _cancelLatestTransaction(): void {
+    if (this._latestTransaction) {
+      this._latestTransaction.sampled = false;
+      this._latestTransaction.finish();
+      this._latestTransaction = undefined;
+    }
   }
 }

@@ -1,6 +1,9 @@
-import { TransactionContext } from "@sentry/types";
+import { Hub } from "@sentry/hub";
+import { Transaction, TransactionContext } from "@sentry/types";
 
-export type RouteListener = (context: TransactionContext) => void;
+export type TransactionCreator = (
+  context: TransactionContext
+) => Transaction | undefined;
 
 export interface RoutingInstrumentationType {
   /**
@@ -10,14 +13,14 @@ export interface RoutingInstrumentationType {
    *
    * @param listener A `RouteListener`
    */
-  registerListener(listener: RouteListener): void;
+  registerRoutingInstrumentation(listener: TransactionCreator): void;
   /**
    * To be called when the route changes, BEFORE the new route mounts.
    * If this is called after a route mounts the child spans will not be correctly attached.
    *
    * @param context A `TransactionContext` used to initialize the transaction.
    */
-  onRouteWillChange(context: TransactionContext): void;
+  onRouteWillChange(context: TransactionContext): Transaction | undefined;
 }
 
 /**
@@ -25,15 +28,19 @@ export interface RoutingInstrumentationType {
  * Pass this to the tracing integration, and call `onRouteWillChange` every time before a route changes.
  */
 export class RoutingInstrumentation implements RoutingInstrumentationType {
-  private _listeners: RouteListener[] = [];
+  protected _getCurrentHub?: () => Hub;
+
+  private _tracingListener?: TransactionCreator;
 
   /** @inheritdoc */
-  public registerListener(listener: RouteListener): void {
-    this._listeners.push(listener);
+  registerRoutingInstrumentation(listener: TransactionCreator): void {
+    this._tracingListener = listener;
   }
 
   /** @inheritdoc */
-  public onRouteWillChange(context: TransactionContext): void {
-    this._listeners.forEach((listener) => listener(context));
+  public onRouteWillChange(
+    context: TransactionContext
+  ): Transaction | undefined {
+    return this._tracingListener?.(context);
   }
 }

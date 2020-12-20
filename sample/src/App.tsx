@@ -19,7 +19,7 @@ import {store} from './reduxApp';
 import {version as packageVersion} from '../../package.json';
 import {SENTRY_INTERNAL_DSN} from './dsn';
 
-const reactNavigationInstrumentation = new Sentry.Tracing.ReactNavigationInstrumentation();
+const reactNavigationV5Instrumentation = new Sentry.Tracing.ReactNavigationV5Instrumentation();
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
@@ -32,7 +32,8 @@ Sentry.init({
   maxBreadcrumbs: 150, // Extend from the default 100 breadcrumbs.
   integrations: [
     new Sentry.Tracing.ReactNativeTracing({
-      routingInstrumentation: reactNavigationInstrumentation,
+      idleTimeout: 5000,
+      routingInstrumentation: reactNavigationV5Instrumentation,
       tracingOrigins: ['localhost', /^\//, /^https:\/\//],
     }),
   ],
@@ -53,7 +54,7 @@ const App = () => {
   const navigation = React.createRef<NavigationContainerRef>();
 
   React.useEffect(() => {
-    reactNavigationInstrumentation.registerNavigationContainer(navigation);
+    reactNavigationV5Instrumentation.registerNavigationContainer(navigation);
   }, []);
 
   return (

@@ -94,7 +94,7 @@ export class ReactNativeTracing implements Integration {
 
     this._getCurrentHub = getCurrentHub;
 
-    routingInstrumentation?.registerListener(
+    routingInstrumentation?.registerRoutingInstrumentation(
       this._onRouteWillChange.bind(this)
     );
 
@@ -113,9 +113,11 @@ export class ReactNativeTracing implements Integration {
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */
-  private _onRouteWillChange(context: TransactionContext): void {
+  private _onRouteWillChange(
+    context: TransactionContext
+  ): TransactionType | undefined {
     // TODO: Consider more features on route change, one example is setting a tag of what route the user is on
-    this._createRouteTransaction(context);
+    return this._createRouteTransaction(context);
   }
 
   /** Create routing idle transaction. */
