@@ -1194,13 +1194,13 @@
     "@sentry/utils" "5.28.0"
     tslib "^1.9.3"
 
-"@sentry/integrations@5.28.0":
-  version "5.28.0"
-  resolved "https://registry.yarnpkg.com/@sentry/integrations/-/integrations-5.28.0.tgz#6740af0cdd51242bb2b223be98921128bc448469"
-  integrity sha512-2WjCYHrItzrHYUoRUV8Hjt2DXEekiV7i/2RfxLhVVVU8382FKyKMTMdimKog3SAgOqPjJFpWqEQ3OWErZ4HMqA==
+"@sentry/integrations@5.29.2":
+  version "5.29.2"
+  resolved "https://registry.yarnpkg.com/@sentry/integrations/-/integrations-5.29.2.tgz#bd00dfd81f8a9448a5ccf87a3eb7d12035088ad9"
+  integrity sha512-bH50B0xubbHrJFq8xZRxOc5BgXe1PXKfC0OqQkhhSd+Bu2WDLCHcn0CEzV+8thZTYkipAoFAFJNdEWcsM2Wcew==
   dependencies:
-    "@sentry/types" "5.28.0"
-    "@sentry/utils" "5.28.0"
+    "@sentry/types" "5.29.2"
+    "@sentry/utils" "5.29.2"
     localforage "1.8.1"
     tslib "^1.9.3"
 
@@ -1241,6 +1241,11 @@
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-5.28.0.tgz#242131fef910bded53350a36ffd7df240cfb8dcf"
   integrity sha512-nNhoZEXdqM2xivxJBrLhxtJ2+s6FfKXUw5yBf0Jf/RBrBnH5fggPNImmyfpOoysl72igWcMWk4nnfyP5iDrriQ==
 
+"@sentry/types@5.29.2":
+  version "5.29.2"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-5.29.2.tgz#ac87383df1222c2d9b9f8f9ed7a6b86ea41a098a"
+  integrity sha512-dM9wgt8wy4WRty75QkqQgrw9FV9F+BOMfmc0iaX13Qos7i6Qs2Q0dxtJ83SoR4YGtW8URaHzlDtWlGs5egBiMA==
+
 "@sentry/typescript@^5.20.0":
   version "5.20.1"
   resolved "https://registry.yarnpkg.com/@sentry/typescript/-/typescript-5.20.1.tgz#84133b3b8152367c936dbd573afe9e7a80c5f442"
@@ -1255,6 +1260,14 @@
   integrity sha512-LW+ReVw9JG6g8Bvp2I1ThMDPATlisvkde+1WykxGqRhu2YIO+PvWhnoFhr9RD0ia3rYVlJkgkuTshMbPJ8HVwA==
   dependencies:
     "@sentry/types" "5.28.0"
+    tslib "^1.9.3"
+
+"@sentry/utils@5.29.2":
+  version "5.29.2"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-5.29.2.tgz#99a5cdda2ea19d34a41932f138d470adcb3ee673"
+  integrity sha512-nEwQIDjtFkeE4k6yIk4Ka5XjGRklNLThWLs2xfXlL7uwrYOH2B9UBBOOIRUraBm/g/Xrra3xsam/kRxuiwtXZQ==
+  dependencies:
+    "@sentry/types" "5.29.2"
     tslib "^1.9.3"
 
 "@sentry/wizard@^1.1.4":
