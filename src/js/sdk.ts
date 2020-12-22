@@ -23,6 +23,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNative: true,
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
+  shouldInitializeNativeSdk: true,
 };
 
 /**
