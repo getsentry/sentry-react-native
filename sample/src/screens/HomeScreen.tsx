@@ -17,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
+import {CommonActions} from '@react-navigation/native';
 
 import * as Sentry from '@sentry/react-native';
 
@@ -219,7 +220,19 @@ const HomeScreen = (props: Props) => {
             <View style={styles.spacer} />
             <TouchableOpacity
               onPress={() => {
-                props.navigation.navigate('PerformanceTiming');
+                // Navigate with a reset action just to test
+                props.navigation.dispatch(
+                  CommonActions.reset({
+                    index: 1,
+                    routes: [
+                      {name: 'Home'},
+                      {
+                        name: 'PerformanceTiming',
+                        params: {someParam: 'hello'},
+                      },
+                    ],
+                  }),
+                );
               }}>
               <Text style={styles.buttonText}>Performance Timing</Text>
             </TouchableOpacity>
