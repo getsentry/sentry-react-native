@@ -3,6 +3,7 @@
 # Unreleased
 
 - fix: pas maxBreadcrumbs to Android init
+- feat: Allow disabling native SDK initialization but still use it #1259
 
 ## 2.1.0
 
