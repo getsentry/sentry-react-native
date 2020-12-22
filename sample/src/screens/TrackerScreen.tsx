@@ -48,17 +48,17 @@ const ManualTrackerScreen = () => {
       <View style={styles.card}>
         {cases ? (
           <>
-            <Statistic
+            <ProfiledStatistic
               title="Confirmed"
               count={cases.TotalConfirmed}
               textColor="#C83852"
             />
-            <Statistic
+            <ProfiledStatistic
               title="Deaths"
               count={cases.TotalDeaths}
               textColor="#362D59"
             />
-            <Statistic
+            <ProfiledStatistic
               title="Recovered"
               count={cases.TotalRecovered}
               textColor="#69C289"
@@ -89,6 +89,8 @@ const Statistic = (props: {
     </View>
   );
 };
+
+const ProfiledStatistic = Sentry.withProfiler(Statistic);
 
 const styles = StyleSheet.create({
   screen: {
