@@ -57,7 +57,6 @@ export { ReactNativeClient } from "./client";
 export { init, setDist, setRelease, nativeCrash } from "./sdk";
 export { TouchEventBoundary, withTouchEventBoundary } from "./touchevents";
 
-// TODO:
 export * as Tracing from "./tracing";
 
 /**
