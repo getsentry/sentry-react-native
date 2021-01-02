@@ -21,7 +21,7 @@ import {SENTRY_INTERNAL_DSN} from './dsn';
 
 const reactNavigationV5Instrumentation = new Sentry.Tracing.ReactNavigationV5Instrumentation(
   {
-    shouldAttachTransaction: (route) => {
+    shouldSendTransaction: (route, previousRoute) => {
       if (route.name === 'ManualTracker') {
         return false;
       }

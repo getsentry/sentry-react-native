@@ -3,28 +3,28 @@ import { logger } from "@sentry/utils";
 
 import { RoutingInstrumentation } from "./router";
 
-interface NavigationRoute {
+interface NavigationRouteV4 {
   routeName: string;
   key: string;
   params?: Record<any, any>;
 }
 
-interface NavigationState {
+interface NavigationStateV4 {
   index: number;
   key: string;
   isTransitioning: boolean;
   routeName?: string;
-  routes: (NavigationRoute | NavigationState)[];
+  routes: (NavigationRouteV4 | NavigationStateV4)[];
 }
 
 interface AppContainerInstance {
   _navigation: {
-    state: NavigationState;
+    state: NavigationStateV4;
     router: {
       getStateForAction: (
         action: any,
-        state: NavigationState
-      ) => NavigationState;
+        state: NavigationStateV4
+      ) => NavigationStateV4;
     };
   };
 }
@@ -34,19 +34,19 @@ interface AppContainerRef {
 }
 
 type ReactNavigationV4ShouldAttachTransaction = (
-  prevRoute: NavigationRoute | null,
-  newRoute: NavigationRoute
+  route: NavigationRouteV4,
+  previousRoute: NavigationRouteV4 | null
 ) => boolean;
 
 interface ReactNavigationV4InstrumentationOptions {
-  shouldAttachTransaction: ReactNavigationV4ShouldAttachTransaction;
+  shouldSendTransaction: ReactNavigationV4ShouldAttachTransaction;
 }
 
 const defaultShouldAttachTransaction: ReactNavigationV4ShouldAttachTransaction = () =>
   true;
 
 const DEFAULT_OPTIONS: ReactNavigationV4InstrumentationOptions = {
-  shouldAttachTransaction: defaultShouldAttachTransaction,
+  shouldSendTransaction: defaultShouldAttachTransaction,
 };
 
 /**
@@ -60,7 +60,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
 
   private _options: ReactNavigationV4InstrumentationOptions;
 
-  private _prevRoute: NavigationRoute | null = null;
+  private _prevRoute: NavigationRouteV4 | null = null;
 
   constructor(options: Partial<ReactNavigationV4InstrumentationOptions>) {
     super();
@@ -103,17 +103,9 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
    */
   private _handleInitialState(): void {
     if (this._appContainerRef.current) {
-      const navigationState = this._appContainerRef.current._navigation.state;
+      const state = this._appContainerRef.current._navigation.state;
 
-      const currentRoute = this._getCurrentRouteFromState(navigationState);
-
-      if (
-        this._options.shouldAttachTransaction(this._prevRoute, currentRoute)
-      ) {
-        this.onRouteWillChange(this._getTransactionContext(currentRoute));
-      }
-
-      this._prevRoute = currentRoute;
+      this._onStateChange(state);
     }
   }
 
@@ -130,35 +122,41 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
         action,
         state
       ) => {
-        const newNavigationState = originalGetStateForAction(action, state);
-        const currentRoute = this._getCurrentRouteFromState(newNavigationState);
+        const newState = originalGetStateForAction(action, state);
 
-        // If the route is a different key, this is so we ignore actions that pertain to the same screen.
-        if (!this._prevRoute || currentRoute.key !== this._prevRoute.key) {
-          const context = this._getTransactionContext(currentRoute);
+        this._onStateChange(newState);
 
-          if (
-            this._options.shouldAttachTransaction(this._prevRoute, currentRoute)
-          ) {
-            this.onRouteWillChange(context);
-          } else {
-            logger.log(
-              `[ReactNavigationV4Instrumentation] Will not send transaction "${context.name}" due to shouldAttachTransaction.`
-            );
-          }
-
-          this._prevRoute = currentRoute;
-        }
-
-        return newNavigationState;
+        return newState;
       };
     }
   }
 
   /**
-   * Gets the transaction context for a `NavigationRoute`
+   * To be called on navigation state changes and creates the transaction.
    */
-  private _getTransactionContext(route: NavigationRoute): TransactionContext {
+  private _onStateChange(state: NavigationStateV4): void {
+    const currentRoute = this._getCurrentRouteFromState(state);
+
+    // If the route is a different key, this is so we ignore actions that pertain to the same screen.
+    if (!this._prevRoute || currentRoute.key !== this._prevRoute.key) {
+      const context = this._getTransactionContext(currentRoute);
+
+      if (this._options.shouldSendTransaction(currentRoute, this._prevRoute)) {
+        this.onRouteWillChange(context);
+      } else {
+        logger.log(
+          `[ReactNavigationV4Instrumentation] Will not send transaction "${context.name}" due to shouldSendTransaction.`
+        );
+      }
+
+      this._prevRoute = currentRoute;
+    }
+  }
+
+  /**
+   * Gets the transaction context for a `NavigationRouteV4`
+   */
+  private _getTransactionContext(route: NavigationRouteV4): TransactionContext {
     return {
       name: route.routeName,
       op: "navigation",
@@ -174,7 +172,9 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
   /**
    * Gets the current route given a navigation state
    */
-  private _getCurrentRouteFromState(state: NavigationState): NavigationRoute {
+  private _getCurrentRouteFromState(
+    state: NavigationStateV4
+  ): NavigationRouteV4 {
     const parentRoute = state.routes[state.index];
 
     if (
@@ -186,7 +186,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
       return this._getCurrentRouteFromState(parentRoute);
     }
 
-    return parentRoute as NavigationRoute;
+    return parentRoute as NavigationRouteV4;
   }
 }
 

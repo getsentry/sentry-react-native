@@ -14,7 +14,7 @@ interface NavigationContainer {
 }
 
 interface ReactNavigationInstrumentationOptions {
-  shouldAttachTransaction(
+  shouldSendTransaction?(
     route: NavigationRoute,
     previousRoute?: NavigationRoute
   ): boolean;
@@ -22,17 +22,6 @@ interface ReactNavigationInstrumentationOptions {
 
 type NavigationContainerRef = {
   current: NavigationContainer | null;
-};
-
-const defaultShouldAttachTransaction = (
-  route: NavigationRoute,
-  previousRoute?: NavigationRoute
-): boolean => {
-  return !previousRoute || previousRoute.key !== route.key;
-};
-
-const DEFAULT_OPTIONS: ReactNavigationInstrumentationOptions = {
-  shouldAttachTransaction: defaultShouldAttachTransaction,
 };
 
 const STATE_CHANGE_TIMEOUT_DURATION = 200;
@@ -61,10 +50,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   constructor(_options: Partial<ReactNavigationInstrumentationOptions> = {}) {
     super();
 
-    this._options = {
-      ...DEFAULT_OPTIONS,
-      ..._options,
-    };
+    this._options = _options;
   }
 
   /**
@@ -115,15 +101,24 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
    */
   private _onStateChange(): void {
     // Use the getCurrentRoute method to be accurate.
+    const previousRoute = this._latestRoute;
     const route = this._navigationContainerRef?.current?.getCurrentRoute();
 
     if (route) {
-      if (this._latestTransaction) {
+      if (
+        this._latestTransaction &&
+        (!previousRoute || previousRoute.key !== route.key)
+      ) {
         this._latestTransaction.setName(route.name);
         this._latestTransaction.setTag("routing.route.key", route.key);
         this._latestTransaction.setData("routing.params", route.params);
 
-        if (this._options.shouldAttachTransaction(route, this._latestRoute)) {
+        const willSendTransaction =
+          typeof this._options.shouldSendTransaction === "function"
+            ? this._options.shouldSendTransaction(route, previousRoute)
+            : true;
+
+        if (willSendTransaction) {
           // Clear the timeout so the transaction does not get cancelled.
           if (typeof this._stateChangeTimeout !== "undefined") {
             clearTimeout(this._stateChangeTimeout);
@@ -131,7 +126,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
           }
         } else {
           logger.log(
-            `[ReactNavigationV5Instrumentation] Will not send transaction "${this._latestTransaction.name}" due to shouldAttachTransaction.`
+            `[ReactNavigationV5Instrumentation] Will not send transaction "${this._latestTransaction.name}" due to shouldSendTransaction.`
           );
         }
       }
