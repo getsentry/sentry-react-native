@@ -19,7 +19,17 @@ import {store} from './reduxApp';
 import {version as packageVersion} from '../../package.json';
 import {SENTRY_INTERNAL_DSN} from './dsn';
 
-const reactNavigationV5Instrumentation = new Sentry.Tracing.ReactNavigationV5Instrumentation();
+const reactNavigationV5Instrumentation = new Sentry.Tracing.ReactNavigationV5Instrumentation(
+  {
+    shouldAttachTransaction: (route) => {
+      if (route.name === 'ManualTracker') {
+        return false;
+      }
+
+      return true;
+    },
+  },
+);
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
