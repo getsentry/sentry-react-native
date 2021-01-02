@@ -119,7 +119,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
 
     if (route) {
       if (this._latestTransaction) {
-        this._latestTransaction.setName(`Navigation Focus: ${route.name}`);
+        this._latestTransaction.setName(route.name);
         this._latestTransaction.setTag("routing.route.key", route.key);
         this._latestTransaction.setData("routing.params", route.params);
 

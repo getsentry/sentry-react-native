@@ -160,7 +160,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
    */
   private _getTransactionContext(route: NavigationRoute): TransactionContext {
     return {
-      name: `Navigation Focus: ${route.routeName}`,
+      name: route.routeName,
       op: "navigation",
       tags: {
         "routing.instrumentation":
