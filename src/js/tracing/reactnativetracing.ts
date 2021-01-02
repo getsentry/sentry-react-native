@@ -41,6 +41,16 @@ export interface ReactNativeTracingOptions
    * There is no routing instrumentation if nothing is passed.
    */
   routingInstrumentation?: RoutingInstrumentation;
+
+  /**
+   * beforeNavigate is called before a navigation transaction is created and allows users to modify transaction
+   * context data, or drop the transaction entirely (by setting `sampled = false` in the context).
+   *
+   * @param context: The context data which will be passed to `startTransaction` by default
+   *
+   * @returns A (potentially) modified context object, with `sampled = false` if the transaction should be dropped.
+   */
+  beforeNavigate?(context: TransactionContext): TransactionContext;
 }
 
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
@@ -132,11 +142,25 @@ export class ReactNativeTracing implements Integration {
     }
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { idleTimeout, maxTransactionDuration } = this.options;
+    const {
+      beforeNavigate,
+      idleTimeout,
+      maxTransactionDuration,
+    } = this.options;
 
-    if (context.sampled === false) {
+    const expandedContext = {
+      ...context,
+      trimEnd: true,
+    };
+
+    const modifiedContext =
+      typeof beforeNavigate === "function"
+        ? beforeNavigate(expandedContext)
+        : expandedContext;
+
+    if (modifiedContext.sampled === false) {
       logger.log(
-        `[ReactNativeTracing] Will not send ${context.op} transaction because of beforeNavigate.`
+        `[ReactNativeTracing] Will not send ${context.op} transaction.`
       );
     }
 
@@ -152,7 +176,6 @@ export class ReactNativeTracing implements Integration {
     );
     idleTransaction.registerBeforeFinishCallback(
       (transaction, endTimestamp) => {
-        // this._metrics.addPerformanceEntries(transaction);
         adjustTransactionDuration(
           secToMs(maxTransactionDuration),
           transaction,
