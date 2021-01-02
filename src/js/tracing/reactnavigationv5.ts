@@ -1,4 +1,5 @@
 import { Transaction as TransactionType } from "@sentry/types";
+import { logger } from "@sentry/utils";
 
 import { RoutingInstrumentation } from "./router";
 interface NavigationRoute {
@@ -117,24 +118,23 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
     const route = this._navigationContainerRef?.current?.getCurrentRoute();
 
     if (route) {
-      if (
-        this._latestTransaction &&
-        this._options.shouldAttachTransaction(route, this._latestRoute)
-      ) {
-        // Clear the timeout so the transaction does not get cancelled.
-        if (typeof this._stateChangeTimeout !== "undefined") {
-          clearTimeout(this._stateChangeTimeout);
-          this._stateChangeTimeout = undefined;
-        }
-
+      if (this._latestTransaction) {
         this._latestTransaction.setName(`Navigation Focus: ${route.name}`);
         this._latestTransaction.setTag("routing.route.key", route.key);
         this._latestTransaction.setData("routing.params", route.params);
 
-        // Remove the latest transaction to not overwrite.
-        this._latestTransaction = undefined;
+        if (this._options.shouldAttachTransaction(route, this._latestRoute)) {
+          // Clear the timeout so the transaction does not get cancelled.
+          if (typeof this._stateChangeTimeout !== "undefined") {
+            clearTimeout(this._stateChangeTimeout);
+            this._stateChangeTimeout = undefined;
+          }
+        } else {
+          logger.log(
+            `[ReactNavigationV5Instrumentation] Will not send transaction "${this._latestTransaction.name}" due to shouldAttachTransaction.`
+          );
+        }
       }
-
       this._latestRoute = route;
     }
   }

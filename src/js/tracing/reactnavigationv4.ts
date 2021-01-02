@@ -135,10 +135,16 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
 
         // If the route is a different key, this is so we ignore actions that pertain to the same screen.
         if (!this._prevRoute || currentRoute.key !== this._prevRoute.key) {
+          const context = this._getTransactionContext(currentRoute);
+
           if (
             this._options.shouldAttachTransaction(this._prevRoute, currentRoute)
           ) {
-            this.onRouteWillChange(this._getTransactionContext(currentRoute));
+            this.onRouteWillChange(context);
+          } else {
+            logger.log(
+              `[ReactNavigationV4Instrumentation] Will not send transaction "${context.name}" due to shouldAttachTransaction.`
+            );
           }
 
           this._prevRoute = currentRoute;
