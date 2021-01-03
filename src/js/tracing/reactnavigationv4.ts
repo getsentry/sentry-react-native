@@ -141,13 +141,14 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
     if (!this._prevRoute || currentRoute.key !== this._prevRoute.key) {
       const context = this._getTransactionContext(currentRoute);
 
-      if (this._options.shouldSendTransaction(currentRoute, this._prevRoute)) {
-        this.onRouteWillChange(context);
-      } else {
+      if (!this._options.shouldSendTransaction(currentRoute, this._prevRoute)) {
+        context.sampled = false;
         logger.log(
           `[ReactNavigationV4Instrumentation] Will not send transaction "${context.name}" due to shouldSendTransaction.`
         );
       }
+
+      this.onRouteWillChange(context);
 
       this._prevRoute = currentRoute;
     }
