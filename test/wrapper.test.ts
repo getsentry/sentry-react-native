@@ -92,6 +92,29 @@ describe("Tests Native Wrapper", () => {
         "Note: Native Sentry SDK is disabled."
       );
     });
+
+    test("does not initialize with shouldInitializeNativeSdk: false", async () => {
+      const RN = require("react-native");
+
+      RN.NativeModules.RNSentry.startWithOptions = jest.fn();
+      logger.warn = jest.fn();
+
+      await NATIVE.startWithOptions({
+        dsn: "test",
+        enableNative: true,
+        shouldInitializeNativeSdk: false,
+      });
+
+      expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
+
+      await NATIVE.addBreadcrumb({
+        message: "test",
+      });
+
+      expect(RN.NativeModules.RNSentry.addBreadcrumb).toBeCalledWith({
+        message: "test",
+      });
+    });
   });
 
   describe("sendEvent", () => {
@@ -222,7 +245,7 @@ describe("Tests Native Wrapper", () => {
         message: {
           message: event.message,
         },
-        type: 'event',
+        type: "event",
       });
       const header = JSON.stringify({
         event_id: event.event_id,
@@ -231,7 +254,7 @@ describe("Tests Native Wrapper", () => {
       const item = JSON.stringify({
         content_type: "application/json",
         length: 1,
-        type: 'event',
+        type: "event",
       });
 
       await expect(NATIVE.sendEvent(event)).resolves.toMatch(

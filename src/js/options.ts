@@ -20,6 +20,19 @@ export interface ReactNativeOptions extends BrowserOptions {
    */
   enableNativeCrashHandling?: boolean;
 
+  /**
+   * Initializes the native SDK on init.
+   * Set this to `false` if you have an existing native SDK and don't want to re-initialize.
+   *
+   * NOTE: Be careful and only use this if you know what you are doing.
+   * If you use this flag, make sure a native SDK is running before the JS Engine initializes or events might not be captured.
+   * Also, make sure the DSN on both the React Native side and the native side are the same one.
+   * We strongly recommend checking the documentation if you need to use this.
+   *
+   * @default true
+   */
+  shouldInitializeNativeSdk?: boolean;
+
   /** Maximum time to wait to drain the request queue, before the process is allowed to exit. */
   shutdownTimeout?: number;
 
