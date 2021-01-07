@@ -93,7 +93,7 @@ describe("Tests Native Wrapper", () => {
       );
     });
 
-    test("does not initialize with shouldInitializeNativeSdk: false", async () => {
+    test("does not initialize with autoInitializeNativeSdk: false", async () => {
       const RN = require("react-native");
 
       RN.NativeModules.RNSentry.startWithOptions = jest.fn();
@@ -102,7 +102,7 @@ describe("Tests Native Wrapper", () => {
       await NATIVE.startWithOptions({
         dsn: "test",
         enableNative: true,
-        shouldInitializeNativeSdk: false,
+        autoInitializeNativeSdk: false,
       });
 
       expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
