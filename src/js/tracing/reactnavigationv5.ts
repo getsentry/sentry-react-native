@@ -3,26 +3,26 @@ import { logger } from "@sentry/utils";
 
 import { RoutingInstrumentation } from "./routingInstrumentation";
 
-interface NavigationRoute {
+interface NavigationRouteV5 {
   name: string;
   key: string;
   params?: Record<any, any>;
 }
 
-interface NavigationContainer {
+interface NavigationContainerV5 {
   addListener: (type: string, listener: () => void) => void;
-  getCurrentRoute: () => NavigationRoute;
+  getCurrentRoute: () => NavigationRouteV5;
 }
 
-interface ReactNavigationInstrumentationOptions {
+interface ReactNavigationV5InstrumentationOptions {
   shouldSendTransaction?(
-    route: NavigationRoute,
-    previousRoute?: NavigationRoute
+    route: NavigationRouteV5,
+    previousRoute?: NavigationRouteV5
   ): boolean;
 }
 
-type NavigationContainerRef = {
-  current: NavigationContainer | null;
+type NavigationContainerV5Ref = {
+  current: NavigationContainerV5 | null;
 };
 
 const STATE_CHANGE_TIMEOUT_DURATION = 200;
@@ -38,17 +38,17 @@ const STATE_CHANGE_TIMEOUT_DURATION = 200;
 export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   static instrumentationName: string = "react-navigation-v5";
 
-  private _options: ReactNavigationInstrumentationOptions;
+  private _options: ReactNavigationV5InstrumentationOptions;
 
-  private _navigationContainerRef: NavigationContainerRef = {
+  private _navigationContainerRef: NavigationContainerV5Ref = {
     current: null,
   };
 
-  private _latestRoute?: NavigationRoute;
+  private _latestRoute?: NavigationRouteV5;
   private _latestTransaction?: TransactionType;
   private _stateChangeTimeout?: number | undefined;
 
-  constructor(_options: Partial<ReactNavigationInstrumentationOptions> = {}) {
+  constructor(_options: Partial<ReactNavigationV5InstrumentationOptions> = {}) {
     super();
 
     this._options = _options;
@@ -59,7 +59,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
    * @param navigationContainerRef Ref to a `NavigationContainer`
    */
   public registerNavigationContainer(
-    navigationContainerRef: NavigationContainerRef
+    navigationContainerRef: NavigationContainerV5Ref
   ): void {
     this._navigationContainerRef = navigationContainerRef;
     navigationContainerRef.current?.addListener(
