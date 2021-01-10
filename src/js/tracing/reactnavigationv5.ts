@@ -2,6 +2,7 @@ import { Transaction as TransactionType } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
 import { RoutingInstrumentation } from "./routingInstrumentation";
+
 interface NavigationRoute {
   name: string;
   key: string;
@@ -88,6 +89,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
         "routing.instrumentation":
           ReactNavigationV5Instrumentation.instrumentationName,
       },
+      sampled: false,
     });
 
     this._stateChangeTimeout = setTimeout(
@@ -109,9 +111,11 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
         this._latestTransaction &&
         (!previousRoute || previousRoute.key !== route.key)
       ) {
+        this._latestTransaction.sampled = true;
         this._latestTransaction.setName(route.name);
-        this._latestTransaction.setTag("routing.route.key", route.key);
-        this._latestTransaction.setData("routing.params", route.params);
+        this._latestTransaction.setTag("routing.route.name", route.name);
+        this._latestTransaction.setData("routing.route.key", route.key);
+        this._latestTransaction.setData("routing.route.params", route.params);
 
         const willSendTransaction =
           typeof this._options.shouldSendTransaction === "function"
@@ -137,7 +141,6 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   /** Cancels the latest transaction so it does not get sent to Sentry. */
   private _discardLatestTransaction(): void {
     if (this._latestTransaction) {
-      this._latestTransaction.sampled = false;
       this._latestTransaction.finish();
       this._latestTransaction = undefined;
     }
