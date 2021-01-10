@@ -3,7 +3,7 @@ import { logger } from "@sentry/utils";
 
 import { RoutingInstrumentation } from "./routingInstrumentation";
 
-interface NavigationRouteV5 {
+export interface NavigationRouteV5 {
   name: string;
   key: string;
   params?: Record<any, any>;
