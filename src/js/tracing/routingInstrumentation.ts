@@ -5,7 +5,7 @@ export type TransactionCreator = (
   context: TransactionContext
 ) => Transaction | undefined;
 
-export interface RoutingInstrumentationType {
+export interface RoutingInstrumentationInstance {
   /**
    * Registers a listener that's called on every route change with a `TransactionContext`.
    *
@@ -27,7 +27,7 @@ export interface RoutingInstrumentationType {
  * Base Routing Instrumentation. Can be used by users to manually instrument custom routers.
  * Pass this to the tracing integration, and call `onRouteWillChange` every time before a route changes.
  */
-export class RoutingInstrumentation implements RoutingInstrumentationType {
+export class RoutingInstrumentation implements RoutingInstrumentationInstance {
   protected _getCurrentHub?: () => Hub;
 
   private _tracingListener?: TransactionCreator;

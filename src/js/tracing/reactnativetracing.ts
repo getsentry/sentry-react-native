@@ -13,7 +13,7 @@ import {
 } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
-import { RoutingInstrumentation } from "../tracing/router";
+import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
 import { adjustTransactionDuration, secToMs } from "./utils";
 
 export interface ReactNativeTracingOptions
@@ -40,7 +40,7 @@ export interface ReactNativeTracingOptions
    * The routing instrumentation to be used with the tracing integration.
    * There is no routing instrumentation if nothing is passed.
    */
-  routingInstrumentation?: RoutingInstrumentation;
+  routingInstrumentation?: RoutingInstrumentationInstance;
 
   /**
    * beforeNavigate is called before a navigation transaction is created and allows users to modify transaction

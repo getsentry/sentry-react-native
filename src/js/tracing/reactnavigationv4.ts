@@ -1,7 +1,7 @@
 import { TransactionContext } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
-import { RoutingInstrumentation } from "./router";
+import { RoutingInstrumentation } from "./routingInstrumentation";
 
 interface NavigationRouteV4 {
   routeName: string;

@@ -19,7 +19,7 @@ import {store} from './reduxApp';
 import {version as packageVersion} from '../../package.json';
 import {SENTRY_INTERNAL_DSN} from './dsn';
 
-const reactNavigationV5Instrumentation = new Sentry.Tracing.ReactNavigationV5Instrumentation(
+const reactNavigationV5Instrumentation = new Sentry.ReactNavigationV5Instrumentation(
   {
     shouldSendTransaction: (route, previousRoute) => {
       if (route.name === 'ManualTracker') {
@@ -41,7 +41,7 @@ Sentry.init({
   },
   maxBreadcrumbs: 150, // Extend from the default 100 breadcrumbs.
   integrations: [
-    new Sentry.Tracing.ReactNativeTracing({
+    new Sentry.ReactNativeTracing({
       idleTimeout: 5000,
       routingInstrumentation: reactNavigationV5Instrumentation,
       tracingOrigins: ['localhost', /^\//, /^https:\/\//],
