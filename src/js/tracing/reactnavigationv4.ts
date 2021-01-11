@@ -3,13 +3,13 @@ import { logger } from "@sentry/utils";
 
 import { RoutingInstrumentation } from "./routingInstrumentation";
 
-interface NavigationRouteV4 {
+export interface NavigationRouteV4 {
   routeName: string;
   key: string;
   params?: Record<any, any>;
 }
 
-interface NavigationStateV4 {
+export interface NavigationStateV4 {
   index: number;
   key: string;
   isTransitioning: boolean;

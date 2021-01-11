@@ -6,11 +6,6 @@ import {
   ReactNavigationV4Instrumentation,
 } from "../../src/js/tracing/reactnavigationv4";
 
-const dummyRoute: NavigationRouteV4 = {
-  routeName: "Route",
-  key: "0",
-};
-
 class MockAppContainer implements AppContainerInstance {
   _navigation: {
     state: NavigationStateV4;
@@ -34,7 +29,7 @@ class MockAppContainer implements AppContainerInstance {
         this._navigation.state = newState;
       },
       getStateForAction: (action: any, state: NavigationStateV4) => {
-        if (action.routeName === 'DoNotNavigate') {
+        if (action.routeName === "DoNotNavigate") {
           return state;
         }
 
@@ -60,7 +55,7 @@ class MockAppContainer implements AppContainerInstance {
         isTransitioning: false,
         routes: [
           {
-            name: "Initial Route",
+            routeName: "Initial Route",
             key: "route0",
             params: {
               hello: true,
@@ -88,7 +83,8 @@ describe("ReactNavigationV4Instrumentation", () => {
 
     instrumentation.registerAppContainer(mockAppContainerRef as any);
 
-    const firstRoute = mockAppContainerRef.current._navigation.state.routes[0];
+    const firstRoute = mockAppContainerRef.current._navigation.state
+      .routes[0] as NavigationRouteV4;
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(1);
@@ -154,12 +150,12 @@ describe("ReactNavigationV4Instrumentation", () => {
   test("not sampled with shouldSendTransaction", () => {
     const instrumentation = new ReactNavigationV4Instrumentation({
       shouldSendTransaction: (newRoute) => {
-        if (newRoute.routeName === 'DoNotSend') {
+        if (newRoute.routeName === "DoNotSend") {
           return false;
         }
 
         return true;
-      }
+      },
     });
 
     instrumentation.onRouteWillChange = jest.fn();
@@ -198,7 +194,7 @@ describe("ReactNavigationV4Instrumentation", () => {
         "routing.route.key": action.key,
         "routing.route.params": action.params,
       },
-      sampled: false
+      sampled: false,
     });
   });
 
@@ -223,4 +219,5 @@ describe("ReactNavigationV4Instrumentation", () => {
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(1);
+  });
 });
