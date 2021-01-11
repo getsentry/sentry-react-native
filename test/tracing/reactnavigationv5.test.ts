@@ -117,6 +117,53 @@ describe("ReactNavigationV5Instrumentation", () => {
     });
   });
 
+  test("transaction not sent on shouldSendTransaction: false", async () => {
+    const instrumentation = new ReactNavigationV5Instrumentation({
+      shouldSendTransaction: (route) => {
+        if (route.name === "DoNotSend") {
+          return false;
+        }
+
+        return true;
+      },
+    });
+
+    // Need a dummy transaction as the instrumentation will start a transaction right away when the first navigation container is attached.
+    const mockTransactionDummy = getMockTransaction();
+    const transactionRef = {
+      current: mockTransactionDummy,
+    };
+    const tracingListener = jest.fn(() => transactionRef.current);
+    instrumentation.registerRoutingInstrumentation(tracingListener as any);
+
+    const mockNavigationContainerRef = {
+      current: new MockNavigationContainer(),
+    };
+
+    instrumentation.registerNavigationContainer(
+      mockNavigationContainerRef as any
+    );
+
+    const mockTransaction = getMockTransaction();
+    transactionRef.current = mockTransaction;
+
+    mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
+
+    await new Promise<void>((resolve) => {
+      setTimeout(() => {
+        const route = {
+          name: "DoNotSend",
+          key: "1",
+        };
+        mockNavigationContainerRef.current.currentRoute = route;
+        mockNavigationContainerRef.current.listeners["state"]({});
+
+        expect(mockTransaction.sampled).toBe(false);
+        resolve();
+      }, 50);
+    });
+  });
+
   test("transaction not sent on a cancelled navigation", async () => {
     const instrumentation = new ReactNavigationV5Instrumentation();
 
