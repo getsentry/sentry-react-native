@@ -44,7 +44,6 @@ describe("ReactNavigationV5Instrumentation", () => {
       mockNavigationContainerRef as any
     );
 
-    expect(mockTransaction.sampled).toBe(true);
     expect(mockTransaction.setName).toBeCalledWith(dummyRoute.name);
     expect(mockTransaction.setTag).toBeCalledWith(
       "routing.route.name",
@@ -98,7 +97,6 @@ describe("ReactNavigationV5Instrumentation", () => {
         mockNavigationContainerRef.current.currentRoute = route;
         mockNavigationContainerRef.current.listeners["state"]({});
 
-        expect(mockTransaction.sampled).toBe(true);
         expect(mockTransaction.setName).toBeCalledWith(route.name);
         expect(mockTransaction.setTag).toBeCalledWith(
           "routing.route.name",
