@@ -17,7 +17,7 @@ interface NavigationStateV4 {
   routes: (NavigationRouteV4 | NavigationStateV4)[];
 }
 
-interface AppContainerInstance {
+export interface AppContainerInstance {
   _navigation: {
     state: NavigationStateV4;
     router: {
@@ -62,7 +62,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
 
   private _prevRoute: NavigationRouteV4 | null = null;
 
-  constructor(options: Partial<ReactNavigationV4InstrumentationOptions>) {
+  constructor(options: Partial<ReactNavigationV4InstrumentationOptions> = {}) {
     super();
 
     this._options = {
@@ -164,9 +164,12 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
       tags: {
         "routing.instrumentation":
           ReactNavigationV4Instrumentation.instrumentationName,
-        "routing.route.key": route.key,
+        "routing.route.name": route.routeName,
       },
-      data: route.params,
+      data: {
+        "routing.route.key": route.key,
+        "routing.route.params": route.params,
+      },
     };
   }
 
