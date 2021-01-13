@@ -57,7 +57,14 @@ export class DebugSymbolicator implements Integration {
 
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const parseErrorStack = require("react-native/Libraries/Core/Devtools/parseErrorStack");
-      const stack = parseErrorStack(reactError);
+
+      let stack;
+      try {
+        stack = parseErrorStack(reactError);
+      } catch (e) {
+        // In RN 0.64 `parseErrorStack` now only takes a string
+        stack = parseErrorStack(reactError.stack);
+      }
 
       // Ideally this should go into contexts but android sdk doesn't support it
       event.extra = {
