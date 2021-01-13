@@ -81,11 +81,11 @@ export const NATIVE = {
   async startWithOptions(_options: ReactNativeOptions): Promise<boolean> {
     const options = {
       enableNative: true,
-      shouldInitializeNativeSdk: true,
+      autoInitializeNativeSdk: true,
       ..._options,
     };
 
-    if (!options.shouldInitializeNativeSdk) {
+    if (!options.autoInitializeNativeSdk) {
       if (options.enableNativeNagger) {
         logger.warn("Note: Native Sentry SDK was not initialized.");
       }

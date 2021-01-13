@@ -31,7 +31,7 @@ export interface ReactNativeOptions extends BrowserOptions {
    *
    * @default true
    */
-  shouldInitializeNativeSdk?: boolean;
+  autoInitializeNativeSdk?: boolean;
 
   /** Maximum time to wait to drain the request queue, before the process is allowed to exit. */
   shutdownTimeout?: number;
