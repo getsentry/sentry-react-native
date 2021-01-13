@@ -4,6 +4,7 @@
 
 - fix: pas maxBreadcrumbs to Android init
 - feat: Allow disabling native SDK initialization but still use it #1259
+- fix: Only set "event" type in envelope item and not the payload #1271
 
 ## 2.1.0
 
