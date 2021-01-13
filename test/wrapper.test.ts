@@ -139,7 +139,6 @@ describe("Tests Native Wrapper", () => {
         },
         payload: {
           ...event,
-          type: "event",
           message: {
             message: event.message,
           },
@@ -173,7 +172,6 @@ describe("Tests Native Wrapper", () => {
         },
         payload: {
           ...event,
-          type: "event",
           message: {
             message: event.message,
           },
@@ -215,7 +213,6 @@ describe("Tests Native Wrapper", () => {
       });
       const payloadString = JSON.stringify({
         ...event,
-        type: "event",
         message: {
           message: event.message,
         },
@@ -245,7 +242,6 @@ describe("Tests Native Wrapper", () => {
         message: {
           message: event.message,
         },
-        type: "event",
       });
       const header = JSON.stringify({
         event_id: event.event_id,

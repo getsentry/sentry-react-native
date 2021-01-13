@@ -33,7 +33,6 @@ export const NATIVE = {
 
     const payload = {
       ...event,
-      type: event.type ?? 'event',
       message: {
         message: event.message,
       },
@@ -54,7 +53,7 @@ export const NATIVE = {
       const item = {
         content_type: "application/json",
         length,
-        type: payload.type,
+        type: payload.type ?? "event",
       };
 
       const itemString = JSON.stringify(item);
