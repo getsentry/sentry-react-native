@@ -134,7 +134,13 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
             reject(@"SentryReactNative", @"Cannot serialize event", error);
         }
 
-        SentryEnvelopeItemHeader *envelopeItemHeader = [[SentryEnvelopeItemHeader alloc] initWithType:envelopeDict[@"payload"][@"type"] length:envelopeItemData.length];
+        NSString *itemType = envelopeDict[@"payload"][@"type"];
+        if (itemType == nil) {
+            // Default to event type.
+            itemType = @"event";
+        }
+
+        SentryEnvelopeItemHeader *envelopeItemHeader = [[SentryEnvelopeItemHeader alloc] initWithType:itemType length:envelopeItemData.length];
         SentryEnvelopeItem *envelopeItem = [[SentryEnvelopeItem alloc] initWithHeader:envelopeItemHeader data:envelopeItemData];
 
         SentryEnvelope *envelope = [[SentryEnvelope alloc] initWithHeader:envelopeHeader singleItem:envelopeItem];
