@@ -81,7 +81,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
     }
 
     if (this._isNativeTransportAvailable()) {
-      return new NativeTransport(transportOptions);
+      return new NativeTransport();
     }
 
     return new Transports.FetchTransport(transportOptions);
