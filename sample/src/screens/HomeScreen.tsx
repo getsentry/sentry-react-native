@@ -35,30 +35,6 @@ interface Props {
 const HomeScreen = (props: Props) => {
   const currentDSN = Sentry.getCurrentHub().getClient().getOptions().dsn;
 
-  const navigation = useNavigation();
-
-  React.useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      Sentry.configureScope((scope) => {
-        const activeTransaction = scope.getTransaction();
-
-        if (activeTransaction) {
-          const child = activeTransaction.startChild({
-            description: 'I am a child!',
-          });
-
-          setTimeout(() => {
-            child.finish();
-          }, 500);
-        }
-      });
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-
-  navigation;
-
   // Show bad code inside error boundary to trigger it.
   const [showBadCode, setShowBadCode] = React.useState(false);
 
