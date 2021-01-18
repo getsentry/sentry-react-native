@@ -44,9 +44,12 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
     current: null,
   };
 
+  private readonly _maxRecentRouteLen: number = 200;
+
   private _latestRoute?: NavigationRouteV5;
   private _latestTransaction?: TransactionType;
   private _stateChangeTimeout?: number | undefined;
+  private _recentRouteKeys: string[] = [];
 
   constructor(_options: Partial<ReactNavigationV5InstrumentationOptions> = {}) {
     super();
@@ -115,6 +118,12 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
         this._latestTransaction.setData("routing.route.key", route.key);
         this._latestTransaction.setData("routing.route.params", route.params);
 
+        const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
+        this._latestTransaction.setData(
+          "routing.route.hasBeenSeen",
+          routeHasBeenSeen
+        );
+
         const willSendTransaction =
           typeof this._options.shouldSendTransaction === "function"
             ? this._options.shouldSendTransaction(route, previousRoute)
@@ -132,9 +141,22 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
           );
         }
       }
+
+      this._pushRecentRouteKey(route.key);
       this._latestRoute = route;
     }
   }
+
+  /** Pushes a recent route key, and removes earlier routes when there is greater than the max length */
+  private _pushRecentRouteKey = (key: string): void => {
+    this._recentRouteKeys.push(key);
+
+    if (this._recentRouteKeys.length > this._maxRecentRouteLen) {
+      this._recentRouteKeys = this._recentRouteKeys.slice(
+        this._recentRouteKeys.length - this._maxRecentRouteLen
+      );
+    }
+  };
 
   /** Cancels the latest transaction so it does not get sent to Sentry. */
   private _discardLatestTransaction(): void {

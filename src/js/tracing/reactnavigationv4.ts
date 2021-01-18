@@ -60,7 +60,10 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
 
   private _options: ReactNavigationV4InstrumentationOptions;
 
+  private readonly _maxRecentRouteLen: number = 200;
+
   private _prevRoute: NavigationRouteV4 | null = null;
+  private _recentRouteKeys: string[] = [];
 
   constructor(options: Partial<ReactNavigationV4InstrumentationOptions> = {}) {
     super();
@@ -150,6 +153,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
 
       this.onRouteWillChange(context);
 
+      this._pushRecentRouteKey(currentRoute.key);
       this._prevRoute = currentRoute;
     }
   }
@@ -169,6 +173,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
       data: {
         "routing.route.key": route.key,
         "routing.route.params": route.params,
+        "routing.route.hasBeenSeen": this._recentRouteKeys.includes(route.key),
       },
     };
   }
@@ -192,6 +197,17 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
 
     return parentRoute as NavigationRouteV4;
   }
+
+  /** Pushes a recent route key, and removes earlier routes when there is greater than the max length */
+  private _pushRecentRouteKey = (key: string): void => {
+    this._recentRouteKeys.push(key);
+
+    if (this._recentRouteKeys.length > this._maxRecentRouteLen) {
+      this._recentRouteKeys = this._recentRouteKeys.slice(
+        this._recentRouteKeys.length - this._maxRecentRouteLen
+      );
+    }
+  };
 }
 
 export { ReactNavigationV4Instrumentation };

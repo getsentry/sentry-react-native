@@ -43,6 +43,14 @@ export interface ReactNativeTracingOptions
   routingInstrumentation?: RoutingInstrumentationInstance;
 
   /**
+   * Does not sample transactions that are from routes that have been seen any more and don't have any spans.
+   * This removes a lot of the clutter as most back navigation transactions are now ignored.
+   *
+   * Default: true
+   */
+  ignoreEmptyBackNavigationTransactions?: boolean;
+
+  /**
    * beforeNavigate is called before a navigation transaction is created and allows users to modify transaction
    * context data, or drop the transaction entirely (by setting `sampled = false` in the context).
    *
@@ -57,6 +65,7 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   ...defaultRequestInstrumentationOptions,
   idleTimeout: 1000,
   maxTransactionDuration: 600,
+  ignoreEmptyBackNavigationTransactions: true,
 };
 
 /**
@@ -119,6 +128,14 @@ export class ReactNativeTracing implements Integration {
       traceXHR,
       tracingOrigins,
       shouldCreateSpanForRequest,
+    });
+
+    addGlobalEventProcessor((event) => {
+      // eslint-disable-next-line no-empty
+      if (event.type === "transaction") {
+      }
+
+      return event;
     });
   }
 
@@ -183,6 +200,21 @@ export class ReactNativeTracing implements Integration {
         );
       }
     );
+
+    if (this.options.ignoreEmptyBackNavigationTransactions) {
+      idleTransaction.registerBeforeFinishCallback((transaction) => {
+        if (
+          transaction.data["routing.route.hasBeenSeen"] &&
+          (!transaction.spanRecorder ||
+            transaction.spanRecorder.spans.filter(
+              (span) => span.spanId !== transaction.spanId
+            ).length === 0)
+        ) {
+          // Route has been seen before and has no child spans.
+          transaction.sampled = false;
+        }
+      });
+    }
 
     return idleTransaction as TransactionType;
   }
