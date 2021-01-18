@@ -8,6 +8,7 @@
 - fix: Fix parseErrorStack that only takes string in DebugSymbolicator event processor #1274
 - fix: Only set "event" type in envelope item and not the payload #1271
 - build: Bump JS dependencies to 5.30.0 #1282
+- fix: Add fallback envelope item type to iOS. #1283
 
 ## 2.1.0
 
