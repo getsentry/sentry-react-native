@@ -101,6 +101,7 @@ describe("ReactNavigationV4Instrumentation", () => {
       data: {
         "routing.route.key": firstRoute.key,
         "routing.route.params": firstRoute.params,
+        "routing.route.hasBeenSeen": false,
       },
     });
   });
@@ -143,6 +144,7 @@ describe("ReactNavigationV4Instrumentation", () => {
       data: {
         "routing.route.key": action.key,
         "routing.route.params": action.params,
+        "routing.route.hasBeenSeen": false,
       },
     });
   });
@@ -193,6 +195,7 @@ describe("ReactNavigationV4Instrumentation", () => {
       data: {
         "routing.route.key": action.key,
         "routing.route.params": action.params,
+        "routing.route.hasBeenSeen": false,
       },
       sampled: false,
     });

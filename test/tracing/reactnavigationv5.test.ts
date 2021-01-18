@@ -59,6 +59,11 @@ describe("ReactNavigationV5Instrumentation", () => {
       "routing.route.params",
       undefined
     );
+    expect(mockTransaction.setData).toHaveBeenNthCalledWith(
+      3,
+      "routing.route.hasBeenSeen",
+      false
+    );
   });
 
   test("transaction sent on navigation", async () => {
@@ -111,6 +116,11 @@ describe("ReactNavigationV5Instrumentation", () => {
           2,
           "routing.route.params",
           route.params
+        );
+        expect(mockTransaction.setData).toHaveBeenNthCalledWith(
+          3,
+          "routing.route.hasBeenSeen",
+          false
         );
         resolve();
       }, 50);
