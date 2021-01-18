@@ -10,6 +10,7 @@
 - fix: Only set "event" type in envelope item and not the payload #1271
 - build: Bump JS dependencies to 5.30.0 #1282
 - fix: Add fallback envelope item type to iOS. #1283
+- feat: Auto performance tracing with XHR/fetch, and routing instrumentation #1230
 
 ## 2.1.0
 
