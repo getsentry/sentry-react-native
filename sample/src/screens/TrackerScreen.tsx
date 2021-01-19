@@ -23,7 +23,7 @@ const ManualTrackerScreen = () => {
   const loadData = () => {
     setCases(null);
 
-    fetch('https://api.covid19api.com/world/total', {
+    fetch('https://api.covid19api.com/summary', {
       method: 'GET',
       headers: {
         Accept: 'application/json',
@@ -32,7 +32,7 @@ const ManualTrackerScreen = () => {
     })
       .then((response) => response.json())
       .then((json) => {
-        setCases(json);
+        setCases(json.Global);
       });
   };
 
