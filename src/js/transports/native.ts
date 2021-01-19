@@ -1,6 +1,8 @@
+// import { Transports } from "@sentry/react";
 import { Event, Response, Transport } from "@sentry/types";
 import { PromiseBuffer, SentryError } from "@sentry/utils";
 
+// import { Platform } from "react-native";
 import { NATIVE } from "../wrapper";
 
 /** Native Transport class implementation */

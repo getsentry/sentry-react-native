@@ -1,19 +1,36 @@
 import * as React from 'react';
-import { Provider } from 'react-redux';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import {Provider} from 'react-redux';
+import {
+  NavigationContainer,
+  NavigationContainerRef,
+} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
 
 import HomeScreen from './screens/HomeScreen';
 import TrackerScreen from './screens/TrackerScreen';
+import ManualTrackerScreen from './screens/ManualTrackerScreen';
 import PerformanceTimingScreen from './screens/PerformanceTimingScreen';
 import EndToEndTestsScreen from './screens/EndToEndTestsScreen';
+import ReduxScreen from './screens/ReduxScreen';
 
-import { store } from './reduxApp';
-import { version as packageVersion } from '../../package.json';
-import { SENTRY_INTERNAL_DSN } from './dsn';
+import {store} from './reduxApp';
+import {version as packageVersion} from '../../package.json';
+import {SENTRY_INTERNAL_DSN} from './dsn';
+
+const reactNavigationV5Instrumentation = new Sentry.ReactNavigationV5Instrumentation(
+  {
+    shouldSendTransaction: (route, previousRoute) => {
+      if (route.name === 'ManualTracker') {
+        return false;
+      }
+
+      return true;
+    },
+  },
+);
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
@@ -24,6 +41,13 @@ Sentry.init({
     return e;
   },
   maxBreadcrumbs: 150, // Extend from the default 100 breadcrumbs.
+  integrations: [
+    new Sentry.ReactNativeTracing({
+      idleTimeout: 5000,
+      routingInstrumentation: reactNavigationV5Instrumentation,
+      tracingOrigins: ['localhost', /^\//, /^https:\/\//],
+    }),
+  ],
   enableAutoSessionTracking: true,
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
   sessionTrackingIntervalMillis: 5000,
@@ -38,16 +62,24 @@ Sentry.init({
 const Stack = createStackNavigator();
 
 const App = () => {
+  const navigation = React.createRef<NavigationContainerRef>();
+
+  React.useEffect(() => {
+    reactNavigationV5Instrumentation.registerNavigationContainer(navigation);
+  }, []);
+
   return (
     <Provider store={store}>
-      <NavigationContainer>
+      <NavigationContainer ref={navigation}>
         <Stack.Navigator>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Tracker" component={TrackerScreen} />
+          <Stack.Screen name="ManualTracker" component={ManualTrackerScreen} />
           <Stack.Screen
             name="PerformanceTiming"
             component={PerformanceTimingScreen}
           />
+          <Stack.Screen name="Redux" component={ReduxScreen} />
           <Stack.Screen name="EndToEndTests" component={EndToEndTestsScreen} />
         </Stack.Navigator>
       </NavigationContainer>

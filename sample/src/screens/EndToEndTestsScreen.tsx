@@ -1,12 +1,15 @@
-// This screen is used solely for E2E tests and are not visible through the UI (no button to load it).
-import React, { useEffect } from 'react';
-import {ScrollView, Text, Platform} from 'react-native';
+import React from 'react';
+import {ScrollView, Text} from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
 
 import {getTestProps} from '../../utils/getTestProps';
 import {SENTRY_INTERNAL_DSN} from '../dsn';
 
+/**
+ * This screen is for internal end-to-end testing purposes only. Do not use.
+ * Not visible through the UI (no button to load it).
+ */
 const EndToEndTestsScreen = () => {
   const [eventId, setEventId] = React.useState(null);
 

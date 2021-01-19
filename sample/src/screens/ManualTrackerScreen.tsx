@@ -17,8 +17,33 @@ const TrackerScreen = () => {
     TotalRecovered: number;
   } | null>(null);
 
+  const transaction = React.useRef(null);
+
+  React.useEffect(() => {
+    // Initialize the transaction for the screen.
+    transaction.current = Sentry.startTransaction({
+      name: 'Tracker Screen',
+      op: 'navigation',
+    });
+
+    return () => {
+      // Finishing the transaction triggers sending the data to Sentry.
+      transaction.current?.finish();
+      transaction.current = null;
+      Sentry.configureScope((scope) => {
+        scope.setSpan(undefined);
+      });
+    };
+  }, []);
+
   const loadData = () => {
     setCases(null);
+
+    // Create a child span for the API call.
+    const span = transaction.current?.startChild({
+      op: 'http',
+      description: 'Fetch Covid19 data from API',
+    });
 
     fetch('https://api.covid19api.com/summary', {
       method: 'GET',
@@ -30,6 +55,9 @@ const TrackerScreen = () => {
       .then((response) => response.json())
       .then((json) => {
         setCases(json.Global);
+
+        span?.setData('json', json);
+        span?.finish();
       });
   };
 
@@ -45,17 +73,17 @@ const TrackerScreen = () => {
       <View style={styles.card}>
         {cases ? (
           <>
-            <ProfiledStatistic
+            <Statistic
               title="Confirmed"
               count={cases.TotalConfirmed}
               textColor="#C83852"
             />
-            <ProfiledStatistic
+            <Statistic
               title="Deaths"
               count={cases.TotalDeaths}
               textColor="#362D59"
             />
-            <ProfiledStatistic
+            <Statistic
               title="Recovered"
               count={cases.TotalRecovered}
               textColor="#69C289"
@@ -86,8 +114,6 @@ const Statistic = (props: {
     </View>
   );
 };
-
-const ProfiledStatistic = Sentry.withProfiler(Statistic);
 
 const styles = StyleSheet.create({
   screen: {

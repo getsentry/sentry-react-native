@@ -44,6 +44,7 @@ export {
   ErrorBoundary,
   withErrorBoundary,
   createReduxEnhancer,
+  withProfiler,
 } from "@sentry/react";
 
 import * as Integrations from "./integrations";
@@ -55,6 +56,13 @@ export { ReactNativeClient } from "./client";
 // eslint-disable-next-line deprecation/deprecation
 export { init, setDist, setRelease, nativeCrash } from "./sdk";
 export { TouchEventBoundary, withTouchEventBoundary } from "./touchevents";
+
+export {
+  ReactNativeTracing,
+  ReactNavigationV4Instrumentation,
+  ReactNavigationV5Instrumentation,
+  RoutingInstrumentation,
+} from "./tracing";
 
 /**
  * Adds the sdk info. Make sure this is called after @sentry/react's so this is the top-level SDK.

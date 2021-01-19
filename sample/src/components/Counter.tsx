@@ -7,7 +7,7 @@ const Counter = () => {
   const dispatch = useDispatch();
 
   return (
-    <View className="counter">
+    <View>
       <Text>Count:</Text>
       <Text>{counter}</Text>
       <TouchableOpacity

@@ -1,11 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
-
 import React from 'react';
 import {
   Image,
@@ -17,6 +9,11 @@ import {
   View,
 } from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
+import {
+  CommonActions,
+  useNavigation,
+  useNavigationState,
+} from '@react-navigation/native';
 
 import * as Sentry from '@sentry/react-native';
 
@@ -207,14 +204,40 @@ const HomeScreen = (props: Props) => {
               onPress={() => {
                 props.navigation.navigate('Tracker');
               }}>
-              <Text style={styles.buttonText}>Tracing Example</Text>
+              <Text style={styles.buttonText}>Auto Tracing Example</Text>
             </TouchableOpacity>
             <View style={styles.spacer} />
             <TouchableOpacity
               onPress={() => {
-                props.navigation.navigate('PerformanceTiming');
+                props.navigation.navigate('ManualTracker');
+              }}>
+              <Text style={styles.buttonText}>Manual Tracing Example</Text>
+            </TouchableOpacity>
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={() => {
+                // Navigate with a reset action just to test
+                props.navigation.dispatch(
+                  CommonActions.reset({
+                    index: 1,
+                    routes: [
+                      {name: 'Home'},
+                      {
+                        name: 'PerformanceTiming',
+                        params: {someParam: 'hello'},
+                      },
+                    ],
+                  }),
+                );
               }}>
               <Text style={styles.buttonText}>Performance Timing</Text>
+            </TouchableOpacity>
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={() => {
+                props.navigation.navigate('Redux');
+              }}>
+              <Text style={styles.buttonText}>Redux Example</Text>
             </TouchableOpacity>
           </View>
         </View>
