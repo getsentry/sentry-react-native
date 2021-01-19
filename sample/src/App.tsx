@@ -14,6 +14,7 @@ import TrackerScreen from './screens/TrackerScreen';
 import ManualTrackerScreen from './screens/ManualTrackerScreen';
 import PerformanceTimingScreen from './screens/PerformanceTimingScreen';
 import EndToEndTestsScreen from './screens/EndToEndTestsScreen';
+import ReduxScreen from './screens/ReduxScreen';
 
 import {store} from './reduxApp';
 import {version as packageVersion} from '../../package.json';
@@ -78,6 +79,7 @@ const App = () => {
             name="PerformanceTiming"
             component={PerformanceTimingScreen}
           />
+          <Stack.Screen name="Redux" component={ReduxScreen} />
           <Stack.Screen name="EndToEndTests" component={EndToEndTestsScreen} />
         </Stack.Navigator>
       </NavigationContainer>

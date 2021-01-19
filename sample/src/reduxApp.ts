@@ -22,6 +22,10 @@ const reducer = (state = initialState, action) => {
   }
 };
 
+/*
+  Example of how to use the Sentry redux enhancer packaged with @sentry/react:
+*/
+
 const sentryEnhancer = Sentry.createReduxEnhancer();
 
 const store = createStore(reducer, sentryEnhancer);

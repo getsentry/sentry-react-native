@@ -232,6 +232,13 @@ const HomeScreen = (props: Props) => {
               }}>
               <Text style={styles.buttonText}>Performance Timing</Text>
             </TouchableOpacity>
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={() => {
+                props.navigation.navigate('Redux');
+              }}>
+              <Text style={styles.buttonText}>Redux Example</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
