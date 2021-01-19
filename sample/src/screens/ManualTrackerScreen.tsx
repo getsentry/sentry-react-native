@@ -44,7 +44,7 @@ const TrackerScreen = () => {
       description: 'Fetch Covid19 data from API',
     });
 
-    fetch('https://api.covid19api.com/world/total', {
+    fetch('https://api.covid19api.com/summary', {
       method: 'GET',
       headers: {
         Accept: 'application/json',
@@ -53,7 +53,7 @@ const TrackerScreen = () => {
     })
       .then((response) => response.json())
       .then((json) => {
-        setCases(json);
+        setCases(json.Global);
 
         span?.setData('json', json);
         span?.finish();
