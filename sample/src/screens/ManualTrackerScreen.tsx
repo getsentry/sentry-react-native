@@ -2,9 +2,6 @@ import * as React from 'react';
 import {Button, View, StyleSheet, Text, ActivityIndicator} from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
-import {RouteProp} from '@react-navigation/native';
-
-import {ParamList} from '../types';
 
 /**
  * An example of how to add a Sentry Transaction to a React component manually.

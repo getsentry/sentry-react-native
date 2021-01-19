@@ -2,9 +2,6 @@ import * as React from 'react';
 import {Button, View, StyleSheet, Text, ActivityIndicator} from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
-import {RouteProp} from '@react-navigation/native';
-
-import {ParamList} from '../types';
 
 /**
  * An example of how to add a Sentry Transaction to a React component manually.
@@ -13,7 +10,7 @@ import {ParamList} from '../types';
  * This screen calls an API to get the latest COVID-19 Data to display. We attach a span
  * to the fetch call and track the time it takes for Promise to resolve.
  */
-const ManualTrackerScreen = () => {
+const TrackerScreen = () => {
   const [cases, setCases] = React.useState<{
     TotalConfirmed: number;
     TotalDeaths: number;
@@ -73,7 +70,7 @@ const ManualTrackerScreen = () => {
   );
 };
 
-export default Sentry.withProfiler(ManualTrackerScreen);
+export default Sentry.withProfiler(TrackerScreen);
 
 const Statistic = (props: {
   title: string;
