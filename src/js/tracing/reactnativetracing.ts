@@ -14,7 +14,7 @@ import {
 import { logger } from "@sentry/utils";
 
 import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
-import { adjustTransactionDuration, secToMs } from "./utils";
+import { adjustTransactionDuration } from "./utils";
 
 export interface ReactNativeTracingOptions
   extends RequestInstrumentationOptions {
@@ -194,7 +194,7 @@ export class ReactNativeTracing implements Integration {
     idleTransaction.registerBeforeFinishCallback(
       (transaction, endTimestamp) => {
         adjustTransactionDuration(
-          secToMs(maxTransactionDuration),
+          maxTransactionDuration,
           transaction,
           endTimestamp
         );
