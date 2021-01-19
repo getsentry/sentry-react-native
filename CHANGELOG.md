@@ -2,6 +2,7 @@
 
 # Unreleased
 
+- build(ios): Bump sentry-cocoa to 6.1.3 #1293
 - fix: pas maxBreadcrumbs to Android init
 - feat: Allow disabling native SDK initialization but still use it #1259
 - ref: Rename shouldInitializeNativeSdk to autoInitializeNativeSdk #1275
