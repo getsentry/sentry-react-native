@@ -1,8 +1,8 @@
 # Changelog
 
-# Unreleased
+## Unreleased
 
-# 2.2.0-beta.0
+## 2.2.0-beta.0
 
 - build(ios): Bump sentry-cocoa to 6.1.3 #1293
 - fix: pass maxBreadcrumbs to Android init
