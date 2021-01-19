@@ -23,6 +23,7 @@ const TrackerScreen = () => {
     // Initialize the transaction for the screen.
     transaction.current = Sentry.startTransaction({
       name: 'Tracker Screen',
+      op: 'navigation',
     });
 
     return () => {
