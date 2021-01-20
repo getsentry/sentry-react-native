@@ -1,6 +1,8 @@
 # Changelog
 
-# Unreleased
+
+## Unreleased
+## 2.1.1
 
 - build(android): Bump `sentry-android` to 3.2.1 #1296
 ## 2.1.0
