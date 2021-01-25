@@ -14,6 +14,10 @@
 - fix: Add fallback envelope item type to iOS. #1283
 - feat: Auto performance tracing with XHR/fetch, and routing instrumentation #1230
 
+## 2.1.1
+
+ - build(android): Bump `sentry-android` to 3.2.1 #1296
+
 ## 2.1.0
 
 - feat: Include @sentry/tracing and expose startTransaction #1167
