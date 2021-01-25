@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "@sentry-internal/eslint-config-sdk": "5.30.0",
-    "@sentry-internal/eslint-plugin-sdk": "5.30.0",
+    "@sentry-internal/eslint-plugin-sdk": "6.0.1",
     "@sentry/typescript": "^5.20.0",
     "@types/jest": "^26.0.15",
     "@types/react": "^16.9.49",
