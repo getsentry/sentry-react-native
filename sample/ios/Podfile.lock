@@ -1,6 +1,6 @@
 PODS:
   - boost-for-react-native (1.63.0)
-  - CocoaAsyncSocket (7.6.4)
+  - CocoaAsyncSocket (7.6.5)
   - CocoaLibEvent (1.0.0)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.63.3)
@@ -306,12 +306,12 @@ PODS:
     - React
   - RNScreens (2.10.1):
     - React
-  - RNSentry (2.1.0):
+  - RNSentry (2.2.0-beta.0):
     - React-Core
-    - Sentry (= 6.1.3)
-  - Sentry (6.1.3):
-    - Sentry/Core (= 6.1.3)
-  - Sentry/Core (6.1.3)
+    - Sentry (= 6.1.4)
+  - Sentry (6.1.4):
+    - Sentry/Core (= 6.1.4)
+  - Sentry/Core (6.1.4)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -455,7 +455,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
-  CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
+  CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
   DoubleConversion: cde416483dac037923206447da6e1454df403714
   FBLazyVector: 878b59e31113e289e275165efbe4b54fa614d43d
@@ -495,11 +495,11 @@ SPEC CHECKSUMS:
   RNGestureHandler: b6b359bb800ae399a9c8b27032bdbf7c18f08a08
   RNReanimated: 89f5e0a04d1dd52fbf27e7e7030d8f80a646a3fc
   RNScreens: b748efec66e095134c7166ca333b628cd7e6f3e2
-  RNSentry: 5674057510cde1582063fd4fa150194ba5042e92
-  Sentry: 5b741b3c932fa293c28ba6a6f510b72bd63c9993
+  RNSentry: b894f70e20c276e175d8083aa424d2b5fd2d4128
+  Sentry: 9d055e2de30a77685e86b219acf02e59b82091fc
   Yoga: 7d13633d129fd179e01b8953d38d47be90db185a
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
 PODFILE CHECKSUM: 9d75e167307300a63add2b53a03e1d19bb02cd35
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.9.3
