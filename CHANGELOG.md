@@ -13,6 +13,8 @@
 - build: Bump JS dependencies to 5.30.0 #1282
 - fix: Add fallback envelope item type to iOS. #1283
 - feat: Auto performance tracing with XHR/fetch, and routing instrumentation #1230
+- build(ios): Bump sentry-cocoa to 6.1.4 #1308
+- fix: Handle auto session tracking start on iOS #1308
 
 ## 2.1.1
 
