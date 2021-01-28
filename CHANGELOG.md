@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Bump: sentry-android to v4.0.0 #1309
+
 ## 2.2.0-beta.0
 
 - build(ios): Bump sentry-cocoa to 6.1.3 #1293
