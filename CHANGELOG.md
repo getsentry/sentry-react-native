@@ -4,7 +4,6 @@
 
 - build(ios): Bump sentry-cocoa to 6.1.4 #1308
 - fix: Handle auto session tracking start on iOS #1308
-- ref: Stop tracking sample Podfile.lock #1310
 
 ## 2.2.0-beta.0
 
