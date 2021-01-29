@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- build(ios): Bump sentry-cocoa to 6.1.4 #1308
+- fix: Handle auto session tracking start on iOS #1308
+
 ## 2.2.0-beta.0
 
 - build(ios): Bump sentry-cocoa to 6.1.3 #1293
