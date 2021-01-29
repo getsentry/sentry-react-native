@@ -48,6 +48,7 @@ Carthage/Checkouts
 
 # CocoaPods
 **/Pods
+**/Podfile.lock
 
 # Fastlane
 appium/fastlane/test_output/
