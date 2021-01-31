@@ -1,12 +1,13 @@
-import { TransactionContext } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
 import { RoutingInstrumentation } from "./routingInstrumentation";
+import { ReactNavigationTransactionContext } from "./types";
 
 export interface NavigationRouteV4 {
   routeName: string;
   key: string;
-  params?: Record<any, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  params?: Record<string, any>;
 }
 
 export interface NavigationStateV4 {
@@ -22,6 +23,7 @@ export interface AppContainerInstance {
     state: NavigationStateV4;
     router: {
       getStateForAction: (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         action: any,
         state: NavigationStateV4
       ) => NavigationStateV4;
@@ -138,7 +140,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
   private _getTransactionContext(
     route: NavigationRouteV4,
     previousRoute?: NavigationRouteV4
-  ): TransactionContext {
+  ): ReactNavigationTransactionContext {
     return {
       name: route.routeName,
       op: "navigation",

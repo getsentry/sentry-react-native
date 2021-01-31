@@ -1,15 +1,14 @@
-import {
-  Transaction as TransactionType,
-  TransactionContext,
-} from "@sentry/types";
+import { Transaction as TransactionType } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
 import { RoutingInstrumentation } from "./routingInstrumentation";
+import { ReactNavigationTransactionContext } from "./types";
 
 export interface NavigationRouteV5 {
   name: string;
   key: string;
-  params?: Record<any, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  params?: Record<string, any>;
 }
 
 interface NavigationContainerV5 {
@@ -94,10 +93,10 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
         this._latestTransaction &&
         (!previousRoute || previousRoute.key !== route.key)
       ) {
-        const originalContext = this._latestTransaction.toContext();
+        const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
         const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
 
-        const updatedContext = {
+        const updatedContext: ReactNavigationTransactionContext = {
           ...originalContext,
           name: route.name,
           tags: {
@@ -173,4 +172,5 @@ export const BLANK_TRANSACTION_CONTEXT = {
     "routing.instrumentation":
       ReactNavigationV5Instrumentation.instrumentationName,
   },
+  data: {},
 };
