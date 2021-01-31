@@ -121,8 +121,19 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
           },
         };
 
-        const finalContext =
-          this._beforeNavigate?.(updatedContext) ?? updatedContext;
+        let finalContext = this._beforeNavigate?.(updatedContext);
+
+        // This block is to catch users not returning a transaction context
+        if (!finalContext) {
+          logger.error(
+            `[ReactNavigationV5Instrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
+          );
+
+          finalContext = {
+            ...updatedContext,
+            sampled: false,
+          };
+        }
 
         if (finalContext.sampled) {
           // Clear the timeout so the transaction does not get cancelled.
@@ -132,7 +143,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
           }
         } else {
           logger.log(
-            `[ReactNavigationV5Instrumentation] Will not send transaction "${this._latestTransaction.name}" due to shouldSendTransaction.`
+            `[ReactNavigationV5Instrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
           );
         }
 

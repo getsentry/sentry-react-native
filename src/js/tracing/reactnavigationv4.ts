@@ -118,12 +118,23 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
     // If the route is a different key, this is so we ignore actions that pertain to the same screen.
     if (!this._prevRoute || currentRoute.key !== this._prevRoute.key) {
       const originalContext = this._getTransactionContext(currentRoute);
-      const finalContext =
-        this._beforeNavigate?.(originalContext) ?? originalContext;
+      let finalContext = this._beforeNavigate?.(originalContext);
+
+      // This block is to catch users not returning a transaction context
+      if (!finalContext) {
+        logger.error(
+          `[ReactNavigationV4Instrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
+        );
+
+        finalContext = {
+          ...originalContext,
+          sampled: false,
+        };
+      }
 
       if (finalContext.sampled === false) {
         logger.log(
-          `[ReactNavigationV4Instrumentation] Will not send transaction "${finalContext.name}" due to shouldSendTransaction.`
+          `[ReactNavigationV4Instrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
         );
       }
 
