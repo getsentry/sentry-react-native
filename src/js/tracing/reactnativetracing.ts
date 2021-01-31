@@ -172,7 +172,7 @@ export class ReactNativeTracing implements Integration {
       true
     );
     logger.log(
-      `[ReactNativeTracing] Starting ${context.op} transaction on scope`
+      `[ReactNativeTracing] Starting ${context.op} transaction "${context.name}" on scope`
     );
     idleTransaction.registerBeforeFinishCallback(
       (transaction, endTimestamp) => {
@@ -187,12 +187,16 @@ export class ReactNativeTracing implements Integration {
     if (this.options.ignoreEmptyBackNavigationTransactions) {
       idleTransaction.registerBeforeFinishCallback((transaction) => {
         if (
-          transaction.data["routing.route.hasBeenSeen"] &&
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          transaction.data?.route?.hasBeenSeen &&
           (!transaction.spanRecorder ||
             transaction.spanRecorder.spans.filter(
               (span) => span.spanId !== transaction.spanId
             ).length === 0)
         ) {
+          logger.log(
+            `[ReactNativeTracing] Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.`
+          );
           // Route has been seen before and has no child spans.
           transaction.sampled = false;
         }
