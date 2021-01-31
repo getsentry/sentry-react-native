@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Transaction } from "@sentry/tracing";
+
 import {
   AppContainerInstance,
+  BLANK_TRANSACTION_CONTEXT_V4,
   NavigationRouteV4,
   NavigationStateV4,
   ReactNavigationV4Instrumentation,
@@ -12,6 +15,14 @@ const initialRoute = {
   params: {
     hello: true,
   },
+};
+
+const getMockTransaction = () => {
+  const transaction = new Transaction(BLANK_TRANSACTION_CONTEXT_V4);
+
+  transaction.sampled = false;
+
+  return transaction;
 };
 
 class MockAppContainer implements AppContainerInstance {
@@ -72,7 +83,8 @@ describe("ReactNavigationV4Instrumentation", () => {
   test("transaction set on initialize", () => {
     const instrumentation = new ReactNavigationV4Instrumentation();
 
-    instrumentation.onRouteWillChange = jest.fn();
+    const mockTransaction = getMockTransaction();
+    instrumentation.onRouteWillChange = jest.fn(() => mockTransaction);
 
     const tracingListener = jest.fn();
     instrumentation.registerRoutingInstrumentation(
@@ -93,30 +105,32 @@ describe("ReactNavigationV4Instrumentation", () => {
     expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(1);
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(instrumentation.onRouteWillChange).toHaveBeenLastCalledWith({
-      name: firstRoute.routeName,
-      op: "navigation",
-      tags: {
-        "routing.instrumentation":
-          ReactNavigationV4Instrumentation.instrumentationName,
-        "routing.route.name": firstRoute.routeName,
+    expect(instrumentation.onRouteWillChange).toHaveBeenLastCalledWith(
+      BLANK_TRANSACTION_CONTEXT_V4
+    );
+
+    expect(mockTransaction.name).toBe(firstRoute.routeName);
+    expect(mockTransaction.tags).toStrictEqual({
+      "routing.instrumentation":
+        ReactNavigationV4Instrumentation.instrumentationName,
+      "routing.route.name": firstRoute.routeName,
+    });
+    expect(mockTransaction.data).toStrictEqual({
+      route: {
+        name: firstRoute.routeName,
+        key: firstRoute.key,
+        params: firstRoute.params,
+        hasBeenSeen: false,
       },
-      data: {
-        route: {
-          name: firstRoute.routeName,
-          key: firstRoute.key,
-          params: firstRoute.params,
-          hasBeenSeen: false,
-        },
-        previousRoute: null,
-      },
+      previousRoute: null,
     });
   });
 
   test("transaction sent on navigation", () => {
     const instrumentation = new ReactNavigationV4Instrumentation();
 
-    instrumentation.onRouteWillChange = jest.fn();
+    const mockTransaction = getMockTransaction();
+    instrumentation.onRouteWillChange = jest.fn(() => mockTransaction);
 
     const tracingListener = jest.fn();
     instrumentation.registerRoutingInstrumentation(
@@ -172,7 +186,8 @@ describe("ReactNavigationV4Instrumentation", () => {
   test("transaction context changed with beforeNavigate", () => {
     const instrumentation = new ReactNavigationV4Instrumentation();
 
-    const tracingListener = jest.fn();
+    const mockTransaction = getMockTransaction();
+    const tracingListener = jest.fn(() => mockTransaction);
     instrumentation.registerRoutingInstrumentation(
       tracingListener as any,
       (context) => {
@@ -231,7 +246,8 @@ describe("ReactNavigationV4Instrumentation", () => {
   test("transaction not attached on a cancelled navigation", () => {
     const instrumentation = new ReactNavigationV4Instrumentation();
 
-    instrumentation.onRouteWillChange = jest.fn();
+    const mockTransaction = getMockTransaction();
+    instrumentation.onRouteWillChange = jest.fn(() => mockTransaction);
 
     const tracingListener = jest.fn();
     instrumentation.registerRoutingInstrumentation(

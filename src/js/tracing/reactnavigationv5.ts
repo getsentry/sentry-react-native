@@ -72,7 +72,9 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
    * and gets the route information from there, @see _onStateChange
    */
   private _onDispatch(): void {
-    this._latestTransaction = this.onRouteWillChange(BLANK_TRANSACTION_CONTEXT);
+    this._latestTransaction = this.onRouteWillChange(
+      BLANK_TRANSACTION_CONTEXT_V5
+    );
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
@@ -93,7 +95,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
         this._latestTransaction &&
         (!previousRoute || previousRoute.key !== route.key)
       ) {
-        const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
+        const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT_V5;
         const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
 
         const updatedContext: ReactNavigationTransactionContext = {
@@ -176,7 +178,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   }
 }
 
-export const BLANK_TRANSACTION_CONTEXT = {
+export const BLANK_TRANSACTION_CONTEXT_V5 = {
   name: "Route Change",
   op: "navigation",
   tags: {

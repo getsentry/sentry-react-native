@@ -1,6 +1,11 @@
+import { Transaction } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
-import { RoutingInstrumentation } from "./routingInstrumentation";
+import { BeforeNavigate } from "./reactnativetracing";
+import {
+  RoutingInstrumentation,
+  TransactionCreator,
+} from "./routingInstrumentation";
 import { ReactNavigationTransactionContext } from "./types";
 
 export interface NavigationRouteV4 {
@@ -49,6 +54,22 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
   private _prevRoute?: NavigationRouteV4;
   private _recentRouteKeys: string[] = [];
 
+  private _latestTransaction?: Transaction;
+  private _shouldUpdateLatestTransaction: boolean = false;
+
+  /**
+   * Extends by calling _handleInitialState at the end.
+   */
+  public registerRoutingInstrumentation(
+    listener: TransactionCreator,
+    beforeNavigate: BeforeNavigate
+  ): void {
+    super.registerRoutingInstrumentation(listener, beforeNavigate);
+
+    // Need to handle the initial state as the router patch will only attach transactions on subsequent route changes.
+    this._handleInitialState();
+  }
+
   /**
    * Pass the ref to the app container to register it to the instrumentation
    * @param appContainerRef Ref to an `AppContainer`
@@ -71,8 +92,10 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
     } else {
       this._patchRouter();
 
-      // Need to handle the initial state as the router patch will only attach transactions on subsequent route changes.
-      this._handleInitialState();
+      if (this._shouldUpdateLatestTransaction) {
+        this._updateLatestTransaction();
+        this._shouldUpdateLatestTransaction = false;
+      }
     }
   }
 
@@ -80,10 +103,22 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
    * Starts an idle transaction for the initial state which won't get called by the router listener.
    */
   private _handleInitialState(): void {
-    if (this._appContainerRef.current) {
-      const state = this._appContainerRef.current._navigation.state;
+    this._latestTransaction = this.onRouteWillChange(
+      BLANK_TRANSACTION_CONTEXT_V4
+    );
 
-      this._onStateChange(state);
+    // We set this to true so when registerAppContainer is called, the transaction gets updated with the actual route data
+    this._shouldUpdateLatestTransaction = true;
+  }
+
+  /**
+   * Updates the latest transaction with the current state and calls beforeNavigate.
+   */
+  private _updateLatestTransaction(): void {
+    // We can assume the ref is present as this is called from registerAppContainer
+    if (this._appContainerRef.current && this._latestTransaction) {
+      const state = this._appContainerRef.current._navigation.state;
+      this._onStateChange(state, true);
     }
   }
 
@@ -112,7 +147,10 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
   /**
    * To be called on navigation state changes and creates the transaction.
    */
-  private _onStateChange(state: NavigationStateV4): void {
+  private _onStateChange(
+    state: NavigationStateV4,
+    updateLatestTransaction: boolean = false
+  ): void {
     const currentRoute = this._getCurrentRouteFromState(state);
 
     // If the route is a different key, this is so we ignore actions that pertain to the same screen.
@@ -136,12 +174,15 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
       }
 
       if (finalContext.sampled === false) {
-        logger.log(
-          `[ReactNavigationV4Instrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
-        );
+        this._onBeforeNavigateNotSampled(finalContext.name);
       }
 
-      this.onRouteWillChange(finalContext);
+      if (updateLatestTransaction && this._latestTransaction) {
+        // Update the latest transaction instead of calling onRouteWillChange
+        this._latestTransaction.updateWithContext(finalContext);
+      } else {
+        this._latestTransaction = this.onRouteWillChange(finalContext);
+      }
 
       this._pushRecentRouteKey(currentRoute.key);
       this._prevRoute = currentRoute;
@@ -211,6 +252,23 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
       );
     }
   };
+
+  /** Helper to log a transaction that was not sampled due to beforeNavigate */
+  private _onBeforeNavigateNotSampled = (transactionName: string): void => {
+    logger.log(
+      `[ReactNavigationV4Instrumentation] Will not send transaction "${transactionName}" due to beforeNavigate.`
+    );
+  };
 }
 
-export { ReactNavigationV4Instrumentation };
+const BLANK_TRANSACTION_CONTEXT_V4 = {
+  name: "Route Change",
+  op: "navigation",
+  tags: {
+    "routing.instrumentation":
+      ReactNavigationV4Instrumentation.instrumentationName,
+  },
+  data: {},
+};
+
+export { ReactNavigationV4Instrumentation, BLANK_TRANSACTION_CONTEXT_V4 };
