@@ -1,4 +1,7 @@
-import { Transaction as TransactionType } from "@sentry/types";
+import {
+  Transaction as TransactionType,
+  TransactionContext,
+} from "@sentry/types";
 import { logger } from "@sentry/utils";
 
 import { RoutingInstrumentation } from "./routingInstrumentation";
@@ -12,13 +15,6 @@ export interface NavigationRouteV5 {
 interface NavigationContainerV5 {
   addListener: (type: string, listener: () => void) => void;
   getCurrentRoute: () => NavigationRouteV5;
-}
-
-interface ReactNavigationV5InstrumentationOptions {
-  shouldSendTransaction?(
-    route: NavigationRouteV5,
-    previousRoute?: NavigationRouteV5
-  ): boolean;
 }
 
 type NavigationContainerV5Ref = {
@@ -38,8 +34,6 @@ const STATE_CHANGE_TIMEOUT_DURATION = 200;
 export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   static instrumentationName: string = "react-navigation-v5";
 
-  private _options: ReactNavigationV5InstrumentationOptions;
-
   private _navigationContainerRef: NavigationContainerV5Ref = {
     current: null,
   };
@@ -50,12 +44,6 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   private _latestTransaction?: TransactionType;
   private _stateChangeTimeout?: number | undefined;
   private _recentRouteKeys: string[] = [];
-
-  constructor(_options: Partial<ReactNavigationV5InstrumentationOptions> = {}) {
-    super();
-
-    this._options = _options;
-  }
 
   /**
    * Pass the ref to the navigation container to register it to the instrumentation
@@ -85,14 +73,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
    * and gets the route information from there, @see _onStateChange
    */
   private _onDispatch(): void {
-    this._latestTransaction = this.onRouteWillChange({
-      name: "Route Change",
-      op: "navigation",
-      tags: {
-        "routing.instrumentation":
-          ReactNavigationV5Instrumentation.instrumentationName,
-      },
-    });
+    this._latestTransaction = this.onRouteWillChange(BLANK_TRANSACTION_CONTEXT);
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
@@ -113,23 +94,38 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
         this._latestTransaction &&
         (!previousRoute || previousRoute.key !== route.key)
       ) {
-        this._latestTransaction.setName(route.name);
-        this._latestTransaction.setTag("routing.route.name", route.name);
-        this._latestTransaction.setData("routing.route.key", route.key);
-        this._latestTransaction.setData("routing.route.params", route.params);
-
+        const originalContext = this._latestTransaction.toContext();
         const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
-        this._latestTransaction.setData(
-          "routing.route.hasBeenSeen",
-          routeHasBeenSeen
-        );
 
-        const willSendTransaction =
-          typeof this._options.shouldSendTransaction === "function"
-            ? this._options.shouldSendTransaction(route, previousRoute)
-            : true;
+        const updatedContext = {
+          ...originalContext,
+          name: route.name,
+          tags: {
+            ...originalContext.tags,
+            "routing.route.name": route.name,
+          },
+          data: {
+            ...originalContext.data,
+            route: {
+              name: route.name,
+              key: route.key,
+              params: route.params ?? {},
+              hasBeenSeen: routeHasBeenSeen,
+            },
+            previousRoute: previousRoute
+              ? {
+                  name: previousRoute.name,
+                  key: previousRoute.key,
+                  params: previousRoute.params ?? {},
+                }
+              : null,
+          },
+        };
 
-        if (willSendTransaction) {
+        const finalContext =
+          this._beforeNavigate?.(updatedContext) ?? updatedContext;
+
+        if (finalContext.sampled) {
           // Clear the timeout so the transaction does not get cancelled.
           if (typeof this._stateChangeTimeout !== "undefined") {
             clearTimeout(this._stateChangeTimeout);
@@ -140,6 +136,8 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
             `[ReactNavigationV5Instrumentation] Will not send transaction "${this._latestTransaction.name}" due to shouldSendTransaction.`
           );
         }
+
+        this._latestTransaction.updateWithContext(finalContext);
       }
 
       this._pushRecentRouteKey(route.key);
@@ -167,3 +165,12 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
     }
   }
 }
+
+export const BLANK_TRANSACTION_CONTEXT = {
+  name: "Route Change",
+  op: "navigation",
+  tags: {
+    "routing.instrumentation":
+      ReactNavigationV5Instrumentation.instrumentationName,
+  },
+};

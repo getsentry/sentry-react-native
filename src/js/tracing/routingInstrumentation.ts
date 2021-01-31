@@ -1,6 +1,8 @@
 import { Hub } from "@sentry/hub";
 import { Transaction, TransactionContext } from "@sentry/types";
 
+import { BeforeNavigate } from "./reactnativetracing";
+
 export type TransactionCreator = (
   context: TransactionContext
 ) => Transaction | undefined;
@@ -12,8 +14,12 @@ export interface RoutingInstrumentationInstance {
    * Do not overwrite this unless you know what you are doing.
    *
    * @param listener A `RouteListener`
+   * @param beforeNavigate BeforeNavigate
    */
-  registerRoutingInstrumentation(listener: TransactionCreator): void;
+  registerRoutingInstrumentation(
+    listener: TransactionCreator,
+    beforeNavigate: BeforeNavigate
+  ): void;
   /**
    * To be called when the route changes, BEFORE the new route mounts.
    * If this is called after a route mounts the child spans will not be correctly attached.
@@ -29,12 +35,17 @@ export interface RoutingInstrumentationInstance {
  */
 export class RoutingInstrumentation implements RoutingInstrumentationInstance {
   protected _getCurrentHub?: () => Hub;
+  protected _beforeNavigate?: BeforeNavigate;
 
   private _tracingListener?: TransactionCreator;
 
   /** @inheritdoc */
-  registerRoutingInstrumentation(listener: TransactionCreator): void {
+  registerRoutingInstrumentation(
+    listener: TransactionCreator,
+    beforeNavigate: BeforeNavigate
+  ): void {
     this._tracingListener = listener;
+    this._beforeNavigate = beforeNavigate;
   }
 
   /** @inheritdoc */
