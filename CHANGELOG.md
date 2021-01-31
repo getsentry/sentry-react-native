@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- feat: Use beforeNavigate in routing instrumentation to match behavior on JS #1313
+
 ## 2.2.0-beta.0
 
 - build(ios): Bump sentry-cocoa to 6.1.3 #1293
