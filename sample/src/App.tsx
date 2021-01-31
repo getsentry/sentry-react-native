@@ -20,17 +20,7 @@ import {store} from './reduxApp';
 import {version as packageVersion} from '../../package.json';
 import {SENTRY_INTERNAL_DSN} from './dsn';
 
-const reactNavigationV5Instrumentation = new Sentry.ReactNavigationV5Instrumentation(
-  {
-    shouldSendTransaction: (route, previousRoute) => {
-      if (route.name === 'ManualTracker') {
-        return false;
-      }
-
-      return true;
-    },
-  },
-);
+const reactNavigationV5Instrumentation = new Sentry.ReactNavigationV5Instrumentation();
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
@@ -46,6 +36,14 @@ Sentry.init({
       idleTimeout: 5000,
       routingInstrumentation: reactNavigationV5Instrumentation,
       tracingOrigins: ['localhost', /^\//, /^https:\/\//],
+      beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
+        // Example of not sending a transaction for the screen with the name "Manual Tracker"
+        if (context.data.route.name === 'ManualTracker') {
+          context.sampled = false;
+        }
+
+        return context;
+      },
     }),
   ],
   enableAutoSessionTracking: true,
