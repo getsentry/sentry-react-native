@@ -2,7 +2,7 @@
 import { Transaction } from "@sentry/tracing";
 
 import {
-  BLANK_TRANSACTION_CONTEXT,
+  BLANK_TRANSACTION_CONTEXT_V5,
   NavigationRouteV5,
   ReactNavigationV5Instrumentation,
 } from "../../src/js/tracing/reactnavigationv5";
@@ -24,7 +24,7 @@ class MockNavigationContainer {
 }
 
 const getMockTransaction = () => {
-  const transaction = new Transaction(BLANK_TRANSACTION_CONTEXT);
+  const transaction = new Transaction(BLANK_TRANSACTION_CONTEXT_V5);
 
   transaction.sampled = false;
 
@@ -52,7 +52,7 @@ describe("ReactNavigationV5Instrumentation", () => {
 
     expect(mockTransaction.name).toBe(dummyRoute.name);
     expect(mockTransaction.tags).toStrictEqual({
-      ...BLANK_TRANSACTION_CONTEXT.tags,
+      ...BLANK_TRANSACTION_CONTEXT_V5.tags,
       "routing.route.name": dummyRoute.name,
     });
     expect(mockTransaction.data).toStrictEqual({
@@ -107,7 +107,7 @@ describe("ReactNavigationV5Instrumentation", () => {
 
         expect(mockTransaction.name).toBe(route.name);
         expect(mockTransaction.tags).toStrictEqual({
-          ...BLANK_TRANSACTION_CONTEXT.tags,
+          ...BLANK_TRANSACTION_CONTEXT_V5.tags,
           "routing.route.name": route.name,
         });
         expect(mockTransaction.data).toStrictEqual({
@@ -210,10 +210,10 @@ describe("ReactNavigationV5Instrumentation", () => {
       setTimeout(() => {
         expect(mockTransaction.sampled).toBe(false);
         expect(mockTransaction.name).toStrictEqual(
-          BLANK_TRANSACTION_CONTEXT.name
+          BLANK_TRANSACTION_CONTEXT_V5.name
         );
         expect(mockTransaction.tags).toStrictEqual(
-          BLANK_TRANSACTION_CONTEXT.tags
+          BLANK_TRANSACTION_CONTEXT_V5.tags
         );
         expect(mockTransaction.data).toStrictEqual({});
         resolve();

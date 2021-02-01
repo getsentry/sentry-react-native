@@ -1,7 +1,11 @@
 import { Transaction as TransactionType } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
-import { RoutingInstrumentation } from "./routingInstrumentation";
+import { BeforeNavigate } from "./reactnativetracing";
+import {
+  RoutingInstrumentation,
+  TransactionCreator,
+} from "./routingInstrumentation";
 import { ReactNavigationTransactionContext } from "./types";
 
 export interface NavigationRouteV5 {
@@ -41,8 +45,22 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
 
   private _latestRoute?: NavigationRouteV5;
   private _latestTransaction?: TransactionType;
+  private _shouldUpdateLatestTransactionOnRef: boolean = false;
   private _stateChangeTimeout?: number | undefined;
   private _recentRouteKeys: string[] = [];
+
+  /**
+   * Extends by calling _handleInitialState at the end.
+   */
+  public registerRoutingInstrumentation(
+    listener: TransactionCreator,
+    beforeNavigate: BeforeNavigate
+  ): void {
+    super.registerRoutingInstrumentation(listener, beforeNavigate);
+
+    // Need to handle the initial state as the navigation container listeners will only start transactions on subsequent route changes.
+    this._handleInitialState();
+  }
 
   /**
    * Pass the ref to the navigation container to register it to the instrumentation
@@ -61,9 +79,20 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
       this._onStateChange.bind(this)
     );
 
+    if (this._shouldUpdateLatestTransactionOnRef) {
+      this._onStateChange();
+      this._shouldUpdateLatestTransactionOnRef = false;
+    }
+  }
+
+  /**
+   *
+   */
+  private _handleInitialState(): void {
     // This will set a transaction for the initial screen.
     this._onDispatch();
-    this._onStateChange();
+
+    this._shouldUpdateLatestTransactionOnRef = true;
   }
 
   /**
@@ -72,7 +101,9 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
    * and gets the route information from there, @see _onStateChange
    */
   private _onDispatch(): void {
-    this._latestTransaction = this.onRouteWillChange(BLANK_TRANSACTION_CONTEXT);
+    this._latestTransaction = this.onRouteWillChange(
+      BLANK_TRANSACTION_CONTEXT_V5
+    );
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
@@ -93,7 +124,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
         this._latestTransaction &&
         (!previousRoute || previousRoute.key !== route.key)
       ) {
-        const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
+        const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT_V5;
         const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
 
         const updatedContext: ReactNavigationTransactionContext = {
@@ -176,7 +207,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   }
 }
 
-export const BLANK_TRANSACTION_CONTEXT = {
+export const BLANK_TRANSACTION_CONTEXT_V5 = {
   name: "Route Change",
   op: "navigation",
   tags: {
