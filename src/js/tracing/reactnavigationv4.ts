@@ -46,7 +46,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
 
   private readonly _maxRecentRouteLen: number = 200;
 
-  private _prevRoute: NavigationRouteV4 | null = null;
+  private _prevRoute?: NavigationRouteV4;
   private _recentRouteKeys: string[] = [];
 
   /**
@@ -117,7 +117,10 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
 
     // If the route is a different key, this is so we ignore actions that pertain to the same screen.
     if (!this._prevRoute || currentRoute.key !== this._prevRoute.key) {
-      const originalContext = this._getTransactionContext(currentRoute);
+      const originalContext = this._getTransactionContext(
+        currentRoute,
+        this._prevRoute
+      );
       let finalContext = this._beforeNavigate?.(originalContext);
 
       // This block is to catch users not returning a transaction context
