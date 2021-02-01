@@ -16,6 +16,10 @@ import { logger } from "@sentry/utils";
 import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
 import { adjustTransactionDuration } from "./utils";
 
+export type BeforeNavigate = (
+  context: TransactionContext
+) => TransactionContext;
+
 export interface ReactNativeTracingOptions
   extends RequestInstrumentationOptions {
   /**
@@ -48,7 +52,7 @@ export interface ReactNativeTracingOptions
    *
    * Default: true
    */
-  ignoreEmptyBackNavigationTransactions?: boolean;
+  ignoreEmptyBackNavigationTransactions: boolean;
 
   /**
    * beforeNavigate is called before a navigation transaction is created and allows users to modify transaction
@@ -58,7 +62,7 @@ export interface ReactNativeTracingOptions
    *
    * @returns A (potentially) modified context object, with `sampled = false` if the transaction should be dropped.
    */
-  beforeNavigate?(context: TransactionContext): TransactionContext;
+  beforeNavigate: BeforeNavigate;
 }
 
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
@@ -66,6 +70,7 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   idleTimeout: 1000,
   maxTransactionDuration: 600,
   ignoreEmptyBackNavigationTransactions: true,
+  beforeNavigate: (context) => context,
 };
 
 /**
@@ -114,7 +119,8 @@ export class ReactNativeTracing implements Integration {
     this._getCurrentHub = getCurrentHub;
 
     routingInstrumentation?.registerRoutingInstrumentation(
-      this._onRouteWillChange.bind(this)
+      this._onRouteWillChange.bind(this),
+      this.options.beforeNavigate
     );
 
     if (!routingInstrumentation) {
@@ -128,14 +134,6 @@ export class ReactNativeTracing implements Integration {
       traceXHR,
       tracingOrigins,
       shouldCreateSpanForRequest,
-    });
-
-    addGlobalEventProcessor((event) => {
-      // eslint-disable-next-line no-empty
-      if (event.type === "transaction") {
-      }
-
-      return event;
     });
   }
 
@@ -159,37 +157,22 @@ export class ReactNativeTracing implements Integration {
     }
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const {
-      beforeNavigate,
-      idleTimeout,
-      maxTransactionDuration,
-    } = this.options;
+    const { idleTimeout, maxTransactionDuration } = this.options;
 
     const expandedContext = {
       ...context,
       trimEnd: true,
     };
 
-    const modifiedContext =
-      typeof beforeNavigate === "function"
-        ? beforeNavigate(expandedContext)
-        : expandedContext;
-
-    if (modifiedContext.sampled === false) {
-      logger.log(
-        `[ReactNativeTracing] Will not send ${context.op} transaction.`
-      );
-    }
-
     const hub = this._getCurrentHub();
     const idleTransaction = startIdleTransaction(
       hub as any,
-      context,
+      expandedContext,
       idleTimeout,
       true
     );
     logger.log(
-      `[ReactNativeTracing] Starting ${context.op} transaction on scope`
+      `[ReactNativeTracing] Starting ${context.op} transaction "${context.name}" on scope`
     );
     idleTransaction.registerBeforeFinishCallback(
       (transaction, endTimestamp) => {
@@ -204,12 +187,16 @@ export class ReactNativeTracing implements Integration {
     if (this.options.ignoreEmptyBackNavigationTransactions) {
       idleTransaction.registerBeforeFinishCallback((transaction) => {
         if (
-          transaction.data["routing.route.hasBeenSeen"] &&
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          transaction.data?.route?.hasBeenSeen &&
           (!transaction.spanRecorder ||
             transaction.spanRecorder.spans.filter(
               (span) => span.spanId !== transaction.spanId
             ).length === 0)
         ) {
+          logger.log(
+            `[ReactNativeTracing] Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.`
+          );
           // Route has been seen before and has no child spans.
           transaction.sampled = false;
         }

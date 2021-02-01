@@ -1,12 +1,13 @@
-import { TransactionContext } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
 import { RoutingInstrumentation } from "./routingInstrumentation";
+import { ReactNavigationTransactionContext } from "./types";
 
 export interface NavigationRouteV4 {
   routeName: string;
   key: string;
-  params?: Record<any, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  params?: Record<string, any>;
 }
 
 export interface NavigationStateV4 {
@@ -22,6 +23,7 @@ export interface AppContainerInstance {
     state: NavigationStateV4;
     router: {
       getStateForAction: (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         action: any,
         state: NavigationStateV4
       ) => NavigationStateV4;
@@ -33,22 +35,6 @@ interface AppContainerRef {
   current?: AppContainerInstance | null;
 }
 
-type ReactNavigationV4ShouldAttachTransaction = (
-  route: NavigationRouteV4,
-  previousRoute: NavigationRouteV4 | null
-) => boolean;
-
-interface ReactNavigationV4InstrumentationOptions {
-  shouldSendTransaction: ReactNavigationV4ShouldAttachTransaction;
-}
-
-const defaultShouldAttachTransaction: ReactNavigationV4ShouldAttachTransaction = () =>
-  true;
-
-const DEFAULT_OPTIONS: ReactNavigationV4InstrumentationOptions = {
-  shouldSendTransaction: defaultShouldAttachTransaction,
-};
-
 /**
  * Instrumentation for React-Navigation V4.
  * Register the app container with `registerAppContainer` to use, or see docs for more details.
@@ -58,21 +44,10 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
 
   private _appContainerRef: AppContainerRef = { current: null };
 
-  private _options: ReactNavigationV4InstrumentationOptions;
-
   private readonly _maxRecentRouteLen: number = 200;
 
-  private _prevRoute: NavigationRouteV4 | null = null;
+  private _prevRoute?: NavigationRouteV4;
   private _recentRouteKeys: string[] = [];
-
-  constructor(options: Partial<ReactNavigationV4InstrumentationOptions> = {}) {
-    super();
-
-    this._options = {
-      ...DEFAULT_OPTIONS,
-      ...options,
-    };
-  }
 
   /**
    * Pass the ref to the app container to register it to the instrumentation
@@ -142,16 +117,31 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
 
     // If the route is a different key, this is so we ignore actions that pertain to the same screen.
     if (!this._prevRoute || currentRoute.key !== this._prevRoute.key) {
-      const context = this._getTransactionContext(currentRoute);
+      const originalContext = this._getTransactionContext(
+        currentRoute,
+        this._prevRoute
+      );
+      let finalContext = this._beforeNavigate?.(originalContext);
 
-      if (!this._options.shouldSendTransaction(currentRoute, this._prevRoute)) {
-        context.sampled = false;
+      // This block is to catch users not returning a transaction context
+      if (!finalContext) {
+        logger.error(
+          `[ReactNavigationV4Instrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
+        );
+
+        finalContext = {
+          ...originalContext,
+          sampled: false,
+        };
+      }
+
+      if (finalContext.sampled === false) {
         logger.log(
-          `[ReactNavigationV4Instrumentation] Will not send transaction "${context.name}" due to shouldSendTransaction.`
+          `[ReactNavigationV4Instrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
         );
       }
 
-      this.onRouteWillChange(context);
+      this.onRouteWillChange(finalContext);
 
       this._pushRecentRouteKey(currentRoute.key);
       this._prevRoute = currentRoute;
@@ -161,7 +151,10 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
   /**
    * Gets the transaction context for a `NavigationRouteV4`
    */
-  private _getTransactionContext(route: NavigationRouteV4): TransactionContext {
+  private _getTransactionContext(
+    route: NavigationRouteV4,
+    previousRoute?: NavigationRouteV4
+  ): ReactNavigationTransactionContext {
     return {
       name: route.routeName,
       op: "navigation",
@@ -171,9 +164,19 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
         "routing.route.name": route.routeName,
       },
       data: {
-        "routing.route.key": route.key,
-        "routing.route.params": route.params,
-        "routing.route.hasBeenSeen": this._recentRouteKeys.includes(route.key),
+        route: {
+          name: route.routeName, // Include name here too for use in `beforeNavigate`
+          key: route.key,
+          params: route.params ?? {},
+          hasBeenSeen: this._recentRouteKeys.includes(route.key),
+        },
+        previousRoute: previousRoute
+          ? {
+              name: previousRoute.routeName,
+              key: previousRoute.key,
+              params: previousRoute.params ?? {},
+            }
+          : null,
       },
     };
   }

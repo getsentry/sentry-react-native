@@ -62,6 +62,7 @@ export {
   ReactNavigationV4Instrumentation,
   ReactNavigationV5Instrumentation,
   RoutingInstrumentation,
+  ReactNavigationTransactionContext,
 } from "./tracing";
 
 /**
