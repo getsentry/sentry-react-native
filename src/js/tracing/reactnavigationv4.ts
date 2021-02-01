@@ -104,7 +104,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
    */
   private _handleInitialState(): void {
     this._latestTransaction = this.onRouteWillChange(
-      BLANK_TRANSACTION_CONTEXT_V4
+      INITIAL_TRANSACTION_CONTEXT_V4
     );
 
     // We set this to true so when registerAppContainer is called, the transaction gets updated with the actual route data
@@ -261,8 +261,8 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
   };
 }
 
-const BLANK_TRANSACTION_CONTEXT_V4 = {
-  name: "Route Change",
+const INITIAL_TRANSACTION_CONTEXT_V4 = {
+  name: "App Launch",
   op: "navigation",
   tags: {
     "routing.instrumentation":
@@ -271,4 +271,4 @@ const BLANK_TRANSACTION_CONTEXT_V4 = {
   data: {},
 };
 
-export { ReactNavigationV4Instrumentation, BLANK_TRANSACTION_CONTEXT_V4 };
+export { ReactNavigationV4Instrumentation, INITIAL_TRANSACTION_CONTEXT_V4 };

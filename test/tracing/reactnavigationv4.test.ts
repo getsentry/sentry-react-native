@@ -3,7 +3,7 @@ import { Transaction } from "@sentry/tracing";
 
 import {
   AppContainerInstance,
-  BLANK_TRANSACTION_CONTEXT_V4,
+  INITIAL_TRANSACTION_CONTEXT_V4,
   NavigationRouteV4,
   NavigationStateV4,
   ReactNavigationV4Instrumentation,
@@ -18,7 +18,7 @@ const initialRoute = {
 };
 
 const getMockTransaction = () => {
-  const transaction = new Transaction(BLANK_TRANSACTION_CONTEXT_V4);
+  const transaction = new Transaction(INITIAL_TRANSACTION_CONTEXT_V4);
 
   transaction.sampled = false;
 
@@ -106,7 +106,7 @@ describe("ReactNavigationV4Instrumentation", () => {
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(instrumentation.onRouteWillChange).toHaveBeenLastCalledWith(
-      BLANK_TRANSACTION_CONTEXT_V4
+      INITIAL_TRANSACTION_CONTEXT_V4
     );
 
     expect(mockTransaction.name).toBe(firstRoute.routeName);
