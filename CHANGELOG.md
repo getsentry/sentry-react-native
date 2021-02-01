@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Bump: sentry-android to v4.0.0 #1309
+- build(ios): Bump sentry-cocoa to 6.1.4 #1308
+- fix: Handle auto session tracking start on iOS #1308
 - feat: Use beforeNavigate in routing instrumentation to match behavior on JS #1313
 
 ## 2.2.0-beta.0
@@ -15,6 +18,10 @@
 - build: Bump JS dependencies to 5.30.0 #1282
 - fix: Add fallback envelope item type to iOS. #1283
 - feat: Auto performance tracing with XHR/fetch, and routing instrumentation #1230
+
+## 2.1.1
+
+ - build(android): Bump `sentry-android` to 3.2.1 #1296
 
 ## 2.1.0
 
