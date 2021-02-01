@@ -6,6 +6,14 @@ import {
   ReactNavigationV4Instrumentation,
 } from "../../src/js/tracing/reactnavigationv4";
 
+const initialRoute = {
+  routeName: "Initial Route",
+  key: "route0",
+  params: {
+    hello: true,
+  },
+};
+
 class MockAppContainer implements AppContainerInstance {
   _navigation: {
     state: NavigationStateV4;
@@ -53,15 +61,7 @@ class MockAppContainer implements AppContainerInstance {
         index: 0,
         key: "0",
         isTransitioning: false,
-        routes: [
-          {
-            routeName: "Initial Route",
-            key: "route0",
-            params: {
-              hello: true,
-            },
-          },
-        ],
+        routes: [initialRoute],
       },
       router,
     };
@@ -158,7 +158,13 @@ describe("ReactNavigationV4Instrumentation", () => {
           params: action.params,
           hasBeenSeen: false,
         },
-        previousRoute: null,
+        previousRoute: {
+          name: "Initial Route",
+          key: "route0",
+          params: {
+            hello: true,
+          },
+        },
       },
     });
   });
@@ -210,7 +216,13 @@ describe("ReactNavigationV4Instrumentation", () => {
           params: action.params,
           hasBeenSeen: false,
         },
-        previousRoute: null,
+        previousRoute: {
+          name: "Initial Route",
+          key: "route0",
+          params: {
+            hello: true,
+          },
+        },
       },
       sampled: false,
     });
