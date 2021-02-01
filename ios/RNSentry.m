@@ -8,12 +8,11 @@
 
 #import <Sentry/Sentry.h>
 
-@interface RNSentry()
+@implementation RNSentry {
+   bool sentHybridSdkDidBecomeActive;
+}
 
-@end
 
-
-@implementation RNSentry
 
 - (dispatch_queue_t)methodQueue
 {
@@ -65,6 +64,15 @@ RCT_EXPORT_METHOD(startWithOptions:(NSDictionary *_Nonnull)options
         return;
     }
     [SentrySDK startWithOptionsObject:sentryOptions];
+
+    // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
+    if ([[UIApplication sharedApplication] applicationState] == UIApplicationStateActive && !sentHybridSdkDidBecomeActive && sentryOptions.enableAutoSessionTracking) {
+        [[NSNotificationCenter defaultCenter]
+            postNotificationName:@"SentryHybridSdkDidBecomeActive"
+            object:nil];
+
+        sentHybridSdkDidBecomeActive = true;
+    }
 
     resolve(@YES);
 }
