@@ -43,7 +43,7 @@
     "@sentry/browser": "6.0.3",
     "@sentry/core": "6.0.3",
     "@sentry/hub": "6.0.3",
-    "@sentry/integrations": "6.0.3",
+    "@sentry/integrations": "6.1.0",
     "@sentry/react": "6.0.3",
     "@sentry/tracing": "6.0.3",
     "@sentry/types": "6.0.3",
