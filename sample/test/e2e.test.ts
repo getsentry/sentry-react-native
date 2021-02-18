@@ -25,7 +25,7 @@ beforeAll(async () => {
         }
       : {
           app: 'io.sentry.sample',
-          deviceName: 'iPhone 11',
+          deviceName: 'iPhone 12 Pro',
           platformName: 'iOS',
           newCommandTimeout: 600000,
           automationName: 'XCUITest',
