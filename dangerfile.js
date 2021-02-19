@@ -36,8 +36,9 @@ async function containsChangelog(path) {
 async function checkChangelog() {
   const skipChangelog =
     danger.github && (danger.github.pr.body + "").includes("#skip-changelog");
+  const isBot = danger.github && danger.github.pr.user.type === "Bot";
 
-  if (skipChangelog) {
+  if (skipChangelog || isBot) {
     return;
   }
 
