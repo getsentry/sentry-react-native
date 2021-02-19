@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- build(js): Bump @sentry/* dependencies on javascript to 6.20.0 #1354
+- build(js): Bump @sentry/* dependencies on javascript to 6.2.0 #1354
 
 ## 2.2.0
 
