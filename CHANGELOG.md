@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+
 ## 2.2.1
 
 - build(js): Bump @sentry/* dependencies on javascript to 6.2.0 #1354
