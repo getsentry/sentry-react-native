@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- build(js): Bump @sentry/* dependencies on javascript to 6.2.0 #1354
+
 ## 2.2.0
 
 - Bump: sentry-android to v4.0.0 #1309
@@ -22,7 +26,7 @@
 
 ## 2.1.1
 
- - build(android): Bump `sentry-android` to 3.2.1 #1296
+- build(android): Bump `sentry-android` to 3.2.1 #1296
 
 ## 2.1.0
 
