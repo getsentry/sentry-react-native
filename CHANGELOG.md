@@ -2,7 +2,11 @@
 
 ## Unreleased
 
+## 2.2.1
+
 - build(js): Bump @sentry/* dependencies on javascript to 6.2.0 #1354
+- fix: Fix react-dom dependency issue. #1354
+- build(android): Bump sentry-android to 4.1.0 #1334
 
 ## 2.2.0
 
