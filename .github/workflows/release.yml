@@ -8,15 +8,52 @@ on:
       force:
         description: Force a release even when there are release-blockers (optional)
         required: false
+
+env:
+   CACHED_DEPENDENCY_PATHS: |
+     ${{ github.workspace }}/node_modules
+
 jobs:
-  release:
+  job_install_deps:
+     name: Install Dependencies
+     runs-on: ubuntu-latest
+     timeout-minutes: 15
+     steps:
+       - name: Check out current commit (${{ github.sha }})
+         uses: actions/checkout@v2
+       - name: Set up Node
+         uses: actions/setup-node@v1
+         # we use a hash of yarn.lock as our cache key, because if it hasn't changed, our dependencies haven't changed,
+         # so no need to reinstall them
+       - name: Compute dependency cache key
+         id: compute_lockfile_hash
+         run: echo "::set-output name=hash::${{ hashFiles('yarn.lock') }}"
+       - name: Check dependency cache
+         uses: actions/cache@v2
+         id: cache_dependencies
+         with:
+           path: ${{ env.CACHED_DEPENDENCY_PATHS }}
+           key: ${{ steps.compute_lockfile_hash.outputs.hash }}
+       - name: Install dependencies
+         if: steps.cache_dependencies.outputs.cache-hit == ''
+         run: yarn install
+     outputs:
+       dependency_cache_key: ${{ steps.compute_lockfile_hash.outputs.hash }}
+
+  job_release:
     runs-on: ubuntu-latest
     name: 'Release a new version'
+    needs: job_install_deps
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out current commit (${{ github.sha }})
+        uses: actions/checkout@v2
+      - name: Set up Node
+        uses: actions/setup-node@v1
+      - name: Check dependency cache
+        uses: actions/cache@v2
         with:
-          token: ${{ secrets.GH_RELEASE_PAT }}
-          fetch-depth: 0
+           path: ${{ env.CACHED_DEPENDENCY_PATHS }}
+           key: ${{ needs.job_build.outputs.dependency_cache_key }}
       - name: Prepare release
         uses: getsentry/action-prepare-release@v1
         env:
