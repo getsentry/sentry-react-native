@@ -1,11 +1,7 @@
 import { Transaction as TransactionType } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
-import { BeforeNavigate } from "./reactnativetracing";
-import {
-  RoutingInstrumentation,
-  TransactionCreator,
-} from "./routingInstrumentation";
+import { RoutingInstrumentation } from "./routingInstrumentation";
 import { ReactNavigationTransactionContext } from "./types";
 
 export interface NavigationRouteV5 {
@@ -54,19 +50,26 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
    * @param navigationContainerRef Ref to a `NavigationContainer`
    */
   public registerNavigationContainer(
-    navigationContainerRef: NavigationContainerV5Ref
+    navigationContainerRef: NavigationContainerV5Ref | NavigationContainerV5
   ): void {
-    this._navigationContainerRef = navigationContainerRef;
-    navigationContainerRef.current?.addListener(
-      "__unsafe_action__", // This action is emitted on every dispatch
-      this._onDispatch.bind(this)
-    );
-    navigationContainerRef.current?.addListener(
-      "state", // This action is emitted on every state change
-      this._onStateChange.bind(this)
-    );
+    if ("current" in navigationContainerRef) {
+      this._navigationContainerRef = navigationContainerRef;
+    } else {
+      this._navigationContainerRef.current = navigationContainerRef;
+    }
 
-    this._handleInitialState();
+    if (this._navigationContainerRef.current) {
+      this._navigationContainerRef.current.addListener(
+        "__unsafe_action__", // This action is emitted on every dispatch
+        this._onDispatch.bind(this)
+      );
+      this._navigationContainerRef.current.addListener(
+        "state", // This action is emitted on every state change
+        this._onStateChange.bind(this)
+      );
+
+      this._handleInitialState();
+    }
   }
 
   /**
