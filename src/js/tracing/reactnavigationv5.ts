@@ -58,6 +58,12 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
     // We create an initial state here to ensure a transaction gets created before the first route mounts.
     if (!this._initialStateHandled) {
       this._onDispatch();
+      if (this._navigationContainer) {
+        // Navigation container already registered, just populate with route state
+        this._onStateChange();
+
+        this._initialStateHandled = true;
+      }
     }
   }
 
@@ -96,13 +102,9 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
           if (this._latestTransaction) {
             // If registerRoutingInstrumentation was called first _onDispatch has already been called
             this._onStateChange();
-          } else {
-            logger.log(
-              "[ReactNavigationV5Instrumentation] Navigation mounted before integration was setup. Initial route transaction was not created."
-            );
-          }
 
-          this._initialStateHandled = true;
+            this._initialStateHandled = true;
+          }
         }
 
         _global.__sentry_rn_v5_registered = true;
