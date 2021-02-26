@@ -1,5 +1,5 @@
 import { Transaction } from "@sentry/types";
-import { logger } from "@sentry/utils";
+import { getGlobalObject, logger } from "@sentry/utils";
 
 import { BeforeNavigate } from "./reactnativetracing";
 import {
@@ -37,7 +37,7 @@ export interface AppContainerInstance {
 }
 
 interface AppContainerRef {
-  current?: AppContainerInstance | null;
+  current: AppContainerInstance | null;
 }
 
 /**
@@ -47,7 +47,7 @@ interface AppContainerRef {
 class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
   static instrumentationName: string = "react-navigation-v4";
 
-  private _appContainerRef: AppContainerRef = { current: null };
+  private _appContainerRef: AppContainerInstance | null = null;
 
   private readonly _maxRecentRouteLen: number = 200;
 
@@ -55,7 +55,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
   private _recentRouteKeys: string[] = [];
 
   private _latestTransaction?: Transaction;
-  private _shouldUpdateLatestTransaction: boolean = false;
+  private _initialStateHandled: boolean = false;
 
   /**
    * Extends by calling _handleInitialState at the end.
@@ -67,7 +67,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
     super.registerRoutingInstrumentation(listener, beforeNavigate);
 
     // Need to handle the initial state as the router patch will only attach transactions on subsequent route changes.
-    this._handleInitialState();
+    this._startInitialStateTransaction();
   }
 
   /**
@@ -77,24 +77,35 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
   public registerAppContainer(
     appContainerRef: AppContainerRef | AppContainerInstance
   ): void {
-    if ("current" in appContainerRef) {
-      this._appContainerRef = appContainerRef;
-    } else {
-      this._appContainerRef = {
-        current: appContainerRef as AppContainerInstance,
-      };
-    }
+    const _global = getGlobalObject<{ __sentry_rn_v4_registered?: boolean }>();
 
-    if (!this._appContainerRef?.current) {
-      logger.error(
-        "[ReactNavigationV4Instrumentation]: App container ref is incorrect, instrumentation will not attach."
-      );
-    } else {
-      this._patchRouter();
+    /* We prevent duplicate routing instrumentation to be initialized on fast refreshes
 
-      if (this._shouldUpdateLatestTransaction) {
-        this._updateLatestTransaction();
-        this._shouldUpdateLatestTransaction = false;
+      Explanation: If the user triggers a fast refresh on the file that the instrumentation is
+      initialized in, it will initialize a new instance and will cause undefined behavior.
+     */
+    if (!_global.__sentry_rn_v4_registered) {
+      if ("current" in appContainerRef) {
+        this._appContainerRef = appContainerRef.current;
+      } else {
+        this._appContainerRef = appContainerRef;
+      }
+
+      if (this._appContainerRef) {
+        this._patchRouter();
+
+        if (!this._initialStateHandled) {
+          if (this._latestTransaction) {
+            this._updateLatestTransaction();
+          } else {
+            this._startInitialStateTransaction();
+            this._updateLatestTransaction();
+          }
+
+          this._initialStateHandled = true;
+        }
+
+        _global.__sentry_rn_v4_registered = true;
       }
     }
   }
@@ -102,13 +113,10 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
   /**
    * Starts an idle transaction for the initial state which won't get called by the router listener.
    */
-  private _handleInitialState(): void {
+  private _startInitialStateTransaction(): void {
     this._latestTransaction = this.onRouteWillChange(
       INITIAL_TRANSACTION_CONTEXT_V4
     );
-
-    // We set this to true so when registerAppContainer is called, the transaction gets updated with the actual route data
-    this._shouldUpdateLatestTransaction = true;
   }
 
   /**
@@ -116,8 +124,8 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
    */
   private _updateLatestTransaction(): void {
     // We can assume the ref is present as this is called from registerAppContainer
-    if (this._appContainerRef.current && this._latestTransaction) {
-      const state = this._appContainerRef.current._navigation.state;
+    if (this._appContainerRef && this._latestTransaction) {
+      const state = this._appContainerRef._navigation.state;
       this._onStateChange(state, true);
     }
   }
@@ -127,11 +135,11 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
    * new screen is mounted.
    */
   private _patchRouter(): void {
-    if (this._appContainerRef.current) {
-      const originalGetStateForAction = this._appContainerRef.current
-        ._navigation.router.getStateForAction;
+    if (this._appContainerRef) {
+      const originalGetStateForAction = this._appContainerRef._navigation.router
+        .getStateForAction;
 
-      this._appContainerRef.current._navigation.router.getStateForAction = (
+      this._appContainerRef._navigation.router.getStateForAction = (
         action,
         state
       ) => {
