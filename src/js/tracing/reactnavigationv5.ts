@@ -1,5 +1,5 @@
 import { Transaction as TransactionType } from "@sentry/types";
-import { logger } from "@sentry/utils";
+import { getGlobalObject, logger } from "@sentry/utils";
 
 import { RoutingInstrumentation } from "./routingInstrumentation";
 import { ReactNavigationTransactionContext } from "./types";
@@ -33,9 +33,7 @@ const STATE_CHANGE_TIMEOUT_DURATION = 200;
 export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   static instrumentationName: string = "react-navigation-v5";
 
-  private _navigationContainerRef: NavigationContainerV5Ref = {
-    current: null,
-  };
+  private _navigationContainer: NavigationContainerV5 | null = null;
 
   private readonly _maxRecentRouteLen: number = 200;
 
@@ -52,23 +50,34 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   public registerNavigationContainer(
     navigationContainerRef: NavigationContainerV5Ref | NavigationContainerV5
   ): void {
-    if ("current" in navigationContainerRef) {
-      this._navigationContainerRef = navigationContainerRef;
-    } else {
-      this._navigationContainerRef.current = navigationContainerRef;
-    }
+    const _global = getGlobalObject<{ __sentry_rn_v5_registered?: boolean }>();
 
-    if (this._navigationContainerRef.current) {
-      this._navigationContainerRef.current.addListener(
-        "__unsafe_action__", // This action is emitted on every dispatch
-        this._onDispatch.bind(this)
-      );
-      this._navigationContainerRef.current.addListener(
-        "state", // This action is emitted on every state change
-        this._onStateChange.bind(this)
-      );
+    /* We prevent duplicate routing instrumentation to be initialized on fast refreshes
 
-      this._handleInitialState();
+      Explanation: If the user triggers a fast refresh on the file that the instrumentation is
+      initialized in, it will initialize a new instance and will cause undefined behavior.
+     */
+    if (!_global.__sentry_rn_v5_registered) {
+      if ("current" in navigationContainerRef) {
+        this._navigationContainer = navigationContainerRef.current;
+      } else {
+        this._navigationContainer = navigationContainerRef;
+      }
+
+      if (this._navigationContainer) {
+        this._navigationContainer.addListener(
+          "__unsafe_action__", // This action is emitted on every dispatch
+          this._onDispatch.bind(this)
+        );
+        this._navigationContainer.addListener(
+          "state", // This action is emitted on every state change
+          this._onStateChange.bind(this)
+        );
+
+        this._handleInitialState();
+
+        _global.__sentry_rn_v5_registered = true;
+      }
     }
   }
 
@@ -107,7 +116,16 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   private _onStateChange(): void {
     // Use the getCurrentRoute method to be accurate.
     const previousRoute = this._latestRoute;
-    const route = this._navigationContainerRef?.current?.getCurrentRoute();
+
+    if (!this._navigationContainer) {
+      logger.warn(
+        "[ReactNavigationV5Instrumentation] Missing navigation container ref. Route transactions will not be sent."
+      );
+
+      return;
+    }
+
+    const route = this._navigationContainer.getCurrentRoute();
 
     if (route) {
       if (
