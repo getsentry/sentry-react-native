@@ -1,7 +1,11 @@
 import { Transaction as TransactionType } from "@sentry/types";
 import { getGlobalObject, logger } from "@sentry/utils";
 
-import { RoutingInstrumentation } from "./routingInstrumentation";
+import { BeforeNavigate } from "./reactnativetracing";
+import {
+  RoutingInstrumentation,
+  TransactionCreator,
+} from "./routingInstrumentation";
 import { ReactNavigationTransactionContext } from "./types";
 
 export interface NavigationRouteV5 {
@@ -39,9 +43,23 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
 
   private _latestRoute?: NavigationRouteV5;
   private _latestTransaction?: TransactionType;
-  private _shouldUpdateLatestTransactionOnRef: boolean = true;
+  private _initialStateHandled: boolean = false;
   private _stateChangeTimeout?: number | undefined;
   private _recentRouteKeys: string[] = [];
+
+  /**
+   * Extends by calling _handleInitialState at the end.
+   */
+  public registerRoutingInstrumentation(
+    listener: TransactionCreator,
+    beforeNavigate: BeforeNavigate
+  ): void {
+    super.registerRoutingInstrumentation(listener, beforeNavigate);
+    // We create an initial state here to ensure a transaction gets created before the first route mounts.
+    if (!this._initialStateHandled) {
+      this._onDispatch();
+    }
+  }
 
   /**
    * Pass the ref to the navigation container to register it to the instrumentation
@@ -74,23 +92,21 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
           this._onStateChange.bind(this)
         );
 
-        this._handleInitialState();
+        if (!this._initialStateHandled) {
+          if (this._latestTransaction) {
+            // If registerRoutingInstrumentation was called first _onDispatch has already been called
+            this._onStateChange();
+          } else {
+            logger.log(
+              "[ReactNavigationV5Instrumentation] Navigation mounted before integration was setup. Initial route transaction was not created."
+            );
+          }
+
+          this._initialStateHandled = true;
+        }
 
         _global.__sentry_rn_v5_registered = true;
       }
-    }
-  }
-
-  /**
-   *
-   */
-  private _handleInitialState(): void {
-    // This will set a transaction for the initial screen.
-    if (this._shouldUpdateLatestTransactionOnRef) {
-      this._onDispatch();
-      this._onStateChange();
-
-      this._shouldUpdateLatestTransactionOnRef = false;
     }
   }
 
