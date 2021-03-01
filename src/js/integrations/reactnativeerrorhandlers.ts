@@ -1,6 +1,6 @@
 import { getCurrentHub } from "@sentry/core";
 import { Integration, Severity } from "@sentry/types";
-import { logger } from "@sentry/utils";
+import { getGlobalObject, logger } from "@sentry/utils";
 
 import { ReactNativeClient } from "../client";
 
@@ -54,27 +54,63 @@ export class ReactNativeErrorHandlers implements Integration {
         enable: (arg: unknown) => void;
         // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
       } = require("promise/setimmediate/rejection-tracking");
+
       tracking.disable();
       tracking.enable({
         allRejections: true,
-        onHandled: () => {
-          // We do nothing
-        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onUnhandled: (id: any, error: any) => {
           if (__DEV__) {
+            // We mimic the behavior of unhandled promise rejections showing up as a warning.
             // eslint-disable-next-line no-console
             console.warn(id, error);
           }
-
           getCurrentHub().captureException(error, {
             data: { id },
             originalException: error,
           });
         },
       });
+
+      /* eslint-disable
+        @typescript-eslint/no-var-requires,
+        import/no-extraneous-dependencies,
+        @typescript-eslint/no-explicit-any,
+        @typescript-eslint/no-unsafe-member-access
+      */
+      const Promise = require("promise/setimmediate/core");
+      const _global = getGlobalObject<any>();
+
+      /* In newer RN versions >=0.63, the global promise is not the same reference as the one imported from the promise library.
+        Due to this, we need to take the methods that tracking.enable sets, and then set them on the global promise.
+        Note: We do not want to overwrite the whole promise in case there are extensions present.
+
+        If the global promise is the same as the imported promise (expected in RN <0.63), we do nothing.
+      */
+      const _onHandle = Promise._onHandle ?? Promise._Y;
+      const _onReject = Promise._onReject ?? Promise._Z;
+
+      if (
+        Promise !== _global.Promise &&
+        typeof _onHandle !== "undefined" &&
+        typeof _onReject !== "undefined"
+      ) {
+        if ("_onHandle" in _global.Promise && "_onReject" in _global.Promise) {
+          _global.Promise._onHandle = _onHandle;
+          _global.Promise._onReject = _onReject;
+        } else if ("_Y" in _global.Promise && "_Z" in _global.Promise) {
+          _global.Promise._Y = _onHandle;
+          _global.Promise._Z = _onReject;
+        }
+      }
+      /* eslint-enable
+        @typescript-eslint/no-var-requires,
+        import/no-extraneous-dependencies,
+        @typescript-eslint/no-explicit-any,
+        @typescript-eslint/no-unsafe-member-access
+      */
     }
   }
-
   /**
    * Handle erros
    */

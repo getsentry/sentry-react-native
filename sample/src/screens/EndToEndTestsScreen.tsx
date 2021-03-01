@@ -54,6 +54,15 @@ const EndToEndTestsScreen = () => {
       </Text>
       <Text
         onPress={() => {
+          new Promise(() => {
+            throw new Error('Unhandled Promise Rejection');
+          });
+        }}
+        {...getTestProps('unhandledPromiseRejection')}>
+        Unhandled Promise Rejection
+      </Text>
+      <Text
+        onPress={() => {
           Sentry.nativeCrash();
         }}>
         nativeCrash

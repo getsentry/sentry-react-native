@@ -93,4 +93,29 @@ describe('End to end tests for common events', () => {
 
     expect(sentryEvent.eventID).toMatch(eventId);
   });
+
+  test('unhandledPromiseRejection', async () => {
+    expect(
+      await driver.hasElementByAccessibilityId('unhandledPromiseRejection'),
+    ).toBe(true);
+
+    const element = await driver.elementByAccessibilityId(
+      'unhandledPromiseRejection',
+    );
+    await element.click();
+
+    // Promises needs a while to fail
+    await driver.sleep(5000);
+
+    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
+
+    const eventIdElement = await driver.elementByAccessibilityId('eventId');
+    const eventId = await eventIdElement.text();
+
+    await driver.sleep(10000);
+
+    const sentryEvent = await fetchEvent(eventId);
+
+    expect(sentryEvent.eventID).toMatch(eventId);
+  });
 });
