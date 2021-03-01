@@ -87,13 +87,21 @@ export class ReactNativeErrorHandlers implements Integration {
 
         If the global promise is the same as the imported promise (expected in RN <0.63), we do nothing.
       */
+      const _onHandle = Promise._onHandle ?? Promise._Y;
+      const _onReject = Promise._onReject ?? Promise._Z;
+
       if (
         Promise !== _global.Promise &&
-        "_Y" in _global.Promise &&
-        "_Z" in _global.Promise
+        typeof _onHandle !== "undefined" &&
+        typeof _onReject !== "undefined"
       ) {
-        _global.Promise._Y = Promise._Y;
-        _global.Promise._Z = Promise._Z;
+        if ("_onHandle" in _global.Promise && "_onReject" in _global.Promise) {
+          _global.Promise._onHandle = _onHandle;
+          _global.Promise._onReject = _onReject;
+        } else if ("_Y" in _global.Promise && "_Z" in _global.Promise) {
+          _global.Promise._Y = _onHandle;
+          _global.Promise._Z = _onReject;
+        }
       }
       /* eslint-enable
         @typescript-eslint/no-var-requires,
