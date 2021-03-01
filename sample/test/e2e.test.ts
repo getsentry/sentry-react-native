@@ -58,7 +58,7 @@ describe('End to end tests for common events', () => {
     const element = await driver.elementByAccessibilityId('captureMessage');
     await element.click();
 
-    await driver.sleep(300);
+    await driver.sleep(100);
 
     expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
 
