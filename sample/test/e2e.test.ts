@@ -58,7 +58,7 @@ describe('End to end tests for common events', () => {
     const element = await driver.elementByAccessibilityId('captureMessage');
     await element.click();
 
-    await driver.sleep(100);
+    await driver.sleep(300);
 
     expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
 
@@ -81,6 +81,31 @@ describe('End to end tests for common events', () => {
     await element.click();
 
     await driver.sleep(100);
+
+    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
+
+    const eventIdElement = await driver.elementByAccessibilityId('eventId');
+    const eventId = await eventIdElement.text();
+
+    await driver.sleep(10000);
+
+    const sentryEvent = await fetchEvent(eventId);
+
+    expect(sentryEvent.eventID).toMatch(eventId);
+  });
+
+  test('unhandledPromiseRejection', async () => {
+    expect(
+      await driver.hasElementByAccessibilityId('unhandledPromiseRejection'),
+    ).toBe(true);
+
+    const element = await driver.elementByAccessibilityId(
+      'unhandledPromiseRejection',
+    );
+    await element.click();
+
+    // Promises needs a while to fail
+    await driver.sleep(5000);
 
     expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
 
