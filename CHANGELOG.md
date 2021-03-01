@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- fix: Fix unhandle promise rejections not being tracked #1367
+## 2.2.2
+
+- fix: Fix unhandled promise rejections not being tracked #1367
 
 ## 2.2.1
 
