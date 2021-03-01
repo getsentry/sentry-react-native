@@ -173,6 +173,15 @@ const HomeScreen = (props: Props) => {
             <View style={styles.spacer} />
             <TouchableOpacity
               onPress={() => {
+                new Promise(() => {
+                  throw new Error('Unhandled Promise Rejection');
+                });
+              }}>
+              <Text style={styles.buttonText}>Unhandled Promise Rejection</Text>
+            </TouchableOpacity>
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={() => {
                 Sentry.nativeCrash();
               }}>
               <Text style={styles.buttonText}>Native Crash</Text>
