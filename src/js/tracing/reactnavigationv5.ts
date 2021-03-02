@@ -118,10 +118,19 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
 
             this._initialStateHandled = true;
           }
+          logger.log(
+            "[ReactNavigationV5Instrumentation] Routing Instrumentation initial state has not been handled, but dispatch has not been called"
+          );
         }
 
         _global.__sentry_rn_v5_registered = true;
+      } else {
+        logger.log(
+          "[ReactNavigationV5Instrumentation] Invalid Navigation Container Ref"
+        );
       }
+    } else {
+      logger.log("[ReactNavigationV5Instrumentation] Not registered");
     }
   }
 
