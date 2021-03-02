@@ -192,16 +192,17 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
           };
         }
 
-        if (finalContext.sampled) {
+        // Note: finalContext.sampled will be false at this point only if the user sets it to be so in beforeNavigate.
+        if (finalContext.sampled === false) {
+          logger.log(
+            `[ReactNavigationV5Instrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
+          );
+        } else {
           // Clear the timeout so the transaction does not get cancelled.
           if (typeof this._stateChangeTimeout !== "undefined") {
             clearTimeout(this._stateChangeTimeout);
             this._stateChangeTimeout = undefined;
           }
-        } else {
-          logger.log(
-            `[ReactNavigationV5Instrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
-          );
         }
 
         this._latestTransaction.updateWithContext(finalContext);
