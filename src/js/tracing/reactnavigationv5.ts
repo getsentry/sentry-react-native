@@ -55,10 +55,20 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
     beforeNavigate: BeforeNavigate
   ): void {
     super.registerRoutingInstrumentation(listener, beforeNavigate);
+
+    logger.log(
+      "[ReactNavigationV5Instrumentation] Routing Instrumentation Registered"
+    );
     // We create an initial state here to ensure a transaction gets created before the first route mounts.
     if (!this._initialStateHandled) {
+      logger.log(
+        "[ReactNavigationV5Instrumentation] Routing Instrumentation Initial Dispatch"
+      );
       this._onDispatch();
       if (this._navigationContainer) {
+        logger.log(
+          "[ReactNavigationV5Instrumentation] Routing Instrumentation Initial State Change due to navigation container set"
+        );
         // Navigation container already registered, just populate with route state
         this._onStateChange();
 
@@ -100,6 +110,9 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
 
         if (!this._initialStateHandled) {
           if (this._latestTransaction) {
+            logger.log(
+              "[ReactNavigationV5Instrumentation] Routing Instrumentation Initial State Change in registerNavigationContainer"
+            );
             // If registerRoutingInstrumentation was called first _onDispatch has already been called
             this._onStateChange();
 
