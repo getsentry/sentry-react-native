@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix(performance): Handle edge cases in React Navigation routing instrumentation.
+
 ## 2.2.2
 
 - fix: Fix unhandled promise rejections not being tracked #1367
