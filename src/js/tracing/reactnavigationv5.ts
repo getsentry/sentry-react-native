@@ -56,19 +56,10 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   ): void {
     super.registerRoutingInstrumentation(listener, beforeNavigate);
 
-    logger.log(
-      "[ReactNavigationV5Instrumentation] Routing Instrumentation Registered"
-    );
     // We create an initial state here to ensure a transaction gets created before the first route mounts.
     if (!this._initialStateHandled) {
-      logger.log(
-        "[ReactNavigationV5Instrumentation] Routing Instrumentation Initial Dispatch"
-      );
       this._onDispatch();
       if (this._navigationContainer) {
-        logger.log(
-          "[ReactNavigationV5Instrumentation] Routing Instrumentation Initial State Change due to navigation container set"
-        );
         // Navigation container already registered, just populate with route state
         this._onStateChange();
 
@@ -110,27 +101,26 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
 
         if (!this._initialStateHandled) {
           if (this._latestTransaction) {
-            logger.log(
-              "[ReactNavigationV5Instrumentation] Routing Instrumentation Initial State Change in registerNavigationContainer"
-            );
             // If registerRoutingInstrumentation was called first _onDispatch has already been called
             this._onStateChange();
 
             this._initialStateHandled = true;
           }
           logger.log(
-            "[ReactNavigationV5Instrumentation] Routing Instrumentation initial state has not been handled, but dispatch has not been called"
+            "[ReactNavigationV5Instrumentation] Navigation container registered, but integration has not been setup yet."
           );
         }
 
         _global.__sentry_rn_v5_registered = true;
       } else {
         logger.log(
-          "[ReactNavigationV5Instrumentation] Invalid Navigation Container Ref"
+          "[ReactNavigationV5Instrumentation] Received invalid navigation container ref!"
         );
       }
     } else {
-      logger.log("[ReactNavigationV5Instrumentation] Not registered");
+      logger.log(
+        "[ReactNavigationV5Instrumentation] Instrumentation already exists, but register has been called again, doing nothing."
+      );
     }
   }
 
