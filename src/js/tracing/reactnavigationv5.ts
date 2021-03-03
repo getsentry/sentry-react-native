@@ -105,10 +105,11 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
             this._onStateChange();
 
             this._initialStateHandled = true;
+          } else {
+            logger.log(
+              "[ReactNavigationV5Instrumentation] Navigation container registered, but integration has not been setup yet."
+            );
           }
-          logger.log(
-            "[ReactNavigationV5Instrumentation] Navigation container registered, but integration has not been setup yet."
-          );
         }
 
         _global.__sentry_rn_v5_registered = true;
