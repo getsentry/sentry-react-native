@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { Transaction } from "@sentry/types";
 import { getGlobalObject, logger } from "@sentry/utils";
 
@@ -40,6 +41,8 @@ interface AppContainerRef {
   current: AppContainerInstance | null;
 }
 
+const STATE_CHANGE_TIMEOUT_DURATION = 200;
+
 /**
  * Instrumentation for React-Navigation V4.
  * Register the app container with `registerAppContainer` to use, or see docs for more details.
@@ -47,7 +50,7 @@ interface AppContainerRef {
 class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
   static instrumentationName: string = "react-navigation-v4";
 
-  private _appContainerRef: AppContainerInstance | null = null;
+  private _appContainer: AppContainerInstance | null = null;
 
   private readonly _maxRecentRouteLen: number = 200;
 
@@ -56,6 +59,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
 
   private _latestTransaction?: Transaction;
   private _initialStateHandled: boolean = false;
+  private _stateChangeTimeout?: number | undefined;
 
   /**
    * Extends by calling _handleInitialState at the end.
@@ -67,7 +71,21 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
     super.registerRoutingInstrumentation(listener, beforeNavigate);
 
     // Need to handle the initial state as the router patch will only attach transactions on subsequent route changes.
-    this._startInitialStateTransaction();
+    if (!this._initialStateHandled) {
+      this._latestTransaction = this.onRouteWillChange(
+        INITIAL_TRANSACTION_CONTEXT_V4
+      );
+      if (this._appContainer) {
+        this._updateLatestTransaction();
+
+        this._initialStateHandled = true;
+      } else {
+        this._stateChangeTimeout = setTimeout(
+          this._discardLatestTransaction.bind(this),
+          STATE_CHANGE_TIMEOUT_DURATION
+        );
+      }
+    }
   }
 
   /**
@@ -86,37 +104,32 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
      */
     if (!_global.__sentry_rn_v4_registered) {
       if ("current" in appContainerRef) {
-        this._appContainerRef = appContainerRef.current;
+        this._appContainer = appContainerRef.current;
       } else {
-        this._appContainerRef = appContainerRef;
+        this._appContainer = appContainerRef;
       }
 
-      if (this._appContainerRef) {
+      if (this._appContainer) {
         this._patchRouter();
 
         if (!this._initialStateHandled) {
           if (this._latestTransaction) {
             this._updateLatestTransaction();
           } else {
-            this._startInitialStateTransaction();
-            this._updateLatestTransaction();
+            logger.log(
+              "[ReactNavigationV4Instrumentation] App container registered, but integration has not been setup yet."
+            );
           }
-
           this._initialStateHandled = true;
         }
 
         _global.__sentry_rn_v4_registered = true;
+      } else {
+        logger.log(
+          "[ReactNavigationV4Instrumentation] Received invalid app container ref!"
+        );
       }
     }
-  }
-
-  /**
-   * Starts an idle transaction for the initial state which won't get called by the router listener.
-   */
-  private _startInitialStateTransaction(): void {
-    this._latestTransaction = this.onRouteWillChange(
-      INITIAL_TRANSACTION_CONTEXT_V4
-    );
   }
 
   /**
@@ -124,8 +137,14 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
    */
   private _updateLatestTransaction(): void {
     // We can assume the ref is present as this is called from registerAppContainer
-    if (this._appContainerRef && this._latestTransaction) {
-      const state = this._appContainerRef._navigation.state;
+    if (this._appContainer && this._latestTransaction) {
+      const state = this._appContainer._navigation.state;
+
+      if (typeof this._stateChangeTimeout !== "undefined") {
+        clearTimeout(this._stateChangeTimeout);
+        this._stateChangeTimeout = undefined;
+      }
+
       this._onStateChange(state, true);
     }
   }
@@ -135,11 +154,11 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
    * new screen is mounted.
    */
   private _patchRouter(): void {
-    if (this._appContainerRef) {
-      const originalGetStateForAction = this._appContainerRef._navigation.router
+    if (this._appContainer) {
+      const originalGetStateForAction = this._appContainer._navigation.router
         .getStateForAction;
 
-      this._appContainerRef._navigation.router.getStateForAction = (
+      this._appContainer._navigation.router.getStateForAction = (
         action,
         state
       ) => {
@@ -167,7 +186,16 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
         currentRoute,
         this._prevRoute
       );
-      let finalContext = this._beforeNavigate?.(originalContext);
+
+      let mergedContext = originalContext;
+      if (updateLatestTransaction && this._latestTransaction) {
+        mergedContext = {
+          ...this._latestTransaction.toContext(),
+          ...originalContext,
+        };
+      }
+
+      let finalContext = this._beforeNavigate?.(mergedContext);
 
       // This block is to catch users not returning a transaction context
       if (!finalContext) {
@@ -176,7 +204,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
         );
 
         finalContext = {
-          ...originalContext,
+          ...mergedContext,
           sampled: false,
         };
       }
@@ -267,6 +295,15 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
       `[ReactNavigationV4Instrumentation] Will not send transaction "${transactionName}" due to beforeNavigate.`
     );
   };
+
+  /** Cancels the latest transaction so it does not get sent to Sentry. */
+  private _discardLatestTransaction(): void {
+    if (this._latestTransaction) {
+      this._latestTransaction.sampled = false;
+      this._latestTransaction.finish();
+      this._latestTransaction = undefined;
+    }
+  }
 }
 
 const INITIAL_TRANSACTION_CONTEXT_V4 = {
