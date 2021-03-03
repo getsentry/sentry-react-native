@@ -60,15 +60,19 @@ Sentry.init({
 const Stack = createStackNavigator();
 
 const App = () => {
-  const navigation = React.createRef<NavigationContainerRef>();
+  const navigation = React.useRef<NavigationContainerRef>();
 
-  React.useEffect(() => {
-    reactNavigationV5Instrumentation.registerNavigationContainer(navigation);
-  }, []);
+  React.useEffect(() => {}, []);
 
   return (
     <Provider store={store}>
-      <NavigationContainer ref={navigation}>
+      <NavigationContainer
+        ref={navigation}
+        onReady={() => {
+          reactNavigationV5Instrumentation.registerNavigationContainer(
+            navigation,
+          );
+        }}>
         <Stack.Navigator>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Tracker" component={TrackerScreen} />
