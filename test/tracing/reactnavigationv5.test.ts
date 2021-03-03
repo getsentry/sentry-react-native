@@ -303,11 +303,8 @@ describe("ReactNavigationV5Instrumentation", () => {
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer(mockNavigationContainer);
 
-      const mockTransactionDummy = getMockTransaction();
-      const transactionRef = {
-        current: mockTransactionDummy,
-      };
-      const tracingListener = jest.fn(() => transactionRef.current);
+      const mockTransaction = getMockTransaction();
+      const tracingListener = jest.fn(() => mockTransaction);
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
         (context) => context
@@ -315,7 +312,7 @@ describe("ReactNavigationV5Instrumentation", () => {
 
       await new Promise<void>((resolve) => {
         setTimeout(() => {
-          expect(mockTransactionDummy.sampled).not.toBe(false);
+          expect(mockTransaction.sampled).not.toBe(false);
           resolve();
         }, 500);
       });
