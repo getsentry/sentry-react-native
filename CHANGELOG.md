@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- fix(performance): Handle edge cases in React Navigation routing instrumentation.
+- fix(performance): Handle edge cases in React Navigation routing instrumentation. #1365
 
 ## 2.2.2
 
