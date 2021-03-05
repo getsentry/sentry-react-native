@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Transaction } from "@sentry/tracing";
-import { getGlobalObject } from "@sentry/utils";
+import { getGlobalObject, resolve } from "@sentry/utils";
 
 import {
   BLANK_TRANSACTION_CONTEXT_V5,
@@ -231,7 +231,7 @@ describe("ReactNavigationV5Instrumentation", () => {
         );
         expect(mockTransaction.data).toStrictEqual({});
         resolve();
-      }, 250);
+      }, 1100);
     });
   });
 
@@ -315,6 +315,66 @@ describe("ReactNavigationV5Instrumentation", () => {
           expect(mockTransaction.sampled).not.toBe(false);
           resolve();
         }, 500);
+      });
+    });
+  });
+
+  describe("options", () => {
+    test("waits until routeChangeTimeoutMs", async () => {
+      const instrumentation = new ReactNavigationV5Instrumentation({
+        routeChangeTimeoutMs: 200,
+      });
+
+      const mockTransaction = getMockTransaction();
+      const tracingListener = jest.fn(() => mockTransaction);
+      instrumentation.registerRoutingInstrumentation(
+        tracingListener as any,
+        (context) => context
+      );
+
+      const mockNavigationContainerRef = {
+        current: new MockNavigationContainer(),
+      };
+
+      return new Promise<void>((resolve) => {
+        setTimeout(() => {
+          instrumentation.registerNavigationContainer(
+            mockNavigationContainerRef as any
+          );
+
+          expect(mockTransaction.sampled).toBe(true);
+          expect(mockTransaction.name).toBe(dummyRoute.name);
+
+          resolve();
+        }, 190);
+      });
+    });
+
+    test("discards if after routeChangeTimeoutMs", async () => {
+      const instrumentation = new ReactNavigationV5Instrumentation({
+        routeChangeTimeoutMs: 200,
+      });
+
+      const mockTransaction = getMockTransaction();
+      const tracingListener = jest.fn(() => mockTransaction);
+      instrumentation.registerRoutingInstrumentation(
+        tracingListener as any,
+        (context) => context
+      );
+
+      const mockNavigationContainerRef = {
+        current: new MockNavigationContainer(),
+      };
+
+      return new Promise<void>((resolve) => {
+        setTimeout(() => {
+          instrumentation.registerNavigationContainer(
+            mockNavigationContainerRef as any
+          );
+
+          expect(mockTransaction.sampled).toBe(false);
+          resolve();
+        }, 210);
       });
     });
   });

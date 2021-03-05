@@ -41,7 +41,16 @@ interface AppContainerRef {
   current: AppContainerInstance | null;
 }
 
-const STATE_CHANGE_TIMEOUT_DURATION = 200;
+interface ReactNavigationV4Options {
+  /**
+   * The time the transaction will wait for route to mount before it is discarded.
+   */
+  routeChangeTimeoutMs: number;
+}
+
+const defaultOptions: ReactNavigationV4Options = {
+  routeChangeTimeoutMs: 1000,
+};
 
 /**
  * Instrumentation for React-Navigation V4.
@@ -60,6 +69,17 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
   private _latestTransaction?: Transaction;
   private _initialStateHandled: boolean = false;
   private _stateChangeTimeout?: number | undefined;
+
+  private _options: ReactNavigationV4Options;
+
+  constructor(options: Partial<ReactNavigationV4Options> = {}) {
+    super();
+
+    this._options = {
+      ...defaultOptions,
+      ...options,
+    };
+  }
 
   /**
    * Extends by calling _handleInitialState at the end.
@@ -82,7 +102,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
       } else {
         this._stateChangeTimeout = setTimeout(
           this._discardLatestTransaction.bind(this),
-          STATE_CHANGE_TIMEOUT_DURATION
+          this._options.routeChangeTimeoutMs
         );
       }
     }

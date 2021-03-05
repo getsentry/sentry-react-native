@@ -356,7 +356,7 @@ describe("ReactNavigationV4Instrumentation", () => {
         setTimeout(() => {
           expect(mockTransaction.sampled).toBe(false);
           resolve();
-        }, 500);
+        }, 1100);
       });
     });
 
@@ -378,6 +378,66 @@ describe("ReactNavigationV4Instrumentation", () => {
           expect(mockTransaction.sampled).toBe(true);
           resolve();
         }, 500);
+      });
+    });
+  });
+
+  describe("options", () => {
+    test("waits until routeChangeTimeoutMs", async () => {
+      const instrumentation = new ReactNavigationV4Instrumentation({
+        routeChangeTimeoutMs: 200,
+      });
+
+      const mockTransaction = getMockTransaction();
+      const tracingListener = jest.fn(() => mockTransaction);
+      instrumentation.registerRoutingInstrumentation(
+        tracingListener as any,
+        (context) => context
+      );
+
+      const mockNavigationContainerRef = {
+        current: new MockAppContainer(),
+      };
+
+      return new Promise<void>((resolve) => {
+        setTimeout(() => {
+          instrumentation.registerAppContainer(
+            mockNavigationContainerRef as any
+          );
+
+          expect(mockTransaction.sampled).toBe(true);
+          expect(mockTransaction.name).toBe(initialRoute.routeName);
+
+          resolve();
+        }, 190);
+      });
+    });
+
+    test("discards if after routeChangeTimeoutMs", async () => {
+      const instrumentation = new ReactNavigationV4Instrumentation({
+        routeChangeTimeoutMs: 200,
+      });
+
+      const mockTransaction = getMockTransaction();
+      const tracingListener = jest.fn(() => mockTransaction);
+      instrumentation.registerRoutingInstrumentation(
+        tracingListener as any,
+        (context) => context
+      );
+
+      const mockNavigationContainerRef = {
+        current: new MockAppContainer(),
+      };
+
+      return new Promise<void>((resolve) => {
+        setTimeout(() => {
+          instrumentation.registerAppContainer(
+            mockNavigationContainerRef as any
+          );
+
+          expect(mockTransaction.sampled).toBe(false);
+          resolve();
+        }, 210);
       });
     });
   });

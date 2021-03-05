@@ -24,7 +24,16 @@ type NavigationContainerV5Ref = {
   current: NavigationContainerV5 | null;
 };
 
-const STATE_CHANGE_TIMEOUT_DURATION = 200;
+interface ReactNavigationV5Options {
+  /**
+   * The time the transaction will wait for route to mount before it is discarded.
+   */
+  routeChangeTimeoutMs: number;
+}
+
+const defaultOptions: ReactNavigationV5Options = {
+  routeChangeTimeoutMs: 1000,
+};
 
 /**
  * Instrumentation for React-Navigation V5. See docs or sample app for usage.
@@ -46,6 +55,17 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   private _initialStateHandled: boolean = false;
   private _stateChangeTimeout?: number | undefined;
   private _recentRouteKeys: string[] = [];
+
+  private _options: ReactNavigationV5Options;
+
+  constructor(options: Partial<ReactNavigationV5Options> = {}) {
+    super();
+
+    this._options = {
+      ...defaultOptions,
+      ...options,
+    };
+  }
 
   /**
    * Extends by calling _handleInitialState at the end.
@@ -137,7 +157,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
-      STATE_CHANGE_TIMEOUT_DURATION
+      this._options.routeChangeTimeoutMs
     );
   }
 
