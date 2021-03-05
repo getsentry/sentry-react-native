@@ -62,8 +62,6 @@ const Stack = createStackNavigator();
 const App = () => {
   const navigation = React.useRef<NavigationContainerRef>();
 
-  React.useEffect(() => {}, []);
-
   return (
     <Provider store={store}>
       <NavigationContainer
