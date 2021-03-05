@@ -4,6 +4,7 @@
 
 - fix(performance): Handle edge cases in React Navigation routing instrumentation. #1365
 - build(android): Bump sentry-android to 4.3.0 #1373
+- feat(performance): Option to set route change timeout in routing instrumentation #1370
 
 ## 2.2.2
 
