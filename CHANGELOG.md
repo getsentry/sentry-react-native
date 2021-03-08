@@ -3,6 +3,7 @@
 ## Unreleased
 
 - build(android): Bump sentry-android to 4.3.0 #1373
+- build(devtools): Bump @sentry/wizard to 1.2.2 #1383
 
 ## 2.2.2
 
