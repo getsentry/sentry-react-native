@@ -20,7 +20,11 @@ import {store} from './reduxApp';
 import {version as packageVersion} from '../../package.json';
 import {SENTRY_INTERNAL_DSN} from './dsn';
 
-const reactNavigationV5Instrumentation = new Sentry.ReactNavigationV5Instrumentation();
+const reactNavigationV5Instrumentation = new Sentry.ReactNavigationV5Instrumentation(
+  {
+    routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
+  },
+);
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
@@ -60,15 +64,17 @@ Sentry.init({
 const Stack = createStackNavigator();
 
 const App = () => {
-  const navigation = React.createRef<NavigationContainerRef>();
-
-  React.useEffect(() => {
-    reactNavigationV5Instrumentation.registerNavigationContainer(navigation);
-  }, []);
+  const navigation = React.useRef<NavigationContainerRef>();
 
   return (
     <Provider store={store}>
-      <NavigationContainer ref={navigation}>
+      <NavigationContainer
+        ref={navigation}
+        onReady={() => {
+          reactNavigationV5Instrumentation.registerNavigationContainer(
+            navigation,
+          );
+        }}>
         <Stack.Navigator>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Tracker" component={TrackerScreen} />
