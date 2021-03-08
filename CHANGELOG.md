@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- build(android): Bump sentry-android to 4.3.0 #1373
+
 ## 2.2.2
 
 - fix: Fix unhandled promise rejections not being tracked #1367
