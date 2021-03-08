@@ -44,6 +44,8 @@ export {
   ErrorBoundary,
   withErrorBoundary,
   createReduxEnhancer,
+  Profiler,
+  useProfiler,
   withProfiler,
 } from "@sentry/react";
 
