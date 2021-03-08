@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- feat: Re-export Profiler and useProfiler from @sentry/react #1372
+
 ## 2.2.2
 
 - fix: Fix unhandled promise rejections not being tracked #1367
