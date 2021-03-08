@@ -3,6 +3,7 @@
 ## Unreleased
 
 - build(android): Bump sentry-android to 4.3.0 #1373
+- build(js): Bump sentry-javascript dependencies to 6.2.1 #1384
 
 ## 2.2.2
 
