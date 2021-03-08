@@ -48,7 +48,7 @@
     "@sentry/tracing": "6.2.0",
     "@sentry/types": "6.2.0",
     "@sentry/utils": "6.2.0",
-    "@sentry/wizard": "^1.1.4"
+    "@sentry/wizard": "^1.2.2"
   },
   "devDependencies": {
     "@sentry-internal/eslint-config-sdk": "6.2.0",
