@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Transaction } from "@sentry/tracing";
+import { getGlobalObject } from "@sentry/utils";
 
 import {
   BLANK_TRANSACTION_CONTEXT_V5,
@@ -15,9 +16,11 @@ const dummyRoute = {
 class MockNavigationContainer {
   currentRoute: NavigationRouteV5 = dummyRoute;
   listeners: Record<string, (e: any) => void> = {};
-  addListener(eventType: string, listener: (e: any) => void): void {
-    this.listeners[eventType] = listener;
-  }
+  addListener: any = jest.fn(
+    (eventType: string, listener: (e: any) => void): void => {
+      this.listeners[eventType] = listener;
+    }
+  );
   getCurrentRoute(): NavigationRouteV5 {
     return this.currentRoute;
   }
@@ -26,10 +29,21 @@ class MockNavigationContainer {
 const getMockTransaction = () => {
   const transaction = new Transaction(BLANK_TRANSACTION_CONTEXT_V5);
 
-  transaction.sampled = false;
+  // Assume it's sampled
+  transaction.sampled = true;
 
   return transaction;
 };
+
+const _global = getGlobalObject<{
+  __sentry_rn_v5_registered?: boolean;
+}>();
+
+afterEach(() => {
+  _global.__sentry_rn_v5_registered = false;
+
+  jest.resetAllMocks();
+});
 
 describe("ReactNavigationV5Instrumentation", () => {
   test("transaction set on initialize", () => {
@@ -218,6 +232,90 @@ describe("ReactNavigationV5Instrumentation", () => {
         expect(mockTransaction.data).toStrictEqual({});
         resolve();
       }, 250);
+    });
+  });
+
+  describe("navigation container registration", () => {
+    test("registers navigation container object ref", () => {
+      const instrumentation = new ReactNavigationV5Instrumentation();
+      const mockNavigationContainer = new MockNavigationContainer();
+      instrumentation.registerNavigationContainer({
+        current: mockNavigationContainer,
+      });
+
+      expect(_global.__sentry_rn_v5_registered).toBe(true);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
+        1,
+        "__unsafe_action__",
+        expect.any(Function)
+      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
+        2,
+        "state",
+        expect.any(Function)
+      );
+    });
+
+    test("registers navigation container direct ref", () => {
+      const instrumentation = new ReactNavigationV5Instrumentation();
+      const mockNavigationContainer = new MockNavigationContainer();
+      instrumentation.registerNavigationContainer(mockNavigationContainer);
+
+      expect(_global.__sentry_rn_v5_registered).toBe(true);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
+        1,
+        "__unsafe_action__",
+        expect.any(Function)
+      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
+        2,
+        "state",
+        expect.any(Function)
+      );
+    });
+
+    test("does not register navigation container if there is an existing one", () => {
+      _global.__sentry_rn_v5_registered = true;
+
+      const instrumentation = new ReactNavigationV5Instrumentation();
+      const mockNavigationContainer = new MockNavigationContainer();
+      instrumentation.registerNavigationContainer({
+        current: mockNavigationContainer,
+      });
+
+      expect(_global.__sentry_rn_v5_registered).toBe(true);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(mockNavigationContainer.addListener).not.toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(mockNavigationContainer.addListener).not.toHaveBeenCalled();
+    });
+
+    test("works if routing instrumentation registration is after navigation registration", async () => {
+      const instrumentation = new ReactNavigationV5Instrumentation();
+
+      const mockNavigationContainer = new MockNavigationContainer();
+      instrumentation.registerNavigationContainer(mockNavigationContainer);
+
+      const mockTransaction = getMockTransaction();
+      const tracingListener = jest.fn(() => mockTransaction);
+      instrumentation.registerRoutingInstrumentation(
+        tracingListener as any,
+        (context) => context
+      );
+
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          expect(mockTransaction.sampled).not.toBe(false);
+          resolve();
+        }, 500);
+      });
     });
   });
 });

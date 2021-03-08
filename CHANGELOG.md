@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- fix(performance): Handle edge cases in React Navigation routing instrumentation. #1365
 - build(android): Bump sentry-android to 4.3.0 #1373
 
 ## 2.2.2
