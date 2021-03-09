@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.3.0
+
 - feat: Re-export Profiler and useProfiler from @sentry/react #1372
 - fix(performance): Handle edge cases in React Navigation routing instrumentation. #1365
 - build(android): Bump sentry-android to 4.3.0 #1373
