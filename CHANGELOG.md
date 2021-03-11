@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- fix(performance): remove @sentry/wizard dependency
 
 ## 2.3.0
 

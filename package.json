@@ -47,8 +47,7 @@
     "@sentry/react": "6.2.1",
     "@sentry/tracing": "6.2.1",
     "@sentry/types": "6.2.1",
-    "@sentry/utils": "6.2.1",
-    "@sentry/wizard": "^1.2.2"
+    "@sentry/utils": "6.2.1"
   },
   "devDependencies": {
     "@sentry-internal/eslint-config-sdk": "6.2.1",
@@ -72,8 +71,8 @@
   },
   "rnpm": {
     "commands": {
-      "postlink": "node node_modules/@sentry/wizard/dist/bin.js -i reactNative -p ios android",
-      "postunlink": "node node_modules/@sentry/wizard/dist/bin.js -i reactNative -p ios android --uninstall"
+      "postlink": "npx @sentry/wizard -i reactNative -p ios android",
+      "postunlink": "npx @sentry/wizard -i reactNative -p ios android --uninstall"
     },
     "android": {
       "packageInstance": "new RNSentryPackage()"
