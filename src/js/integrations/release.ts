@@ -24,16 +24,6 @@ export class Release implements Integration {
         return event;
       }
 
-      try {
-        const release = await NATIVE.fetchRelease();
-        if (release) {
-          event.release = `${release.id}@${release.version}+${release.build}`;
-          event.dist = `${release.build}`;
-        }
-      } catch (_Oo) {
-        // Something went wrong, we just continue
-      }
-
       const options = getCurrentHub().getClient()?.getOptions();
 
       /*
@@ -50,6 +40,20 @@ export class Release implements Integration {
         event.dist = `${event.extra.__sentry_dist}`;
       } else if (typeof options?.dist === "string") {
         event.dist = options.dist;
+      }
+
+      if (event.release && event.dist) {
+        return event;
+      }
+
+      try {
+        const release = await NATIVE.fetchRelease();
+        if (release) {
+          event.release = `${release.id}@${release.version}+${release.build}`;
+          event.dist = `${release.build}`;
+        }
+      } catch (_Oo) {
+        // Something went wrong, we just continue
       }
 
       return event;
