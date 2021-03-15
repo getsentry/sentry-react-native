@@ -1145,6 +1145,13 @@
   dependencies:
     requireindex "~1.1.0"
 
+"@sentry-internal/eslint-plugin-sdk@6.2.2":
+  version "6.2.2"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-plugin-sdk/-/eslint-plugin-sdk-6.2.2.tgz#5ecc4cd1e569cf952cb063e58e1c399918c13f3d"
+  integrity sha512-KtNMsNt74kkHK6mwBTXBOwAO0NhH2Zqe26mAZbzQjhd3OV7dv1K+1OmjJXUEE1Zw8PQmy7md6QvwWGOFyKGm2g==
+  dependencies:
+    requireindex "~1.1.0"
+
 "@sentry-internal/typescript@6.2.1":
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/@sentry-internal/typescript/-/typescript-6.2.1.tgz#326c1af6119f9cbf5ae9a02f875966efa086496f"
