@@ -47,7 +47,7 @@
     "@sentry/react": "6.2.1",
     "@sentry/tracing": "6.2.1",
     "@sentry/types": "6.2.1",
-    "@sentry/utils": "6.2.1",
+    "@sentry/utils": "6.2.2",
     "@sentry/wizard": "^1.2.2"
   },
   "devDependencies": {
