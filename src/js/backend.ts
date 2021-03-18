@@ -102,16 +102,20 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    * Starts native client with dsn and options
    */
   private async _startWithOptions(): Promise<void> {
-    try {
-      const nativeDidInitialize = await NATIVE.startWithOptions(this._options);
-      NATIVE.setLogLevel(this._options.debug ? 2 : 1);
+    let nativeDidInitialize = false;
 
-      this._options.onReady?.({ nativeDidInitialize });
+    try {
+      nativeDidInitialize = await NATIVE.startWithOptions(this._options);
+      NATIVE.setLogLevel(this._options.debug ? 2 : 1);
     } catch (_) {
       this._showCannotConnectDialog();
 
       this._options.onReady?.({ nativeDidInitialize: false });
+
+      return;
     }
+
+    this._options.onReady?.({ nativeDidInitialize });
   }
 
   /**
