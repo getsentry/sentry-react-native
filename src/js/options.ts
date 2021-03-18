@@ -50,4 +50,12 @@ export interface ReactNativeOptions extends BrowserOptions {
 
   /** When enabled, all the threads are automatically attached to all logged events on Android */
   attachThreads?: boolean;
+
+  /**
+   * Callback that is called after the RN SDK on the JS Layer has made contact with the Native Layer.
+   */
+  onNativeReady?: (response: {
+    /** `true` if the native SDK has been initialized, `false` otherwise.  */
+    nativeDidInitialize: boolean;
+  }) => void;
 }
