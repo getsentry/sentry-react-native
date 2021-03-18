@@ -93,22 +93,22 @@ describe("Tests ReactNativeBackend", () => {
     });
   });
 
-  describe("onNativeReady", () => {
-    test("calls onNativeReady callback with true if Native SDK is initialized", () => {
+  describe("onReady", () => {
+    test("calls onReady callback with true if Native SDK is initialized", () => {
       new ReactNativeBackend({
         dsn: EXAMPLE_DSN,
         enableNative: true,
-        onNativeReady: ({ nativeDidInitialize }) => {
+        onReady: ({ nativeDidInitialize }) => {
           expect(nativeDidInitialize).toBe(true);
         },
       });
     });
 
-    test("calls onNativeReady callback with false if Native SDK was not initialized", () => {
+    test("calls onReady callback with false if Native SDK was not initialized", () => {
       new ReactNativeBackend({
         dsn: EXAMPLE_DSN,
         enableNative: false,
-        onNativeReady: ({ nativeDidInitialize }) => {
+        onReady: ({ nativeDidInitialize }) => {
           expect(nativeDidInitialize).toBe(true);
         },
       });

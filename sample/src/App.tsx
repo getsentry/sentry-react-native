@@ -35,7 +35,7 @@ Sentry.init({
     return e;
   },
   // This will be called with a boolean `nativeDidInitialize` when the native SDK has been contacted.
-  onNativeReady: ({nativeDidInitialize}) => {
+  onReady: ({nativeDidInitialize}) => {
     console.log(
       'onReady called with nativeDidInitialize:',
       nativeDidInitialize,

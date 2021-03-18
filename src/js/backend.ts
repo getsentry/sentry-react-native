@@ -106,11 +106,11 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       const nativeDidInitialize = await NATIVE.startWithOptions(this._options);
       NATIVE.setLogLevel(this._options.debug ? 2 : 1);
 
-      this._options.onNativeReady?.({ nativeDidInitialize });
+      this._options.onReady?.({ nativeDidInitialize });
     } catch (_) {
       this._showCannotConnectDialog();
 
-      this._options.onNativeReady?.({ nativeDidInitialize: false });
+      this._options.onReady?.({ nativeDidInitialize: false });
     }
   }
 

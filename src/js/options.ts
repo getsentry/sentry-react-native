@@ -54,7 +54,7 @@ export interface ReactNativeOptions extends BrowserOptions {
   /**
    * Callback that is called after the RN SDK on the JS Layer has made contact with the Native Layer.
    */
-  onNativeReady?: (response: {
+  onReady?: (response: {
     /** `true` if the native SDK has been initialized, `false` otherwise.  */
     nativeDidInitialize: boolean;
   }) => void;
