@@ -15,12 +15,14 @@ jest.mock(
         nativeClientAvailable: true,
         nativeTransport: true,
         setLogLevel: jest.fn(),
-        startWithOptions: jest.fn((dsn) => {
-          if (typeof dsn !== "string") {
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        startWithOptions: async (options: any): Promise<boolean> => {
+          if (typeof options.dsn !== "string") {
             throw new Error();
           }
-          return Promise.resolve();
-        }),
+          return true;
+        },
       },
     },
     Platform: {
@@ -94,22 +96,26 @@ describe("Tests ReactNativeBackend", () => {
   });
 
   describe("onReady", () => {
-    test("calls onReady callback with true if Native SDK is initialized", () => {
+    test("calls onReady callback with true if Native SDK is initialized", (done) => {
       new ReactNativeBackend({
         dsn: EXAMPLE_DSN,
         enableNative: true,
         onReady: ({ nativeDidInitialize }) => {
           expect(nativeDidInitialize).toBe(true);
+
+          done();
         },
       });
     });
 
-    test("calls onReady callback with false if Native SDK was not initialized", () => {
+    test("calls onReady callback with false if Native SDK was not initialized", (done) => {
       new ReactNativeBackend({
         dsn: EXAMPLE_DSN,
         enableNative: false,
         onReady: ({ nativeDidInitialize }) => {
-          expect(nativeDidInitialize).toBe(true);
+          expect(nativeDidInitialize).toBe(false);
+
+          done();
         },
       });
     });
