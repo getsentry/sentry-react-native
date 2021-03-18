@@ -119,6 +119,24 @@ describe("Tests ReactNativeBackend", () => {
         },
       });
     });
+
+    test("calls onReady callback with false if Native SDK failed to initialize", (done) => {
+      const RN = require("react-native");
+
+      RN.NativeModules.RNSentry.startWithOptions = async () => {
+        throw new Error();
+      };
+
+      new ReactNativeBackend({
+        dsn: EXAMPLE_DSN,
+        enableNative: true,
+        onReady: ({ nativeDidInitialize }) => {
+          expect(nativeDidInitialize).toBe(false);
+
+          done();
+        },
+      });
+    });
   });
 
   describe("nativeCrash", () => {
