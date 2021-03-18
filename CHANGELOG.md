@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- feat: Add onReady callback that gets called after Native SDK initialization #1406
+
 ## 2.3.0
 
 - feat: Re-export Profiler and useProfiler from @sentry/react #1372
