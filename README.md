@@ -70,6 +70,10 @@ Sentry.captureMessage("Hello Sentry!");
 
 If you are coming from `react-native-sentry` which was our SDK `< 1.0` you should follow the [upgrade guide](https://docs.sentry.io/platforms/react-native/#upgrading-from-react-native-sentry) and then follow the [install steps](https://docs.sentry.io/platforms/react-native/#integrating-the-sdk).
 
+## Blog posts
+
+[Performance Monitoring Support for React Native](https://blog.sentry.io/2021/03/11/performance-monitoring-support-for-react-native/).
+
 ## Resources
 
 * [![Documentation](https://img.shields.io/badge/documentation-sentry.io-green.svg)](https://docs.sentry.io/platforms/react-native/)
