@@ -51,7 +51,7 @@
     "@sentry/wizard": "^1.2.2"
   },
   "devDependencies": {
-    "@sentry-internal/eslint-config-sdk": "6.2.1",
+    "@sentry-internal/eslint-config-sdk": "6.2.3",
     "@sentry-internal/eslint-plugin-sdk": "6.2.1",
     "@sentry/typescript": "^5.20.0",
     "@types/jest": "^26.0.15",
