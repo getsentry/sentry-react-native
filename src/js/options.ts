@@ -56,6 +56,6 @@ export interface ReactNativeOptions extends BrowserOptions {
    */
   onReady?: (response: {
     /** `true` if the native SDK has been initialized, `false` otherwise.  */
-    nativeDidInitialize: boolean;
+    didCallNativeInit: boolean;
   }) => void;
 }

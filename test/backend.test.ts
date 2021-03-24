@@ -100,8 +100,8 @@ describe("Tests ReactNativeBackend", () => {
       new ReactNativeBackend({
         dsn: EXAMPLE_DSN,
         enableNative: true,
-        onReady: ({ nativeDidInitialize }) => {
-          expect(nativeDidInitialize).toBe(true);
+        onReady: ({ didCallNativeInit }) => {
+          expect(didCallNativeInit).toBe(true);
 
           done();
         },
@@ -112,8 +112,8 @@ describe("Tests ReactNativeBackend", () => {
       new ReactNativeBackend({
         dsn: EXAMPLE_DSN,
         enableNative: false,
-        onReady: ({ nativeDidInitialize }) => {
-          expect(nativeDidInitialize).toBe(false);
+        onReady: ({ didCallNativeInit }) => {
+          expect(didCallNativeInit).toBe(false);
 
           done();
         },
@@ -130,8 +130,8 @@ describe("Tests ReactNativeBackend", () => {
       new ReactNativeBackend({
         dsn: EXAMPLE_DSN,
         enableNative: true,
-        onReady: ({ nativeDidInitialize }) => {
-          expect(nativeDidInitialize).toBe(false);
+        onReady: ({ didCallNativeInit }) => {
+          expect(didCallNativeInit).toBe(false);
 
           done();
         },
