@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- feat: Add onReady callback that gets called after Native SDK initialization #1406
+- feat: Add onReady callback that gets called after Native SDK init is called #1406
 
 ## 2.3.0
 
