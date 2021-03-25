@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 2.4.0
+
+- fix: Don't call `NATIVE.fetchRelease` if release and dist already exists on the event #1388
 - feat: Add onReady callback that gets called after Native SDK init is called #1406
 
 ## 2.3.0
