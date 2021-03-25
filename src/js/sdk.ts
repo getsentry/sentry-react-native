@@ -29,12 +29,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
 /**
  * Inits the SDK
  */
-export function init(
-  passedOptions: ReactNativeOptions = {
-    enableNative: true,
-    enableNativeCrashHandling: true,
-  }
-): void {
+export function init(passedOptions: ReactNativeOptions): void {
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
   makeMain(reactNativeHub);
 

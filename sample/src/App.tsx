@@ -34,6 +34,10 @@ Sentry.init({
     console.log('Event beforeSend:', e);
     return e;
   },
+  // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
+  onReady: ({didCallNativeInit}) => {
+    console.log('onReady called with didCallNativeInit:', didCallNativeInit);
+  },
   maxBreadcrumbs: 150, // Extend from the default 100 breadcrumbs.
   integrations: [
     new Sentry.ReactNativeTracing({
