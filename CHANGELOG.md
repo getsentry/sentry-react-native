@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: Type navigation container ref arguments as any to avoid Typescript errors #1453
+
 ## 2.4.0
 
 - fix: Don't call `NATIVE.fetchRelease` if release and dist already exists on the event #1388
