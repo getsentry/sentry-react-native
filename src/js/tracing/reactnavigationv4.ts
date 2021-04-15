@@ -112,9 +112,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
    * Pass the ref to the app container to register it to the instrumentation
    * @param appContainerRef Ref to an `AppContainer`
    */
-  public registerAppContainer(
-    appContainerRef: AppContainerRef | AppContainerInstance
-  ): void {
+  public registerAppContainer(appContainerRef: any): void {
     const _global = getGlobalObject<{ __sentry_rn_v4_registered?: boolean }>();
 
     /* We prevent duplicate routing instrumentation to be initialized on fast refreshes
@@ -145,7 +143,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
 
         _global.__sentry_rn_v4_registered = true;
       } else {
-        logger.log(
+        logger.warn(
           "[ReactNavigationV4Instrumentation] Received invalid app container ref!"
         );
       }

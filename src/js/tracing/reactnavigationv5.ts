@@ -92,9 +92,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
    * Pass the ref to the navigation container to register it to the instrumentation
    * @param navigationContainerRef Ref to a `NavigationContainer`
    */
-  public registerNavigationContainer(
-    navigationContainerRef: NavigationContainerV5Ref | NavigationContainerV5
-  ): void {
+  public registerNavigationContainer(navigationContainerRef: any): void {
     const _global = getGlobalObject<{ __sentry_rn_v5_registered?: boolean }>();
 
     /* We prevent duplicate routing instrumentation to be initialized on fast refreshes
@@ -134,7 +132,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
 
         _global.__sentry_rn_v5_registered = true;
       } else {
-        logger.log(
+        logger.warn(
           "[ReactNavigationV5Instrumentation] Received invalid navigation container ref!"
         );
       }
