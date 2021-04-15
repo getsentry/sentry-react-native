@@ -20,10 +20,6 @@ interface NavigationContainerV5 {
   getCurrentRoute: () => NavigationRouteV5;
 }
 
-type NavigationContainerV5Ref = {
-  current: NavigationContainerV5 | null;
-};
-
 interface ReactNavigationV5Options {
   /**
    * The time the transaction will wait for route to mount before it is discarded.
@@ -92,6 +88,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
    * Pass the ref to the navigation container to register it to the instrumentation
    * @param navigationContainerRef Ref to a `NavigationContainer`
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public registerNavigationContainer(navigationContainerRef: any): void {
     const _global = getGlobalObject<{ __sentry_rn_v5_registered?: boolean }>();
 
@@ -102,6 +99,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
      */
     if (!_global.__sentry_rn_v5_registered) {
       if ("current" in navigationContainerRef) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this._navigationContainer = navigationContainerRef.current;
       } else {
         this._navigationContainer = navigationContainerRef;
