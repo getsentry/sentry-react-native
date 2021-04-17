@@ -72,7 +72,7 @@ If you are coming from `react-native-sentry` which was our SDK `< 1.0` you shoul
 
 ## Blog posts
 
-[Performance Monitoring Support for React Native](https://blog.sentry.io/2021/03/11/performance-monitoring-support-for-react-native/).
+[Performance Monitoring Support for React Native](https://blog.sentry.io/2021/03/11/performance-monitoring-support-for-react-native/?utm_source=github&utm_medium=readme&utm_campaign=sentry-react-native).
 
 ## Resources
 
