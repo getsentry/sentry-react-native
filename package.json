@@ -45,7 +45,7 @@
     "@sentry/hub": "6.2.1",
     "@sentry/integrations": "6.2.1",
     "@sentry/react": "6.2.1",
-    "@sentry/tracing": "6.2.1",
+    "@sentry/tracing": "6.2.5",
     "@sentry/types": "6.2.1",
     "@sentry/utils": "6.2.1",
     "@sentry/wizard": "^1.2.2"
