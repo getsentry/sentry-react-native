@@ -19,6 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
+        with:
+          node-version: '12'
       - name: Install Global Dependencies
         run: yarn global add react-native-cli @sentry/cli
       - uses: actions/cache@v2
@@ -61,6 +63,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
+        with:
+          node-version: '12'
       - name: Install Global Dependencies
         run: yarn global add react-native-cli @sentry/cli
       - uses: actions/cache@v2
@@ -95,7 +99,7 @@ jobs:
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
       - name: Build and run iOS emulator
         working-directory: ./sample
-        run: react-native run-ios --configuration Release
+        run: react-native run-ios --configuration Release --simulator "iPhone 12"
         # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
       - name: Ping Appium Server
         run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
