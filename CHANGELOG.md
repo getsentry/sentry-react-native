@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.4.1
+
 - fix: Type navigation container ref arguments as any to avoid TypeScript errors #1453
 
 ## 2.4.0
