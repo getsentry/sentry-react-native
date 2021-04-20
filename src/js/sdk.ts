@@ -3,7 +3,7 @@ import { Hub, makeMain } from "@sentry/hub";
 import { RewriteFrames } from "@sentry/integrations";
 import { defaultIntegrations, getCurrentHub } from "@sentry/react";
 import { StackFrame } from "@sentry/types";
-import { getGlobalObject, SentryError } from "@sentry/utils";
+import { getGlobalObject, logger, SentryError } from "@sentry/utils";
 
 import { ReactNativeClient } from "./client";
 import {
@@ -130,6 +130,6 @@ export async function close(): Promise<void> {
       await client.close();
     }
   } catch (e) {
-    throw new SentryError("Failed to close the SDK");
+    logger.error("Failed to close the SDK");
   }
 }
