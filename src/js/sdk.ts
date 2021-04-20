@@ -3,7 +3,7 @@ import { Hub, makeMain } from "@sentry/hub";
 import { RewriteFrames } from "@sentry/integrations";
 import { defaultIntegrations, getCurrentHub } from "@sentry/react";
 import { StackFrame } from "@sentry/types";
-import { getGlobalObject, logger, SentryError } from "@sentry/utils";
+import { getGlobalObject, logger } from "@sentry/utils";
 
 import { ReactNativeClient } from "./client";
 import {
