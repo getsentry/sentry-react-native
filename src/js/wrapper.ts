@@ -1,5 +1,12 @@
 /* eslint-disable max-lines */
-import { Breadcrumb, Event, Response, Severity, User } from "@sentry/types";
+import {
+  Breadcrumb,
+  Event,
+  Response,
+  Severity,
+  Status,
+  User,
+} from "@sentry/types";
 import { logger, SentryError } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
 
@@ -17,7 +24,10 @@ export const NATIVE = {
    */
   async sendEvent(event: Event): Promise<Response> {
     if (!this.enableNative) {
-      throw this._DisabledNativeError;
+      return {
+        reason: `Event was skipped as native SDK is not enabled.`,
+        status: Status.Skipped,
+      };
     }
     if (!this.isNativeClientAvailable()) {
       throw this._NativeClientError;
@@ -318,6 +328,19 @@ export const NATIVE = {
         context !== null ? this._serializeObject(context) : null
       );
     }
+  },
+
+  /**
+   * Closes the Native Layer SDK
+   */
+  async closeNativeSdk(): Promise<void> {
+    if (!this.enableNative) {
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return RNSentry.closeNativeSdk().then(() => {
+      this.enableNative = false;
+    });
   },
 
   /**

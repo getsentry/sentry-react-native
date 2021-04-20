@@ -29,7 +29,6 @@ const reactNavigationV5Instrumentation = new Sentry.ReactNavigationV5Instrumenta
 Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: SENTRY_INTERNAL_DSN,
-  debug: true,
   beforeSend: (e) => {
     console.log('Event beforeSend:', e);
     return e;

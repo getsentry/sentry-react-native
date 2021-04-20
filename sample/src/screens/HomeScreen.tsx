@@ -194,6 +194,13 @@ const HomeScreen = (props: Props) => {
               <Text style={styles.buttonText}>Set Scope Properties</Text>
             </TouchableOpacity>
             <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={() => {
+                Sentry.close();
+              }}>
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
+            <View style={styles.spacer} />
             <Sentry.ErrorBoundary
               fallback={({eventId}) => (
                 <Text>Error boundary caught with event id: {eventId}</Text>

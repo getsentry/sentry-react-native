@@ -56,7 +56,7 @@ export { ReactNativeBackend } from "./backend";
 export { ReactNativeOptions } from "./options";
 export { ReactNativeClient } from "./client";
 // eslint-disable-next-line deprecation/deprecation
-export { init, setDist, setRelease, nativeCrash } from "./sdk";
+export { init, setDist, setRelease, nativeCrash, close } from "./sdk";
 export { TouchEventBoundary, withTouchEventBoundary } from "./touchevents";
 
 export {
