@@ -8,6 +8,14 @@
 
 #import <Sentry/Sentry.h>
 
+@interface SentrySDK (RNSentry)
+
++ (void)captureEnvelope:(SentryEnvelope *)envelope;
+
++ (void)storeEnvelope:(SentryEnvelope *)envelope;
+
+@end
+
 @implementation RNSentry {
    bool sentHybridSdkDidBecomeActive;
 }
@@ -96,26 +104,6 @@ RCT_EXPORT_METHOD(deviceContexts:(RCTPromiseResolveBlock)resolve
     }];
 }
 
-RCT_EXPORT_METHOD(setLogLevel:(int)level)
-{
-    SentryLogLevel cocoaLevel;
-    switch (level) {
-        case 1:
-            cocoaLevel = kSentryLogLevelError;
-            break;
-        case 2:
-            cocoaLevel = kSentryLogLevelDebug;
-            break;
-        case 3:
-            cocoaLevel = kSentryLogLevelVerbose;
-            break;
-        default:
-            cocoaLevel = kSentryLogLevelNone;
-            break;
-    }
-    [SentrySDK setLogLevel:cocoaLevel];
-}
-
 RCT_EXPORT_METHOD(fetchRelease:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -154,15 +142,13 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
         SentryEnvelope *envelope = [[SentryEnvelope alloc] initWithHeader:envelopeHeader singleItem:envelopeItem];
 
         #if DEBUG
-            [[SentrySDK currentHub] captureEnvelope:envelope];
+    [SentrySDK captureEnvelope:envelope];
         #else
             if ([envelopeDict[@"payload"][@"level"] isEqualToString:@"fatal"]) {
                 // Storing to disk happens asynchronously with captureEnvelope
-                // We need to make sure the event is written to disk before resolving the promise.
-                // This could be replaced by SentrySDK.flush() when available.
-                [[[SentrySDK currentHub] getClient] storeEnvelope:envelope];
+      [SentrySDK storeEnvelope:envelope];
             } else {
-                [[SentrySDK currentHub] captureEnvelope:envelope];
+      [SentrySDK captureEnvelope:envelope];
             }
         #endif
         resolve(@YES);
