@@ -255,7 +255,7 @@ RCT_EXPORT_METHOD(crash)
 RCT_EXPORT_METHOD(closeNativeSdk
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
-  [[SentrySDK currentHub] getClient].options.enabled = NO;
+  [SentrySDK close];
 }
 
 @end
