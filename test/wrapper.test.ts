@@ -10,8 +10,13 @@ jest.mock(
       RNSentry: {
         addBreadcrumb: jest.fn(),
         captureEnvelope: jest.fn((envelope) => Promise.resolve(envelope)),
+        clearBreadcrumbs: jest.fn(),
         crash: jest.fn(),
-        deviceContexts: jest.fn(() => Promise.resolve({ someContext: 0 })),
+        deviceContexts: jest.fn(() =>
+          Promise.resolve({
+            someContext: 0,
+          })
+        ),
         fetchRelease: jest.fn(() =>
           Promise.resolve({
             build: "1.0.0.1",
@@ -23,6 +28,9 @@ jest.mock(
         nativeClientAvailable: true,
         nativeTransport: true,
         sendEvent: jest.fn(() => Promise.resolve()),
+        setContext: jest.fn(),
+        setExtra: jest.fn(),
+        setTag: jest.fn(),
         setUser: jest.fn(() => {
           return;
         }),
@@ -36,6 +44,19 @@ jest.mock(
   /* virtual allows us to mock modules that aren't in package.json */
   { virtual: true }
 );
+
+const callAllScopeMethods = () => {
+  NATIVE.addBreadcrumb({
+    message: "test",
+  });
+  NATIVE.clearBreadcrumbs();
+  NATIVE.setUser({
+    id: "setUser",
+  });
+  NATIVE.setTag("key", "value");
+  NATIVE.setContext("key", { value: "value" });
+  NATIVE.setExtra("key", "value");
+};
 
 beforeEach(() => {
   NATIVE.platform = "ios";
@@ -87,6 +108,7 @@ describe("Tests Native Wrapper", () => {
       });
 
       expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
+      expect(NATIVE.enableNative).toBe(false);
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenLastCalledWith(
         "Note: Native Sentry SDK is disabled."
@@ -106,14 +128,51 @@ describe("Tests Native Wrapper", () => {
       });
 
       expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
+      expect(NATIVE.enableNative).toBe(true);
 
-      await NATIVE.addBreadcrumb({
-        message: "test",
-      });
+      // Test that native bridge methods will go through
 
+      callAllScopeMethods();
       expect(RN.NativeModules.RNSentry.addBreadcrumb).toBeCalledWith({
         message: "test",
       });
+      expect(RN.NativeModules.RNSentry.clearBreadcrumbs).toBeCalled();
+      expect(RN.NativeModules.RNSentry.setUser).toBeCalledWith(
+        {
+          id: "setUser",
+        },
+        {}
+      );
+      expect(RN.NativeModules.RNSentry.setTag).toBeCalledWith("key", "value");
+      expect(RN.NativeModules.RNSentry.setContext).toBeCalledWith("key", {
+        value: "value",
+      });
+      expect(RN.NativeModules.RNSentry.setExtra).toBeCalledWith("key", "value");
+    });
+
+    test("enableNative: false takes precedence over autoInitializeNativeSdk: false", async () => {
+      const RN = require("react-native");
+
+      RN.NativeModules.RNSentry.startWithOptions = jest.fn();
+      logger.warn = jest.fn();
+
+      await NATIVE.startWithOptions({
+        dsn: "test",
+        enableNative: false,
+        autoInitializeNativeSdk: false,
+      });
+
+      expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
+      expect(NATIVE.enableNative).toBe(false);
+
+      // Test that native bridge methods will NOT go through
+      callAllScopeMethods();
+      expect(RN.NativeModules.RNSentry.addBreadcrumb).not.toBeCalled();
+      expect(RN.NativeModules.RNSentry.clearBreadcrumbs).not.toBeCalled();
+      expect(RN.NativeModules.RNSentry.setUser).not.toBeCalled();
+      expect(RN.NativeModules.RNSentry.setTag).not.toBeCalled();
+      expect(RN.NativeModules.RNSentry.setContext).not.toBeCalled();
+      expect(RN.NativeModules.RNSentry.setExtra).not.toBeCalled();
     });
   });
 
