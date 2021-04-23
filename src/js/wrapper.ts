@@ -85,23 +85,26 @@ export const NATIVE = {
       ..._options,
     };
 
-    if (!options.autoInitializeNativeSdk) {
-      if (options.enableNativeNagger) {
-        logger.warn("Note: Native Sentry SDK was not initialized.");
-      }
-      return false;
-    }
-    if (!options.dsn) {
-      logger.warn(
-        "Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized."
-      );
-      return false;
-    }
     if (!options.enableNative) {
       if (options.enableNativeNagger) {
         logger.warn("Note: Native Sentry SDK is disabled.");
       }
       this.enableNative = false;
+      return false;
+    }
+    if (!options.autoInitializeNativeSdk) {
+      if (options.enableNativeNagger) {
+        logger.warn(
+          "Note: Native Sentry SDK was not initialized automatically, you will need to initialize it manually. If you wish to disable the native SDK, pass enableNative: false"
+        );
+      }
+      return false;
+    }
+
+    if (!options.dsn) {
+      logger.warn(
+        "Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized."
+      );
       return false;
     }
 
