@@ -189,7 +189,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 out.write(envelope.getBytes(Charset.forName("UTF-8")));
             }
         } catch (Exception e) {
-            logger.info("Error reading envelope");
+            logger.severe("Error reading envelope");
         }
         promise.resolve(true);
     }
@@ -207,7 +207,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         try {
             return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException e) {
-            logger.info("Error getting package info.");
+            logger.warning("Error getting package info.");
             return null;
         }
     }
