@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.4.2
+
 - fix: enableNative: false should take precedence over autoInitializeNativeSdk: false #1462
 
 ## 2.4.1
