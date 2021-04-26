@@ -1,2 +1,2 @@
 export const SDK_NAME = "sentry.javascript.react-native";
-export const SDK_VERSION = "2.4.1";
+export const SDK_VERSION = "2.4.2";
