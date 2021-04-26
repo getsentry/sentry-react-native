@@ -95,7 +95,7 @@ export const NATIVE = {
     if (!options.autoInitializeNativeSdk) {
       if (options.enableNativeNagger) {
         logger.warn(
-          "Note: Native Sentry SDK was not initialized automatically, you will need to initialize it manually. If you wish to disable the native SDK, pass enableNative: false"
+          "Note: Native Sentry SDK was not initialized automatically, you will need to initialize it manually. If you wish to disable the native SDK and get rid of this warning, pass enableNative: false"
         );
       }
       return false;
