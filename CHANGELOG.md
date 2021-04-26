@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: enableNative: false should take precedence over autoInitializeNativeSdk: false #1462
+
 ## 2.4.1
 
 - fix: Type navigation container ref arguments as any to avoid TypeScript errors #1453
