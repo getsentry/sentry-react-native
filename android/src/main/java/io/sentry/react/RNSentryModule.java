@@ -72,6 +72,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void startWithOptions(final ReadableMap rnOptions, Promise promise) {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
+            if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
+                options.setDebug(true);
+                logger.setLevel(Level.INFO);
+            }
             if (rnOptions.hasKey("dsn") && rnOptions.getString("dsn") != null) {
                 String dsn = rnOptions.getString("dsn");
                 logger.info(String.format("Starting with DSN: '%s'", dsn));
@@ -79,9 +83,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             } else {
                 // SentryAndroid needs an empty string fallback for the dsn.
                 options.setDsn("");
-            }
-            if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
-                options.setDebug(true);
             }
             if (rnOptions.hasKey("maxBreadcrumbs")) {
                 options.setMaxBreadcrumbs(rnOptions.getInt("maxBreadcrumbs"));
@@ -167,11 +168,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void setLogLevel(int level) {
-        logger.setLevel(this.logLevel(level));
-    }
-
-    @ReactMethod
     public void crash() {
         throw new RuntimeException("TEST - Sentry Client Crash (only works in release mode)");
     }
@@ -193,7 +189,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 out.write(envelope.getBytes(Charset.forName("UTF-8")));
             }
         } catch (Exception e) {
-            logger.info("Error reading envelope");
+            logger.severe("Error reading envelope");
         }
         promise.resolve(true);
     }
@@ -211,21 +207,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         try {
             return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException e) {
-            logger.info("Error getting package info.");
+            logger.warning("Error getting package info.");
             return null;
-        }
-    }
-
-    private Level logLevel(int level) {
-        switch (level) {
-            case 1:
-                return Level.SEVERE;
-            case 2:
-                return Level.INFO;
-            case 3:
-                return Level.ALL;
-            default:
-                return Level.OFF;
         }
     }
 

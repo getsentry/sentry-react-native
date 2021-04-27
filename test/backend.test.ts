@@ -14,7 +14,6 @@ jest.mock(
         crash: jest.fn(),
         nativeClientAvailable: true,
         nativeTransport: true,
-        setLogLevel: jest.fn(),
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         startWithOptions: async (options: any): Promise<boolean> => {

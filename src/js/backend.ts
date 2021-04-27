@@ -106,7 +106,6 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
 
     try {
       didCallNativeInit = await NATIVE.startWithOptions(this._options);
-      NATIVE.setLogLevel(this._options.debug ? 2 : 1);
     } catch (_) {
       this._showCannotConnectDialog();
 
