@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- build(ios): Bump sentry-cocoa to 7.0.0-beta.1 and remove setLogLevel #1459
+
 ## 2.4.2
 
 - fix: enableNative: false should take precedence over autoInitializeNativeSdk: false #1462
