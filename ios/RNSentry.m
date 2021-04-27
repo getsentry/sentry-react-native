@@ -142,13 +142,13 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
         SentryEnvelope *envelope = [[SentryEnvelope alloc] initWithHeader:envelopeHeader singleItem:envelopeItem];
 
         #if DEBUG
-    [SentrySDK captureEnvelope:envelope];
+            [SentrySDK captureEnvelope:envelope];
         #else
             if ([envelopeDict[@"payload"][@"level"] isEqualToString:@"fatal"]) {
                 // Storing to disk happens asynchronously with captureEnvelope
-      [SentrySDK storeEnvelope:envelope];
+                [SentrySDK storeEnvelope:envelope];
             } else {
-      [SentrySDK captureEnvelope:envelope];
+                [SentrySDK captureEnvelope:envelope];
             }
         #endif
         resolve(@YES);
