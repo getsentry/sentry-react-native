@@ -129,6 +129,10 @@ describe('End to end tests for common events', () => {
     await driver.sleep(5000);
 
     // This time we don't expect an eventId
-    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(false);
+    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
+    const eventIdElement = await driver.elementByAccessibilityId('eventId');
+    const eventId = await eventIdElement.text();
+
+    expect(eventId).toBe('');
   });
 });
