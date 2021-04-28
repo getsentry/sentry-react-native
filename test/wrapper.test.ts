@@ -460,6 +460,7 @@ describe("Tests Native Wrapper", () => {
       await NATIVE.closeNativeSdk();
 
       expect(RN.NativeModules.RNSentry.closeNativeSdk).toBeCalled();
+      expect(NATIVE.enableNative).toBe(false);
     });
   });
 });
