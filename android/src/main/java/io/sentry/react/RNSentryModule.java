@@ -331,4 +331,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             scope.setTag(key, value);
         });
     }
+
+    @ReactMethod
+    public void closeNativeSdk(Promise promise) {
+      Sentry.close();
+      promise.resolve(true);
+    }
 }

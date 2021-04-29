@@ -3,7 +3,7 @@ import { Hub, makeMain } from "@sentry/hub";
 import { RewriteFrames } from "@sentry/integrations";
 import { defaultIntegrations, getCurrentHub } from "@sentry/react";
 import { StackFrame } from "@sentry/types";
-import { getGlobalObject } from "@sentry/utils";
+import { getGlobalObject, logger } from "@sentry/utils";
 
 import { ReactNativeClient } from "./client";
 import {
@@ -116,5 +116,20 @@ export function nativeCrash(): void {
   const client = getCurrentHub().getClient<ReactNativeClient>();
   if (client) {
     client.nativeCrash();
+  }
+}
+
+/**
+ * Closes the SDK, stops sending events.
+ */
+export async function close(): Promise<void> {
+  try {
+    const client = getCurrentHub().getClient<ReactNativeClient>();
+
+    if (client) {
+      await client.close();
+    }
+  } catch (e) {
+    logger.error("Failed to close the SDK");
   }
 }

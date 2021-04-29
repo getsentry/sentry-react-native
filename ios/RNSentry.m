@@ -252,4 +252,10 @@ RCT_EXPORT_METHOD(crash)
     [SentrySDK crash];
 }
 
+RCT_EXPORT_METHOD(closeNativeSdk
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
+  [SentrySDK close];
+}
+
 @end

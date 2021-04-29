@@ -35,6 +35,7 @@ jest.mock(
           return;
         }),
         startWithOptions: jest.fn((options) => Promise.resolve(options)),
+        closeNativeSdk: jest.fn(() => Promise.resolve()),
       },
     },
     Platform: {
@@ -449,6 +450,17 @@ describe("Tests Native Wrapper", () => {
   describe("isNativeTransportAvailable", () => {
     test("checks if native transport is available", () => {
       expect(NATIVE.isNativeTransportAvailable()).toBe(true);
+    });
+  });
+
+  describe("closeNativeSdk", () => {
+    test("closeNativeSdk calls native bridge", async () => {
+      const RN = require("react-native");
+
+      await NATIVE.closeNativeSdk();
+
+      expect(RN.NativeModules.RNSentry.closeNativeSdk).toBeCalled();
+      expect(NATIVE.enableNative).toBe(false);
     });
   });
 });

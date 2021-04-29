@@ -2,6 +2,7 @@ import { BaseClient } from "@sentry/core";
 
 import { ReactNativeBackend } from "./backend";
 import { ReactNativeOptions } from "./options";
+import { NATIVE } from "./wrapper";
 
 /**
  * The Sentry React Native SDK Client.
@@ -12,7 +13,7 @@ import { ReactNativeOptions } from "./options";
 export class ReactNativeClient extends BaseClient<
   ReactNativeBackend,
   ReactNativeOptions
-  > {
+> {
   /**
    * Creates a new React Native SDK instance.
    * @param options Configuration options for this SDK.
@@ -27,5 +28,15 @@ export class ReactNativeClient extends BaseClient<
    */
   public nativeCrash(): void {
     this._getBackend().nativeCrash();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public close(): PromiseLike<boolean> {
+    // As super.close() flushes queued events, we wait for that to finish before closing the native SDK.
+    return super.close().then((result: boolean) => {
+      return NATIVE.closeNativeSdk().then(() => result) as PromiseLike<boolean>;
+    });
   }
 }

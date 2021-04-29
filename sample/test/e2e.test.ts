@@ -118,4 +118,21 @@ describe('End to end tests for common events', () => {
 
     expect(sentryEvent.eventID).toMatch(eventId);
   });
+
+  test('close', async () => {
+    expect(await driver.hasElementByAccessibilityId('close')).toBe(true);
+
+    const element = await driver.elementByAccessibilityId('close');
+    await element.click();
+
+    // Wait a while in case
+    await driver.sleep(5000);
+
+    // This time we don't expect an eventId
+    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
+    const eventIdElement = await driver.elementByAccessibilityId('eventId');
+    const eventId = await eventIdElement.text();
+
+    expect(eventId).toBe('');
+  });
 });
