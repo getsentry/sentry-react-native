@@ -4,6 +4,7 @@
 
 - build(ios): Bump sentry-cocoa to 7.0.0 and remove setLogLevel #1459
 - feat: Close method to fully disable the SDK on all layers #1457
+- build(android): Bump Android SDK to 5.0.0-beta.1 #1476
 
 ## 2.4.2
 
