@@ -6,7 +6,7 @@
 
 ### Breaking changes
 
-- ref(android): Rename enableSessionTracking to enableAutoSessionTracking. #1508
+- ref(android): sentry-android renamed enableSessionTracking to enableAutoSessionTracking. #1508
 
 ## 2.5.0-beta.1
 
