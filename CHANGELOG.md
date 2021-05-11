@@ -4,10 +4,6 @@
 
 - build(android): Bump Android SDK to 5.0.0-beta.2. #1508
 
-### Breaking changes
-
-- ref(android): sentry-android renamed enableSessionTracking to enableAutoSessionTracking. #1508
-
 ## 2.5.0-beta.1
 
 - build(ios): Bump sentry-cocoa to 7.0.0 and remove setLogLevel #1459
