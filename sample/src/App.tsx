@@ -1,10 +1,12 @@
 import * as React from 'react';
+import {Platform} from 'react-native';
 import {Provider} from 'react-redux';
 import {
   NavigationContainer,
   NavigationContainerRef,
 } from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
+import DeviceInfo from 'react-native-device-info';
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
@@ -63,6 +65,16 @@ Sentry.init({
   // otherwise they will not work.
   release: packageVersion,
   dist: `${packageVersion}.0`,
+});
+
+Sentry.addGlobalEventProcessor((event) => {
+  if (Platform.OS === 'android') {
+    const id = DeviceInfo.getUniqueId();
+
+    event.user = event.user ?? {id};
+  }
+
+  return event;
 });
 
 const Stack = createStackNavigator();
