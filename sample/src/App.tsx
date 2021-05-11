@@ -67,15 +67,15 @@ Sentry.init({
   dist: `${packageVersion}.0`,
 });
 
-Sentry.addGlobalEventProcessor((event) => {
-  if (Platform.OS === 'android') {
+if (Platform.OS === 'android') {
+  Sentry.addGlobalEventProcessor((event) => {
     const id = DeviceInfo.getUniqueId();
 
     event.user = event.user ?? {id};
-  }
 
-  return event;
-});
+    return event;
+  });
+}
 
 const Stack = createStackNavigator();
 
