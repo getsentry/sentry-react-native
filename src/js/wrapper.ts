@@ -343,6 +343,14 @@ export const NATIVE = {
     });
   },
 
+  async getNativeStartupTimestamps(): Promise<{
+    nativeStartTime: number;
+    nativeStartedTime: number;
+  }> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return RNSentry.getNativeStartupTimestamps();
+  },
+
   /**
    * Serializes all values of root-level keys into strings.
    * @param data key-value map.

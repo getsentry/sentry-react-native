@@ -1,13 +1,16 @@
 import { BrowserBackend } from "@sentry/browser/dist/backend";
-import { BaseBackend, NoopTransport } from "@sentry/core";
+import { BaseBackend, getCurrentHub, NoopTransport } from "@sentry/core";
 import { BrowserOptions, Transports } from "@sentry/react";
 import { Event, EventHint, Severity, Transport } from "@sentry/types";
+import { timestampInSeconds } from "@sentry/utils";
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from "react-native";
 
 import { ReactNativeOptions } from "./options";
 import { NativeTransport } from "./transports/native";
 import { NATIVE } from "./wrapper";
+
+const jsStartedTimestampSeconds = timestampInSeconds();
 
 /** The Sentry ReactNative SDK Backend. */
 export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
@@ -115,6 +118,38 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
     }
 
     this._options.onReady?.({ didCallNativeInit });
+
+    if (didCallNativeInit) {
+      const {
+        nativeStartTime,
+        nativeStartedTime,
+      } = await NATIVE.getNativeStartupTimestamps();
+
+      const nativeStartTimeSeconds = nativeStartTime / 1000;
+      const nativeStartedTimeSeconds = nativeStartedTime / 1000;
+
+      const t = getCurrentHub().startTransaction({
+        name: "App Start",
+        description: "App Start",
+        op: "startup",
+        startTimestamp: nativeStartTimeSeconds,
+        sampled: true,
+      });
+
+      t.startChild({
+        description: "Native App Start",
+        op: "native-startup",
+        startTimestamp: nativeStartTimeSeconds,
+      }).finish(nativeStartedTimeSeconds);
+
+      t.startChild({
+        description: "JS App Start",
+        op: "js-startup",
+        startTimestamp: nativeStartedTimeSeconds,
+      }).finish(jsStartedTimestampSeconds);
+
+      t.finish(jsStartedTimestampSeconds);
+    }
   }
 
   /**

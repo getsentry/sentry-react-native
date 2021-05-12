@@ -51,9 +51,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     private static PackageInfo packageInfo;
     private SentryOptions sentryOptions;
 
+  private long nativeStartedTime;
+
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
         RNSentryModule.packageInfo = getPackageInfo(reactContext);
+
+    nativeStartedTime = System.currentTimeMillis();
     }
 
     @Override
@@ -166,6 +170,16 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
         promise.resolve(true);
     }
+
+  @ReactMethod
+  public void getNativeStartupTimestamps(Promise promise) {
+    WritableMap response = Arguments.createMap();
+
+    response.putDouble("nativeStartedTime", (double)nativeStartedTime);
+    response.putDouble("nativeStartTime", (double)(nativeStartedTime - 2000));
+
+    promise.resolve(response);
+  }
 
     @ReactMethod
     public void crash() {
