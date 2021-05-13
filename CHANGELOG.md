@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- build(android): Bump Android SDK to 5.0.0-beta.2. #1508
+- build(android): Bump Android SDK to 5.0.0-beta.3. #1508
 
 ## 2.5.0-beta.1
 
