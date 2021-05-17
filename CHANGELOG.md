@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- build(android): Bump Android SDK to 5.0.0-beta.3. #1508
+
 ## 2.5.0-beta.1
 
 - build(ios): Bump sentry-cocoa to 7.0.0 and remove setLogLevel #1459
