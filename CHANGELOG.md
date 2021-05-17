@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.4.3
+
 - fix: Use the latest outbox path from hub options instead of private options #1529
 
 ## 2.4.2
