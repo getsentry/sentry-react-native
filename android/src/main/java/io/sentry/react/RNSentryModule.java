@@ -183,10 +183,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void captureEnvelope(String envelope, Promise promise) {
         try {
-      String outboxPath = HubAdapter.getInstance().getOptions().getOutboxPath();
-      File installation = new File(outboxPath, UUID.randomUUID().toString());
-            try (FileOutputStream out = new FileOutputStream(installation)) {
-                out.write(envelope.getBytes(Charset.forName("UTF-8")));
+            final String outboxPath = HubAdapter.getInstance().getOptions().getOutboxPath();
+
+            if (outboxPath == null) {
+                logger.severe("Error retrieving outboxPath. Envelope will not be sent. Is the Android SDK initialized?");
+            } else {
+                File installation = new File(outboxPath, UUID.randomUUID().toString());
+                try (FileOutputStream out = new FileOutputStream(installation)) {
+                    out.write(envelope.getBytes(Charset.forName("UTF-8")));
+                }
             }
         } catch (Exception e) {
             logger.severe("Error reading envelope");
