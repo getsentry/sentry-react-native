@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: Use the latest outbox path from hub options instead of private options #1529
+
 ## 2.4.2
 
 - fix: enableNative: false should take precedence over autoInitializeNativeSdk: false #1462

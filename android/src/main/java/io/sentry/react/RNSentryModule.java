@@ -33,6 +33,7 @@ import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.Sentry;
 import io.sentry.Breadcrumb;
+import io.sentry.HubAdapter;
 import io.sentry.Integration;
 import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
@@ -49,7 +50,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     final static Logger logger = Logger.getLogger("react-native-sentry");
 
     private static PackageInfo packageInfo;
-    private SentryOptions sentryOptions;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -160,7 +160,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
 
             logger.info(String.format("Native Integrations '%s'", options.getIntegrations().toString()));
-            sentryOptions = options;
         });
 
         promise.resolve(true);
@@ -188,9 +187,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void captureEnvelope(String envelope, Promise promise) {
         try {
-            File installation = new File(sentryOptions.getOutboxPath(), UUID.randomUUID().toString());
-            try (FileOutputStream out = new FileOutputStream(installation)) {
-                out.write(envelope.getBytes(Charset.forName("UTF-8")));
+            final String outboxPath = HubAdapter.getInstance().getOptions().getOutboxPath();
+
+            if (outboxPath == null) {
+                logger.severe("Error retrieving outboxPath. Envelope will not be sent. Is the Android SDK initialized?");
+            } else {
+                File installation = new File(outboxPath, UUID.randomUUID().toString());
+                try (FileOutputStream out = new FileOutputStream(installation)) {
+                    out.write(envelope.getBytes(Charset.forName("UTF-8")));
+                }
             }
         } catch (Exception e) {
             logger.info("Error reading envelope");
