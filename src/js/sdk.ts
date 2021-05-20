@@ -11,6 +11,7 @@ import {
   DeviceContext,
   ReactNativeErrorHandlers,
   Release,
+  Stalls,
 } from "./integrations";
 import { ReactNativeOptions } from "./options";
 import { ReactNativeScope } from "./scope";
@@ -42,6 +43,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     options.defaultIntegrations = [
       new ReactNativeErrorHandlers(),
       new Release(),
+      new Stalls(),
       ...defaultIntegrations.filter(
         (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
       ),
