@@ -13,6 +13,7 @@ import {
 } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
+import { Stalls } from "../measurements";
 import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
 import { adjustTransactionDuration } from "./utils";
 
@@ -174,6 +175,16 @@ export class ReactNativeTracing implements Integration {
     logger.log(
       `[ReactNativeTracing] Starting ${context.op} transaction "${context.name}" on scope`
     );
+
+    const stalls = new Stalls();
+    stalls.start();
+
+    idleTransaction.registerBeforeFinishCallback((transaction) => {
+      const stats = stalls.finish();
+
+      transaction.setMeasurements(stats);
+    });
+
     idleTransaction.registerBeforeFinishCallback(
       (transaction, endTimestamp) => {
         adjustTransactionDuration(

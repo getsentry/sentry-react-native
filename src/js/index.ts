@@ -39,6 +39,10 @@ export {
 // aka. this has side effects
 import "@sentry/tracing";
 
+// Add the React Native SDK's own tracing extensions, this needs to happen AFTER @sentry/tracing's
+import { _addTracingExtensions } from "./measurements";
+_addTracingExtensions();
+
 export {
   Integrations as BrowserIntegrations,
   ErrorBoundary,
