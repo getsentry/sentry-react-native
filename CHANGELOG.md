@@ -4,6 +4,7 @@
 
 - build(android): Bump Android SDK to 5.0.0-beta.3. #1508
 - fix: Use the latest outbox path from hub options instead of private options #1529
+- build(android): Bump Android SDK to 5.0.0-beta.4. #1508
 
 ## 2.5.0-beta.1
 
