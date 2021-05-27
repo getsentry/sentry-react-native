@@ -182,7 +182,14 @@ export class ReactNativeTracing implements Integration {
     idleTransaction.registerBeforeFinishCallback((transaction) => {
       const stats = stalls.finish();
 
-      transaction.setMeasurements(stats);
+      // We don't need to check for endTimestamp here because this is only used internally, and we do not set it.
+      // Besides, we can't check for it anyways as the timestamp passed as the second argument to this callback is always defined.
+
+      if (!transaction.toContext().trimEnd) {
+        transaction.setMeasurements(stats);
+      } else {
+        logger.log("Stall metrics not added due to `trimEnd` being true.");
+      }
     });
 
     idleTransaction.registerBeforeFinishCallback(
