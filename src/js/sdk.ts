@@ -120,6 +120,27 @@ export function nativeCrash(): void {
 }
 
 /**
+ * Flushes all pending events in the queue to disk.
+ * Use this before applying any realtime updates such as code-push or expo updates.
+ */
+export async function flush(): Promise<boolean> {
+  try {
+    const client = getCurrentHub().getClient<ReactNativeClient>();
+
+    if (client) {
+      const result = await client.flush();
+
+      return result;
+    }
+    // eslint-disable-next-line no-empty
+  } catch (_) {}
+
+  logger.error("Failed to flush the event queue.");
+
+  return false;
+}
+
+/**
  * Closes the SDK, stops sending events.
  */
 export async function close(): Promise<void> {
