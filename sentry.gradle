@@ -164,8 +164,10 @@ def extractReleasesInfo() {
     android.applicationVariants.each { variant ->
 
         variant.outputs.each { output ->
-            def versionCode = output.getVersionCode()
-            def releaseName = "${variant.getApplicationId()}@${variant.getVersionName()}+${versionCode}"
+            def defaultVersionCode = output.getVersionCode()
+            def versionCode = System.getenv("SENTRY_DIST") ?: defaultVersionCode
+            def defaultReleaseName = "${variant.getApplicationId()}@${variant.getVersionName()}+${versionCode}"
+            def releaseName = System.getenv("SENTRY_RELEASE") ?: defaultReleaseName
             def variantName = variant.getName()
             def outputName = output.getName()
             if (releases[variantName] == null) {
