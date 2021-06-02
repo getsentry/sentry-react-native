@@ -196,6 +196,13 @@ const HomeScreen = (props: Props) => {
             <View style={styles.spacer} />
             <TouchableOpacity
               onPress={() => {
+                Sentry.flush();
+              }}>
+              <Text style={styles.buttonText}>Flush</Text>
+            </TouchableOpacity>
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={() => {
                 Sentry.close();
               }}>
               <Text style={styles.buttonText}>Close</Text>
