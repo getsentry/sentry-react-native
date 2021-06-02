@@ -4,6 +4,7 @@
 
 - fix: Use the latest outbox path from hub options instead of private options #1529
 - build(android): Bump sentry-android to 5.0.0 #1560
+- feat: Sentry.flush to flush events to disk and returns a promise #1547
 
 ## 2.5.0-beta.1
 
