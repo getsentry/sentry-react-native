@@ -7,5 +7,4 @@ targets:
   - name: registry
     sdks:
       npm:@sentry/react-native:
-        name: registry
         includeNames: /none/
