@@ -22,7 +22,7 @@ export const NATIVE = {
    * Sending the event over the bridge to native
    * @param event Event
    */
-  async sendEvent(event: Event): Promise<Response> {
+  async sendEvent(_event: Event): Promise<Response> {
     if (!this.enableNative) {
       return {
         reason: `Event was skipped as native SDK is not enabled.`,
@@ -33,8 +33,7 @@ export const NATIVE = {
       throw this._NativeClientError;
     }
 
-    // Process and convert deprecated levels
-    event.level = event.level ? this._processLevel(event.level) : undefined;
+    const event = this._processLevels(_event);
 
     const header = {
       event_id: event.event_id,
@@ -360,6 +359,26 @@ export const NATIVE = {
     });
 
     return serialized;
+  },
+
+  /**
+   * Convert js severity level in event.level and event.breadcrumbs to more widely supported levels.
+   * @param event
+   * @returns Event with more widely supported Severity level strings
+   */
+  _processLevels(event: Event): Event {
+    const processed: Event = {
+      ...event,
+      level: event.level ? this._processLevel(event.level) : undefined,
+      breadcrumbs: event.breadcrumbs?.map((breadcrumb) => ({
+        ...breadcrumb,
+        level: breadcrumb.level
+          ? this._processLevel(breadcrumb.level)
+          : undefined,
+      })),
+    };
+
+    return processed;
   },
 
   /**
