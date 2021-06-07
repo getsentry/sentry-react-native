@@ -126,6 +126,7 @@ export class StallTracking implements Integration {
       (t) => t.spanId !== transaction.spanId
     );
     this._longestStallsByTransaction.delete(transaction.spanId);
+    this._statsAtTimestamp.delete(transaction.spanId);
 
     if (this._runningTransactions.length === 0) {
       this._stopTracking();
