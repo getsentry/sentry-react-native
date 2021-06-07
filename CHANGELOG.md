@@ -6,6 +6,7 @@
 - fix: Use the latest outbox path from hub options instead of private options #1529
 - build(android): Bump Android SDK to 5.0.0-beta.4. #1545
 - feat: Sentry.flush to flush events to disk and returns a promise #1547
+- fix: Process "log" levels in breadcrumbs before sending to native #1565
 
 ## 2.5.0-beta.1
 
