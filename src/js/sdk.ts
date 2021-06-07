@@ -11,6 +11,7 @@ import {
   DeviceContext,
   ReactNativeErrorHandlers,
   Release,
+  StallTracking,
 } from "./integrations";
 import { ReactNativeOptions } from "./options";
 import { ReactNativeScope } from "./scope";
@@ -45,6 +46,7 @@ export function init(passedOptions: ReactNativeOptions): void {
       ...defaultIntegrations.filter(
         (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
       ),
+      new StallTracking(),
     ];
     if (__DEV__) {
       options.defaultIntegrations.push(new DebugSymbolicator());

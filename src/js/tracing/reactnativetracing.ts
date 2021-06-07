@@ -13,7 +13,7 @@ import {
 } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
-import { Stalls } from "../measurements";
+import { StallTracking } from "../integrations";
 import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
 import { adjustTransactionDuration } from "./utils";
 
@@ -176,19 +176,18 @@ export class ReactNativeTracing implements Integration {
       `[ReactNativeTracing] Starting ${context.op} transaction "${context.name}" on scope`
     );
 
-    const stalls = new Stalls();
-    stalls.start();
+    const stallTracking = this._getCurrentHub().getIntegration(StallTracking);
+    const stallTrackingFinish = stallTracking?.registerTransactionStart(
+      idleTransaction
+    );
 
     idleTransaction.registerBeforeFinishCallback((transaction) => {
-      const stats = stalls.finish();
+      if (stallTrackingFinish) {
+        const stallMeasurements = stallTrackingFinish();
 
-      // We don't need to check for endTimestamp here because this is only used internally, and we do not set it.
-      // Besides, we can't check for it anyways as the timestamp passed as the second argument to this callback is always defined.
-
-      if (!transaction.toContext().trimEnd) {
-        transaction.setMeasurements(stats);
-      } else {
-        logger.log("Stall metrics not added due to `trimEnd` being true.");
+        if (stallMeasurements) {
+          transaction.setMeasurements(stallMeasurements);
+        }
       }
     });
 
