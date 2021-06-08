@@ -6,6 +6,7 @@
 - build(android): Bump sentry-android to 5.0.1 #1576
 - feat: Sentry.flush to flush events to disk and returns a promise #1547
 - fix: Process "log" levels in breadcrumbs before sending to native #1565
+- build(js): Bump sentry-javascript dependencies to 6.5.1
 
 ## 2.5.0-beta.1
 
