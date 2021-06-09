@@ -2,11 +2,22 @@
 
 ## Unreleased
 
-- fix: Use the latest outbox path from hub options instead of private options #1529
-- build(android): Bump sentry-android to 5.0.1 #1576
-- feat: Sentry.flush to flush events to disk and returns a promise #1547
-- fix: Process "log" levels in breadcrumbs before sending to native #1565
+## 2.5.0
+
+### Dependencies
+
 - build(js): Bump sentry-javascript dependencies to 6.5.1 #1588
+- build(ios): Bump sentry-cocoa to 7.0.0 and remove setLogLevel #1459
+- build(android): Bump sentry-android to 5.0.1 #1576
+
+### Features
+
+- feat: `Sentry.flush()` to flush events to disk and returns a promise #1547
+- feat: `Sentry.close()` method to fully disable the SDK on all layers and returns a promise #1457
+
+### Fixes
+- fix: Process "log" levels in breadcrumbs before sending to native #1565
+
 
 ## 2.5.0-beta.1
 
