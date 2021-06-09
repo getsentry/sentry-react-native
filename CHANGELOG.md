@@ -14,6 +14,10 @@
 - feat: Close method to fully disable the SDK on all layers #1457
 - build(android): Bump Android SDK to 5.0.0-beta.1 #1476
 
+## 2.4.3
+
+- fix: Use the latest outbox path from hub options instead of private options #1529
+
 ## 2.4.2
 
 - fix: enableNative: false should take precedence over autoInitializeNativeSdk: false #1462
