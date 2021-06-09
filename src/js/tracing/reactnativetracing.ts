@@ -91,7 +91,7 @@ export class ReactNativeTracing implements Integration {
 
   private _getCurrentHub?: () => Hub;
 
-  constructor(options: Partial<ReactNativeTracingOptions> = {}) {
+  public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this.options = {
       ...defaultReactNativeTracingOptions,
       ...options,

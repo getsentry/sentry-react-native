@@ -53,7 +53,7 @@ const defaultOptions: ReactNavigationV4Options = {
  * Register the app container with `registerAppContainer` to use, or see docs for more details.
  */
 class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
-  static instrumentationName: string = "react-navigation-v4";
+  public static instrumentationName: string = "react-navigation-v4";
 
   private _appContainer: AppContainerInstance | null = null;
 
@@ -68,7 +68,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
 
   private _options: ReactNavigationV4Options;
 
-  constructor(options: Partial<ReactNavigationV4Options> = {}) {
+  public constructor(options: Partial<ReactNavigationV4Options> = {}) {
     super();
 
     this._options = {
