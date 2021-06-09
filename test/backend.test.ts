@@ -1,3 +1,4 @@
+import { NoopTransport } from "@sentry/core";
 import * as RN from "react-native";
 
 import { ReactNativeBackend } from "../src/js/backend";
@@ -99,6 +100,7 @@ describe("Tests ReactNativeBackend", () => {
       new ReactNativeBackend({
         dsn: EXAMPLE_DSN,
         enableNative: true,
+        transport: NoopTransport,
         onReady: ({ didCallNativeInit }) => {
           expect(didCallNativeInit).toBe(true);
 
@@ -111,6 +113,7 @@ describe("Tests ReactNativeBackend", () => {
       new ReactNativeBackend({
         dsn: EXAMPLE_DSN,
         enableNative: false,
+        transport: NoopTransport,
         onReady: ({ didCallNativeInit }) => {
           expect(didCallNativeInit).toBe(false);
 
@@ -129,6 +132,7 @@ describe("Tests ReactNativeBackend", () => {
       new ReactNativeBackend({
         dsn: EXAMPLE_DSN,
         enableNative: true,
+        transport: NoopTransport,
         onReady: ({ didCallNativeInit }) => {
           expect(didCallNativeInit).toBe(false);
 

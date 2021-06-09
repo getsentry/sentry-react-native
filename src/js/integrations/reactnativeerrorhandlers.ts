@@ -10,6 +10,7 @@ interface ReactNativeErrorHandlersOptions {
   onunhandledrejection: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const global: any;
 
 /** ReactNativeErrorHandlers Integration */
@@ -121,6 +122,7 @@ export class ReactNativeErrorHandlers implements Integration {
       const defaultHandler =
         ErrorUtils.getGlobalHandler && ErrorUtils.getGlobalHandler();
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ErrorUtils.setGlobalHandler((error: any, isFatal?: boolean) => {
         // We want to handle fatals, but only in production mode.
         const shouldHandleFatal = isFatal && !__DEV__;

@@ -37,6 +37,7 @@ export class ReactNativeScope extends Scope {
   /**
    * @inheritDoc
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public setExtras(extras: { [key: string]: any }): this {
     Object.keys(extras).forEach((key) => {
       NATIVE.setExtra(key, extras[key]);
@@ -47,6 +48,7 @@ export class ReactNativeScope extends Scope {
   /**
    * @inheritDoc
    */
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/no-explicit-any
   public setExtra(key: string, extra: any): this {
     NATIVE.setExtra(key, extra);
     return super.setExtra(key, extra);
@@ -71,6 +73,7 @@ export class ReactNativeScope extends Scope {
   /**
    * @inheritDoc
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public setContext(key: string, context: { [key: string]: any } | null): this {
     NATIVE.setContext(key, context);
     return super.setContext(key, context);

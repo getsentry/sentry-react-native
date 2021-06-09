@@ -3,6 +3,7 @@ import { TransactionContext } from "@sentry/types";
 export interface ReactNavigationRoute {
   name: string;
   key: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params: Record<string, any>;
 }
 

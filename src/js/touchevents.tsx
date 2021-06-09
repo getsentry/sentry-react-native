@@ -65,6 +65,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     return (
       <View
         style={touchEventStyles.wrapperView}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onTouchStart={this._onTouchStart as any}
       >
         {this.props.children}
@@ -165,6 +166,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
  * @param boundaryProps TouchEventBoundaryProps
  */
 const withTouchEventBoundary = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   InnerComponent: React.ComponentType<any>,
   boundaryProps: TouchEventBoundaryProps
 ): React.FunctionComponent => {

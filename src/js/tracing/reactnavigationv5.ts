@@ -40,7 +40,7 @@ const defaultOptions: ReactNavigationV5Options = {
  * - If `_onStateChange` isn't called within `STATE_CHANGE_TIMEOUT_DURATION` of the dispatch, then the transaction is not sampled and finished.
  */
 export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
-  static instrumentationName: string = "react-navigation-v5";
+  public static instrumentationName: string = "react-navigation-v5";
 
   private _navigationContainer: NavigationContainerV5 | null = null;
 
@@ -54,7 +54,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
 
   private _options: ReactNavigationV5Options;
 
-  constructor(options: Partial<ReactNavigationV5Options> = {}) {
+  public constructor(options: Partial<ReactNavigationV5Options> = {}) {
     super();
 
     this._options = {
@@ -88,7 +88,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
    * Pass the ref to the navigation container to register it to the instrumentation
    * @param navigationContainerRef Ref to a `NavigationContainer`
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
   public registerNavigationContainer(navigationContainerRef: any): void {
     const _global = getGlobalObject<{ __sentry_rn_v5_registered?: boolean }>();
 

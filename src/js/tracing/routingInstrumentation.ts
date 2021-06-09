@@ -40,7 +40,7 @@ export class RoutingInstrumentation implements RoutingInstrumentationInstance {
   private _tracingListener?: TransactionCreator;
 
   /** @inheritdoc */
-  registerRoutingInstrumentation(
+  public registerRoutingInstrumentation(
     listener: TransactionCreator,
     beforeNavigate: BeforeNavigate
   ): void {
