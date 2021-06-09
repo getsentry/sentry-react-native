@@ -84,7 +84,7 @@ export function init(passedOptions: ReactNativeOptions): void {
   // set the event.origin tag.
   getCurrentHub().setTag("event.origin", "javascript");
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
   if (getGlobalObject<any>().HermesInternal) {
     getCurrentHub().setTag("hermes", "true");
   }

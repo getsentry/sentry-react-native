@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Transaction } from "@sentry/tracing";
-import { getGlobalObject, resolve } from "@sentry/utils";
+import { getGlobalObject } from "@sentry/utils";
 
 import {
   BLANK_TRANSACTION_CONTEXT_V5,

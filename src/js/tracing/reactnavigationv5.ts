@@ -88,7 +88,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
    * Pass the ref to the navigation container to register it to the instrumentation
    * @param navigationContainerRef Ref to a `NavigationContainer`
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
   public registerNavigationContainer(navigationContainerRef: any): void {
     const _global = getGlobalObject<{ __sentry_rn_v5_registered?: boolean }>();
 

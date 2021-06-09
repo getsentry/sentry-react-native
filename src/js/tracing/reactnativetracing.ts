@@ -1,3 +1,4 @@
+import { Hub } from "@sentry/hub";
 import {
   defaultRequestInstrumentationOptions,
   registerRequestInstrumentation,
@@ -6,7 +7,6 @@ import {
 } from "@sentry/tracing";
 import {
   EventProcessor,
-  Hub,
   Integration,
   Transaction as TransactionType,
   TransactionContext,
@@ -166,7 +166,7 @@ export class ReactNativeTracing implements Integration {
 
     const hub = this._getCurrentHub();
     const idleTransaction = startIdleTransaction(
-      hub as any,
+      hub as Hub,
       expandedContext,
       idleTimeout,
       true

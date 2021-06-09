@@ -223,6 +223,7 @@ describe("Tests Native Wrapper", () => {
         instance: new TestInstance(),
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await NATIVE.sendEvent(event as any);
 
       expect(RN.NativeModules.RNSentry.captureEnvelope).toBeCalledWith({
@@ -260,6 +261,7 @@ describe("Tests Native Wrapper", () => {
         instance: new TestInstance(),
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await NATIVE.sendEvent(event as any);
 
       const headerString = JSON.stringify({
