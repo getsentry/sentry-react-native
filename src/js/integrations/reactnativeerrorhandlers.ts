@@ -1,6 +1,7 @@
+import { eventFromException } from "@sentry/browser";
 import { getCurrentHub } from "@sentry/core";
 import { Integration, Severity } from "@sentry/types";
-import { getGlobalObject, logger } from "@sentry/utils";
+import { addExceptionMechanism, getGlobalObject, logger } from "@sentry/utils";
 
 import { ReactNativeClient } from "../client";
 
@@ -113,7 +114,7 @@ export class ReactNativeErrorHandlers implements Integration {
     }
   }
   /**
-   * Handle erros
+   * Handle errors
    */
   private _handleOnError(): void {
     if (this._options.onerror) {
@@ -123,7 +124,7 @@ export class ReactNativeErrorHandlers implements Integration {
         ErrorUtils.getGlobalHandler && ErrorUtils.getGlobalHandler();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ErrorUtils.setGlobalHandler((error: any, isFatal?: boolean) => {
+      ErrorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
         // We want to handle fatals, but only in production mode.
         const shouldHandleFatal = isFatal && !__DEV__;
         if (shouldHandleFatal) {
@@ -137,27 +138,44 @@ export class ReactNativeErrorHandlers implements Integration {
           handlingFatal = true;
         }
 
-        getCurrentHub().withScope((scope) => {
-          if (isFatal) {
-            scope.setLevel(Severity.Fatal);
-          }
-          getCurrentHub().captureException(error, {
-            originalException: error,
-          });
-        });
+        const currentHub = getCurrentHub();
+        const client = currentHub.getClient<ReactNativeClient>();
 
-        const client = getCurrentHub().getClient<ReactNativeClient>();
-        // If in dev, we call the default handler anyway and hope the error will be sent
-        // Just for a better dev experience
-        if (client && !__DEV__) {
-          void client
-            .flush(client.getOptions().shutdownTimeout || 2000)
-            .then(() => {
-              defaultHandler(error, isFatal);
-            });
-        } else {
+        if (!client) {
+          logger.error(
+            "Sentry client is missing, the error event might be lost.",
+            error
+          );
+
           // If there is no client something is fishy, anyway we call the default handler
           defaultHandler(error, isFatal);
+
+          return;
+        }
+
+        const options = client.getOptions();
+
+        const event = await eventFromException(options, error, {
+          originalException: error,
+        });
+
+        if (isFatal) {
+          event.level = Severity.Fatal;
+
+          addExceptionMechanism(event, {
+            handled: false,
+            type: "onerror",
+          });
+        }
+
+        currentHub.captureEvent(event);
+
+        // If in dev, we call the default handler anyway and hope the error will be sent
+        // Just for a better dev experience
+        if (!__DEV__) {
+          void client.flush(options.shutdownTimeout || 2000).then(() => {
+            defaultHandler(error, isFatal);
+          });
         }
       });
     }
