@@ -3,6 +3,7 @@
 ## Unreleased
 
 - fix: Fatal uncaught events should be tagged handled:false #1597
+- fix: Fix duplicate breadcrumbs on Android #1598
 
 ## 2.5.0
 
