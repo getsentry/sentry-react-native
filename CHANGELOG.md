@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: Fatal uncaught events should be tagged handled:false #1597
+
 ## 2.5.0
 
 ### Dependencies
@@ -16,8 +18,8 @@
 - feat: `Sentry.close()` method to fully disable the SDK on all layers and returns a promise #1457
 
 ### Fixes
-- fix: Process "log" levels in breadcrumbs before sending to native #1565
 
+- fix: Process "log" levels in breadcrumbs before sending to native #1565
 
 ## 2.5.0-beta.1
 
