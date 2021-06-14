@@ -40,7 +40,7 @@
     "react-native": ">=0.56.0"
   },
   "dependencies": {
-    "@sentry/browser": "6.5.1",
+    "@sentry/browser": "6.6.0",
     "@sentry/core": "6.5.1",
     "@sentry/hub": "6.5.1",
     "@sentry/integrations": "6.5.1",
