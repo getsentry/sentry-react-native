@@ -304,7 +304,7 @@ export class StallTracking implements Integration {
   private _iteration(): void {
     const now = timestampInSeconds() * 1000;
     const busyTime = now - this._lastInterval;
-    const timeoutDuration = this._acceptableBusyTime / 5;
+    const timeoutDuration = this._acceptableBusyTime / 2;
 
     if (busyTime >= this._acceptableBusyTime) {
       const stallTime = busyTime - timeoutDuration;
