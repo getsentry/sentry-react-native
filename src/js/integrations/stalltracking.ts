@@ -1,12 +1,25 @@
+/* eslint-disable max-lines */
 import { Span, Transaction } from "@sentry/tracing";
 import { Integration, Measurements } from "@sentry/types";
 import { logger, timestampInSeconds } from "@sentry/utils";
 
-interface StallMeasurements extends Measurements {
+export interface StallMeasurements extends Measurements {
   stall_count: { value: number };
   stall_total_time: { value: number };
   stall_longest_time: { value: number };
 }
+
+/** Margin of error of 20ms */
+const MARGIN_OF_ERROR_SECONDS = 0.02;
+/** Max number of span stats stored */
+const MAX_SPAN_STATS_LEN = 20;
+
+/**
+ * Ensures the timestamp is in seconds. This is because the endTimestamp
+ * passed to .finish() could be seconds or milliseconds.
+ */
+const standardizeTimestampToSeconds = (timestamp: number): number =>
+  new Date(timestamp).getTime() / 1000;
 
 /**
  * Stall measurement tracker
@@ -33,11 +46,11 @@ export class StallTracking implements Integration {
     Map<number, StallMeasurements>
   > = new Map();
 
-  private _timeout?: number;
+  private _timeout: ReturnType<typeof setTimeout> | null;
   private _runningTransactions: Transaction[] = [];
   private _isTracking: boolean = false;
 
-  constructor(
+  public constructor(
     options: {
       /**
        * How long in milliseconds an event loop can stay "busy" for before being considered a stall.
@@ -47,12 +60,13 @@ export class StallTracking implements Integration {
     } = { acceptableBusyTime: 100 }
   ) {
     this._acceptableBusyTime = options.acceptableBusyTime;
+    this._timeout = null;
   }
 
   /**
    * @inheritDoc
    */
-  setupOnce(): void {
+  public setupOnce(): void {
     // Do nothing.
   }
 
@@ -62,7 +76,7 @@ export class StallTracking implements Integration {
    */
   public registerTransactionStart(
     transaction: Transaction
-  ): () => StallMeasurements | void {
+  ): (endTimestamp?: number) => StallMeasurements | null {
     if (
       this._runningTransactions.some((t) => t.spanId === transaction.spanId)
     ) {
@@ -72,6 +86,7 @@ export class StallTracking implements Integration {
 
       return () => {
         // noop
+        return null;
       };
     }
 
@@ -82,16 +97,23 @@ export class StallTracking implements Integration {
       const originalAdd = transaction.spanRecorder.add;
 
       transaction.spanRecorder.add = (span: Span): void => {
-        const statsAtTimestampPerTransaction = this._statsAtTimestamp.get(
-          transaction.spanId
-        );
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        const originalSpanFinish = span.finish;
 
-        if (statsAtTimestampPerTransaction && span.endTimestamp) {
-          statsAtTimestampPerTransaction.set(
-            span.endTimestamp,
-            this._getCurrentStats(transaction.spanId)
-          );
-        }
+        span.finish = (_endTimestamp?: number) => {
+          // Sanitize the span endTimestamp to always be seconds as it could be set with milliseconds.
+          const endTimestamp = _endTimestamp
+            ? standardizeTimestampToSeconds(_endTimestamp)
+            : undefined;
+
+          // We let the span determine its own end timestamp as well in case anything gets changed upstream
+          originalSpanFinish.apply(span, [endTimestamp]);
+
+          // The span should set a timestamp, so this would be defined.
+          if (span.endTimestamp) {
+            this._logSpanFinish(transaction.spanId, span.endTimestamp);
+          }
+        };
 
         originalAdd.apply(transaction.spanRecorder, [span]);
       };
@@ -99,11 +121,12 @@ export class StallTracking implements Integration {
 
     this._runningTransactions.push(transaction);
     this._longestStallsByTransaction.set(transaction.spanId, 0);
+    this._statsAtTimestamp.set(transaction.spanId, new Map());
 
     const statsOnStart = this._getCurrentStats(transaction.spanId);
 
     return (endTimestamp?: number) =>
-      this.onFinish(transaction, statsOnStart, endTimestamp);
+      this._onFinish(transaction, statsOnStart, endTimestamp);
   }
 
   /**
@@ -111,15 +134,18 @@ export class StallTracking implements Integration {
    * Stops stall tracking if no more transactions are running.
    * @returns The stall measurements
    */
-  public onFinish(
+  private _onFinish(
     transaction: Transaction,
     statsOnStart: StallMeasurements,
-    _endTimestamp?: number
-  ): StallMeasurements | void {
-    const endTimestamp = _endTimestamp ?? transaction.endTimestamp;
+    passedEndTimestamp?: number
+  ): StallMeasurements | null {
+    const _endTimestamp = passedEndTimestamp ?? transaction.endTimestamp;
+    const endTimestamp = _endTimestamp
+      ? standardizeTimestampToSeconds(_endTimestamp)
+      : undefined;
 
     const statsOnFinish = endTimestamp
-      ? this._statsAtTimestamp.get(transaction.spanId)?.get(endTimestamp)
+      ? this._findNearestSpanEnd(transaction.spanId, endTimestamp)
       : this._getCurrentStats(transaction.spanId);
 
     this._runningTransactions = this._runningTransactions.filter(
@@ -135,7 +161,7 @@ export class StallTracking implements Integration {
     if (!statsOnFinish) {
       if (typeof _endTimestamp !== "undefined") {
         logger.log(
-          "[StallTracking] Stall measurements not added due to `endTimestamp` being set."
+          "[StallTracking] Stall measurements not added due to `endTimestamp` being set to a value too far away from a logged point."
         );
       } else {
         logger.log(
@@ -143,7 +169,7 @@ export class StallTracking implements Integration {
         );
       }
 
-      return;
+      return null;
     }
 
     return {
@@ -157,6 +183,81 @@ export class StallTracking implements Integration {
       },
       stall_longest_time: statsOnFinish.stall_longest_time,
     };
+  }
+
+  /**
+   * `spanEndTimestamp` needs to be in seconds!
+   */
+  private _logSpanFinish(
+    transactionId: string,
+    spanEndTimestamp: number
+  ): void {
+    const statsAtTimestampPerTransaction = this._statsAtTimestamp.get(
+      transactionId
+    );
+
+    if (statsAtTimestampPerTransaction) {
+      if (
+        Math.abs(timestampInSeconds() - spanEndTimestamp) >
+        MARGIN_OF_ERROR_SECONDS
+      ) {
+        logger.log(
+          "[StallTracking] Span end not logged due to end timestamp being outside the margin of error from now."
+        );
+      } else {
+        statsAtTimestampPerTransaction.set(
+          spanEndTimestamp,
+          this._getCurrentStats(transactionId)
+        );
+      }
+
+      // We delete the first span (earliest timestamp) if there are greater than N span stats in the map.
+      if (statsAtTimestampPerTransaction.size > MAX_SPAN_STATS_LEN) {
+        const [key] = statsAtTimestampPerTransaction.keys();
+        statsAtTimestampPerTransaction.delete(key);
+      }
+    }
+  }
+
+  /**
+   * Allows us to support `trimEnd` and custom `endTimestamp` by finding the stats that we logged
+   * at a span's finish time or the closest one within the margin of error.
+   */
+  private _findNearestSpanEnd(
+    transactionId: string,
+    endTimestamp: number
+  ): StallMeasurements | null {
+    const statsForTransaction = this._statsAtTimestamp.get(transactionId);
+
+    if (statsForTransaction) {
+      const exactAtTimestamp = statsForTransaction.get(endTimestamp);
+
+      if (exactAtTimestamp) {
+        return exactAtTimestamp;
+      }
+
+      const statsWithinMargin: [number, StallMeasurements][] = [];
+      for (const [timestamp, stats] of statsForTransaction.entries()) {
+        const absErr = Math.abs(timestamp - endTimestamp);
+        if (absErr < MARGIN_OF_ERROR_SECONDS) {
+          statsWithinMargin.push([absErr, stats]);
+        }
+      }
+
+      if (statsWithinMargin.length > 0) {
+        const [err, stats] = statsWithinMargin.sort((a, b) => a[0] - b[0])[0];
+
+        logger.log(
+          `[StallTracking] Matched endTimestamp with a stat point within ${
+            err * 1000
+          }ms.`
+        );
+
+        return stats;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -190,8 +291,9 @@ export class StallTracking implements Integration {
   private _stopTracking(): void {
     this._isTracking = false;
 
-    if (typeof this._timeout === "number") {
+    if (this._timeout !== null) {
       clearTimeout(this._timeout);
+      this._timeout = null;
     }
   }
 
