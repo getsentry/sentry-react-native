@@ -13,11 +13,13 @@ describe("StallTracking", () => {
 
     const finishTracking = stallTracking.registerTransactionStart(transaction);
 
-    const expensiveObject: { value: string[] } = { value: Array(100000).fill("expensive") };
+    const expensiveObject: { value: string[] } = {
+      value: Array(100000).fill("expensive"),
+    };
 
     // This works in sync, so it should stall the js event loop
     for (let i = 0; i < 50; i++) {
-      JSON.parse(JSON.stringify(nastyObject));
+      JSON.parse(JSON.stringify(expensiveObject));
     }
 
     await new Promise<void>((resolve) => {
