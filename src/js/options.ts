@@ -65,4 +65,7 @@ export interface ReactNativeOptions extends BrowserOptions {
     /** `true` if the native SDK has been initialized, `false` otherwise.  */
     didCallNativeInit: boolean;
   }) => void;
+
+  /** Enable JS event loop stall tracking. Enabled by default. */
+  enableStallTracking?: boolean;
 }

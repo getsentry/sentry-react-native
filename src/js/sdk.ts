@@ -25,6 +25,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
+  enableStallTracking: true,
 };
 
 /**
@@ -46,7 +47,6 @@ export function init(passedOptions: ReactNativeOptions): void {
       ...defaultIntegrations.filter(
         (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
       ),
-      new StallTracking(),
     ];
     if (__DEV__) {
       options.defaultIntegrations.push(new DebugSymbolicator());
@@ -78,6 +78,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     );
     if (options.enableNative) {
       options.defaultIntegrations.push(new DeviceContext());
+    }
+    if (options.enableStallTracking) {
+      options.defaultIntegrations.push(new StallTracking());
     }
   }
 
