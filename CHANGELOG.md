@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- feat: Track stalls in the JavaScript event loop as measurements #1542
+
 ## 2.6.0
 
 - feat: Support the `sendDefaultPii` option. #1634
