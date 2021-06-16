@@ -9,6 +9,14 @@ export interface StallMeasurements extends Measurements {
   stall_longest_time: { value: number };
 }
 
+export type StallTrackingOptions = {
+  /**
+   * How long in milliseconds an event loop can stay "busy" for before being considered a stall.
+   * @default 100
+   */
+  acceptableBusyTime: number;
+};
+
 /** Margin of error of 20ms */
 const MARGIN_OF_ERROR_SECONDS = 0.02;
 /** Max number of span stats stored */
@@ -35,32 +43,30 @@ export class StallTracking implements Integration {
    */
   public name: string = StallTracking.id;
 
+  public isTracking: boolean = false;
+
   private _acceptableBusyTime: number;
 
+  /** Total amount of time of all stalls that occurred during the current tracking session */
   private _totalStallTime: number = 0;
+  /** Total number of stalls that occurred during the current tracking session */
   private _stallCount: number = 0;
-  private _lastInterval: number = 0;
-  private _longestStallsByTransaction: Map<string, number> = new Map();
-  private _statsAtTimestamp: Map<
-    NonNullable<Span['spanId']>,
-    Map<NonNullable<Span['endTimestamp']>, StallMeasurements>
-  > = new Map();
 
-  private _timeout: ReturnType<typeof setTimeout> | null;
-  private _runningTransactions: Transaction[] = [];
-  private _isTracking: boolean = false;
+  /** The last timestamp the iteration ran in seconds */
+  private _lastInterval: number = 0;
+  private _timeout: ReturnType<typeof setTimeout> | null = null;
+
+  private _longestStallsByTransaction: Map<Transaction, number> = new Map();
+  private _statsAtTimestamp: Map<
+    Span,
+    Map<NonNullable<Span["endTimestamp"]>, StallMeasurements>
+  > = new Map();
+  private _runningTransactions: Set<Transaction> = new Set();
 
   public constructor(
-    options: {
-      /**
-       * How long in milliseconds an event loop can stay "busy" for before being considered a stall.
-       * @default 100
-       */
-      acceptableBusyTime: number;
-    } = { acceptableBusyTime: 100 }
+    options: StallTrackingOptions = { acceptableBusyTime: 100 }
   ) {
     this._acceptableBusyTime = options.acceptableBusyTime;
-    this._timeout = null;
   }
 
   /**
@@ -77,9 +83,7 @@ export class StallTracking implements Integration {
   public registerTransactionStart(
     transaction: Transaction
   ): (endTimestamp?: number) => StallMeasurements | null {
-    if (
-      this._runningTransactions.some((t) => t.spanId === transaction.spanId)
-    ) {
+    if (this._runningTransactions.has(transaction)) {
       logger.error(
         "[StallTracking] Tried to start stall tracking on a transaction already being tracked. Measurements might be lost."
       );
@@ -109,7 +113,7 @@ export class StallTracking implements Integration {
 
           // The span should set a timestamp, so this would be defined.
           if (span.endTimestamp) {
-            this._logSpanFinish(transaction.spanId, span.endTimestamp);
+            this._logSpanFinish(transaction, span.endTimestamp);
           }
         };
 
@@ -117,11 +121,11 @@ export class StallTracking implements Integration {
       };
     }
 
-    this._runningTransactions.push(transaction);
-    this._longestStallsByTransaction.set(transaction.spanId, 0);
-    this._statsAtTimestamp.set(transaction.spanId, new Map());
+    this._runningTransactions.add(transaction);
+    this._longestStallsByTransaction.set(transaction, 0);
+    this._statsAtTimestamp.set(transaction, new Map());
 
-    const statsOnStart = this._getCurrentStats(transaction.spanId);
+    const statsOnStart = this._getCurrentStats(transaction);
 
     return (endTimestamp?: number) =>
       this._onFinish(transaction, statsOnStart, endTimestamp);
@@ -143,16 +147,14 @@ export class StallTracking implements Integration {
       : undefined;
 
     const statsOnFinish = endTimestamp
-      ? this._findNearestSpanEnd(transaction.spanId, endTimestamp)
-      : this._getCurrentStats(transaction.spanId);
+      ? this._findNearestSpanEnd(transaction, endTimestamp)
+      : this._getCurrentStats(transaction);
 
-    this._runningTransactions = this._runningTransactions.filter(
-      (t) => t.spanId !== transaction.spanId
-    );
-    this._longestStallsByTransaction.delete(transaction.spanId);
-    this._statsAtTimestamp.delete(transaction.spanId);
+    this._runningTransactions.delete(transaction);
+    this._longestStallsByTransaction.delete(transaction);
+    this._statsAtTimestamp.delete(transaction);
 
-    if (this._runningTransactions.length === 0) {
+    if (this._runningTransactions.size === 0) {
       this._stopTracking();
     }
 
@@ -187,11 +189,11 @@ export class StallTracking implements Integration {
    * `spanEndTimestamp` needs to be in seconds!
    */
   private _logSpanFinish(
-    transactionId: string,
+    transaction: Transaction,
     spanEndTimestamp: number
   ): void {
     const statsAtTimestampPerTransaction = this._statsAtTimestamp.get(
-      transactionId
+      transaction
     );
 
     if (statsAtTimestampPerTransaction) {
@@ -205,7 +207,7 @@ export class StallTracking implements Integration {
       } else {
         statsAtTimestampPerTransaction.set(
           spanEndTimestamp,
-          this._getCurrentStats(transactionId)
+          this._getCurrentStats(transaction)
         );
       }
 
@@ -222,10 +224,10 @@ export class StallTracking implements Integration {
    * at a span's finish time or the closest one within the margin of error.
    */
   private _findNearestSpanEnd(
-    transactionId: string,
+    transaction: Transaction,
     endTimestamp: number
   ): StallMeasurements | null {
-    const statsForTransaction = this._statsAtTimestamp.get(transactionId);
+    const statsForTransaction = this._statsAtTimestamp.get(transaction);
 
     if (statsForTransaction) {
       const exactAtTimestamp = statsForTransaction.get(endTimestamp);
@@ -234,13 +236,24 @@ export class StallTracking implements Integration {
         return exactAtTimestamp;
       }
 
-      const statsWithinMargin: [number, StallMeasurements][] = [];
-      for (const [timestamp, stats] of statsForTransaction.entries()) {
-        const absErr = Math.abs(timestamp - endTimestamp);
-        if (absErr < MARGIN_OF_ERROR_SECONDS) {
-          statsWithinMargin.push([absErr, stats]);
-        }
-      }
+      const statsWithinMargin = Array.from(
+        statsForTransaction.entries()
+      ).reduce(
+        (
+          statsWithinMargin: [number, StallMeasurements][],
+          [timestamp, stats]
+        ) => {
+          const absErr = Math.abs(timestamp - endTimestamp);
+          if (absErr < MARGIN_OF_ERROR_SECONDS) {
+            return [
+              ...statsWithinMargin,
+              [absErr, stats] as [number, StallMeasurements],
+            ];
+          }
+          return statsWithinMargin;
+        },
+        []
+      );
 
       if (statsWithinMargin.length > 0) {
         const [err, stats] = statsWithinMargin.sort((a, b) => a[0] - b[0])[0];
@@ -261,12 +274,12 @@ export class StallTracking implements Integration {
   /**
    * Get the current stats for a transaction at a given time.
    */
-  private _getCurrentStats(transactionId: string): StallMeasurements {
+  private _getCurrentStats(transaction: Transaction): StallMeasurements {
     return {
       stall_count: { value: this._stallCount },
       stall_total_time: { value: this._totalStallTime },
       stall_longest_time: {
-        value: this._longestStallsByTransaction.get(transactionId) ?? 0,
+        value: this._longestStallsByTransaction.get(transaction) ?? 0,
       },
     };
   }
@@ -275,8 +288,8 @@ export class StallTracking implements Integration {
    * Start tracking stalls
    */
   private _startTracking(): void {
-    if (!this._isTracking) {
-      this._isTracking = true;
+    if (!this.isTracking) {
+      this.isTracking = true;
       this._lastInterval = timestampInSeconds() * 1000;
 
       this._iteration();
@@ -284,15 +297,28 @@ export class StallTracking implements Integration {
   }
 
   /**
-   * Stops the stall tracking interval, and returns the measurements
+   * Stops the stall tracking interval.
    */
   private _stopTracking(): void {
-    this._isTracking = false;
+    this.isTracking = false;
 
     if (this._timeout !== null) {
       clearTimeout(this._timeout);
       this._timeout = null;
     }
+
+    this._reset();
+  }
+
+  /**
+   * Clears all the collected stats
+   */
+  private _reset(): void {
+    this._stallCount = 0;
+    this._totalStallTime = 0;
+    this._lastInterval = 0;
+    this._longestStallsByTransaction = new Map();
+    this._runningTransactions = new Set();
   }
 
   /**
@@ -311,9 +337,9 @@ export class StallTracking implements Integration {
 
       this._runningTransactions.forEach((transaction) => {
         this._longestStallsByTransaction.set(
-          transaction.spanId,
+          transaction,
           Math.max(
-            this._longestStallsByTransaction.get(transaction.spanId) ?? 0,
+            this._longestStallsByTransaction.get(transaction) ?? 0,
             stallTime
           )
         );
@@ -321,6 +347,9 @@ export class StallTracking implements Integration {
     }
 
     this._lastInterval = now;
-    this._timeout = setTimeout(this._iteration.bind(this), timeoutDuration);
+
+    if (this.isTracking) {
+      this._timeout = setTimeout(this._iteration.bind(this), timeoutDuration);
+    }
   }
 }

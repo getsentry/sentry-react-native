@@ -14,7 +14,7 @@
     "build": "tsc -p tsconfig.build.json",
     "build:watch": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
     "clean": "rimraf dist coverage",
-    "test": "jest --detectOpenHandles",
+    "test": "jest",
     "lint": "eslint .",
     "test:watch": "jest --watch",
     "run-ios": "cd sample && yarn react-native run-ios",
