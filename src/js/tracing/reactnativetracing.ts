@@ -177,19 +177,20 @@ export class ReactNativeTracing implements Integration {
     );
 
     const stallTracking = this._getCurrentHub().getIntegration(StallTracking);
-    const stallTrackingFinish = stallTracking?.registerTransactionStart(
-      idleTransaction
-    );
 
-    idleTransaction.registerBeforeFinishCallback((transaction) => {
-      if (stallTrackingFinish) {
+    if (stallTracking) {
+      const stallTrackingFinish = stallTracking.registerTransactionStart(
+        idleTransaction
+      );
+
+      idleTransaction.registerBeforeFinishCallback((transaction) => {
         const stallMeasurements = stallTrackingFinish();
 
         if (stallMeasurements) {
           transaction.setMeasurements(stallMeasurements);
         }
-      }
-    });
+      });
+    }
 
     idleTransaction.registerBeforeFinishCallback(
       (transaction, endTimestamp) => {
