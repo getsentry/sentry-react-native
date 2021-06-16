@@ -13,11 +13,7 @@ describe("StallTracking", () => {
 
     const finishTracking = stallTracking.registerTransactionStart(transaction);
 
-    // We create a very **nasty** object
-    const nastyObject: { value: string[] } = { value: [] };
-    for (let i = 0; i < 100000; i++) {
-      nastyObject.value.push("nasty");
-    }
+    const expensiveObject: { value: string[] } = { value: Array(100000).fill("expensive") };
 
     // This works in sync, so it should stall the js event loop
     for (let i = 0; i < 50; i++) {

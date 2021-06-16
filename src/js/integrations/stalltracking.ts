@@ -42,8 +42,8 @@ export class StallTracking implements Integration {
   private _lastInterval: number = 0;
   private _longestStallsByTransaction: Map<string, number> = new Map();
   private _statsAtTimestamp: Map<
-    string,
-    Map<number, StallMeasurements>
+    NonNullable<Span['spanId']>,
+    Map<NonNullable<Span['endTimestamp']>, StallMeasurements>
   > = new Map();
 
   private _timeout: ReturnType<typeof setTimeout> | null;
@@ -84,10 +84,8 @@ export class StallTracking implements Integration {
         "[StallTracking] Tried to start stall tracking on a transaction already being tracked. Measurements might be lost."
       );
 
-      return () => {
-        // noop
-        return null;
-      };
+      // noop
+      return () => null;
     }
 
     this._startTracking();
