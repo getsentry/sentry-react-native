@@ -304,9 +304,10 @@ export class StallTracking implements Integration {
   private _iteration(): void {
     const now = timestampInSeconds() * 1000;
     const busyTime = now - this._lastInterval;
+    const timeoutDuration = this._acceptableBusyTime / 5;
 
     if (busyTime >= this._acceptableBusyTime) {
-      const stallTime = busyTime - this._acceptableBusyTime;
+      const stallTime = busyTime - timeoutDuration;
       this._stallCount += 1;
       this._totalStallTime += stallTime;
 
@@ -322,9 +323,6 @@ export class StallTracking implements Integration {
     }
 
     this._lastInterval = now;
-    this._timeout = setTimeout(
-      this._iteration.bind(this),
-      this._acceptableBusyTime / 5
-    );
+    this._timeout = setTimeout(this._iteration.bind(this), timeoutDuration);
   }
 }
