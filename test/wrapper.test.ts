@@ -1,4 +1,4 @@
-import { Severity } from "@sentry/types";
+import { Event, Severity } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
 import { NATIVE } from "../src/js/wrapper";
@@ -331,6 +331,93 @@ describe("Tests Native Wrapper", () => {
       expect(RN.NativeModules.RNSentry.sendEvent).not.toBeCalled();
       expect(RN.NativeModules.RNSentry.getStringBytesLength).not.toBeCalled();
       expect(RN.NativeModules.RNSentry.captureEnvelope).not.toBeCalled();
+    });
+    test("Clears breadcrumbs on Android if mechanism.handled is true", async () => {
+      NATIVE.platform = "android";
+
+      const event: Event = {
+        event_id: "event0",
+        message: "test",
+        exception: {
+          values: [
+            {
+              mechanism: {
+                handled: true,
+                type: "",
+              },
+            },
+          ],
+        },
+        breadcrumbs: [
+          {
+            message: "crumb!",
+          },
+        ],
+      };
+
+      const payload = JSON.stringify({
+        ...event,
+        breadcrumbs: [],
+        message: {
+          message: event.message,
+        },
+      });
+      const header = JSON.stringify({
+        event_id: event.event_id,
+        sdk: event.sdk,
+      });
+      const item = JSON.stringify({
+        content_type: "application/json",
+        length: 1,
+        type: "event",
+      });
+
+      await expect(NATIVE.sendEvent(event)).resolves.toMatch(
+        `${header}\n${item}\n${payload}`
+      );
+    });
+    test("Does not clear breadcrumbs on Android if mechanism.handled is false", async () => {
+      NATIVE.platform = "android";
+
+      const event: Event = {
+        event_id: "event0",
+        message: "test",
+        exception: {
+          values: [
+            {
+              mechanism: {
+                handled: false,
+                type: "",
+              },
+            },
+          ],
+        },
+        breadcrumbs: [
+          {
+            message: "crumb!",
+          },
+        ],
+      };
+
+      const payload = JSON.stringify({
+        ...event,
+        message: {
+          message: event.message,
+        },
+      });
+      const header = JSON.stringify({
+        event_id: event.event_id,
+        sdk: event.sdk,
+      });
+      const item = JSON.stringify({
+        content_type: "application/json",
+        length: 1,
+        type: "event",
+      });
+
+      await expect(NATIVE.sendEvent(event)).resolves.toMatch(
+        `${header}\n${item}\n${payload}`
+      );
     });
   });
 

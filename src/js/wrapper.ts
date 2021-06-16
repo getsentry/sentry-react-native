@@ -40,15 +40,27 @@ export const NATIVE = {
       sdk: event.sdk,
     };
 
-    const payload = {
-      ...event,
-      message: {
-        message: event.message,
-      },
-    };
-
     if (NATIVE.platform === "android") {
       const headerString = JSON.stringify(header);
+
+      /*
+        We do this to avoid duplicate breadcrumbs on Android as sentry-android applies the breadcrumbs
+        from the native scope onto every envelope sent through it. This scope will contain the breadcrumbs
+        sent through the scope sync feature. This causes duplicate breadcrumbs.
+        We then remove the breadcrumbs here but only when mechanism.handled is true. If it is handled == false,
+        this is a signal that the app would crash and android would lose the breadcrumbs by the time the app is restarted to read
+        the envelope.
+      */
+      if (event.exception?.values?.[0]?.mechanism?.handled) {
+        event.breadcrumbs = [];
+      }
+
+      const payload = {
+        ...event,
+        message: {
+          message: event.message,
+        },
+      };
 
       const payloadString = JSON.stringify(payload);
       let length = payloadString.length;
@@ -72,6 +84,13 @@ export const NATIVE = {
       return RNSentry.captureEnvelope(envelopeString);
     }
 
+    const payload = {
+      ...event,
+      message: {
+        message: event.message,
+      },
+    };
+
     // Serialize and remove any instances that will crash the native bridge such as Spans
     const serializedPayload = JSON.parse(JSON.stringify(payload));
 
@@ -87,11 +106,13 @@ export const NATIVE = {
    * Starts native with the provided options.
    * @param options ReactNativeOptions
    */
-  async startWithOptions(_options: ReactNativeOptions): Promise<boolean> {
+  async startWithOptions(
+    originalOptions: ReactNativeOptions
+  ): Promise<boolean> {
     const options = {
       enableNative: true,
       autoInitializeNativeSdk: true,
-      ..._options,
+      ...originalOptions,
     };
 
     if (!options.enableNative) {
