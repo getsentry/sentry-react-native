@@ -66,9 +66,9 @@ const _patchStartTransaction = (
         const originalFinish = transaction.finish;
 
         transaction.finish = (endTimestamp: number | undefined) => {
-          // Finish every time unless the stall intervals will keep going
           const stallMeasurements = finishStallTracking();
 
+          // Sometimes the measurements will not be tracked due to some underlying reason, we don't add them in that case.
           if (stallMeasurements) {
             transaction.setMeasurements(stallMeasurements);
           }
