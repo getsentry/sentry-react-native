@@ -1,6 +1,17 @@
-import { Span, Transaction } from "@sentry/tracing";
+import { IdleTransaction, Span, Transaction } from "@sentry/tracing";
 
 import { StallTracking } from "../../src/js/integrations";
+
+const expensiveOperation = () => {
+  const expensiveObject: { value: string[] } = {
+    value: Array(100000).fill("expensive"),
+  };
+
+  // This works in sync, so it should stall the js event loop
+  for (let i = 0; i < 50; i++) {
+    JSON.parse(JSON.stringify(expensiveObject));
+  }
+};
 
 describe("StallTracking", () => {
   it("Stall tracking detects a JS stall", (done) => {
@@ -13,14 +24,7 @@ describe("StallTracking", () => {
 
     const finishTracking = stallTracking.registerTransactionStart(transaction);
 
-    const expensiveObject: { value: string[] } = {
-      value: Array(100000).fill("expensive"),
-    };
-
-    // This works in sync, so it should stall the js event loop
-    for (let i = 0; i < 50; i++) {
-      JSON.parse(JSON.stringify(expensiveObject));
-    }
+    expensiveOperation();
 
     setTimeout(() => {
       const measurements = finishTracking();
@@ -28,6 +32,36 @@ describe("StallTracking", () => {
       expect(measurements).not.toEqual(null);
       if (measurements !== null) {
         expect(measurements.stall_count.value).toBeGreaterThan(0);
+        expect(measurements.stall_longest_time.value).toBeGreaterThan(0);
+        expect(measurements.stall_total_time.value).toBeGreaterThan(0);
+      }
+
+      done();
+    }, 500);
+  });
+
+  it("Stall tracking detects multiple JS stalls", (done) => {
+    const stallTracking = new StallTracking();
+
+    const transaction = new Transaction({
+      name: "Test Transaction",
+    });
+    transaction.initSpanRecorder();
+
+    const finishTracking = stallTracking.registerTransactionStart(transaction);
+
+    expensiveOperation();
+
+    setTimeout(() => {
+      expensiveOperation();
+    }, 200);
+
+    setTimeout(() => {
+      const measurements = finishTracking();
+
+      expect(measurements).not.toEqual(null);
+      if (measurements !== null) {
+        expect(measurements.stall_count.value).toBe(2);
         expect(measurements.stall_longest_time.value).toBeGreaterThan(0);
         expect(measurements.stall_total_time.value).toBeGreaterThan(0);
       }
@@ -152,11 +186,12 @@ describe("StallTracking", () => {
     expect(measurements).toBe(null);
   });
 
-  it("Stall tracking supports endTimestamp that is from a span (trimEnd case)", (done) => {
+  it("Stall tracking supports endTimestamp that is from the last span (trimEnd case)", (done) => {
     const stallTracking = new StallTracking();
 
     const transaction = new Transaction({
       name: "Test Transaction",
+      trimEnd: true,
     });
     transaction.initSpanRecorder();
 
@@ -193,7 +228,41 @@ describe("StallTracking", () => {
     }, 400);
   });
 
-  it("Stall tracking supports endTimestamp that is from a span within margin of error (custom endTimestamp case)", (done) => {
+  it("Stall tracking rejects endTimestamp that is from the last span if trimEnd is false (trimEnd case)", (done) => {
+    const stallTracking = new StallTracking();
+
+    const transaction = new Transaction({
+      name: "Test Transaction",
+      trimEnd: false,
+    });
+    transaction.initSpanRecorder();
+
+    const finishTracking = stallTracking.registerTransactionStart(transaction);
+
+    const span = transaction.startChild({
+      description: "Test Span",
+    });
+
+    let spanFinishTime: number | undefined;
+
+    setTimeout(() => {
+      spanFinishTime = Date.now() / 1000;
+
+      span.finish(spanFinishTime);
+    }, 100);
+
+    setTimeout(() => {
+      expect(spanFinishTime).toEqual(expect.any(Number));
+
+      const measurements = finishTracking(spanFinishTime);
+
+      expect(measurements).toBe(null);
+
+      done();
+    }, 400);
+  });
+
+  it("Stall tracking rejects endTimestamp even if it is a span time (custom endTimestamp case)", (done) => {
     const stallTracking = new StallTracking();
 
     const transaction = new Transaction({
@@ -221,99 +290,135 @@ describe("StallTracking", () => {
       if (typeof spanFinishTime === "number") {
         const measurements = finishTracking(spanFinishTime + 0.015);
 
-        expect(measurements).not.toEqual(null);
-
-        if (measurements !== null) {
-          expect(measurements.stall_count.value).toEqual(expect.any(Number));
-          expect(measurements.stall_longest_time.value).toEqual(
-            expect.any(Number)
-          );
-          expect(measurements.stall_total_time.value).toEqual(
-            expect.any(Number)
-          );
-        }
+        expect(measurements).toBe(null);
       }
 
       done();
     }, 400);
   });
 
-  it("Stall tracking rejects endTimestamp that is from a span outside margin of error (custom endTimestamp case)", (done) => {
+  it("Stall tracking supports idleTransaction with unfinished spans", (done) => {
     const stallTracking = new StallTracking();
 
-    const transaction = new Transaction({
+    const idleTransaction = new IdleTransaction({
       name: "Test Transaction",
+      trimEnd: true,
     });
-    transaction.initSpanRecorder();
+    idleTransaction.initSpanRecorder();
 
-    const finishTracking = stallTracking.registerTransactionStart(transaction);
+    const finishTracking = stallTracking.registerTransactionStart(
+      idleTransaction
+    );
 
-    const span = transaction.startChild({
+    idleTransaction.registerBeforeFinishCallback((_, endTimestamp) => {
+      const measurements = finishTracking(endTimestamp);
+
+      expect(measurements).not.toEqual(null);
+
+      if (measurements !== null) {
+        expect(measurements.stall_count.value).toEqual(expect.any(Number));
+        expect(measurements.stall_longest_time.value).toEqual(
+          expect.any(Number)
+        );
+        expect(measurements.stall_total_time.value).toEqual(expect.any(Number));
+      }
+
+      done();
+    });
+
+    // Span is never finished.
+    idleTransaction.startChild({
       description: "Test Span",
     });
 
-    let spanFinishTime: number | undefined;
-
     setTimeout(() => {
-      spanFinishTime = Date.now() / 1000;
-
-      span.finish(spanFinishTime);
+      idleTransaction.finish();
     }, 100);
-
-    setTimeout(() => {
-      expect(spanFinishTime).toEqual(expect.any(Number));
-
-      if (typeof spanFinishTime === "number") {
-        const measurements = finishTracking(spanFinishTime + 0.025);
-
-        expect(measurements).toEqual(null);
-      }
-
-      done();
-    }, 400);
   });
 
-  it("Stall tracking flushes out the earliest finished span of a transaction after 20 spans", (done) => {
+  it("Stall tracking ignores unfinished spans in normal transactions", (done) => {
     const stallTracking = new StallTracking();
 
     const transaction = new Transaction({
       name: "Test Transaction",
+      trimEnd: true,
     });
     transaction.initSpanRecorder();
 
     const finishTracking = stallTracking.registerTransactionStart(transaction);
 
-    const spans: Span[] = [];
-    for (let i = 0; i < 21; i++) {
-      spans.push(
-        transaction.startChild({
-          description: "Test Span",
-        })
-      );
-    }
+    // Span is never finished.
+    transaction.startChild({
+      description: "Test Span",
+    });
 
-    let firstSpanFinishTime: number | undefined;
+    // Span will be finished
+    const span = transaction.startChild({
+      description: "To Finish",
+    });
 
     setTimeout(() => {
-      firstSpanFinishTime = Date.now() / 1000;
-
-      spans[0].finish(firstSpanFinishTime);
-
-      setTimeout(() => {
-        for (const span of spans.slice(1)) {
-          span.finish();
-        }
-      }, 50);
+      span.finish();
     }, 100);
 
     setTimeout(() => {
-      expect(firstSpanFinishTime).toEqual(expect.any(Number));
+      const measurements = finishTracking();
 
-      const measurements = finishTracking(firstSpanFinishTime);
+      expect(measurements).not.toEqual(null);
 
-      expect(measurements).toEqual(null);
+      if (measurements !== null) {
+        expect(measurements.stall_count.value).toEqual(expect.any(Number));
+        expect(measurements.stall_longest_time.value).toEqual(
+          expect.any(Number)
+        );
+        expect(measurements.stall_total_time.value).toEqual(expect.any(Number));
+      }
 
       done();
-    }, 400);
+    }, 500);
+  });
+
+  it("Stall tracking only measures stalls inside the final time when trimEnd is used", (done) => {
+    const stallTracking = new StallTracking();
+
+    const transaction = new Transaction({
+      name: "Test Transaction",
+      trimEnd: true,
+    });
+    transaction.initSpanRecorder();
+
+    const finishTracking = stallTracking.registerTransactionStart(transaction);
+
+    // Span will be finished
+    const span = transaction.startChild({
+      description: "To Finish",
+    });
+
+    setTimeout(() => {
+      span.finish();
+    }, 200);
+
+    setTimeout(() => {
+      const measurements = finishTracking();
+
+      expect(measurements).not.toEqual(null);
+
+      if (measurements !== null) {
+        expect(measurements.stall_count.value).toEqual(1);
+        expect(measurements.stall_longest_time.value).toEqual(
+          expect.any(Number)
+        );
+        expect(measurements.stall_total_time.value).toEqual(expect.any(Number));
+      }
+
+      done();
+    }, 500);
+
+    setTimeout(() => {
+      // this should be run after the span finishes, and not logged.
+      expensiveOperation();
+    }, 300);
+
+    expensiveOperation();
   });
 });
