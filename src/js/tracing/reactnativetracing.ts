@@ -183,13 +183,15 @@ export class ReactNativeTracing implements Integration {
         idleTransaction
       );
 
-      idleTransaction.registerBeforeFinishCallback((transaction) => {
-        const stallMeasurements = stallTrackingFinish();
+      idleTransaction.registerBeforeFinishCallback(
+        (transaction, endTimestamp) => {
+          const stallMeasurements = stallTrackingFinish(endTimestamp);
 
-        if (stallMeasurements) {
-          transaction.setMeasurements(stallMeasurements);
+          if (stallMeasurements) {
+            transaction.setMeasurements(stallMeasurements);
+          }
         }
-      });
+      );
     }
 
     idleTransaction.registerBeforeFinishCallback(
