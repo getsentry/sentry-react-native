@@ -316,13 +316,12 @@ export class StallTracking implements Integration {
       this._totalStallTime += stallTime;
 
       this._runningTransactions.forEach((transaction) => {
-        this._longestStallsByTransaction.set(
-          transaction,
-          Math.max(
-            this._longestStallsByTransaction.get(transaction) ?? 0,
-            stallTime
-          )
+        const longestStall = Math.max(
+          this._longestStallsByTransaction.get(transaction) ?? 0,
+          stallTime
         );
+
+        this._longestStallsByTransaction.set(transaction, longestStall);
       });
     }
 
