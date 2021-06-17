@@ -62,6 +62,7 @@ export class StallTracking implements Integration {
 
   /**
    * @inheritDoc
+   * Not used for this integration. Instead call `registerTransactionStart` to start tracking.
    */
   public setupOnce(): void {
     // Do nothing.
