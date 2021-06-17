@@ -101,7 +101,7 @@ export class StallTracking implements Integration {
 
           // The span should set a timestamp, so this would be defined.
           if (span.endTimestamp) {
-            this._logSpanFinish(transaction, span.endTimestamp);
+            this._markSpanFinish(transaction, span.endTimestamp);
           }
         };
       };
@@ -128,9 +128,11 @@ export class StallTracking implements Integration {
   ): StallMeasurements | null {
     const endTimestamp = passedEndTimestamp ?? transaction.endTimestamp;
 
-    const spans = transaction.spanRecorder ? transaction.spanRecorder.spans : [];
+    const spans = transaction.spanRecorder
+      ? transaction.spanRecorder.spans
+      : [];
     const finishedSpanCount = spans.reduce(
-      (count, s) => s !== transaction && s.endTimestamp ? count + 1 : count, 
+      (count, s) => (s !== transaction && s.endTimestamp ? count + 1 : count),
       0
     );
 
@@ -154,14 +156,12 @@ export class StallTracking implements Integration {
       */
 
       // There will be cancelled spans, which means that the end won't be trimmed
-      const spansWillBeCancelled = transaction.spanRecorder
-        ? transaction.spanRecorder.spans.some(
-            (s) =>
-              s !== transaction &&
-              s.startTimestamp < endTimestamp &&
-              !s.endTimestamp
-          )
-        : false;
+      const spansWillBeCancelled = spans.some(
+        (s) =>
+          s !== transaction &&
+          s.startTimestamp < endTimestamp &&
+          !s.endTimestamp
+      );
 
       if (endWillBeTrimmed && !spansWillBeCancelled) {
         // the last span's timestamp will be used.
@@ -223,7 +223,7 @@ export class StallTracking implements Integration {
   /**
    * Logs the finish time of the span for use in `trimEnd: true` transactions.
    */
-  private _logSpanFinish(
+  private _markSpanFinish(
     transaction: Transaction,
     spanEndTimestamp: number
   ): void {
@@ -307,6 +307,7 @@ export class StallTracking implements Integration {
   private _iteration(): void {
     const now = timestampInSeconds() * 1000;
     const totalTimeTaken = now - this._lastIntervalMs;
+
     const timeoutDuration = this._acceptableBusyTime / 2;
 
     if (totalTimeTaken >= this._acceptableBusyTime) {
