@@ -23,13 +23,6 @@ const MARGIN_OF_ERROR_SECONDS = 0.02;
 const MAX_SPAN_STATS_LEN = 20;
 
 /**
- * Ensures the timestamp is in seconds. This is because the endTimestamp
- * passed to .finish() could be seconds or milliseconds.
- */
-const standardizeTimestampToSeconds = (timestamp: number): number =>
-  new Date(timestamp).getTime() / 1000;
-
-/**
  * Stall measurement tracker
  */
 export class StallTracking implements Integration {
@@ -102,12 +95,7 @@ export class StallTracking implements Integration {
         // eslint-disable-next-line @typescript-eslint/unbound-method
         const originalSpanFinish = span.finish;
 
-        span.finish = (_endTimestamp?: number) => {
-          // Sanitize the span endTimestamp to always be seconds as it could be set with milliseconds.
-          const endTimestamp = _endTimestamp
-            ? standardizeTimestampToSeconds(_endTimestamp)
-            : undefined;
-
+        span.finish = (endTimestamp?: number) => {
           // We let the span determine its own end timestamp as well in case anything gets changed upstream
           originalSpanFinish.apply(span, [endTimestamp]);
 
@@ -141,10 +129,7 @@ export class StallTracking implements Integration {
     statsOnStart: StallMeasurements,
     passedEndTimestamp?: number
   ): StallMeasurements | null {
-    const _endTimestamp = passedEndTimestamp ?? transaction.endTimestamp;
-    const endTimestamp = _endTimestamp
-      ? standardizeTimestampToSeconds(_endTimestamp)
-      : undefined;
+    const endTimestamp = passedEndTimestamp ?? transaction.endTimestamp;
 
     const statsOnFinish = endTimestamp
       ? this._findNearestSpanEnd(transaction, endTimestamp)
@@ -159,7 +144,7 @@ export class StallTracking implements Integration {
     }
 
     if (!statsOnFinish) {
-      if (typeof _endTimestamp !== "undefined") {
+      if (typeof endTimestamp !== "undefined") {
         logger.log(
           "[StallTracking] Stall measurements not added due to `endTimestamp` being set to a value too far away from a logged point."
         );

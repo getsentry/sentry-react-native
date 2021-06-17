@@ -147,7 +147,7 @@ describe("StallTracking", () => {
 
     const finishTracking = stallTracking.registerTransactionStart(transaction);
 
-    const measurements = finishTracking(Date.now());
+    const measurements = finishTracking(Date.now() / 1000);
 
     expect(measurements).toBe(null);
   });
@@ -169,7 +169,7 @@ describe("StallTracking", () => {
     let spanFinishTime: number | undefined;
 
     setTimeout(() => {
-      spanFinishTime = Date.now();
+      spanFinishTime = Date.now() / 1000;
 
       span.finish(spanFinishTime);
     }, 100);
@@ -210,7 +210,7 @@ describe("StallTracking", () => {
     let spanFinishTime: number | undefined;
 
     setTimeout(() => {
-      spanFinishTime = Date.now();
+      spanFinishTime = Date.now() / 1000;
 
       span.finish(spanFinishTime);
     }, 100);
@@ -219,7 +219,7 @@ describe("StallTracking", () => {
       expect(spanFinishTime).toEqual(expect.any(Number));
 
       if (typeof spanFinishTime === "number") {
-        const measurements = finishTracking(spanFinishTime + 15);
+        const measurements = finishTracking(spanFinishTime + 0.015);
 
         expect(measurements).not.toEqual(null);
 
@@ -255,7 +255,7 @@ describe("StallTracking", () => {
     let spanFinishTime: number | undefined;
 
     setTimeout(() => {
-      spanFinishTime = Date.now();
+      spanFinishTime = Date.now() / 1000;
 
       span.finish(spanFinishTime);
     }, 100);
@@ -264,7 +264,7 @@ describe("StallTracking", () => {
       expect(spanFinishTime).toEqual(expect.any(Number));
 
       if (typeof spanFinishTime === "number") {
-        const measurements = finishTracking(spanFinishTime + 25);
+        const measurements = finishTracking(spanFinishTime + 0.025);
 
         expect(measurements).toEqual(null);
       }
@@ -295,7 +295,7 @@ describe("StallTracking", () => {
     let firstSpanFinishTime: number | undefined;
 
     setTimeout(() => {
-      firstSpanFinishTime = Date.now();
+      firstSpanFinishTime = Date.now() / 1000;
 
       spans[0].finish(firstSpanFinishTime);
 
