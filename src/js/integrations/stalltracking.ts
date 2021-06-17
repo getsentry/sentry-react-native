@@ -128,13 +128,11 @@ export class StallTracking implements Integration {
   ): StallMeasurements | null {
     const endTimestamp = passedEndTimestamp ?? transaction.endTimestamp;
 
-    const finishedSpanCount = transaction.spanRecorder
-      ? transaction.spanRecorder.spans.reduce(
-          (count, s) =>
-            s !== transaction && s.endTimestamp ? count + 1 : count,
-          0
-        )
-      : 0;
+    const spans = transaction.spanRecorder ? transaction.spanRecorder.spans : [];
+    const finishedSpanCount = spans.reduce(
+      (count, s) => s !== transaction && s.endTimestamp ? count + 1 : count, 
+      0
+    );
 
     const trimEnd = transaction.toContext().trimEnd;
     const endWillBeTrimmed = trimEnd && finishedSpanCount > 0;
@@ -297,9 +295,9 @@ export class StallTracking implements Integration {
     this._stallCount = 0;
     this._totalStallTime = 0;
     this._lastIntervalMs = 0;
-    this._longestStallsByTransaction = new Map();
-    this._runningTransactions = new Set();
-    this._statsAtTimestamp = new Map();
+    this._longestStallsByTransaction.clear();
+    this._runningTransactions.clear();
+    this._statsAtTimestamp.clear();
   }
 
   /**
