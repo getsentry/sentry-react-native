@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: Fix `Sentry.close()` not correctly resolving the promise on iOS.
+
 ## 2.5.1
 
 - fix: Fatal uncaught events should be tagged handled:false #1597
