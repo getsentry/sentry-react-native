@@ -11,17 +11,23 @@ export interface StallMeasurements extends Measurements {
 
 export type StallTrackingOptions = {
   /**
-   * How long in milliseconds an event loop can stay "busy" for before being considered a stall.
+   * How long in milliseconds an event loop iteration can be delayed for before being considered a "stall."
    * @default 100
    */
-  acceptableBusyTime: number;
+  minimumStallThreshold: number;
 };
 
 /** Margin of error of 20ms */
 const MARGIN_OF_ERROR_SECONDS = 0.02;
+/** How long between each iteration in the event loop tracker timeout */
+const LOOP_TIMEOUT_INTERVAL_MS = 50;
 
 /**
- * Stall measurement tracker
+ * Stall measurement tracker inspired by the `JSEventLoopWatchdog` used internally in React Native:
+ * https://github.com/facebook/react-native/blob/006f5afe120c290a37cf6ff896748fbc062bf7ed/Libraries/Interaction/JSEventLoopWatchdog.js
+ *
+ * However, we modified the interval implementation to instead have a fixed loop timeout interval of `LOOP_TIMEOUT_INTERVAL_MS`.
+ * We then would consider that iteration a stall when the total time for that interval to run is greater than `LOOP_TIMEOUT_INTERVAL_MS + minimumStallThreshold`
  */
 export class StallTracking implements Integration {
   /**
@@ -36,7 +42,7 @@ export class StallTracking implements Integration {
 
   public isTracking: boolean = false;
 
-  private _acceptableBusyTime: number;
+  private _minimumStallThreshold: number;
 
   /** Total amount of time of all stalls that occurred during the current tracking session */
   private _totalStallTime: number = 0;
@@ -55,9 +61,9 @@ export class StallTracking implements Integration {
   private _runningTransactions: Set<Transaction> = new Set();
 
   public constructor(
-    options: StallTrackingOptions = { acceptableBusyTime: 100 }
+    options: StallTrackingOptions = { minimumStallThreshold: 50 }
   ) {
-    this._acceptableBusyTime = options.acceptableBusyTime;
+    this._minimumStallThreshold = options.minimumStallThreshold;
   }
 
   /**
@@ -309,10 +315,11 @@ export class StallTracking implements Integration {
     const now = timestampInSeconds() * 1000;
     const totalTimeTaken = now - this._lastIntervalMs;
 
-    const timeoutDuration = this._acceptableBusyTime / 2;
-
-    if (totalTimeTaken >= this._acceptableBusyTime) {
-      const stallTime = totalTimeTaken - timeoutDuration;
+    if (
+      totalTimeTaken >=
+      LOOP_TIMEOUT_INTERVAL_MS + this._minimumStallThreshold
+    ) {
+      const stallTime = totalTimeTaken - LOOP_TIMEOUT_INTERVAL_MS;
       this._stallCount += 1;
       this._totalStallTime += stallTime;
 
@@ -329,7 +336,10 @@ export class StallTracking implements Integration {
     this._lastIntervalMs = now;
 
     if (this.isTracking) {
-      this._timeout = setTimeout(this._iteration.bind(this), timeoutDuration);
+      this._timeout = setTimeout(
+        this._iteration.bind(this),
+        LOOP_TIMEOUT_INTERVAL_MS
+      );
     }
   }
 }
