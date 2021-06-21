@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- fix: Fix `Sentry.close()` not correctly resolving the promise on iOS. #1617
 - build(js): Bump sentry-javascript dependencies to 6.7.1 #1618
 
 ## 2.5.1
