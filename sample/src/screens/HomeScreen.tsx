@@ -195,15 +195,17 @@ const HomeScreen = (props: Props) => {
             </TouchableOpacity>
             <View style={styles.spacer} />
             <TouchableOpacity
-              onPress={() => {
-                Sentry.flush();
+              onPress={async () => {
+                await Sentry.flush();
+                console.log('Sentry.flush() completed.');
               }}>
               <Text style={styles.buttonText}>Flush</Text>
             </TouchableOpacity>
             <View style={styles.spacer} />
             <TouchableOpacity
-              onPress={() => {
-                Sentry.close();
+              onPress={async () => {
+                await Sentry.close();
+                console.log('Sentry.close() completed.');
               }}>
               <Text style={styles.buttonText}>Close</Text>
             </TouchableOpacity>
