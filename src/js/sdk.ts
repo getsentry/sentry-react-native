@@ -40,6 +40,11 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...passedOptions,
   };
 
+  // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.
+  const tracingEnabled =
+    typeof options.tracesSampler !== "undefined" ||
+    typeof options.tracesSampleRate !== "undefined";
+
   if (options.defaultIntegrations === undefined) {
     options.defaultIntegrations = [
       new ReactNativeErrorHandlers(),
@@ -79,7 +84,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (options.enableNative) {
       options.defaultIntegrations.push(new DeviceContext());
     }
-    if (options.enableStallTracking) {
+    if (tracingEnabled && options.enableStallTracking) {
       options.defaultIntegrations.push(new StallTracking());
     }
   }
