@@ -86,7 +86,6 @@ export class StallTracking implements Integration {
         "[StallTracking] Tried to start stall tracking on a transaction already being tracked. Measurements might be lost."
       );
 
-      // noop
       return () => null;
     }
 
