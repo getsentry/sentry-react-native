@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- fix: Fix `Sentry.close()` not correctly resolving the promise on iOS.
+- fix: Fix `Sentry.close()` not correctly resolving the promise on iOS. #1617
 
 ## 2.5.1
 
