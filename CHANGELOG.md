@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- build(js): Bump sentry-javascript dependencies to 6.7.1 #1618
+
 ## 2.5.1
 
 - fix: Fatal uncaught events should be tagged handled:false #1597
