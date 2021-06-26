@@ -113,6 +113,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 // by default we hide.
                 options.setAttachThreads(rnOptions.getBoolean("attachThreads"));
             }
+            if (rnOptions.hasKey("sendDefaultPii")) {
+                options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
+            }
 
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException

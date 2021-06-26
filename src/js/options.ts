@@ -52,6 +52,13 @@ export interface ReactNativeOptions extends BrowserOptions {
   attachThreads?: boolean;
 
   /**
+   *  When enabled, certain personally identifiable information (PII) is added by active integrations.
+   *
+   * @default false
+   * */
+  sendDefaultPii?: boolean;
+
+  /**
    * Callback that is called after the RN SDK on the JS Layer has made contact with the Native Layer.
    */
   onReady?: (response: {
