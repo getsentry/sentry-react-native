@@ -3,6 +3,7 @@
 ## Unreleased
 
 - feat: Support the `sendDefaultPii` option. #1634
+- build(android): Bump sentry-android to 5.1.0-beta.2 #1645
 
 ## 2.5.2
 
