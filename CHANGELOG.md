@@ -2,8 +2,11 @@
 
 ## Unreleased
 
+## 2.6.0
+
 - feat: Support the `sendDefaultPii` option. #1634
 - build(android): Bump sentry-android to 5.1.0-beta.2 #1645
+- fix: Fix transactions on Android having clock drift and missing span data #1645
 
 ## 2.5.2
 
