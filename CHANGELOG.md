@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- feat: Support the `sendDefaultPii` option. #1634
+
 ## 2.5.2
 
 - fix: Fix `Sentry.close()` not correctly resolving the promise on iOS. #1617
