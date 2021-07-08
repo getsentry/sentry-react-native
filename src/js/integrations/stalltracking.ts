@@ -53,12 +53,16 @@ export class StallTracking implements Integration {
   private _lastIntervalMs: number = 0;
   private _timeout: ReturnType<typeof setTimeout> | null = null;
 
-  private _longestStallsByTransaction: Map<Transaction, number> = new Map();
-  private _statsAtTimestamp: Map<
+  private _statsByTransaction: Map<
     Transaction,
-    { timestamp: number; stats: StallMeasurements }
+    {
+      longestStallTime: number;
+      atTimestamp: {
+        timestamp: number;
+        stats: StallMeasurements;
+      } | null;
+    }
   > = new Map();
-  private _runningTransactions: Set<Transaction> = new Set();
 
   public constructor(
     options: StallTrackingOptions = { minimumStallThreshold: 50 }
@@ -81,7 +85,7 @@ export class StallTracking implements Integration {
   public registerTransactionStart(
     transaction: Transaction
   ): (endTimestamp?: number) => StallMeasurements | null {
-    if (this._runningTransactions.has(transaction)) {
+    if (this._statsByTransaction.has(transaction)) {
       logger.error(
         "[StallTracking] Tried to start stall tracking on a transaction already being tracked. Measurements might be lost."
       );
@@ -113,8 +117,10 @@ export class StallTracking implements Integration {
       };
     }
 
-    this._runningTransactions.add(transaction);
-    this._longestStallsByTransaction.set(transaction, 0);
+    this._statsByTransaction.set(transaction, {
+      longestStallTime: 0,
+      atTimestamp: null,
+    });
 
     const statsOnStart = this._getCurrentStats(transaction);
 
@@ -151,6 +157,8 @@ export class StallTracking implements Integration {
     */
     const isIdleTransaction = "activities" in transaction;
 
+    const statsAtLastSpanFinish = this._statsByTransaction.get(transaction);
+
     let statsOnFinish: StallMeasurements | undefined;
     if (endTimestamp && isIdleTransaction) {
       /*
@@ -171,10 +179,9 @@ export class StallTracking implements Integration {
 
       if (endWillBeTrimmed && !spansWillBeCancelled) {
         // the last span's timestamp will be used.
-        const statsAtLastSpanFinish = this._statsAtTimestamp.get(transaction);
 
-        if (statsAtLastSpanFinish) {
-          statsOnFinish = statsAtLastSpanFinish.stats;
+        if (statsAtLastSpanFinish && statsAtLastSpanFinish.atTimestamp) {
+          statsOnFinish = statsAtLastSpanFinish.atTimestamp.stats;
         }
       } else {
         // this endTimestamp will be used.
@@ -182,19 +189,16 @@ export class StallTracking implements Integration {
       }
     } else if (endWillBeTrimmed) {
       // If `trimEnd` is used, and there is a span to trim to. If there isn't, then the transaction should use `endTimestamp` or generate one.
-      const statsAtLastSpanFinish = this._statsAtTimestamp.get(transaction);
-      if (statsAtLastSpanFinish) {
-        statsOnFinish = statsAtLastSpanFinish.stats;
+      if (statsAtLastSpanFinish && statsAtLastSpanFinish.atTimestamp) {
+        statsOnFinish = statsAtLastSpanFinish.atTimestamp.stats;
       }
     } else if (!endTimestamp) {
       statsOnFinish = this._getCurrentStats(transaction);
     }
 
-    this._runningTransactions.delete(transaction);
-    this._longestStallsByTransaction.delete(transaction);
-    this._statsAtTimestamp.delete(transaction);
+    this._statsByTransaction.delete(transaction);
 
-    if (this._runningTransactions.size === 0) {
+    if (this._statsByTransaction.size === 0) {
       // Stop tracking when there are no more transactions.
       this._stopTracking();
     }
@@ -233,25 +237,35 @@ export class StallTracking implements Integration {
     transaction: Transaction,
     spanEndTimestamp: number
   ): void {
-    if (
-      Math.abs(timestampInSeconds() - spanEndTimestamp) >
-      MARGIN_OF_ERROR_SECONDS
-    ) {
-      logger.log(
-        "[StallTracking] Span end not logged due to end timestamp being outside the margin of error from now."
-      );
+    const previousStats = this._statsByTransaction.get(transaction);
+    if (previousStats) {
+      if (
+        Math.abs(timestampInSeconds() - spanEndTimestamp) >
+        MARGIN_OF_ERROR_SECONDS
+      ) {
+        logger.log(
+          "[StallTracking] Span end not logged due to end timestamp being outside the margin of error from now."
+        );
 
-      const previousStats = this._statsAtTimestamp.get(transaction);
-
-      if (previousStats && previousStats.timestamp < spanEndTimestamp) {
-        // We also need to delete the stat for the last span, as the transaction would be trimmed to this span not the last one.
-        this._statsAtTimestamp.delete(transaction);
+        if (
+          previousStats.atTimestamp &&
+          previousStats.atTimestamp.timestamp < spanEndTimestamp
+        ) {
+          // We also need to delete the stat for the last span, as the transaction would be trimmed to this span not the last one.
+          this._statsByTransaction.set(transaction, {
+            ...previousStats,
+            atTimestamp: null,
+          });
+        }
+      } else {
+        this._statsByTransaction.set(transaction, {
+          ...previousStats,
+          atTimestamp: {
+            timestamp: spanEndTimestamp,
+            stats: this._getCurrentStats(transaction),
+          },
+        });
       }
-    } else {
-      this._statsAtTimestamp.set(transaction, {
-        timestamp: spanEndTimestamp,
-        stats: this._getCurrentStats(transaction),
-      });
     }
   }
 
@@ -263,7 +277,7 @@ export class StallTracking implements Integration {
       stall_count: { value: this._stallCount },
       stall_total_time: { value: this._totalStallTime },
       stall_longest_time: {
-        value: this._longestStallsByTransaction.get(transaction) ?? 0,
+        value: this._statsByTransaction.get(transaction)?.longestStallTime ?? 0,
       },
     };
   }
@@ -301,9 +315,7 @@ export class StallTracking implements Integration {
     this._stallCount = 0;
     this._totalStallTime = 0;
     this._lastIntervalMs = 0;
-    this._longestStallsByTransaction.clear();
-    this._runningTransactions.clear();
-    this._statsAtTimestamp.clear();
+    this._statsByTransaction.clear();
   }
 
   /**
@@ -322,14 +334,17 @@ export class StallTracking implements Integration {
       this._stallCount += 1;
       this._totalStallTime += stallTime;
 
-      this._runningTransactions.forEach((transaction) => {
-        const longestStall = Math.max(
-          this._longestStallsByTransaction.get(transaction) ?? 0,
+      for (const [transaction, value] of this._statsByTransaction.entries()) {
+        const longestStallTime = Math.max(
+          value.longestStallTime ?? 0,
           stallTime
         );
 
-        this._longestStallsByTransaction.set(transaction, longestStall);
-      });
+        this._statsByTransaction.set(transaction, {
+          ...value,
+          longestStallTime,
+        });
+      }
     }
 
     this._lastIntervalMs = now;
