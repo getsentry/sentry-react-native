@@ -438,5 +438,7 @@ describe("StallTracking", () => {
 
     const measurements1 = transactionFinishes[1]();
     expect(measurements1).not.toBe(null);
+
+    transactionFinishes.slice(2).forEach((finish) => finish());
   });
 });
