@@ -21,6 +21,8 @@ export type StallTrackingOptions = {
 const MARGIN_OF_ERROR_SECONDS = 0.02;
 /** How long between each iteration in the event loop tracker timeout */
 const LOOP_TIMEOUT_INTERVAL_MS = 50;
+/** Limit for how many transactions the stall tracker will track at a time to prevent leaks due to transactions not being finished */
+const MAX_RUNNING_TRANSACTIONS = 10;
 
 /**
  * Stall measurement tracker inspired by the `JSEventLoopWatchdog` used internally in React Native:
@@ -94,6 +96,11 @@ export class StallTracking implements Integration {
     }
 
     this._startTracking();
+    this._statsByTransaction.set(transaction, {
+      longestStallTime: 0,
+      atTimestamp: null,
+    });
+    this._flushLeakedTransactions();
 
     if (transaction.spanRecorder) {
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -117,11 +124,6 @@ export class StallTracking implements Integration {
       };
     }
 
-    this._statsByTransaction.set(transaction, {
-      longestStallTime: 0,
-      atTimestamp: null,
-    });
-
     const statsOnStart = this._getCurrentStats(transaction);
 
     return (endTimestamp?: number) =>
@@ -138,6 +140,20 @@ export class StallTracking implements Integration {
     statsOnStart: StallMeasurements,
     passedEndTimestamp?: number
   ): StallMeasurements | null {
+    const transactionStats = this._statsByTransaction.get(transaction);
+
+    if (!transactionStats) {
+      // Transaction has been flushed out somehow, we return null.
+      logger.log(
+        "[StallTracking] Stall measurements were not added to transaction due to exceeding the max count."
+      );
+
+      this._statsByTransaction.delete(transaction);
+      this._shouldStopTracking();
+
+      return null;
+    }
+
     const endTimestamp = passedEndTimestamp ?? transaction.endTimestamp;
 
     const spans = transaction.spanRecorder
@@ -156,8 +172,6 @@ export class StallTracking implements Integration {
       we can have this temporarily for now.
     */
     const isIdleTransaction = "activities" in transaction;
-
-    const statsAtLastSpanFinish = this._statsByTransaction.get(transaction);
 
     let statsOnFinish: StallMeasurements | undefined;
     if (endTimestamp && isIdleTransaction) {
@@ -180,8 +194,8 @@ export class StallTracking implements Integration {
       if (endWillBeTrimmed && !spansWillBeCancelled) {
         // the last span's timestamp will be used.
 
-        if (statsAtLastSpanFinish && statsAtLastSpanFinish.atTimestamp) {
-          statsOnFinish = statsAtLastSpanFinish.atTimestamp.stats;
+        if (transactionStats.atTimestamp) {
+          statsOnFinish = transactionStats.atTimestamp.stats;
         }
       } else {
         // this endTimestamp will be used.
@@ -189,19 +203,15 @@ export class StallTracking implements Integration {
       }
     } else if (endWillBeTrimmed) {
       // If `trimEnd` is used, and there is a span to trim to. If there isn't, then the transaction should use `endTimestamp` or generate one.
-      if (statsAtLastSpanFinish && statsAtLastSpanFinish.atTimestamp) {
-        statsOnFinish = statsAtLastSpanFinish.atTimestamp.stats;
+      if (transactionStats.atTimestamp) {
+        statsOnFinish = transactionStats.atTimestamp.stats;
       }
     } else if (!endTimestamp) {
       statsOnFinish = this._getCurrentStats(transaction);
     }
 
     this._statsByTransaction.delete(transaction);
-
-    if (this._statsByTransaction.size === 0) {
-      // Stop tracking when there are no more transactions.
-      this._stopTracking();
-    }
+    this._shouldStopTracking();
 
     if (!statsOnFinish) {
       if (typeof endTimestamp !== "undefined") {
@@ -309,6 +319,15 @@ export class StallTracking implements Integration {
   }
 
   /**
+   * Will stop tracking if there are no more transactions.
+   */
+  private _shouldStopTracking(): void {
+    if (this._statsByTransaction.size === 0) {
+      this._stopTracking();
+    }
+  }
+
+  /**
    * Clears all the collected stats
    */
   private _reset(): void {
@@ -353,6 +372,21 @@ export class StallTracking implements Integration {
       this._timeout = setTimeout(
         this._iteration.bind(this),
         LOOP_TIMEOUT_INTERVAL_MS
+      );
+    }
+  }
+
+  /**
+   * Deletes leaked transactions (Earliest transactions when we have more than MAX_RUNNING_TRANSACTIONS transactions.)
+   */
+  private _flushLeakedTransactions(): void {
+    if (this._statsByTransaction.size > MAX_RUNNING_TRANSACTIONS) {
+      const leakedTransactions = Array.from(
+        this._statsByTransaction.keys()
+      ).slice(0, this._statsByTransaction.size - MAX_RUNNING_TRANSACTIONS);
+
+      leakedTransactions.forEach((transaction) =>
+        this._statsByTransaction.delete(transaction)
       );
     }
   }

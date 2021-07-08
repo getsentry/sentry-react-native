@@ -421,4 +421,22 @@ describe("StallTracking", () => {
 
     expensiveOperation();
   });
+
+  it("Stall tracking discards the first transaction if more than 10 are running", () => {
+    const stallTracking = new StallTracking();
+
+    const transactionFinishes = new Array(11).fill(0).map((_, i) => {
+      const transaction = new Transaction({
+        name: `Test Transaction ${i}`,
+      });
+
+      return stallTracking.registerTransactionStart(transaction);
+    });
+
+    const measurements0 = transactionFinishes[0]();
+    expect(measurements0).toBe(null);
+
+    const measurements1 = transactionFinishes[1]();
+    expect(measurements1).not.toBe(null);
+  });
 });
