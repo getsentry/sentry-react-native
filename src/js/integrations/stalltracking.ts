@@ -381,13 +381,14 @@ export class StallTracking implements Integration {
    */
   private _flushLeakedTransactions(): void {
     if (this._statsByTransaction.size > MAX_RUNNING_TRANSACTIONS) {
-      const leakedTransactions = Array.from(
-        this._statsByTransaction.keys()
-      ).slice(0, this._statsByTransaction.size - MAX_RUNNING_TRANSACTIONS);
-
-      leakedTransactions.forEach((transaction) =>
-        this._statsByTransaction.delete(transaction)
-      );
+      let counter = 0;
+      const len = this._statsByTransaction.size - MAX_RUNNING_TRANSACTIONS;
+      const transactions = this._statsByTransaction.keys();
+      for (const t of transactions) {
+        if (counter >= len) break;
+        counter += 1;
+        this._statsByTransaction.delete(t);
+      }
     }
   }
 }
