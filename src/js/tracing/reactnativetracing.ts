@@ -13,6 +13,7 @@ import {
 } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
+import { StallTracking } from "../integrations";
 import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
 import { adjustTransactionDuration } from "./utils";
 
@@ -174,6 +175,25 @@ export class ReactNativeTracing implements Integration {
     logger.log(
       `[ReactNativeTracing] Starting ${context.op} transaction "${context.name}" on scope`
     );
+
+    const stallTracking = this._getCurrentHub().getIntegration(StallTracking);
+
+    if (stallTracking) {
+      const stallTrackingFinish = stallTracking.registerTransactionStart(
+        idleTransaction
+      );
+
+      idleTransaction.registerBeforeFinishCallback(
+        (transaction, endTimestamp) => {
+          const stallMeasurements = stallTrackingFinish(endTimestamp);
+
+          if (stallMeasurements) {
+            transaction.setMeasurements(stallMeasurements);
+          }
+        }
+      );
+    }
+
     idleTransaction.registerBeforeFinishCallback(
       (transaction, endTimestamp) => {
         adjustTransactionDuration(

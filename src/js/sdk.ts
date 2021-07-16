@@ -11,6 +11,7 @@ import {
   DeviceContext,
   ReactNativeErrorHandlers,
   Release,
+  StallTracking,
 } from "./integrations";
 import { ReactNativeOptions } from "./options";
 import { ReactNativeScope } from "./scope";
@@ -24,6 +25,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
+  enableStallTracking: true,
 };
 
 /**
@@ -37,6 +39,11 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
   };
+
+  // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.
+  const tracingEnabled =
+    typeof options.tracesSampler !== "undefined" ||
+    typeof options.tracesSampleRate !== "undefined";
 
   if (options.defaultIntegrations === undefined) {
     options.defaultIntegrations = [
@@ -76,6 +83,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     );
     if (options.enableNative) {
       options.defaultIntegrations.push(new DeviceContext());
+    }
+    if (tracingEnabled && options.enableStallTracking) {
+      options.defaultIntegrations.push(new StallTracking());
     }
   }
 
