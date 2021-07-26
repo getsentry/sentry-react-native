@@ -1,11 +1,12 @@
 import { BrowserBackend } from "@sentry/browser/dist/backend";
-import { BaseBackend, NoopTransport } from "@sentry/core";
+import { BaseBackend, getCurrentHub, NoopTransport } from "@sentry/core";
 import { BrowserOptions, Transports } from "@sentry/react";
 import { Event, EventHint, Severity, Transport } from "@sentry/types";
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from "react-native";
 
 import { ReactNativeOptions } from "./options";
+import { ReactNativeTracing } from "./tracing";
 import { NativeTransport } from "./transports/native";
 import { NATIVE } from "./wrapper";
 
@@ -99,6 +100,14 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       this._options.onReady?.({ didCallNativeInit: false });
 
       return;
+    }
+
+    const reactNativeTracing = getCurrentHub().getIntegration(
+      ReactNativeTracing
+    );
+
+    if (reactNativeTracing) {
+      void reactNativeTracing.logAppStart();
     }
 
     this._options.onReady?.({ didCallNativeInit });
