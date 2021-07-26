@@ -1123,13 +1123,13 @@
     sudo-prompt "^9.0.0"
     wcwidth "^1.0.1"
 
-"@sentry-internal/eslint-config-sdk@6.7.1":
-  version "6.7.1"
-  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-config-sdk/-/eslint-config-sdk-6.7.1.tgz#e258b236511e8889fe95cc49ca2c15abbc803250"
-  integrity sha512-K7t/WLm5q2klB8wqt+7MgtNDyZEu7Q5HO/ur77zStcNmzi60A8ZnTT8cBZrKHtxc8vOuwLzcoCgM+KIWJOZSpg==
+"@sentry-internal/eslint-config-sdk@6.10.0":
+  version "6.10.0"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-config-sdk/-/eslint-config-sdk-6.10.0.tgz#72f89212890f4c3cfcf2b5eb8f61944e1ce9b2d1"
+  integrity sha512-MWuswUOxWVQUsA6muNvYSxnoeeDYYic/rAhcH2zO0pF+NDXYCr2FKUjAsjsbzY9DlHo5ADhc7AYAE6BJJ8XJ1A==
   dependencies:
-    "@sentry-internal/eslint-plugin-sdk" "6.7.1"
-    "@sentry-internal/typescript" "6.7.1"
+    "@sentry-internal/eslint-plugin-sdk" "6.10.0"
+    "@sentry-internal/typescript" "6.10.0"
     "@typescript-eslint/eslint-plugin" "^3.9.0"
     "@typescript-eslint/parser" "^3.9.0"
     eslint-config-prettier "^6.11.0"
@@ -1138,6 +1138,13 @@
     eslint-plugin-jsdoc "^30.0.3"
     eslint-plugin-simple-import-sort "^5.0.3"
 
+"@sentry-internal/eslint-plugin-sdk@6.10.0":
+  version "6.10.0"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-plugin-sdk/-/eslint-plugin-sdk-6.10.0.tgz#1b71311ce40c514c835dc5964124f3632fda7d04"
+  integrity sha512-241XXVz7i1FyyYjdMRaoKOw927swY8UQO0bQSFkCfldOG/It+SCTcInqTchy3CEGWXgpN/TKMPXVk3KnJEnoCA==
+  dependencies:
+    requireindex "~1.1.0"
+
 "@sentry-internal/eslint-plugin-sdk@6.7.1":
   version "6.7.1"
   resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-plugin-sdk/-/eslint-plugin-sdk-6.7.1.tgz#6068ba3fde062bd4cc7bef3189ddd797b5c7bf18"
@@ -1145,10 +1152,10 @@
   dependencies:
     requireindex "~1.1.0"
 
-"@sentry-internal/typescript@6.7.1":
-  version "6.7.1"
-  resolved "https://registry.yarnpkg.com/@sentry-internal/typescript/-/typescript-6.7.1.tgz#9de1a49c244ff44ea01865c91d96275187281a60"
-  integrity sha512-73Rscw2P5DBnVOWn1KbaYK2VjAoMD3POwf/3QrIPe5H9iBlXcU4ZdXZvvsajE+r+GMhCse9U3tIYvC4oEptKhQ==
+"@sentry-internal/typescript@6.10.0":
+  version "6.10.0"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/typescript/-/typescript-6.10.0.tgz#7b4a0a60e21f24380198d8e3c403dd3552e4cacd"
+  integrity sha512-H87Gid4TDuZG23SruruTlELhFYljqZMBXwVoxqMDPMOUIOW1IOteOwTLiqQ90/HSM+6f4JsxY1inF52ri12KZA==
   dependencies:
     tslint-config-prettier "^1.18.0"
     tslint-consistent-codestyle "^1.15.1"
