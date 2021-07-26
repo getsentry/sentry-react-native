@@ -1138,6 +1138,13 @@
     eslint-plugin-jsdoc "^30.0.3"
     eslint-plugin-simple-import-sort "^5.0.3"
 
+"@sentry-internal/eslint-plugin-sdk@6.10.0":
+  version "6.10.0"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-plugin-sdk/-/eslint-plugin-sdk-6.10.0.tgz#1b71311ce40c514c835dc5964124f3632fda7d04"
+  integrity sha512-241XXVz7i1FyyYjdMRaoKOw927swY8UQO0bQSFkCfldOG/It+SCTcInqTchy3CEGWXgpN/TKMPXVk3KnJEnoCA==
+  dependencies:
+    requireindex "~1.1.0"
+
 "@sentry-internal/eslint-plugin-sdk@6.7.1":
   version "6.7.1"
   resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-plugin-sdk/-/eslint-plugin-sdk-6.7.1.tgz#6068ba3fde062bd4cc7bef3189ddd797b5c7bf18"
