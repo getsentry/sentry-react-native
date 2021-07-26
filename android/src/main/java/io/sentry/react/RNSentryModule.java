@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.sentry.android.core.AnrIntegration;
+import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.Sentry;
@@ -181,6 +183,23 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         release.putString("version", packageInfo.versionName);
         release.putString("build", String.valueOf(packageInfo.versionCode));
         promise.resolve(release);
+    }
+
+    @ReactMethod
+    public void getAppStartTime(Promise promise) {
+        AppStartState appStartInstance = AppStartState.getInstance();
+        final Date appStartTime = AppStartState.getInstance().getAppStartTime();
+
+        if (appStartTime != null) {
+            WritableMap appStart = Arguments.createMap();
+
+            appStart.putNumber("appStartTime", appStartTime.getTime());
+            appStart.putBoolean("isColdStart", appStartInstance.isColdStart());
+
+            promise.resolve(appStart);
+        } else {
+            promise.resolve(null);
+        }
     }
 
     @ReactMethod

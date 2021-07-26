@@ -1,6 +1,7 @@
 import { Hub } from "@sentry/hub";
 import {
   defaultRequestInstrumentationOptions,
+  IdleTransaction,
   registerRequestInstrumentation,
   RequestInstrumentationOptions,
   startIdleTransaction,
@@ -11,10 +12,11 @@ import {
   Transaction as TransactionType,
   TransactionContext,
 } from "@sentry/types";
-import { logger } from "@sentry/utils";
+import { browserPerformanceTimeOrigin, logger } from "@sentry/utils";
 
 import { StallTracking } from "../integrations";
 import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
+import { NATIVE } from "../wrapper";
 import { adjustTransactionDuration } from "./utils";
 
 export type BeforeNavigate = (
@@ -64,6 +66,8 @@ export interface ReactNativeTracingOptions
    * @returns A (potentially) modified context object, with `sampled = false` if the transaction should be dropped.
    */
   beforeNavigate: BeforeNavigate;
+
+  enableAppStartTracking: boolean;
 }
 
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
@@ -72,6 +76,7 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   maxTransactionDuration: 600,
   ignoreEmptyBackNavigationTransactions: true,
   beforeNavigate: (context) => context,
+  enableAppStartTracking: true,
 };
 
 /**
@@ -138,6 +143,56 @@ export class ReactNativeTracing implements Integration {
     });
   }
 
+  /**
+   *
+   */
+  public async logAppStart(): Promise<void> {
+    if (!this.options.enableAppStartTracking) {
+      return;
+    }
+
+    if (!browserPerformanceTimeOrigin) {
+      return logger.warn(
+        `[ReactNativeTracing] Did not create app start span as time origin is invalid.`
+      );
+    }
+
+    const appStart = await NATIVE.getAppStartTime();
+
+    if (appStart) {
+      const idleTransaction = this._createRouteTransaction({
+        name: "App Start",
+        op: "app.start",
+        startTimestamp: appStart.appStartTime,
+      });
+
+      if (idleTransaction) {
+        idleTransaction.startChild({
+          description: "App Start",
+          startTimestamp: appStart.appStartTime,
+          endTimestamp: browserPerformanceTimeOrigin,
+        });
+
+        const appStartDuration =
+          browserPerformanceTimeOrigin - appStart.appStartTime;
+
+        idleTransaction.setMeasurements(
+          appStart.isColdStart
+            ? {
+                app_start_cold: {
+                  value: appStartDuration,
+                },
+              }
+            : {
+                app_start_warm: {
+                  value: appStartDuration,
+                },
+              }
+        );
+      }
+    }
+  }
+
   /** To be called when the route changes, but BEFORE the components of the new route mount. */
   private _onRouteWillChange(
     context: TransactionContext
@@ -149,7 +204,7 @@ export class ReactNativeTracing implements Integration {
   /** Create routing idle transaction. */
   private _createRouteTransaction(
     context: TransactionContext
-  ): TransactionType | undefined {
+  ): IdleTransaction | undefined {
     if (!this._getCurrentHub) {
       logger.warn(
         `[ReactNativeTracing] Did not create ${context.op} transaction because _getCurrentHub is invalid.`
@@ -223,6 +278,6 @@ export class ReactNativeTracing implements Integration {
       });
     }
 
-    return idleTransaction as TransactionType;
+    return idleTransaction;
   }
 }

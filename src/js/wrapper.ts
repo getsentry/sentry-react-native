@@ -196,6 +196,21 @@ export const NATIVE = {
     return RNSentry.deviceContexts();
   },
 
+  async getAppStartTime(): Promise<{
+    isColdStart: boolean;
+    appStartTime: number;
+  } | null> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return RNSentry.getAppStartTime();
+  },
+
   /**
    * Triggers a native crash.
    * Use this only for testing purposes.
