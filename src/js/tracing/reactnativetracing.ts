@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { Hub } from "@sentry/hub";
 import {
   defaultRequestInstrumentationOptions,
@@ -12,7 +13,7 @@ import {
   Transaction as TransactionType,
   TransactionContext,
 } from "@sentry/types";
-import { browserPerformanceTimeOrigin, logger } from "@sentry/utils";
+import { getGlobalObject, logger } from "@sentry/utils";
 
 import { StallTracking } from "../integrations";
 import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
@@ -22,6 +23,8 @@ import { adjustTransactionDuration } from "./utils";
 export type BeforeNavigate = (
   context: TransactionContext
 ) => TransactionContext;
+
+const timeOriginMilliseconds = Date.now();
 
 export interface ReactNativeTracingOptions
   extends RequestInstrumentationOptions {
@@ -151,41 +154,63 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
-    if (!browserPerformanceTimeOrigin) {
-      return logger.warn(
-        `[ReactNativeTracing] Did not create app start span as time origin is invalid.`
-      );
-    }
-
     const appStart = await NATIVE.getAppStartTime();
 
     if (appStart) {
+      if (appStart.didFetchAppStart) {
+        // App start should already be handled. This could be a JS code reload.
+        logger.log(
+          "[ReactNativeTracing] Not sending app start transaction as app has already started."
+        );
+        return;
+      }
+      const appStartTimeSeconds = appStart.appStartTime / 1000;
+      const appDidFinishLaunchingTimeSeconds =
+        appStart.appDidFinishLaunchingTime / 1000;
+      const timeOriginSeconds = timeOriginMilliseconds / 1000;
+
       const idleTransaction = this._createRouteTransaction({
         name: "App Start",
         op: "app.start",
-        startTimestamp: appStart.appStartTime,
+        startTimestamp: appStartTimeSeconds,
+        sampled: true,
       });
 
       if (idleTransaction) {
-        idleTransaction.startChild({
+        const fullAppStart = idleTransaction.startChild({
           description: "App Start",
-          startTimestamp: appStart.appStartTime,
-          endTimestamp: browserPerformanceTimeOrigin,
+          op: "app.start",
+          startTimestamp: appStartTimeSeconds,
+          endTimestamp: timeOriginSeconds,
         });
 
-        const appStartDuration =
-          browserPerformanceTimeOrigin - appStart.appStartTime;
+        fullAppStart.startChild({
+          description: "Native Start",
+          op: "app.start.native",
+          startTimestamp: appStartTimeSeconds,
+          endTimestamp: appDidFinishLaunchingTimeSeconds,
+        });
+
+        fullAppStart.startChild({
+          description: "JavaScript Start",
+          op: "app.start.javascript",
+          startTimestamp: appDidFinishLaunchingTimeSeconds,
+          endTimestamp: timeOriginSeconds,
+        });
+
+        const appStartDurationMilliseconds =
+          timeOriginMilliseconds - appStart.appStartTime;
 
         idleTransaction.setMeasurements(
           appStart.isColdStart
             ? {
                 app_start_cold: {
-                  value: appStartDuration,
+                  value: appStartDurationMilliseconds,
                 },
               }
             : {
                 app_start_warm: {
-                  value: appStartDuration,
+                  value: appStartDurationMilliseconds,
                 },
               }
         );

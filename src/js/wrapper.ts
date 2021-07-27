@@ -250,6 +250,8 @@ export const NATIVE: SentryNativeWrapper = {
   async getAppStartTime(): Promise<{
     isColdStart: boolean;
     appStartTime: number;
+    appDidFinishLaunchingTime: number;
+    didFetchAppStart: boolean;
   } | null> {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
