@@ -17,7 +17,8 @@
 @end
 
 @implementation RNSentry {
-   bool sentHybridSdkDidBecomeActive;
+    bool sentHybridSdkDidBecomeActive;
+    bool didFetchAppStart;
 }
 
 
@@ -102,6 +103,24 @@ RCT_EXPORT_METHOD(deviceContexts:(RCTPromiseResolveBlock)resolve
 #endif
         resolve(contexts);
     }];
+}
+
+RCT_EXPORT_METHOD(getAppStartTime:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    
+    SentryAppStartMeasurement *appStartMeasurement = [PrivateSentrySDKOnly getAppStartMeasurement];
+    
+    BOOL isColdStart = appStartMeasurement.type == SentryAppStartTypeCold;
+    
+    resolve(@{
+              @"isColdStart": [NSNumber numberWithBool:isColdStart],
+              @"appStartTime": [NSNumber numberWithDouble:(appStartMeasurement.appStartTimestamp.timeIntervalSince1970 * 1000)],
+              @"appDidFinishLaunchingTime": [NSNumber numberWithDouble:(appStartMeasurement.didFinishLaunchingTimestamp.timeIntervalSince1970 * 1000)],
+              @"didFetchAppStart": [NSNumber numberWithBool:didFetchAppStart]
+              });
+    
+    didFetchAppStart = true;
 }
 
 RCT_EXPORT_METHOD(fetchRelease:(RCTPromiseResolveBlock)resolve
