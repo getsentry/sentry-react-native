@@ -42,7 +42,7 @@ Sentry.init({
   integrations: [
     new Sentry.ReactNativeTracing({
       idleTimeout: 5000,
-      // routingInstrumentation: reactNavigationV5Instrumentation,
+      routingInstrumentation: reactNavigationV5Instrumentation,
       tracingOrigins: ['localhost', /^\//, /^https:\/\//],
       beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
         // Example of not sending a transaction for the screen with the name "Manual Tracker"
@@ -71,27 +71,35 @@ const App = () => {
   const navigation = React.useRef<NavigationContainerRef>();
 
   return (
-    <Provider store={store}>
-      <NavigationContainer
-        ref={navigation}
-        onReady={() => {
-          reactNavigationV5Instrumentation.registerNavigationContainer(
-            navigation,
-          );
-        }}>
-        <Stack.Navigator>
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Tracker" component={TrackerScreen} />
-          <Stack.Screen name="ManualTracker" component={ManualTrackerScreen} />
-          <Stack.Screen
-            name="PerformanceTiming"
-            component={PerformanceTimingScreen}
-          />
-          <Stack.Screen name="Redux" component={ReduxScreen} />
-          <Stack.Screen name="EndToEndTests" component={EndToEndTestsScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </Provider>
+    <Sentry.Profiler name="App">
+      <Provider store={store}>
+        <NavigationContainer
+          ref={navigation}
+          onReady={() => {
+            reactNavigationV5Instrumentation.registerNavigationContainer(
+              navigation,
+            );
+          }}>
+          <Stack.Navigator>
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Tracker" component={TrackerScreen} />
+            <Stack.Screen
+              name="ManualTracker"
+              component={ManualTrackerScreen}
+            />
+            <Stack.Screen
+              name="PerformanceTiming"
+              component={PerformanceTimingScreen}
+            />
+            <Stack.Screen name="Redux" component={ReduxScreen} />
+            <Stack.Screen
+              name="EndToEndTests"
+              component={EndToEndTestsScreen}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </Provider>
+    </Sentry.Profiler>
   );
 };
 

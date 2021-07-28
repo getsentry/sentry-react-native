@@ -102,14 +102,6 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       return;
     }
 
-    const reactNativeTracing = getCurrentHub().getIntegration(
-      ReactNativeTracing
-    );
-
-    if (reactNativeTracing) {
-      void reactNativeTracing.logAppStart();
-    }
-
     this._options.onReady?.({ didCallNativeInit });
   }
 
