@@ -42,7 +42,7 @@ Sentry.init({
   integrations: [
     new Sentry.ReactNativeTracing({
       idleTimeout: 5000,
-      routingInstrumentation: reactNavigationV5Instrumentation,
+      // routingInstrumentation: reactNavigationV5Instrumentation,
       tracingOrigins: ['localhost', /^\//, /^https:\/\//],
       beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
         // Example of not sending a transaction for the screen with the name "Manual Tracker"

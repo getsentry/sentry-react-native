@@ -127,16 +127,18 @@ export class ReactNativeTracing implements Integration {
 
     this._getCurrentHub = getCurrentHub;
 
-    routingInstrumentation?.registerRoutingInstrumentation(
-      this._onRouteWillChange.bind(this),
-      this.options.beforeNavigate
-    );
-
-    if (!routingInstrumentation) {
+    if (routingInstrumentation) {
+      routingInstrumentation.registerRoutingInstrumentation(
+        this._onRouteWillChange.bind(this),
+        this.options.beforeNavigate
+      );
+    } else {
       logger.log(
         `[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.`
       );
     }
+
+    void this.logAppStart();
 
     registerRequestInstrumentation({
       traceFetch,
@@ -154,16 +156,7 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
-    const appStart = await NATIVE.getAppStartTime();
-
-    if (appStart) {
-      if (appStart.didFetchAppStart) {
-        // App start should already be handled. This could be a JS code reload.
-        logger.log(
-          "[ReactNativeTracing] Not sending app start transaction as app has already started."
-        );
-        return;
-      }
+    NATIVE.getAppStartTime((appStart) => {
       const appStartTimeSeconds = appStart.appStartTime / 1000;
       const appDidFinishLaunchingTimeSeconds =
         appStart.appDidFinishLaunchingTime / 1000;
@@ -215,7 +208,7 @@ export class ReactNativeTracing implements Integration {
               }
         );
       }
-    }
+    });
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */

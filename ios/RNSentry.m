@@ -19,6 +19,7 @@
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
     bool didFetchAppStart;
+    bool hasListeners;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -41,6 +42,20 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    [PrivateSentrySDKOnly setSendAppStartMeasurement:NO];
+
+    [PrivateSentrySDKOnly setOnAppStartMeasurementAvailable:^(SentryAppStartMeasurement * _Nullable appStartMeasurement) {
+        if (self->hasListeners) {
+            BOOL isColdStart = appStartMeasurement.type == SentryAppStartTypeCold;
+
+            [self sendEventWithName:@"RNSentryAppStartMeasurements" body:@{
+                @"isColdStart": [NSNumber numberWithBool:isColdStart],
+                @"appStartTime": [NSNumber numberWithDouble:(appStartMeasurement.appStartTimestamp.timeIntervalSince1970 * 1000)],
+                @"appDidFinishLaunchingTime": [NSNumber numberWithDouble:(appStartMeasurement.didFinishLaunchingTimestamp.timeIntervalSince1970 * 1000)],
+                }];
+        }
+    }];
+
     NSError *error = nil;
 
     SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
@@ -80,6 +95,8 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 
         sentHybridSdkDidBecomeActive = true;
     }
+
+
 
     resolve(@YES);
 }

@@ -2,6 +2,12 @@ import { Breadcrumb } from "@sentry/types";
 
 import { ReactNativeOptions } from "./options";
 
+export type NativeAppStartResponse = {
+  isColdStart: boolean;
+  appStartTime: number;
+  appDidFinishLaunchingTime: number;
+};
+
 export type NativeReleaseResponse = {
   build: string;
   id: string;
