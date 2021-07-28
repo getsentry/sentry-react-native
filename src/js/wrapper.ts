@@ -15,8 +15,6 @@ import { ReactNativeOptions } from "./options";
 
 const { RNSentry } = NativeModules;
 
-const eventEmitter = new NativeEventEmitter(NativeModules.RNSentry);
-
 interface SentryNativeWrapper {
   enableNative: boolean;
   platform: typeof Platform.OS;
@@ -25,16 +23,17 @@ interface SentryNativeWrapper {
   _NativeClientError: Error;
   _DisabledNativeError: Error;
 
-  _appStartCallback: ((appStart: NativeAppStartResponse) => void) | undefined;
-
   _processLevels(event: Event): Event;
   _processLevel(level: Severity): Severity;
   _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
   _addAppStartTimeListener(): void;
 
   isNativeClientAvailable(): boolean;
-  getAppStartTime(callback: (appStart: NativeAppStartResponse) => void): void;
+  isModuleLoaded(): boolean;
+
+  getAppStartTime(): Promise<NativeAppStartResponse>;
   setExtra(key: string, extra: unknown): void;
+  sendEvent(event: Event): Promise<Response>;
 }
 
 /**
@@ -165,8 +164,6 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    this._addAppStartTimeListener();
-
     // filter out all the options that would crash native.
     /* eslint-disable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
     const {
@@ -221,15 +218,7 @@ export const NATIVE: SentryNativeWrapper = {
     return RNSentry.deviceContexts();
   },
 
-  getAppStartTime(callback: (appStart: NativeAppStartResponse) => void): void {
-    if (this._appStart) {
-      callback(this._appStart);
-    } else {
-      this._appStartCallback = callback;
-    }
-  },
-
-  _addAppStartTimeListener(): void {
+  async getAppStartTime(): Promise<NativeAppStartResponse> {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -237,13 +226,8 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    eventEmitter.addListener("RNSentryAppStartMeasurements", (event) => {
-      this._appStart = event;
-
-      this._appStartCallback?.(event);
-
-      eventEmitter.removeCurrentListener();
-    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return RNSentry.getAppStartTime();
   },
 
   /**
@@ -496,8 +480,6 @@ export const NATIVE: SentryNativeWrapper = {
   _NativeClientError: new SentryError(
     "Native Client is not available, can't start on native."
   ),
-
-  _appStart: null,
 
   enableNative: true,
   platform: Platform.OS,

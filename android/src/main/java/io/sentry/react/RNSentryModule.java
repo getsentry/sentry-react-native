@@ -3,6 +3,7 @@ package io.sentry.react;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.SystemClock;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -33,10 +34,11 @@ import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
-import io.sentry.Sentry;
 import io.sentry.Breadcrumb;
+import io.sentry.DateUtils;
 import io.sentry.HubAdapter;
 import io.sentry.Integration;
+import io.sentry.Sentry;
 import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
@@ -52,6 +54,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     final static Logger logger = Logger.getLogger("react-native-sentry");
 
     private static PackageInfo packageInfo;
+    private boolean didFetchAppStart = false;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -187,19 +190,20 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void getAppStartTime(Promise promise) {
-        AppStartState appStartInstance = AppStartState.getInstance();
-        final Date appStartTime = AppStartState.getInstance().getAppStartTime();
+        final AppStartState appStartInstance = AppStartState.getInstance();
+        final double appStartMillis = (double) appStartInstance.getAppStartMillis();
 
-        if (appStartTime != null) {
-            WritableMap appStart = Arguments.createMap();
+        final double appStartTime = (DateUtils.getCurrentDateTime().getTime() - SystemClock.uptimeMillis()) + appStartMillis;
 
-            appStart.putNumber("appStartTime", appStartTime.getTime());
-            appStart.putBoolean("isColdStart", appStartInstance.isColdStart());
+        WritableMap appStart = Arguments.createMap();
 
-            promise.resolve(appStart);
-        } else {
-            promise.resolve(null);
-        }
+        appStart.putDouble("appStartTime", appStartTime);
+        appStart.putBoolean("isColdStart", appStartInstance.isColdStart());
+        appStart.putBoolean("didFetchAppStart", didFetchAppStart);
+
+        promise.resolve(appStart);
+
+        didFetchAppStart = true;
     }
 
     @ReactMethod

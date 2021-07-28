@@ -156,59 +156,47 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
-    NATIVE.getAppStartTime((appStart) => {
-      const appStartTimeSeconds = appStart.appStartTime / 1000;
-      const appDidFinishLaunchingTimeSeconds =
-        appStart.appDidFinishLaunchingTime / 1000;
-      const timeOriginSeconds = timeOriginMilliseconds / 1000;
+    const appStart = await NATIVE.getAppStartTime();
 
-      const idleTransaction = this._createRouteTransaction({
-        name: "App Start",
-        op: "app.start",
+    if (appStart.didFetchAppStart) {
+      return;
+    }
+
+    const appStartTimeSeconds = appStart.appStartTime / 1000;
+    const timeOriginSeconds = timeOriginMilliseconds / 1000;
+
+    const idleTransaction = this._createRouteTransaction({
+      name: "App Start",
+      op: "app.start",
+      startTimestamp: appStartTimeSeconds,
+      sampled: true,
+    });
+
+    if (idleTransaction) {
+      idleTransaction.startChild({
+        description: "App Start",
+        op: "app.start.time",
         startTimestamp: appStartTimeSeconds,
-        sampled: true,
+        endTimestamp: timeOriginSeconds,
       });
 
-      if (idleTransaction) {
-        const fullAppStart = idleTransaction.startChild({
-          description: "App Start",
-          op: "app.start",
-          startTimestamp: appStartTimeSeconds,
-          endTimestamp: timeOriginSeconds,
-        });
+      const appStartDurationMilliseconds =
+        timeOriginMilliseconds - appStart.appStartTime;
 
-        fullAppStart.startChild({
-          description: "Native Start",
-          op: "app.start.native",
-          startTimestamp: appStartTimeSeconds,
-          endTimestamp: appDidFinishLaunchingTimeSeconds,
-        });
-
-        fullAppStart.startChild({
-          description: "JavaScript Start",
-          op: "app.start.javascript",
-          startTimestamp: appDidFinishLaunchingTimeSeconds,
-          endTimestamp: timeOriginSeconds,
-        });
-
-        const appStartDurationMilliseconds =
-          timeOriginMilliseconds - appStart.appStartTime;
-
-        idleTransaction.setMeasurements(
-          appStart.isColdStart
-            ? {
-                app_start_cold: {
-                  value: appStartDurationMilliseconds,
-                },
-              }
-            : {
-                app_start_warm: {
-                  value: appStartDurationMilliseconds,
-                },
-              }
-        );
-      }
-    });
+      idleTransaction.setMeasurements(
+        appStart.isColdStart
+          ? {
+              app_start_cold: {
+                value: appStartDurationMilliseconds,
+              },
+            }
+          : {
+              app_start_warm: {
+                value: appStartDurationMilliseconds,
+              },
+            }
+      );
+    }
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */
