@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- build(ios): Bump sentry-cocoa to 7.1.4.
+
 ## 2.6.0
 
 - feat: Support the `sendDefaultPii` option. #1634
