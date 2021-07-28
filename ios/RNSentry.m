@@ -19,7 +19,6 @@
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
     bool didFetchAppStart;
-    bool hasListeners;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -42,19 +41,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [PrivateSentrySDKOnly setSendAppStartMeasurement:NO];
-
-    [PrivateSentrySDKOnly setOnAppStartMeasurementAvailable:^(SentryAppStartMeasurement * _Nullable appStartMeasurement) {
-        if (self->hasListeners) {
-            BOOL isColdStart = appStartMeasurement.type == SentryAppStartTypeCold;
-
-            [self sendEventWithName:@"RNSentryAppStartMeasurements" body:@{
-                @"isColdStart": [NSNumber numberWithBool:isColdStart],
-                @"appStartTime": [NSNumber numberWithDouble:(appStartMeasurement.appStartTimestamp.timeIntervalSince1970 * 1000)],
-                @"appDidFinishLaunchingTime": [NSNumber numberWithDouble:(appStartMeasurement.didFinishLaunchingTimestamp.timeIntervalSince1970 * 1000)],
-                }];
-        }
-    }];
+//    [PrivateSentrySDKOnly setSendAppStartMeasurement:NO];
 
     NSError *error = nil;
 
@@ -97,7 +84,6 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     }
 
 
-
     resolve(@YES);
 }
 
@@ -123,19 +109,18 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(getAppStartTime:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-
     SentryAppStartMeasurement *appStartMeasurement = [PrivateSentrySDKOnly getAppStartMeasurement];
 
     BOOL isColdStart = appStartMeasurement.type == SentryAppStartTypeCold;
 
     resolve(@{
-              @"isColdStart": [NSNumber numberWithBool:isColdStart],
-              @"appStartTime": [NSNumber numberWithDouble:(appStartMeasurement.appStartTimestamp.timeIntervalSince1970 * 1000)],
-              @"appDidFinishLaunchingTime": [NSNumber numberWithDouble:(appStartMeasurement.didFinishLaunchingTimestamp.timeIntervalSince1970 * 1000)],
-              @"didFetchAppStart": [NSNumber numberWithBool:didFetchAppStart]
-              });
+        @"isColdStart": [NSNumber numberWithBool:isColdStart],
+        @"appStartTime": [NSNumber numberWithDouble:(appStartMeasurement.appStartTimestamp.timeIntervalSince1970 * 1000)],
+        @"didFetchAppStart": [NSNumber numberWithBool:didFetchAppStart],
+            });
 
-    didFetchAppStart = true;
+    self->didFetchAppStart = true;
+
 }
 
 RCT_EXPORT_METHOD(fetchNativeRelease:(RCTPromiseResolveBlock)resolve
