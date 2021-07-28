@@ -19,6 +19,7 @@
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
     bool didFetchAppStart;
+    bool hasListeners;
 }
 
 
@@ -39,10 +40,40 @@ RCT_EXPORT_MODULE()
     return @{@"nativeClientAvailable": @YES, @"nativeTransport": @YES};
 }
 
+// Will be called when this module's first listener is added.
+-(void)startObserving {
+    hasListeners = YES;
+    // Set up any upstream listeners or background tasks as necessary
+}
+
+// Will be called when this module's last listener is removed, or on dealloc.
+-(void)stopObserving {
+    hasListeners = NO;
+    // Remove upstream listeners, stop unnecessary background tasks
+}
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[@"RNSentryAppStartMeasurements"];
+}
+
 RCT_EXPORT_METHOD(startWithOptions:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    [PrivateSentrySDKOnly setSendAppStartMeasurement:NO];
+    
+    [PrivateSentrySDKOnly setOnAppStartMeasurementAvailable:^(SentryAppStartMeasurement * _Nullable appStartMeasurement) {
+        if (self->hasListeners) {
+            BOOL isColdStart = appStartMeasurement.type == SentryAppStartTypeCold;
+            
+            [self sendEventWithName:@"RNSentryAppStartMeasurements" body:@{
+                @"isColdStart": [NSNumber numberWithBool:isColdStart],
+                @"appStartTime": [NSNumber numberWithDouble:(appStartMeasurement.appStartTimestamp.timeIntervalSince1970 * 1000)],
+                @"appDidFinishLaunchingTime": [NSNumber numberWithDouble:(appStartMeasurement.didFinishLaunchingTimestamp.timeIntervalSince1970 * 1000)],
+                }];
+        }
+    }];
+    
     NSError *error = nil;
 
     SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
@@ -82,6 +113,8 @@ RCT_EXPORT_METHOD(startWithOptions:(NSDictionary *_Nonnull)options
 
         sentHybridSdkDidBecomeActive = true;
     }
+    
+    
 
     resolve(@YES);
 }
@@ -109,18 +142,7 @@ RCT_EXPORT_METHOD(getAppStartTime:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     
-    SentryAppStartMeasurement *appStartMeasurement = [PrivateSentrySDKOnly getAppStartMeasurement];
     
-    BOOL isColdStart = appStartMeasurement.type == SentryAppStartTypeCold;
-    
-    resolve(@{
-              @"isColdStart": [NSNumber numberWithBool:isColdStart],
-              @"appStartTime": [NSNumber numberWithDouble:(appStartMeasurement.appStartTimestamp.timeIntervalSince1970 * 1000)],
-              @"appDidFinishLaunchingTime": [NSNumber numberWithDouble:(appStartMeasurement.didFinishLaunchingTimestamp.timeIntervalSince1970 * 1000)],
-              @"didFetchAppStart": [NSNumber numberWithBool:didFetchAppStart]
-              });
-    
-    didFetchAppStart = true;
 }
 
 RCT_EXPORT_METHOD(fetchRelease:(RCTPromiseResolveBlock)resolve

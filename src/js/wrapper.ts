@@ -8,16 +8,39 @@ import {
   User,
 } from "@sentry/types";
 import { logger, SentryError } from "@sentry/utils";
-import { NativeModules, Platform } from "react-native";
+import { NativeEventEmitter, NativeModules, Platform } from "react-native";
 
+import { NativeAppStartResponse } from "./definitions";
 import { ReactNativeOptions } from "./options";
 
 const { RNSentry } = NativeModules;
 
+const eventEmitter = new NativeEventEmitter(NativeModules.RNSentry);
+
+interface SentryNativeWrapper {
+  enableNative: boolean;
+  platform: typeof Platform.OS;
+
+  _appStart: NativeAppStartResponse;
+  _NativeClientError: Error;
+  _DisabledNativeError: Error;
+
+  _appStartCallback: ((appStart: NativeAppStartResponse) => void) | undefined;
+
+  _processLevels(event: Event): Event;
+  _processLevel(level: Severity): Severity;
+  _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
+  _addAppStartTimeListener(): void;
+
+  isNativeClientAvailable(): boolean;
+  getAppStartTime(callback: (appStart: NativeAppStartResponse) => void): void;
+  setExtra(key: string, extra: unknown): void;
+}
+
 /**
  * Our internal interface for calling native functions
  */
-export const NATIVE = {
+export const NATIVE: SentryNativeWrapper = {
   /**
    * Sending the event over the bridge to native
    * @param event Event
@@ -142,6 +165,8 @@ export const NATIVE = {
       throw this._NativeClientError;
     }
 
+    this._addAppStartTimeListener();
+
     // filter out all the options that would crash native.
     /* eslint-disable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
     const {
@@ -196,12 +221,15 @@ export const NATIVE = {
     return RNSentry.deviceContexts();
   },
 
-  async getAppStartTime(): Promise<{
-    isColdStart: boolean;
-    appStartTime: number;
-    appDidFinishLaunchingTime: number;
-    didFetchAppStart: boolean;
-  } | null> {
+  getAppStartTime(callback: (appStart: NativeAppStartResponse) => void): void {
+    if (this._appStart) {
+      callback(this._appStart);
+    } else {
+      this._appStartCallback = callback;
+    }
+  },
+
+  _addAppStartTimeListener(): void {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -209,8 +237,13 @@ export const NATIVE = {
       throw this._NativeClientError;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return RNSentry.getAppStartTime();
+    eventEmitter.addListener("RNSentryAppStartMeasurements", (event) => {
+      this._appStart = event;
+
+      this._appStartCallback?.(event);
+
+      eventEmitter.removeCurrentListener();
+    });
   },
 
   /**
@@ -463,6 +496,8 @@ export const NATIVE = {
   _NativeClientError: new SentryError(
     "Native Client is not available, can't start on native."
   ),
+
+  _appStart: null,
 
   enableNative: true,
   platform: Platform.OS,
