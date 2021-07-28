@@ -13,8 +13,9 @@ import {
   Transaction as TransactionType,
   TransactionContext,
 } from "@sentry/types";
-import { getGlobalObject, logger } from "@sentry/utils";
+import { logger } from "@sentry/utils";
 
+import { NativeAppStartResponse } from "../definitions";
 import { StallTracking } from "../integrations";
 import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
 import { NATIVE } from "../wrapper";
@@ -99,6 +100,7 @@ export class ReactNativeTracing implements Integration {
   public options: ReactNativeTracingOptions;
 
   private _getCurrentHub?: () => Hub;
+  private _awaitingAppStartData?: NativeAppStartResponse;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this.options = {
@@ -127,6 +129,8 @@ export class ReactNativeTracing implements Integration {
 
     this._getCurrentHub = getCurrentHub;
 
+    void this.instrumentAppStart();
+
     if (routingInstrumentation) {
       routingInstrumentation.registerRoutingInstrumentation(
         this._onRouteWillChange.bind(this),
@@ -137,8 +141,6 @@ export class ReactNativeTracing implements Integration {
         `[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.`
       );
     }
-
-    void this.logAppStart();
 
     registerRequestInstrumentation({
       traceFetch,
@@ -151,7 +153,7 @@ export class ReactNativeTracing implements Integration {
   /**
    *
    */
-  public async logAppStart(): Promise<void> {
+  public async instrumentAppStart(): Promise<void> {
     if (!this.options.enableAppStartTracking) {
       return;
     }
@@ -162,41 +164,56 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
+    if (this.options.routingInstrumentation) {
+      this._awaitingAppStartData = appStart;
+    } else {
+      const appStartTimeSeconds = appStart.appStartTime / 1000;
+
+      const idleTransaction = this._createRouteTransaction({
+        name: "App Start",
+        op: "ui.load",
+        startTimestamp: appStartTimeSeconds,
+      });
+
+      if (idleTransaction) {
+        this._addAppStartData(idleTransaction, appStart);
+      }
+    }
+  }
+
+  /**
+   *
+   */
+  private _addAppStartData(
+    transaction: IdleTransaction,
+    appStart: NativeAppStartResponse
+  ): void {
     const appStartTimeSeconds = appStart.appStartTime / 1000;
     const timeOriginSeconds = timeOriginMilliseconds / 1000;
 
-    const idleTransaction = this._createRouteTransaction({
-      name: "App Start",
-      op: "app.start",
+    transaction.startChild({
+      description: appStart.isColdStart ? "Cold App Start" : "Warm App Start",
+      op: appStart.isColdStart ? "app.start.cold" : "app.start.warm",
       startTimestamp: appStartTimeSeconds,
-      sampled: true,
+      endTimestamp: timeOriginSeconds,
     });
 
-    if (idleTransaction) {
-      idleTransaction.startChild({
-        description: "App Start",
-        op: "app.start.time",
-        startTimestamp: appStartTimeSeconds,
-        endTimestamp: timeOriginSeconds,
-      });
+    const appStartDurationMilliseconds =
+      timeOriginMilliseconds - appStart.appStartTime;
 
-      const appStartDurationMilliseconds =
-        timeOriginMilliseconds - appStart.appStartTime;
-
-      idleTransaction.setMeasurements(
-        appStart.isColdStart
-          ? {
-              app_start_cold: {
-                value: appStartDurationMilliseconds,
-              },
-            }
-          : {
-              app_start_warm: {
-                value: appStartDurationMilliseconds,
-              },
-            }
-      );
-    }
+    transaction.setMeasurements(
+      appStart.isColdStart
+        ? {
+            app_start_cold: {
+              value: appStartDurationMilliseconds,
+            },
+          }
+        : {
+            app_start_warm: {
+              value: appStartDurationMilliseconds,
+            },
+          }
+    );
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */
@@ -233,9 +250,22 @@ export class ReactNativeTracing implements Integration {
       idleTimeout,
       true
     );
+
     logger.log(
       `[ReactNativeTracing] Starting ${context.op} transaction "${context.name}" on scope`
     );
+
+    idleTransaction.registerBeforeFinishCallback((transaction) => {
+      if (this.options.enableAppStartTracking && this._awaitingAppStartData) {
+        transaction.startTimestamp =
+          this._awaitingAppStartData.appStartTime / 1000;
+        transaction.op = "ui.load";
+
+        this._addAppStartData(transaction, this._awaitingAppStartData);
+
+        this._awaitingAppStartData = undefined;
+      }
+    });
 
     const stallTracking = this._getCurrentHub().getIntegration(StallTracking);
 
