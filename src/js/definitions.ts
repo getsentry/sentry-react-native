@@ -5,7 +5,7 @@ import { ReactNativeOptions } from "./options";
 export type NativeAppStartResponse = {
   isColdStart: boolean;
   appStartTime: number;
-  appDidFinishLaunchingTime: number;
+  didFetchAppStart: boolean;
 };
 
 export type NativeReleaseResponse = {
