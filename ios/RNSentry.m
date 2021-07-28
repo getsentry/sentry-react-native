@@ -71,6 +71,10 @@ RCT_EXPORT_METHOD(startWithOptions:(NSDictionary *_Nonnull)options
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
+    
+    // TEMPORARY FOR 2.7.0-beta.2 HOTFIX
+    sentryOptions.enableAutoPerformanceTracking = NO;
+
     [SentrySDK startWithOptionsObject:sentryOptions];
 
     // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
