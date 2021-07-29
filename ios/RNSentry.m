@@ -41,7 +41,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-//    [PrivateSentrySDKOnly setSendAppStartMeasurement:NO];
+    PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = true;
 
     NSError *error = nil;
 
@@ -84,6 +84,8 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     }
 
 
+
+
     resolve(@YES);
 }
 
@@ -109,7 +111,8 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(getAppStartTime:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    SentryAppStartMeasurement *appStartMeasurement = [PrivateSentrySDKOnly getAppStartMeasurement];
+
+    SentryAppStartMeasurement *appStartMeasurement = PrivateSentrySDKOnly.appStartMeasurement;
 
     BOOL isColdStart = appStartMeasurement.type == SentryAppStartTypeCold;
 
