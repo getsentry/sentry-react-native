@@ -160,11 +160,11 @@ export class ReactNativeTracing implements Integration {
 
     const appStart = await NATIVE.getAppStartTime();
 
-    setInterval(async () => {
-      const frozen = await NATIVE.getFrames();
+    // setInterval(async () => {
+    //   const frozen = await NATIVE.getFrames();
 
-      console.log(frozen);
-    }, 2500);
+    //   console.log(frozen);
+    // }, 2500);
 
     if (appStart.didFetchAppStart) {
       return;
