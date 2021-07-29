@@ -10,7 +10,7 @@ import {
 import { logger, SentryError } from "@sentry/utils";
 import { NativeEventEmitter, NativeModules, Platform } from "react-native";
 
-import { NativeAppStartResponse } from "./definitions";
+import { NativeAppStartResponse, NativeFramesResponse } from "./definitions";
 import { ReactNativeOptions } from "./options";
 
 const { RNSentry } = NativeModules;
@@ -34,6 +34,7 @@ interface SentryNativeWrapper {
   getAppStartTime(): Promise<NativeAppStartResponse>;
   setExtra(key: string, extra: unknown): void;
   sendEvent(event: Event): Promise<Response>;
+  getFrames(): Promise<NativeFramesResponse>;
 }
 
 /**
@@ -229,6 +230,18 @@ export const NATIVE: SentryNativeWrapper = {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return RNSentry.getAppStartTime();
   },
+
+  async getFrames(): Promise<NativeFramesResponse> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return RNSentry.getFrames();
+  }
 
   /**
    * Triggers a native crash.

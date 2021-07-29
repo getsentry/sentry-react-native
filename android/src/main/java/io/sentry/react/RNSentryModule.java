@@ -1,11 +1,25 @@
 package io.sentry.react;
 
+import android.app.Application;
+import android.app.Application.ActivityLifecycleCallbacks;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.os.SystemClock;
+import android.app.Activity;
+import android.util.SparseIntArray;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.FrameMetricsAggregator;
+
+import com.facebook.react.ReactInstanceManager;
+import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.BaseActivityEventListener;
+import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -19,6 +33,7 @@ import com.facebook.react.module.annotations.ReactModule;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,12 +59,15 @@ import io.sentry.SentryOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
+import io.sentry.protocol.SentryId;
 import io.sentry.protocol.User;
 
 @ReactModule(name = RNSentryModule.NAME)
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
     public static final String NAME = "RNSentry";
+
+    private final FrameMetricsAggregator frameMetricsAggregator;
 
     final static Logger logger = Logger.getLogger("react-native-sentry");
 
@@ -59,7 +77,33 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
         RNSentryModule.packageInfo = getPackageInfo(reactContext);
+
+        frameMetricsAggregator = new FrameMetricsAggregator();
+        reactContext.addLifecycleEventListener(mLifeCycleEventListener);
     }
+
+    private final LifecycleEventListener mLifeCycleEventListener = new LifecycleEventListener() {
+        @Override
+        public void onHostResume() {
+            Activity currentActivity = getCurrentActivity();
+
+            if (currentActivity != null) {
+                frameMetricsAggregator.add(currentActivity);
+            }
+        }
+
+        @Override
+        public void onHostPause() {
+            Activity currentActivity = getCurrentActivity();
+
+            if (currentActivity != null) {
+                frameMetricsAggregator.remove(currentActivity);
+            }
+        }
+
+        @Override
+        public void onHostDestroy() {}
+    };
 
     @Override
     public String getName() {
@@ -204,6 +248,48 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         promise.resolve(appStart);
 
         didFetchAppStart = true;
+    }
+
+    /**
+     * Returns frames metrics at the current point in time.
+     */
+    @ReactMethod
+    public void getFrames(Promise promise) {
+        try {
+            int totalFrames = 0;
+            int slowFrames = 0;
+            int frozenFrames = 0;
+
+            final SparseIntArray[] framesRates = frameMetricsAggregator.getMetrics();
+
+            if (framesRates != null) {
+                final SparseIntArray totalIndexArray = framesRates[FrameMetricsAggregator.TOTAL_INDEX];
+                if (totalIndexArray != null) {
+                    for (int i = 0; i < totalIndexArray.size(); i++) {
+                        int frameTime = totalIndexArray.keyAt(i);
+                        int numFrames = totalIndexArray.valueAt(i);
+                        totalFrames += numFrames;
+                        // hard coded values, its also in the official android docs and frame metrics API
+                        if (frameTime > 700) {
+                            // frozen frames, threshold is 700ms
+                            frozenFrames += numFrames;
+                        } else if (frameTime > 16) {
+                            // slow frames, above 16ms, 60 frames/second
+                            slowFrames += numFrames;
+                        }
+                    }
+                }
+            }
+
+            WritableMap map = Arguments.createMap();
+            map.putInt("totalFrames", totalFrames);
+            map.putInt("slowFrames", slowFrames);
+            map.putInt("frozenFrames", frozenFrames);
+
+            promise.resolve(map);
+        } catch (Exception e) {
+            promise.reject(e);
+        }
     }
 
     @ReactMethod
