@@ -8,6 +8,12 @@ export type NativeAppStartResponse = {
   didFetchAppStart: boolean;
 };
 
+export type NativeFramesResponse = {
+  totalFrames: number;
+  slowFrames: number;
+  frozenFrames: number;
+};
+
 export type NativeReleaseResponse = {
   build: string;
   id: string;

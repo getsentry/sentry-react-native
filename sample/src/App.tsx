@@ -41,7 +41,7 @@ Sentry.init({
   maxBreadcrumbs: 150, // Extend from the default 100 breadcrumbs.
   integrations: [
     new Sentry.ReactNativeTracing({
-      idleTimeout: 5000,
+      idleTimeout: 5000, // This is the default timeout
       routingInstrumentation: reactNavigationV5Instrumentation,
       tracingOrigins: ['localhost', /^\//, /^https:\/\//],
       beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {

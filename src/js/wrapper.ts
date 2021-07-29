@@ -15,6 +15,7 @@ import {
   NativeDeviceContextsResponse,
   NativeReleaseResponse,
   SentryNativeBridgeModule,
+  NativeFramesResponse
 } from "./definitions";
 import { ReactNativeOptions } from "./options";
 
@@ -74,6 +75,7 @@ interface SentryNativeWrapper {
   getAppStartTime(): Promise<NativeAppStartResponse>;
   setExtra(key: string, extra: unknown): void;
   sendEvent(event: Event): Promise<Response>;
+  getFrames(): Promise<NativeFramesResponse>;
 }
 
 /**
@@ -280,6 +282,18 @@ export const NATIVE: SentryNativeWrapper = {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return RNSentry.getAppStartTime();
   },
+
+  async getFrames(): Promise<NativeFramesResponse> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this.isNativeClientAvailable()) {
+      throw this._NativeClientError;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return RNSentry.getFrames();
+  }
 
   /**
    * Triggers a native crash.
