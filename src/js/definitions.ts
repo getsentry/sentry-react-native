@@ -1,4 +1,4 @@
-import { Breadcrumb } from "@sentry/types";
+import { Breadcrumb, Package } from "@sentry/types";
 
 import { ReactNativeOptions } from "./options";
 
@@ -29,6 +29,8 @@ interface SerializedObject {
 }
 
 export interface SentryNativeBridgeModule {
+  nativeClientAvailable: boolean;
+
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   captureEnvelope(
     payload:
@@ -46,7 +48,10 @@ export interface SentryNativeBridgeModule {
     id: string;
     version: string;
   }>;
+  fetchNativeSdkInfo(): Promise<Package>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
+  fetchNativeAppStart(): PromiseLike<NativeAppStartResponse>;
+  fetchNativeFrames(): PromiseLike<NativeFramesResponse>;
   getStringBytesLength(str: string): Promise<number>;
   initNativeSdk(options: ReactNativeOptions): Promise<boolean>;
   setUser(

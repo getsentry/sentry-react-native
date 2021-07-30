@@ -108,7 +108,7 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
     }];
 }
 
-RCT_EXPORT_METHOD(getAppStartTime:(RCTPromiseResolveBlock)resolve
+RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
 

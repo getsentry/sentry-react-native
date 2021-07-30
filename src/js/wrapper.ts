@@ -8,14 +8,14 @@ import {
   User,
 } from "@sentry/types";
 import { logger, SentryError } from "@sentry/utils";
-import { NativeEventEmitter, NativeModules, Platform } from "react-native";
+import { NativeModules, Platform } from "react-native";
 
 import {
   NativeAppStartResponse,
   NativeDeviceContextsResponse,
+  NativeFramesResponse,
   NativeReleaseResponse,
   SentryNativeBridgeModule,
-  NativeFramesResponse
 } from "./definitions";
 import { ReactNativeOptions } from "./options";
 
@@ -45,6 +45,8 @@ interface SentryNativeWrapper {
 
   fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
+  fetchNativeAppStart(): PromiseLike<NativeAppStartResponse>;
+  fetchNativeFrames(): PromiseLike<NativeFramesResponse>;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   setContext(key: string, context: { [key: string]: unknown } | null): void;
@@ -54,28 +56,6 @@ interface SentryNativeWrapper {
   setTag(key: string, value: string): void;
 
   nativeCrash(): void;
-}
-
-interface SentryNativeWrapper {
-  enableNative: boolean;
-  platform: typeof Platform.OS;
-
-  _appStart: NativeAppStartResponse;
-  _NativeClientError: Error;
-  _DisabledNativeError: Error;
-
-  _processLevels(event: Event): Event;
-  _processLevel(level: Severity): Severity;
-  _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
-  _addAppStartTimeListener(): void;
-
-  isNativeClientAvailable(): boolean;
-  isModuleLoaded(): boolean;
-
-  getAppStartTime(): Promise<NativeAppStartResponse>;
-  setExtra(key: string, extra: unknown): void;
-  sendEvent(event: Event): Promise<Response>;
-  getFrames(): Promise<NativeFramesResponse>;
 }
 
 /**
@@ -271,29 +251,28 @@ export const NATIVE: SentryNativeWrapper = {
     return RNSentry.fetchNativeDeviceContexts();
   },
 
-  async getAppStartTime(): Promise<NativeAppStartResponse> {
+  async fetchNativeAppStart(): Promise<NativeAppStartResponse> {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
-    if (!this.isNativeClientAvailable()) {
+    if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return RNSentry.getAppStartTime();
+    return RNSentry.fetchNativeAppStart();
   },
 
-  async getFrames(): Promise<NativeFramesResponse> {
+  async fetchNativeFrames(): Promise<NativeFramesResponse> {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
-    if (!this.isNativeClientAvailable()) {
+    if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return RNSentry.getFrames();
-  }
+    return RNSentry.fetchNativeFrames();
+  },
 
   /**
    * Triggers a native crash.

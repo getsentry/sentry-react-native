@@ -1,12 +1,11 @@
 import { BrowserBackend } from "@sentry/browser/dist/backend";
-import { BaseBackend, getCurrentHub, NoopTransport } from "@sentry/core";
+import { BaseBackend, NoopTransport } from "@sentry/core";
 import { BrowserOptions, Transports } from "@sentry/react";
 import { Event, EventHint, Severity, Transport } from "@sentry/types";
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from "react-native";
 
 import { ReactNativeOptions } from "./options";
-import { ReactNativeTracing } from "./tracing";
 import { NativeTransport } from "./transports/native";
 import { NATIVE } from "./wrapper";
 
