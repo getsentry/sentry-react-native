@@ -17,10 +17,8 @@
 @end
 
 @implementation RNSentry {
-   bool sentHybridSdkDidBecomeActive;
+    bool sentHybridSdkDidBecomeActive;
 }
-
-
 
 - (dispatch_queue_t)methodQueue
 {

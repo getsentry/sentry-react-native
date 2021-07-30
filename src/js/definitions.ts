@@ -1,18 +1,6 @@
-import { Breadcrumb, Package } from "@sentry/types";
+import { Breadcrumb } from "@sentry/types";
 
 import { ReactNativeOptions } from "./options";
-
-export type NativeAppStartResponse = {
-  isColdStart: boolean;
-  appStartTime: number;
-  didFetchAppStart: boolean;
-};
-
-export type NativeFramesResponse = {
-  totalFrames: number;
-  slowFrames: number;
-  frozenFrames: number;
-};
 
 export type NativeReleaseResponse = {
   build: string;
@@ -48,10 +36,7 @@ export interface SentryNativeBridgeModule {
     id: string;
     version: string;
   }>;
-  fetchNativeSdkInfo(): Promise<Package>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
-  fetchNativeAppStart(): PromiseLike<NativeAppStartResponse>;
-  fetchNativeFrames(): PromiseLike<NativeFramesResponse>;
   getStringBytesLength(str: string): Promise<number>;
   initNativeSdk(options: ReactNativeOptions): Promise<boolean>;
   setUser(
