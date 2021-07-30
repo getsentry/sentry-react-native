@@ -151,7 +151,8 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
-   *
+   * Instruments the app start measurements on the first route transaction.
+   * Starts a route transaction if there isn't routing instrumentation.
    */
   public async instrumentAppStart(): Promise<void> {
     if (!this.options.enableAppStartTracking) {
@@ -182,7 +183,7 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
-   *
+   * Adds app start measurements and starts a child span on a transaction.
    */
   private _addAppStartData(
     transaction: IdleTransaction,
