@@ -82,6 +82,43 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         reactContext.addLifecycleEventListener(mLifeCycleEventListener);
     }
 
+    private final ActivityLifecycleCallbacks afc = new ActivityLifecycleCallbacks() {
+        @Override
+        public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle bundle) {
+            frameMetricsAggregator.add(activity);
+        }
+
+        @Override
+        public void onActivityStarted(@NonNull Activity activity) {
+
+        }
+
+        @Override
+        public void onActivityResumed(@NonNull Activity activity) {
+
+        }
+
+        @Override
+        public void onActivityPaused(@NonNull Activity activity) {
+
+        }
+
+        @Override
+        public void onActivityStopped(@NonNull Activity activity) {
+
+        }
+
+        @Override
+        public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle bundle) {
+
+        }
+
+        @Override
+        public void onActivityDestroyed(@NonNull Activity activity) {
+            frameMetricsAggregator.remove(activity);
+        }
+    }
+
     private final LifecycleEventListener mLifeCycleEventListener = new LifecycleEventListener() {
         @Override
         public void onHostResume() {
@@ -89,20 +126,26 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
             if (currentActivity != null) {
                 frameMetricsAggregator.add(currentActivity);
+
+                currentActivity.getApplication().registerActivityLifecycleCallbacks(afc);
             }
         }
 
         @Override
         public void onHostPause() {
+
+
+
+        }
+
+        @Override
+        public void onHostDestroy() {
             Activity currentActivity = getCurrentActivity();
 
             if (currentActivity != null) {
                 frameMetricsAggregator.remove(currentActivity);
             }
         }
-
-        @Override
-        public void onHostDestroy() {}
     };
 
     @Override
@@ -119,7 +162,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startWithOptions(final ReadableMap rnOptions, Promise promise) {
+    public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
@@ -224,7 +267,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void fetchRelease(Promise promise) {
+    public void fetchNativeRelease(Promise promise) {
         WritableMap release = Arguments.createMap();
         release.putString("id", packageInfo.packageName);
         release.putString("version", packageInfo.versionName);
@@ -233,7 +276,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getAppStartTime(Promise promise) {
+    public void fetchNativeAppStart(Promise promise) {
         final AppStartState appStartInstance = AppStartState.getInstance();
         final double appStartMillis = (double) appStartInstance.getAppStartMillis();
 
@@ -254,7 +297,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
      * Returns frames metrics at the current point in time.
      */
     @ReactMethod
-    public void getFrames(Promise promise) {
+    public void fetchNativeFrames(Promise promise) {
         try {
             int totalFrames = 0;
             int slowFrames = 0;

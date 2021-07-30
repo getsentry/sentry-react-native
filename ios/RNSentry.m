@@ -39,7 +39,7 @@ RCT_EXPORT_MODULE()
     return @{@"nativeClientAvailable": @YES, @"nativeTransport": @YES};
 }
 
-RCT_EXPORT_METHOD(startWithOptions:(NSDictionary *_Nonnull)options
+RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -91,7 +91,7 @@ RCT_EXPORT_METHOD(startWithOptions:(NSDictionary *_Nonnull)options
     resolve(@YES);
 }
 
-RCT_EXPORT_METHOD(deviceContexts:(RCTPromiseResolveBlock)resolve
+RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSLog(@"Bridge call to: deviceContexts");
@@ -110,7 +110,7 @@ RCT_EXPORT_METHOD(deviceContexts:(RCTPromiseResolveBlock)resolve
     }];
 }
 
-RCT_EXPORT_METHOD(getAppStartTime:(RCTPromiseResolveBlock)resolve
+RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
 
@@ -128,7 +128,7 @@ RCT_EXPORT_METHOD(getAppStartTime:(RCTPromiseResolveBlock)resolve
     
 }
 
-RCT_EXPORT_METHOD(fetchRelease:(RCTPromiseResolveBlock)resolve
+RCT_EXPORT_METHOD(fetchNativeRelease:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
