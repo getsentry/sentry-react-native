@@ -21,7 +21,7 @@ jest.mock("@sentry/core", () => {
 
 jest.mock("../../src/js/wrapper", () => ({
   NATIVE: {
-    fetchRelease: async () => ({
+    fetchNativeRelease: async () => ({
       build: "native_build",
       id: "native_id",
       version: "native_version",

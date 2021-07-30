@@ -207,11 +207,11 @@ export const NATIVE: SentryNativeWrapper = {
     } = options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
 
-    return RNSentry.initNativeSdk(filteredOptions).then((nativeIsReady) => {
-      this.nativeIsReady = nativeIsReady;
+    const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 
-      return nativeIsReady;
-    });
+    this.nativeIsReady = nativeIsReady;
+
+    return nativeIsReady;
   },
 
   /**

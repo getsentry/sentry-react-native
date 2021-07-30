@@ -12,17 +12,8 @@ jest.mock(
   () => ({
     NativeModules: {
       RNSentry: {
+        initNativeSdk: jest.fn(() => Promise.resolve(true)),
         crash: jest.fn(),
-        nativeClientAvailable: true,
-        nativeTransport: true,
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        startWithOptions: async (options: any): Promise<boolean> => {
-          if (typeof options.dsn !== "string") {
-            throw new Error();
-          }
-          return true;
-        },
       },
     },
     Platform: {
@@ -40,7 +31,7 @@ jest.mock(
 );
 
 afterEach(() => {
-  jest.resetAllMocks();
+  jest.clearAllMocks();
   NATIVE.enableNative = true;
 });
 
@@ -125,7 +116,7 @@ describe("Tests ReactNativeBackend", () => {
     test("calls onReady callback with false if Native SDK failed to initialize", (done) => {
       const RN = require("react-native");
 
-      RN.NativeModules.RNSentry.startWithOptions = async () => {
+      RN.NativeModules.RNSentry.initNativeSdk = async () => {
         throw new Error();
       };
 
