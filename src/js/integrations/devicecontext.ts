@@ -27,7 +27,7 @@ export class DeviceContext implements Integration {
       }
 
       try {
-        const deviceContexts = await NATIVE.deviceContexts();
+        const deviceContexts = await NATIVE.fetchNativeDeviceContexts();
         event.contexts = { ...deviceContexts, ...event.contexts };
       } catch (e) {
         logger.log(`Failed to get device context from native: ${e}`);

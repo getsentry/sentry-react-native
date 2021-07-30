@@ -1,50 +1,78 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Event, Severity } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
+import { SentryNativeBridgeModule } from "../src/js/definitions";
+import { ReactNativeOptions } from "../src/js/options";
 import { NATIVE } from "../src/js/wrapper";
 
 jest.mock(
   "react-native",
-  () => ({
-    NativeModules: {
-      RNSentry: {
-        addBreadcrumb: jest.fn(),
-        captureEnvelope: jest.fn((envelope) => Promise.resolve(envelope)),
-        clearBreadcrumbs: jest.fn(),
-        crash: jest.fn(),
-        deviceContexts: jest.fn(() =>
-          Promise.resolve({
-            someContext: 0,
-          })
-        ),
-        fetchRelease: jest.fn(() =>
-          Promise.resolve({
-            build: "1.0.0.1",
-            id: "test-mock",
-            version: "1.0.0",
-          })
-        ),
-        getStringBytesLength: jest.fn(() => Promise.resolve(1)),
-        nativeClientAvailable: true,
-        nativeTransport: true,
-        sendEvent: jest.fn(() => Promise.resolve()),
-        setContext: jest.fn(),
-        setExtra: jest.fn(),
-        setTag: jest.fn(),
-        setUser: jest.fn(() => {
-          return;
-        }),
-        startWithOptions: jest.fn((options) => Promise.resolve(options)),
-        closeNativeSdk: jest.fn(() => Promise.resolve()),
+  () => {
+    let envelopePayload:
+      | string
+      | {
+          header: Record<string, unknown>;
+          payload: Record<string, unknown>;
+        }
+      | null = null;
+    let initPayload: ReactNativeOptions | null = null;
+
+    const RNSentry: SentryNativeBridgeModule = {
+      addBreadcrumb: jest.fn(),
+      captureEnvelope: jest.fn((envelope) => {
+        envelopePayload = envelope;
+
+        return Promise.resolve(true);
+      }),
+      clearBreadcrumbs: jest.fn(),
+      crash: jest.fn(),
+      fetchNativeDeviceContexts: jest.fn(() =>
+        Promise.resolve({
+          someContext: {
+            someValue: 0,
+          },
+        })
+      ),
+      fetchNativeRelease: jest.fn(() =>
+        Promise.resolve({
+          build: "1.0.0.1",
+          id: "test-mock",
+          version: "1.0.0",
+        })
+      ),
+      getStringBytesLength: jest.fn(() => Promise.resolve(1)),
+      setContext: jest.fn(),
+      setExtra: jest.fn(),
+      setTag: jest.fn(),
+      setUser: jest.fn(() => {
+        return;
+      }),
+      initNativeSdk: jest.fn((options) => {
+        initPayload = options;
+
+        return Promise.resolve(true);
+      }),
+      closeNativeSdk: jest.fn(() => Promise.resolve()),
+      // @ts-ignore for testing.
+      _getLastPayload: () => ({ envelopePayload, initPayload }),
+    };
+
+    return {
+      NativeModules: {
+        RNSentry,
       },
-    },
-    Platform: {
-      OS: "ios",
-    },
-  }),
+      Platform: {
+        OS: "ios",
+      },
+    };
+  },
   /* virtual allows us to mock modules that aren't in package.json */
   { virtual: true }
 );
+
+const RN = require("react-native");
+const RNSentry = RN.NativeModules.RNSentry as SentryNativeBridgeModule;
 
 const callAllScopeMethods = () => {
   NATIVE.addBreadcrumb({
@@ -71,116 +99,94 @@ afterEach(() => {
 describe("Tests Native Wrapper", () => {
   describe("startWithOptions", () => {
     test("calls native module", async () => {
-      const RN = require("react-native");
+      await NATIVE.initNativeSdk({ dsn: "test", enableNative: true });
 
-      RN.NativeModules.RNSentry.startWithOptions = jest.fn();
-
-      await NATIVE.startWithOptions({ dsn: "test", enableNative: true });
-
-      expect(RN.NativeModules.RNSentry.startWithOptions).toBeCalled();
+      expect(RNSentry.initNativeSdk).toBeCalled();
     });
 
     test("warns if there is no dsn", async () => {
-      const RN = require("react-native");
-
-      RN.NativeModules.RNSentry.startWithOptions = jest.fn();
       logger.warn = jest.fn();
 
-      await NATIVE.startWithOptions({ enableNative: true });
+      await NATIVE.initNativeSdk({ enableNative: true });
 
-      expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
-
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(RNSentry.initNativeSdk).not.toBeCalled();
       expect(logger.warn).toHaveBeenLastCalledWith(
         "Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized."
       );
     });
 
     test("does not call native module with enableNative: false", async () => {
-      const RN = require("react-native");
-
-      RN.NativeModules.RNSentry.startWithOptions = jest.fn();
       logger.warn = jest.fn();
 
-      await NATIVE.startWithOptions({
+      await NATIVE.initNativeSdk({
         dsn: "test",
         enableNative: false,
         enableNativeNagger: true,
       });
 
-      expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
+      expect(RNSentry.initNativeSdk).not.toBeCalled();
       expect(NATIVE.enableNative).toBe(false);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenLastCalledWith(
         "Note: Native Sentry SDK is disabled."
       );
     });
 
     test("does not initialize with autoInitializeNativeSdk: false", async () => {
-      const RN = require("react-native");
-
-      RN.NativeModules.RNSentry.startWithOptions = jest.fn();
       logger.warn = jest.fn();
 
-      await NATIVE.startWithOptions({
+      await NATIVE.initNativeSdk({
         dsn: "test",
         enableNative: true,
         autoInitializeNativeSdk: false,
       });
 
-      expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
+      expect(RNSentry.initNativeSdk).not.toBeCalled();
       expect(NATIVE.enableNative).toBe(true);
 
       // Test that native bridge methods will go through
-
       callAllScopeMethods();
-      expect(RN.NativeModules.RNSentry.addBreadcrumb).toBeCalledWith({
+      expect(RNSentry.addBreadcrumb).toBeCalledWith({
         message: "test",
       });
-      expect(RN.NativeModules.RNSentry.clearBreadcrumbs).toBeCalled();
-      expect(RN.NativeModules.RNSentry.setUser).toBeCalledWith(
+      expect(RNSentry.clearBreadcrumbs).toBeCalled();
+      expect(RNSentry.setUser).toBeCalledWith(
         {
           id: "setUser",
         },
         {}
       );
-      expect(RN.NativeModules.RNSentry.setTag).toBeCalledWith("key", "value");
-      expect(RN.NativeModules.RNSentry.setContext).toBeCalledWith("key", {
+      expect(RNSentry.setTag).toBeCalledWith("key", "value");
+      expect(RNSentry.setContext).toBeCalledWith("key", {
         value: "value",
       });
-      expect(RN.NativeModules.RNSentry.setExtra).toBeCalledWith("key", "value");
+      expect(RNSentry.setExtra).toBeCalledWith("key", "value");
     });
 
     test("enableNative: false takes precedence over autoInitializeNativeSdk: false", async () => {
-      const RN = require("react-native");
-
-      RN.NativeModules.RNSentry.startWithOptions = jest.fn();
       logger.warn = jest.fn();
 
-      await NATIVE.startWithOptions({
+      await NATIVE.initNativeSdk({
         dsn: "test",
         enableNative: false,
         autoInitializeNativeSdk: false,
       });
 
-      expect(RN.NativeModules.RNSentry.startWithOptions).not.toBeCalled();
+      expect(RNSentry.initNativeSdk).not.toBeCalled();
       expect(NATIVE.enableNative).toBe(false);
 
       // Test that native bridge methods will NOT go through
       callAllScopeMethods();
-      expect(RN.NativeModules.RNSentry.addBreadcrumb).not.toBeCalled();
-      expect(RN.NativeModules.RNSentry.clearBreadcrumbs).not.toBeCalled();
-      expect(RN.NativeModules.RNSentry.setUser).not.toBeCalled();
-      expect(RN.NativeModules.RNSentry.setTag).not.toBeCalled();
-      expect(RN.NativeModules.RNSentry.setContext).not.toBeCalled();
-      expect(RN.NativeModules.RNSentry.setExtra).not.toBeCalled();
+      expect(RNSentry.addBreadcrumb).not.toBeCalled();
+      expect(RNSentry.clearBreadcrumbs).not.toBeCalled();
+      expect(RNSentry.setUser).not.toBeCalled();
+      expect(RNSentry.setTag).not.toBeCalled();
+      expect(RNSentry.setContext).not.toBeCalled();
+      expect(RNSentry.setExtra).not.toBeCalled();
     });
   });
 
   describe("sendEvent", () => {
     test("calls only captureEnvelope on iOS", async () => {
-      const RN = require("react-native");
-
       const event = {
         event_id: "event0",
         message: "test",
@@ -192,7 +198,7 @@ describe("Tests Native Wrapper", () => {
 
       await NATIVE.sendEvent(event);
 
-      expect(RN.NativeModules.RNSentry.captureEnvelope).toBeCalledWith({
+      expect(RNSentry.captureEnvelope).toBeCalledWith({
         header: {
           event_id: event.event_id,
           sdk: event.sdk,
@@ -206,8 +212,6 @@ describe("Tests Native Wrapper", () => {
       });
     });
     test("serializes class instances on iOS", async () => {
-      const RN = require("react-native");
-
       class TestInstance {
         value: number = 0;
         method = () => null;
@@ -223,10 +227,9 @@ describe("Tests Native Wrapper", () => {
         instance: new TestInstance(),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await NATIVE.sendEvent(event as any);
+      await NATIVE.sendEvent(event);
 
-      expect(RN.NativeModules.RNSentry.captureEnvelope).toBeCalledWith({
+      expect(RNSentry.captureEnvelope).toBeCalledWith({
         header: {
           event_id: event.event_id,
           sdk: event.sdk,
@@ -243,7 +246,6 @@ describe("Tests Native Wrapper", () => {
       });
     });
     test("serializes class instances on Android", async () => {
-      const RN = require("react-native");
       NATIVE.platform = "android";
 
       class TestInstance {
@@ -261,8 +263,7 @@ describe("Tests Native Wrapper", () => {
         instance: new TestInstance(),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await NATIVE.sendEvent(event as any);
+      await NATIVE.sendEvent(event);
 
       const headerString = JSON.stringify({
         event_id: event.event_id,
@@ -283,7 +284,7 @@ describe("Tests Native Wrapper", () => {
         },
       });
 
-      expect(RN.NativeModules.RNSentry.captureEnvelope).toBeCalledWith(
+      expect(RNSentry.captureEnvelope).toBeCalledWith(
         `${headerString}\n${itemString}\n${payloadString}`
       );
     });
@@ -315,22 +316,22 @@ describe("Tests Native Wrapper", () => {
         type: "event",
       });
 
-      await expect(NATIVE.sendEvent(event)).resolves.toMatch(
+      await NATIVE.sendEvent(event);
+
+      // @ts-ignore testing method
+      expect(RNSentry._getLastPayload().envelopePayload).toMatch(
         `${header}\n${item}\n${payload}`
       );
     });
     test("does not call RNSentry at all if enableNative is false", async () => {
-      const RN = require("react-native");
-
       try {
-        await NATIVE.startWithOptions({ dsn: "test-dsn", enableNative: false });
+        await NATIVE.initNativeSdk({ dsn: "test-dsn", enableNative: false });
         await NATIVE.sendEvent({});
       } catch (e) {
         expect(e.message).toMatch("Native is disabled");
       }
-      expect(RN.NativeModules.RNSentry.sendEvent).not.toBeCalled();
-      expect(RN.NativeModules.RNSentry.getStringBytesLength).not.toBeCalled();
-      expect(RN.NativeModules.RNSentry.captureEnvelope).not.toBeCalled();
+      expect(RNSentry.getStringBytesLength).not.toBeCalled();
+      expect(RNSentry.captureEnvelope).not.toBeCalled();
     });
     test("Clears breadcrumbs on Android if mechanism.handled is true", async () => {
       NATIVE.platform = "android";
@@ -372,7 +373,10 @@ describe("Tests Native Wrapper", () => {
         type: "event",
       });
 
-      await expect(NATIVE.sendEvent(event)).resolves.toMatch(
+      await NATIVE.sendEvent(event);
+
+      // @ts-ignore testing method
+      expect(RNSentry._getLastPayload().envelopePayload).toMatch(
         `${header}\n${item}\n${payload}`
       );
     });
@@ -415,7 +419,10 @@ describe("Tests Native Wrapper", () => {
         type: "event",
       });
 
-      await expect(NATIVE.sendEvent(event)).resolves.toMatch(
+      await NATIVE.sendEvent(event);
+
+      // @ts-ignore testing method
+      expect(RNSentry._getLastPayload().envelopePayload).toMatch(
         `${header}\n${item}\n${payload}`
       );
     });
@@ -423,7 +430,7 @@ describe("Tests Native Wrapper", () => {
 
   describe("fetchRelease", () => {
     test("fetches the release from native", async () => {
-      await expect(NATIVE.fetchRelease()).resolves.toMatchObject({
+      await expect(NATIVE.fetchNativeRelease()).resolves.toMatchObject({
         build: "1.0.0.1",
         id: "test-mock",
         version: "1.0.0",
@@ -433,55 +440,49 @@ describe("Tests Native Wrapper", () => {
 
   describe("deviceContexts", () => {
     test("returns context object from native module on ios", async () => {
-      const RN = require("react-native");
-
       NATIVE.platform = "ios";
 
-      await expect(NATIVE.deviceContexts()).resolves.toMatchObject({
-        someContext: 0,
+      await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject({
+        someContext: {
+          someValue: 0,
+        },
       });
 
-      expect(RN.NativeModules.RNSentry.deviceContexts).toBeCalled();
+      expect(RNSentry.fetchNativeDeviceContexts).toBeCalled();
     });
     test("returns empty object on android", async () => {
-      const RN = require("react-native");
-
       NATIVE.platform = "android";
 
-      await expect(NATIVE.deviceContexts()).resolves.toMatchObject({});
+      await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject(
+        {}
+      );
 
-      expect(RN.NativeModules.RNSentry.deviceContexts).not.toBeCalled();
+      expect(RNSentry.fetchNativeDeviceContexts).not.toBeCalled();
     });
   });
 
   describe("isModuleLoaded", () => {
     test("returns true when module is loaded", () => {
-      expect(NATIVE.isModuleLoaded()).toBe(true);
+      expect(NATIVE._isModuleLoaded(RNSentry)).toBe(true);
     });
   });
 
   describe("crash", () => {
     test("calls the native crash", () => {
-      const RN = require("react-native");
+      NATIVE.nativeCrash();
 
-      NATIVE.crash();
-
-      expect(RN.NativeModules.RNSentry.crash).toBeCalled();
+      expect(RNSentry.crash).toBeCalled();
     });
     test("does not call crash if enableNative is false", async () => {
-      const RN = require("react-native");
+      await NATIVE.initNativeSdk({ dsn: "test-dsn", enableNative: false });
+      NATIVE.nativeCrash();
 
-      await NATIVE.startWithOptions({ dsn: "test-dsn", enableNative: false });
-      NATIVE.crash();
-
-      expect(RN.NativeModules.RNSentry.crash).not.toBeCalled();
+      expect(RNSentry.crash).not.toBeCalled();
     });
   });
 
   describe("setUser", () => {
     test("serializes all user object keys", async () => {
-      const RN = require("react-native");
-
       NATIVE.setUser({
         email: "hello@sentry.io",
         // @ts-ignore Intentional incorrect type to simulate using a double as an id (We had a user open an issue because this didn't work before)
@@ -489,7 +490,7 @@ describe("Tests Native Wrapper", () => {
         unique: 123,
       });
 
-      expect(RN.NativeModules.RNSentry.setUser).toBeCalledWith(
+      expect(RNSentry.setUser).toBeCalledWith(
         {
           email: "hello@sentry.io",
           id: "3.14159265359",
@@ -501,13 +502,11 @@ describe("Tests Native Wrapper", () => {
     });
 
     test("Calls native setUser with empty object as second param if no unique keys", async () => {
-      const RN = require("react-native");
-
       NATIVE.setUser({
         id: "Hello",
       });
 
-      expect(RN.NativeModules.RNSentry.setUser).toBeCalledWith(
+      expect(RNSentry.setUser).toBeCalledWith(
         {
           id: "Hello",
         },
@@ -530,25 +529,11 @@ describe("Tests Native Wrapper", () => {
     });
   });
 
-  describe("isNativeClientAvailable", () => {
-    test("checks if native client is available", () => {
-      expect(NATIVE.isNativeClientAvailable()).toBe(true);
-    });
-  });
-
-  describe("isNativeTransportAvailable", () => {
-    test("checks if native transport is available", () => {
-      expect(NATIVE.isNativeTransportAvailable()).toBe(true);
-    });
-  });
-
   describe("closeNativeSdk", () => {
     test("closeNativeSdk calls native bridge", async () => {
-      const RN = require("react-native");
-
       await NATIVE.closeNativeSdk();
 
-      expect(RN.NativeModules.RNSentry.closeNativeSdk).toBeCalled();
+      expect(RNSentry.closeNativeSdk).toBeCalled();
       expect(NATIVE.enableNative).toBe(false);
     });
   });

@@ -70,7 +70,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startWithOptions(final ReadableMap rnOptions, Promise promise) {
+    public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
@@ -175,7 +175,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void fetchRelease(Promise promise) {
+    public void fetchNativeRelease(Promise promise) {
         WritableMap release = Arguments.createMap();
         release.putString("id", packageInfo.packageName);
         release.putString("version", packageInfo.versionName);

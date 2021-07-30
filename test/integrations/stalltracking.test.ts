@@ -1,4 +1,4 @@
-import { IdleTransaction, Span, Transaction } from "@sentry/tracing";
+import { IdleTransaction, Transaction } from "@sentry/tracing";
 
 import { StallTracking } from "../../src/js/integrations";
 

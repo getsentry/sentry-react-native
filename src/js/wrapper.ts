@@ -10,9 +10,53 @@ import {
 import { logger, SentryError } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
 
+import {
+  NativeAppStartResponse,
+  NativeDeviceContextsResponse,
+  NativeFramesResponse,
+  NativeReleaseResponse,
+  SentryNativeBridgeModule,
+} from "./definitions";
 import { ReactNativeOptions } from "./options";
 
-const { RNSentry } = NativeModules;
+const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
+
+interface SentryNativeWrapper {
+  enableNative: boolean;
+  nativeIsReady: boolean;
+  platform: typeof Platform.OS;
+
+  _NativeClientError: Error;
+  _DisabledNativeError: Error;
+
+  _processLevels(event: Event): Event;
+  _processLevel(level: Severity): Severity;
+  _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
+  _isModuleLoaded(
+    module: SentryNativeBridgeModule | undefined
+  ): module is SentryNativeBridgeModule;
+
+  isNativeTransportAvailable(): boolean;
+
+  initNativeSdk(options: ReactNativeOptions): PromiseLike<boolean>;
+  closeNativeSdk(): PromiseLike<void>;
+
+  sendEvent(event: Event): PromiseLike<Response>;
+
+  fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
+  fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
+  fetchNativeAppStart(): PromiseLike<NativeAppStartResponse>;
+  fetchNativeFrames(): PromiseLike<NativeFramesResponse>;
+
+  addBreadcrumb(breadcrumb: Breadcrumb): void;
+  setContext(key: string, context: { [key: string]: unknown } | null): void;
+  clearBreadcrumbs(): void;
+  setExtra(key: string, extra: unknown): void;
+  setUser(user: User | null): void;
+  setTag(key: string, value: string): void;
+
+  nativeCrash(): void;
+}
 
 /**
  * Our internal interface for calling native functions
@@ -29,7 +73,8 @@ export const NATIVE = {
         status: Status.Skipped,
       };
     }
-    if (!this.isNativeClientAvailable()) {
+
+    if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
 
@@ -40,7 +85,10 @@ export const NATIVE = {
       sdk: event.sdk,
     };
 
+    let envelopeWasSent = false;
     if (NATIVE.platform === "android") {
+      // Android
+
       const headerString = JSON.stringify(header);
 
       /*
@@ -65,7 +113,6 @@ export const NATIVE = {
       const payloadString = JSON.stringify(payload);
       let length = payloadString.length;
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         length = await RNSentry.getStringBytesLength(payloadString);
       } catch {
         // The native call failed, we do nothing, we have payload.length as a fallback
@@ -80,35 +127,45 @@ export const NATIVE = {
       const itemString = JSON.stringify(item);
 
       const envelopeString = `${headerString}\n${itemString}\n${payloadString}`;
+
+      envelopeWasSent = await RNSentry.captureEnvelope(envelopeString);
+    } else {
+      // iOS/Mac
+
+      const payload = {
+        ...event,
+        message: {
+          message: event.message,
+        },
+      };
+
+      // Serialize and remove any instances that will crash the native bridge such as Spans
+      const serializedPayload = JSON.parse(JSON.stringify(payload));
+
+      // The envelope item is created (and its length determined) on the iOS side of the native bridge.
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      return RNSentry.captureEnvelope(envelopeString);
+      envelopeWasSent = await RNSentry.captureEnvelope({
+        header,
+        payload: serializedPayload,
+      });
     }
 
-    const payload = {
-      ...event,
-      message: {
-        message: event.message,
-      },
+    if (envelopeWasSent) {
+      return {
+        status: Status.Success,
+      };
+    }
+
+    return {
+      status: Status.Failed,
     };
-
-    // Serialize and remove any instances that will crash the native bridge such as Spans
-    const serializedPayload = JSON.parse(JSON.stringify(payload));
-
-    // The envelope item is created (and its length determined) on the iOS side of the native bridge.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return RNSentry.captureEnvelope({
-      header,
-      payload: serializedPayload,
-    });
   },
 
   /**
    * Starts native with the provided options.
    * @param options ReactNativeOptions
    */
-  async startWithOptions(
-    originalOptions: ReactNativeOptions
-  ): Promise<boolean> {
+  async initNativeSdk(originalOptions: ReactNativeOptions): Promise<boolean> {
     const options = {
       enableNative: true,
       autoInitializeNativeSdk: true,
@@ -138,7 +195,7 @@ export const NATIVE = {
       return false;
     }
 
-    if (!this.isNativeClientAvailable()) {
+    if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
 
@@ -154,36 +211,35 @@ export const NATIVE = {
     } = options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return RNSentry.startWithOptions(filteredOptions);
+    return RNSentry.initNativeSdk(filteredOptions).then((nativeIsReady) => {
+      this.nativeIsReady = nativeIsReady;
+
+      return nativeIsReady;
+    });
   },
 
   /**
    * Fetches the release from native
    */
-  async fetchRelease(): Promise<{
-    build: string;
-    id: string;
-    version: string;
-  }> {
+  async fetchNativeRelease(): Promise<NativeReleaseResponse> {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
-    if (!this.isNativeClientAvailable()) {
+    if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return RNSentry.fetchRelease();
+
+    return RNSentry.fetchNativeRelease();
   },
 
   /**
    * Fetches the device contexts. Not used on Android.
    */
-  async deviceContexts(): Promise<{ [key: string]: Record<string, unknown> }> {
+  async fetchNativeDeviceContexts(): Promise<NativeDeviceContextsResponse> {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
-    if (!this.isNativeClientAvailable()) {
+    if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
 
@@ -192,36 +248,56 @@ export const NATIVE = {
       return {};
     }
 
+    return RNSentry.fetchNativeDeviceContexts();
+  },
+
+  async fetchNativeAppStart(): Promise<NativeAppStartResponse> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    return RNSentry.fetchNativeAppStart();
+  },
+
+  async fetchNativeFrames(): Promise<NativeFramesResponse> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return RNSentry.deviceContexts();
+    return RNSentry.fetchNativeFrames();
   },
 
   /**
    * Triggers a native crash.
    * Use this only for testing purposes.
    */
-  crash(): void {
+  nativeCrash(): void {
     if (!this.enableNative) {
       return;
     }
-    if (!this.isNativeClientAvailable()) {
+    if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
     RNSentry.crash();
   },
 
   /**
    * Sets the user in the native scope.
    * Passing null clears the user.
-   * @param key string
-   * @param value string
    */
   setUser(user: User | null): void {
     if (!this.enableNative) {
       return;
     }
-    if (!this.isNativeClientAvailable()) {
+    if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
 
@@ -239,7 +315,6 @@ export const NATIVE = {
       otherUserKeys = this._serializeObject(otherKeys);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     RNSentry.setUser(defaultUserKeys, otherUserKeys);
   },
 
@@ -252,14 +327,13 @@ export const NATIVE = {
     if (!this.enableNative) {
       return;
     }
-    if (!this.isNativeClientAvailable()) {
+    if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
 
     const stringifiedValue =
       typeof value === "string" ? value : JSON.stringify(value);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     RNSentry.setTag(key, stringifiedValue);
   },
 
@@ -273,7 +347,7 @@ export const NATIVE = {
     if (!this.enableNative) {
       return;
     }
-    if (!this.isNativeClientAvailable()) {
+    if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
 
@@ -281,7 +355,6 @@ export const NATIVE = {
     const stringifiedExtra =
       typeof extra === "string" ? extra : JSON.stringify(extra);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     RNSentry.setExtra(key, stringifiedExtra);
   },
 
@@ -293,11 +366,10 @@ export const NATIVE = {
     if (!this.enableNative) {
       return;
     }
-    if (!this.isNativeClientAvailable()) {
+    if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     RNSentry.addBreadcrumb({
       ...breadcrumb,
       // Process and convert deprecated levels
@@ -317,11 +389,10 @@ export const NATIVE = {
     if (!this.enableNative) {
       return;
     }
-    if (!this.isNativeClientAvailable()) {
+    if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     RNSentry.clearBreadcrumbs();
   },
 
@@ -334,7 +405,7 @@ export const NATIVE = {
     if (!this.enableNative) {
       return;
     }
-    if (!this.isNativeClientAvailable()) {
+    if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
 
@@ -342,7 +413,6 @@ export const NATIVE = {
       // setContext not available on the Android SDK yet.
       this.setExtra(key, context);
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       RNSentry.setContext(
         key,
         context !== null ? this._serializeObject(context) : null
@@ -357,10 +427,17 @@ export const NATIVE = {
     if (!this.enableNative) {
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (!this._isModuleLoaded(RNSentry)) {
+      return;
+    }
+
     return RNSentry.closeNativeSdk().then(() => {
       this.enableNative = false;
     });
+  },
+
+  isNativeTransportAvailable(): boolean {
+    return this.enableNative && this._isModuleLoaded(RNSentry);
   },
 
   /**
@@ -421,24 +498,10 @@ export const NATIVE = {
   /**
    * Checks whether the RNSentry module is loaded.
    */
-  isModuleLoaded(): boolean {
-    return !!RNSentry;
-  },
-
-  /**
-   *  Checks whether the RNSentry module is loaded and the native client is available
-   */
-  isNativeClientAvailable(): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return this.isModuleLoaded() && RNSentry.nativeClientAvailable;
-  },
-
-  /**
-   *  Checks whether the RNSentry module is loaded and native transport is available
-   */
-  isNativeTransportAvailable(): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return this.isModuleLoaded() && RNSentry.nativeTransport;
+  _isModuleLoaded(
+    module: SentryNativeBridgeModule | undefined
+  ): module is SentryNativeBridgeModule {
+    return !!module;
   },
 
   _DisabledNativeError: new SentryError("Native is disabled"),
@@ -448,5 +511,6 @@ export const NATIVE = {
   ),
 
   enableNative: true,
+  nativeIsReady: false,
   platform: Platform.OS,
 };
