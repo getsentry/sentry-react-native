@@ -15,6 +15,7 @@ import {
 } from "./integrations";
 import { ReactNativeOptions } from "./options";
 import { ReactNativeScope } from "./scope";
+import { ReactNativeTracing } from "./tracing";
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   "GlobalHandlers", // We will use the react-native internal handlers
@@ -26,6 +27,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
   enableStallTracking: true,
+  enableAutoPerformanceTracking: true,
 };
 
 /**
@@ -84,8 +86,14 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (options.enableNative) {
       options.defaultIntegrations.push(new DeviceContext());
     }
-    if (tracingEnabled && options.enableStallTracking) {
-      options.defaultIntegrations.push(new StallTracking());
+    if (tracingEnabled) {
+      if (options.enableAutoPerformanceTracking) {
+        options.defaultIntegrations.push(new ReactNativeTracing());
+
+        if (options.enableStallTracking) {
+          options.defaultIntegrations.push(new StallTracking());
+        }
+      }
     }
   }
 

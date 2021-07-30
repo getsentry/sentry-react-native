@@ -68,4 +68,7 @@ export interface ReactNativeOptions extends BrowserOptions {
 
   /** Enable JS event loop stall tracking. Enabled by default. */
   enableStallTracking?: boolean;
+
+  /** Enable auto performance tracking by default. */
+  enableAutoPerformanceTracking?: boolean;
 }
