@@ -49,6 +49,7 @@ import { getCurrentHub } from "@sentry/react";
 
 import { StallTracking } from "../src/js/integrations";
 import { flush, init } from "../src/js/sdk";
+import { ReactNativeTracing } from "../src/js/tracing";
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -100,6 +101,71 @@ describe("Tests the SDK functionality", () => {
 
         expect(stallTrackingIsEnabled()).toBe(true);
       });
+
+      it("Stall Tracking is disabled when Auto performance tracking is disabled", () => {
+        init({
+          tracesSampleRate: 0.5,
+          enableStallTracking: true,
+          enableAutoPerformanceTracking: false,
+        });
+
+        expect(stallTrackingIsEnabled()).toBe(false);
+      });
+
+      it("Stall Tracking is enabled when Auto performance tracking is enabled", () => {
+        init({
+          tracesSampleRate: 0.5,
+          enableStallTracking: true,
+          enableAutoPerformanceTracking: true,
+        });
+
+        expect(stallTrackingIsEnabled()).toBe(true);
+      });
+    });
+  });
+
+  describe("enableAutoPerformanceTracking", () => {
+    const autoPerformanceIsEnabled = (): boolean => {
+      const mockCall = (initAndBind as jest.MockedFunction<typeof initAndBind>)
+        .mock.calls[0];
+
+      if (mockCall) {
+        const options = mockCall[1];
+
+        if (options.defaultIntegrations) {
+          return options.defaultIntegrations?.some(
+            (integration) => integration.name === ReactNativeTracing.id
+          );
+        }
+      }
+
+      return false;
+    };
+
+    it("Auto Performance is not enabled when tracing is disabled", () => {
+      init({
+        enableStallTracking: true,
+      });
+
+      expect(autoPerformanceIsEnabled()).toBe(false);
+    });
+
+    it("Auto Performance is enabled when tracing is enabled (tracesSampler)", () => {
+      init({
+        tracesSampler: () => true,
+        enableAutoPerformanceTracking: true,
+      });
+
+      expect(autoPerformanceIsEnabled()).toBe(true);
+    });
+
+    it("Auto Performance is enabled when tracing is enabled (tracesSampleRate)", () => {
+      init({
+        tracesSampleRate: 0.5,
+        enableAutoPerformanceTracking: true,
+      });
+
+      expect(autoPerformanceIsEnabled()).toBe(true);
     });
   });
 
