@@ -19,13 +19,11 @@ import { NativeAppStartResponse } from "../definitions";
 import { StallTracking } from "../integrations";
 import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
 import { NATIVE } from "../wrapper";
-import { adjustTransactionDuration } from "./utils";
+import { adjustTransactionDuration, getTimeOriginMilliseconds } from "./utils";
 
 export type BeforeNavigate = (
   context: TransactionContext
 ) => TransactionContext;
-
-const timeOriginMilliseconds = Date.now();
 
 export interface ReactNativeTracingOptions
   extends RequestInstrumentationOptions {
@@ -71,6 +69,12 @@ export interface ReactNativeTracingOptions
    */
   beforeNavigate: BeforeNavigate;
 
+  /**
+   * Track the app start time by adding measurements to the first route transaction. If there is no routing instrumentation
+   * an app start transaction will be started.
+   *
+   * Default: true
+   */
   enableAppStartTracking: boolean;
 }
 
@@ -190,7 +194,7 @@ export class ReactNativeTracing implements Integration {
     appStart: NativeAppStartResponse
   ): void {
     const appStartTimeSeconds = appStart.appStartTime / 1000;
-    const timeOriginSeconds = timeOriginMilliseconds / 1000;
+    const timeOriginSeconds = getTimeOriginMilliseconds() / 1000;
 
     transaction.startChild({
       description: appStart.isColdStart ? "Cold App Start" : "Warm App Start",
@@ -200,7 +204,7 @@ export class ReactNativeTracing implements Integration {
     });
 
     const appStartDurationMilliseconds =
-      timeOriginMilliseconds - appStart.appStartTime;
+      getTimeOriginMilliseconds() - appStart.appStartTime;
 
     transaction.setMeasurements(
       appStart.isColdStart
