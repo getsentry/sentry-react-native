@@ -1,4 +1,4 @@
-import { Breadcrumb, Package } from "@sentry/types";
+import { Breadcrumb } from "@sentry/types";
 
 import { ReactNativeOptions } from "./options";
 
