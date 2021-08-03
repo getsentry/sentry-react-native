@@ -44,7 +44,7 @@ interface SentryNativeWrapper {
 
   fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
-  fetchNativeAppStart(): PromiseLike<NativeAppStartResponse>;
+  fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   setContext(key: string, context: { [key: string]: unknown } | null): void;
@@ -249,7 +249,7 @@ export const NATIVE: SentryNativeWrapper = {
     return RNSentry.fetchNativeDeviceContexts();
   },
 
-  async fetchNativeAppStart(): Promise<NativeAppStartResponse> {
+  async fetchNativeAppStart(): Promise<NativeAppStartResponse | null> {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }

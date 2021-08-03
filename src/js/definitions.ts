@@ -43,7 +43,7 @@ export interface SentryNativeBridgeModule {
     version: string;
   }>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
-  fetchNativeAppStart(): PromiseLike<NativeAppStartResponse>;
+  fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
   getStringBytesLength(str: string): Promise<number>;
   initNativeSdk(options: ReactNativeOptions): Promise<boolean>;
   setUser(

@@ -16,6 +16,7 @@ jest.mock("../../src/js/wrapper", () => {
   return {
     NATIVE: {
       fetchNativeAppStart: jest.fn(),
+      enableNative: true,
     },
   };
 });
@@ -53,6 +54,7 @@ import { getTimeOriginMilliseconds } from "../../src/js/tracing/utils";
 import { NATIVE } from "../../src/js/wrapper";
 
 beforeEach(() => {
+  NATIVE.enableNative = true;
   jest.useFakeTimers();
 });
 
@@ -390,6 +392,64 @@ describe("ReactNativeTracing", () => {
             done();
           }
         });
+      });
+    });
+
+    it("Does not instrument app start if app start is disabled", (done) => {
+      const integration = new ReactNativeTracing({
+        enableAppStartTracking: false,
+      });
+      const mockHub = getMockHub();
+      integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+
+      setImmediate(() => {
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
+
+        const transaction = mockHub.getScope()?.getTransaction();
+
+        expect(transaction).toBeUndefined();
+
+        done();
+      });
+    });
+
+    it("Does not instrument app start if native is disabled", (done) => {
+      NATIVE.enableNative = false;
+
+      const integration = new ReactNativeTracing();
+      const mockHub = getMockHub();
+      integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+
+      setImmediate(() => {
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
+
+        const transaction = mockHub.getScope()?.getTransaction();
+
+        expect(transaction).toBeUndefined();
+
+        done();
+      });
+    });
+
+    it("Does not instrument app start if fetchNativeAppStart returns null", (done) => {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(null);
+
+      const integration = new ReactNativeTracing();
+      const mockHub = getMockHub();
+      integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+
+      setImmediate(() => {
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
+
+        const transaction = mockHub.getScope()?.getTransaction();
+
+        expect(transaction).toBeUndefined();
+
+        done();
       });
     });
   });

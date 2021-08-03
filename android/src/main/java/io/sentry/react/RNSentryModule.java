@@ -188,16 +188,21 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         final AppStartState appStartInstance = AppStartState.getInstance();
         final Date appStartTime = appStartInstance.getAppStartTime();
 
-        final double appStartTimestamp = (double) appStartTime.getTime();
+        if (appStartTime == null) {
+            promise.resolve(null);
+        } else {
+            final double appStartTimestamp = (double) appStartTime.getTime();
 
-        WritableMap appStart = Arguments.createMap();
+            WritableMap appStart = Arguments.createMap();
 
-        appStart.putDouble("appStartTime", appStartTimestamp);
-        appStart.putBoolean("isColdStart", appStartInstance.isColdStart());
-        appStart.putBoolean("didFetchAppStart", didFetchAppStart);
+            appStart.putDouble("appStartTime", appStartTimestamp);
+            appStart.putBoolean("isColdStart", appStartInstance.isColdStart());
+            appStart.putBoolean("didFetchAppStart", didFetchAppStart);
 
-        promise.resolve(appStart);
-
+            promise.resolve(appStart);
+        }
+        // This is always set to true, as we would only allow an app start fetch to only happen once
+        // in the case of a JS bundle reload, we do not want it to be instrumented again.
         didFetchAppStart = true;
     }
 

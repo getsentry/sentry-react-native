@@ -159,13 +159,13 @@ export class ReactNativeTracing implements Integration {
    * Starts a route transaction if there isn't routing instrumentation.
    */
   private async _instrumentAppStart(): Promise<void> {
-    if (!this.options.enableAppStartTracking) {
+    if (!this.options.enableAppStartTracking || !NATIVE.enableNative) {
       return;
     }
 
     const appStart = await NATIVE.fetchNativeAppStart();
 
-    if (appStart.didFetchAppStart) {
+    if (!appStart || appStart.didFetchAppStart) {
       return;
     }
 
