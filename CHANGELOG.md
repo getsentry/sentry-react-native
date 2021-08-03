@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-- build(ios): Bump sentry-cocoa to 7.1.4 #1700
+- build(ios): Bump sentry-cocoa to 7.2.0-beta.8 #1704
+- build(android): Bump sentry-android to 5.1.0-beta.9 #1704
+- feat: Add app start measurements to the first transaction #1704
+- feat: Create an initial initial ui.load transaction by default #1704
+- feat: Add `enableAutoPerformanceTracking` flag that enables auto performance by default when tracing is enabled #1704
 
 ## 2.7.0-beta.1
 
