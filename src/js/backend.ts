@@ -28,7 +28,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       YellowBox.ignoreWarnings(["Require cycle:"]);
     }
 
-    void this._startWithOptions();
+    void this._initNativeSdk();
   }
 
   /**
@@ -36,9 +36,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
    * Use this only for testing purposes.
    */
   public nativeCrash(): void {
-    if (this._options.enableNative) {
-      NATIVE.crash();
-    }
+    NATIVE.nativeCrash();
   }
 
   /**
@@ -80,7 +78,7 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
       return new this._options.transport(transportOptions);
     }
 
-    if (this._isNativeTransportAvailable()) {
+    if (NATIVE.isNativeTransportAvailable()) {
       return new NativeTransport();
     }
 
@@ -88,24 +86,13 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
   }
 
   /**
-   * If true, native client is availabe and active
-   */
-  private _isNativeTransportAvailable(): boolean {
-    return (
-      this._options.enableNative === true &&
-      NATIVE.isNativeClientAvailable() &&
-      NATIVE.isNativeTransportAvailable()
-    );
-  }
-
-  /**
    * Starts native client with dsn and options
    */
-  private async _startWithOptions(): Promise<void> {
+  private async _initNativeSdk(): Promise<void> {
     let didCallNativeInit = false;
 
     try {
-      didCallNativeInit = await NATIVE.startWithOptions(this._options);
+      didCallNativeInit = await NATIVE.initNativeSdk(this._options);
     } catch (_) {
       this._showCannotConnectDialog();
 
