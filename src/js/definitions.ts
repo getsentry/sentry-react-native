@@ -42,7 +42,6 @@ export interface SentryNativeBridgeModule {
     id: string;
     version: string;
   }>;
-  fetchNativeSdkInfo(): Promise<Package>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
   fetchNativeAppStart(): PromiseLike<NativeAppStartResponse>;
   getStringBytesLength(str: string): Promise<number>;

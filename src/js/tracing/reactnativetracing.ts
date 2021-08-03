@@ -133,7 +133,7 @@ export class ReactNativeTracing implements Integration {
 
     this._getCurrentHub = getCurrentHub;
 
-    void this.instrumentAppStart();
+    void this._instrumentAppStart();
 
     if (routingInstrumentation) {
       routingInstrumentation.registerRoutingInstrumentation(
@@ -158,7 +158,7 @@ export class ReactNativeTracing implements Integration {
    * Instruments the app start measurements on the first route transaction.
    * Starts a route transaction if there isn't routing instrumentation.
    */
-  public async instrumentAppStart(): Promise<void> {
+  private async _instrumentAppStart(): Promise<void> {
     if (!this.options.enableAppStartTracking) {
       return;
     }
