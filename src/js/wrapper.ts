@@ -48,6 +48,8 @@ interface SentryNativeWrapper {
   fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
   fetchNativeFrames(): PromiseLike<NativeFramesResponse | null>;
 
+  disableNativeFramesTracking(): void;
+
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   setContext(key: string, context: { [key: string]: unknown } | null): void;
   clearBreadcrumbs(): void;
@@ -433,6 +435,17 @@ export const NATIVE: SentryNativeWrapper = {
     return RNSentry.closeNativeSdk().then(() => {
       this.enableNative = false;
     });
+  },
+
+  disableNativeFramesTracking(): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return;
+    }
+
+    RNSentry.disableNativeFramesTracking();
   },
 
   isNativeTransportAvailable(): boolean {

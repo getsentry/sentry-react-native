@@ -310,4 +310,9 @@ RCT_EXPORT_METHOD(closeNativeSdk:(RCTPromiseResolveBlock)resolve
   resolve(@YES);
 }
 
+RCT_EXPORT_METHOD(disableNativeFramesTracking)
+{
+    // Do nothing on iOS, this bridge method only has an effect on android.
+}
+
 @end

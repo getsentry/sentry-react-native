@@ -22,6 +22,7 @@ interface FramesMeasurements extends Measurements {
  */
 export class NativeFramesInstrumentation {
   private _framesMeasurements: Map<string, FramesMeasurements> = new Map();
+  private _framesListeners: Map<string, () => void> = new Map();
 
   public constructor(
     addGlobalEventProcessor: (e: EventProcessor) => void,
@@ -31,7 +32,7 @@ export class NativeFramesInstrumentation {
       "[ReactNativeTracing] Native frames instrumentation initialized."
     );
 
-    addGlobalEventProcessor((event) => {
+    addGlobalEventProcessor(async (event) => {
       if (!doesExist) {
         return event;
       }
@@ -56,7 +57,7 @@ export class NativeFramesInstrumentation {
           typeof traceContext.data !== "undefined" &&
           typeof traceContext.data.__startFrames !== "undefined"
         ) {
-          const measurements = this._framesMeasurements.get(traceId);
+          const measurements = await this._getFramesMeasurements(traceId);
 
           if (!measurements) {
             logger.log(
@@ -110,6 +111,36 @@ export class NativeFramesInstrumentation {
   /**
    *
    */
+  private async _getFramesMeasurements(
+    traceId: string
+  ): Promise<FramesMeasurements | null> {
+    const framesMeasurements = this._framesMeasurements.get(traceId);
+
+    if (framesMeasurements) {
+      return framesMeasurements;
+    }
+
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        this._framesListeners.delete(traceId);
+
+        resolve(null);
+      }, 2000);
+
+      this._framesListeners.set(traceId, () => {
+        const framesMeasurements = this._framesMeasurements.get(traceId);
+
+        resolve(framesMeasurements ?? null);
+
+        clearTimeout(timeout);
+        this._framesListeners.delete(traceId);
+      });
+    });
+  }
+
+  /**
+   *
+   */
   private async _fetchFramesForTransaction(
     transaction: Transaction
   ): Promise<void> {
@@ -135,6 +166,8 @@ export class NativeFramesInstrumentation {
 
         this._framesMeasurements.set(transaction.traceId, framesMeasurements);
 
+        this._framesListeners.get(transaction.traceId)?.();
+
         setTimeout(() => {
           if (this._framesMeasurements.has(transaction.traceId)) {
             this._framesMeasurements.delete(transaction.traceId);
@@ -143,7 +176,7 @@ export class NativeFramesInstrumentation {
               `[NativeFrames] Native frames timed out for ${transaction.op} transaction ${transaction.name}. Not adding native frames measurements.`
             );
           }
-        }, 10000);
+        }, 2000);
       }
     }
   }

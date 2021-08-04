@@ -156,6 +156,8 @@ export class ReactNativeTracing implements Integration {
           return false;
         }
       );
+    } else {
+      NATIVE.disableNativeFramesTracking();
     }
 
     if (routingInstrumentation) {

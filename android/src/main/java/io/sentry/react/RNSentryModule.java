@@ -1,10 +1,15 @@
 package io.sentry.react;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.util.SparseIntArray;
+
+import androidx.core.app.FrameMetricsAggregator;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -31,7 +36,6 @@ import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.Breadcrumb;
-import io.sentry.DateUtils;
 import io.sentry.HubAdapter;
 import io.sentry.Integration;
 import io.sentry.Sentry;
@@ -50,10 +54,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private static PackageInfo packageInfo;
     private static boolean didFetchAppStart = false;
+    private FrameMetricsAggregator frameMetricsAggregator;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
         RNSentryModule.packageInfo = getPackageInfo(reactContext);
+
+        frameMetricsAggregator = new FrameMetricsAggregator();
+        reactContext.addLifecycleEventListener(lifeCycleEventListener);
     }
 
     @Override
@@ -68,6 +76,29 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         constants.put("nativeTransport", true);
         return constants;
     }
+
+    private final LifecycleEventListener lifeCycleEventListener = new LifecycleEventListener() {
+        @Override
+        public void onHostResume() {
+            Activity currentActivity = getCurrentActivity();
+
+            if (currentActivity != null) {
+                frameMetricsAggregator.add(currentActivity);
+            }
+        }
+
+        @Override
+        public void onHostPause() {}
+
+        @Override
+        public void onHostDestroy() {
+            Activity currentActivity = getCurrentActivity();
+
+            if (currentActivity != null) {
+                frameMetricsAggregator.remove(currentActivity);
+            }
+        }
+    };
 
     @ReactMethod
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
@@ -115,6 +146,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
             if (rnOptions.hasKey("sendDefaultPii")) {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
+            }
+            if (rnOptions.hasKey("enableAutoPerformanceTracking")) {
+                if (!rnOptions.getBoolean("enableAutoPerformanceTracking")) {
+                    disableNativeFramesTracking();
+                }
             }
 
             options.setBeforeSend((event, hint) -> {
@@ -204,6 +240,54 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         // This is always set to true, as we would only allow an app start fetch to only happen once
         // in the case of a JS bundle reload, we do not want it to be instrumented again.
         RNSentryModule.didFetchAppStart = true;
+    }
+
+    /**
+     * Returns frames metrics at the current point in time.
+     */
+    @ReactMethod
+    public void fetchNativeFrames(Promise promise) {
+        if (frameMetricsAggregator == null) {
+            promise.resolve(null);
+        } else {
+            try {
+                int totalFrames = 0;
+                int slowFrames = 0;
+                int frozenFrames = 0;
+
+                final SparseIntArray[] framesRates = frameMetricsAggregator.getMetrics();
+
+                if (framesRates != null) {
+                    final SparseIntArray totalIndexArray = framesRates[FrameMetricsAggregator.TOTAL_INDEX];
+                    if (totalIndexArray != null) {
+                        for (int i = 0; i < totalIndexArray.size(); i++) {
+                            int frameTime = totalIndexArray.keyAt(i);
+                            int numFrames = totalIndexArray.valueAt(i);
+                            totalFrames += numFrames;
+                            // hard coded values, its also in the official android docs and frame metrics API
+                            if (frameTime > 700) {
+                                // frozen frames, threshold is 700ms
+                                frozenFrames += numFrames;
+                            } else if (frameTime > 16) {
+                                // slow frames, above 16ms, 60 frames/second
+                                slowFrames += numFrames;
+                            }
+                        }
+                    }
+                }
+
+                WritableMap map = Arguments.createMap();
+                map.putInt("totalFrames", totalFrames);
+                map.putInt("slowFrames", slowFrames);
+                map.putInt("frozenFrames", frozenFrames);
+
+                promise.resolve(map);
+            } catch (Exception e) {
+                promise.resolve(null);
+            }
+        }
+
+
     }
 
     @ReactMethod
@@ -366,6 +450,23 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void closeNativeSdk(Promise promise) {
       Sentry.close();
+
+      disableFramesTracking();
+
       promise.resolve(true);
+    }
+
+    @ReactMethod
+    public void disableNativeFramesTracking() {
+        if (frameMetricsAggregator != null) {
+            Activity currentActivity = getCurrentActivity();
+
+            if (currentActivity != null) {
+                frameMetricsAggregator.remove(currentActivity);
+            }
+
+            frameMetricsAggregator = null;
+        }
+
     }
 }
