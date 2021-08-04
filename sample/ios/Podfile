@@ -10,9 +10,10 @@ target 'sample' do
   use_react_native!(
     :path => config["reactNativePath"],
     # to enable hermes on iOS, change `false` to `true` and then install pods
-  	:hermes_enabled => true
+  	:hermes_enabled => false
   )
 
+  pod 'Sentry', :git => 'https://github.com/getsentry/sentry-cocoa.git', :commit => 'ad8ccc2c705ed28047715cfe5340e6ae6fa7ba4c'
   pod 'RNSentry', :path => '../../RNSentry.podspec'
 
   target 'sampleTests' do
