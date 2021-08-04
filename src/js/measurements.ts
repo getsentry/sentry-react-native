@@ -4,6 +4,7 @@ import { CustomSamplingContext, TransactionContext } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
 import { StallTracking } from "./integrations";
+import { ReactNativeTracing } from "./tracing";
 
 /**
  * Adds React Native's extensions. Needs to be called after @sentry/tracing's extension methods are added
@@ -54,7 +55,14 @@ const _patchStartTransaction = (
       customSamplingContext,
     ]);
 
+    const reactNativeTracing = getCurrentHub().getIntegration(
+      ReactNativeTracing
+    );
     const stallTracking = getCurrentHub().getIntegration(StallTracking);
+
+    if (reactNativeTracing) {
+      reactNativeTracing.onTransactionStart(transaction);
+    }
 
     if (stallTracking) {
       if (!transactionContext.startTimestamp) {

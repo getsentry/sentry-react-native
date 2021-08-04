@@ -6,6 +6,7 @@ import {
   registerRequestInstrumentation,
   RequestInstrumentationOptions,
   startIdleTransaction,
+  Transaction,
 } from "@sentry/tracing";
 import {
   EventProcessor,
@@ -19,6 +20,7 @@ import { NativeAppStartResponse } from "../definitions";
 import { StallTracking } from "../integrations";
 import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
 import { NATIVE } from "../wrapper";
+import { NativeFramesInstrumentation } from "./nativeframes";
 import { adjustTransactionDuration, getTimeOriginMilliseconds } from "./utils";
 
 export type BeforeNavigate = (
@@ -76,6 +78,8 @@ export interface ReactNativeTracingOptions
    * Default: true
    */
   enableAppStartTracking: boolean;
+
+  enableNativeFramesTracking: boolean;
 }
 
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
@@ -85,6 +89,7 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   ignoreEmptyBackNavigationTransactions: true,
   beforeNavigate: (context) => context,
   enableAppStartTracking: true,
+  enableNativeFramesTracking: true,
 };
 
 /**
@@ -102,6 +107,8 @@ export class ReactNativeTracing implements Integration {
 
   /** ReactNativeTracing options */
   public options: ReactNativeTracingOptions;
+
+  public nativeFramesInstrumentation?: NativeFramesInstrumentation;
 
   private _getCurrentHub?: () => Hub;
   private _awaitingAppStartData?: NativeAppStartResponse;
@@ -129,11 +136,27 @@ export class ReactNativeTracing implements Integration {
       // @ts-ignore TODO
       shouldCreateSpanForRequest,
       routingInstrumentation,
+      enableNativeFramesTracking,
     } = this.options;
 
     this._getCurrentHub = getCurrentHub;
 
     void this._instrumentAppStart();
+
+    if (enableNativeFramesTracking) {
+      this.nativeFramesInstrumentation = new NativeFramesInstrumentation(
+        addGlobalEventProcessor,
+        () => {
+          const self = getCurrentHub().getIntegration(ReactNativeTracing);
+
+          if (self) {
+            return !!self.nativeFramesInstrumentation;
+          }
+
+          return false;
+        }
+      );
+    }
 
     if (routingInstrumentation) {
       routingInstrumentation.registerRoutingInstrumentation(
@@ -152,6 +175,20 @@ export class ReactNativeTracing implements Integration {
       tracingOrigins,
       shouldCreateSpanForRequest,
     });
+  }
+
+  /**
+   *
+   */
+  public onTransactionStart(transaction: Transaction): void {
+    void this.nativeFramesInstrumentation?.onTransactionStart(transaction);
+  }
+
+  /**
+   *
+   */
+  public onTransactionFinish(transaction: Transaction): void {
+    this.nativeFramesInstrumentation?.onTransactionFinish(transaction);
   }
 
   /**
@@ -256,9 +293,15 @@ export class ReactNativeTracing implements Integration {
       true
     );
 
+    this.onTransactionStart(idleTransaction);
+
     logger.log(
       `[ReactNativeTracing] Starting ${context.op} transaction "${context.name}" on scope`
     );
+
+    idleTransaction.registerBeforeFinishCallback((transaction) => {
+      this.onTransactionFinish(transaction);
+    });
 
     idleTransaction.registerBeforeFinishCallback((transaction) => {
       if (this.options.enableAppStartTracking && this._awaitingAppStartData) {

@@ -13,6 +13,7 @@ import { NativeModules, Platform } from "react-native";
 import {
   NativeAppStartResponse,
   NativeDeviceContextsResponse,
+  NativeFramesResponse,
   NativeReleaseResponse,
   SentryNativeBridgeModule,
 } from "./definitions";
@@ -45,6 +46,7 @@ interface SentryNativeWrapper {
   fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
   fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
+  fetchNativeFrames(): PromiseLike<NativeFramesResponse | null>;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   setContext(key: string, context: { [key: string]: unknown } | null): void;
@@ -258,6 +260,17 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.fetchNativeAppStart();
+  },
+
+  async fetchNativeFrames(): Promise<NativeFramesResponse | null> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    return RNSentry.fetchNativeFrames();
   },
 
   /**

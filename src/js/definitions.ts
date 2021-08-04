@@ -8,6 +8,12 @@ export type NativeAppStartResponse = {
   didFetchAppStart: boolean;
 };
 
+export type NativeFramesResponse = {
+  totalFrames: number;
+  slowFrames: number;
+  frozenFrames: number;
+};
+
 export type NativeReleaseResponse = {
   build: string;
   id: string;
@@ -44,6 +50,7 @@ export interface SentryNativeBridgeModule {
   }>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
   fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
+  fetchNativeFrames(): PromiseLike<NativeFramesResponse | null>;
   getStringBytesLength(str: string): Promise<number>;
   initNativeSdk(options: ReactNativeOptions): Promise<boolean>;
   setUser(
