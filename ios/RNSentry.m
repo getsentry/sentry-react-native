@@ -7,6 +7,7 @@
 #endif
 
 #import <Sentry/Sentry.h>
+#import <Sentry/PrivateSentrySDKOnly.h>
 
 @interface SentrySDK (RNSentry)
 
