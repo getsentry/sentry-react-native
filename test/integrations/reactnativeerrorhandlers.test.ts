@@ -22,8 +22,12 @@ jest.mock("@sentry/core", () => {
 import { getCurrentHub } from "@sentry/core";
 import { Severity } from "@sentry/types";
 
+beforeEach(() => {
+  ErrorUtils.getGlobalHandler = () => jest.fn();
+});
+
 afterEach(() => {
-  jest.resetAllMocks();
+  jest.clearAllMocks();
 });
 
 describe("ReactNativeErrorHandlers", () => {
