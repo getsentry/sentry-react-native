@@ -13,7 +13,6 @@ target 'sample' do
   	:hermes_enabled => false
   )
 
-  pod 'Sentry', :git => 'https://github.com/getsentry/sentry-cocoa.git', :commit => 'ad8ccc2c705ed28047715cfe5340e6ae6fa7ba4c'
   pod 'RNSentry', :path => '../../RNSentry.podspec'
 
   target 'sampleTests' do
