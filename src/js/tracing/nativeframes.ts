@@ -49,9 +49,9 @@ export class NativeFramesInstrumentation {
 
       if (
         event.type === "transaction" &&
-        typeof event.transaction !== "undefined" &&
-        typeof event.contexts !== "undefined" &&
-        typeof event.contexts.trace !== "undefined"
+        event.transaction &&
+        event.contexts &&
+        event.contexts.trace
       ) {
         const traceContext = event.contexts.trace as {
           data?: { [key: string]: unknown };
@@ -62,12 +62,7 @@ export class NativeFramesInstrumentation {
 
         const traceId = traceContext.trace_id;
 
-        if (
-          typeof traceId === "string" &&
-          typeof traceContext.data !== "undefined" &&
-          typeof traceContext.data.__startFrames !== "undefined" &&
-          typeof event.timestamp === "number"
-        ) {
+        if (traceId && traceContext.data?.__startFrames && event.timestamp) {
           const measurements = await this._getFramesMeasurements(
             traceId,
             event.timestamp,
