@@ -17,9 +17,10 @@
 
 @end
 
+static bool didFetchAppStart;
+
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
-    bool didFetchAppStart;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -130,7 +131,7 @@ RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
     
     // This is always set to true, as we would only allow an app start fetch to only happen once
     // in the case of a JS bundle reload, we do not want it to be instrumented again.
-    self->didFetchAppStart = true;
+    didFetchAppStart = true;
 }
 
 RCT_EXPORT_METHOD(fetchNativeRelease:(RCTPromiseResolveBlock)resolve
