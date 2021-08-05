@@ -49,7 +49,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     final static Logger logger = Logger.getLogger("react-native-sentry");
 
     private static PackageInfo packageInfo;
-    private boolean didFetchAppStart = false;
+    private static boolean didFetchAppStart = false;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -197,13 +197,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
             appStart.putDouble("appStartTime", appStartTimestamp);
             appStart.putBoolean("isColdStart", appStartInstance.isColdStart());
-            appStart.putBoolean("didFetchAppStart", didFetchAppStart);
+            appStart.putBoolean("didFetchAppStart", RNSentryModule.didFetchAppStart);
 
             promise.resolve(appStart);
         }
         // This is always set to true, as we would only allow an app start fetch to only happen once
         // in the case of a JS bundle reload, we do not want it to be instrumented again.
-        didFetchAppStart = true;
+        RNSentryModule.didFetchAppStart = true;
     }
 
     @ReactMethod
