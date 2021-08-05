@@ -2,6 +2,7 @@ jest.mock("../../src/js/wrapper", () => {
   return {
     NATIVE: {
       fetchNativeFrames: jest.fn(),
+      disableNativeFramesTracking: jest.fn(),
       enableNative: true,
     },
   };

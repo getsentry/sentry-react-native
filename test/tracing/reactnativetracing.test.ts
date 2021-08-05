@@ -9,6 +9,8 @@ jest.mock("../../src/js/wrapper", () => {
   return {
     NATIVE: {
       fetchNativeAppStart: jest.fn(),
+      fetchNativeFrames: jest.fn(() => Promise.resolve()),
+      disableNativeFramesTracking: jest.fn(() => Promise.resolve()),
       enableNative: true,
     },
   };
@@ -42,11 +44,10 @@ const getMockHub = () => {
   return mockHub;
 };
 
-import { mockFunction } from "test/testutils";
-
 import { ReactNativeTracing } from "../../src/js/tracing/reactnativetracing";
 import { getTimeOriginMilliseconds } from "../../src/js/tracing/utils";
 import { NATIVE } from "../../src/js/wrapper";
+import { mockFunction } from "../testutils";
 
 beforeEach(() => {
   NATIVE.enableNative = true;
@@ -61,7 +62,9 @@ describe("ReactNativeTracing", () => {
   describe("App Start", () => {
     describe("Without routing instrumentation", () => {
       it("Starts route transaction (cold)", (done) => {
-        const integration = new ReactNativeTracing();
+        const integration = new ReactNativeTracing({
+          enableNativeFramesTracking: false,
+        });
 
         const timeOriginMilliseconds = Date.now();
         const appStartTimeMilliseconds = timeOriginMilliseconds - 100;
@@ -458,12 +461,11 @@ describe("ReactNativeTracing", () => {
       integration.setupOnce(addGlobalEventProcessor, () => mockHub);
 
       setImmediate(() => {
+        expect(integration.nativeFramesInstrumentation).toBeUndefined();
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
-
-        const transaction = mockHub.getScope()?.getTransaction();
-
-        expect(transaction).toBeUndefined();
+        expect(NATIVE.disableNativeFramesTracking).toBeCalledTimes(1);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(NATIVE.fetchNativeFrames).not.toBeCalled();
 
         done();
       });
