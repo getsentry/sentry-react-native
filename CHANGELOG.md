@@ -3,6 +3,7 @@
 ## Unreleased
 
 - build(ios): Bump sentry-cocoa to 7.1.4 #1700
+- fix: Fix the error handler (error dialog) not called in dev #1712
 
 ## 2.7.0-beta.1
 
