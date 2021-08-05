@@ -2,12 +2,17 @@
 
 ## Unreleased
 
-- build(ios): Bump sentry-cocoa to 7.1.4 #1700
-- fix: Fix the error handler (error dialog) not called in dev #1712
-
 ## 2.7.0-beta.1
 
 - feat: Track stalls in the JavaScript event loop as measurements #1542
+
+## 2.6.2
+
+- fix: Fix the error handler (error dialog) not called in dev #1712
+
+## 2.6.1
+
+- build(ios): Bump sentry-cocoa to 7.1.4 #1700
 
 ## 2.6.0
 
