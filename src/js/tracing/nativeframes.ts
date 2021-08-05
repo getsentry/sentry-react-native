@@ -43,7 +43,7 @@ export class NativeFramesInstrumentation {
     );
 
     addGlobalEventProcessor(async (event) => {
-      if (!doesExist) {
+      if (!doesExist()) {
         return event;
       }
 
