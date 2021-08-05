@@ -1,4 +1,9 @@
-import { IdleTransaction, SpanStatus } from "@sentry/tracing";
+import {
+  IdleTransaction,
+  Span,
+  SpanStatus,
+  Transaction,
+} from "@sentry/tracing";
 
 const timeOriginMilliseconds = Date.now();
 
@@ -32,4 +37,30 @@ export function adjustTransactionDuration(
  */
 export function getTimeOriginMilliseconds(): number {
   return timeOriginMilliseconds;
+}
+
+/**
+ *
+ */
+export function instrumentChildSpanFinish(
+  transaction: Transaction,
+  callback: (span: Span, endTimestamp?: number) => void
+): void {
+  if (transaction.spanRecorder) {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const originalAdd = transaction.spanRecorder.add;
+
+    transaction.spanRecorder.add = (span: Span): void => {
+      originalAdd.apply(transaction.spanRecorder, [span]);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const originalSpanFinish = span.finish;
+
+      span.finish = (endTimestamp?: number) => {
+        originalSpanFinish.apply(span, [endTimestamp]);
+
+        callback(span, endTimestamp);
+      };
+    };
+  }
 }

@@ -1,9 +1,10 @@
-import { Transaction } from "@sentry/tracing";
+import { Span, Transaction } from "@sentry/tracing";
 import { EventProcessor, Measurements } from "@sentry/types";
-import { logger } from "@sentry/utils";
+import { logger, timestampInSeconds } from "@sentry/utils";
 
 import { NativeFramesResponse } from "../definitions";
 import { NATIVE } from "../wrapper";
+import { instrumentChildSpanFinish } from "./utils";
 
 interface FramesMeasurements extends Measurements {
   frames_total: {
@@ -17,12 +18,21 @@ interface FramesMeasurements extends Measurements {
   };
 }
 
+const MARGIN_OF_ERROR_SECONDS = 0.05;
+
 /**
- *
+ * Instrumentation to add native slow/frozen frames measurements onto transactions.
  */
 export class NativeFramesInstrumentation {
-  private _framesMeasurements: Map<string, FramesMeasurements> = new Map();
+  private _finishFrames: Map<
+    string,
+    { timestamp: number; nativeFrames: NativeFramesResponse }
+  > = new Map();
   private _framesListeners: Map<string, () => void> = new Map();
+  private _lastSpanFinishFrames?: {
+    timestamp: number;
+    nativeFrames: NativeFramesResponse;
+  };
 
   public constructor(
     addGlobalEventProcessor: (e: EventProcessor) => void,
@@ -55,9 +65,14 @@ export class NativeFramesInstrumentation {
         if (
           typeof traceId === "string" &&
           typeof traceContext.data !== "undefined" &&
-          typeof traceContext.data.__startFrames !== "undefined"
+          typeof traceContext.data.__startFrames !== "undefined" &&
+          typeof event.timestamp === "number"
         ) {
-          const measurements = await this._getFramesMeasurements(traceId);
+          const measurements = await this._getFramesMeasurements(
+            traceId,
+            event.timestamp,
+            traceContext.data.__startFrames as NativeFramesResponse
+          );
 
           if (!measurements) {
             logger.log(
@@ -79,7 +94,7 @@ export class NativeFramesInstrumentation {
               ...measurements,
             };
 
-            this._framesMeasurements.delete(traceId);
+            this._finishFrames.delete(traceId);
           }
 
           delete traceContext.data.__startFrames;
@@ -91,33 +106,53 @@ export class NativeFramesInstrumentation {
   }
 
   /**
-   *
+   * To be called when a transaction is started
    */
-  public async onTransactionStart(transaction: Transaction): Promise<void> {
-    const framesMetrics = await NATIVE.fetchNativeFrames();
+  public onTransactionStart(transaction: Transaction): void {
+    void NATIVE.fetchNativeFrames().then((framesMetrics) => {
+      if (framesMetrics) {
+        transaction.setData("__startFrames", framesMetrics);
+      }
+    });
 
-    if (framesMetrics) {
-      transaction.setData("__startFrames", framesMetrics);
-    }
+    instrumentChildSpanFinish(transaction, this._onSpanFinish.bind(this));
   }
 
   /**
-   *
+   * To be called when a transaction is finished
    */
   public onTransactionFinish(transaction: Transaction): void {
     void this._fetchFramesForTransaction(transaction);
   }
 
   /**
-   *
+   * Called on a span finish to fetch native frames to support transactions with trimEnd.
+   */
+  private _onSpanFinish(_: Span, endTimestamp?: number): void {
+    if (!endTimestamp) {
+      const timestamp = timestampInSeconds();
+
+      void NATIVE.fetchNativeFrames().then((nativeFrames) => {
+        if (nativeFrames) {
+          this._lastSpanFinishFrames = {
+            timestamp,
+            nativeFrames,
+          };
+        }
+      });
+    }
+  }
+
+  /**
+   * Returns the computed frames measurements and awaits for them if they are not ready yet.
    */
   private async _getFramesMeasurements(
-    traceId: string
+    traceId: string,
+    finalEndTimestamp: number,
+    startFrames: NativeFramesResponse
   ): Promise<FramesMeasurements | null> {
-    const framesMeasurements = this._framesMeasurements.get(traceId);
-
-    if (framesMeasurements) {
-      return framesMeasurements;
+    if (this._finishFrames.has(traceId)) {
+      return this._prepareMeasurements(traceId, finalEndTimestamp, startFrames);
     }
 
     return new Promise((resolve) => {
@@ -128,9 +163,9 @@ export class NativeFramesInstrumentation {
       }, 2000);
 
       this._framesListeners.set(traceId, () => {
-        const framesMeasurements = this._framesMeasurements.get(traceId);
-
-        resolve(framesMeasurements ?? null);
+        resolve(
+          this._prepareMeasurements(traceId, finalEndTimestamp, startFrames)
+        );
 
         clearTimeout(timeout);
         this._framesListeners.delete(traceId);
@@ -139,7 +174,50 @@ export class NativeFramesInstrumentation {
   }
 
   /**
-   *
+   * Returns the computed frames measurements given ready data
+   */
+  private _prepareMeasurements(
+    traceId: string,
+    finalEndTimestamp: number,
+    startFrames: NativeFramesResponse
+  ): FramesMeasurements | null {
+    let finalFinishFrames: NativeFramesResponse | undefined;
+
+    const finish = this._finishFrames.get(traceId);
+    if (
+      finish &&
+      Math.abs(finish.timestamp - finalEndTimestamp) < MARGIN_OF_ERROR_SECONDS
+    ) {
+      finalFinishFrames = finish.nativeFrames;
+    } else if (
+      this._lastSpanFinishFrames &&
+      Math.abs(this._lastSpanFinishFrames.timestamp - finalEndTimestamp) <
+        MARGIN_OF_ERROR_SECONDS
+    ) {
+      // Fallback to the last span finish if it is within the margin of error of the actual finish timestamp.
+      // This should be the case for trimEnd.
+      finalFinishFrames = this._lastSpanFinishFrames.nativeFrames;
+    } else {
+      return null;
+    }
+
+    const measurements = {
+      frames_total: {
+        value: finalFinishFrames.totalFrames - startFrames.totalFrames,
+      },
+      frames_frozen: {
+        value: finalFinishFrames.frozenFrames - startFrames.frozenFrames,
+      },
+      frames_slow: {
+        value: finalFinishFrames.slowFrames - startFrames.slowFrames,
+      },
+    };
+
+    return measurements;
+  }
+
+  /**
+   * Fetch finish frames for a transaction at the current time. Calls any awaiting listeners.
    */
   private async _fetchFramesForTransaction(
     transaction: Transaction
@@ -149,28 +227,20 @@ export class NativeFramesInstrumentation {
       | undefined;
 
     if (startFrames) {
+      const timestamp = timestampInSeconds();
       const finishFrames = await NATIVE.fetchNativeFrames();
 
       if (finishFrames) {
-        const framesMeasurements = {
-          frames_total: {
-            value: finishFrames.totalFrames - startFrames.totalFrames,
-          },
-          frames_frozen: {
-            value: finishFrames.frozenFrames - startFrames.frozenFrames,
-          },
-          frames_slow: {
-            value: finishFrames.slowFrames - startFrames.slowFrames,
-          },
-        };
-
-        this._framesMeasurements.set(transaction.traceId, framesMeasurements);
+        this._finishFrames.set(transaction.traceId, {
+          nativeFrames: finishFrames,
+          timestamp,
+        });
 
         this._framesListeners.get(transaction.traceId)?.();
 
         setTimeout(() => {
-          if (this._framesMeasurements.has(transaction.traceId)) {
-            this._framesMeasurements.delete(transaction.traceId);
+          if (this._finishFrames.has(transaction.traceId)) {
+            this._finishFrames.delete(transaction.traceId);
 
             logger.log(
               `[NativeFrames] Native frames timed out for ${transaction.op} transaction ${transaction.name}. Not adding native frames measurements.`

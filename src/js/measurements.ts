@@ -81,6 +81,10 @@ const _patchStartTransaction = (
             transaction.setMeasurements(stallMeasurements);
           }
 
+          if (reactNativeTracing) {
+            reactNativeTracing.onTransactionFinish(transaction);
+          }
+
           return originalFinish.apply(transaction, [endTimestamp]);
         };
       } else {

@@ -451,7 +451,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void closeNativeSdk(Promise promise) {
       Sentry.close();
 
-      disableFramesTracking();
+      disableNativeFramesTracking();
 
       promise.resolve(true);
     }

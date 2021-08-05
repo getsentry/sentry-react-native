@@ -79,6 +79,9 @@ export interface ReactNativeTracingOptions
    */
   enableAppStartTracking: boolean;
 
+  /**
+   * Track slow/frozen frames from the native layer and adds them as measurements to all transactions.
+   */
   enableNativeFramesTracking: boolean;
 }
 
@@ -180,14 +183,14 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
-   *
+   * To be called on a transaction start. Can have async methods
    */
   public onTransactionStart(transaction: Transaction): void {
     void this.nativeFramesInstrumentation?.onTransactionStart(transaction);
   }
 
   /**
-   *
+   * To be called on a transaction finish. Cannot have async methods.
    */
   public onTransactionFinish(transaction: Transaction): void {
     this.nativeFramesInstrumentation?.onTransactionFinish(transaction);
