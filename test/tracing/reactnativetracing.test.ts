@@ -5,13 +5,6 @@ import { IdleTransaction, Transaction } from "@sentry/tracing";
 import { NativeAppStartResponse } from "../../src/js/definitions";
 import { RoutingInstrumentation } from "../../src/js/tracing/routingInstrumentation";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mockFunction<T extends (...args: any[]) => any>(
-  fn: T
-): jest.MockedFunction<T> {
-  return fn as jest.MockedFunction<T>;
-}
-
 jest.mock("../../src/js/wrapper", () => {
   return {
     NATIVE: {
@@ -48,6 +41,8 @@ const getMockHub = () => {
 
   return mockHub;
 };
+
+import { mockFunction } from "test/testutils";
 
 import { ReactNativeTracing } from "../../src/js/tracing/reactnativetracing";
 import { getTimeOriginMilliseconds } from "../../src/js/tracing/utils";
@@ -438,6 +433,27 @@ describe("ReactNativeTracing", () => {
       mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(null);
 
       const integration = new ReactNativeTracing();
+      const mockHub = getMockHub();
+      integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+
+      setImmediate(() => {
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
+
+        const transaction = mockHub.getScope()?.getTransaction();
+
+        expect(transaction).toBeUndefined();
+
+        done();
+      });
+    });
+  });
+
+  describe("Native Frames", () => {
+    it("Does not initialize native frames instrumentation if flag is false", (done) => {
+      const integration = new ReactNativeTracing({
+        enableNativeFramesTracking: false,
+      });
       const mockHub = getMockHub();
       integration.setupOnce(addGlobalEventProcessor, () => mockHub);
 
