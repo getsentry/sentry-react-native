@@ -54,13 +54,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private static PackageInfo packageInfo;
     private static boolean didFetchAppStart = false;
-    private FrameMetricsAggregator frameMetricsAggregator;
+    private static FrameMetricsAggregator frameMetricsAggregator = null;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
         RNSentryModule.packageInfo = getPackageInfo(reactContext);
-
-        frameMetricsAggregator = new FrameMetricsAggregator();
     }
 
     @Override
@@ -125,12 +123,18 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
             if (rnOptions.hasKey("enableAutoPerformanceTracking")) {
                 if (rnOptions.getBoolean("enableAutoPerformanceTracking")) {
+                    if (RNSentryModule.frameMetricsAggregator == null) {
+                        RNSentryModule.frameMetricsAggregator = new FrameMetricsAggregator();
+                    }
+
                     // Only add the current activity to frames metrics tracking if auto performance is on.
                     Activity currentActivity = getCurrentActivity();
 
                     if (currentActivity != null) {
-                        frameMetricsAggregator.add(currentActivity);
+                        RNSentryModule.frameMetricsAggregator.add(currentActivity);
                     }
+                } else {
+                    this.disableNativeFramesTracking();
                 }
             }
 
@@ -228,7 +232,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
      */
     @ReactMethod
     public void fetchNativeFrames(Promise promise) {
-        if (frameMetricsAggregator == null) {
+        if (RNSentryModule.frameMetricsAggregator == null) {
             promise.resolve(null);
         } else {
             try {
@@ -236,7 +240,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 int slowFrames = 0;
                 int frozenFrames = 0;
 
-                final SparseIntArray[] framesRates = frameMetricsAggregator.getMetrics();
+                final SparseIntArray[] framesRates = RNSentryModule.frameMetricsAggregator.getMetrics();
 
                 if (framesRates != null) {
                     final SparseIntArray totalIndexArray = framesRates[FrameMetricsAggregator.TOTAL_INDEX];
@@ -439,14 +443,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void disableNativeFramesTracking() {
-        if (frameMetricsAggregator != null) {
-            Activity currentActivity = getCurrentActivity();
-
-            if (currentActivity != null) {
-                frameMetricsAggregator.remove(currentActivity);
-            }
-
-            frameMetricsAggregator = null;
+        if (RNSentryModule.frameMetricsAggregator != null) {
+            RNSentryModule.frameMetricsAggregator.stop();
+            RNSentryModule.frameMetricsAggregator = null;
         }
 
     }
