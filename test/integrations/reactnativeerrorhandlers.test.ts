@@ -5,10 +5,11 @@ jest.mock("@sentry/core", () => {
 
   const client = {
     getOptions: () => ({}),
+    flush: jest.fn(() => Promise.resolve()),
   };
 
   const hub = {
-    getClient: () => client,
+    getClient: jest.fn(() => client),
     captureEvent: jest.fn(),
   };
 
@@ -19,11 +20,17 @@ jest.mock("@sentry/core", () => {
   };
 });
 
-import { getCurrentHub } from "@sentry/core";
-import { Severity } from "@sentry/types";
+import { getCurrentHub, Hub } from "@sentry/core";
+import { Client, Severity } from "@sentry/types";
+import { getGlobalObject } from "@sentry/utils";
+
+const originalErrorHandler = jest.fn();
 
 beforeEach(() => {
-  ErrorUtils.getGlobalHandler = () => jest.fn();
+  const global = getGlobalObject<{ __DEV__: boolean }>();
+  global.__DEV__ = true;
+
+  ErrorUtils.getGlobalHandler = () => originalErrorHandler;
 });
 
 afterEach(() => {
@@ -89,5 +96,88 @@ describe("ReactNativeErrorHandlers", () => {
       expect(event.exception?.values?.[0].mechanism?.handled).toBe(true);
       expect(event.exception?.values?.[0].mechanism?.type).toBe("generic");
     });
+  });
+
+  test("Calls the default error handler in dev mode", async () => {
+    let callback: (error: Error, isFatal: boolean) => Promise<void> = () =>
+      Promise.resolve();
+
+    ErrorUtils.setGlobalHandler = jest.fn((_callback) => {
+      callback = _callback as typeof callback;
+    });
+
+    const integration = new ReactNativeErrorHandlers();
+
+    integration.setupOnce();
+
+    expect(ErrorUtils.setGlobalHandler).toHaveBeenCalledWith(callback);
+
+    await callback(new Error("Test Error"), false);
+
+    const client = getCurrentHub().getClient();
+    expect(client).toBeDefined();
+
+    if (client) {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(client.flush).not.toBeCalled();
+      expect(originalErrorHandler).toBeCalled();
+    }
+  });
+
+  test("Calls the default error handler along with client flush.", async () => {
+    const global = getGlobalObject<{ __DEV__: boolean }>();
+    global.__DEV__ = false;
+
+    let callback: (error: Error, isFatal: boolean) => Promise<void> = () =>
+      Promise.resolve();
+
+    ErrorUtils.setGlobalHandler = jest.fn((_callback) => {
+      callback = _callback as typeof callback;
+    });
+
+    const integration = new ReactNativeErrorHandlers();
+
+    integration.setupOnce();
+
+    expect(ErrorUtils.setGlobalHandler).toHaveBeenCalledWith(callback);
+
+    await callback(new Error("Test Error"), false);
+
+    const client = getCurrentHub().getClient();
+    expect(client).toBeDefined();
+
+    if (client) {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(client.flush).toBeCalled();
+      expect(originalErrorHandler).toBeCalled();
+    }
+  });
+
+  test("Calls the default error handler if client is not present", async () => {
+    let callback: (error: Error, isFatal: boolean) => Promise<void> = () =>
+      Promise.resolve();
+
+    (getCurrentHub().getClient as jest.MockedFunction<
+      () => Client | undefined
+    >).mockReturnValue(undefined);
+
+    ErrorUtils.setGlobalHandler = jest.fn((_callback) => {
+      callback = _callback as typeof callback;
+    });
+
+    const integration = new ReactNativeErrorHandlers();
+
+    integration.setupOnce();
+
+    expect(ErrorUtils.setGlobalHandler).toHaveBeenCalledWith(callback);
+
+    await callback(new Error("Test Error"), false);
+
+    const client = getCurrentHub().getClient();
+    expect(client).not.toBeDefined();
+
+    expect(originalErrorHandler).toBeCalled();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(getCurrentHub().captureEvent).not.toBeCalled();
   });
 });
