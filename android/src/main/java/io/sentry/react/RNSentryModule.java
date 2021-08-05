@@ -61,7 +61,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         RNSentryModule.packageInfo = getPackageInfo(reactContext);
 
         frameMetricsAggregator = new FrameMetricsAggregator();
-        reactContext.addLifecycleEventListener(lifeCycleEventListener);
     }
 
     @Override
@@ -76,29 +75,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         constants.put("nativeTransport", true);
         return constants;
     }
-
-    private final LifecycleEventListener lifeCycleEventListener = new LifecycleEventListener() {
-        @Override
-        public void onHostResume() {
-            Activity currentActivity = getCurrentActivity();
-
-            if (currentActivity != null) {
-                frameMetricsAggregator.add(currentActivity);
-            }
-        }
-
-        @Override
-        public void onHostPause() {}
-
-        @Override
-        public void onHostDestroy() {
-            Activity currentActivity = getCurrentActivity();
-
-            if (currentActivity != null) {
-                frameMetricsAggregator.remove(currentActivity);
-            }
-        }
-    };
 
     @ReactMethod
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
@@ -148,8 +124,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
             }
             if (rnOptions.hasKey("enableAutoPerformanceTracking")) {
-                if (!rnOptions.getBoolean("enableAutoPerformanceTracking")) {
-                    disableNativeFramesTracking();
+                if (rnOptions.getBoolean("enableAutoPerformanceTracking")) {
+                    // Only add the current activity to frames metrics tracking if auto performance is on.
+                    Activity currentActivity = getCurrentActivity();
+
+                    if (currentActivity != null) {
+                        frameMetricsAggregator.add(currentActivity);
+                    }
                 }
             }
 
