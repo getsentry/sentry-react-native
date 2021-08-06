@@ -16,6 +16,8 @@
 
 @end
 
+static bool didFetchAppStart;
+
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
 }
@@ -40,6 +42,8 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = true;
+
     NSError *error = nil;
 
     SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
@@ -80,6 +84,9 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         sentHybridSdkDidBecomeActive = true;
     }
 
+
+
+
     resolve(@YES);
 }
 
@@ -100,6 +107,30 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
 #endif
         resolve(contexts);
     }];
+}
+
+RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+
+    SentryAppStartMeasurement *appStartMeasurement = PrivateSentrySDKOnly.appStartMeasurement;
+    
+    if (appStartMeasurement == nil) {
+        resolve(nil);
+    } else {
+        BOOL isColdStart = appStartMeasurement.type == SentryAppStartTypeCold;
+
+        resolve(@{
+            @"isColdStart": [NSNumber numberWithBool:isColdStart],
+            @"appStartTime": [NSNumber numberWithDouble:(appStartMeasurement.appStartTimestamp.timeIntervalSince1970 * 1000)],
+            @"didFetchAppStart": [NSNumber numberWithBool:didFetchAppStart],
+                });
+
+    }
+    
+    // This is always set to true, as we would only allow an app start fetch to only happen once
+    // in the case of a JS bundle reload, we do not want it to be instrumented again.
+    didFetchAppStart = true;
 }
 
 RCT_EXPORT_METHOD(fetchNativeRelease:(RCTPromiseResolveBlock)resolve

@@ -2,6 +2,12 @@ import { Breadcrumb } from "@sentry/types";
 
 import { ReactNativeOptions } from "./options";
 
+export type NativeAppStartResponse = {
+  isColdStart: boolean;
+  appStartTime: number;
+  didFetchAppStart: boolean;
+};
+
 export type NativeReleaseResponse = {
   build: string;
   id: string;
@@ -17,6 +23,8 @@ interface SerializedObject {
 }
 
 export interface SentryNativeBridgeModule {
+  nativeClientAvailable: boolean;
+
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   captureEnvelope(
     payload:
@@ -35,6 +43,7 @@ export interface SentryNativeBridgeModule {
     version: string;
   }>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
+  fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
   getStringBytesLength(str: string): Promise<number>;
   initNativeSdk(options: ReactNativeOptions): Promise<boolean>;
   setUser(

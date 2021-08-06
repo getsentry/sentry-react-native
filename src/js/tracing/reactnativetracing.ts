@@ -1,6 +1,8 @@
+/* eslint-disable max-lines */
 import { Hub } from "@sentry/hub";
 import {
   defaultRequestInstrumentationOptions,
+  IdleTransaction,
   registerRequestInstrumentation,
   RequestInstrumentationOptions,
   startIdleTransaction,
@@ -13,9 +15,11 @@ import {
 } from "@sentry/types";
 import { logger } from "@sentry/utils";
 
+import { NativeAppStartResponse } from "../definitions";
 import { StallTracking } from "../integrations";
 import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
-import { adjustTransactionDuration } from "./utils";
+import { NATIVE } from "../wrapper";
+import { adjustTransactionDuration, getTimeOriginMilliseconds } from "./utils";
 
 export type BeforeNavigate = (
   context: TransactionContext
@@ -64,6 +68,14 @@ export interface ReactNativeTracingOptions
    * @returns A (potentially) modified context object, with `sampled = false` if the transaction should be dropped.
    */
   beforeNavigate: BeforeNavigate;
+
+  /**
+   * Track the app start time by adding measurements to the first route transaction. If there is no routing instrumentation
+   * an app start transaction will be started.
+   *
+   * Default: true
+   */
+  enableAppStartTracking: boolean;
 }
 
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
@@ -72,6 +84,7 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   maxTransactionDuration: 600,
   ignoreEmptyBackNavigationTransactions: true,
   beforeNavigate: (context) => context,
+  enableAppStartTracking: true,
 };
 
 /**
@@ -91,6 +104,7 @@ export class ReactNativeTracing implements Integration {
   public options: ReactNativeTracingOptions;
 
   private _getCurrentHub?: () => Hub;
+  private _awaitingAppStartData?: NativeAppStartResponse;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this.options = {
@@ -119,12 +133,14 @@ export class ReactNativeTracing implements Integration {
 
     this._getCurrentHub = getCurrentHub;
 
-    routingInstrumentation?.registerRoutingInstrumentation(
-      this._onRouteWillChange.bind(this),
-      this.options.beforeNavigate
-    );
+    void this._instrumentAppStart();
 
-    if (!routingInstrumentation) {
+    if (routingInstrumentation) {
+      routingInstrumentation.registerRoutingInstrumentation(
+        this._onRouteWillChange.bind(this),
+        this.options.beforeNavigate
+      );
+    } else {
       logger.log(
         `[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.`
       );
@@ -138,6 +154,73 @@ export class ReactNativeTracing implements Integration {
     });
   }
 
+  /**
+   * Instruments the app start measurements on the first route transaction.
+   * Starts a route transaction if there isn't routing instrumentation.
+   */
+  private async _instrumentAppStart(): Promise<void> {
+    if (!this.options.enableAppStartTracking || !NATIVE.enableNative) {
+      return;
+    }
+
+    const appStart = await NATIVE.fetchNativeAppStart();
+
+    if (!appStart || appStart.didFetchAppStart) {
+      return;
+    }
+
+    if (this.options.routingInstrumentation) {
+      this._awaitingAppStartData = appStart;
+    } else {
+      const appStartTimeSeconds = appStart.appStartTime / 1000;
+
+      const idleTransaction = this._createRouteTransaction({
+        name: "App Start",
+        op: "ui.load",
+        startTimestamp: appStartTimeSeconds,
+      });
+
+      if (idleTransaction) {
+        this._addAppStartData(idleTransaction, appStart);
+      }
+    }
+  }
+
+  /**
+   * Adds app start measurements and starts a child span on a transaction.
+   */
+  private _addAppStartData(
+    transaction: IdleTransaction,
+    appStart: NativeAppStartResponse
+  ): void {
+    const appStartTimeSeconds = appStart.appStartTime / 1000;
+    const timeOriginSeconds = getTimeOriginMilliseconds() / 1000;
+
+    transaction.startChild({
+      description: appStart.isColdStart ? "Cold App Start" : "Warm App Start",
+      op: appStart.isColdStart ? "app.start.cold" : "app.start.warm",
+      startTimestamp: appStartTimeSeconds,
+      endTimestamp: timeOriginSeconds,
+    });
+
+    const appStartDurationMilliseconds =
+      getTimeOriginMilliseconds() - appStart.appStartTime;
+
+    transaction.setMeasurements(
+      appStart.isColdStart
+        ? {
+            app_start_cold: {
+              value: appStartDurationMilliseconds,
+            },
+          }
+        : {
+            app_start_warm: {
+              value: appStartDurationMilliseconds,
+            },
+          }
+    );
+  }
+
   /** To be called when the route changes, but BEFORE the components of the new route mount. */
   private _onRouteWillChange(
     context: TransactionContext
@@ -149,7 +232,7 @@ export class ReactNativeTracing implements Integration {
   /** Create routing idle transaction. */
   private _createRouteTransaction(
     context: TransactionContext
-  ): TransactionType | undefined {
+  ): IdleTransaction | undefined {
     if (!this._getCurrentHub) {
       logger.warn(
         `[ReactNativeTracing] Did not create ${context.op} transaction because _getCurrentHub is invalid.`
@@ -172,9 +255,22 @@ export class ReactNativeTracing implements Integration {
       idleTimeout,
       true
     );
+
     logger.log(
       `[ReactNativeTracing] Starting ${context.op} transaction "${context.name}" on scope`
     );
+
+    idleTransaction.registerBeforeFinishCallback((transaction) => {
+      if (this.options.enableAppStartTracking && this._awaitingAppStartData) {
+        transaction.startTimestamp =
+          this._awaitingAppStartData.appStartTime / 1000;
+        transaction.op = "ui.load";
+
+        this._addAppStartData(transaction, this._awaitingAppStartData);
+
+        this._awaitingAppStartData = undefined;
+      }
+    });
 
     const stallTracking = this._getCurrentHub().getIntegration(StallTracking);
 
@@ -223,6 +319,6 @@ export class ReactNativeTracing implements Integration {
       });
     }
 
-    return idleTransaction as TransactionType;
+    return idleTransaction;
   }
 }

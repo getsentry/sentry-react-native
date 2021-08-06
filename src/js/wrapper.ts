@@ -11,6 +11,7 @@ import { logger, SentryError } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
 
 import {
+  NativeAppStartResponse,
   NativeDeviceContextsResponse,
   NativeReleaseResponse,
   SentryNativeBridgeModule,
@@ -43,6 +44,7 @@ interface SentryNativeWrapper {
 
   fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
+  fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   setContext(key: string, context: { [key: string]: unknown } | null): void;
@@ -245,6 +247,17 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.fetchNativeDeviceContexts();
+  },
+
+  async fetchNativeAppStart(): Promise<NativeAppStartResponse | null> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    return RNSentry.fetchNativeAppStart();
   },
 
   /**

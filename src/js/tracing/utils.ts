@@ -1,5 +1,7 @@
 import { IdleTransaction, SpanStatus } from "@sentry/tracing";
 
+const timeOriginMilliseconds = Date.now();
+
 /**
  * Converts from seconds to milliseconds
  * @param time time in seconds
@@ -23,4 +25,11 @@ export function adjustTransactionDuration(
     transaction.setStatus(SpanStatus.DeadlineExceeded);
     transaction.setTag("maxTransactionDurationExceeded", "true");
   }
+}
+
+/**
+ * Returns the timestamp where the JS global scope was initialized.
+ */
+export function getTimeOriginMilliseconds(): number {
+  return timeOriginMilliseconds;
 }

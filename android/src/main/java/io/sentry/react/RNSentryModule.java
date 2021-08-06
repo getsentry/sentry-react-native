@@ -18,7 +18,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,12 +27,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.sentry.android.core.AnrIntegration;
+import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
-import io.sentry.Sentry;
 import io.sentry.Breadcrumb;
+import io.sentry.DateUtils;
 import io.sentry.HubAdapter;
 import io.sentry.Integration;
+import io.sentry.Sentry;
 import io.sentry.SentryLevel;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.protocol.SdkVersion;
@@ -47,6 +49,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     final static Logger logger = Logger.getLogger("react-native-sentry");
 
     private static PackageInfo packageInfo;
+    private static boolean didFetchAppStart = false;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -178,6 +181,29 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         release.putString("version", packageInfo.versionName);
         release.putString("build", String.valueOf(packageInfo.versionCode));
         promise.resolve(release);
+    }
+
+    @ReactMethod
+    public void fetchNativeAppStart(Promise promise) {
+        final AppStartState appStartInstance = AppStartState.getInstance();
+        final Date appStartTime = appStartInstance.getAppStartTime();
+
+        if (appStartTime == null) {
+            promise.resolve(null);
+        } else {
+            final double appStartTimestamp = (double) appStartTime.getTime();
+
+            WritableMap appStart = Arguments.createMap();
+
+            appStart.putDouble("appStartTime", appStartTimestamp);
+            appStart.putBoolean("isColdStart", appStartInstance.isColdStart());
+            appStart.putBoolean("didFetchAppStart", RNSentryModule.didFetchAppStart);
+
+            promise.resolve(appStart);
+        }
+        // This is always set to true, as we would only allow an app start fetch to only happen once
+        // in the case of a JS bundle reload, we do not want it to be instrumented again.
+        RNSentryModule.didFetchAppStart = true;
     }
 
     @ReactMethod
