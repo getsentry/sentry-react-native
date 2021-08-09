@@ -1185,6 +1185,15 @@
     "@sentry/utils" "6.7.1"
     tslib "^1.9.3"
 
+"@sentry/hub@6.11.0":
+  version "6.11.0"
+  resolved "https://registry.yarnpkg.com/@sentry/hub/-/hub-6.11.0.tgz#ddf9ddb0577d1c8290dc02c0242d274fe84d6c16"
+  integrity sha512-pT9hf+ZJfVFpoZopoC+yJmFNclr4NPqPcl2cgguqCHb69DklD1NxgBNWK8D6X05qjnNFDF991U6t1mxP9HrGuw==
+  dependencies:
+    "@sentry/types" "6.11.0"
+    "@sentry/utils" "6.11.0"
+    tslib "^1.9.3"
+
 "@sentry/hub@6.7.1":
   version "6.7.1"
   resolved "https://registry.yarnpkg.com/@sentry/hub/-/hub-6.7.1.tgz#d46d24deec67f0731a808ca16796e6765b371bc1"
@@ -1202,6 +1211,15 @@
     "@sentry/types" "6.7.1"
     "@sentry/utils" "6.7.1"
     localforage "^1.8.1"
+    tslib "^1.9.3"
+
+"@sentry/minimal@6.11.0":
+  version "6.11.0"
+  resolved "https://registry.yarnpkg.com/@sentry/minimal/-/minimal-6.11.0.tgz#806d5512658370e40827b3e3663061db708fff33"
+  integrity sha512-XkZ7qrdlGp4IM/gjGxf1Q575yIbl5RvPbg+WFeekpo16Ufvzx37Mr8c2xsZaWosISVyE6eyFpooORjUlzy8EDw==
+  dependencies:
+    "@sentry/hub" "6.11.0"
+    "@sentry/types" "6.11.0"
     tslib "^1.9.3"
 
 "@sentry/minimal@6.7.1":
@@ -1225,16 +1243,21 @@
     hoist-non-react-statics "^3.3.2"
     tslib "^1.9.3"
 
-"@sentry/tracing@6.7.1":
-  version "6.7.1"
-  resolved "https://registry.yarnpkg.com/@sentry/tracing/-/tracing-6.7.1.tgz#b11f0c17a6c5dc14ef44733e5436afb686683268"
-  integrity sha512-wyS3nWNl5mzaC1qZ2AIp1hjXnfO9EERjMIJjCihs2LWBz1r3efxrHxJHs8wXlNWvrT3KLhq/7vvF5CdU82uPeQ==
+"@sentry/tracing@6.11.0":
+  version "6.11.0"
+  resolved "https://registry.yarnpkg.com/@sentry/tracing/-/tracing-6.11.0.tgz#9bd9287addea1ebc12c75b226f71c7713c0fac4f"
+  integrity sha512-9VA1/SY++WeoMQI4K6n/sYgIdRtCu9NLWqmGqu/5kbOtESYFgAt1DqSyqGCr00ZjQiC2s7tkDkTNZb38K6KytQ==
   dependencies:
-    "@sentry/hub" "6.7.1"
-    "@sentry/minimal" "6.7.1"
-    "@sentry/types" "6.7.1"
-    "@sentry/utils" "6.7.1"
+    "@sentry/hub" "6.11.0"
+    "@sentry/minimal" "6.11.0"
+    "@sentry/types" "6.11.0"
+    "@sentry/utils" "6.11.0"
     tslib "^1.9.3"
+
+"@sentry/types@6.11.0":
+  version "6.11.0"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-6.11.0.tgz#5122685478d32ddacd3a891cbcf550012df85f7c"
+  integrity sha512-gm5H9eZhL6bsIy/h3T+/Fzzz2vINhHhqd92CjHle3w7uXdTdFV98i2pDpErBGNTSNzbntqOMifYEB5ENtZAvcg==
 
 "@sentry/types@6.7.1":
   version "6.7.1"
@@ -1248,6 +1271,14 @@
   dependencies:
     tslint-config-prettier "^1.18.0"
     tslint-consistent-codestyle "^1.15.1"
+
+"@sentry/utils@6.11.0":
+  version "6.11.0"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-6.11.0.tgz#d1dee4faf4d9c42c54bba88d5a66fb96b902a14c"
+  integrity sha512-IOvyFHcnbRQxa++jO+ZUzRvFHEJ1cZjrBIQaNVc0IYF0twUOB5PTP6joTcix38ldaLeapaPZ9LGfudbvYvxkdg==
+  dependencies:
+    "@sentry/types" "6.11.0"
+    tslib "^1.9.3"
 
 "@sentry/utils@6.7.1":
   version "6.7.1"
