@@ -1,5 +1,5 @@
 import { Span, Transaction } from "@sentry/tracing";
-import { EventProcessor, Measurements } from "@sentry/types";
+import { Event, EventProcessor, Measurements } from "@sentry/types";
 import { logger, timestampInSeconds } from "@sentry/utils";
 
 import { NativeFramesResponse } from "../definitions";
@@ -43,57 +43,8 @@ export class NativeFramesInstrumentation {
     );
 
     addGlobalEventProcessor(async (event) => {
-      if (!doesExist()) {
-        return event;
-      }
-
-      if (
-        event.type === "transaction" &&
-        event.transaction &&
-        event.contexts &&
-        event.contexts.trace
-      ) {
-        const traceContext = event.contexts.trace as {
-          data?: { [key: string]: unknown };
-          trace_id: string;
-          name?: string;
-          op?: string;
-        };
-
-        const traceId = traceContext.trace_id;
-
-        if (traceId && traceContext.data?.__startFrames && event.timestamp) {
-          const measurements = await this._getFramesMeasurements(
-            traceId,
-            event.timestamp,
-            traceContext.data.__startFrames as NativeFramesResponse
-          );
-
-          if (!measurements) {
-            logger.log(
-              `[NativeFrames] Could not fetch native frames for ${traceContext.op} transaction ${event.transaction}. Not adding native frames measurements.`
-            );
-          } else {
-            logger.log(
-              `[Measurements] Adding measurements to ${
-                traceContext.op
-              } transaction ${event.transaction}: ${JSON.stringify(
-                measurements,
-                undefined,
-                2
-              )}`
-            );
-
-            event.measurements = {
-              ...(event.measurements ?? {}),
-              ...measurements,
-            };
-
-            this._finishFrames.delete(traceId);
-          }
-
-          delete traceContext.data.__startFrames;
-        }
+      if (doesExist()) {
+        return this._processEvent(event);
       }
 
       return event;
@@ -244,5 +195,61 @@ export class NativeFramesInstrumentation {
         }, 2000);
       }
     }
+  }
+
+  /**
+   * Handle the finish frames on transaction events with start frames.
+   */
+  private async _processEvent(event: Event): Promise<Event> {
+    if (
+      event.type === "transaction" &&
+      event.transaction &&
+      event.contexts &&
+      event.contexts.trace
+    ) {
+      const traceContext = event.contexts.trace as {
+        data?: { [key: string]: unknown };
+        trace_id: string;
+        name?: string;
+        op?: string;
+      };
+
+      const traceId = traceContext.trace_id;
+
+      if (traceId && traceContext.data?.__startFrames && event.timestamp) {
+        const measurements = await this._getFramesMeasurements(
+          traceId,
+          event.timestamp,
+          traceContext.data.__startFrames as NativeFramesResponse
+        );
+
+        if (!measurements) {
+          logger.log(
+            `[NativeFrames] Could not fetch native frames for ${traceContext.op} transaction ${event.transaction}. Not adding native frames measurements.`
+          );
+        } else {
+          logger.log(
+            `[Measurements] Adding measurements to ${
+              traceContext.op
+            } transaction ${event.transaction}: ${JSON.stringify(
+              measurements,
+              undefined,
+              2
+            )}`
+          );
+
+          event.measurements = {
+            ...(event.measurements ?? {}),
+            ...measurements,
+          };
+
+          this._finishFrames.delete(traceId);
+        }
+
+        delete traceContext.data.__startFrames;
+      }
+    }
+
+    return event;
   }
 }
