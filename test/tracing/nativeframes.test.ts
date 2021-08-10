@@ -15,7 +15,9 @@ import { NativeFramesInstrumentation } from "../../src/js/tracing/nativeframes";
 import { NATIVE } from "../../src/js/wrapper";
 import { mockFunction } from "../testutils";
 
-jest.useFakeTimers();
+beforeEach(() => {
+  jest.useFakeTimers();
+});
 
 describe("NativeFramesInstrumentation", () => {
   it("Sets start frames to trace context on transaction start.", (done) => {
@@ -79,26 +81,28 @@ describe("NativeFramesInstrumentation", () => {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(finishFrames);
 
+      const finishTimestamp = Date.now() / 1000;
       instance.onTransactionFinish(transaction);
 
       setImmediate(async () => {
-        expect(eventProcessor).toBeDefined();
-        if (eventProcessor) {
-          const event = await eventProcessor({
-            event_id: "0",
-            type: "transaction",
-            transaction: transaction.name,
-            contexts: {
-              trace: transaction.getTraceContext(),
-            },
-            start_timestamp: Date.now() / 1000 - 10,
-            timestamp: Date.now() / 1000,
-          });
+        try {
+          expect(eventProcessor).toBeDefined();
+          if (eventProcessor) {
+            const event = await eventProcessor({
+              event_id: "0",
+              type: "transaction",
+              transaction: transaction.name,
+              contexts: {
+                trace: transaction.getTraceContext(),
+              },
+              start_timestamp: finishTimestamp - 10,
+              timestamp: finishTimestamp,
+            });
 
-          jest.runOnlyPendingTimers();
+            jest.runOnlyPendingTimers();
 
-          // This setImmediate needs to be here for the assertions to not be caught by the promise handler.
-          setImmediate(() => {
+            // This setImmediate needs to be here for the assertions to not be caught by the promise handler.
+
             expect(event).toBeDefined();
 
             if (event) {
@@ -125,9 +129,10 @@ describe("NativeFramesInstrumentation", () => {
                 ).toBeUndefined();
               }
             }
-
-            done();
-          });
+          }
+          done();
+        } catch (e) {
+          done(e);
         }
       });
     });
@@ -156,6 +161,7 @@ describe("NativeFramesInstrumentation", () => {
     transaction.setData("test", {});
 
     setImmediate(() => {
+      const finishTimestamp = Date.now() / 1000;
       instance.onTransactionFinish(transaction);
 
       setImmediate(async () => {
@@ -168,8 +174,8 @@ describe("NativeFramesInstrumentation", () => {
             contexts: {
               trace: transaction.getTraceContext(),
             },
-            start_timestamp: Date.now() / 1000 - 10,
-            timestamp: Date.now() / 1000,
+            start_timestamp: finishTimestamp - 10,
+            timestamp: finishTimestamp,
             measurements: {},
           });
 
@@ -200,6 +206,149 @@ describe("NativeFramesInstrumentation", () => {
 
             done();
           });
+        }
+      });
+    });
+  });
+
+  it("Sets measurements on the transaction event and removes startFrames if finishFrames is null.", (done) => {
+    const startFrames = {
+      totalFrames: 100,
+      slowFrames: 20,
+      frozenFrames: 5,
+    };
+    const finishFrames = null;
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(startFrames);
+
+    let eventProcessor: EventProcessor;
+    const instance = new NativeFramesInstrumentation(
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      (_eventProcessor) => {
+        eventProcessor = _eventProcessor;
+      },
+      () => true
+    );
+
+    const transaction = new Transaction({ name: "test" });
+
+    instance.onTransactionStart(transaction);
+
+    setImmediate(() => {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(finishFrames);
+
+      const finishTimestamp = Date.now() / 1000;
+      instance.onTransactionFinish(transaction);
+
+      setImmediate(async () => {
+        try {
+          expect(eventProcessor).toBeDefined();
+          if (eventProcessor) {
+            const event = await eventProcessor({
+              event_id: "0",
+              type: "transaction",
+              transaction: transaction.name,
+              contexts: {
+                trace: transaction.getTraceContext(),
+              },
+              start_timestamp: finishTimestamp - 10,
+              timestamp: finishTimestamp,
+            });
+
+            jest.runOnlyPendingTimers();
+
+            expect(event).toBeDefined();
+
+            if (event) {
+              expect(event.measurements).toBeUndefined();
+
+              expect(event.contexts?.trace?.data).toBeDefined();
+
+              if (event.contexts?.trace?.data) {
+                expect(
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (event.contexts.trace.data as any).__startFrames
+                ).toBeUndefined();
+              }
+            }
+          }
+
+          done();
+        } catch (e) {
+          done(e);
+        }
+      });
+    });
+  });
+
+  it("Does not set measurements on the transaction event and removes startFrames if finishFrames times out.", (done) => {
+    jest.useRealTimers();
+
+    const startFrames = {
+      totalFrames: 100,
+      slowFrames: 20,
+      frozenFrames: 5,
+    };
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(startFrames);
+
+    let eventProcessor: EventProcessor;
+    const instance = new NativeFramesInstrumentation(
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      (_eventProcessor) => {
+        eventProcessor = _eventProcessor;
+      },
+      () => true
+    );
+
+    const transaction = new Transaction({ name: "test" });
+
+    instance.onTransactionStart(transaction);
+
+    setImmediate(() => {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      mockFunction(NATIVE.fetchNativeFrames).mockImplementation(
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        async () => new Promise(() => {})
+      );
+
+      const finishTimestamp = Date.now() / 1000;
+      instance.onTransactionFinish(transaction);
+
+      setImmediate(async () => {
+        try {
+          expect(eventProcessor).toBeDefined();
+          if (eventProcessor) {
+            const event = await eventProcessor({
+              event_id: "0",
+              type: "transaction",
+              transaction: transaction.name,
+              contexts: {
+                trace: transaction.getTraceContext(),
+              },
+              start_timestamp: finishTimestamp - 10,
+              timestamp: finishTimestamp,
+            });
+
+            expect(event).toBeDefined();
+
+            if (event) {
+              expect(event.measurements).toBeUndefined();
+
+              expect(event.contexts?.trace?.data).toBeDefined();
+
+              if (event.contexts?.trace?.data) {
+                expect(
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (event.contexts.trace.data as any).__startFrames
+                ).toBeUndefined();
+              }
+            }
+          }
+          done();
+        } catch (e) {
+          done(e);
         }
       });
     });

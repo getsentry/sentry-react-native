@@ -26,7 +26,7 @@ const MARGIN_OF_ERROR_SECONDS = 0.05;
 export class NativeFramesInstrumentation {
   private _finishFrames: Map<
     string,
-    { timestamp: number; nativeFrames: NativeFramesResponse }
+    { timestamp: number; nativeFrames: NativeFramesResponse | null }
   > = new Map();
   private _framesListeners: Map<string, () => void> = new Map();
   private _lastSpanFinishFrames?: {
@@ -42,7 +42,7 @@ export class NativeFramesInstrumentation {
       "[ReactNativeTracing] Native frames instrumentation initialized."
     );
 
-    addGlobalEventProcessor(async (event) => {
+    addGlobalEventProcessor((event) => {
       if (doesExist()) {
         return this._processEvent(event);
       }
@@ -124,7 +124,7 @@ export class NativeFramesInstrumentation {
    */
   private _prepareMeasurements(
     traceId: string,
-    finalEndTimestamp: number,
+    finalEndTimestamp: number, // The actual transaction finish time.
     startFrames: NativeFramesResponse
   ): FramesMeasurements | null {
     let finalFinishFrames: NativeFramesResponse | undefined;
@@ -132,6 +132,8 @@ export class NativeFramesInstrumentation {
     const finish = this._finishFrames.get(traceId);
     if (
       finish &&
+      finish.nativeFrames &&
+      // Must be in the margin of error of the actual transaction finish time (finalEndTimestamp)
       Math.abs(finish.timestamp - finalEndTimestamp) < MARGIN_OF_ERROR_SECONDS
     ) {
       finalFinishFrames = finish.nativeFrames;
@@ -172,33 +174,39 @@ export class NativeFramesInstrumentation {
       | NativeFramesResponse
       | undefined;
 
+    // This timestamp marks when the finish frames were retrieved. It should be pretty close to the transaction finish.
+    const timestamp = timestampInSeconds();
+    let finishFrames: NativeFramesResponse | null = null;
     if (startFrames) {
-      const timestamp = timestampInSeconds();
-      const finishFrames = await NATIVE.fetchNativeFrames();
+      finishFrames = await NATIVE.fetchNativeFrames();
+    }
 
-      if (finishFrames) {
-        this._finishFrames.set(transaction.traceId, {
-          nativeFrames: finishFrames,
-          timestamp,
-        });
+    this._finishFrames.set(transaction.traceId, {
+      nativeFrames: finishFrames,
+      timestamp,
+    });
 
-        this._framesListeners.get(transaction.traceId)?.();
+    this._framesListeners.get(transaction.traceId)?.();
 
-        setTimeout(() => {
-          if (this._finishFrames.has(transaction.traceId)) {
-            this._finishFrames.delete(transaction.traceId);
+    setTimeout(() => this._cancelFinishFrames(transaction), 2000);
+  }
 
-            logger.log(
-              `[NativeFrames] Native frames timed out for ${transaction.op} transaction ${transaction.name}. Not adding native frames measurements.`
-            );
-          }
-        }, 2000);
-      }
+  /**
+   * On a finish frames failure, we cancel the await.
+   */
+  private _cancelFinishFrames(transaction: Transaction): void {
+    if (this._finishFrames.has(transaction.traceId)) {
+      this._finishFrames.delete(transaction.traceId);
+
+      logger.log(
+        `[NativeFrames] Native frames timed out for ${transaction.op} transaction ${transaction.name}. Not adding native frames measurements.`
+      );
     }
   }
 
   /**
-   * Handle the finish frames on transaction events with start frames.
+   * Adds frames measurements to an event. Called from a valid event processor.
+   * Awaits for finish frames if needed.
    */
   private async _processEvent(event: Event): Promise<Event> {
     if (
