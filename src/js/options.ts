@@ -1,4 +1,8 @@
 import { BrowserOptions } from "@sentry/react";
+import { ErrorBoundaryProps } from "@sentry/react/dist/errorboundary";
+import { ProfilerProps } from "@sentry/react/dist/profiler";
+
+import { TouchEventBoundaryProps } from "./touchevents";
 
 /**
  * Configuration options for the Sentry ReactNative SDK.
@@ -71,4 +75,10 @@ export interface ReactNativeOptions extends BrowserOptions {
 
   /** Enable auto performance tracking by default. */
   enableAutoPerformanceTracking?: boolean;
+}
+
+export interface ReactNativeWrapperOptions extends ReactNativeOptions {
+  errorBoundaryProps?: ErrorBoundaryProps;
+  profilerProps?: ProfilerProps;
+  touchEventBoundaryProps?: TouchEventBoundaryProps;
 }

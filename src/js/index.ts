@@ -59,8 +59,18 @@ import { SDK_NAME, SDK_VERSION } from "./version";
 export { ReactNativeBackend } from "./backend";
 export { ReactNativeOptions } from "./options";
 export { ReactNativeClient } from "./client";
-// eslint-disable-next-line deprecation/deprecation
-export { init, setDist, setRelease, nativeCrash, flush, close } from "./sdk";
+
+export {
+  init,
+  initWith,
+  // eslint-disable-next-line deprecation/deprecation
+  setDist,
+  // eslint-disable-next-line deprecation/deprecation
+  setRelease,
+  nativeCrash,
+  flush,
+  close,
+} from "./sdk";
 export { TouchEventBoundary, withTouchEventBoundary } from "./touchevents";
 
 export {

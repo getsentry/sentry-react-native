@@ -115,6 +115,7 @@ export class ReactNativeTracing implements Integration {
 
   private _getCurrentHub?: () => Hub;
   private _awaitingAppStartData?: NativeAppStartResponse;
+  private _appStartFinishTimestamp?: number;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this.options = {
@@ -197,6 +198,13 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
+   *
+   */
+  public onAppStartFinish(endTimestamp: number): void {
+    this._appStartFinishTimestamp = endTimestamp;
+  }
+
+  /**
    * Instruments the app start measurements on the first route transaction.
    * Starts a route transaction if there isn't routing instrumentation.
    */
@@ -235,18 +243,22 @@ export class ReactNativeTracing implements Integration {
     transaction: IdleTransaction,
     appStart: NativeAppStartResponse
   ): void {
+    if (!this._appStartFinishTimestamp) {
+      logger.warn("App start was never finished.");
+      return;
+    }
+
     const appStartTimeSeconds = appStart.appStartTime / 1000;
-    const timeOriginSeconds = getTimeOriginMilliseconds() / 1000;
 
     transaction.startChild({
       description: appStart.isColdStart ? "Cold App Start" : "Warm App Start",
       op: appStart.isColdStart ? "app.start.cold" : "app.start.warm",
       startTimestamp: appStartTimeSeconds,
-      endTimestamp: timeOriginSeconds,
+      endTimestamp: this._appStartFinishTimestamp,
     });
 
     const appStartDurationMilliseconds =
-      getTimeOriginMilliseconds() - appStart.appStartTime;
+      this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
 
     transaction.setMeasurements(
       appStart.isColdStart
