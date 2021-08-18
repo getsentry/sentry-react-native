@@ -6,7 +6,10 @@ import { NativeFramesResponse } from "../definitions";
 import { NATIVE } from "../wrapper";
 import { instrumentChildSpanFinish } from "./utils";
 
-type FramesMeasurements = Record<'frames_total' | 'frames_slow' | 'frames_frozen', { value: number }>;
+type FramesMeasurements = Record<
+  "frames_total" | "frames_slow" | "frames_frozen",
+  { value: number }
+>;
 
 /**
  * A margin of error of 50ms is allowed for the async native bridge call.
@@ -39,13 +42,9 @@ export class NativeFramesInstrumentation {
       "[ReactNativeTracing] Native frames instrumentation initialized."
     );
 
-    addGlobalEventProcessor((event) => {
-      if (doesExist()) {
-        return this._processEvent(event);
-      }
-
-      return event;
-    });
+    if (doesExist()) {
+      addGlobalEventProcessor(this._processEvent.bind(this));
+    }
   }
 
   /**
