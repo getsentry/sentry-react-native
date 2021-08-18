@@ -186,7 +186,7 @@ export class ReactNativeTracing implements Integration {
    * To be called on a transaction start. Can have async methods
    */
   public onTransactionStart(transaction: Transaction): void {
-    void this.nativeFramesInstrumentation?.onTransactionStart(transaction);
+    this.nativeFramesInstrumentation?.onTransactionStart(transaction);
   }
 
   /**
