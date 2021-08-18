@@ -6,17 +6,7 @@ import { NativeFramesResponse } from "../definitions";
 import { NATIVE } from "../wrapper";
 import { instrumentChildSpanFinish } from "./utils";
 
-interface FramesMeasurements extends Measurements {
-  frames_total: {
-    value: number;
-  };
-  frames_slow: {
-    value: number;
-  };
-  frames_frozen: {
-    value: number;
-  };
-}
+type FramesMeasurements = Record<'frames_total' | 'frames_slow' | 'frames_frozen', { value: number }>;
 
 const MARGIN_OF_ERROR_SECONDS = 0.05;
 
