@@ -1,5 +1,5 @@
 import { Span, Transaction } from "@sentry/tracing";
-import { Event, EventProcessor, Measurements } from "@sentry/types";
+import { Event, EventProcessor } from "@sentry/types";
 import { logger, timestampInSeconds } from "@sentry/utils";
 
 import { NativeFramesResponse } from "../definitions";
