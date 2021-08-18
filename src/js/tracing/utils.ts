@@ -40,7 +40,7 @@ export function getTimeOriginMilliseconds(): number {
 }
 
 /**
- *
+ * Calls the callback every time a child span of the transaction is finished.
  */
 export function instrumentChildSpanFinish(
   transaction: Transaction,

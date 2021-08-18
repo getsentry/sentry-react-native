@@ -18,17 +18,24 @@ interface FramesMeasurements extends Measurements {
   };
 }
 
+/**
+ * A margin of error of 50ms is allowed for the async native bridge call.
+ * Anything larger would reduce the accuracy of our frames measurements.
+ */
 const MARGIN_OF_ERROR_SECONDS = 0.05;
 
 /**
  * Instrumentation to add native slow/frozen frames measurements onto transactions.
  */
 export class NativeFramesInstrumentation {
+  /** The native frames at the transaction finish time, keyed by traceId. */
   private _finishFrames: Map<
     string,
     { timestamp: number; nativeFrames: NativeFramesResponse | null }
   > = new Map();
+  /** The listeners for each native frames response, keyed by traceId */
   private _framesListeners: Map<string, () => void> = new Map();
+  /** The native frames at the finish time of the most recent span. */
   private _lastSpanFinishFrames?: {
     timestamp: number;
     nativeFrames: NativeFramesResponse;
@@ -52,7 +59,8 @@ export class NativeFramesInstrumentation {
   }
 
   /**
-   * To be called when a transaction is started
+   * To be called when a transaction is started.
+   * Logs the native frames at this start point and instruments child span finishes.
    */
   public onTransactionStart(transaction: Transaction): void {
     void NATIVE.fetchNativeFrames().then((framesMetrics) => {
@@ -61,7 +69,11 @@ export class NativeFramesInstrumentation {
       }
     });
 
-    instrumentChildSpanFinish(transaction, this._onSpanFinish.bind(this));
+    instrumentChildSpanFinish(transaction, (_: Span, endTimestamp?: number) => {
+      if (!endTimestamp) {
+        this._onSpanFinish();
+      }
+    });
   }
 
   /**
@@ -73,20 +85,19 @@ export class NativeFramesInstrumentation {
 
   /**
    * Called on a span finish to fetch native frames to support transactions with trimEnd.
+   * Only to be called when a span does not have an end timestamp.
    */
-  private _onSpanFinish(_: Span, endTimestamp?: number): void {
-    if (!endTimestamp) {
-      const timestamp = timestampInSeconds();
+  private _onSpanFinish(): void {
+    const timestamp = timestampInSeconds();
 
-      void NATIVE.fetchNativeFrames().then((nativeFrames) => {
-        if (nativeFrames) {
-          this._lastSpanFinishFrames = {
-            timestamp,
-            nativeFrames,
-          };
-        }
-      });
-    }
+    void NATIVE.fetchNativeFrames().then((nativeFrames) => {
+      if (nativeFrames) {
+        this._lastSpanFinishFrames = {
+          timestamp,
+          nativeFrames,
+        };
+      }
+    });
   }
 
   /**
