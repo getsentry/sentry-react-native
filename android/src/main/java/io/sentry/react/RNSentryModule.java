@@ -121,21 +121,19 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("sendDefaultPii")) {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
             }
-            if (rnOptions.hasKey("enableAutoPerformanceTracking")) {
-                if (rnOptions.getBoolean("enableAutoPerformanceTracking")) {
-                    if (RNSentryModule.frameMetricsAggregator == null) {
-                        RNSentryModule.frameMetricsAggregator = new FrameMetricsAggregator();
-                    }
-
-                    // Only add the current activity to frames metrics tracking if auto performance is on.
-                    Activity currentActivity = getCurrentActivity();
-
-                    if (currentActivity != null) {
-                        RNSentryModule.frameMetricsAggregator.add(currentActivity);
-                    }
-                } else {
-                    this.disableNativeFramesTracking();
+            if (rnOptions.hasKey("enableAutoPerformanceTracking") && rnOptions.getBoolean("enableAutoPerformanceTracking")) {
+                if (RNSentryModule.frameMetricsAggregator == null) {
+                    RNSentryModule.frameMetricsAggregator = new FrameMetricsAggregator();
                 }
+
+                // Only add the current activity to frames metrics tracking if auto performance is on.
+                Activity currentActivity = getCurrentActivity();
+
+                if (currentActivity != null) {
+                    RNSentryModule.frameMetricsAggregator.add(currentActivity);
+                }
+            } else {
+                this.disableNativeFramesTracking();
             }
 
             options.setBeforeSend((event, hint) -> {
