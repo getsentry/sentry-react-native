@@ -138,9 +138,7 @@ RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
 
-    if (!PrivateSentrySDKOnly.isFramesTrackingRunning) {
-        resolve(nil);
-    } else {
+    if (PrivateSentrySDKOnly.isFramesTrackingRunning) {
         SentryScreenFrames *frames = PrivateSentrySDKOnly.currentScreenFrames;
 
         if (frames == nil) {
@@ -152,6 +150,8 @@ RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
             @"frozenFrames": [NSNumber numberWithLong:frames.frozen],
             @"slowFrames": [NSNumber numberWithLong:frames.slow],
         });
+    } else {
+      resolve(nil);
     }
 }
 
