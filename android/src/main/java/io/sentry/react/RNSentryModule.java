@@ -56,6 +56,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     private static boolean didFetchAppStart = false;
     private static FrameMetricsAggregator frameMetricsAggregator = null;
 
+    // 700ms to constitute frozen frames.
+    private final int FROZEN_FRAME_THRESHOLD = 700;
+    // 16ms (slower than 60fps) to constitute slow frames.
+    private final int SLOW_FRAME_THRESHOLD = 16;
+
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
         RNSentryModule.packageInfo = getPackageInfo(reactContext);
@@ -248,10 +253,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                             int numFrames = totalIndexArray.valueAt(i);
                             totalFrames += numFrames;
                             // hard coded values, its also in the official android docs and frame metrics API
-                            if (frameTime > 700) {
+                            if (frameTime > FROZEN_FRAME_THRESHOLD) {
                                 // frozen frames, threshold is 700ms
                                 frozenFrames += numFrames;
-                            } else if (frameTime > 16) {
+                            } else if (frameTime > SLOW_FRAME_THRESHOLD) {
                                 // slow frames, above 16ms, 60 frames/second
                                 slowFrames += numFrames;
                             }
