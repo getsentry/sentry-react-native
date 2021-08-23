@@ -71,4 +71,7 @@ export interface ReactNativeOptions extends BrowserOptions {
 
   /** Enable auto performance tracking by default. */
   enableAutoPerformanceTracking?: boolean;
+  
+  /** Enable out of memory tracking by default. */
+  enableOutOfMemoryTracking? boolean;
 }
