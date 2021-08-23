@@ -267,10 +267,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
                 promise.resolve(map);
             } catch (Exception e) {
+                logger.warning("Error fetching native frames.");
                 promise.resolve(null);
             }
         }
-
     }
 
     @ReactMethod
