@@ -32,7 +32,6 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
-  enableStallTracking: true,
   enableAutoPerformanceTracking: true,
 };
 
@@ -95,10 +94,6 @@ function _init<O = ReactNativeOptions>(passedOptions: O): O {
     if (tracingEnabled) {
       if (options.enableAutoPerformanceTracking) {
         options.defaultIntegrations.push(new ReactNativeTracing());
-
-        if (options.enableStallTracking) {
-          options.defaultIntegrations.push(new StallTracking());
-        }
       }
     }
   }

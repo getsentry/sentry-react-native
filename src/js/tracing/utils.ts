@@ -4,6 +4,13 @@ import {
   SpanStatus,
   Transaction,
 } from "@sentry/tracing";
+import { timestampInSeconds } from "@sentry/utils";
+
+/**
+ * A margin of error of 50ms is allowed for the async native bridge call.
+ * Anything larger would reduce the accuracy of our frames measurements.
+ */
+export const MARGIN_OF_ERROR_SECONDS = 0.05;
 
 const timeOriginMilliseconds = Date.now();
 
@@ -63,4 +70,11 @@ export function instrumentChildSpanFinish(
       };
     };
   }
+}
+
+/**
+ * Determines if the timestamp is now or within the specified margin of error from now.
+ */
+export function isNearToNow(timestamp: number): boolean {
+  return Math.abs(timestampInSeconds() - timestamp) <= MARGIN_OF_ERROR_SECONDS;
 }

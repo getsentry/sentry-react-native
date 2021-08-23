@@ -1,9 +1,7 @@
 import { getCurrentHub, getMainCarrier, Hub } from "@sentry/hub";
 import { Transaction } from "@sentry/tracing";
 import { CustomSamplingContext, TransactionContext } from "@sentry/types";
-import { logger } from "@sentry/utils";
 
-import { StallTracking } from "./integrations";
 import { ReactNativeTracing } from "./tracing";
 
 /**
@@ -58,40 +56,20 @@ const _patchStartTransaction = (
     const reactNativeTracing = getCurrentHub().getIntegration(
       ReactNativeTracing
     );
-    const stallTracking = getCurrentHub().getIntegration(StallTracking);
 
     if (reactNativeTracing) {
       reactNativeTracing.onTransactionStart(transaction);
-    }
 
-    if (stallTracking) {
-      if (!transactionContext.startTimestamp) {
-        const finishStallTracking = stallTracking.registerTransactionStart(
-          transaction
-        );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const originalFinish = transaction.finish;
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        const originalFinish = transaction.finish;
+      transaction.finish = (endTimestamp: number | undefined) => {
+        if (reactNativeTracing) {
+          reactNativeTracing.onTransactionFinish(transaction);
+        }
 
-        transaction.finish = (endTimestamp: number | undefined) => {
-          const stallMeasurements = finishStallTracking();
-
-          // Sometimes the measurements will not be tracked due to some underlying reason, we don't add them in that case.
-          if (stallMeasurements) {
-            transaction.setMeasurements(stallMeasurements);
-          }
-
-          if (reactNativeTracing) {
-            reactNativeTracing.onTransactionFinish(transaction);
-          }
-
-          return originalFinish.apply(transaction, [endTimestamp]);
-        };
-      } else {
-        logger.log(
-          "[StallTracking] Stalls will not be tracked due to `startTimestamp` being set."
-        );
-      }
+        return originalFinish.apply(transaction, [endTimestamp]);
+      };
     }
 
     return transaction;
