@@ -128,8 +128,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
             if (rnOptions.hasKey("enableAutoPerformanceTracking") && rnOptions.getBoolean("enableAutoPerformanceTracking")) {
                 RNSentryModule.frameMetricsAggregator = new FrameMetricsAggregator();
-
-                // Only add the current activity to frames metrics tracking if auto performance is on.
                 Activity currentActivity = getCurrentActivity();
 
                 if (currentActivity != null) {
