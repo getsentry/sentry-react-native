@@ -271,7 +271,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
         }
 
-
     }
 
     @ReactMethod
@@ -446,6 +445,5 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             RNSentryModule.frameMetricsAggregator.stop();
             RNSentryModule.frameMetricsAggregator = null;
         }
-
     }
 }
