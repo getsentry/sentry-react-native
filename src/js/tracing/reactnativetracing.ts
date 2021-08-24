@@ -17,12 +17,15 @@ import {
 import { logger } from "@sentry/utils";
 
 import { NativeAppStartResponse } from "../definitions";
-import { ReactNativeOptions } from "../options";
 import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
 import { NATIVE } from "../wrapper";
 import { NativeFramesInstrumentation } from "./nativeframes";
 import { StallTrackingInstrumentation } from "./stalltracking";
-import { adjustTransactionDuration, isNearToNow } from "./utils";
+import {
+  adjustTransactionDuration,
+  getTimeOriginMilliseconds,
+  isNearToNow,
+} from "./utils";
 
 export type BeforeNavigate = (
   context: TransactionContext
@@ -71,6 +74,19 @@ export interface ReactNativeTracingOptions
    * @returns A (potentially) modified context object, with `sampled = false` if the transaction should be dropped.
    */
   beforeNavigate: BeforeNavigate;
+
+  /**
+   * Track the app start time by adding measurements to the first route transaction. If there is no routing instrumentation
+   * an app start transaction will be started.
+   *
+   * Default: true
+   */
+  enableAppStartTracking: boolean;
+
+  /**
+   * Track slow/frozen frames from the native layer and adds them as measurements to all transactions.
+   */
+  enableNativeFramesTracking: boolean;
 }
 
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
@@ -101,11 +117,11 @@ export class ReactNativeTracing implements Integration {
 
   public nativeFramesInstrumentation?: NativeFramesInstrumentation;
   public stallTrackingInstrumentation?: StallTrackingInstrumentation;
+  public useAppStartWithProfiler: boolean = false;
 
   private _getCurrentHub?: () => Hub;
   private _awaitingAppStartData?: NativeAppStartResponse;
   private _appStartFinishTimestamp?: number;
-  private _sentryOptions?: ReactNativeOptions;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this.options = {
@@ -130,15 +146,17 @@ export class ReactNativeTracing implements Integration {
       // @ts-ignore TODO
       shouldCreateSpanForRequest,
       routingInstrumentation,
+      enableAppStartTracking,
       enableNativeFramesTracking,
     } = this.options;
 
-    this._sentryOptions = getCurrentHub()?.getClient()?.getOptions();
     this._getCurrentHub = getCurrentHub;
 
-    void this._instrumentAppStart();
+    if (enableAppStartTracking) {
+      void this._instrumentAppStart();
+    }
 
-    if (this._sentryOptions?.enableAutoPerformanceTracking) {
+    if (enableNativeFramesTracking) {
       this.nativeFramesInstrumentation = new NativeFramesInstrumentation(
         addGlobalEventProcessor,
         () => {
@@ -201,7 +219,7 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
-   *
+   * Called by the ReactNativeProfiler component on first component mount.
    */
   public onAppStartFinish(endTimestamp: number): void {
     this._appStartFinishTimestamp = endTimestamp;
@@ -212,10 +230,7 @@ export class ReactNativeTracing implements Integration {
    * Starts a route transaction if there isn't routing instrumentation.
    */
   private async _instrumentAppStart(): Promise<void> {
-    if (
-      !this._sentryOptions?.enableAutoPerformanceTracking ||
-      !NATIVE.enableNative
-    ) {
+    if (!this.options.enableAppStartTracking || !NATIVE.enableNative) {
       return;
     }
 
@@ -223,6 +238,10 @@ export class ReactNativeTracing implements Integration {
 
     if (!appStart || appStart.didFetchAppStart) {
       return;
+    }
+
+    if (!this.useAppStartWithProfiler) {
+      this._appStartFinishTimestamp = getTimeOriginMilliseconds() / 1000;
     }
 
     if (this.options.routingInstrumentation) {
@@ -329,10 +348,7 @@ export class ReactNativeTracing implements Integration {
     );
 
     idleTransaction.registerBeforeFinishCallback((transaction) => {
-      if (
-        this._sentryOptions?.enableAutoPerformanceTracking &&
-        this._awaitingAppStartData
-      ) {
+      if (this.options.enableAppStartTracking && this._awaitingAppStartData) {
         transaction.startTimestamp =
           this._awaitingAppStartData.appStartTime / 1000;
         transaction.op = "ui.load";

@@ -16,7 +16,6 @@ import {
   DeviceContext,
   ReactNativeErrorHandlers,
   Release,
-  StallTracking,
 } from "./integrations";
 import { ReactNativeOptions, ReactNativeWrapperOptions } from "./options";
 import { ReactNativeScope } from "./scope";
@@ -126,6 +125,11 @@ export function initWith(
   passedOptions: ReactNativeWrapperOptions
 ): React.FC {
   const options = _init(passedOptions);
+
+  const tracingIntegration = getCurrentHub().getIntegration(ReactNativeTracing);
+  if (tracingIntegration) {
+    tracingIntegration.useAppStartWithProfiler = true;
+  }
 
   const profilerProps = {
     ...options.profilerProps,

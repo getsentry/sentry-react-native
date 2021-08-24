@@ -87,6 +87,7 @@ describe("ReactNativeTracing", () => {
 
         // use setImmediate as app start is handled inside a promise.
         setImmediate(() => {
+          integration.onAppStartFinish(Date.now() / 1000);
           const transaction = mockHub.getScope()?.getTransaction();
 
           expect(transaction).toBeDefined();

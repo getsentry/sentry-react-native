@@ -47,7 +47,6 @@ jest.spyOn(logger, "error");
 import { initAndBind } from "@sentry/core";
 import { getCurrentHub } from "@sentry/react";
 
-import { StallTracking } from "../src/js/integrations";
 import { flush, init } from "../src/js/sdk";
 import { ReactNativeTracing } from "../src/js/tracing";
 
@@ -57,8 +56,8 @@ afterEach(() => {
 
 describe("Tests the SDK functionality", () => {
   describe("init", () => {
-    describe("enableStallTracking", () => {
-      const stallTrackingIsEnabled = (): boolean => {
+    describe("enableAutoPerformanceTracking", () => {
+      const autoPerformanceIsEnabled = (): boolean => {
         const mockCall = (initAndBind as jest.MockedFunction<
           typeof initAndBind
         >).mock.calls[0];
@@ -68,7 +67,7 @@ describe("Tests the SDK functionality", () => {
 
           if (options.defaultIntegrations) {
             return options.defaultIntegrations?.some(
-              (integration) => integration.name === StallTracking.id
+              (integration) => integration.name === ReactNativeTracing.id
             );
           }
         }
@@ -76,129 +75,58 @@ describe("Tests the SDK functionality", () => {
         return false;
       };
 
-      it("Stall Tracking is not enabled when tracing is disabled", () => {
-        init({
-          enableStallTracking: true,
-        });
-
-        expect(stallTrackingIsEnabled()).toBe(false);
-      });
-
-      it("Stall Tracking is enabled when tracing is enabled (tracesSampler)", () => {
+      it("Auto Performance is enabled when tracing is enabled (tracesSampler)", () => {
         init({
           tracesSampler: () => true,
-          enableStallTracking: true,
-        });
-
-        expect(stallTrackingIsEnabled()).toBe(true);
-      });
-
-      it("Stall Tracking is enabled when tracing is enabled (tracesSampleRate)", () => {
-        init({
-          tracesSampleRate: 0.5,
-          enableStallTracking: true,
-        });
-
-        expect(stallTrackingIsEnabled()).toBe(true);
-      });
-
-      it("Stall Tracking is disabled when Auto performance tracking is disabled", () => {
-        init({
-          tracesSampleRate: 0.5,
-          enableStallTracking: true,
-          enableAutoPerformanceTracking: false,
-        });
-
-        expect(stallTrackingIsEnabled()).toBe(false);
-      });
-
-      it("Stall Tracking is enabled when Auto performance tracking is enabled", () => {
-        init({
-          tracesSampleRate: 0.5,
-          enableStallTracking: true,
           enableAutoPerformanceTracking: true,
         });
 
-        expect(stallTrackingIsEnabled()).toBe(true);
+        expect(autoPerformanceIsEnabled()).toBe(true);
+      });
+
+      it("Auto Performance is enabled when tracing is enabled (tracesSampleRate)", () => {
+        init({
+          tracesSampleRate: 0.5,
+          enableAutoPerformanceTracking: true,
+        });
+
+        expect(autoPerformanceIsEnabled()).toBe(true);
       });
     });
-  });
 
-  describe("enableAutoPerformanceTracking", () => {
-    const autoPerformanceIsEnabled = (): boolean => {
-      const mockCall = (initAndBind as jest.MockedFunction<typeof initAndBind>)
-        .mock.calls[0];
+    describe("flush", () => {
+      it("Calls flush on the client", async () => {
+        const mockClient = getCurrentHub().getClient();
 
-      if (mockCall) {
-        const options = mockCall[1];
+        expect(mockClient).toBeTruthy();
 
-        if (options.defaultIntegrations) {
-          return options.defaultIntegrations?.some(
-            (integration) => integration.name === ReactNativeTracing.id
+        if (mockClient) {
+          const flushResult = await flush();
+
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          expect(mockClient.flush).toBeCalled();
+          expect(flushResult).toBe(true);
+        }
+      });
+
+      it("Returns false if flush failed and logs error", async () => {
+        const mockClient = getCurrentHub().getClient();
+
+        expect(mockClient).toBeTruthy();
+        if (mockClient) {
+          mockClient.flush = jest.fn(() => Promise.reject());
+
+          const flushResult = await flush();
+
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          expect(mockClient.flush).toBeCalled();
+          expect(flushResult).toBe(false);
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          expect(logger.error).toBeCalledWith(
+            "Failed to flush the event queue."
           );
         }
-      }
-
-      return false;
-    };
-
-    it("Auto Performance is not enabled when tracing is disabled", () => {
-      init({
-        enableStallTracking: true,
       });
-
-      expect(autoPerformanceIsEnabled()).toBe(false);
-    });
-
-    it("Auto Performance is enabled when tracing is enabled (tracesSampler)", () => {
-      init({
-        tracesSampler: () => true,
-        enableAutoPerformanceTracking: true,
-      });
-
-      expect(autoPerformanceIsEnabled()).toBe(true);
-    });
-
-    it("Auto Performance is enabled when tracing is enabled (tracesSampleRate)", () => {
-      init({
-        tracesSampleRate: 0.5,
-        enableAutoPerformanceTracking: true,
-      });
-
-      expect(autoPerformanceIsEnabled()).toBe(true);
-    });
-  });
-
-  describe("flush", () => {
-    it("Calls flush on the client", async () => {
-      const mockClient = getCurrentHub().getClient();
-
-      expect(mockClient).toBeTruthy();
-
-      if (mockClient) {
-        const flushResult = await flush();
-
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(mockClient.flush).toBeCalled();
-        expect(flushResult).toBe(true);
-      }
-    });
-
-    it("Returns false if flush failed and logs error", async () => {
-      const mockClient = getCurrentHub().getClient();
-
-      expect(mockClient).toBeTruthy();
-      if (mockClient) {
-        mockClient.flush = jest.fn(() => Promise.reject());
-
-        const flushResult = await flush();
-
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(mockClient.flush).toBeCalled();
-        expect(flushResult).toBe(false);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(logger.error).toBeCalledWith("Failed to flush the event queue.");
-      }
     });
   });
 });
