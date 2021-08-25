@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.0.0-beta.2
 
 - feat: Native slow/frozen frames measurements #1711
 
