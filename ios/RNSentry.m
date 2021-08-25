@@ -7,6 +7,7 @@
 #endif
 
 #import <Sentry/Sentry.h>
+#import <Sentry/SentryScreenFrames.h>
 
 @interface SentrySDK (RNSentry)
 
@@ -114,7 +115,7 @@ RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
 {
 
     SentryAppStartMeasurement *appStartMeasurement = PrivateSentrySDKOnly.appStartMeasurement;
-    
+
     if (appStartMeasurement == nil) {
         resolve(nil);
     } else {
@@ -127,10 +128,31 @@ RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
                 });
 
     }
-    
+
     // This is always set to true, as we would only allow an app start fetch to only happen once
     // in the case of a JS bundle reload, we do not want it to be instrumented again.
     didFetchAppStart = true;
+}
+
+RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+
+    if (PrivateSentrySDKOnly.isFramesTrackingRunning) {
+        SentryScreenFrames *frames = PrivateSentrySDKOnly.currentScreenFrames;
+
+        if (frames == nil) {
+            resolve(nil);
+        }
+
+        resolve(@{
+            @"totalFrames": [NSNumber numberWithLong:frames.total],
+            @"frozenFrames": [NSNumber numberWithLong:frames.frozen],
+            @"slowFrames": [NSNumber numberWithLong:frames.slow],
+        });
+    } else {
+      resolve(nil);
+    }
 }
 
 RCT_EXPORT_METHOD(fetchNativeRelease:(RCTPromiseResolveBlock)resolve
@@ -286,6 +308,11 @@ RCT_EXPORT_METHOD(closeNativeSdk:(RCTPromiseResolveBlock)resolve
 {
   [SentrySDK close];
   resolve(@YES);
+}
+
+RCT_EXPORT_METHOD(disableNativeFramesTracking)
+{
+    // Do nothing on iOS, this bridge method only has an effect on android.
 }
 
 @end

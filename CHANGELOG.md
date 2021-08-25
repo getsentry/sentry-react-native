@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- feat: Native slow/frozen frames measurements #1711
+
 ## 3.0.0-beta.1
 
 - build(ios): Bump sentry-cocoa to 7.2.0-beta.9 #1704
