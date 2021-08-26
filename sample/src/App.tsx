@@ -64,8 +64,6 @@ const options = {
   dist: `${packageVersion}.0`,
 };
 
-// Sentry.init(options);
-
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -96,4 +94,5 @@ const App = () => {
   );
 };
 
+// We use initWith to wrap your app with more features out of the box such as auto performance monitoring.
 export default Sentry.initWith(App, options);
