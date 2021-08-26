@@ -21,6 +21,7 @@ static bool didFetchAppStart;
 
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
+    SentryOptions *sentryOptions;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -56,20 +57,14 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
             return nil;
         }
 
-        // set the event.origin tag to be ios if the event originated from the sentry-cocoa sdk.
-        if (event.sdk && [event.sdk[@"name"] isEqualToString:@"sentry.cocoa"]) {
-            NSMutableDictionary *newTags = [NSMutableDictionary new];
-            [newTags addEntriesFromDictionary:event.tags];
-            [newTags setValue:@"ios" forKey:@"event.origin"];
-            event.tags = newTags;
-        }
+        [self setEventOriginTag:event];
 
         return event;
     };
 
     [options setValue:beforeSend forKey:@"beforeSend"];
 
-    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:options didFailWithError:&error];
+    sentryOptions = [[SentryOptions alloc] initWithDict:options didFailWithError:&error];
     if (error) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
@@ -89,6 +84,43 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 
 
     resolve(@YES);
+}
+
+- (void)setEventOriginTag:(SentryEvent *)event {
+  if (event.sdk != nil) {
+    NSString *sdkName = event.sdk[@"name"];
+
+    // If the event is from react native, it gets set there and we do not handle
+    // it here.
+    if ([sdkName isEqualToString:@"sentry.cocoa"]) {
+      [self setEventEnvironmentTag:event origin:@"ios" environment:@"native"];
+    }
+  }
+}
+
+- (void)setEventEnvironmentTag:(SentryEvent *)event
+                        origin:(NSString *)origin
+                   environment:(NSString *)environment {
+  NSMutableDictionary *newTags = [NSMutableDictionary new];
+  if (nil != event.tags) {
+    [newTags addEntriesFromDictionary:event.tags];
+  }
+  [newTags setValue:origin forKey:@"event.origin"];
+  [newTags setValue:environment forKey:@"event.environment"];
+  event.tags = newTags;
+}
+
+RCT_EXPORT_METHOD(fetchNativeSdkInfo:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (sentryOptions == nil) {
+        return reject(@"SentryReactNative",@"Called fetchNativeSdkInfo without initializing the SDK first.", nil);
+    }
+    
+    resolve(@{
+        @"name": sentryOptions.sdkInfo.name,
+        @"version": sentryOptions.sdkInfo.version
+            });
 }
 
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
