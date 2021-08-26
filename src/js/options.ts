@@ -1,5 +1,4 @@
 import { BrowserOptions } from "@sentry/react";
-import { ErrorBoundaryProps } from "@sentry/react/dist/errorboundary";
 import { ProfilerProps } from "@sentry/react/dist/profiler";
 
 import { TouchEventBoundaryProps } from "./touchevents";
@@ -75,7 +74,9 @@ export interface ReactNativeOptions extends BrowserOptions {
 }
 
 export interface ReactNativeWrapperOptions extends ReactNativeOptions {
-  errorBoundaryProps?: ErrorBoundaryProps;
+  /** Props for the root React profiler */
   profilerProps?: ProfilerProps;
+
+  /** Props for the root touch event boundary */
   touchEventBoundaryProps?: TouchEventBoundaryProps;
 }

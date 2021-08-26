@@ -1,11 +1,7 @@
 import { initAndBind, setExtra } from "@sentry/core";
 import { Hub, makeMain } from "@sentry/hub";
 import { RewriteFrames } from "@sentry/integrations";
-import {
-  defaultIntegrations,
-  ErrorBoundary,
-  getCurrentHub,
-} from "@sentry/react";
+import { defaultIntegrations, getCurrentHub } from "@sentry/react";
 import { StackFrame } from "@sentry/types";
 import { getGlobalObject, logger } from "@sentry/utils";
 import * as React from "react";
@@ -120,10 +116,10 @@ export function init(options: ReactNativeOptions): void {
 /**
  * Inits the Sentry React Native SDK with automatic instrumentation and wrapped features.
  */
-export function initWith(
-  RootComponent: React.ComponentType,
+export function initWith<P>(
+  RootComponent: React.ComponentType<P>,
   passedOptions: ReactNativeWrapperOptions
-): React.FC {
+): React.ComponentType<P> {
   const options = _init(passedOptions);
 
   const tracingIntegration = getCurrentHub().getIntegration(ReactNativeTracing);
@@ -136,15 +132,13 @@ export function initWith(
     name: RootComponent.displayName ?? "Root",
   };
 
-  const RootApp: React.FC = (appProps) => {
+  const RootApp: React.FC<P> = (appProps) => {
     return (
-      <ErrorBoundary {...options.errorBoundaryProps}>
-        <TouchEventBoundary {...options.touchEventBoundaryProps}>
-          <ReactNativeProfiler {...profilerProps}>
-            <RootComponent {...appProps} />
-          </ReactNativeProfiler>
-        </TouchEventBoundary>
-      </ErrorBoundary>
+      <TouchEventBoundary {...options.touchEventBoundaryProps}>
+        <ReactNativeProfiler {...profilerProps}>
+          <RootComponent {...appProps} />
+        </ReactNativeProfiler>
+      </TouchEventBoundary>
     );
   };
 
