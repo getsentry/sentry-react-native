@@ -1,11 +1,14 @@
 import { logger } from "@sentry/utils";
 
 jest.mock("@sentry/react", () => {
+  const actualModule = jest.requireActual("@sentry/react");
+
   const mockClient = {
     flush: jest.fn(() => Promise.resolve(true)),
   };
 
   return {
+    ...actualModule,
     getCurrentHub: jest.fn(() => ({
       getClient: jest.fn(() => mockClient),
       setTag: jest.fn(),
