@@ -87,6 +87,11 @@ export interface ReactNativeTracingOptions
    * Track slow/frozen frames from the native layer and adds them as measurements to all transactions.
    */
   enableNativeFramesTracking: boolean;
+
+  /**
+   * Track when and how long the JS event loop stalls for. Adds stalls as measurements to all transactions.
+   */
+  enableStallTracking: boolean;
 }
 
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
@@ -97,6 +102,7 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   beforeNavigate: (context) => context,
   enableAppStartTracking: true,
   enableNativeFramesTracking: true,
+  enableStallTracking: true,
 };
 
 /**
@@ -148,6 +154,7 @@ export class ReactNativeTracing implements Integration {
       routingInstrumentation,
       enableAppStartTracking,
       enableNativeFramesTracking,
+      enableStallTracking,
     } = this.options;
 
     this._getCurrentHub = getCurrentHub;
@@ -169,9 +176,12 @@ export class ReactNativeTracing implements Integration {
           return false;
         }
       );
-      this.stallTrackingInstrumentation = new StallTrackingInstrumentation();
     } else {
       NATIVE.disableNativeFramesTracking();
+    }
+
+    if (enableStallTracking) {
+      this.stallTrackingInstrumentation = new StallTrackingInstrumentation();
     }
 
     if (routingInstrumentation) {
