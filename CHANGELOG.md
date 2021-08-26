@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- feat: Add `initWith` wrapper-initialization method #1728
+- feat: App-start measurements, if using the `initWith` wrapper, will now finish on the root component mount #1728
+
 ## 3.0.0-beta.2
 
 - feat: Native slow/frozen frames measurements #1711
