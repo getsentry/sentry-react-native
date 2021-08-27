@@ -33,7 +33,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
 /**
  * Inits the SDK and returns the final options.
  */
-function _init<O = ReactNativeOptions>(passedOptions: O): O {
+export function init(passedOptions: ReactNativeOptions): void {
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
   makeMain(reactNativeHub);
 
@@ -102,39 +102,28 @@ function _init<O = ReactNativeOptions>(passedOptions: O): O {
   if (getGlobalObject<any>().HermesInternal) {
     getCurrentHub().setTag("hermes", "true");
   }
-
-  return options;
-}
-
-/**
- * Inits the Sentry React Native SDK without any wrapping
- */
-export function init(options: ReactNativeOptions): void {
-  _init(options);
 }
 
 /**
  * Inits the Sentry React Native SDK with automatic instrumentation and wrapped features.
  */
-export function initWith<P>(
+export function wrap<P>(
   RootComponent: React.ComponentType<P>,
-  passedOptions: ReactNativeWrapperOptions
+  options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
-  const options = _init(passedOptions);
-
   const tracingIntegration = getCurrentHub().getIntegration(ReactNativeTracing);
   if (tracingIntegration) {
     tracingIntegration.useAppStartWithProfiler = true;
   }
 
   const profilerProps = {
-    ...options.profilerProps,
+    ...(options?.profilerProps ?? {}),
     name: RootComponent.displayName ?? "Root",
   };
 
   const RootApp: React.FC<P> = (appProps) => {
     return (
-      <TouchEventBoundary {...options.touchEventBoundaryProps}>
+      <TouchEventBoundary {...(options?.touchEventBoundaryProps ?? {})}>
         <ReactNativeProfiler {...profilerProps}>
           <RootComponent {...appProps} />
         </ReactNativeProfiler>

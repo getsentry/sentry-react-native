@@ -73,7 +73,7 @@ export interface ReactNativeOptions extends BrowserOptions {
   enableAutoPerformanceTracking?: boolean;
 }
 
-export interface ReactNativeWrapperOptions extends ReactNativeOptions {
+export interface ReactNativeWrapperOptions {
   /** Props for the root React profiler */
   profilerProps?: ProfilerProps;
 

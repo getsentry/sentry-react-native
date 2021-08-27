@@ -62,7 +62,7 @@ export { ReactNativeClient } from "./client";
 
 export {
   init,
-  initWith,
+  wrap,
   // eslint-disable-next-line deprecation/deprecation
   setDist,
   // eslint-disable-next-line deprecation/deprecation

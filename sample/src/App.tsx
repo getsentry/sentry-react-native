@@ -25,7 +25,7 @@ const reactNavigationV5Instrumentation = new Sentry.ReactNavigationV5Instrumenta
     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
   },
 );
-const options = {
+Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
@@ -62,7 +62,7 @@ const options = {
   // otherwise they will not work.
   release: packageVersion,
   dist: `${packageVersion}.0`,
-};
+});
 
 const Stack = createStackNavigator();
 
@@ -94,5 +94,5 @@ const App = () => {
   );
 };
 
-// We use initWith to wrap your app with more features out of the box such as auto performance monitoring.
-export default Sentry.initWith(App, options);
+// Wrap your app to get more features out of the box such as auto performance monitoring.
+export default Sentry.wrap(App);
