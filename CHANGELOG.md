@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.0.0-beta.3
 
 - feat: Add `wrap` wrapper method with profiler and touch event boundary #1728
 - feat: App-start measurements, if using the `wrap` wrapper, will now finish on the root component mount #1728
