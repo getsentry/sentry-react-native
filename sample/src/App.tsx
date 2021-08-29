@@ -25,7 +25,6 @@ const reactNavigationV5Instrumentation = new Sentry.ReactNavigationV5Instrumenta
     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
   },
 );
-
 Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: SENTRY_INTERNAL_DSN,
@@ -71,38 +70,29 @@ const App = () => {
   const navigation = React.useRef<NavigationContainerRef>();
 
   return (
-    <Sentry.Profiler name="App">
-      <Provider store={store}>
-        <NavigationContainer
-          ref={navigation}
-          onReady={() => {
-            reactNavigationV5Instrumentation.registerNavigationContainer(
-              navigation,
-            );
-          }}>
-          <Stack.Navigator>
-            <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="Tracker" component={TrackerScreen} />
-            <Stack.Screen
-              name="ManualTracker"
-              component={ManualTrackerScreen}
-            />
-            <Stack.Screen
-              name="PerformanceTiming"
-              component={PerformanceTimingScreen}
-            />
-            <Stack.Screen name="Redux" component={ReduxScreen} />
-            <Stack.Screen
-              name="EndToEndTests"
-              component={EndToEndTestsScreen}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </Provider>
-    </Sentry.Profiler>
+    <Provider store={store}>
+      <NavigationContainer
+        ref={navigation}
+        onReady={() => {
+          reactNavigationV5Instrumentation.registerNavigationContainer(
+            navigation,
+          );
+        }}>
+        <Stack.Navigator>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Tracker" component={TrackerScreen} />
+          <Stack.Screen name="ManualTracker" component={ManualTrackerScreen} />
+          <Stack.Screen
+            name="PerformanceTiming"
+            component={PerformanceTimingScreen}
+          />
+          <Stack.Screen name="Redux" component={ReduxScreen} />
+          <Stack.Screen name="EndToEndTests" component={EndToEndTestsScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Provider>
   );
 };
 
-export default Sentry.withTouchEventBoundary(App, {
-  ignoreNames: ['Provider', 'UselessName', /^SomeRegex/],
-});
+// Wrap your app to get more features out of the box such as auto performance monitoring.
+export default Sentry.wrap(App);

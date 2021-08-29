@@ -4,6 +4,7 @@ import { RewriteFrames } from "@sentry/integrations";
 import { defaultIntegrations, getCurrentHub } from "@sentry/react";
 import { StackFrame } from "@sentry/types";
 import { getGlobalObject, logger } from "@sentry/utils";
+import * as React from "react";
 
 import { ReactNativeClient } from "./client";
 import {
@@ -11,11 +12,11 @@ import {
   DeviceContext,
   ReactNativeErrorHandlers,
   Release,
-  StallTracking,
 } from "./integrations";
-import { ReactNativeOptions } from "./options";
+import { ReactNativeOptions, ReactNativeWrapperOptions } from "./options";
 import { ReactNativeScope } from "./scope";
-import { ReactNativeTracing } from "./tracing";
+import { TouchEventBoundary } from "./touchevents";
+import { ReactNativeProfiler, ReactNativeTracing } from "./tracing";
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   "GlobalHandlers", // We will use the react-native internal handlers
@@ -26,12 +27,11 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
-  enableStallTracking: true,
   enableAutoPerformanceTracking: true,
 };
 
 /**
- * Inits the SDK
+ * Inits the SDK and returns the final options.
  */
 export function init(passedOptions: ReactNativeOptions): void {
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
@@ -89,10 +89,6 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (tracingEnabled) {
       if (options.enableAutoPerformanceTracking) {
         options.defaultIntegrations.push(new ReactNativeTracing());
-
-        if (options.enableStallTracking) {
-          options.defaultIntegrations.push(new StallTracking());
-        }
       }
     }
   }
@@ -106,6 +102,36 @@ export function init(passedOptions: ReactNativeOptions): void {
   if (getGlobalObject<any>().HermesInternal) {
     getCurrentHub().setTag("hermes", "true");
   }
+}
+
+/**
+ * Inits the Sentry React Native SDK with automatic instrumentation and wrapped features.
+ */
+export function wrap<P>(
+  RootComponent: React.ComponentType<P>,
+  options?: ReactNativeWrapperOptions
+): React.ComponentType<P> {
+  const tracingIntegration = getCurrentHub().getIntegration(ReactNativeTracing);
+  if (tracingIntegration) {
+    tracingIntegration.useAppStartWithProfiler = true;
+  }
+
+  const profilerProps = {
+    ...(options?.profilerProps ?? {}),
+    name: RootComponent.displayName ?? "Root",
+  };
+
+  const RootApp: React.FC<P> = (appProps) => {
+    return (
+      <TouchEventBoundary {...(options?.touchEventBoundaryProps ?? {})}>
+        <ReactNativeProfiler {...profilerProps}>
+          <RootComponent {...appProps} />
+        </ReactNativeProfiler>
+      </TouchEventBoundary>
+    );
+  };
+
+  return RootApp;
 }
 
 /**

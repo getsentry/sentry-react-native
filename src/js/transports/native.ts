@@ -1,8 +1,6 @@
-// import { Transports } from "@sentry/react";
 import { Event, Response, Transport } from "@sentry/types";
 import { PromiseBuffer, SentryError } from "@sentry/utils";
 
-// import { Platform } from "react-native";
 import { NATIVE } from "../wrapper";
 
 /** Native Transport class implementation */
@@ -19,7 +17,7 @@ export class NativeTransport implements Transport {
         new SentryError("Not adding Promise due to buffer limit reached.")
       );
     }
-    return this._buffer.add(NATIVE.sendEvent(event));
+    return this._buffer.add(() => NATIVE.sendEvent(event));
   }
 
   /**

@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import { IdleTransaction, Span, Transaction } from "@sentry/tracing";
-import { Integration, Measurements } from "@sentry/types";
+import { Measurements } from "@sentry/types";
 import { logger, timestampInSeconds } from "@sentry/utils";
 
 export interface StallMeasurements extends Measurements {
@@ -31,17 +31,7 @@ const MAX_RUNNING_TRANSACTIONS = 10;
  * However, we modified the interval implementation to instead have a fixed loop timeout interval of `LOOP_TIMEOUT_INTERVAL_MS`.
  * We then would consider that iteration a stall when the total time for that interval to run is greater than `LOOP_TIMEOUT_INTERVAL_MS + minimumStallThreshold`
  */
-export class StallTracking implements Integration {
-  /**
-   * @inheritDoc
-   */
-  public static id: string = "StallTracking";
-
-  /**
-   * @inheritDoc
-   */
-  public name: string = StallTracking.id;
-
+export class StallTrackingInstrumentation {
   public isTracking: boolean = false;
 
   private _minimumStallThreshold: number;
@@ -59,6 +49,7 @@ export class StallTracking implements Integration {
     Transaction,
     {
       longestStallTime: number;
+      atStart: StallMeasurements;
       atTimestamp: {
         timestamp: number;
         stats: StallMeasurements;
@@ -84,21 +75,20 @@ export class StallTracking implements Integration {
    * Register a transaction as started. Starts stall tracking if not already running.
    * @returns A finish method that returns the stall measurements.
    */
-  public registerTransactionStart(
-    transaction: Transaction
-  ): (endTimestamp?: number) => StallMeasurements | null {
+  public onTransactionStart(transaction: Transaction): void {
     if (this._statsByTransaction.has(transaction)) {
       logger.error(
         "[StallTracking] Tried to start stall tracking on a transaction already being tracked. Measurements might be lost."
       );
 
-      return () => null;
+      return;
     }
 
     this._startTracking();
     this._statsByTransaction.set(transaction, {
       longestStallTime: 0,
       atTimestamp: null,
+      atStart: this._getCurrentStats(transaction),
     });
     this._flushLeakedTransactions();
 
@@ -123,11 +113,6 @@ export class StallTracking implements Integration {
         };
       };
     }
-
-    const statsOnStart = this._getCurrentStats(transaction);
-
-    return (endTimestamp?: number) =>
-      this._onFinish(transaction, statsOnStart, endTimestamp);
   }
 
   /**
@@ -135,11 +120,10 @@ export class StallTracking implements Integration {
    * Stops stall tracking if no more transactions are running.
    * @returns The stall measurements
    */
-  private _onFinish(
+  public onTransactionFinish(
     transaction: Transaction | IdleTransaction,
-    statsOnStart: StallMeasurements,
     passedEndTimestamp?: number
-  ): StallMeasurements | null {
+  ): void {
     const transactionStats = this._statsByTransaction.get(transaction);
 
     if (!transactionStats) {
@@ -151,7 +135,7 @@ export class StallTracking implements Integration {
       this._statsByTransaction.delete(transaction);
       this._shouldStopTracking();
 
-      return null;
+      return;
     }
 
     const endTimestamp = passedEndTimestamp ?? transaction.endTimestamp;
@@ -224,20 +208,24 @@ export class StallTracking implements Integration {
         );
       }
 
-      return null;
+      return;
     }
 
-    return {
+    const measurements = {
       stall_count: {
-        value: statsOnFinish.stall_count.value - statsOnStart.stall_count.value,
+        value:
+          statsOnFinish.stall_count.value -
+          transactionStats.atStart.stall_count.value,
       },
       stall_total_time: {
         value:
           statsOnFinish.stall_total_time.value -
-          statsOnStart.stall_total_time.value,
+          transactionStats.atStart.stall_total_time.value,
       },
       stall_longest_time: statsOnFinish.stall_longest_time,
     };
+
+    transaction.setMeasurements(measurements);
   }
 
   /**

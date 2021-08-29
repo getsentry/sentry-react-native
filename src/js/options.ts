@@ -1,4 +1,7 @@
 import { BrowserOptions } from "@sentry/react";
+import { ProfilerProps } from "@sentry/react/dist/profiler";
+
+import { TouchEventBoundaryProps } from "./touchevents";
 
 /**
  * Configuration options for the Sentry ReactNative SDK.
@@ -66,9 +69,14 @@ export interface ReactNativeOptions extends BrowserOptions {
     didCallNativeInit: boolean;
   }) => void;
 
-  /** Enable JS event loop stall tracking. Enabled by default. */
-  enableStallTracking?: boolean;
-
   /** Enable auto performance tracking by default. */
   enableAutoPerformanceTracking?: boolean;
+}
+
+export interface ReactNativeWrapperOptions {
+  /** Props for the root React profiler */
+  profilerProps?: ProfilerProps;
+
+  /** Props for the root touch event boundary */
+  touchEventBoundaryProps?: TouchEventBoundaryProps;
 }

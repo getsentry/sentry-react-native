@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- feat: Add `wrap` wrapper method with profiler and touch event boundary #1728
+- feat: App-start measurements, if using the `wrap` wrapper, will now finish on the root component mount #1728
+
 ## 3.0.0-beta.2
 
 - feat: Native slow/frozen frames measurements #1711

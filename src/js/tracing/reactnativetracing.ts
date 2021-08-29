@@ -17,11 +17,15 @@ import {
 import { logger } from "@sentry/utils";
 
 import { NativeAppStartResponse } from "../definitions";
-import { StallTracking } from "../integrations";
 import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
 import { NATIVE } from "../wrapper";
 import { NativeFramesInstrumentation } from "./nativeframes";
-import { adjustTransactionDuration, getTimeOriginMilliseconds } from "./utils";
+import { StallTrackingInstrumentation } from "./stalltracking";
+import {
+  adjustTransactionDuration,
+  getTimeOriginMilliseconds,
+  isNearToNow,
+} from "./utils";
 
 export type BeforeNavigate = (
   context: TransactionContext
@@ -83,6 +87,11 @@ export interface ReactNativeTracingOptions
    * Track slow/frozen frames from the native layer and adds them as measurements to all transactions.
    */
   enableNativeFramesTracking: boolean;
+
+  /**
+   * Track when and how long the JS event loop stalls for. Adds stalls as measurements to all transactions.
+   */
+  enableStallTracking: boolean;
 }
 
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
@@ -93,6 +102,7 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   beforeNavigate: (context) => context,
   enableAppStartTracking: true,
   enableNativeFramesTracking: true,
+  enableStallTracking: true,
 };
 
 /**
@@ -112,9 +122,12 @@ export class ReactNativeTracing implements Integration {
   public options: ReactNativeTracingOptions;
 
   public nativeFramesInstrumentation?: NativeFramesInstrumentation;
+  public stallTrackingInstrumentation?: StallTrackingInstrumentation;
+  public useAppStartWithProfiler: boolean = false;
 
   private _getCurrentHub?: () => Hub;
   private _awaitingAppStartData?: NativeAppStartResponse;
+  private _appStartFinishTimestamp?: number;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this.options = {
@@ -139,12 +152,16 @@ export class ReactNativeTracing implements Integration {
       // @ts-ignore TODO
       shouldCreateSpanForRequest,
       routingInstrumentation,
+      enableAppStartTracking,
       enableNativeFramesTracking,
+      enableStallTracking,
     } = this.options;
 
     this._getCurrentHub = getCurrentHub;
 
-    void this._instrumentAppStart();
+    if (enableAppStartTracking) {
+      void this._instrumentAppStart();
+    }
 
     if (enableNativeFramesTracking) {
       this.nativeFramesInstrumentation = new NativeFramesInstrumentation(
@@ -161,6 +178,10 @@ export class ReactNativeTracing implements Integration {
       );
     } else {
       NATIVE.disableNativeFramesTracking();
+    }
+
+    if (enableStallTracking) {
+      this.stallTrackingInstrumentation = new StallTrackingInstrumentation();
     }
 
     if (routingInstrumentation) {
@@ -186,14 +207,32 @@ export class ReactNativeTracing implements Integration {
    * To be called on a transaction start. Can have async methods
    */
   public onTransactionStart(transaction: Transaction): void {
-    this.nativeFramesInstrumentation?.onTransactionStart(transaction);
+    if (isNearToNow(transaction.startTimestamp)) {
+      // Only if this method is called at or within margin of error to the start timestamp.
+      this.nativeFramesInstrumentation?.onTransactionStart(transaction);
+      this.stallTrackingInstrumentation?.onTransactionStart(transaction);
+    }
   }
 
   /**
    * To be called on a transaction finish. Cannot have async methods.
    */
-  public onTransactionFinish(transaction: Transaction): void {
+  public onTransactionFinish(
+    transaction: Transaction,
+    endTimestamp?: number
+  ): void {
     this.nativeFramesInstrumentation?.onTransactionFinish(transaction);
+    this.stallTrackingInstrumentation?.onTransactionFinish(
+      transaction,
+      endTimestamp
+    );
+  }
+
+  /**
+   * Called by the ReactNativeProfiler component on first component mount.
+   */
+  public onAppStartFinish(endTimestamp: number): void {
+    this._appStartFinishTimestamp = endTimestamp;
   }
 
   /**
@@ -209,6 +248,10 @@ export class ReactNativeTracing implements Integration {
 
     if (!appStart || appStart.didFetchAppStart) {
       return;
+    }
+
+    if (!this.useAppStartWithProfiler) {
+      this._appStartFinishTimestamp = getTimeOriginMilliseconds() / 1000;
     }
 
     if (this.options.routingInstrumentation) {
@@ -235,18 +278,22 @@ export class ReactNativeTracing implements Integration {
     transaction: IdleTransaction,
     appStart: NativeAppStartResponse
   ): void {
+    if (!this._appStartFinishTimestamp) {
+      logger.warn("App start was never finished.");
+      return;
+    }
+
     const appStartTimeSeconds = appStart.appStartTime / 1000;
-    const timeOriginSeconds = getTimeOriginMilliseconds() / 1000;
 
     transaction.startChild({
       description: appStart.isColdStart ? "Cold App Start" : "Warm App Start",
       op: appStart.isColdStart ? "app.start.cold" : "app.start.warm",
       startTimestamp: appStartTimeSeconds,
-      endTimestamp: timeOriginSeconds,
+      endTimestamp: this._appStartFinishTimestamp,
     });
 
     const appStartDurationMilliseconds =
-      getTimeOriginMilliseconds() - appStart.appStartTime;
+      this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
 
     transaction.setMeasurements(
       appStart.isColdStart
@@ -304,9 +351,11 @@ export class ReactNativeTracing implements Integration {
       `[ReactNativeTracing] Starting ${context.op} transaction "${context.name}" on scope`
     );
 
-    idleTransaction.registerBeforeFinishCallback((transaction) => {
-      this.onTransactionFinish(transaction);
-    });
+    idleTransaction.registerBeforeFinishCallback(
+      (transaction, endTimestamp) => {
+        this.onTransactionFinish(transaction, endTimestamp);
+      }
+    );
 
     idleTransaction.registerBeforeFinishCallback((transaction) => {
       if (this.options.enableAppStartTracking && this._awaitingAppStartData) {
@@ -319,24 +368,6 @@ export class ReactNativeTracing implements Integration {
         this._awaitingAppStartData = undefined;
       }
     });
-
-    const stallTracking = this._getCurrentHub().getIntegration(StallTracking);
-
-    if (stallTracking) {
-      const stallTrackingFinish = stallTracking.registerTransactionStart(
-        idleTransaction
-      );
-
-      idleTransaction.registerBeforeFinishCallback(
-        (transaction, endTimestamp) => {
-          const stallMeasurements = stallTrackingFinish(endTimestamp);
-
-          if (stallMeasurements) {
-            transaction.setMeasurements(stallMeasurements);
-          }
-        }
-      );
-    }
 
     idleTransaction.registerBeforeFinishCallback(
       (transaction, endTimestamp) => {

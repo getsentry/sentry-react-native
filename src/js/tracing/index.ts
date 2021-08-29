@@ -12,3 +12,4 @@ export {
   ReactNavigationRoute,
   ReactNavigationTransactionContext,
 } from "./types";
+export { ReactNativeProfiler } from "./reactnativeprofiler";
