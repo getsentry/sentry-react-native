@@ -13,7 +13,6 @@ export {
   User,
 } from "@sentry/types";
 
-import { addGlobalEventProcessor } from "@sentry/core";
 export {
   addGlobalEventProcessor,
   addBreadcrumb,
