@@ -9,18 +9,22 @@ describe("Event Origin", () => {
     const mockEvent: Event = {};
 
     integration.setupOnce(async (eventProcessor) => {
-      const processedEvent = await eventProcessor(mockEvent);
+      try {
+        const processedEvent = await eventProcessor(mockEvent);
 
-      expect(processedEvent).toBeDefined();
-      if (processedEvent) {
-        expect(processedEvent.tags).toBeDefined();
-        if (processedEvent.tags) {
-          expect(processedEvent.tags["event.origin"]).toBe("javascript");
-          expect(processedEvent.tags["event.environment"]).toBe("javascript");
+        expect(processedEvent).toBeDefined();
+        if (processedEvent) {
+          expect(processedEvent.tags).toBeDefined();
+          if (processedEvent.tags) {
+            expect(processedEvent.tags["event.origin"]).toBe("javascript");
+            expect(processedEvent.tags["event.environment"]).toBe("javascript");
+          }
         }
-      }
 
-      done();
+        done();
+      } catch (e) {
+        done(e);
+      }
     });
   });
 });
