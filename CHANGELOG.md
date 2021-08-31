@@ -8,6 +8,7 @@
 - fix: Fix native frames not being added to transactions #1752
 - build(android): Bump sentry-android to 5.1.2 #1753
 - build(ios): Bump sentry-cocoa to 7.2.6 #1753
+- fix: Move @sentry/wizard dependency to devDependencies #1751
 
 ## 3.0.0-beta.3
 
