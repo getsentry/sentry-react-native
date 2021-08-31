@@ -28,11 +28,12 @@ export class SdkInfo implements Integration {
       if (NATIVE.platform === "ios" && this._nativeSdkInfo === null) {
         try {
           this._nativeSdkInfo = await NATIVE.fetchNativeSdkInfo();
-        } catch (_) {
+        } catch (e) {
           // If this fails, go ahead as usual as we would rather have the event be sent with a package missing.
           logger.warn(
-            "[SdkInfo] Native SDK Info retrieval failed...something could be wrong with your Sentry installation."
+            "[SdkInfo] Native SDK Info retrieval failed...something could be wrong with your Sentry installation:"
           );
+          logger.warn(e);
         }
       }
 

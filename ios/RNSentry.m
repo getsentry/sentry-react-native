@@ -102,11 +102,17 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                         origin:(NSString *)origin
                    environment:(NSString *)environment {
   NSMutableDictionary *newTags = [NSMutableDictionary new];
-  if (nil != event.tags) {
+
+  if (nil != event.tags && [event.tags count] > 0) {
     [newTags addEntriesFromDictionary:event.tags];
   }
-  [newTags setValue:origin forKey:@"event.origin"];
-  [newTags setValue:environment forKey:@"event.environment"];
+  if (nil != origin) {
+    [newTags setValue:origin forKey:@"event.origin"];
+  }
+  if (nil != environment) {
+    [newTags setValue:environment forKey:@"event.environment"];
+  }
+
   event.tags = newTags;
 }
 
@@ -116,7 +122,7 @@ RCT_EXPORT_METHOD(fetchNativeSdkInfo:(RCTPromiseResolveBlock)resolve
     if (sentryOptions == nil) {
         return reject(@"SentryReactNative",@"Called fetchNativeSdkInfo without initializing the SDK first.", nil);
     }
-    
+
     resolve(@{
         @"name": sentryOptions.sdkInfo.name,
         @"version": sentryOptions.sdkInfo.version
