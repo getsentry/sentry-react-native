@@ -47,13 +47,13 @@
     "@sentry/react": "6.12.0-beta.2",
     "@sentry/tracing": "6.12.0-beta.2",
     "@sentry/types": "6.12.0-beta.2",
-    "@sentry/utils": "6.12.0-beta.2",
-    "@sentry/wizard": "^1.2.2"
+    "@sentry/utils": "6.12.0-beta.2"
   },
   "devDependencies": {
     "@sentry-internal/eslint-config-sdk": "6.12.0-beta.2",
     "@sentry-internal/eslint-plugin-sdk": "6.12.0-beta.2",
     "@sentry/typescript": "^5.20.0",
+    "@sentry/wizard": "^1.2.2",
     "@types/jest": "^26.0.15",
     "@types/react": "^16.9.49",
     "@types/react-native": "^0.64.2",
