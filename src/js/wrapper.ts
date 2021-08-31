@@ -2,6 +2,7 @@
 import {
   Breadcrumb,
   Event,
+  Package,
   Response,
   Severity,
   Status,
@@ -47,6 +48,7 @@ interface SentryNativeWrapper {
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
   fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
   fetchNativeFrames(): PromiseLike<NativeFramesResponse | null>;
+  fetchNativeSdkInfo(): PromiseLike<Package | null>;
 
   disableNativeFramesTracking(): void;
 
@@ -232,6 +234,25 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.fetchNativeRelease();
+  },
+
+  /**
+   * Fetches the Sdk info for the native sdk.
+   * NOTE: Only available on iOS.
+   */
+  async fetchNativeSdkInfo(): Promise<Package | null> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    if (this.platform !== "ios") {
+      return null;
+    }
+
+    return RNSentry.fetchNativeSdkInfo();
   },
 
   /**

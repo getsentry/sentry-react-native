@@ -1,4 +1,4 @@
-import { Breadcrumb } from "@sentry/types";
+import { Breadcrumb, Package } from "@sentry/types";
 
 import { ReactNativeOptions } from "./options";
 
@@ -49,6 +49,7 @@ export interface SentryNativeBridgeModule {
     id: string;
     version: string;
   }>;
+  fetchNativeSdkInfo(): PromiseLike<Package>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
   fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
   fetchNativeFrames(): PromiseLike<NativeFramesResponse | null>;

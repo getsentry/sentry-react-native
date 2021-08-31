@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- feat: Align `event.origin`, `event.environment` with other hybrid sdks #1749
+- feat: Add native sdk package info onto events #1749
+
 ## 3.0.0-beta.3
 
 - feat: Add `wrap` wrapper method with profiler and touch event boundary #1728
