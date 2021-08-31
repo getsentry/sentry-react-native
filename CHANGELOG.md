@@ -4,6 +4,7 @@
 
 - feat: Align `event.origin`, `event.environment` with other hybrid sdks #1749
 - feat: Add native sdk package info onto events #1749
+- fix: Fix native frames not being added to transactions #1752
 
 ## 3.0.0-beta.3
 
