@@ -42,9 +42,7 @@ export class NativeFramesInstrumentation {
       "[ReactNativeTracing] Native frames instrumentation initialized."
     );
 
-    if (doesExist()) {
-      addGlobalEventProcessor(this._processEvent.bind(this));
-    }
+    addGlobalEventProcessor((event) => this._processEvent(event, doesExist));
   }
 
   /**
@@ -208,7 +206,14 @@ export class NativeFramesInstrumentation {
    * Adds frames measurements to an event. Called from a valid event processor.
    * Awaits for finish frames if needed.
    */
-  private async _processEvent(event: Event): Promise<Event> {
+  private async _processEvent(
+    event: Event,
+    doesExist: () => boolean
+  ): Promise<Event> {
+    if (!doesExist()) {
+      return event;
+    }
+
     if (
       event.type === "transaction" &&
       event.transaction &&
