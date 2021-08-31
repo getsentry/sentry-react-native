@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- feat: Align `event.origin`, `event.environment` with other hybrid sdks #1749
+- feat: Add native sdk package info onto events #1749
+- build(js): Bump sentry-javascript dependencies to 6.12.0 #1750
+- fix: Fix native frames not being added to transactions #1752
+- build(android): Bump sentry-android to 5.1.2 #1753
+- build(ios): Bump sentry-cocoa to 7.2.6 #1753
+
 ## 3.0.0-beta.3
 
 - feat: Add `wrap` wrapper method with profiler and touch event boundary #1728

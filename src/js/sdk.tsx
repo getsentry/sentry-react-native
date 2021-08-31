@@ -10,8 +10,10 @@ import { ReactNativeClient } from "./client";
 import {
   DebugSymbolicator,
   DeviceContext,
+  EventOrigin,
   ReactNativeErrorHandlers,
   Release,
+  SdkInfo,
 } from "./integrations";
 import { ReactNativeOptions, ReactNativeWrapperOptions } from "./options";
 import { ReactNativeScope } from "./scope";
@@ -54,10 +56,14 @@ export function init(passedOptions: ReactNativeOptions): void {
       ...defaultIntegrations.filter(
         (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
       ),
+      new EventOrigin(),
+      new SdkInfo(),
     ];
+
     if (__DEV__) {
       options.defaultIntegrations.push(new DebugSymbolicator());
     }
+
     options.defaultIntegrations.push(
       new RewriteFrames({
         iteratee: (frame: StackFrame) => {
@@ -94,9 +100,6 @@ export function init(passedOptions: ReactNativeOptions): void {
   }
 
   initAndBind(ReactNativeClient, options);
-
-  // set the event.origin tag.
-  getCurrentHub().setTag("event.origin", "javascript");
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
   if (getGlobalObject<any>().HermesInternal) {
