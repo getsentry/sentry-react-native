@@ -4,6 +4,7 @@
 
 - feat: Align `event.origin`, `event.environment` with other hybrid sdks #1749
 - feat: Add native sdk package info onto events #1749
+- build(js): Bump sentry-javascript dependencies to 6.12.0 #1750
 
 ## 3.0.0-beta.3
 
