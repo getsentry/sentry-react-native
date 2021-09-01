@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix: Add sentry-cli as a dependency #1755
+
 ## 3.0.0
 
 - feat: Align `event.origin`, `event.environment` with other hybrid sdks #1749
