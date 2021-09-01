@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.0.1
 
 - fix: Add sentry-cli as a dependency #1755
 
