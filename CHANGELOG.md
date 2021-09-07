@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Bump: Android tooling API 30 (#1761)
+
 ## 3.0.1
 
 - fix: Add sentry-cli as a dependency #1755
@@ -114,7 +118,7 @@
 
 ## 2.2.1
 
-- build(js): Bump @sentry/* dependencies on javascript to 6.2.0 #1354
+- build(js): Bump @sentry/\* dependencies on javascript to 6.2.0 #1354
 - fix: Fix react-dom dependency issue. #1354
 - build(android): Bump sentry-android to 4.1.0 #1334
 
