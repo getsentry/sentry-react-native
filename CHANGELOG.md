@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.0.2
+
 - Bump: Android tooling API 30 (#1761)
 
 ## 3.0.1
