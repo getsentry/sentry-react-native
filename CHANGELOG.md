@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Fix: Set Java 8 for source and target compatibility if not using AGP >= 4.2.x (#)
+- Fix: Set Java 8 for source and target compatibility if not using AGP >= 4.2.x (#1764)
 
 ## 3.0.2
 
