@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix: Set Java 8 for source and target compatibility if not using AGP >= 4.2.x (#1763)
+
 ## 3.0.2
 
 - Bump: Android tooling API 30 (#1761)
