@@ -75,7 +75,9 @@ export { TouchEventBoundary, withTouchEventBoundary } from "./touchevents";
 export {
   ReactNativeTracing,
   ReactNavigationV4Instrumentation,
+  // eslint-disable-next-line deprecation/deprecation
   ReactNavigationV5Instrumentation,
+  ReactNavigationInstrumentation,
   RoutingInstrumentation,
   ReactNavigationTransactionContext,
 } from "./tracing";
