@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Fix: Allow custom release for source map upload scripts (#1229)
+- Feat: Allow custom release for source map upload scripts (#1548)
 
 ## 3.0.3
 
