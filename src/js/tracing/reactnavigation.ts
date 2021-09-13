@@ -8,26 +8,26 @@ import {
 } from "./routingInstrumentation";
 import { ReactNavigationTransactionContext } from "./types";
 
-export interface NavigationRouteV5 {
+export interface NavigationRoute {
   name: string;
   key: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params?: Record<string, any>;
 }
 
-interface NavigationContainerV5 {
+interface NavigationContainer {
   addListener: (type: string, listener: () => void) => void;
-  getCurrentRoute: () => NavigationRouteV5;
+  getCurrentRoute: () => NavigationRoute;
 }
 
-interface ReactNavigationV5Options {
+interface ReactNavigationOptions {
   /**
    * The time the transaction will wait for route to mount before it is discarded.
    */
   routeChangeTimeoutMs: number;
 }
 
-const defaultOptions: ReactNavigationV5Options = {
+const defaultOptions: ReactNavigationOptions = {
   routeChangeTimeoutMs: 1000,
 };
 
@@ -39,22 +39,22 @@ const defaultOptions: ReactNavigationV5Options = {
  * - `_onStateChange` is then called AFTER the state change happens due to a dispatch and sets the route context onto the active transaction.
  * - If `_onStateChange` isn't called within `STATE_CHANGE_TIMEOUT_DURATION` of the dispatch, then the transaction is not sampled and finished.
  */
-export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
+export class ReactNavigationInstrumentation extends RoutingInstrumentation {
   public static instrumentationName: string = "react-navigation-v5";
 
-  private _navigationContainer: NavigationContainerV5 | null = null;
+  private _navigationContainer: NavigationContainer | null = null;
 
   private readonly _maxRecentRouteLen: number = 200;
 
-  private _latestRoute?: NavigationRouteV5;
+  private _latestRoute?: NavigationRoute;
   private _latestTransaction?: TransactionType;
   private _initialStateHandled: boolean = false;
   private _stateChangeTimeout?: number | undefined;
   private _recentRouteKeys: string[] = [];
 
-  private _options: ReactNavigationV5Options;
+  private _options: ReactNavigationOptions;
 
-  public constructor(options: Partial<ReactNavigationV5Options> = {}) {
+  public constructor(options: Partial<ReactNavigationOptions> = {}) {
     super();
 
     this._options = {
@@ -147,9 +147,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
    * and gets the route information from there, @see _onStateChange
    */
   private _onDispatch(): void {
-    this._latestTransaction = this.onRouteWillChange(
-      BLANK_TRANSACTION_CONTEXT_V5
-    );
+    this._latestTransaction = this.onRouteWillChange(BLANK_TRANSACTION_CONTEXT);
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
@@ -179,7 +177,7 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
         this._latestTransaction &&
         (!previousRoute || previousRoute.key !== route.key)
       ) {
-        const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT_V5;
+        const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
         const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
 
         const updatedContext: ReactNavigationTransactionContext = {
@@ -263,12 +261,18 @@ export class ReactNavigationV5Instrumentation extends RoutingInstrumentation {
   }
 }
 
-export const BLANK_TRANSACTION_CONTEXT_V5 = {
+/**
+ * Backwards compatibility alias for ReactNavigationInstrumentation
+ * @deprecated Use ReactNavigationInstrumentation
+ */
+export const ReactNavigationV5Instrumentation = ReactNavigationInstrumentation;
+
+export const BLANK_TRANSACTION_CONTEXT = {
   name: "Route Change",
   op: "navigation",
   tags: {
     "routing.instrumentation":
-      ReactNavigationV5Instrumentation.instrumentationName,
+      ReactNavigationInstrumentation.instrumentationName,
   },
   data: {},
 };

@@ -5,7 +5,11 @@ export {
   RoutingInstrumentationInstance,
 } from "./routingInstrumentation";
 
-export { ReactNavigationV5Instrumentation } from "./reactnavigationv5";
+export {
+  ReactNavigationInstrumentation,
+  // eslint-disable-next-line deprecation/deprecation
+  ReactNavigationV5Instrumentation,
+} from "./reactnavigation";
 export { ReactNavigationV4Instrumentation } from "./reactnavigationv4";
 export {
   ReactNavigationCurrentRoute,
