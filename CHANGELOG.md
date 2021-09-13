@@ -1,10 +1,9 @@
 # Changelog
 
-## Unreleased
+## 3.1.0
 
 - Feat: Allow custom release for source map upload scripts #1548
 - ref: Remove v5 prefix from react navigation instrumentation to support v6 #1768
-
 
 ## 3.0.3
 
