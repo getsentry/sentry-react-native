@@ -78,6 +78,7 @@ export {
   // eslint-disable-next-line deprecation/deprecation
   ReactNavigationV5Instrumentation,
   ReactNavigationInstrumentation,
+  ReactNativeNavigationInstrumentation,
   RoutingInstrumentation,
   ReactNavigationTransactionContext,
 } from "./tracing";

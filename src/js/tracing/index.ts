@@ -11,9 +11,12 @@ export {
   ReactNavigationV5Instrumentation,
 } from "./reactnavigation";
 export { ReactNavigationV4Instrumentation } from "./reactnavigationv4";
+export { ReactNativeNavigationInstrumentation } from "./reactnativenavigation";
+
 export {
   ReactNavigationCurrentRoute,
   ReactNavigationRoute,
   ReactNavigationTransactionContext,
 } from "./types";
+
 export { ReactNativeProfiler } from "./reactnativeprofiler";
