@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Bump Sentry Android SDK to 5.2.0 ([#1785](https://github.com/getsentry/sentry-react-native/pull/1785))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/5.2.0/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-java/compare/5.1.2...5.2.0)
+
+- Bump Sentry Cocoa SDK to 7.3.0 ([#1785](https://github.com/getsentry/sentry-react-native/pull/1785))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.3.0/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.2.6...7.3.0)
+
 ## 3.1.0
 
 - Feat: Allow custom release for source map upload scripts #1548

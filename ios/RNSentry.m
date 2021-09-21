@@ -211,7 +211,7 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
     if ([NSJSONSerialization isValidJSONObject:envelopeDict]) {
         SentrySdkInfo *sdkInfo = [[SentrySdkInfo alloc] initWithDict:envelopeDict[@"header"]];
         SentryId *eventId = [[SentryId alloc] initWithUUIDString:envelopeDict[@"header"][@"event_id"]];
-        SentryEnvelopeHeader *envelopeHeader = [[SentryEnvelopeHeader alloc] initWithId:eventId andSdkInfo:sdkInfo];
+        SentryEnvelopeHeader *envelopeHeader = [[SentryEnvelopeHeader alloc] initWithId:eventId sdkInfo:sdkInfo traceState:nil];
 
         NSError *error;
         NSData *envelopeItemData = [NSJSONSerialization dataWithJSONObject:envelopeDict[@"payload"] options:0 error:&error];
