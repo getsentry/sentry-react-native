@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.1
 
 - Bump Sentry Android SDK to 5.2.0 ([#1785](https://github.com/getsentry/sentry-react-native/pull/1785))
   - [changelog](https://github.com/getsentry/sentry-java/blob/5.2.0/CHANGELOG.md)
