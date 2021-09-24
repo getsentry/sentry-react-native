@@ -1,6 +1,5 @@
 import { Transaction as TransactionType } from "@sentry/types";
 import { logger } from "@sentry/utils";
-import { ComponentType } from "react";
 import { EmitterSubscription } from "react-native";
 
 import { BeforeNavigate } from "./reactnativetracing";
@@ -22,18 +21,24 @@ interface ComponentEvent {
   componentId: string;
 }
 
-interface ComponentWillAppearEvent extends ComponentEvent {
+type ComponentType =
+  | "Component"
+  | "TopBarTitle"
+  | "TopBarBackground"
+  | "TopBarButton";
+
+export interface ComponentWillAppearEvent extends ComponentEvent {
   componentName: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   passProps?: Record<any, any>;
   componentType: ComponentType;
 }
 
-interface EventSubscription {
+export interface EventSubscription {
   remove(): void;
 }
 
-interface EventsRegistry {
+export interface EventsRegistry {
   registerComponentWillAppearListener(
     callback: (event: ComponentWillAppearEvent) => void
   ): EmitterSubscription;
@@ -43,12 +48,12 @@ interface EventsRegistry {
   ): EventSubscription;
 }
 
-interface NavigationDelegate {
+export interface NavigationDelegate {
   events: () => EventsRegistry;
 }
 
 /**
- * Instrumentation for React-Navigation V5. See docs or sample app for usage.
+ * Instrumentation for React Native Navigation. See docs or sample app for usage.
  *
  * How this works:
  * - `_onCommand` is called every time a commands happens and sets an IdleTransaction on the scope without any route context.
@@ -61,7 +66,8 @@ export class ReactNativeNavigationInstrumentation extends RoutingInstrumentation
   private _navigation: NavigationDelegate;
   private _options: ReactNativeNavigationOptions;
 
-  private _prevComponentEvent?: ComponentWillAppearEvent;
+  private _prevComponentEvent: ComponentWillAppearEvent | null = null;
+
   private _latestTransaction?: TransactionType;
   private _recentComponentIds: string[] = [];
   private _stateChangeTimeout?: number | undefined;
@@ -171,11 +177,11 @@ export class ReactNativeNavigationInstrumentation extends RoutingInstrumentation
         logger.log(
           `[${ReactNativeNavigationInstrumentation.name}] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
         );
-      } else {
-        this._latestTransaction.updateWithContext(finalContext);
-
-        this._prevComponentEvent = event;
       }
+
+      this._latestTransaction.updateWithContext(finalContext);
+
+      this._prevComponentEvent = event;
     } else {
       this._discardLatestTransaction();
     }

@@ -34,6 +34,8 @@ export interface RoutingInstrumentationInstance {
  * Pass this to the tracing integration, and call `onRouteWillChange` every time before a route changes.
  */
 export class RoutingInstrumentation implements RoutingInstrumentationInstance {
+  public static instrumentationName: string = "base-routing-instrumentation";
+
   protected _getCurrentHub?: () => Hub;
   protected _beforeNavigate?: BeforeNavigate;
 
