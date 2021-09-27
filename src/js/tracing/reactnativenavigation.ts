@@ -29,8 +29,7 @@ type ComponentType =
 
 export interface ComponentWillAppearEvent extends ComponentEvent {
   componentName: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  passProps?: Record<any, any>;
+  passProps?: Record<string | number | symbol, unknown>;
   componentType: ComponentType;
 }
 
@@ -43,8 +42,7 @@ export interface EventsRegistry {
     callback: (event: ComponentWillAppearEvent) => void
   ): EmitterSubscription;
   registerCommandListener(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    callback: (name: string, params: any) => void
+    callback: (name: string, params: unknown) => void
   ): EventSubscription;
 }
 
@@ -58,7 +56,7 @@ export interface NavigationDelegate {
  * How this works:
  * - `_onCommand` is called every time a commands happens and sets an IdleTransaction on the scope without any route context.
  * - `_onComponentWillAppear` is then called AFTER the state change happens due to a dispatch and sets the route context onto the active transaction.
- * - If `_onComponentWillAppear` isn't called within `STATE_CHANGE_TIMEOUT_DURATION` of the dispatch, then the transaction is not sampled and finished.
+ * - If `_onComponentWillAppear` isn't called within `options.routeChangeTimeoutMs` of the dispatch, then the transaction is not sampled and finished.
  */
 export class ReactNativeNavigationInstrumentation extends RoutingInstrumentation {
   public static instrumentationName: string = "react-native-navigation";
