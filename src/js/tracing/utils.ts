@@ -4,7 +4,21 @@ import {
   SpanStatus,
   Transaction,
 } from "@sentry/tracing";
+import { TransactionContext } from "@sentry/types";
 import { timestampInSeconds } from "@sentry/utils";
+
+export const getBlankTransactionContext = (
+  name: string
+): TransactionContext => {
+  return {
+    name: "Route Change",
+    op: "navigation",
+    tags: {
+      "routing.instrumentation": name,
+    },
+    data: {},
+  };
+};
 
 /**
  * A margin of error of 50ms is allowed for the async native bridge call.

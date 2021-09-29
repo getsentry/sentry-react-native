@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- feat: Routing instrumentation for React Native Navigation #1774
+
 ## 3.1.1
 
 - Bump Sentry Android SDK to 5.2.0 ([#1785](https://github.com/getsentry/sentry-react-native/pull/1785))
