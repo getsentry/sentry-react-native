@@ -72,12 +72,12 @@ export class ReactNativeNavigationInstrumentation extends RoutingInstrumentation
 
   public constructor(
     /** The react native navigation `NavigationDelegate`. This is usually the import named `Navigation`. */
-    navigation: NavigationDelegate,
+    navigation: unknown,
     options: Partial<ReactNativeNavigationOptions> = {}
   ) {
     super();
 
-    this._navigation = navigation;
+    this._navigation = navigation as NavigationDelegate;
 
     this._options = {
       ...defaultOptions,
