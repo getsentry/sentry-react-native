@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix: Type React Native Navigation instrumentation constructor argument as unknown to avoid typescript errors #1817
+
 ## 3.2.0-beta.1
 
 - feat: Routing instrumentation for React Native Navigation #1774
