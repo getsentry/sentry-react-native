@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.0-beta.2
 
 - fix: Type React Native Navigation instrumentation constructor argument as unknown to avoid typescript errors #1817
 
