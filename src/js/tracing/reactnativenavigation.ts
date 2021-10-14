@@ -154,10 +154,12 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
           name: event.componentName,
           hasBeenSeen: routeHasBeenSeen,
         },
-        previousRoute: {
-          ...this._prevComponentEvent,
-          name: event.componentName,
-        },
+        previousRoute: this._prevComponentEvent
+          ? {
+              ...this._prevComponentEvent,
+              name: this._prevComponentEvent?.componentName,
+            }
+          : null,
       };
 
       const updatedContext = {
