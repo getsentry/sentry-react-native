@@ -30,6 +30,8 @@ module.exports = {
       files: ["*.test.ts", "*.test.tsx", "*.test.js", "*.test.jsx"],
       rules: {
         "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-empty-function": "off",
+        "@typescript-eslint/no-explicit-any": "off",
       },
     },
     {
