@@ -4,10 +4,14 @@ import { getGlobalObject, logger } from "@sentry/utils";
 
 import { BeforeNavigate } from "./reactnativetracing";
 import {
-  RoutingInstrumentation,
+  InternalRoutingInstrumentation,
+  OnConfirmRoute,
   TransactionCreator,
 } from "./routingInstrumentation";
-import { ReactNavigationTransactionContext } from "./types";
+import {
+  ReactNavigationTransactionContext,
+  RouteChangeContextData,
+} from "./types";
 
 export interface NavigationRouteV4 {
   routeName: string;
@@ -52,7 +56,7 @@ const defaultOptions: ReactNavigationV4Options = {
  * Instrumentation for React-Navigation V4.
  * Register the app container with `registerAppContainer` to use, or see docs for more details.
  */
-class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
+class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
   public static instrumentationName: string = "react-navigation-v4";
 
   private _appContainer: AppContainerInstance | null = null;
@@ -82,9 +86,14 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
    */
   public registerRoutingInstrumentation(
     listener: TransactionCreator,
-    beforeNavigate: BeforeNavigate
+    beforeNavigate: BeforeNavigate,
+    onConfirmRoute: OnConfirmRoute
   ): void {
-    super.registerRoutingInstrumentation(listener, beforeNavigate);
+    super.registerRoutingInstrumentation(
+      listener,
+      beforeNavigate,
+      onConfirmRoute
+    );
 
     // Need to handle the initial state as the router patch will only attach transactions on subsequent route changes.
     if (!this._initialStateHandled) {
@@ -236,6 +245,8 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
         this._latestTransaction = this.onRouteWillChange(finalContext);
       }
 
+      this._onConfirmRoute?.(finalContext);
+
       this._pushRecentRouteKey(currentRoute.key);
       this._prevRoute = currentRoute;
     }
@@ -248,6 +259,22 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
     route: NavigationRouteV4,
     previousRoute?: NavigationRouteV4
   ): ReactNavigationTransactionContext {
+    const data: RouteChangeContextData = {
+      route: {
+        name: route.routeName, // Include name here too for use in `beforeNavigate`
+        key: route.key,
+        params: route.params ?? {},
+        hasBeenSeen: this._recentRouteKeys.includes(route.key),
+      },
+      previousRoute: previousRoute
+        ? {
+            name: previousRoute.routeName,
+            key: previousRoute.key,
+            params: previousRoute.params ?? {},
+          }
+        : null,
+    };
+
     return {
       name: route.routeName,
       op: "navigation",
@@ -256,21 +283,7 @@ class ReactNavigationV4Instrumentation extends RoutingInstrumentation {
           ReactNavigationV4Instrumentation.instrumentationName,
         "routing.route.name": route.routeName,
       },
-      data: {
-        route: {
-          name: route.routeName, // Include name here too for use in `beforeNavigate`
-          key: route.key,
-          params: route.params ?? {},
-          hasBeenSeen: this._recentRouteKeys.includes(route.key),
-        },
-        previousRoute: previousRoute
-          ? {
-              name: previousRoute.routeName,
-              key: previousRoute.key,
-              params: previousRoute.params ?? {},
-            }
-          : null,
-      },
+      data,
     };
   }
 

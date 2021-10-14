@@ -3,10 +3,14 @@ import { getGlobalObject, logger } from "@sentry/utils";
 
 import { BeforeNavigate } from "./reactnativetracing";
 import {
-  RoutingInstrumentation,
+  InternalRoutingInstrumentation,
+  OnConfirmRoute,
   TransactionCreator,
 } from "./routingInstrumentation";
-import { ReactNavigationTransactionContext } from "./types";
+import {
+  ReactNavigationTransactionContext,
+  RouteChangeContextData,
+} from "./types";
 
 export interface NavigationRoute {
   name: string;
@@ -39,7 +43,7 @@ const defaultOptions: ReactNavigationOptions = {
  * - `_onStateChange` is then called AFTER the state change happens due to a dispatch and sets the route context onto the active transaction.
  * - If `_onStateChange` isn't called within `STATE_CHANGE_TIMEOUT_DURATION` of the dispatch, then the transaction is not sampled and finished.
  */
-export class ReactNavigationInstrumentation extends RoutingInstrumentation {
+export class ReactNavigationInstrumentation extends InternalRoutingInstrumentation {
   public static instrumentationName: string = "react-navigation-v5";
 
   private _navigationContainer: NavigationContainer | null = null;
@@ -68,9 +72,14 @@ export class ReactNavigationInstrumentation extends RoutingInstrumentation {
    */
   public registerRoutingInstrumentation(
     listener: TransactionCreator,
-    beforeNavigate: BeforeNavigate
+    beforeNavigate: BeforeNavigate,
+    onConfirmRoute: OnConfirmRoute
   ): void {
-    super.registerRoutingInstrumentation(listener, beforeNavigate);
+    super.registerRoutingInstrumentation(
+      listener,
+      beforeNavigate,
+      onConfirmRoute
+    );
 
     // We create an initial state here to ensure a transaction gets created before the first route mounts.
     if (!this._initialStateHandled) {
@@ -180,6 +189,23 @@ export class ReactNavigationInstrumentation extends RoutingInstrumentation {
         const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
         const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
 
+        const data: RouteChangeContextData = {
+          ...originalContext.data,
+          route: {
+            name: route.name,
+            key: route.key,
+            params: route.params ?? {},
+            hasBeenSeen: routeHasBeenSeen,
+          },
+          previousRoute: previousRoute
+            ? {
+                name: previousRoute.name,
+                key: previousRoute.key,
+                params: previousRoute.params ?? {},
+              }
+            : null,
+        };
+
         const updatedContext: ReactNavigationTransactionContext = {
           ...originalContext,
           name: route.name,
@@ -187,22 +213,7 @@ export class ReactNavigationInstrumentation extends RoutingInstrumentation {
             ...originalContext.tags,
             "routing.route.name": route.name,
           },
-          data: {
-            ...originalContext.data,
-            route: {
-              name: route.name,
-              key: route.key,
-              params: route.params ?? {},
-              hasBeenSeen: routeHasBeenSeen,
-            },
-            previousRoute: previousRoute
-              ? {
-                  name: previousRoute.name,
-                  key: previousRoute.key,
-                  params: previousRoute.params ?? {},
-                }
-              : null,
-          },
+          data,
         };
 
         let finalContext = this._beforeNavigate?.(updatedContext);
@@ -233,6 +244,7 @@ export class ReactNavigationInstrumentation extends RoutingInstrumentation {
         }
 
         this._latestTransaction.updateWithContext(finalContext);
+        this._onConfirmRoute?.(finalContext);
       }
 
       this._pushRecentRouteKey(route.key);

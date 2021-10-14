@@ -4,9 +4,11 @@ import { EmitterSubscription } from "react-native";
 
 import { BeforeNavigate } from "./reactnativetracing";
 import {
-  RoutingInstrumentation,
+  InternalRoutingInstrumentation,
+  OnConfirmRoute,
   TransactionCreator,
 } from "./routingInstrumentation";
+import { RouteChangeContextData } from "./types";
 import { getBlankTransactionContext } from "./utils";
 
 interface ReactNativeNavigationOptions {
@@ -58,7 +60,7 @@ export interface NavigationDelegate {
  * - `_onComponentWillAppear` is then called AFTER the state change happens due to a dispatch and sets the route context onto the active transaction.
  * - If `_onComponentWillAppear` isn't called within `options.routeChangeTimeoutMs` of the dispatch, then the transaction is not sampled and finished.
  */
-export class ReactNativeNavigationInstrumentation extends RoutingInstrumentation {
+export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrumentation {
   public static instrumentationName: string = "react-native-navigation";
 
   private _navigation: NavigationDelegate;
@@ -90,9 +92,14 @@ export class ReactNativeNavigationInstrumentation extends RoutingInstrumentation
    */
   public registerRoutingInstrumentation(
     listener: TransactionCreator,
-    beforeNavigate: BeforeNavigate
+    beforeNavigate: BeforeNavigate,
+    onConfirmRoute: OnConfirmRoute
   ): void {
-    super.registerRoutingInstrumentation(listener, beforeNavigate);
+    super.registerRoutingInstrumentation(
+      listener,
+      beforeNavigate,
+      onConfirmRoute
+    );
 
     this._navigation
       .events()
@@ -140,6 +147,19 @@ export class ReactNativeNavigationInstrumentation extends RoutingInstrumentation
         event.componentId
       );
 
+      const data: RouteChangeContextData = {
+        ...originalContext.data,
+        route: {
+          ...event,
+          name: event.componentName,
+          hasBeenSeen: routeHasBeenSeen,
+        },
+        previousRoute: {
+          ...this._prevComponentEvent,
+          name: event.componentName,
+        },
+      };
+
       const updatedContext = {
         ...originalContext,
         name: event.componentName,
@@ -147,14 +167,7 @@ export class ReactNativeNavigationInstrumentation extends RoutingInstrumentation
           ...originalContext.tags,
           "routing.route.name": event.componentName,
         },
-        data: {
-          ...originalContext.data,
-          route: {
-            ...event,
-            hasBeenSeen: routeHasBeenSeen,
-          },
-          previousRoute: this._prevComponentEvent,
-        },
+        data,
       };
 
       let finalContext = this._beforeNavigate?.(updatedContext);
@@ -178,6 +191,7 @@ export class ReactNativeNavigationInstrumentation extends RoutingInstrumentation
       }
 
       this._latestTransaction.updateWithContext(finalContext);
+      this._onConfirmRoute?.(finalContext);
 
       this._prevComponentEvent = event;
     } else {
