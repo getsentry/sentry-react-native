@@ -479,4 +479,66 @@ describe("ReactNativeTracing", () => {
       });
     });
   });
+
+  describe("Routing Instrumentation", () => {
+    describe("_onConfirmRoute", () => {
+      it("Sets tag and adds breadcrumb", () => {
+        const routing = new RoutingInstrumentation();
+        const integration = new ReactNativeTracing({
+          routingInstrumentation: routing,
+        });
+
+        const mockScope = {
+          addBreadcrumb: jest.fn(),
+          setTag: jest.fn(),
+
+          // Not relevant to test
+          setSpan: () => {},
+          getTransaction: () => {},
+          clearTransaction: () => {},
+        };
+
+        const mockHub = {
+          configureScope: (callback: (scope: any) => void) => {
+            callback(mockScope);
+          },
+
+          // Not relevant to test
+          getScope: () => mockScope,
+          getClient: () => ({ getOptions: () => ({}) }),
+        };
+        integration.setupOnce(
+          () => {},
+          () => mockHub as any
+        );
+
+        const routeContext = {
+          name: "Route",
+          data: {
+            route: {
+              name: "Route",
+            },
+            previousRoute: {
+              name: "Previous Route",
+            },
+          },
+        };
+        routing.onRouteWillChange(routeContext);
+
+        expect(mockScope.setTag).toBeCalledWith(
+          "routing.route.name",
+          routeContext.name
+        );
+        expect(mockScope.addBreadcrumb).toBeCalledWith({
+          type: "navigation",
+          category: "navigation",
+          message: `Navigation to ${routeContext.name}`,
+          data: {
+            from: routeContext.data.previousRoute.name,
+            to: routeContext.data.route.name,
+          },
+        });
+      });
+    });
+  });
 });
