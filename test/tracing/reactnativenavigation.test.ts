@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
+import { TransactionContext } from "@sentry/types";
 import { EmitterSubscription } from "react-native";
 
 import {
@@ -59,7 +61,8 @@ describe("React Native Navigation Instrumentation", () => {
     const tracingListener = jest.fn(() => mockTransaction);
     instrumentation.registerRoutingInstrumentation(
       tracingListener,
-      (context) => context
+      (context) => context,
+      () => {}
     );
 
     mockEventsRegistry.onCommand("root", {});
@@ -84,6 +87,7 @@ describe("React Native Navigation Instrumentation", () => {
     expect(mockTransaction.data).toStrictEqual({
       route: {
         ...mockEvent,
+        name: mockEvent.componentName,
         hasBeenSeen: false,
       },
       previousRoute: null,
@@ -107,7 +111,8 @@ describe("React Native Navigation Instrumentation", () => {
         context.name = "New Name";
 
         return context;
-      }
+      },
+      () => {}
     );
 
     mockEventsRegistry.onCommand("root", {});
@@ -134,6 +139,7 @@ describe("React Native Navigation Instrumentation", () => {
     expect(mockTransaction.data).toStrictEqual({
       route: {
         ...mockEvent,
+        name: mockEvent.componentName,
         hasBeenSeen: false,
       },
       previousRoute: null,
@@ -153,7 +159,8 @@ describe("React Native Navigation Instrumentation", () => {
     const tracingListener = jest.fn(() => mockTransaction);
     instrumentation.registerRoutingInstrumentation(
       tracingListener,
-      (context) => context
+      (context) => context,
+      () => {}
     );
 
     mockEventsRegistry.onCommand("root", {});
@@ -182,7 +189,8 @@ describe("React Native Navigation Instrumentation", () => {
     const tracingListener = jest.fn(() => mockTransaction);
     instrumentation.registerRoutingInstrumentation(
       tracingListener,
-      (context) => context
+      (context) => context,
+      () => {}
     );
 
     mockEventsRegistry.onCommand("root", {});
@@ -204,5 +212,65 @@ describe("React Native Navigation Instrumentation", () => {
     expect(mockTransaction.name).not.toBe("Test");
 
     jest.useRealTimers();
+  });
+
+  describe("onRouteConfirmed", () => {
+    test("onRouteConfirmed called with correct route data", () => {
+      const instrumentation = new ReactNativeNavigationInstrumentation(
+        mockNavigationDelegate
+      );
+
+      const mockTransaction = getMockTransaction(
+        ReactNativeNavigationInstrumentation.instrumentationName
+      );
+      const tracingListener = jest.fn(() => mockTransaction);
+      let confirmedContext: TransactionContext | undefined;
+      instrumentation.registerRoutingInstrumentation(
+        tracingListener,
+        (context) => context,
+        (context) => {
+          confirmedContext = context;
+        }
+      );
+
+      mockEventsRegistry.onCommand("root", {});
+
+      expect(mockTransaction.name).toBe("Route Change");
+
+      const mockEvent1: ComponentWillAppearEvent = {
+        componentId: "1",
+        componentName: "Test 1",
+        componentType: "Component",
+        passProps: {},
+      };
+      mockEventsRegistry.onComponentWillAppear(mockEvent1);
+
+      mockEventsRegistry.onCommand("root", {});
+
+      const mockEvent2: ComponentWillAppearEvent = {
+        componentId: "2",
+        componentName: "Test 2",
+        componentType: "Component",
+        passProps: {},
+      };
+      mockEventsRegistry.onComponentWillAppear(mockEvent2);
+
+      expect(confirmedContext).toBeDefined();
+      if (confirmedContext) {
+        expect(confirmedContext.name).toBe(mockEvent2.componentName);
+        expect(confirmedContext.data).toBeDefined();
+        if (confirmedContext.data) {
+          expect(confirmedContext.data.route.name).toBe(
+            mockEvent2.componentName
+          );
+          expect(confirmedContext.data.previousRoute).toBeDefined();
+          if (confirmedContext.data.previousRoute) {
+            expect(confirmedContext.data.previousRoute.name).toBe(
+              mockEvent1.componentName
+            );
+          }
+        }
+      }
+    });
   });
 });

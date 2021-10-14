@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { BrowserClient } from "@sentry/browser";
 import { addGlobalEventProcessor, Hub } from "@sentry/hub";
 import { IdleTransaction, Transaction } from "@sentry/tracing";
@@ -33,6 +34,12 @@ const getMockHub = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setSpan(span: any) {
       scopeTransaction = span;
+    },
+    setTag(_tag: any) {
+      // Placeholder
+    },
+    addBreadcrumb(_breadcrumb: any) {
+      // Placeholder
     },
   };
 

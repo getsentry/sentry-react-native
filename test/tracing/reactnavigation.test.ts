@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Transaction } from "@sentry/tracing";
+import { TransactionContext } from "@sentry/types";
 import { getGlobalObject } from "@sentry/utils";
 
 import {
@@ -53,7 +54,8 @@ describe("ReactNavigationInstrumentation", () => {
     const tracingListener = jest.fn(() => mockTransaction);
     instrumentation.registerRoutingInstrumentation(
       tracingListener as any,
-      (context) => context
+      (context) => context,
+      () => {}
     );
 
     const mockNavigationContainerRef = {
@@ -91,7 +93,8 @@ describe("ReactNavigationInstrumentation", () => {
     const tracingListener = jest.fn(() => transactionRef.current);
     instrumentation.registerRoutingInstrumentation(
       tracingListener as any,
-      (context) => context
+      (context) => context,
+      () => {}
     );
 
     const mockNavigationContainerRef = {
@@ -160,7 +163,8 @@ describe("ReactNavigationInstrumentation", () => {
         context.name = "New Name";
 
         return context;
-      }
+      },
+      () => {}
     );
 
     const mockNavigationContainerRef = {
@@ -204,7 +208,8 @@ describe("ReactNavigationInstrumentation", () => {
     const tracingListener = jest.fn(() => transactionRef.current);
     instrumentation.registerRoutingInstrumentation(
       tracingListener as any,
-      (context) => context
+      (context) => context,
+      () => {}
     );
 
     const mockNavigationContainerRef = {
@@ -307,7 +312,8 @@ describe("ReactNavigationInstrumentation", () => {
       const tracingListener = jest.fn(() => mockTransaction);
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
-        (context) => context
+        (context) => context,
+        () => {}
       );
 
       await new Promise<void>((resolve) => {
@@ -329,7 +335,8 @@ describe("ReactNavigationInstrumentation", () => {
       const tracingListener = jest.fn(() => mockTransaction);
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
-        (context) => context
+        (context) => context,
+        () => {}
       );
 
       const mockNavigationContainerRef = {
@@ -359,7 +366,8 @@ describe("ReactNavigationInstrumentation", () => {
       const tracingListener = jest.fn(() => mockTransaction);
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
-        (context) => context
+        (context) => context,
+        () => {}
       );
 
       const mockNavigationContainerRef = {
@@ -376,6 +384,75 @@ describe("ReactNavigationInstrumentation", () => {
           resolve();
         }, 210);
       });
+    });
+  });
+
+  describe("onRouteConfirmed", () => {
+    test("onRouteConfirmed called with correct route data", () => {
+      const instrumentation = new ReactNavigationInstrumentation();
+
+      // Need a dummy transaction as the instrumentation will start a transaction right away when the first navigation container is attached.
+      const mockTransactionDummy = getMockTransaction();
+      const transactionRef = {
+        current: mockTransactionDummy,
+      };
+      let confirmedContext: TransactionContext | undefined;
+      const tracingListener = jest.fn(() => transactionRef.current);
+      instrumentation.registerRoutingInstrumentation(
+        tracingListener as any,
+        (context) => context,
+        (context) => {
+          confirmedContext = context;
+        }
+      );
+
+      const mockNavigationContainerRef = {
+        current: new MockNavigationContainer(),
+      };
+
+      instrumentation.registerNavigationContainer(
+        mockNavigationContainerRef as any
+      );
+
+      const mockTransaction = getMockTransaction();
+      transactionRef.current = mockTransaction;
+
+      mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
+
+      const route1 = {
+        name: "New Route 1",
+        key: "1",
+        params: {
+          someParam: 42,
+        },
+      };
+
+      mockNavigationContainerRef.current.currentRoute = route1;
+      mockNavigationContainerRef.current.listeners["state"]({});
+
+      const route2 = {
+        name: "New Route 2",
+        key: "2",
+        params: {
+          someParam: 42,
+        },
+      };
+
+      mockNavigationContainerRef.current.currentRoute = route2;
+      mockNavigationContainerRef.current.listeners["state"]({});
+
+      expect(confirmedContext).toBeDefined();
+      if (confirmedContext) {
+        expect(confirmedContext.name).toBe(route2.name);
+        expect(confirmedContext.data).toBeDefined();
+        if (confirmedContext.data) {
+          expect(confirmedContext.data.route.name).toBe(route2.name);
+          expect(confirmedContext.data.previousRoute).toBeDefined();
+          if (confirmedContext.data.previousRoute) {
+            expect(confirmedContext.data.previousRoute.name).toBe(route1.name);
+          }
+        }
+      }
     });
   });
 });
