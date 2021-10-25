@@ -7,6 +7,8 @@ export type TransactionCreator = (
   context: TransactionContext
 ) => Transaction | undefined;
 
+export type OnConfirmRoute = (context: TransactionContext) => void;
+
 export interface RoutingInstrumentationInstance {
   /**
    * Registers a listener that's called on every route change with a `TransactionContext`.
@@ -15,10 +17,12 @@ export interface RoutingInstrumentationInstance {
    *
    * @param listener A `RouteListener`
    * @param beforeNavigate BeforeNavigate
+   * @param inConfirmRoute OnConfirmRoute
    */
   registerRoutingInstrumentation(
     listener: TransactionCreator,
-    beforeNavigate: BeforeNavigate
+    beforeNavigate: BeforeNavigate,
+    onConfirmRoute: OnConfirmRoute
   ): void;
   /**
    * To be called when the route changes, BEFORE the new route mounts.
@@ -38,18 +42,38 @@ export class RoutingInstrumentation implements RoutingInstrumentationInstance {
 
   protected _getCurrentHub?: () => Hub;
   protected _beforeNavigate?: BeforeNavigate;
-
-  private _tracingListener?: TransactionCreator;
+  protected _onConfirmRoute?: OnConfirmRoute;
+  protected _tracingListener?: TransactionCreator;
 
   /** @inheritdoc */
   public registerRoutingInstrumentation(
     listener: TransactionCreator,
-    beforeNavigate: BeforeNavigate
+    beforeNavigate: BeforeNavigate,
+    onConfirmRoute: OnConfirmRoute
   ): void {
     this._tracingListener = listener;
     this._beforeNavigate = beforeNavigate;
+    this._onConfirmRoute = onConfirmRoute;
   }
 
+  /** @inheritdoc */
+  public onRouteWillChange(
+    context: TransactionContext
+  ): Transaction | undefined {
+    const transaction = this._tracingListener?.(context);
+
+    if (transaction) {
+      this._onConfirmRoute?.(context);
+    }
+
+    return transaction;
+  }
+}
+
+/**
+ * Internal base routing instrumentation where `_onConfirmRoute` is not called in onRouteWillChange
+ */
+export class InternalRoutingInstrumentation extends RoutingInstrumentation {
   /** @inheritdoc */
   public onRouteWillChange(
     context: TransactionContext
