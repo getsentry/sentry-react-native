@@ -7,9 +7,9 @@
   - [changelog](https://github.com/getsentry/sentry-java/blob/5.2.4/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-java/compare/5.2.0...5.2.4)
 
-- Bump Sentry Cocoa SDK to 7.4.6 ([#1844](https://github.com/getsentry/sentry-react-native/pull/1844))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.4.6/CHANGELOG.md)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.3.0...7.4.6)
+- Bump Sentry Cocoa SDK to 7.4.8 ([#1856](https://github.com/getsentry/sentry-react-native/pull/1856))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.4.8/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.3.0...7.4.8)
 
 ## 3.2.0-beta.2
 
