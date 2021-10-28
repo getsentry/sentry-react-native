@@ -1,12 +1,12 @@
 # Changelog
 
-- feat(ios): Missing config `enableOutOfMemoryTracking` on iOS/Mac #1858
+## Unreleased
 
 ## 3.2.1
 
 ### Various fixes & improvements
 
-- feat(ios): Missing config  on iOS/Mac. (#1858) by @marandaneto
+- feat(ios): Missing config `enableOutOfMemoryTracking` on iOS/Mac (#1858) by @marandaneto
 
 ## 3.2.0
 
