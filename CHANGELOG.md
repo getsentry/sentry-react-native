@@ -1,9 +1,12 @@
 # Changelog
 
+- feat(ios): Missing config `enableOutOfMemoryTracking` on iOS/Mac #1858
+
 ## 3.2.0
 
 - feat: Routing instrumentation will emit breadcrumbs on route change and set route tag #1837
 - Bump Sentry Android SDK to 5.2.4 ([#1844](https://github.com/getsentry/sentry-react-native/pull/1844))
+
   - [changelog](https://github.com/getsentry/sentry-java/blob/5.2.4/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-java/compare/5.2.0...5.2.4)
 
@@ -22,6 +25,7 @@
 ## 3.1.1
 
 - Bump Sentry Android SDK to 5.2.0 ([#1785](https://github.com/getsentry/sentry-react-native/pull/1785))
+
   - [changelog](https://github.com/getsentry/sentry-java/blob/5.2.0/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-java/compare/5.1.2...5.2.0)
 

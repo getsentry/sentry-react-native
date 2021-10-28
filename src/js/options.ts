@@ -71,6 +71,15 @@ export interface ReactNativeOptions extends BrowserOptions {
 
   /** Enable auto performance tracking by default. */
   enableAutoPerformanceTracking?: boolean;
+
+  /**
+   * Enables Out of Memory Tracking for iOS and macCatalyst.
+   * See the following link for more information and possible restrictions:
+   * https://docs.sentry.io/platforms/apple/guides/ios/configuration/out-of-memory/
+   *
+   * @default true
+   * */
+   enableOutOfMemoryTracking?: boolean;
 }
 
 export interface ReactNativeWrapperOptions {

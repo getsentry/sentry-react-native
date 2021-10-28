@@ -30,6 +30,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
   enableAutoPerformanceTracking: true,
+  enableOutOfMemoryTracking: true,
 };
 
 /**
