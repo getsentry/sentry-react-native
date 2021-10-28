@@ -2,6 +2,12 @@
 
 - feat(ios): Missing config `enableOutOfMemoryTracking` on iOS/Mac #1858
 
+## 3.2.1
+
+### Various fixes & improvements
+
+- feat(ios): Missing config  on iOS/Mac. (#1858) by @marandaneto
+
 ## 3.2.0
 
 - feat: Routing instrumentation will emit breadcrumbs on route change and set route tag #1837
