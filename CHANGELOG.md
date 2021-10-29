@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Bump Sentry Android SDK to 5.3.0 #
+- Bump Sentry Android SDK to 5.3.0 #1860
 
 ## 3.2.1
 
