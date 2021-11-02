@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.2
 
 - Bump Sentry Android SDK to 5.3.0 #1860
 
