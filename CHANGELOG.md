@@ -4,6 +4,12 @@
 
 - fix(ios): tracesSampler becomes NSNull in iOS and the app cannot be started #1872
 
+## 3.2.3
+
+### Various fixes & improvements
+
+- fix(ios): tracesSampler becomes NSNull in iOS and the app cannot be started (#1872) by @marandaneto
+
 ## 3.2.2
 
 - Bump Sentry Android SDK to 5.3.0 #1860
