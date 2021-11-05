@@ -2,7 +2,7 @@
 
 # Unreleased
 
-- fix(ios): tracesSampler becomes NSNull in iOS and the app cannot be started #
+- fix(ios): tracesSampler becomes NSNull in iOS and the app cannot be started #1872
 
 ## 3.2.2
 
