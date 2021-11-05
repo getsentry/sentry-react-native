@@ -65,7 +65,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     NSMutableDictionary * mutableOptions =[options mutableCopy];
     [mutableOptions setValue:beforeSend forKey:@"beforeSend"];
 
-    // remove performance traces sample rate and traces sampler since we don't want to syncronize these configuration
+    // remove performance traces sample rate and traces sampler since we don't want to synchronize these configurations
     // to the Native SDKs.
     // The user could tho initialize the SDK manually and set themselves.
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
