@@ -7,7 +7,7 @@
 
 const path = require('path');
 
-const original = require('./metro.config');
+const original = require('./metro.config.orig');
 
 module.exports = {
   ...original,
