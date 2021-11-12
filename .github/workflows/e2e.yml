@@ -31,12 +31,26 @@ jobs:
       - name: Install Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+      - name: Package SDK
+        run: yalc publish
+      - name: Prepare sample for testing
+        working-directory: ./sample
+        run: yarn run test-prep
+      - name: Install SDK in sample
+        working-directory: ./sample
+        run: yalc add @sentry/react-native
       - name: Install Sample Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         working-directory: ./sample
         run: yarn install
-      - name: Build SDK
-        run: yarn build
+
+      - name: Start React Native build server
+        working-directory: ./sample
+        run: yarn start:test
+
       - name: Start Appium Server
         working-directory: ./sample
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
@@ -45,7 +59,7 @@ jobs:
         with:
           api-level: 29
           # All the tests need to be run in this script as the emulator is killed after this command.
-          script: cd sample && react-native run-android --variant=release && curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions && yarn test
+          script: cd sample && react-native run-android --no-packager --variant=release && curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions && yarn test
       - name: Upload Appium logs
         # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
         # otherwise it would not run if the previous step failed
@@ -82,12 +96,26 @@ jobs:
       - name: Install Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+      - name: Package SDK
+        run: yalc publish
+      - name: Prepare sample for testing
+        working-directory: ./sample
+        run: yarn run test-prep
+      - name: Install SDK in sample
+        working-directory: ./sample
+        run: yalc add @sentry/react-native
       - name: Install Sample Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         working-directory: ./sample
         run: yarn install
-      - name: Build SDK
-        run: yarn build
+
+      - name: Start React Native build server
+        working-directory: ./sample
+        run: yarn start:test
+
       - name: Install iOS pods
         # Even though we cache the pods, we call it regardless
         working-directory: ./sample/ios
@@ -97,7 +125,8 @@ jobs:
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
       - name: Build and run iOS emulator
         working-directory: ./sample
-        run: react-native run-ios --configuration Release --simulator "iPhone 12"
+        run: react-native run-ios --configuration Release --simulator "iPhone 13" --no-packager
+
         # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
       - name: Ping Appium Server
         run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions

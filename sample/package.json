@@ -29,12 +29,17 @@
   },
   "name": "sample",
   "private": true,
+  "resolutions": {
+    "promise": "^8.1.0"
+  },
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "start:test": "react-native start --reset-cache --config ./metro.config.test.js",
+    "test": "jest",
+    "test-prep": "sh ./scripts/prepareConfigsForTesting.sh"
   },
   "version": "0.0.1"
 }
