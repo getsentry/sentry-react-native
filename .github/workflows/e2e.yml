@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: "12"
       - name: Install Global Dependencies
-        run: yarn global add react-native-cli @sentry/cli
+        run: yarn global add react-native-cli @sentry/cli yalc
       - uses: actions/cache@v2
         id: deps-cache
         with:
@@ -78,7 +78,7 @@ jobs:
         with:
           node-version: "12"
       - name: Install Global Dependencies
-        run: yarn global add react-native-cli @sentry/cli
+        run: yarn global add react-native-cli @sentry/cli yalc
       - uses: actions/cache@v2
         id: deps-cache
         with:
