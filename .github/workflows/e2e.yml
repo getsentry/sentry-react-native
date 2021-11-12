@@ -49,7 +49,7 @@ jobs:
 
       - name: Start React Native build server
         working-directory: ./sample
-        run: yarn start:test
+        run: yarn start:test &
 
       - name: Start Appium Server
         working-directory: ./sample
@@ -114,7 +114,7 @@ jobs:
 
       - name: Start React Native build server
         working-directory: ./sample
-        run: yarn start:test
+        run: yarn start:test &
 
       - name: Install iOS pods
         # Even though we cache the pods, we call it regardless
