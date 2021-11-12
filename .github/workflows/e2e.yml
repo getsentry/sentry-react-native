@@ -72,6 +72,7 @@ jobs:
     runs-on: macos-latest
     env:
       PLATFORM: ios
+      TEST: true
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1

@@ -13,7 +13,9 @@ target 'sample' do
   	:hermes_enabled => true
   )
 
-  pod 'RNSentry', :path => '../../RNSentry.podspec'
+  if !ENV['TEST']
+    pod 'RNSentry', :path => '../../RNSentry.podspec'
+  end
 
   target 'sampleTests' do
     inherit! :complete
