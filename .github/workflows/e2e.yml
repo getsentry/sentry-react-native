@@ -38,7 +38,11 @@ jobs:
         run: yalc publish
       - name: Prepare sample for testing
         working-directory: ./sample
-        run: yarn run test-prep
+        run: |
+          mv babel.config.js babel.config.orig.js
+          mv babel.config.test.js babel.config.js
+          mv metro.config.js metro.config.orig.js
+          mv metro.config.test.js metro.config.js
       - name: Install SDK in sample
         working-directory: ./sample
         run: yalc add @sentry/react-native
@@ -100,7 +104,11 @@ jobs:
         run: yalc publish
       - name: Prepare sample for testing
         working-directory: ./sample
-        run: yarn run test-prep
+        run: |
+          mv babel.config.js babel.config.orig.js
+          mv babel.config.test.js babel.config.js
+          mv metro.config.js metro.config.orig.js
+          mv metro.config.test.js metro.config.js
       - name: Install SDK in sample
         working-directory: ./sample
         run: yalc add @sentry/react-native
