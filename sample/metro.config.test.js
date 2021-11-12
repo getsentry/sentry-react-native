@@ -12,7 +12,4 @@ const original = require('./metro.config');
 module.exports = {
   ...original,
   watchFolders: [path.resolve(__dirname, 'node_modules')],
-  transformer: {
-    babelTransformerPath: path.resolve(__dirname, 'babel.config.test.js'),
-  },
 };
