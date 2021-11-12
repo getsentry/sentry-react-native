@@ -47,10 +47,6 @@ jobs:
         working-directory: ./sample
         run: yarn install
 
-      - name: Start React Native build server
-        working-directory: ./sample
-        run: yarn start:test &
-
       - name: Start Appium Server
         working-directory: ./sample
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
@@ -113,10 +109,6 @@ jobs:
         working-directory: ./sample
         run: yarn install
 
-      - name: Start React Native build server
-        working-directory: ./sample
-        run: yarn start:test &
-
       - name: Install iOS pods
         # Even though we cache the pods, we call it regardless
         working-directory: ./sample/ios
@@ -126,7 +118,7 @@ jobs:
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
       - name: Build and run iOS emulator
         working-directory: ./sample
-        run: react-native run-ios --configuration Release --simulator "iPhone 13" --no-packager
+        run: react-native run-ios --configuration Release --simulator "iPhone 13"
 
         # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
       - name: Ping Appium Server
