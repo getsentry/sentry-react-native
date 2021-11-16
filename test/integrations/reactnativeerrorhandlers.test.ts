@@ -1,5 +1,3 @@
-import { ReactNativeErrorHandlers } from "../../src/js/integrations/reactnativeerrorhandlers";
-
 jest.mock("@sentry/core", () => {
   const core = jest.requireActual("@sentry/core");
 
@@ -19,8 +17,27 @@ jest.mock("@sentry/core", () => {
   };
 });
 
+jest.mock("@sentry/utils", () => {
+  const utils = jest.requireActual("@sentry/utils");
+  return {
+    ...utils,
+    logger: {
+      log: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  };
+});
+
+jest.mock("promise/setimmediate/core", () => {
+  return {};
+});
+
 import { getCurrentHub } from "@sentry/core";
 import { Severity } from "@sentry/types";
+import { getGlobalObject, logger } from "@sentry/utils";
+
+import { ReactNativeErrorHandlers } from "../../src/js/integrations/reactnativeerrorhandlers";
 
 beforeEach(() => {
   ErrorUtils.getGlobalHandler = () => jest.fn();
@@ -88,6 +105,32 @@ describe("ReactNativeErrorHandlers", () => {
       expect(event.level).toBe(Severity.Error);
       expect(event.exception?.values?.[0].mechanism?.handled).toBe(true);
       expect(event.exception?.values?.[0].mechanism?.type).toBe("generic");
+    });
+  });
+
+  describe("onUnhandledRejection", () => {
+    it("Warns if promise instances are different", () => {
+      const _global = getGlobalObject<{ Promise: any }>();
+
+      _global.Promise = {};
+
+      const inst = new ReactNativeErrorHandlers();
+      inst.setupOnce();
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(logger.warn).toBeCalled();
+    });
+
+    it("Does not warn if promise instances match", () => {
+      const _global = getGlobalObject<{ Promise: any }>();
+
+      _global.Promise = require("promise/setimmediate/core");
+
+      const inst = new ReactNativeErrorHandlers();
+      inst.setupOnce();
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(logger.warn).not.toBeCalled();
     });
   });
 });
