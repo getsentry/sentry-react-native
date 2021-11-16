@@ -2,7 +2,13 @@
 
 ## Unreleased
 
-fix: Warn when promise rejections won't be caught #1886
+- fix: Warn when promise rejections won't be caught #1886
+
+## 3.2.3
+
+### Various fixes & improvements
+
+- fix(ios): tracesSampler becomes NSNull in iOS and the app cannot be started (#1872) by @marandaneto
 
 ## 3.2.2
 
