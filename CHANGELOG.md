@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+fix: Warn when promise rejections won't be caught #1886
+
 ## 3.2.2
 
 - Bump Sentry Android SDK to 5.3.0 #1860
