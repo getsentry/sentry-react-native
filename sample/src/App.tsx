@@ -17,7 +17,6 @@ import EndToEndTestsScreen from './screens/EndToEndTestsScreen';
 import ReduxScreen from './screens/ReduxScreen';
 
 import {store} from './reduxApp';
-// import {version as packageVersion} from '../../package.json';
 import {SENTRY_INTERNAL_DSN} from './dsn';
 
 const reactNavigationV5Instrumentation = new Sentry.ReactNavigationV5Instrumentation(
