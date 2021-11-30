@@ -26,17 +26,13 @@ public class MainApplication extends Application implements ReactApplication {
       @SuppressWarnings("UnnecessaryLocalVariable")
       List<ReactPackage> packages = new PackageList(this).getPackages();
 
-      boolean packageExists = false;
       for (ReactPackage pkg : packages) {
         if (pkg instanceof RNSentryPackage) {
-          packageExists = true;
-          break;
+          return packages;
         }
       }
 
-      if (!packageExists) {
-        packages.add(new RNSentryPackage());
-      }
+      packages.add(new RNSentryPackage());
 
       return packages;
     }
