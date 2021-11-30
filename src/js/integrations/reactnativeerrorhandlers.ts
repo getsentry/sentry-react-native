@@ -95,27 +95,23 @@ export class ReactNativeErrorHandlers implements Integration {
    * Gets the promise rejection handlers, tries to get React Native's default one but otherwise will default to console.logging unhandled rejections.
    */
   private _getPromiseRejectionTrackingOptions(): PromiseRejectionTrackingOptions {
-    // Default behavior if the React Native promise rejection handlers are not available for some reason
-    let promiseRejectionTrackingOptions = {
-      allRejections: true,
-      onUnhandled: (_id: string, error: unknown) => {
-        // eslint-disable-next-line no-console
-        console.warn(error);
-      },
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      onHandled: (_id: string) => {},
-    };
-
     try {
       // Here we try to use React Native's original promise rejection handler.
       // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-member-access
-      promiseRejectionTrackingOptions = require("react-native/Libraries/promiseRejectionTrackingOptions")
+      return require("react-native/Libraries/promiseRejectionTrackingOptions")
         .default;
     } catch (e) {
-      // do nothing, as the user may be running an older version of RN without promiseRejectionTrackingOptions
+      //  Default behavior if the React Native promise rejection handlers are not available such as an older RN version
+      return {
+        allRejections: true,
+        onUnhandled: (_id: string, error: unknown) => {
+          // eslint-disable-next-line no-console
+          console.warn(error);
+        },
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onHandled: (_id: string) => {},
+      };
     }
-
-    return promiseRejectionTrackingOptions;
   }
   /**
    * Checks if the promise is the same one or not, if not it will warn the user
