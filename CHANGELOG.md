@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- feat(android): Support monorepo in gradle plugin #1917
+
 ## 3.2.4
 
 - fix: Warn when promise rejections won't be caught #1886
