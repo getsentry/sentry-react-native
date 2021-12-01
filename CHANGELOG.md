@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.4
 
 - fix: Warn when promise rejections won't be caught #1886
 - Bump: Sentry Android to 5.4.3 and Sentry Cocoa to 7.5.4 #1920
