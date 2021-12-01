@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## 3.2.4
 
 - fix: Warn when promise rejections won't be caught #1886
