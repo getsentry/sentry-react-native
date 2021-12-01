@@ -11,6 +11,12 @@ interface ReactNativeErrorHandlersOptions {
   onunhandledrejection: boolean;
 }
 
+interface PromiseRejectionTrackingOptions {
+  allRejections: boolean;
+  onUnhandled: (id: string, error: unknown) => void;
+  onHandled: (id: string) => void;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const global: any;
 
@@ -51,66 +57,84 @@ export class ReactNativeErrorHandlers implements Integration {
    */
   private _handleUnhandledRejections(): void {
     if (this._options.onunhandledrejection) {
+      /*
+        In newer RN versions >=0.63, the global promise is not the same reference as the one imported from the promise library.
+        This is due to a version mismatch between promise versions. The version will need to be fixed with a package resolution.
+        We first run a check and show a warning if needed.
+      */
+      this._checkPromiseVersion();
+
       const tracking: {
         disable: () => void;
         enable: (arg: unknown) => void;
         // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
       } = require("promise/setimmediate/rejection-tracking");
 
+      const promiseRejectionTrackingOptions = this._getPromiseRejectionTrackingOptions();
+
       tracking.disable();
       tracking.enable({
         allRejections: true,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onUnhandled: (id: any, error: any) => {
+        onUnhandled: (id: string, error: Error) => {
           if (__DEV__) {
-            // We mimic the behavior of unhandled promise rejections showing up as a warning.
-            // eslint-disable-next-line no-console
-            console.warn(id, error);
+            promiseRejectionTrackingOptions.onUnhandled(id, error);
           }
+
           getCurrentHub().captureException(error, {
             data: { id },
             originalException: error,
           });
         },
+        onHandled: (id: string) => {
+          promiseRejectionTrackingOptions.onHandled(id);
+        },
       });
-
-      /* eslint-disable
-        @typescript-eslint/no-var-requires,
-        import/no-extraneous-dependencies,
-        @typescript-eslint/no-explicit-any,
-        @typescript-eslint/no-unsafe-member-access
-      */
+    }
+  }
+  /**
+   * Gets the promise rejection handlers, tries to get React Native's default one but otherwise will default to console.logging unhandled rejections.
+   */
+  private _getPromiseRejectionTrackingOptions(): PromiseRejectionTrackingOptions {
+    try {
+      // Here we try to use React Native's original promise rejection handler.
+      // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-member-access
+      return require("react-native/Libraries/promiseRejectionTrackingOptions")
+        .default;
+    } catch (e) {
+      //  Default behavior if the React Native promise rejection handlers are not available such as an older RN version
+      return {
+        allRejections: true,
+        onUnhandled: (_id: string, error: unknown) => {
+          // eslint-disable-next-line no-console
+          console.warn(error);
+        },
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onHandled: (_id: string) => {},
+      };
+    }
+  }
+  /**
+   * Checks if the promise is the same one or not, if not it will warn the user
+   */
+  private _checkPromiseVersion(): void {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
       const Promise = require("promise/setimmediate/core");
-      const _global = getGlobalObject<any>();
 
-      /* In newer RN versions >=0.63, the global promise is not the same reference as the one imported from the promise library.
-        Due to this, we need to take the methods that tracking.enable sets, and then set them on the global promise.
-        Note: We do not want to overwrite the whole promise in case there are extensions present.
+      const _global = getGlobalObject<{ Promise: typeof Promise }>();
 
-        If the global promise is the same as the imported promise (expected in RN <0.63), we do nothing.
-      */
-      const _onHandle = Promise._onHandle ?? Promise._Y;
-      const _onReject = Promise._onReject ?? Promise._Z;
-
-      if (
-        Promise !== _global.Promise &&
-        typeof _onHandle !== "undefined" &&
-        typeof _onReject !== "undefined"
-      ) {
-        if ("_onHandle" in _global.Promise && "_onReject" in _global.Promise) {
-          _global.Promise._onHandle = _onHandle;
-          _global.Promise._onReject = _onReject;
-        } else if ("_Y" in _global.Promise && "_Z" in _global.Promise) {
-          _global.Promise._Y = _onHandle;
-          _global.Promise._Z = _onReject;
-        }
+      if (Promise !== _global.Promise) {
+        logger.warn(
+          "Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page."
+        );
+      } else {
+        logger.log("Unhandled promise rejections will be caught by Sentry.");
       }
-      /* eslint-enable
-        @typescript-eslint/no-var-requires,
-        import/no-extraneous-dependencies,
-        @typescript-eslint/no-explicit-any,
-        @typescript-eslint/no-unsafe-member-access
-      */
+    } catch (e) {
+      // Do Nothing
+      logger.warn(
+        "Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page."
+      );
     }
   }
   /**

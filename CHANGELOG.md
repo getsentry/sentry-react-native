@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: Warn when promise rejections won't be caught #1886
+
 ## 3.2.3
 
 ### Various fixes & improvements

@@ -3,8 +3,8 @@
     "@react-native-community/masked-view": "^0.1.10",
     "@react-navigation/native": "^5.7.3",
     "@react-navigation/stack": "^5.9.0",
-    "appium": "^1.20.2",
-    "appium-doctor": "^1.15.4",
+    "appium": "^1.22.0",
+    "appium-doctor": "^1.16.0",
     "react": "17.0.1",
     "react-native": "0.64.2",
     "react-native-gesture-handler": "^1.10.3",
@@ -29,12 +29,17 @@
   },
   "name": "sample",
   "private": true,
+  "resolutions": {
+    "promise": "^8.1.0"
+  },
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "start:test": "react-native start --reset-cache --config ./metro.config.test.js",
+    "test": "jest",
+    "test-prep": "sh ./scripts/prepareConfigsForTesting.sh"
   },
   "version": "0.0.1"
 }
