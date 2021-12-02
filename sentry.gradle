@@ -93,7 +93,10 @@ gradle.projectsEvaluated {
                   project.logger.info("file not found '$propertiesFile' for '$variant'")
               }
 
-              def resolvedCliPackage = new File(["node", "--print", "require.resolve('@sentry/cli/package.json')"].execute(null, rootDir).text.trim()).getParentFile();
+              def resolvedCliPackage = null;
+              try {
+              resolvedCliPackage = new File(["node", "--print", "require.resolve('@sentry/cli/package.json')"].execute(null, rootDir).text.trim()).getParentFile();
+              } catch (Throwable ignored) {}
               def cliPackage = resolvedCliPackage != null ? resolvedCliPackage.getAbsolutePath() : "$reactRoot/node_modules/@sentry/cli"
               def cliExecutable = sentryProps.get("cli.executable", "$cliPackage/bin/sentry-cli")
 
