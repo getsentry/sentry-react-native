@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fix: Fix dynamic require for promise options bypassing try catch block and crashing apps #1923
+
 ## 3.2.4
 
 - fix: Warn when promise rejections won't be caught #1886
