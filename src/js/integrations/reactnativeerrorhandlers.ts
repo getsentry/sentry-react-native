@@ -95,11 +95,12 @@ export class ReactNativeErrorHandlers implements Integration {
    * Gets the promise rejection handlers, tries to get React Native's default one but otherwise will default to console.logging unhandled rejections.
    */
   private _getPromiseRejectionTrackingOptions(): PromiseRejectionTrackingOptions {
+    const moduleName = "react-native/Libraries/promiseRejectionTrackingOptions";
     try {
       // Here we try to use React Native's original promise rejection handler.
+      // NOTE: We also need to define the module name as a variable and use .call instead of just calling require() like usual otherwise metro will try to fetch the dependency and ignore the try catch.
       // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-member-access
-      return require("react-native/Libraries/promiseRejectionTrackingOptions")
-        .default;
+      return require.call(null, moduleName).default;
     } catch (e) {
       //  Default behavior if the React Native promise rejection handlers are not available such as an older RN version
       return {
