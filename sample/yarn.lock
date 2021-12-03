@@ -3007,10 +3007,10 @@ appdirsjs@^1.2.4:
   resolved "https://registry.yarnpkg.com/appdirsjs/-/appdirsjs-1.2.5.tgz#c9888c8a0a908014533d5176ec56f1d5a8fd3700"
   integrity sha512-UyaAyzj+7XLoKhbXJi4zoAw8IDXCiLNCKfQEiuCsCCTkDmiG1vpCliQn/MoUvO3DZqCN1i6gOahokcFtNSIrVA==
 
-appium-adb@^8.10.0, appium-adb@^8.16.0, appium-adb@^8.4.0, appium-adb@^8.8.0, appium-adb@^8.9.0:
-  version "8.16.2"
-  resolved "https://registry.yarnpkg.com/appium-adb/-/appium-adb-8.16.2.tgz#cca213b1e82e4e64e16d12db268926d24c65576d"
-  integrity sha512-mWPPY0Z10Q3HiHsiKD5+PJelpU/AtG1Hxr18S2KKM/sRPIFIo05iyboXsGYYg0cx0u3Mtwdq7LEhWRlSWbrr3A==
+appium-adb@^8.1.0, appium-adb@^8.17.0:
+  version "8.17.0"
+  resolved "https://registry.yarnpkg.com/appium-adb/-/appium-adb-8.17.0.tgz#ae7ca101c8247b5c2dd3fa29d030187ddc3e5fb5"
+  integrity sha512-YlMe1M1EMA8EmmUKzOKL8lF+S1t9VjGRAGb1wPsaJ4PX0HvYMlKN+EebkwfKiHbPQmjaKZ4s2B9CyBFxN9NKaw==
   dependencies:
     "@babel/runtime" "^7.0.0"
     adbkit-apkreader "^3.1.2"
@@ -3026,10 +3026,10 @@ appium-adb@^8.10.0, appium-adb@^8.16.0, appium-adb@^8.4.0, appium-adb@^8.8.0, ap
     teen_process "^1.11.0"
     utf7 "^1.0.2"
 
-appium-adb@^8.17.0:
-  version "8.17.0"
-  resolved "https://registry.yarnpkg.com/appium-adb/-/appium-adb-8.17.0.tgz#ae7ca101c8247b5c2dd3fa29d030187ddc3e5fb5"
-  integrity sha512-YlMe1M1EMA8EmmUKzOKL8lF+S1t9VjGRAGb1wPsaJ4PX0HvYMlKN+EebkwfKiHbPQmjaKZ4s2B9CyBFxN9NKaw==
+appium-adb@^8.10.0, appium-adb@^8.16.0, appium-adb@^8.4.0, appium-adb@^8.8.0, appium-adb@^8.9.0:
+  version "8.16.2"
+  resolved "https://registry.yarnpkg.com/appium-adb/-/appium-adb-8.16.2.tgz#cca213b1e82e4e64e16d12db268926d24c65576d"
+  integrity sha512-mWPPY0Z10Q3HiHsiKD5+PJelpU/AtG1Hxr18S2KKM/sRPIFIo05iyboXsGYYg0cx0u3Mtwdq7LEhWRlSWbrr3A==
   dependencies:
     "@babel/runtime" "^7.0.0"
     adbkit-apkreader "^3.1.2"
@@ -9871,10 +9871,10 @@ react-native-screens@^2.10.1:
   resolved "https://registry.yarnpkg.com/react-native-screens/-/react-native-screens-2.18.1.tgz#47b9991c6f762d00d0ed3233e5283d523e859885"
   integrity sha512-r5WZLpmx2hHjC1RgMdPq5YpSU9tEhBpUaZ5M1SUtNIONyiLqQVxabhRCINdebIk4depJiIl7yw2Q85zJyeX6fw==
 
-react-native@0.66.0:
-  version "0.66.0"
-  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.66.0.tgz#99bdd83a9a612a71b94242767989d666d445b007"
-  integrity sha512-m26TKwzsfHVdZ1hDG+7mZ4M4ftxFFZrhtiT0OXuwfBzmNtB3xhsJtYszPeizw33c9YNp8rvehKT3c4ldDCW6kA==
+react-native@0.66.3:
+  version "0.66.3"
+  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.66.3.tgz#25c7c4c7d81867326b3eb7a36f0fe6a61fa4104e"
+  integrity sha512-B/dQpuvta9YvF5MihDWefoGlTvxzUHK5X5RjdrXHAu/ihTehJXxEA+m6z/tufp1ZUMDjU+tMZK6gnehzCuYfzw==
   dependencies:
     "@jest/create-cache-key-function" "^27.0.1"
     "@react-native-community/cli" "^6.0.0"
