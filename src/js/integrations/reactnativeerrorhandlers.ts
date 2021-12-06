@@ -73,7 +73,6 @@ export class ReactNativeErrorHandlers implements Integration {
 
       tracking.disable();
       tracking.enable({
-        allRejections: true,
         onUnhandled: (id: string, error: Error) => {
           if (__DEV__) {
             promiseRejectionTrackingOptions.onUnhandled(id, error);
