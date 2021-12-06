@@ -92,7 +92,13 @@ gradle.projectsEvaluated {
               } catch (FileNotFoundException e) {
                   project.logger.info("file not found '$propertiesFile' for '$variant'")
               }
-              def cliExecutable = sentryProps.get("cli.executable", "$reactRoot/node_modules/@sentry/cli/bin/sentry-cli")
+
+              def resolvedCliPackage = null
+              try {
+                  resolvedCliPackage = new File(["node", "--print", "require.resolve('@sentry/cli/package.json')"].execute(null, rootDir).text.trim()).getParentFile();
+              } catch (Throwable ignored) {}
+              def cliPackage = resolvedCliPackage != null && resolvedCliPackage.exists() ? resolvedCliPackage.getAbsolutePath() : "$reactRoot/node_modules/@sentry/cli"
+              def cliExecutable = sentryProps.get("cli.executable", "$cliPackage/bin/sentry-cli")
 
               // fix path separator for Windows
               if (Os.isFamily(Os.FAMILY_WINDOWS)) {

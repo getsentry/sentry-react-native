@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- feat(android): Support monorepo in gradle plugin #1917
 - fix: Fix dynamic require for promise options bypassing try catch block and crashing apps #1923
 
 ## 3.2.4
