@@ -12,7 +12,6 @@ interface ReactNativeErrorHandlersOptions {
 }
 
 interface PromiseRejectionTrackingOptions {
-  allRejections: boolean;
   onUnhandled: (id: string, error: unknown) => void;
   onHandled: (id: string) => void;
 }
@@ -95,24 +94,22 @@ export class ReactNativeErrorHandlers implements Integration {
    * Gets the promise rejection handlers, tries to get React Native's default one but otherwise will default to console.logging unhandled rejections.
    */
   private _getPromiseRejectionTrackingOptions(): PromiseRejectionTrackingOptions {
-    const moduleName = "react-native/Libraries/promiseRejectionTrackingOptions";
-    try {
-      // Here we try to use React Native's original promise rejection handler.
-      // NOTE: We also need to define the module name as a variable and use .call instead of just calling require() like usual otherwise metro will try to fetch the dependency and ignore the try catch.
-      // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-member-access
-      return require.call(null, moduleName).default;
-    } catch (e) {
-      //  Default behavior if the React Native promise rejection handlers are not available such as an older RN version
-      return {
-        allRejections: true,
-        onUnhandled: (_id: string, error: unknown) => {
-          // eslint-disable-next-line no-console
-          console.warn(error);
-        },
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        onHandled: (_id: string) => {},
-      };
-    }
+    return {
+      onUnhandled: (id, rejection = {}) => {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `Possible Unhandled Promise Rejection (id: ${id}):\n${rejection}`
+        );
+      },
+      onHandled: (id) => {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `Promise Rejection Handled (id: ${id})\n` +
+            "This means you can ignore any previous messages of the form " +
+            `"Possible Unhandled Promise Rejection (id: ${id}):"`
+        );
+      },
+    };
   }
   /**
    * Checks if the promise is the same one or not, if not it will warn the user
