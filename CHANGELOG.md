@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.6
 
 - fix: ReactNavigationV4Instrumentation null when evaluating 'state.routes' #1940
 
