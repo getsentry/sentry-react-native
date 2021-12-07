@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.6
 
 - feat(android): Support monorepo in gradle plugin #1917
 - fix: Remove dependency on promiseRejectionTrackingOptions #1928
