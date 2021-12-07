@@ -203,6 +203,16 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
     state: NavigationStateV4,
     updateLatestTransaction: boolean = false
   ): void {
+    // it's not guaranteed that a state is always produced.
+    // see: https://github.com/react-navigation/react-navigation/blob/45d419be93c34e900e8734ce98321ae875ac4997/packages/core/src/routers/SwitchRouter.js?rgh-link-date=2021-09-25T12%3A43%3A36Z#L301
+    if (!state) {
+      logger.warn(
+        "[ReactNavigationV4Instrumentation] onStateChange called without a valid state."
+      );
+
+      return;
+    }
+
     const currentRoute = this._getCurrentRouteFromState(state);
 
     // If the route is a different key, this is so we ignore actions that pertain to the same screen.
