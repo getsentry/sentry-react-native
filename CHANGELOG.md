@@ -1,7 +1,5 @@
 # Changelog
 
-## 3.2.6
-
 - fix: ConcurrentModification exception for frameMetricsAggregator #1939
 
 ## 3.2.6
