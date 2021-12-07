@@ -3,6 +3,7 @@
 ## Unreleased
 
 - fix: ReactNavigationV4Instrumentation null when evaluating 'state.routes' #1940
+- fix: ConcurrentModification exception for frameMetricsAggregator #1939
 
 ## 3.2.6
 
