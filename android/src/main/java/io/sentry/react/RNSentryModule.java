@@ -128,12 +128,19 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("sendDefaultPii")) {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
             }
-            if (rnOptions.hasKey("enableAutoPerformanceTracking") && rnOptions.getBoolean("enableAutoPerformanceTracking")) {
+            if (rnOptions.hasKey("enableAutoPerformanceTracking")
+                    && rnOptions.getBoolean("enableAutoPerformanceTracking")) {
                 RNSentryModule.frameMetricsAggregator = new FrameMetricsAggregator();
                 Activity currentActivity = getCurrentActivity();
 
                 if (currentActivity != null) {
-                    RNSentryModule.frameMetricsAggregator.add(currentActivity);
+                    try {
+                        RNSentryModule.frameMetricsAggregator.add(currentActivity);
+                    } catch (Throwable ignored) {
+                        // throws ConcurrentModification when calling addOnFrameMetricsAvailableListener
+                        // this is a best effort since we can't reproduce it
+                        logger.warning("Error adding Activity to frameMetricsAggregator.");
+                    }
                 }
             } else {
                 this.disableNativeFramesTracking();
@@ -148,7 +155,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     if (null != ex && ex.getType().contains("JavascriptException")) {
                         return null;
                     }
-                } catch (Exception e) {
+                } catch (Throwable ignored) {
                     // We do nothing
                 }
 
@@ -206,8 +213,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
             promise.resolve(appStart);
         }
-        // This is always set to true, as we would only allow an app start fetch to only happen once
-        // in the case of a JS bundle reload, we do not want it to be instrumented again.
+        // This is always set to true, as we would only allow an app start fetch to only
+        // happen once in the case of a JS bundle reload, we do not want it to be
+        // instrumented again.
         RNSentryModule.didFetchAppStart = true;
     }
 
@@ -233,7 +241,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                             int frameTime = totalIndexArray.keyAt(i);
                             int numFrames = totalIndexArray.valueAt(i);
                             totalFrames += numFrames;
-                            // hard coded values, its also in the official android docs and frame metrics API
+                            // hard coded values, its also in the official android docs and frame metrics
+                            // API
                             if (frameTime > FROZEN_FRAME_THRESHOLD) {
                                 // frozen frames, threshold is 700ms
                                 frozenFrames += numFrames;
@@ -251,7 +260,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 map.putInt("frozenFrames", frozenFrames);
 
                 promise.resolve(map);
-            } catch (Exception e) {
+            } catch (Throwable ignored) {
                 logger.warning("Error fetching native frames.");
                 promise.resolve(null);
             }
@@ -264,14 +273,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             final String outboxPath = HubAdapter.getInstance().getOptions().getOutboxPath();
 
             if (outboxPath == null) {
-                logger.severe("Error retrieving outboxPath. Envelope will not be sent. Is the Android SDK initialized?");
+                logger.severe(
+                        "Error retrieving outboxPath. Envelope will not be sent. Is the Android SDK initialized?");
             } else {
                 File installation = new File(outboxPath, UUID.randomUUID().toString());
                 try (FileOutputStream out = new FileOutputStream(installation)) {
                     out.write(envelope.getBytes(Charset.forName("UTF-8")));
                 }
             }
-        } catch (Exception e) {
+        } catch (Throwable ignored) {
             logger.severe("Error reading envelope");
         }
         promise.resolve(true);
@@ -417,11 +427,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void closeNativeSdk(Promise promise) {
-      Sentry.close();
+        Sentry.close();
 
-      disableNativeFramesTracking();
+        disableNativeFramesTracking();
 
-      promise.resolve(true);
+        promise.resolve(true);
     }
 
     @ReactMethod
@@ -435,17 +445,18 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     private void setEventOriginTag(SentryEvent event) {
         SdkVersion sdk = event.getSdk();
         if (sdk != null) {
-          switch (sdk.getName()) {
-          // If the event is from capacitor js, it gets set there and we do not handle it here.
-          case "sentry.native":
-            setEventEnvironmentTag(event, "android", "native");
-            break;
-          case "sentry.java.android":
-            setEventEnvironmentTag(event, "android", "java");
-            break;
-          default:
-            break;
-          }
+            switch (sdk.getName()) {
+                // If the event is from capacitor js, it gets set there and we do not handle it
+                // here.
+                case "sentry.native":
+                    setEventEnvironmentTag(event, "android", "native");
+                    break;
+                case "sentry.java.android":
+                    setEventEnvironmentTag(event, "android", "java");
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
