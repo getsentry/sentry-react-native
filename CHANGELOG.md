@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix: ConcurrentModification exception for frameMetricsAggregator #1939
+
 ## 3.2.6
 
 - feat(android): Support monorepo in gradle plugin #1917
