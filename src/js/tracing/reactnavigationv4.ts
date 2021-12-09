@@ -200,12 +200,12 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
    * To be called on navigation state changes and creates the transaction.
    */
   private _onStateChange(
-    state: NavigationStateV4,
+    state: NavigationStateV4 | undefined,
     updateLatestTransaction: boolean = false
   ): void {
     // it's not guaranteed that a state is always produced.
     // see: https://github.com/react-navigation/react-navigation/blob/45d419be93c34e900e8734ce98321ae875ac4997/packages/core/src/routers/SwitchRouter.js?rgh-link-date=2021-09-25T12%3A43%3A36Z#L301
-    if (!state) {
+    if (!state || state === undefined) {
       logger.warn(
         "[ReactNavigationV4Instrumentation] onStateChange called without a valid state."
       );
