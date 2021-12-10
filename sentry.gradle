@@ -107,7 +107,7 @@ gradle.projectsEvaluated {
 
               //
               // based on:
-              //   https://github.com/getsentry/sentry-cli/blob/master/src/commands/react_native_gradle.rs
+              //   https://github.com/getsentry/sentry-cli/blob/main/src/commands/react_native_gradle.rs
               //
               def args = [cliExecutable]
 
