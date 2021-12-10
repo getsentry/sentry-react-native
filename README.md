@@ -8,7 +8,7 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 
 # Sentry SDK for React Native
 
-[![Travis](https://travis-ci.com/getsentry/sentry-react-native.svg?branch=master)](https://travis-ci.com/getsentry/sentry-react-native)
+[![Build & Test](https://github.com/getsentry/sentry-react-native/actions/workflows/buildandtest.yml/badge.svg)](https://github.com/getsentry/sentry-react-native/actions/workflows/buildandtest.yml)
 [![E2E Tests](https://img.shields.io/github/workflow/status/getsentry/sentry-react-native/End-to-End%20Tests?label=E2E%20Tests)](https://github.com/getsentry/sentry-react-native/actions?query=workflow%3A"End-to-End%20Tests")
 [![npm version](https://img.shields.io/npm/v/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
 [![npm dm](https://img.shields.io/npm/dm/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
