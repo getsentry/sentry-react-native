@@ -4,8 +4,6 @@
 
 ### Various fixes & improvements
 
-- rollback (4fd13137) by @marandaneto
-- fix build badge (2f7a774d) by @marandaneto
 - replace usage of master to main (30b44232) by @marandaneto
 
 ## 3.2.7
