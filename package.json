@@ -47,7 +47,7 @@
     "@sentry/integrations": "6.12.0",
     "@sentry/react": "6.12.0",
     "@sentry/tracing": "6.12.0",
-    "@sentry/types": "6.12.0",
+    "@sentry/types": "6.16.1",
     "@sentry/utils": "6.12.0"
   },
   "devDependencies": {
