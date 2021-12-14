@@ -1,5 +1,6 @@
 import { BrowserOptions } from "@sentry/react";
 import { ProfilerProps } from "@sentry/react/dist/profiler";
+import { CaptureContext } from "@sentry/types/dist/scope";
 
 import { TouchEventBoundaryProps } from "./touchevents";
 
@@ -79,7 +80,13 @@ export interface ReactNativeOptions extends BrowserOptions {
    *
    * @default true
    * */
-   enableOutOfMemoryTracking?: boolean;
+  enableOutOfMemoryTracking?: boolean;
+
+  /**
+   * Set data to the inital scope
+   * @deprecated Use `Sentry.configureScope(...)`
+   */
+  initialScope?: CaptureContext;
 }
 
 export interface ReactNativeWrapperOptions {
