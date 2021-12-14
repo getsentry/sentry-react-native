@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Bump: Sentry Android to 5.5.0 and Sentry Cocoa to 7.6.1 #
+
 ## 3.2.8
 
 ### Various fixes & improvements
