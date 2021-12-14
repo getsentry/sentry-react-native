@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Bump: Sentry Android to 5.5.0 and Sentry Cocoa to 7.6.1 #
+- Bump: Sentry Android to 5.5.0 and Sentry Cocoa to 7.6.1 #1965
 
 ## 3.2.8
 
