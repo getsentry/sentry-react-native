@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Deprecate initialScope in favor of configureScope #1963
+
 ## 3.2.8
 
 ### Various fixes & improvements
