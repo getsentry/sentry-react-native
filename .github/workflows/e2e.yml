@@ -19,6 +19,9 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: "12"
+        uses: actions/setup-java@v2
+        with:
+          java-version: "11"
       - name: Install Global Dependencies
         run: yarn global add react-native-cli @sentry/cli yalc
       - uses: actions/cache@v2
