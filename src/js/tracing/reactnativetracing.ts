@@ -153,7 +153,6 @@ export class ReactNativeTracing implements Integration {
       // @ts-ignore TODO
       shouldCreateSpanForRequest,
       routingInstrumentation,
-      // enableAppStartTracking,
       enableNativeFramesTracking,
       enableStallTracking,
     } = this.options;
@@ -382,9 +381,6 @@ export class ReactNativeTracing implements Integration {
       // the problem is that the App start cold/warm by this point is unknown yet, the JS bundle is loaded
       // before the very first Activity, which is when the Android SDK detects the type of the App start.
       if (this.options.enableAppStartTracking) {
-        logger.log(
-          `[ReactNativeTracing] thats a test`
-        );
         void this._instrumentAppStart();
       }
 
