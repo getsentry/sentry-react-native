@@ -211,18 +211,27 @@ export class StallTrackingInstrumentation {
       return;
     }
 
+    const stallCount = statsOnFinish.stall_count.value - transactionStats.atStart.stall_count.value;
+    const stallTotalTime = statsOnFinish.stall_total_time.value - transactionStats.atStart.stall_total_time.value;
+    const stallLongestTime = statsOnFinish.stall_longest_time.value;
+
+    if (stallCount == 0 && stallTotalTime == 0 && stallLongestTime == 0) {
+      logger.log(
+        "[StallTracking] Stall measurements not added due to all values being zero."
+      );
+      return;
+    }
+
     const measurements = {
       stall_count: {
-        value:
-          statsOnFinish.stall_count.value -
-          transactionStats.atStart.stall_count.value,
+        value: stallCount,
       },
       stall_total_time: {
-        value:
-          statsOnFinish.stall_total_time.value -
-          transactionStats.atStart.stall_total_time.value,
+        value: stallTotalTime,
       },
-      stall_longest_time: statsOnFinish.stall_longest_time,
+      stall_longest_time: {
+        value: stallLongestTime,
+      },
     };
 
     transaction.setMeasurements(measurements);

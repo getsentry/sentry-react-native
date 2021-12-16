@@ -55,7 +55,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     final static Logger logger = Logger.getLogger("react-native-sentry");
 
     private static PackageInfo packageInfo;
-    private static boolean didFetchAppStart = false;
+    private boolean didFetchAppStart = false;
     private static FrameMetricsAggregator frameMetricsAggregator = null;
 
     // 700ms to constitute frozen frames.
@@ -198,25 +198,24 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void fetchNativeAppStart(Promise promise) {
         final AppStartState appStartInstance = AppStartState.getInstance();
-        final Date appStartTime = appStartInstance.getAppStartTime();
+        final Long appStartInterval = appStartInstance.getAppStartInterval();
 
-        if (appStartTime == null) {
+        if (appStartInterval == null && didFetchAppStart) {
             promise.resolve(null);
         } else {
+            final Date appStartTime = appStartInstance.getAppStartTime();
             final double appStartTimestamp = (double) appStartTime.getTime();
 
             WritableMap appStart = Arguments.createMap();
 
             appStart.putDouble("appStartTime", appStartTimestamp);
             appStart.putBoolean("isColdStart", appStartInstance.isColdStart());
-            appStart.putBoolean("didFetchAppStart", RNSentryModule.didFetchAppStart);
+            appStart.putBoolean("didFetchAppStart", didFetchAppStart);
 
             promise.resolve(appStart);
+
+            didFetchAppStart = true;
         }
-        // This is always set to true, as we would only allow an app start fetch to only
-        // happen once in the case of a JS bundle reload, we do not want it to be
-        // instrumented again.
-        RNSentryModule.didFetchAppStart = true;
     }
 
     /**
@@ -252,6 +251,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                             }
                         }
                     }
+                }
+
+                if (totalFrames == 0 && slowFrames == 0 && frozenFrames == 0) {
+                    promise.resolve(null);
+                    return;
                 }
 
                 WritableMap map = Arguments.createMap();
