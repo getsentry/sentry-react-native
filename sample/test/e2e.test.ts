@@ -30,6 +30,8 @@ beforeAll(async () => {
           newCommandTimeout: 600000,
           automationName: 'XCUITest',
           showXcodeLog: true,
+          iosInstallPause: 8000,
+          wdaStartupRetries: 6,
         };
 
   await driver.init(config);
