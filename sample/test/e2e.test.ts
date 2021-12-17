@@ -25,10 +25,11 @@ beforeAll(async () => {
         }
       : {
           app: 'io.sentry.sample',
-          deviceName: 'iPhone 13',
+          deviceName: 'iPhone 12',
           platformName: 'iOS',
           newCommandTimeout: 600000,
           automationName: 'XCUITest',
+          showXcodeLog: true,
         };
 
   await driver.init(config);
