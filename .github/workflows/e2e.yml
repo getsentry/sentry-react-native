@@ -49,7 +49,7 @@ jobs:
 
       - name: Start Appium Server
         working-directory: ./sample
-        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload |& tee appium.log &
+        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload | tee appium.log &
       - name: Run Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -115,7 +115,7 @@ jobs:
         run: pod install
       - name: Start Appium Server
         working-directory: ./sample
-        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload |& tee appium.log &
+        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload | tee appium.log &
       - name: Build and run iOS emulator
         working-directory: ./sample
         run: react-native run-ios --configuration Release --simulator "iPhone 13"
