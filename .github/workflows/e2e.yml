@@ -121,7 +121,7 @@ jobs:
         run: react-native run-ios --configuration Release --simulator "iPhone 13"
       - name: Build WDA
         working-directory: ./sample
-        run: xcodebuild -project /Users/runner/work/sentry-react-native/sentry-react-native/sample/node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner -derivedDataPath /Users/runner/work/sentry-react-native/sentry-react-native/sample/xc-build -destination id=846E82B7-C95A-4C73-A4AB-4A99FC7F1E09 IPHONEOS_DEPLOYMENT_TARGET=15.0 GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO build
+        run: xcodebuild -project /Users/runner/work/sentry-react-native/sentry-react-native/sample/node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner -derivedDataPath /Users/runner/work/sentry-react-native/sentry-react-native/sample/xc-build -destination name="iPhone 13" IPHONEOS_DEPLOYMENT_TARGET=15.0 GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO build
       - name: Install WDA
         working-directory: ./sample
         run: xcrun simctl install "iPhone 13" './xc-build/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app'
