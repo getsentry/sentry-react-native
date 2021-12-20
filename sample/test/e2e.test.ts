@@ -1,5 +1,6 @@
 // tslint:disable: no-unsafe-any
 import wd from 'wd';
+import path from 'path';
 
 import {fetchEvent} from '../utils/fetchEvent';
 
@@ -25,10 +26,13 @@ beforeAll(async () => {
         }
       : {
           app: 'io.sentry.sample',
-          deviceName: 'iPhone 12',
+          deviceName: 'iPhone 13',
           platformName: 'iOS',
           newCommandTimeout: 600000,
           automationName: 'XCUITest',
+          derivedDataPath: path.resolve('./xc-build'),
+          showXcodeLog: true,
+          usePrebuiltWDA: true,
         };
 
   await driver.init(config);
