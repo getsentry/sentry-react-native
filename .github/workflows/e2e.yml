@@ -49,7 +49,7 @@ jobs:
 
       - name: Start Appium Server
         working-directory: ./sample
-        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload | tee appium.log &
+        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
       - name: Run Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -69,6 +69,8 @@ jobs:
     env:
       PLATFORM: ios
       TEST: true
+      DEVICE: "iPhone 13"
+      IOS_DEPLOYMENT_TARGET: 15.0
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
@@ -108,29 +110,32 @@ jobs:
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         working-directory: ./sample
         run: yarn install
-
       - name: Install iOS pods
         # Even though we cache the pods, we call it regardless
         working-directory: ./sample/ios
         run: pod install
+
       - name: Start Appium Server
         working-directory: ./sample
-        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload | tee appium.log &
+        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
       - name: Build and run iOS emulator
         working-directory: ./sample
-        run: react-native run-ios --configuration Release --simulator "iPhone 13"
+        run: react-native run-ios --configuration Release --simulator $DEVICE
+
       - name: Build WDA
         working-directory: ./sample
-        run: xcodebuild -project /Users/runner/work/sentry-react-native/sentry-react-native/sample/node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner -derivedDataPath /Users/runner/work/sentry-react-native/sentry-react-native/sample/xc-build -destination name="iPhone 13" IPHONEOS_DEPLOYMENT_TARGET=15.0 GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO build
+        run: xcodebuild -project ./node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner -derivedDataPath ./xc-build -destination name=$DEVICE IPHONEOS_DEPLOYMENT_TARGET=$IOS_DEPLOYMENT_TARGET GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO build
       - name: Install WDA
         working-directory: ./sample
-        run: xcrun simctl install "iPhone 13" './xc-build/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app'
+        run: xcrun simctl install $DEVICE './xc-build/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app'
+
         # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
       - name: Ping Appium Server
         run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
       - name: Run Tests
         working-directory: ./sample
         run: yarn test
+
       - name: Upload Appium logs
         # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
         # otherwise it would not run if the previous step failed
