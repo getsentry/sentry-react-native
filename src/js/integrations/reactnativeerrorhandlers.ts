@@ -61,8 +61,26 @@ export class ReactNativeErrorHandlers implements Integration {
         This is due to a version mismatch between promise versions. The version will need to be fixed with a package resolution.
         We first run a check and show a warning if needed.
       */
+      this._polyfillPromise();
       this._checkPromiseVersion();
+    }
+  }
+  /**
+   *
+   */
+  private _polyfillPromise(): void {
+    const {
+      polyfillGlobal,
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+    } = require("react-native/Libraries/Utilities/PolyfillFunctions");
+    // eslint-disable-next-line import/no-extraneous-dependencies,@typescript-eslint/no-var-requires
+    const Promise = require("promise/setimmediate/es6-extensions");
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    require("promise/setimmediate/done");
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    require("promise/setimmediate/finally");
 
+    polyfillGlobal("Promise", () => {
       const tracking: {
         disable: () => void;
         enable: (arg: unknown) => void;
@@ -88,7 +106,9 @@ export class ReactNativeErrorHandlers implements Integration {
           promiseRejectionTrackingOptions.onHandled(id);
         },
       });
-    }
+
+      return Promise;
+    });
   }
   /**
    * Gets the promise rejection handlers, tries to get React Native's default one but otherwise will default to console.logging unhandled rejections.
