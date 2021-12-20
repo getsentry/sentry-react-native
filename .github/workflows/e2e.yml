@@ -125,9 +125,6 @@ jobs:
       - name: Build WDA
         working-directory: ./sample
         run: xcodebuild -project ./node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner -derivedDataPath ./xc-build -destination name=$DEVICE IPHONEOS_DEPLOYMENT_TARGET=$IOS_DEPLOYMENT_TARGET GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO build
-      - name: Install WDA
-        working-directory: ./sample
-        run: xcrun simctl install $DEVICE './xc-build/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app'
 
         # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
       - name: Ping Appium Server
