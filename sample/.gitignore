@@ -20,6 +20,7 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
+./xc-build
 
 # Android/IntelliJ
 #
@@ -57,3 +58,4 @@ buck-out/
 
 # CocoaPods
 /ios/Pods/
+
