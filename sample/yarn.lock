@@ -3824,10 +3824,9 @@ appium-youiengine-driver@^1.2.8:
     shelljs "^0.8.4"
     source-map-support "^0.5.19"
     teen_process "^1.15.0"
-
-appium@^1.22.0:
+appium@^1.22.1:
   version "1.22.1"
-  resolved "https://registry.npmjs.org/appium/-/appium-1.22.1.tgz"
+  resolved "https://registry.yarnpkg.com/appium/-/appium-1.22.1.tgz#cc8660d5803c996fa9b5fb7ad59129a4f2c4e72f"
   integrity sha512-geeoVdqjjcpCrL0dVwAF3LP0yt06iPfJi6MG88MDa7mEGmDColxCnrX3qGrsCESSTR4G3KGKaSaTJMZRojSytg==
   dependencies:
     "@babel/runtime" "^7.6.0"
