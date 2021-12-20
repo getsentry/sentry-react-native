@@ -3,6 +3,9 @@ import { Breadcrumb, User } from "@sentry/types";
 
 import { NATIVE } from "./wrapper";
 
+type SerializeableValue = string | number | boolean
+type SerializeableMap = { [key: string]: SerializeableValue }
+
 /**
  * Extends the scope methods to set scope on the Native SDKs
  */
@@ -37,8 +40,7 @@ export class ReactNativeScope extends Scope {
   /**
    * @inheritDoc
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public setExtras(extras: { [key: string]: any }): this {
+  public setExtras(extras: SerializeableMap): this {
     Object.keys(extras).forEach((key) => {
       NATIVE.setExtra(key, extras[key]);
     });
@@ -48,8 +50,7 @@ export class ReactNativeScope extends Scope {
   /**
    * @inheritDoc
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/no-explicit-any
-  public setExtra(key: string, extra: any): this {
+  public setExtra(key: string, extra: SerializeableValue): this {
     NATIVE.setExtra(key, extra);
     return super.setExtra(key, extra);
   }
@@ -74,7 +75,7 @@ export class ReactNativeScope extends Scope {
    * @inheritDoc
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public setContext(key: string, context: { [key: string]: any } | null): this {
+  public setContext(key: string, context: SerializeableMap | null): this {
     NATIVE.setContext(key, context);
     return super.setContext(key, context);
   }
