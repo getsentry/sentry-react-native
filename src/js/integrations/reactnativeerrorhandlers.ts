@@ -58,33 +58,28 @@ export class ReactNativeErrorHandlers implements Integration {
     if (this._options.onunhandledrejection) {
       /*
         In newer RN versions >=0.63, the global promise is not the same reference as the one imported from the promise library.
-        This is due to a version mismatch between promise versions. The version will need to be fixed with a package resolution.
-        We first run a check and show a warning if needed.
+        This is due to a version mismatch between promise versions.
       */
       this._polyfillPromise();
-      this._checkPromiseVersion();
     }
   }
   /**
-   *
+   * Polyfill the global promise instance with one we can be sure that we can attach the tracking to.
    */
   private _polyfillPromise(): void {
+    /* eslint-disable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires*/
     const {
       polyfillGlobal,
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
     } = require("react-native/Libraries/Utilities/PolyfillFunctions");
-    // eslint-disable-next-line import/no-extraneous-dependencies,@typescript-eslint/no-var-requires
     const Promise = require("promise/setimmediate/es6-extensions");
-    // eslint-disable-next-line import/no-extraneous-dependencies
+
     require("promise/setimmediate/done");
-    // eslint-disable-next-line import/no-extraneous-dependencies
     require("promise/setimmediate/finally");
 
     polyfillGlobal("Promise", () => {
       const tracking: {
         disable: () => void;
         enable: (arg: unknown) => void;
-        // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
       } = require("promise/setimmediate/rejection-tracking");
 
       const promiseRejectionTrackingOptions = this._getPromiseRejectionTrackingOptions();
@@ -108,6 +103,7 @@ export class ReactNativeErrorHandlers implements Integration {
       });
 
       return Promise;
+      /* eslint-enable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
     });
   }
   /**
@@ -130,30 +126,6 @@ export class ReactNativeErrorHandlers implements Integration {
         );
       },
     };
-  }
-  /**
-   * Checks if the promise is the same one or not, if not it will warn the user
-   */
-  private _checkPromiseVersion(): void {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
-      const Promise = require("promise/setimmediate/core");
-
-      const _global = getGlobalObject<{ Promise: typeof Promise }>();
-
-      if (Promise !== _global.Promise) {
-        logger.warn(
-          "Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page."
-        );
-      } else {
-        logger.log("Unhandled promise rejections will be caught by Sentry.");
-      }
-    } catch (e) {
-      // Do Nothing
-      logger.warn(
-        "Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page."
-      );
-    }
   }
   /**
    * Handle errors
