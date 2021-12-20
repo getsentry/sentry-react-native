@@ -21,6 +21,5 @@
     "editor.formatOnPaste": false,
     "editor.formatOnSave": false
   },
-  "react-native-tools.projectRoot": "./sample",
-  "java.configuration.updateBuildConfiguration": "interactive"
+  "react-native-tools.projectRoot": "./sample"
 }

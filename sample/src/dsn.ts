@@ -1,2 +1,2 @@
 export const SENTRY_INTERNAL_DSN =
-  'https://d291ec1dd85d4151a4fccf861d61b8a5@o447951.ingest.sentry.io/5998334';
+  'https://d870ad989e7046a8b9715a57f59b23b5@o447951.ingest.sentry.io/5428561';
