@@ -1,7 +1,7 @@
 import { eventFromException } from "@sentry/browser";
 import { getCurrentHub } from "@sentry/core";
 import { Integration, Severity } from "@sentry/types";
-import { addExceptionMechanism, getGlobalObject, logger } from "@sentry/utils";
+import { addExceptionMechanism, logger } from "@sentry/utils";
 
 import { ReactNativeClient } from "../client";
 
