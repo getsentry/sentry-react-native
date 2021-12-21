@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.9
 
 - Deprecate initialScope in favor of configureScope #1963
 - Bump: Sentry Android to 5.5.1 and Sentry Cocoa to 7.7.0 #1965
