@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.10
 
 - fix: Do not crash if androidx.core isn't available on Android #1981
 - fix: App start measurement on Android #1985
