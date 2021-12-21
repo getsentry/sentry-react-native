@@ -36,7 +36,7 @@ export class ReactNativeErrorHandlers implements Integration {
   private readonly _options: ReactNativeErrorHandlersOptions;
 
   /** Constructor */
-  public constructor(options?: ReactNativeErrorHandlersOptions) {
+  public constructor(options?: Partial<ReactNativeErrorHandlersOptions>) {
     this._options = {
       onerror: true,
       onunhandledrejection: true,
@@ -89,12 +89,12 @@ export class ReactNativeErrorHandlers implements Integration {
     require("promise/setimmediate/finally");
 
     polyfillGlobal("Promise", () => Promise);
-
     /* eslint-enable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
   }
   /**
    *
    */
+  // @ts-ignore temp
   private _attachUnhandledRejectionHandler(): void {
     const tracking: {
       disable: () => void;
