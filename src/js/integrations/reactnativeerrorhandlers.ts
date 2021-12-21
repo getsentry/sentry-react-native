@@ -62,7 +62,7 @@ export class ReactNativeErrorHandlers implements Integration {
         this._polyfillPromise();
       }
 
-      // this._attachUnhandledRejectionHandler();
+      this._attachUnhandledRejectionHandler();
       this._checkPromiseAndWarn();
     }
   }
@@ -92,9 +92,8 @@ export class ReactNativeErrorHandlers implements Integration {
     /* eslint-enable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
   }
   /**
-   *
+   * Attach the unhandled rejection handler
    */
-  // @ts-ignore temp
   private _attachUnhandledRejectionHandler(): void {
     const tracking: {
       disable: () => void;
