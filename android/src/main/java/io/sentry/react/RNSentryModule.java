@@ -206,8 +206,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void fetchNativeAppStart(Promise promise) {
         final AppStartState appStartInstance = AppStartState.getInstance();
         final Date appStartTime = appStartInstance.getAppStartTime();
+        final Boolean coldStart = appStartInstance.isColdStart();
 
-        if (appStartTime == null) {
+        if (appStartTime == null || coldStart == null) {
+            logger.warning("App start won't be sent due to missing appStartTime or coldStart.");
             promise.resolve(null);
         } else {
             final double appStartTimestamp = (double) appStartTime.getTime();
@@ -215,7 +217,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             WritableMap appStart = Arguments.createMap();
 
             appStart.putDouble("appStartTime", appStartTimestamp);
-            appStart.putBoolean("isColdStart", appStartInstance.isColdStart());
+            appStart.putBoolean("isColdStart", coldStart);
             appStart.putBoolean("didFetchAppStart", didFetchAppStart);
 
             promise.resolve(appStart);
