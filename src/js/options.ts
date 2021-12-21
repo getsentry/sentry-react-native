@@ -87,6 +87,8 @@ export interface ReactNativeOptions extends BrowserOptions {
    * @deprecated Use `Sentry.configureScope(...)`
    */
   initialScope?: CaptureContext;
+
+  patchGlobalPromise?: boolean;
 }
 
 export interface ReactNativeWrapperOptions {

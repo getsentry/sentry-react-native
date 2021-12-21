@@ -1,7 +1,7 @@
 import { eventFromException } from "@sentry/browser";
 import { getCurrentHub } from "@sentry/core";
 import { Integration, Severity } from "@sentry/types";
-import { addExceptionMechanism, logger } from "@sentry/utils";
+import { addExceptionMechanism, getGlobalObject, logger } from "@sentry/utils";
 
 import { ReactNativeClient } from "../client";
 
@@ -9,6 +9,7 @@ import { ReactNativeClient } from "../client";
 interface ReactNativeErrorHandlersOptions {
   onerror: boolean;
   onunhandledrejection: boolean;
+  patchGlobalPromise: boolean;
 }
 
 interface PromiseRejectionTrackingOptions {
@@ -39,6 +40,7 @@ export class ReactNativeErrorHandlers implements Integration {
     this._options = {
       onerror: true,
       onunhandledrejection: true,
+      patchGlobalPromise: true,
       ...options,
     };
   }
@@ -56,55 +58,93 @@ export class ReactNativeErrorHandlers implements Integration {
    */
   private _handleUnhandledRejections(): void {
     if (this._options.onunhandledrejection) {
-      /*
-        In newer RN versions >=0.63, the global promise is not the same reference as the one imported from the promise library.
-        This is due to a version mismatch between promise versions.
-      */
-      this._polyfillPromise();
+      if (this._options.patchGlobalPromise) {
+        this._polyfillPromise();
+      }
+
+      // this._attachUnhandledRejectionHandler();
+      this._checkPromiseAndWarn();
     }
   }
   /**
    * Polyfill the global promise instance with one we can be sure that we can attach the tracking to.
+   *
+   * In newer RN versions >=0.63, the global promise is not the same reference as the one imported from the promise library.
+   * This is due to a version mismatch between promise versions.
+   * Originally we tried a solution where we would have you put a package resolution to ensure the promise instances match. However,
+   * - Using a package resolution requires the you to manually troubleshoot.
+   * - The package resolution fix no longer works with 0.67 on iOS Hermes.
    */
   private _polyfillPromise(): void {
     /* eslint-disable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires*/
     const {
       polyfillGlobal,
     } = require("react-native/Libraries/Utilities/PolyfillFunctions");
+
+    // Below, we follow the exact way React Native initializes its promise library, and we globally replace it.
     const Promise = require("promise/setimmediate/es6-extensions");
 
+    // As of RN 0.67 only done and finally are used
     require("promise/setimmediate/done");
     require("promise/setimmediate/finally");
 
-    polyfillGlobal("Promise", () => {
-      const tracking: {
-        disable: () => void;
-        enable: (arg: unknown) => void;
-      } = require("promise/setimmediate/rejection-tracking");
+    polyfillGlobal("Promise", () => Promise);
 
-      const promiseRejectionTrackingOptions = this._getPromiseRejectionTrackingOptions();
+    /* eslint-enable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
+  }
+  /**
+   *
+   */
+  private _attachUnhandledRejectionHandler(): void {
+    const tracking: {
+      disable: () => void;
+      enable: (arg: unknown) => void;
+      // eslint-disable-next-line import/no-extraneous-dependencies,@typescript-eslint/no-var-requires
+    } = require("promise/setimmediate/rejection-tracking");
 
-      tracking.disable();
-      tracking.enable({
-        allRejections: true,
-        onUnhandled: (id: string, error: Error) => {
-          if (__DEV__) {
-            promiseRejectionTrackingOptions.onUnhandled(id, error);
-          }
+    const promiseRejectionTrackingOptions = this._getPromiseRejectionTrackingOptions();
 
-          getCurrentHub().captureException(error, {
-            data: { id },
-            originalException: error,
-          });
-        },
-        onHandled: (id: string) => {
-          promiseRejectionTrackingOptions.onHandled(id);
-        },
-      });
+    tracking.disable();
+    tracking.enable({
+      allRejections: true,
+      onUnhandled: (id: string, error: Error) => {
+        if (__DEV__) {
+          promiseRejectionTrackingOptions.onUnhandled(id, error);
+        }
 
-      return Promise;
-      /* eslint-enable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
+        getCurrentHub().captureException(error, {
+          data: { id },
+          originalException: error,
+        });
+      },
+      onHandled: (id: string) => {
+        promiseRejectionTrackingOptions.onHandled(id);
+      },
     });
+  }
+  /**
+   * Checks if the promise is the same one or not, if not it will warn the user
+   */
+  private _checkPromiseAndWarn(): void {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
+      const Promise = require("promise/setimmediate/es6-extensions");
+
+      const _global = getGlobalObject<{ Promise: typeof Promise }>();
+
+      if (Promise !== _global.Promise) {
+        logger.warn(
+          "Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page."
+        );
+      } else {
+        logger.log("Unhandled promise rejections will be caught by Sentry.");
+      }
+    } catch (e) {
+      // Do Nothing
+      logger.warn(
+        "Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page."
+      );
+    }
   }
   /**
    * Gets the promise rejection handlers, tries to get React Native's default one but otherwise will default to console.logging unhandled rejections.
