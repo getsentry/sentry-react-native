@@ -3,9 +3,10 @@
 ## Unreleased
 
 - Deprecate initialScope in favor of configureScope #1963
-- Bump: Sentry Android to 5.5.1 and Sentry Cocoa to 7.7.0 #1965
+- Bump: Sentry Android to 5.5.1 and Sentry Cocoa to 7.7.0 #1965 and
 - fix: Do not crash if androidx.core isn't available on Android #1981
-- fix: App start measurement on Android
+- fix: App start measurement on Android #1985
+- Bump: Sentry Android to 5.5.2 #1985
 
 ## 3.2.8
 
