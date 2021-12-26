@@ -70,3 +70,5 @@ wheelhouse
 # Yalc
 .yalc/
 yalc.lock
+
+e2e/app
