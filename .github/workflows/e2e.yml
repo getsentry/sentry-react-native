@@ -79,7 +79,7 @@ jobs:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
       matrix:
-        rn_version: ["^0.66", "^0.56"]
+        rn_version: ["0.66", "0.64", "0.56"]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -94,13 +94,13 @@ jobs:
             node_modules
             sample/node_modules
           key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-      - uses: actions/cache@v2
-        id: pods-cache
-        with:
-          path: |
-            sample/ios/Pods
-            ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-${{ hashFiles('sample/ios/Podfile.lock') }}
+      # - uses: actions/cache@v2
+      #   id: pods-cache
+      #   with:
+      #     path: |
+      #       sample/ios/Pods
+      #       ~/Library/Developer/Xcode/DerivedData
+      #     key: ${{ runner.os }}-${{ hashFiles('sample/ios/Podfile.lock') }}
       - name: Install Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
