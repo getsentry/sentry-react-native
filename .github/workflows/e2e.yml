@@ -75,6 +75,11 @@ jobs:
       TEST: true
       DEVICE: "iPhone 13"
       IOS_DEPLOYMENT_TARGET: 15.0
+    strategy:
+      # we want that the matrix keeps running, default is to cancel them if it fails.
+      fail-fast: false
+      matrix:
+        rn_version: ["^0.66", "^0.56"]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -114,6 +119,8 @@ jobs:
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         working-directory: ./sample
         run: yarn install
+      - name: Install RN @ version
+        run: yarn add react-native@${{ matrix.rn_version }}
       - name: Install iOS pods
         # Even though we cache the pods, we call it regardless
         working-directory: ./sample/ios
