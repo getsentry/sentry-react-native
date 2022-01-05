@@ -101,9 +101,23 @@ export class ReactNativeErrorHandlers implements Integration {
       // eslint-disable-next-line import/no-extraneous-dependencies,@typescript-eslint/no-var-requires
     } = require("promise/setimmediate/rejection-tracking");
 
-    const promiseRejectionTrackingOptions = this._getPromiseRejectionTrackingOptions();
+    const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
+      onUnhandled: (id, rejection = {}) => {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `Possible Unhandled Promise Rejection (id: ${id}):\n${rejection}`
+        );
+      },
+      onHandled: (id) => {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `Promise Rejection Handled (id: ${id})\n` +
+            "This means you can ignore any previous messages of the form " +
+            `"Possible Unhandled Promise Rejection (id: ${id}):"`
+        );
+      },
+    };
 
-    tracking.disable();
     tracking.enable({
       allRejections: true,
       onUnhandled: (id: string, error: Error) => {
@@ -144,27 +158,6 @@ export class ReactNativeErrorHandlers implements Integration {
         "Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page."
       );
     }
-  }
-  /**
-   * Gets the promise rejection handlers, tries to get React Native's default one but otherwise will default to console.logging unhandled rejections.
-   */
-  private _getPromiseRejectionTrackingOptions(): PromiseRejectionTrackingOptions {
-    return {
-      onUnhandled: (id, rejection = {}) => {
-        // eslint-disable-next-line no-console
-        console.warn(
-          `Possible Unhandled Promise Rejection (id: ${id}):\n${rejection}`
-        );
-      },
-      onHandled: (id) => {
-        // eslint-disable-next-line no-console
-        console.warn(
-          `Promise Rejection Handled (id: ${id})\n` +
-            "This means you can ignore any previous messages of the form " +
-            `"Possible Unhandled Promise Rejection (id: ${id}):"`
-        );
-      },
-    };
   }
   /**
    * Handle errors
