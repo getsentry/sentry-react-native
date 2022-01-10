@@ -52,20 +52,21 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     public static final String NAME = "RNSentry";
 
-    final static Logger logger = Logger.getLogger("react-native-sentry");
+    private static final Logger logger = Logger.getLogger("react-native-sentry");
 
-    private static PackageInfo packageInfo;
-    private static boolean didFetchAppStart = false;
-    private static FrameMetricsAggregator frameMetricsAggregator = null;
+    private PackageInfo packageInfo = null;
+    private boolean didFetchAppStart;
+    private FrameMetricsAggregator frameMetricsAggregator = null;
+    private boolean androidXAvailable = true;
 
     // 700ms to constitute frozen frames.
-    private final int FROZEN_FRAME_THRESHOLD = 700;
+    private static final int FROZEN_FRAME_THRESHOLD = 700;
     // 16ms (slower than 60fps) to constitute slow frames.
-    private final int SLOW_FRAME_THRESHOLD = 16;
+    private static final int SLOW_FRAME_THRESHOLD = 16;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
-        RNSentryModule.packageInfo = getPackageInfo(reactContext);
+        packageInfo = getPackageInfo(reactContext);
     }
 
     @Override
@@ -130,17 +131,23 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
             if (rnOptions.hasKey("enableAutoPerformanceTracking")
                     && rnOptions.getBoolean("enableAutoPerformanceTracking")) {
-                RNSentryModule.frameMetricsAggregator = new FrameMetricsAggregator();
-                Activity currentActivity = getCurrentActivity();
+                androidXAvailable = checkAndroidXAvailability();
 
-                if (currentActivity != null) {
-                    try {
-                        RNSentryModule.frameMetricsAggregator.add(currentActivity);
-                    } catch (Throwable ignored) {
-                        // throws ConcurrentModification when calling addOnFrameMetricsAvailableListener
-                        // this is a best effort since we can't reproduce it
-                        logger.warning("Error adding Activity to frameMetricsAggregator.");
+                if (androidXAvailable) {
+                    frameMetricsAggregator = new FrameMetricsAggregator();
+                    final Activity currentActivity = getCurrentActivity();
+
+                    if (frameMetricsAggregator != null && currentActivity != null) {
+                        try {
+                            frameMetricsAggregator.add(currentActivity);
+                        } catch (Throwable ignored) {
+                            // throws ConcurrentModification when calling addOnFrameMetricsAvailableListener
+                            // this is a best effort since we can't reproduce it
+                            logger.warning("Error adding Activity to frameMetricsAggregator.");
+                        }
                     }
+                } else {
+                    logger.warning("androidx.core' isn't available as a dependency.");
                 }
             } else {
                 this.disableNativeFramesTracking();
@@ -199,8 +206,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void fetchNativeAppStart(Promise promise) {
         final AppStartState appStartInstance = AppStartState.getInstance();
         final Date appStartTime = appStartInstance.getAppStartTime();
+        final Boolean isColdStart = appStartInstance.isColdStart();
 
         if (appStartTime == null) {
+            logger.warning("App start won't be sent due to missing appStartTime.");
+            promise.resolve(null);
+        } else if (isColdStart == null) {
+            logger.warning("App start won't be sent due to missing isColdStart.");
             promise.resolve(null);
         } else {
             final double appStartTimestamp = (double) appStartTime.getTime();
@@ -208,15 +220,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             WritableMap appStart = Arguments.createMap();
 
             appStart.putDouble("appStartTime", appStartTimestamp);
-            appStart.putBoolean("isColdStart", appStartInstance.isColdStart());
-            appStart.putBoolean("didFetchAppStart", RNSentryModule.didFetchAppStart);
+            appStart.putBoolean("isColdStart", isColdStart);
+            appStart.putBoolean("didFetchAppStart", didFetchAppStart);
 
             promise.resolve(appStart);
         }
         // This is always set to true, as we would only allow an app start fetch to only
         // happen once in the case of a JS bundle reload, we do not want it to be
         // instrumented again.
-        RNSentryModule.didFetchAppStart = true;
+        didFetchAppStart = true;
     }
 
     /**
@@ -224,7 +236,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
      */
     @ReactMethod
     public void fetchNativeFrames(Promise promise) {
-        if (RNSentryModule.frameMetricsAggregator == null) {
+        if (!isFrameMetricsAggregatorAvailable()) {
             promise.resolve(null);
         } else {
             try {
@@ -232,7 +244,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 int slowFrames = 0;
                 int frozenFrames = 0;
 
-                final SparseIntArray[] framesRates = RNSentryModule.frameMetricsAggregator.getMetrics();
+                final SparseIntArray[] framesRates = frameMetricsAggregator.getMetrics();
 
                 if (framesRates != null) {
                     final SparseIntArray totalIndexArray = framesRates[FrameMetricsAggregator.TOTAL_INDEX];
@@ -436,9 +448,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void disableNativeFramesTracking() {
-        if (RNSentryModule.frameMetricsAggregator != null) {
-            RNSentryModule.frameMetricsAggregator.stop();
-            RNSentryModule.frameMetricsAggregator = null;
+        if (isFrameMetricsAggregatorAvailable()) {
+            frameMetricsAggregator.stop();
+            frameMetricsAggregator = null;
         }
     }
 
@@ -484,5 +496,19 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
             event.setSdk(eventSdk);
         }
+    }
+
+    private boolean checkAndroidXAvailability() {
+        try {
+            Class.forName("androidx.core.app.FrameMetricsAggregator");
+            return true;
+        } catch (ClassNotFoundException ignored) {
+            // androidx.core isn't available.
+            return false;
+        }
+    }
+
+    private boolean isFrameMetricsAggregatorAvailable() {
+        return androidXAvailable && frameMetricsAggregator != null;
     }
 }
