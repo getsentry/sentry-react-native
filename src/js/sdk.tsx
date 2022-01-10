@@ -31,6 +31,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   autoInitializeNativeSdk: true,
   enableAutoPerformanceTracking: true,
   enableOutOfMemoryTracking: true,
+  patchGlobalPromise: true,
 };
 
 /**
@@ -52,7 +53,9 @@ export function init(passedOptions: ReactNativeOptions): void {
 
   if (options.defaultIntegrations === undefined) {
     options.defaultIntegrations = [
-      new ReactNativeErrorHandlers(),
+      new ReactNativeErrorHandlers({
+        patchGlobalPromise: options.patchGlobalPromise,
+      }),
       new Release(),
       ...defaultIntegrations.filter(
         (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)

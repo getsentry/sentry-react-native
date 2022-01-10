@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix: Polyfill the promise library to permanently fix unhandled rejections #1984
+
 ## 3.2.10
 
 - fix: Do not crash if androidx.core isn't available on Android #1981
