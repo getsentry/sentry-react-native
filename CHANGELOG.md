@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix: Polyfill the promise library to permanently fix unhandled rejections #1984
+
 ## 3.2.10
 
 - fix: Do not crash if androidx.core isn't available on Android #1981
@@ -10,7 +14,6 @@
 
 - Deprecate initialScope in favor of configureScope #1963
 - Bump: Sentry Android to 5.5.1 and Sentry Cocoa to 7.7.0 #1965
-- fix: Polyfill the promise library to permanently fix unhandled rejections #1984
 
 ## 3.2.8
 
