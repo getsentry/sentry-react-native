@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix: fetchNativeDeviceContexts returns an empty Array if no Device Context available #2002
+
 ## 3.2.11
 
 - fix: Polyfill the promise library to permanently fix unhandled rejections #1984
