@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.12
 
 - fix: fetchNativeDeviceContexts returns an empty Array if no Device Context available #2002
 - Bump: Sentry Cocoa 7.9.0 #2011
