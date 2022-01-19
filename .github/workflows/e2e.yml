@@ -14,6 +14,11 @@ jobs:
     runs-on: macos-latest
     env:
       PLATFORM: android
+    strategy:
+      # we want that the matrix keeps running, default is to cancel them if it fails.
+      fail-fast: false
+      matrix:
+        rn_version: ["0.67", "0.60", "0.56"]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -50,6 +55,9 @@ jobs:
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         working-directory: ./sample
         run: yarn install
+      - name: Install RN @ version
+        working-directory: ./sample
+        run: yarn add react-native@${{ matrix.rn_version }}
 
       - name: Start Appium Server
         working-directory: ./sample
@@ -79,7 +87,7 @@ jobs:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
       matrix:
-        rn_version: ["0.66", "0.64", "0.56"]
+        rn_version: ["0.67", "0.60", "0.56"]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -120,6 +128,7 @@ jobs:
         working-directory: ./sample
         run: yarn install
       - name: Install RN @ version
+        working-directory: ./sample
         run: yarn add react-native@${{ matrix.rn_version }}
       - name: Install iOS pods
         # Even though we cache the pods, we call it regardless
