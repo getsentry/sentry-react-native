@@ -185,6 +185,42 @@ describe("Tests Native Wrapper", () => {
     });
   });
 
+  test("does not break when circular data is passed", async () => {
+    logger.warn = jest.fn();
+
+    await NATIVE.initNativeSdk({
+      dsn: "test"
+    });
+
+    const circularObject = {
+      foo: 'fooValue',
+      bar: undefined,
+    }
+
+    // @ts-expect-error not sweating types in tests
+    circularObject.bar = circularObject
+
+    NATIVE.addBreadcrumb({
+      message: "test",
+      data: circularObject,
+    });
+    NATIVE.setUser({
+      id: "setUser",
+      ...circularObject
+    });
+    // @ts-expect-error contrary to typing, function wants to handle arbitrary data
+    NATIVE.setTag("key", circularObject);
+    NATIVE.setContext("key", circularObject);
+    NATIVE.setExtra("key", circularObject);
+
+    expect(RNSentry.addBreadcrumb).toBeCalledWith(expect.objectContaining({data: expect.objectContaining({ foo: 'fooValue'})}));
+    expect(RNSentry.setUser).toBeCalledWith(expect.anything(), {"bar": "{\"foo\":\"fooValue\",\"bar\":\"#REF:$\"}", "foo": "fooValue"});
+    expect(RNSentry.setTag).toBeCalledWith("key", "{\"foo\":\"fooValue\",\"bar\":\"#REF:$\"}");
+    expect(RNSentry.setContext).toBeCalledWith("key", expect.objectContaining({ foo: 'fooValue'}));
+    expect(RNSentry.setExtra).toBeCalledWith("key", "{\"foo\":\"fooValue\",\"bar\":\"#REF:$\"}");
+  });
+});
+
   describe("sendEvent", () => {
     test("calls only captureEnvelope on iOS", async () => {
       const event = {
