@@ -12,19 +12,25 @@ const logStdOut = ({ stdout }) => console.log(stdout);
 const main = async () => {
   const version = process.argv[2];
 
-  await exec(`react-native init app --version ${version}`).then(logStdOut);
+  console.log(`Starting with version ${version}.`);
 
-  await exec(`yarn add appium wd`).then(logStdOut);
-  await exec(`yalc add @sentry/react-native`).then(logStdOut);
+  await exec(`react-native init app --version=react-native@${version}`).then(
+    logStdOut
+  );
+
+  const appCwd = `${__dirname}/app`;
+
+  await exec(`yarn add appium wd`, { cwd: appCwd }).then(logStdOut);
+  await exec(`yalc add @sentry/react-native`, { cwd: appCwd }).then(logStdOut);
 
   await patch(version);
 
   await exec("npx patch-package", {
-    cwd: `${__dirname}/app`,
+    cwd: appCwd,
   }).then(logStdOut);
-  await copyFile(`${__dirname}/Podfile`, "./ios/Podfile");
+  await copyFile(`${__dirname}/Podfile`, `${__dirname}/app/ios/Podfile`);
   await exec("pod install", { cwd: `${__dirname}/app/ios` }).then(logStdOut);
-  await copyFile(`${__dirname}/App.js`, "./App.js");
+  await copyFile(`${__dirname}/App.js`, `${__dirname}/app/App.js`);
 };
 
 main();

@@ -19,7 +19,7 @@ const patch = async (version) => {
     return console.log(`Version ${version} not supported.`);
   }
 
-  fs.mkdirSync("./patches");
+  fs.mkdirSync(`${__dirname}/app/patches`);
 
   versionPatches.forEach((patch) => {
     if (patch.type && patch.type === "RNSentry.podspec") {
@@ -27,14 +27,14 @@ const patch = async (version) => {
     } else if (patch.path) {
       fs.copyFileSync(
         `${__dirname}/patches/${patch.path}`,
-        `./patches/${patch.path}`
+        `${__dirname}/app/patches/${patch.path}`
       );
     }
   });
 };
 
 const reactCorePatch = () => {
-  const podspecPath = `./node_modules/@sentry/react-native/RNSentry.podspec`;
+  const podspecPath = `${__dirname}/app/node_modules/@sentry/react-native/RNSentry.podspec`;
 
   replace({
     files: [podspecPath],
@@ -49,4 +49,4 @@ const reactCorePatch = () => {
     });
 };
 
-main();
+module.exports = patch;
