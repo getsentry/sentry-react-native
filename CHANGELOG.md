@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix(deps): Add `@sentry/wizard` back in as a dependency to avoid missing dependency when running react-native link.
+
 ## 3.2.12
 
 - fix: fetchNativeDeviceContexts returns an empty Array if no Device Context available #2002
