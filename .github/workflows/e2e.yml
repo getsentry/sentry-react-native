@@ -103,6 +103,10 @@ jobs:
       - name: Package SDK
         run: yalc publish
 
+      - name: Actually run the thing
+        working-directory: ./e2e
+        run: node prepare.js ${{ matrix.rn_version }}
+
       - name: Start Appium Server
         working-directory: ./e2e/app
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
