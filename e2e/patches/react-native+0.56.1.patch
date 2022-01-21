@@ -1,0 +1,182 @@
+diff --git a/node_modules/react-native/Libraries/fishhook/fishhook.c b/node_modules/react-native/Libraries/fishhook/fishhook.c
+index 205ee82..41e83f3 100755
+--- a/node_modules/react-native/Libraries/fishhook/fishhook.c
++++ b/node_modules/react-native/Libraries/fishhook/fishhook.c
+@@ -82,35 +82,35 @@ static void perform_rebinding_with_section(struct rebindings_entry *rebindings,
+                                            nlist_t *symtab,
+                                            char *strtab,
+                                            uint32_t *indirect_symtab) {
+-  uint32_t *indirect_symbol_indices = indirect_symtab + section->reserved1;
+-  void **indirect_symbol_bindings = (void **)((uintptr_t)slide + section->addr);
+-  for (uint i = 0; i < section->size / sizeof(void *); i++) {
+-    uint32_t symtab_index = indirect_symbol_indices[i];
+-    if (symtab_index == INDIRECT_SYMBOL_ABS || symtab_index == INDIRECT_SYMBOL_LOCAL ||
+-        symtab_index == (INDIRECT_SYMBOL_LOCAL   | INDIRECT_SYMBOL_ABS)) {
+-      continue;
+-    }
+-    uint32_t strtab_offset = symtab[symtab_index].n_un.n_strx;
+-    char *symbol_name = strtab + strtab_offset;
+-    if (strnlen(symbol_name, 2) < 2) {
+-      continue;
+-    }
+-    struct rebindings_entry *cur = rebindings;
+-    while (cur) {
+-      for (uint j = 0; j < cur->rebindings_nel; j++) {
+-        if (strcmp(&symbol_name[1], cur->rebindings[j].name) == 0) {
+-          if (cur->rebindings[j].replaced != NULL &&
+-              indirect_symbol_bindings[i] != cur->rebindings[j].replacement) {
+-            *(cur->rebindings[j].replaced) = indirect_symbol_bindings[i];
+-          }
+-          indirect_symbol_bindings[i] = cur->rebindings[j].replacement;
+-          goto symbol_loop;
+-        }
+-      }
+-      cur = cur->next;
+-    }
+-  symbol_loop:;
+-  }
++//  uint32_t *indirect_symbol_indices = indirect_symtab + section->reserved1;
++//  void **indirect_symbol_bindings = (void **)((uintptr_t)slide + section->addr);
++//  for (uint i = 0; i < section->size / sizeof(void *); i++) {
++//    uint32_t symtab_index = indirect_symbol_indices[i];
++//    if (symtab_index == INDIRECT_SYMBOL_ABS || symtab_index == INDIRECT_SYMBOL_LOCAL ||
++//        symtab_index == (INDIRECT_SYMBOL_LOCAL   | INDIRECT_SYMBOL_ABS)) {
++//      continue;
++//    }
++//    uint32_t strtab_offset = symtab[symtab_index].n_un.n_strx;
++//    char *symbol_name = strtab + strtab_offset;
++//    if (strnlen(symbol_name, 2) < 2) {
++//      continue;
++//    }
++//    struct rebindings_entry *cur = rebindings;
++//    while (cur) {
++//      for (uint j = 0; j < cur->rebindings_nel; j++) {
++//        if (strcmp(&symbol_name[1], cur->rebindings[j].name) == 0) {
++//          if (cur->rebindings[j].replaced != NULL &&
++//              indirect_symbol_bindings[i] != cur->rebindings[j].replacement) {
++//            *(cur->rebindings[j].replaced) = indirect_symbol_bindings[i];
++//          }
++//          indirect_symbol_bindings[i] = cur->rebindings[j].replacement;
++//          goto symbol_loop;
++//        }
++//      }
++//      cur = cur->next;
++//    }
++//  symbol_loop:;
++//  }
+ }
+ 
+ static void rebind_symbols_for_image(struct rebindings_entry *rebindings,
+diff --git a/node_modules/react-native/React/Base/RCTModuleMethod.mm b/node_modules/react-native/React/Base/RCTModuleMethod.mm
+index 1a15157..7a22f09 100644
+--- a/node_modules/react-native/React/Base/RCTModuleMethod.mm
++++ b/node_modules/react-native/React/Base/RCTModuleMethod.mm
+@@ -90,8 +90,8 @@ static BOOL RCTParseSelectorPart(const char **input, NSMutableString *selector)
+ 
+ static BOOL RCTParseUnused(const char **input)
+ {
+-  return RCTReadString(input, "__unused") ||
+-         RCTReadString(input, "__attribute__((unused))");
++  return RCTReadString(input, "__attribute__((unused))") ||
++          RCTReadString(input, "__attribute__((__unused__))") || RCTReadString(input, "__unused");
+ }
+ 
+ static RCTNullability RCTParseNullability(const char **input)
+diff --git a/node_modules/react-native/React/CxxBridge/RCTCxxBridge.mm b/node_modules/react-native/React/CxxBridge/RCTCxxBridge.mm
+index 4b7aaf3..7fe590c 100644
+--- a/node_modules/react-native/React/CxxBridge/RCTCxxBridge.mm
++++ b/node_modules/react-native/React/CxxBridge/RCTCxxBridge.mm
+@@ -633,7 +633,7 @@ - (void)installExtraJSBinding
+   }
+ }
+ 
+-- (NSArray<RCTModuleData *> *)_initializeModules:(NSArray<id<RCTBridgeModule>> *)modules
++- (NSArray<RCTModuleData *> *)_initializeModules:(NSArray<Class> *)modules
+                                withDispatchGroup:(dispatch_group_t)dispatchGroup
+                                 lazilyDiscovered:(BOOL)lazilyDiscovered
+ {
+diff --git a/node_modules/react-native/React/React.xcodeproj/xcuserdata/home.xcuserdatad/xcschemes/xcschememanagement.plist b/node_modules/react-native/React/React.xcodeproj/xcuserdata/home.xcuserdatad/xcschemes/xcschememanagement.plist
+new file mode 100644
+index 0000000..18774d7
+--- /dev/null
++++ b/node_modules/react-native/React/React.xcodeproj/xcuserdata/home.xcuserdatad/xcschemes/xcschememanagement.plist
+@@ -0,0 +1,79 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++	<key>SchemeUserState</key>
++	<dict>
++		<key>cxxreact-tvOS.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>34</integer>
++		</dict>
++		<key>cxxreact.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>32</integer>
++		</dict>
++		<key>double-conversion-tvOS.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>13</integer>
++		</dict>
++		<key>double-conversion.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>41</integer>
++		</dict>
++		<key>jschelpers-tvOS.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>27</integer>
++		</dict>
++		<key>jschelpers.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>25</integer>
++		</dict>
++		<key>jsinspector-tvOS.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>18</integer>
++		</dict>
++		<key>jsinspector.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>35</integer>
++		</dict>
++		<key>privatedata-tvOS.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>40</integer>
++		</dict>
++		<key>privatedata.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>43</integer>
++		</dict>
++		<key>third-party-tvOS.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>16</integer>
++		</dict>
++		<key>third-party.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>15</integer>
++		</dict>
++		<key>yoga-tvOS.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>36</integer>
++		</dict>
++		<key>yoga.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>36</integer>
++		</dict>
++	</dict>
++</dict>
++</plist>
