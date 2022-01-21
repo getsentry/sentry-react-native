@@ -79,7 +79,7 @@ jobs:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
       matrix:
-        rn_version: ["0.60.0", "0.67.0"]
+        rn_version: ["0.56.1"]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -103,18 +103,6 @@ jobs:
       - name: Package SDK
         run: yalc publish
 
-      - name: Create App
-        working-directory: ./e2e
-        run: react-native init app --version ${{ matrix.rn_version }}
-      - name: Prepare App for e2e
-        working-directory: ./e2e
-        run: sh prepare.sh
-
-      - name: Install iOS pods
-        # Even though we cache the pods, we call it regardless
-        working-directory: ./e2e/app/ios
-        run: pod install
-
       - name: Start Appium Server
         working-directory: ./e2e/app
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
@@ -129,9 +117,6 @@ jobs:
         # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
       - name: Ping Appium Server
         run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
-      - name: Run Tests
-        working-directory: ./e2e/app
-        run: yarn run jest ./test/e2e.test.js --config jest.config.js
 
       - name: Upload Appium logs
         # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not

@@ -12,13 +12,7 @@ const patches = {
   ],
 };
 
-const main = () => {
-  const version = process.argv[2];
-
-  patch(version);
-};
-
-const patch = (version) => {
+const patch = async (version) => {
   const versionPatches = patches[version];
 
   if (!version || !versionPatches) {
