@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- fix(deps): Add `@sentry/wizard` back in as a dependency to avoid missing dependency when running react-native link.
+- fix(deps): Add `@sentry/wizard` back in as a dependency to avoid missing dependency when running react-native link. #2015
 
 ## 3.2.12
 
