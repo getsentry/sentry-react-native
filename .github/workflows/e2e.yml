@@ -107,11 +107,6 @@ jobs:
         working-directory: ./e2e
         run: node prepare.js ${{ matrix.rn_version }}
 
-      - name: Remove old RN Cli
-        run: |
-          yarn global remove react-native-cli
-          yarn global add @react-native-community/cli
-
       - name: Start Appium Server
         working-directory: ./e2e/app
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
