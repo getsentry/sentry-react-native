@@ -1,5 +1,6 @@
 const replace = require("replace-in-file");
 const util = require("util");
+const rimraf = require("rimraf");
 
 const patch = require("./patch");
 
@@ -20,17 +21,34 @@ const main = async () => {
 
   const appCwd = `${__dirname}/app`;
 
-  await exec(`yarn add appium wd`, { cwd: appCwd }).then(logStdOut);
   await exec(`yalc add @sentry/react-native`, { cwd: appCwd }).then(logStdOut);
+  await exec(`yarn add appium wd`, { cwd: appCwd }).then(logStdOut);
+  rimraf(`${appCwd}/.yalc`, () => {
+    console.log("removed .yalc");
+  });
 
   await patch(version);
 
   await exec("npx patch-package", {
     cwd: appCwd,
   }).then(logStdOut);
+
+  console.log(`--Patching step done--`);
+
   await copyFile(`${__dirname}/Podfile`, `${__dirname}/app/ios/Podfile`);
   await exec("pod install", { cwd: `${__dirname}/app/ios` }).then(logStdOut);
+
+  console.log(`--Pod install complete--`);
+
   await copyFile(`${__dirname}/App.js`, `${__dirname}/app/App.js`);
+
+  console.log(`--Prepare e2e app complete--`);
+
+  await exec("npx patch-package", {
+    cwd: appCwd,
+  }).then(logStdOut);
+
+  console.log(`--Patched second time for good measure--`);
 };
 
 main();

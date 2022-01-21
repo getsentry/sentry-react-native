@@ -84,7 +84,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: "12"
+          node-version: "14"
       - name: Install Global Dependencies
         run: yarn global add react-native-cli @sentry/cli yalc
       - uses: actions/cache@v2
@@ -107,12 +107,19 @@ jobs:
         working-directory: ./e2e
         run: node prepare.js ${{ matrix.rn_version }}
 
+      - name: Remove old RN Cli
+        run: |
+          yarn global remove react-native-cli
+          yarn global add @react-native-community/cli
+
       - name: Start Appium Server
         working-directory: ./e2e/app
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
       - name: Build and run iOS emulator
         working-directory: ./e2e/app
-        run: react-native run-ios --configuration Release --simulator "${DEVICE}"
+        run: |
+          xcodebuild -workspace ./ios/app.xcworkspace -configuration Release -scheme app -derivedDataPath ./xc-build -destination 'platform=iOS Simulator,name=iPhone 13'
+          xcrun simctl install "iPhone 13" './xc-build/Build/Products/Release-iphonesimulator/app.app'
 
       - name: Build WDA
         working-directory: ./e2e/app

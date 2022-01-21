@@ -1,13 +1,17 @@
 const replace = require("replace-in-file");
 const fs = require("fs");
+const { execSync } = require("child_process");
 
 const patches = {
   "0.56.1": [
     {
-      path: `react-native+0.56.1.patch`,
+      patchPath: `react-native+0.56.1.patch`,
     },
     {
       type: "RNSentry.podspec",
+    },
+    {
+      script: "node_modules/react-native/scripts/ios-install-third-party.sh",
     },
   ],
 };
@@ -24,11 +28,13 @@ const patch = async (version) => {
   versionPatches.forEach((patch) => {
     if (patch.type && patch.type === "RNSentry.podspec") {
       reactCorePatch();
-    } else if (patch.path) {
+    } else if (patch.patchPath) {
       fs.copyFileSync(
-        `${__dirname}/patches/${patch.path}`,
-        `${__dirname}/app/patches/${patch.path}`
+        `${__dirname}/patches/${patch.patchPath}`,
+        `${__dirname}/app/patches/${patch.patchPath}`
       );
+    } else if (patch.script) {
+      execSync(patch.script, { cwd: `${__dirname}/app` });
     }
   });
 };
