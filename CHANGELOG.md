@@ -3,6 +3,7 @@
 ## Unreleased
 
 - fix(deps): Add `@sentry/wizard` back in as a dependency to avoid missing dependency when running react-native link. #2015
+- Bump: sentry-cli to 1.72.0 #2016
 
 ## 3.2.12
 
