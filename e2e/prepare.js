@@ -44,6 +44,8 @@ const main = async () => {
 
   console.log(`--Prepare e2e app complete--`);
 
+  await patch(version);
+
   await exec("npx patch-package", {
     cwd: appCwd,
   }).then(logStdOut);
