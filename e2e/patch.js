@@ -14,6 +14,10 @@ const patches = {
       script:
         "cd node_modules/react-native && ./scripts/ios-install-third-party.sh",
     },
+    {
+      script:
+        "cd node_modules/react-native/third-party/glog-0.3.4 && ./configure",
+    },
   ],
 };
 
