@@ -44,13 +44,13 @@ const main = async () => {
 
   console.log(`--Prepare e2e app complete--`);
 
-  await patch(version);
+  // await patch(version);
 
-  await exec("npx patch-package", {
-    cwd: appCwd,
-  }).then(logStdOut);
+  // await exec("npx patch-package", {
+  //   cwd: appCwd,
+  // }).then(logStdOut);
 
-  console.log(`--Patched second time for good measure--`);
+  // console.log(`--Patched second time for good measure--`);
 };
 
 main();
