@@ -11,7 +11,8 @@ const patches = {
       type: "RNSentry.podspec",
     },
     {
-      script: "node_modules/react-native/scripts/ios-install-third-party.sh",
+      script:
+        "cd node_modules/react-native && ./scripts/ios-install-third-party.sh",
     },
   ],
 };
