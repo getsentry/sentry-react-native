@@ -6,7 +6,7 @@ const patch = require("./patch");
 
 const exec = util.promisify(require("child_process").exec);
 const copyFile = util.promisify(require("fs").copyFile);
-const rmdir = util.promisify(require("fs").rmdir);
+const mkdir = util.promisify(require("fs").mkdir);
 
 const logStdOut = ({ stdout }) => console.log(stdout);
 
@@ -22,7 +22,10 @@ const main = async () => {
   const appCwd = `${__dirname}/app`;
 
   await exec(`yalc add @sentry/react-native`, { cwd: appCwd }).then(logStdOut);
-  await exec(`yarn add appium wd`, { cwd: appCwd }).then(logStdOut);
+  await exec(`yarn add dotenv jasmine jest regenerator-runtime appium wd`, {
+    cwd: appCwd,
+  }).then(logStdOut);
+
   rimraf(`${appCwd}/.yalc`, () => {
     console.log("removed .yalc");
   });
@@ -41,6 +44,16 @@ const main = async () => {
   console.log(`--Pod install complete--`);
 
   await copyFile(`${__dirname}/App.js`, `${__dirname}/app/App.js`);
+
+  await mkdir(`${__dirname}/app/tests`);
+  await copyFile(
+    `${__dirname}/e2e.test.js`,
+    `${__dirname}/app/tests/e2e.test.js`
+  );
+  await copyFile(
+    `${__dirname}/jest.config.js`,
+    `${__dirname}/app/jest.config.js`
+  );
 
   console.log(`--Prepare e2e app complete--`);
 

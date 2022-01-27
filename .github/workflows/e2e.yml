@@ -122,6 +122,10 @@ jobs:
       - name: Ping Appium Server
         run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
 
+      - name: Run Tests
+        working-directory: ./e2e/app
+        run: yarn run jest ./tests/e2e.test.js --config jest.config.js
+
       - name: Upload Appium logs
         # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
         # otherwise it would not run if the previous step failed

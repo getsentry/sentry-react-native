@@ -1,4 +1,5 @@
 // tslint:disable: no-unsafe-any
+import "regenerator-runtime/runtime";
 import wd from "wd";
 import path from "path";
 import fetch from "node-fetch";
@@ -71,7 +72,7 @@ beforeAll(async () => {
           newCommandTimeout: 600000,
         }
       : {
-          app: "io.sentry.sample",
+          app: "org.reactjs.native.example.app",
           deviceName: "iPhone 13",
           platformName: "iOS",
           newCommandTimeout: 600000,

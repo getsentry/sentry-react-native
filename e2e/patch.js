@@ -5,6 +5,10 @@ const { execSync } = require("child_process");
 const patches = {
   "0.56.1": [
     {
+      // Update outdated babel
+      script: "npx babel-upgrade --write && yarn",
+    },
+    {
       patchPath: `react-native+0.56.1.patch`,
     },
     {
@@ -18,6 +22,9 @@ const patches = {
       script:
         "cd node_modules/react-native/third-party/glog-0.3.4 && sh ../../scripts/ios-configure-glog.sh",
     },
+    // {
+    //   script: `sed -ie \"s/PRODUCT_BUNDLE_IDENTIFIER = \".*\"/PRODUCT_BUNDLE_IDENTIFIER = \\"io.sentry.sample\\";/g" ./ios/app.xcodeproj/project.pbxproj`,
+    // },
   ],
 };
 
