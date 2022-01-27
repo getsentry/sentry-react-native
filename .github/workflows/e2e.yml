@@ -112,9 +112,7 @@ jobs:
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
       - name: Build and run iOS emulator
         working-directory: ./e2e/app
-        run: |
-          xcodebuild -workspace ./ios/app.xcworkspace -configuration Release -scheme app -derivedDataPath ./xc-build -destination 'platform=iOS Simulator,name=iPhone 13'
-          xcrun simctl install "iPhone 13" './xc-build/Build/Products/Release-iphonesimulator/app.app'
+        run: xcodebuild -workspace ./ios/app.xcworkspace -configuration Release -scheme app -derivedDataPath ./xc-build -destination 'platform=iOS Simulator,name=${DEVICE}'
 
       - name: Build WDA
         working-directory: ./e2e/app
