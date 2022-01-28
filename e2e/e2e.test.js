@@ -85,12 +85,12 @@ beforeAll(async () => {
   await driver.init(config);
   await driver.sleep(10000);
 
-  expect(await driver.hasElementByAccessibilityId("openEndToEndTests")).toBe(
-    true
-  );
-  const element = await driver.elementByAccessibilityId("openEndToEndTests");
-  await element.click();
-  await driver.sleep(2000);
+  // expect(await driver.hasElementByAccessibilityId("openEndToEndTests")).toBe(
+  //   true
+  // );
+  // const element = await driver.elementByAccessibilityId("openEndToEndTests");
+  // await element.click();
+  // await driver.sleep(2000);
 });
 
 beforeEach(async () => {
