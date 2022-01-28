@@ -1,17 +1,13 @@
 import React from "react";
-import { ScrollView, Text, Platform } from "react-native";
+import { ScrollView, View, Text, Platform } from "react-native";
 
 import * as Sentry from "@sentry/react-native";
 
-const getTestProps = (id) =>
-  Platform.OS === "android"
-    ? {
-        accessibilityLabel: id,
-        accessible: true,
-      }
-    : {
-        testID: id,
-      };
+const getTestProps = (id) => ({
+  accessibilityLabel: id,
+  accessible: true,
+  testID: id,
+});
 
 // Sentry.init({
 //   // Replace the example DSN below with your own DSN:
@@ -45,9 +41,17 @@ class App extends React.Component {
 
   render() {
     return (
-      <ScrollView>
+      <>
+        <View style={{ height: 120 }} />
         <Text {...getTestProps("eventId")}>{this.state.eventId}</Text>
-        <Text {...getTestProps("clearEventId")} onPress={() => setEventId("")}>
+        <Text
+          {...getTestProps("clearEventId")}
+          onPress={() =>
+            this.setState({
+              eventId: null,
+            })
+          }
+        >
           Clear Event Id
         </Text>
         <Text
@@ -99,7 +103,7 @@ class App extends React.Component {
         >
           nativeCrash
         </Text>
-      </ScrollView>
+      </>
     );
   }
 }
