@@ -115,6 +115,7 @@ jobs:
         run:  |
           xcodebuild -workspace ./ios/app.xcworkspace -configuration Release -scheme app -derivedDataPath ./xc-build -destination name="${DEVICE}"
           xcrun simctl boot "${DEVICE}"
+          xcrun simctl spawn booted log stream > ./ios_device.log &
           xcrun simctl install "${DEVICE}" "./xc-build/Build/Products/Release-iphonesimulator/app.app"
 
       - name: Build WDA
@@ -137,3 +138,12 @@ jobs:
         with:
           name: appium.ios.log
           path: ./e2e/app/appium.log
+
+      - name: Upload Device logs
+        # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
+        # otherwise it would not run if the previous step failed
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ios_device.log
+          path: ./e2e/app/ios_device.log
