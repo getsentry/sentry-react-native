@@ -1,6 +1,7 @@
 // tslint:disable: no-unsafe-any
 import wd from 'wd';
 import path from 'path';
+import fs from 'fs';
 
 import {fetchEvent} from '../utils/fetchEvent';
 
@@ -56,6 +57,14 @@ beforeAll(async () => {
 
   await driver.init(config);
   await driver.sleep(10000);
+
+  const screenshot = await driver.takeScreenshot();
+  fs.writeFile(
+    `${path.resolve('.')}/screenshot.png`,
+    screenshot,
+    'base64',
+    () => {},
+  );
 
   expect(await retryE2eButton()).toBe(true);
   const element = await driver.elementByAccessibilityId('openEndToEndTests');

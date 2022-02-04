@@ -156,4 +156,11 @@ jobs:
           name: wda-session.log
           if-no-files-found: warn
           path: ./sample/xc-build/Logs/Test/**/Session-WebDriverAgentRunner-*.log
+      - name: Upload Screenshot
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: screenshot.png
+          if-no-files-found: warn
+          path: ./sample/screenshot.png
 
