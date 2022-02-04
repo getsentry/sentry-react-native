@@ -13,6 +13,25 @@ const driver = wd.promiseChainRemote('localhost', PORT);
 // 20 min timeout why not
 jest.setTimeout(1.2e6);
 
+let initialRetries = 0;
+const retryE2eButton = async () => {
+  if (initialRetries < 5) {
+    initialRetries++;
+    const result = await driver.hasElementByAccessibilityId(
+      'openEndToEndTests',
+    );
+
+    if (!result) {
+      await driver.sleep(5000);
+      return retryE2eButton();
+    }
+
+    return true;
+  } else {
+    return false;
+  }
+};
+
 beforeAll(async () => {
   const config =
     process.env.PLATFORM === 'android'
@@ -38,9 +57,7 @@ beforeAll(async () => {
   await driver.init(config);
   await driver.sleep(10000);
 
-  expect(await driver.hasElementByAccessibilityId('openEndToEndTests')).toBe(
-    true,
-  );
+  expect(await retryE2eButton()).toBe(true);
   const element = await driver.elementByAccessibilityId('openEndToEndTests');
   await element.click();
   await driver.sleep(2000);
