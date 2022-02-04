@@ -147,4 +147,13 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: appium.ios.log
+          if-no-files-found: warn
           path: ./sample/appium.log
+      - name: Upload WDA Session logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: wda-session.log
+          if-no-files-found: warn
+          path: ./sample/xc-build/Logs/Test/**/Session-WebDriverAgentRunner-*.log
+
