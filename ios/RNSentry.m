@@ -150,7 +150,7 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
         if (tempContexts != nil) {
             [contexts addEntriesFromDictionary:tempContexts];
         }
-        if (sentryOptions.debug == YES) {
+        if (sentryOptions != nil && sentryOptions.debug) {
             NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
             NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
             NSLog(@"Contexts: %@", debugContext);
