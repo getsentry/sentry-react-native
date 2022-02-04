@@ -3,7 +3,7 @@
     "@react-native-community/masked-view": "^0.1.10",
     "@react-navigation/native": "^5.7.3",
     "@react-navigation/stack": "^5.9.0",
-    "appium": "^1.22.2",
+    "appium": "1.22.0",
     "appium-doctor": "^1.16.0",
     "react": "17.0.2",
     "react-native": "0.66.4",
@@ -13,7 +13,7 @@
     "react-native-screens": "^2.10.1",
     "react-redux": "^7.2.1",
     "redux": "^4.0.5",
-    "wd": "^1.14.0"
+    "wd": "1.14.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
