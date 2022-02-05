@@ -331,9 +331,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#c6becf',
   },
   hiddenE2e: {
-    width: 1,
-    height: 1,
-    opacity: 0,
+    width: 50,
+    height: 50,
+    opacity: 1,
+    backgroundColor: 'red',
   },
 });
 
