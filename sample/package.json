@@ -30,6 +30,7 @@
   "name": "sample",
   "private": true,
   "resolutions": {
+    "appium-webdriveragent": "2.20.8",
     "appium-xcuitest-driver": "3.27.6"
   },
   "scripts": {
