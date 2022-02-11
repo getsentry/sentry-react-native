@@ -240,6 +240,48 @@ describe("ReactNavigationInstrumentation", () => {
     });
   });
 
+  test("transaction not sent on multiple cancelled navigations", async () => {
+    const instrumentation = new ReactNavigationInstrumentation();
+
+    // Need a dummy transaction as the instrumentation will start a transaction right away when the first navigation container is attached.
+    const mockTransactionDummy = getMockTransaction();
+    const transactionRef = {
+      current: mockTransactionDummy,
+    };
+    const tracingListener = jest.fn(() => transactionRef.current);
+    instrumentation.registerRoutingInstrumentation(
+      tracingListener as any,
+      (context) => context,
+      () => {}
+    );
+
+    const mockNavigationContainerRef = {
+      current: new MockNavigationContainer(),
+    };
+
+    instrumentation.registerNavigationContainer(
+      mockNavigationContainerRef as any
+    );
+
+    const mockTransaction1 = getMockTransaction();
+    transactionRef.current = mockTransaction1;
+
+    mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
+
+    const mockTransaction2 = getMockTransaction();
+    transactionRef.current = mockTransaction2;
+
+    mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
+
+    await new Promise<void>((resolve) => {
+      setTimeout(() => {
+        expect(mockTransaction1.sampled).toBe(false);
+        expect(mockTransaction2.sampled).toBe(false);
+        resolve();
+      }, 1100);
+    });
+  });
+
   describe("navigation container registration", () => {
     test("registers navigation container object ref", () => {
       const instrumentation = new ReactNavigationInstrumentation();
@@ -429,6 +471,8 @@ describe("ReactNavigationInstrumentation", () => {
 
       mockNavigationContainerRef.current.currentRoute = route1;
       mockNavigationContainerRef.current.listeners["state"]({});
+
+      mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
 
       const route2 = {
         name: "New Route 2",
