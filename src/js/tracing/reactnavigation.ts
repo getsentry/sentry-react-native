@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { Transaction as TransactionType } from "@sentry/types";
 import { getGlobalObject, logger } from "@sentry/utils";
 
@@ -11,6 +12,7 @@ import {
   ReactNavigationTransactionContext,
   RouteChangeContextData,
 } from "./types";
+import { getBlankTransactionContext } from "./utils";
 
 export interface NavigationRoute {
   name: string;
@@ -155,7 +157,19 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
    * and gets the route information from there, @see _onStateChange
    */
   private _onDispatch(): void {
-    this._latestTransaction = this.onRouteWillChange(BLANK_TRANSACTION_CONTEXT);
+    if (this._latestTransaction) {
+      logger.log(
+        `[ReactNavigationInstrumentation] A transaction was detected that turned out to be a noop, discarding.`
+      );
+      this._discardLatestTransaction();
+      this._clearStateChangeTimeout();
+    }
+
+    this._latestTransaction = this.onRouteWillChange(
+      getBlankTransactionContext(
+        ReactNavigationInstrumentation.instrumentationName
+      )
+    );
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
@@ -181,74 +195,73 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
     const route = this._navigationContainer.getCurrentRoute();
 
     if (route) {
-      if (
-        this._latestTransaction &&
-        (!previousRoute || previousRoute.key !== route.key)
-      ) {
-        const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
-        const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
+      if (this._latestTransaction) {
+        if (!previousRoute || previousRoute.key !== route.key) {
+          const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
+          const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
 
-        const data: RouteChangeContextData = {
-          ...originalContext.data,
-          route: {
-            name: route.name,
-            key: route.key,
-            params: route.params ?? {},
-            hasBeenSeen: routeHasBeenSeen,
-          },
-          previousRoute: previousRoute
-            ? {
-                name: previousRoute.name,
-                key: previousRoute.key,
-                params: previousRoute.params ?? {},
-              }
-            : null,
-        };
-
-        const updatedContext: ReactNavigationTransactionContext = {
-          ...originalContext,
-          name: route.name,
-          tags: {
-            ...originalContext.tags,
-            "routing.route.name": route.name,
-          },
-          data,
-        };
-
-        let finalContext = this._beforeNavigate?.(updatedContext);
-
-        // This block is to catch users not returning a transaction context
-        if (!finalContext) {
-          logger.error(
-            `[ReactNavigationV5Instrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
-          );
-
-          finalContext = {
-            ...updatedContext,
-            sampled: false,
+          const data: RouteChangeContextData = {
+            ...originalContext.data,
+            route: {
+              name: route.name,
+              key: route.key,
+              params: route.params ?? {},
+              hasBeenSeen: routeHasBeenSeen,
+            },
+            previousRoute: previousRoute
+              ? {
+                  name: previousRoute.name,
+                  key: previousRoute.key,
+                  params: previousRoute.params ?? {},
+                }
+              : null,
           };
-        }
 
-        // Note: finalContext.sampled will be false at this point only if the user sets it to be so in beforeNavigate.
-        if (finalContext.sampled === false) {
-          logger.log(
-            `[ReactNavigationV5Instrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
-          );
-        } else {
-          // Clear the timeout so the transaction does not get cancelled.
-          if (typeof this._stateChangeTimeout !== "undefined") {
-            clearTimeout(this._stateChangeTimeout);
-            this._stateChangeTimeout = undefined;
+          const updatedContext: ReactNavigationTransactionContext = {
+            ...originalContext,
+            name: route.name,
+            tags: {
+              ...originalContext.tags,
+              "routing.route.name": route.name,
+            },
+            data,
+          };
+
+          let finalContext = this._beforeNavigate?.(updatedContext);
+
+          // This block is to catch users not returning a transaction context
+          if (!finalContext) {
+            logger.error(
+              `[ReactNavigationV5Instrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
+            );
+
+            finalContext = {
+              ...updatedContext,
+              sampled: false,
+            };
           }
+
+          // Note: finalContext.sampled will be false at this point only if the user sets it to be so in beforeNavigate.
+          if (finalContext.sampled === false) {
+            logger.log(
+              `[ReactNavigationV5Instrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
+            );
+          } else {
+            // Clear the timeout so the transaction does not get cancelled.
+            this._clearStateChangeTimeout();
+          }
+
+          this._latestTransaction.updateWithContext(finalContext);
+          this._onConfirmRoute?.(finalContext);
         }
 
-        this._latestTransaction.updateWithContext(finalContext);
-        this._onConfirmRoute?.(finalContext);
+        this._pushRecentRouteKey(route.key);
+        this._latestRoute = route;
       }
-
-      this._pushRecentRouteKey(route.key);
-      this._latestRoute = route;
     }
+
+    // Clear the latest transaction as it has been handled.
+    this._latestTransaction = undefined;
   }
 
   /** Pushes a recent route key, and removes earlier routes when there is greater than the max length */
@@ -268,6 +281,16 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       this._latestTransaction.sampled = false;
       this._latestTransaction.finish();
       this._latestTransaction = undefined;
+    }
+  }
+
+  /**
+   *
+   */
+  private _clearStateChangeTimeout(): void {
+    if (typeof this._stateChangeTimeout !== "undefined") {
+      clearTimeout(this._stateChangeTimeout);
+      this._stateChangeTimeout = undefined;
     }
   }
 }
