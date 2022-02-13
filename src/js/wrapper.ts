@@ -8,7 +8,7 @@ import {
   Status,
   User,
 } from "@sentry/types";
-import { logger, SentryError, walk, normalize } from "@sentry/utils";
+import { logger, normalize, SentryError, walk } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
 
 import {
