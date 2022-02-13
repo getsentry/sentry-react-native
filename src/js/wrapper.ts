@@ -8,7 +8,7 @@ import {
   Status,
   User,
 } from "@sentry/types";
-import { logger, SentryError } from "@sentry/utils";
+import { logger, SentryError, walk, normalize } from "@sentry/utils";
 import { NativeModules, Platform } from "react-native";
 
 import {
@@ -21,42 +21,6 @@ import {
 import { ReactNativeOptions } from "./options";
 
 const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
-
-/**
- * Create a replacer function for `JSON.stringify` that will handle circular references,
- * by replacing occurrences of the circular reference with a `#REF:$<path>` string pointer.
- *
- * todo: where to put this? there's loads of unprotected `stringify` calls here
- */
-function createReplacer(): (
-  this: unknown,
-  field: string,
-  value: unknown
-) => unknown {
-  const m = new Map(),
-    v = new Map();
-  let init: unknown | null = null;
-
-  return function (this: unknown, field: string, value: unknown) {
-    const p = m.get(this) + (Array.isArray(this) ? `[${field}]` : `.${field}`);
-    const isComplex = value === Object(value);
-
-    if (isComplex) m.set(value, p);
-
-    const pp: string = v.get(value) || "";
-    const path = p.replace(/undefined\.\.?/, "");
-    let val = pp ? `#REF:${pp[0] == "[" ? "$" : "$."}${pp}` : value;
-
-    if (!init) {
-      init = value;
-    } else if (init === val) {
-      val = "#REF:$";
-    }
-    if (!pp && isComplex) v.set(value, path);
-
-    return val;
-  };
-}
 
 interface SentryNativeWrapper {
   enableNative: boolean;
@@ -150,7 +114,7 @@ export const NATIVE: SentryNativeWrapper = {
         },
       };
 
-      const payloadString = JSON.stringify(payload, createReplacer());
+      const payloadString = JSON.stringify(payload, walk);
       let length = payloadString.length;
       try {
         length = await RNSentry.getStringBytesLength(payloadString);
@@ -180,9 +144,7 @@ export const NATIVE: SentryNativeWrapper = {
       };
 
       // Serialize and remove any instances that will crash the native bridge such as Spans
-      const serializedPayload = JSON.parse(
-        JSON.stringify(payload, createReplacer())
-      );
+      const serializedPayload = normalize(payload);
 
       // The envelope item is created (and its length determined) on the iOS side of the native bridge.
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -392,9 +354,7 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     const stringifiedValue =
-      typeof value === "string"
-        ? value
-        : JSON.stringify(value, createReplacer());
+      typeof value === "string" ? value : JSON.stringify(value, walk);
 
     RNSentry.setTag(key, stringifiedValue);
   },
@@ -415,9 +375,7 @@ export const NATIVE: SentryNativeWrapper = {
 
     // we stringify the extra as native only takes in strings.
     const stringifiedExtra =
-      typeof extra === "string"
-        ? extra
-        : JSON.stringify(extra, createReplacer());
+      typeof extra === "string" ? extra : JSON.stringify(extra, walk);
 
     RNSentry.setExtra(key, stringifiedExtra);
   },
@@ -529,9 +487,7 @@ export const NATIVE: SentryNativeWrapper = {
     Object.keys(data).forEach((dataKey) => {
       const value = data[dataKey];
       serialized[dataKey] =
-        typeof value === "string"
-          ? value
-          : JSON.stringify(value, createReplacer());
+        typeof value === "string" ? value : JSON.stringify(value, walk);
     });
 
     return serialized;

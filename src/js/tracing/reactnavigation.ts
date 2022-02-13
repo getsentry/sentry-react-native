@@ -15,7 +15,8 @@ import {
 export interface NavigationRoute {
   name: string;
   key: string;
-  params?: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  params?: Record<string, any>;
 }
 
 interface NavigationContainer {
