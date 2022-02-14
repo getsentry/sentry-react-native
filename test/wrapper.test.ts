@@ -189,16 +189,16 @@ describe("Tests Native Wrapper", () => {
     logger.warn = jest.fn();
 
     await NATIVE.initNativeSdk({
-      dsn: "test"
+      dsn: "test",
     });
 
     const circularObject = {
-      foo: 'fooValue',
+      foo: "fooValue",
       bar: undefined,
-    }
+    };
 
     // @ts-expect-error not sweating types in tests
-    circularObject.bar = circularObject
+    circularObject.bar = circularObject;
 
     NATIVE.addBreadcrumb({
       message: "test",
@@ -206,111 +206,87 @@ describe("Tests Native Wrapper", () => {
     });
     NATIVE.setUser({
       id: "setUser",
-      ...circularObject
+      ...circularObject,
     });
     // @ts-expect-error contrary to typing, function wants to handle arbitrary data
     NATIVE.setTag("key", circularObject);
     NATIVE.setContext("key", circularObject);
     NATIVE.setExtra("key", circularObject);
 
-    expect(RNSentry.addBreadcrumb).toBeCalledWith(expect.objectContaining({data: expect.objectContaining({ foo: 'fooValue'})}));
-    expect(RNSentry.setUser).toBeCalledWith(expect.anything(), {"bar": "{\"foo\":\"fooValue\",\"bar\":\"#REF:$\"}", "foo": "fooValue"});
-    expect(RNSentry.setTag).toBeCalledWith("key", "{\"foo\":\"fooValue\",\"bar\":\"#REF:$\"}");
-    expect(RNSentry.setContext).toBeCalledWith("key", expect.objectContaining({ foo: 'fooValue'}));
-    expect(RNSentry.setExtra).toBeCalledWith("key", "{\"foo\":\"fooValue\",\"bar\":\"#REF:$\"}");
+    expect(RNSentry.addBreadcrumb).toBeCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ foo: "fooValue" }),
+      })
+    );
+    expect(RNSentry.setUser).toBeCalledWith(expect.anything(), {
+      bar: '{"foo":"fooValue","bar":"#REF:$"}',
+      foo: "fooValue",
+    });
+    expect(RNSentry.setTag).toBeCalledWith(
+      "key",
+      '{"foo":"fooValue","bar":"#REF:$"}'
+    );
+    expect(RNSentry.setContext).toBeCalledWith(
+      "key",
+      expect.objectContaining({ foo: "fooValue" })
+    );
+    expect(RNSentry.setExtra).toBeCalledWith(
+      "key",
+      '{"foo":"fooValue","bar":"#REF:$"}'
+    );
   });
 });
 
-  describe("sendEvent", () => {
-    test("calls only captureEnvelope on iOS", async () => {
-      const event = {
-        event_id: "event0",
-        message: "test",
-        sdk: {
-          name: "test-sdk-name",
-          version: "2.1.3",
-        },
-      };
+describe("sendEvent", () => {
+  test("calls only captureEnvelope on iOS", async () => {
+    const event = {
+      event_id: "event0",
+      message: "test",
+      sdk: {
+        name: "test-sdk-name",
+        version: "2.1.3",
+      },
+    };
 
-      await NATIVE.sendEvent(event);
+    await NATIVE.sendEvent(event);
 
-      expect(RNSentry.captureEnvelope).toBeCalledWith({
-        header: {
-          event_id: event.event_id,
-          sdk: event.sdk,
-        },
-        payload: {
-          ...event,
-          message: {
-            message: event.message,
-          },
-        },
-      });
-    });
-    test("serializes class instances on iOS", async () => {
-      class TestInstance {
-        value: number = 0;
-        method = () => null;
-      }
-
-      const event = {
-        event_id: "event0",
-        message: "test",
-        sdk: {
-          name: "test-sdk-name",
-          version: "2.1.3",
-        },
-        instance: new TestInstance(),
-      };
-
-      await NATIVE.sendEvent(event);
-
-      expect(RNSentry.captureEnvelope).toBeCalledWith({
-        header: {
-          event_id: event.event_id,
-          sdk: event.sdk,
-        },
-        payload: {
-          ...event,
-          message: {
-            message: event.message,
-          },
-          instance: {
-            value: 0,
-          },
-        },
-      });
-    });
-    test("serializes class instances on Android", async () => {
-      NATIVE.platform = "android";
-
-      class TestInstance {
-        value: number = 0;
-        method = () => null;
-      }
-
-      const event = {
-        event_id: "event0",
-        message: "test",
-        sdk: {
-          name: "test-sdk-name",
-          version: "2.1.3",
-        },
-        instance: new TestInstance(),
-      };
-
-      await NATIVE.sendEvent(event);
-
-      const headerString = JSON.stringify({
+    expect(RNSentry.captureEnvelope).toBeCalledWith({
+      header: {
         event_id: event.event_id,
         sdk: event.sdk,
-      });
-      const itemString = JSON.stringify({
-        content_type: "application/json",
-        length: 1,
-        type: "event",
-      });
-      const payloadString = JSON.stringify({
+      },
+      payload: {
+        ...event,
+        message: {
+          message: event.message,
+        },
+      },
+    });
+  });
+  test("serializes class instances on iOS", async () => {
+    class TestInstance {
+      value: number = 0;
+      method = () => null;
+    }
+
+    const event = {
+      event_id: "event0",
+      message: "test",
+      sdk: {
+        name: "test-sdk-name",
+        version: "2.1.3",
+      },
+      instance: new TestInstance(),
+    };
+
+    await NATIVE.sendEvent(event);
+
+    expect(RNSentry.captureEnvelope).toBeCalledWith({
+      header: {
+        event_id: event.event_id,
+        sdk: event.sdk,
+      },
+      payload: {
         ...event,
         message: {
           message: event.message,
@@ -318,259 +294,296 @@ describe("Tests Native Wrapper", () => {
         instance: {
           value: 0,
         },
-      });
-
-      expect(RNSentry.captureEnvelope).toBeCalledWith(
-        `${headerString}\n${itemString}\n${payloadString}`
-      );
-    });
-    test("calls getStringByteLength and captureEnvelope on android", async () => {
-      NATIVE.platform = "android";
-
-      const event = {
-        event_id: "event0",
-        message: "test",
-        sdk: {
-          name: "test-sdk-name",
-          version: "2.1.3",
-        },
-      };
-
-      const payload = JSON.stringify({
-        ...event,
-        message: {
-          message: event.message,
-        },
-      });
-      const header = JSON.stringify({
-        event_id: event.event_id,
-        sdk: event.sdk,
-      });
-      const item = JSON.stringify({
-        content_type: "application/json",
-        length: 1,
-        type: "event",
-      });
-
-      await NATIVE.sendEvent(event);
-
-      // @ts-ignore testing method
-      expect(RNSentry._getLastPayload().envelopePayload).toMatch(
-        `${header}\n${item}\n${payload}`
-      );
-    });
-    test("does not call RNSentry at all if enableNative is false", async () => {
-      try {
-        await NATIVE.initNativeSdk({ dsn: "test-dsn", enableNative: false });
-        await NATIVE.sendEvent({});
-      } catch (e) {
-        expect(e.message).toMatch("Native is disabled");
-      }
-      expect(RNSentry.getStringBytesLength).not.toBeCalled();
-      expect(RNSentry.captureEnvelope).not.toBeCalled();
-    });
-    test("Clears breadcrumbs on Android if mechanism.handled is true", async () => {
-      NATIVE.platform = "android";
-
-      const event: Event = {
-        event_id: "event0",
-        message: "test",
-        exception: {
-          values: [
-            {
-              mechanism: {
-                handled: true,
-                type: "",
-              },
-            },
-          ],
-        },
-        breadcrumbs: [
-          {
-            message: "crumb!",
-          },
-        ],
-      };
-
-      const payload = JSON.stringify({
-        ...event,
-        breadcrumbs: [],
-        message: {
-          message: event.message,
-        },
-      });
-      const header = JSON.stringify({
-        event_id: event.event_id,
-        sdk: event.sdk,
-      });
-      const item = JSON.stringify({
-        content_type: "application/json",
-        length: 1,
-        type: "event",
-      });
-
-      await NATIVE.sendEvent(event);
-
-      // @ts-ignore testing method
-      expect(RNSentry._getLastPayload().envelopePayload).toMatch(
-        `${header}\n${item}\n${payload}`
-      );
-    });
-    test("Does not clear breadcrumbs on Android if mechanism.handled is false", async () => {
-      NATIVE.platform = "android";
-
-      const event: Event = {
-        event_id: "event0",
-        message: "test",
-        exception: {
-          values: [
-            {
-              mechanism: {
-                handled: false,
-                type: "",
-              },
-            },
-          ],
-        },
-        breadcrumbs: [
-          {
-            message: "crumb!",
-          },
-        ],
-      };
-
-      const payload = JSON.stringify({
-        ...event,
-        message: {
-          message: event.message,
-        },
-      });
-      const header = JSON.stringify({
-        event_id: event.event_id,
-        sdk: event.sdk,
-      });
-      const item = JSON.stringify({
-        content_type: "application/json",
-        length: 1,
-        type: "event",
-      });
-
-      await NATIVE.sendEvent(event);
-
-      // @ts-ignore testing method
-      expect(RNSentry._getLastPayload().envelopePayload).toMatch(
-        `${header}\n${item}\n${payload}`
-      );
+      },
     });
   });
+  test("serializes class instances on Android", async () => {
+    NATIVE.platform = "android";
 
-  describe("fetchRelease", () => {
-    test("fetches the release from native", async () => {
-      await expect(NATIVE.fetchNativeRelease()).resolves.toMatchObject({
-        build: "1.0.0.1",
-        id: "test-mock",
-        version: "1.0.0",
-      });
+    class TestInstance {
+      value: number = 0;
+      method = () => null;
+    }
+
+    const event = {
+      event_id: "event0",
+      message: "test",
+      sdk: {
+        name: "test-sdk-name",
+        version: "2.1.3",
+      },
+      instance: new TestInstance(),
+    };
+
+    await NATIVE.sendEvent(event);
+
+    const headerString = JSON.stringify({
+      event_id: event.event_id,
+      sdk: event.sdk,
     });
+    const itemString = JSON.stringify({
+      content_type: "application/json",
+      length: 1,
+      type: "event",
+    });
+    const payloadString = JSON.stringify({
+      ...event,
+      message: {
+        message: event.message,
+      },
+      instance: {
+        value: 0,
+      },
+    });
+
+    expect(RNSentry.captureEnvelope).toBeCalledWith(
+      `${headerString}\n${itemString}\n${payloadString}`
+    );
   });
+  test("calls getStringByteLength and captureEnvelope on android", async () => {
+    NATIVE.platform = "android";
 
-  describe("deviceContexts", () => {
-    test("returns context object from native module on ios", async () => {
-      NATIVE.platform = "ios";
+    const event = {
+      event_id: "event0",
+      message: "test",
+      sdk: {
+        name: "test-sdk-name",
+        version: "2.1.3",
+      },
+    };
 
-      await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject({
-        someContext: {
-          someValue: 0,
-        },
-      });
-
-      expect(RNSentry.fetchNativeDeviceContexts).toBeCalled();
+    const payload = JSON.stringify({
+      ...event,
+      message: {
+        message: event.message,
+      },
     });
-    test("returns empty object on android", async () => {
-      NATIVE.platform = "android";
-
-      await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject(
-        {}
-      );
-
-      expect(RNSentry.fetchNativeDeviceContexts).not.toBeCalled();
+    const header = JSON.stringify({
+      event_id: event.event_id,
+      sdk: event.sdk,
     });
+    const item = JSON.stringify({
+      content_type: "application/json",
+      length: 1,
+      type: "event",
+    });
+
+    await NATIVE.sendEvent(event);
+
+    // @ts-ignore testing method
+    expect(RNSentry._getLastPayload().envelopePayload).toMatch(
+      `${header}\n${item}\n${payload}`
+    );
   });
-
-  describe("isModuleLoaded", () => {
-    test("returns true when module is loaded", () => {
-      expect(NATIVE._isModuleLoaded(RNSentry)).toBe(true);
-    });
-  });
-
-  describe("crash", () => {
-    test("calls the native crash", () => {
-      NATIVE.nativeCrash();
-
-      expect(RNSentry.crash).toBeCalled();
-    });
-    test("does not call crash if enableNative is false", async () => {
+  test("does not call RNSentry at all if enableNative is false", async () => {
+    try {
       await NATIVE.initNativeSdk({ dsn: "test-dsn", enableNative: false });
-      NATIVE.nativeCrash();
+      await NATIVE.sendEvent({});
+    } catch (e) {
+      expect(e.message).toMatch("Native is disabled");
+    }
+    expect(RNSentry.getStringBytesLength).not.toBeCalled();
+    expect(RNSentry.captureEnvelope).not.toBeCalled();
+  });
+  test("Clears breadcrumbs on Android if mechanism.handled is true", async () => {
+    NATIVE.platform = "android";
 
-      expect(RNSentry.crash).not.toBeCalled();
+    const event: Event = {
+      event_id: "event0",
+      message: "test",
+      exception: {
+        values: [
+          {
+            mechanism: {
+              handled: true,
+              type: "",
+            },
+          },
+        ],
+      },
+      breadcrumbs: [
+        {
+          message: "crumb!",
+        },
+      ],
+    };
+
+    const payload = JSON.stringify({
+      ...event,
+      breadcrumbs: [],
+      message: {
+        message: event.message,
+      },
+    });
+    const header = JSON.stringify({
+      event_id: event.event_id,
+      sdk: event.sdk,
+    });
+    const item = JSON.stringify({
+      content_type: "application/json",
+      length: 1,
+      type: "event",
+    });
+
+    await NATIVE.sendEvent(event);
+
+    // @ts-ignore testing method
+    expect(RNSentry._getLastPayload().envelopePayload).toMatch(
+      `${header}\n${item}\n${payload}`
+    );
+  });
+  test("Does not clear breadcrumbs on Android if mechanism.handled is false", async () => {
+    NATIVE.platform = "android";
+
+    const event: Event = {
+      event_id: "event0",
+      message: "test",
+      exception: {
+        values: [
+          {
+            mechanism: {
+              handled: false,
+              type: "",
+            },
+          },
+        ],
+      },
+      breadcrumbs: [
+        {
+          message: "crumb!",
+        },
+      ],
+    };
+
+    const payload = JSON.stringify({
+      ...event,
+      message: {
+        message: event.message,
+      },
+    });
+    const header = JSON.stringify({
+      event_id: event.event_id,
+      sdk: event.sdk,
+    });
+    const item = JSON.stringify({
+      content_type: "application/json",
+      length: 1,
+      type: "event",
+    });
+
+    await NATIVE.sendEvent(event);
+
+    // @ts-ignore testing method
+    expect(RNSentry._getLastPayload().envelopePayload).toMatch(
+      `${header}\n${item}\n${payload}`
+    );
+  });
+});
+
+describe("fetchRelease", () => {
+  test("fetches the release from native", async () => {
+    await expect(NATIVE.fetchNativeRelease()).resolves.toMatchObject({
+      build: "1.0.0.1",
+      id: "test-mock",
+      version: "1.0.0",
     });
   });
+});
 
-  describe("setUser", () => {
-    test("serializes all user object keys", async () => {
-      NATIVE.setUser({
+describe("deviceContexts", () => {
+  test("returns context object from native module on ios", async () => {
+    NATIVE.platform = "ios";
+
+    await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject({
+      someContext: {
+        someValue: 0,
+      },
+    });
+
+    expect(RNSentry.fetchNativeDeviceContexts).toBeCalled();
+  });
+  test("returns empty object on android", async () => {
+    NATIVE.platform = "android";
+
+    await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject({});
+
+    expect(RNSentry.fetchNativeDeviceContexts).not.toBeCalled();
+  });
+});
+
+describe("isModuleLoaded", () => {
+  test("returns true when module is loaded", () => {
+    expect(NATIVE._isModuleLoaded(RNSentry)).toBe(true);
+  });
+});
+
+describe("crash", () => {
+  test("calls the native crash", () => {
+    NATIVE.nativeCrash();
+
+    expect(RNSentry.crash).toBeCalled();
+  });
+  test("does not call crash if enableNative is false", async () => {
+    await NATIVE.initNativeSdk({ dsn: "test-dsn", enableNative: false });
+    NATIVE.nativeCrash();
+
+    expect(RNSentry.crash).not.toBeCalled();
+  });
+});
+
+describe("setUser", () => {
+  test("serializes all user object keys", async () => {
+    NATIVE.setUser({
+      email: "hello@sentry.io",
+      // @ts-ignore Intentional incorrect type to simulate using a double as an id (We had a user open an issue because this didn't work before)
+      id: 3.14159265359,
+      unique: 123,
+    });
+
+    expect(RNSentry.setUser).toBeCalledWith(
+      {
         email: "hello@sentry.io",
-        // @ts-ignore Intentional incorrect type to simulate using a double as an id (We had a user open an issue because this didn't work before)
-        id: 3.14159265359,
-        unique: 123,
-      });
+        id: "3.14159265359",
+      },
+      {
+        unique: "123",
+      }
+    );
+  });
 
-      expect(RNSentry.setUser).toBeCalledWith(
-        {
-          email: "hello@sentry.io",
-          id: "3.14159265359",
-        },
-        {
-          unique: "123",
-        }
-      );
+  test("Calls native setUser with empty object as second param if no unique keys", async () => {
+    NATIVE.setUser({
+      id: "Hello",
     });
 
-    test("Calls native setUser with empty object as second param if no unique keys", async () => {
-      NATIVE.setUser({
+    expect(RNSentry.setUser).toBeCalledWith(
+      {
         id: "Hello",
-      });
-
-      expect(RNSentry.setUser).toBeCalledWith(
-        {
-          id: "Hello",
-        },
-        {}
-      );
-    });
+      },
+      {}
+    );
   });
+});
 
-  describe("_processLevel", () => {
-    test("converts deprecated levels", () => {
-      expect(NATIVE._processLevel(Severity.Log)).toBe(Severity.Debug);
-      expect(NATIVE._processLevel(Severity.Critical)).toBe(Severity.Fatal);
-    });
-    test("returns non-deprecated levels", () => {
-      expect(NATIVE._processLevel(Severity.Debug)).toBe(Severity.Debug);
-      expect(NATIVE._processLevel(Severity.Fatal)).toBe(Severity.Fatal);
-      expect(NATIVE._processLevel(Severity.Info)).toBe(Severity.Info);
-      expect(NATIVE._processLevel(Severity.Warning)).toBe(Severity.Warning);
-      expect(NATIVE._processLevel(Severity.Error)).toBe(Severity.Error);
-    });
+describe("_processLevel", () => {
+  test("converts deprecated levels", () => {
+    expect(NATIVE._processLevel(Severity.Log)).toBe(Severity.Debug);
+    expect(NATIVE._processLevel(Severity.Critical)).toBe(Severity.Fatal);
   });
+  test("returns non-deprecated levels", () => {
+    expect(NATIVE._processLevel(Severity.Debug)).toBe(Severity.Debug);
+    expect(NATIVE._processLevel(Severity.Fatal)).toBe(Severity.Fatal);
+    expect(NATIVE._processLevel(Severity.Info)).toBe(Severity.Info);
+    expect(NATIVE._processLevel(Severity.Warning)).toBe(Severity.Warning);
+    expect(NATIVE._processLevel(Severity.Error)).toBe(Severity.Error);
+  });
+});
 
-  describe("closeNativeSdk", () => {
-    test("closeNativeSdk calls native bridge", async () => {
-      await NATIVE.closeNativeSdk();
+describe("closeNativeSdk", () => {
+  test("closeNativeSdk calls native bridge", async () => {
+    await NATIVE.closeNativeSdk();
 
-      expect(RNSentry.closeNativeSdk).toBeCalled();
-      expect(NATIVE.enableNative).toBe(false);
-    });
+    expect(RNSentry.closeNativeSdk).toBeCalled();
+    expect(NATIVE.enableNative).toBe(false);
   });
 });
