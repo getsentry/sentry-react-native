@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- feat: Touch events now track components with `sentry-label` prop, falls back to `accessibilityLabel` and then finally `displayName`.
+- feat: Touch events now track components with `sentry-label` prop, falls back to `accessibilityLabel` and then finally `displayName`. #2068
 
 ## 3.2.14-beta.1
 
