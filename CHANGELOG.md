@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.14-beta.1
+
+- fix: Discard prior transactions on react navigation dispatch #2053
+
 ## 3.2.13
 
 - fix(deps): Add `@sentry/wizard` back in as a dependency to avoid missing dependency when running react-native link. #2015
