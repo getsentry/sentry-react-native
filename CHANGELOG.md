@@ -1,8 +1,18 @@
 # Changelog
 
-## Unreleased
+## 3.2.14-beta.1
+
+- fix: Discard prior transactions on react navigation dispatch #2053
+
+## 3.2.13
+
+- fix(deps): Add `@sentry/wizard` back in as a dependency to avoid missing dependency when running react-native link. #2015
+- Bump: sentry-cli to 1.72.0 #2016
+
+## 3.2.12
 
 - fix: fetchNativeDeviceContexts returns an empty Array if no Device Context available #2002
+- Bump: Sentry Cocoa 7.9.0 #2011
 
 ## 3.2.11
 
