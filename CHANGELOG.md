@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix: Passing correct mutableOptions to iOS SDK (#2037)
+
 ## 3.2.14-beta.1
 
 - fix: Discard prior transactions on react navigation dispatch #2053
