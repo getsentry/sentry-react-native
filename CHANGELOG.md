@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix: Respect sentryOption.debug setting instead of #DEBUG build flag for outputting logs #2039
+
 ## 3.2.14-beta.1
 
 - fix: Discard prior transactions on react navigation dispatch #2053
