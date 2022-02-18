@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- fix: Respect sentryOption.debug setting instead of #DEBUG build flag for outputting logs #2039
 - fix: Passing correct mutableOptions to iOS SDK (#2037)
 
 ## 3.2.14-beta.1
