@@ -5,7 +5,6 @@ import {
   Package,
   Response,
   Severity,
-  Status,
   User,
 } from "@sentry/types";
 import { logger, SentryError } from "@sentry/utils";
@@ -74,7 +73,7 @@ export const NATIVE: SentryNativeWrapper = {
     if (!this.enableNative) {
       return {
         reason: `Event was skipped as native SDK is not enabled.`,
-        status: Status.Skipped,
+        status: "skipped",
       };
     }
 
@@ -83,6 +82,9 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     const event = this._processLevels(_event);
+
+    // Delete this metadata as this should not be sent to Sentry.
+    delete event.sdkProcessingMetadata;
 
     const header = {
       event_id: event.event_id,
@@ -156,12 +158,12 @@ export const NATIVE: SentryNativeWrapper = {
 
     if (envelopeWasSent) {
       return {
-        status: Status.Success,
+        status: "success",
       };
     }
 
     return {
-      status: Status.Failed,
+      status: "failed",
     };
   },
 
