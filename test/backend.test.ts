@@ -55,8 +55,8 @@ describe("Tests ReactNativeBackend", () => {
           dsn: "not a dsn",
           enableNative: true,
         });
-      } catch (e) {
-        expect(e.message).toBe("Invalid Dsn");
+      } catch (e: any) {
+        expect(e.message).toBe("Invalid Sentry Dsn: not a dsn");
       }
     });
 

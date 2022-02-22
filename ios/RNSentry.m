@@ -68,10 +68,11 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     // remove performance traces sample rate and traces sampler since we don't want to synchronize these configurations
     // to the Native SDKs.
     // The user could tho initialize the SDK manually and set themselves.
-    [mutableOptions removeObjectForKey:@"tracesSampleRate"];
+    // Remove comment below once https://github.com/getsentry/sentry-cocoa/issues/1657 gets fixed.
+    // [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
 
-    sentryOptions = [[SentryOptions alloc] initWithDict:options didFailWithError:&error];
+    sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:&error];
     if (error) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
@@ -150,11 +151,11 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
         if (tempContexts != nil) {
             [contexts addEntriesFromDictionary:tempContexts];
         }
-#if DEBUG
-        NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
-        NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        NSLog(@"Contexts: %@", debugContext);
-#endif
+        if (sentryOptions != nil && sentryOptions.debug) {
+            NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
+            NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            NSLog(@"Contexts: %@", debugContext);
+        }
     }];
     resolve(contexts);
 }
