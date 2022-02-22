@@ -254,9 +254,9 @@ describe("ReactNativeTracing", () => {
             const spanRecorder = routeTransaction.spanRecorder;
             expect(spanRecorder).toBeDefined();
             if (spanRecorder) {
-              expect(spanRecorder.spans.length).toBe(2);
+              expect(spanRecorder.spans.length).toBeGreaterThan(1);
 
-              const span = spanRecorder.spans[1];
+              const span = spanRecorder.spans[spanRecorder.spans.length - 1];
 
               expect(span.op).toBe("app.start.cold");
               expect(span.description).toBe("Cold App Start");
@@ -324,9 +324,9 @@ describe("ReactNativeTracing", () => {
             const spanRecorder = routeTransaction.spanRecorder;
             expect(spanRecorder).toBeDefined();
             if (spanRecorder) {
-              expect(spanRecorder.spans.length).toBe(2);
+              expect(spanRecorder.spans.length).toBeGreaterThan(1);
 
-              const span = spanRecorder.spans[1];
+              const span = spanRecorder.spans[spanRecorder.spans.length - 1];
 
               expect(span.op).toBe("app.start.warm");
               expect(span.description).toBe("Warm App Start");
@@ -392,7 +392,7 @@ describe("ReactNativeTracing", () => {
             const spanRecorder = routeTransaction.spanRecorder;
             expect(spanRecorder).toBeDefined();
             if (spanRecorder) {
-              expect(spanRecorder.spans.length).toBe(1);
+              expect(spanRecorder.spans.length).toBe(2);
             }
 
             done();
