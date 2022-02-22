@@ -76,7 +76,7 @@ export class ReactNativeErrorHandlers implements Integration {
    * - The package resolution fix no longer works with 0.67 on iOS Hermes.
    */
   private _polyfillPromise(): void {
-    /* eslint-disable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires*/
+    /* eslint-disable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
     const {
       polyfillGlobal,
     } = require("react-native/Libraries/Utilities/PolyfillFunctions");

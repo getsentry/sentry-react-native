@@ -4,6 +4,7 @@
 
 - fix: Respect sentryOption.debug setting instead of #DEBUG build flag for outputting logs #2039
 - fix: Passing correct mutableOptions to iOS SDK (#2037)
+- Bump: Bump @sentry/javascript dependencies to 6.17.9 #2082
 
 ## 3.2.14-beta.1
 
