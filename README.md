@@ -71,6 +71,8 @@ If you are coming from `react-native-sentry` which was our SDK `< 1.0` you shoul
 
 ## Blog posts
 
+[Tracking Stability in a Bluetooth Low Energy-Based React-Native App](https://blog.sentry.io/2022/02/22/tracking-stability-in-a-bluetooth-low-energy-based-react-native-app).
+
 [Mobile Vitals - Four Metrics Every Mobile Developer Should Care About](https://blog.sentry.io/2021/08/23/mobile-vitals-four-metrics-every-mobile-developer-should-care-about/).
 
 [Performance Monitoring Support for React Native](https://blog.sentry.io/2021/03/11/performance-monitoring-support-for-react-native/?utm_source=github&utm_medium=readme&utm_campaign=sentry-react-native).
