@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.2.14-beta.2
 
 - feat: Touch events now track components with `sentry-label` prop, falls back to `accessibilityLabel` and then finally `displayName`. #2068
 - fix: Respect sentryOption.debug setting instead of #DEBUG build flag for outputting logs #2039
