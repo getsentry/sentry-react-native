@@ -10,7 +10,7 @@ afterEach(() => {
 });
 
 describe("TouchEventBoundary._onTouchStart", () => {
-  it("tree without displayName", () => {
+  it("tree without displayName or label is not logged", () => {
     const { defaultProps } = TouchEventBoundary;
     const boundary = new TouchEventBoundary(defaultProps);
 
@@ -40,25 +40,17 @@ describe("TouchEventBoundary._onTouchStart", () => {
     // @ts-ignore Calling private member
     boundary._onTouchStart(event);
 
-    expect(addBreadcrumb).toBeCalledWith({
-      category: defaultProps.breadcrumbCategory,
-      data: {
-        componentTree: ["View", "Text", "CoolComponent", "Screen"],
-      },
-      level: Severity.Info,
-      message: "Touch event within component tree",
-      type: defaultProps.breadcrumbType,
-    });
+    expect(addBreadcrumb).not.toBeCalled();
   });
 
-  it("displayName is displayed", () => {
+  it("label is preferred over accessibilityLabel and displayName", () => {
     const { defaultProps } = TouchEventBoundary;
     const boundary = new TouchEventBoundary(defaultProps);
 
     const event = {
       _targetInst: {
         elementType: {
-          name: "View",
+          displayName: "View",
         },
         return: {
           elementType: {
@@ -67,6 +59,12 @@ describe("TouchEventBoundary._onTouchStart", () => {
           return: {
             elementType: {
               displayName: "Connect(View)",
+            },
+            return: {
+              memoizedProps: {
+                "sentry-label": "LABEL!",
+                accessibilityLabel: "access!",
+              },
             },
           },
         },
@@ -79,10 +77,10 @@ describe("TouchEventBoundary._onTouchStart", () => {
     expect(addBreadcrumb).toBeCalledWith({
       category: defaultProps.breadcrumbCategory,
       data: {
-        componentTree: ["View", "Text", "Connect(View)"],
+        componentTree: ["View", "Connect(View)", "LABEL!"],
       },
       level: Severity.Info,
-      message: "Touch event within element: Connect(View)",
+      message: "Touch event within element: LABEL!",
       type: defaultProps.breadcrumbType,
     });
   });
@@ -91,7 +89,7 @@ describe("TouchEventBoundary._onTouchStart", () => {
     const { defaultProps } = TouchEventBoundary;
     const boundary = new TouchEventBoundary({
       ...defaultProps,
-      ignoreNames: ["View", /^Connect\(/, new RegExp("^Happy\\(")],
+      ignoreNames: ["View", "Ignore", /^Connect\(/, new RegExp("^Happy\\(")],
     });
 
     const event = {
@@ -108,12 +106,21 @@ describe("TouchEventBoundary._onTouchStart", () => {
               displayName: "Connect(View)",
             },
             return: {
+              memoizedProps: {
+                "sentry-label": "Ignore",
+                accessibilityLabel: "Ignore",
+              },
               elementType: {
-                displayName: "Styled(View)",
+                displayName: "Styled(View2)",
               },
               return: {
                 elementType: {
-                  displayName: "Happy(View)",
+                  displayName: "Styled(View)",
+                },
+                return: {
+                  elementType: {
+                    displayName: "Happy(View)",
+                  },
                 },
               },
             },
@@ -128,10 +135,10 @@ describe("TouchEventBoundary._onTouchStart", () => {
     expect(addBreadcrumb).toBeCalledWith({
       category: defaultProps.breadcrumbCategory,
       data: {
-        componentTree: ["Text", "Styled(View)"],
+        componentTree: ["Styled(View2)", "Styled(View)"],
       },
       level: Severity.Info,
-      message: "Touch event within element: Styled(View)",
+      message: "Touch event within element: Styled(View2)",
       type: defaultProps.breadcrumbType,
     });
   });
@@ -140,7 +147,7 @@ describe("TouchEventBoundary._onTouchStart", () => {
     const { defaultProps } = TouchEventBoundary;
     const boundary = new TouchEventBoundary({
       ...defaultProps,
-      maxComponentTreeSize: 3,
+      maxComponentTreeSize: 2,
     });
 
     const event = {
@@ -153,8 +160,8 @@ describe("TouchEventBoundary._onTouchStart", () => {
             name: "Text",
           },
           return: {
-            elementType: {
-              displayName: "Connect(View)",
+            memoizedProps: {
+              accessibilityLabel: "Connect(View)",
             },
             return: {
               elementType: {
@@ -177,7 +184,7 @@ describe("TouchEventBoundary._onTouchStart", () => {
     expect(addBreadcrumb).toBeCalledWith({
       category: defaultProps.breadcrumbCategory,
       data: {
-        componentTree: ["View", "Text", "Connect(View)"],
+        componentTree: ["Connect(View)", "Styled(View)"],
       },
       level: Severity.Info,
       message: "Touch event within element: Connect(View)",
