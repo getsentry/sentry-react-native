@@ -1123,13 +1123,13 @@
     sudo-prompt "^9.0.0"
     wcwidth "^1.0.1"
 
-"@sentry-internal/eslint-config-sdk@6.17.9":
-  version "6.17.9"
-  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-config-sdk/-/eslint-config-sdk-6.17.9.tgz#b868839d3dba5092f0f4771c02e25c34f2476daa"
-  integrity sha512-/HpkkHMCG+RKb0y3juW9L9zmAswXwqsMGzNfQWOCEibwwV0mfe7ngXWxzc2XNsjoMUe7rymvJZrdL6kcc5Cu/Q==
+"@sentry-internal/eslint-config-sdk@6.18.0":
+  version "6.18.0"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-config-sdk/-/eslint-config-sdk-6.18.0.tgz#c334aca66162ef78507758b4c29853b32624e832"
+  integrity sha512-R/00JGhuRe7IrOjPYEy0FjTpyOqTq/PG96jDmgk83lFVY+sUFomSPnMETXVEjfghrpuZHTJy9nZaLR1+yF1sOA==
   dependencies:
-    "@sentry-internal/eslint-plugin-sdk" "6.17.9"
-    "@sentry-internal/typescript" "6.17.9"
+    "@sentry-internal/eslint-plugin-sdk" "6.18.0"
+    "@sentry-internal/typescript" "6.18.0"
     "@typescript-eslint/eslint-plugin" "^3.9.0"
     "@typescript-eslint/parser" "^3.9.0"
     eslint-config-prettier "^6.11.0"
@@ -1145,10 +1145,17 @@
   dependencies:
     requireindex "~1.1.0"
 
-"@sentry-internal/typescript@6.17.9":
-  version "6.17.9"
-  resolved "https://registry.yarnpkg.com/@sentry-internal/typescript/-/typescript-6.17.9.tgz#a90c3df520288bb53f5472ac8b8adefc6698ae37"
-  integrity sha512-oPd7uhs0j/0k0U5dZefY0SDkU+0n8m+lKY5A1Xrk9vBsa9Ftv9hSGE1KswSjR8FYTIXfNL03013qlHDEdohCTA==
+"@sentry-internal/eslint-plugin-sdk@6.18.0":
+  version "6.18.0"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-plugin-sdk/-/eslint-plugin-sdk-6.18.0.tgz#5674eb350fef0354af5ce05a7095115ba902bf3b"
+  integrity sha512-IHFBN3d5bpy/xmHkXidXJY0fFsjaqGfNE1cnfzAuYcZURBejDA3Wikuin43Wyy4rKWPz8nzyrdTUkCawjqwruQ==
+  dependencies:
+    requireindex "~1.1.0"
+
+"@sentry-internal/typescript@6.18.0":
+  version "6.18.0"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/typescript/-/typescript-6.18.0.tgz#033499e22b517244959e0294ecc8bb1fa21e29b1"
+  integrity sha512-3LxE5Ycd3S/QSS/zxcvTgJQmzw/4JeRGrK4C7SCle4chTvvPirqTCRhHwOCAsMymVbRT7XIqn1lopSD8PQrKqg==
   dependencies:
     tslint-config-prettier "^1.18.0"
     tslint-consistent-codestyle "^1.15.1"
