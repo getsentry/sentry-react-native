@@ -1,5 +1,7 @@
 # Changelog
 
+- Bump: Sentry Cocoa 7.10.0 #2100
+
 ## 3.2.14-beta.2
 
 - feat: Touch events now track components with `sentry-label` prop, falls back to `accessibilityLabel` and then finally `displayName`. #2068

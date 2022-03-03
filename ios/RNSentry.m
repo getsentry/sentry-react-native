@@ -68,8 +68,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     // remove performance traces sample rate and traces sampler since we don't want to synchronize these configurations
     // to the Native SDKs.
     // The user could tho initialize the SDK manually and set themselves.
-    // Remove comment below once https://github.com/getsentry/sentry-cocoa/issues/1657 gets fixed.
-    // [mutableOptions removeObjectForKey:@"tracesSampleRate"];
+    [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
 
     sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:&error];
