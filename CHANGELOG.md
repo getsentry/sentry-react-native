@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- feat: Support enableNativeCrashHandling for iOS
+
 ## 3.2.14-beta.2
 
 - feat: Touch events now track components with `sentry-label` prop, falls back to `accessibilityLabel` and then finally `displayName`. #2068
