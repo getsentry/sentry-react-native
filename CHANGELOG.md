@@ -1,6 +1,6 @@
 # Changelog
 
-- Bump: Sentry Cocoa 7.10.0 #
+- Bump: Sentry Cocoa 7.10.0 #2100
 
 ## 3.2.14-beta.2
 
