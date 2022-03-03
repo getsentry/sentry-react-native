@@ -1,6 +1,6 @@
 # Changelog
 
-- feat: Support setting maxCacheItems #
+- feat: Support setting maxCacheItems #2102
 
 ## 3.2.14-beta.2
 
