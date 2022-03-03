@@ -97,6 +97,13 @@ export interface ReactNativeOptions extends BrowserOptions {
    * @default true
    */
   patchGlobalPromise?: boolean;
+
+    /**
+   * The max cache items for capping the number of envelopes.
+   *
+   * @default 30
+   */
+  maxCacheItems?: number;
 }
 
 export interface ReactNativeWrapperOptions {
