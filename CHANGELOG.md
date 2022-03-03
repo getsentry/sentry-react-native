@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- feat: Support enableNativeCrashHandling for iOS
+- feat: Support enableNativeCrashHandling for iOS #2101
 
 ## 3.2.14-beta.2
 
