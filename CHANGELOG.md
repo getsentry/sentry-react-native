@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.3.0
 
 - feat: Support enableNativeCrashHandling for iOS #2101
 - Bump: Sentry Cocoa 7.10.0 #2100
