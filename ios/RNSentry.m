@@ -77,12 +77,14 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         return;
     }
     
-    BOOL enableNativeCrashHandling = (BOOL)[mutableOptions valueForKey:@"enableNativeCrashHandling"];
-    
-    if (!enableNativeCrashHandling) {
-        NSMutableArray *integrations = sentryOptions.integrations.mutableCopy;
-        [integrations removeObject:@"SentryCrashIntegration"];
-        sentryOptions.integrations = integrations;
+    if ([mutableOptions valueForKey:@"enableNativeCrashHandling"] != nil) {
+        BOOL enableNativeCrashHandling = (BOOL)[mutableOptions valueForKey:@"enableNativeCrashHandling"];
+        
+        if (!enableNativeCrashHandling) {
+            NSMutableArray *integrations = sentryOptions.integrations.mutableCopy;
+            [integrations removeObject:@"SentryCrashIntegration"];
+            sentryOptions.integrations = integrations;
+        }
     }
     
     [SentrySDK startWithOptionsObject:sentryOptions];
