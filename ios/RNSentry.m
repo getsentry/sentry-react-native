@@ -76,6 +76,17 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
+    
+    if ([mutableOptions valueForKey:@"enableNativeCrashHandling"] != nil) {
+        BOOL enableNativeCrashHandling = (BOOL)[mutableOptions valueForKey:@"enableNativeCrashHandling"];
+        
+        if (!enableNativeCrashHandling) {
+            NSMutableArray *integrations = sentryOptions.integrations.mutableCopy;
+            [integrations removeObject:@"SentryCrashIntegration"];
+            sentryOptions.integrations = integrations;
+        }
+    }
+    
     [SentrySDK startWithOptionsObject:sentryOptions];
 
     // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.

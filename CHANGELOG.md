@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+
+- feat: Support enableNativeCrashHandling for iOS #2101
 - Bump: Sentry Cocoa 7.10.0 #2100
 
 ## 3.2.14-beta.2
