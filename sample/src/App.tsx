@@ -37,6 +37,7 @@ Sentry.init({
     console.log('onReady called with didCallNativeInit:', didCallNativeInit);
   },
   maxBreadcrumbs: 150, // Extend from the default 100 breadcrumbs.
+  maxCacheItems: 40, // Extend from the default 30.
   integrations: [
     new Sentry.ReactNativeTracing({
       idleTimeout: 5000, // This is the default timeout

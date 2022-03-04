@@ -100,6 +100,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("maxBreadcrumbs")) {
                 options.setMaxBreadcrumbs(rnOptions.getInt("maxBreadcrumbs"));
             }
+            if (rnOptions.hasKey("maxCacheItems")) {
+                options.setMaxCacheItems(rnOptions.getInt("maxCacheItems"));
+            }
             if (rnOptions.hasKey("environment") && rnOptions.getString("environment") != null) {
                 options.setEnvironment(rnOptions.getString("environment"));
             }
