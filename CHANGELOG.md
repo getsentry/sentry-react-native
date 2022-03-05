@@ -8,6 +8,11 @@
 
 - feat: Support enableNativeCrashHandling for iOS #2101
 - Bump: Sentry Cocoa 7.10.0 #2100
+- feat: Touch events now track components with `sentry-label` prop, falls back to `accessibilityLabel` and then finally `displayName`. #2068
+- fix: Respect sentryOption.debug setting instead of #DEBUG build flag for outputting logs #2039
+- fix: Passing correct mutableOptions to iOS SDK (#2037)
+- Bump: Bump @sentry/javascript dependencies to 6.17.9 #2082
+- fix: Discard prior transactions on react navigation dispatch #2053
 
 ## 3.2.14-beta.2
 
