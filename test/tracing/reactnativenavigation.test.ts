@@ -272,5 +272,49 @@ describe("React Native Navigation Instrumentation", () => {
         }
       }
     });
+
+    test("onRouteConfirmed clears transaction", () => {
+      const instrumentation = new ReactNativeNavigationInstrumentation(
+        mockNavigationDelegate
+      );
+
+      const mockTransaction = getMockTransaction(
+        ReactNativeNavigationInstrumentation.instrumentationName
+      );
+      const tracingListener = jest.fn(() => mockTransaction);
+      let confirmedContext: TransactionContext | undefined;
+      instrumentation.registerRoutingInstrumentation(
+        tracingListener,
+        (context) => context,
+        (context) => {
+          confirmedContext = context;
+        }
+      );
+
+      mockEventsRegistry.onCommand("root", {});
+
+      expect(mockTransaction.name).toBe("Route Change");
+
+      const mockEvent1: ComponentWillAppearEvent = {
+        componentId: "1",
+        componentName: "Test 1",
+        componentType: "Component",
+        passProps: {},
+      };
+      mockEventsRegistry.onComponentWillAppear(mockEvent1);
+
+      const mockEvent2: ComponentWillAppearEvent = {
+        componentId: "2",
+        componentName: "Test 2",
+        componentType: "Component",
+        passProps: {},
+      };
+      mockEventsRegistry.onComponentWillAppear(mockEvent2);
+
+      expect(confirmedContext).toBeDefined();
+      if (confirmedContext) {
+        expect(confirmedContext.name).toBe(mockEvent1.componentName);
+      }
+    });
   });
 });

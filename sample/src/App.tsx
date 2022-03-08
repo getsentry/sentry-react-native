@@ -36,6 +36,7 @@ Sentry.init({
   onReady: ({didCallNativeInit}) => {
     console.log('onReady called with didCallNativeInit:', didCallNativeInit);
   },
+  maxCacheItems: 40, // Extend from the default 30.
   integrations: [
     new Sentry.ReactNativeTracing({
       // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
