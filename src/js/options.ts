@@ -87,6 +87,23 @@ export interface ReactNativeOptions extends BrowserOptions {
    * @deprecated Use `Sentry.configureScope(...)`
    */
   initialScope?: CaptureContext;
+
+  /**
+   * When enabled, Sentry will overwrite the global Promise instance to ensure that unhandled rejections are correctly tracked.
+   * If you run into issues with Promise polyfills such as `core-js`, make sure you polyfill after Sentry is initialized.
+   * Read more at https://docs.sentry.io/platforms/react-native/troubleshooting/#unhandled-promise-rejections
+   *
+   * When disabled, this option will not disable unhandled rejection tracking. Set `onunhandledrejection: false` on the `ReactNativeErrorHandlers` integration instead.
+   * @default true
+   */
+  patchGlobalPromise?: boolean;
+
+    /**
+   * The max cache items for capping the number of envelopes.
+   *
+   * @default 30
+   */
+  maxCacheItems?: number;
 }
 
 export interface ReactNativeWrapperOptions {

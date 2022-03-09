@@ -1,6 +1,46 @@
 # Changelog
 
-## Unreleased
+## 3.3.1
+
+- feat: Support setting maxCacheItems #2102
+- fix: Clear transaction on route change for React Native Navigation #2119
+
+## 3.3.0
+
+- feat: Support enableNativeCrashHandling for iOS #2101
+- Bump: Sentry Cocoa 7.10.0 #2100
+- feat: Touch events now track components with `sentry-label` prop, falls back to `accessibilityLabel` and then finally `displayName`. #2068
+- fix: Respect sentryOption.debug setting instead of #DEBUG build flag for outputting logs #2039
+- fix: Passing correct mutableOptions to iOS SDK (#2037)
+- Bump: Bump @sentry/javascript dependencies to 6.17.9 #2082
+- fix: Discard prior transactions on react navigation dispatch #2053
+
+## 3.2.14-beta.2
+
+- feat: Touch events now track components with `sentry-label` prop, falls back to `accessibilityLabel` and then finally `displayName`. #2068
+- fix: Respect sentryOption.debug setting instead of #DEBUG build flag for outputting logs #2039
+- fix: Passing correct mutableOptions to iOS SDK (#2037)
+- Bump: Bump @sentry/javascript dependencies to 6.17.9 #2082
+
+## 3.2.14-beta.1
+
+- fix: Discard prior transactions on react navigation dispatch #2053
+
+## 3.2.13
+
+- fix(deps): Add `@sentry/wizard` back in as a dependency to avoid missing dependency when running react-native link. #2015
+- Bump: sentry-cli to 1.72.0 #2016
+
+## 3.2.12
+
+- fix: fetchNativeDeviceContexts returns an empty Array if no Device Context available #2002
+- Bump: Sentry Cocoa 7.9.0 #2011
+
+## 3.2.11
+
+- fix: Polyfill the promise library to permanently fix unhandled rejections #1984
+
+## 3.2.10
 
 - fix: Do not crash if androidx.core isn't available on Android #1981
 - fix: App start measurement on Android #1985

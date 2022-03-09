@@ -153,21 +153,24 @@ const HomeScreen = (props: Props) => {
             <TouchableOpacity
               onPress={() => {
                 Sentry.captureMessage('Test Message');
-              }}>
+              }}
+              sentry-label="captureMessage">
               <Text style={styles.buttonText}>Capture Message</Text>
             </TouchableOpacity>
             <View style={styles.spacer} />
             <TouchableOpacity
               onPress={() => {
                 Sentry.captureException(new Error('Test Error'));
-              }}>
+              }}
+              accessibilityLabel="captureException">
               <Text style={styles.buttonText}>Capture Exception</Text>
             </TouchableOpacity>
             <View style={styles.spacer} />
             <TouchableOpacity
               onPress={() => {
                 throw new Error('Thrown Error');
-              }}>
+              }}
+              sentry-label="throwError">
               <Text style={styles.buttonText}>Uncaught Thrown Error</Text>
             </TouchableOpacity>
             <View style={styles.spacer} />

@@ -71,11 +71,22 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
 
-    sentryOptions = [[SentryOptions alloc] initWithDict:options didFailWithError:&error];
+    sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:&error];
     if (error) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
+    
+    if ([mutableOptions valueForKey:@"enableNativeCrashHandling"] != nil) {
+        BOOL enableNativeCrashHandling = (BOOL)[mutableOptions valueForKey:@"enableNativeCrashHandling"];
+        
+        if (!enableNativeCrashHandling) {
+            NSMutableArray *integrations = sentryOptions.integrations.mutableCopy;
+            [integrations removeObject:@"SentryCrashIntegration"];
+            sentryOptions.integrations = integrations;
+        }
+    }
+    
     [SentrySDK startWithOptionsObject:sentryOptions];
 
     // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
@@ -140,19 +151,23 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSLog(@"Bridge call to: deviceContexts");
+    NSMutableDictionary<NSString *, id> *contexts = [NSMutableDictionary new];
     // Temp work around until sorted out this API in sentry-cocoa.
     // TODO: If the callback isnt' executed the promise wouldn't be resolved.
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
         NSDictionary<NSString *, id> *serializedScope = [scope serialize];
         // Scope serializes as 'context' instead of 'contexts' as it does for the event.
-        NSDictionary<NSString *, id> *contexts = [serializedScope valueForKey:@"context"];
-#if DEBUG
-        NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
-        NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        NSLog(@"Contexts: %@", debugContext);
-#endif
-        resolve(contexts);
+        NSDictionary<NSString *, id> *tempContexts = [serializedScope valueForKey:@"context"];
+        if (tempContexts != nil) {
+            [contexts addEntriesFromDictionary:tempContexts];
+        }
+        if (sentryOptions != nil && sentryOptions.debug) {
+            NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
+            NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            NSLog(@"Contexts: %@", debugContext);
+        }
     }];
+    resolve(contexts);
 }
 
 RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
