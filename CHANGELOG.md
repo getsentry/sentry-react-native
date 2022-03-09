@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix: Do not report empty measurements #1983
+
 ## 3.3.1
 
 - feat: Support setting maxCacheItems #2102
@@ -45,7 +49,6 @@
 - fix: Do not crash if androidx.core isn't available on Android #1981
 - fix: App start measurement on Android #1985
 - Bump: Sentry Android to 5.5.2 #1985
-- fix: Do not report empty measurements #1983
 
 ## 3.2.9
 
