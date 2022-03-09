@@ -68,7 +68,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     // remove performance traces sample rate and traces sampler since we don't want to synchronize these configurations
     // to the Native SDKs.
     // The user could tho initialize the SDK manually and set themselves.
-    [mutableOptions removeObjectForKey:@"tracesSampleRate"];
+//    [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
 
     sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:&error];
@@ -203,12 +203,23 @@ RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
 
         if (frames == nil) {
             resolve(nil);
+            return;
+        }
+        
+        NSNumber *total = [NSNumber numberWithLong:frames.total];
+        NSNumber *frozen = [NSNumber numberWithLong:frames.frozen];
+        NSNumber *slow = [NSNumber numberWithLong:frames.slow];
+        NSNumber *zero = [NSNumber numberWithLong:0L];
+        
+        if ([total isEqualToNumber:zero] && [frozen isEqualToNumber:zero] && [slow isEqualToNumber:zero]) {
+            resolve(nil);
+            return;
         }
 
         resolve(@{
-            @"totalFrames": [NSNumber numberWithLong:frames.total],
-            @"frozenFrames": [NSNumber numberWithLong:frames.frozen],
-            @"slowFrames": [NSNumber numberWithLong:frames.slow],
+            @"totalFrames": total,
+            @"frozenFrames": frozen,
+            @"slowFrames": slow,
         });
     } else {
       resolve(nil);
