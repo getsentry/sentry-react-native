@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.3.1
 
 - feat: Support setting maxCacheItems #2102
 - fix: Clear transaction on route change for React Native Navigation #2119
