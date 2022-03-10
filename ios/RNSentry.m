@@ -84,7 +84,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
             sentryOptions.integrations = integrations;
         }
     }
-    
+
     // Enable the App start and Frames tracking measurements
     if ([mutableOptions valueForKey:@"enableAutoPerformanceTracking"] != nil) {
         BOOL enableAutoPerformanceTracking = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracking"];
@@ -209,12 +209,23 @@ RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
 
         if (frames == nil) {
             resolve(nil);
+            return;
+        }
+
+        NSNumber *total = [NSNumber numberWithLong:frames.total];
+        NSNumber *frozen = [NSNumber numberWithLong:frames.frozen];
+        NSNumber *slow = [NSNumber numberWithLong:frames.slow];
+        NSNumber *zero = [NSNumber numberWithLong:0L];
+
+        if ([total isEqualToNumber:zero] && [frozen isEqualToNumber:zero] && [slow isEqualToNumber:zero]) {
+            resolve(nil);
+            return;
         }
 
         resolve(@{
-            @"totalFrames": [NSNumber numberWithLong:frames.total],
-            @"frozenFrames": [NSNumber numberWithLong:frames.frozen],
-            @"slowFrames": [NSNumber numberWithLong:frames.slow],
+            @"totalFrames": total,
+            @"frozenFrames": frozen,
+            @"slowFrames": slow,
         });
     } else {
       resolve(nil);
