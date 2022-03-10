@@ -1,6 +1,6 @@
 # Changelog
 
-- fix(iOS): Bump Sentry Cocoa to 7.10.1 and report slow and frozen measurements (#)
+- fix(iOS): Bump Sentry Cocoa to 7.10.1 and report slow and frozen measurements (#2132)
 
 ## 3.3.1
 
