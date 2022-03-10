@@ -76,17 +76,17 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
-    
+
     if ([mutableOptions valueForKey:@"enableNativeCrashHandling"] != nil) {
         BOOL enableNativeCrashHandling = (BOOL)[mutableOptions valueForKey:@"enableNativeCrashHandling"];
-        
+
         if (!enableNativeCrashHandling) {
             NSMutableArray *integrations = sentryOptions.integrations.mutableCopy;
             [integrations removeObject:@"SentryCrashIntegration"];
             sentryOptions.integrations = integrations;
         }
     }
-    
+
     [SentrySDK startWithOptionsObject:sentryOptions];
 
     // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
@@ -203,12 +203,23 @@ RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
 
         if (frames == nil) {
             resolve(nil);
+            return;
+        }
+
+        NSNumber *total = [NSNumber numberWithLong:frames.total];
+        NSNumber *frozen = [NSNumber numberWithLong:frames.frozen];
+        NSNumber *slow = [NSNumber numberWithLong:frames.slow];
+        NSNumber *zero = [NSNumber numberWithLong:0L];
+
+        if ([total isEqualToNumber:zero] && [frozen isEqualToNumber:zero] && [slow isEqualToNumber:zero]) {
+            resolve(nil);
+            return;
         }
 
         resolve(@{
-            @"totalFrames": [NSNumber numberWithLong:frames.total],
-            @"frozenFrames": [NSNumber numberWithLong:frames.frozen],
-            @"slowFrames": [NSNumber numberWithLong:frames.slow],
+            @"totalFrames": total,
+            @"frozenFrames": frozen,
+            @"slowFrames": slow,
         });
     } else {
       resolve(nil);
