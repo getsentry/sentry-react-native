@@ -44,8 +44,6 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = true;
-
     NSError *error = nil;
 
     SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
@@ -85,6 +83,14 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
             [integrations removeObject:@"SentryCrashIntegration"];
             sentryOptions.integrations = integrations;
         }
+    }
+
+    // Enable the App start and Frames tracking measurements
+    if ([mutableOptions valueForKey:@"enableAutoPerformanceTracking"] != nil) {
+        BOOL enableAutoPerformanceTracking = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracking"];
+
+        PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracking;
+        PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracking;
     }
 
     [SentrySDK startWithOptionsObject:sentryOptions];
