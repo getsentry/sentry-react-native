@@ -44,8 +44,6 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = true;
-
     NSError *error = nil;
 
     SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
@@ -76,10 +74,10 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
-    
+
     if ([mutableOptions valueForKey:@"enableNativeCrashHandling"] != nil) {
         BOOL enableNativeCrashHandling = (BOOL)[mutableOptions valueForKey:@"enableNativeCrashHandling"];
-        
+
         if (!enableNativeCrashHandling) {
             NSMutableArray *integrations = sentryOptions.integrations.mutableCopy;
             [integrations removeObject:@"SentryCrashIntegration"];
@@ -87,6 +85,14 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         }
     }
     
+    // Enable the App start and Frames tracking measurements
+    if ([mutableOptions valueForKey:@"enableAutoPerformanceTracking"] != nil) {
+        BOOL enableAutoPerformanceTracking = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracking"];
+
+        PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracking;
+        PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracking;
+    }
+
     [SentrySDK startWithOptionsObject:sentryOptions];
 
     // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
