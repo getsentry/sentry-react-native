@@ -164,8 +164,19 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
         NSDictionary<NSString *, id> *serializedScope = [scope serialize];
         // Scope serializes as 'context' instead of 'contexts' as it does for the event.
         NSDictionary<NSString *, id> *tempContexts = [serializedScope valueForKey:@"context"];
+    
+        NSMutableDictionary<NSString *, id> *user = [NSMutableDictionary new];
+        
+        NSDictionary<NSString *, id> *tempUser = [serializedScope valueForKey:@"user"];
+        if (tempUser != nil) {
+            [user addEntriesFromDictionary:[tempUser valueForKey:@"user"]];
+        } else {
+            [user setValue:PrivateSentrySDKOnly.installationID forKey:@"id"];
+        }
+        [contexts setValue:user forKey:@"user"];
+        
         if (tempContexts != nil) {
-            [contexts addEntriesFromDictionary:tempContexts];
+            [contexts setValue:tempContexts forKey:@"context"];
         }
         if (sentryOptions != nil && sentryOptions.debug) {
             NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];

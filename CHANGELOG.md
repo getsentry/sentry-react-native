@@ -4,6 +4,7 @@
 
 - fix: Do not report empty measurements #1983
 - fix(iOS): Bump Sentry Cocoa to 7.10.1 and report slow and frozen measurements (#2132)
+- fix(iOS): Missing userId on iOS when userId is not set (#)
 
 ## 3.3.1
 
