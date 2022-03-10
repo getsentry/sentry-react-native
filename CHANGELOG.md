@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.3.2
 
 - fix: Do not report empty measurements #1983
 - fix(iOS): Bump Sentry Cocoa to 7.10.1 and report slow and frozen measurements (#2132)
