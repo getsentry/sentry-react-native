@@ -2,7 +2,7 @@
 
 # Unreleased
 
-- Bump: Sentry Cocoa to 7.10.2 (#)
+- Bump: Sentry Cocoa to 7.10.2 (#2145)
 
 ## 3.3.2
 
