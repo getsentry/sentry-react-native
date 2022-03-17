@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix(android): Upload source maps correctly regardless of version codes #2144
+
 ## 3.3.2
 
 - fix: Do not report empty measurements #1983
