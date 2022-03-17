@@ -1,5 +1,9 @@
 # Changelog
 
+# Unreleased
+
+- Bump: Sentry Cocoa to 7.10.2 (#)
+
 ## 3.3.2
 
 - fix: Do not report empty measurements #1983
