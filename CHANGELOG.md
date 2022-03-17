@@ -1,8 +1,9 @@
 # Changelog
 
-# Unreleased
+## Unreleased
 
 - Bump: Sentry Cocoa to 7.10.2 (#2145)
+- fix(android): Upload source maps correctly regardless of version codes #2144
 
 ## 3.3.2
 
