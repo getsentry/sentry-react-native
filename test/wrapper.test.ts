@@ -380,6 +380,43 @@ describe("Tests Native Wrapper", () => {
         `${header}\n${item}\n${payload}`
       );
     });
+    test("Clears breadcrumbs on Android if there is no exception", async () => {
+      NATIVE.platform = "android";
+
+      const event: Event = {
+        event_id: "event0",
+        message: "test",
+        breadcrumbs: [
+          {
+            message: "crumb!",
+          },
+        ],
+      };
+
+      const payload = JSON.stringify({
+        ...event,
+        breadcrumbs: [],
+        message: {
+          message: event.message,
+        },
+      });
+      const header = JSON.stringify({
+        event_id: event.event_id,
+        sdk: event.sdk,
+      });
+      const item = JSON.stringify({
+        content_type: "application/json",
+        length: 1,
+        type: "event",
+      });
+
+      await NATIVE.sendEvent(event);
+
+      // @ts-ignore testing method
+      expect(RNSentry._getLastPayload().envelopePayload).toMatch(
+        `${header}\n${item}\n${payload}`
+      );
+    });
     test("Does not clear breadcrumbs on Android if mechanism.handled is false", async () => {
       NATIVE.platform = "android";
 
