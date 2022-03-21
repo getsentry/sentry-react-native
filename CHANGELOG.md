@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.3.4
+
+- fix(android): setContext serializes as context for Android instead of extra (#2155)
+- fix(android): Duplicate Breadcrumbs when captuing messages #2153
+
 ## 3.3.3
 
 - Bump: Sentry Cocoa to 7.10.2 and Sentry Android to 5.6.3 (#2145)
