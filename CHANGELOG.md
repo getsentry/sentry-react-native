@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- fix(android): setContext serializes as Context for Android instead of Extra (#)
+- fix(android): setContext serializes as Context for Android instead of Extra (#2155)
 
 ## 3.3.3
 
