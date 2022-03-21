@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- fix(android): Duplicate Breadcrumbs when captuing messages #2144
+- fix(android): Duplicate Breadcrumbs when captuing messages #2153
 
 ## 3.3.3
 
