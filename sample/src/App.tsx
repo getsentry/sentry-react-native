@@ -19,7 +19,7 @@ import ReduxScreen from './screens/ReduxScreen';
 import {store} from './reduxApp';
 import {SENTRY_INTERNAL_DSN} from './dsn';
 
-const reactNavigationV5Instrumentation = new Sentry.ReactNavigationV5Instrumentation(
+const reactNavigationInstrumentation = new Sentry.ReactNavigationInstrumentation(
   {
     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
   },
@@ -36,11 +36,12 @@ Sentry.init({
   onReady: ({didCallNativeInit}) => {
     console.log('onReady called with didCallNativeInit:', didCallNativeInit);
   },
-  maxBreadcrumbs: 150, // Extend from the default 100 breadcrumbs.
+  maxCacheItems: 40, // Extend from the default 30.
   integrations: [
     new Sentry.ReactNativeTracing({
-      idleTimeout: 5000, // This is the default timeout
-      routingInstrumentation: reactNavigationV5Instrumentation,
+      // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
+      idleTimeout: 5000,
+      routingInstrumentation: reactNavigationInstrumentation,
       tracingOrigins: ['localhost', /^\//, /^https:\/\//],
       beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
         // Example of not sending a transaction for the screen with the name "Manual Tracker"
@@ -73,7 +74,7 @@ const App = () => {
       <NavigationContainer
         ref={navigation}
         onReady={() => {
-          reactNavigationV5Instrumentation.registerNavigationContainer(
+          reactNavigationInstrumentation.registerNavigationContainer(
             navigation,
           );
         }}>

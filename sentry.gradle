@@ -60,16 +60,23 @@ gradle.projectsEvaluated {
         def previousCliTask = null
 
         def nameCleanup = "${bundleTask.name}_SentryUploadCleanUp"
-        // create an upload task per variant
+        // Upload the source map several times if necessary: once for each release and versionCode.
         currentVariants.each { key, currentVariant ->
           variant = currentVariant[0]
           releaseName = currentVariant[1]
           versionCode = currentVariant[2]
 
-          def nameCliTask = "${bundleTask.name}_SentryUpload_${versionCode}"
+          // The Sentry server distinguishes source maps by release (`--release` in the command
+          // below) and distribution identifier (`--dist` below).  Give the task a unique name
+          // based on where we're uploading to.
+          def nameCliTask = "${bundleTask.name}_SentryUpload_${releaseName}_${versionCode}"
+
+          // If several outputs have the same releaseName and versionCode, we'd do the exact same
+          // upload for each of them.  No need to repeat.
+          try { tasks.named(nameCliTask); return } catch (Exception e) {}
 
           /** Upload source map file to the sentry server via CLI call. */
-          def cliTask = tasks.create(name: nameCliTask, type: Exec) {
+          def cliTask = tasks.create(nameCliTask, Exec) {
               description = "upload debug symbols to sentry"
               group = 'sentry.io'
 
@@ -135,7 +142,8 @@ gradle.projectsEvaluated {
               commandLine(*osCompatibility, *args)
 
               enabled true
-            }
+          }
+
           // chain the upload tasks so they run sequentially in order to run
           // the cliCleanUpTask after the final upload task is run
           if (previousCliTask != null) {

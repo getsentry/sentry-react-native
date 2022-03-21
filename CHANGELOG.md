@@ -1,5 +1,38 @@
 # Changelog
 
+## 3.3.3
+
+- Bump: Sentry Cocoa to 7.10.2 and Sentry Android to 5.6.3 (#2145)
+- fix(android): Upload source maps correctly regardless of version codes #2144
+
+## 3.3.2
+
+- fix: Do not report empty measurements #1983
+- fix(iOS): Bump Sentry Cocoa to 7.10.1 and report slow and frozen measurements (#2132)
+- fix(iOS): Missing userId on iOS when the user is not set in the Scope (#2133)
+
+## 3.3.1
+
+- feat: Support setting maxCacheItems #2102
+- fix: Clear transaction on route change for React Native Navigation #2119
+
+## 3.3.0
+
+- feat: Support enableNativeCrashHandling for iOS #2101
+- Bump: Sentry Cocoa 7.10.0 #2100
+- feat: Touch events now track components with `sentry-label` prop, falls back to `accessibilityLabel` and then finally `displayName`. #2068
+- fix: Respect sentryOption.debug setting instead of #DEBUG build flag for outputting logs #2039
+- fix: Passing correct mutableOptions to iOS SDK (#2037)
+- Bump: Bump @sentry/javascript dependencies to 6.17.9 #2082
+- fix: Discard prior transactions on react navigation dispatch #2053
+
+## 3.2.14-beta.2
+
+- feat: Touch events now track components with `sentry-label` prop, falls back to `accessibilityLabel` and then finally `displayName`. #2068
+- fix: Respect sentryOption.debug setting instead of #DEBUG build flag for outputting logs #2039
+- fix: Passing correct mutableOptions to iOS SDK (#2037)
+- Bump: Bump @sentry/javascript dependencies to 6.17.9 #2082
+
 ## 3.2.14-beta.1
 
 - fix: Discard prior transactions on react navigation dispatch #2053

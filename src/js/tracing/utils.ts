@@ -1,9 +1,4 @@
-import {
-  IdleTransaction,
-  Span,
-  SpanStatus,
-  Transaction,
-} from "@sentry/tracing";
+import { IdleTransaction, Span, Transaction } from "@sentry/tracing";
 import { TransactionContext } from "@sentry/types";
 import { timestampInSeconds } from "@sentry/utils";
 
@@ -48,7 +43,7 @@ export function adjustTransactionDuration(
   const isOutdatedTransaction =
     endTimestamp && (diff > secToMs(maxDuration) || diff < 0);
   if (isOutdatedTransaction) {
-    transaction.setStatus(SpanStatus.DeadlineExceeded);
+    transaction.setStatus("deadline_exceeded");
     transaction.setTag("maxTransactionDurationExceeded", "true");
   }
 }

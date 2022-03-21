@@ -8,7 +8,7 @@ export {
   Severity,
   StackFrame,
   Stacktrace,
-  Status,
+  EventStatus,
   Thread,
   User,
 } from "@sentry/types";
