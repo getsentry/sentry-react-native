@@ -442,6 +442,18 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void setContext(final String key, final ReadableMap context) {
+        if (key == null || context == null) {
+            return;
+        }
+        Sentry.configureScope(scope -> {
+            final HashMap<String, Object> contextHashMap = context.toHashMap();
+
+            scope.setContexts(key, contextHashMap);
+        });
+    }
+
+    @ReactMethod
     public void setTag(String key, String value) {
         Sentry.configureScope(scope -> {
             scope.setTag(key, value);
