@@ -433,15 +433,10 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    if (this.platform === "android") {
-      // setContext not available on the Android SDK yet.
-      this.setExtra(key, context);
-    } else {
-      RNSentry.setContext(
-        key,
-        context !== null ? this._serializeObject(context) : null
-      );
-    }
+    RNSentry.setContext(
+      key,
+      context !== null ? this._serializeObject(context) : null
+    );
   },
 
   /**
