@@ -1,7 +1,7 @@
 import { Hub } from "@sentry/hub";
 import { Transaction, TransactionContext } from "@sentry/types";
 
-import { BeforeNavigate } from "./reactnativetracing";
+import { BeforeNavigate } from "./types";
 
 export type TransactionCreator = (
   context: TransactionContext

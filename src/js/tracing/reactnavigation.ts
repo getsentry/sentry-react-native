@@ -2,13 +2,13 @@
 import { Transaction as TransactionType } from "@sentry/types";
 import { getGlobalObject, logger } from "@sentry/utils";
 
-import { BeforeNavigate } from "./reactnativetracing";
 import {
   InternalRoutingInstrumentation,
   OnConfirmRoute,
   TransactionCreator,
 } from "./routingInstrumentation";
 import {
+  BeforeNavigate,
   ReactNavigationTransactionContext,
   RouteChangeContextData,
 } from "./types";

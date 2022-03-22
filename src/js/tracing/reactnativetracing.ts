@@ -21,16 +21,12 @@ import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentatio
 import { NATIVE } from "../wrapper";
 import { NativeFramesInstrumentation } from "./nativeframes";
 import { StallTrackingInstrumentation } from "./stalltracking";
-import { RouteChangeContextData } from "./types";
+import { BeforeNavigate, RouteChangeContextData } from "./types";
 import {
   adjustTransactionDuration,
   getTimeOriginMilliseconds,
   isNearToNow,
 } from "./utils";
-
-export type BeforeNavigate = (
-  context: TransactionContext
-) => TransactionContext;
 
 export interface ReactNativeTracingOptions
   extends RequestInstrumentationOptions {
