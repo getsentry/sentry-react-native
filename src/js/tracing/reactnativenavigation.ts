@@ -2,13 +2,12 @@ import { Transaction as TransactionType } from "@sentry/types";
 import { logger } from "@sentry/utils";
 import { EmitterSubscription } from "react-native";
 
-import { BeforeNavigate } from "./reactnativetracing";
 import {
   InternalRoutingInstrumentation,
   OnConfirmRoute,
   TransactionCreator,
 } from "./routingInstrumentation";
-import { RouteChangeContextData } from "./types";
+import { BeforeNavigate, RouteChangeContextData } from "./types";
 import { getBlankTransactionContext } from "./utils";
 
 interface ReactNativeNavigationOptions {
@@ -135,69 +134,72 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
    */
   private _onComponentWillAppear(event: ComponentWillAppearEvent): void {
     // If the route is a different key, this is so we ignore actions that pertain to the same screen.
-    if (
-      this._latestTransaction &&
-      (!this._prevComponentEvent ||
-        event.componentId != this._prevComponentEvent.componentId)
-    ) {
-      this._clearStateChangeTimeout();
+    if (this._latestTransaction) {
+      if (
+        !this._prevComponentEvent ||
+        event.componentId != this._prevComponentEvent.componentId
+      ) {
+        this._clearStateChangeTimeout();
 
-      const originalContext = this._latestTransaction.toContext();
-      const routeHasBeenSeen = this._recentComponentIds.includes(
-        event.componentId
-      );
-
-      const data: RouteChangeContextData = {
-        ...originalContext.data,
-        route: {
-          ...event,
-          name: event.componentName,
-          hasBeenSeen: routeHasBeenSeen,
-        },
-        previousRoute: this._prevComponentEvent
-          ? {
-              ...this._prevComponentEvent,
-              name: this._prevComponentEvent?.componentName,
-            }
-          : null,
-      };
-
-      const updatedContext = {
-        ...originalContext,
-        name: event.componentName,
-        tags: {
-          ...originalContext.tags,
-          "routing.route.name": event.componentName,
-        },
-        data,
-      };
-
-      let finalContext = this._beforeNavigate?.(updatedContext);
-
-      // This block is to catch users not returning a transaction context
-      if (!finalContext) {
-        logger.error(
-          `[${ReactNativeNavigationInstrumentation.name}] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
+        const originalContext = this._latestTransaction.toContext();
+        const routeHasBeenSeen = this._recentComponentIds.includes(
+          event.componentId
         );
 
-        finalContext = {
-          ...updatedContext,
-          sampled: false,
+        const data: RouteChangeContextData = {
+          ...originalContext.data,
+          route: {
+            ...event,
+            name: event.componentName,
+            hasBeenSeen: routeHasBeenSeen,
+          },
+          previousRoute: this._prevComponentEvent
+            ? {
+                ...this._prevComponentEvent,
+                name: this._prevComponentEvent?.componentName,
+              }
+            : null,
         };
+
+        const updatedContext = {
+          ...originalContext,
+          name: event.componentName,
+          tags: {
+            ...originalContext.tags,
+            "routing.route.name": event.componentName,
+          },
+          data,
+        };
+
+        let finalContext = this._beforeNavigate?.(updatedContext);
+
+        // This block is to catch users not returning a transaction context
+        if (!finalContext) {
+          logger.error(
+            `[${ReactNativeNavigationInstrumentation.name}] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
+          );
+
+          finalContext = {
+            ...updatedContext,
+            sampled: false,
+          };
+        }
+
+        if (finalContext.sampled === false) {
+          logger.log(
+            `[${ReactNativeNavigationInstrumentation.name}] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
+          );
+        }
+
+        this._latestTransaction.updateWithContext(finalContext);
+        this._onConfirmRoute?.(finalContext);
+
+        this._prevComponentEvent = event;
+      } else {
+        this._discardLatestTransaction();
       }
 
-      if (finalContext.sampled === false) {
-        logger.log(
-          `[${ReactNativeNavigationInstrumentation.name}] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
-        );
-      }
-
-      this._latestTransaction.updateWithContext(finalContext);
-      this._onConfirmRoute?.(finalContext);
-
-      this._prevComponentEvent = event;
-    } else {
-      this._discardLatestTransaction();
+      this._latestTransaction = undefined;
     }
   }
 

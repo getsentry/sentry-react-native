@@ -2,13 +2,13 @@
 import { Transaction as TransactionType } from "@sentry/types";
 import { getGlobalObject, logger } from "@sentry/utils";
 
-import { BeforeNavigate } from "./reactnativetracing";
 import {
   InternalRoutingInstrumentation,
   OnConfirmRoute,
   TransactionCreator,
 } from "./routingInstrumentation";
 import {
+  BeforeNavigate,
   ReactNavigationTransactionContext,
   RouteChangeContextData,
 } from "./types";
@@ -38,7 +38,7 @@ const defaultOptions: ReactNavigationOptions = {
 };
 
 /**
- * Instrumentation for React-Navigation V5. See docs or sample app for usage.
+ * Instrumentation for React-Navigation V5 and above. See docs or sample app for usage.
  *
  * How this works:
  * - `_onDispatch` is called every time a dispatch happens and sets an IdleTransaction on the scope without any route context.
@@ -134,7 +134,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             this._initialStateHandled = true;
           } else {
             logger.log(
-              "[ReactNavigationV5Instrumentation] Navigation container registered, but integration has not been setup yet."
+              "[ReactNavigationInstrumentation] Navigation container registered, but integration has not been setup yet."
             );
           }
         }
@@ -142,12 +142,12 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
         _global.__sentry_rn_v5_registered = true;
       } else {
         logger.warn(
-          "[ReactNavigationV5Instrumentation] Received invalid navigation container ref!"
+          "[ReactNavigationInstrumentation] Received invalid navigation container ref!"
         );
       }
     } else {
       logger.log(
-        "[ReactNavigationV5Instrumentation] Instrumentation already exists, but register has been called again, doing nothing."
+        "[ReactNavigationInstrumentation] Instrumentation already exists, but register has been called again, doing nothing."
       );
     }
   }
@@ -187,7 +187,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
 
     if (!this._navigationContainer) {
       logger.warn(
-        "[ReactNavigationV5Instrumentation] Missing navigation container ref. Route transactions will not be sent."
+        "[ReactNavigationInstrumentation] Missing navigation container ref. Route transactions will not be sent."
       );
 
       return;
@@ -233,7 +233,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
           // This block is to catch users not returning a transaction context
           if (!finalContext) {
             logger.error(
-              `[ReactNavigationV5Instrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
+              `[ReactNavigationInstrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
             );
 
             finalContext = {
@@ -245,7 +245,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
           // Note: finalContext.sampled will be false at this point only if the user sets it to be so in beforeNavigate.
           if (finalContext.sampled === false) {
             logger.log(
-              `[ReactNavigationV5Instrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
+              `[ReactNavigationInstrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
             );
           } else {
             // Clear the timeout so the transaction does not get cancelled.

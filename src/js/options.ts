@@ -37,9 +37,6 @@ export interface ReactNativeOptions extends BrowserOptions {
    */
   autoInitializeNativeSdk?: boolean;
 
-  /** Maximum time to wait to drain the request queue, before the process is allowed to exit. */
-  shutdownTimeout?: number;
-
   /** Should the native nagger alert be shown or not. */
   enableNativeNagger?: boolean;
 
@@ -97,6 +94,13 @@ export interface ReactNativeOptions extends BrowserOptions {
    * @default true
    */
   patchGlobalPromise?: boolean;
+
+    /**
+   * The max cache items for capping the number of envelopes.
+   *
+   * @default 30
+   */
+  maxCacheItems?: number;
 }
 
 export interface ReactNativeWrapperOptions {

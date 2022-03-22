@@ -44,8 +44,6 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = true;
-
     NSError *error = nil;
 
     SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
@@ -68,8 +66,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     // remove performance traces sample rate and traces sampler since we don't want to synchronize these configurations
     // to the Native SDKs.
     // The user could tho initialize the SDK manually and set themselves.
-    // Remove comment below once https://github.com/getsentry/sentry-cocoa/issues/1657 gets fixed.
-    // [mutableOptions removeObjectForKey:@"tracesSampleRate"];
+    [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
 
     sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:&error];
@@ -77,6 +74,25 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
+
+    if ([mutableOptions valueForKey:@"enableNativeCrashHandling"] != nil) {
+        BOOL enableNativeCrashHandling = (BOOL)[mutableOptions valueForKey:@"enableNativeCrashHandling"];
+
+        if (!enableNativeCrashHandling) {
+            NSMutableArray *integrations = sentryOptions.integrations.mutableCopy;
+            [integrations removeObject:@"SentryCrashIntegration"];
+            sentryOptions.integrations = integrations;
+        }
+    }
+
+    // Enable the App start and Frames tracking measurements
+    if ([mutableOptions valueForKey:@"enableAutoPerformanceTracking"] != nil) {
+        BOOL enableAutoPerformanceTracking = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracking"];
+
+        PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracking;
+        PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracking;
+    }
+
     [SentrySDK startWithOptionsObject:sentryOptions];
 
     // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
@@ -148,8 +164,19 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
         NSDictionary<NSString *, id> *serializedScope = [scope serialize];
         // Scope serializes as 'context' instead of 'contexts' as it does for the event.
         NSDictionary<NSString *, id> *tempContexts = [serializedScope valueForKey:@"context"];
+    
+        NSMutableDictionary<NSString *, id> *user = [NSMutableDictionary new];
+        
+        NSDictionary<NSString *, id> *tempUser = [serializedScope valueForKey:@"user"];
+        if (tempUser != nil) {
+            [user addEntriesFromDictionary:[tempUser valueForKey:@"user"]];
+        } else {
+            [user setValue:PrivateSentrySDKOnly.installationID forKey:@"id"];
+        }
+        [contexts setValue:user forKey:@"user"];
+        
         if (tempContexts != nil) {
-            [contexts addEntriesFromDictionary:tempContexts];
+            [contexts setValue:tempContexts forKey:@"context"];
         }
         if (sentryOptions != nil && sentryOptions.debug) {
             NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
@@ -193,12 +220,23 @@ RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
 
         if (frames == nil) {
             resolve(nil);
+            return;
+        }
+
+        NSNumber *total = [NSNumber numberWithLong:frames.total];
+        NSNumber *frozen = [NSNumber numberWithLong:frames.frozen];
+        NSNumber *slow = [NSNumber numberWithLong:frames.slow];
+        NSNumber *zero = [NSNumber numberWithLong:0L];
+
+        if ([total isEqualToNumber:zero] && [frozen isEqualToNumber:zero] && [slow isEqualToNumber:zero]) {
+            resolve(nil);
+            return;
         }
 
         resolve(@{
-            @"totalFrames": [NSNumber numberWithLong:frames.total],
-            @"frozenFrames": [NSNumber numberWithLong:frames.frozen],
-            @"slowFrames": [NSNumber numberWithLong:frames.slow],
+            @"totalFrames": total,
+            @"frozenFrames": frozen,
+            @"slowFrames": slow,
         });
     } else {
       resolve(nil);

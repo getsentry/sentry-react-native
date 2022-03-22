@@ -100,6 +100,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("maxBreadcrumbs")) {
                 options.setMaxBreadcrumbs(rnOptions.getInt("maxBreadcrumbs"));
             }
+            if (rnOptions.hasKey("maxCacheItems")) {
+                options.setMaxCacheItems(rnOptions.getInt("maxCacheItems"));
+            }
             if (rnOptions.hasKey("environment") && rnOptions.getString("environment") != null) {
                 options.setEnvironment(rnOptions.getString("environment"));
             }
@@ -114,6 +117,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
             if (rnOptions.hasKey("sessionTrackingIntervalMillis")) {
                 options.setSessionTrackingIntervalMillis(rnOptions.getInt("sessionTrackingIntervalMillis"));
+            }
+            if (rnOptions.hasKey("shutdownTimeout")) {
+                options.setShutdownTimeout(rnOptions.getInt("shutdownTimeout"));
             }
             if (rnOptions.hasKey("enableNdkScopeSync")) {
                 options.setEnableScopeSync(rnOptions.getBoolean("enableNdkScopeSync"));
@@ -264,6 +270,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                             }
                         }
                     }
+                }
+
+                if (totalFrames == 0 && slowFrames == 0 && frozenFrames == 0) {
+                    promise.resolve(null);
+                    return;
                 }
 
                 WritableMap map = Arguments.createMap();
@@ -427,6 +438,18 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void setExtra(String key, String extra) {
         Sentry.configureScope(scope -> {
             scope.setExtra(key, extra);
+        });
+    }
+
+    @ReactMethod
+    public void setContext(final String key, final ReadableMap context) {
+        if (key == null || context == null) {
+            return;
+        }
+        Sentry.configureScope(scope -> {
+            final HashMap<String, Object> contextHashMap = context.toHashMap();
+
+            scope.setContexts(key, contextHashMap);
         });
     }
 
