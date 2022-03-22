@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Bump: Sentry Cocoa to 7.11.0 and Sentry Android to 5.7.0 (#2160)
+
 ## 3.3.4
 
 - fix(android): setContext serializes as context for Android instead of extra (#2155)
