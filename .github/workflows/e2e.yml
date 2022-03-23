@@ -62,10 +62,9 @@ jobs:
           # All the tests need to be run in this script as the emulator is killed after this command.
           script: cd sample && react-native run-android --variant=release && curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions && yarn test
       - name: Upload Appium logs
-        if: env.SENTRY_AUTH_TOKEN != null
         # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
         # otherwise it would not run if the previous step failed
-        if: ${{ always() }}
+        if: ${{ always() && env.SENTRY_AUTH_TOKEN != null }}
         uses: actions/upload-artifact@v2
         with:
           name: appium.android.log
