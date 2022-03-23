@@ -5,14 +5,15 @@ on:
     branches: [main]
   pull_request:
 
+env:
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
 jobs:
   android:
-    env:
-      PLATFORM: android
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-    if: env.SENTRY_AUTH_TOKEN != null
     # Android emulator said to perform best with macos HAXM
     runs-on: macos-latest
+    env:
+      PLATFORM: android
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -51,6 +52,7 @@ jobs:
         run: yarn install
 
       - name: Start Appium Server
+        if: env.SENTRY_AUTH_TOKEN != null
         working-directory: ./sample
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
       - name: Run Android Emulator
@@ -60,6 +62,7 @@ jobs:
           # All the tests need to be run in this script as the emulator is killed after this command.
           script: cd sample && react-native run-android --variant=release && curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions && yarn test
       - name: Upload Appium logs
+        if: env.SENTRY_AUTH_TOKEN != null
         # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
         # otherwise it would not run if the previous step failed
         if: ${{ always() }}
@@ -68,14 +71,12 @@ jobs:
           name: appium.android.log
           path: ./sample/appium.log
   ios:
+    runs-on: macos-latest
     env:
       PLATFORM: ios
       TEST: true
       DEVICE: "iPhone 13"
       IOS_DEPLOYMENT_TARGET: 15.0
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-    if: env.SENTRY_AUTH_TOKEN != null
-    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -121,18 +122,22 @@ jobs:
         run: pod install
 
       - name: Start Appium Server
+        if: env.SENTRY_AUTH_TOKEN != null
         working-directory: ./sample
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
       - name: Build and run iOS emulator
+        if: env.SENTRY_AUTH_TOKEN != null
         working-directory: ./sample
         run: react-native run-ios --configuration Release --simulator "${DEVICE}"
 
       - name: Build WDA
+        if: env.SENTRY_AUTH_TOKEN != null
         working-directory: ./sample
         run: xcodebuild -project ./node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner -derivedDataPath ./xc-build -destination name="${DEVICE}" IPHONEOS_DEPLOYMENT_TARGET=$IOS_DEPLOYMENT_TARGET GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO build
 
         # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
       - name: Ping Appium Server
+        if: env.SENTRY_AUTH_TOKEN != null
         run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
       - name: Run Tests
         working-directory: ./sample
@@ -142,6 +147,7 @@ jobs:
         # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
         # otherwise it would not run if the previous step failed
         if: ${{ always() }}
+        if: env.SENTRY_AUTH_TOKEN != null
         uses: actions/upload-artifact@v2
         with:
           name: appium.ios.log
