@@ -10,9 +10,9 @@ env:
 
 jobs:
   android:
+    if: env.SENTRY_AUTH_TOKEN != null
     # Android emulator said to perform best with macos HAXM
     runs-on: macos-latest
-    if: ${{ env.SENTRY_AUTH_TOKEN != null }}
     env:
       PLATFORM: android
     steps:
@@ -70,8 +70,8 @@ jobs:
           name: appium.android.log
           path: ./sample/appium.log
   ios:
+    if: env.SENTRY_AUTH_TOKEN != null
     runs-on: macos-latest
-    if: ${{ env.SENTRY_AUTH_TOKEN != null }}
     env:
       PLATFORM: ios
       TEST: true
