@@ -146,8 +146,7 @@ jobs:
       - name: Upload Appium logs
         # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
         # otherwise it would not run if the previous step failed
-        if: ${{ always() }}
-        if: env.SENTRY_AUTH_TOKEN != null
+        if: ${{ always() && env.SENTRY_AUTH_TOKEN != null }}
         uses: actions/upload-artifact@v2
         with:
           name: appium.ios.log
