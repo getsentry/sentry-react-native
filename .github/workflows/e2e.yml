@@ -5,16 +5,14 @@ on:
     branches: [main]
   pull_request:
 
-env:
-  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-
 jobs:
   android:
+    env:
+      PLATFORM: android
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
     if: env.SENTRY_AUTH_TOKEN != null
     # Android emulator said to perform best with macos HAXM
     runs-on: macos-latest
-    env:
-      PLATFORM: android
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -70,13 +68,14 @@ jobs:
           name: appium.android.log
           path: ./sample/appium.log
   ios:
-    if: env.SENTRY_AUTH_TOKEN != null
-    runs-on: macos-latest
     env:
       PLATFORM: ios
       TEST: true
       DEVICE: "iPhone 13"
       IOS_DEPLOYMENT_TARGET: 15.0
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+    if: env.SENTRY_AUTH_TOKEN != null
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
