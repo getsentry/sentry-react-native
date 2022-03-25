@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- fix: Respect given release if no dist is given during SDK init (#)
+- fix: Respect given release if no dist is given during SDK init (#2163)
 
 ## 3.3.5
 
