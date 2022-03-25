@@ -47,10 +47,14 @@ export class Release implements Integration {
       }
 
       try {
-        const release = await NATIVE.fetchNativeRelease();
-        if (release) {
-          event.release = `${release.id}@${release.version}+${release.build}`;
-          event.dist = `${release.build}`;
+        const nativeRelease = await NATIVE.fetchNativeRelease();
+        if (nativeRelease) {
+          if (!event.release) {
+            event.release = `${nativeRelease.id}@${nativeRelease.version}+${nativeRelease.build}`;
+          }
+          if (!event.dist) {
+            event.dist = `${nativeRelease.build}`;
+          }
         }
       } catch (_Oo) {
         // Something went wrong, we just continue
