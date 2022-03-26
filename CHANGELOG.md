@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix: Respect given release if no dist is given during SDK init (#2163)
+
 ## 3.3.5
 
 - Bump: Sentry Cocoa to 7.11.0 and Sentry Android to 5.7.0 (#2160)
