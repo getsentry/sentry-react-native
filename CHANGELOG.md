@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.3.6
 
 - fix: Respect given release if no dist is given during SDK init (#2163)
 
