@@ -3,6 +3,7 @@
 ## Unreleased
 
 - fix: Respect given release if no dist is given during SDK init (#2163)
+- Bump: @sentry/javascript dependencies to 6.19.2 (#)
 
 ## 3.3.5
 

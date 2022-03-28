@@ -1,9 +1,9 @@
-import { eventFromException } from "@sentry/browser";
-import { getCurrentHub } from "@sentry/core";
-import { Integration, Severity } from "@sentry/types";
-import { addExceptionMechanism, getGlobalObject, logger } from "@sentry/utils";
+import { eventFromException } from '@sentry/browser';
+import { getCurrentHub } from '@sentry/core';
+import { Integration, Severity } from '@sentry/types';
+import { addExceptionMechanism, getGlobalObject, logger } from '@sentry/utils';
 
-import { ReactNativeClient } from "../client";
+import { ReactNativeClient } from '../client';
 
 /** ReactNativeErrorHandlers Options */
 interface ReactNativeErrorHandlersOptions {
@@ -25,7 +25,7 @@ export class ReactNativeErrorHandlers implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = "ReactNativeErrorHandlers";
+  public static id: string = 'ReactNativeErrorHandlers';
 
   /**
    * @inheritDoc
@@ -79,16 +79,16 @@ export class ReactNativeErrorHandlers implements Integration {
     /* eslint-disable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
     const {
       polyfillGlobal,
-    } = require("react-native/Libraries/Utilities/PolyfillFunctions");
+    } = require('react-native/Libraries/Utilities/PolyfillFunctions');
 
     // Below, we follow the exact way React Native initializes its promise library, and we globally replace it.
-    const Promise = require("promise/setimmediate/es6-extensions");
+    const Promise = require('promise/setimmediate/es6-extensions');
 
     // As of RN 0.67 only done and finally are used
-    require("promise/setimmediate/done");
-    require("promise/setimmediate/finally");
+    require('promise/setimmediate/done');
+    require('promise/setimmediate/finally');
 
-    polyfillGlobal("Promise", () => Promise);
+    polyfillGlobal('Promise', () => Promise);
     /* eslint-enable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
   }
   /**
@@ -99,7 +99,7 @@ export class ReactNativeErrorHandlers implements Integration {
       disable: () => void;
       enable: (arg: unknown) => void;
       // eslint-disable-next-line import/no-extraneous-dependencies,@typescript-eslint/no-var-requires
-    } = require("promise/setimmediate/rejection-tracking");
+    } = require('promise/setimmediate/rejection-tracking');
 
     const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
       onUnhandled: (id, rejection = {}) => {
@@ -112,7 +112,7 @@ export class ReactNativeErrorHandlers implements Integration {
         // eslint-disable-next-line no-console
         console.warn(
           `Promise Rejection Handled (id: ${id})\n` +
-            "This means you can ignore any previous messages of the form " +
+            'This means you can ignore any previous messages of the form ' +
             `"Possible Unhandled Promise Rejection (id: ${id}):"`
         );
       },
@@ -141,21 +141,21 @@ export class ReactNativeErrorHandlers implements Integration {
   private _checkPromiseAndWarn(): void {
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
-      const Promise = require("promise/setimmediate/es6-extensions");
+      const Promise = require('promise/setimmediate/es6-extensions');
 
       const _global = getGlobalObject<{ Promise: typeof Promise }>();
 
       if (Promise !== _global.Promise) {
         logger.warn(
-          "Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page."
+          'Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page.'
         );
       } else {
-        logger.log("Unhandled promise rejections will be caught by Sentry.");
+        logger.log('Unhandled promise rejections will be caught by Sentry.');
       }
     } catch (e) {
       // Do Nothing
       logger.warn(
-        "Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page."
+        'Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page.'
       );
     }
   }
@@ -176,7 +176,7 @@ export class ReactNativeErrorHandlers implements Integration {
         if (shouldHandleFatal) {
           if (handlingFatal) {
             logger.log(
-              "Encountered multiple fatals in a row. The latest:",
+              'Encountered multiple fatals in a row. The latest:',
               error
             );
             return;
@@ -189,7 +189,7 @@ export class ReactNativeErrorHandlers implements Integration {
 
         if (!client) {
           logger.error(
-            "Sentry client is missing, the error event might be lost.",
+            'Sentry client is missing, the error event might be lost.',
             error
           );
 
@@ -201,16 +201,16 @@ export class ReactNativeErrorHandlers implements Integration {
 
         const options = client.getOptions();
 
-        const event = await eventFromException(options, error, {
+        const event = await eventFromException(error, {
           originalException: error,
-        });
+        }, options.attachStacktrace);
 
         if (isFatal) {
           event.level = Severity.Fatal;
 
           addExceptionMechanism(event, {
             handled: false,
-            type: "onerror",
+            type: 'onerror',
           });
         }
 

@@ -60,8 +60,9 @@ Sentry.init({
   tracesSampleRate: 1.0,
   // Sets the `release` and `dist` on Sentry events. Make sure this matches EXACTLY with the values on your sourcemaps
   // otherwise they will not work.
-  release: 'myapp@1.2.3+1',
-  dist: `1`,
+  // release: 'myapp@1.2.3+1',
+  // dist: `1`,
+  attachStacktrace: true,
 });
 
 const Stack = createStackNavigator();
