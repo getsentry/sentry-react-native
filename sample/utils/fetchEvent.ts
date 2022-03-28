@@ -3,7 +3,7 @@ import {Event} from '@sentry/types';
 import fetch from 'node-fetch';
 
 const domain = 'sentry.io';
-const eventEndpoint = `/api/0/projects/sentry-sdks/sentry-react-native/events/`;
+const eventEndpoint = '/api/0/projects/sentry-sdks/sentry-react-native/events/';
 
 interface ApiEvent extends Event {
   /**

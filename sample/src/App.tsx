@@ -19,11 +19,10 @@ import ReduxScreen from './screens/ReduxScreen';
 import {store} from './reduxApp';
 import {SENTRY_INTERNAL_DSN} from './dsn';
 
-const reactNavigationInstrumentation = new Sentry.ReactNavigationInstrumentation(
-  {
+const reactNavigationInstrumentation =
+  new Sentry.ReactNavigationInstrumentation({
     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
-  },
-);
+  });
 Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: SENTRY_INTERNAL_DSN,
