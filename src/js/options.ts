@@ -1,8 +1,8 @@
-import { BrowserOptions } from "@sentry/react";
-import { ProfilerProps } from "@sentry/react/dist/profiler";
-import { CaptureContext } from "@sentry/types/dist/scope";
+import { BrowserOptions } from '@sentry/react';
+import { ProfilerProps } from '@sentry/react/dist/profiler';
+import { CaptureContext } from '@sentry/types/dist/scope';
 
-import { TouchEventBoundaryProps } from "./touchevents";
+import { TouchEventBoundaryProps } from './touchevents';
 
 /**
  * Configuration options for the Sentry ReactNative SDK.

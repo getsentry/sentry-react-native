@@ -1,6 +1,6 @@
-import { Transaction } from "@sentry/tracing";
+import { Transaction } from '@sentry/tracing';
 
-import { getBlankTransactionContext } from "../src/js/tracing/utils";
+import { getBlankTransactionContext } from '../src/js/tracing/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function mockFunction<T extends (...args: any[]) => any>(

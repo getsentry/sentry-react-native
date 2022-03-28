@@ -1,12 +1,12 @@
-import { initAndBind, setExtra } from "@sentry/core";
-import { Hub, makeMain } from "@sentry/hub";
-import { RewriteFrames } from "@sentry/integrations";
-import { defaultIntegrations, getCurrentHub } from "@sentry/react";
-import { StackFrame } from "@sentry/types";
-import { getGlobalObject, logger } from "@sentry/utils";
-import * as React from "react";
+import { initAndBind, setExtra } from '@sentry/core';
+import { Hub, makeMain } from '@sentry/hub';
+import { RewriteFrames } from '@sentry/integrations';
+import { defaultIntegrations, getCurrentHub } from '@sentry/react';
+import { StackFrame } from '@sentry/types';
+import { getGlobalObject, logger } from '@sentry/utils';
+import * as React from 'react';
 
-import { ReactNativeClient } from "./client";
+import { ReactNativeClient } from './client';
 import {
   DebugSymbolicator,
   DeviceContext,
@@ -14,15 +14,15 @@ import {
   ReactNativeErrorHandlers,
   Release,
   SdkInfo,
-} from "./integrations";
-import { ReactNativeOptions, ReactNativeWrapperOptions } from "./options";
-import { ReactNativeScope } from "./scope";
-import { TouchEventBoundary } from "./touchevents";
-import { ReactNativeProfiler, ReactNativeTracing } from "./tracing";
+} from './integrations';
+import { ReactNativeOptions, ReactNativeWrapperOptions } from './options';
+import { ReactNativeScope } from './scope';
+import { TouchEventBoundary } from './touchevents';
+import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
-  "GlobalHandlers", // We will use the react-native internal handlers
-  "TryCatch", // We don't need this
+  'GlobalHandlers', // We will use the react-native internal handlers
+  'TryCatch', // We don't need this
 ];
 const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNative: true,
@@ -48,8 +48,8 @@ export function init(passedOptions: ReactNativeOptions): void {
 
   // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.
   const tracingEnabled =
-    typeof options.tracesSampler !== "undefined" ||
-    typeof options.tracesSampleRate !== "undefined";
+    typeof options.tracesSampler !== 'undefined' ||
+    typeof options.tracesSampleRate !== 'undefined';
 
   if (options.defaultIntegrations === undefined) {
     options.defaultIntegrations = [
@@ -73,18 +73,18 @@ export function init(passedOptions: ReactNativeOptions): void {
         iteratee: (frame: StackFrame) => {
           if (frame.filename) {
             frame.filename = frame.filename
-              .replace(/^file:\/\//, "")
-              .replace(/^address at /, "")
-              .replace(/^.*\/[^.]+(\.app|CodePush|.*(?=\/))/, "");
+              .replace(/^file:\/\//, '')
+              .replace(/^address at /, '')
+              .replace(/^.*\/[^.]+(\.app|CodePush|.*(?=\/))/, '');
 
             if (
-              frame.filename !== "[native code]" &&
-              frame.filename !== "native"
+              frame.filename !== '[native code]' &&
+              frame.filename !== 'native'
             ) {
-              const appPrefix = "app://";
+              const appPrefix = 'app://';
               // We always want to have a triple slash
               frame.filename =
-                frame.filename.indexOf("/") === 0
+                frame.filename.indexOf('/') === 0
                   ? `${appPrefix}${frame.filename}`
                   : `${appPrefix}/${frame.filename}`;
             }
@@ -107,7 +107,7 @@ export function init(passedOptions: ReactNativeOptions): void {
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
   if (getGlobalObject<any>().HermesInternal) {
-    getCurrentHub().setTag("hermes", "true");
+    getCurrentHub().setTag('hermes', 'true');
   }
 }
 
@@ -125,7 +125,7 @@ export function wrap<P>(
 
   const profilerProps = {
     ...(options?.profilerProps ?? {}),
-    name: RootComponent.displayName ?? "Root",
+    name: RootComponent.displayName ?? 'Root',
   };
 
   const RootApp: React.FC<P> = (appProps) => {
@@ -147,7 +147,7 @@ export function wrap<P>(
  * @deprecated
  */
 export function setRelease(release: string): void {
-  setExtra("__sentry_release", release);
+  setExtra('__sentry_release', release);
 }
 
 /**
@@ -156,7 +156,7 @@ export function setRelease(release: string): void {
  * @deprecated
  */
 export function setDist(dist: string): void {
-  setExtra("__sentry_dist", dist);
+  setExtra('__sentry_dist', dist);
 }
 
 /**
@@ -186,7 +186,7 @@ export async function flush(): Promise<boolean> {
     // eslint-disable-next-line no-empty
   } catch (_) {}
 
-  logger.error("Failed to flush the event queue.");
+  logger.error('Failed to flush the event queue.');
 
   return false;
 }
@@ -202,6 +202,6 @@ export async function close(): Promise<void> {
       await client.close();
     }
   } catch (e) {
-    logger.error("Failed to close the SDK");
+    logger.error('Failed to close the SDK');
   }
 }

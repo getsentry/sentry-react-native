@@ -1,15 +1,15 @@
-import { addGlobalEventProcessor, getCurrentHub } from "@sentry/core";
-import { Contexts, Event, Integration } from "@sentry/types";
-import { logger } from "@sentry/utils";
+import { addGlobalEventProcessor, getCurrentHub } from '@sentry/core';
+import { Contexts, Event, Integration } from '@sentry/types';
+import { logger } from '@sentry/utils';
 
-import { NATIVE } from "../wrapper";
+import { NATIVE } from '../wrapper';
 
 /** Load device context from native. */
 export class DeviceContext implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = "DeviceContext";
+  public static id: string = 'DeviceContext';
 
   /**
    * @inheritDoc

@@ -1,8 +1,8 @@
-import { addBreadcrumb } from "@sentry/core";
-import { Severity } from "@sentry/types";
-import { logger } from "@sentry/utils";
-import * as React from "react";
-import { StyleSheet, View } from "react-native";
+import { addBreadcrumb } from '@sentry/core';
+import { Severity } from '@sentry/types';
+import { logger } from '@sentry/utils';
+import * as React from 'react';
+import { StyleSheet, View } from 'react-native';
 
 export type TouchEventBoundaryProps = {
   /**
@@ -35,11 +35,11 @@ const touchEventStyles = StyleSheet.create({
   },
 });
 
-const DEFAULT_BREADCRUMB_CATEGORY = "touch";
-const DEFAULT_BREADCRUMB_TYPE = "user";
+const DEFAULT_BREADCRUMB_CATEGORY = 'touch';
+const DEFAULT_BREADCRUMB_TYPE = 'user';
 const DEFAULT_MAX_COMPONENT_TREE_SIZE = 20;
 
-const PROP_KEY = "sentry-label";
+const PROP_KEY = 'sentry-label';
 
 interface ElementInstance {
   elementType?: {
@@ -54,7 +54,7 @@ interface ElementInstance {
  * Boundary to log breadcrumbs for interaction events.
  */
 class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
-  public static displayName: string = "__Sentry.TouchEventBoundary";
+  public static displayName: string = '__Sentry.TouchEventBoundary';
   public static defaultProps: Partial<TouchEventBoundaryProps> = {
     breadcrumbCategory: DEFAULT_BREADCRUMB_CATEGORY,
     breadcrumbType: DEFAULT_BREADCRUMB_TYPE,
@@ -90,7 +90,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
       level: Severity.Info,
       message: activeLabel
         ? `Touch event within element: ${activeLabel}`
-        : `Touch event within component tree`,
+        : 'Touch event within component tree',
       type: this.props.breadcrumbType,
     };
 
@@ -113,7 +113,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 
     return ignoreNames.some(
       (ignoreName: string | RegExp) =>
-        (typeof ignoreName === "string" && name === ignoreName) ||
+        (typeof ignoreName === 'string' && name === ignoreName) ||
         (ignoreName instanceof RegExp && name.match(ignoreName))
     );
   }
@@ -151,7 +151,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 
         const props = currentInst.memoizedProps;
         const label =
-          typeof props?.[PROP_KEY] !== "undefined"
+          typeof props?.[PROP_KEY] !== 'undefined'
             ? `${props[PROP_KEY]}`
             : undefined;
 
@@ -162,7 +162,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
           }
           componentTreeNames.push(label);
         } else if (
-          typeof props?.accessibilityLabel === "string" &&
+          typeof props?.accessibilityLabel === 'string' &&
           !this._isNameIgnored(props.accessibilityLabel)
         ) {
           if (!activeLabel) {
@@ -212,7 +212,7 @@ const withTouchEventBoundary = (
     </TouchEventBoundary>
   );
 
-  WrappedComponent.displayName = "WithTouchEventBoundary";
+  WrappedComponent.displayName = 'WithTouchEventBoundary';
 
   return WrappedComponent;
 };

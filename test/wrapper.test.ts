@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Event, Severity } from "@sentry/types";
-import { logger } from "@sentry/utils";
+import { Event, Severity } from '@sentry/types';
+import { logger } from '@sentry/utils';
 
-import { SentryNativeBridgeModule } from "../src/js/definitions";
-import { ReactNativeOptions } from "../src/js/options";
-import { NATIVE } from "../src/js/wrapper";
+import { SentryNativeBridgeModule } from '../src/js/definitions';
+import { ReactNativeOptions } from '../src/js/options';
+import { NATIVE } from '../src/js/wrapper';
 
 jest.mock(
-  "react-native",
+  'react-native',
   () => {
     let envelopePayload:
       | string
@@ -36,9 +36,9 @@ jest.mock(
       ),
       fetchNativeRelease: jest.fn(() =>
         Promise.resolve({
-          build: "1.0.0.1",
-          id: "test-mock",
-          version: "1.0.0",
+          build: '1.0.0.1',
+          id: 'test-mock',
+          version: '1.0.0',
         })
       ),
       getStringBytesLength: jest.fn(() => Promise.resolve(1)),
@@ -63,7 +63,7 @@ jest.mock(
         RNSentry,
       },
       Platform: {
-        OS: "ios",
+        OS: 'ios',
       },
     };
   },
@@ -71,24 +71,24 @@ jest.mock(
   { virtual: true }
 );
 
-const RN = require("react-native");
+const RN = require('react-native');
 const RNSentry = RN.NativeModules.RNSentry as SentryNativeBridgeModule;
 
 const callAllScopeMethods = () => {
   NATIVE.addBreadcrumb({
-    message: "test",
+    message: 'test',
   });
   NATIVE.clearBreadcrumbs();
   NATIVE.setUser({
-    id: "setUser",
+    id: 'setUser',
   });
-  NATIVE.setTag("key", "value");
-  NATIVE.setContext("key", { value: "value" });
-  NATIVE.setExtra("key", "value");
+  NATIVE.setTag('key', 'value');
+  NATIVE.setContext('key', { value: 'value' });
+  NATIVE.setExtra('key', 'value');
 };
 
 beforeEach(() => {
-  NATIVE.platform = "ios";
+  NATIVE.platform = 'ios';
   NATIVE.enableNative = true;
 });
 
@@ -96,30 +96,30 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe("Tests Native Wrapper", () => {
-  describe("startWithOptions", () => {
-    test("calls native module", async () => {
-      await NATIVE.initNativeSdk({ dsn: "test", enableNative: true });
+describe('Tests Native Wrapper', () => {
+  describe('startWithOptions', () => {
+    test('calls native module', async () => {
+      await NATIVE.initNativeSdk({ dsn: 'test', enableNative: true });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
     });
 
-    test("warns if there is no dsn", async () => {
+    test('warns if there is no dsn', async () => {
       logger.warn = jest.fn();
 
       await NATIVE.initNativeSdk({ enableNative: true });
 
       expect(RNSentry.initNativeSdk).not.toBeCalled();
       expect(logger.warn).toHaveBeenLastCalledWith(
-        "Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized."
+        'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.'
       );
     });
 
-    test("does not call native module with enableNative: false", async () => {
+    test('does not call native module with enableNative: false', async () => {
       logger.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
-        dsn: "test",
+        dsn: 'test',
         enableNative: false,
         enableNativeNagger: true,
       });
@@ -127,15 +127,15 @@ describe("Tests Native Wrapper", () => {
       expect(RNSentry.initNativeSdk).not.toBeCalled();
       expect(NATIVE.enableNative).toBe(false);
       expect(logger.warn).toHaveBeenLastCalledWith(
-        "Note: Native Sentry SDK is disabled."
+        'Note: Native Sentry SDK is disabled.'
       );
     });
 
-    test("does not initialize with autoInitializeNativeSdk: false", async () => {
+    test('does not initialize with autoInitializeNativeSdk: false', async () => {
       logger.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
-        dsn: "test",
+        dsn: 'test',
         enableNative: true,
         autoInitializeNativeSdk: false,
       });
@@ -146,27 +146,27 @@ describe("Tests Native Wrapper", () => {
       // Test that native bridge methods will go through
       callAllScopeMethods();
       expect(RNSentry.addBreadcrumb).toBeCalledWith({
-        message: "test",
+        message: 'test',
       });
       expect(RNSentry.clearBreadcrumbs).toBeCalled();
       expect(RNSentry.setUser).toBeCalledWith(
         {
-          id: "setUser",
+          id: 'setUser',
         },
         {}
       );
-      expect(RNSentry.setTag).toBeCalledWith("key", "value");
-      expect(RNSentry.setContext).toBeCalledWith("key", {
-        value: "value",
+      expect(RNSentry.setTag).toBeCalledWith('key', 'value');
+      expect(RNSentry.setContext).toBeCalledWith('key', {
+        value: 'value',
       });
-      expect(RNSentry.setExtra).toBeCalledWith("key", "value");
+      expect(RNSentry.setExtra).toBeCalledWith('key', 'value');
     });
 
-    test("enableNative: false takes precedence over autoInitializeNativeSdk: false", async () => {
+    test('enableNative: false takes precedence over autoInitializeNativeSdk: false', async () => {
       logger.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
-        dsn: "test",
+        dsn: 'test',
         enableNative: false,
         autoInitializeNativeSdk: false,
       });
@@ -185,14 +185,14 @@ describe("Tests Native Wrapper", () => {
     });
   });
 
-  describe("sendEvent", () => {
-    test("calls only captureEnvelope on iOS", async () => {
+  describe('sendEvent', () => {
+    test('calls only captureEnvelope on iOS', async () => {
       const event = {
-        event_id: "event0",
-        message: "test",
+        event_id: 'event0',
+        message: 'test',
         sdk: {
-          name: "test-sdk-name",
-          version: "2.1.3",
+          name: 'test-sdk-name',
+          version: '2.1.3',
         },
       };
 
@@ -211,18 +211,18 @@ describe("Tests Native Wrapper", () => {
         },
       });
     });
-    test("serializes class instances on iOS", async () => {
+    test('serializes class instances on iOS', async () => {
       class TestInstance {
         value: number = 0;
         method = () => null;
       }
 
       const event = {
-        event_id: "event0",
-        message: "test",
+        event_id: 'event0',
+        message: 'test',
         sdk: {
-          name: "test-sdk-name",
-          version: "2.1.3",
+          name: 'test-sdk-name',
+          version: '2.1.3',
         },
         instance: new TestInstance(),
       };
@@ -245,8 +245,8 @@ describe("Tests Native Wrapper", () => {
         },
       });
     });
-    test("serializes class instances on Android", async () => {
-      NATIVE.platform = "android";
+    test('serializes class instances on Android', async () => {
+      NATIVE.platform = 'android';
 
       class TestInstance {
         value: number = 0;
@@ -254,11 +254,11 @@ describe("Tests Native Wrapper", () => {
       }
 
       const event = {
-        event_id: "event0",
-        message: "test",
+        event_id: 'event0',
+        message: 'test',
         sdk: {
-          name: "test-sdk-name",
-          version: "2.1.3",
+          name: 'test-sdk-name',
+          version: '2.1.3',
         },
         instance: new TestInstance(),
       };
@@ -270,9 +270,9 @@ describe("Tests Native Wrapper", () => {
         sdk: event.sdk,
       });
       const itemString = JSON.stringify({
-        content_type: "application/json",
+        content_type: 'application/json',
         length: 1,
-        type: "event",
+        type: 'event',
       });
       const payloadString = JSON.stringify({
         ...event,
@@ -288,15 +288,15 @@ describe("Tests Native Wrapper", () => {
         `${headerString}\n${itemString}\n${payloadString}`
       );
     });
-    test("calls getStringByteLength and captureEnvelope on android", async () => {
-      NATIVE.platform = "android";
+    test('calls getStringByteLength and captureEnvelope on android', async () => {
+      NATIVE.platform = 'android';
 
       const event = {
-        event_id: "event0",
-        message: "test",
+        event_id: 'event0',
+        message: 'test',
         sdk: {
-          name: "test-sdk-name",
-          version: "2.1.3",
+          name: 'test-sdk-name',
+          version: '2.1.3',
         },
       };
 
@@ -311,9 +311,9 @@ describe("Tests Native Wrapper", () => {
         sdk: event.sdk,
       });
       const item = JSON.stringify({
-        content_type: "application/json",
+        content_type: 'application/json',
         length: 1,
-        type: "event",
+        type: 'event',
       });
 
       await NATIVE.sendEvent(event);
@@ -323,35 +323,35 @@ describe("Tests Native Wrapper", () => {
         `${header}\n${item}\n${payload}`
       );
     });
-    test("does not call RNSentry at all if enableNative is false", async () => {
+    test('does not call RNSentry at all if enableNative is false', async () => {
       try {
-        await NATIVE.initNativeSdk({ dsn: "test-dsn", enableNative: false });
+        await NATIVE.initNativeSdk({ dsn: 'test-dsn', enableNative: false });
         await NATIVE.sendEvent({});
       } catch (e) {
-        expect(e.message).toMatch("Native is disabled");
+        expect(e.message).toMatch('Native is disabled');
       }
       expect(RNSentry.getStringBytesLength).not.toBeCalled();
       expect(RNSentry.captureEnvelope).not.toBeCalled();
     });
-    test("Clears breadcrumbs on Android if mechanism.handled is true", async () => {
-      NATIVE.platform = "android";
+    test('Clears breadcrumbs on Android if mechanism.handled is true', async () => {
+      NATIVE.platform = 'android';
 
       const event: Event = {
-        event_id: "event0",
-        message: "test",
+        event_id: 'event0',
+        message: 'test',
         exception: {
           values: [
             {
               mechanism: {
                 handled: true,
-                type: "",
+                type: '',
               },
             },
           ],
         },
         breadcrumbs: [
           {
-            message: "crumb!",
+            message: 'crumb!',
           },
         ],
       };
@@ -368,9 +368,9 @@ describe("Tests Native Wrapper", () => {
         sdk: event.sdk,
       });
       const item = JSON.stringify({
-        content_type: "application/json",
+        content_type: 'application/json',
         length: 1,
-        type: "event",
+        type: 'event',
       });
 
       await NATIVE.sendEvent(event);
@@ -380,15 +380,15 @@ describe("Tests Native Wrapper", () => {
         `${header}\n${item}\n${payload}`
       );
     });
-    test("Clears breadcrumbs on Android if there is no exception", async () => {
-      NATIVE.platform = "android";
+    test('Clears breadcrumbs on Android if there is no exception', async () => {
+      NATIVE.platform = 'android';
 
       const event: Event = {
-        event_id: "event0",
-        message: "test",
+        event_id: 'event0',
+        message: 'test',
         breadcrumbs: [
           {
-            message: "crumb!",
+            message: 'crumb!',
           },
         ],
       };
@@ -405,9 +405,9 @@ describe("Tests Native Wrapper", () => {
         sdk: event.sdk,
       });
       const item = JSON.stringify({
-        content_type: "application/json",
+        content_type: 'application/json',
         length: 1,
-        type: "event",
+        type: 'event',
       });
 
       await NATIVE.sendEvent(event);
@@ -417,25 +417,25 @@ describe("Tests Native Wrapper", () => {
         `${header}\n${item}\n${payload}`
       );
     });
-    test("Does not clear breadcrumbs on Android if mechanism.handled is false", async () => {
-      NATIVE.platform = "android";
+    test('Does not clear breadcrumbs on Android if mechanism.handled is false', async () => {
+      NATIVE.platform = 'android';
 
       const event: Event = {
-        event_id: "event0",
-        message: "test",
+        event_id: 'event0',
+        message: 'test',
         exception: {
           values: [
             {
               mechanism: {
                 handled: false,
-                type: "",
+                type: '',
               },
             },
           ],
         },
         breadcrumbs: [
           {
-            message: "crumb!",
+            message: 'crumb!',
           },
         ],
       };
@@ -451,9 +451,9 @@ describe("Tests Native Wrapper", () => {
         sdk: event.sdk,
       });
       const item = JSON.stringify({
-        content_type: "application/json",
+        content_type: 'application/json',
         length: 1,
-        type: "event",
+        type: 'event',
       });
 
       await NATIVE.sendEvent(event);
@@ -465,19 +465,19 @@ describe("Tests Native Wrapper", () => {
     });
   });
 
-  describe("fetchRelease", () => {
-    test("fetches the release from native", async () => {
+  describe('fetchRelease', () => {
+    test('fetches the release from native', async () => {
       await expect(NATIVE.fetchNativeRelease()).resolves.toMatchObject({
-        build: "1.0.0.1",
-        id: "test-mock",
-        version: "1.0.0",
+        build: '1.0.0.1',
+        id: 'test-mock',
+        version: '1.0.0',
       });
     });
   });
 
-  describe("deviceContexts", () => {
-    test("returns context object from native module on ios", async () => {
-      NATIVE.platform = "ios";
+  describe('deviceContexts', () => {
+    test('returns context object from native module on ios', async () => {
+      NATIVE.platform = 'ios';
 
       await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject({
         someContext: {
@@ -487,8 +487,8 @@ describe("Tests Native Wrapper", () => {
 
       expect(RNSentry.fetchNativeDeviceContexts).toBeCalled();
     });
-    test("returns empty object on android", async () => {
-      NATIVE.platform = "android";
+    test('returns empty object on android', async () => {
+      NATIVE.platform = 'android';
 
       await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject(
         {}
@@ -498,30 +498,30 @@ describe("Tests Native Wrapper", () => {
     });
   });
 
-  describe("isModuleLoaded", () => {
-    test("returns true when module is loaded", () => {
+  describe('isModuleLoaded', () => {
+    test('returns true when module is loaded', () => {
       expect(NATIVE._isModuleLoaded(RNSentry)).toBe(true);
     });
   });
 
-  describe("crash", () => {
-    test("calls the native crash", () => {
+  describe('crash', () => {
+    test('calls the native crash', () => {
       NATIVE.nativeCrash();
 
       expect(RNSentry.crash).toBeCalled();
     });
-    test("does not call crash if enableNative is false", async () => {
-      await NATIVE.initNativeSdk({ dsn: "test-dsn", enableNative: false });
+    test('does not call crash if enableNative is false', async () => {
+      await NATIVE.initNativeSdk({ dsn: 'test-dsn', enableNative: false });
       NATIVE.nativeCrash();
 
       expect(RNSentry.crash).not.toBeCalled();
     });
   });
 
-  describe("setUser", () => {
-    test("serializes all user object keys", async () => {
+  describe('setUser', () => {
+    test('serializes all user object keys', async () => {
       NATIVE.setUser({
-        email: "hello@sentry.io",
+        email: 'hello@sentry.io',
         // @ts-ignore Intentional incorrect type to simulate using a double as an id (We had a user open an issue because this didn't work before)
         id: 3.14159265359,
         unique: 123,
@@ -529,35 +529,35 @@ describe("Tests Native Wrapper", () => {
 
       expect(RNSentry.setUser).toBeCalledWith(
         {
-          email: "hello@sentry.io",
-          id: "3.14159265359",
+          email: 'hello@sentry.io',
+          id: '3.14159265359',
         },
         {
-          unique: "123",
+          unique: '123',
         }
       );
     });
 
-    test("Calls native setUser with empty object as second param if no unique keys", async () => {
+    test('Calls native setUser with empty object as second param if no unique keys', async () => {
       NATIVE.setUser({
-        id: "Hello",
+        id: 'Hello',
       });
 
       expect(RNSentry.setUser).toBeCalledWith(
         {
-          id: "Hello",
+          id: 'Hello',
         },
         {}
       );
     });
   });
 
-  describe("_processLevel", () => {
-    test("converts deprecated levels", () => {
+  describe('_processLevel', () => {
+    test('converts deprecated levels', () => {
       expect(NATIVE._processLevel(Severity.Log)).toBe(Severity.Debug);
       expect(NATIVE._processLevel(Severity.Critical)).toBe(Severity.Fatal);
     });
-    test("returns non-deprecated levels", () => {
+    test('returns non-deprecated levels', () => {
       expect(NATIVE._processLevel(Severity.Debug)).toBe(Severity.Debug);
       expect(NATIVE._processLevel(Severity.Fatal)).toBe(Severity.Fatal);
       expect(NATIVE._processLevel(Severity.Info)).toBe(Severity.Info);
@@ -566,8 +566,8 @@ describe("Tests Native Wrapper", () => {
     });
   });
 
-  describe("closeNativeSdk", () => {
-    test("closeNativeSdk calls native bridge", async () => {
+  describe('closeNativeSdk', () => {
+    test('closeNativeSdk calls native bridge', async () => {
       await NATIVE.closeNativeSdk();
 
       expect(RNSentry.closeNativeSdk).toBeCalled();

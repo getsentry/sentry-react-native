@@ -1,13 +1,13 @@
-import { BrowserBackend } from "@sentry/browser/dist/backend";
-import { BaseBackend, NoopTransport } from "@sentry/core";
-import { BrowserOptions, Transports } from "@sentry/react";
-import { Event, EventHint, Severity, Transport } from "@sentry/types";
+import { BrowserBackend } from '@sentry/browser/dist/backend';
+import { BaseBackend, NoopTransport } from '@sentry/core';
+import { BrowserOptions, Transports } from '@sentry/react';
+import { Event, EventHint, Severity, Transport } from '@sentry/types';
 // @ts-ignore LogBox introduced in RN 0.63
-import { Alert, LogBox, YellowBox } from "react-native";
+import { Alert, LogBox, YellowBox } from 'react-native';
 
-import { ReactNativeOptions } from "./options";
-import { NativeTransport } from "./transports/native";
-import { NATIVE } from "./wrapper";
+import { ReactNativeOptions } from './options';
+import { NativeTransport } from './transports/native';
+import { NATIVE } from './wrapper';
 
 /** The Sentry ReactNative SDK Backend. */
 export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
@@ -22,10 +22,10 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
     // YellowBox deprecated and replaced with with LogBox in RN 0.63
     if (LogBox) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      LogBox.ignoreLogs(["Require cycle:"]);
+      LogBox.ignoreLogs(['Require cycle:']);
     } else {
       // eslint-disable-next-line deprecation/deprecation
-      YellowBox.ignoreWarnings(["Require cycle:"]);
+      YellowBox.ignoreWarnings(['Require cycle:']);
     }
 
     void this._initNativeSdk();
@@ -110,8 +110,8 @@ export class ReactNativeBackend extends BaseBackend<BrowserOptions> {
   private _showCannotConnectDialog(): void {
     if (__DEV__ && this._options.enableNativeNagger) {
       Alert.alert(
-        "Sentry",
-        "Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details."
+        'Sentry',
+        'Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details.'
       );
     }
   }

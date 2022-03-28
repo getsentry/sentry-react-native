@@ -1,7 +1,7 @@
-import { Event, Response, Transport } from "@sentry/types";
-import { makePromiseBuffer, PromiseBuffer } from "@sentry/utils";
+import { Event, Response, Transport } from '@sentry/types';
+import { makePromiseBuffer, PromiseBuffer } from '@sentry/utils';
 
-import { NATIVE } from "../wrapper";
+import { NATIVE } from '../wrapper';
 
 /** Native Transport class implementation */
 export class NativeTransport implements Transport {

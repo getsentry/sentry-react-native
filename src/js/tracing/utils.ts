@@ -1,15 +1,15 @@
-import { IdleTransaction, Span, Transaction } from "@sentry/tracing";
-import { TransactionContext } from "@sentry/types";
-import { timestampInSeconds } from "@sentry/utils";
+import { IdleTransaction, Span, Transaction } from '@sentry/tracing';
+import { TransactionContext } from '@sentry/types';
+import { timestampInSeconds } from '@sentry/utils';
 
 export const getBlankTransactionContext = (
   name: string
 ): TransactionContext => {
   return {
-    name: "Route Change",
-    op: "navigation",
+    name: 'Route Change',
+    op: 'navigation',
     tags: {
-      "routing.instrumentation": name,
+      'routing.instrumentation': name,
     },
     data: {},
   };
@@ -43,8 +43,8 @@ export function adjustTransactionDuration(
   const isOutdatedTransaction =
     endTimestamp && (diff > secToMs(maxDuration) || diff < 0);
   if (isOutdatedTransaction) {
-    transaction.setStatus("deadline_exceeded");
-    transaction.setTag("maxTransactionDurationExceeded", "true");
+    transaction.setStatus('deadline_exceeded');
+    transaction.setTag('maxTransactionDurationExceeded', 'true');
   }
 }
 

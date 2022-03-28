@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { Hub } from "@sentry/hub";
+import { Hub } from '@sentry/hub';
 import {
   defaultRequestInstrumentationOptions,
   IdleTransaction,
@@ -7,26 +7,26 @@ import {
   RequestInstrumentationOptions,
   startIdleTransaction,
   Transaction,
-} from "@sentry/tracing";
+} from '@sentry/tracing';
 import {
   EventProcessor,
   Integration,
   Transaction as TransactionType,
   TransactionContext,
-} from "@sentry/types";
-import { logger } from "@sentry/utils";
+} from '@sentry/types';
+import { logger } from '@sentry/utils';
 
-import { NativeAppStartResponse } from "../definitions";
-import { RoutingInstrumentationInstance } from "../tracing/routingInstrumentation";
-import { NATIVE } from "../wrapper";
-import { NativeFramesInstrumentation } from "./nativeframes";
-import { StallTrackingInstrumentation } from "./stalltracking";
-import { BeforeNavigate, RouteChangeContextData } from "./types";
+import { NativeAppStartResponse } from '../definitions';
+import { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
+import { NATIVE } from '../wrapper';
+import { NativeFramesInstrumentation } from './nativeframes';
+import { StallTrackingInstrumentation } from './stalltracking';
+import { BeforeNavigate, RouteChangeContextData } from './types';
 import {
   adjustTransactionDuration,
   getTimeOriginMilliseconds,
   isNearToNow,
-} from "./utils";
+} from './utils';
 
 export interface ReactNativeTracingOptions
   extends RequestInstrumentationOptions {
@@ -109,7 +109,7 @@ export class ReactNativeTracing implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = "ReactNativeTracing";
+  public static id: string = 'ReactNativeTracing';
   /**
    * @inheritDoc
    */
@@ -189,7 +189,7 @@ export class ReactNativeTracing implements Integration {
       );
     } else {
       logger.log(
-        `[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.`
+        '[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.'
       );
     }
 
@@ -258,8 +258,8 @@ export class ReactNativeTracing implements Integration {
       const appStartTimeSeconds = appStart.appStartTime / 1000;
 
       const idleTransaction = this._createRouteTransaction({
-        name: "App Start",
-        op: "ui.load",
+        name: 'App Start',
+        op: 'ui.load',
         startTimestamp: appStartTimeSeconds,
       });
 
@@ -277,15 +277,15 @@ export class ReactNativeTracing implements Integration {
     appStart: NativeAppStartResponse
   ): void {
     if (!this._appStartFinishTimestamp) {
-      logger.warn("App start was never finished.");
+      logger.warn('App start was never finished.');
       return;
     }
 
     const appStartTimeSeconds = appStart.appStartTime / 1000;
 
     transaction.startChild({
-      description: appStart.isColdStart ? "Cold App Start" : "Warm App Start",
-      op: appStart.isColdStart ? "app.start.cold" : "app.start.warm",
+      description: appStart.isColdStart ? 'Cold App Start' : 'Warm App Start',
+      op: appStart.isColdStart ? 'app.start.cold' : 'app.start.warm',
       startTimestamp: appStartTimeSeconds,
       endTimestamp: this._appStartFinishTimestamp,
     });
@@ -324,8 +324,8 @@ export class ReactNativeTracing implements Integration {
         const contextData = context.data as RouteChangeContextData;
 
         scope.addBreadcrumb({
-          category: "navigation",
-          type: "navigation",
+          category: 'navigation',
+          type: 'navigation',
           // We assume that context.name is the name of the route.
           message: `Navigation to ${context.name}`,
           data: {
@@ -335,7 +335,7 @@ export class ReactNativeTracing implements Integration {
         });
       }
 
-      scope.setTag("routing.route.name", context.name);
+      scope.setTag('routing.route.name', context.name);
     });
   }
 
@@ -382,7 +382,7 @@ export class ReactNativeTracing implements Integration {
       if (this.options.enableAppStartTracking && this._awaitingAppStartData) {
         transaction.startTimestamp =
           this._awaitingAppStartData.appStartTime / 1000;
-        transaction.op = "ui.load";
+        transaction.op = 'ui.load';
 
         this._addAppStartData(transaction, this._awaitingAppStartData);
 
@@ -411,7 +411,7 @@ export class ReactNativeTracing implements Integration {
             ).length === 0)
         ) {
           logger.log(
-            `[ReactNativeTracing] Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.`
+            '[ReactNativeTracing] Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.'
           );
           // Route has been seen before and has no child spans.
           transaction.sampled = false;

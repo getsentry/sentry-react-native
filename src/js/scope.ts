@@ -1,7 +1,7 @@
-import { Scope } from "@sentry/hub";
-import { Breadcrumb, User } from "@sentry/types";
+import { Scope } from '@sentry/hub';
+import { Breadcrumb, User } from '@sentry/types';
 
-import { NATIVE } from "./wrapper";
+import { NATIVE } from './wrapper';
 
 /**
  * Extends the scope methods to set scope on the Native SDKs

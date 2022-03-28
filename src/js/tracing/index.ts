@@ -1,22 +1,22 @@
-export { ReactNativeTracing } from "./reactnativetracing";
+export { ReactNativeTracing } from './reactnativetracing';
 
 export {
   RoutingInstrumentation,
   RoutingInstrumentationInstance,
-} from "./routingInstrumentation";
+} from './routingInstrumentation';
 
 export {
   ReactNavigationInstrumentation,
   // eslint-disable-next-line deprecation/deprecation
   ReactNavigationV5Instrumentation,
-} from "./reactnavigation";
-export { ReactNavigationV4Instrumentation } from "./reactnavigationv4";
-export { ReactNativeNavigationInstrumentation } from "./reactnativenavigation";
+} from './reactnavigation';
+export { ReactNavigationV4Instrumentation } from './reactnavigationv4';
+export { ReactNativeNavigationInstrumentation } from './reactnativenavigation';
 
 export {
   ReactNavigationCurrentRoute,
   ReactNavigationRoute,
   ReactNavigationTransactionContext,
-} from "./types";
+} from './types';
 
-export { ReactNativeProfiler } from "./reactnativeprofiler";
+export { ReactNativeProfiler } from './reactnativeprofiler';

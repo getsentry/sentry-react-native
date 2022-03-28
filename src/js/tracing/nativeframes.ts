@@ -1,13 +1,13 @@
-import { Span, Transaction } from "@sentry/tracing";
-import { Event, EventProcessor } from "@sentry/types";
-import { logger, timestampInSeconds } from "@sentry/utils";
+import { Span, Transaction } from '@sentry/tracing';
+import { Event, EventProcessor } from '@sentry/types';
+import { logger, timestampInSeconds } from '@sentry/utils';
 
-import { NativeFramesResponse } from "../definitions";
-import { NATIVE } from "../wrapper";
-import { instrumentChildSpanFinish } from "./utils";
+import { NativeFramesResponse } from '../definitions';
+import { NATIVE } from '../wrapper';
+import { instrumentChildSpanFinish } from './utils';
 
 type FramesMeasurements = Record<
-  "frames_total" | "frames_slow" | "frames_frozen",
+  'frames_total' | 'frames_slow' | 'frames_frozen',
   { value: number }
 >;
 
@@ -39,7 +39,7 @@ export class NativeFramesInstrumentation {
     doesExist: () => boolean
   ) {
     logger.log(
-      "[ReactNativeTracing] Native frames instrumentation initialized."
+      '[ReactNativeTracing] Native frames instrumentation initialized.'
     );
 
     addGlobalEventProcessor((event) => this._processEvent(event, doesExist));
@@ -52,7 +52,7 @@ export class NativeFramesInstrumentation {
   public onTransactionStart(transaction: Transaction): void {
     void NATIVE.fetchNativeFrames().then((framesMetrics) => {
       if (framesMetrics) {
-        transaction.setData("__startFrames", framesMetrics);
+        transaction.setData('__startFrames', framesMetrics);
       }
     });
 
@@ -215,7 +215,7 @@ export class NativeFramesInstrumentation {
     }
 
     if (
-      event.type === "transaction" &&
+      event.type === 'transaction' &&
       event.transaction &&
       event.contexts &&
       event.contexts.trace

@@ -1,31 +1,31 @@
-import { Event } from "@sentry/types";
+import { Event } from '@sentry/types';
 
-import { SdkInfo } from "../../src/js/integrations";
-import { NATIVE } from "../../src/js/wrapper";
+import { SdkInfo } from '../../src/js/integrations';
+import { NATIVE } from '../../src/js/wrapper';
 
 const mockPackage = {
-  name: "sentry-cocoa",
-  version: "0.0.1",
+  name: 'sentry-cocoa',
+  version: '0.0.1',
 };
 
-jest.mock("../../src/js/wrapper", () => {
-  const actual = jest.requireActual("../../src/js/wrapper");
+jest.mock('../../src/js/wrapper', () => {
+  const actual = jest.requireActual('../../src/js/wrapper');
 
   return {
     NATIVE: {
       ...actual.NATIVE,
-      platform: "ios",
+      platform: 'ios',
       fetchNativeSdkInfo: jest.fn(() => Promise.resolve(mockPackage)),
     },
   };
 });
 
 afterEach(() => {
-  NATIVE.platform = "ios";
+  NATIVE.platform = 'ios';
 });
 
-describe("Sdk Info", () => {
-  it("Adds native package and javascript platform to event on iOS", (done) => {
+describe('Sdk Info', () => {
+  it('Adds native package and javascript platform to event on iOS', (done) => {
     const integration = new SdkInfo();
 
     const mockEvent: Event = {};
@@ -49,7 +49,7 @@ describe("Sdk Info", () => {
               ).toBe(true);
             }
           }
-          expect(processedEvent.platform === "javascript");
+          expect(processedEvent.platform === 'javascript');
         }
 
         done();
@@ -59,8 +59,8 @@ describe("Sdk Info", () => {
     });
   });
 
-  it("Adds javascript platform but not native package on Android", (done) => {
-    NATIVE.platform = "android";
+  it('Adds javascript platform but not native package on Android', (done) => {
+    NATIVE.platform = 'android';
     const integration = new SdkInfo();
 
     const mockEvent: Event = {};
@@ -84,7 +84,7 @@ describe("Sdk Info", () => {
               ).toBe(false);
             }
           }
-          expect(processedEvent.platform === "javascript");
+          expect(processedEvent.platform === 'javascript');
         }
 
         done();

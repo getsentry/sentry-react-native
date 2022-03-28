@@ -1,5 +1,5 @@
-jest.mock("@sentry/core", () => {
-  const core = jest.requireActual("@sentry/core");
+jest.mock('@sentry/core', () => {
+  const core = jest.requireActual('@sentry/core');
 
   const client = {
     getOptions: () => ({}),
@@ -17,8 +17,8 @@ jest.mock("@sentry/core", () => {
   };
 });
 
-jest.mock("@sentry/utils", () => {
-  const utils = jest.requireActual("@sentry/utils");
+jest.mock('@sentry/utils', () => {
+  const utils = jest.requireActual('@sentry/utils');
   return {
     ...utils,
     logger: {
@@ -29,10 +29,10 @@ jest.mock("@sentry/utils", () => {
   };
 });
 
-import { getCurrentHub } from "@sentry/core";
-import { Severity } from "@sentry/types";
+import { getCurrentHub } from '@sentry/core';
+import { Severity } from '@sentry/types';
 
-import { ReactNativeErrorHandlers } from "../../src/js/integrations/reactnativeerrorhandlers";
+import { ReactNativeErrorHandlers } from '../../src/js/integrations/reactnativeerrorhandlers';
 
 beforeEach(() => {
   ErrorUtils.getGlobalHandler = () => jest.fn();
@@ -42,9 +42,9 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe("ReactNativeErrorHandlers", () => {
-  describe("onError", () => {
-    test("Sets handled:false on a fatal error", async () => {
+describe('ReactNativeErrorHandlers', () => {
+  describe('onError', () => {
+    test('Sets handled:false on a fatal error', async () => {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       let callback: (error: Error, isFatal: boolean) => Promise<void> = () =>
         Promise.resolve();
@@ -59,7 +59,7 @@ describe("ReactNativeErrorHandlers", () => {
 
       expect(ErrorUtils.setGlobalHandler).toHaveBeenCalledWith(callback);
 
-      await callback(new Error("Test Error"), true);
+      await callback(new Error('Test Error'), true);
 
       const hub = getCurrentHub();
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -70,10 +70,10 @@ describe("ReactNativeErrorHandlers", () => {
 
       expect(event.level).toBe(Severity.Fatal);
       expect(event.exception?.values?.[0].mechanism?.handled).toBe(false);
-      expect(event.exception?.values?.[0].mechanism?.type).toBe("onerror");
+      expect(event.exception?.values?.[0].mechanism?.type).toBe('onerror');
     });
 
-    test("Does not set handled:false on a non-fatal error", async () => {
+    test('Does not set handled:false on a non-fatal error', async () => {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       let callback: (error: Error, isFatal: boolean) => Promise<void> = () =>
         Promise.resolve();
@@ -88,7 +88,7 @@ describe("ReactNativeErrorHandlers", () => {
 
       expect(ErrorUtils.setGlobalHandler).toHaveBeenCalledWith(callback);
 
-      await callback(new Error("Test Error"), false);
+      await callback(new Error('Test Error'), false);
 
       const hub = getCurrentHub();
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -99,7 +99,7 @@ describe("ReactNativeErrorHandlers", () => {
 
       expect(event.level).toBe(Severity.Error);
       expect(event.exception?.values?.[0].mechanism?.handled).toBe(true);
-      expect(event.exception?.values?.[0].mechanism?.type).toBe("generic");
+      expect(event.exception?.values?.[0].mechanism?.type).toBe('generic');
     });
   });
 });
