@@ -1,17 +1,17 @@
 /* eslint-disable max-lines */
-import { Transaction } from "@sentry/types";
-import { getGlobalObject, logger } from "@sentry/utils";
+import { Transaction } from '@sentry/types';
+import { getGlobalObject, logger } from '@sentry/utils';
 
 import {
   InternalRoutingInstrumentation,
   OnConfirmRoute,
   TransactionCreator,
-} from "./routingInstrumentation";
+} from './routingInstrumentation';
 import {
   BeforeNavigate,
   ReactNavigationTransactionContext,
   RouteChangeContextData,
-} from "./types";
+} from './types';
 
 export interface NavigationRouteV4 {
   routeName: string;
@@ -57,7 +57,7 @@ const defaultOptions: ReactNavigationV4Options = {
  * Register the app container with `registerAppContainer` to use, or see docs for more details.
  */
 class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
-  public static instrumentationName: string = "react-navigation-v4";
+  public static instrumentationName: string = 'react-navigation-v4';
 
   private _appContainer: AppContainerInstance | null = null;
 
@@ -127,7 +127,7 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
       initialized in, it will initialize a new instance and will cause undefined behavior.
      */
     if (!_global.__sentry_rn_v4_registered) {
-      if ("current" in appContainerRef) {
+      if ('current' in appContainerRef) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this._appContainer = appContainerRef.current;
       } else {
@@ -142,7 +142,7 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
             this._updateLatestTransaction();
           } else {
             logger.log(
-              "[ReactNavigationV4Instrumentation] App container registered, but integration has not been setup yet."
+              '[ReactNavigationV4Instrumentation] App container registered, but integration has not been setup yet.'
             );
           }
           this._initialStateHandled = true;
@@ -151,7 +151,7 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
         _global.__sentry_rn_v4_registered = true;
       } else {
         logger.warn(
-          "[ReactNavigationV4Instrumentation] Received invalid app container ref!"
+          '[ReactNavigationV4Instrumentation] Received invalid app container ref!'
         );
       }
     }
@@ -165,7 +165,7 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
     if (this._appContainer && this._latestTransaction) {
       const state = this._appContainer._navigation.state;
 
-      if (typeof this._stateChangeTimeout !== "undefined") {
+      if (typeof this._stateChangeTimeout !== 'undefined') {
         clearTimeout(this._stateChangeTimeout);
         this._stateChangeTimeout = undefined;
       }
@@ -207,7 +207,7 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
     // see: https://github.com/react-navigation/react-navigation/blob/45d419be93c34e900e8734ce98321ae875ac4997/packages/core/src/routers/SwitchRouter.js?rgh-link-date=2021-09-25T12%3A43%3A36Z#L301
     if (!state || state === undefined) {
       logger.warn(
-        "[ReactNavigationV4Instrumentation] onStateChange called without a valid state."
+        '[ReactNavigationV4Instrumentation] onStateChange called without a valid state.'
       );
 
       return;
@@ -287,11 +287,11 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
 
     return {
       name: route.routeName,
-      op: "navigation",
+      op: 'navigation',
       tags: {
-        "routing.instrumentation":
+        'routing.instrumentation':
           ReactNavigationV4Instrumentation.instrumentationName,
-        "routing.route.name": route.routeName,
+        'routing.route.name': route.routeName,
       },
       data,
     };
@@ -306,9 +306,9 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
     const parentRoute = state.routes[state.index];
 
     if (
-      "index" in parentRoute &&
-      "routes" in parentRoute &&
-      typeof parentRoute.index === "number" &&
+      'index' in parentRoute &&
+      'routes' in parentRoute &&
+      typeof parentRoute.index === 'number' &&
       Array.isArray(parentRoute.routes)
     ) {
       return this._getCurrentRouteFromState(parentRoute);
@@ -346,10 +346,10 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
 }
 
 const INITIAL_TRANSACTION_CONTEXT_V4 = {
-  name: "App Launch",
-  op: "navigation",
+  name: 'App Launch',
+  op: 'navigation',
   tags: {
-    "routing.instrumentation":
+    'routing.instrumentation':
       ReactNavigationV4Instrumentation.instrumentationName,
   },
   data: {},

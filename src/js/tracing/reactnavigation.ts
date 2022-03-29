@@ -1,18 +1,18 @@
 /* eslint-disable max-lines */
-import { Transaction as TransactionType } from "@sentry/types";
-import { getGlobalObject, logger } from "@sentry/utils";
+import { Transaction as TransactionType } from '@sentry/types';
+import { getGlobalObject, logger } from '@sentry/utils';
 
 import {
   InternalRoutingInstrumentation,
   OnConfirmRoute,
   TransactionCreator,
-} from "./routingInstrumentation";
+} from './routingInstrumentation';
 import {
   BeforeNavigate,
   ReactNavigationTransactionContext,
   RouteChangeContextData,
-} from "./types";
-import { getBlankTransactionContext } from "./utils";
+} from './types';
+import { getBlankTransactionContext } from './utils';
 
 export interface NavigationRoute {
   name: string;
@@ -46,7 +46,7 @@ const defaultOptions: ReactNavigationOptions = {
  * - If `_onStateChange` isn't called within `STATE_CHANGE_TIMEOUT_DURATION` of the dispatch, then the transaction is not sampled and finished.
  */
 export class ReactNavigationInstrumentation extends InternalRoutingInstrumentation {
-  public static instrumentationName: string = "react-navigation-v5";
+  public static instrumentationName: string = 'react-navigation-v5';
 
   private _navigationContainer: NavigationContainer | null = null;
 
@@ -109,7 +109,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       initialized in, it will initialize a new instance and will cause undefined behavior.
      */
     if (!_global.__sentry_rn_v5_registered) {
-      if ("current" in navigationContainerRef) {
+      if ('current' in navigationContainerRef) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this._navigationContainer = navigationContainerRef.current;
       } else {
@@ -118,11 +118,11 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
 
       if (this._navigationContainer) {
         this._navigationContainer.addListener(
-          "__unsafe_action__", // This action is emitted on every dispatch
+          '__unsafe_action__', // This action is emitted on every dispatch
           this._onDispatch.bind(this)
         );
         this._navigationContainer.addListener(
-          "state", // This action is emitted on every state change
+          'state', // This action is emitted on every state change
           this._onStateChange.bind(this)
         );
 
@@ -134,7 +134,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             this._initialStateHandled = true;
           } else {
             logger.log(
-              "[ReactNavigationInstrumentation] Navigation container registered, but integration has not been setup yet."
+              '[ReactNavigationInstrumentation] Navigation container registered, but integration has not been setup yet.'
             );
           }
         }
@@ -142,12 +142,12 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
         _global.__sentry_rn_v5_registered = true;
       } else {
         logger.warn(
-          "[ReactNavigationInstrumentation] Received invalid navigation container ref!"
+          '[ReactNavigationInstrumentation] Received invalid navigation container ref!'
         );
       }
     } else {
       logger.log(
-        "[ReactNavigationInstrumentation] Instrumentation already exists, but register has been called again, doing nothing."
+        '[ReactNavigationInstrumentation] Instrumentation already exists, but register has been called again, doing nothing.'
       );
     }
   }
@@ -160,7 +160,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
   private _onDispatch(): void {
     if (this._latestTransaction) {
       logger.log(
-        `[ReactNavigationInstrumentation] A transaction was detected that turned out to be a noop, discarding.`
+        '[ReactNavigationInstrumentation] A transaction was detected that turned out to be a noop, discarding.'
       );
       this._discardLatestTransaction();
       this._clearStateChangeTimeout();
@@ -187,7 +187,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
 
     if (!this._navigationContainer) {
       logger.warn(
-        "[ReactNavigationInstrumentation] Missing navigation container ref. Route transactions will not be sent."
+        '[ReactNavigationInstrumentation] Missing navigation container ref. Route transactions will not be sent.'
       );
 
       return;
@@ -223,7 +223,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             name: route.name,
             tags: {
               ...originalContext.tags,
-              "routing.route.name": route.name,
+              'routing.route.name': route.name,
             },
             data,
           };
@@ -289,7 +289,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
    *
    */
   private _clearStateChangeTimeout(): void {
-    if (typeof this._stateChangeTimeout !== "undefined") {
+    if (typeof this._stateChangeTimeout !== 'undefined') {
       clearTimeout(this._stateChangeTimeout);
       this._stateChangeTimeout = undefined;
     }
@@ -303,10 +303,10 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
 export const ReactNavigationV5Instrumentation = ReactNavigationInstrumentation;
 
 export const BLANK_TRANSACTION_CONTEXT = {
-  name: "Route Change",
-  op: "navigation",
+  name: 'Route Change',
+  op: 'navigation',
   tags: {
-    "routing.instrumentation":
+    'routing.instrumentation':
       ReactNavigationInstrumentation.instrumentationName,
   },
   data: {},

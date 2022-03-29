@@ -9,11 +9,7 @@ import {
   View,
 } from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {
-  CommonActions,
-  useNavigation,
-  useNavigationState,
-} from '@react-navigation/native';
+import {CommonActions} from '@react-navigation/native';
 
 import * as Sentry from '@sentry/react-native';
 

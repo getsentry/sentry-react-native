@@ -1,11 +1,11 @@
-import { EventProcessor, Integration } from "@sentry/types";
+import { EventProcessor, Integration } from '@sentry/types';
 
 /** Default EventOrigin instrumentation */
 export class EventOrigin implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = "EventOrigin";
+  public static id: string = 'EventOrigin';
 
   /**
    * @inheritDoc
@@ -19,8 +19,8 @@ export class EventOrigin implements Integration {
     addGlobalEventProcessor((event) => {
       event.tags = event.tags ?? {};
 
-      event.tags["event.origin"] = "javascript";
-      event.tags["event.environment"] = "javascript";
+      event.tags['event.origin'] = 'javascript';
+      event.tags['event.environment'] = 'javascript';
 
       return event;
     });

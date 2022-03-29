@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
-import { IdleTransaction, Span, Transaction } from "@sentry/tracing";
-import { Measurements } from "@sentry/types";
-import { logger, timestampInSeconds } from "@sentry/utils";
+import { IdleTransaction, Span, Transaction } from '@sentry/tracing';
+import { Measurements } from '@sentry/types';
+import { logger, timestampInSeconds } from '@sentry/utils';
 
 export interface StallMeasurements extends Measurements {
   stall_count: { value: number };
@@ -78,7 +78,7 @@ export class StallTrackingInstrumentation {
   public onTransactionStart(transaction: Transaction): void {
     if (this._statsByTransaction.has(transaction)) {
       logger.error(
-        "[StallTracking] Tried to start stall tracking on a transaction already being tracked. Measurements might be lost."
+        '[StallTracking] Tried to start stall tracking on a transaction already being tracked. Measurements might be lost.'
       );
 
       return;
@@ -129,7 +129,7 @@ export class StallTrackingInstrumentation {
     if (!transactionStats) {
       // Transaction has been flushed out somehow, we return null.
       logger.log(
-        "[StallTracking] Stall measurements were not added to transaction due to exceeding the max count."
+        '[StallTracking] Stall measurements were not added to transaction due to exceeding the max count.'
       );
 
       this._statsByTransaction.delete(transaction);
@@ -155,7 +155,7 @@ export class StallTrackingInstrumentation {
       This is not safe in the case that something changes upstream, but if we're planning to move this over to @sentry/javascript anyways,
       we can have this temporarily for now.
     */
-    const isIdleTransaction = "activities" in transaction;
+    const isIdleTransaction = 'activities' in transaction;
 
     let statsOnFinish: StallMeasurements | undefined;
     if (endTimestamp && isIdleTransaction) {
@@ -198,13 +198,13 @@ export class StallTrackingInstrumentation {
     this._shouldStopTracking();
 
     if (!statsOnFinish) {
-      if (typeof endTimestamp !== "undefined") {
+      if (typeof endTimestamp !== 'undefined') {
         logger.log(
-          "[StallTracking] Stall measurements not added due to `endTimestamp` being set."
+          '[StallTracking] Stall measurements not added due to `endTimestamp` being set.'
         );
       } else if (trimEnd) {
         logger.log(
-          "[StallTracking] Stall measurements not added due to `trimEnd` being set but we could not determine the stall measurements at that time."
+          '[StallTracking] Stall measurements not added due to `trimEnd` being set but we could not determine the stall measurements at that time.'
         );
       }
 
@@ -242,7 +242,7 @@ export class StallTrackingInstrumentation {
         MARGIN_OF_ERROR_SECONDS
       ) {
         logger.log(
-          "[StallTracking] Span end not logged due to end timestamp being outside the margin of error from now."
+          '[StallTracking] Span end not logged due to end timestamp being outside the margin of error from now.'
         );
 
         if (

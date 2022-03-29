@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { BrowserClient } from "@sentry/browser";
-import { addGlobalEventProcessor, Hub } from "@sentry/hub";
-import { IdleTransaction, Transaction } from "@sentry/tracing";
+import { BrowserClient } from '@sentry/browser';
+import { addGlobalEventProcessor, Hub } from '@sentry/hub';
+import { IdleTransaction, Transaction } from '@sentry/tracing';
 
-import { NativeAppStartResponse } from "../../src/js/definitions";
-import { RoutingInstrumentation } from "../../src/js/tracing/routingInstrumentation";
+import { NativeAppStartResponse } from '../../src/js/definitions';
+import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
 
-jest.mock("../../src/js/wrapper", () => {
+jest.mock('../../src/js/wrapper', () => {
   return {
     NATIVE: {
       fetchNativeAppStart: jest.fn(),
@@ -17,8 +17,8 @@ jest.mock("../../src/js/wrapper", () => {
   };
 });
 
-jest.mock("../../src/js/tracing/utils", () => {
-  const originalUtils = jest.requireActual("../../src/js/tracing/utils");
+jest.mock('../../src/js/tracing/utils', () => {
+  const originalUtils = jest.requireActual('../../src/js/tracing/utils');
 
   return {
     ...originalUtils,
@@ -51,10 +51,10 @@ const getMockHub = () => {
   return mockHub;
 };
 
-import { ReactNativeTracing } from "../../src/js/tracing/reactnativetracing";
-import { getTimeOriginMilliseconds } from "../../src/js/tracing/utils";
-import { NATIVE } from "../../src/js/wrapper";
-import { mockFunction } from "../testutils";
+import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
+import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
+import { NATIVE } from '../../src/js/wrapper';
+import { mockFunction } from '../testutils';
 
 beforeEach(() => {
   NATIVE.enableNative = true;
@@ -65,10 +65,10 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe("ReactNativeTracing", () => {
-  describe("App Start", () => {
-    describe("Without routing instrumentation", () => {
-      it("Starts route transaction (cold)", (done) => {
+describe('ReactNativeTracing', () => {
+  describe('App Start', () => {
+    describe('Without routing instrumentation', () => {
+      it('Starts route transaction (cold)', (done) => {
         const integration = new ReactNativeTracing({
           enableNativeFramesTracking: false,
         });
@@ -105,7 +105,7 @@ describe("ReactNativeTracing", () => {
             expect(transaction.startTimestamp).toBe(
               appStartTimeMilliseconds / 1000
             );
-            expect(transaction.op).toBe("ui.load");
+            expect(transaction.op).toBe('ui.load');
 
             expect(
               // @ts-ignore access private for test
@@ -117,7 +117,7 @@ describe("ReactNativeTracing", () => {
         });
       });
 
-      it("Starts route transaction (warm)", (done) => {
+      it('Starts route transaction (warm)', (done) => {
         const integration = new ReactNativeTracing();
 
         const timeOriginMilliseconds = Date.now();
@@ -151,7 +151,7 @@ describe("ReactNativeTracing", () => {
             expect(transaction.startTimestamp).toBe(
               appStartTimeMilliseconds / 1000
             );
-            expect(transaction.op).toBe("ui.load");
+            expect(transaction.op).toBe('ui.load');
 
             expect(
               // @ts-ignore access private for test
@@ -163,7 +163,7 @@ describe("ReactNativeTracing", () => {
         });
       });
 
-      it("Does not create app start transaction if didFetchAppStart == true", (done) => {
+      it('Does not create app start transaction if didFetchAppStart == true', (done) => {
         const integration = new ReactNativeTracing();
 
         const timeOriginMilliseconds = Date.now();
@@ -198,8 +198,8 @@ describe("ReactNativeTracing", () => {
       });
     });
 
-    describe("With routing instrumentation", () => {
-      it("Adds measurements and child span onto existing routing transaction and sets the op (cold)", (done) => {
+    describe('With routing instrumentation', () => {
+      it('Adds measurements and child span onto existing routing transaction and sets the op (cold)', (done) => {
         const routingInstrumentation = new RoutingInstrumentation();
         const integration = new ReactNativeTracing({
           routingInstrumentation,
@@ -231,7 +231,7 @@ describe("ReactNativeTracing", () => {
           expect(transaction).toBeUndefined();
 
           const routeTransaction = routingInstrumentation.onRouteWillChange({
-            name: "test",
+            name: 'test',
           }) as IdleTransaction;
           routeTransaction.initSpanRecorder(10);
 
@@ -246,7 +246,7 @@ describe("ReactNativeTracing", () => {
               timeOriginMilliseconds - appStartTimeMilliseconds
             );
 
-            expect(routeTransaction.op).toBe("ui.load");
+            expect(routeTransaction.op).toBe('ui.load');
             expect(routeTransaction.startTimestamp).toBe(
               appStartTimeMilliseconds / 1000
             );
@@ -258,8 +258,8 @@ describe("ReactNativeTracing", () => {
 
               const span = spanRecorder.spans[spanRecorder.spans.length - 1];
 
-              expect(span.op).toBe("app.start.cold");
-              expect(span.description).toBe("Cold App Start");
+              expect(span.op).toBe('app.start.cold');
+              expect(span.description).toBe('Cold App Start');
               expect(span.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
               expect(span.endTimestamp).toBe(timeOriginMilliseconds / 1000);
             }
@@ -269,7 +269,7 @@ describe("ReactNativeTracing", () => {
         });
       });
 
-      it("Adds measurements and child span onto existing routing transaction and sets the op (cold)", (done) => {
+      it('Adds measurements and child span onto existing routing transaction and sets the op (cold)', (done) => {
         const routingInstrumentation = new RoutingInstrumentation();
         const integration = new ReactNativeTracing({
           routingInstrumentation,
@@ -301,7 +301,7 @@ describe("ReactNativeTracing", () => {
           expect(transaction).toBeUndefined();
 
           const routeTransaction = routingInstrumentation.onRouteWillChange({
-            name: "test",
+            name: 'test',
           }) as IdleTransaction;
           routeTransaction.initSpanRecorder(10);
 
@@ -316,7 +316,7 @@ describe("ReactNativeTracing", () => {
               timeOriginMilliseconds - appStartTimeMilliseconds
             );
 
-            expect(routeTransaction.op).toBe("ui.load");
+            expect(routeTransaction.op).toBe('ui.load');
             expect(routeTransaction.startTimestamp).toBe(
               appStartTimeMilliseconds / 1000
             );
@@ -328,8 +328,8 @@ describe("ReactNativeTracing", () => {
 
               const span = spanRecorder.spans[spanRecorder.spans.length - 1];
 
-              expect(span.op).toBe("app.start.warm");
-              expect(span.description).toBe("Warm App Start");
+              expect(span.op).toBe('app.start.warm');
+              expect(span.description).toBe('Warm App Start');
               expect(span.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
               expect(span.endTimestamp).toBe(timeOriginMilliseconds / 1000);
             }
@@ -339,7 +339,7 @@ describe("ReactNativeTracing", () => {
         });
       });
 
-      it("Does not update route transaction if didFetchAppStart == true", (done) => {
+      it('Does not update route transaction if didFetchAppStart == true', (done) => {
         const routingInstrumentation = new RoutingInstrumentation();
         const integration = new ReactNativeTracing({
           routingInstrumentation,
@@ -371,7 +371,7 @@ describe("ReactNativeTracing", () => {
           expect(transaction).toBeUndefined();
 
           const routeTransaction = routingInstrumentation.onRouteWillChange({
-            name: "test",
+            name: 'test',
           }) as IdleTransaction;
           routeTransaction.initSpanRecorder(10);
 
@@ -384,7 +384,7 @@ describe("ReactNativeTracing", () => {
             // @ts-ignore access private for test
             expect(routeTransaction._measurements).toMatchObject({});
 
-            expect(routeTransaction.op).not.toBe("ui.load");
+            expect(routeTransaction.op).not.toBe('ui.load');
             expect(routeTransaction.startTimestamp).not.toBe(
               appStartTimeMilliseconds / 1000
             );
@@ -401,7 +401,7 @@ describe("ReactNativeTracing", () => {
       });
     });
 
-    it("Does not instrument app start if app start is disabled", (done) => {
+    it('Does not instrument app start if app start is disabled', (done) => {
       const integration = new ReactNativeTracing({
         enableAppStartTracking: false,
       });
@@ -420,7 +420,7 @@ describe("ReactNativeTracing", () => {
       });
     });
 
-    it("Does not instrument app start if native is disabled", (done) => {
+    it('Does not instrument app start if native is disabled', (done) => {
       NATIVE.enableNative = false;
 
       const integration = new ReactNativeTracing();
@@ -439,7 +439,7 @@ describe("ReactNativeTracing", () => {
       });
     });
 
-    it("Does not instrument app start if fetchNativeAppStart returns null", (done) => {
+    it('Does not instrument app start if fetchNativeAppStart returns null', (done) => {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(null);
 
@@ -460,8 +460,8 @@ describe("ReactNativeTracing", () => {
     });
   });
 
-  describe("Native Frames", () => {
-    it("Does not initialize native frames instrumentation if flag is false", (done) => {
+  describe('Native Frames', () => {
+    it('Does not initialize native frames instrumentation if flag is false', (done) => {
       const integration = new ReactNativeTracing({
         enableNativeFramesTracking: false,
       });
@@ -480,9 +480,9 @@ describe("ReactNativeTracing", () => {
     });
   });
 
-  describe("Routing Instrumentation", () => {
-    describe("_onConfirmRoute", () => {
-      it("Sets tag and adds breadcrumb", () => {
+  describe('Routing Instrumentation', () => {
+    describe('_onConfirmRoute', () => {
+      it('Sets tag and adds breadcrumb', () => {
         const routing = new RoutingInstrumentation();
         const integration = new ReactNativeTracing({
           routingInstrumentation: routing,
@@ -513,25 +513,25 @@ describe("ReactNativeTracing", () => {
         );
 
         const routeContext = {
-          name: "Route",
+          name: 'Route',
           data: {
             route: {
-              name: "Route",
+              name: 'Route',
             },
             previousRoute: {
-              name: "Previous Route",
+              name: 'Previous Route',
             },
           },
         };
         routing.onRouteWillChange(routeContext);
 
         expect(mockScope.setTag).toBeCalledWith(
-          "routing.route.name",
+          'routing.route.name',
           routeContext.name
         );
         expect(mockScope.addBreadcrumb).toBeCalledWith({
-          type: "navigation",
-          category: "navigation",
+          type: 'navigation',
+          category: 'navigation',
           message: `Navigation to ${routeContext.name}`,
           data: {
             from: routeContext.data.previousRoute.name,

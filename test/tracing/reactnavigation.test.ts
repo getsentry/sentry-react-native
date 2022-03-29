@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Transaction } from "@sentry/tracing";
-import { TransactionContext } from "@sentry/types";
-import { getGlobalObject } from "@sentry/utils";
+import { Transaction } from '@sentry/tracing';
+import { TransactionContext } from '@sentry/types';
+import { getGlobalObject } from '@sentry/utils';
 
 import {
   BLANK_TRANSACTION_CONTEXT,
   NavigationRoute,
   ReactNavigationInstrumentation,
-} from "../../src/js/tracing/reactnavigation";
+} from '../../src/js/tracing/reactnavigation';
 
 const dummyRoute = {
-  name: "Route",
-  key: "0",
+  name: 'Route',
+  key: '0',
 };
 
 class MockNavigationContainer {
@@ -46,8 +46,8 @@ afterEach(() => {
   jest.resetAllMocks();
 });
 
-describe("ReactNavigationInstrumentation", () => {
-  test("transaction set on initialize", () => {
+describe('ReactNavigationInstrumentation', () => {
+  test('transaction set on initialize', () => {
     const instrumentation = new ReactNavigationInstrumentation();
 
     const mockTransaction = getMockTransaction();
@@ -69,7 +69,7 @@ describe("ReactNavigationInstrumentation", () => {
     expect(mockTransaction.name).toBe(dummyRoute.name);
     expect(mockTransaction.tags).toStrictEqual({
       ...BLANK_TRANSACTION_CONTEXT.tags,
-      "routing.route.name": dummyRoute.name,
+      'routing.route.name': dummyRoute.name,
     });
     expect(mockTransaction.data).toStrictEqual({
       route: {
@@ -82,7 +82,7 @@ describe("ReactNavigationInstrumentation", () => {
     });
   });
 
-  test("transaction sent on navigation", async () => {
+  test('transaction sent on navigation', async () => {
     const instrumentation = new ReactNavigationInstrumentation();
 
     // Need a dummy transaction as the instrumentation will start a transaction right away when the first navigation container is attached.
@@ -108,24 +108,24 @@ describe("ReactNavigationInstrumentation", () => {
     const mockTransaction = getMockTransaction();
     transactionRef.current = mockTransaction;
 
-    mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
+    mockNavigationContainerRef.current.listeners['__unsafe_action__']({});
 
     await new Promise<void>((resolve) => {
       setTimeout(() => {
         const route = {
-          name: "New Route",
-          key: "1",
+          name: 'New Route',
+          key: '1',
           params: {
             someParam: 42,
           },
         };
         mockNavigationContainerRef.current.currentRoute = route;
-        mockNavigationContainerRef.current.listeners["state"]({});
+        mockNavigationContainerRef.current.listeners['state']({});
 
         expect(mockTransaction.name).toBe(route.name);
         expect(mockTransaction.tags).toStrictEqual({
           ...BLANK_TRANSACTION_CONTEXT.tags,
-          "routing.route.name": route.name,
+          'routing.route.name': route.name,
         });
         expect(mockTransaction.data).toStrictEqual({
           route: {
@@ -146,7 +146,7 @@ describe("ReactNavigationInstrumentation", () => {
     });
   });
 
-  test("transaction context changed with beforeNavigate", async () => {
+  test('transaction context changed with beforeNavigate', async () => {
     const instrumentation = new ReactNavigationInstrumentation();
 
     // Need a dummy transaction as the instrumentation will start a transaction right away when the first navigation container is attached.
@@ -159,8 +159,8 @@ describe("ReactNavigationInstrumentation", () => {
       tracingListener as any,
       (context) => {
         context.sampled = false;
-        context.description = "Description";
-        context.name = "New Name";
+        context.description = 'Description';
+        context.name = 'New Name';
 
         return context;
       },
@@ -178,26 +178,26 @@ describe("ReactNavigationInstrumentation", () => {
     const mockTransaction = getMockTransaction();
     transactionRef.current = mockTransaction;
 
-    mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
+    mockNavigationContainerRef.current.listeners['__unsafe_action__']({});
 
     await new Promise<void>((resolve) => {
       setTimeout(() => {
         const route = {
-          name: "DoNotSend",
-          key: "1",
+          name: 'DoNotSend',
+          key: '1',
         };
         mockNavigationContainerRef.current.currentRoute = route;
-        mockNavigationContainerRef.current.listeners["state"]({});
+        mockNavigationContainerRef.current.listeners['state']({});
 
         expect(mockTransaction.sampled).toBe(false);
-        expect(mockTransaction.name).toBe("New Name");
-        expect(mockTransaction.description).toBe("Description");
+        expect(mockTransaction.name).toBe('New Name');
+        expect(mockTransaction.description).toBe('Description');
         resolve();
       }, 50);
     });
   });
 
-  test("transaction not sent on a cancelled navigation", async () => {
+  test('transaction not sent on a cancelled navigation', async () => {
     const instrumentation = new ReactNavigationInstrumentation();
 
     // Need a dummy transaction as the instrumentation will start a transaction right away when the first navigation container is attached.
@@ -223,7 +223,7 @@ describe("ReactNavigationInstrumentation", () => {
     const mockTransaction = getMockTransaction();
     transactionRef.current = mockTransaction;
 
-    mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
+    mockNavigationContainerRef.current.listeners['__unsafe_action__']({});
 
     await new Promise<void>((resolve) => {
       setTimeout(() => {
@@ -240,7 +240,7 @@ describe("ReactNavigationInstrumentation", () => {
     });
   });
 
-  test("transaction not sent on multiple cancelled navigations", async () => {
+  test('transaction not sent on multiple cancelled navigations', async () => {
     const instrumentation = new ReactNavigationInstrumentation();
 
     // Need a dummy transaction as the instrumentation will start a transaction right away when the first navigation container is attached.
@@ -266,12 +266,12 @@ describe("ReactNavigationInstrumentation", () => {
     const mockTransaction1 = getMockTransaction();
     transactionRef.current = mockTransaction1;
 
-    mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
+    mockNavigationContainerRef.current.listeners['__unsafe_action__']({});
 
     const mockTransaction2 = getMockTransaction();
     transactionRef.current = mockTransaction2;
 
-    mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
+    mockNavigationContainerRef.current.listeners['__unsafe_action__']({});
 
     await new Promise<void>((resolve) => {
       setTimeout(() => {
@@ -282,8 +282,8 @@ describe("ReactNavigationInstrumentation", () => {
     });
   });
 
-  describe("navigation container registration", () => {
-    test("registers navigation container object ref", () => {
+  describe('navigation container registration', () => {
+    test('registers navigation container object ref', () => {
       const instrumentation = new ReactNavigationInstrumentation();
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer({
@@ -295,18 +295,18 @@ describe("ReactNavigationInstrumentation", () => {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
         1,
-        "__unsafe_action__",
+        '__unsafe_action__',
         expect.any(Function)
       );
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
         2,
-        "state",
+        'state',
         expect.any(Function)
       );
     });
 
-    test("registers navigation container direct ref", () => {
+    test('registers navigation container direct ref', () => {
       const instrumentation = new ReactNavigationInstrumentation();
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer(mockNavigationContainer);
@@ -316,18 +316,18 @@ describe("ReactNavigationInstrumentation", () => {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
         1,
-        "__unsafe_action__",
+        '__unsafe_action__',
         expect.any(Function)
       );
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
         2,
-        "state",
+        'state',
         expect.any(Function)
       );
     });
 
-    test("does not register navigation container if there is an existing one", () => {
+    test('does not register navigation container if there is an existing one', () => {
       _global.__sentry_rn_v5_registered = true;
 
       const instrumentation = new ReactNavigationInstrumentation();
@@ -344,7 +344,7 @@ describe("ReactNavigationInstrumentation", () => {
       expect(mockNavigationContainer.addListener).not.toHaveBeenCalled();
     });
 
-    test("works if routing instrumentation registration is after navigation registration", async () => {
+    test('works if routing instrumentation registration is after navigation registration', async () => {
       const instrumentation = new ReactNavigationInstrumentation();
 
       const mockNavigationContainer = new MockNavigationContainer();
@@ -367,8 +367,8 @@ describe("ReactNavigationInstrumentation", () => {
     });
   });
 
-  describe("options", () => {
-    test("waits until routeChangeTimeoutMs", async () => {
+  describe('options', () => {
+    test('waits until routeChangeTimeoutMs', async () => {
       const instrumentation = new ReactNavigationInstrumentation({
         routeChangeTimeoutMs: 200,
       });
@@ -399,7 +399,7 @@ describe("ReactNavigationInstrumentation", () => {
       });
     });
 
-    test("discards if after routeChangeTimeoutMs", async () => {
+    test('discards if after routeChangeTimeoutMs', async () => {
       const instrumentation = new ReactNavigationInstrumentation({
         routeChangeTimeoutMs: 200,
       });
@@ -429,8 +429,8 @@ describe("ReactNavigationInstrumentation", () => {
     });
   });
 
-  describe("onRouteConfirmed", () => {
-    test("onRouteConfirmed called with correct route data", () => {
+  describe('onRouteConfirmed', () => {
+    test('onRouteConfirmed called with correct route data', () => {
       const instrumentation = new ReactNavigationInstrumentation();
 
       // Need a dummy transaction as the instrumentation will start a transaction right away when the first navigation container is attached.
@@ -459,31 +459,31 @@ describe("ReactNavigationInstrumentation", () => {
       const mockTransaction = getMockTransaction();
       transactionRef.current = mockTransaction;
 
-      mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
+      mockNavigationContainerRef.current.listeners['__unsafe_action__']({});
 
       const route1 = {
-        name: "New Route 1",
-        key: "1",
+        name: 'New Route 1',
+        key: '1',
         params: {
           someParam: 42,
         },
       };
 
       mockNavigationContainerRef.current.currentRoute = route1;
-      mockNavigationContainerRef.current.listeners["state"]({});
+      mockNavigationContainerRef.current.listeners['state']({});
 
-      mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
+      mockNavigationContainerRef.current.listeners['__unsafe_action__']({});
 
       const route2 = {
-        name: "New Route 2",
-        key: "2",
+        name: 'New Route 2',
+        key: '2',
         params: {
           someParam: 42,
         },
       };
 
       mockNavigationContainerRef.current.currentRoute = route2;
-      mockNavigationContainerRef.current.listeners["state"]({});
+      mockNavigationContainerRef.current.listeners['state']({});
 
       expect(confirmedContext).toBeDefined();
       if (confirmedContext) {

@@ -1,8 +1,8 @@
-import { BaseClient } from "@sentry/core";
+import { BaseClient } from '@sentry/core';
 
-import { ReactNativeBackend } from "./backend";
-import { ReactNativeOptions } from "./options";
-import { NATIVE } from "./wrapper";
+import { ReactNativeBackend } from './backend';
+import { ReactNativeOptions } from './options';
+import { NATIVE } from './wrapper';
 
 /**
  * The Sentry React Native SDK Client.

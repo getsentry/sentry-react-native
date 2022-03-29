@@ -1,14 +1,14 @@
-import { Transaction as TransactionType } from "@sentry/types";
-import { logger } from "@sentry/utils";
-import { EmitterSubscription } from "react-native";
+import { Transaction as TransactionType } from '@sentry/types';
+import { logger } from '@sentry/utils';
+import { EmitterSubscription } from 'react-native';
 
 import {
   InternalRoutingInstrumentation,
   OnConfirmRoute,
   TransactionCreator,
-} from "./routingInstrumentation";
-import { BeforeNavigate, RouteChangeContextData } from "./types";
-import { getBlankTransactionContext } from "./utils";
+} from './routingInstrumentation';
+import { BeforeNavigate, RouteChangeContextData } from './types';
+import { getBlankTransactionContext } from './utils';
 
 interface ReactNativeNavigationOptions {
   routeChangeTimeoutMs: number;
@@ -23,10 +23,10 @@ interface ComponentEvent {
 }
 
 type ComponentType =
-  | "Component"
-  | "TopBarTitle"
-  | "TopBarBackground"
-  | "TopBarButton";
+  | 'Component'
+  | 'TopBarTitle'
+  | 'TopBarBackground'
+  | 'TopBarButton';
 
 export interface ComponentWillAppearEvent extends ComponentEvent {
   componentName: string;
@@ -60,7 +60,7 @@ export interface NavigationDelegate {
  * - If `_onComponentWillAppear` isn't called within `options.routeChangeTimeoutMs` of the dispatch, then the transaction is not sampled and finished.
  */
 export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrumentation {
-  public static instrumentationName: string = "react-native-navigation";
+  public static instrumentationName: string = 'react-native-navigation';
 
   private _navigation: NavigationDelegate;
   private _options: ReactNativeNavigationOptions;
@@ -166,7 +166,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
           name: event.componentName,
           tags: {
             ...originalContext.tags,
-            "routing.route.name": event.componentName,
+            'routing.route.name': event.componentName,
           },
           data,
         };
@@ -216,7 +216,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
 
   /** Cancels the latest transaction so it does not get sent to Sentry. */
   private _clearStateChangeTimeout(): void {
-    if (typeof this._stateChangeTimeout !== "undefined") {
+    if (typeof this._stateChangeTimeout !== 'undefined') {
       clearTimeout(this._stateChangeTimeout);
       this._stateChangeTimeout = undefined;
     }

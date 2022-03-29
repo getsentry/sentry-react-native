@@ -6,9 +6,9 @@ import {
   Response,
   Severity,
   User,
-} from "@sentry/types";
-import { logger, SentryError } from "@sentry/utils";
-import { NativeModules, Platform } from "react-native";
+} from '@sentry/types';
+import { logger, SentryError } from '@sentry/utils';
+import { NativeModules, Platform } from 'react-native';
 
 import {
   NativeAppStartResponse,
@@ -16,8 +16,8 @@ import {
   NativeFramesResponse,
   NativeReleaseResponse,
   SentryNativeBridgeModule,
-} from "./definitions";
-import { ReactNativeOptions } from "./options";
+} from './definitions';
+import { ReactNativeOptions } from './options';
 
 const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
 
@@ -72,8 +72,8 @@ export const NATIVE: SentryNativeWrapper = {
   async sendEvent(_event: Event): Promise<Response> {
     if (!this.enableNative) {
       return {
-        reason: `Event was skipped as native SDK is not enabled.`,
-        status: "skipped",
+        reason: 'Event was skipped as native SDK is not enabled.',
+        status: 'skipped',
       };
     }
 
@@ -92,7 +92,7 @@ export const NATIVE: SentryNativeWrapper = {
     };
 
     let envelopeWasSent = false;
-    if (NATIVE.platform === "android") {
+    if (NATIVE.platform === 'android') {
       // Android
 
       const headerString = JSON.stringify(header);
@@ -125,9 +125,9 @@ export const NATIVE: SentryNativeWrapper = {
       }
 
       const item = {
-        content_type: "application/json",
+        content_type: 'application/json',
         length,
-        type: payload.type ?? "event",
+        type: payload.type ?? 'event',
       };
 
       const itemString = JSON.stringify(item);
@@ -158,12 +158,12 @@ export const NATIVE: SentryNativeWrapper = {
 
     if (envelopeWasSent) {
       return {
-        status: "success",
+        status: 'success',
       };
     }
 
     return {
-      status: "failed",
+      status: 'failed',
     };
   },
 
@@ -180,7 +180,7 @@ export const NATIVE: SentryNativeWrapper = {
 
     if (!options.enableNative) {
       if (options.enableNativeNagger) {
-        logger.warn("Note: Native Sentry SDK is disabled.");
+        logger.warn('Note: Native Sentry SDK is disabled.');
       }
       this.enableNative = false;
       return false;
@@ -188,7 +188,7 @@ export const NATIVE: SentryNativeWrapper = {
     if (!options.autoInitializeNativeSdk) {
       if (options.enableNativeNagger) {
         logger.warn(
-          "Note: Native Sentry SDK was not initialized automatically, you will need to initialize it manually. If you wish to disable the native SDK and get rid of this warning, pass enableNative: false"
+          'Note: Native Sentry SDK was not initialized automatically, you will need to initialize it manually. If you wish to disable the native SDK and get rid of this warning, pass enableNative: false'
         );
       }
       return false;
@@ -196,7 +196,7 @@ export const NATIVE: SentryNativeWrapper = {
 
     if (!options.dsn) {
       logger.warn(
-        "Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized."
+        'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.'
       );
       return false;
     }
@@ -250,7 +250,7 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    if (this.platform !== "ios") {
+    if (this.platform !== 'ios') {
       return null;
     }
 
@@ -268,7 +268,7 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    if (this.platform !== "ios") {
+    if (this.platform !== 'ios') {
       // Only ios uses deviceContexts, return an empty object.
       return {};
     }
@@ -356,7 +356,7 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     const stringifiedValue =
-      typeof value === "string" ? value : JSON.stringify(value);
+      typeof value === 'string' ? value : JSON.stringify(value);
 
     RNSentry.setTag(key, stringifiedValue);
   },
@@ -377,7 +377,7 @@ export const NATIVE: SentryNativeWrapper = {
 
     // we stringify the extra as native only takes in strings.
     const stringifiedExtra =
-      typeof extra === "string" ? extra : JSON.stringify(extra);
+      typeof extra === 'string' ? extra : JSON.stringify(extra);
 
     RNSentry.setExtra(key, stringifiedExtra);
   },
@@ -483,7 +483,7 @@ export const NATIVE: SentryNativeWrapper = {
     Object.keys(data).forEach((dataKey) => {
       const value = data[dataKey];
       serialized[dataKey] =
-        typeof value === "string" ? value : JSON.stringify(value);
+        typeof value === 'string' ? value : JSON.stringify(value);
     });
 
     return serialized;
@@ -534,7 +534,7 @@ export const NATIVE: SentryNativeWrapper = {
     return !!module;
   },
 
-  _DisabledNativeError: new SentryError("Native is disabled"),
+  _DisabledNativeError: new SentryError('Native is disabled'),
 
   _NativeClientError: new SentryError(
     "Native Client is not available, can't start on native."

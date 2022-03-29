@@ -1,7 +1,7 @@
-import { logger } from "@sentry/utils";
+import { logger } from '@sentry/utils';
 
-jest.mock("@sentry/react", () => {
-  const actualModule = jest.requireActual("@sentry/react");
+jest.mock('@sentry/react', () => {
+  const actualModule = jest.requireActual('@sentry/react');
 
   const mockClient = {
     flush: jest.fn(() => Promise.resolve(true)),
@@ -17,49 +17,49 @@ jest.mock("@sentry/react", () => {
   };
 });
 
-jest.mock("@sentry/core", () => {
-  const originalCore = jest.requireActual("@sentry/core");
+jest.mock('@sentry/core', () => {
+  const originalCore = jest.requireActual('@sentry/core');
   return {
     ...originalCore,
     initAndBind: jest.fn(),
   };
 });
 
-jest.mock("@sentry/hub", () => {
-  const originalHub = jest.requireActual("@sentry/hub");
+jest.mock('@sentry/hub', () => {
+  const originalHub = jest.requireActual('@sentry/hub');
   return {
     ...originalHub,
     makeMain: jest.fn(),
   };
 });
 
-jest.mock("../src/js/scope", () => {
+jest.mock('../src/js/scope', () => {
   return {
     ReactNativeScope: class ReactNativeScopeMock {},
   };
 });
 
-jest.mock("../src/js/client", () => {
+jest.mock('../src/js/client', () => {
   return {
     ReactNativeClient: class ReactNativeClientMock {},
   };
 });
 
-jest.spyOn(logger, "error");
+jest.spyOn(logger, 'error');
 
-import { initAndBind } from "@sentry/core";
-import { getCurrentHub } from "@sentry/react";
+import { initAndBind } from '@sentry/core';
+import { getCurrentHub } from '@sentry/react';
 
-import { flush, init } from "../src/js/sdk";
-import { ReactNativeTracing } from "../src/js/tracing";
+import { flush, init } from '../src/js/sdk';
+import { ReactNativeTracing } from '../src/js/tracing';
 
 afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe("Tests the SDK functionality", () => {
-  describe("init", () => {
-    describe("enableAutoPerformanceTracking", () => {
+describe('Tests the SDK functionality', () => {
+  describe('init', () => {
+    describe('enableAutoPerformanceTracking', () => {
       const autoPerformanceIsEnabled = (): boolean => {
         const mockCall = (initAndBind as jest.MockedFunction<
           typeof initAndBind
@@ -78,7 +78,7 @@ describe("Tests the SDK functionality", () => {
         return false;
       };
 
-      it("Auto Performance is enabled when tracing is enabled (tracesSampler)", () => {
+      it('Auto Performance is enabled when tracing is enabled (tracesSampler)', () => {
         init({
           tracesSampler: () => true,
           enableAutoPerformanceTracking: true,
@@ -87,7 +87,7 @@ describe("Tests the SDK functionality", () => {
         expect(autoPerformanceIsEnabled()).toBe(true);
       });
 
-      it("Auto Performance is enabled when tracing is enabled (tracesSampleRate)", () => {
+      it('Auto Performance is enabled when tracing is enabled (tracesSampleRate)', () => {
         init({
           tracesSampleRate: 0.5,
           enableAutoPerformanceTracking: true,
@@ -97,8 +97,8 @@ describe("Tests the SDK functionality", () => {
       });
     });
 
-    describe("flush", () => {
-      it("Calls flush on the client", async () => {
+    describe('flush', () => {
+      it('Calls flush on the client', async () => {
         const mockClient = getCurrentHub().getClient();
 
         expect(mockClient).toBeTruthy();
@@ -112,7 +112,7 @@ describe("Tests the SDK functionality", () => {
         }
       });
 
-      it("Returns false if flush failed and logs error", async () => {
+      it('Returns false if flush failed and logs error', async () => {
         const mockClient = getCurrentHub().getClient();
 
         expect(mockClient).toBeTruthy();
@@ -126,7 +126,7 @@ describe("Tests the SDK functionality", () => {
           expect(flushResult).toBe(false);
           // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(logger.error).toBeCalledWith(
-            "Failed to flush the event queue."
+            'Failed to flush the event queue.'
           );
         }
       });
