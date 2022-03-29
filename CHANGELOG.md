@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.4.0
+
+### Various fixes & improvements
+
+- Bump: @sentry/javascript dependencies to 6.19.2 (#2175) by @marandaneto
+
 ## 3.3.6
 
 - fix: Respect given release if no dist is given during SDK init (#2163)
