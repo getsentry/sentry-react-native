@@ -207,7 +207,7 @@ const withTouchEventBoundary = (
   boundaryProps?: TouchEventBoundaryProps
 ): React.FunctionComponent => {
   const WrappedComponent: React.FunctionComponent = (props) => (
-    <TouchEventBoundary {...boundaryProps}>
+    <TouchEventBoundary {...(boundaryProps ?? {})}>
       <InnerComponent {...props} />
     </TouchEventBoundary>
   );
