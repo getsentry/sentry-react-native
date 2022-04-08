@@ -204,7 +204,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 const withTouchEventBoundary = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   InnerComponent: React.ComponentType<any>,
-  boundaryProps: TouchEventBoundaryProps
+  boundaryProps?: TouchEventBoundaryProps
 ): React.FunctionComponent => {
   const WrappedComponent: React.FunctionComponent = (props) => (
     <TouchEventBoundary {...boundaryProps}>
