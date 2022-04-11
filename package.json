@@ -47,7 +47,7 @@
     "@sentry/integrations": "6.19.2",
     "@sentry/react": "6.19.2",
     "@sentry/tracing": "6.19.2",
-    "@sentry/types": "6.19.2",
+    "@sentry/types": "6.19.6",
     "@sentry/utils": "6.19.2",
     "@sentry/wizard": "^1.2.17"
   },
