@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.4.1
 
 - fix: Make withTouchEventBoundary options optional #2196
 
