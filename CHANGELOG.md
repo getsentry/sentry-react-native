@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- fix: Fix cold start appearing again after js bundle reload on Android.
+- fix: Fix cold start appearing again after js bundle reload on Android. #2229
 
 ## 3.4.1
 
