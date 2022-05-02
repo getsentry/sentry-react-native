@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix: Fix cold start appearing again after js bundle reload on Android.
+
 ## 3.4.1
 
 - fix: Make withTouchEventBoundary options optional #2196
