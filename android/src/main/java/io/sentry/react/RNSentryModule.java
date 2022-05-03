@@ -55,9 +55,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     private static final Logger logger = Logger.getLogger("react-native-sentry");
 
     private PackageInfo packageInfo = null;
-    private boolean didFetchAppStart;
     private FrameMetricsAggregator frameMetricsAggregator = null;
     private boolean androidXAvailable = true;
+
+    private static boolean didFetchAppStart;
 
     // 700ms to constitute frozen frames.
     private static final int FROZEN_FRAME_THRESHOLD = 700;
