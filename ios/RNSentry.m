@@ -85,6 +85,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         }
     }
 
+#if TARGET_OS_IPHONE
     // Enable the App start and Frames tracking measurements
     if ([mutableOptions valueForKey:@"enableAutoPerformanceTracking"] != nil) {
         BOOL enableAutoPerformanceTracking = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracking"];
@@ -92,9 +93,11 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracking;
         PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracking;
     }
+#endif
 
     [SentrySDK startWithOptionsObject:sentryOptions];
 
+#if TARGET_OS_IPHONE
     // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
     if ([[UIApplication sharedApplication] applicationState] == UIApplicationStateActive && !sentHybridSdkDidBecomeActive && sentryOptions.enableAutoSessionTracking) {
         [[NSNotificationCenter defaultCenter]
@@ -103,6 +106,15 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 
         sentHybridSdkDidBecomeActive = true;
     }
+#else
+    if([[NSApplication sharedApplication] isActive] && !sentHybridSdkDidBecomeActive && sentryOptions.enableAutoSessionTracking) {
+        [[NSNotificationCenter defaultCenter]
+         postNotificationName:@"SentryHybridSdkDidBecomeActive"
+         object:nil];
+
+        sentHybridSdkDidBecomeActive = true;
+    }
+#endif
 
 
 
@@ -164,9 +176,9 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
         NSDictionary<NSString *, id> *serializedScope = [scope serialize];
         // Scope serializes as 'context' instead of 'contexts' as it does for the event.
         NSDictionary<NSString *, id> *tempContexts = [serializedScope valueForKey:@"context"];
-    
+
         NSMutableDictionary<NSString *, id> *user = [NSMutableDictionary new];
-        
+
         NSDictionary<NSString *, id> *tempUser = [serializedScope valueForKey:@"user"];
         if (tempUser != nil) {
             [user addEntriesFromDictionary:[tempUser valueForKey:@"user"]];
@@ -174,7 +186,7 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
             [user setValue:PrivateSentrySDKOnly.installationID forKey:@"id"];
         }
         [contexts setValue:user forKey:@"user"];
-        
+
         if (tempContexts != nil) {
             [contexts setValue:tempContexts forKey:@"context"];
         }
@@ -215,6 +227,7 @@ RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
 
+#if TARGET_OS_IPHONE
     if (PrivateSentrySDKOnly.isFramesTrackingRunning) {
         SentryScreenFrames *frames = PrivateSentrySDKOnly.currentScreenFrames;
 
@@ -241,6 +254,9 @@ RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
     } else {
       resolve(nil);
     }
+#else
+    resolve(nil);
+#endif
 }
 
 RCT_EXPORT_METHOD(fetchNativeRelease:(RCTPromiseResolveBlock)resolve
