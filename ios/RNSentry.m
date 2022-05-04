@@ -33,14 +33,6 @@ static bool didFetchAppStart;
     return YES;
 }
 
-+ (NSNotificationName)didBecomeActiveNotificationName {
-#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-    return UIApplicationDidBecomeActiveNotification;
-#else
-    return NSApplicationDidBecomeActiveNotification;
-#endif
-}
-
 RCT_EXPORT_MODULE()
 
 - (NSDictionary<NSString *, id> *)constantsToExport
@@ -107,24 +99,20 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 
     [SentrySDK startWithOptionsObject:sentryOptions];
 
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+    BOOL appIsActive = [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
+#else
+    BOOL appIsActive = [[NSApplication sharedApplication] isActive];
+#endif
+
     // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
-    if ([[UIApplication sharedApplication] applicationState] == UIApplicationStateActive && !sentHybridSdkDidBecomeActive && sentryOptions.enableAutoSessionTracking) {
+    if (appIsActive && !sentHybridSdkDidBecomeActive && sentryOptions.enableAutoSessionTracking) {
         [[NSNotificationCenter defaultCenter]
             postNotificationName:@"SentryHybridSdkDidBecomeActive"
             object:nil];
 
         sentHybridSdkDidBecomeActive = true;
     }
-#else
-    if([[NSApplication sharedApplication] isActive] && !sentHybridSdkDidBecomeActive && sentryOptions.enableAutoSessionTracking) {
-        [[NSNotificationCenter defaultCenter]
-         postNotificationName:@"SentryHybridSdkDidBecomeActive"
-         object:nil];
-
-        sentHybridSdkDidBecomeActive = true;
-    }
-#endif
 
 
 
