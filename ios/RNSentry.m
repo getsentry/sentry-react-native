@@ -33,6 +33,14 @@ static bool didFetchAppStart;
     return YES;
 }
 
++ (NSNotificationName)didBecomeActiveNotificationName {
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+    return UIApplicationDidBecomeActiveNotification;
+#else
+    return NSApplicationDidBecomeActiveNotification;
+#endif
+}
+
 RCT_EXPORT_MODULE()
 
 - (NSDictionary<NSString *, id> *)constantsToExport
@@ -85,15 +93,17 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         }
     }
 
-#if TARGET_OS_IPHONE
+
     // Enable the App start and Frames tracking measurements
     if ([mutableOptions valueForKey:@"enableAutoPerformanceTracking"] != nil) {
         BOOL enableAutoPerformanceTracking = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracking"];
 
         PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracking;
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
         PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracking;
-    }
 #endif
+    }
+
 
     [SentrySDK startWithOptionsObject:sentryOptions];
 
@@ -227,7 +237,7 @@ RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
 
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     if (PrivateSentrySDKOnly.isFramesTrackingRunning) {
         SentryScreenFrames *frames = PrivateSentrySDKOnly.currentScreenFrames;
 
