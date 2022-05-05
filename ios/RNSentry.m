@@ -95,7 +95,6 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 #endif
     }
 
-
     [SentrySDK startWithOptionsObject:sentryOptions];
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
