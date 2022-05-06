@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- feat: Support macOS (#2240) by @ospfranco
+
 ## 3.4.2
 
 - fix: Fix cold start appearing again after js bundle reload on Android. #2229
