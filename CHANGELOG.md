@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.4.3
+## Unreleased
 
 - feat: Support macOS (#2240) by @ospfranco
 
