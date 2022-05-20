@@ -1,25 +1,62 @@
+import { BrowserClient, defaultIntegrations, defaultStackParser, makeFetchTransport } from '@sentry/browser';
 import { BaseClient } from '@sentry/core';
+import { EventHint, Event, Severity, SeverityLevel, Transport } from '@sentry/types';
 
-import { ReactNativeBackend } from './backend';
-import { ReactNativeOptions } from './options';
+import { ReactNativeClientOptions } from './options';
 import { NATIVE } from './wrapper';
+// @ts-ignore LogBox introduced in RN 0.63
+import { Alert, LogBox, YellowBox } from 'react-native';
+import { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
+import { FetchImpl } from '@sentry/browser/types/transports/utils';
+import { NativeTransport } from './transports/native';
 
 /**
  * The Sentry React Native SDK Client.
  *
- * @see ReactNativeOptions for documentation on configuration options.
+ * @see ReactNativeClientOptions  for documentation on configuration options.
  * @see SentryClient for usage documentation.
  */
-export class ReactNativeClient extends BaseClient<
-  ReactNativeBackend,
-  ReactNativeOptions
-> {
+export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
+
+  private readonly _browserClient: BrowserClient;
+
+  /**
+   * @inheritDoc
+   */
+  eventFromException(_exception: any, _hint?: EventHint): PromiseLike<Event> {
+    return this._browserClient.eventFromException(_exception, _hint);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  eventFromMessage(_message: string, _level?: Severity | SeverityLevel, _hint?: EventHint): PromiseLike<Event> {
+    return this._browserClient.eventFromMessage(_message, _level, _hint);
+  }
+
   /**
    * Creates a new React Native SDK instance.
    * @param options Configuration options for this SDK.
    */
-  public constructor(options: ReactNativeOptions) {
-    super(ReactNativeBackend, options);
+  public constructor(options: ReactNativeClientOptions) {
+    super(options);
+    // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
+    // YellowBox deprecated and replaced with with LogBox in RN 0.63
+    if (LogBox) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      LogBox.ignoreLogs(['Require cycle:']);
+    } else {
+      // eslint-disable-next-line deprecation/deprecation
+      YellowBox.ignoreWarnings(['Require cycle:']);
+    }
+
+    void this._initNativeSdk();
+
+    this._browserClient = new BrowserClient({
+      transport: this._chooseTransport,
+      stackParser: defaultStackParser,
+      integrations: defaultIntegrations,
+    });
   }
 
   /**
@@ -27,7 +64,7 @@ export class ReactNativeClient extends BaseClient<
    * Use this only for testing purposes.
    */
   public nativeCrash(): void {
-    this._getBackend().nativeCrash();
+    NATIVE.nativeCrash();
   }
 
   /**
@@ -38,5 +75,43 @@ export class ReactNativeClient extends BaseClient<
     return super.close().then((result: boolean) => {
       return NATIVE.closeNativeSdk().then(() => result) as PromiseLike<boolean>;
     });
+  }
+
+  /**
+ * Starts native client with dsn and options
+ */
+  private async _initNativeSdk(): Promise<void> {
+    let didCallNativeInit = false;
+
+    try {
+      didCallNativeInit = await NATIVE.initNativeSdk(this._options);
+    } catch (_) {
+      this._showCannotConnectDialog();
+
+      this._options.onReady?.({ didCallNativeInit: false });
+
+      return;
+    }
+    this._options.onReady?.({ didCallNativeInit });
+  }
+
+  /**
+   * If the user is in development mode, and the native nagger is enabled then it will show an alert.
+   */
+  private _showCannotConnectDialog(): void {
+    if (__DEV__ && this._options.enableNativeNagger) {
+      Alert.alert(
+        'Sentry',
+        'Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details.'
+      );
+    }
+  }
+
+  private _chooseTransport(options: BrowserTransportOptions, nativeFetch?: FetchImpl): Transport {
+    if (NATIVE.isNativeTransportAvailable()) {
+      return new NativeTransport();
+    }
+
+    return makeFetchTransport(options, nativeFetch);
   }
 }

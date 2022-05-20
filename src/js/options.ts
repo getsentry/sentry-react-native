@@ -1,21 +1,18 @@
-import { BrowserOptions } from '@sentry/react';
-import { ProfilerProps } from '@sentry/react/dist/profiler';
-import { CaptureContext } from '@sentry/types/dist/scope';
+import { BaseBrowserOptions } from '@sentry/browser/types/client';
+import { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
+import { ProfilerProps } from '@sentry/react/types/profiler';
+import { ClientOptions, Options } from '@sentry/types';
+import { CaptureContext } from '@sentry/types/types/scope';
 
 import { TouchEventBoundaryProps } from './touchevents';
 
-/**
- * Configuration options for the Sentry ReactNative SDK.
- * @see ReactNativeFrontend for more information.
- */
-
-export interface ReactNativeOptions extends BrowserOptions {
+export interface BaseReactNativeOptions {
   /**
-   * Enables native transport + device info + offline caching.
-   * Be careful, disabling this also breaks automatic release setting.
-   * This means you have to manage setting the release yourself.
-   * Defaults to `true`.
-   */
+    * Enables native transport + device info + offline caching.
+    * Be careful, disabling this also breaks automatic release setting.
+    * This means you have to manage setting the release yourself.
+    * Defaults to `true`.
+    */
   enableNative?: boolean;
 
   /**
@@ -95,13 +92,25 @@ export interface ReactNativeOptions extends BrowserOptions {
    */
   patchGlobalPromise?: boolean;
 
-    /**
-   * The max cache items for capping the number of envelopes.
-   *
-   * @default 30
-   */
+  /**
+ * The max cache items for capping the number of envelopes.
+ *
+ * @default 30
+ */
   maxCacheItems?: number;
 }
+
+/**
+ * Configuration options for the Sentry ReactNative SDK.
+ * @see ReactNativeFrontend for more information.
+ */
+
+export interface ReactNativeOptions extends Options<BrowserTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
+}
+
+export interface ReactNativeClientOptions extends ClientOptions<BrowserTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
+}
+
 
 export interface ReactNativeWrapperOptions {
   /** Props for the root React profiler */

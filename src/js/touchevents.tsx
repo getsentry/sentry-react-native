@@ -1,5 +1,5 @@
+import { SeverityLevel } from '@sentry/types';
 import { addBreadcrumb } from '@sentry/core';
-import { Severity } from '@sentry/types';
 import { logger } from '@sentry/utils';
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -84,16 +84,16 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     componentTreeNames: string[],
     activeLabel?: string
   ): void {
+    const level = 'log' as SeverityLevel;
     const crumb = {
       category: this.props.breadcrumbCategory,
       data: { componentTree: componentTreeNames },
-      level: Severity.Info,
+      level: level,
       message: activeLabel
         ? `Touch event within element: ${activeLabel}`
         : 'Touch event within component tree',
-      type: this.props.breadcrumbType,
-    };
-
+      type: this.props.breadcrumbType
+    }
     addBreadcrumb(crumb);
 
     logger.log(`[TouchEvents] ${crumb.message}`);
