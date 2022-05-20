@@ -1,13 +1,14 @@
 /* eslint-disable max-lines */
 import {
+  BaseEnvelopeItemHeaders,
   Breadcrumb,
   Envelope,
   Event,
   Package,
-  SdkInfo,
   SeverityLevel,
   User,
 } from '@sentry/types';
+
 import { logger, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
 
@@ -19,6 +20,7 @@ import {
   SentryNativeBridgeModule,
 } from './definitions';
 import { ReactNativeOptions } from './options';
+
 
 const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
 
@@ -79,93 +81,74 @@ export const NATIVE: SentryNativeWrapper = {
     if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
-
-    //const event = this._processLevels(request);
     //@ts-ignore
-    //Where exactly should we retrieve the sdk info?
-    const sdkInfoMock: SdkInfo = {
-      name: 'react native mock',
-      version: '4.0.0'
-    };
-
-
-    const header = {
-      //@ts-ignore
-      event_id: request[0].event_id, // Another way of retrieving the id/hewader?
-      sdk: sdkInfoMock
-    };
-
     let envelopeWasSent = false;
+
+    const header = request[0];
+
     if (NATIVE.platform === 'android') {
       // Android
 
       const headerString = JSON.stringify(header);
 
-      /*
+      let envelopeItemsBuilder = `${headerString}\n`;
+
+      //@ts-ignore
+      request[1].forEach(async envelopeItems => {
+        if (envelopeItems[0].type == "event" || envelopeItems[0].type == "transaction") {
+          let event = this._processLevels(envelopeItems[1] as Event);
+
+          /*
         We do this to avoid duplicate breadcrumbs on Android as sentry-android applies the breadcrumbs
         from the native scope onto every envelope sent through it. This scope will contain the breadcrumbs
         sent through the scope sync feature. This causes duplicate breadcrumbs.
         We then remove the breadcrumbs in all cases but if it is handled == false,
         this is a signal that the app would crash and android would lose the breadcrumbs by the time the app is restarted to read
         the envelope.
-      */
-      /*
-             if (event.exception?.values?.[0]?.mechanism?.handled != false && event.breadcrumbs) {
-               event.breadcrumbs = [];
-             }
-        */
-      const payload = {
-        //@ts-ignore
-        ...request[1][0][1],
-        message: {
-          //@ts-ignore
-          message: [1][0][1].message,
-        },
-      };
+          */
+          if (event.exception?.values?.[0]?.mechanism?.handled != false && event.breadcrumbs) {
+            event.breadcrumbs = [];
+          }
+          envelopeItems[1] = event;
+        }
 
-      const payloadString = JSON.stringify(request);
+        // Content type is not inside BaseEnvelopeItemHeaders.
+        (envelopeItems[0] as BaseEnvelopeItemHeaders).content_type = 'application/json';
 
-      let length = payloadString.length;
-      try {
-        length = await RNSentry.getStringBytesLength(payloadString);
-      } catch {
-        // The native call failed, we do nothing, we have payload.length as a fallback
-      }
+        const itemPayload = JSON.parse(JSON.stringify(envelopeItems[1]));
 
-      const item = {
-        content_type: 'application/json',
-        length,
-        type: payload.type ?? 'event',
-      };
+        let length = itemPayload.length;
+        try {
+          length = await RNSentry.getStringBytesLength(itemPayload);
+        } catch {
+          // The native call failed, we do nothing, we have payload.length as a fallback
+        }
 
-      const itemString = JSON.stringify(item);
+        (envelopeItems[0] as BaseEnvelopeItemHeaders).length = length;
+        const itemHeader = JSON.parse(JSON.stringify(envelopeItems[0]));
 
-      const envelopeString = `${headerString}\n${itemString}\n${payloadString}`;
+        envelopeItemsBuilder += `${itemHeader}\n${itemPayload}\n`;
+      });
 
-      envelopeWasSent = await RNSentry.captureEnvelope(envelopeString);
+      envelopeWasSent = await RNSentry.captureEnvelope(envelopeItemsBuilder);
     } else {
       // iOS/Mac
 
-      let envelopeItems = request[1][0];
       //@ts-ignore
-      const envelopePayload = envelopeItems[1];
+      request[1].forEach(async envelopeItems => {
+        if (envelopeItems[0].type == "event" || envelopeItems[0].type == "transaction") {
+          envelopeItems[1] = this._processLevels(envelopeItems[1] as Event);
+        }
+        const itemPayload = JSON.parse(JSON.stringify(envelopeItems[1]));
 
-      const test = JSON.stringify(envelopePayload);
-      // Serialize and remove any instances that will crash the native bridge such as Spans
-      const serializedPayload = JSON.parse(test);
+        // The envelope item is created (and its length determined) on the iOS side of the native bridge.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 
-      //const serializedEnvelopItem = JSON.parse(JSON.stringify(request));
-
-      // The envelope item is created (and its length determined) on the iOS side of the native bridge.
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-
-
-      envelopeWasSent = await RNSentry.captureEnvelope({
-        header,
-        payload: serializedPayload,
+        envelopeWasSent = await RNSentry.captureEnvelope({
+          header,
+          payload: itemPayload,
+        });
       });
-      if (envelopeWasSent) {
-      }
     };
 
   },
@@ -496,23 +479,18 @@ export const NATIVE: SentryNativeWrapper = {
    */
 
   _processLevels(event: Event): Event {
-    // We need to consume envelopes and not events.
-    /*
+    const processed: Event = {
+      ...event,
+      level: event.level ? this._processLevel(event.level) : undefined,
+      breadcrumbs: event.breadcrumbs?.map((breadcrumb) => ({
+        ...breadcrumb,
+        level: breadcrumb.level
+          ? this._processLevel(breadcrumb.level)
+          : undefined,
+      })),
+    };
 
-        const processed: Event = {
-          ...event,
-          level: event.level ? this._processLevel(event.level) : undefined,
-          breadcrumbs: event.breadcrumbs?.map((breadcrumb) => ({
-            ...breadcrumb,
-            level: breadcrumb.level
-              ? this._processLevel(breadcrumb.level)
-              : undefined,
-          })),
-        };
-
-        return processed;
-        */
-    return event;
+    return processed;
   },
 
   /**

@@ -55,7 +55,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     typeof options.tracesSampler !== 'undefined' ||
     typeof options.tracesSampleRate !== 'undefined';
 
-  if (options.integrations === undefined) {
+  if (/*options.integrations === undefined*/true) {
     options.integrations = [
       new ReactNativeErrorHandlers({
         patchGlobalPromise: options.patchGlobalPromise,
