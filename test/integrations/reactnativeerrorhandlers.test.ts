@@ -1,8 +1,20 @@
+import { BrowserClient, defaultIntegrations, defaultStackParser } from '@sentry/browser';
+
+const _browserClient: BrowserClient = new BrowserClient({
+  stackParser: defaultStackParser,
+  integrations: defaultIntegrations,
+  //@ts-ignore
+  transport: jest.fn<Transport>(),
+});
+
+
 jest.mock('@sentry/core', () => {
   const core = jest.requireActual('@sentry/core');
 
+
   const client = {
     getOptions: () => ({}),
+    eventFromException: (_exception: any, _hint?: EventHint): PromiseLike<Event> => _browserClient.eventFromException(_exception, _hint)
   };
 
   const hub = {
@@ -30,7 +42,7 @@ jest.mock('@sentry/utils', () => {
 });
 
 import { getCurrentHub } from '@sentry/core';
-import { Severity } from '@sentry/types';
+import { Event, EventHint, SeverityLevel, Transport } from '@sentry/types';
 
 import { ReactNativeErrorHandlers } from '../../src/js/integrations/reactnativeerrorhandlers';
 
@@ -68,7 +80,7 @@ describe('ReactNativeErrorHandlers', () => {
       >).mock.calls[0];
       const event = mockCall[0];
 
-      expect(event.level).toBe(Severity.Fatal);
+      expect(event.level).toBe('fatal' as SeverityLevel);
       expect(event.exception?.values?.[0].mechanism?.handled).toBe(false);
       expect(event.exception?.values?.[0].mechanism?.type).toBe('onerror');
     });
@@ -97,7 +109,7 @@ describe('ReactNativeErrorHandlers', () => {
       >).mock.calls[0];
       const event = mockCall[0];
 
-      expect(event.level).toBe(Severity.Error);
+      expect(event.level).toBe('error' as SeverityLevel);
       expect(event.exception?.values?.[0].mechanism?.handled).toBe(true);
       expect(event.exception?.values?.[0].mechanism?.type).toBe('generic');
     });

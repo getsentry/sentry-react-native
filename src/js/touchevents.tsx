@@ -84,7 +84,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     componentTreeNames: string[],
     activeLabel?: string
   ): void {
-    const level = 'log' as SeverityLevel;
+    const level = 'info' as SeverityLevel;
     const crumb = {
       category: this.props.breadcrumbCategory,
       data: { componentTree: componentTreeNames },

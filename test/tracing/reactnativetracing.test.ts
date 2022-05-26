@@ -27,7 +27,7 @@ jest.mock('../../src/js/tracing/utils', () => {
 });
 
 const getMockHub = () => {
-  const mockHub = new Hub(new BrowserClient({ tracesSampleRate: 1 }));
+  const mockHub = new Hub(new BrowserClient({ tracesSampleRate: 1 } as BrowserClientOptions));
   let scopeTransaction: Transaction | undefined;
   const mockScope = {
     getTransaction: () => scopeTransaction,
@@ -55,6 +55,7 @@ import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
 import { NATIVE } from '../../src/js/wrapper';
 import { mockFunction } from '../testutils';
+import { BrowserClientOptions } from '@sentry/browser/types/client';
 
 beforeEach(() => {
   NATIVE.enableNative = true;
@@ -258,7 +259,7 @@ describe('ReactNativeTracing', () => {
 
               const span = spanRecorder.spans[spanRecorder.spans.length - 1];
 
-              expect(span.op).toBe('app.start.cold');
+              expect(span.op).toBe('app_start_cold');
               expect(span.description).toBe('Cold App Start');
               expect(span.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
               expect(span.endTimestamp).toBe(timeOriginMilliseconds / 1000);
@@ -328,7 +329,7 @@ describe('ReactNativeTracing', () => {
 
               const span = spanRecorder.spans[spanRecorder.spans.length - 1];
 
-              expect(span.op).toBe('app.start.warm');
+              expect(span.op).toBe('app_start_warm');
               expect(span.description).toBe('Warm App Start');
               expect(span.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
               expect(span.endTimestamp).toBe(timeOriginMilliseconds / 1000);
@@ -493,9 +494,9 @@ describe('ReactNativeTracing', () => {
           setTag: jest.fn(),
 
           // Not relevant to test
-          setSpan: () => {},
-          getTransaction: () => {},
-          clearTransaction: () => {},
+          setSpan: () => { },
+          getTransaction: () => { },
+          clearTransaction: () => { },
         };
 
         const mockHub = {
@@ -508,7 +509,7 @@ describe('ReactNativeTracing', () => {
           getClient: () => ({ getOptions: () => ({}) }),
         };
         integration.setupOnce(
-          () => {},
+          () => { },
           () => mockHub as any
         );
 

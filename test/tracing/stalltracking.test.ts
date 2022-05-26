@@ -1,3 +1,4 @@
+import { Hub } from '@sentry/hub';
 import { IdleTransaction, Transaction } from '@sentry/tracing';
 import { Event } from '@sentry/types';
 
@@ -319,7 +320,8 @@ describe('StallTracking', () => {
       if (typeof spanFinishTime === 'number') {
         stallTracking.onTransactionFinish(transaction, spanFinishTime + 0.015);
         transaction.finish();
-        const measurements = getLastEvent()?.measurements;
+        const evt = getLastEvent();
+        const measurements = evt?.measurements;
 
         expect(measurements).toBeUndefined();
       }
@@ -335,7 +337,8 @@ describe('StallTracking', () => {
       name: 'Test Transaction',
       trimEnd: true,
       sampled: true,
-    });
+
+    }, new Hub(), undefined, undefined, undefined);
     idleTransaction.initSpanRecorder();
 
     stallTracking.onTransactionStart(idleTransaction);
@@ -350,6 +353,7 @@ describe('StallTracking', () => {
     });
 
     setTimeout(() => {
+      stallTracking.onTransactionFinish(idleTransaction, + 0.015);
       idleTransaction.finish();
 
       const measurements = getLastEvent()?.measurements;

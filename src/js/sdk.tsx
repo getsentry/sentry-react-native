@@ -41,7 +41,6 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
 export function init(passedOptions: ReactNativeOptions): void {
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
   makeMain(reactNativeHub);
-
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,

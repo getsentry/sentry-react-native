@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Event, Severity } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
+
+import { createEnvelope, logger } from '@sentry/utils';
+
 
 import { SentryNativeBridgeModule } from '../src/js/definitions';
 import { ReactNativeOptions } from '../src/js/options';
@@ -12,9 +14,9 @@ jest.mock(
     let envelopePayload:
       | string
       | {
-          header: Record<string, unknown>;
-          payload: Record<string, unknown>;
-        }
+        header: Record<string, unknown>;
+        payload: Record<string, unknown>;
+      }
       | null = null;
     let initPayload: ReactNativeOptions | null = null;
 
@@ -185,7 +187,7 @@ describe('Tests Native Wrapper', () => {
     });
   });
 
-  describe('sendEvent', () => {
+  describe('sendEnvelope', () => {
     test('calls only captureEnvelope on iOS', async () => {
       const event = {
         event_id: 'event0',
@@ -196,18 +198,20 @@ describe('Tests Native Wrapper', () => {
         },
       };
 
-      await NATIVE.sendEvent(event);
+      const env = createEnvelope<EventEnvelope>({ event_id: event.event_id, sent_at: '123' }, [
+        [{ type: 'event' }, event] as EventItem,
+      ]);
+
+      await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith({
         header: {
           event_id: event.event_id,
-          sdk: event.sdk,
+          sent_at: '123',
         },
         payload: {
           ...event,
-          message: {
-            message: event.message,
-          },
+          message: event.message,
         },
       });
     });
@@ -227,18 +231,20 @@ describe('Tests Native Wrapper', () => {
         instance: new TestInstance(),
       };
 
-      await NATIVE.sendEvent(event);
+      const env = createEnvelope<EventEnvelope>({ event_id: event.event_id, sent_at: '123' }, [
+        [{ type: 'event' }, event] as EventItem,
+      ]);
+
+      await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith({
         header: {
           event_id: event.event_id,
-          sdk: event.sdk,
+          sent_at: '123'
         },
         payload: {
           ...event,
-          message: {
-            message: event.message,
-          },
+          message: event.message,
           instance: {
             value: 0,
           },
@@ -263,22 +269,24 @@ describe('Tests Native Wrapper', () => {
         instance: new TestInstance(),
       };
 
-      await NATIVE.sendEvent(event);
+      const env = createEnvelope<EventEnvelope>({ event_id: event.event_id, sent_at: '123' }, [
+        [{ type: 'event' }, event] as EventItem,
+      ]);
+
+      await NATIVE.sendEnvelope(env);
 
       const headerString = JSON.stringify({
         event_id: event.event_id,
-        sdk: event.sdk,
+        sent_at: '123',
       });
       const itemString = JSON.stringify({
+        type: 'event',
         content_type: 'application/json',
         length: 1,
-        type: 'event',
       });
       const payloadString = JSON.stringify({
         ...event,
-        message: {
-          message: event.message,
-        },
+        message: event.message,
         instance: {
           value: 0,
         },
@@ -302,21 +310,23 @@ describe('Tests Native Wrapper', () => {
 
       const payload = JSON.stringify({
         ...event,
-        message: {
-          message: event.message,
-        },
+        message: event.message,
       });
       const header = JSON.stringify({
         event_id: event.event_id,
-        sdk: event.sdk,
+        sent_at: '123',
       });
       const item = JSON.stringify({
+        type: 'event',
         content_type: 'application/json',
         length: 1,
-        type: 'event',
       });
 
-      await NATIVE.sendEvent(event);
+      const env = createEnvelope<EventEnvelope>({ event_id: event.event_id, sent_at: '123' }, [
+        [{ type: 'event' }, event] as EventItem,
+      ]);
+
+      await NATIVE.sendEnvelope(env);
 
       // @ts-ignore testing method
       expect(RNSentry._getLastPayload().envelopePayload).toMatch(
@@ -326,7 +336,9 @@ describe('Tests Native Wrapper', () => {
     test('does not call RNSentry at all if enableNative is false', async () => {
       try {
         await NATIVE.initNativeSdk({ dsn: 'test-dsn', enableNative: false });
-        await NATIVE.sendEvent({});
+        //@ts-ignore
+        await NATIVE.sendEnvelope({});
+        //@ts-ignore
       } catch (e) {
         expect(e.message).toMatch('Native is disabled');
       }
@@ -359,21 +371,24 @@ describe('Tests Native Wrapper', () => {
       const payload = JSON.stringify({
         ...event,
         breadcrumbs: [],
-        message: {
-          message: event.message,
-        },
+        message: event.message,
       });
       const header = JSON.stringify({
         event_id: event.event_id,
         sdk: event.sdk,
+        sent_at: '123'
       });
       const item = JSON.stringify({
+        type: 'event',
         content_type: 'application/json',
         length: 1,
-        type: 'event',
       });
 
-      await NATIVE.sendEvent(event);
+      const env = createEnvelope<EventEnvelope>({ event_id: event.event_id as string, sent_at: '123' }, [
+        [{ type: 'event' }, event] as EventItem,
+      ]);
+
+      await NATIVE.sendEnvelope(env);
 
       // @ts-ignore testing method
       expect(RNSentry._getLastPayload().envelopePayload).toMatch(
@@ -396,21 +411,24 @@ describe('Tests Native Wrapper', () => {
       const payload = JSON.stringify({
         ...event,
         breadcrumbs: [],
-        message: {
-          message: event.message,
-        },
+        message: event.message,
       });
       const header = JSON.stringify({
         event_id: event.event_id,
         sdk: event.sdk,
+        sent_at: '123',
       });
       const item = JSON.stringify({
+        type: 'event',
         content_type: 'application/json',
         length: 1,
-        type: 'event',
       });
 
-      await NATIVE.sendEvent(event);
+      const env = createEnvelope<EventEnvelope>({ event_id: event.event_id as string, sent_at: '123' }, [
+        [{ type: 'event' }, event] as EventItem,
+      ]);
+
+      await NATIVE.sendEnvelope(env);
 
       // @ts-ignore testing method
       expect(RNSentry._getLastPayload().envelopePayload).toMatch(
@@ -442,21 +460,24 @@ describe('Tests Native Wrapper', () => {
 
       const payload = JSON.stringify({
         ...event,
-        message: {
-          message: event.message,
-        },
+        message: event.message,
       });
       const header = JSON.stringify({
         event_id: event.event_id,
+        sent_at: '123',
         sdk: event.sdk,
       });
       const item = JSON.stringify({
+        type: 'event',
         content_type: 'application/json',
         length: 1,
-        type: 'event',
       });
 
-      await NATIVE.sendEvent(event);
+      const env = createEnvelope<EventEnvelope>({ event_id: event.event_id as string, sent_at: '123' }, [
+        [{ type: 'event' }, event] as EventItem,
+      ]);
+
+      await NATIVE.sendEnvelope(env);
 
       // @ts-ignore testing method
       expect(RNSentry._getLastPayload().envelopePayload).toMatch(
@@ -554,15 +575,15 @@ describe('Tests Native Wrapper', () => {
 
   describe('_processLevel', () => {
     test('converts deprecated levels', () => {
-      expect(NATIVE._processLevel(Severity.Log)).toBe(Severity.Debug);
-      expect(NATIVE._processLevel(Severity.Critical)).toBe(Severity.Fatal);
+      expect(NATIVE._processLevel('log' as SeverityLevel)).toBe('debug' as SeverityLevel);
+      expect(NATIVE._processLevel('critical' as SeverityLevel)).toBe('fatal' as SeverityLevel);
     });
     test('returns non-deprecated levels', () => {
-      expect(NATIVE._processLevel(Severity.Debug)).toBe(Severity.Debug);
-      expect(NATIVE._processLevel(Severity.Fatal)).toBe(Severity.Fatal);
-      expect(NATIVE._processLevel(Severity.Info)).toBe(Severity.Info);
-      expect(NATIVE._processLevel(Severity.Warning)).toBe(Severity.Warning);
-      expect(NATIVE._processLevel(Severity.Error)).toBe(Severity.Error);
+      expect(NATIVE._processLevel('debug' as SeverityLevel)).toBe('debug' as SeverityLevel);
+      expect(NATIVE._processLevel('fatal' as SeverityLevel)).toBe('fatal' as SeverityLevel);
+      expect(NATIVE._processLevel('info' as SeverityLevel)).toBe('info' as SeverityLevel);
+      expect(NATIVE._processLevel('warning' as SeverityLevel)).toBe('warning' as SeverityLevel);
+      expect(NATIVE._processLevel('error' as SeverityLevel)).toBe('error' as SeverityLevel);
     });
   });
 

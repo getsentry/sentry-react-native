@@ -211,12 +211,14 @@ export class StallTrackingInstrumentation {
       return;
     }
 
-    transaction.setMeasurement('stall.count',
+    transaction.setMeasurement('stall_count',
       statsOnFinish.stall_count.value -
       transactionStats.atStart.stall_count.value);
-    transaction.setMeasurement('stall.total.time.count',
+    transaction.setMeasurement('stall_total_time',
       statsOnFinish.stall_total_time.value -
       transactionStats.atStart.stall_total_time.value);
+    transaction.setMeasurement('stall_longest_time',
+      statsOnFinish.stall_longest_time.value);
   }
 
   /**

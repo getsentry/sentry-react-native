@@ -91,10 +91,9 @@ export const NATIVE: SentryNativeWrapper = {
 
       const headerString = JSON.stringify(header);
 
-      let envelopeItemsBuilder = `${headerString}\n`;
+      let envelopeItemsBuilder = `${headerString}`;
 
-      //@ts-ignore
-      request[1].forEach(async envelopeItems => {
+      for (const envelopeItems of request[1]) {
         if (envelopeItems[0].type == "event" || envelopeItems[0].type == "transaction") {
           let event = this._processLevels(envelopeItems[1] as Event);
 
@@ -115,7 +114,7 @@ export const NATIVE: SentryNativeWrapper = {
         // Content type is not inside BaseEnvelopeItemHeaders.
         (envelopeItems[0] as BaseEnvelopeItemHeaders).content_type = 'application/json';
 
-        const itemPayload = JSON.parse(JSON.stringify(envelopeItems[1]));
+        const itemPayload = JSON.stringify(envelopeItems[1]);
 
         let length = itemPayload.length;
         try {
@@ -125,17 +124,17 @@ export const NATIVE: SentryNativeWrapper = {
         }
 
         (envelopeItems[0] as BaseEnvelopeItemHeaders).length = length;
-        const itemHeader = JSON.parse(JSON.stringify(envelopeItems[0]));
+        const itemHeader = JSON.stringify(envelopeItems[0]);
 
-        envelopeItemsBuilder += `${itemHeader}\n${itemPayload}\n`;
-      });
+        envelopeItemsBuilder += `\n${itemHeader}\n${itemPayload}`;
+      }
 
       envelopeWasSent = await RNSentry.captureEnvelope(envelopeItemsBuilder);
     } else {
       // iOS/Mac
 
       //@ts-ignore
-      request[1].forEach(async envelopeItems => {
+      for (const envelopeItems of request[1]) {
         if (envelopeItems[0].type == "event" || envelopeItems[0].type == "transaction") {
           envelopeItems[1] = this._processLevels(envelopeItems[1] as Event);
         }
@@ -148,7 +147,7 @@ export const NATIVE: SentryNativeWrapper = {
           header,
           payload: itemPayload,
         });
-      });
+      }
     };
 
   },
@@ -503,6 +502,10 @@ export const NATIVE: SentryNativeWrapper = {
     if (level == 'log' as SeverityLevel) {
       return 'debug' as SeverityLevel;
     }
+    else if (level == 'critical' as SeverityLevel) {
+      return 'fatal' as SeverityLevel;
+    }
+
 
     return level;
   },

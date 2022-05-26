@@ -8,13 +8,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {CommonActions} from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { CommonActions } from '@react-navigation/native';
 
 import * as Sentry from '@sentry/react-native';
 
-import {getTestProps} from '../../utils/getTestProps';
-import {SENTRY_INTERNAL_DSN} from '../dsn';
+import { getTestProps } from '../../utils/getTestProps';
+import { SENTRY_INTERNAL_DSN } from '../dsn';
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -51,7 +51,7 @@ const HomeScreen = (props: Props) => {
     Sentry.setExtra('SINGLE-EXTRA-OBJECT', {
       message: 'I am a teapot',
       status: 418,
-      array: ['boo', 100, 400, {objectInsideArray: 'foobar'}],
+      array: ['boo', 100, 400, { objectInsideArray: 'foobar' }],
     });
     Sentry.setExtras({
       'MULTI-EXTRA-0': dateString,
@@ -71,7 +71,7 @@ const HomeScreen = (props: Props) => {
     });
 
     Sentry.addBreadcrumb({
-      level: Sentry.Severity.Info,
+      level: Sentry.'info' as SeverityLevel,
       message: `TEST-BREADCRUMB-INFO: ${dateString}`,
     });
     Sentry.addBreadcrumb({
@@ -79,15 +79,15 @@ const HomeScreen = (props: Props) => {
       message: `TEST-BREADCRUMB-DEBUG: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: Sentry.Severity.Error,
+      level: Sentry.'error' as SeverityLevel,
       message: `TEST-BREADCRUMB-ERROR: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: Sentry.Severity.Fatal,
+      level: Sentry.'fatal' as SeverityLevel,
       message: `TEST-BREADCRUMB-FATAL: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: Sentry.Severity.Info,
+      level: Sentry.'info' as SeverityLevel,
       message: `TEST-BREADCRUMB-DATA: ${dateString}`,
       data: {
         stringTest: 'Hello',
@@ -210,7 +210,7 @@ const HomeScreen = (props: Props) => {
             </TouchableOpacity>
             <View style={styles.spacer} />
             <Sentry.ErrorBoundary
-              fallback={({eventId}) => (
+              fallback={({ eventId }) => (
                 <Text>Error boundary caught with event id: {eventId}</Text>
               )}>
               <TouchableOpacity
@@ -245,10 +245,10 @@ const HomeScreen = (props: Props) => {
                   CommonActions.reset({
                     index: 1,
                     routes: [
-                      {name: 'Home'},
+                      { name: 'Home' },
                       {
                         name: 'PerformanceTiming',
-                        params: {someParam: 'hello'},
+                        params: { someParam: 'hello' },
                       },
                     ],
                   }),
