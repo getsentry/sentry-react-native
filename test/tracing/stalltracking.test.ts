@@ -332,13 +332,13 @@ describe('StallTracking', () => {
 
   it('Stall tracking supports idleTransaction with unfinished spans', (done) => {
     const stallTracking = new StallTrackingInstrumentation();
-
+    const localHub = hub;
     const idleTransaction = new IdleTransaction({
       name: 'Test Transaction',
       trimEnd: true,
       sampled: true,
-
-    }, new Hub(), undefined, undefined, undefined);
+      //@ts-ignore use the mocked hub.
+    }, localHub, undefined, undefined);
     idleTransaction.initSpanRecorder();
 
     stallTracking.onTransactionStart(idleTransaction);
