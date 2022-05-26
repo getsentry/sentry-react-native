@@ -71,23 +71,23 @@ const HomeScreen = (props: Props) => {
     });
 
     Sentry.addBreadcrumb({
-      level: Sentry.'info' as SeverityLevel,
+      level: 'info' as SeverityLevel,
       message: `TEST-BREADCRUMB-INFO: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: Sentry.Severity.Debug,
+      level: 'debug' as SeverityLevel,
       message: `TEST-BREADCRUMB-DEBUG: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: Sentry.'error' as SeverityLevel,
+      level: 'error' as SeverityLevel,
       message: `TEST-BREADCRUMB-ERROR: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: Sentry.'fatal' as SeverityLevel,
+      level: 'fatal' as SeverityLevel,
       message: `TEST-BREADCRUMB-FATAL: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: Sentry.'info' as SeverityLevel,
+      level: 'info' as SeverityLevel,
       message: `TEST-BREADCRUMB-DATA: ${dateString}`,
       data: {
         stringTest: 'Hello',
