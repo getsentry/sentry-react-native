@@ -19,9 +19,7 @@
     ],
     "target": "es6",
     "module": "es6",
-    /*  2 import React from 'react'; node_modules/@types/react/index.d.ts:65:1   65 export = React;
-    This module is declared with using 'export =', and can only be used with a default import when using the 'allowSyntheticDefaultImports' flag.
-*/
+    "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
   }
 }
