@@ -2,7 +2,9 @@
   "editor.formatOnType": true,
   "editor.formatOnPaste": false,
   "editor.formatOnSave": true,
-  "editor.rulers": [120],
+  "editor.rulers": [
+    120
+  ],
   "editor.tabSize": 2,
   "files.autoSave": "onWindowChange",
   "files.trimTrailingWhitespace": true,
@@ -21,5 +23,6 @@
     "editor.formatOnPaste": false,
     "editor.formatOnSave": false
   },
-  "react-native-tools.projectRoot": "./sample"
+  "react-native-tools.projectRoot": "./sample",
+  "dart.flutterAdbConnectOnChromeOs": false
 }

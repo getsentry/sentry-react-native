@@ -1,5 +1,5 @@
 import * as core from '@sentry/core';
-import { Severity, SeverityLevel } from '@sentry/types';
+import { SeverityLevel } from '@sentry/types';
 
 import { TouchEventBoundary } from '../src/js/touchevents';
 

@@ -51,11 +51,12 @@ const getMockHub = () => {
   return mockHub;
 };
 
+import { BrowserClientOptions } from '@sentry/browser/types/client';
+
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
 import { NATIVE } from '../../src/js/wrapper';
 import { mockFunction } from '../testutils';
-import { BrowserClientOptions } from '@sentry/browser/types/client';
 
 beforeEach(() => {
   NATIVE.enableNative = true;

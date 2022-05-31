@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
-
 import { createEnvelope, logger } from '@sentry/utils';
-
 
 import { SentryNativeBridgeModule } from '../src/js/definitions';
 import { ReactNativeOptions } from '../src/js/options';
@@ -328,7 +326,7 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      // @ts-ignore testing method
+      // @ts-ignore _getLastPayload only exists on the mocked class.
       expect(RNSentry._getLastPayload().envelopePayload).toMatch(
         `${header}\n${item}\n${payload}`
       );
@@ -336,11 +334,13 @@ describe('Tests Native Wrapper', () => {
     test('does not call RNSentry at all if enableNative is false', async () => {
       try {
         await NATIVE.initNativeSdk({ dsn: 'test-dsn', enableNative: false });
-        //@ts-ignore
+
+        // @ts-ignore for testing, does not accept an empty class.
         await NATIVE.sendEnvelope({});
-        //@ts-ignore
-      } catch (e) {
-        expect(e.message).toMatch('Native is disabled');
+
+      } catch (error) {
+        // @ts-ignore it is an error but it does not know the type.
+        expect(error.message).toMatch('Native is disabled');
       }
       expect(RNSentry.getStringBytesLength).not.toBeCalled();
       expect(RNSentry.captureEnvelope).not.toBeCalled();

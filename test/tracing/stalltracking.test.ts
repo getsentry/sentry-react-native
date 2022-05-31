@@ -1,4 +1,3 @@
-import { Hub } from '@sentry/hub';
 import { IdleTransaction, Transaction } from '@sentry/tracing';
 import { Event } from '@sentry/types';
 
@@ -337,7 +336,7 @@ describe('StallTracking', () => {
       name: 'Test Transaction',
       trimEnd: true,
       sampled: true,
-      //@ts-ignore use the mocked hub.
+      // @ts-ignore use the mocked hub.
     }, localHub, undefined, undefined);
     idleTransaction.initSpanRecorder();
 

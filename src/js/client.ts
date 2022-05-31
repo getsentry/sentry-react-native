@@ -1,38 +1,24 @@
 import { BrowserClient, defaultIntegrations, defaultStackParser, makeFetchTransport } from '@sentry/browser';
-import { BaseClient } from '@sentry/core';
-import { EventHint, Event, Severity, SeverityLevel, Transport } from '@sentry/types';
-
-import { ReactNativeClientOptions } from './options';
-import { NATIVE } from './wrapper';
-// @ts-ignore LogBox introduced in RN 0.63
-import { Alert, LogBox, YellowBox } from 'react-native';
 import { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
 import { FetchImpl } from '@sentry/browser/types/transports/utils';
+import { BaseClient } from '@sentry/core';
+import { Event, EventHint, Severity, SeverityLevel, Transport } from '@sentry/types';
+// @ts-ignore LogBox introduced in RN 0.63
+import { Alert, LogBox, YellowBox } from 'react-native';
+
+import { ReactNativeClientOptions } from './options';
 import { NativeTransport } from './transports/native';
+import { NATIVE } from './wrapper';
 
 /**
  * The Sentry React Native SDK Client.
  *
- * @see ReactNativeClientOptions  for documentation on configuration options.
+ * @see ReactNativeClientOptions for documentation on configuration options.
  * @see SentryClient for usage documentation.
  */
 export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
   private readonly _browserClient: BrowserClient;
-
-  /**
-   * @inheritDoc
-   */
-  eventFromException(_exception: any, _hint?: EventHint): PromiseLike<Event> {
-    return this._browserClient.eventFromException(_exception, _hint);
-  }
-
-  /**
-   * @inheritDoc
-   */
-  eventFromMessage(_message: string, _level?: Severity | SeverityLevel, _hint?: EventHint): PromiseLike<Event> {
-    return this._browserClient.eventFromMessage(_message, _level, _hint);
-  }
 
   /**
    * Creates a new React Native SDK instance.
@@ -52,11 +38,27 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
     void this._initNativeSdk();
 
+    // @ts-ignore same is done on the Node.JS SDK: Avoid referencing unbound methods which may cause unintentional scoping of `this`
     this._browserClient = new BrowserClient({
       transport: this._chooseTransport,
       stackParser: defaultStackParser,
       integrations: defaultIntegrations,
     });
+  }
+
+  /**
+   * FIX: inherit doc not working here.
+   * @param options Configuration options for this SDK.
+   */
+  eventFromException(_exception: unknown, _hint?: EventHint): PromiseLike<Event> {
+    return this._browserClient.eventFromException(_exception, _hint);
+  }
+
+  /**
+   * FIX: inherit doc not working here.
+   */
+  eventFromMessage(_message: string, _level?: Severity | SeverityLevel, _hint?: EventHint): PromiseLike<Event> {
+    return this._browserClient.eventFromMessage(_message, _level, _hint);
   }
 
   /**
@@ -107,6 +109,9 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     }
   }
 
+  /**
+   *
+   */
   private _chooseTransport(options: BrowserTransportOptions, nativeFetch?: FetchImpl): Transport {
     if (NATIVE.isNativeTransportAvailable()) {
       return new NativeTransport();

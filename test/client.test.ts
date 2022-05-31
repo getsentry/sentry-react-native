@@ -1,9 +1,9 @@
 import * as RN from 'react-native';
-import { ReactNativeClientOptions, ReactNativeOptions } from 'src/js/options';
 
 import { ReactNativeClient } from '../src/js/client';
-import { NATIVE } from '../src/js/wrapper';
+import { ReactNativeClientOptions, ReactNativeOptions } from '../src/js/options';
 import { NativeTransport } from '../src/js/transports/native';
+import { NATIVE } from '../src/js/wrapper';
 
 const EXAMPLE_DSN =
   'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053';

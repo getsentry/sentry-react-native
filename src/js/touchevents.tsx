@@ -1,5 +1,5 @@
-import { SeverityLevel } from '@sentry/types';
 import { addBreadcrumb } from '@sentry/core';
+import { SeverityLevel } from '@sentry/types';
 import { logger } from '@sentry/utils';
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';

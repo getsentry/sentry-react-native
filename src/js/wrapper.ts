@@ -8,7 +8,6 @@ import {
   SeverityLevel,
   User,
 } from '@sentry/types';
-
 import { logger, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
 
@@ -44,7 +43,7 @@ interface SentryNativeWrapper {
   initNativeSdk(options: ReactNativeOptions): PromiseLike<boolean>;
   closeNativeSdk(): PromiseLike<void>;
 
-  sendEnvelope(request: Envelope): Promise<void>;
+  sendEnvelope(envelope: Envelope): Promise<void>;
 
   fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
@@ -70,9 +69,9 @@ interface SentryNativeWrapper {
 export const NATIVE: SentryNativeWrapper = {
   /**
    * Sending the envelope over the bridge to native
-   * @param request Envelope
+   * @param envelope Envelope
    */
-  async sendEnvelope(request: Envelope): Promise<void> {
+  async sendEnvelope(envelope: Envelope): Promise<void> {
     if (!this.enableNative) {
       logger.warn('Event was skipped as native SDK is not enabled.');
       return;
@@ -81,10 +80,8 @@ export const NATIVE: SentryNativeWrapper = {
     if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
-    //@ts-ignore
-    let envelopeWasSent = false;
 
-    const header = request[0];
+    const header = envelope[0];
 
     if (NATIVE.platform === 'android') {
       // Android
@@ -93,9 +90,9 @@ export const NATIVE: SentryNativeWrapper = {
 
       let envelopeItemsBuilder = `${headerString}`;
 
-      for (const envelopeItems of request[1]) {
-        if (envelopeItems[0].type == "event" || envelopeItems[0].type == "transaction") {
-          let event = this._processLevels(envelopeItems[1] as Event);
+      for (const envelopeItems of envelope[1]) {
+        if (envelopeItems[0].type == 'event' || envelopeItems[0].type == 'transaction') {
+          const event = this._processLevels(envelopeItems[1] as Event);
 
           /*
         We do this to avoid duplicate breadcrumbs on Android as sentry-android applies the breadcrumbs
@@ -129,13 +126,12 @@ export const NATIVE: SentryNativeWrapper = {
         envelopeItemsBuilder += `\n${itemHeader}\n${itemPayload}`;
       }
 
-      envelopeWasSent = await RNSentry.captureEnvelope(envelopeItemsBuilder);
+      await RNSentry.captureEnvelope(envelopeItemsBuilder);
     } else {
       // iOS/Mac
 
-      //@ts-ignore
-      for (const envelopeItems of request[1]) {
-        if (envelopeItems[0].type == "event" || envelopeItems[0].type == "transaction") {
+      for (const envelopeItems of envelope[1]) {
+        if (envelopeItems[0].type == 'event' || envelopeItems[0].type == 'transaction') {
           envelopeItems[1] = this._processLevels(envelopeItems[1] as Event);
         }
         const itemPayload = JSON.parse(JSON.stringify(envelopeItems[1]));
@@ -143,7 +139,7 @@ export const NATIVE: SentryNativeWrapper = {
         // The envelope item is created (and its length determined) on the iOS side of the native bridge.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 
-        envelopeWasSent = await RNSentry.captureEnvelope({
+        await RNSentry.captureEnvelope({
           header,
           payload: itemPayload,
         });

@@ -3,8 +3,7 @@ import { BrowserClient, defaultIntegrations, defaultStackParser } from '@sentry/
 const _browserClient: BrowserClient = new BrowserClient({
   stackParser: defaultStackParser,
   integrations: defaultIntegrations,
-  //@ts-ignore
-  transport: jest.fn<Transport>(),
+  transport: jest.fn(),
 });
 
 
@@ -42,7 +41,7 @@ jest.mock('@sentry/utils', () => {
 });
 
 import { getCurrentHub } from '@sentry/core';
-import { Event, EventHint, SeverityLevel, Transport } from '@sentry/types';
+import { Event, EventHint, SeverityLevel } from '@sentry/types';
 
 import { ReactNativeErrorHandlers } from '../../src/js/integrations/reactnativeerrorhandlers';
 
