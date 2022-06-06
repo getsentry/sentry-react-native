@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Bump Sentry JavaScript 7. ([#2250](https://github.com/getsentry/sentry-react-native/pull/2250))
+
 ## 3.4.3
 
 - feat: Support macOS (#2240) by @ospfranco
