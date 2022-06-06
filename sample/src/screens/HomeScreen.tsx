@@ -15,6 +15,7 @@ import * as Sentry from '@sentry/react-native';
 
 import { getTestProps } from '../../utils/getTestProps';
 import { SENTRY_INTERNAL_DSN } from '../dsn';
+import { SeverityLevel } from '@sentry/types';
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;

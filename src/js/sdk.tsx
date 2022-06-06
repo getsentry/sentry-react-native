@@ -41,6 +41,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
 export function init(passedOptions: ReactNativeOptions): void {
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
   makeMain(reactNativeHub);
+
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
@@ -54,58 +55,59 @@ export function init(passedOptions: ReactNativeOptions): void {
     typeof options.tracesSampler !== 'undefined' ||
     typeof options.tracesSampleRate !== 'undefined';
 
-  // TODO: Decide if this if is required.
-  //  if (any integration) {
-  options.integrations = [
-    new ReactNativeErrorHandlers({
-      patchGlobalPromise: options.patchGlobalPromise,
-    }),
-    new Release(),
-    ...defaultIntegrations.filter(
-      (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
-    ),
-    new EventOrigin(),
-    new SdkInfo(),
-  ];
+  if (passedOptions.defaultIntegrations === undefined) {
+    passedOptions.defaultIntegrations = [
+      new ReactNativeErrorHandlers({
+        patchGlobalPromise: options.patchGlobalPromise,
+      }),
+      new Release(),
+      ...defaultIntegrations.filter(
+        (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
+      ),
+      new EventOrigin(),
+      new SdkInfo(),
+    ];
 
-  if (__DEV__) {
-    options.integrations.push(new DebugSymbolicator());
-  }
-
-  options.integrations.push(
-    new RewriteFrames({
-      iteratee: (frame: StackFrame) => {
-        if (frame.filename) {
-          frame.filename = frame.filename
-            .replace(/^file:\/\//, '')
-            .replace(/^address at /, '')
-            .replace(/^.*\/[^.]+(\.app|CodePush|.*(?=\/))/, '');
-
-          if (
-            frame.filename !== '[native code]' &&
-            frame.filename !== 'native'
-          ) {
-            const appPrefix = 'app://';
-            // We always want to have a triple slash
-            frame.filename =
-              frame.filename.indexOf('/') === 0
-                ? `${appPrefix}${frame.filename}`
-                : `${appPrefix}/${frame.filename}`;
-          }
-        }
-        return frame;
-      },
-    })
-  );
-  if (options.enableNative) {
-    options.integrations.push(new DeviceContext());
-  }
-  if (tracingEnabled) {
-    if (options.enableAutoPerformanceTracking) {
-      options.integrations.push(new ReactNativeTracing());
+    if (__DEV__) {
+      passedOptions.defaultIntegrations.push(new DebugSymbolicator());
     }
+
+    passedOptions.defaultIntegrations.push(
+      new RewriteFrames({
+        iteratee: (frame: StackFrame) => {
+          if (frame.filename) {
+            frame.filename = frame.filename
+              .replace(/^file:\/\//, '')
+              .replace(/^address at /, '')
+              .replace(/^.*\/[^.]+(\.app|CodePush|.*(?=\/))/, '');
+
+            if (
+              frame.filename !== '[native code]' &&
+              frame.filename !== 'native'
+            ) {
+              const appPrefix = 'app://';
+              // We always want to have a triple slash
+              frame.filename =
+                frame.filename.indexOf('/') === 0
+                  ? `${appPrefix}${frame.filename}`
+                  : `${appPrefix}/${frame.filename}`;
+            }
+          }
+          return frame;
+        },
+      })
+    );
+    if (options.enableNative) {
+      passedOptions.defaultIntegrations.push(new DeviceContext());
+    }
+    if (tracingEnabled) {
+      if (options.enableAutoPerformanceTracking) {
+        passedOptions.defaultIntegrations.push(new ReactNativeTracing());
+      }
+    }
+
+    options.integrations.push(...passedOptions.defaultIntegrations);
   }
-  // }
 
   initAndBind(ReactNativeClient, options);
 
