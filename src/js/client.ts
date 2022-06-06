@@ -38,6 +38,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
     void this._initNativeSdk();
 
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     options.transport = this._chooseTransport;
     options.stackParser = defaultStackParser;
 
