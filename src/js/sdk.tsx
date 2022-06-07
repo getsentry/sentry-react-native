@@ -56,7 +56,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     typeof options.tracesSampleRate !== 'undefined';
 
   if (passedOptions.defaultIntegrations === undefined) {
-    passedOptions.defaultIntegrations = [
+    options.integrations.push(...[
       new ReactNativeErrorHandlers({
         patchGlobalPromise: options.patchGlobalPromise,
       }),
@@ -66,13 +66,13 @@ export function init(passedOptions: ReactNativeOptions): void {
       ),
       new EventOrigin(),
       new SdkInfo(),
-    ];
+    ]);
 
     if (__DEV__) {
-      passedOptions.defaultIntegrations.push(new DebugSymbolicator());
+      options.integrations.push(new DebugSymbolicator());
     }
 
-    passedOptions.defaultIntegrations.push(
+    options.integrations.push(
       new RewriteFrames({
         iteratee: (frame: StackFrame) => {
           if (frame.filename) {
@@ -98,15 +98,13 @@ export function init(passedOptions: ReactNativeOptions): void {
       })
     );
     if (options.enableNative) {
-      passedOptions.defaultIntegrations.push(new DeviceContext());
+      options.integrations.push(new DeviceContext());
     }
     if (tracingEnabled) {
       if (options.enableAutoPerformanceTracking) {
-        passedOptions.defaultIntegrations.push(new ReactNativeTracing());
+        options.integrations.push(new ReactNativeTracing());
       }
     }
-
-    options.integrations.push(...passedOptions.defaultIntegrations);
   }
 
   initAndBind(ReactNativeClient, options);
