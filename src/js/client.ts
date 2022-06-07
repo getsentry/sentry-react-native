@@ -25,7 +25,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @param options Configuration options for this SDK.
    */
    public constructor(options: ReactNativeClientOptions) {
-     super(options);
+    super(options);
 
     options.transport = this._chooseTransport.bind(this);
 
