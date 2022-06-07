@@ -94,6 +94,9 @@ export const NATIVE: SentryNativeWrapper = {
         if (envelopeItems[0].type == 'event' || envelopeItems[0].type == 'transaction') {
           const event = this._processLevels(envelopeItems[1] as Event);
 
+          // @ts-ignore Android still uses the old message object, without this the serialization of events will break.
+          event.message = { message: event.message };
+
           /*
         We do this to avoid duplicate breadcrumbs on Android as sentry-android applies the breadcrumbs
         from the native scope onto every envelope sent through it. This scope will contain the breadcrumbs
