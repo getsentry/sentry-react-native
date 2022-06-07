@@ -200,7 +200,7 @@ export class ReactNativeErrorHandlers implements Integration {
 
         const options = client.getOptions();
 
-        const event = await client.eventFromException(error, { // FIX REACT NATIVE CLIENT.
+        const event = await client.eventFromException(error, {
           originalException: error
         });
 
