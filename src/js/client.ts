@@ -1,4 +1,4 @@
-import { BrowserClient, defaultIntegrations, defaultStackParser, makeFetchTransport } from '@sentry/browser';
+import { BrowserClient, defaultStackParser, makeFetchTransport } from '@sentry/browser';
 import { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
 import { FetchImpl } from '@sentry/browser/types/transports/utils';
 import { BaseClient } from '@sentry/core';
@@ -24,8 +24,11 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * Creates a new React Native SDK instance.
    * @param options Configuration options for this SDK.
    */
-  public constructor(options: ReactNativeClientOptions) {
-    super(options);
+   public constructor(options: ReactNativeClientOptions) {
+     super(options);
+
+    options.transport = this._chooseTransport.bind(this);
+
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
     // YellowBox deprecated and replaced with with LogBox in RN 0.63
     if (LogBox) {
@@ -35,20 +38,15 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       // eslint-disable-next-line deprecation/deprecation
       YellowBox.ignoreWarnings(['Require cycle:']);
     }
-
     void this._initNativeSdk();
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    options.transport = this._chooseTransport;
-    options.stackParser = defaultStackParser;
-
     this._browserClient = new BrowserClient({
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      transport: this._chooseTransport,
-      stackParser: defaultStackParser,
-      integrations: defaultIntegrations,
+      transport: options.transport,
+      stackParser: options.stackParser || defaultStackParser,
+      integrations: [],
     });
   }
+
 
   /**
    * @inheritDoc
