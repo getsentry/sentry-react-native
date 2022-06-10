@@ -1,12 +1,17 @@
 /* eslint-disable max-lines */
 import {
+  AttachmentItem,
   BaseEnvelopeItemHeaders,
   Breadcrumb,
+  ClientReportItem,
   Envelope,
   Event,
+  EventItem,
   Package,
+  SessionItem,
   SeverityLevel,
   User,
+  UserFeedbackItem,
 } from '@sentry/types';
 import { logger, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
@@ -31,6 +36,7 @@ interface SentryNativeWrapper {
   _NativeClientError: Error;
   _DisabledNativeError: Error;
 
+  _getEvent(envelopeItem: EventItem | AttachmentItem | UserFeedbackItem | SessionItem | ClientReportItem): Event | undefined;
   _processLevels(event: Event): Event;
   _processLevel(level: SeverityLevel): SeverityLevel;
   _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
@@ -91,8 +97,9 @@ export const NATIVE: SentryNativeWrapper = {
       let envelopeItemsBuilder = `${headerString}`;
 
       for (const envelopeItems of envelope[1]) {
-        if (envelopeItems[0].type == 'event' || envelopeItems[0].type == 'transaction') {
-          const event = this._processLevels(envelopeItems[1] as Event);
+
+        const event = this._getEvent(envelopeItems);
+        if (event != undefined) {
 
           // @ts-ignore Android still uses the old message object, without this the serialization of events will break.
           event.message = { message: event.message };
@@ -134,9 +141,11 @@ export const NATIVE: SentryNativeWrapper = {
       // iOS/Mac
 
       for (const envelopeItems of envelope[1]) {
-        if (envelopeItems[0].type == 'event' || envelopeItems[0].type == 'transaction') {
-          envelopeItems[1] = this._processLevels(envelopeItems[1] as Event);
+        const event = this._getEvent(envelopeItems);
+        if (event != undefined) {
+          envelopeItems[1] = event;
         }
+
         const itemPayload = JSON.parse(JSON.stringify(envelopeItems[1]));
 
         // The envelope item is created (and its length determined) on the iOS side of the native bridge.
@@ -449,6 +458,18 @@ export const NATIVE: SentryNativeWrapper = {
 
   isNativeTransportAvailable(): boolean {
     return this.enableNative && this._isModuleLoaded(RNSentry);
+  },
+
+  /**
+   * Gets the event from envelopeItem and applies the level filter to the selected event.
+   * @param data An envelope item containing the event.
+   * @returns The event from envelopeItem or undefined.
+   */
+  _getEvent(envelopeItem: EventItem | AttachmentItem | UserFeedbackItem | SessionItem | ClientReportItem): Event | undefined {
+      if (envelopeItem[0].type == 'event' || envelopeItem[0].type == 'transaction') {
+        return this._processLevels(envelopeItem[1] as Event);
+      }
+      return undefined;
   },
 
   /**

@@ -2,7 +2,13 @@
 
 ## Unreleased
 
-- Bump Sentry JavaScript 7. ([#2250](https://github.com/getsentry/sentry-react-native/pull/2250))
+- Bump Sentry JavaScript 7.0.0 ([#2250](https://github.com/getsentry/sentry-react-native/pull/2250))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/7.0.0/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/6.19.2...7.0.0)
+
+## Breaking changes
+
+By bumping Sentry Javascript, new breaking changes were introduced, to know more what was changed, check the ([breaking changes changelog](https://github.com/getsentry/sentry-javascript/blob/7.0.0/CHANGELOG.md#breaking-changes)) from Sentry Javascript.
 
 ## 3.4.3
 

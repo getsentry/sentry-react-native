@@ -25,9 +25,15 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @param options Configuration options for this SDK.
    */
    public constructor(options: ReactNativeClientOptions) {
-    super(options);
+    const transport = (options: BrowserTransportOptions, nativeFetch?: FetchImpl): Transport => {
+      if (NATIVE.isNativeTransportAvailable()) {
+        return new NativeTransport();
+      }
+      return makeFetchTransport(options, nativeFetch);
+     }
 
-    options.transport = this._chooseTransport.bind(this);
+     options.transport = transport;
+     super(options);
 
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
     // YellowBox deprecated and replaced with with LogBox in RN 0.63
@@ -108,16 +114,5 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
         'Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details.'
       );
     }
-  }
-
-  /**
-   * Choose the native or default transport.
-   */
-  private _chooseTransport(options: BrowserTransportOptions, nativeFetch?: FetchImpl): Transport {
-    if (NATIVE.isNativeTransportAvailable()) {
-      return new NativeTransport();
-    }
-
-    return makeFetchTransport(options, nativeFetch);
   }
 }
