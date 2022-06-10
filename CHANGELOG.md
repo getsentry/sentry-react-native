@@ -8,7 +8,7 @@
 
 ## Breaking changes
 
-By bumping Sentry Javascript, new breaking changes were introduced, to know more what was changed, check the ([breaking changes changelog](https://github.com/getsentry/sentry-javascript/blob/7.0.0/CHANGELOG.md#breaking-changes)) from Sentry Javascript.
+By bumping Sentry Javascript, new breaking changes were introduced, to know more what was changed, check the [breaking changes changelog](https://github.com/getsentry/sentry-javascript/blob/7.0.0/CHANGELOG.md#breaking-changes) from Sentry Javascript.
 
 ## 3.4.3
 
