@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.1
 
 - Bump Sentry JavaScript 7.0.0 ([#2250](https://github.com/getsentry/sentry-react-native/pull/2250))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/7.0.0/CHANGELOG.md)
