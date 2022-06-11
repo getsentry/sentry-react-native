@@ -8,7 +8,7 @@ import { instrumentChildSpanFinish } from './utils';
 
 type FramesMeasurements = Record<
   'frames_total' | 'frames_slow' | 'frames_frozen',
-  { value: number }
+  { value: number, unit: string }
 >;
 
 /**
@@ -138,7 +138,7 @@ export class NativeFramesInstrumentation {
     } else if (
       this._lastSpanFinishFrames &&
       Math.abs(this._lastSpanFinishFrames.timestamp - finalEndTimestamp) <
-        MARGIN_OF_ERROR_SECONDS
+      MARGIN_OF_ERROR_SECONDS
     ) {
       // Fallback to the last span finish if it is within the margin of error of the actual finish timestamp.
       // This should be the case for trimEnd.
@@ -150,12 +150,15 @@ export class NativeFramesInstrumentation {
     const measurements = {
       frames_total: {
         value: finalFinishFrames.totalFrames - startFrames.totalFrames,
+        unit: ''
       },
       frames_frozen: {
         value: finalFinishFrames.frozenFrames - startFrames.frozenFrames,
+        unit: ''
       },
       frames_slow: {
         value: finalFinishFrames.slowFrames - startFrames.slowFrames,
+        unit: ''
       },
     };
 
@@ -242,8 +245,7 @@ export class NativeFramesInstrumentation {
           );
         } else {
           logger.log(
-            `[Measurements] Adding measurements to ${
-              traceContext.op
+            `[Measurements] Adding measurements to ${traceContext.op
             } transaction ${event.transaction}: ${JSON.stringify(
               measurements,
               undefined,

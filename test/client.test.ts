@@ -1,7 +1,8 @@
-import { NoopTransport } from '@sentry/core';
 import * as RN from 'react-native';
 
-import { ReactNativeBackend } from '../src/js/backend';
+import { ReactNativeClient } from '../src/js/client';
+import { ReactNativeClientOptions, ReactNativeOptions } from '../src/js/options';
+import { NativeTransport } from '../src/js/transports/native';
 import { NATIVE } from '../src/js/wrapper';
 
 const EXAMPLE_DSN =
@@ -30,20 +31,31 @@ jest.mock(
   { virtual: true }
 );
 
+const DEFAULT_OPTIONS: ReactNativeOptions = {
+  enableNative: true,
+  enableNativeCrashHandling: true,
+  enableNativeNagger: true,
+  autoInitializeNativeSdk: true,
+  enableAutoPerformanceTracking: true,
+  enableOutOfMemoryTracking: true,
+  patchGlobalPromise: true
+};
+
 afterEach(() => {
   jest.clearAllMocks();
   NATIVE.enableNative = true;
 });
 
-describe('Tests ReactNativeBackend', () => {
-  describe('initializing the backend', () => {
-    test('backend initializes', async () => {
-      const backend = new ReactNativeBackend({
+describe('Tests ReactNativeClient', () => {
+  describe('initializing the client', () => {
+    test('client initializes', async () => {
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
-        enableNative: true,
-      });
+        transport: () => new NativeTransport()
+      } as ReactNativeClientOptions);
 
-      await expect(backend.eventFromMessage('test')).resolves.toBeDefined();
+      await expect(client.eventFromMessage('test')).resolves.toBeDefined();
       // @ts-ignore: Is Mocked
       // eslint-disable-next-line @typescript-eslint/unbound-method
       await expect(RN.LogBox.ignoreLogs).toBeCalled();
@@ -51,10 +63,11 @@ describe('Tests ReactNativeBackend', () => {
 
     test('invalid dsn is thrown', () => {
       try {
-        new ReactNativeBackend({
+        new ReactNativeClient({
+          ...DEFAULT_OPTIONS,
           dsn: 'not a dsn',
-          enableNative: true,
-        });
+          transport: () => new NativeTransport()
+        } as ReactNativeClientOptions);
       } catch (e: any) {
         expect(e.message).toBe('Invalid Sentry Dsn: not a dsn');
       }
@@ -62,10 +75,11 @@ describe('Tests ReactNativeBackend', () => {
 
     test("undefined dsn doesn't crash", () => {
       expect(() => {
-        const backend = new ReactNativeBackend({
+        const backend = new ReactNativeClient({
+          ...DEFAULT_OPTIONS,
           dsn: undefined,
-          enableNative: true,
-        });
+          transport: () => new NativeTransport()
+        } as ReactNativeClientOptions);
 
         return expect(backend.eventFromMessage('test')).resolves.toBeDefined();
       }).not.toThrow();
@@ -75,12 +89,13 @@ describe('Tests ReactNativeBackend', () => {
       // @ts-ignore: Is Mocked
       RN.LogBox = undefined;
 
-      const backend = new ReactNativeBackend({
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
-        enableNative: true,
-      });
+        transport: () => new NativeTransport()
+      } as ReactNativeClientOptions);
 
-      await expect(backend.eventFromMessage('test')).resolves.toBeDefined();
+      await expect(client.eventFromMessage('test')).resolves.toBeDefined();
       // eslint-disable-next-line deprecation/deprecation
       await expect(RN.YellowBox.ignoreWarnings).toBeCalled();
     });
@@ -88,29 +103,29 @@ describe('Tests ReactNativeBackend', () => {
 
   describe('onReady', () => {
     test('calls onReady callback with true if Native SDK is initialized', (done) => {
-      new ReactNativeBackend({
+      new ReactNativeClient({
         dsn: EXAMPLE_DSN,
         enableNative: true,
-        transport: NoopTransport,
         onReady: ({ didCallNativeInit }) => {
           expect(didCallNativeInit).toBe(true);
 
           done();
         },
-      });
+        transport: () => new NativeTransport()
+      } as ReactNativeOptions as ReactNativeClientOptions);
     });
 
     test('calls onReady callback with false if Native SDK was not initialized', (done) => {
-      new ReactNativeBackend({
+      new ReactNativeClient({
         dsn: EXAMPLE_DSN,
         enableNative: false,
-        transport: NoopTransport,
         onReady: ({ didCallNativeInit }) => {
           expect(didCallNativeInit).toBe(false);
 
           done();
         },
-      });
+        transport: () => new NativeTransport()
+      } as ReactNativeOptions as ReactNativeClientOptions);
     });
 
     test('calls onReady callback with false if Native SDK failed to initialize', (done) => {
@@ -120,16 +135,16 @@ describe('Tests ReactNativeBackend', () => {
         throw new Error();
       };
 
-      new ReactNativeBackend({
+      new ReactNativeClient({
         dsn: EXAMPLE_DSN,
         enableNative: true,
-        transport: NoopTransport,
         onReady: ({ didCallNativeInit }) => {
           expect(didCallNativeInit).toBe(false);
 
           done();
         },
-      });
+        transport: () => new NativeTransport()
+      } as ReactNativeOptions as ReactNativeClientOptions);
     });
   });
 
@@ -137,10 +152,13 @@ describe('Tests ReactNativeBackend', () => {
     test('calls NativeModules crash', () => {
       const RN = require('react-native');
 
-      const backend = new ReactNativeBackend({
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
         enableNative: true,
-      });
-      backend.nativeCrash();
+        transport: () => new NativeTransport()
+
+      } as ReactNativeClientOptions);
+      client.nativeCrash();
 
       expect(RN.NativeModules.RNSentry.crash).toBeCalled();
     });

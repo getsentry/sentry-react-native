@@ -1,5 +1,5 @@
 import * as core from '@sentry/core';
-import { Severity } from '@sentry/types';
+import { SeverityLevel } from '@sentry/types';
 
 import { TouchEventBoundary } from '../src/js/touchevents';
 
@@ -79,7 +79,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
       data: {
         componentTree: ['View', 'Connect(View)', 'LABEL!'],
       },
-      level: Severity.Info,
+      level: 'info' as SeverityLevel,
       message: 'Touch event within element: LABEL!',
       type: defaultProps.breadcrumbType,
     });
@@ -137,7 +137,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
       data: {
         componentTree: ['Styled(View2)', 'Styled(View)'],
       },
-      level: Severity.Info,
+      level: 'info' as SeverityLevel,
       message: 'Touch event within element: Styled(View2)',
       type: defaultProps.breadcrumbType,
     });
@@ -186,7 +186,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
       data: {
         componentTree: ['Connect(View)', 'Styled(View)'],
       },
-      level: Severity.Info,
+      level: 'info' as SeverityLevel,
       message: 'Touch event within element: Connect(View)',
       type: defaultProps.breadcrumbType,
     });

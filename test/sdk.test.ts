@@ -35,13 +35,13 @@ jest.mock('@sentry/hub', () => {
 
 jest.mock('../src/js/scope', () => {
   return {
-    ReactNativeScope: class ReactNativeScopeMock {},
+    ReactNativeScope: class ReactNativeScopeMock { },
   };
 });
 
 jest.mock('../src/js/client', () => {
   return {
-    ReactNativeClient: class ReactNativeClientMock {},
+    ReactNativeClient: class ReactNativeClientMock { },
   };
 });
 
@@ -68,11 +68,9 @@ describe('Tests the SDK functionality', () => {
         if (mockCall) {
           const options = mockCall[1];
 
-          if (options.defaultIntegrations) {
-            return options.defaultIntegrations?.some(
-              (integration) => integration.name === ReactNativeTracing.id
-            );
-          }
+          return options.integrations?.some(
+            (integration) => integration.name === ReactNativeTracing.id
+          );
         }
 
         return false;

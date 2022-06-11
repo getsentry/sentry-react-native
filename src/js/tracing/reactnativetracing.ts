@@ -3,7 +3,7 @@ import { Hub } from '@sentry/hub';
 import {
   defaultRequestInstrumentationOptions,
   IdleTransaction,
-  registerRequestInstrumentation,
+  instrumentOutgoingRequests,
   RequestInstrumentationOptions,
   startIdleTransaction,
   Transaction,
@@ -193,7 +193,7 @@ export class ReactNativeTracing implements Integration {
       );
     }
 
-    registerRequestInstrumentation({
+    instrumentOutgoingRequests({
       traceFetch,
       traceXHR,
       tracingOrigins,
@@ -283,9 +283,10 @@ export class ReactNativeTracing implements Integration {
 
     const appStartTimeSeconds = appStart.appStartTime / 1000;
 
+    const appStartMode = appStart.isColdStart ? 'app_start_cold' : 'app_start_warm';
     transaction.startChild({
       description: appStart.isColdStart ? 'Cold App Start' : 'Warm App Start',
-      op: appStart.isColdStart ? 'app.start.cold' : 'app.start.warm',
+      op: appStartMode,
       startTimestamp: appStartTimeSeconds,
       endTimestamp: this._appStartFinishTimestamp,
     });
@@ -293,19 +294,7 @@ export class ReactNativeTracing implements Integration {
     const appStartDurationMilliseconds =
       this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
 
-    transaction.setMeasurements(
-      appStart.isColdStart
-        ? {
-            app_start_cold: {
-              value: appStartDurationMilliseconds,
-            },
-          }
-        : {
-            app_start_warm: {
-              value: appStartDurationMilliseconds,
-            },
-          }
-    );
+    transaction.setMeasurement(appStartMode, appStartDurationMilliseconds);
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */
@@ -363,6 +352,7 @@ export class ReactNativeTracing implements Integration {
       hub as Hub,
       expandedContext,
       idleTimeout,
+      idleTimeout, // BREAKCHANGE: check the correct parameter here
       true
     );
 

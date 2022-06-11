@@ -4,11 +4,8 @@ export {
   SdkInfo,
   Event,
   Exception,
-  Response,
-  Severity,
   StackFrame,
   Stacktrace,
-  EventStatus,
   Thread,
   User,
 } from '@sentry/types';
@@ -54,8 +51,6 @@ export {
 
 import * as Integrations from './integrations';
 import { SDK_NAME, SDK_VERSION } from './version';
-
-export { ReactNativeBackend } from './backend';
 export { ReactNativeOptions } from './options';
 export { ReactNativeClient } from './client';
 

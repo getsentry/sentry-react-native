@@ -4,9 +4,9 @@ import { Measurements } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
 export interface StallMeasurements extends Measurements {
-  stall_count: { value: number };
-  stall_total_time: { value: number };
-  stall_longest_time: { value: number };
+  'stall_count': { value: number, unit: string };
+  'stall_total_time': { value: number, unit: string };
+  'stall_longest_time': { value: number, unit: string };
 }
 
 export type StallTrackingOptions = {
@@ -211,21 +211,14 @@ export class StallTrackingInstrumentation {
       return;
     }
 
-    const measurements = {
-      stall_count: {
-        value:
-          statsOnFinish.stall_count.value -
-          transactionStats.atStart.stall_count.value,
-      },
-      stall_total_time: {
-        value:
-          statsOnFinish.stall_total_time.value -
-          transactionStats.atStart.stall_total_time.value,
-      },
-      stall_longest_time: statsOnFinish.stall_longest_time,
-    };
-
-    transaction.setMeasurements(measurements);
+    transaction.setMeasurement('stall_count',
+      statsOnFinish.stall_count.value -
+      transactionStats.atStart.stall_count.value);
+    transaction.setMeasurement('stall_total_time',
+      statsOnFinish.stall_total_time.value -
+      transactionStats.atStart.stall_total_time.value);
+    transaction.setMeasurement('stall_longest_time',
+      statsOnFinish.stall_longest_time.value);
   }
 
   /**
@@ -272,10 +265,10 @@ export class StallTrackingInstrumentation {
    */
   private _getCurrentStats(transaction: Transaction): StallMeasurements {
     return {
-      stall_count: { value: this._stallCount },
-      stall_total_time: { value: this._totalStallTime },
+      stall_count: { value: this._stallCount, unit: '' },
+      stall_total_time: { value: this._totalStallTime, unit: '' },
       stall_longest_time: {
-        value: this._statsByTransaction.get(transaction)?.longestStallTime ?? 0,
+        value: this._statsByTransaction.get(transaction)?.longestStallTime ?? 0, unit: ''
       },
     };
   }

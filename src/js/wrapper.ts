@@ -1,11 +1,17 @@
 /* eslint-disable max-lines */
 import {
+  AttachmentItem,
+  BaseEnvelopeItemHeaders,
   Breadcrumb,
+  ClientReportItem,
+  Envelope,
   Event,
+  EventItem,
   Package,
-  Response,
-  Severity,
+  SessionItem,
+  SeverityLevel,
   User,
+  UserFeedbackItem,
 } from '@sentry/types';
 import { logger, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
@@ -19,6 +25,7 @@ import {
 } from './definitions';
 import { ReactNativeOptions } from './options';
 
+
 const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
 
 interface SentryNativeWrapper {
@@ -29,8 +36,9 @@ interface SentryNativeWrapper {
   _NativeClientError: Error;
   _DisabledNativeError: Error;
 
+  _getEvent(envelopeItem: EventItem | AttachmentItem | UserFeedbackItem | SessionItem | ClientReportItem): Event | undefined;
   _processLevels(event: Event): Event;
-  _processLevel(level: Severity): Severity;
+  _processLevel(level: SeverityLevel): SeverityLevel;
   _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
   _isModuleLoaded(
     module: SentryNativeBridgeModule | undefined
@@ -41,7 +49,7 @@ interface SentryNativeWrapper {
   initNativeSdk(options: ReactNativeOptions): PromiseLike<boolean>;
   closeNativeSdk(): PromiseLike<void>;
 
-  sendEvent(event: Event): PromiseLike<Response>;
+  sendEnvelope(envelope: Envelope): Promise<void>;
 
   fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
@@ -66,105 +74,90 @@ interface SentryNativeWrapper {
  */
 export const NATIVE: SentryNativeWrapper = {
   /**
-   * Sending the event over the bridge to native
-   * @param event Event
+   * Sending the envelope over the bridge to native
+   * @param envelope Envelope
    */
-  async sendEvent(_event: Event): Promise<Response> {
+  async sendEnvelope(envelope: Envelope): Promise<void> {
     if (!this.enableNative) {
-      return {
-        reason: 'Event was skipped as native SDK is not enabled.',
-        status: 'skipped',
-      };
+      logger.warn('Event was skipped as native SDK is not enabled.');
+      return;
     }
 
     if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
 
-    const event = this._processLevels(_event);
+    const header = envelope[0];
 
-    // Delete this metadata as this should not be sent to Sentry.
-    delete event.sdkProcessingMetadata;
-
-    const header = {
-      event_id: event.event_id,
-      sdk: event.sdk,
-    };
-
-    let envelopeWasSent = false;
     if (NATIVE.platform === 'android') {
       // Android
 
       const headerString = JSON.stringify(header);
 
-      /*
+      let envelopeItemsBuilder = `${headerString}`;
+
+      for (const envelopeItems of envelope[1]) {
+
+        const event = this._getEvent(envelopeItems);
+        if (event != undefined) {
+
+          // @ts-ignore Android still uses the old message object, without this the serialization of events will break.
+          event.message = { message: event.message };
+
+          /*
         We do this to avoid duplicate breadcrumbs on Android as sentry-android applies the breadcrumbs
         from the native scope onto every envelope sent through it. This scope will contain the breadcrumbs
         sent through the scope sync feature. This causes duplicate breadcrumbs.
         We then remove the breadcrumbs in all cases but if it is handled == false,
         this is a signal that the app would crash and android would lose the breadcrumbs by the time the app is restarted to read
         the envelope.
-      */
-      if (event.exception?.values?.[0]?.mechanism?.handled != false && event.breadcrumbs) {
-        event.breadcrumbs = [];
+          */
+          if (event.exception?.values?.[0]?.mechanism?.handled != false && event.breadcrumbs) {
+            event.breadcrumbs = [];
+          }
+          envelopeItems[1] = event;
+        }
+
+        // Content type is not inside BaseEnvelopeItemHeaders.
+        (envelopeItems[0] as BaseEnvelopeItemHeaders).content_type = 'application/json';
+
+        const itemPayload = JSON.stringify(envelopeItems[1]);
+
+        let length = itemPayload.length;
+        try {
+          length = await RNSentry.getStringBytesLength(itemPayload);
+        } catch {
+          // The native call failed, we do nothing, we have payload.length as a fallback
+        }
+
+        (envelopeItems[0] as BaseEnvelopeItemHeaders).length = length;
+        const itemHeader = JSON.stringify(envelopeItems[0]);
+
+        envelopeItemsBuilder += `\n${itemHeader}\n${itemPayload}`;
       }
 
-      const payload = {
-        ...event,
-        message: {
-          message: event.message,
-        },
-      };
-
-      const payloadString = JSON.stringify(payload);
-      let length = payloadString.length;
-      try {
-        length = await RNSentry.getStringBytesLength(payloadString);
-      } catch {
-        // The native call failed, we do nothing, we have payload.length as a fallback
-      }
-
-      const item = {
-        content_type: 'application/json',
-        length,
-        type: payload.type ?? 'event',
-      };
-
-      const itemString = JSON.stringify(item);
-
-      const envelopeString = `${headerString}\n${itemString}\n${payloadString}`;
-
-      envelopeWasSent = await RNSentry.captureEnvelope(envelopeString);
+      await RNSentry.captureEnvelope(envelopeItemsBuilder);
     } else {
       // iOS/Mac
 
-      const payload = {
-        ...event,
-        message: {
-          message: event.message,
-        },
-      };
+      for (const envelopeItems of envelope[1]) {
+        const event = this._getEvent(envelopeItems);
+        if (event != undefined) {
+          envelopeItems[1] = event;
+        }
 
-      // Serialize and remove any instances that will crash the native bridge such as Spans
-      const serializedPayload = JSON.parse(JSON.stringify(payload));
+        const itemPayload = JSON.parse(JSON.stringify(envelopeItems[1]));
 
-      // The envelope item is created (and its length determined) on the iOS side of the native bridge.
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      envelopeWasSent = await RNSentry.captureEnvelope({
-        header,
-        payload: serializedPayload,
-      });
-    }
+        // The envelope item is created (and its length determined) on the iOS side of the native bridge.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 
-    if (envelopeWasSent) {
-      return {
-        status: 'success',
-      };
-    }
-
-    return {
-      status: 'failed',
+        await RNSentry.captureEnvelope({
+          header,
+          payload: itemPayload,
+        });
+      }
     };
+
   },
 
   /**
@@ -211,12 +204,9 @@ export const NATIVE: SentryNativeWrapper = {
       beforeSend,
       beforeBreadcrumb,
       integrations,
-      defaultIntegrations,
-      transport,
       ...filteredOptions
     } = options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
-
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 
     this.nativeIsReady = nativeIsReady;
@@ -471,6 +461,18 @@ export const NATIVE: SentryNativeWrapper = {
   },
 
   /**
+   * Gets the event from envelopeItem and applies the level filter to the selected event.
+   * @param data An envelope item containing the event.
+   * @returns The event from envelopeItem or undefined.
+   */
+  _getEvent(envelopeItem: EventItem | AttachmentItem | UserFeedbackItem | SessionItem | ClientReportItem): Event | undefined {
+      if (envelopeItem[0].type == 'event' || envelopeItem[0].type == 'transaction') {
+        return this._processLevels(envelopeItem[1] as Event);
+      }
+      return undefined;
+  },
+
+  /**
    * Serializes all values of root-level keys into strings.
    * @param data key-value map.
    * @returns An object where all root-level values are strings.
@@ -494,6 +496,7 @@ export const NATIVE: SentryNativeWrapper = {
    * @param event
    * @returns Event with more widely supported Severity level strings
    */
+
   _processLevels(event: Event): Event {
     const processed: Event = {
       ...event,
@@ -514,13 +517,15 @@ export const NATIVE: SentryNativeWrapper = {
    * @param level
    * @returns More widely supported Severity level strings
    */
-  _processLevel(level: Severity): Severity {
-    if (level === Severity.Critical) {
-      return Severity.Fatal;
+
+  _processLevel(level: SeverityLevel): SeverityLevel {
+    if (level == 'log' as SeverityLevel) {
+      return 'debug' as SeverityLevel;
     }
-    if (level === Severity.Log) {
-      return Severity.Debug;
+    else if (level == 'critical' as SeverityLevel) {
+      return 'fatal' as SeverityLevel;
     }
+
 
     return level;
   },

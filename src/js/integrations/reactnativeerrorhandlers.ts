@@ -1,6 +1,5 @@
-import { eventFromException } from '@sentry/browser';
 import { getCurrentHub } from '@sentry/core';
-import { Integration, Severity } from '@sentry/types';
+import { Integration, SeverityLevel } from '@sentry/types';
 import { addExceptionMechanism, getGlobalObject, logger } from '@sentry/utils';
 
 import { ReactNativeClient } from '../client';
@@ -112,8 +111,8 @@ export class ReactNativeErrorHandlers implements Integration {
         // eslint-disable-next-line no-console
         console.warn(
           `Promise Rejection Handled (id: ${id})\n` +
-            'This means you can ignore any previous messages of the form ' +
-            `"Possible Unhandled Promise Rejection (id: ${id}):"`
+          'This means you can ignore any previous messages of the form ' +
+          `"Possible Unhandled Promise Rejection (id: ${id}):"`
         );
       },
     };
@@ -201,12 +200,12 @@ export class ReactNativeErrorHandlers implements Integration {
 
         const options = client.getOptions();
 
-        const event = await eventFromException(error, {
-          originalException: error,
-        }, options.attachStacktrace);
+        const event = await client.eventFromException(error, {
+          originalException: error
+        });
 
         if (isFatal) {
-          event.level = Severity.Fatal;
+          event.level = 'fatal' as SeverityLevel;
 
           addExceptionMechanism(event, {
             handled: false,

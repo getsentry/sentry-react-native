@@ -319,7 +319,8 @@ describe('StallTracking', () => {
       if (typeof spanFinishTime === 'number') {
         stallTracking.onTransactionFinish(transaction, spanFinishTime + 0.015);
         transaction.finish();
-        const measurements = getLastEvent()?.measurements;
+        const evt = getLastEvent();
+        const measurements = evt?.measurements;
 
         expect(measurements).toBeUndefined();
       }
@@ -330,12 +331,13 @@ describe('StallTracking', () => {
 
   it('Stall tracking supports idleTransaction with unfinished spans', (done) => {
     const stallTracking = new StallTrackingInstrumentation();
-
+    const localHub = hub;
     const idleTransaction = new IdleTransaction({
       name: 'Test Transaction',
       trimEnd: true,
       sampled: true,
-    });
+      // @ts-ignore use the mocked hub.
+    }, localHub, undefined, undefined);
     idleTransaction.initSpanRecorder();
 
     stallTracking.onTransactionStart(idleTransaction);
@@ -350,6 +352,7 @@ describe('StallTracking', () => {
     });
 
     setTimeout(() => {
+      stallTracking.onTransactionFinish(idleTransaction, + 0.015);
       idleTransaction.finish();
 
       const measurements = getLastEvent()?.measurements;

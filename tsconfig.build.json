@@ -1,15 +1,25 @@
 {
   "extends": "./node_modules/@sentry/typescript/tsconfig.json",
-  "include": ["src/js/*.ts"],
-  "exclude": ["node_modules"],
+  "include": [
+    "src/js/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "dist",
     "rootDir": "src",
-    "lib": ["es7"],
+    "lib": [
+      "es7"
+    ],
     "jsx": "react-native",
-    "types": ["react-native"],
+    "types": [
+      "react-native"
+    ],
     "target": "es6",
-    "module": "es6"
+    "module": "es6",
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
   }
 }

@@ -1,9 +1,9 @@
-import { initAndBind, setExtra } from '@sentry/core';
+import { getIntegrationsToSetup, initAndBind, setExtra } from '@sentry/core';
 import { Hub, makeMain } from '@sentry/hub';
 import { RewriteFrames } from '@sentry/integrations';
-import { defaultIntegrations, getCurrentHub } from '@sentry/react';
+import { defaultIntegrations, defaultStackParser, getCurrentHub } from '@sentry/react';
 import { StackFrame } from '@sentry/types';
-import { getGlobalObject, logger } from '@sentry/utils';
+import { getGlobalObject, logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
 import { ReactNativeClient } from './client';
@@ -15,10 +15,11 @@ import {
   Release,
   SdkInfo,
 } from './integrations';
-import { ReactNativeOptions, ReactNativeWrapperOptions } from './options';
+import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
+import { makeReactNativeTransport } from './transports/native';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
@@ -31,7 +32,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   autoInitializeNativeSdk: true,
   enableAutoPerformanceTracking: true,
   enableOutOfMemoryTracking: true,
-  patchGlobalPromise: true,
+  patchGlobalPromise: true
 };
 
 /**
@@ -41,9 +42,12 @@ export function init(passedOptions: ReactNativeOptions): void {
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
   makeMain(reactNativeHub);
 
-  const options = {
+  const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
+    transport: passedOptions.transport || makeReactNativeTransport,
+    integrations: getIntegrationsToSetup(passedOptions),
+    stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser)
   };
 
   // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.
@@ -51,8 +55,8 @@ export function init(passedOptions: ReactNativeOptions): void {
     typeof options.tracesSampler !== 'undefined' ||
     typeof options.tracesSampleRate !== 'undefined';
 
-  if (options.defaultIntegrations === undefined) {
-    options.defaultIntegrations = [
+  if (passedOptions.defaultIntegrations === undefined) {
+    options.integrations.push(...[
       new ReactNativeErrorHandlers({
         patchGlobalPromise: options.patchGlobalPromise,
       }),
@@ -62,13 +66,13 @@ export function init(passedOptions: ReactNativeOptions): void {
       ),
       new EventOrigin(),
       new SdkInfo(),
-    ];
+    ]);
 
     if (__DEV__) {
-      options.defaultIntegrations.push(new DebugSymbolicator());
+      options.integrations.push(new DebugSymbolicator());
     }
 
-    options.defaultIntegrations.push(
+    options.integrations.push(
       new RewriteFrames({
         iteratee: (frame: StackFrame) => {
           if (frame.filename) {
@@ -94,11 +98,11 @@ export function init(passedOptions: ReactNativeOptions): void {
       })
     );
     if (options.enableNative) {
-      options.defaultIntegrations.push(new DeviceContext());
+      options.integrations.push(new DeviceContext());
     }
     if (tracingEnabled) {
       if (options.enableAutoPerformanceTracking) {
-        options.defaultIntegrations.push(new ReactNativeTracing());
+        options.integrations.push(new ReactNativeTracing());
       }
     }
   }
@@ -184,7 +188,7 @@ export async function flush(): Promise<boolean> {
       return result;
     }
     // eslint-disable-next-line no-empty
-  } catch (_) {}
+  } catch (_) { }
 
   logger.error('Failed to flush the event queue.');
 
