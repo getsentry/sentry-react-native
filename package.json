@@ -46,7 +46,7 @@
     "@sentry/hub": "7.0.0",
     "@sentry/integrations": "7.0.0",
     "@sentry/react": "7.0.0",
-    "@sentry/tracing": "7.0.0",
+    "@sentry/tracing": "7.1.1",
     "@sentry/types": "7.0.0",
     "@sentry/utils": "7.0.0",
     "@sentry/wizard": "^1.2.17"
