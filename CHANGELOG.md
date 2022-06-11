@@ -5,6 +5,9 @@
 - Bump Sentry JavaScript 7.1.1 ([#2279](https://github.com/getsentry/sentry-react-native/pull/2279))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/7.1.1/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.0.0...7.1.1)
+- Bump Sentry Android 6.0.0 ([#2281](https://github.com/getsentry/sentry-react-native/pull/2281))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/6.0.0/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-java/compare/5.7.0...6.0.0)
 
 ## 4.0.0-beta.1
 
