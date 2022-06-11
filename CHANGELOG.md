@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Bump Sentry JavaScript 7.1.1 ([#2250](https://github.com/getsentry/sentry-react-native/pull/2250))
+- Bump Sentry JavaScript 7.1.1 ([#2279](https://github.com/getsentry/sentry-react-native/pull/2279))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/7.1.1/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.0.0...7.1.1)
 
