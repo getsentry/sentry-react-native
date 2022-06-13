@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Bump Sentry Cocoa 7.16.1 ([#2279](https://github.com/getsentry/sentry-react-native/pull/2279))
+- Bump Sentry Cocoa 7.16.1 ([#2279](https://github.com/getsentry/sentry-react-native/pull/2283))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.16.1/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.11.0...7.16.1)
 
