@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fix warning missing DSN on BrowserClient. ([#2294](https://github.com/getsentry/sentry-react-native/pull/2294))
+
 ## 4.0.0-beta.3
 
 - Bump Sentry Cocoa 7.16.1 ([#2279](https://github.com/getsentry/sentry-react-native/pull/2283))
