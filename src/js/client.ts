@@ -25,7 +25,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @param options Configuration options for this SDK.
    */
    public constructor(options: ReactNativeClientOptions) {
-     const transport = (options: BrowserTransportOptions, nativeFetch?: FetchImpl): Transport => {
+    const transport = (options: BrowserTransportOptions, nativeFetch?: FetchImpl): Transport => {
       if (NATIVE.isNativeTransportAvailable()) {
         return new NativeTransport();
       }
