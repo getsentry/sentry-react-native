@@ -50,6 +50,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       transport: options.transport,
       stackParser: options.stackParser || defaultStackParser,
       integrations: [],
+      dsn: options.dsn,
     });
   }
 
