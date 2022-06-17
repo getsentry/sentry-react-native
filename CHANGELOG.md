@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.4
 
 - Bump Sentry Cocoa 7.17.0 ([#2300](https://github.com/getsentry/sentry-react-native/pull/2300))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.17.0/CHANGELOG.md)
