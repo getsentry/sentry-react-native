@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.5
 
 - Fix warning missing DSN on BrowserClient. ([#2294](https://github.com/getsentry/sentry-react-native/pull/2294))
 
