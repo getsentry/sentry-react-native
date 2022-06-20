@@ -44,14 +44,16 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       // eslint-disable-next-line deprecation/deprecation
       YellowBox.ignoreWarnings(['Require cycle:']);
     }
-    void this._initNativeSdk();
 
     this._browserClient = new BrowserClient({
+      dsn: options.dsn,
       transport: options.transport,
       stackParser: options.stackParser || defaultStackParser,
       integrations: [],
     });
-  }
+
+     void this._initNativeSdk();
+   }
 
 
   /**
