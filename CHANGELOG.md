@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Bump Sentry Cocoa 7.18.0 ([#2300](https://github.com/getsentry/sentry-react-native/pull/2300))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.18.0/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.17.0...7.18.0)
+- Bump Sentry Android 6.1.2 ([#2300](https://github.com/getsentry/sentry-react-native/pull/2300))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/6.1.2/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.1.1...6.1.2)
+
 ## 4.0.0-beta.5
 
 - Fix warning missing DSN on BrowserClient. ([#2294](https://github.com/getsentry/sentry-react-native/pull/2294))
@@ -7,6 +16,7 @@
 ## 4.0.0-beta.4
 
 - Bump Sentry Cocoa 7.17.0 ([#2300](https://github.com/getsentry/sentry-react-native/pull/2300))
+
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.17.0/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.16.1...7.17.0)
 
