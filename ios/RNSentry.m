@@ -273,7 +273,7 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
     if ([NSJSONSerialization isValidJSONObject:envelopeDict]) {
         SentrySdkInfo *sdkInfo = [[SentrySdkInfo alloc] initWithDict:envelopeDict[@"header"]];
         SentryId *eventId = [[SentryId alloc] initWithUUIDString:envelopeDict[@"header"][@"event_id"]];
-        SentryEnvelopeHeader *envelopeHeader = [[SentryEnvelopeHeader alloc] initWithId:eventId sdkInfo:sdkInfo traceState:nil];
+        SentryEnvelopeHeader *envelopeHeader = [[SentryEnvelopeHeader alloc] initWithId:eventId sdkInfo:sdkInfo traceContext:nil];
 
         NSError *error;
         NSData *envelopeItemData = [NSJSONSerialization dataWithJSONObject:envelopeDict[@"payload"] options:0 error:&error];
@@ -293,13 +293,13 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
         SentryEnvelope *envelope = [[SentryEnvelope alloc] initWithHeader:envelopeHeader singleItem:envelopeItem];
 
         #if DEBUG
-            [SentrySDK captureEnvelope:envelope];
+            [PrivateSentrySDKOnly captureEnvelope:envelope];
         #else
             if ([envelopeDict[@"payload"][@"level"] isEqualToString:@"fatal"]) {
                 // Storing to disk happens asynchronously with captureEnvelope
-                [SentrySDK storeEnvelope:envelope];
+                [PrivateSentrySDKOnly storeEnvelope:envelope];
             } else {
-                [SentrySDK captureEnvelope:envelope];
+                [PrivateSentrySDKOnly captureEnvelope:envelope];
             }
         #endif
         resolve(@YES);
