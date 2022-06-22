@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Bump Sentry JavaScript 7.2.0 ([#2279](https://github.com/getsentry/sentry-react-native/pull/2279))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/7.2.0/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.1.1...7.2.0)
 - Bump Sentry Cocoa 7.18.0 ([#2303](https://github.com/getsentry/sentry-react-native/pull/2303))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.18.0/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.17.0...7.18.0)
@@ -16,6 +19,7 @@
 ## 4.0.0-beta.4
 
 - Bump Sentry Cocoa 7.17.0 ([#2300](https://github.com/getsentry/sentry-react-native/pull/2300))
+
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.17.0/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.16.1...7.17.0)
 
