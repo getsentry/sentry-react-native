@@ -5,6 +5,7 @@ import { StallTrackingInstrumentation } from '../../src/js/tracing/stalltracking
 
 const hub = {
   captureEvent: jest.fn(),
+  getClient: jest.fn(),
 };
 
 jest.mock('@sentry/hub', () => {
