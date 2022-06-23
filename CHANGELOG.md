@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.1
 
 - Filter out app start with more than 60s ([#2303](https://github.com/getsentry/sentry-react-native/pull/2303))
 
