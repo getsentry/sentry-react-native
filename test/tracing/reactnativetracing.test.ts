@@ -165,6 +165,52 @@ describe('ReactNativeTracing', () => {
         });
       });
 
+      it('Does not add app start measurement if more than 60s', (done) => {
+        const integration = new ReactNativeTracing();
+
+        const timeOriginMilliseconds = Date.now();
+        const appStartTimeMilliseconds = timeOriginMilliseconds - 65000;
+        const mockAppStartResponse: NativeAppStartResponse = {
+          isColdStart: false,
+          appStartTime: appStartTimeMilliseconds,
+          didFetchAppStart: false,
+        };
+
+        mockFunction(getTimeOriginMilliseconds).mockReturnValue(
+          timeOriginMilliseconds
+        );
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(
+          mockAppStartResponse
+        );
+
+        const mockHub = getMockHub();
+        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+
+        // use setImmediate as app start is handled inside a promise.
+        setImmediate(() => {
+          const transaction = mockHub.getScope()?.getTransaction();
+
+          expect(transaction).toBeDefined();
+
+          jest.runOnlyPendingTimers();
+
+          if (transaction) {
+            expect(
+              // @ts-ignore access private for test
+              transaction._measurements?.app_start_warm
+            ).toBeUndefined();
+
+            expect(
+              // @ts-ignore access private for test
+              transaction._measurements?.app_start_cold
+            ).toBeUndefined();
+
+            done();
+          }
+        });
+      });
+
       it('Does not create app start transaction if didFetchAppStart == true', (done) => {
         const integration = new ReactNativeTracing();
 
