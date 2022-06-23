@@ -110,6 +110,8 @@ export class ReactNativeTracing implements Integration {
    * @inheritDoc
    */
   public static id: string = 'ReactNativeTracing';
+   /** We filter out App starts more than 60s */
+  private static _maxAppStart: number = 60000;
   /**
    * @inheritDoc
    */
@@ -293,6 +295,13 @@ export class ReactNativeTracing implements Integration {
 
     const appStartDurationMilliseconds =
       this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
+
+    // we filter out app start more than 60s.
+    // this could be due to many different reasons.
+    // we've seen app starts with hours, days and even months.
+    if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
+      return;
+    }
 
     transaction.setMeasurement(appStartMode, appStartDurationMilliseconds);
   }
