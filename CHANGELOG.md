@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.1
 
 - Fix Calculate the absolute number of Android versionCode ([#2313](https://github.com/getsentry/sentry-react-native/pull/2313))
 - Filter out app start with more than 60s ([#2303](https://github.com/getsentry/sentry-react-native/pull/2303))
