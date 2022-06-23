@@ -65,11 +65,12 @@ gradle.projectsEvaluated {
           variant = currentVariant[0]
           releaseName = currentVariant[1]
           versionCode = currentVariant[2]
+          def absVersionCode = Math.abs(versionCode)
 
           // The Sentry server distinguishes source maps by release (`--release` in the command
           // below) and distribution identifier (`--dist` below).  Give the task a unique name
           // based on where we're uploading to.
-          def nameCliTask = "${bundleTask.name}_SentryUpload_${releaseName}_${versionCode}"
+          def nameCliTask = "${bundleTask.name}_SentryUpload_${releaseName}_${absVersionCode}"
 
           // If several outputs have the same releaseName and versionCode, we'd do the exact same
           // upload for each of them.  No need to repeat.
