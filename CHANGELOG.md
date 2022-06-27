@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.2
 
 - Fix Calculate the absolute number of Android versionCode ([#2313](https://github.com/getsentry/sentry-react-native/pull/2313))
 
