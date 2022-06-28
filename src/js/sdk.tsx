@@ -120,15 +120,6 @@ export function init(passedOptions: ReactNativeOptions): void {
   }
 }
 
-// /**
-//  * Adds an integration to 'options.integrations' if not added yet
-//  */
-// export function addIntegration(options: ReactNativeClientOptions, integration: Integration): void {
-//   if (options.integrations.filter((i) => i.name == integration.name).length === 0) {
-//     options.integrations.push(integration);
-//   }
-// }
-
 /**
  * Inits the Sentry React Native SDK with automatic instrumentation and wrapped features.
  */
