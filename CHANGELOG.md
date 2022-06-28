@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Fix: SDK overwrites the user defined ReactNativeTracing ([#2313](https://github.com/getsentry/sentry-react-native/pull/2313))
+- Fix: SDK overwrites the user defined ReactNativeTracing ([#2319](https://github.com/getsentry/sentry-react-native/pull/2319))
 
 ## 4.0.2
 
