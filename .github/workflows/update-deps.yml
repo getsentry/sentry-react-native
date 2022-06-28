@@ -1,0 +1,31 @@
+name: Update Dependencies
+
+on:
+  # Run every day.
+  schedule:
+    - cron: '0 3 * * *'
+  # And on on every PR merge so we get the updated dependencies ASAP, and to make sure the changelog doesn't conflict.
+  push:
+    branches:
+      - main
+
+jobs:
+  android:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    with:
+      path: scripts/update-android.sh
+      name: Android SDK
+    secrets:
+      # If a custom token is used instead, a CI would be triggered on a created PR.
+      # api_token: ${{ secrets.CI_DEPLOY_KEY }}
+      api_token: ${{ github.token }}
+
+  cocoa:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    with:
+      path: scripts/update-cocoa.sh
+      name: Cocoa SDK
+    secrets:
+      # If a custom token is used instead, a CI would be triggered on a created PR.
+      # api_token: ${{ secrets.CI_DEPLOY_KEY }}
+      api_token: ${{ github.token }}
