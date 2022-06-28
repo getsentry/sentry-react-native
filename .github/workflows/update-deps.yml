@@ -29,3 +29,23 @@ jobs:
       # If a custom token is used instead, a CI would be triggered on a created PR.
       # api_token: ${{ secrets.CI_DEPLOY_KEY }}
       api_token: ${{ github.token }}
+
+  javascript:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    with:
+      path: scripts/update-javascript.sh
+      name: JavaScript SDK
+    secrets:
+      # If a custom token is used instead, a CI would be triggered on a created PR.
+      # api_token: ${{ secrets.CI_DEPLOY_KEY }}
+      api_token: ${{ github.token }}
+
+  wizard:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    with:
+      path: scripts/update-wizard.sh
+      name: Wizard
+    secrets:
+      # If a custom token is used instead, a CI would be triggered on a created PR.
+      # api_token: ${{ secrets.CI_DEPLOY_KEY }}
+      api_token: ${{ github.token }}
