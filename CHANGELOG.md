@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Bump Sentry Cocoa 7.18.1 ([#2320](https://github.com/getsentry/sentry-react-native/pull/2320))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.18.1/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.18.0...7.18.1)
+- Bump Sentry Android 6.1.4 ([#2320](https://github.com/getsentry/sentry-react-native/pull/2320))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/6.1.4/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.1.2...6.1.4)
+
 ## 4.0.2
 
 - Fix Calculate the absolute number of Android versionCode ([#2313](https://github.com/getsentry/sentry-react-native/pull/2313))
