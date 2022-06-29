@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fix: Send DidBecomeActiveNotification when OOM enabled ([#2326](https://github.com/getsentry/sentry-react-native/pull/2326))
 - Fix: SDK overwrites the user defined ReactNativeTracing ([#2319](https://github.com/getsentry/sentry-react-native/pull/2319))
 - Bump Sentry JavaScript 7.3.1 ([#2306](https://github.com/getsentry/sentry-react-native/pull/2306))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/7.3.1/CHANGELOG.md)

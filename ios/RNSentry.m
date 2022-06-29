@@ -105,7 +105,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 #endif
 
     // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
-    if (appIsActive && !sentHybridSdkDidBecomeActive && sentryOptions.enableAutoSessionTracking) {
+    if (appIsActive && !sentHybridSdkDidBecomeActive && (sentryOptions.enableAutoSessionTracking || sentryOptions.enableOutOfMemoryTracking)) {
         [[NSNotificationCenter defaultCenter]
             postNotificationName:@"SentryHybridSdkDidBecomeActive"
             object:nil];
