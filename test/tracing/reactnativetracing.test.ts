@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { BrowserClient } from '@sentry/browser';
+import { BrowserClient, User } from '@sentry/browser';
 import { addGlobalEventProcessor, Hub } from '@sentry/hub';
 import { IdleTransaction, Transaction } from '@sentry/tracing';
 
@@ -29,6 +29,7 @@ jest.mock('../../src/js/tracing/utils', () => {
 const getMockHub = () => {
   const mockHub = new Hub(new BrowserClient({ tracesSampleRate: 1 } as BrowserClientOptions));
   let scopeTransaction: Transaction | undefined;
+  let scopeUser: User | undefined;
   const mockScope = {
     getTransaction: () => scopeTransaction,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,6 +42,7 @@ const getMockHub = () => {
     addBreadcrumb(_breadcrumb: any) {
       // Placeholder
     },
+    getUser: () => scopeUser,
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
