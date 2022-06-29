@@ -25,7 +25,7 @@ jobs:
           distribution: "adopt"
       - name: Install Global Dependencies
         run: yarn global add react-native-cli @sentry/cli yalc
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: deps-cache
         with:
           path: |
@@ -83,14 +83,14 @@ jobs:
           node-version: "12"
       - name: Install Global Dependencies
         run: yarn global add react-native-cli @sentry/cli yalc
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: deps-cache
         with:
           path: |
             node_modules
             sample/node_modules
           key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: pods-cache
         with:
           path: |
