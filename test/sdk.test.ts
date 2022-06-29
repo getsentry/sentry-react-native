@@ -49,9 +49,10 @@ jest.spyOn(logger, 'error');
 
 import { initAndBind } from '@sentry/core';
 import { getCurrentHub } from '@sentry/react';
+import { Integration } from '@sentry/types';
 
 import { flush, init } from '../src/js/sdk';
-import { ReactNativeTracing } from '../src/js/tracing';
+import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -60,21 +61,29 @@ afterEach(() => {
 describe('Tests the SDK functionality', () => {
   describe('init', () => {
     describe('enableAutoPerformanceTracking', () => {
-      const autoPerformanceIsEnabled = (): boolean => {
+      const usedOptions = (): Integration[] => {
         const mockCall = (initAndBind as jest.MockedFunction<
           typeof initAndBind
-        >).mock.calls[0];
+          >).mock.calls[0];
 
-        if (mockCall) {
-          const options = mockCall[1];
+          if (mockCall) {
+            const options = mockCall[1];
 
-          return options.integrations?.some(
-            (integration) => integration.name === ReactNativeTracing.id
-          );
-        }
+            return options.integrations;
+          }
+        return [];
+      }
 
-        return false;
+      const autoPerformanceIsEnabled = (): boolean => {
+        return usedOptions().some(
+          (integration) => integration.name === ReactNativeTracing.id
+        );
       };
+
+      const reactNavigationInstrumentation = (): ReactNativeTracing => {
+        const nav = new ReactNavigationInstrumentation();
+        return new ReactNativeTracing({ routingInstrumentation: nav });
+      }
 
       it('Auto Performance is enabled when tracing is enabled (tracesSampler)', () => {
         init({
@@ -92,6 +101,32 @@ describe('Tests the SDK functionality', () => {
         });
 
         expect(autoPerformanceIsEnabled()).toBe(true);
+      });
+
+      it('Do not overwrite user defined integrations when passing integrations', () => {
+        const tracing = reactNavigationInstrumentation();
+        init({
+          tracesSampleRate: 0.5,
+          enableAutoPerformanceTracking: true,
+          integrations: [tracing],
+        });
+
+        const options = usedOptions();
+        expect(options.filter((integration) => integration.name === ReactNativeTracing.id).length).toBe(1);
+        expect(options.some((integration) => integration === tracing)).toBe(true);
+      });
+
+      it('Do not overwrite user defined integrations when passing defaultIntegrations', () => {
+        const tracing = reactNavigationInstrumentation();
+        init({
+          tracesSampleRate: 0.5,
+          enableAutoPerformanceTracking: true,
+          defaultIntegrations: [tracing],
+        });
+
+        const options = usedOptions();
+        expect(options.filter((integration) => integration.name === ReactNativeTracing.id).length).toBe(1);
+        expect(options.some((integration) => integration === tracing)).toBe(true);
       });
     });
 

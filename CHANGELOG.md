@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fix: SDK overwrites the user defined ReactNativeTracing ([#2319](https://github.com/getsentry/sentry-react-native/pull/2319))
 - Bump Sentry Cocoa 7.18.1 ([#2320](https://github.com/getsentry/sentry-react-native/pull/2320))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.18.1/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.18.0...7.18.1)
