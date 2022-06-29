@@ -1123,13 +1123,13 @@
     sudo-prompt "^9.0.0"
     wcwidth "^1.0.1"
 
-"@sentry-internal/eslint-config-sdk@7.1.1":
-  version "7.1.1"
-  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-config-sdk/-/eslint-config-sdk-7.1.1.tgz#fdfca1bf16024880a6c8ed3bda6771dc0c77edde"
-  integrity sha512-/Xp5L8rZa0zBp6nvUnBjb7z1txBFWvaetwDJFcsZnA5Md5y6CwRdEsCPagh+JrAGE4mLvuzQu0Md+E/eiJyjoA==
+"@sentry-internal/eslint-config-sdk@7.3.1":
+  version "7.3.1"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-config-sdk/-/eslint-config-sdk-7.3.1.tgz#4263ebd35221ce1f73c015422cb9a301b4515425"
+  integrity sha512-8uKKTVuHgf45YnbTy/SzPrkEjj1q5+FtxM38Zxti92vy5Xz6jPJ8D0RrNsjZcUhTKLKdIeIee38uO8NiDMYiWw==
   dependencies:
-    "@sentry-internal/eslint-plugin-sdk" "7.1.1"
-    "@sentry-internal/typescript" "7.1.1"
+    "@sentry-internal/eslint-plugin-sdk" "7.3.1"
+    "@sentry-internal/typescript" "7.3.1"
     "@typescript-eslint/eslint-plugin" "^3.9.0"
     "@typescript-eslint/parser" "^3.9.0"
     eslint-config-prettier "^6.11.0"
@@ -1145,10 +1145,17 @@
   dependencies:
     requireindex "~1.1.0"
 
-"@sentry-internal/typescript@7.1.1":
-  version "7.1.1"
-  resolved "https://registry.yarnpkg.com/@sentry-internal/typescript/-/typescript-7.1.1.tgz#3e300434eb21a0660ca34d1edbb08d9f15549726"
-  integrity sha512-+YoI6KSfawH3WZrBkJbvy9wSGI79twOs4Y7/Qk+Zzd9l6W4orP0+9LZNGQTICpXCC6FaN+HQQ5MDhYjINVqYXA==
+"@sentry-internal/eslint-plugin-sdk@7.3.1":
+  version "7.3.1"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/eslint-plugin-sdk/-/eslint-plugin-sdk-7.3.1.tgz#f07ab08c272c150a64668a04b3248a0655fea837"
+  integrity sha512-A6+5kSdTYm/2DNrPy/MSwzA2weMQC4O4m95avVWMTinNC3z9e7pfTdljcaLiWOrCHq6z9LtNyzxOuwlNFUNq5Q==
+  dependencies:
+    requireindex "~1.1.0"
+
+"@sentry-internal/typescript@7.3.1":
+  version "7.3.1"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/typescript/-/typescript-7.3.1.tgz#4056f5f2e202cb5262b1274b0f97571387fdb2e5"
+  integrity sha512-F3Oio/6xoP/9grr7gbTuljc7khRMRx05YWSAckuTxEFEybf3pN6ukb6rM0CDPs8OXoMWFqCp/E2drjiqhgvKQw==
 
 "@sentry/browser@7.1.1":
   version "7.1.1"
