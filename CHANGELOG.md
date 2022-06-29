@@ -2,15 +2,39 @@
 
 ## Unreleased
 
-- Bump Sentry JavaScript 7.2.0 ([#2306](https://github.com/getsentry/sentry-react-native/pull/2306))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/7.2.0/CHANGELOG.md)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.1.1...7.2.0)
+- Bump Sentry JavaScript 7.3.1 ([#2306](https://github.com/getsentry/sentry-react-native/pull/2306))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/7.3.1/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.1.1...7.3.1)
+- Bump Sentry Cocoa 7.18.1 ([#2320](https://github.com/getsentry/sentry-react-native/pull/2320))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.18.1/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.18.0...7.18.1)
+- Bump Sentry Android 6.1.4 ([#2320](https://github.com/getsentry/sentry-react-native/pull/2320))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/6.1.4/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.1.2...6.1.4)
+
+## 4.0.2
+
+- Fix Calculate the absolute number of Android versionCode ([#2313](https://github.com/getsentry/sentry-react-native/pull/2313))
+
+## 4.0.1
+
+- Filter out app start with more than 60s ([#2303](https://github.com/getsentry/sentry-react-native/pull/2303))
+
+## 4.0.0
+
+- Bump Sentry JavaScript 7.1.1 ([#2279](https://github.com/getsentry/sentry-react-native/pull/2279))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/7.1.1/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/6.19.2...7.1.1)
 - Bump Sentry Cocoa 7.18.0 ([#2303](https://github.com/getsentry/sentry-react-native/pull/2303))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.18.0/CHANGELOG.md)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.17.0...7.18.0)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.11.0...7.18.0)
 - Bump Sentry Android 6.1.2 ([#2303](https://github.com/getsentry/sentry-react-native/pull/2303))
   - [changelog](https://github.com/getsentry/sentry-java/blob/6.1.2/CHANGELOG.md)
-  - [diff](https://github.com/getsentry/sentry-java/compare/6.1.1...6.1.2)
+  - [diff](https://github.com/getsentry/sentry-java/compare/5.7.0...6.1.2)
+
+## Breaking changes
+
+By bumping Sentry Javascript, new breaking changes were introduced, to know more what was changed, check the [breaking changes changelog](https://github.com/getsentry/sentry-javascript/blob/7.0.0/CHANGELOG.md#breaking-changes) from Sentry Javascript.
 
 ## 4.0.0-beta.5
 
@@ -19,6 +43,7 @@
 ## 4.0.0-beta.4
 
 - Bump Sentry Cocoa 7.17.0 ([#2300](https://github.com/getsentry/sentry-react-native/pull/2300))
+
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.17.0/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.16.1...7.17.0)
 

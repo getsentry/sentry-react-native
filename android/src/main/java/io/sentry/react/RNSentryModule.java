@@ -120,7 +120,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 options.setSessionTrackingIntervalMillis(rnOptions.getInt("sessionTrackingIntervalMillis"));
             }
             if (rnOptions.hasKey("shutdownTimeout")) {
-                options.setShutdownTimeout(rnOptions.getInt("shutdownTimeout"));
+                options.setShutdownTimeoutMillis(rnOptions.getInt("shutdownTimeout"));
             }
             if (rnOptions.hasKey("enableNdkScopeSync")) {
                 options.setEnableScopeSync(rnOptions.getBoolean("enableNdkScopeSync"));
