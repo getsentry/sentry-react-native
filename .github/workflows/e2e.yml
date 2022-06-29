@@ -16,7 +16,7 @@ jobs:
       PLATFORM: android
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: "12"
       - uses: actions/setup-java@v2
@@ -78,7 +78,7 @@ jobs:
       IOS_DEPLOYMENT_TARGET: 15.0
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: "12"
       - name: Install Global Dependencies
