@@ -80,6 +80,11 @@ describe('Tests the SDK functionality', () => {
         );
       };
 
+      const reactNavigationInstrumentation = (): ReactNativeTracing => {
+        const nav = new ReactNavigationInstrumentation();
+        return new ReactNativeTracing({ routingInstrumentation: nav });
+      }
+
       it('Auto Performance is enabled when tracing is enabled (tracesSampler)', () => {
         init({
           tracesSampler: () => true,
@@ -98,13 +103,25 @@ describe('Tests the SDK functionality', () => {
         expect(autoPerformanceIsEnabled()).toBe(true);
       });
 
-      it('Do not overwrite user defined integrations', () => {
-        const nav = new ReactNavigationInstrumentation();
-        const tracing = new ReactNativeTracing({ routingInstrumentation: nav });
+      it('Do not overwrite user defined integrations when passing integrations', () => {
+        const tracing = reactNavigationInstrumentation();
         init({
           tracesSampleRate: 0.5,
           enableAutoPerformanceTracking: true,
           integrations: [tracing],
+        });
+
+        const options = usedOptions();
+        expect(options.filter((integration) => integration.name === ReactNativeTracing.id).length).toBe(1);
+        expect(options.some((integration) => integration === tracing)).toBe(true);
+      });
+
+      it('Do not overwrite user defined integrations when passing defaultIntegrations', () => {
+        const tracing = reactNavigationInstrumentation();
+        init({
+          tracesSampleRate: 0.5,
+          enableAutoPerformanceTracking: true,
+          defaultIntegrations: [tracing],
         });
 
         const options = usedOptions();
