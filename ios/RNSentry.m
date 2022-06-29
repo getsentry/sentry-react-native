@@ -274,7 +274,6 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
     if ([NSJSONSerialization isValidJSONObject:envelopeDict]) {
         SentrySdkInfo *sdkInfo = [[SentrySdkInfo alloc] initWithDict:envelopeDict[@"header"]];
         SentryId *eventId = [[SentryId alloc] initWithUUIDString:envelopeDict[@"header"][@"event_id"]];
-        // forward the baggage header, right now only trace_id and public_key
         SentryTraceContext *traceContext = [[SentryTraceContext alloc] initWithDict:envelopeDict[@"header"][@"trace"]];
         SentryEnvelopeHeader *envelopeHeader = [[SentryEnvelopeHeader alloc] initWithId:eventId sdkInfo:sdkInfo traceContext:traceContext];
 
