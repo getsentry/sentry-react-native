@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fix: SDK overwrites the user defined ReactNativeTracing ([#2319](https://github.com/getsentry/sentry-react-native/pull/2319))
 - Bump Sentry JavaScript 7.3.1 ([#2306](https://github.com/getsentry/sentry-react-native/pull/2306))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/7.3.1/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.1.1...7.3.1)
@@ -45,7 +46,6 @@ By bumping Sentry Javascript, new breaking changes were introduced, to know more
 - Bump Sentry Cocoa 7.17.0 ([#2300](https://github.com/getsentry/sentry-react-native/pull/2300))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/7.17.0/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.16.1...7.17.0)
-
 - Bump Sentry Android 6.1.1 ([#2300](https://github.com/getsentry/sentry-react-native/pull/2300))
   - [changelog](https://github.com/getsentry/sentry-java/blob/6.1.1/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-java/compare/6.0.0...6.1.1)

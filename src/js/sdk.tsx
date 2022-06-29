@@ -2,7 +2,7 @@ import { getIntegrationsToSetup, initAndBind, setExtra } from '@sentry/core';
 import { Hub, makeMain } from '@sentry/hub';
 import { RewriteFrames } from '@sentry/integrations';
 import { defaultIntegrations, defaultStackParser, getCurrentHub } from '@sentry/react';
-import { StackFrame } from '@sentry/types';
+import { Integration, StackFrame } from '@sentry/types';
 import { getGlobalObject, logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -50,59 +50,64 @@ export function init(passedOptions: ReactNativeOptions): void {
     stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser)
   };
 
+  function addIntegration(integration: Integration): void {
+    if (options.integrations.filter((i) => i.name == integration.name).length === 0) {
+      options.integrations.push(integration);
+    }
+  }
+
   // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.
   const tracingEnabled =
     typeof options.tracesSampler !== 'undefined' ||
     typeof options.tracesSampleRate !== 'undefined';
 
   if (passedOptions.defaultIntegrations === undefined) {
+    addIntegration(new ReactNativeErrorHandlers({
+      patchGlobalPromise: options.patchGlobalPromise,
+    }));
+    addIntegration(new Release());
     options.integrations.push(...[
-      new ReactNativeErrorHandlers({
-        patchGlobalPromise: options.patchGlobalPromise,
-      }),
-      new Release(),
       ...defaultIntegrations.filter(
         (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
       ),
-      new EventOrigin(),
-      new SdkInfo(),
     ]);
 
+    addIntegration(new EventOrigin());
+    addIntegration(new SdkInfo());
+
     if (__DEV__) {
-      options.integrations.push(new DebugSymbolicator());
+      addIntegration(new DebugSymbolicator());
     }
 
-    options.integrations.push(
-      new RewriteFrames({
-        iteratee: (frame: StackFrame) => {
-          if (frame.filename) {
-            frame.filename = frame.filename
-              .replace(/^file:\/\//, '')
-              .replace(/^address at /, '')
-              .replace(/^.*\/[^.]+(\.app|CodePush|.*(?=\/))/, '');
+    addIntegration(new RewriteFrames({
+      iteratee: (frame: StackFrame) => {
+        if (frame.filename) {
+          frame.filename = frame.filename
+            .replace(/^file:\/\//, '')
+            .replace(/^address at /, '')
+            .replace(/^.*\/[^.]+(\.app|CodePush|.*(?=\/))/, '');
 
-            if (
-              frame.filename !== '[native code]' &&
-              frame.filename !== 'native'
-            ) {
-              const appPrefix = 'app://';
-              // We always want to have a triple slash
-              frame.filename =
-                frame.filename.indexOf('/') === 0
-                  ? `${appPrefix}${frame.filename}`
-                  : `${appPrefix}/${frame.filename}`;
-            }
+          if (
+            frame.filename !== '[native code]' &&
+            frame.filename !== 'native'
+          ) {
+            const appPrefix = 'app://';
+            // We always want to have a triple slash
+            frame.filename =
+              frame.filename.indexOf('/') === 0
+                ? `${appPrefix}${frame.filename}`
+                : `${appPrefix}/${frame.filename}`;
           }
-          return frame;
-        },
-      })
-    );
+        }
+        return frame;
+      },
+    }));
     if (options.enableNative) {
-      options.integrations.push(new DeviceContext());
+      addIntegration(new DeviceContext());
     }
     if (tracingEnabled) {
       if (options.enableAutoPerformanceTracking) {
-        options.integrations.push(new ReactNativeTracing());
+        addIntegration(new ReactNativeTracing());
       }
     }
   }
