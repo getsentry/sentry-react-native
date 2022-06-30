@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fix: Auto linking for RN >= 0.69 ([#2326](https://github.com/getsentry/sentry-react-native/pull/2326))
+
 ## 4.1.0
 
 - Fix: Send DidBecomeActiveNotification when OOM enabled ([#2326](https://github.com/getsentry/sentry-react-native/pull/2326))
