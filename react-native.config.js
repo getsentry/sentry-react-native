@@ -3,7 +3,8 @@ module.exports = {
     platforms: {
       ios: {},
       android: {
-        packageInstance: 'new RNSentryPackage()'
+        packageInstance: 'new RNSentryPackage()',
+        packageImportPath: 'import io.sentry.react.RNSentryPackage;'
       }
     }
   }
