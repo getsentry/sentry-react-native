@@ -65,7 +65,7 @@ jobs:
         # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
         # otherwise it would not run if the previous step failed
         if: ${{ always() && env.SENTRY_AUTH_TOKEN != null }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: appium.android.log
           path: ./sample/appium.log
@@ -146,7 +146,7 @@ jobs:
         # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
         # otherwise it would not run if the previous step failed
         if: ${{ always() && env.SENTRY_AUTH_TOKEN != null }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: appium.ios.log
           path: ./sample/appium.log
