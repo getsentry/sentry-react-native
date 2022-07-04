@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Bump JavaScript SDK to v7.4.1 ([#2334](https://github.com/getsentry/sentry-react-native/pull/2334))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#741)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.3.1...7.4.1)
+
 ## 4.1.0
 
 - Fix: Send DidBecomeActiveNotification when OOM enabled ([#2326](https://github.com/getsentry/sentry-react-native/pull/2326))
