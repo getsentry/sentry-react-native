@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Bump Cocoa SDK to v7.19.0 ([#2341](https://github.com/getsentry/sentry-react-native/pull/2341))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7190)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.18.1...7.19.0)
+
 ## 4.1.0
 
 - Fix: Send DidBecomeActiveNotification when OOM enabled ([#2326](https://github.com/getsentry/sentry-react-native/pull/2326))
