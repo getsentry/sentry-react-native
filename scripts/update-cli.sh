@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+tagPrefix=''
 repo="https://github.com/getsentry/sentry-cli.git"
 packages=('@sentry/cli')
 
