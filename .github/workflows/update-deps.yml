@@ -49,3 +49,11 @@ jobs:
       # If a custom token is used instead, a CI would be triggered on a created PR.
       api_token: ${{ secrets.CI_DEPLOY_KEY }}
       # api_token: ${{ github.token }}
+
+  cli:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    with:
+      path: scripts/update-cli.sh
+      name: CLI
+    secrets:
+      api_token: ${{ secrets.CI_DEPLOY_KEY }}
