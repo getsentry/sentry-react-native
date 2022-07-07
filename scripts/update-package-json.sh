@@ -7,7 +7,7 @@ case $1 in
 get-version)
     regex='"'${packages[0]}'": *"([0-9.]+)"'
     if ! [[ $content =~ $regex ]]; then
-        echo "Failed to find the plugin version in $file"
+        echo "Failed to find plugin '${packages[0]}' version in $file"
         exit 1
     fi
     echo $tagPrefix${BASH_REMATCH[1]}
