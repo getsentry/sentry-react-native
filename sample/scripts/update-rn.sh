@@ -7,8 +7,12 @@ packages=('react-native')
 
 . $(dirname "$0")/../../scripts/update-package-json.sh
 
-# Also update package.json with all other dependencies
-cd $(dirname "$0")/..
-yarn upgrade
-npx -y syncyarnlock --save --keepPrefix
-yarn install
+if [[ "$1" == "set-version" ]]; then
+  # Also update package.json with all other dependencies
+  (
+    cd "$(dirname "$0")/.."
+    yarn upgrade
+    npx -y syncyarnlock --save --keepPrefix
+    yarn install
+  )
+fi

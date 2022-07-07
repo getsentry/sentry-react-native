@@ -25,7 +25,10 @@ set-version)
     for i in ${!packages[@]}; do
         list+="${packages[$i]}@$version "
     done
-    yarn upgrade --non-interactive $list
+    (
+        cd "$(dirname "$file")"
+        yarn upgrade --non-interactive $list
+    )
     ;;
 *)
     echo "Unknown argument $1"
