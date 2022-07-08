@@ -57,3 +57,12 @@ jobs:
       name: CLI
     secrets:
       api_token: ${{ secrets.CI_DEPLOY_KEY }}
+
+  sample-rn:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    with:
+      path: sample/scripts/update-rn.sh
+      name: Sample React Native
+      pattern: '^v[0-9.]+$' # only match non-preview versions, also ignores "latest"
+    secrets:
+      api_token: ${{ secrets.CI_DEPLOY_KEY }}
