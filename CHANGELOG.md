@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Set default unit for measurements ([#2360](https://github.com/getsentry/sentry-react-native/pull/2360))
+
 ### Features
 
 - Bump Cocoa SDK to v7.19.0 ([#2341](https://github.com/getsentry/sentry-react-native/pull/2341))
