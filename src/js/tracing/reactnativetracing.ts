@@ -303,7 +303,7 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
-    transaction.setMeasurement(appStartMode, appStartDurationMilliseconds);
+    transaction.setMeasurement(appStartMode, appStartDurationMilliseconds, 'millisecond');
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */
