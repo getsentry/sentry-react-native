@@ -7,7 +7,7 @@ case $1 in
 get-version)
     regex='"'${packages[0]}'": *"([0-9.]+)"'
     if ! [[ $content =~ $regex ]]; then
-        echo "Failed to find the plugin version in $file"
+        echo "Failed to find plugin '${packages[0]}' version in $file"
         exit 1
     fi
     echo $tagPrefix${BASH_REMATCH[1]}
@@ -25,7 +25,10 @@ set-version)
     for i in ${!packages[@]}; do
         list+="${packages[$i]}@$version "
     done
-    yarn upgrade --non-interactive $list
+    (
+        cd "$(dirname "$file")"
+        yarn upgrade --non-interactive $list
+    )
     ;;
 *)
     echo "Unknown argument $1"
