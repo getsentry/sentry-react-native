@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- When using SENTRY_DIST env. var. on Android, SDK fails to convert to an Integer ([#2361](https://github.com/getsentry/sentry-react-native/pull/2361))
+- When using SENTRY_DIST env. var. on Android, SDK fails to convert to an Integer ([#2365](https://github.com/getsentry/sentry-react-native/pull/2365))
 
 ## 4.1.1
 
