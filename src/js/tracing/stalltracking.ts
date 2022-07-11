@@ -1,12 +1,12 @@
 /* eslint-disable max-lines */
 import { IdleTransaction, Span, Transaction } from '@sentry/tracing';
-import { Measurements } from '@sentry/types';
+import { Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
 export interface StallMeasurements extends Measurements {
-  'stall_count': { value: number, unit: string };
-  'stall_total_time': { value: number, unit: string };
-  'stall_longest_time': { value: number, unit: string };
+  'stall_count': { value: number, unit: MeasurementUnit };
+  'stall_total_time': { value: number, unit: MeasurementUnit };
+  'stall_longest_time': { value: number, unit: MeasurementUnit };
 }
 
 export type StallTrackingOptions = {
@@ -213,12 +213,17 @@ export class StallTrackingInstrumentation {
 
     transaction.setMeasurement('stall_count',
       statsOnFinish.stall_count.value -
-      transactionStats.atStart.stall_count.value);
+      transactionStats.atStart.stall_count.value,
+      transactionStats.atStart.stall_count.unit);
+
     transaction.setMeasurement('stall_total_time',
       statsOnFinish.stall_total_time.value -
-      transactionStats.atStart.stall_total_time.value);
+      transactionStats.atStart.stall_total_time.value,
+      transactionStats.atStart.stall_total_time.unit);
+
     transaction.setMeasurement('stall_longest_time',
-      statsOnFinish.stall_longest_time.value);
+      statsOnFinish.stall_longest_time.value,
+      statsOnFinish.stall_longest_time.unit);
   }
 
   /**
@@ -265,10 +270,10 @@ export class StallTrackingInstrumentation {
    */
   private _getCurrentStats(transaction: Transaction): StallMeasurements {
     return {
-      stall_count: { value: this._stallCount, unit: '' },
-      stall_total_time: { value: this._totalStallTime, unit: '' },
+      stall_count: { value: this._stallCount, unit: 'none' },
+      stall_total_time: { value: this._totalStallTime, unit: 'millisecond' },
       stall_longest_time: {
-        value: this._statsByTransaction.get(transaction)?.longestStallTime ?? 0, unit: ''
+        value: this._statsByTransaction.get(transaction)?.longestStallTime ?? 0, unit: 'millisecond'
       },
     };
   }

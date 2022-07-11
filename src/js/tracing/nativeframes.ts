@@ -1,15 +1,16 @@
 import { Span, Transaction } from '@sentry/tracing';
-import { Event, EventProcessor } from '@sentry/types';
+import { Event, EventProcessor, Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
 import { NativeFramesResponse } from '../definitions';
 import { NATIVE } from '../wrapper';
 import { instrumentChildSpanFinish } from './utils';
 
-type FramesMeasurements = Record<
-  'frames_total' | 'frames_slow' | 'frames_frozen',
-  { value: number, unit: string }
->;
+export interface FramesMeasurements extends Measurements {
+    'frames_total': { value: number, unit: MeasurementUnit };
+    'frames_slow': { value: number, unit: MeasurementUnit };
+    'frames_frozen': { value: number, unit: MeasurementUnit };
+}
 
 /**
  * A margin of error of 50ms is allowed for the async native bridge call.
@@ -150,17 +151,18 @@ export class NativeFramesInstrumentation {
     const measurements = {
       frames_total: {
         value: finalFinishFrames.totalFrames - startFrames.totalFrames,
-        unit: ''
+        unit: 'none'
       },
       frames_frozen: {
         value: finalFinishFrames.frozenFrames - startFrames.frozenFrames,
-        unit: ''
+        unit: 'none'
       },
       frames_slow: {
         value: finalFinishFrames.slowFrames - startFrames.slowFrames,
-        unit: ''
+        unit: 'none'
       },
     };
+
 
     return measurements;
   }

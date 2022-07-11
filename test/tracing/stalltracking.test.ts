@@ -59,8 +59,13 @@ describe('StallTracking', () => {
       expect(measurements).toBeDefined();
       if (measurements) {
         expect(measurements.stall_count.value).toBeGreaterThan(0);
+        expect(measurements.stall_count.unit).toBe('none')
+
         expect(measurements.stall_longest_time.value).toBeGreaterThan(0);
+        expect(measurements.stall_longest_time.unit).toBe('millisecond')
+
         expect(measurements.stall_total_time.value).toBeGreaterThan(0);
+        expect(measurements.stall_total_time.unit).toBe('millisecond');
       }
 
       done();

@@ -115,6 +115,9 @@ describe('ReactNativeTracing', () => {
               // @ts-ignore access private for test
               transaction._measurements?.app_start_cold?.value
             ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
+            expect(
+              // @ts-ignore access private for test
+              transaction._measurements?.app_start_cold?.unit).toBe('millisecond');
 
             done();
           }
@@ -161,6 +164,9 @@ describe('ReactNativeTracing', () => {
               // @ts-ignore access private for test
               transaction._measurements?.app_start_warm?.value
             ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
+            expect(
+              // @ts-ignore access private for test
+              transaction._measurements?.app_start_warm?.unit).toBe('millisecond');
 
             done();
           }
