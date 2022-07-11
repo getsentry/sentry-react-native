@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Set default unit for measurements ([#2360](https://github.com/getsentry/sentry-react-native/pull/2360))
+
 ### Features
 
 - Bump JavaScript SDK to v7.6.0 ([#2361](https://github.com/getsentry/sentry-react-native/pull/2361))
@@ -9,10 +13,6 @@
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.5.1...7.6.0)
 
 ## 4.1.1
-
-### Fixes
-
-- Set default unit for measurements ([#2360](https://github.com/getsentry/sentry-react-native/pull/2360))
 
 ### Features
 
