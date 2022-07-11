@@ -5,16 +5,13 @@
 ### Fixes
 
 - Set default unit for measurements ([#2360](https://github.com/getsentry/sentry-react-native/pull/2360))
+- When using SENTRY_DIST env. var. on Android, SDK fails to convert to an Integer ([#2365](https://github.com/getsentry/sentry-react-native/pull/2365))
 
 ### Features
 
 - Bump JavaScript SDK to v7.6.0 ([#2361](https://github.com/getsentry/sentry-react-native/pull/2361))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#760)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.5.1...7.6.0)
-
-### Fixes
-
-- When using SENTRY_DIST env. var. on Android, SDK fails to convert to an Integer ([#2365](https://github.com/getsentry/sentry-react-native/pull/2365))
 
 ## 4.1.1
 
