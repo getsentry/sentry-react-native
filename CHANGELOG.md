@@ -8,6 +8,10 @@
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#760)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.5.1...7.6.0)
 
+### Fixes
+
+- When using SENTRY_DIST env. var. on Android, SDK fails to convert to an Integer ([#2361](https://github.com/getsentry/sentry-react-native/pull/2361))
+
 ## 4.1.1
 
 ### Features
