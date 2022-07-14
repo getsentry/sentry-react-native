@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Bump Android SDK to v6.2.1 ([#2368](https://github.com/getsentry/sentry-react-native/pull/2368))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#621)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.1.4...6.2.1)
+
 ## 4.1.3
 
 fix: Solve reference to private cocoa SDK class #2369
