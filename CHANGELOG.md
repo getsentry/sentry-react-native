@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.1.3
 
 fix: Solve reference to private cocoa SDK class #2369
 
