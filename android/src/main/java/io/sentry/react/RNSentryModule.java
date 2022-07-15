@@ -133,6 +133,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 // by default we hide.
                 options.setAttachThreads(rnOptions.getBoolean("attachThreads"));
             }
+            if (rnOptions.hasKey("attachScreenshot")) {
+                options.setAttachScreenshot(rnOptions.getBoolean("attachScreenshot"));
+            }
             if (rnOptions.hasKey("sendDefaultPii")) {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
             }

@@ -93,11 +93,18 @@ export interface BaseReactNativeOptions {
   patchGlobalPromise?: boolean;
 
   /**
- * The max cache items for capping the number of envelopes.
- *
- * @default 30
- */
+   * The max cache items for capping the number of envelopes.
+   *
+   * @default 30
+   */
   maxCacheItems?: number;
+
+  /**
+   * When enabled and a user experiences an error, Sentry provides the ability to take a screenshot and include it as an attachment.
+   *
+   * @default false
+   */
+  attachScreenshot?: boolean;
 }
 
 /**
