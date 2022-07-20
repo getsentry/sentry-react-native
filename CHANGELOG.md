@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Bump Cocoa SDK to v7.21.0 ([#2374](https://github.com/getsentry/sentry-react-native/pull/2374))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7210)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.20.0...7.21.0)
+
 ## 4.1.3
 
 fix: Solve reference to private cocoa SDK class #2369
