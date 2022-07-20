@@ -16,7 +16,9 @@
 
 ## 4.1.3
 
-fix: Solve reference to private cocoa SDK class #2369
+### Fixes
+
+- Solve reference to private cocoa SDK class ([#2369](https://github.com/getsentry/sentry-react-native/pull/2369))
 
 ## 4.1.2
 
