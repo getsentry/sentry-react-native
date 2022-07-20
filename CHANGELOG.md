@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Bump Sample React Native to v0.69.1 ([#2358](https://github.com/getsentry/sentry-react-native/pull/2358))
+  - [changelog](https://github.com/facebook/react-native/blob/main/CHANGELOG.md#v0691)
+  - [diff](https://github.com/facebook/react-native/compare/v0.67.4...v0.69.1)
+
 ## 4.1.3
 
 fix: Solve reference to private cocoa SDK class #2369
