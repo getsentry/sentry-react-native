@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- feat: Adds `attachScreenshot` option.
+### Features
+
+- feat: Adds `attachScreenshot` option ([#2373](https://github.com/getsentry/sentry-react-native/pull/2373))
 
 ## 4.1.3
 
