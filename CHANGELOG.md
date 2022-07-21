@@ -2,7 +2,50 @@
 
 ## Unreleased
 
-- Fix: Auto linking for RN >= 0.69 ([#2332](https://github.com/getsentry/sentry-react-native/pull/2332))
+### Features
+
+- Bump Cocoa SDK to v7.21.0 ([#2374](https://github.com/getsentry/sentry-react-native/pull/2374))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7210)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.20.0...7.21.0)
+- Bump Android SDK to v6.3.0 ([#2380](https://github.com/getsentry/sentry-react-native/pull/2380))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#630)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.1.4...6.3.0)
+- Bump JavaScript SDK to v7.7.0 ([#2375](https://github.com/getsentry/sentry-react-native/pull/2375))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#770)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.6.0...7.7.0)
+
+### Fixes
+
+- Auto linking for RN >= 0.69 ([#2332](https://github.com/getsentry/sentry-react-native/pull/2332))
+
+## 4.1.3
+
+fix: Solve reference to private cocoa SDK class #2369
+
+## 4.1.2
+
+### Fixes
+
+- Set default unit for measurements ([#2360](https://github.com/getsentry/sentry-react-native/pull/2360))
+- When using SENTRY_DIST env. var. on Android, SDK fails to convert to an Integer ([#2365](https://github.com/getsentry/sentry-react-native/pull/2365))
+
+### Features
+
+- Bump JavaScript SDK to v7.6.0 ([#2361](https://github.com/getsentry/sentry-react-native/pull/2361))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#760)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.5.1...7.6.0)
+
+## 4.1.1
+
+### Features
+
+- Bump Cocoa SDK to v7.20.0 ([#2341](https://github.com/getsentry/sentry-react-native/pull/2341), [#2356](https://github.com/getsentry/sentry-react-native/pull/2356))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7200)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.18.1...7.20.0)
+- Bump JavaScript SDK to v7.5.1 ([#2342](https://github.com/getsentry/sentry-react-native/pull/2342), [#2350](https://github.com/getsentry/sentry-react-native/pull/2350))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#751)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.3.1...7.5.1)
+>>>>>>> main
 
 ## 4.1.0
 

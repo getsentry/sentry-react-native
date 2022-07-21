@@ -17,8 +17,8 @@ jobs:
       name: Android SDK
     secrets:
       # If a custom token is used instead, a CI would be triggered on a created PR.
-      # api_token: ${{ secrets.CI_DEPLOY_KEY }}
-      api_token: ${{ github.token }}
+      api_token: ${{ secrets.CI_DEPLOY_KEY }}
+      # api_token: ${{ github.token }}
 
   cocoa:
     uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
@@ -27,8 +27,8 @@ jobs:
       name: Cocoa SDK
     secrets:
       # If a custom token is used instead, a CI would be triggered on a created PR.
-      # api_token: ${{ secrets.CI_DEPLOY_KEY }}
-      api_token: ${{ github.token }}
+      api_token: ${{ secrets.CI_DEPLOY_KEY }}
+      # api_token: ${{ github.token }}
 
   javascript:
     uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
@@ -37,8 +37,8 @@ jobs:
       name: JavaScript SDK
     secrets:
       # If a custom token is used instead, a CI would be triggered on a created PR.
-      # api_token: ${{ secrets.CI_DEPLOY_KEY }}
-      api_token: ${{ github.token }}
+      api_token: ${{ secrets.CI_DEPLOY_KEY }}
+      # api_token: ${{ github.token }}
 
   wizard:
     uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
@@ -47,5 +47,22 @@ jobs:
       name: Wizard
     secrets:
       # If a custom token is used instead, a CI would be triggered on a created PR.
-      # api_token: ${{ secrets.CI_DEPLOY_KEY }}
-      api_token: ${{ github.token }}
+      api_token: ${{ secrets.CI_DEPLOY_KEY }}
+      # api_token: ${{ github.token }}
+
+  cli:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    with:
+      path: scripts/update-cli.sh
+      name: CLI
+    secrets:
+      api_token: ${{ secrets.CI_DEPLOY_KEY }}
+
+  sample-rn:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    with:
+      path: sample/scripts/update-rn.sh
+      name: Sample React Native
+      pattern: '^v[0-9.]+$' # only match non-preview versions, also ignores "latest"
+    secrets:
+      api_token: ${{ secrets.CI_DEPLOY_KEY }}

@@ -8,7 +8,10 @@
 
 #import <Sentry/Sentry.h>
 #import <Sentry/SentryScreenFrames.h>
-#import <Sentry/SentryTraceContext.h>
+
+@interface SentryTraceContext : NSObject
+- (nullable instancetype)initWithDict:(NSDictionary<NSString *, id> *)dictionary;
+@end
 
 @interface SentrySDK (RNSentry)
 

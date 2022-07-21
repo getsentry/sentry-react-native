@@ -112,12 +112,17 @@ describe('NativeFramesInstrumentation', () => {
                 expect(event.measurements.frames_total.value).toBe(
                   finishFrames.totalFrames - startFrames.totalFrames
                 );
+                expect(event.measurements.frames_total.unit).toBe('none');
+
                 expect(event.measurements.frames_slow.value).toBe(
                   finishFrames.slowFrames - startFrames.slowFrames
                 );
+                expect(event.measurements.frames_slow.unit).toBe('none');
+
                 expect(event.measurements.frames_frozen.value).toBe(
                   finishFrames.frozenFrames - startFrames.frozenFrames
                 );
+                expect(event.measurements.frames_frozen.unit).toBe('none');
               }
 
               expect(event.contexts?.trace?.data).toBeDefined();

@@ -65,6 +65,15 @@ gradle.projectsEvaluated {
           variant = currentVariant[0]
           releaseName = currentVariant[1]
           versionCode = currentVariant[2]
+
+          try {
+            if (versionCode instanceof String) {
+                versionCode = Integer.parseInt(versionCode);
+            }
+          } catch (NumberFormatException e) {
+            project.logger.info("versionCode: '$versionCode' isn't an Integer, but it must be.")
+          }
+
           def absVersionCode = Math.abs(versionCode)
 
           // The Sentry server distinguishes source maps by release (`--release` in the command
