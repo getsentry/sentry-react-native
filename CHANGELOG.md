@@ -45,7 +45,6 @@ fix: Solve reference to private cocoa SDK class #2369
 - Bump JavaScript SDK to v7.5.1 ([#2342](https://github.com/getsentry/sentry-react-native/pull/2342), [#2350](https://github.com/getsentry/sentry-react-native/pull/2350))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#751)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.3.1...7.5.1)
->>>>>>> main
 
 ## 4.1.0
 
