@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Auto linking for RN >= 0.69 ([#2332](https://github.com/getsentry/sentry-react-native/pull/2332))
+
 ## 4.2.0
 
 ### Features
@@ -13,10 +19,6 @@
 - Bump JavaScript SDK to v7.7.0 ([#2375](https://github.com/getsentry/sentry-react-native/pull/2375))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#770)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.6.0...7.7.0)
-
-### Fixes
-
-- Auto linking for RN >= 0.69 ([#2332](https://github.com/getsentry/sentry-react-native/pull/2332))
 
 ## 4.1.3
 
