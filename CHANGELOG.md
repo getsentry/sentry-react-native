@@ -13,6 +13,9 @@
 - Bump JavaScript SDK to v7.7.0 ([#2375](https://github.com/getsentry/sentry-react-native/pull/2375))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#770)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.6.0...7.7.0)
+- Bump Wizard to v2.0.0 ([#2386](https://github.com/getsentry/sentry-react-native/pull/2386))
+  - [changelog](https://github.com/getsentry/sentry-wizard/blob/master/CHANGELOG.md#v200)
+  - [diff](https://github.com/getsentry/sentry-wizard/compare/v1.2.17...v2.0.0)
 
 ## 4.1.3
 
