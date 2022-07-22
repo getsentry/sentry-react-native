@@ -14,6 +14,10 @@
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#770)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.6.0...7.7.0)
 
+### Fixes
+
+- Auto linking for RN >= 0.69 ([#2332](https://github.com/getsentry/sentry-react-native/pull/2332))
+
 ## 4.1.3
 
 fix: Solve reference to private cocoa SDK class #2369
