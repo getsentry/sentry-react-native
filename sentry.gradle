@@ -68,18 +68,17 @@ gradle.projectsEvaluated {
 
           try {
             if (versionCode instanceof String) {
-                versionCode = Integer.parseInt(versionCode);
+                versionCode = Integer.parseInt(versionCode)
+                versionCode = Math.abs(versionCode)
             }
           } catch (NumberFormatException e) {
-            project.logger.info("versionCode: '$versionCode' isn't an Integer, but it must be.")
+            project.logger.info("versionCode: '$versionCode' isn't an Integer, using the plain value.")
           }
-
-          def absVersionCode = Math.abs(versionCode)
 
           // The Sentry server distinguishes source maps by release (`--release` in the command
           // below) and distribution identifier (`--dist` below).  Give the task a unique name
           // based on where we're uploading to.
-          def nameCliTask = "${bundleTask.name}_SentryUpload_${releaseName}_${absVersionCode}"
+          def nameCliTask = "${bundleTask.name}_SentryUpload_${releaseName}_${versionCode}"
 
           // If several outputs have the same releaseName and versionCode, we'd do the exact same
           // upload for each of them.  No need to repeat.

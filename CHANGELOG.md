@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- SENTRY_DIST accepts non-number values on Android ([#2395](https://github.com/getsentry/sentry-react-native/pull/2395))
+
 ## 4.2.0
 
 ### Features
