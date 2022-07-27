@@ -1,3 +1,4 @@
+import { Envelope, Transport } from '@sentry/types';
 import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';
@@ -98,6 +99,22 @@ describe('Tests ReactNativeClient', () => {
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
       // eslint-disable-next-line deprecation/deprecation
       await expect(RN.YellowBox.ignoreWarnings).toBeCalled();
+    });
+    
+    test('use custom transport function', async () => {
+      const myCustomTransportFn = (): Transport => ({
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        send: (request: Envelope) => Promise.resolve(),
+        flush: (timeout?: number) => Promise.resolve(Boolean(timeout))
+      });
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: myCustomTransportFn
+      } as ReactNativeClientOptions);
+
+      await expect(client.getTransport()?.flush(1)).resolves.toBe(true);
+      await expect(client.getTransport()?.send({} as Envelope)).resolves.toBeUndefined();
     });
   });
 
