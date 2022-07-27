@@ -114,8 +114,9 @@ describe('Tests ReactNativeClient', () => {
         dsn: EXAMPLE_DSN,
         transport: myCustomTransportFn
       } as ReactNativeClientOptions);
-
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(client.getTransport()?.flush).toBe(myFlush);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(client.getTransport()?.send).toBe(mySend);
     });
   });
