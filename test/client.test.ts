@@ -102,10 +102,12 @@ describe('Tests ReactNativeClient', () => {
     });
     
     test('use custom transport function', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const mySend = (request: Envelope) => Promise.resolve();
+      const myFlush = (timeout?: number) => Promise.resolve(Boolean(timeout));
       const myCustomTransportFn = (): Transport => ({
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        send: (request: Envelope) => Promise.resolve(),
-        flush: (timeout?: number) => Promise.resolve(Boolean(timeout))
+        send: mySend,
+        flush: myFlush
       });
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
@@ -113,8 +115,8 @@ describe('Tests ReactNativeClient', () => {
         transport: myCustomTransportFn
       } as ReactNativeClientOptions);
 
-      await expect(client.getTransport()?.flush(1)).resolves.toBe(true);
-      await expect(client.getTransport()?.send({} as Envelope)).resolves.toBeUndefined();
+      expect(client.getTransport()?.flush).toBe(myFlush);
+      expect(client.getTransport()?.send).toBe(mySend);
     });
   });
 
