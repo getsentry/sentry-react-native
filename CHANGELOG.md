@@ -1,11 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Should not ignore `options.transport` function provided in `Sentry.init(...)` ([#2398](https://github.com/getsentry/sentry-react-native/pull/2398))
+
 ## 4.2.1
 
 ### Fixes
 
 - SENTRY_DIST accepts non-number values on Android ([#2395](https://github.com/getsentry/sentry-react-native/pull/2395))
-- should not ignore `options.transport` function provided in `Sentry.init(...)` ([#2398](https://github.com/getsentry/sentry-react-native/pull/2398))
 
 ### Features
 
