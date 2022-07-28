@@ -25,14 +25,14 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @param options Configuration options for this SDK.
    */
    public constructor(options: ReactNativeClientOptions) {
-    const transport = (options: BrowserTransportOptions, nativeFetch?: FetchImpl): Transport => {
-      if (NATIVE.isNativeTransportAvailable()) {
-        return new NativeTransport();
-      }
-      return makeFetchTransport(options, nativeFetch);
+     if (!options.transport) {
+       options.transport = (options: BrowserTransportOptions, nativeFetch?: FetchImpl): Transport => {
+         if (NATIVE.isNativeTransportAvailable()) {
+           return new NativeTransport();
+         }
+         return makeFetchTransport(options, nativeFetch);
+       };
      }
-
-     options.transport = transport;
      super(options);
 
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
