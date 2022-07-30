@@ -7,6 +7,9 @@
 - Bump Cocoa SDK to v7.23.0 ([#2401](https://github.com/getsentry/sentry-react-native/pull/2401))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7230)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.22.0...7.23.0)
+- Bump JavaScript SDK to v7.8.0 ([#2399](https://github.com/getsentry/sentry-react-native/pull/2399))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#780)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.7.0...7.8.0)
 
 ## 4.2.2
 
