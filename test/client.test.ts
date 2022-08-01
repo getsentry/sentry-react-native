@@ -1,3 +1,4 @@
+import { Envelope, Transport } from '@sentry/types';
 import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';
@@ -98,6 +99,25 @@ describe('Tests ReactNativeClient', () => {
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
       // eslint-disable-next-line deprecation/deprecation
       await expect(RN.YellowBox.ignoreWarnings).toBeCalled();
+    });
+    
+    test('use custom transport function', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const mySend = (request: Envelope) => Promise.resolve();
+      const myFlush = (timeout?: number) => Promise.resolve(Boolean(timeout));
+      const myCustomTransportFn = (): Transport => ({
+        send: mySend,
+        flush: myFlush
+      });
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: myCustomTransportFn
+      } as ReactNativeClientOptions);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(client.getTransport()?.flush).toBe(myFlush);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(client.getTransport()?.send).toBe(mySend);
     });
   });
 

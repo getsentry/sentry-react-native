@@ -1,10 +1,40 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Bump Cocoa SDK to v7.23.0 ([#2401](https://github.com/getsentry/sentry-react-native/pull/2401))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7230)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.22.0...7.23.0)
+
+### Fixes
+
+- Fixes from 4.2.1 and 4.2.2
+
 ## 5.0.0-alpha.1
 
 ### Fixes
 
 - Auto linking for RN >= 0.69 ([#2332](https://github.com/getsentry/sentry-react-native/pull/2332))
+
+## 4.2.2
+
+### Fixes
+
+- Should not ignore `options.transport` function provided in `Sentry.init(...)` ([#2398](https://github.com/getsentry/sentry-react-native/pull/2398))
+
+## 4.2.1
+
+### Fixes
+
+- SENTRY_DIST accepts non-number values on Android ([#2395](https://github.com/getsentry/sentry-react-native/pull/2395))
+
+### Features
+
+- Bump Cocoa SDK to v7.22.0 ([#2392](https://github.com/getsentry/sentry-react-native/pull/2392))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7220)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.21.0...7.22.0)
 
 ## 4.2.0
 
@@ -22,7 +52,9 @@
 
 ## 4.1.3
 
-fix: Solve reference to private cocoa SDK class #2369
+### Fixes
+
+- Solve reference to private cocoa SDK class ([#2369](https://github.com/getsentry/sentry-react-native/pull/2369))
 
 ## 4.1.2
 
