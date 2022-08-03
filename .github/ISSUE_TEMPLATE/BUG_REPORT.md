@@ -1,3 +1,9 @@
+---
+name: 🐞 Bug Report
+about: Tell us about something that's not working the way we (probably) intend.
+labels: ["Platform: React-Native", "Type: 🪲 Bug"]
+---
+
 **OS:**
 - [ ]  Windows
 - [ ]  MacOS
