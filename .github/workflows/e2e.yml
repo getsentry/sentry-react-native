@@ -31,7 +31,7 @@ jobs:
           path: |
             node_modules
             sample/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
       - name: Install Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
@@ -89,7 +89,7 @@ jobs:
           path: |
             node_modules
             sample/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
       - uses: actions/cache@v3
         id: pods-cache
         with:
@@ -150,3 +150,62 @@ jobs:
         with:
           name: appium.ios.log
           path: ./sample/appium.log
+
+  metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "12"
+      - uses: actions/setup-java@v3
+        with:
+          java-version: "11"
+          distribution: "adopt"
+      - name: Install Global Dependencies
+        run: yarn global add react-native-cli @sentry/cli yalc
+      - uses: actions/cache@v3
+        id: deps-cache
+        with:
+          path: |
+            node_modules
+            test/perf/TestAppPlain/node_modules
+            test/perf/TestAppSentry/node_modules
+          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'test/perf/TestAppPlain/yarn.lock', 'test/perf/TestAppSentry/yarn.lock') }}
+      - name: Install Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        run: yarn install
+      - name: Build SDK
+        run: yarn build
+      - name: Package SDK
+        run: yalc publish
+      - name: Install Dependencies - app plain
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        working-directory: ./test/perf/TestAppPlain
+        run: yarn install
+      - name: Install Dependencies - app sentry
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        working-directory: ./test/perf/TestAppSentry
+        run: yarn install
+      - name: Build Android app plain
+        working-directory: ./test/perf/TestAppPlain/android
+        run: ./gradlew bundleRelease
+      - name: Build Android app with Sentry
+        working-directory: ./test/perf/TestAppSentry/android
+        run: |
+          yalc add @sentry/react-native
+          ./gradlew bundleRelease
+      - name: Collect Android apps metrics
+        uses: vaind/app-metrics-action@7c4bb7c513304dc4cc2452d1deaf941b2fc03644
+        with:
+          config: ./test/perf/metrics-android.yml
+          sauce-user: ${{ secrets.SAUCE_USERNAME }}
+          sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
+      # TODO build iOS test app & run on SauceLabs
+      # - name: Collect iOS apps metrics
+      #   uses: vaind/app-metrics-action@7c4bb7c513304dc4cc2452d1deaf941b2fc03644
+      #   with:
+      #     config: ./test/perf/metrics-ios.yml
+      #     sauce-user: ${{ secrets.SAUCE_USERNAME }}
+      #     sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
+

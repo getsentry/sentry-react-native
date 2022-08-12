@@ -1,0 +1,14 @@
+apps:
+  - name: org.reactjs.native.example.TestAppPlain
+    path: TODO
+  - name: org.reactjs.native.example.TestAppSentry
+    path: TODO
+
+startupTimeTest:
+  runs: 50
+  diffMin: 0
+  diffMax: 150
+
+binarySizeTest:
+  diffMin: 1.8 MiB
+  diffMax: 2.0 MiB
