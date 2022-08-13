@@ -169,9 +169,8 @@ jobs:
         with:
           path: |
             node_modules
-            test/perf/TestAppPlain/node_modules
             test/perf/TestAppSentry/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'test/perf/TestAppPlain/yarn.lock', 'test/perf/TestAppSentry/yarn.lock') }}
+          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'test/perf/TestAppSentry/yarn.lock') }}
       - name: Install Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
@@ -182,22 +181,30 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: "16"
-      - name: Install Dependencies - app plain
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
-        working-directory: ./test/perf/TestAppPlain
-        run: yarn install
       - name: Install Dependencies - app sentry
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         working-directory: ./test/perf/TestAppSentry
         run: yarn install
+      - uses: actions/cache@v3
+        id: app-plain-cache
+        with:
+          path: |
+            test/perf/TestAppPlain/android/app/build/outputs/bundle/release/app-release.aab
+          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ hashFiles('test/perf/TestAppPlain/**') }}
       - name: Build Android app plain
-        working-directory: ./test/perf/TestAppPlain/android
-        run: ./gradlew bundleRelease
+        if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
+        working-directory: ./test/perf/TestAppPlain
+        run: |
+          yarn install
+          (cd android ; ./gradlew bundleRelease)
+          #  TODO iOS build & add to cache above
       - name: Build Android app with Sentry
-        working-directory: ./test/perf/TestAppSentry/android
+        working-directory: ./test/perf/TestAppSentry
         run: |
           yalc add @sentry/react-native
-          ./gradlew bundleRelease
+          (cd android ; ./gradlew bundleRelease)
+          # Remove after build so that the cache isn't invaldiated due to the changes in yarn.lock.
+          yalc remove @sentry/react-native
       - name: Collect Android apps metrics
         uses: vaind/app-metrics-action@7c4bb7c513304dc4cc2452d1deaf941b2fc03644
         with:
@@ -211,4 +218,3 @@ jobs:
       #     config: ./test/perf/metrics-ios.yml
       #     sauce-user: ${{ secrets.SAUCE_USERNAME }}
       #     sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
-
