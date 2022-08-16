@@ -151,7 +151,7 @@ jobs:
           name: appium.ios.log
           path: ./sample/appium.log
 
-  metrics:
+  android-metrics:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -188,17 +188,15 @@ jobs:
       - uses: actions/cache@v3
         id: app-plain-cache
         with:
-          path: |
-            test/perf/TestAppPlain/android/app/build/outputs/bundle/release/app-release.aab
+          path: test/perf/TestAppPlain/android/app/build/outputs/bundle/release/app-release.aab
           key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ hashFiles('test/perf/TestAppPlain/**') }}
-      - name: Build Android app plain
+      - name: Build app plain
         if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
         working-directory: ./test/perf/TestAppPlain
         run: |
           yarn install
           (cd android ; ./gradlew bundleRelease)
-          #  TODO iOS build & add to cache above
-      - name: Build Android app with Sentry
+      - name: Build app with Sentry
         working-directory: ./test/perf/TestAppSentry
         run: |
           yalc add @sentry/react-native
@@ -206,16 +204,88 @@ jobs:
           (cd android ; ./gradlew bundleRelease)
           # Remove after build so that the cache isn't invaldiated due to the changes in yarn.lock.
           yarn remove @sentry/react-native
-      - name: Collect Android apps metrics
-        uses: getsentry/action-app-sdk-overhead-metrics@v1
+      - name: Collect apps metrics
+        uses: getsentry/action-app-sdk-overhead-metrics@01f641a05137ffe1390d7958ff113b4807b22975
         with:
+          name: Android
           config: ./test/perf/metrics-android.yml
           sauce-user: ${{ secrets.SAUCE_USERNAME }}
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
-      # TODO build iOS test app & run on SauceLabs
-      # - name: Collect iOS apps metrics
-      #   uses: getsentry/action-app-sdk-overhead-metrics@v1
-      #   with:
-      #     config: ./test/perf/metrics-ios.yml
-      #     sauce-user: ${{ secrets.SAUCE_USERNAME }}
-      #     sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
+
+  ios-metrics:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "12"
+      - uses: actions/setup-java@v3
+        with:
+          java-version: "11"
+          distribution: "adopt"
+      - name: Install Global Dependencies
+        run: yarn global add react-native-cli @sentry/cli yalc
+      - uses: actions/cache@v3
+        id: deps-cache
+        with:
+          path: |
+            node_modules
+            test/perf/TestAppSentry/node_modules
+          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'test/perf/TestAppSentry/yarn.lock') }}
+      - name: Install Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        run: yarn install
+      - name: Build SDK
+        run: yarn build
+      - name: Package SDK
+        run: yalc publish
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+      - name: Install Dependencies - app sentry
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        working-directory: ./test/perf/TestAppSentry
+        run: yarn install
+      - uses: actions/cache@v3
+        id: app-plain-cache
+        with:
+          path: test/perf/test-app-plain.ipa
+          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ hashFiles('test/perf/TestAppPlain/**') }}
+      - name: Build app plain
+        if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
+        working-directory: ./test/perf
+        run: |
+          (cd TestAppPlain ; yarn install)
+          fastlane build_perf_test_app_plain
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+          FASTLANE_KEYCHAIN_PASSWORD: ${{ secrets.FASTLANE_KEYCHAIN_PASSWORD }}
+          MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
+      - name: Build app with Sentry
+        working-directory: ./test/perf
+        run: |
+          cd TestAppSentry
+          yalc add @sentry/react-native
+          yarn install
+          fastlane build_perf_test_app_sentry
+          # Remove after build so that the cache isn't invaldiated due to the changes in yarn.lock.
+          yarn remove @sentry/react-native
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+          FASTLANE_KEYCHAIN_PASSWORD: ${{ secrets.FASTLANE_KEYCHAIN_PASSWORD }}
+          MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
+      - name: Collect apps metrics
+        uses: getsentry/action-app-sdk-overhead-metrics@01f641a05137ffe1390d7958ff113b4807b22975
+        with:
+          name: iOS
+          config: ./test/perf/metrics-ios.yml
+          sauce-user: ${{ secrets.SAUCE_USERNAME }}
+          sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
