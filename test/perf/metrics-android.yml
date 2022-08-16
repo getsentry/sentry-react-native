@@ -7,10 +7,10 @@ apps:
     path: TestAppSentry/android/app/build/outputs/bundle/release/app-release.aab
 
 startupTimeTest:
-  runs: 50
+  runs: 5
   diffMin: 0
   diffMax: 150
 
 binarySizeTest:
-  diffMin: 1.8 MiB
-  diffMax: 2.0 MiB
+  diffMin: 1.9 MiB
+  diffMax: 2.1 MiB

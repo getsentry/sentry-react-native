@@ -207,14 +207,14 @@ jobs:
           # Remove after build so that the cache isn't invaldiated due to the changes in yarn.lock.
           yarn remove @sentry/react-native
       - name: Collect Android apps metrics
-        uses: vaind/app-metrics-action@7c4bb7c513304dc4cc2452d1deaf941b2fc03644
+        uses: getsentry/action-app-sdk-overhead-metrics@v1
         with:
           config: ./test/perf/metrics-android.yml
           sauce-user: ${{ secrets.SAUCE_USERNAME }}
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
       # TODO build iOS test app & run on SauceLabs
       # - name: Collect iOS apps metrics
-      #   uses: vaind/app-metrics-action@7c4bb7c513304dc4cc2452d1deaf941b2fc03644
+      #   uses: getsentry/action-app-sdk-overhead-metrics@v1
       #   with:
       #     config: ./test/perf/metrics-ios.yml
       #     sauce-user: ${{ secrets.SAUCE_USERNAME }}
