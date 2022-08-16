@@ -82,7 +82,9 @@ project.ext.react = [
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"
-apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
+// Disabled to avoid CLI failures when uploading symbols.
+// TODO does it also add any native dependencies? Doesn't seem so at the moment (v5.0.0-alpha)
+// apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
 
 /**
  * Set this to true to create two separate APKs instead of one:
