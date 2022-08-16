@@ -1,11 +1,11 @@
 apps:
-  - name: org.reactjs.native.example.TestAppPlain
-    path: TODO
-  - name: org.reactjs.native.example.TestAppSentry
-    path: TODO
+  - name: io.sentry.rn.perf-test-app-plain
+    path: test-app-plain.ipa
+  - name: io.sentry.rn.perf-test-app-sentry
+    path: test-app-sentry.ipa
 
 startupTimeTest:
-  runs: 50
+  runs: 5
   diffMin: 0
   diffMax: 150
 
