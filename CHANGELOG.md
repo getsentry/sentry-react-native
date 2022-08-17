@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 5.0.0-alpha.2
+
+### Various fixes & improvements
+
+- build(deps): bump actions/stale from 5.1.0 to 5.1.1 (#2404) by @dependabot
+- Fix: Auto linking for RN >= 0.69 (#2332) by @marandaneto
 
 ## 5.0.0-alpha.1
 
