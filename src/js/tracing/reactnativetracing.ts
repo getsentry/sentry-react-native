@@ -361,7 +361,7 @@ export class ReactNativeTracing implements Integration {
       hub as Hub,
       expandedContext,
       idleTimeout,
-      idleTimeout, // BREAKCHANGE: check the correct parameter here
+      maxTransactionDuration,
       true
     );
 
