@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- ReactNativeTracing wrongly marks transactions as deadline_exceeded when it reaches the idleTimeout ([#2398](https://github.com/getsentry/sentry-react-native/pull/2398))
+- ReactNativeTracing wrongly marks transactions as deadline_exceeded when it reaches the idleTimeout ([#2427](https://github.com/getsentry/sentry-react-native/pull/2427))
 
 ## 4.2.3
 
