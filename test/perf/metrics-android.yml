@@ -7,7 +7,7 @@ apps:
     path: TestAppSentry/android/app/build/outputs/bundle/release/app-release.aab
 
 startupTimeTest:
-  runs: 5
+  runs: 50
   diffMin: 0
   diffMax: 150
 

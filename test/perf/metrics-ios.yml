@@ -5,7 +5,7 @@ apps:
     path: test-app-sentry.ipa
 
 startupTimeTest:
-  runs: 5
+  runs: 50
   diffMin: 0
   diffMax: 150
 
