@@ -12,12 +12,11 @@ platform :ios do
     )
 
     build_app(
-      project: "test/perf/TestAppPlain/ios/TestAppPlain.xcodeproj",
+      project: "TestAppPlain/ios/TestAppPlain.xcodeproj",
       scheme: "TestAppPlain",
       include_bitcode: false,
       include_symbols: false,
       export_method: "development",
-      output_directory: "test/perf/",
       output_name: "test-app-plain.ipa"
     )
 
@@ -35,12 +34,11 @@ platform :ios do
     )
 
     build_app(
-      project: "test/perf/TestAppSentry/ios/TestAppSentry.xcodeproj",
+      project: "TestAppSentry/ios/TestAppSentry.xcodeproj",
       scheme: "TestAppSentry",
       include_bitcode: false,
       include_symbols: false,
       export_method: "development",
-      output_directory: "test/perf/",
       output_name: "test-app-sentry.ipa"
     )
 
