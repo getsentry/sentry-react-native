@@ -12,7 +12,7 @@ platform :ios do
     )
 
     build_app(
-      project: "TestAppPlain/ios/TestAppPlain.xcodeproj",
+      workspace: "TestAppPlain/ios/TestAppPlain.xcworkspace",
       scheme: "TestAppPlain",
       include_bitcode: false,
       include_symbols: false,
@@ -34,7 +34,7 @@ platform :ios do
     )
 
     build_app(
-      project: "TestAppSentry/ios/TestAppSentry.xcodeproj",
+      workspace: "TestAppSentry/ios/TestAppSentry.xcworkspace",
       scheme: "TestAppSentry",
       include_bitcode: false,
       include_symbols: false,

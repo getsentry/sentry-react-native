@@ -242,10 +242,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: "16"
-      - name: Install Dependencies - app sentry
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
-        working-directory: ./test/perf/TestAppSentry
-        run: yarn install
       - uses: actions/cache@v3
         id: app-plain-cache
         with:
@@ -256,6 +252,7 @@ jobs:
         working-directory: ./test/perf
         run: |
           (cd TestAppPlain ; yarn install)
+          (cd TestAppPlain/ios ; pod install)
           fastlane build_perf_test_app_plain
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
@@ -268,12 +265,11 @@ jobs:
       - name: Build app with Sentry
         working-directory: ./test/perf
         run: |
-          cd TestAppSentry
-          yalc add @sentry/react-native
-          yarn install
+          (cd TestAppSentry ; yalc add @sentry/react-native; yarn install)
+          (cd TestAppSentry/ios ; pod install)
           fastlane build_perf_test_app_sentry
           # Remove after build so that the cache isn't invaldiated due to the changes in yarn.lock.
-          yarn remove @sentry/react-native
+          (cd TestAppSentry ; yarn remove @sentry/react-native)
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
