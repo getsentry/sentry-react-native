@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { Transaction } from '@sentry/types';
+import { Transaction, TransactionContext } from '@sentry/types';
 import { getGlobalObject, logger } from '@sentry/utils';
 
 import {
@@ -12,6 +12,7 @@ import {
   ReactNavigationTransactionContext,
   RouteChangeContextData,
 } from './types';
+import { defaultTransactionSource } from './utils';
 
 export interface NavigationRouteV4 {
   routeName: string;
@@ -221,6 +222,7 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
         currentRoute,
         this._prevRoute
       );
+      const originalMetadataSource = originalContext.metadata?.source;
 
       let mergedContext = originalContext;
       if (updateLatestTransaction && this._latestTransaction) {
@@ -230,27 +232,16 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
         };
       }
 
-      let finalContext = this._beforeNavigate?.(mergedContext);
-
-      // This block is to catch users not returning a transaction context
-      if (!finalContext) {
-        logger.error(
-          `[ReactNavigationV4Instrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
-        );
-
-        finalContext = {
-          ...mergedContext,
-          sampled: false,
-        };
-      }
-
-      if (finalContext.sampled === false) {
-        this._onBeforeNavigateNotSampled(finalContext.name);
-      }
+      const finalContext = this._prepareFinalContext(mergedContext);
 
       if (updateLatestTransaction && this._latestTransaction) {
         // Update the latest transaction instead of calling onRouteWillChange
         this._latestTransaction.updateWithContext(finalContext);
+        const notCustomName = mergedContext.name === finalContext.name;
+        if (notCustomName) {
+          const newSource = originalMetadataSource || defaultTransactionSource;
+          this._latestTransaction.setName(finalContext.name, newSource);
+        }
       } else {
         this._latestTransaction = this.onRouteWillChange(finalContext);
       }
@@ -260,6 +251,29 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
       this._pushRecentRouteKey(currentRoute.key);
       this._prevRoute = currentRoute;
     }
+  }
+
+  /** Creates final transaction context before confirmation */
+  private _prepareFinalContext(mergedContext: TransactionContext): TransactionContext {
+    let finalContext = this._beforeNavigate?.(mergedContext);
+
+    // This block is to catch users not returning a transaction context
+    if (!finalContext) {
+      logger.error(
+        `[ReactNavigationV4Instrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
+      );
+
+      finalContext = {
+        ...mergedContext,
+        sampled: false,
+      };
+    }
+
+    if (finalContext.sampled === false) {
+      this._onBeforeNavigateNotSampled(finalContext.name);
+    }
+
+    return finalContext;
   }
 
   /**
@@ -345,7 +359,7 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
   }
 }
 
-const INITIAL_TRANSACTION_CONTEXT_V4 = {
+const INITIAL_TRANSACTION_CONTEXT_V4: TransactionContext = {
   name: 'App Launch',
   op: 'navigation',
   tags: {
@@ -353,6 +367,9 @@ const INITIAL_TRANSACTION_CONTEXT_V4 = {
       ReactNavigationV4Instrumentation.instrumentationName,
   },
   data: {},
+  metadata: {
+    source: 'view',
+  },
 };
 
 export { ReactNavigationV4Instrumentation, INITIAL_TRANSACTION_CONTEXT_V4 };

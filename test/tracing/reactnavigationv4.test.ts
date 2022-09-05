@@ -501,6 +501,7 @@ describe('ReactNavigationV4Instrumentation', () => {
       if (confirmedContext) {
         expect(confirmedContext.name).toBe(route2.routeName);
         expect(confirmedContext.data).toBeDefined();
+        expect(confirmedContext.metadata).toBeUndefined();
         if (confirmedContext.data) {
           expect(confirmedContext.data.route.name).toBe(route2.routeName);
           expect(confirmedContext.data.previousRoute).toBeDefined();

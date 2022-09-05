@@ -260,8 +260,7 @@ describe('React Native Navigation Instrumentation', () => {
       expect(confirmedContext).toBeDefined();
       if (confirmedContext) {
         expect(confirmedContext.name).toBe(mockEvent2.componentName);
-        expect(confirmedContext.metadata).toBeDefined();
-        expect(confirmedContext.metadata?.source).toBe('view');
+        expect(confirmedContext.metadata).toBeUndefined();
         expect(confirmedContext.data).toBeDefined();
         if (confirmedContext.data) {
           expect(confirmedContext.data.route.name).toBe(

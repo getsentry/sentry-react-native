@@ -491,8 +491,7 @@ describe('ReactNavigationInstrumentation', () => {
       expect(confirmedContext).toBeDefined();
       if (confirmedContext) {
         expect(confirmedContext.name).toBe(route2.name);
-        expect(confirmedContext.metadata).toBeDefined();
-        expect(confirmedContext.metadata?.source).toBe('view');
+        expect(confirmedContext.metadata).toBeUndefined();
         expect(confirmedContext.data).toBeDefined();
         if (confirmedContext.data) {
           expect(confirmedContext.data.route.name).toBe(route2.name);
