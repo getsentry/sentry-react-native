@@ -139,6 +139,7 @@ describe('ReactNavigationV4Instrumentation', () => {
       previousRoute: null,
     });
     expect(mockTransaction.sampled).toBe(true);
+    expect(mockTransaction.metadata.source).toBe('view');
   });
 
   test('transaction sent on navigation', () => {
@@ -199,6 +200,7 @@ describe('ReactNavigationV4Instrumentation', () => {
     });
 
     expect(mockTransaction.sampled).toBe(true);
+    expect(mockTransaction.metadata.source).toBe('view');
   });
 
   test('transaction context changed with beforeNavigate', () => {
@@ -262,6 +264,7 @@ describe('ReactNavigationV4Instrumentation', () => {
     });
 
     expect(mockTransaction.sampled).toBe(false);
+    expect(mockTransaction.metadata.source).toBe('view');
   });
 
   test('transaction not attached on a cancelled navigation', () => {

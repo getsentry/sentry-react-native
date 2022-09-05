@@ -80,6 +80,7 @@ describe('ReactNavigationInstrumentation', () => {
       },
       previousRoute: null,
     });
+    expect(mockTransaction.metadata.source).toBe('view');
   });
 
   test('transaction sent on navigation', async () => {
@@ -140,6 +141,7 @@ describe('ReactNavigationInstrumentation', () => {
             params: {},
           },
         });
+        expect(mockTransaction.metadata.source).toBe('view');
 
         resolve();
       }, 50);
@@ -192,6 +194,7 @@ describe('ReactNavigationInstrumentation', () => {
         expect(mockTransaction.sampled).toBe(false);
         expect(mockTransaction.name).toBe('New Name');
         expect(mockTransaction.description).toBe('Description');
+        expect(mockTransaction.metadata.source).toBe('view');
         resolve();
       }, 50);
     });
@@ -488,6 +491,8 @@ describe('ReactNavigationInstrumentation', () => {
       expect(confirmedContext).toBeDefined();
       if (confirmedContext) {
         expect(confirmedContext.name).toBe(route2.name);
+        expect(confirmedContext.metadata).toBeDefined();
+        expect(confirmedContext.metadata?.source).toBe('view');
         expect(confirmedContext.data).toBeDefined();
         if (confirmedContext.data) {
           expect(confirmedContext.data.route.name).toBe(route2.name);

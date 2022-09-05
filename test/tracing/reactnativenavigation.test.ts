@@ -92,6 +92,7 @@ describe('React Native Navigation Instrumentation', () => {
       },
       previousRoute: null,
     });
+    expect(mockTransaction.metadata.source).toBe('view');
   });
 
   test('Transaction context is changed with beforeNavigate', () => {
@@ -144,6 +145,7 @@ describe('React Native Navigation Instrumentation', () => {
       },
       previousRoute: null,
     });
+    expect(mockTransaction.metadata.source).toBe('view');
   });
 
   test('Transaction not sent on a cancelled route change', () => {
@@ -258,6 +260,8 @@ describe('React Native Navigation Instrumentation', () => {
       expect(confirmedContext).toBeDefined();
       if (confirmedContext) {
         expect(confirmedContext.name).toBe(mockEvent2.componentName);
+        expect(confirmedContext.metadata).toBeDefined();
+        expect(confirmedContext.metadata?.source).toBe('view');
         expect(confirmedContext.data).toBeDefined();
         if (confirmedContext.data) {
           expect(confirmedContext.data.route.name).toBe(

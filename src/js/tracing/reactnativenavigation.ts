@@ -1,4 +1,4 @@
-import { Transaction as TransactionType } from '@sentry/types';
+import { Transaction as TransactionType, TransactionContext } from '@sentry/types';
 import { logger } from '@sentry/utils';
 import { EmitterSubscription } from 'react-native';
 
@@ -8,7 +8,7 @@ import {
   TransactionCreator,
 } from './routingInstrumentation';
 import { BeforeNavigate, RouteChangeContextData } from './types';
-import { getBlankTransactionContext } from './utils';
+import { defaultTransactionSource, getBlankTransactionContext } from './utils';
 
 interface ReactNativeNavigationOptions {
   routeChangeTimeoutMs: number;
@@ -142,6 +142,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
         this._clearStateChangeTimeout();
 
         const originalContext = this._latestTransaction.toContext();
+        const originalMetadataSource = this._latestTransaction.metadata.source;
         const routeHasBeenSeen = this._recentComponentIds.includes(
           event.componentId
         );
@@ -171,29 +172,16 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
           data,
         };
 
-        let finalContext = this._beforeNavigate?.(updatedContext);
-
-        // This block is to catch users not returning a transaction context
-        if (!finalContext) {
-          logger.error(
-            `[${ReactNativeNavigationInstrumentation.name}] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
-          );
-
-          finalContext = {
-            ...updatedContext,
-            sampled: false,
-          };
-        }
-
-        if (finalContext.sampled === false) {
-          logger.log(
-            `[${ReactNativeNavigationInstrumentation.name}] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
-          );
-        }
-
+        const finalContext = this._prepareFinalContext(updatedContext);
         this._latestTransaction.updateWithContext(finalContext);
-        this._onConfirmRoute?.(finalContext);
 
+        const notCustomName = updatedContext.name === finalContext.name;
+        if (notCustomName) {
+          const newSource = originalMetadataSource || defaultTransactionSource;
+          this._latestTransaction.setName(finalContext.name, newSource);
+        }
+
+        this._onConfirmRoute?.(finalContext);
         this._prevComponentEvent = event;
       } else {
         this._discardLatestTransaction();
@@ -201,6 +189,31 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
 
       this._latestTransaction = undefined;
     }
+  }
+
+  /** Creates final transaction context before confirmation */
+  private _prepareFinalContext(updatedContext: TransactionContext): TransactionContext {
+    let finalContext = this._beforeNavigate?.(updatedContext);
+
+    // This block is to catch users not returning a transaction context
+    if (!finalContext) {
+      logger.error(
+        `[${ReactNativeNavigationInstrumentation.name}] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
+      );
+
+      finalContext = {
+        ...updatedContext,
+        sampled: false,
+      };
+    }
+
+    if (finalContext.sampled === false) {
+      logger.log(
+        `[${ReactNativeNavigationInstrumentation.name}] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
+      );
+    }
+
+    return finalContext;
   }
 
   /** Cancels the latest transaction so it does not get sent to Sentry. */
