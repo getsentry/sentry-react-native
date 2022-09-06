@@ -139,7 +139,7 @@ describe('ReactNavigationV4Instrumentation', () => {
       previousRoute: null,
     });
     expect(mockTransaction.sampled).toBe(true);
-    expect(mockTransaction.metadata.source).toBe('view');
+    expect(mockTransaction.metadata.source).toBe('component');
   });
 
   test('transaction sent on navigation', () => {
@@ -200,7 +200,7 @@ describe('ReactNavigationV4Instrumentation', () => {
     });
 
     expect(mockTransaction.sampled).toBe(true);
-    expect(mockTransaction.metadata.source).toBe('view');
+    expect(mockTransaction.metadata.source).toBe('component');
   });
 
   test('transaction context changed with beforeNavigate', () => {

@@ -80,7 +80,7 @@ describe('ReactNavigationInstrumentation', () => {
       },
       previousRoute: null,
     });
-    expect(mockTransaction.metadata.source).toBe('view');
+    expect(mockTransaction.metadata.source).toBe('component');
   });
 
   test('transaction sent on navigation', async () => {
@@ -141,7 +141,7 @@ describe('ReactNavigationInstrumentation', () => {
             params: {},
           },
         });
-        expect(mockTransaction.metadata.source).toBe('view');
+        expect(mockTransaction.metadata.source).toBe('component');
 
         resolve();
       }, 50);

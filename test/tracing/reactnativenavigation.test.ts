@@ -92,7 +92,7 @@ describe('React Native Navigation Instrumentation', () => {
       },
       previousRoute: null,
     });
-    expect(mockTransaction.metadata.source).toBe('view');
+    expect(mockTransaction.metadata.source).toBe('component');
   });
 
   test('Transaction context is changed with beforeNavigate', () => {
