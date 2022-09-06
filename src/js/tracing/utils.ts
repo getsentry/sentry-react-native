@@ -2,7 +2,8 @@ import { IdleTransaction, Span, Transaction } from '@sentry/tracing';
 import { TransactionContext, TransactionSource } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 
-export const defaultTransactionSource: TransactionSource = 'view';
+export const defaultTransactionSource: TransactionSource = 'component';
+export const customTransactionSource: TransactionSource = 'custom';
 
 export const getBlankTransactionContext = (
   name: string

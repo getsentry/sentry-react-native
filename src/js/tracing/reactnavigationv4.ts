@@ -12,7 +12,7 @@ import {
   ReactNavigationTransactionContext,
   RouteChangeContextData,
 } from './types';
-import { defaultTransactionSource } from './utils';
+import { customTransactionSource, defaultTransactionSource } from './utils';
 
 export interface NavigationRouteV4 {
   routeName: string;
@@ -239,7 +239,7 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
         const isCustomName = mergedContext.name !== finalContext.name;
         this._latestTransaction.setName(
           finalContext.name,
-          isCustomName ? 'custom' : defaultTransactionSource,
+          isCustomName ? customTransactionSource : defaultTransactionSource,
         );
       } else {
         this._latestTransaction = this.onRouteWillChange(finalContext);

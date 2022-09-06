@@ -12,7 +12,7 @@ import {
   ReactNavigationTransactionContext,
   RouteChangeContextData,
 } from './types';
-import { defaultTransactionSource, getBlankTransactionContext } from './utils';
+import { customTransactionSource, defaultTransactionSource, getBlankTransactionContext } from './utils';
 
 export interface NavigationRoute {
   name: string;
@@ -234,7 +234,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
           const isCustomName = updatedContext.name !== finalContext.name;
           this._latestTransaction.setName(
             finalContext.name,
-            isCustomName ? 'custom' : defaultTransactionSource,
+            isCustomName ? customTransactionSource : defaultTransactionSource,
           );
 
           this._onConfirmRoute?.(finalContext);

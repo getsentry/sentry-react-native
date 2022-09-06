@@ -8,7 +8,7 @@ import {
   TransactionCreator,
 } from './routingInstrumentation';
 import { BeforeNavigate, RouteChangeContextData } from './types';
-import { defaultTransactionSource, getBlankTransactionContext } from './utils';
+import { customTransactionSource, defaultTransactionSource, getBlankTransactionContext } from './utils';
 
 interface ReactNativeNavigationOptions {
   routeChangeTimeoutMs: number;
@@ -177,7 +177,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
         const isCustomName = updatedContext.name !== finalContext.name;
         this._latestTransaction.setName(
           finalContext.name,
-          isCustomName ? 'custom' : defaultTransactionSource,
+          isCustomName ? customTransactionSource : defaultTransactionSource,
         );
 
         this._onConfirmRoute?.(finalContext);
