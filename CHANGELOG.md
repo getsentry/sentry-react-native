@@ -7,6 +7,7 @@
 - Bump JavaScript SDK from v7.9.0 to v7.12.1 ([#2451](https://github.com/getsentry/sentry-react-native/pull/2451))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7121)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.9.0...7.12.1)
+- Add Transaction Source for Dynamic Sampling Context ([#2454](https://github.com/getsentry/sentry-react-native/pull/2454))
 
 ## 4.2.4
 
