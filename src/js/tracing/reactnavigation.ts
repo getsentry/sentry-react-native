@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { Transaction as TransactionType } from '@sentry/types';
+import { Transaction as TransactionType, TransactionContext } from '@sentry/types';
 import { getGlobalObject, logger } from '@sentry/utils';
 
 import {
@@ -12,7 +12,7 @@ import {
   ReactNavigationTransactionContext,
   RouteChangeContextData,
 } from './types';
-import { getBlankTransactionContext } from './utils';
+import { customTransactionSource, defaultTransactionSource, getBlankTransactionContext } from './utils';
 
 export interface NavigationRoute {
   name: string;
@@ -228,31 +228,15 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             data,
           };
 
-          let finalContext = this._beforeNavigate?.(updatedContext);
-
-          // This block is to catch users not returning a transaction context
-          if (!finalContext) {
-            logger.error(
-              `[ReactNavigationInstrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
-            );
-
-            finalContext = {
-              ...updatedContext,
-              sampled: false,
-            };
-          }
-
-          // Note: finalContext.sampled will be false at this point only if the user sets it to be so in beforeNavigate.
-          if (finalContext.sampled === false) {
-            logger.log(
-              `[ReactNavigationInstrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
-            );
-          } else {
-            // Clear the timeout so the transaction does not get cancelled.
-            this._clearStateChangeTimeout();
-          }
-
+          const finalContext = this._prepareFinalContext(updatedContext);
           this._latestTransaction.updateWithContext(finalContext);
+
+          const isCustomName = updatedContext.name !== finalContext.name;
+          this._latestTransaction.setName(
+            finalContext.name,
+            isCustomName ? customTransactionSource : defaultTransactionSource,
+          );
+
           this._onConfirmRoute?.(finalContext);
         }
 
@@ -263,6 +247,35 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
 
     // Clear the latest transaction as it has been handled.
     this._latestTransaction = undefined;
+  }
+
+  /** Creates final transaction context before confirmation */
+  private _prepareFinalContext(updatedContext: TransactionContext): TransactionContext {
+    let finalContext = this._beforeNavigate?.({ ...updatedContext });
+
+    // This block is to catch users not returning a transaction context
+    if (!finalContext) {
+      logger.error(
+        `[ReactNavigationInstrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
+      );
+
+      finalContext = {
+        ...updatedContext,
+        sampled: false,
+      };
+    }
+
+    // Note: finalContext.sampled will be false at this point only if the user sets it to be so in beforeNavigate.
+    if (finalContext.sampled === false) {
+      logger.log(
+        `[ReactNavigationInstrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
+      );
+    } else {
+      // Clear the timeout so the transaction does not get cancelled.
+      this._clearStateChangeTimeout();
+    }
+
+    return finalContext;
   }
 
   /** Pushes a recent route key, and removes earlier routes when there is greater than the max length */
