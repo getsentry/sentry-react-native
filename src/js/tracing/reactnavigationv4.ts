@@ -222,7 +222,6 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
         currentRoute,
         this._prevRoute
       );
-      const originalMetadataSource = originalContext.metadata?.source;
 
       let mergedContext = originalContext;
       if (updateLatestTransaction && this._latestTransaction) {
@@ -237,11 +236,11 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
       if (updateLatestTransaction && this._latestTransaction) {
         // Update the latest transaction instead of calling onRouteWillChange
         this._latestTransaction.updateWithContext(finalContext);
-        const notCustomName = mergedContext.name === finalContext.name;
-        if (notCustomName) {
-          const newSource = originalMetadataSource || defaultTransactionSource;
-          this._latestTransaction.setName(finalContext.name, newSource);
-        }
+        const isCustomName = mergedContext.name !== finalContext.name;
+        this._latestTransaction.setName(
+          finalContext.name,
+          isCustomName ? 'custom' : defaultTransactionSource,
+        );
       } else {
         this._latestTransaction = this.onRouteWillChange(finalContext);
       }
@@ -255,7 +254,7 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
 
   /** Creates final transaction context before confirmation */
   private _prepareFinalContext(mergedContext: TransactionContext): TransactionContext {
-    let finalContext = this._beforeNavigate?.(mergedContext);
+    let finalContext = this._beforeNavigate?.({ ...mergedContext });
 
     // This block is to catch users not returning a transaction context
     if (!finalContext) {

@@ -194,7 +194,7 @@ describe('ReactNavigationInstrumentation', () => {
         expect(mockTransaction.sampled).toBe(false);
         expect(mockTransaction.name).toBe('New Name');
         expect(mockTransaction.description).toBe('Description');
-        expect(mockTransaction.metadata.source).toBe('view');
+        expect(mockTransaction.metadata.source).toBe('custom');
         resolve();
       }, 50);
     });

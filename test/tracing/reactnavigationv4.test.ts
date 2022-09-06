@@ -264,7 +264,7 @@ describe('ReactNavigationV4Instrumentation', () => {
     });
 
     expect(mockTransaction.sampled).toBe(false);
-    expect(mockTransaction.metadata.source).toBe('view');
+    expect(mockTransaction.metadata.source).toBe('custom');
   });
 
   test('transaction not attached on a cancelled navigation', () => {

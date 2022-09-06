@@ -145,7 +145,7 @@ describe('React Native Navigation Instrumentation', () => {
       },
       previousRoute: null,
     });
-    expect(mockTransaction.metadata.source).toBe('view');
+    expect(mockTransaction.metadata.source).toBe('custom');
   });
 
   test('Transaction not sent on a cancelled route change', () => {

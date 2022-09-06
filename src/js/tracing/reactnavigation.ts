@@ -199,7 +199,6 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       if (this._latestTransaction) {
         if (!previousRoute || previousRoute.key !== route.key) {
           const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
-          const originalMetadataSource = this._latestTransaction.metadata.source;
           const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
 
           const data: RouteChangeContextData = {
@@ -232,11 +231,11 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
           const finalContext = this._prepareFinalContext(updatedContext);
           this._latestTransaction.updateWithContext(finalContext);
 
-          const notCustomName = updatedContext.name === finalContext.name;
-          if (notCustomName) {
-            const newSource = originalMetadataSource || defaultTransactionSource;
-            this._latestTransaction.setName(finalContext.name, newSource);
-          }
+          const isCustomName = updatedContext.name !== finalContext.name;
+          this._latestTransaction.setName(
+            finalContext.name,
+            isCustomName ? 'custom' : defaultTransactionSource,
+          );
 
           this._onConfirmRoute?.(finalContext);
         }
@@ -252,7 +251,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
 
   /** Creates final transaction context before confirmation */
   private _prepareFinalContext(updatedContext: TransactionContext): TransactionContext {
-    let finalContext = this._beforeNavigate?.(updatedContext);
+    let finalContext = this._beforeNavigate?.({ ...updatedContext });
 
     // This block is to catch users not returning a transaction context
     if (!finalContext) {

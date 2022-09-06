@@ -142,7 +142,6 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
         this._clearStateChangeTimeout();
 
         const originalContext = this._latestTransaction.toContext();
-        const originalMetadataSource = this._latestTransaction.metadata.source;
         const routeHasBeenSeen = this._recentComponentIds.includes(
           event.componentId
         );
@@ -175,11 +174,11 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
         const finalContext = this._prepareFinalContext(updatedContext);
         this._latestTransaction.updateWithContext(finalContext);
 
-        const notCustomName = updatedContext.name === finalContext.name;
-        if (notCustomName) {
-          const newSource = originalMetadataSource || defaultTransactionSource;
-          this._latestTransaction.setName(finalContext.name, newSource);
-        }
+        const isCustomName = updatedContext.name !== finalContext.name;
+        this._latestTransaction.setName(
+          finalContext.name,
+          isCustomName ? 'custom' : defaultTransactionSource,
+        );
 
         this._onConfirmRoute?.(finalContext);
         this._prevComponentEvent = event;
@@ -193,7 +192,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
 
   /** Creates final transaction context before confirmation */
   private _prepareFinalContext(updatedContext: TransactionContext): TransactionContext {
-    let finalContext = this._beforeNavigate?.(updatedContext);
+    let finalContext = this._beforeNavigate?.({ ...updatedContext });
 
     // This block is to catch users not returning a transaction context
     if (!finalContext) {
