@@ -12,6 +12,12 @@
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.9.0...7.12.1)
 - Add Transaction Source for Dynamic Sampling Context ([#2454](https://github.com/getsentry/sentry-react-native/pull/2454))
 
+### Dependencies
+
+- Bump Cocoa SDK from v7.23.0 to v7.24.1 ([#2456](https://github.com/getsentry/sentry-react-native/pull/2456))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7241)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.23.0...7.24.1)
+
 ## 4.2.4
 
 ### Fixes
