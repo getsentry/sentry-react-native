@@ -6,7 +6,7 @@
 
 ### Dependencies
 
-- Bump Wizard from v2.0.0 to v2.2.0 ([#2458](https://github.com/getsentry/sentry-react-native/pull/2458))
+- Bump Wizard from v2.0.0 to v2.2.0 ([#2460](https://github.com/getsentry/sentry-react-native/pull/2460))
   - [changelog](https://github.com/getsentry/sentry-wizard/blob/master/CHANGELOG.md#v220)
   - [diff](https://github.com/getsentry/sentry-wizard/compare/v2.0.0...v2.2.0)
 
