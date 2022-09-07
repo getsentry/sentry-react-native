@@ -139,6 +139,7 @@ describe('ReactNavigationV4Instrumentation', () => {
       previousRoute: null,
     });
     expect(mockTransaction.sampled).toBe(true);
+    expect(mockTransaction.metadata.source).toBe('component');
   });
 
   test('transaction sent on navigation', () => {
@@ -199,6 +200,7 @@ describe('ReactNavigationV4Instrumentation', () => {
     });
 
     expect(mockTransaction.sampled).toBe(true);
+    expect(mockTransaction.metadata.source).toBe('component');
   });
 
   test('transaction context changed with beforeNavigate', () => {
@@ -262,6 +264,7 @@ describe('ReactNavigationV4Instrumentation', () => {
     });
 
     expect(mockTransaction.sampled).toBe(false);
+    expect(mockTransaction.metadata.source).toBe('custom');
   });
 
   test('transaction not attached on a cancelled navigation', () => {
@@ -498,6 +501,7 @@ describe('ReactNavigationV4Instrumentation', () => {
       if (confirmedContext) {
         expect(confirmedContext.name).toBe(route2.routeName);
         expect(confirmedContext.data).toBeDefined();
+        expect(confirmedContext.metadata).toBeUndefined();
         if (confirmedContext.data) {
           expect(confirmedContext.data.route.name).toBe(route2.routeName);
           expect(confirmedContext.data.previousRoute).toBeDefined();

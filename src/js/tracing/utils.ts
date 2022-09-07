@@ -1,6 +1,9 @@
 import { IdleTransaction, Span, Transaction } from '@sentry/tracing';
-import { TransactionContext } from '@sentry/types';
+import { TransactionContext, TransactionSource } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
+
+export const defaultTransactionSource: TransactionSource = 'component';
+export const customTransactionSource: TransactionSource = 'custom';
 
 export const getBlankTransactionContext = (
   name: string
@@ -12,6 +15,9 @@ export const getBlankTransactionContext = (
       'routing.instrumentation': name,
     },
     data: {},
+    metadata: {
+      source: defaultTransactionSource,
+    },
   };
 };
 
