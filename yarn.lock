@@ -1257,10 +1257,10 @@
     "@sentry/types" "7.12.1"
     tslib "^1.9.3"
 
-"@sentry/wizard@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-2.0.0.tgz#94bd4d0eeaae67b9577bd1fe2688b2be9d1f77e9"
-  integrity sha512-v6rOlJE0bOGSuekd+LTitofObIXKxtrQW3pXG2mwFVPQ6wezpFpUd8D/5hLJntLSvon/vFkQu43WvU+0VNBR3Q==
+"@sentry/wizard@2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-2.2.0.tgz#89a68b3d340631885bda7018b5761ea60acde026"
+  integrity sha512-o0KdRlOFqI/LryB+/rHghf0WfVKby8Io1SnRDU5MRG9BXEffLLrHLBAZAv1p9ohbL2j5u4lx7YbBVB/OiY1KGg==
   dependencies:
     "@sentry/cli" "^1.72.0"
     chalk "^2.4.1"
