@@ -1,13 +1,13 @@
 apps:
   - name: com.testappplain
     activity: MainActivity
-    path: TestAppPlain/android/app/build/outputs/bundle/release/app-release.aab
+    path: TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
   - name: com.testappsentry
     activity: MainActivity
-    path: TestAppSentry/android/app/build/outputs/bundle/release/app-release.aab
+    path: TestAppSentry/android/app/build/outputs/apk/release/app-release.apk
 
 startupTimeTest:
-  runs: 50
+  runs: 10
   diffMin: 0
   diffMax: 150
 
