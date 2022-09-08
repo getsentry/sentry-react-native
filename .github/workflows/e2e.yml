@@ -205,7 +205,7 @@ jobs:
           # Remove after build so that the cache isn't invaldiated due to the changes in yarn.lock.
           yarn remove @sentry/react-native
       - name: Collect apps metrics
-        uses: getsentry/action-app-sdk-overhead-metrics@3ac80d7ee6684bf957201c99e4ac7e39ce3e93f7
+        uses: getsentry/action-app-sdk-overhead-metrics@v1
         with:
           name: Android
           config: ./test/perf/metrics-android.yml
@@ -279,7 +279,7 @@ jobs:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
       - name: Collect apps metrics
-        uses: getsentry/action-app-sdk-overhead-metrics@3ac80d7ee6684bf957201c99e4ac7e39ce3e93f7
+        uses: getsentry/action-app-sdk-overhead-metrics@v1
         with:
           name: iOS
           config: ./test/perf/metrics-ios.yml
