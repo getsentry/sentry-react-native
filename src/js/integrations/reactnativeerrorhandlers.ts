@@ -185,6 +185,7 @@ export class ReactNativeErrorHandlers implements Integration {
 
         const currentHub = getCurrentHub();
         const client = currentHub.getClient<ReactNativeClient>();
+        const scope = currentHub.getScope();
 
         if (!client) {
           logger.error(
@@ -201,7 +202,8 @@ export class ReactNativeErrorHandlers implements Integration {
         const options = client.getOptions();
 
         const event = await client.eventFromException(error, {
-          originalException: error
+          originalException: error,
+          attachments: scope?.getAttachments(),
         });
 
         if (isFatal) {

@@ -16,6 +16,7 @@ import * as Sentry from '@sentry/react-native';
 import { getTestProps } from '../../utils/getTestProps';
 import { SENTRY_INTERNAL_DSN } from '../dsn';
 import { SeverityLevel } from '@sentry/types';
+import { Scope } from '@sentry/react-native';
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -223,6 +224,25 @@ const HomeScreen = (props: Props) => {
                 </Text>
               </TouchableOpacity>
             </Sentry.ErrorBoundary>
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={async () => {
+                Sentry.configureScope((scope: Scope) => {
+                  scope.addAttachment({ data: 'Attachment content', filename: 'attachment.txt' });
+                  console.log('Sentry attachment added.');
+                });
+              }}>
+              <Text style={styles.buttonText}>Add attachment</Text>
+            </TouchableOpacity>
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={async () => {
+                Sentry.configureScope((scope: Scope) => {
+                  console.log(scope.getAttachments());
+                });
+              }}>
+              <Text style={styles.buttonText}>Get attachment</Text>
+            </TouchableOpacity>
           </View>
           <View style={styles.buttonArea}>
             <TouchableOpacity

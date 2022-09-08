@@ -1,5 +1,6 @@
 /* eslint-disable max-lines */
 import {
+  Attachment,
   AttachmentItem,
   BaseEnvelopeItemHeaders,
   Breadcrumb,
@@ -65,6 +66,8 @@ interface SentryNativeWrapper {
   setExtra(key: string, extra: unknown): void;
   setUser(user: User | null): void;
   setTag(key: string, value: string): void;
+  addAttachment(attachment: Attachment): void;
+  clearAttachments(): void;
 
   nativeCrash(): void;
 }
@@ -458,6 +461,28 @@ export const NATIVE: SentryNativeWrapper = {
 
   isNativeTransportAvailable(): boolean {
     return this.enableNative && this._isModuleLoaded(RNSentry);
+  },
+
+  addAttachment(_attachment: Attachment): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    //RNSentry.addAttachment(attachment);
+  },
+
+  clearAttachments(): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    //RNSentry.clearAttachments();
   },
 
   /**
