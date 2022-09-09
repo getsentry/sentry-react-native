@@ -45,7 +45,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       YellowBox.ignoreWarnings(['Require cycle:']);
     }
 
-    console.log('Sentry React Native SDK initializing...', options.transportOptions);
     this._browserClient = new BrowserClient({
       dsn: options.dsn,
       transport: options.transport,

@@ -50,7 +50,7 @@
     "@sentry/types": "7.12.1",
     "@sentry/utils": "7.12.1",
     "@sentry/wizard": "1.2.17",
-    "encode-utf8": "2.0.0"
+    "buffer": "6.0.3"
   },
   "devDependencies": {
     "@sentry-internal/eslint-config-sdk": "7.12.1",

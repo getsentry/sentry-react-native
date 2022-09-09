@@ -280,21 +280,28 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
         SentryTraceContext *traceContext = [[SentryTraceContext alloc] initWithDict:envelopeDict[@"header"][@"trace"]];
         SentryEnvelopeHeader *envelopeHeader = [[SentryEnvelopeHeader alloc] initWithId:eventId sdkInfo:sdkInfo traceContext:traceContext];
 
-        NSError *error;
-        NSData *envelopeItemData = [NSJSONSerialization dataWithJSONObject:envelopeDict[@"item"][@"payload"] options:0 error:&error];
-        if (nil != error) {
-            reject(@"SentryReactNative", @"Cannot serialize event", error);
-        }
-
-        //FIXME: Probably needs to change for the attachemnts!
         NSString *itemType = envelopeDict[@"item"][@"header"][@"type"];
         if (itemType == nil) {
             // Default to event type.
             itemType = @"event";
         }
 
-        SentryEnvelopeItemHeader *envelopeItemHeader = [[SentryEnvelopeItemHeader alloc] initWithType:itemType length:envelopeItemData.length];
-        SentryEnvelopeItem *envelopeItem = [[SentryEnvelopeItem alloc] initWithHeader:envelopeItemHeader data:envelopeItemData];
+        SentryEnvelopeItem *envelopeItem = nil;
+        if ([itemType isEqualToString:@"attachment"]) {
+          NSData *data = [[NSData alloc] initWithBase64EncodedString:envelopeDict[@"item"][@"payload"] options:0];
+          SentryAttachment *attachment = [[SentryAttachment alloc] initWithData:data
+                                            filename:envelopeDict[@"item"][@"header"][@"filename"]];
+          envelopeItem = [[SentryEnvelopeItem alloc] initWithAttachment:attachment
+                                                maxAttachmentSize:100000];
+        } else {
+          NSError *error;
+          NSData *envelopeItemData = [NSJSONSerialization dataWithJSONObject:envelopeDict[@"item"][@"payload"] options:0 error:&error];
+          if (nil != error) {
+              reject(@"SentryReactNative", @"Cannot serialize envelope item payload", error);
+          }
+          SentryEnvelopeItemHeader *envelopeItemHeader = [[SentryEnvelopeItemHeader alloc] initWithType:itemType length:envelopeItemData.length];
+          envelopeItem = [[SentryEnvelopeItem alloc] initWithHeader:envelopeItemHeader data:envelopeItemData];
+        }
 
         SentryEnvelope *envelope = [[SentryEnvelope alloc] initWithHeader:envelopeHeader singleItem:envelopeItem];
 

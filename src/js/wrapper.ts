@@ -15,6 +15,7 @@ import {
   UserFeedbackItem,
 } from '@sentry/types';
 import { logger, SentryError } from '@sentry/utils';
+import { Buffer } from 'buffer';
 import { NativeModules, Platform } from 'react-native';
 
 import {
@@ -25,7 +26,6 @@ import {
   SentryNativeBridgeModule,
 } from './definitions';
 import { ReactNativeOptions } from './options';
-
 
 const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
 
@@ -144,19 +144,39 @@ export const NATIVE: SentryNativeWrapper = {
       // iOS/Mac
 
       for (const item of items) {
-        const itemHeader = item[0];
-        const itemPayload = this._getEvent(item) ?? item[1];
+        const [itemHeader, itemPayload] = item;
+        let serializablePayload: { [key: string]: unknown } | string | undefined = undefined;
+
+        switch (itemHeader.type) {
+          case 'event':
+          case 'transaction': {
+            const processedPayload = this._getEvent(item);
+            serializablePayload = JSON.parse(JSON.stringify(processedPayload));
+            break;
+          }
+          case 'attachment': {
+            serializablePayload = typeof itemPayload === 'string'
+              ? Buffer.from(itemPayload, 'utf8').toString('base64')
+              : undefined;
+            serializablePayload = itemPayload instanceof Uint8Array
+              ? Buffer.from(itemPayload.buffer).toString('base64')
+              : undefined;
+            break;
+          }
+          default: {
+            serializablePayload = JSON.parse(JSON.stringify(itemPayload));
+            break;
+          }
+        }
 
         // The envelope item is created (and its length determined) on the iOS side of the native bridge.
-        const serializableItemPayload = JSON.parse(JSON.stringify(itemPayload));
         const nativeEnvelope = {
           header: header,
           item: {
             header: itemHeader,
-            payload: serializableItemPayload,
+            payload: serializablePayload,
           },
         };
-        console.log("Sending envelope to native", nativeEnvelope);
         await RNSentry.captureEnvelope(nativeEnvelope);
       }
     };
@@ -471,7 +491,7 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    //RNSentry.addAttachment(attachment);
+    // RNSentry.addAttachment(attachment);
   },
 
   clearAttachments(): void {
@@ -482,7 +502,7 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    //RNSentry.clearAttachments();
+    // RNSentry.clearAttachments();
   },
 
   /**
