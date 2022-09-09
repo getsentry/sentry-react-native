@@ -37,7 +37,7 @@ export interface SentryNativeBridgeModule {
       | string
       | {
           header: Record<string, unknown>;
-          payload: Record<string, unknown>;
+          item: Record<string, unknown>;
         }
   ): PromiseLike<boolean>;
   clearBreadcrumbs(): void;

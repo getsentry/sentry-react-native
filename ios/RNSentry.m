@@ -281,12 +281,13 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
         SentryEnvelopeHeader *envelopeHeader = [[SentryEnvelopeHeader alloc] initWithId:eventId sdkInfo:sdkInfo traceContext:traceContext];
 
         NSError *error;
-        NSData *envelopeItemData = [NSJSONSerialization dataWithJSONObject:envelopeDict[@"payload"] options:0 error:&error];
+        NSData *envelopeItemData = [NSJSONSerialization dataWithJSONObject:envelopeDict[@"item"][@"payload"] options:0 error:&error];
         if (nil != error) {
             reject(@"SentryReactNative", @"Cannot serialize event", error);
         }
 
-        NSString *itemType = envelopeDict[@"payload"][@"type"];
+        //FIXME: Probably needs to change for the attachemnts!
+        NSString *itemType = envelopeDict[@"item"][@"header"][@"type"];
         if (itemType == nil) {
             // Default to event type.
             itemType = @"event";

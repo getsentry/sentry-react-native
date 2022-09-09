@@ -90,7 +90,7 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const header = envelope[0];
+    const [header, items] = envelope;
 
     if (NATIVE.platform === 'android') {
       // Android
@@ -143,21 +143,21 @@ export const NATIVE: SentryNativeWrapper = {
     } else {
       // iOS/Mac
 
-      for (const envelopeItems of envelope[1]) {
-        const event = this._getEvent(envelopeItems);
-        if (event != undefined) {
-          envelopeItems[1] = event;
-        }
-
-        const itemPayload = JSON.parse(JSON.stringify(envelopeItems[1]));
+      for (const item of items) {
+        const itemHeader = item[0];
+        const itemPayload = this._getEvent(item) ?? item[1];
 
         // The envelope item is created (and its length determined) on the iOS side of the native bridge.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-
-        await RNSentry.captureEnvelope({
-          header,
-          payload: itemPayload,
-        });
+        const serializableItemPayload = JSON.parse(JSON.stringify(itemPayload));
+        const nativeEnvelope = {
+          header: header,
+          item: {
+            header: itemHeader,
+            payload: serializableItemPayload,
+          },
+        };
+        console.log("Sending envelope to native", nativeEnvelope);
+        await RNSentry.captureEnvelope(nativeEnvelope);
       }
     };
 

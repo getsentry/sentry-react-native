@@ -302,6 +302,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             } else {
                 File installation = new File(outboxPath, UUID.randomUUID().toString());
                 try (FileOutputStream out = new FileOutputStream(installation)) {
+                    //FIXME: For envelope correctly save byte array to file
                     out.write(envelope.getBytes(Charset.forName("UTF-8")));
                 }
             }

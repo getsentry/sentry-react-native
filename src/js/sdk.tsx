@@ -4,6 +4,7 @@ import { RewriteFrames } from '@sentry/integrations';
 import { defaultIntegrations, defaultStackParser, getCurrentHub } from '@sentry/react';
 import { Integration, StackFrame } from '@sentry/types';
 import { getGlobalObject, logger, stackParserFromStackParserOptions } from '@sentry/utils';
+import encodeUtf8 from 'encode-utf8';
 import * as React from 'react';
 
 import { ReactNativeClient } from './client';
@@ -20,7 +21,6 @@ import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { makeReactNativeTransport } from './transports/native';
-import encodeUtf8 from 'encode-utf8';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
