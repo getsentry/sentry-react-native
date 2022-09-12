@@ -14,7 +14,6 @@ import {
   UserFeedbackItem,
 } from '@sentry/types';
 import { logger, SentryError } from '@sentry/utils';
-import { Buffer } from 'buffer';
 import { NativeModules, Platform } from 'react-native';
 
 import {
@@ -25,6 +24,9 @@ import {
   SentryNativeBridgeModule,
 } from './definitions';
 import { ReactNativeOptions } from './options';
+import { utf8ToBytes } from './vendor';
+
+type Item = EventItem | AttachmentItem | UserFeedbackItem | SessionItem | ClientReportItem;
 
 const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
 
@@ -36,13 +38,14 @@ interface SentryNativeWrapper {
   _NativeClientError: Error;
   _DisabledNativeError: Error;
 
-  _getEvent(envelopeItem: EventItem | AttachmentItem | UserFeedbackItem | SessionItem | ClientReportItem): Event | undefined;
+  _processItem(envelopeItem: Item): Item;
   _processLevels(event: Event): Event;
   _processLevel(level: SeverityLevel): SeverityLevel;
   _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
   _isModuleLoaded(
     module: SentryNativeBridgeModule | undefined
   ): module is SentryNativeBridgeModule;
+  _getBreadcrumbs(event: Event): Breadcrumb[];
 
   isNativeTransportAvailable(): boolean;
 
@@ -87,113 +90,33 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const [header, items] = envelope;
+    const [envelopeHeader, envelopeItems] = envelope;
 
-    if (NATIVE.platform === 'android') {
-      // Android
+    const headerString = JSON.stringify(envelopeHeader);
+    const envelopeBuilder: number[] = utf8ToBytes(headerString);
 
-      const headerString = JSON.stringify(header);
+    for (const rawItem of envelopeItems) {
+      const [itemHeader, itemPayload] = this._processItem(rawItem);
 
-      let envelopeItemsBuilder = `${headerString}`;
-
-      for (const item of items) {
-        const [itemHeader] = item;
-        let [, itemPayload] = item;
-
-        const event = this._getEvent(item);
-        if (event != undefined) {
-
-          // @ts-ignore Android still uses the old message object, without this the serialization of events will break.
-          event.message = { message: event.message };
-
-          /*
-        We do this to avoid duplicate breadcrumbs on Android as sentry-android applies the breadcrumbs
-        from the native scope onto every envelope sent through it. This scope will contain the breadcrumbs
-        sent through the scope sync feature. This causes duplicate breadcrumbs.
-        We then remove the breadcrumbs in all cases but if it is handled == false,
-        this is a signal that the app would crash and android would lose the breadcrumbs by the time the app is restarted to read
-        the envelope.
-          */
-          if (event.exception?.values?.[0]?.mechanism?.handled != false && event.breadcrumbs) {
-            event.breadcrumbs = [];
-          }
-          itemPayload = event;
-        }
-
-        // Content type is not inside BaseEnvelopeItemHeaders.
-        (itemHeader as BaseEnvelopeItemHeaders).content_type = 'application/json';
-
-        let serializedItemPayload: string = '';
-        switch (itemHeader.type) {
-          case 'attachment': {
-            if (typeof itemPayload === 'string') {
-              serializedItemPayload = itemPayload;
-            } else if (itemPayload instanceof Uint8Array) {
-              serializedItemPayload = Buffer.from(itemPayload).toString('utf8');
-            }
-            break;
-          }
-          default: {
-            serializedItemPayload = JSON.stringify(itemPayload)
-            break;
-          }
-        }
-
-        let length = serializedItemPayload.length;
-        try {
-          length = await RNSentry.getStringBytesLength(serializedItemPayload);
-        } catch {
-          // The native call failed, we do nothing, we have payload.length as a fallback
-        }
-
-        (itemHeader as BaseEnvelopeItemHeaders).length = length;
-        const serializedItemHeader = JSON.stringify(itemHeader);
-
-        envelopeItemsBuilder += `\n${serializedItemHeader}\n${serializedItemPayload}`;
+      let bytesPayload: number[] = [];
+      if (typeof itemPayload === 'string') {
+        bytesPayload = utf8ToBytes(itemPayload);
+      } else if (itemPayload instanceof Uint8Array) {
+        bytesPayload = [...itemPayload];
+      } else {
+        bytesPayload = utf8ToBytes(JSON.stringify(itemPayload));
       }
 
-      await RNSentry.captureEnvelope(envelopeItemsBuilder);
-    } else {
-      // iOS/Mac
+      // Content type is not inside BaseEnvelopeItemHeaders.
+      (itemHeader as BaseEnvelopeItemHeaders).content_type = 'application/json';
+      (itemHeader as BaseEnvelopeItemHeaders).length = bytesPayload.length;
+      const serializedItemHeader = JSON.stringify(itemHeader);
+      envelopeBuilder.concat(utf8ToBytes(serializedItemHeader));
 
-      for (const item of items) {
-        const [itemHeader, itemPayload] = item;
-        let serializablePayload: { [key: string]: unknown } | string | undefined = undefined;
+      envelopeBuilder.concat(bytesPayload);
+    }
 
-        switch (itemHeader.type) {
-          case 'event':
-          case 'transaction': {
-            const processedPayload = this._getEvent(item);
-            serializablePayload = JSON.parse(JSON.stringify(processedPayload));
-            break;
-          }
-          case 'attachment': {
-            serializablePayload = typeof itemPayload === 'string'
-              ? Buffer.from(itemPayload, 'utf8').toString('base64')
-              : undefined;
-            serializablePayload = itemPayload instanceof Uint8Array
-              ? Buffer.from(itemPayload.buffer).toString('base64')
-              : undefined;
-            break;
-          }
-          default: {
-            serializablePayload = JSON.parse(JSON.stringify(itemPayload));
-            break;
-          }
-        }
-
-        // The envelope item is created (and its length determined) on the iOS side of the native bridge.
-        const nativeEnvelope = {
-          header: header,
-          item: {
-            header: itemHeader,
-            payload: serializablePayload,
-          },
-        };
-        await RNSentry.captureEnvelope(nativeEnvelope);
-      }
-    };
-
+    await RNSentry.captureEnvelope(envelopeBuilder);
   },
 
   /**
@@ -501,11 +424,22 @@ export const NATIVE: SentryNativeWrapper = {
    * @param data An envelope item containing the event.
    * @returns The event from envelopeItem or undefined.
    */
-  _getEvent(envelopeItem: EventItem | AttachmentItem | UserFeedbackItem | SessionItem | ClientReportItem): Event | undefined {
-      if (envelopeItem[0].type == 'event' || envelopeItem[0].type == 'transaction') {
-        return this._processLevels(envelopeItem[1] as Event);
+  _processItem(item: Item): Item {
+    const [itemHeader, itemPayload] = item;
+
+    if (itemHeader.type == 'event' || itemHeader.type == 'transaction') {
+      const event = this._processLevels(itemPayload as Event);
+
+      if (NATIVE.platform === 'android') {
+        // @ts-ignore Android still uses the old message object, without this the serialization of events will break.
+        event.message = { message: event.message };
+        event.breadcrumbs = this._getBreadcrumbs(event);
       }
-      return undefined;
+
+      return [itemHeader, event];
+    }
+
+    return item;
   },
 
   /**
@@ -580,6 +514,29 @@ export const NATIVE: SentryNativeWrapper = {
   _NativeClientError: new SentryError(
     "Native Client is not available, can't start on native."
   ),
+
+  /**
+   * Get breadcrumbs (removes breadcrumbs from handled exceptions on Android)
+   *
+   * We do this to avoid duplicate breadcrumbs on Android as sentry-android applies the breadcrumbs
+   * from the native scope onto every envelope sent through it. This scope will contain the breadcrumbs
+   * sent through the scope sync feature. This causes duplicate breadcrumbs.
+   * We then remove the breadcrumbs in all cases but if it is handled == false,
+   * this is a signal that the app would crash and android would lose the breadcrumbs by the time the app is restarted to read
+   * the envelope.
+   */
+  _getBreadcrumbs(event: Event): Breadcrumb[] {
+    let breadcrumbs: Breadcrumb[] | undefined = event.breadcrumbs;
+
+    const wasExceptionHandled: boolean = event.exception?.values?.[0]?.mechanism?.handled != false;
+    if (NATIVE.platform === 'android'
+      && event.breadcrumbs
+      && wasExceptionHandled) {
+      breadcrumbs = [];
+    }
+
+    return breadcrumbs || [];
+  },
 
   enableNative: true,
   nativeIsReady: false,
