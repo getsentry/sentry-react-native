@@ -96,9 +96,11 @@ export const NATIVE: SentryNativeWrapper = {
 
       let envelopeItemsBuilder = `${headerString}`;
 
-      for (const envelopeItems of envelope[1]) {
+      for (const item of items) {
+        const [itemHeader] = item;
+        let [, itemPayload] = item;
 
-        const event = this._getEvent(envelopeItems);
+        const event = this._getEvent(item);
         if (event != undefined) {
 
           // @ts-ignore Android still uses the old message object, without this the serialization of events will break.
@@ -115,25 +117,39 @@ export const NATIVE: SentryNativeWrapper = {
           if (event.exception?.values?.[0]?.mechanism?.handled != false && event.breadcrumbs) {
             event.breadcrumbs = [];
           }
-          envelopeItems[1] = event;
+          itemPayload = event;
         }
 
         // Content type is not inside BaseEnvelopeItemHeaders.
-        (envelopeItems[0] as BaseEnvelopeItemHeaders).content_type = 'application/json';
+        (itemHeader as BaseEnvelopeItemHeaders).content_type = 'application/json';
 
-        const itemPayload = JSON.stringify(envelopeItems[1]);
+        let serializedItemPayload: string = '';
+        switch (itemHeader.type) {
+          case 'attachment': {
+            if (typeof itemPayload === 'string') {
+              serializedItemPayload = itemPayload;
+            } else if (itemPayload instanceof Uint8Array) {
+              serializedItemPayload = Buffer.from(itemPayload).toString('utf8');
+            }
+            break;
+          }
+          default: {
+            serializedItemPayload = JSON.stringify(itemPayload)
+            break;
+          }
+        }
 
-        let length = itemPayload.length;
+        let length = serializedItemPayload.length;
         try {
-          length = await RNSentry.getStringBytesLength(itemPayload);
+          length = await RNSentry.getStringBytesLength(serializedItemPayload);
         } catch {
           // The native call failed, we do nothing, we have payload.length as a fallback
         }
 
-        (envelopeItems[0] as BaseEnvelopeItemHeaders).length = length;
-        const itemHeader = JSON.stringify(envelopeItems[0]);
+        (itemHeader as BaseEnvelopeItemHeaders).length = length;
+        const serializedItemHeader = JSON.stringify(itemHeader);
 
-        envelopeItemsBuilder += `\n${itemHeader}\n${itemPayload}`;
+        envelopeItemsBuilder += `\n${serializedItemHeader}\n${serializedItemPayload}`;
       }
 
       await RNSentry.captureEnvelope(envelopeItemsBuilder);
