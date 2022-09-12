@@ -83,7 +83,6 @@ export class ReactNativeScope extends Scope {
    * @inheritDoc
    */
   public addAttachment(attachment: Attachment): this {
-    NATIVE.addAttachment(attachment);
     return super.addAttachment(attachment);
   }
 
@@ -91,7 +90,6 @@ export class ReactNativeScope extends Scope {
   * @inheritDoc
   */
   public clearAttachments(): this {
-    NATIVE.clearAttachments();
     return super.clearAttachments();
   }
 }
