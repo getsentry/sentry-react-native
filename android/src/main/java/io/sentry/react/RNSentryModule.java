@@ -321,15 +321,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         promise.resolve(true);
     }
 
-    @ReactMethod
-    public void getStringBytesLength(String payload, Promise promise) {
-        try {
-            promise.resolve(payload.getBytes("UTF-8").length);
-        } catch (UnsupportedEncodingException e) {
-            promise.reject(e);
-        }
-    }
-
     private static PackageInfo getPackageInfo(Context ctx) {
         try {
             return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);

@@ -41,7 +41,6 @@ jest.mock(
           version: '1.0.0',
         })
       ),
-      getStringBytesLength: jest.fn(() => Promise.resolve(1)),
       setContext: jest.fn(),
       setExtra: jest.fn(),
       setTag: jest.fn(),
@@ -342,7 +341,6 @@ describe('Tests Native Wrapper', () => {
         // @ts-ignore it is an error but it does not know the type.
         expect(error.message).toMatch('Native is disabled');
       }
-      expect(RNSentry.getStringBytesLength).not.toBeCalled();
       expect(RNSentry.captureEnvelope).not.toBeCalled();
     });
     test('Clears breadcrumbs on Android if mechanism.handled is true', async () => {
