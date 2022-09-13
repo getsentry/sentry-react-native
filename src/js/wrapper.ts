@@ -72,7 +72,6 @@ interface SentryNativeWrapper {
   nativeCrash(): void;
 }
 
-
 /**
  * Our internal interface for calling native functions
  */

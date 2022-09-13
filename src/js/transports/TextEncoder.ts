@@ -1,10 +1,10 @@
 import { TextEncoderInternal } from '@sentry/types';
-import { Buffer } from 'buffer';
+import { utf8ToBytes } from '../vendor';
 
 export const makeUtf8TextEncoder = (): TextEncoderInternal => {
   const textEncoder = {
     encode: (text: string) => {
-      const bytes = new Uint8Array(Buffer.from(text, 'utf8'));
+      const bytes = new Uint8Array(utf8ToBytes(text));
       return bytes;
     },
     encoding: 'utf-8',
