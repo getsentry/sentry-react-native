@@ -1,0 +1,48 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build Perf-test app without Sentry"
+  lane :build_perf_test_app_plain do
+    setup_ci
+
+    sync_code_signing(
+      type: "development",
+      readonly: true,
+      app_identifier: ["io.sentry.rn.perf-test-app-plain"]
+    )
+
+    build_app(
+      workspace: "TestAppPlain/ios/TestAppPlain.xcworkspace",
+      scheme: "TestAppPlain",
+      include_bitcode: false,
+      include_symbols: false,
+      export_method: "development",
+      output_name: "test-app-plain.ipa"
+    )
+
+    delete_keychain(name: "fastlane_tmp_keychain") unless is_ci
+  end
+
+  desc "Build Perf-test app with Sentry"
+  lane :build_perf_test_app_sentry do
+    setup_ci
+
+    sync_code_signing(
+      type: "development",
+      readonly: true,
+      app_identifier: ["io.sentry.rn.perf-test-app-sentry"]
+    )
+
+    build_app(
+      workspace: "TestAppSentry/ios/TestAppSentry.xcworkspace",
+      scheme: "TestAppSentry",
+      include_bitcode: false,
+      include_symbols: false,
+      export_method: "development",
+      output_name: "test-app-sentry.ipa"
+    )
+
+    delete_keychain(name: "fastlane_tmp_keychain") unless is_ci
+  end
+
+end
