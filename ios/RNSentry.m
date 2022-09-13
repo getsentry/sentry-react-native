@@ -270,55 +270,34 @@ RCT_EXPORT_METHOD(fetchNativeRelease:(RCTPromiseResolveBlock)resolve
               });
 }
 
-RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
+RCT_EXPORT_METHOD(captureEnvelope:(NSArray * _Nonnull)bytes
+                  options: (NSDictionary * _Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if ([NSJSONSerialization isValidJSONObject:envelopeDict]) {
-        SentrySdkInfo *sdkInfo = [[SentrySdkInfo alloc] initWithDict:envelopeDict[@"header"]];
-        SentryId *eventId = [[SentryId alloc] initWithUUIDString:envelopeDict[@"header"][@"event_id"]];
-        SentryTraceContext *traceContext = [[SentryTraceContext alloc] initWithDict:envelopeDict[@"header"][@"trace"]];
-        SentryEnvelopeHeader *envelopeHeader = [[SentryEnvelopeHeader alloc] initWithId:eventId sdkInfo:sdkInfo traceContext:traceContext];
-
-        NSString *itemType = envelopeDict[@"item"][@"header"][@"type"];
-        if (itemType == nil) {
-            // Default to event type.
-            itemType = @"event";
-        }
-
-        SentryEnvelopeItem *envelopeItem = nil;
-        if ([itemType isEqualToString:@"attachment"]) {
-          NSData *data = [[NSData alloc] initWithBase64EncodedString:envelopeDict[@"item"][@"payload"] options:0];
-          SentryAttachment *attachment = [[SentryAttachment alloc] initWithData:data
-                                            filename:envelopeDict[@"item"][@"header"][@"filename"]];
-          envelopeItem = [[SentryEnvelopeItem alloc] initWithAttachment:attachment
-                                                maxAttachmentSize:100000];
-        } else {
-          NSError *error;
-          NSData *envelopeItemData = [NSJSONSerialization dataWithJSONObject:envelopeDict[@"item"][@"payload"] options:0 error:&error];
-          if (nil != error) {
-              reject(@"SentryReactNative", @"Cannot serialize envelope item payload", error);
-          }
-          SentryEnvelopeItemHeader *envelopeItemHeader = [[SentryEnvelopeItemHeader alloc] initWithType:itemType length:envelopeItemData.length];
-          envelopeItem = [[SentryEnvelopeItem alloc] initWithHeader:envelopeItemHeader data:envelopeItemData];
-        }
-
-        SentryEnvelope *envelope = [[SentryEnvelope alloc] initWithHeader:envelopeHeader singleItem:envelopeItem];
-
-        #if DEBUG
-            [PrivateSentrySDKOnly captureEnvelope:envelope];
-        #else
-            if ([envelopeDict[@"payload"][@"level"] isEqualToString:@"fatal"]) {
-                // Storing to disk happens asynchronously with captureEnvelope
-                [PrivateSentrySDKOnly storeEnvelope:envelope];
-            } else {
-                [PrivateSentrySDKOnly captureEnvelope:envelope];
-            }
-        #endif
-        resolve(@YES);
-    } else {
-        reject(@"SentryReactNative", @"Cannot serialize event", nil);
+    NSMutableData *data = [[NSMutableData alloc] initWithCapacity: [bytes count]];
+    for(NSNumber *number in bytes) {
+        char byte = [number charValue];
+        [data appendBytes: &byte length: 1];
     }
+
+    SentryEnvelope *envelope = [PrivateSentrySDKOnly envelopeWithData:data];
+    if (envelope == nil) {
+        reject(@"SentryReactNative",@"Failed to parse envelope from byte array.", nil);
+        return;
+    }
+
+    #if DEBUG
+        [PrivateSentrySDKOnly captureEnvelope:envelope];
+    #else
+        if (options[@'store']) {
+            // Storing to disk happens asynchronously with captureEnvelope
+            [PrivateSentrySDKOnly storeEnvelope:envelope];
+        } else {
+            [PrivateSentrySDKOnly captureEnvelope:envelope];
+        }
+    #endif
+    resolve(@YES);
 }
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary *)user

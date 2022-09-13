@@ -72,6 +72,7 @@ interface SentryNativeWrapper {
   nativeCrash(): void;
 }
 
+
 /**
  * Our internal interface for calling native functions
  */
@@ -90,11 +91,15 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
+    const [EOL] = utf8ToBytes('\n');
+
     const [envelopeHeader, envelopeItems] = envelope;
 
     const headerString = JSON.stringify(envelopeHeader);
-    const envelopeBuilder: number[] = utf8ToBytes(headerString);
+    const envelopeBytes: number[] = utf8ToBytes(headerString);
+    envelopeBytes.push(EOL);
 
+    let isFatalCrash: boolean = false;
     for (const rawItem of envelopeItems) {
       const [itemHeader, itemPayload] = this._processItem(rawItem);
 
@@ -105,18 +110,21 @@ export const NATIVE: SentryNativeWrapper = {
         bytesPayload = [...itemPayload];
       } else {
         bytesPayload = utf8ToBytes(JSON.stringify(itemPayload));
+        isFatalCrash = 'level' in itemPayload && itemPayload.level === 'fatal';
       }
 
       // Content type is not inside BaseEnvelopeItemHeaders.
       (itemHeader as BaseEnvelopeItemHeaders).content_type = 'application/json';
       (itemHeader as BaseEnvelopeItemHeaders).length = bytesPayload.length;
       const serializedItemHeader = JSON.stringify(itemHeader);
-      envelopeBuilder.concat(utf8ToBytes(serializedItemHeader));
 
-      envelopeBuilder.concat(bytesPayload);
+      envelopeBytes.push(...utf8ToBytes(serializedItemHeader));
+      envelopeBytes.push(EOL);
+      envelopeBytes.push(...bytesPayload);
+      envelopeBytes.push(EOL);
     }
 
-    await RNSentry.captureEnvelope(envelopeBuilder);
+    await RNSentry.captureEnvelope(envelopeBytes, { store: isFatalCrash });
   },
 
   /**

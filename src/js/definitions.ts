@@ -32,7 +32,12 @@ export interface SentryNativeBridgeModule {
   nativeClientAvailable: boolean;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
-  captureEnvelope(bytes: number[]): PromiseLike<boolean>;
+  captureEnvelope(
+    bytes: number[],
+    options: {
+      store: boolean,
+    },
+  ): PromiseLike<boolean>;
   clearBreadcrumbs(): void;
   crash(): void;
   closeNativeSdk(): PromiseLike<void>;
