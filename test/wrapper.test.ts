@@ -4,27 +4,17 @@ import { createEnvelope, logger } from '@sentry/utils';
 
 import { SentryNativeBridgeModule } from '../src/js/definitions';
 import { ReactNativeOptions } from '../src/js/options';
+import { utf8ToBytes } from '../src/js/vendor';
 import { NATIVE } from '../src/js/wrapper';
 
 jest.mock(
   'react-native',
   () => {
-    let envelopePayload:
-      | string
-      | {
-        header: Record<string, unknown>;
-        payload: Record<string, unknown>;
-      }
-      | null = null;
     let initPayload: ReactNativeOptions | null = null;
 
     const RNSentry: SentryNativeBridgeModule = {
       addBreadcrumb: jest.fn(),
-      captureEnvelope: jest.fn((envelope) => {
-        envelopePayload = envelope;
-
-        return Promise.resolve(true);
-      }),
+      captureEnvelope: jest.fn(),
       clearBreadcrumbs: jest.fn(),
       crash: jest.fn(),
       fetchNativeDeviceContexts: jest.fn(() =>
@@ -54,7 +44,7 @@ jest.mock(
       }),
       closeNativeSdk: jest.fn(() => Promise.resolve()),
       // @ts-ignore for testing.
-      _getLastPayload: () => ({ envelopePayload, initPayload }),
+      _getLastPayload: () => ({ initPayload }),
     };
 
     return {
@@ -185,7 +175,7 @@ describe('Tests Native Wrapper', () => {
   });
 
   describe('sendEnvelope', () => {
-    test('calls only captureEnvelope on iOS', async () => {
+    test('calls only captureEnvelope', async () => {
       const event = {
         event_id: 'event0',
         message: 'test',
@@ -200,124 +190,29 @@ describe('Tests Native Wrapper', () => {
       ]);
 
       await NATIVE.sendEnvelope(env);
-
-      expect(RNSentry.captureEnvelope).toBeCalledWith({
-        header: {
-          event_id: event.event_id,
-          sent_at: '123',
-        },
-        payload: {
-          ...event,
-          message: event.message,
-        },
-      });
-    });
-    test('serializes class instances on iOS', async () => {
-      class TestInstance {
-        value: number = 0;
-        method = () => null;
-      }
-
-      const event = {
-        event_id: 'event0',
-        message: 'test',
-        sdk: {
-          name: 'test-sdk-name',
-          version: '2.1.3',
-        },
-        instance: new TestInstance(),
-      };
-
-      const env = createEnvelope<EventEnvelope>({ event_id: event.event_id, sent_at: '123' }, [
-        [{ type: 'event' }, event] as EventItem,
-      ]);
-
-      await NATIVE.sendEnvelope(env);
-
-      expect(RNSentry.captureEnvelope).toBeCalledWith({
-        header: {
-          event_id: event.event_id,
-          sent_at: '123'
-        },
-        payload: {
-          ...event,
-          message: event.message,
-          instance: {
-            value: 0,
-          },
-        },
-      });
-    });
-    test('serializes class instances on Android', async () => {
-      NATIVE.platform = 'android';
-
-      class TestInstance {
-        value: number = 0;
-        method = () => null;
-      }
-
-      const event = {
-        event_id: 'event0',
-        message: 'test',
-        sdk: {
-          name: 'test-sdk-name',
-          version: '2.1.3',
-        },
-        instance: new TestInstance(),
-      };
-
-      const env = createEnvelope<EventEnvelope>({ event_id: event.event_id, sent_at: '123' }, [
-        [{ type: 'event' }, event] as EventItem,
-      ]);
-
-      await NATIVE.sendEnvelope(env);
-
-      const headerString = JSON.stringify({
-        event_id: event.event_id,
-        sent_at: '123',
-      });
-      const itemString = JSON.stringify({
-        type: 'event',
-        content_type: 'application/json',
-        length: 1,
-      });
-      const payloadString = JSON.stringify({
-        ...event,
-        message: { message: event.message },
-        instance: {
-          value: 0,
-        },
-      });
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        `${headerString}\n${itemString}\n${payloadString}`
+        utf8ToBytes('{"event_id":"event0","sent_at":"123"}\n'
+          + '{"type":"event","content_type":"application/json","length":87}\n'
+          + '{"event_id":"event0","message":"test","sdk":{"name":"test-sdk-name","version":"2.1.3"}}\n'
+        ),
+        { store: false },
       );
     });
-    test('calls getStringByteLength and captureEnvelope on android', async () => {
-      NATIVE.platform = 'android';
+    test('serializes class instances', async () => {
+      class TestInstance {
+        value: number = 0;
+        method = () => null;
+      }
 
       const event = {
         event_id: 'event0',
-        message: 'test',
         sdk: {
           name: 'test-sdk-name',
           version: '2.1.3',
         },
+        instance: new TestInstance(),
       };
-
-      const payload = JSON.stringify({
-        ...event,
-        message: { message: event.message },
-      });
-      const header = JSON.stringify({
-        event_id: event.event_id,
-        sent_at: '123',
-      });
-      const item = JSON.stringify({
-        type: 'event',
-        content_type: 'application/json',
-        length: 1,
-      });
 
       const env = createEnvelope<EventEnvelope>({ event_id: event.event_id, sent_at: '123' }, [
         [{ type: 'event' }, event] as EventItem,
@@ -325,9 +220,12 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      // @ts-ignore _getLastPayload only exists on the mocked class.
-      expect(RNSentry._getLastPayload().envelopePayload).toMatch(
-        `${header}\n${item}\n${payload}`
+      expect(RNSentry.captureEnvelope).toBeCalledWith(
+        utf8ToBytes('{"event_id":"event0","sent_at":"123"}\n'
+          + '{"type":"event","content_type":"application/json","length":93}\n'
+          + '{"event_id":"event0","sdk":{"name":"test-sdk-name","version":"2.1.3"},"instance":{"value":0}}\n'
+        ),
+        { store: false },
       );
     });
     test('does not call RNSentry at all if enableNative is false', async () => {
@@ -343,12 +241,17 @@ describe('Tests Native Wrapper', () => {
       }
       expect(RNSentry.captureEnvelope).not.toBeCalled();
     });
+    test('Encloses message to an object on Android', async () => {
+      // TODO:
+    });
+    test('Do not introduce empty breadcrumbs if undefined before on Android', async () => {
+      // TODO:
+    });
     test('Clears breadcrumbs on Android if mechanism.handled is true', async () => {
       NATIVE.platform = 'android';
 
       const event: Event = {
         event_id: 'event0',
-        message: 'test',
         exception: {
           values: [
             {
@@ -366,31 +269,18 @@ describe('Tests Native Wrapper', () => {
         ],
       };
 
-      const payload = JSON.stringify({
-        ...event,
-        breadcrumbs: [],
-        message: { message: event.message },
-      });
-      const header = JSON.stringify({
-        event_id: event.event_id,
-        sdk: event.sdk,
-        sent_at: '123'
-      });
-      const item = JSON.stringify({
-        type: 'event',
-        content_type: 'application/json',
-        length: 1,
-      });
-
       const env = createEnvelope<EventEnvelope>({ event_id: event.event_id as string, sent_at: '123' }, [
         [{ type: 'event' }, event] as EventItem,
       ]);
 
       await NATIVE.sendEnvelope(env);
 
-      // @ts-ignore testing method
-      expect(RNSentry._getLastPayload().envelopePayload).toMatch(
-        `${header}\n${item}\n${payload}`
+      expect(RNSentry.captureEnvelope).toBeCalledWith(
+        utf8ToBytes('{"event_id":"event0","sent_at":"123"}\n'
+          + '{"type":"event","content_type":"application/json","length":104}\n'
+          + '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[]}\n'
+        ),
+        { store: false },
       );
     });
     test('Clears breadcrumbs on Android if there is no exception', async () => {
@@ -398,7 +288,6 @@ describe('Tests Native Wrapper', () => {
 
       const event: Event = {
         event_id: 'event0',
-        message: 'test',
         breadcrumbs: [
           {
             message: 'crumb!',
@@ -406,31 +295,18 @@ describe('Tests Native Wrapper', () => {
         ],
       };
 
-      const payload = JSON.stringify({
-        ...event,
-        breadcrumbs: [],
-        message: { message: event.message },
-      });
-      const header = JSON.stringify({
-        event_id: event.event_id,
-        sdk: event.sdk,
-        sent_at: '123',
-      });
-      const item = JSON.stringify({
-        type: 'event',
-        content_type: 'application/json',
-        length: 1,
-      });
-
       const env = createEnvelope<EventEnvelope>({ event_id: event.event_id as string, sent_at: '123' }, [
         [{ type: 'event' }, event] as EventItem,
       ]);
 
       await NATIVE.sendEnvelope(env);
 
-      // @ts-ignore testing method
-      expect(RNSentry._getLastPayload().envelopePayload).toMatch(
-        `${header}\n${item}\n${payload}`
+      expect(RNSentry.captureEnvelope).toBeCalledWith(
+        utf8ToBytes('{"event_id":"event0","sent_at":"123"}\n'
+          + '{"type":"event","content_type":"application/json","length":38}\n'
+          + '{"event_id":"event0","breadcrumbs":[]}\n'
+        ),
+        { store: false },
       );
     });
     test('Does not clear breadcrumbs on Android if mechanism.handled is false', async () => {
@@ -438,7 +314,6 @@ describe('Tests Native Wrapper', () => {
 
       const event: Event = {
         event_id: 'event0',
-        message: 'test',
         exception: {
           values: [
             {
@@ -456,30 +331,18 @@ describe('Tests Native Wrapper', () => {
         ],
       };
 
-      const payload = JSON.stringify({
-        ...event,
-        message: { message: event.message },
-      });
-      const header = JSON.stringify({
-        event_id: event.event_id,
-        sent_at: '123',
-        sdk: event.sdk,
-      });
-      const item = JSON.stringify({
-        type: 'event',
-        content_type: 'application/json',
-        length: 1,
-      });
-
       const env = createEnvelope<EventEnvelope>({ event_id: event.event_id as string, sent_at: '123' }, [
         [{ type: 'event' }, event] as EventItem,
       ]);
 
       await NATIVE.sendEnvelope(env);
 
-      // @ts-ignore testing method
-      expect(RNSentry._getLastPayload().envelopePayload).toMatch(
-        `${header}\n${item}\n${payload}`
+      expect(RNSentry.captureEnvelope).toBeCalledWith(
+        utf8ToBytes('{"event_id":"event0","sent_at":"123"}\n'
+          + '{"type":"event","content_type":"application/json","length":125}\n'
+          + '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":false,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n'
+        ),
+        { store: false },
       );
     });
   });

@@ -439,8 +439,10 @@ export const NATIVE: SentryNativeWrapper = {
       const event = this._processLevels(itemPayload as Event);
 
       if (NATIVE.platform === 'android') {
-        // @ts-ignore Android still uses the old message object, without this the serialization of events will break.
-        event.message = { message: event.message };
+        if ('message' in event) {
+          // @ts-ignore Android still uses the old message object, without this the serialization of events will break.
+          event.message = { message: event.message };
+        }
         event.breadcrumbs = this._getBreadcrumbs(event);
       }
 
