@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add attachments support #2463
+
 ## 4.3.0
 
 ### Features
