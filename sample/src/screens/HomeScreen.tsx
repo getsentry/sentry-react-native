@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import {
   Image,
   ScrollView,
@@ -17,10 +17,9 @@ import { getTestProps } from '../../utils/getTestProps';
 import { SENTRY_INTERNAL_DSN } from '../dsn';
 import { SeverityLevel } from '@sentry/types';
 import { Scope } from '@sentry/react-native';
-import { Buffer } from 'buffer';
 import { NativeModules } from 'react-native';
 
-const { AssetsModule } = NativeModules;
+const {AssetsModule} = NativeModules;
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -111,13 +110,13 @@ const HomeScreen = (props: Props) => {
     console.log('Test scope properties were set.');
   };
 
-  const [data, setData] = React.useState<number[]>(null);
+  const [data, setData] = React.useState<Uint8Array>(null);
   useEffect(() => {
     (async () => {
-      console.log(AssetsModule);
-      const data: number[] = await AssetsModule.getExampleAssetData();
-      console.log('Got data from native module', data);
-      setData(data);
+      if (data === null) {
+        const asset: number[] = await AssetsModule.getExampleAssetData();
+        setData(new Uint8Array(asset));
+      }
     })().catch((error) => {
       console.warn('Error while fetching data', error);
       Sentry.captureException(error);
@@ -247,8 +246,11 @@ const HomeScreen = (props: Props) => {
             <TouchableOpacity
               onPress={async () => {
                 Sentry.configureScope((scope: Scope) => {
-                  scope.addAttachment({ data: 'Attachment content', filename: 'attachment.txt' });
-                  scope.addAttachment({ data: Buffer.from(base64Logo, 'base64'), filename: 'logo.png' });
+                  scope.addAttachment({
+                    data: 'Attachment content',
+                    filename: 'attachment.txt',
+                  });
+                  scope.addAttachment({data: data, filename: 'logo.png'});
                   console.log('Sentry attachment added.');
                 });
               }}>
