@@ -112,18 +112,9 @@ const HomeScreen = (props: Props) => {
 
   const [data, setData] = React.useState<Uint8Array>(null);
   useEffect(() => {
-    (async () => {
-      if (data === null) {
-        const asset: number[] = await AssetsModule.getExampleAssetData();
-        setData(new Uint8Array(asset));
-      }
-    })().catch((error) => {
-      console.warn('Error while fetching data', error);
-      Sentry.captureException(error);
-    });
-  }, [data]);
-
-  console.log('HomeScreen rendered', data);
+    AssetsModule.getExampleAssetData()
+      .then((asset: number[]) => setData(new Uint8Array(asset)));
+  }, []);
 
   return (
     <>
