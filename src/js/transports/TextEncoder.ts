@@ -1,4 +1,5 @@
 import { TextEncoderInternal } from '@sentry/types';
+
 import { utf8ToBytes } from '../vendor';
 
 export const makeUtf8TextEncoder = (): TextEncoderInternal => {
