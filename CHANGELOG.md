@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add attachments support ([#2463](https://github.com/getsentry/sentry-react-native/pull/2463))
+
 ## 4.3.1
 
 ### Fixes
