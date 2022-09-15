@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- ReactNativeTracingOptions maxTransactionDuration is in seconds ([#2469](https://github.com/getsentry/sentry-react-native/pull/2469))
+
 ## 4.3.0
 
 ### Features
