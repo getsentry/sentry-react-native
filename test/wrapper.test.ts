@@ -358,7 +358,7 @@ describe('Tests Native Wrapper', () => {
           + '{"type":"event","content_type":"application/json","length":125}\n'
           + '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":false,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n'
         ),
-        { store: false },
+        { store: true },
       );
     });
   });
