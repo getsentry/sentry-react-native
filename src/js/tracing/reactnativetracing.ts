@@ -361,7 +361,7 @@ export class ReactNativeTracing implements Integration {
       hub as Hub,
       expandedContext,
       idleTimeout,
-      maxTransactionDuration,
+      maxTransactionDuration * 1000, // convert seconds to milliseconds
       true
     );
 
