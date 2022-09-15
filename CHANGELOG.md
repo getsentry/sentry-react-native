@@ -6,6 +6,12 @@
 
 - ReactNativeTracingOptions maxTransactionDuration is in seconds ([#2469](https://github.com/getsentry/sentry-react-native/pull/2469))
 
+### Dependencies
+
+- Bump Cocoa SDK from v7.24.1 to v7.25.1 ([#2465](https://github.com/getsentry/sentry-react-native/pull/2465))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7251)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.24.1...7.25.1)
+
 ## 4.3.0
 
 ### Features
