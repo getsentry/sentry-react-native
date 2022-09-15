@@ -6,6 +6,10 @@
 
 - Add attachments support ([#2463](https://github.com/getsentry/sentry-react-native/pull/2463))
 
+### Fixes
+
+- Detect hard crash the same as native sdks ([#2480](https://github.com/getsentry/sentry-react-native/pull/2480))
+
 ## 4.3.1
 
 ### Fixes
