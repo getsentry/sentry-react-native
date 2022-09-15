@@ -241,11 +241,27 @@ describe('Tests Native Wrapper', () => {
       }
       expect(RNSentry.captureEnvelope).not.toBeCalled();
     });
-    test('Encloses message to an object on Android', async () => {
-      // TODO:
-    });
-    test('Do not introduce empty breadcrumbs if undefined before on Android', async () => {
-      // TODO:
+    test('Encloses message to an object and not introduce empty breadcrumbs on Android', async () => {
+      NATIVE.platform = 'android';
+
+      const event: Event = {
+        event_id: 'event0',
+        message: 'test',
+      };
+
+      const env = createEnvelope<EventEnvelope>({ event_id: event.event_id as string, sent_at: '123' }, [
+        [{ type: 'event' }, event] as EventItem,
+      ]);
+
+      await NATIVE.sendEnvelope(env);
+
+      expect(RNSentry.captureEnvelope).toBeCalledWith(
+        utf8ToBytes('{"event_id":"event0","sent_at":"123"}\n'
+          + '{"type":"event","content_type":"application/json","length":50}\n'
+          + '{"event_id":"event0","message":{"message":"test"}}\n'
+        ),
+        { store: false },
+      );
     });
     test('Clears breadcrumbs on Android if mechanism.handled is true', async () => {
       NATIVE.platform = 'android';

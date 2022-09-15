@@ -45,7 +45,7 @@ interface SentryNativeWrapper {
   _isModuleLoaded(
     module: SentryNativeBridgeModule | undefined
   ): module is SentryNativeBridgeModule;
-  _getBreadcrumbs(event: Event): Breadcrumb[];
+  _getBreadcrumbs(event: Event): Breadcrumb[] | undefined;
 
   isNativeTransportAvailable(): boolean;
 
@@ -534,7 +534,7 @@ export const NATIVE: SentryNativeWrapper = {
    * this is a signal that the app would crash and android would lose the breadcrumbs by the time the app is restarted to read
    * the envelope.
    */
-  _getBreadcrumbs(event: Event): Breadcrumb[] {
+  _getBreadcrumbs(event: Event): Breadcrumb[] | undefined {
     let breadcrumbs: Breadcrumb[] | undefined = event.breadcrumbs;
 
     const wasExceptionHandled: boolean = event.exception?.values?.[0]?.mechanism?.handled != false;
@@ -544,7 +544,7 @@ export const NATIVE: SentryNativeWrapper = {
       breadcrumbs = [];
     }
 
-    return breadcrumbs || [];
+    return breadcrumbs;
   },
 
   enableNative: true,
