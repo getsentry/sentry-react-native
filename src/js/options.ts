@@ -53,7 +53,7 @@ export interface BaseReactNativeOptions {
    *  When enabled, certain personally identifiable information (PII) is added by active integrations.
    *
    * @default false
-   * */
+   */
   sendDefaultPii?: boolean;
 
   /**
@@ -73,7 +73,7 @@ export interface BaseReactNativeOptions {
    * https://docs.sentry.io/platforms/apple/guides/ios/configuration/out-of-memory/
    *
    * @default true
-   * */
+   */
   enableOutOfMemoryTracking?: boolean;
 
   /**
@@ -88,16 +88,35 @@ export interface BaseReactNativeOptions {
    * Read more at https://docs.sentry.io/platforms/react-native/troubleshooting/#unhandled-promise-rejections
    *
    * When disabled, this option will not disable unhandled rejection tracking. Set `onunhandledrejection: false` on the `ReactNativeErrorHandlers` integration instead.
+   *
    * @default true
    */
   patchGlobalPromise?: boolean;
 
   /**
- * The max cache items for capping the number of envelopes.
- *
- * @default 30
- */
+   * The max cache items for capping the number of envelopes.
+   *
+   * @default 30
+   */
   maxCacheItems?: number;
+
+  /**
+   * When enabled, the SDK tracks when the application stops responding for a specific amount of
+   * time defined by the `appHangTimeoutInterval` option.
+   *
+   * @default true
+   */
+  enableAppHangTracking?: boolean;
+
+  /**
+   * The minimum amount of time an app should be unresponsive to be classified as an App Hanging.
+   * The actual amount may be a little longer.
+   * Avoid using values lower than 100ms, which may cause a lot of app hangs events being transmitted.
+   * Value should be in seconds.
+   *
+   * @default 2
+   */
+  appHangsTimeoutInterval?: number;
 }
 
 /**
