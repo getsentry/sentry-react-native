@@ -19,7 +19,7 @@ import {
   NativeReleaseResponse,
   SentryNativeBridgeModule,
 } from './definitions';
-import { isEvent, isHardCrash } from './misc';
+import { isHardCrash } from './misc';
 import { ReactNativeOptions } from './options';
 import { utf8ToBytes } from './vendor';
 
@@ -104,7 +104,7 @@ export const NATIVE: SentryNativeWrapper = {
         bytesPayload = [...itemPayload];
       } else {
         bytesPayload = utf8ToBytes(JSON.stringify(itemPayload));
-        hardCrashed = (isEvent(itemPayload) && isHardCrash(itemPayload)) || hardCrashed;
+        hardCrashed = isHardCrash(itemPayload) || hardCrashed;
       }
 
       // Content type is not inside BaseEnvelopeItemHeaders.

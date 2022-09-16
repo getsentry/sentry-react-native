@@ -1,20 +1,18 @@
 import {
-  Event,
+  EnvelopeItem,
 } from '@sentry/types';
 
-/**
- * Recognizes an Event based on 'exception' property.
- */
-export function isEvent(event: unknown): event is Event {
-  return typeof event === 'object' && event !== null && 'exception' in event;
-}
+type EnvelopeItemPayload = EnvelopeItem[1];
 
 /**
  * Extracts the hard crash information from the event exceptions.
  * No exceptions or undefined handled are not hard crashes.
  */
-export function isHardCrash(event: Event): boolean {
-  for (const exception of event.exception?.values ?? []) {
+export function isHardCrash(payload: EnvelopeItemPayload): boolean {
+  const values = typeof payload !== 'string' && 'exception' in payload && payload.exception?.values
+    ? payload.exception.values
+    : [];
+  for (const exception of values) {
     if (!(exception.mechanism?.handled !== false)) {
       return true;
     }
