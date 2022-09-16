@@ -14,13 +14,10 @@ export function isEvent(event: unknown): event is Event {
  * No exceptions or undefined handled are not hard crashes.
  */
 export function isHardCrash(event: Event): boolean {
-  let isHandled = true;
-
   for (const exception of event.exception?.values ?? []) {
     if (!(exception.mechanism?.handled !== false)) {
-      isHandled = false;
+      return true;
     }
   }
-
-  return !isHandled;
+  return false;
 }
