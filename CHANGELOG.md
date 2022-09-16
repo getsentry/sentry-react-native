@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Breaking changes
+
+- New ReactNativeTracingOptions idleTimeoutMs and finalTimeoutMs replacing idleTimeout and maxTransactionDuration respectively ([#2481](https://github.com/getsentry/sentry-react-native/pull/2481))
+
 ## 5.0.0-alpha.3
 
 - Latest changes from 4.3.x
