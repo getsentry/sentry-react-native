@@ -4,14 +4,15 @@ import path from 'path';
 
 import {fetchEvent} from '../utils/fetchEvent';
 
-// 10 minutes timeout.
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 3e5;
+const T_30_SECONDS_IN_MS = 30e3;
+const T_120_SECONDS_IN_MS = 120e3;
+const T_20_MINUTES_IN_MS = 20 * 60e3;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = T_20_MINUTES_IN_MS;
 const PORT = 4723;
 
 const driver = wd.promiseChainRemote('localhost', PORT);
 
-// 20 min timeout why not
-jest.setTimeout(1.2e6);
+jest.setTimeout(T_20_MINUTES_IN_MS);
 
 beforeAll(async () => {
   const config =
@@ -36,21 +37,22 @@ beforeAll(async () => {
         };
 
   await driver.init(config);
-  await driver.sleep(10000);
+  await driver.sleep(T_120_SECONDS_IN_MS); // try to wait extra long to see if it helps
+  // in case it does helper function that waits for elements would be nice
 
   expect(await driver.hasElementByAccessibilityId('openEndToEndTests')).toBe(
     true,
   );
   const element = await driver.elementByAccessibilityId('openEndToEndTests');
   await element.click();
-  await driver.sleep(2000);
+  await driver.sleep(T_30_SECONDS_IN_MS);
 });
 
 beforeEach(async () => {
   await driver.hasElementByAccessibilityId('clearEventId');
   const element = await driver.elementByAccessibilityId('clearEventId');
   await element.click();
-  await driver.sleep(2000);
+  await driver.sleep(T_30_SECONDS_IN_MS);
 });
 
 describe('End to end tests for common events', () => {
