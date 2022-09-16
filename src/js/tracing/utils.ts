@@ -30,24 +30,16 @@ export const MARGIN_OF_ERROR_SECONDS = 0.05;
 const timeOriginMilliseconds = Date.now();
 
 /**
- * Converts from seconds to milliseconds
- * @param time time in seconds
- */
-function secToMs(time: number): number {
-  return time * 1000;
-}
-
-/**
  *
  */
 export function adjustTransactionDuration(
-  maxDuration: number, // in seconds
+  maxDurationMs: number,
   transaction: IdleTransaction,
   endTimestamp: number
 ): void {
   const diff = endTimestamp - transaction.startTimestamp;
   const isOutdatedTransaction =
-    endTimestamp && (diff > secToMs(maxDuration) || diff < 0);
+    endTimestamp && (diff > maxDurationMs || diff < 0);
   if (isOutdatedTransaction) {
     transaction.setStatus('deadline_exceeded');
     transaction.setTag('maxTransactionDurationExceeded', 'true');
