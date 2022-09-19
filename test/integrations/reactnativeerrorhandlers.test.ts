@@ -10,6 +10,9 @@ const _browserClient: BrowserClient = new BrowserClient({
 jest.mock('@sentry/core', () => {
   const core = jest.requireActual('@sentry/core');
 
+  const scope = {
+    getAttachments: jest.fn(),
+  };
 
   const client = {
     getOptions: () => ({}),
@@ -18,6 +21,7 @@ jest.mock('@sentry/core', () => {
 
   const hub = {
     getClient: () => client,
+    getScope: () => scope,
     captureEvent: jest.fn(),
   };
 

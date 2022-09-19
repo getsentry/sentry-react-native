@@ -20,6 +20,7 @@ import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { makeReactNativeTransport } from './transports/native';
+import { makeUtf8TextEncoder } from './transports/TextEncoder';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
@@ -32,7 +33,10 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   autoInitializeNativeSdk: true,
   enableAutoPerformanceTracking: true,
   enableOutOfMemoryTracking: true,
-  patchGlobalPromise: true
+  patchGlobalPromise: true,
+  transportOptions: {
+    textEncoder: makeUtf8TextEncoder(),
+  },
 };
 
 /**
@@ -46,6 +50,10 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
     transport: passedOptions.transport || makeReactNativeTransport,
+    transportOptions: {
+      ...DEFAULT_OPTIONS.transportOptions,
+      ...(passedOptions.transportOptions ?? {}),
+    },
     integrations: getIntegrationsToSetup(passedOptions),
     stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser)
   };

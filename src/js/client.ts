@@ -48,6 +48,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     this._browserClient = new BrowserClient({
       dsn: options.dsn,
       transport: options.transport,
+      transportOptions: options.transportOptions,
       stackParser: options.stackParser || defaultStackParser,
       integrations: [],
     });

@@ -14,6 +14,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
@@ -292,7 +293,12 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void captureEnvelope(String envelope, Promise promise) {
+    public void captureEnvelope(ReadableArray rawBytes, ReadableMap options, Promise promise) {
+        byte bytes[] = new byte[rawBytes.size()];
+        for (int i = 0; i < rawBytes.size(); i++) {
+            bytes[i] = (byte) rawBytes.getInt(i);
+        }
+
         try {
             final String outboxPath = HubAdapter.getInstance().getOptions().getOutboxPath();
 
@@ -302,22 +308,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             } else {
                 File installation = new File(outboxPath, UUID.randomUUID().toString());
                 try (FileOutputStream out = new FileOutputStream(installation)) {
-                    out.write(envelope.getBytes(Charset.forName("UTF-8")));
+                    out.write(bytes);
                 }
             }
         } catch (Throwable ignored) {
-            logger.severe("Error reading envelope");
+            logger.severe("Error while writing envelope to outbox.");
         }
         promise.resolve(true);
-    }
-
-    @ReactMethod
-    public void getStringBytesLength(String payload, Promise promise) {
-        try {
-            promise.resolve(payload.getBytes("UTF-8").length);
-        } catch (UnsupportedEncodingException e) {
-            promise.reject(e);
-        }
     }
 
     private static PackageInfo getPackageInfo(Context ctx) {
