@@ -127,9 +127,7 @@ jobs:
       - name: Build and run iOS emulator
         if: env.SENTRY_AUTH_TOKEN != null
         working-directory: ./sample
-        run: |
-          ../scripts/update-launch-database.sh
-          react-native run-ios --configuration Release --simulator "${DEVICE}"
+        run: react-native run-ios --configuration Release --simulator "${DEVICE}"
 
       - name: Build WDA
         if: env.SENTRY_AUTH_TOKEN != null
