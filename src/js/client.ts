@@ -2,10 +2,17 @@ import { BrowserClient, defaultStackParser, makeFetchTransport } from '@sentry/b
 import { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
 import { FetchImpl } from '@sentry/browser/types/transports/utils';
 import { BaseClient } from '@sentry/core';
-import { Event, EventHint, SeverityLevel, Transport } from '@sentry/types';
+import {
+  Event,
+  EventHint,
+  SeverityLevel,
+  Transport,
+  UserFeedback,
+} from '@sentry/types';
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
 
+import { createUserFeedbackEnvelope } from './envelope';
 import { ReactNativeClientOptions } from './options';
 import { NativeTransport } from './transports/native';
 import { NATIVE } from './wrapper';
@@ -87,6 +94,14 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     return super.close().then((result: boolean) => {
       return NATIVE.closeNativeSdk().then(() => result) as PromiseLike<boolean>;
     });
+  }
+
+  /**
+   * Sends user feedback to Sentry.
+   */
+  public captureUserFeedback(feedback: UserFeedback): void {
+    const envelope = createUserFeedbackEnvelope(feedback);
+    this._sendEnvelope(envelope);
   }
 
   /**

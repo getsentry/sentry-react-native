@@ -7,7 +7,6 @@ export {
   StackFrame,
   Stacktrace,
   Thread,
-  User,
 } from '@sentry/types';
 
 export {
@@ -49,6 +48,7 @@ export {
   withProfiler,
 } from '@sentry/react';
 
+export { User, UserFeedback, captureUserFeedback } from './user';
 import * as Integrations from './integrations';
 import { SDK_NAME, SDK_VERSION } from './version';
 export { ReactNativeOptions } from './options';
