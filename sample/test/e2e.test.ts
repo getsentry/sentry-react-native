@@ -7,7 +7,6 @@ import {waitForTruthyResult} from '../utils/waitFor';
 
 const T_30_SECONDS_IN_MS = 30e3;
 const T_20_MINUTES_IN_MS = 20 * 60e3;
-jasmine.DEFAULT_TIMEOUT_INTERVAL = T_20_MINUTES_IN_MS;
 const PORT = 4723;
 
 const driver = wd.promiseChainRemote('localhost', PORT);
