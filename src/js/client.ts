@@ -12,7 +12,7 @@ import {
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
 
-import { createUserFeedbackEnvelope } from './envelope';
+import { createUserFeedbackEnvelope } from './utils/envelope';
 import { ReactNativeClientOptions } from './options';
 import { NativeTransport } from './transports/native';
 import { NATIVE } from './wrapper';
@@ -100,7 +100,14 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * Sends user feedback to Sentry.
    */
   public captureUserFeedback(feedback: UserFeedback): void {
-    const envelope = createUserFeedbackEnvelope(feedback);
+    const envelope = createUserFeedbackEnvelope(
+      feedback,
+      {
+        metadata: this._options._metadata,
+        dsn: this.getDsn(),
+        tunnel: this._options.tunnel,
+      },
+    );
     this._sendEnvelope(envelope);
   }
 
