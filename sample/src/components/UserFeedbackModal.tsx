@@ -27,7 +27,7 @@ export function UserFeedbackModal() {
             source={require('../assets/sentry-announcement.png')}
             style={styles.modalImage}
           />
-          <Text style={styles.modalText}>Ups, what happened?</Text>
+          <Text style={styles.modalText}>Whoops, what happened?</Text>
           <TextInput
             style={styles.input}
             onChangeText={onChangeComments}
@@ -102,6 +102,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     height: 100,
     width: 250,
+    textAlignVertical: 'top',
   },
   modalText: {
     marginBottom: 15,
