@@ -285,7 +285,7 @@ export class ReactNativeTracing implements Integration {
 
     const appStartTimeSeconds = appStart.appStartTime / 1000;
 
-    const appStartMode = appStart.isColdStart ? 'app_start_cold' : 'app_start_warm';
+    const appStartMode = appStart.isColdStart ? 'app.start.cold' : 'app.start.warm';
     transaction.startChild({
       description: appStart.isColdStart ? 'Cold App Start' : 'Warm App Start',
       op: appStartMode,
