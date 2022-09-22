@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add user feedback ([#2486](https://github.com/getsentry/sentry-react-native/pull/2486))
+
 ### Fixes
 
 - Add typings for app hang functionality ([#2479](https://github.com/getsentry/sentry-react-native/pull/2479))
