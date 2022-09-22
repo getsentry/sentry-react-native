@@ -5,17 +5,44 @@ import { ReactNativeClient } from '../src/js/client';
 import { ReactNativeClientOptions, ReactNativeOptions } from '../src/js/options';
 import { NativeTransport } from '../src/js/transports/native';
 import { NATIVE } from '../src/js/wrapper';
+import {
+  firstArg,
+  envelopeHeader,
+  envelopeItems,
+  envelopeItemHeader,
+  envelopeItemPayload,
+} from './testutils';
 
 const EXAMPLE_DSN =
   'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053';
 
+interface MockedReactNative {
+  NativeModules: {
+    RNSentry: {
+      initNativeSdk: jest.Mock;
+      crash: jest.Mock;
+      captureEnvelope: jest.Mock;
+    };
+  };
+  Platform: {
+    OS: 'mock';
+  };
+  LogBox: {
+    ignoreLogs: jest.Mock;
+  };
+  YellowBox: {
+    ignoreWarnings: jest.Mock;
+  };
+}
+
 jest.mock(
   'react-native',
-  () => ({
+  (): MockedReactNative => ({
     NativeModules: {
       RNSentry: {
         initNativeSdk: jest.fn(() => Promise.resolve(true)),
         crash: jest.fn(),
+        captureEnvelope: jest.fn(),
       },
     },
     Platform: {
@@ -100,7 +127,7 @@ describe('Tests ReactNativeClient', () => {
       // eslint-disable-next-line deprecation/deprecation
       await expect(RN.YellowBox.ignoreWarnings).toBeCalled();
     });
-    
+
     test('use custom transport function', async () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const mySend = (request: Envelope) => Promise.resolve();
@@ -149,11 +176,11 @@ describe('Tests ReactNativeClient', () => {
     });
 
     test('calls onReady callback with false if Native SDK failed to initialize', (done) => {
-      const RN = require('react-native');
+      const RN: MockedReactNative = require('react-native');
 
-      RN.NativeModules.RNSentry.initNativeSdk = async () => {
+      RN.NativeModules.RNSentry.initNativeSdk = jest.fn(() => {
         throw new Error();
-      };
+      });
 
       new ReactNativeClient({
         dsn: EXAMPLE_DSN,
@@ -170,7 +197,7 @@ describe('Tests ReactNativeClient', () => {
 
   describe('nativeCrash', () => {
     test('calls NativeModules crash', () => {
-      const RN = require('react-native');
+      const RN: MockedReactNative = require('react-native');
 
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
@@ -181,6 +208,38 @@ describe('Tests ReactNativeClient', () => {
       client.nativeCrash();
 
       expect(RN.NativeModules.RNSentry.crash).toBeCalled();
+    });
+  });
+
+  describe('UserFeedback', () => {
+    test('sends UserFeedback to native Layer', () => {
+      const mockTransportSend: jest.Mock = jest.fn(() => Promise.resolve());
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+      } as ReactNativeClientOptions);
+
+      client.captureUserFeedback({
+        comments: 'Test Comments',
+        email: 'test@email.com',
+        name: 'Test User',
+        event_id: 'testEvent123',
+      });
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeHeader].event_id).toEqual('testEvent123');
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemHeader].type).toEqual(
+        'user_report'
+      );
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload]).toEqual({
+        comments: 'Test Comments',
+        email: 'test@email.com',
+        name: 'Test User',
+        event_id: 'testEvent123',
+      });
     });
   });
 });
