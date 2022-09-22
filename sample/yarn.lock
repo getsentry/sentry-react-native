@@ -3404,7 +3404,7 @@ appium-youiengine-driver@^1.2.8:
     source-map-support "^0.5.19"
     teen_process "^1.15.0"
 
-appium@1.22.3:
+appium@^1.22.3:
   version "1.22.3"
   resolved "https://registry.yarnpkg.com/appium/-/appium-1.22.3.tgz#ab1cae92e1db67600c79c971dda4f218e26ddc5d"
   integrity sha512-0/SkcOdC8h79Z5TgCeWbeGEbAQzLzwR3h2jYL5EI6zPIrbqZczGv7S8HgmFQPQ98La2wmf26dpPvL8Vw4r/WXw==
@@ -3721,7 +3721,7 @@ babel-eslint@^10.1.0:
     eslint-visitor-keys "^1.0.0"
     resolve "^1.12.0"
 
-babel-jest@29.0.3, babel-jest@^29.0.3:
+babel-jest@^29.0.3:
   version "29.0.3"
   resolved "https://registry.yarnpkg.com/babel-jest/-/babel-jest-29.0.3.tgz#64e156a47a77588db6a669a88dedff27ed6e260f"
   integrity sha512-ApPyHSOhS/sVzwUOQIWJmdvDhBsMG01HX9z7ogtkp1TToHGGUWFlnXJUIzCgKPSfiYLn3ibipCYzsKSURHEwLg==
@@ -7037,7 +7037,7 @@ jest-worker@^29.0.3:
     merge-stream "^2.0.0"
     supports-color "^8.0.0"
 
-jest@29.0.3:
+jest@^29.0.3:
   version "29.0.3"
   resolved "https://registry.yarnpkg.com/jest/-/jest-29.0.3.tgz#5227a0596d30791b2649eea347e4aa97f734944d"
   integrity sha512-ElgUtJBLgXM1E8L6K1RW1T96R897YY/3lRYqq9uVcPWtP2AAl/nQ16IYDh/FzQOOQ12VEuLdcPU83mbhG2C3PQ==
