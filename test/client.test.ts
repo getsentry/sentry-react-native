@@ -6,11 +6,11 @@ import { ReactNativeClientOptions, ReactNativeOptions } from '../src/js/options'
 import { NativeTransport } from '../src/js/transports/native';
 import { NATIVE } from '../src/js/wrapper';
 import {
-  firstArg,
   envelopeHeader,
-  envelopeItems,
   envelopeItemHeader,
   envelopeItemPayload,
+  envelopeItems,
+  firstArg,
 } from './testutils';
 
 const EXAMPLE_DSN =

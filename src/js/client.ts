@@ -12,9 +12,9 @@ import {
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
 
-import { createUserFeedbackEnvelope } from './utils/envelope';
 import { ReactNativeClientOptions } from './options';
 import { NativeTransport } from './transports/native';
+import { createUserFeedbackEnvelope } from './utils/envelope';
 import { NATIVE } from './wrapper';
 
 /**
