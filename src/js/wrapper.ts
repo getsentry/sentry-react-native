@@ -1,17 +1,13 @@
 /* eslint-disable max-lines */
 import {
-  AttachmentItem,
   BaseEnvelopeItemHeaders,
   Breadcrumb,
-  ClientReportItem,
   Envelope,
+  EnvelopeItem,
   Event,
-  EventItem,
   Package,
-  SessionItem,
   SeverityLevel,
   User,
-  UserFeedbackItem,
 } from '@sentry/types';
 import { logger, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
@@ -23,10 +19,9 @@ import {
   NativeReleaseResponse,
   SentryNativeBridgeModule,
 } from './definitions';
+import { isHardCrash } from './misc';
 import { ReactNativeOptions } from './options';
 import { utf8ToBytes } from './vendor';
-
-type Item = EventItem | AttachmentItem | UserFeedbackItem | SessionItem | ClientReportItem;
 
 const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
 
@@ -38,7 +33,7 @@ interface SentryNativeWrapper {
   _NativeClientError: Error;
   _DisabledNativeError: Error;
 
-  _processItem(envelopeItem: Item): Item;
+  _processItem(envelopeItem: EnvelopeItem): EnvelopeItem;
   _processLevels(event: Event): Event;
   _processLevel(level: SeverityLevel): SeverityLevel;
   _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
@@ -98,7 +93,7 @@ export const NATIVE: SentryNativeWrapper = {
     const envelopeBytes: number[] = utf8ToBytes(headerString);
     envelopeBytes.push(EOL);
 
-    let isFatalCrash: boolean = false;
+    let hardCrashed: boolean = false;
     for (const rawItem of envelopeItems) {
       const [itemHeader, itemPayload] = this._processItem(rawItem);
 
@@ -109,7 +104,9 @@ export const NATIVE: SentryNativeWrapper = {
         bytesPayload = [...itemPayload];
       } else {
         bytesPayload = utf8ToBytes(JSON.stringify(itemPayload));
-        isFatalCrash = 'level' in itemPayload && itemPayload.level === 'fatal';
+        if (!hardCrashed) {
+          hardCrashed = isHardCrash(itemPayload);
+        }
       }
 
       // Content type is not inside BaseEnvelopeItemHeaders.
@@ -123,7 +120,7 @@ export const NATIVE: SentryNativeWrapper = {
       envelopeBytes.push(EOL);
     }
 
-    await RNSentry.captureEnvelope(envelopeBytes, { store: isFatalCrash });
+    await RNSentry.captureEnvelope(envelopeBytes, { store: hardCrashed });
   },
 
   /**
@@ -431,7 +428,7 @@ export const NATIVE: SentryNativeWrapper = {
    * @param data An envelope item containing the event.
    * @returns The event from envelopeItem or undefined.
    */
-  _processItem(item: Item): Item {
+  _processItem(item: EnvelopeItem): EnvelopeItem {
     const [itemHeader, itemPayload] = item;
 
     if (itemHeader.type == 'event' || itemHeader.type == 'transaction') {
@@ -537,10 +534,10 @@ export const NATIVE: SentryNativeWrapper = {
   _getBreadcrumbs(event: Event): Breadcrumb[] | undefined {
     let breadcrumbs: Breadcrumb[] | undefined = event.breadcrumbs;
 
-    const wasExceptionHandled: boolean = event.exception?.values?.[0]?.mechanism?.handled != false;
+    const hardCrashed = isHardCrash(event);
     if (NATIVE.platform === 'android'
       && event.breadcrumbs
-      && wasExceptionHandled) {
+      && !hardCrashed) {
       breadcrumbs = [];
     }
 
