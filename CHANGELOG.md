@@ -5,6 +5,9 @@
 ### Fixes
 
 - Add typings for app hang functionality ([#2479](https://github.com/getsentry/sentry-react-native/pull/2479))
+- Update warm/cold start span ops ([#2487](https://github.com/getsentry/sentry-react-native/pull/2487))
+
+## 4.4.0
 
 ### Features
 
