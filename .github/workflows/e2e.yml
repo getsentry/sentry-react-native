@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: "12"
+          node-version: "14"
       - uses: actions/setup-java@v3
         with:
           java-version: "11"
@@ -80,7 +80,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: "12"
+          node-version: "14"
       - name: Install Global Dependencies
         run: yarn global add react-native-cli @sentry/cli yalc
       - uses: actions/cache@v3
