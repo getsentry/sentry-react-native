@@ -28,7 +28,10 @@ export function createUserFeedbackEnvelope(
   const headers: EventEnvelopeHeaders & BaseEnvelopeHeaders = {
     event_id: feedback.event_id,
     sent_at: new Date().toISOString(),
-    ...(metadata && metadata.sdk && { sdk: metadata.sdk }),
+    ...(metadata && metadata.sdk && { sdk: {
+      name: metadata.sdk.name,
+      version: metadata.sdk.version,
+    }}),
     ...(!!tunnel && !!dsn && { dsn: dsnToString(dsn) }),
   };
   const item = createUserFeedbackEnvelopeItem(feedback);

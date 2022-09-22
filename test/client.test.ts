@@ -4,6 +4,7 @@ import * as RN from 'react-native';
 import { ReactNativeClient } from '../src/js/client';
 import { ReactNativeClientOptions, ReactNativeOptions } from '../src/js/options';
 import { NativeTransport } from '../src/js/transports/native';
+import { SDK_NAME, SDK_VERSION } from '../src/js/version';
 import { NATIVE } from '../src/js/wrapper';
 import {
   envelopeHeader,
@@ -11,6 +12,8 @@ import {
   envelopeItemPayload,
   envelopeItems,
   firstArg,
+  getMockSession,
+  getMockUserFeedback,
 } from './testutils';
 
 const EXAMPLE_DSN =
@@ -240,6 +243,56 @@ describe('Tests ReactNativeClient', () => {
         name: 'Test User',
         event_id: 'testEvent123',
       });
+    });
+  });
+
+  describe('envelopeHeader SdkInfo', () => {
+    let mockTransportSend: jest.Mock;
+    let client: ReactNativeClient;
+
+    beforeEach(() => {
+      mockTransportSend = jest.fn(() => Promise.resolve());
+      client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+      } as ReactNativeClientOptions);
+    });
+
+    afterEach(() => {
+      mockTransportSend.mockClear();
+    });
+
+    const expectedSdkInfo = { name: SDK_NAME, version: SDK_VERSION };
+    const getSdkInfoFrom = (func: jest.Mock) =>
+      func.mock.calls[0][firstArg][envelopeHeader].sdk;
+
+    test('send SdkInfo in the message envelope header', () => {
+      client.captureMessage('message_test_value');
+      expect(getSdkInfoFrom(mockTransportSend)).toStrictEqual(expectedSdkInfo);
+    });
+
+    test('send SdkInfo in the exception envelope header', () => {
+      client.captureException(new Error());
+      expect(getSdkInfoFrom(mockTransportSend)).toStrictEqual(expectedSdkInfo);
+    });
+
+    test('send SdkInfo in the event envelope header', () => {
+      client.captureEvent({});
+      expect(getSdkInfoFrom(mockTransportSend)).toStrictEqual(expectedSdkInfo);
+    });
+
+    test('send SdkInfo in the session envelope header', () => {
+      client.captureSession(getMockSession());
+      expect(getSdkInfoFrom(mockTransportSend)).toStrictEqual(expectedSdkInfo);
+    });
+
+    test('send SdkInfo in the user feedback envelope header', () => {
+      client.captureUserFeedback(getMockUserFeedback());
+      expect(getSdkInfoFrom(mockTransportSend)).toStrictEqual(expectedSdkInfo);
     });
   });
 });
