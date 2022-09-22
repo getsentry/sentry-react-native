@@ -18,6 +18,7 @@ import { SENTRY_INTERNAL_DSN } from '../dsn';
 import { SeverityLevel } from '@sentry/types';
 import { Scope } from '@sentry/react-native';
 import { NativeModules } from 'react-native';
+import { UserFeedbackModal } from '../components/UserFeedbackModal';
 
 const {AssetsModule} = NativeModules;
 
@@ -256,6 +257,8 @@ const HomeScreen = (props: Props) => {
               }}>
               <Text style={styles.buttonText}>Get attachment</Text>
             </TouchableOpacity>
+            <View style={styles.spacer} />
+            <UserFeedbackModal/>
           </View>
           <View style={styles.buttonArea}>
             <TouchableOpacity
@@ -304,7 +307,7 @@ const HomeScreen = (props: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   scrollView: {
     backgroundColor: '#fff',
     flex: 1,
