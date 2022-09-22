@@ -6,16 +6,13 @@
 
 - Add typings for app hang functionality ([#2479](https://github.com/getsentry/sentry-react-native/pull/2479))
 - Update warm/cold start span ops ([#2487](https://github.com/getsentry/sentry-react-native/pull/2487))
+- Detect hard crash the same as native sdks ([#2480](https://github.com/getsentry/sentry-react-native/pull/2480))
 
 ## 4.4.0
 
 ### Features
 
 - Add attachments support ([#2463](https://github.com/getsentry/sentry-react-native/pull/2463))
-
-### Fixes
-
-- Detect hard crash the same as native sdks ([#2480](https://github.com/getsentry/sentry-react-native/pull/2480))
 
 ## 4.3.1
 
