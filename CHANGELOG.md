@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Add typings for app hang functionality ([#2479](https://github.com/getsentry/sentry-react-native/pull/2479))
+
 ### Features
 
 - Add attachments support ([#2463](https://github.com/getsentry/sentry-react-native/pull/2463))

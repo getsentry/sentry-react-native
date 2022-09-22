@@ -104,6 +104,8 @@ export interface BaseReactNativeOptions {
    * When enabled, the SDK tracks when the application stops responding for a specific amount of
    * time defined by the `appHangTimeoutInterval` option.
    *
+   * iOS only
+   *
    * @default true
    */
   enableAppHangTracking?: boolean;
@@ -113,6 +115,8 @@ export interface BaseReactNativeOptions {
    * The actual amount may be a little longer.
    * Avoid using values lower than 100ms, which may cause a lot of app hangs events being transmitted.
    * Value should be in seconds.
+   *
+   * iOS only
    *
    * @default 2
    */
