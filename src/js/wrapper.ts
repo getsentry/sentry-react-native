@@ -104,7 +104,9 @@ export const NATIVE: SentryNativeWrapper = {
         bytesPayload = [...itemPayload];
       } else {
         bytesPayload = utf8ToBytes(JSON.stringify(itemPayload));
-        hardCrashed = isHardCrash(itemPayload) || hardCrashed;
+        if (!hardCrashed) {
+          hardCrashed = isHardCrash(itemPayload);
+        }
       }
 
       // Content type is not inside BaseEnvelopeItemHeaders.
