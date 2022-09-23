@@ -1,7 +1,11 @@
 import { getIntegrationsToSetup, initAndBind, setExtra } from '@sentry/core';
 import { Hub, makeMain } from '@sentry/hub';
 import { RewriteFrames } from '@sentry/integrations';
-import { defaultStackParser, getCurrentHub } from '@sentry/react';
+import {
+  defaultIntegrations as reactDefaultIntegrations,
+  defaultStackParser,
+  getCurrentHub,
+} from '@sentry/react';
 import { Integration, StackFrame, UserFeedback } from '@sentry/types';
 import { getGlobalObject, logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
@@ -69,8 +73,8 @@ export function init(passedOptions: ReactNativeOptions): void {
       patchGlobalPromise: options.patchGlobalPromise,
     }));
     defaultIntegrations.push(new Release());
-    options.integrations.push(...[
-      ...defaultIntegrations.filter(
+    defaultIntegrations.push(...[
+      ...reactDefaultIntegrations.filter(
         (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
       ),
     ]);

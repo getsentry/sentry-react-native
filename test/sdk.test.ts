@@ -17,7 +17,7 @@ jest.mock('@sentry/react', () => {
       getClient: jest.fn(() => mockClient),
       setTag: jest.fn(),
     })),
-    defaultIntegrations: [],
+    defaultIntegrations: [ { name: 'MockedDefaultReactIntegration', setupOnce: jest.fn() } ],
   };
 });
 
@@ -272,6 +272,16 @@ describe('Tests the SDK functionality', () => {
       const actualPassedIntegrations = mockIntegrationFactory.mock.calls[0][firstArg];
 
       expect(actualPassedIntegrations).toEqual([]);
+    });
+
+    it('adds react default integrations', () => {
+      init({});
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations)
+        .toEqual(expect.arrayContaining([expect.objectContaining({ name: 'MockedDefaultReactIntegration' })]));
     });
   });
 });
