@@ -48,7 +48,8 @@ jobs:
           path: |
             sample/ios/Pods
             sample/ios/DerivedData
-          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('sample/ios/Podfile.lock') }}
+          # Note: we cannot use sample/ios/Podfile.lock because it's not source controlled.
+          key: ${{ github.workflow }}-${{ github.job }}-pods-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
 
       - name: Install Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
