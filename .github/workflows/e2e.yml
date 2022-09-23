@@ -9,136 +9,104 @@ env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
 jobs:
-  android:
+  device-test:
     # Android emulator said to perform best with macos HAXM
     runs-on: macos-latest
+    strategy:
+      # we want that the matrix keeps running, default is to cancel them if it fails.
+      fail-fast: false
+      matrix:
+        platform: ["ios", "android"]
+        dev: [true, false]
     env:
-      PLATFORM: android
+      PLATFORM: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/setup-node@v3
         with:
           node-version: "14"
+
       - uses: actions/setup-java@v3
         with:
           java-version: "11"
           distribution: "adopt"
+
       - name: Install Global Dependencies
-        run: yarn global add react-native-cli @sentry/cli yalc
+        run: yarn global add @sentry/cli yalc
+
       - uses: actions/cache@v3
         id: deps-cache
         with:
           path: |
             node_modules
             sample/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-      - name: Install Dependencies
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
-        run: yarn install
+          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
 
-      - name: Build SDK
-        run: yarn build
-      - name: Package SDK
-        run: yalc publish
-      - name: Prepare sample for testing
-        working-directory: ./sample
-        run: sh ./scripts/prepareConfigsForTesting.sh
-      - name: Install SDK in sample
-        working-directory: ./sample
-        run: yalc add @sentry/react-native
-      - name: Install Sample Dependencies
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
-        working-directory: ./sample
-        run: yarn install
-
-      - name: Start Appium Server
-        if: env.SENTRY_AUTH_TOKEN != null
-        working-directory: ./sample
-        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
-      - name: Run Android Emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          # All the tests need to be run in this script as the emulator is killed after this command.
-          script: cd sample && react-native run-android --variant=release && curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions && yarn test
-      - name: Upload Appium logs
-        # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
-        # otherwise it would not run if the previous step failed
-        if: ${{ always() && env.SENTRY_AUTH_TOKEN != null }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: appium.android.log
-          path: ./sample/appium.log
-  ios:
-    runs-on: macos-latest
-    env:
-      PLATFORM: ios
-      TEST: true
-      DEVICE: "iPhone 13"
-      IOS_DEPLOYMENT_TARGET: 15.0
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "14"
-      - name: Install Global Dependencies
-        run: yarn global add react-native-cli @sentry/cli yalc
-      - uses: actions/cache@v3
-        id: deps-cache
-        with:
-          path: |
-            node_modules
-            sample/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
       - uses: actions/cache@v3
         id: pods-cache
         with:
           path: |
             sample/ios/Pods
-            ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-${{ hashFiles('sample/ios/Podfile.lock') }}
+            sample/ios/DerivedData
+          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('sample/ios/Podfile.lock') }}
+
       - name: Install Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
 
       - name: Build SDK
         run: yarn build
+
       - name: Package SDK
         run: yalc publish
+
       - name: Prepare sample for testing
         working-directory: ./sample
         run: sh ./scripts/prepareConfigsForTesting.sh
+
       - name: Install SDK in sample
         working-directory: ./sample
         run: yalc add @sentry/react-native
+
       - name: Install Sample Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         working-directory: ./sample
         run: yarn install
-      - name: Install iOS pods
-        # Even though we cache the pods, we call it regardless
-        working-directory: ./sample/ios
-        run: pod install
 
       - name: Start Appium Server
-        if: env.SENTRY_AUTH_TOKEN != null
         working-directory: ./sample
-        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.log &
-      - name: Build and run iOS emulator
-        if: env.SENTRY_AUTH_TOKEN != null
-        working-directory: ./sample
-        run: react-native run-ios --configuration Release --simulator "${DEVICE}"
-
-      - name: Build WDA
-        if: env.SENTRY_AUTH_TOKEN != null
-        working-directory: ./sample
-        run: xcodebuild -project ./node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner -derivedDataPath ./xc-build -destination name="${DEVICE}" IPHONEOS_DEPLOYMENT_TARGET=$IOS_DEPLOYMENT_TARGET GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO build
+        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.${{ matrix.platform }}.log &
 
         # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
-      - name: Ping Appium Server
-        if: env.SENTRY_AUTH_TOKEN != null
+      - name: Check Appium Server
         run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
-      - name: Run Tests
+
+      - name: Build ${{ matrix.platform }} sample app
+        if: env.SENTRY_AUTH_TOKEN != null
+        working-directory: ./sample/${{ matrix.platform }}
+        run: |
+          if [[ "${{ matrix.platform }}" == "android" ]]; then
+            ./gradlew assembleRelease
+          else
+            # TEST env var is used in podfile to determine whether to include the sentry SDK from relative path or node_modules.
+            export TEST=true
+            pod install
+            device="iPhone 12"
+            xcodebuild -workspace sample.xcworkspace -configuration Release -scheme sample -derivedDataPath ./DerivedData -destination name="$device" build
+            cd ..
+            xcodebuild -project ./node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner -derivedDataPath ./ios/DerivedData -destination name="$device" IPHONEOS_DEPLOYMENT_TARGET=15.0 GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO build
+          fi
+
+      - name: Run tests on ${{ matrix.platform }}
+        if: ${{ matrix.platform == 'android' }}
+        uses: reactivecircus/android-emulator-runner@d7b53ddc6e44254e1f4cf4a6ad67345837027a66 # v2.26.0
+        with:
+          api-level: 29
+          script: cd sample && yarn test
+
+      - name: Run tests on ${{ matrix.platform }}
+        if: ${{ matrix.platform == 'ios' }}
         working-directory: ./sample
         run: yarn test
 
@@ -148,5 +116,5 @@ jobs:
         if: ${{ always() && env.SENTRY_AUTH_TOKEN != null }}
         uses: actions/upload-artifact@v3
         with:
-          name: appium.ios.log
-          path: ./sample/appium.log
+          name: appium-${{ matrix.platform }}
+          path: ./sample/appium.${{ matrix.platform }}.log

@@ -2,8 +2,8 @@
 import wd from 'wd';
 import path from 'path';
 
-import {fetchEvent} from '../utils/fetchEvent';
-import {waitForTruthyResult} from '../utils/waitFor';
+import { fetchEvent } from '../utils/fetchEvent';
+import { waitForTruthyResult } from '../utils/waitFor';
 
 const T_30_SECONDS_IN_MS = 30e3;
 const T_20_MINUTES_IN_MS = 20 * 60e3;
@@ -23,23 +23,23 @@ beforeAll(async () => {
   const config =
     process.env.PLATFORM === 'android'
       ? {
-          platformName: 'Android',
+        platformName: 'Android',
 
-          deviceName: 'Android Emulator',
+        deviceName: 'Android Emulator',
 
-          app: './android/app/build/outputs/apk/release/app-release.apk',
-          newCommandTimeout: 600000,
-        }
+        app: './android/app/build/outputs/apk/release/app-release.apk',
+        newCommandTimeout: 600000,
+      }
       : {
-          app: 'io.sentry.sample',
-          deviceName: 'iPhone 13',
-          platformName: 'iOS',
-          newCommandTimeout: 600000,
-          automationName: 'XCUITest',
-          derivedDataPath: path.resolve('./xc-build'),
-          showXcodeLog: true,
-          usePrebuiltWDA: true,
-        };
+        app: './ios/DerivedData/Build/Products/Release-iphonesimulator/sample.app',
+        deviceName: 'iPhone 13',
+        platformName: 'iOS',
+        newCommandTimeout: 600000,
+        automationName: 'XCUITest',
+        derivedDataPath: path.resolve('./ios/DerivedData'),
+        showXcodeLog: true,
+        usePrebuiltWDA: true,
+      };
 
   await driver.init(config);
 
