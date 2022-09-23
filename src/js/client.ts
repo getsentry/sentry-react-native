@@ -5,7 +5,6 @@ import { BaseClient } from '@sentry/core';
 import {
   Event,
   EventHint,
-  SdkInfo,
   SeverityLevel,
   Transport,
   UserFeedback,
@@ -13,22 +12,11 @@ import {
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
 
+import { defaultSdkInfo } from './integrations/sdkinfo';
 import { ReactNativeClientOptions } from './options';
 import { NativeTransport } from './transports/native';
 import { createUserFeedbackEnvelope } from './utils/envelope';
-import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from './version';
 import { NATIVE } from './wrapper';
-
-const defaultSdkInfo: SdkInfo = {
-  name: SDK_NAME,
-  packages: [
-    {
-      name: SDK_PACKAGE_NAME,
-      version: SDK_VERSION,
-    },
-  ],
-  version: SDK_VERSION,
-};
 
 /**
  * The Sentry React Native SDK Client.
