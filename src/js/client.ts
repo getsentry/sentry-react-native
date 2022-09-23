@@ -12,6 +12,7 @@ import {
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
 
+import { defaultSdkInfo } from './integrations/sdkinfo';
 import { ReactNativeClientOptions } from './options';
 import { NativeTransport } from './transports/native';
 import { createUserFeedbackEnvelope } from './utils/envelope';
@@ -40,6 +41,8 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
          return makeFetchTransport(options, nativeFetch);
        };
      }
+     options._metadata = options._metadata || {};
+     options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
      super(options);
 
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
@@ -58,6 +61,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       transportOptions: options.transportOptions,
       stackParser: options.stackParser || defaultStackParser,
       integrations: [],
+      _metadata: options._metadata,
     });
 
      void this._initNativeSdk();

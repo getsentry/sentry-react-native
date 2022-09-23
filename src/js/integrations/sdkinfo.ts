@@ -1,8 +1,21 @@
-import { EventProcessor, Integration, Package } from '@sentry/types';
+import { EventProcessor, Integration, Package, SdkInfo as SdkInfoType } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
-import { SDK_NAME, SDK_VERSION } from '../version';
+import { SDK_NAME, SDK_PACKAGE_NAME,SDK_VERSION } from '../version';
 import { NATIVE } from '../wrapper';
+
+type DefaultSdkInfo = Pick<Required<SdkInfoType>, 'name' | 'packages' | 'version'>;
+
+export const defaultSdkInfo: DefaultSdkInfo = {
+  name: SDK_NAME,
+  packages: [
+    {
+      name: SDK_PACKAGE_NAME,
+      version: SDK_VERSION,
+    },
+  ],
+  version: SDK_VERSION,
+};
 
 /** Default SdkInfo instrumentation */
 export class SdkInfo implements Integration {
@@ -40,16 +53,12 @@ export class SdkInfo implements Integration {
       event.platform = event.platform || 'javascript';
       event.sdk = {
         ...(event.sdk ?? {}),
-        name: SDK_NAME,
+        ...defaultSdkInfo,
         packages: [
           ...((event.sdk && event.sdk.packages) || []),
           ...((this._nativeSdkInfo && [this._nativeSdkInfo]) || []),
-          {
-            name: 'npm:@sentry/react-native',
-            version: SDK_VERSION,
-          },
+          ...defaultSdkInfo.packages,
         ],
-        version: SDK_VERSION,
       };
 
       return event;
