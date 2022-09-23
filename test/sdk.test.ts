@@ -261,6 +261,18 @@ describe('Tests the SDK functionality', () => {
 
       expect(actualIntegrations).toEqual([mockIntegration]);
     });
+
+    it('passes no defaults to the function', () => {
+      const mockIntegrationFactory = jest.fn((_integrations: Integration[]) => []);
+      init({
+        integrations: mockIntegrationFactory,
+        defaultIntegrations: false,
+      });
+
+      const actualPassedIntegrations = mockIntegrationFactory.mock.calls[0][firstArg];
+
+      expect(actualPassedIntegrations).toEqual([]);
+    });
   });
 });
 
