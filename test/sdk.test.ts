@@ -1,9 +1,13 @@
 import { logger } from '@sentry/utils';
 
+interface MockedClient {
+  flush: jest.Mock;
+}
+
 jest.mock('@sentry/react', () => {
   const actualModule = jest.requireActual('@sentry/react');
 
-  const mockClient = {
+  const mockClient: MockedClient = {
     flush: jest.fn(() => Promise.resolve(true)),
   };
 
@@ -51,8 +55,12 @@ import { initAndBind } from '@sentry/core';
 import { getCurrentHub } from '@sentry/react';
 import { Integration } from '@sentry/types';
 
+import { ReactNativeClientOptions } from '../src/js/options';
 import { flush, init } from '../src/js/sdk';
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
+import { firstArg, secondArg } from './testutils';
+
+const mockedInitAndBind = initAndBind as jest.MockedFunction<typeof initAndBind>;
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -62,9 +70,7 @@ describe('Tests the SDK functionality', () => {
   describe('init', () => {
     describe('enableAutoPerformanceTracking', () => {
       const usedOptions = (): Integration[] => {
-        const mockCall = (initAndBind as jest.MockedFunction<
-          typeof initAndBind
-          >).mock.calls[0];
+        const mockCall = mockedInitAndBind.mock.calls[0];
 
           if (mockCall) {
             const options = mockCall[1];
@@ -132,7 +138,7 @@ describe('Tests the SDK functionality', () => {
 
     describe('flush', () => {
       it('Calls flush on the client', async () => {
-        const mockClient = getCurrentHub().getClient();
+        const mockClient = getMockClient();
 
         expect(mockClient).toBeTruthy();
 
@@ -146,7 +152,7 @@ describe('Tests the SDK functionality', () => {
       });
 
       it('Returns false if flush failed and logs error', async () => {
-        const mockClient = getCurrentHub().getClient();
+        const mockClient = getMockClient();
 
         expect(mockClient).toBeTruthy();
         if (mockClient) {
@@ -165,4 +171,107 @@ describe('Tests the SDK functionality', () => {
       });
     });
   });
+
+  describe('integrations', () => {
+    it('replaces default integrations', () => {
+      const mockDefaultIntegration = getMockedIntegration();
+      init({
+        defaultIntegrations: [mockDefaultIntegration],
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual([mockDefaultIntegration]);
+    });
+
+    it('no default integrations', () => {
+      init({
+        defaultIntegrations: false,
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual([]);
+    });
+
+    it('merges with passed default integrations', () => {
+      const mockIntegration = getMockedIntegration();
+      const mockDefaultIntegration = getMockedIntegration({ name: 'MockedDefaultIntegration' });
+      init({
+        integrations: [mockIntegration],
+        defaultIntegrations: [mockDefaultIntegration],
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations)
+        .toEqual(expect.arrayContaining([mockIntegration, mockDefaultIntegration])); // order doesn't matter
+      expect(actualIntegrations.length).toBe(2); // there should be no extra unexpected integrations
+    });
+
+    it('merges with default integrations', () => {
+      const mockIntegration = getMockedIntegration();
+      init({
+        integrations: [mockIntegration],
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations)
+        .toEqual(expect.arrayContaining([mockIntegration]));
+      expect(actualIntegrations.length).toBeGreaterThan(1); // there should be default integrations + the test one
+    });
+
+    it('passes default integrations to the function', () => {
+      const mockIntegration = getMockedIntegration();
+      const mockIntegrationFactory = jest.fn((_integrations: Integration[]) => [mockIntegration]);
+      init({
+        integrations: mockIntegrationFactory,
+      });
+
+      const actualPassedIntegrations = mockIntegrationFactory.mock.calls[0][firstArg];
+
+      expect(actualPassedIntegrations.length).toBeGreaterThan(0);
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual([mockIntegration]);
+    });
+
+    it('passes custom default integrations to the function', () => {
+      const mockIntegration = getMockedIntegration();
+      const mockDefaultIntegration = getMockedIntegration({ name: 'MockedDefaultIntegration' });
+      const mockIntegrationFactory = jest.fn((_integrations: Integration[]) => [mockIntegration]);
+      init({
+        integrations: mockIntegrationFactory,
+        defaultIntegrations: [mockDefaultIntegration],
+      });
+
+      const actualPassedIntegrations = mockIntegrationFactory.mock.calls[0][firstArg];
+
+      expect(actualPassedIntegrations).toEqual([mockDefaultIntegration]);
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual([mockIntegration]);
+    });
+  });
 });
+
+function getMockClient(): MockedClient {
+  const mockClient = getCurrentHub().getClient() as unknown as MockedClient;
+  return mockClient;
+}
+
+function getMockedIntegration({name}: { name?: string } = {}): Integration {
+  return {
+    name: name ?? 'MockedIntegration',
+    setupOnce: jest.fn(),
+  };
+}
