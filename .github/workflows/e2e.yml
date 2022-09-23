@@ -17,7 +17,6 @@ jobs:
       fail-fast: false
       matrix:
         platform: ["ios", "android"]
-        dev: [true, false]
     env:
       PLATFORM: ${{ matrix.platform }}
     steps:
