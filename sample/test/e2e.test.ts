@@ -24,16 +24,13 @@ beforeAll(async () => {
     process.env.PLATFORM === 'android'
       ? {
         platformName: 'Android',
-
-        deviceName: 'Android Emulator',
-
         app: './android/app/build/outputs/apk/release/app-release.apk',
         newCommandTimeout: 600000,
       }
       : {
-        app: './ios/DerivedData/Build/Products/Release-iphonesimulator/sample.app',
-        deviceName: 'iPhone 13',
         platformName: 'iOS',
+        deviceName: 'iPhone 13',
+        app: './ios/DerivedData/Build/Products/Release-iphonesimulator/sample.app',
         newCommandTimeout: 600000,
         automationName: 'XCUITest',
         derivedDataPath: path.resolve('./ios/DerivedData'),

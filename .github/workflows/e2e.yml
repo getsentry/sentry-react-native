@@ -102,18 +102,20 @@ jobs:
         uses: reactivecircus/android-emulator-runner@d7b53ddc6e44254e1f4cf4a6ad67345837027a66 # v2.26.0
         with:
           api-level: 29
-          script: cd sample && yarn test
+          script: |
+            cd sample
+            adb logcat -c
+            adb logcat >device.log &
+            yarn test
 
       - name: Run tests on ${{ matrix.platform }}
         if: ${{ matrix.platform == 'ios' }}
         working-directory: ./sample
         run: yarn test
 
-      - name: Upload Appium logs
-        # This condition is so it uploads the logs always regardless of whether the previous step succeeded or not
-        # otherwise it would not run if the previous step failed
-        if: ${{ always() && env.SENTRY_AUTH_TOKEN != null }}
+      - name: Upload logs
+        if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: appium-${{ matrix.platform }}
-          path: ./sample/appium.${{ matrix.platform }}.log
+          name: ${{ matrix.platform }}-logs
+          path: ./sample/*.log
