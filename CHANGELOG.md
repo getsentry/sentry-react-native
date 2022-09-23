@@ -4,6 +4,27 @@
 
 ### Features
 
+- Add user feedback ([#2486](https://github.com/getsentry/sentry-react-native/pull/2486))
+
+### Fixes
+
+- Add typings for app hang functionality ([#2479](https://github.com/getsentry/sentry-react-native/pull/2479))
+- Update warm/cold start span ops ([#2487](https://github.com/getsentry/sentry-react-native/pull/2487))
+- Detect hard crash the same as native sdks ([#2480](https://github.com/getsentry/sentry-react-native/pull/2480))
+
+### Dependencies
+
+- Bump Android SDK from v6.4.1 to v6.4.2 ([#2485](https://github.com/getsentry/sentry-react-native/pull/2485))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#642)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.4.1...6.4.2)
+- Bump JavaScript SDK from v7.12.1 to v7.13.0 ([#2478](https://github.com/getsentry/sentry-react-native/pull/2478))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7130)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.12.1...7.13.0)
+
+## 4.4.0
+
+### Features
+
 - Add attachments support ([#2463](https://github.com/getsentry/sentry-react-native/pull/2463))
 
 ## 4.3.1
@@ -22,12 +43,6 @@
 
 ### Features
 
-- Bump Android SDK from v6.3.1 to v6.4.1 ([#2437](https://github.com/getsentry/sentry-react-native/pull/2437))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#641)
-  - [diff](https://github.com/getsentry/sentry-java/compare/6.3.1...6.4.1)
-- Bump JavaScript SDK from v7.9.0 to v7.12.1 ([#2451](https://github.com/getsentry/sentry-react-native/pull/2451))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7121)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.9.0...7.12.1)
 - Add Transaction Source for Dynamic Sampling Context ([#2454](https://github.com/getsentry/sentry-react-native/pull/2454))
 
 ### Dependencies
@@ -35,6 +50,12 @@
 - Bump Cocoa SDK from v7.23.0 to v7.24.1 ([#2456](https://github.com/getsentry/sentry-react-native/pull/2456))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7241)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.23.0...7.24.1)
+- Bump Android SDK from v6.3.1 to v6.4.1 ([#2437](https://github.com/getsentry/sentry-react-native/pull/2437))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#641)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.3.1...6.4.1)
+- Bump JavaScript SDK from v7.9.0 to v7.12.1 ([#2451](https://github.com/getsentry/sentry-react-native/pull/2451))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7121)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.9.0...7.12.1)
 
 ## 4.2.4
 

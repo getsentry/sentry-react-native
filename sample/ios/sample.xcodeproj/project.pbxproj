@@ -17,6 +17,8 @@
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* sampleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* sampleTests.m */; };
+		3363443028D3404000E758E8 /* RCTAssetsModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 3363442E28D3404000E758E8 /* RCTAssetsModule.m */; };
+		3363443128D3404000E758E8 /* RCTAssetsModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 3363442E28D3404000E758E8 /* RCTAssetsModule.m */; };
 		5519B2ECB22EA85E105F9BD6 /* libPods-sample-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 06747EB610677789FC2B739B /* libPods-sample-tvOSTests.a */; };
 		BFB50BFE184C493D0EAB0846 /* libPods-sample-sampleTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B58A8E6547B8B94F9031BDC /* libPods-sample-sampleTests.a */; };
 		F533B6D2C077CDAB462AD561 /* libPods-sample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 98F4D8088D36C81F972A9162 /* libPods-sample.a */; };
@@ -54,6 +56,8 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = sample/main.m; sourceTree = "<group>"; };
 		2D02E47B1E0B4A5D006451C7 /* sample-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "sample-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E4901E0B4A5D006451C7 /* sample-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "sample-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3363442E28D3404000E758E8 /* RCTAssetsModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RCTAssetsModule.m; path = sample/RCTAssetsModule.m; sourceTree = "<group>"; };
+		3363442F28D3404000E758E8 /* RCTAssetsModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RCTAssetsModule.h; path = sample/RCTAssetsModule.h; sourceTree = "<group>"; };
 		3B58A8E6547B8B94F9031BDC /* libPods-sample-sampleTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-sample-sampleTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		453F0102215F3F2F1C492D44 /* Pods-sample-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sample-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-sample-tvOSTests/Pods-sample-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
 		4BA911B4B0D2B2B6C1FF2844 /* Pods-sample-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sample-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-sample-tvOSTests/Pods-sample-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -125,6 +129,8 @@
 		13B07FAE1A68108700A75B9A /* sample */ = {
 			isa = PBXGroup;
 			children = (
+				3363442F28D3404000E758E8 /* RCTAssetsModule.h */,
+				3363442E28D3404000E758E8 /* RCTAssetsModule.m */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
@@ -623,6 +629,7 @@
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				3363443028D3404000E758E8 /* RCTAssetsModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -632,6 +639,7 @@
 			files = (
 				2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */,
 				2D02E4BC1E0B4A80006451C7 /* AppDelegate.m in Sources */,
+				3363443128D3404000E758E8 /* RCTAssetsModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

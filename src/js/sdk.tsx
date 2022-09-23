@@ -2,7 +2,7 @@ import { getIntegrationsToSetup, initAndBind, setExtra } from '@sentry/core';
 import { Hub, makeMain } from '@sentry/hub';
 import { RewriteFrames } from '@sentry/integrations';
 import { defaultIntegrations, defaultStackParser, getCurrentHub } from '@sentry/react';
-import { Integration, StackFrame } from '@sentry/types';
+import { Integration, StackFrame, UserFeedback } from '@sentry/types';
 import { getGlobalObject, logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -221,4 +221,11 @@ export async function close(): Promise<void> {
   } catch (e) {
     logger.error('Failed to close the SDK');
   }
+}
+
+/**
+ * Captures user feedback and sends it to Sentry.
+ */
+ export function captureUserFeedback(feedback: UserFeedback): void {
+  getCurrentHub().getClient<ReactNativeClient>()?.captureUserFeedback(feedback);
 }
