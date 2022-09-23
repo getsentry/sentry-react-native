@@ -107,12 +107,12 @@ jobs:
             cd sample
             adb logcat -c
             adb logcat >device.log &
-            yarn test
+            yarn test --verbose
 
       - name: Run tests on ${{ matrix.platform }}
         if: ${{ matrix.platform == 'ios' }}
         working-directory: ./sample
-        run: yarn test
+        run: yarn test --verbose
 
       - name: Upload logs
         if: ${{ always() }}
