@@ -11,6 +11,7 @@
 - Add typings for app hang functionality ([#2479](https://github.com/getsentry/sentry-react-native/pull/2479))
 - Update warm/cold start span ops ([#2487](https://github.com/getsentry/sentry-react-native/pull/2487))
 - Detect hard crash the same as native sdks ([#2480](https://github.com/getsentry/sentry-react-native/pull/2480))
+- Integrations factory receives default integrations ([#2494](https://github.com/getsentry/sentry-react-native/pull/2494))
 
 ### Dependencies
 

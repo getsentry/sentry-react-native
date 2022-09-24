@@ -20,6 +20,7 @@ export const getMockTransaction = (name: string): Transaction => {
 };
 
 export const firstArg = 0;
+export const secondArg = 1;
 export const envelopeHeader = 0;
 export const envelopeItems = 1;
 export const envelopeItemHeader = 0;

@@ -1,7 +1,11 @@
 import { getIntegrationsToSetup, initAndBind, setExtra } from '@sentry/core';
 import { Hub, makeMain } from '@sentry/hub';
 import { RewriteFrames } from '@sentry/integrations';
-import { defaultIntegrations, defaultStackParser, getCurrentHub } from '@sentry/react';
+import {
+  defaultIntegrations as reactDefaultIntegrations,
+  defaultStackParser,
+  getCurrentHub,
+} from '@sentry/react';
 import { Integration, StackFrame, UserFeedback } from '@sentry/types';
 import { getGlobalObject, logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
@@ -54,40 +58,35 @@ export function init(passedOptions: ReactNativeOptions): void {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(passedOptions.transportOptions ?? {}),
     },
-    integrations: getIntegrationsToSetup(passedOptions),
+    integrations: [],
     stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser)
   };
-
-  function addIntegration(integration: Integration): void {
-    if (options.integrations.filter((i) => i.name == integration.name).length === 0) {
-      options.integrations.push(integration);
-    }
-  }
 
   // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.
   const tracingEnabled =
     typeof options.tracesSampler !== 'undefined' ||
     typeof options.tracesSampleRate !== 'undefined';
 
+  const defaultIntegrations: Integration[] = passedOptions.defaultIntegrations || [];
   if (passedOptions.defaultIntegrations === undefined) {
-    addIntegration(new ReactNativeErrorHandlers({
+    defaultIntegrations.push(new ReactNativeErrorHandlers({
       patchGlobalPromise: options.patchGlobalPromise,
     }));
-    addIntegration(new Release());
-    options.integrations.push(...[
-      ...defaultIntegrations.filter(
+    defaultIntegrations.push(new Release());
+    defaultIntegrations.push(...[
+      ...reactDefaultIntegrations.filter(
         (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
       ),
     ]);
 
-    addIntegration(new EventOrigin());
-    addIntegration(new SdkInfo());
+    defaultIntegrations.push(new EventOrigin());
+    defaultIntegrations.push(new SdkInfo());
 
     if (__DEV__) {
-      addIntegration(new DebugSymbolicator());
+      defaultIntegrations.push(new DebugSymbolicator());
     }
 
-    addIntegration(new RewriteFrames({
+    defaultIntegrations.push(new RewriteFrames({
       iteratee: (frame: StackFrame) => {
         if (frame.filename) {
           frame.filename = frame.filename
@@ -111,15 +110,19 @@ export function init(passedOptions: ReactNativeOptions): void {
       },
     }));
     if (options.enableNative) {
-      addIntegration(new DeviceContext());
+      defaultIntegrations.push(new DeviceContext());
     }
     if (tracingEnabled) {
       if (options.enableAutoPerformanceTracking) {
-        addIntegration(new ReactNativeTracing());
+        defaultIntegrations.push(new ReactNativeTracing());
       }
     }
   }
 
+  options.integrations = getIntegrationsToSetup({
+    integrations: passedOptions.integrations,
+    defaultIntegrations,
+  });
   initAndBind(ReactNativeClient, options);
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
