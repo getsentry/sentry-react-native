@@ -31,7 +31,7 @@ import { NATIVE } from './wrapper';
  */
 export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
-  private _outcomesBuffer: Outcome[] = [];
+  private _outcomesBuffer: Outcome[];
 
   private readonly _browserClient: BrowserClient;
 
@@ -51,6 +51,8 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
      options._metadata = options._metadata || {};
      options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
      super(options);
+
+      this._outcomesBuffer = [];
 
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
     // YellowBox deprecated and replaced with with LogBox in RN 0.63
@@ -127,7 +129,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    */
   protected _sendEnvelope(envelope: Envelope): void {
     const outcomes = this._clearOutcomes();
-    this._outcomesBuffer.push(...outcomes);
+    mergerBufferWithOutcomes(this._outcomesBuffer, outcomes);
 
     if (this._options.sendClientReports) {
       this._attachClientReportTo(this._outcomesBuffer, envelope as ClientReportEnvelope);
@@ -198,4 +200,11 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       envelope[items].push(clientReportItem);
     }
   }
+}
+
+/**
+ * Merges buffer with new outcomes.
+ */
+function mergerBufferWithOutcomes(buffer: Outcome[], outcomes: Outcome[]): void {
+  buffer.push(...outcomes); // TODO: proper merge
 }
