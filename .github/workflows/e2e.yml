@@ -74,6 +74,13 @@ jobs:
         working-directory: ./sample
         run: yarn install
 
+      - run: pod install
+        if: ${{ matrix.platform == 'ios' }}
+        working-directory: ./sample/ios
+        env:
+          # TEST env var is used in podfile to determine whether to include the sentry SDK from relative path or node_modules.
+          TEST: true
+
       - name: Start Appium Server
         working-directory: ./sample
         run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.${{ matrix.platform }}.log &
@@ -89,9 +96,6 @@ jobs:
           if [[ "${{ matrix.platform }}" == "android" ]]; then
             ./gradlew assembleRelease
           else
-            # TEST env var is used in podfile to determine whether to include the sentry SDK from relative path or node_modules.
-            export TEST=true
-            pod install
             device="iPhone 12"
             xcodebuild -workspace sample.xcworkspace -configuration Release -scheme sample -derivedDataPath ./DerivedData -destination name="$device" build
             cd ..
