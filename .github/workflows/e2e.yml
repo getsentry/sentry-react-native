@@ -106,7 +106,7 @@ jobs:
       - name: Check Appium Server
         run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
 
-      - name: Run tests on ${{ matrix.platform }}
+      - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
         uses: reactivecircus/android-emulator-runner@d7b53ddc6e44254e1f4cf4a6ad67345837027a66 # v2.26.0
         with:
@@ -117,7 +117,7 @@ jobs:
             adb logcat >device.log &
             yarn test --verbose
 
-      - name: Run tests on ${{ matrix.platform }}
+      - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
         working-directory: ./sample
         run: yarn test --verbose
