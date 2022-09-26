@@ -29,7 +29,7 @@ beforeAll(async () => {
       }
       : {
         platformName: 'iOS',
-        deviceName: 'iPhone 13',
+        deviceName: 'iPhone 12',
         app: './ios/DerivedData/Build/Products/Release-iphonesimulator/sample.app',
         newCommandTimeout: 600000,
         automationName: 'XCUITest',
