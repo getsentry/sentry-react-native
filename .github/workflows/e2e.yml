@@ -83,14 +83,6 @@ jobs:
           # TEST env var is used in podfile to determine whether to include the sentry SDK from relative path or node_modules.
           TEST: true
 
-      - name: Start Appium Server
-        working-directory: ./sample
-        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.${{ matrix.platform }}.log &
-
-        # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
-      - name: Check Appium Server
-        run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
-
       - name: Build ${{ matrix.platform }} sample app
         if: env.SENTRY_AUTH_TOKEN != null
         working-directory: ./sample/${{ matrix.platform }}
@@ -99,6 +91,7 @@ jobs:
             ./gradlew :app:assembleRelease -PreactNativeArchitectures=x86
           else
             mkdir -p DerivedData
+            defaults write com.apple.dt.Xcode ShowBuildOperationDuration YES
             buildArgs=('-destination' 'platform=iOS Simulator,name=iPhone 12' 'ONLY_ACTIVE_ARCH=yes' '-sdk' 'iphonesimulator' '-derivedDataPath' $(cd "DerivedData" ; pwd -P))
             echo "buildArgs = ${buildArgs[@]}"
             xcodebuild -workspace sample.xcworkspace -configuration Release -scheme sample "${buildArgs[@]}" build
@@ -106,13 +99,21 @@ jobs:
             xcodebuild -project ./node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO "${buildArgs[@]}" build
           fi
 
+      - name: Start Appium Server
+        working-directory: ./sample
+        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.${{ matrix.platform }}.log &
+
+        # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
+      - name: Check Appium Server
+        run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
+
       - name: Run tests on ${{ matrix.platform }}
         if: ${{ matrix.platform == 'android' }}
         uses: reactivecircus/android-emulator-runner@d7b53ddc6e44254e1f4cf4a6ad67345837027a66 # v2.26.0
         with:
           api-level: 29
+          working-directory: sample
           script: |
-            cd sample
             adb logcat -c
             adb logcat >device.log &
             yarn test --verbose
