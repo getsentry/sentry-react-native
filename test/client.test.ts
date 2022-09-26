@@ -1,4 +1,5 @@
-import { Envelope, Transport } from '@sentry/types';
+import { Envelope, Outcome, Transport } from '@sentry/types';
+import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';
@@ -14,6 +15,7 @@ import {
   firstArg,
   getMockSession,
   getMockUserFeedback,
+  getSyncPromiseRejectOnFirstCall,
 } from './testutils';
 
 const EXAMPLE_DSN =
@@ -294,5 +296,154 @@ describe('Tests ReactNativeClient', () => {
       client.captureUserFeedback(getMockUserFeedback());
       expect(getSdkInfoFrom(mockTransportSend)).toStrictEqual(expectedSdkInfo);
     });
+  });
+
+  describe('clientReports', () => {
+    test('does not send client reports if disabled', () => {
+      const mockTransportSend = jest.fn((_envelope: Envelope) => Promise.resolve());
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendClientReports: false,
+      } as ReactNativeClientOptions);
+
+      mockDroppedEvent(client);
+
+      client.captureMessage('message_test_value');
+
+      expectOnlyMessageEventInEnvelope(mockTransportSend);
+    });
+
+    test('send client reports on event envelope', () => {
+      const mockTransportSend = jest.fn((_envelope: Envelope) => Promise.resolve());
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendClientReports: true,
+      } as ReactNativeClientOptions);
+
+      mockDroppedEvent(client);
+
+      client.captureMessage('message_test_value');
+
+      expect(mockTransportSend).toBeCalledTimes(1);
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual(
+        { type: 'client_report' }
+      );
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemPayload]).toEqual(
+        expect.objectContaining({
+          discarded_events: [
+            {
+              reason: 'before_send',
+              category: 'error',
+              quantity: 1,
+            }
+          ],
+        }),
+      );
+      expect((client as unknown as { _outcomesBuffer: Outcome[] })._outcomesBuffer).toEqual(<Outcome[]>[]);
+    });
+
+    test('does not send empty client report', () => {
+      const mockTransportSend = jest.fn((_envelope: Envelope) => Promise.resolve());
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendClientReports: true,
+      } as ReactNativeClientOptions);
+
+      client.captureMessage('message_test_value');
+
+      expectOnlyMessageEventInEnvelope(mockTransportSend);
+    });
+
+    test('keeps outcomes in case envelope fails to send', () => {
+      const mockTransportSend = jest.fn((_envelope: Envelope) =>
+        rejectedSyncPromise(new SentryError('Test')));
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendClientReports: true,
+      } as ReactNativeClientOptions);
+
+      mockDroppedEvent(client);
+
+      client.captureMessage('message_test_value');
+
+      expect((client as unknown as { _outcomesBuffer: Outcome[] })._outcomesBuffer).toEqual(<Outcome[]>[
+        { reason: 'before_send', category: 'error', quantity: 1 },
+      ]);
+    });
+
+    test('sends buffered client reports on second try', () => {
+      const mockTransportSend = getSyncPromiseRejectOnFirstCall<[Envelope]>(new SentryError('Test'));
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendClientReports: true,
+      } as ReactNativeClientOptions);
+
+      mockDroppedEvent(client);
+      client.captureMessage('message_test_value_1');
+      mockDroppedEvent(client);
+      client.captureMessage('message_test_value_2');
+
+      expect(mockTransportSend).toBeCalledTimes(2);
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems].length).toEqual(2);
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual(
+        { type: 'client_report' }
+      );
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemPayload]).toEqual(
+        expect.objectContaining({
+          discarded_events: [
+            {
+              reason: 'before_send',
+              category: 'error',
+              quantity: 1,
+            },
+            {
+              reason: 'before_send',
+              category: 'error',
+              quantity: 1,
+            }
+          ],
+        }),
+      );
+      expect((client as unknown as { _outcomesBuffer: Outcome[] })._outcomesBuffer).toEqual(<Outcome[]>[]);
+    });
+
+    function expectOnlyMessageEventInEnvelope(transportSend: jest.Mock) {
+      expect(transportSend).toBeCalledTimes(1);
+      expect(transportSend.mock.calls[0][firstArg][envelopeItems]).toHaveLength(1);
+      expect(transportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemHeader]).toEqual(
+        expect.objectContaining({ type: 'event' }),
+      );
+    }
+
+    function mockDroppedEvent(
+      client: ReactNativeClient,
+    ) {
+      client.recordDroppedEvent('before_send', 'error');
+    }
   });
 });

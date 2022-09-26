@@ -8,11 +8,12 @@ import {
   Envelope,
   Event,
   EventHint,
+  Outcome,
   SeverityLevel,
   Transport,
   UserFeedback,
 } from '@sentry/types';
-import { dateTimestampInSeconds } from '@sentry/utils';
+import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
 
@@ -29,6 +30,8 @@ import { NATIVE } from './wrapper';
  * @see SentryClient for usage documentation.
  */
 export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
+
+  private _outcomesBuffer: Outcome[] = [];
 
   private readonly _browserClient: BrowserClient;
 
@@ -123,10 +126,30 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @inheritdoc
    */
   protected _sendEnvelope(envelope: Envelope): void {
+    const outcomes = this._clearOutcomes();
+    this._outcomesBuffer.push(...outcomes);
+
     if (this._options.sendClientReports) {
-      this._attachClientReportTo(envelope as ClientReportEnvelope);
+      this._attachClientReportTo(this._outcomesBuffer, envelope as ClientReportEnvelope);
     }
-    super._sendEnvelope(envelope);
+
+    let shouldClearOutcomesBuffer = true;
+    if (this._transport && this._dsn) {
+      this._transport.send(envelope)
+        .then(null, reason => {
+          logger.error('Error while sending event:', reason);
+          if (reason instanceof SentryError) { // SentryError is thrown by SyncPromise
+            shouldClearOutcomesBuffer = false;
+            // If this is called asynchronously we want the _outcomesBuffer to be cleared
+          }
+        });
+    } else {
+      logger.error('Transport disabled');
+    }
+
+    if (shouldClearOutcomesBuffer) {
+      this._outcomesBuffer = []; // if send fails synchronously the _outcomesBuffer will stay intact
+    }
   }
 
   /**
@@ -160,11 +183,9 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   }
 
   /**
-   *
+   * Attaches a client report from outcomes to the envelope.
    */
-  private _attachClientReportTo(envelope: ClientReportEnvelope): void {
-    const outcomes = this._clearOutcomes();
-
+  private _attachClientReportTo(outcomes: Outcome[], envelope: ClientReportEnvelope): void {
     if (outcomes.length > 0) {
       const clientReportItem: ClientReportItem = [
         { type: 'client_report' },
