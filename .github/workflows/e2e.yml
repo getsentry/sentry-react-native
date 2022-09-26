@@ -95,8 +95,7 @@ jobs:
             buildArgs=('-destination' 'platform=iOS Simulator,name=iPhone 12' 'ONLY_ACTIVE_ARCH=yes' '-sdk' 'iphonesimulator' '-derivedDataPath' $(cd "DerivedData" ; pwd -P))
             echo "buildArgs = ${buildArgs[@]}"
             xcodebuild -workspace sample.xcworkspace -configuration Release -scheme sample "${buildArgs[@]}" build
-            cd ..
-            xcodebuild -project ./node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO "${buildArgs[@]}" build
+            xcodebuild -project ../node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO "${buildArgs[@]}" build
           fi
 
       - name: Start Appium Server

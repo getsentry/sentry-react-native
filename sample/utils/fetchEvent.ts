@@ -12,8 +12,8 @@ interface ApiEvent extends Event {
   eventID: string;
 }
 
-const RETRY_COUNT = 20;
-const RETRY_INTERVAL = 30000;
+const RETRY_COUNT = 60;
+const RETRY_INTERVAL = 10000;
 
 const fetchEvent = async (eventId): Promise<ApiEvent> => {
   const url = `https://${domain}${eventEndpoint}${eventId}/`;
