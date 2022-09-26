@@ -18,7 +18,8 @@ const RETRY_INTERVAL = 30000;
 const fetchEvent = async (eventId): Promise<ApiEvent> => {
   const url = `https://${domain}${eventEndpoint}${eventId}/`;
 
-  expect(process.env.SENTRY_AUTH_TOKEN !== undefined && process.env.SENTRY_AUTH_TOKEN.length > 0);
+  expect(process.env.SENTRY_AUTH_TOKEN).toBeDefined();
+  expect(process.env.SENTRY_AUTH_TOKEN.length).toBeGreaterThan(0);
 
   const request = new fetch.Request(url, {
     headers: {
