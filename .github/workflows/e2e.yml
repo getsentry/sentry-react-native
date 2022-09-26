@@ -34,7 +34,8 @@ jobs:
       - name: Install Global Dependencies
         run: yarn global add @sentry/cli yalc
 
-      - uses: actions/cache@v3
+      - name: NPM cache
+        uses: actions/cache@v3
         id: deps-cache
         with:
           path: |
@@ -42,8 +43,9 @@ jobs:
             sample/node_modules
           key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
 
-      - uses: actions/cache@v3
-        id: pods-cache
+      - name: Pods cache
+        if: ${{ matrix.platform == 'ios' }}
+        uses: actions/cache@v3
         with:
           path: |
             sample/ios/Pods
