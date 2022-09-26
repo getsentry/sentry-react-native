@@ -117,7 +117,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       },
     );
     this._sendEnvelope(envelope);
-    super._sendEnvelope(envelope);
   }
 
   /**
@@ -163,7 +162,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   /**
    *
    */
-  private _attachClientReportTo(envelope: ClientReportEnvelope): Envelope {
+  private _attachClientReportTo(envelope: ClientReportEnvelope): void {
     const outcomes = this._clearOutcomes();
 
     if (outcomes.length > 0) {
@@ -177,7 +176,5 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
       envelope[items].push(clientReportItem);
     }
-
-    return envelope;
   }
 }
