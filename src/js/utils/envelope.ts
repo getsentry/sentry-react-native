@@ -9,6 +9,9 @@ import {
 } from '@sentry/types';
 import { createEnvelope, dsnToString } from '@sentry/utils';
 
+export const header = 0;
+export const items = 1;
+
 /**
  * Creates an envelope from a user feedback.
  */

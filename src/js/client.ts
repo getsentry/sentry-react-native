@@ -3,19 +3,23 @@ import { BrowserTransportOptions } from '@sentry/browser/types/transports/types'
 import { FetchImpl } from '@sentry/browser/types/transports/utils';
 import { BaseClient } from '@sentry/core';
 import {
+  ClientReportEnvelope,
+  ClientReportItem,
+  Envelope,
   Event,
   EventHint,
   SeverityLevel,
   Transport,
   UserFeedback,
 } from '@sentry/types';
+import { dateTimestampInSeconds } from '@sentry/utils';
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
 
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { ReactNativeClientOptions } from './options';
 import { NativeTransport } from './transports/native';
-import { createUserFeedbackEnvelope } from './utils/envelope';
+import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { NATIVE } from './wrapper';
 
 /**
@@ -113,11 +117,22 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       },
     );
     this._sendEnvelope(envelope);
+    super._sendEnvelope(envelope);
   }
 
   /**
- * Starts native client with dsn and options
- */
+   * @inheritdoc
+   */
+  protected _sendEnvelope(envelope: Envelope): void {
+    if (this._options.sendClientReports) {
+      this._attachClientReportTo(envelope as ClientReportEnvelope);
+    }
+    super._sendEnvelope(envelope);
+  }
+
+  /**
+   * Starts native client with dsn and options
+   */
   private async _initNativeSdk(): Promise<void> {
     let didCallNativeInit = false;
 
@@ -143,5 +158,26 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
         'Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details.'
       );
     }
+  }
+
+  /**
+   *
+   */
+  private _attachClientReportTo(envelope: ClientReportEnvelope): Envelope {
+    const outcomes = this._clearOutcomes();
+
+    if (outcomes.length > 0) {
+      const clientReportItem: ClientReportItem = [
+        { type: 'client_report' },
+        {
+          timestamp: dateTimestampInSeconds(),
+          discarded_events: outcomes,
+        },
+      ];
+
+      envelope[items].push(clientReportItem);
+    }
+
+    return envelope;
   }
 }
