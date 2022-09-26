@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add ClientReports ([#2496](https://github.com/getsentry/sentry-react-native/pull/2496))
+
 ## 4.5.0
 
 ### Features
