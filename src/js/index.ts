@@ -8,6 +8,7 @@ export {
   Stacktrace,
   Thread,
   User,
+  UserFeedback,
 } from '@sentry/types';
 
 export {
@@ -64,6 +65,7 @@ export {
   nativeCrash,
   flush,
   close,
+  captureUserFeedback,
 } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 

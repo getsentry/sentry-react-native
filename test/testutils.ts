@@ -1,4 +1,5 @@
 import { Transaction } from '@sentry/tracing';
+import { Session, UserFeedback } from '@sentry/types';
 
 import { getBlankTransactionContext } from '../src/js/tracing/utils';
 
@@ -17,3 +18,36 @@ export const getMockTransaction = (name: string): Transaction => {
 
   return transaction;
 };
+
+export const firstArg = 0;
+export const secondArg = 1;
+export const envelopeHeader = 0;
+export const envelopeItems = 1;
+export const envelopeItemHeader = 0;
+export const envelopeItemPayload = 1;
+
+export const getMockSession = (): Session => ({
+  sid: 'sid_test_value',
+  init: true,
+  timestamp: -1,
+  started: -1,
+  status: 'ok',
+  errors: -1,
+  ignoreDuration: false,
+  release: 'release_test_value',
+  toJSON: () => ({
+    init: true,
+    sid: 'sid_test_value',
+    timestamp: 'timestamp_test_value',
+    started: 'started_test_value',
+    status: 'ok',
+    errors: -1,
+  }),
+});
+
+export const getMockUserFeedback = (): UserFeedback => ({
+  comments: 'comments_test_value',
+  email: 'email_test_value',
+  name: 'name_test_value',
+  event_id: 'event_id_test_value',
+});

@@ -2,12 +2,20 @@ import { BrowserClient, defaultStackParser, makeFetchTransport } from '@sentry/b
 import { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
 import { FetchImpl } from '@sentry/browser/types/transports/utils';
 import { BaseClient } from '@sentry/core';
-import { Event, EventHint, SeverityLevel, Transport } from '@sentry/types';
+import {
+  Event,
+  EventHint,
+  SeverityLevel,
+  Transport,
+  UserFeedback,
+} from '@sentry/types';
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
 
+import { defaultSdkInfo } from './integrations/sdkinfo';
 import { ReactNativeClientOptions } from './options';
 import { NativeTransport } from './transports/native';
+import { createUserFeedbackEnvelope } from './utils/envelope';
 import { NATIVE } from './wrapper';
 
 /**
@@ -33,6 +41,8 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
          return makeFetchTransport(options, nativeFetch);
        };
      }
+     options._metadata = options._metadata || {};
+     options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
      super(options);
 
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
@@ -48,8 +58,10 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     this._browserClient = new BrowserClient({
       dsn: options.dsn,
       transport: options.transport,
+      transportOptions: options.transportOptions,
       stackParser: options.stackParser || defaultStackParser,
       integrations: [],
+      _metadata: options._metadata,
     });
 
      void this._initNativeSdk();
@@ -86,6 +98,21 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     return super.close().then((result: boolean) => {
       return NATIVE.closeNativeSdk().then(() => result) as PromiseLike<boolean>;
     });
+  }
+
+  /**
+   * Sends user feedback to Sentry.
+   */
+  public captureUserFeedback(feedback: UserFeedback): void {
+    const envelope = createUserFeedbackEnvelope(
+      feedback,
+      {
+        metadata: this._options._metadata,
+        dsn: this.getDsn(),
+        tunnel: this._options.tunnel,
+      },
+    );
+    this._sendEnvelope(envelope);
   }
 
   /**

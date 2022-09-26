@@ -1,5 +1,5 @@
 import { Scope } from '@sentry/hub';
-import { Breadcrumb, User } from '@sentry/types';
+import { Attachment, Breadcrumb, User } from '@sentry/types';
 
 import { NATIVE } from './wrapper';
 
@@ -77,5 +77,19 @@ export class ReactNativeScope extends Scope {
   public setContext(key: string, context: { [key: string]: any } | null): this {
     NATIVE.setContext(key, context);
     return super.setContext(key, context);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public addAttachment(attachment: Attachment): this {
+    return super.addAttachment(attachment);
+  }
+
+  /**
+  * @inheritDoc
+  */
+  public clearAttachments(): this {
+    return super.clearAttachments();
   }
 }

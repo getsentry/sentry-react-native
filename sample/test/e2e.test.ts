@@ -3,15 +3,21 @@ import wd from 'wd';
 import path from 'path';
 
 import {fetchEvent} from '../utils/fetchEvent';
+import {waitForTruthyResult} from '../utils/waitFor';
 
-// 10 minutes timeout.
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 3e5;
+const T_30_SECONDS_IN_MS = 30e3;
+const T_20_MINUTES_IN_MS = 20 * 60e3;
 const PORT = 4723;
 
 const driver = wd.promiseChainRemote('localhost', PORT);
 
-// 20 min timeout why not
-jest.setTimeout(1.2e6);
+jest.setTimeout(T_20_MINUTES_IN_MS);
+
+function waitForElementByAccessibilityId(accessibilityId: string) {
+  return waitForTruthyResult(() =>
+    driver.hasElementByAccessibilityId(accessibilityId),
+  ).resolves.toBeTruthy();
+}
 
 beforeAll(async () => {
   const config =
@@ -36,35 +42,26 @@ beforeAll(async () => {
         };
 
   await driver.init(config);
-  await driver.sleep(10000);
 
-  expect(await driver.hasElementByAccessibilityId('openEndToEndTests')).toBe(
-    true,
-  );
+  await waitForElementByAccessibilityId('openEndToEndTests');
   const element = await driver.elementByAccessibilityId('openEndToEndTests');
   await element.click();
-  await driver.sleep(2000);
 });
 
 beforeEach(async () => {
-  await driver.hasElementByAccessibilityId('clearEventId');
+  await waitForElementByAccessibilityId('clearEventId');
   const element = await driver.elementByAccessibilityId('clearEventId');
   await element.click();
-  await driver.sleep(2000);
+  await driver.sleep(T_30_SECONDS_IN_MS);
 });
 
 describe('End to end tests for common events', () => {
   test('captureMessage', async () => {
-    expect(await driver.hasElementByAccessibilityId('captureMessage')).toBe(
-      true,
-    );
-
+    await waitForElementByAccessibilityId('captureMessage');
     const element = await driver.elementByAccessibilityId('captureMessage');
     await element.click();
 
-    await driver.sleep(100);
-
-    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
+    await waitForElementByAccessibilityId('eventId');
 
     const eventIdElement = await driver.elementByAccessibilityId('eventId');
     const eventId = await eventIdElement.text();
@@ -77,17 +74,11 @@ describe('End to end tests for common events', () => {
   });
 
   test('captureException', async () => {
-    expect(await driver.hasElementByAccessibilityId('captureException')).toBe(
-      true,
-    );
-
+    await waitForElementByAccessibilityId('captureException');
     const element = await driver.elementByAccessibilityId('captureException');
     await element.click();
 
-    await driver.sleep(100);
-
-    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
-
+    await waitForElementByAccessibilityId('eventId');
     const eventIdElement = await driver.elementByAccessibilityId('eventId');
     const eventId = await eventIdElement.text();
 
@@ -99,10 +90,7 @@ describe('End to end tests for common events', () => {
   });
 
   test('unhandledPromiseRejection', async () => {
-    expect(
-      await driver.hasElementByAccessibilityId('unhandledPromiseRejection'),
-    ).toBe(true);
-
+    await waitForElementByAccessibilityId('unhandledPromiseRejection');
     const element = await driver.elementByAccessibilityId(
       'unhandledPromiseRejection',
     );
@@ -111,7 +99,7 @@ describe('End to end tests for common events', () => {
     // Promises needs a while to fail
     await driver.sleep(5000);
 
-    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
+    await waitForElementByAccessibilityId('eventId');
 
     const eventIdElement = await driver.elementByAccessibilityId('eventId');
     const eventId = await eventIdElement.text();
@@ -124,8 +112,7 @@ describe('End to end tests for common events', () => {
   });
 
   test('close', async () => {
-    expect(await driver.hasElementByAccessibilityId('close')).toBe(true);
-
+    await waitForElementByAccessibilityId('close');
     const element = await driver.elementByAccessibilityId('close');
     await element.click();
 
@@ -133,7 +120,7 @@ describe('End to end tests for common events', () => {
     await driver.sleep(5000);
 
     // This time we don't expect an eventId
-    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
+    await waitForElementByAccessibilityId('eventId');
     const eventIdElement = await driver.elementByAccessibilityId('eventId');
     const eventId = await eventIdElement.text();
 
