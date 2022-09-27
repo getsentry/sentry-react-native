@@ -1,69 +1,61 @@
 // tslint:disable: no-unsafe-any
-import wd from 'wd';
+import wdio from 'webdriverio';
 import path from 'path';
 
-import { fetchEvent } from '../utils/fetchEvent';
-import { waitForTruthyResult } from '../utils/waitFor';
+import {fetchEvent} from '../utils/fetchEvent';
 
 const T_30_SECONDS_IN_MS = 30e3;
 const T_20_MINUTES_IN_MS = 20 * 60e3;
 const PORT = 4723;
 
-const driver = wd.promiseChainRemote('localhost', PORT);
+declare let driver: WebdriverIO.Browser;
 
 jest.setTimeout(T_20_MINUTES_IN_MS);
 
-function waitForElementByAccessibilityId(accessibilityId: string) {
-  return waitForTruthyResult(() =>
-    driver.hasElementByAccessibilityId(accessibilityId),
-  ).resolves.toBeTruthy();
-}
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 beforeAll(async () => {
   const config =
     process.env.PLATFORM === 'android'
       ? {
-        platformName: 'Android',
-        app: './android/app/build/outputs/apk/release/app-release.apk',
-        newCommandTimeout: 600000,
-      }
+          platformName: 'Android',
+          app: './android/app/build/outputs/apk/release/app-release.apk',
+          newCommandTimeout: 600000,
+        }
       : {
-        platformName: 'iOS',
-        deviceName: 'iPhone 12',
-        app: './ios/DerivedData/Build/Products/Release-iphonesimulator/sample.app',
-        newCommandTimeout: 600000,
-        automationName: 'XCUITest',
-        derivedDataPath: path.resolve('./ios/DerivedData'),
-        showXcodeLog: true,
-        usePrebuiltWDA: true,
-      };
+          platformName: 'iOS',
+          deviceName: 'iPhone 12',
+          app: './ios/DerivedData/Build/Products/Release-iphonesimulator/sample.app',
+          newCommandTimeout: 600000,
+          automationName: 'XCUITest',
+          derivedDataPath: path.resolve('./ios/DerivedData'),
+          showXcodeLog: true,
+          usePrebuiltWDA: true,
+        };
 
-  await driver.init(config);
+  driver = await wdio.remote({
+    capabilities: config,
+  });
 
-  await waitForElementByAccessibilityId('openEndToEndTests');
-  const element = await driver.elementByAccessibilityId('openEndToEndTests');
+  const element = await driver.$('~openEndToEndTests');
   await element.click();
 });
 
 beforeEach(async () => {
-  await waitForElementByAccessibilityId('clearEventId');
-  const element = await driver.elementByAccessibilityId('clearEventId');
+  const element = await driver.$('~clearEventId');
   await element.click();
-  await driver.sleep(T_30_SECONDS_IN_MS);
+  await sleep(T_30_SECONDS_IN_MS);
 });
 
 describe('End to end tests for common events', () => {
   test('captureMessage', async () => {
-    await waitForElementByAccessibilityId('captureMessage');
-    const element = await driver.elementByAccessibilityId('captureMessage');
+    const element = await driver.$('~captureMessage');
     await element.click();
 
-    await waitForElementByAccessibilityId('eventId');
+    const eventIdElement = await driver.$('~eventId');
+    const eventId = await eventIdElement.getText();
 
-    const eventIdElement = await driver.elementByAccessibilityId('eventId');
-    const eventId = await eventIdElement.text();
-
-    await driver.sleep(10000);
+    await sleep(10000);
 
     const sentryEvent = await fetchEvent(eventId);
 
@@ -71,15 +63,13 @@ describe('End to end tests for common events', () => {
   });
 
   test('captureException', async () => {
-    await waitForElementByAccessibilityId('captureException');
-    const element = await driver.elementByAccessibilityId('captureException');
+    const element = await driver.$('~captureException');
     await element.click();
 
-    await waitForElementByAccessibilityId('eventId');
-    const eventIdElement = await driver.elementByAccessibilityId('eventId');
-    const eventId = await eventIdElement.text();
+    const eventIdElement = await driver.$('~eventId');
+    const eventId = await eventIdElement.getText();
 
-    await driver.sleep(10000);
+    await sleep(10000);
 
     const sentryEvent = await fetchEvent(eventId);
 
@@ -87,21 +77,16 @@ describe('End to end tests for common events', () => {
   });
 
   test('unhandledPromiseRejection', async () => {
-    await waitForElementByAccessibilityId('unhandledPromiseRejection');
-    const element = await driver.elementByAccessibilityId(
-      'unhandledPromiseRejection',
-    );
+    const element = await driver.$('~unhandledPromiseRejection');
     await element.click();
 
     // Promises needs a while to fail
-    await driver.sleep(5000);
+    await sleep(5000);
 
-    await waitForElementByAccessibilityId('eventId');
+    const eventIdElement = await driver.$('~eventId');
+    const eventId = await eventIdElement.getText();
 
-    const eventIdElement = await driver.elementByAccessibilityId('eventId');
-    const eventId = await eventIdElement.text();
-
-    await driver.sleep(10000);
+    await sleep(10000);
 
     const sentryEvent = await fetchEvent(eventId);
 
@@ -109,17 +94,15 @@ describe('End to end tests for common events', () => {
   });
 
   test('close', async () => {
-    await waitForElementByAccessibilityId('close');
-    const element = await driver.elementByAccessibilityId('close');
+    const element = await driver.$('~close');
     await element.click();
 
     // Wait a while in case
-    await driver.sleep(5000);
+    await sleep(5000);
 
     // This time we don't expect an eventId
-    await waitForElementByAccessibilityId('eventId');
-    const eventIdElement = await driver.elementByAccessibilityId('eventId');
-    const eventId = await eventIdElement.text();
+    const eventIdElement = await driver.$('~eventId');
+    const eventId = await eventIdElement.getText();
 
     expect(eventId).toBe('');
   });

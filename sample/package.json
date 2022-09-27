@@ -25,7 +25,7 @@
     "eslint": "7.14.0",
     "jest": "^29.0.3",
     "metro-react-native-babel-preset": "^0.66.2",
-    "wd": "^1.14.0"
+    "webdriverio": "^7.25.0"
   },
   "name": "sample",
   "private": true,
