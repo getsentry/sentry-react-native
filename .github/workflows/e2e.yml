@@ -113,11 +113,11 @@ jobs:
           api-level: 29
           working-directory: sample
           script: |
-            $ANDROID_HOME/platform-tools/adb logcat '*:D' > adb-log.txt &
+            adb logcat '*:D' > adb.log &
             sleep 5
-            $ANDROID_HOME/platform-tools/adb shell su root "setprop ctl.restart zygote"
+            adb shell su root "setprop ctl.restart zygote"
             sleep 10
-            $ANDROID_HOME/platform-tools/adb devices -l
+            adb devices -l
             yarn test --verbose
 
       - name: Run tests on iOS
