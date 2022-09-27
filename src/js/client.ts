@@ -140,10 +140,12 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     if (this._transport && this._dsn) {
       this._transport.send(envelope)
         .then(null, reason => {
-          logger.error('Error while sending event:', reason);
           if (reason instanceof SentryError) { // SentryError is thrown by SyncPromise
             shouldClearOutcomesBuffer = false;
             // If this is called asynchronously we want the _outcomesBuffer to be cleared
+            logger.error('SentryError while sending event, keeping outcomes buffer:', reason);
+          } else {
+            logger.error('Error while sending event:', reason);
           }
         });
     } else {
