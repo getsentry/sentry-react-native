@@ -6,6 +6,10 @@
 
 - Add ClientReports ([#2496](https://github.com/getsentry/sentry-react-native/pull/2496))
 
+### Sentry Self-hosted Compatibility
+
+- Starting with version `4.6.0` of the `@sentry/react-native` package, [Sentry's self hosted version >= v21.9.0](https://github.com/getsentry/self-hosted/releases) is required or you have to manually disable sending client reports via the `sendClientReports` option. This only applies to self-hosted Sentry. If you are using [sentry.io](https://sentry.io), no action is needed.
+
 ## 4.5.0
 
 ### Features
