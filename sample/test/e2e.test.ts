@@ -1,40 +1,52 @@
 // tslint:disable: no-unsafe-any
-import wdio from 'webdriverio';
+import {remote} from 'webdriverio';
 import path from 'path';
 
 import {fetchEvent} from '../utils/fetchEvent';
+import {waitForTruthyResult} from '../utils/waitFor';
 
-const T_30_SECONDS_IN_MS = 30e3;
 const T_20_MINUTES_IN_MS = 20 * 60e3;
-const PORT = 4723;
+jest.setTimeout(T_20_MINUTES_IN_MS);
 
 declare let driver: WebdriverIO.Browser;
 
-jest.setTimeout(T_20_MINUTES_IN_MS);
-
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+async function getEventId() {
+  const element = await driver.$('~eventId');
+  return await element.getText();
+}
+async function waitUntilEventIdIsEmpty(value: Boolean) {
+  await waitForTruthyResult(async () => {
+    const len = (await getEventId()).length;
+    return value ? len === 0 : len > 0;
+  });
+}
+
 beforeAll(async () => {
-  const config =
+  let caps =
     process.env.PLATFORM === 'android'
       ? {
           platformName: 'Android',
-          app: './android/app/build/outputs/apk/release/app-release.apk',
-          newCommandTimeout: 600000,
+          'appium:automationName': 'UIAutomator2',
+          'appium:app':
+            './android/app/build/outputs/apk/release/app-release.apk',
         }
       : {
           platformName: 'iOS',
-          deviceName: 'iPhone 12',
-          app: './ios/DerivedData/Build/Products/Release-iphonesimulator/sample.app',
-          newCommandTimeout: 600000,
-          automationName: 'XCUITest',
-          derivedDataPath: path.resolve('./ios/DerivedData'),
-          showXcodeLog: true,
-          usePrebuiltWDA: true,
+          'appium:deviceName': 'iPhone 12',
+          'appium:automationName': 'XCUITest',
+          'appium:app':
+            './ios/DerivedData/Build/Products/Release-iphonesimulator/sample.app',
+          'appium:derivedDataPath': path.resolve('./ios/DerivedData'),
+          'appium:showXcodeLog': true,
+          'appium:usePrebuiltWDA': true,
         };
 
-  driver = await wdio.remote({
-    capabilities: config,
+  driver = await remote({
+    logLevel: 'info',
+    port: 4723,
+    capabilities: caps,
   });
 
   const element = await driver.$('~openEndToEndTests');
@@ -44,7 +56,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   const element = await driver.$('~clearEventId');
   await element.click();
-  await sleep(T_30_SECONDS_IN_MS);
+  await waitUntilEventIdIsEmpty(true);
 });
 
 describe('End to end tests for common events', () => {
@@ -52,13 +64,9 @@ describe('End to end tests for common events', () => {
     const element = await driver.$('~captureMessage');
     await element.click();
 
-    const eventIdElement = await driver.$('~eventId');
-    const eventId = await eventIdElement.getText();
-
-    await sleep(10000);
-
+    await waitUntilEventIdIsEmpty(false);
+    const eventId = await getEventId();
     const sentryEvent = await fetchEvent(eventId);
-
     expect(sentryEvent.eventID).toMatch(eventId);
   });
 
@@ -66,13 +74,9 @@ describe('End to end tests for common events', () => {
     const element = await driver.$('~captureException');
     await element.click();
 
-    const eventIdElement = await driver.$('~eventId');
-    const eventId = await eventIdElement.getText();
-
-    await sleep(10000);
-
+    await waitUntilEventIdIsEmpty(false);
+    const eventId = await getEventId();
     const sentryEvent = await fetchEvent(eventId);
-
     expect(sentryEvent.eventID).toMatch(eventId);
   });
 
@@ -80,16 +84,9 @@ describe('End to end tests for common events', () => {
     const element = await driver.$('~unhandledPromiseRejection');
     await element.click();
 
-    // Promises needs a while to fail
-    await sleep(5000);
-
-    const eventIdElement = await driver.$('~eventId');
-    const eventId = await eventIdElement.getText();
-
-    await sleep(10000);
-
+    await waitUntilEventIdIsEmpty(false);
+    const eventId = await getEventId();
     const sentryEvent = await fetchEvent(eventId);
-
     expect(sentryEvent.eventID).toMatch(eventId);
   });
 
@@ -97,13 +94,10 @@ describe('End to end tests for common events', () => {
     const element = await driver.$('~close');
     await element.click();
 
-    // Wait a while in case
+    // Wait a while in case it gets set.
     await sleep(5000);
 
-    // This time we don't expect an eventId
-    const eventIdElement = await driver.$('~eventId');
-    const eventId = await eventIdElement.getText();
-
-    expect(eventId).toBe('');
+    // This time we don't expect an eventId.
+    await waitUntilEventIdIsEmpty(true);
   });
 });
