@@ -1,5 +1,5 @@
 // tslint:disable: no-implicit-dependencies no-unsafe-any no-console
-import {Event} from '@sentry/types';
+import { Event } from '@sentry/types';
 import fetch from 'node-fetch';
 
 const domain = 'sentry.io';
@@ -12,11 +12,14 @@ interface ApiEvent extends Event {
   eventID: string;
 }
 
-const RETRY_COUNT = 20;
-const RETRY_INTERVAL = 30000;
+const RETRY_COUNT = 60;
+const RETRY_INTERVAL = 10000;
 
 const fetchEvent = async (eventId): Promise<ApiEvent> => {
   const url = `https://${domain}${eventEndpoint}${eventId}/`;
+
+  expect(process.env.SENTRY_AUTH_TOKEN).toBeDefined();
+  expect(process.env.SENTRY_AUTH_TOKEN.length).toBeGreaterThan(0);
 
   const request = new fetch.Request(url, {
     headers: {
@@ -56,4 +59,4 @@ const fetchEvent = async (eventId): Promise<ApiEvent> => {
   return json;
 };
 
-export {fetchEvent};
+export { fetchEvent };
