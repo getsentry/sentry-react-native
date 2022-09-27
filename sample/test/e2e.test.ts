@@ -17,14 +17,15 @@ async function getEventId() {
   return await element.getText();
 }
 async function waitUntilEventIdIsEmpty(value: Boolean) {
+  const element = await driver.$('~eventId');
   await waitForTruthyResult(async () => {
-    const len = (await getEventId()).length;
+    const len = (await element.getText()).length;
     return value ? len === 0 : len > 0;
   });
 }
 
 beforeAll(async () => {
-  let caps =
+  const caps =
     process.env.PLATFORM === 'android'
       ? {
           platformName: 'Android',

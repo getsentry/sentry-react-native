@@ -100,11 +100,9 @@ jobs:
 
       - name: Start Appium Server
         working-directory: ./sample
-        run: yarn run appium --log-timestamp --log-no-colors > appium.${{ matrix.platform }}.log &
-
-        # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
-      - name: Check Appium Server
-        run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/sessions
+        run: |
+          yarn run appium --log-timestamp --log-no-colors --log appium.${{ matrix.platform }}.log &
+          sleep 10
 
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
@@ -114,16 +112,17 @@ jobs:
           working-directory: sample
           script: |
             adb logcat '*:D' > adb.log &
+            yarn run react-native log-android 2>&1 > rn.log &
             sleep 5
-            adb shell su root "setprop ctl.restart zygote"
-            sleep 10
             adb devices -l
             yarn test --verbose
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
         working-directory: ./sample
-        run: yarn test --verbose
+        run: |
+          yarn run react-native log-ios 2>&1 > rn.log &
+          yarn test --verbose
 
       - name: Upload logs
         if: ${{ always() }}
