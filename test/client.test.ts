@@ -419,13 +419,8 @@ describe('Tests ReactNativeClient', () => {
             {
               reason: 'before_send',
               category: 'error',
-              quantity: 1,
+              quantity: 2,
             },
-            {
-              reason: 'before_send',
-              category: 'error',
-              quantity: 1,
-            }
           ],
         }),
       );

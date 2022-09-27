@@ -22,6 +22,7 @@ import { ReactNativeClientOptions } from './options';
 import { NativeTransport } from './transports/native';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { NATIVE } from './wrapper';
+import { mergeOutcomes } from './utils/outcome';
 
 /**
  * The Sentry React Native SDK Client.
@@ -129,7 +130,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    */
   protected _sendEnvelope(envelope: Envelope): void {
     const outcomes = this._clearOutcomes();
-    mergerBufferWithOutcomes(this._outcomesBuffer, outcomes);
+    this._outcomesBuffer = mergeOutcomes(this._outcomesBuffer, outcomes);
 
     if (this._options.sendClientReports) {
       this._attachClientReportTo(this._outcomesBuffer, envelope as ClientReportEnvelope);
@@ -200,11 +201,4 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       envelope[items].push(clientReportItem);
     }
   }
-}
-
-/**
- * Merges buffer with new outcomes.
- */
-function mergerBufferWithOutcomes(buffer: Outcome[], outcomes: Outcome[]): void {
-  buffer.push(...outcomes); // TODO: proper merge
 }
