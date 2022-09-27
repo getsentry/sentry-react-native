@@ -16,7 +16,7 @@
     "@babel/core": "^7.12.9",
     "@babel/runtime": "^7.12.5",
     "@react-native-community/eslint-config": "^2.0.0",
-    "appium": "^1.22.3",
+    "appium": "^2.0.0-beta.44",
     "babel-jest": "^29.0.3",
     "babel-plugin-module-resolver": "^4.0.0",
     "dotenv": "^8.2.0",
