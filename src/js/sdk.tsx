@@ -41,6 +41,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   transportOptions: {
     textEncoder: makeUtf8TextEncoder(),
   },
+  sendClientReports: true,
 };
 
 /**

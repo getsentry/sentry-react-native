@@ -3,19 +3,25 @@ import { BrowserTransportOptions } from '@sentry/browser/types/transports/types'
 import { FetchImpl } from '@sentry/browser/types/transports/utils';
 import { BaseClient } from '@sentry/core';
 import {
+  ClientReportEnvelope,
+  ClientReportItem,
+  Envelope,
   Event,
   EventHint,
+  Outcome,
   SeverityLevel,
   Transport,
   UserFeedback,
 } from '@sentry/types';
+import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
 
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { ReactNativeClientOptions } from './options';
 import { NativeTransport } from './transports/native';
-import { createUserFeedbackEnvelope } from './utils/envelope';
+import { createUserFeedbackEnvelope, items } from './utils/envelope';
+import { mergeOutcomes } from './utils/outcome';
 import { NATIVE } from './wrapper';
 
 /**
@@ -25,6 +31,8 @@ import { NATIVE } from './wrapper';
  * @see SentryClient for usage documentation.
  */
 export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
+
+  private _outcomesBuffer: Outcome[];
 
   private readonly _browserClient: BrowserClient;
 
@@ -44,6 +52,8 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
      options._metadata = options._metadata || {};
      options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
      super(options);
+
+      this._outcomesBuffer = [];
 
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
     // YellowBox deprecated and replaced with with LogBox in RN 0.63
@@ -116,8 +126,40 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   }
 
   /**
- * Starts native client with dsn and options
- */
+   * @inheritdoc
+   */
+  protected _sendEnvelope(envelope: Envelope): void {
+    const outcomes = this._clearOutcomes();
+    this._outcomesBuffer = mergeOutcomes(this._outcomesBuffer, outcomes);
+
+    if (this._options.sendClientReports) {
+      this._attachClientReportTo(this._outcomesBuffer, envelope as ClientReportEnvelope);
+    }
+
+    let shouldClearOutcomesBuffer = true;
+    if (this._transport && this._dsn) {
+      this._transport.send(envelope)
+        .then(null, reason => {
+          if (reason instanceof SentryError) { // SentryError is thrown by SyncPromise
+            shouldClearOutcomesBuffer = false;
+            // If this is called asynchronously we want the _outcomesBuffer to be cleared
+            logger.error('SentryError while sending event, keeping outcomes buffer:', reason);
+          } else {
+            logger.error('Error while sending event:', reason);
+          }
+        });
+    } else {
+      logger.error('Transport disabled');
+    }
+
+    if (shouldClearOutcomesBuffer) {
+      this._outcomesBuffer = []; // if send fails synchronously the _outcomesBuffer will stay intact
+    }
+  }
+
+  /**
+   * Starts native client with dsn and options
+   */
   private async _initNativeSdk(): Promise<void> {
     let didCallNativeInit = false;
 
@@ -142,6 +184,23 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
         'Sentry',
         'Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details.'
       );
+    }
+  }
+
+  /**
+   * Attaches a client report from outcomes to the envelope.
+   */
+  private _attachClientReportTo(outcomes: Outcome[], envelope: ClientReportEnvelope): void {
+    if (outcomes.length > 0) {
+      const clientReportItem: ClientReportItem = [
+        { type: 'client_report' },
+        {
+          timestamp: dateTimestampInSeconds(),
+          discarded_events: outcomes,
+        },
+      ];
+
+      envelope[items].push(clientReportItem);
     }
   }
 }
