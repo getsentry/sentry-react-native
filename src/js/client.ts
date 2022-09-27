@@ -21,8 +21,8 @@ import { defaultSdkInfo } from './integrations/sdkinfo';
 import { ReactNativeClientOptions } from './options';
 import { NativeTransport } from './transports/native';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
-import { NATIVE } from './wrapper';
 import { mergeOutcomes } from './utils/outcome';
+import { NATIVE } from './wrapper';
 
 /**
  * The Sentry React Native SDK Client.

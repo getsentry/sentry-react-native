@@ -6,7 +6,7 @@ import { Outcome } from '@sentry/types';
 export function mergeOutcomes(...merge: Outcome[][]): Outcome[] {
   const map = new Map<string, Outcome>();
 
-  const process = (outcome: Outcome) => {
+  const process = (outcome: Outcome): void => {
     const key = `${outcome.reason}:${outcome.category}`;
     const existing = map.get(key);
     if (existing) {
