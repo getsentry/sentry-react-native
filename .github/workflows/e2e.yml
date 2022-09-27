@@ -100,6 +100,13 @@ jobs:
           yarn run appium --log-timestamp --log-no-colors --log appium.${{ matrix.platform }}.log &
           sleep 10
 
+        # Waint until the Appium server starts.
+      - name: Check Appium Server
+        uses: nick-fields/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f # v2.8.1
+        with:
+          max_attempts: 5
+          command: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/sessions
+
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
         uses: reactivecircus/android-emulator-runner@d7b53ddc6e44254e1f4cf4a6ad67345837027a66 # v2.26.0
