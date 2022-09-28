@@ -118,16 +118,22 @@ jobs:
         uses: reactivecircus/android-emulator-runner@d7b53ddc6e44254e1f4cf4a6ad67345837027a66 # v2.26.0
         with:
           api-level: 29
+          emulator-options: -accel on -no-snapshot -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none -timezone US/Pacific
           working-directory: sample
-          script: ./scripts/e2e-android.sh
-          emulator-options: -accel on -no-snapshot -gpu host -noaudio -no-boot-anim -camera-back none -camera-front none
+          script: |
+            # Enable SKIA rendering. https://developer.android.com/studio/run/emulator-acceleration#skia-emulator
+            adb shell 'su ; setprop debug.hwui.renderer skiagl ; stop ; start'
+
+            # Collect logs
+            adb logcat '*:D' 2>&1 >adb.log &
+            adb devices -l
+
+            yarn test --verbose
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
         working-directory: ./sample
-        run: |
-          yarn run react-native log-ios 2>&1 > rn.log &
-          yarn test --verbose
+        run: yarn test --verbose
 
       - name: Upload logs
         if: ${{ always() }}
