@@ -19,14 +19,13 @@ import {
   Release,
   SdkInfo,
 } from './integrations';
-import { safeIntegrations } from './integrations/safeIntegrations';
 import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { makeReactNativeTransport } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
-import { safeBeforeBreadcrumb } from './utils/safeBeforeBreadcrumb';
+import { safeFactory } from './utils/safe';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
@@ -56,6 +55,7 @@ export function init(passedOptions: ReactNativeOptions): void {
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
+    // If custom transport factory fails the SDK won't initialize
     transport: passedOptions.transport || makeReactNativeTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
@@ -63,7 +63,8 @@ export function init(passedOptions: ReactNativeOptions): void {
     },
     integrations: [],
     stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser),
-    beforeBreadcrumb: safeBeforeBreadcrumb(passedOptions.beforeBreadcrumb),
+    beforeBreadcrumb: safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' }),
+    initialScope: safeFactory(passedOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
   };
 
   // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.
@@ -124,7 +125,7 @@ export function init(passedOptions: ReactNativeOptions): void {
   }
 
   options.integrations = getIntegrationsToSetup({
-    integrations: safeIntegrations(passedOptions.integrations),
+    integrations: safeFactory(passedOptions.integrations, { loggerMessage: 'The integrations threw an error' }),
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
