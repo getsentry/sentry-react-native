@@ -16,7 +16,8 @@ jobs:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
       matrix:
-        platform: ['ios', 'android']
+        # platform: ['ios', 'android']
+        platform: ['android']
         tmpVal:
           [
             1,
@@ -40,10 +41,10 @@ jobs:
             19,
             20,
           ]
-        include:
-          - platform: ios
-            runtime: '15.2'
-            device: 'iPhone 12'
+        # include:
+        #   - platform: ios
+        #     runtime: '15.2'
+        #     device: 'iPhone 12'
     env:
       PLATFORM: ${{ matrix.platform }}
       RUNTIME: ${{ matrix.runtime }}
