@@ -17,6 +17,29 @@ jobs:
       fail-fast: false
       matrix:
         platform: ['ios', 'android']
+        tmpVal:
+          [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+          ]
         include:
           - platform: ios
             runtime: '15.2'
@@ -132,7 +155,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.platform }}-logs
+          name: ${{ matrix.platform }}-${{ matrix.tmpVal }}-logs
           path: |
             ./sample/*.log
             ./sample/*.png
