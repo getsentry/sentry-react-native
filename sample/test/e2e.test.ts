@@ -1,5 +1,5 @@
 // tslint:disable: no-unsafe-any
-import {remote} from 'webdriverio';
+import {remote, RemoteOptions} from 'webdriverio';
 import path from 'path';
 
 import {fetchEvent} from '../utils/fetchEvent';
@@ -25,29 +25,39 @@ async function waitUntilEventIdIsEmpty(value: Boolean) {
 }
 
 beforeAll(async () => {
-  const caps =
-    process.env.PLATFORM === 'android'
-      ? {
-          platformName: 'Android',
-          'appium:automationName': 'UIAutomator2',
-          'appium:app':
-            './android/app/build/outputs/apk/release/app-release.apk',
-        }
-      : {
-          platformName: 'iOS',
-          'appium:automationName': 'XCUITest',
-          'appium:app':
-            './ios/DerivedData/Build/Products/Release-iphonesimulator/sample.app',
-          'appium:derivedDataPath': path.resolve('./ios/DerivedData'),
-          'appium:showXcodeLog': true,
-          'appium:usePrebuiltWDA': true,
-        };
-
-  driver = await remote({
+  const conf: RemoteOptions = {
     logLevel: 'info',
     port: 4723,
-    capabilities: caps,
-  });
+    capabilities: undefined,
+  };
+
+  if (process.env.PLATFORM === 'android') {
+    conf.capabilities = {
+      platformName: 'Android',
+      'appium:automationName': 'UIAutomator2',
+      'appium:app': './android/app/build/outputs/apk/release/app-release.apk',
+    };
+  } else {
+    conf.capabilities = {
+      platformName: 'iOS',
+      'appium:automationName': 'XCUITest',
+      'appium:app':
+        './ios/DerivedData/Build/Products/Release-iphonesimulator/sample.app',
+      'appium:derivedDataPath': path.resolve('./ios/DerivedData'),
+      'appium:showXcodeLog': true,
+      'appium:usePrebuiltWDA': true,
+    };
+  }
+
+  if (process.env.RUNTIME !== undefined) {
+    conf.capabilities['appium:platformVersion'] = process.env.RUNTIME;
+  }
+
+  if (process.env.DEVICE !== undefined) {
+    conf.capabilities['appium:deviceName'] = process.env.DEVICE;
+  }
+
+  driver = await remote(conf);
 
   const element = await driver.$('~openEndToEndTests');
   await element.click();
