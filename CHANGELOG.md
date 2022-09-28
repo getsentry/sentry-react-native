@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixes
+
 - SDK Gracefully downgrades when callback throws an error ([#2502](https://github.com/getsentry/sentry-react-native/pull/2502))
 
 ### Features
