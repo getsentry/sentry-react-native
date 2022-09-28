@@ -12,16 +12,19 @@ declare let driver: WebdriverIO.Browser;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function getEventId() {
+async function waitForEventId() {
   const element = await driver.$('~eventId');
-  return await element.getText();
-}
-async function waitUntilEventIdIsEmpty(value: Boolean) {
-  const element = await driver.$('~eventId');
+  let value: String;
   await waitForTruthyResult(async () => {
-    const len = (await element.getText()).length;
-    return value ? len === 0 : len > 0;
+    value = await element.getText();
+    return value.length > 0;
   });
+  return value;
+}
+
+async function waitUntilEventIdIsEmpty() {
+  const element = await driver.$('~eventId');
+  await waitForTruthyResult(async () => (await element.getText()).length === 0);
 }
 
 beforeAll(async () => {
@@ -60,13 +63,14 @@ beforeAll(async () => {
   driver = await remote(conf);
 
   const element = await driver.$('~openEndToEndTests');
+  await element.waitForDisplayed({timeout: 60_000});
   await element.click();
 });
 
 beforeEach(async () => {
   const element = await driver.$('~clearEventId');
   await element.click();
-  await waitUntilEventIdIsEmpty(true);
+  await waitUntilEventIdIsEmpty();
 });
 
 describe('End to end tests for common events', () => {
@@ -74,8 +78,7 @@ describe('End to end tests for common events', () => {
     const element = await driver.$('~captureMessage');
     await element.click();
 
-    await waitUntilEventIdIsEmpty(false);
-    const eventId = await getEventId();
+    const eventId = await waitForEventId();
     const sentryEvent = await fetchEvent(eventId);
     expect(sentryEvent.eventID).toMatch(eventId);
   });
@@ -84,8 +87,7 @@ describe('End to end tests for common events', () => {
     const element = await driver.$('~captureException');
     await element.click();
 
-    await waitUntilEventIdIsEmpty(false);
-    const eventId = await getEventId();
+    const eventId = await waitForEventId();
     const sentryEvent = await fetchEvent(eventId);
     expect(sentryEvent.eventID).toMatch(eventId);
   });
@@ -94,8 +96,7 @@ describe('End to end tests for common events', () => {
     const element = await driver.$('~unhandledPromiseRejection');
     await element.click();
 
-    await waitUntilEventIdIsEmpty(false);
-    const eventId = await getEventId();
+    const eventId = await waitForEventId();
     const sentryEvent = await fetchEvent(eventId);
     expect(sentryEvent.eventID).toMatch(eventId);
   });
@@ -108,6 +109,6 @@ describe('End to end tests for common events', () => {
     await sleep(5000);
 
     // This time we don't expect an eventId.
-    await waitUntilEventIdIsEmpty(true);
+    await waitUntilEventIdIsEmpty();
   });
 });
