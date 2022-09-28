@@ -17,6 +17,9 @@ jobs:
       fail-fast: false
       matrix:
         platform: ['ios', 'android']
+        include:
+          - platform: ios
+            runtime: '15.2'
     env:
       PLATFORM: ${{ matrix.platform }}
     steps:
@@ -47,7 +50,7 @@ jobs:
             sample/ios/Pods
             sample/ios/DerivedData
           # Note: we cannot use sample/ios/Podfile.lock because it's not source controlled.
-          key: ${{ github.workflow }}-${{ github.job }}-ios-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
+          key: ${{ github.workflow }}-${{ github.job }}-ios${{ matrix.runtime }}-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
 
       - name: Install Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
@@ -81,14 +84,17 @@ jobs:
 
       - name: Build ${{ matrix.platform }} sample app
         if: env.SENTRY_AUTH_TOKEN != null
+        id: build
         working-directory: ./sample/${{ matrix.platform }}
         run: |
           if [[ "${{ matrix.platform }}" == "android" ]]; then
             ./gradlew :app:assembleRelease -PreactNativeArchitectures=x86
           else
+            deviceType="iPhone 12"
+            echo "::set-output name=deviceType::$deviceType"
             mkdir -p DerivedData
             defaults write com.apple.dt.Xcode ShowBuildOperationDuration YES
-            buildArgs=('-destination' 'platform=iOS Simulator,name=iPhone 12' 'ONLY_ACTIVE_ARCH=yes' '-sdk' 'iphonesimulator' '-derivedDataPath' $(cd "DerivedData" ; pwd -P))
+            buildArgs=('-destination' "platform=iOS Simulator,name=$deviceType" 'ONLY_ACTIVE_ARCH=yes' '-sdk' "iphonesimulator${{ matrix.runtime }}" '-derivedDataPath' $(cd "DerivedData" ; pwd -P))
             echo "buildArgs = ${buildArgs[@]}"
             xcodebuild -workspace sample.xcworkspace -configuration Release -scheme sample "${buildArgs[@]}" build
             xcodebuild -project ../node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO "${buildArgs[@]}" build
@@ -96,14 +102,13 @@ jobs:
 
       - name: Start Appium Server
         working-directory: ./sample
-        run: |
-          yarn run appium --log-timestamp --log-no-colors --log appium.${{ matrix.platform }}.log &
-          sleep 10
+        run: yarn run appium --log-timestamp --log-no-colors --log appium.${{ matrix.platform }}.log &
 
         # Waint until the Appium server starts.
       - name: Check Appium Server
         uses: nick-fields/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f # v2.8.1
         with:
+          timeout_seconds: 30
           max_attempts: 5
           command: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/sessions
 
@@ -119,6 +124,12 @@ jobs:
             sleep 5
             adb devices -l
             yarn test --verbose
+
+      - name: Create iOS Simulator
+        if: ${{ matrix.platform == 'ios' }}
+        run: |
+          xcrun simctl create sim '${{ steps.build.outputs.deviceType }}' 'iOS${{ matrix.runtime }}'
+          xcrun simctl boot sim
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}

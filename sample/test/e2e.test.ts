@@ -35,7 +35,6 @@ beforeAll(async () => {
         }
       : {
           platformName: 'iOS',
-          'appium:deviceName': 'iPhone 12',
           'appium:automationName': 'XCUITest',
           'appium:app':
             './ios/DerivedData/Build/Products/Release-iphonesimulator/sample.app',
