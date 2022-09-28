@@ -12,9 +12,15 @@ declare let driver: WebdriverIO.Browser;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+async function getElement(accessibilityId: string) {
+  const element = await driver.$(`~${accessibilityId}`);
+  await element.waitForDisplayed({timeout: 60_000});
+  return element;
+}
+
 async function waitForEventId() {
-  const element = await driver.$('~eventId');
-  let value: String;
+  const element = await getElement('eventId');
+  let value: string;
   await waitForTruthyResult(async () => {
     value = await element.getText();
     return value.length > 0;
@@ -23,7 +29,7 @@ async function waitForEventId() {
 }
 
 async function waitUntilEventIdIsEmpty() {
-  const element = await driver.$('~eventId');
+  const element = await getElement('eventId');
   await waitForTruthyResult(async () => (await element.getText()).length === 0);
 }
 
@@ -62,20 +68,19 @@ beforeAll(async () => {
 
   driver = await remote(conf);
 
-  const element = await driver.$('~openEndToEndTests');
-  await element.waitForDisplayed({timeout: 60_000});
+  const element = await getElement('openEndToEndTests');
   await element.click();
 });
 
 beforeEach(async () => {
-  const element = await driver.$('~clearEventId');
+  const element = await getElement('clearEventId');
   await element.click();
   await waitUntilEventIdIsEmpty();
 });
 
 describe('End to end tests for common events', () => {
   test('captureMessage', async () => {
-    const element = await driver.$('~captureMessage');
+    const element = await getElement('captureMessage');
     await element.click();
 
     const eventId = await waitForEventId();
@@ -84,7 +89,7 @@ describe('End to end tests for common events', () => {
   });
 
   test('captureException', async () => {
-    const element = await driver.$('~captureException');
+    const element = await getElement('captureException');
     await element.click();
 
     const eventId = await waitForEventId();
@@ -93,7 +98,7 @@ describe('End to end tests for common events', () => {
   });
 
   test('unhandledPromiseRejection', async () => {
-    const element = await driver.$('~unhandledPromiseRejection');
+    const element = await getElement('unhandledPromiseRejection');
     await element.click();
 
     const eventId = await waitForEventId();
@@ -102,7 +107,7 @@ describe('End to end tests for common events', () => {
   });
 
   test('close', async () => {
-    const element = await driver.$('~close');
+    const element = await getElement('close');
     await element.click();
 
     // Wait a while in case it gets set.
