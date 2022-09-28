@@ -150,7 +150,7 @@ jobs:
         working-directory: ./sample
         run: |
           yarn run react-native log-ios 2>&1 > rn.log &
-          yarn test --verbose || (xcrun simctl io booted screenshot ios.screenshot.png && exit 1)
+          yarn test --verbose
 
       - name: Upload logs
         if: ${{ always() }}

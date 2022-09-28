@@ -88,10 +88,20 @@ beforeAll(async () => {
   }
 });
 
+afterAll(async () => {
+  await driver.deleteSession();
+});
+
 beforeEach(async () => {
   const element = await getElement('clearEventId');
   await element.click();
   await waitUntilEventIdIsEmpty();
+});
+
+afterEach(async () => {
+  const testName = expect.getState().currentTestName;
+  const fileName = `screen-${testName}.png`.replace(/[^0-9a-zA-Z-+.]/g, '_');
+  await driver.saveScreenshot(fileName);
 });
 
 describe('End to end tests for common events', () => {
