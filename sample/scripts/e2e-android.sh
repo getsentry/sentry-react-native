@@ -2,9 +2,7 @@
 set -euo pipefail
 
 # fix: WARNING | /etc/localtime does not point to zoneinfo-compatible timezone name
-if ! [[ -f /etc/localtime ]]; then
-  sudo ln -sf /usr/share/zoneinfo/GMT /etc/localtime
-fi
+[[ -f /etc/localtime ]] || sudo ln -sf /usr/share/zoneinfo/US/Pacific /etc/localtime
 
 # Kill all child processes on exit
 trap "(trap - SIGTERM && kill -- -$$) || echo ''" SIGINT SIGTERM EXIT
