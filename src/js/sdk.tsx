@@ -6,7 +6,7 @@ import {
   defaultStackParser,
   getCurrentHub,
 } from '@sentry/react';
-import { Integration, StackFrame, UserFeedback } from '@sentry/types';
+import { Integration, Scope, StackFrame, UserFeedback } from '@sentry/types';
 import { getGlobalObject, logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -19,12 +19,14 @@ import {
   Release,
   SdkInfo,
 } from './integrations';
+import { safeIntegrations } from './integrations/safeIntegrations';
 import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { makeReactNativeTransport } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
+import { safeBeforeBreadcrumb } from './utils/safeBeforeBreadcrumb';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
@@ -60,7 +62,8 @@ export function init(passedOptions: ReactNativeOptions): void {
       ...(passedOptions.transportOptions ?? {}),
     },
     integrations: [],
-    stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser)
+    stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser),
+    beforeBreadcrumb: safeBeforeBreadcrumb(passedOptions.beforeBreadcrumb),
   };
 
   // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.
@@ -121,7 +124,7 @@ export function init(passedOptions: ReactNativeOptions): void {
   }
 
   options.integrations = getIntegrationsToSetup({
-    integrations: passedOptions.integrations,
+    integrations: safeIntegrations(passedOptions.integrations),
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
@@ -232,4 +235,28 @@ export async function close(): Promise<void> {
  */
  export function captureUserFeedback(feedback: UserFeedback): void {
   getCurrentHub().getClient<ReactNativeClient>()?.captureUserFeedback(feedback);
+ }
+
+/**
+ * Creates a new scope with and executes the given operation within.
+ * The scope is automatically removed once the operation
+ * finishes or throws.
+ *
+ * This is essentially a convenience function for:
+ *
+ *     pushScope();
+ *     callback();
+ *     popScope();
+ *
+ * @param callback that will be enclosed into push/popScope.
+ */
+export function withScope(callback: (scope: Scope) => void): ReturnType<Hub['withScope']> {
+  const safeCallback = (scope: Scope): void => {
+    try {
+      callback(scope);
+    } catch (e) {
+      logger.error('Error while running withScope callback', e);
+    }
+  };
+  getCurrentHub().withScope(safeCallback);
 }
