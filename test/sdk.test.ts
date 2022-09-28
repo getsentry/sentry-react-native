@@ -211,7 +211,7 @@ describe('Tests the SDK functionality', () => {
   });
 
   describe('withScope', () => {
-    test('withScope calls callback with scope', () => {
+    test('withScope callback does not throw', () => {
       const mockScopeCallback = jest.fn(() => { throw 'Test error' });
 
       withScope(mockScopeCallback);
