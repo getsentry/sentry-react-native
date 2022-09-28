@@ -25,7 +25,7 @@ import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { makeReactNativeTransport } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
-import { safeFactory } from './utils/safe';
+import { safeFactory, safeTracesSampler } from './utils/safe';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
@@ -65,6 +65,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser),
     beforeBreadcrumb: safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' }),
     initialScope: safeFactory(passedOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
+    tracesSampler: safeTracesSampler(passedOptions.tracesSampler),
   };
 
   // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.

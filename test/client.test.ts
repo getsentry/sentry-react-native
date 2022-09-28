@@ -13,6 +13,7 @@ import {
   envelopeItemPayload,
   envelopeItems,
   firstArg,
+  flushPromises,
   getMockSession,
   getMockUserFeedback,
   getSyncPromiseRejectOnFirstCall,
@@ -154,6 +155,19 @@ describe('Tests ReactNativeClient', () => {
   });
 
   describe('onReady', () => {
+    test('onReady does not throw error', async () => {
+      const mockOnReady = jest.fn(() => { throw 'Test error' });
+      new ReactNativeClient({
+        dsn: EXAMPLE_DSN,
+        enableNative: true,
+        onReady: mockOnReady,
+        transport: () => new NativeTransport()
+      } as ReactNativeOptions as ReactNativeClientOptions);
+
+      await flushPromises();
+      expect(mockOnReady).toBeCalledTimes(1);
+    });
+
     test('calls onReady callback with true if Native SDK is initialized', (done) => {
       new ReactNativeClient({
         dsn: EXAMPLE_DSN,

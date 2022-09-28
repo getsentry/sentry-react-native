@@ -208,6 +208,17 @@ describe('Tests the SDK functionality', () => {
       }).not.toThrow();
       expect(mockIntegrations).toBeCalledTimes(1);
     });
+
+    test('tracesSampler callback is safe after init', () => {
+      const mockTraceSampler = jest.fn(() => { throw 'Test error' });
+
+      init({ tracesSampler: mockTraceSampler });
+
+      expect(() => {
+        mockedInitAndBind.mock.calls[0][secondArg].tracesSampler?.({} as any);
+      }).not.toThrow();
+      expect(mockTraceSampler).toBeCalledTimes(1);
+    });
   });
 
   describe('withScope', () => {
