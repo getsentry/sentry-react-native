@@ -120,6 +120,7 @@ jobs:
           api-level: 29
           working-directory: sample
           script: ./scripts/e2e-android.sh
+          emulator-options: -accel on -no-snapshot -gpu host -noaudio -no-boot-anim -camera-back none -camera-front none
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
@@ -132,7 +133,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.platform }}-${{ matrix.tmpVal }}-logs
+          name: ${{ matrix.platform }}-logs
           path: |
             ./sample/*.log
             ./sample/*.png
