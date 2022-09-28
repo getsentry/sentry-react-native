@@ -66,10 +66,26 @@ beforeAll(async () => {
     conf.capabilities['appium:deviceName'] = process.env.DEVICE;
   }
 
+  // 5 minutes - to accommodate the timeouts for things like getting events from Sentry.
+  conf.capabilities['appium:newCommandTimeout'] = 300_000;
+
   driver = await remote(conf);
 
-  const element = await getElement('openEndToEndTests');
-  await element.click();
+  const maxInitTries = 3;
+  for (var i = 1; i <= maxInitTries; i++) {
+    const element = await getElement('openEndToEndTests');
+    await element.click();
+    if (i === maxInitTries) {
+      await getElement('eventId');
+    } else {
+      try {
+        await getElement('eventId');
+        break;
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }
 });
 
 beforeEach(async () => {
