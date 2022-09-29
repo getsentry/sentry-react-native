@@ -121,9 +121,6 @@ jobs:
           emulator-options: -accel on -no-snapshot -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none -timezone US/Pacific
           working-directory: sample
           script: |
-            # Enable SKIA rendering. https://developer.android.com/studio/run/emulator-acceleration#skia-emulator
-            adb shell 'su ; setprop debug.hwui.renderer skiagl ; stop ; start'
-
             # Collect logs
             adb logcat '*:D' 2>&1 >adb.log &
             adb devices -l
