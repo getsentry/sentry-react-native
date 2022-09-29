@@ -4,6 +4,8 @@ interface MockedClient {
   flush: jest.Mock;
 }
 
+let mockedGetCurrentHubWithScope: jest.Mock;
+
 jest.mock('@sentry/react', () => {
   const actualModule = jest.requireActual('@sentry/react');
 
@@ -13,10 +15,14 @@ jest.mock('@sentry/react', () => {
 
   return {
     ...actualModule,
-    getCurrentHub: jest.fn(() => ({
-      getClient: jest.fn(() => mockClient),
-      setTag: jest.fn(),
-    })),
+    getCurrentHub: jest.fn(() => {
+      mockedGetCurrentHubWithScope = jest.fn();
+      return {
+        getClient: jest.fn(() => mockClient),
+        setTag: jest.fn(),
+        withScope: mockedGetCurrentHubWithScope,
+      };
+    }),
     defaultIntegrations: [ { name: 'MockedDefaultReactIntegration', setupOnce: jest.fn() } ],
   };
 });
@@ -53,10 +59,10 @@ jest.spyOn(logger, 'error');
 
 import { initAndBind } from '@sentry/core';
 import { getCurrentHub } from '@sentry/react';
-import { Integration } from '@sentry/types';
+import { Integration, Scope } from '@sentry/types';
 
 import { ReactNativeClientOptions } from '../src/js/options';
-import { flush, init } from '../src/js/sdk';
+import { flush, init, withScope } from '../src/js/sdk';
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
 import { firstArg, secondArg } from './testutils';
 
@@ -169,6 +175,62 @@ describe('Tests the SDK functionality', () => {
           );
         }
       });
+    });
+  });
+
+  describe('initIsSafe', () => {
+    test('initialScope callback is safe after init', () => {
+      const mockInitialScope = jest.fn(() => { throw 'Test error' });
+
+      init({ initialScope: mockInitialScope });
+
+      expect(() => {
+        (mockedInitAndBind.mock.calls[0][secondArg].initialScope as (scope: Scope) => Scope)({} as any);
+      }).not.toThrow();
+      expect(mockInitialScope).toBeCalledTimes(1);
+    });
+    test('beforeBreadcrumb callback is safe after init', () => {
+      const mockBeforeBreadcrumb = jest.fn(() => { throw 'Test error' });
+
+      init({ beforeBreadcrumb: mockBeforeBreadcrumb });
+
+      expect(() => {
+        mockedInitAndBind.mock.calls[0][secondArg].beforeBreadcrumb?.({} as any);
+      }).not.toThrow();
+      expect(mockBeforeBreadcrumb).toBeCalledTimes(1);
+    });
+
+    test('integrations callback should not crash init', () => {
+      const mockIntegrations = jest.fn(() => { throw 'Test error' });
+
+      expect(() => {
+        init({ integrations: mockIntegrations });
+      }).not.toThrow();
+      expect(mockIntegrations).toBeCalledTimes(1);
+    });
+
+    test('tracesSampler callback is safe after init', () => {
+      const mockTraceSampler = jest.fn(() => { throw 'Test error' });
+
+      init({ tracesSampler: mockTraceSampler });
+
+      expect(() => {
+        mockedInitAndBind.mock.calls[0][secondArg].tracesSampler?.({} as any);
+      }).not.toThrow();
+      expect(mockTraceSampler).toBeCalledTimes(1);
+    });
+  });
+
+  describe('withScope', () => {
+    test('withScope callback does not throw', () => {
+      const mockScopeCallback = jest.fn(() => { throw 'Test error' });
+
+      withScope(mockScopeCallback);
+
+      expect(() => {
+        (mockedGetCurrentHubWithScope.mock.calls[0][firstArg] as (scope: Scope) => void)({} as any);
+      }).not.toThrow();
+      expect(mockScopeCallback).toBeCalledTimes(1);
     });
   });
 

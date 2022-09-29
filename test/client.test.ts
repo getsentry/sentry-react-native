@@ -13,6 +13,7 @@ import {
   envelopeItemPayload,
   envelopeItems,
   firstArg,
+  flushPromises,
   getMockSession,
   getMockUserFeedback,
   getSyncPromiseRejectOnFirstCall,

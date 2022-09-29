@@ -64,3 +64,5 @@ export const getSyncPromiseRejectOnFirstCall = <Y extends any[]>(reason: unknown
     }
   });
 };
+
+export const flushPromises = (): Promise<void> => new Promise(setImmediate);

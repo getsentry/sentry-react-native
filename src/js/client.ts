@@ -167,12 +167,13 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       didCallNativeInit = await NATIVE.initNativeSdk(this._options);
     } catch (_) {
       this._showCannotConnectDialog();
-
-      this._options.onReady?.({ didCallNativeInit: false });
-
-      return;
+    } finally {
+      try {
+        this._options.onReady?.({ didCallNativeInit });
+      } catch (error) {
+        logger.error('The OnReady callback threw an error: ', error);
+      }
     }
-    this._options.onReady?.({ didCallNativeInit });
   }
 
   /**
