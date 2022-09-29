@@ -16,20 +16,22 @@ jobs:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
       matrix:
-        platform: ["ios", "android"]
+        platform: ['ios', 'android']
+        include:
+          - platform: ios
+            runtime: '15.2'
+            device: 'iPhone 12'
     env:
       PLATFORM: ${{ matrix.platform }}
+      RUNTIME: ${{ matrix.runtime }}
+      DEVICE: ${{ matrix.device }}
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "14"
-
       - uses: actions/setup-java@v3
         with:
-          java-version: "11"
-          distribution: "adopt"
+          java-version: '11'
+          distribution: 'adopt'
 
       - name: Install Global Dependencies
         run: yarn global add @sentry/cli yalc
@@ -51,7 +53,7 @@ jobs:
             sample/ios/Pods
             sample/ios/DerivedData
           # Note: we cannot use sample/ios/Podfile.lock because it's not source controlled.
-          key: ${{ github.workflow }}-${{ github.job }}-ios-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
+          key: ${{ github.workflow }}-${{ github.job }}-ios${{ matrix.runtime }}-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
 
       - name: Install Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
@@ -85,6 +87,7 @@ jobs:
 
       - name: Build ${{ matrix.platform }} sample app
         if: env.SENTRY_AUTH_TOKEN != null
+        id: build
         working-directory: ./sample/${{ matrix.platform }}
         run: |
           if [[ "${{ matrix.platform }}" == "android" ]]; then
@@ -92,7 +95,7 @@ jobs:
           else
             mkdir -p DerivedData
             defaults write com.apple.dt.Xcode ShowBuildOperationDuration YES
-            buildArgs=('-destination' 'platform=iOS Simulator,name=iPhone 12' 'ONLY_ACTIVE_ARCH=yes' '-sdk' 'iphonesimulator' '-derivedDataPath' $(cd "DerivedData" ; pwd -P))
+            buildArgs=('-destination' 'platform=iOS Simulator,name=${{ matrix.device }}' 'ONLY_ACTIVE_ARCH=yes' '-sdk' 'iphonesimulator${{ matrix.runtime }}' '-derivedDataPath' $(cd "DerivedData" ; pwd -P))
             echo "buildArgs = ${buildArgs[@]}"
             xcodebuild -workspace sample.xcworkspace -configuration Release -scheme sample "${buildArgs[@]}" build
             xcodebuild -project ../node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO "${buildArgs[@]}" build
@@ -100,24 +103,28 @@ jobs:
 
       - name: Start Appium Server
         working-directory: ./sample
-        run: yarn run appium --log-timestamp --log-no-colors --allow-insecure chromedriver_autodownload > appium.${{ matrix.platform }}.log &
+        run: yarn run appium --log-timestamp --log-no-colors --log appium.${{ matrix.platform }}.log &
 
-        # Ping the Appium server to make sure its running, this way if it does fail it'll be easy to tell that this step failed and not the tests
+        # Wait until the Appium server starts.
       - name: Check Appium Server
-        run: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/wd/hub/sessions
+        uses: nick-fields/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f # v2.8.1
+        with:
+          timeout_seconds: 60
+          max_attempts: 10
+          command: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/sessions
 
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
         uses: reactivecircus/android-emulator-runner@d7b53ddc6e44254e1f4cf4a6ad67345837027a66 # v2.26.0
         with:
           api-level: 29
+          emulator-options: -accel on -no-snapshot -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none -timezone US/Pacific
           working-directory: sample
           script: |
-            $ANDROID_HOME/platform-tools/adb logcat '*:D' > adb-log.txt &
-            sleep 5
-            $ANDROID_HOME/platform-tools/adb shell su root "setprop ctl.restart zygote"
-            sleep 10
-            $ANDROID_HOME/platform-tools/adb devices -l
+            # Collect logs
+            adb logcat '*:D' 2>&1 >adb.log &
+            adb devices -l
+
             yarn test --verbose
 
       - name: Run tests on iOS
@@ -130,7 +137,9 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.platform }}-logs
-          path: ./sample/*.log
+          path: |
+            ./sample/*.log
+            ./sample/*.png
 
   metrics:
     runs-on: macos-latest

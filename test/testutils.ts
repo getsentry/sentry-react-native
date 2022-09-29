@@ -1,5 +1,6 @@
 import { Transaction } from '@sentry/tracing';
 import { Session, UserFeedback } from '@sentry/types';
+import { rejectedSyncPromise } from '@sentry/utils';
 
 import { getBlankTransactionContext } from '../src/js/tracing/utils';
 
@@ -51,3 +52,17 @@ export const getMockUserFeedback = (): UserFeedback => ({
   name: 'name_test_value',
   event_id: 'event_id_test_value',
 });
+
+export const getSyncPromiseRejectOnFirstCall = <Y extends any[]>(reason: unknown): jest.Mock => {
+  let shouldSyncReject = true;
+  return jest.fn((..._args: Y) => {
+    if (shouldSyncReject) {
+      shouldSyncReject = false;
+      return rejectedSyncPromise(reason);
+    } else {
+      return Promise.resolve();
+    }
+  });
+};
+
+export const flushPromises = (): Promise<void> => new Promise(setImmediate);

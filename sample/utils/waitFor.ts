@@ -1,9 +1,9 @@
 import {expect} from '@jest/globals';
 
-const RETRY_TIMEOUT_MS = 500;
+const RETRY_TIMEOUT_MS = 1000;
 const FINAL_TIMEOUT_MS = 1 * 60 * 1000;
 
-export function waitForTruthyResult<T>(value: () => Promise<T>) {
+export async function waitForTruthyResult<T>(value: () => Promise<T>) {
   const promise = new Promise<T>((resolve, reject) => {
     let timeout: NodeJS.Timeout;
     let interval: NodeJS.Timer;
@@ -19,9 +19,13 @@ export function waitForTruthyResult<T>(value: () => Promise<T>) {
 
     timeout = setTimeout(() => {
       clearInterval(interval);
-      reject(new Error(`waitForTruthyResult function timed out after ${FINAL_TIMEOUT_MS} ms`));
+      reject(
+        new Error(
+          `waitForTruthyResult function timed out after ${FINAL_TIMEOUT_MS} ms`,
+        ),
+      );
     }, FINAL_TIMEOUT_MS);
   });
 
-  return expect(promise);
+  return await expect(promise).resolves.toBeTruthy();
 }

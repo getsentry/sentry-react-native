@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- SDK Gracefully downgrades when callback throws an error ([#2502](https://github.com/getsentry/sentry-react-native/pull/2502))
+
+### Features
+
+- Add ClientReports ([#2496](https://github.com/getsentry/sentry-react-native/pull/2496))
+
+### Sentry Self-hosted Compatibility
+
+- Starting with version `4.6.0` of the `@sentry/react-native` package, [Sentry's self hosted version >= v21.9.0](https://github.com/getsentry/self-hosted/releases) is required or you have to manually disable sending client reports via the `sendClientReports` option. This only applies to self-hosted Sentry. If you are using [sentry.io](https://sentry.io), no action is needed.
+
+### Dependencies
+
+- Bump Cocoa SDK from v7.25.1 to v7.26.0 ([#2500](https://github.com/getsentry/sentry-react-native/pull/2500))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7260)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.25.1...7.26.0)
+- Bump JavaScript SDK from v7.13.0 to v7.14.0 ([#2504](https://github.com/getsentry/sentry-react-native/pull/2504))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7140)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.13.0...7.14.0)
+
 ## 5.0.0-alpha.4
 
 - Latest changes from 4.5.0
