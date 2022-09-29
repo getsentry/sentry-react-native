@@ -1,8 +1,6 @@
 import {
-  BaseEnvelopeHeaders,
   DsnComponents,
   EventEnvelope,
-  EventEnvelopeHeaders,
   SdkMetadata,
   UserFeedback,
   UserFeedbackItem,
@@ -27,8 +25,7 @@ export function createUserFeedbackEnvelope(
     dsn: DsnComponents | undefined,
   },
 ): EventEnvelope {
-  // TODO: Use EventEnvelope[0] when JS sdk fix is released
-  const headers: EventEnvelopeHeaders & BaseEnvelopeHeaders = {
+  const headers: EventEnvelope[0] = {
     event_id: feedback.event_id,
     sent_at: new Date().toISOString(),
     ...(metadata && metadata.sdk && { sdk: {
