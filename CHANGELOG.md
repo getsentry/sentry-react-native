@@ -16,9 +16,9 @@
 
 ### Dependencies
 
-- Bump Cocoa SDK from v7.25.1 to v7.26.0 ([#2500](https://github.com/getsentry/sentry-react-native/pull/2500))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7260)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.25.1...7.26.0)
+- Bump Cocoa SDK from v7.25.1 to v7.27.0 ([#2500](https://github.com/getsentry/sentry-react-native/pull/2500), [#2506](https://github.com/getsentry/sentry-react-native/pull/2506))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7270)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.25.1...7.27.0)
 - Bump JavaScript SDK from v7.13.0 to v7.14.0 ([#2504](https://github.com/getsentry/sentry-react-native/pull/2504))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7140)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.13.0...7.14.0)
