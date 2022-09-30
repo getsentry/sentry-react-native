@@ -99,6 +99,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 // SentryAndroid needs an empty string fallback for the dsn.
                 options.setDsn("");
             }
+            if (rnOptions.hasKey("sendClientReports")) {
+                options.setSendClientReports(rnOptions.getBoolean("sendClientReports"));
+            }
             if (rnOptions.hasKey("maxBreadcrumbs")) {
                 options.setMaxBreadcrumbs(rnOptions.getInt("maxBreadcrumbs"));
             }

@@ -8,6 +8,7 @@ export {
   Stacktrace,
   Thread,
   User,
+  UserFeedback,
 } from '@sentry/types';
 
 export {
@@ -28,7 +29,6 @@ export {
   setTags,
   setUser,
   startTransaction,
-  withScope,
 } from '@sentry/core';
 
 // We need to import it so we patch the hub with global functions
@@ -64,6 +64,8 @@ export {
   nativeCrash,
   flush,
   close,
+  captureUserFeedback,
+  withScope,
 } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 

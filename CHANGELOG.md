@@ -1,5 +1,50 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- SDK Gracefully downgrades when callback throws an error ([#2502](https://github.com/getsentry/sentry-react-native/pull/2502))
+
+### Features
+
+- Add ClientReports ([#2496](https://github.com/getsentry/sentry-react-native/pull/2496))
+
+### Sentry Self-hosted Compatibility
+
+- Starting with version `4.6.0` of the `@sentry/react-native` package, [Sentry's self hosted version >= v21.9.0](https://github.com/getsentry/self-hosted/releases) is required or you have to manually disable sending client reports via the `sendClientReports` option. This only applies to self-hosted Sentry. If you are using [sentry.io](https://sentry.io), no action is needed.
+
+### Dependencies
+
+- Bump Cocoa SDK from v7.25.1 to v7.27.0 ([#2500](https://github.com/getsentry/sentry-react-native/pull/2500), [#2506](https://github.com/getsentry/sentry-react-native/pull/2506))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7270)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.25.1...7.27.0)
+- Bump JavaScript SDK from v7.13.0 to v7.14.0 ([#2504](https://github.com/getsentry/sentry-react-native/pull/2504))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7140)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.13.0...7.14.0)
+
+## 4.5.0
+
+### Features
+
+- Add user feedback ([#2486](https://github.com/getsentry/sentry-react-native/pull/2486))
+- Add typings for app hang functionality ([#2479](https://github.com/getsentry/sentry-react-native/pull/2479))
+
+### Fixes
+
+- Update warm/cold start span ops ([#2487](https://github.com/getsentry/sentry-react-native/pull/2487))
+- Detect hard crash the same as native sdks ([#2480](https://github.com/getsentry/sentry-react-native/pull/2480))
+- Integrations factory receives default integrations ([#2494](https://github.com/getsentry/sentry-react-native/pull/2494))
+
+### Dependencies
+
+- Bump Android SDK from v6.4.1 to v6.4.2 ([#2485](https://github.com/getsentry/sentry-react-native/pull/2485))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#642)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.4.1...6.4.2)
+- Bump JavaScript SDK from v7.12.1 to v7.13.0 ([#2478](https://github.com/getsentry/sentry-react-native/pull/2478))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7130)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.12.1...7.13.0)
+
 ## 4.4.0
 
 ### Features
