@@ -242,11 +242,11 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
 
         this._pushRecentRouteKey(route.key);
         this._latestRoute = route;
+
+        // Clear the latest transaction as it has been handled.
+        this._latestTransaction = undefined;
       }
     }
-
-    // Clear the latest transaction as it has been handled.
-    this._latestTransaction = undefined;
   }
 
   /** Creates final transaction context before confirmation */

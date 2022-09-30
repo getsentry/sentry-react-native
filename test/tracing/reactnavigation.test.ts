@@ -15,14 +15,14 @@ const dummyRoute = {
 };
 
 class MockNavigationContainer {
-  currentRoute: NavigationRoute = dummyRoute;
+  currentRoute: NavigationRoute | undefined = dummyRoute;
   listeners: Record<string, (e: any) => void> = {};
   addListener: any = jest.fn(
     (eventType: string, listener: (e: any) => void): void => {
       this.listeners[eventType] = listener;
     }
   );
-  getCurrentRoute(): NavigationRoute {
+  getCurrentRoute(): NavigationRoute | undefined {
     return this.currentRoute;
   }
 }
@@ -120,6 +120,10 @@ describe('ReactNavigationInstrumentation', () => {
             someParam: 42,
           },
         };
+        // If .getCurrentRoute() is undefined, ignore state change 
+        mockNavigationContainerRef.current.currentRoute = undefined;
+        mockNavigationContainerRef.current.listeners['state']({});
+
         mockNavigationContainerRef.current.currentRoute = route;
         mockNavigationContainerRef.current.listeners['state']({});
 
