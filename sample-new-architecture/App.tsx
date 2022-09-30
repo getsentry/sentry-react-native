@@ -10,8 +10,8 @@
 
 import React, {type PropsWithChildren} from 'react';
 import {
+  Button,
   SafeAreaView,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -21,11 +21,24 @@ import {
 
 import {
   Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
+
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://d870ad989e7046a8b9715a57f59b23b5@o447951.ingest.sentry.io/5428561',
+  debug: true,
+  beforeSend: (event, hint) => {
+    console.log('Event beforeSend:', event, 'hint:', hint);
+    return event;
+  },
+  release: 'sampleNewArchitecture@1.0',
+  dist: '1',
+  integrations(integrations) {
+    console.log(integrations);
+    return integrations;
+  },
+});
 
 const Section: React.FC<
   PropsWithChildren<{
@@ -70,30 +83,13 @@ const App = () => {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
+      <View
+        style={{
+          padding: 20,
+        }}>
+        <Button title='Throw an error' onPress={() => { throw new Error('JavaScript Error') }} />
+        <Button title='Capture exception' onPress={() => { Sentry.captureException(new Error('Captured error')) }} />
+      </View>
     </SafeAreaView>
   );
 };
@@ -117,4 +113,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default Sentry.wrap(App);
