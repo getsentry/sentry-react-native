@@ -17,7 +17,6 @@ export {
   captureException,
   captureEvent,
   captureMessage,
-  configureScope,
   getHubFromCarrier,
   getCurrentHub,
   Hub,
@@ -66,6 +65,7 @@ export {
   close,
   captureUserFeedback,
   withScope,
+  configureScope,
 } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 
