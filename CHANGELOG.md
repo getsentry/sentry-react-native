@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Make `configureScope` callback safe [#2510](https://github.com/getsentry/sentry-react-native/pull/2510)
+
 ## 4.6.0
 
 ### Fixes
