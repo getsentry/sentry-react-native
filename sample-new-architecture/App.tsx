@@ -89,6 +89,7 @@ const App = () => {
         }}>
         <Button title='Throw an error' onPress={() => { throw new Error('JavaScript Error') }} />
         <Button title='Capture exception' onPress={() => { Sentry.captureException(new Error('Captured error')) }} />
+        <Button title='Naive crash' onPress={() => { Sentry.nativeCrash() }} />
       </View>
     </SafeAreaView>
   );
