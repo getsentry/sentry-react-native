@@ -75,13 +75,13 @@ jobs:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
       matrix:
-        platform: ["ios", "android"]
+        platform: ['ios', 'android']
         dev: [true, false]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: '14'
       - name: Cache Dependencies
         uses: actions/cache@v3
         id: cache
