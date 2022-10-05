@@ -89,16 +89,6 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         }
     }
 
-    // Enable the App start and Frames tracking measurements
-    if ([mutableOptions valueForKey:@"enableAutoPerformanceTracking"] != nil) {
-        BOOL enableAutoPerformanceTracking = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracking"];
-
-        PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracking;
-#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-        PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracking;
-#endif
-    }
-
     [SentrySDK startWithOptionsObject:sentryOptions];
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
@@ -404,7 +394,18 @@ RCT_EXPORT_METHOD(closeNativeSdk:(RCTPromiseResolveBlock)resolve
 
 RCT_EXPORT_METHOD(disableNativeFramesTracking)
 {
-    // Do nothing on iOS, this bridge method only has an effect on android.
+    PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = false;
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+    PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = false;
+#endif
+}
+
+RCT_EXPORT_METHOD(enableNativeFramesTracking)
+{
+    PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = true;
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+    PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = true;
+#endif
 }
 
 @end

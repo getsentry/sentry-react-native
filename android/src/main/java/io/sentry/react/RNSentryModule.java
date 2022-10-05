@@ -9,7 +9,6 @@ import android.util.SparseIntArray;
 import androidx.core.app.FrameMetricsAggregator;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -22,8 +21,6 @@ import com.facebook.react.module.annotations.ReactModule;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -32,17 +29,17 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.sentry.SentryEvent;
-import io.sentry.android.core.AnrIntegration;
-import io.sentry.android.core.AppStartState;
-import io.sentry.android.core.NdkIntegration;
-import io.sentry.android.core.SentryAndroid;
 import io.sentry.Breadcrumb;
 import io.sentry.HubAdapter;
 import io.sentry.Integration;
 import io.sentry.Sentry;
+import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
 import io.sentry.UncaughtExceptionHandlerIntegration;
+import io.sentry.android.core.AnrIntegration;
+import io.sentry.android.core.AppStartState;
+import io.sentry.android.core.NdkIntegration;
+import io.sentry.android.core.SentryAndroid;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
@@ -55,9 +52,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private static final Logger logger = Logger.getLogger("react-native-sentry");
 
-    private PackageInfo packageInfo = null;
+    private final PackageInfo packageInfo;
     private FrameMetricsAggregator frameMetricsAggregator = null;
-    private boolean androidXAvailable = true;
+    private boolean androidXAvailable;
 
     private static boolean didFetchAppStart;
 
@@ -139,29 +136,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
             if (rnOptions.hasKey("sendDefaultPii")) {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
-            }
-            if (rnOptions.hasKey("enableAutoPerformanceTracking")
-                    && rnOptions.getBoolean("enableAutoPerformanceTracking")) {
-                androidXAvailable = checkAndroidXAvailability();
-
-                if (androidXAvailable) {
-                    frameMetricsAggregator = new FrameMetricsAggregator();
-                    final Activity currentActivity = getCurrentActivity();
-
-                    if (frameMetricsAggregator != null && currentActivity != null) {
-                        try {
-                            frameMetricsAggregator.add(currentActivity);
-                        } catch (Throwable ignored) {
-                            // throws ConcurrentModification when calling addOnFrameMetricsAvailableListener
-                            // this is a best effort since we can't reproduce it
-                            logger.warning("Error adding Activity to frameMetricsAggregator.");
-                        }
-                    }
-                } else {
-                    logger.warning("androidx.core' isn't available as a dependency.");
-                }
-            } else {
-                this.disableNativeFramesTracking();
             }
 
             options.setBeforeSend((event, hint) -> {
@@ -468,6 +442,32 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         disableNativeFramesTracking();
 
         promise.resolve(true);
+    }
+
+    @ReactMethod
+    public void enableNativeFramesTracking() {
+        androidXAvailable = checkAndroidXAvailability();
+
+        if (androidXAvailable) {
+            frameMetricsAggregator = new FrameMetricsAggregator();
+            final Activity currentActivity = getCurrentActivity();
+
+            if (frameMetricsAggregator != null && currentActivity != null) {
+                try {
+                    frameMetricsAggregator.add(currentActivity);
+
+                    logger.info("FrameMetricsAggregator installed.");
+                } catch (Throwable ignored) {
+                    // throws ConcurrentModification when calling addOnFrameMetricsAvailableListener
+                    // this is a best effort since we can't reproduce it
+                    logger.severe("Error adding Activity to frameMetricsAggregator.");
+                }
+            } else {
+                logger.info("currentActivity isn't available.");
+            }
+        } else {
+            logger.warning("androidx.core' isn't available as a dependency.");
+        }
     }
 
     @ReactMethod
