@@ -362,7 +362,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                         String key = it.nextKey();
                         String value = otherUserKeys.getString(key);
 
-                        // data is ConcurrentHashMap and can't have null values
+                        // other is ConcurrentHashMap and can't have null values
                         if (value != null) {
                             otherUserKeysMap.put(key, value);
                         }
