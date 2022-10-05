@@ -82,10 +82,6 @@
   "jest": {
     "collectCoverage": true,
     "preset": "react-native",
-    "transform": {
-      "^.+\\.(tsx)$": "<rootDir>/node_modules/react-native/jest/preprocessor.js",
-      "^.+\\.(ts|tsx)$": "ts-jest"
-    },
     "globals": {
       "__DEV__": true,
       "ts-jest": {
