@@ -362,7 +362,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                         String key = it.nextKey();
                         String value = otherUserKeys.getString(key);
 
-                        otherUserKeysMap.put(key, value);
+                        // data is ConcurrentHashMap and can't have null values
+                        if (value != null) {
+                            otherUserKeysMap.put(key, value);
+                        }
                     }
 
                     userInstance.setOthers(otherUserKeysMap);
@@ -416,7 +419,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (breadcrumb.hasKey("data")) {
                 final ReadableMap data = breadcrumb.getMap("data");
                 for(final Map.Entry<String, Object> entry : data.toHashMap().entrySet()) {
-                    breadcrumbInstance.setData(entry.getKey(), entry.getValue());
+                    final Object value = entry.getValue();
+                    // data is ConcurrentHashMap and can't have null values
+                    if (value != null) {
+                        breadcrumbInstance.setData(entry.getKey(), entry.getValue());
+                    }
                 }
             }
 
