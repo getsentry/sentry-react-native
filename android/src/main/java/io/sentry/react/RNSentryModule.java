@@ -414,13 +414,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
 
             if (breadcrumb.hasKey("data")) {
-                ReadableMap data = breadcrumb.getMap("data");
-                ReadableMapKeySetIterator it = data.keySetIterator();
-                while (it.hasNextKey()) {
-                    String key = it.nextKey();
-                    String value = data.getString(key);
-
-                    breadcrumbInstance.setData(key, value);
+                final ReadableMap data = breadcrumb.getMap("data");
+                for(final Map.Entry<String, Object> entry : data.toHashMap().entrySet()) {
+                    breadcrumbInstance.setData(entry.getKey(), entry.getValue());
                 }
             }
 
