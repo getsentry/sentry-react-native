@@ -107,7 +107,7 @@ jobs:
 
         # Wait until the Appium server starts.
       - name: Check Appium Server
-        uses: nick-fields/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f # v2.8.1
+        uses: nick-fields/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f # pin@v2
         with:
           timeout_seconds: 60
           max_attempts: 10
@@ -115,7 +115,7 @@ jobs:
 
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
-        uses: reactivecircus/android-emulator-runner@d7b53ddc6e44254e1f4cf4a6ad67345837027a66 # v2.26.0
+        uses: reactivecircus/android-emulator-runner@d7b53ddc6e44254e1f4cf4a6ad67345837027a66 # pin@v2
         with:
           api-level: 29
           emulator-options: -accel on -no-snapshot -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none -timezone US/Pacific
