@@ -3,7 +3,7 @@ import { BrowserClient, User } from '@sentry/browser';
 import { addGlobalEventProcessor, Hub } from '@sentry/hub';
 import { IdleTransaction, Transaction } from '@sentry/tracing';
 
-import { NativeAppStartResponse } from '../../src/js/definitions';
+import { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
 import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
 
 jest.mock('../../src/js/wrapper', () => {

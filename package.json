@@ -105,5 +105,13 @@
     "testMatch": [
       "**/*.test.(ts|tsx)"
     ]
+  },
+  "codegenConfig": {
+    "name": "RNSentrySpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "io.sentry.react"
+    }
   }
 }

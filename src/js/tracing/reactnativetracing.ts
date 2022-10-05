@@ -16,7 +16,7 @@ import {
 } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
-import { NativeAppStartResponse } from '../definitions';
+import { NativeAppStartResponse } from '../NativeRNSentry';
 import { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
 import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';

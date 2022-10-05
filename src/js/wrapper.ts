@@ -13,17 +13,25 @@ import { logger, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
 
 import {
-  NativeAppStartResponse,
   NativeDeviceContextsResponse,
-  NativeFramesResponse,
-  NativeReleaseResponse,
-  SentryNativeBridgeModule,
-} from './definitions';
+  Spec,
+} from './NativeRNSentry';
 import { isHardCrash } from './misc';
 import { ReactNativeOptions } from './options';
 import { utf8ToBytes } from './vendor';
+import TurboRNSentry from './NativeRNSentry';
 
-const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
+declare global {
+  var __turboModuleProxy: unknown;
+}
+
+const isTurboModuleEnabled = globalThis.__turboModuleProxy != null;
+
+console.log('isTurboModuleEnabled', isTurboModuleEnabled, globalThis.__turboModuleProxy);
+
+const RNSentry = isTurboModuleEnabled
+  ? TurboRNSentry
+  : NativeModules.RNSentry;
 
 interface SentryNativeWrapper {
   enableNative: boolean;
@@ -38,8 +46,8 @@ interface SentryNativeWrapper {
   _processLevel(level: SeverityLevel): SeverityLevel;
   _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
   _isModuleLoaded(
-    module: SentryNativeBridgeModule | undefined
-  ): module is SentryNativeBridgeModule;
+    module: Spec | undefined
+  ): module is Spec;
   _getBreadcrumbs(event: Event): Breadcrumb[] | undefined;
 
   isNativeTransportAvailable(): boolean;
@@ -66,6 +74,24 @@ interface SentryNativeWrapper {
 
   nativeCrash(): void;
 }
+
+export type NativeReleaseResponse = {
+  build: string;
+  id: string;
+  version: string;
+};
+
+export type NativeAppStartResponse = {
+  isColdStart: boolean;
+  appStartTime: number;
+  didFetchAppStart: boolean;
+};
+
+export type NativeFramesResponse = {
+  totalFrames: number;
+  slowFrames: number;
+  frozenFrames: number;
+};
 
 /**
  * Our internal interface for calling native functions
@@ -237,8 +263,8 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    return RNSentry.fetchNativeAppStart();
-  },
+    return await RNSentry.fetchNativeAppStart();
+},
 
   async fetchNativeFrames(): Promise<NativeFramesResponse | null> {
     if (!this.enableNative) {
@@ -510,8 +536,8 @@ export const NATIVE: SentryNativeWrapper = {
    * Checks whether the RNSentry module is loaded.
    */
   _isModuleLoaded(
-    module: SentryNativeBridgeModule | undefined
-  ): module is SentryNativeBridgeModule {
+    module: Spec | undefined
+  ): module is Spec {
     return !!module;
   },
 

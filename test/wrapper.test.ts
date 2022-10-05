@@ -2,7 +2,7 @@
 import { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
 import { createEnvelope, logger } from '@sentry/utils';
 
-import { SentryNativeBridgeModule } from '../src/js/definitions';
+import { Spec } from '../src/js/NativeRNSentry';
 import { ReactNativeOptions } from '../src/js/options';
 import { utf8ToBytes } from '../src/js/vendor';
 import { NATIVE } from '../src/js/wrapper';
@@ -12,7 +12,7 @@ jest.mock(
   () => {
     let initPayload: ReactNativeOptions | null = null;
 
-    const RNSentry: SentryNativeBridgeModule = {
+    const RNSentry: Spec = {
       addBreadcrumb: jest.fn(),
       captureEnvelope: jest.fn(),
       clearBreadcrumbs: jest.fn(),
@@ -61,7 +61,7 @@ jest.mock(
 );
 
 const RN = require('react-native');
-const RNSentry = RN.NativeModules.RNSentry as SentryNativeBridgeModule;
+const RNSentry = RN.NativeModules.RNSentry as Spec;
 
 const callAllScopeMethods = () => {
   NATIVE.addBreadcrumb({
