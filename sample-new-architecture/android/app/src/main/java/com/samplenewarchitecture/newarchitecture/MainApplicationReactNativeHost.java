@@ -25,6 +25,8 @@ import com.samplenewarchitecture.newarchitecture.modules.MainApplicationTurboMod
 import java.util.ArrayList;
 import java.util.List;
 
+import io.sentry.react.RNSentryPackage;
+
 /**
  * A {@link ReactNativeHost} that helps you load everything needed for the New Architecture, both
  * TurboModule delegates and the Fabric Renderer.
@@ -51,6 +53,12 @@ public class MainApplicationReactNativeHost extends ReactNativeHost {
     //     packages.add(new TurboReactPackage() { ... });
     // If you have custom Fabric Components, their ViewManagers should also be loaded here
     // inside a ReactPackage.
+    for (ReactPackage pkg : packages) {
+      if (pkg instanceof RNSentryPackage) {
+        return packages;
+      }
+    }
+    packages.add(new RNSentryPackage());
     return packages;
   }
 

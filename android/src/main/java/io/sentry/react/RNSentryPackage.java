@@ -21,26 +21,26 @@ public class RNSentryPackage extends TurboReactPackage {
     } else {
       return null;
     }
-    }
+  }
 
-    @Override
-    public ReactModuleInfoProvider getReactModuleInfoProvider() {
-      return () -> {
-        final Map<String, ReactModuleInfo> moduleInfos = new HashMap<>();
-        boolean isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
-        moduleInfos.put(
-            RNSentryModuleImpl.NAME,
-            new ReactModuleInfo(
-                RNSentryModuleImpl.NAME,
-                RNSentryModuleImpl.NAME,
-                false, // canOverrideExistingModule
-                false, // needsEagerInit
-                true, // hasConstants
-                false, // isCxxModule
-                isTurboModule // isTurboModule
-        ));
-        return moduleInfos;
-      };
-    }
+  @Override
+  public ReactModuleInfoProvider getReactModuleInfoProvider() {
+    return () -> {
+      final Map<String, ReactModuleInfo> moduleInfos = new HashMap<>();
+      boolean isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
+      moduleInfos.put(
+          RNSentryModuleImpl.NAME,
+          new ReactModuleInfo(
+              RNSentryModuleImpl.NAME,
+              RNSentryModuleImpl.NAME,
+              false, // canOverrideExistingModule
+              false, // needsEagerInit
+              true, // hasConstants
+              false, // isCxxModule
+              isTurboModule // isTurboModule
+      ));
+      return moduleInfos;
+    };
+  }
 
 }

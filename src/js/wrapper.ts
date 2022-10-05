@@ -31,7 +31,7 @@ console.log('isTurboModuleEnabled', isTurboModuleEnabled, globalThis.__turboModu
 
 const RNSentry = isTurboModuleEnabled
   ? TurboRNSentry
-  : NativeModules.RNSentry;
+  : NativeModules.RNSentry as Spec | undefined;
 
 interface SentryNativeWrapper {
   enableNative: boolean;

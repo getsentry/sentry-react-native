@@ -1,10 +1,12 @@
 package io.sentry.react;
 
+import androidx.annotation.NonNull;
+import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.Promise;
 
-public class RNSentryModule extends NativeCalculatorSpec {
+public class RNSentryModule extends NativeRNSentrySpec {
 
   private final RNSentryModuleImpl impl;
 
@@ -89,4 +91,13 @@ public class RNSentryModule extends NativeCalculatorSpec {
     this.impl.disableNativeFramesTracking();
   }
 
+  @Override
+  public void fetchNativeDeviceContexts(Promise promise) {
+    // TODO: implement
+  }
+
+  @Override
+  public void fetchNativeSdkInfo(Promise promise) {
+    // TODO: implement
+  }
 }
