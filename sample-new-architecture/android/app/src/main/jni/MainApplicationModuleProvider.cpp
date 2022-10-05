@@ -2,6 +2,7 @@
 
 #include <rncli.h>
 #include <rncore.h>
+#include <RNSentrySpec.h>
 
 namespace facebook {
 namespace react {
@@ -23,6 +24,12 @@ std::shared_ptr<TurboModule> MainApplicationModuleProvider(
   auto rncli_module = rncli_ModuleProvider(moduleName, params);
   if (rncli_module != nullptr) {
     return rncli_module;
+  }
+
+  auto rnsentry_module = RNSentrySpec_ModuleProvider(moduleName, params);
+  if (rnsentry_module != nullptr)
+  {
+    return rnsentry_module;
   }
 
   return rncore_ModuleProvider(moduleName, params);
