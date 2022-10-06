@@ -14,7 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-
+        with:
+          node-version: 14
       - uses: actions/cache@v3
         id: cache
         with:
@@ -48,6 +49,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+        with:
+          node-version: 14
       - uses: actions/cache@v3
         id: cache
         with:
