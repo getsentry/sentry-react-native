@@ -25,7 +25,9 @@ declare global {
   var __turboModuleProxy: unknown;
 }
 
-const isTurboModuleEnabled = globalThis.__turboModuleProxy != null;
+const isTurboModuleEnabled = !!globalThis.__turboModuleProxy;
+
+console.log('isTurboModuleEnabled', isTurboModuleEnabled);
 
 const RNSentry: Spec | undefined  = isTurboModuleEnabled
   ? TurboModuleRegistry.getEnforcing<Spec>('RNSentry')
