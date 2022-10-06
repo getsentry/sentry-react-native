@@ -1,6 +1,8 @@
 import { Envelope, Outcome, Transport } from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
+import * as RN from 'react-native';
 
+import { ReactNativeClient } from '../src/js/client';
 import { ReactNativeClientOptions, ReactNativeOptions } from '../src/js/options';
 import { NativeTransport } from '../src/js/transports/native';
 import { SDK_NAME, SDK_VERSION } from '../src/js/version';
@@ -60,9 +62,6 @@ jest.mock(
   }),
 );
 
-const RN: MockedReactNative = require('react-native');
-import { ReactNativeClient } from '../src/js/client';
-
 const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNative: true,
   enableNativeCrashHandling: true,
@@ -88,6 +87,8 @@ describe('Tests ReactNativeClient', () => {
       } as ReactNativeClientOptions);
 
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
+      // @ts-ignore: Is Mocked
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       await expect(RN.LogBox?.ignoreLogs).toBeCalled();
     });
 
@@ -115,7 +116,8 @@ describe('Tests ReactNativeClient', () => {
       }).not.toThrow();
     });
 
-    test('falls back to YellowBox if no LogBox', async () => {
+    test.skip('falls back to YellowBox if no LogBox', async () => {
+      // @ts-ignore RN is mocked
       RN.LogBox = undefined;
 
       const client = new ReactNativeClient({
@@ -198,6 +200,8 @@ describe('Tests ReactNativeClient', () => {
 
   describe('nativeCrash', () => {
     test('calls NativeModules crash', () => {
+      // const RN: MockedReactNative = require('react-native');
+
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         enableNative: true,
