@@ -74,7 +74,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       _metadata: options._metadata,
     });
 
-     console.log('initializing react native sdk');
      void this._initNativeSdk();
    }
 
@@ -167,11 +166,9 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     try {
       didCallNativeInit = await NATIVE.initNativeSdk(this._options);
     } catch (_) {
-      console.log('error');
       this._showCannotConnectDialog();
     } finally {
       try {
-        console.log('onready', this._options.onReady);
         this._options.onReady?.({ didCallNativeInit });
       } catch (error) {
         logger.error('The OnReady callback threw an error: ', error);
