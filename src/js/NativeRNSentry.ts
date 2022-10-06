@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
+import { Package } from '@sentry/types';
 import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
-import { Package } from '@sentry/types';
 
 export interface Spec extends TurboModule {
   addBreadcrumb(breadcrumb: {}): void;
