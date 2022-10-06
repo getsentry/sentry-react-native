@@ -5,6 +5,7 @@
 ### Fixes
 
 - Make `configureScope` callback safe [#2510](https://github.com/getsentry/sentry-react-native/pull/2510)
+- Nested breadcrumb data on android was not treated correctly [#2519](https://github.com/getsentry/sentry-react-native/pull/2519)
 
 ### Dependencies
 
