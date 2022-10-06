@@ -76,13 +76,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         return NAME;
     }
 
-    @Override
-    public Map<String, Object> getConstants() {
-        final Map<String, Object> constants = new HashMap<>();
-        constants.put("nativeClientAvailable", true);
-        constants.put("nativeTransport", true);
-        return constants;
-    }
+    // @Override
+    // public Map<String, Object> getConstants() {
+    // final Map<String, Object> constants = new HashMap<>();
+    // constants.put("nativeClientAvailable", true);
+    // constants.put("nativeTransport", true);
+    // return constants;
+    // }
 
     @ReactMethod
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {

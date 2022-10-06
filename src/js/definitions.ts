@@ -29,7 +29,7 @@ interface SerializedObject {
 }
 
 export interface SentryNativeBridgeModule {
-  nativeClientAvailable: boolean;
+  // nativeClientAvailable: boolean;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   captureEnvelope(
