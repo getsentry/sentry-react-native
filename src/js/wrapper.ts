@@ -12,22 +12,20 @@ import {
 import { logger, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
 
-import {
+import { isHardCrash } from './misc';
+import TurboRNSentry, {
   NativeDeviceContextsResponse,
   Spec,
 } from './NativeRNSentry';
-import { isHardCrash } from './misc';
 import { ReactNativeOptions } from './options';
 import { utf8ToBytes } from './vendor';
-import TurboRNSentry from './NativeRNSentry';
 
 declare global {
+  // eslint-disable-next-line no-var
   var __turboModuleProxy: unknown;
 }
 
 const isTurboModuleEnabled = globalThis.__turboModuleProxy != null;
-
-console.log('isTurboModuleEnabled', isTurboModuleEnabled, globalThis.__turboModuleProxy);
 
 const RNSentry = isTurboModuleEnabled
   ? TurboRNSentry

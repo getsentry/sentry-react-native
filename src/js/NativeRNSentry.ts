@@ -1,10 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 import { Package } from '@sentry/types';
 
 export interface Spec extends TurboModule {
-  // nativeClientAvailable: boolean;
-
   addBreadcrumb(breadcrumb: {}): void;
   captureEnvelope(
     bytes: number[],
