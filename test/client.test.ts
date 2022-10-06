@@ -60,6 +60,8 @@ jest.mock(
       ignoreWarnings: jest.fn(),
     },
   }),
+  /* virtual allows us to mock modules that aren't in package.json */
+  { virtual: true }
 );
 
 const DEFAULT_OPTIONS: ReactNativeOptions = {
