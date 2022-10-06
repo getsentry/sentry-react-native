@@ -417,7 +417,7 @@ RCT_EXPORT_METHOD(disableNativeFramesTracking)
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params
 {
-    return std::make_shared<facebook::react::NativeCalculatorSpecJSI>(params);
+    return std::make_shared<facebook::react::NativeRNSentrySpecJSI>(params);
 }
 #endif
 @end

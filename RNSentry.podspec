@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
   s.dependency 'React-Core'
   s.dependency 'Sentry', '7.26.0'
 
-  s.source_files = 'ios/RNSentry.{h,m}'
+  s.source_files = 'ios/RNSentry.{h,mm}'
   s.public_header_files = 'ios/RNSentry.h'
 
   # This guard prevent to install the dependencies when we run `pod install` in the old architecture.
