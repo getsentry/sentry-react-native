@@ -44,7 +44,11 @@ export interface AppContainerInstance {
 
 interface ReactNavigationV4Options {
   /**
-   * The time the transaction will wait for route to mount before it is discarded.
+   * How long the instrumentation will wait for the route to mount after a change has been initiated,
+   * before the transaction is discarded.
+   * Time is in ms.
+   *
+   * Default: 1000
    */
   routeChangeTimeoutMs: number;
 }
