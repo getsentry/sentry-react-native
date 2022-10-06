@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Package } from '@sentry/types';
-import type { TurboModule } from 'react-native';
-import { TurboModuleRegistry } from 'react-native';
+import { TurboModule, TurboModuleRegistry } from 'react-native';
 
+// There has to be only one interface and it has to be named `Spec`
+// Only extra allowed definitions are types
 export interface Spec extends TurboModule {
   addBreadcrumb(breadcrumb: {}): void;
   captureEnvelope(
@@ -56,4 +57,5 @@ export type NativeDeviceContextsResponse = {
   [key: string]: Record<string, unknown>;
 };
 
+// The export must be here even if not used to pass codegen
 export default TurboModuleRegistry.getEnforcing<Spec>('RNSentry');
