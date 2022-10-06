@@ -1,6 +1,5 @@
 import { Envelope, Outcome, Transport } from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
-import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';
 import { ReactNativeClientOptions, ReactNativeOptions } from '../src/js/options';
@@ -34,7 +33,7 @@ interface MockedReactNative {
   };
   LogBox: {
     ignoreLogs: jest.Mock;
-  };
+  } | undefined;
   YellowBox: {
     ignoreWarnings: jest.Mock;
   };
@@ -60,9 +59,9 @@ jest.mock(
       ignoreWarnings: jest.fn(),
     },
   }),
-  /* virtual allows us to mock modules that aren't in package.json */
-  { virtual: true }
 );
+
+const RN: MockedReactNative = require('react-native');
 
 const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNative: true,
@@ -89,9 +88,7 @@ describe('Tests ReactNativeClient', () => {
       } as ReactNativeClientOptions);
 
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
-      // @ts-ignore: Is Mocked
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      await expect(RN.LogBox.ignoreLogs).toBeCalled();
+      await expect(RN.LogBox?.ignoreLogs).toBeCalled();
     });
 
     test('invalid dsn is thrown', () => {
@@ -119,7 +116,6 @@ describe('Tests ReactNativeClient', () => {
     });
 
     test('falls back to YellowBox if no LogBox', async () => {
-      // @ts-ignore: Is Mocked
       RN.LogBox = undefined;
 
       const client = new ReactNativeClient({

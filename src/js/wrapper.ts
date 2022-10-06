@@ -10,10 +10,10 @@ import {
   User,
 } from '@sentry/types';
 import { logger, SentryError } from '@sentry/utils';
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules, Platform , TurboModuleRegistry } from 'react-native';
 
 import { isHardCrash } from './misc';
-import TurboRNSentry, {
+import {
   NativeDeviceContextsResponse,
   Spec,
 } from './NativeRNSentry';
@@ -27,9 +27,9 @@ declare global {
 
 const isTurboModuleEnabled = globalThis.__turboModuleProxy != null;
 
-const RNSentry = isTurboModuleEnabled
-  ? TurboRNSentry
-  : NativeModules.RNSentry as Spec | undefined;
+const RNSentry: Spec | undefined  = isTurboModuleEnabled
+  ? TurboModuleRegistry.getEnforcing<Spec>('RNSentry')
+  : NativeModules.RNSentry;
 
 interface SentryNativeWrapper {
   enableNative: boolean;

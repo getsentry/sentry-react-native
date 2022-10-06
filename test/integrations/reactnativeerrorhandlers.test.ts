@@ -1,6 +1,6 @@
 import { BrowserClient, defaultIntegrations, defaultStackParser } from '@sentry/browser';
 
-const _browserClient: BrowserClient = new BrowserClient({
+const mockBrowserClient: BrowserClient = new BrowserClient({
   stackParser: defaultStackParser,
   integrations: defaultIntegrations,
   transport: jest.fn(),
@@ -16,7 +16,7 @@ jest.mock('@sentry/core', () => {
 
   const client = {
     getOptions: () => ({}),
-    eventFromException: (_exception: any, _hint?: EventHint): PromiseLike<Event> => _browserClient.eventFromException(_exception, _hint)
+    eventFromException: (_exception: any, _hint?: EventHint): PromiseLike<Event> => mockBrowserClient.eventFromException(_exception, _hint)
   };
 
   const hub = {

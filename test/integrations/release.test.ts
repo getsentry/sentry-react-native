@@ -3,6 +3,8 @@ import { EventProcessor } from '@sentry/types';
 
 import { Release } from '../../src/js/integrations/release';
 
+const mockRelease = Release;
+
 jest.mock('@sentry/core', () => {
   const client = {
     getOptions: jest.fn(),
@@ -10,7 +12,8 @@ jest.mock('@sentry/core', () => {
 
   const hub = {
     getClient: () => client,
-    getIntegration: () => Release,
+    // out-of-scope variables have to be prefixed with `mock` caseSensitive
+    getIntegration: () => mockRelease,
   };
 
   return {
@@ -46,7 +49,7 @@ describe('Tests the Release integration', () => {
     // @ts-ignore Mock
     client.getOptions.mockImplementation(() => ({}));
 
-    const event = await eventProcessor({});
+    const event = await eventProcessor({}, {});
 
     expect(event?.release).toBe('native_id@native_version+native_build');
     expect(event?.dist).toBe('native_build');
