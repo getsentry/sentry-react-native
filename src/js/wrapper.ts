@@ -9,7 +9,7 @@ import {
   SeverityLevel,
   User,
 } from '@sentry/types';
-import { logger, SentryError } from '@sentry/utils';
+import { logger, normalize, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
 
 import {
@@ -355,7 +355,7 @@ export const NATIVE: SentryNativeWrapper = {
         ? this._processLevel(breadcrumb.level)
         : undefined,
       data: breadcrumb.data
-        ? this._serializeObject(breadcrumb.data)
+        ? normalize(breadcrumb.data)
         : undefined,
     });
   },
@@ -389,7 +389,7 @@ export const NATIVE: SentryNativeWrapper = {
 
     RNSentry.setContext(
       key,
-      context !== null ? this._serializeObject(context) : null
+      context !== null ? normalize(context) : null
     );
   },
 
