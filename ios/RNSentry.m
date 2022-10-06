@@ -407,4 +407,12 @@ RCT_EXPORT_METHOD(disableNativeFramesTracking)
     // Do nothing on iOS, this bridge method only has an effect on android.
 }
 
+RCT_EXPORT_METHOD(enableNativeFramesTracking)
+{
+    // Do nothing on iOS, this bridge method only has an effect on android.
+    // If you're starting the Cocoa SDK manually,
+    // you can set the 'enableAutoPerformanceTracking: true' option and
+    // the 'tracesSampleRate' or 'tracesSampler' option.
+}
+
 @end

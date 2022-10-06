@@ -10,7 +10,7 @@ describe('Event Origin', () => {
 
     integration.setupOnce(async (eventProcessor) => {
       try {
-        const processedEvent = await eventProcessor(mockEvent);
+        const processedEvent = await eventProcessor(mockEvent, {});
 
         expect(processedEvent).toBeDefined();
         if (processedEvent) {

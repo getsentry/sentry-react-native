@@ -163,6 +163,7 @@ export class ReactNativeTracing implements Integration {
     }
 
     if (enableNativeFramesTracking) {
+      NATIVE.enableNativeFramesTracking();
       this.nativeFramesInstrumentation = new NativeFramesInstrumentation(
         addGlobalEventProcessor,
         () => {

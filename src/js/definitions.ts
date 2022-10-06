@@ -42,6 +42,7 @@ export interface SentryNativeBridgeModule {
   crash(): void;
   closeNativeSdk(): PromiseLike<void>;
   disableNativeFramesTracking(): void;
+  enableNativeFramesTracking(): void;
   fetchNativeRelease(): Promise<{
     build: string;
     id: string;
