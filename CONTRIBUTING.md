@@ -6,7 +6,7 @@ This repository contains a sample project. It can be used to test the SDK as you
 
 You need:
 
-- nodejs 8 or higher
+- nodejs 14 or higher
 - yarn 1 or higher
 
 ## Building

@@ -262,3 +262,18 @@ export function withScope(callback: (scope: Scope) => void): ReturnType<Hub['wit
   };
   getCurrentHub().withScope(safeCallback);
 }
+
+/**
+ * Callback to set context information onto the scope.
+ * @param callback Callback function that receives Scope.
+ */
+ export function configureScope(callback: (scope: Scope) => void): ReturnType<Hub['configureScope']> {
+  const safeCallback = (scope: Scope): void => {
+    try {
+      callback(scope);
+    } catch (e) {
+      logger.error('Error while running configureScope callback', e);
+    }
+  };
+  getCurrentHub().configureScope(safeCallback);
+}

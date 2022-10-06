@@ -5,6 +5,7 @@ interface MockedClient {
 }
 
 let mockedGetCurrentHubWithScope: jest.Mock;
+let mockedGetCurrentHubConfigureScope: jest.Mock;
 
 jest.mock('@sentry/react', () => {
   const actualModule = jest.requireActual('@sentry/react');
@@ -17,10 +18,12 @@ jest.mock('@sentry/react', () => {
     ...actualModule,
     getCurrentHub: jest.fn(() => {
       mockedGetCurrentHubWithScope = jest.fn();
+      mockedGetCurrentHubConfigureScope = jest.fn();
       return {
         getClient: jest.fn(() => mockClient),
         setTag: jest.fn(),
         withScope: mockedGetCurrentHubWithScope,
+        configureScope: mockedGetCurrentHubConfigureScope,
       };
     }),
     defaultIntegrations: [ { name: 'MockedDefaultReactIntegration', setupOnce: jest.fn() } ],
@@ -62,7 +65,7 @@ import { getCurrentHub } from '@sentry/react';
 import { Integration, Scope } from '@sentry/types';
 
 import { ReactNativeClientOptions } from '../src/js/options';
-import { flush, init, withScope } from '../src/js/sdk';
+import { configureScope,flush, init, withScope } from '../src/js/sdk';
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
 import { firstArg, secondArg } from './testutils';
 
@@ -229,6 +232,19 @@ describe('Tests the SDK functionality', () => {
 
       expect(() => {
         (mockedGetCurrentHubWithScope.mock.calls[0][firstArg] as (scope: Scope) => void)({} as any);
+      }).not.toThrow();
+      expect(mockScopeCallback).toBeCalledTimes(1);
+    });
+  });
+
+  describe('configureScope', () => {
+    test('configureScope callback does not throw', () => {
+      const mockScopeCallback = jest.fn(() => { throw 'Test error' });
+
+      configureScope(mockScopeCallback);
+
+      expect(() => {
+        (mockedGetCurrentHubConfigureScope.mock.calls[0][firstArg] as (scope: Scope) => void)({} as any);
       }).not.toThrow();
       expect(mockScopeCallback).toBeCalledTimes(1);
     });
