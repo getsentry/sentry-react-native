@@ -1,7 +1,6 @@
 import { Envelope, Outcome, Transport } from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 
-import { ReactNativeClient } from '../src/js/client';
 import { ReactNativeClientOptions, ReactNativeOptions } from '../src/js/options';
 import { NativeTransport } from '../src/js/transports/native';
 import { SDK_NAME, SDK_VERSION } from '../src/js/version';
@@ -62,6 +61,7 @@ jest.mock(
 );
 
 const RN: MockedReactNative = require('react-native');
+import { ReactNativeClient } from '../src/js/client';
 
 const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNative: true,
@@ -198,8 +198,6 @@ describe('Tests ReactNativeClient', () => {
 
   describe('nativeCrash', () => {
     test('calls NativeModules crash', () => {
-      const RN: MockedReactNative = require('react-native');
-
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         enableNative: true,
