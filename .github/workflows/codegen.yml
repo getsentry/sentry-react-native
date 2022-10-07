@@ -24,11 +24,13 @@ jobs:
       - uses: actions/cache@v3
         id: cache
         with:
-          path: node_modules
+          path: sample-new-architecture/node_modules
           key: ${{ runner.os }}-${{ github.sha }}
       - name: Install Dependencies
         if: steps.cache.outputs['cache-hit'] != 'true'
-        run: yarn install
+        run: |
+          cd sample-new-architecture
+          yarn install
       - name: Codegen
         run: |
           cd sample-new-architecture
