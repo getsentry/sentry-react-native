@@ -35,8 +35,7 @@ Sentry.init({
   release: 'sampleNewArchitecture@1.0',
   dist: '1',
   integrations(integrations) {
-    console.log(integrations);
-    return integrations;
+    return integrations.filter((i) => i.name !== 'Dedupe');
   },
 });
 
@@ -87,6 +86,7 @@ const App = () => {
         style={{
           padding: 20,
         }}>
+        <Button title='Capture message' onPress={() => { Sentry.captureMessage('Test message') }} />
         <Button title='Throw an error' onPress={() => { throw new Error('JavaScript Error') }} />
         <Button title='Capture exception' onPress={() => { Sentry.captureException(new Error('Captured error')) }} />
         <Button title='Naive crash' onPress={() => { Sentry.nativeCrash() }} />
