@@ -11,6 +11,13 @@ import { BeforeNavigate, RouteChangeContextData } from './types';
 import { customTransactionSource, defaultTransactionSource, getBlankTransactionContext } from './utils';
 
 interface ReactNativeNavigationOptions {
+  /**
+   * How long the instrumentation will wait for the route to mount after a change has been initiated,
+   * before the transaction is discarded.
+   * Time is in ms.
+   *
+   * Default: 1000
+   */
   routeChangeTimeoutMs: number;
 }
 
