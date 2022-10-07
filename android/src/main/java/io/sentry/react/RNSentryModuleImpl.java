@@ -67,14 +67,6 @@ public class RNSentryModuleImpl {
     this.reactApplicationContext = reactApplicationContext;
   }
 
-  // TODO: idn this is not used, remove?
-  public Map<String, Object> getConstants() {
-    final Map<String, Object> constants = new HashMap<>();
-    constants.put("nativeClientAvailable", true);
-    constants.put("nativeTransport", true);
-    return constants;
-  }
-
   private ReactApplicationContext getReactApplicationContext() {
     return this.reactApplicationContext;
   }

@@ -44,11 +44,6 @@ static bool didFetchAppStart;
 
 RCT_EXPORT_MODULE()
 
-- (NSDictionary<NSString *, id> *)constantsToExport
-{
-    return @{@"nativeClientAvailable": @YES, @"nativeTransport": @YES};
-}
-
 RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)

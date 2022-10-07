@@ -4,6 +4,8 @@ import { TurboModule, TurboModuleRegistry } from 'react-native';
 
 // There has to be only one interface and it has to be named `Spec`
 // Only extra allowed definitions are types
+// Codegen at the moment does not support custom types in function arguments
+// only primitives or Object are supported (It doesn't apply to return types)
 export interface Spec extends TurboModule {
   addBreadcrumb(breadcrumb: {}): void;
   captureEnvelope(
@@ -57,5 +59,5 @@ export type NativeDeviceContextsResponse = {
   [key: string]: Record<string, unknown>;
 };
 
-// The export must be here even if not used to pass codegen
+// The export must be here to pass codegen even if not used
 export default TurboModuleRegistry.getEnforcing<Spec>('RNSentry');

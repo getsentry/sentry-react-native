@@ -1,5 +1,10 @@
 # Changelog
 
+# Unreleased
+
+### Features
+- Add initial support for the RN New Architecture (backwards compatible RNSentry Turbo Module)
+
 ## 5.0.0-alpha.5
 
 ### Fixes
