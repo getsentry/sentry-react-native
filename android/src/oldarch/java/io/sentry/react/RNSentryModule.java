@@ -3,6 +3,10 @@ package io.sentry.react;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
 
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
@@ -14,7 +18,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @Override
-  public static String getName() {
+  public String getName() {
     return RNSentryModuleImpl.NAME;
   }
 
