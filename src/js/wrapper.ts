@@ -56,6 +56,7 @@ interface SentryNativeWrapper {
   fetchNativeSdkInfo(): PromiseLike<Package | null>;
 
   disableNativeFramesTracking(): void;
+  enableNativeFramesTracking(): void;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   setContext(key: string, context: { [key: string]: unknown } | null): void;
@@ -417,6 +418,17 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     RNSentry.disableNativeFramesTracking();
+  },
+
+  enableNativeFramesTracking(): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return;
+    }
+
+    RNSentry.enableNativeFramesTracking();
   },
 
   isNativeTransportAvailable(): boolean {
