@@ -34,7 +34,7 @@ interface MockedReactNative {
   };
   LogBox: {
     ignoreLogs: jest.Mock;
-  } | undefined;
+  };
   YellowBox: {
     ignoreWarnings: jest.Mock;
   };
@@ -91,7 +91,7 @@ describe('Tests ReactNativeClient', () => {
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
       // @ts-ignore: Is Mocked
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      await expect(RN.LogBox?.ignoreLogs).toBeCalled();
+      await expect(RN.LogBox.ignoreLogs).toBeCalled();
     });
 
     test('invalid dsn is thrown', () => {
@@ -119,7 +119,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     test.skip('falls back to YellowBox if no LogBox', async () => {
-      // @ts-ignore RN is mocked
+      // @ts-ignore: Is Mocked
       RN.LogBox = undefined;
 
       const client = new ReactNativeClient({
@@ -202,7 +202,7 @@ describe('Tests ReactNativeClient', () => {
 
   describe('nativeCrash', () => {
     test('calls NativeModules crash', () => {
-      // const RN: MockedReactNative = require('react-native');
+      const RN: MockedReactNative = require('react-native');
 
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
