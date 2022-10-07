@@ -246,8 +246,8 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    return await RNSentry.fetchNativeAppStart();
-},
+    return RNSentry.fetchNativeAppStart();
+  },
 
   async fetchNativeFrames(): Promise<NativeFramesResponse | null> {
     if (!this.enableNative) {
