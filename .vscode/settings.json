@@ -24,5 +24,8 @@
     "editor.formatOnSave": false
   },
   "react-native-tools.projectRoot": "./sample",
-  "dart.flutterAdbConnectOnChromeOs": false
+  "dart.flutterAdbConnectOnChromeOs": false,
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": "file:///Users/krystofwoldrich/repos/sentry-react-native/.github/workflows/codegen.yml"
+  }
 }
