@@ -30,6 +30,6 @@ jobs:
         if: steps.cache.outputs['cache-hit'] != 'true'
         run: yarn install
       - name: Codegen
-        run: >
+        run: |
           cd sample-new-architecture
           ${{ matrix.command }}
