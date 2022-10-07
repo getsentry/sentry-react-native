@@ -15,7 +15,9 @@ jobs:
         platform: ["android"] # "ios" will be added after codegen is fixed
         include:
           - platform: android
-            command: ./gradlew generateCodegenArtifactsFromSchema
+            command: |
+              cd sample-new-architecture/android
+              ./gradlew generateCodegenArtifactsFromSchema
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -32,6 +34,4 @@ jobs:
           cd sample-new-architecture
           yarn install
       - name: Codegen
-        run: |
-          cd sample-new-architecture/android
-          ${{ matrix.command }}
+        run: ${{ matrix.command }}
