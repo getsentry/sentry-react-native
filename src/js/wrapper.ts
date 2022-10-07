@@ -14,7 +14,10 @@ import { NativeModules, Platform , TurboModuleRegistry } from 'react-native';
 
 import { isHardCrash } from './misc';
 import {
+  NativeAppStartResponse,
   NativeDeviceContextsResponse,
+  NativeFramesResponse,
+  NativeReleaseResponse,
   Spec,
 } from './NativeRNSentry';
 import { ReactNativeOptions } from './options';
@@ -72,24 +75,6 @@ interface SentryNativeWrapper {
 
   nativeCrash(): void;
 }
-
-export type NativeReleaseResponse = {
-  build: string;
-  id: string;
-  version: string;
-};
-
-export type NativeAppStartResponse = {
-  isColdStart: boolean;
-  appStartTime: number;
-  didFetchAppStart: boolean;
-};
-
-export type NativeFramesResponse = {
-  totalFrames: number;
-  slowFrames: number;
-  frozenFrames: number;
-};
 
 /**
  * Our internal interface for calling native functions

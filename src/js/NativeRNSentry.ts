@@ -1,13 +1,11 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { Package } from '@sentry/types';
 import { TurboModule, TurboModuleRegistry } from 'react-native';
+import type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 
 // There has to be only one interface and it has to be named `Spec`
-// Only extra allowed definitions are types
-// Codegen at the moment does not support custom types in function arguments
-// only primitives or Object are supported (It doesn't apply to return types)
+// Only extra allowed definitions are types (probably codegen bug)
 export interface Spec extends TurboModule {
-  addBreadcrumb(breadcrumb: {}): void;
+  addBreadcrumb(breadcrumb: UnsafeObject): void;
   captureEnvelope(
     bytes: number[],
     options: {
@@ -18,21 +16,17 @@ export interface Spec extends TurboModule {
   crash(): void;
   closeNativeSdk(): Promise<void>;
   disableNativeFramesTracking(): void;
-  fetchNativeRelease(): Promise<{
-    build: string;
-    id: string;
-    version: string;
-  }>;
+  fetchNativeRelease(): Promise<NativeReleaseResponse>;
   fetchNativeSdkInfo(): Promise<Package>;
   fetchNativeDeviceContexts(): Promise<NativeDeviceContextsResponse>;
   fetchNativeAppStart(): Promise<NativeAppStartResponse | null>;
   fetchNativeFrames(): Promise<NativeFramesResponse | null>;
-  initNativeSdk(options: {}): Promise<boolean>;
+  initNativeSdk(options: UnsafeObject): Promise<boolean>;
   setUser(
-    defaultUserKeys: {} | null,
-    otherUserKeys: {} | null
+    defaultUserKeys: UnsafeObject | null,
+    otherUserKeys: UnsafeObject | null
   ): void;
-  setContext(key: string, value: {} | null): void;
+  setContext(key: string, value: UnsafeObject | null): void;
   setExtra(key: string, value: string): void;
   setTag(key: string, value: string): void;
 }
