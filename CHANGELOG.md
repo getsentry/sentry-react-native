@@ -3,7 +3,7 @@
 # Unreleased
 
 ### Features
-- Add initial support for the RN New Architecture (backwards compatible RNSentry Turbo Module)
+- Add initial support for the RN New Architecture, backwards compatible RNSentry Turbo Module ([#2522](https://github.com/getsentry/sentry-react-native/pull/2522))
 
 ## 5.0.0-alpha.5
 
