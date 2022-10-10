@@ -123,7 +123,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 options.setAttachStacktrace(rnOptions.getBoolean("attachStacktrace"));
             }
             if (rnOptions.hasKey("attachThreads")) {
-                // JS use top level stacktraces and android attaches Threads which hides them so
+                // JS use top level stacktrace and android attaches Threads which hides them so
                 // by default we hide.
                 options.setAttachThreads(rnOptions.getBoolean("attachThreads"));
             }
@@ -160,7 +160,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 }
             }
 
-            logger.info(String.format("Native Integrations '%s'", options.getIntegrations().toString()));
+            logger.info(String.format("Native Integrations '%s'", options.getIntegrations()));
         });
 
         promise.resolve(true);
@@ -264,7 +264,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void captureEnvelope(ReadableArray rawBytes, ReadableMap options, Promise promise) {
-        byte bytes[] = new byte[rawBytes.size()];
+        byte[] bytes = new byte[rawBytes.size()];
         for (int i = 0; i < rawBytes.size(); i++) {
             bytes[i] = (byte) rawBytes.getInt(i);
         }
@@ -323,7 +323,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 }
 
                 if (otherUserKeys != null) {
-                    HashMap<String, String> otherUserKeysMap = new HashMap<String, String>();
+                    HashMap<String, String> otherUserKeysMap = new HashMap<>();
                     ReadableMapKeySetIterator it = otherUserKeys.keySetIterator();
                     while (it.hasNextKey()) {
                         String key = it.nextKey();
@@ -368,17 +368,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     case "warning":
                         breadcrumbInstance.setLevel(SentryLevel.WARNING);
                         break;
-                    case "info":
-                        breadcrumbInstance.setLevel(SentryLevel.INFO);
-                        break;
                     case "debug":
                         breadcrumbInstance.setLevel(SentryLevel.DEBUG);
                         break;
                     case "error":
                         breadcrumbInstance.setLevel(SentryLevel.ERROR);
                         break;
+                    case "info":
                     default:
-                        breadcrumbInstance.setLevel(SentryLevel.ERROR);
+                        breadcrumbInstance.setLevel(SentryLevel.INFO);
                         break;
                 }
             }
@@ -481,10 +479,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 // If the event is from capacitor js, it gets set there and we do not handle it
                 // here.
                 case "sentry.native":
-                    setEventEnvironmentTag(event, "android", "native");
+                    setEventEnvironmentTag(event, "native");
                     break;
                 case "sentry.java.android":
-                    setEventEnvironmentTag(event, "android", "java");
+                    setEventEnvironmentTag(event, "java");
                     break;
                 default:
                     break;
@@ -492,8 +490,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private void setEventEnvironmentTag(SentryEvent event, String origin, String environment) {
-        event.setTag("event.origin", origin);
+    private void setEventEnvironmentTag(SentryEvent event, String environment) {
+        event.setTag("event.origin", "android");
         event.setTag("event.environment", environment);
     }
 
