@@ -13,10 +13,32 @@ import {
 import * as Sentry from '@sentry/react-native';
 
 import { setScopeProperties } from '../setScopeProperties';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { CommonActions } from '@react-navigation/native';
 
-export const HomeScreen = () => {
+interface Props {
+  navigation: StackNavigationProp<any, 'HomeScreen'>;
+}
+
+const HomeScreen = (props: Props) => {
   // Show bad code inside error boundary to trigger it.
   const [showBadCode, setShowBadCode] = React.useState(false);
+
+  const onPressPerformanceTiming = () => {
+    // Navigate with a reset action just to test
+    props.navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [
+          { name: 'Home' },
+          {
+            name: 'PerformanceTiming',
+            params: { someParam: 'hello' },
+          },
+        ],
+      }),
+    );
+  };
 
   return (
     <SafeAreaView style={{ backgroundColor: '#F3F3F3' }}>
@@ -56,9 +78,9 @@ export const HomeScreen = () => {
           console.log('Attachments:', scope.getAttachments());
         })
       }} />
-      <Button title='Auto Tracing Example' onPress={() => { console.log('TODO:') }} />
-      <Button title='Manual Tracing Example' onPress={() => { console.log('TODO:') }} />
-      <Button title='Performance Timing' onPress={() => { console.log('TODO:') }} />
+      <Button title='Auto Tracing Example' onPress={() => { props.navigation.navigate('Tracker') }} />
+      <Button title='Manual Tracing Example' onPress={() => { props.navigation.navigate('ManualTracker') }} />
+      <Button title='Performance Timing' onPress={onPressPerformanceTiming} />
       <Button title='Redux Example' onPress={() => { console.log('TODO:') }} />
       <View style={{marginTop: 32}} />
     </ScrollView>
@@ -94,3 +116,5 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
+
+export default HomeScreen;
