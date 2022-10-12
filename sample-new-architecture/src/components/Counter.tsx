@@ -1,10 +1,10 @@
 import * as React from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
-import {useSelector, useDispatch} from 'react-redux';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
 import { CounterState } from '../reduxApp';
 
 const Counter = () => {
-  const counter = useSelector((state: CounterState)  => state.counter);
+  const counter = useSelector((state: CounterState) => state.counter);
   const dispatch = useDispatch();
 
   return (

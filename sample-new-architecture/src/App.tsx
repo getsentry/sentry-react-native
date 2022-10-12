@@ -31,25 +31,27 @@ Sentry.init({
     return event;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
-  onReady: ({didCallNativeInit}) => {
+  onReady: ({ didCallNativeInit }) => {
     console.log('onReady called with didCallNativeInit:', didCallNativeInit);
   },
   integrations(integrations) {
-    integrations.push(new Sentry.ReactNativeTracing({
-      // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
-      idleTimeout: 5000,
-      routingInstrumentation: reactNavigationInstrumentation,
-      tracingOrigins: ['localhost', /^\//, /^https:\/\//],
-      beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
-        // Example of not sending a transaction for the screen with the name "Manual Tracker"
-        if (context.data.route.name === 'ManualTracker') {
-          context.sampled = false;
-        }
+    integrations.push(
+      new Sentry.ReactNativeTracing({
+        // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
+        idleTimeout: 5000,
+        routingInstrumentation: reactNavigationInstrumentation,
+        tracingOrigins: ['localhost', /^\//, /^https:\/\//],
+        beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
+          // Example of not sending a transaction for the screen with the name "Manual Tracker"
+          if (context.data.route.name === 'ManualTracker') {
+            context.sampled = false;
+          }
 
-        return context;
-      },
-    }));
-    return integrations.filter((i) => i.name !== 'Dedupe');
+          return context;
+        },
+      }),
+    );
+    return integrations.filter(i => i.name !== 'Dedupe');
   },
   enableAutoSessionTracking: true,
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
@@ -81,7 +83,10 @@ const App = () => {
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Tracker" component={TrackerScreen} />
           <Stack.Screen name="ManualTracker" component={ManualTrackerScreen} />
-          <Stack.Screen name="PerformanceTiming" component={PerformanceTimingScreen} />
+          <Stack.Screen
+            name="PerformanceTiming"
+            component={PerformanceTimingScreen}
+          />
           <Stack.Screen name="Redux" component={ReduxScreen} />
         </Stack.Navigator>
       </NavigationContainer>

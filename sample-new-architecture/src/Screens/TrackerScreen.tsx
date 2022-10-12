@@ -1,5 +1,11 @@
 import * as React from 'react';
-import {Button, View, StyleSheet, Text, ActivityIndicator} from 'react-native';
+import {
+  Button,
+  View,
+  StyleSheet,
+  Text,
+  ActivityIndicator,
+} from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
 
@@ -27,8 +33,8 @@ const TrackerScreen = () => {
         'Content-Type': 'application/json',
       },
     })
-      .then((response) => response.json())
-      .then((json) => {
+      .then(response => response.json())
+      .then(json => {
         setCases(json.Global);
       });
   };
@@ -80,7 +86,7 @@ const Statistic = (props: {
   return (
     <View style={styles.statisticContainer}>
       <Text>{props.title}</Text>
-      <Text style={[styles.statisticCount, {color: props.textColor}]}>
+      <Text style={[styles.statisticCount, { color: props.textColor }]}>
         {`${props.count}`.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
       </Text>
     </View>

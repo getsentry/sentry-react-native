@@ -3,7 +3,7 @@ import { View, StyleSheet, Text, TextInput, Image, Button } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import { UserFeedback } from '@sentry/react-native';
 
-export const DEFAULT_COMMENTS = `It's broken again! Please fix it.`;
+export const DEFAULT_COMMENTS = "It's broken again! Please fix it.";
 
 export function UserFeedbackModal(props: { onDismiss: () => void }) {
   const { onDismiss } = props;
@@ -12,7 +12,7 @@ export function UserFeedbackModal(props: { onDismiss: () => void }) {
 
   return (
     <View>
-      <View style = { styles.centeredView } >
+      <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <Image
             source={require('../assets/sentry-announcement.png')}
@@ -28,11 +28,13 @@ export function UserFeedbackModal(props: { onDismiss: () => void }) {
           />
           <Button
             title="Send feedback"
-            color='#6C5FC7'
+            color="#6C5FC7"
             onPress={async () => {
               onDismiss();
 
-              const sentryId = Sentry.captureMessage('Message that needs user feedback');
+              const sentryId = Sentry.captureMessage(
+                'Message that needs user feedback',
+              );
 
               const userFeedback: UserFeedback = {
                 event_id: sentryId,
@@ -45,10 +47,10 @@ export function UserFeedbackModal(props: { onDismiss: () => void }) {
               clearComments();
             }}
           />
-          <View style={{marginBottom: 8}} />
+          <View style={{ marginBottom: 8 }} />
           <Button
             title="Close"
-            color='#6C5FC7'
+            color="#6C5FC7"
             onPress={async () => {
               onDismiss();
             }}
@@ -62,23 +64,23 @@ export function UserFeedbackModal(props: { onDismiss: () => void }) {
 const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalView: {
     margin: 5,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderRadius: 6,
     padding: 25,
-    alignItems: "center",
-    shadowColor: "#000",
+    alignItems: 'center',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2
+      height: 2,
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
-    elevation: 5
+    elevation: 5,
   },
   input: {
     margin: 12,
@@ -93,7 +95,7 @@ const styles = StyleSheet.create({
   },
   modalText: {
     marginBottom: 15,
-    textAlign: "center",
+    textAlign: 'center',
     fontSize: 18,
   },
   modalImage: {

@@ -5,4 +5,4 @@ export const SENTRY_INTERNAL_DSN =
 
 export const getCurrentDsn = () => {
   return Sentry.getCurrentHub().getClient()?.getOptions().dsn;
-}
+};
