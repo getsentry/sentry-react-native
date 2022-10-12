@@ -56,10 +56,10 @@ jobs:
       - name: Install Dependencies
         if: steps.cache.outputs['cache-hit'] != 'true'
         run: yarn install
+        working-directory: sample-new-architecture
       - name: Lint Sample
-        run: |
-          cd sample-new-architecture
-          yarn lint
+        run: yarn lint
+        working-directory: sample-new-architecture
 
   job_build:
     name: Build
