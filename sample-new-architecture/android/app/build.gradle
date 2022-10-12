@@ -231,14 +231,16 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+
     sourceSets.main {
         java {
             // RNSentry.
             srcDirs += [
-                "../../android",
+                "../../android/app/src/main",
             ]
         }
     }
+
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
