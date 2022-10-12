@@ -42,24 +42,44 @@ yarn test:watch
 Now we can go into the sample project, install and build it:
 
 ```sh
-cd sample/
+cd sample-new-architecture/
 yarn
-
-# Build iOS
-cd ios
-pod install
-cd ..
 ```
 
+### Run the emulators (legacy-architecture):
+
+For android switch `newArchEnabled` to `false` in [android/gradle.properties](https://github.com/getsentry/sentry-react-native/blob/c95aa21497ca93aaaaf0b44d170dc39dc7bcf660/sample-new-architecture/android/gradle.properties#L40)
+
+```sh
+yarn pod-install-legacy
+yarn run-ios
+
+yarn run-android
+
+# Release builds
+yarn pod-install-legacy-production
+yarn run-ios --configuration Release
+
+yarn run-android --variant=release
+```
+
+### Run the emulators (new-architecture):
+```sh
+yarn pod-install
+yarn run-ios
+
+yarn run-android
+
+# Release builds
+yarn pod-install-production
+yarn run-ios --configuration Release
+
+yarn run-android --variant=release
+```
+
+### Optional
 You can optionally start the Metro bundler if you want to control where it runs:
 
 ```sh
 yarn start --reset-cache
-```
-
-Run the emulators:
-
-```sh
-yarn react-native run-ios
-yarn react-native run-android
 ```
