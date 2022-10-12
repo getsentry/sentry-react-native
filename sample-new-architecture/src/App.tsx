@@ -13,6 +13,9 @@ import HomeScreen from './Screens/HomeScreen';
 import TrackerScreen from './Screens/TrackerScreen';
 import ManualTrackerScreen from './Screens/ManualTrackerScreen';
 import PerformanceTimingScreen from './Screens/PerformanceTimingScreen';
+import ReduxScreen from './Screens/ReduxScreen';
+import { Provider } from 'react-redux';
+import { store } from './reduxApp';
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
@@ -66,20 +69,23 @@ const App = () => {
   const navigation = React.useRef<NavigationContainerRef<{}>>(null);
 
   return (
-    <NavigationContainer
-      ref={navigation}
-      onReady={() => {
-        reactNavigationInstrumentation.registerNavigationContainer(
-          navigation,
-        );
-      }}>
-      <Stack.Navigator>
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Tracker" component={TrackerScreen} />
-        <Stack.Screen name="ManualTracker" component={ManualTrackerScreen} />
-        <Stack.Screen name="PerformanceTiming" component={PerformanceTimingScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Provider store={store}>
+      <NavigationContainer
+        ref={navigation}
+        onReady={() => {
+          reactNavigationInstrumentation.registerNavigationContainer(
+            navigation,
+          );
+        }}>
+        <Stack.Navigator>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Tracker" component={TrackerScreen} />
+          <Stack.Screen name="ManualTracker" component={ManualTrackerScreen} />
+          <Stack.Screen name="PerformanceTiming" component={PerformanceTimingScreen} />
+          <Stack.Screen name="Redux" component={ReduxScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Provider>
   );
 };
 

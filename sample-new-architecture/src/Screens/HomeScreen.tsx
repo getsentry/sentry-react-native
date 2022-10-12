@@ -15,6 +15,7 @@ import * as Sentry from '@sentry/react-native';
 import { setScopeProperties } from '../setScopeProperties';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { CommonActions } from '@react-navigation/native';
+import { UserFeedbackModal } from '../components/UserFeedbackModal';
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -23,6 +24,7 @@ interface Props {
 const HomeScreen = (props: Props) => {
   // Show bad code inside error boundary to trigger it.
   const [showBadCode, setShowBadCode] = React.useState(false);
+  const [isFeedbackVisible, setFeedbackVisible] = React.useState(false);
 
   const onPressPerformanceTiming = () => {
     // Navigate with a reset action just to test
@@ -41,7 +43,7 @@ const HomeScreen = (props: Props) => {
   };
 
   return (
-    <SafeAreaView style={{ backgroundColor: '#F3F3F3' }}>
+  <>
     <StatusBar barStyle='dark-content'/>
     <ScrollView
       style={{
@@ -81,10 +83,12 @@ const HomeScreen = (props: Props) => {
       <Button title='Auto Tracing Example' onPress={() => { props.navigation.navigate('Tracker') }} />
       <Button title='Manual Tracing Example' onPress={() => { props.navigation.navigate('ManualTracker') }} />
       <Button title='Performance Timing' onPress={onPressPerformanceTiming} />
-      <Button title='Redux Example' onPress={() => { console.log('TODO:') }} />
+      <Button title='Redux Example' onPress={() => { props.navigation.navigate('Redux') }} />
+      <Button title="Send user feedback" onPress={ () => { setFeedbackVisible(true) }}/>
+      { isFeedbackVisible ? <UserFeedbackModal onDismiss={() => { setFeedbackVisible(false) }} /> : null }
       <View style={{marginTop: 32}} />
     </ScrollView>
-  </SafeAreaView>
+  </>
   )
 };
 
