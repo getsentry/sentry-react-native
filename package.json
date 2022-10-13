@@ -49,7 +49,7 @@
     "@sentry/tracing": "7.15.0",
     "@sentry/types": "7.15.0",
     "@sentry/utils": "7.15.0",
-    "@sentry/wizard": "1.2.17"
+    "@sentry/wizard": "2.2.2"
   },
   "devDependencies": {
     "@sentry-internal/eslint-config-sdk": "7.15.0",
