@@ -9,7 +9,7 @@ import {
   SeverityLevel,
   User,
 } from '@sentry/types';
-import { logger, SentryError } from '@sentry/utils';
+import { logger, normalize, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
 
 import {
@@ -56,6 +56,7 @@ interface SentryNativeWrapper {
   fetchNativeSdkInfo(): PromiseLike<Package | null>;
 
   disableNativeFramesTracking(): void;
+  enableNativeFramesTracking(): void;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   setContext(key: string, context: { [key: string]: unknown } | null): void;
@@ -354,7 +355,7 @@ export const NATIVE: SentryNativeWrapper = {
         ? this._processLevel(breadcrumb.level)
         : undefined,
       data: breadcrumb.data
-        ? this._serializeObject(breadcrumb.data)
+        ? normalize(breadcrumb.data)
         : undefined,
     });
   },
@@ -388,7 +389,7 @@ export const NATIVE: SentryNativeWrapper = {
 
     RNSentry.setContext(
       key,
-      context !== null ? this._serializeObject(context) : null
+      context !== null ? normalize(context) : null
     );
   },
 
@@ -417,6 +418,17 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     RNSentry.disableNativeFramesTracking();
+  },
+
+  enableNativeFramesTracking(): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return;
+    }
+
+    RNSentry.enableNativeFramesTracking();
   },
 
   isNativeTransportAvailable(): boolean {

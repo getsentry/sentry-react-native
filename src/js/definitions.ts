@@ -29,7 +29,6 @@ interface SerializedObject {
 }
 
 export interface SentryNativeBridgeModule {
-  nativeClientAvailable: boolean;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   captureEnvelope(
@@ -42,6 +41,7 @@ export interface SentryNativeBridgeModule {
   crash(): void;
   closeNativeSdk(): PromiseLike<void>;
   disableNativeFramesTracking(): void;
+  enableNativeFramesTracking(): void;
   fetchNativeRelease(): Promise<{
     build: string;
     id: string;

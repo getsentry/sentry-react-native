@@ -39,10 +39,6 @@ static bool didFetchAppStart;
 
 RCT_EXPORT_MODULE()
 
-- (NSDictionary<NSString *, id> *)constantsToExport
-{
-    return @{@"nativeClientAvailable": @YES, @"nativeTransport": @YES};
-}
 
 RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
@@ -405,6 +401,14 @@ RCT_EXPORT_METHOD(closeNativeSdk:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(disableNativeFramesTracking)
 {
     // Do nothing on iOS, this bridge method only has an effect on android.
+}
+
+RCT_EXPORT_METHOD(enableNativeFramesTracking)
+{
+    // Do nothing on iOS, this bridge method only has an effect on android.
+    // If you're starting the Cocoa SDK manually,
+    // you can set the 'enableAutoPerformanceTracking: true' option and
+    // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 
 @end
