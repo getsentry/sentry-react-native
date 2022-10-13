@@ -2,6 +2,8 @@
 
 # Unreleased
 
+- Latest changes from 4.6.1
+
 ### Features
 - Add initial support for the RN New Architecture, backwards compatible RNSentry Turbo Module ([#2522](https://github.com/getsentry/sentry-react-native/pull/2522))
 
@@ -9,8 +11,6 @@
 
 - New ReactNativeTracingOptions idleTimeoutMs and finalTimeoutMs replacing idleTimeout and maxTransactionDuration respectively ([#2481](https://github.com/getsentry/sentry-react-native/pull/2481))
 - iOS min target 12.4, Android API min 21, min React Native version 0.70 ([#2522](https://github.com/getsentry/sentry-react-native/pull/2522))
-
-## 5.0.0-alpha.5
 
 ### Dependencies
 
@@ -34,6 +34,24 @@
 - Bump JavaScript SDK from v7.14.0 to v7.14.2 ([#2511](https://github.com/getsentry/sentry-react-native/pull/2511), [#2526](https://github.com/getsentry/sentry-react-native/pull/2526))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7142)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.14.0...7.14.2)
+- Bump Cocoa SDK from v7.27.0 to v7.27.1 ([#2521](https://github.com/getsentry/sentry-react-native/pull/2521))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7271)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.27.0...7.27.1)
+- Bump Android SDK from v6.4.2 to v6.4.3 ([#2520](https://github.com/getsentry/sentry-react-native/pull/2520))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#643)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.4.2...6.4.3)
+
+## 5.0.0-alpha.5
+
+### Fixes
+
+- Make `configureScope` callback safe [#2510](https://github.com/getsentry/sentry-react-native/pull/2510)
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.14.0 to v7.14.1 ([#2511](https://github.com/getsentry/sentry-react-native/pull/2511))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7141)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.14.0...7.14.1)
 - Bump Cocoa SDK from v7.27.0 to v7.27.1 ([#2521](https://github.com/getsentry/sentry-react-native/pull/2521))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7271)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.27.0...7.27.1)
