@@ -8,8 +8,8 @@ const hub = {
   getClient: jest.fn(),
 };
 
-jest.mock('@sentry/hub', () => {
-  const hubOriginal = jest.requireActual('@sentry/hub');
+jest.mock('@sentry/core', () => {
+  const hubOriginal = jest.requireActual('@sentry/core');
 
   return {
     ...hubOriginal,

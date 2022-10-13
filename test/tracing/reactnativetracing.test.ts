@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { BrowserClient, User } from '@sentry/browser';
-import { addGlobalEventProcessor, Hub } from '@sentry/hub';
+import { addGlobalEventProcessor, Hub } from '@sentry/core';
 import { IdleTransaction, Transaction } from '@sentry/tracing';
 
 import { NativeAppStartResponse } from '../../src/js/definitions';
