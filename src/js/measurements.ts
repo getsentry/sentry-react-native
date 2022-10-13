@@ -1,4 +1,4 @@
-import { getCurrentHub, getMainCarrier, Hub } from '@sentry/hub';
+import { getCurrentHub, getMainCarrier, Hub } from '@sentry/core';
 import { Transaction } from '@sentry/tracing';
 import { CustomSamplingContext, TransactionContext } from '@sentry/types';
 

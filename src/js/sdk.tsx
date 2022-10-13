@@ -1,5 +1,4 @@
-import { getIntegrationsToSetup, initAndBind, setExtra } from '@sentry/core';
-import { Hub, makeMain } from '@sentry/hub';
+import { getIntegrationsToSetup, Hub, initAndBind, makeMain,setExtra } from '@sentry/core';
 import { RewriteFrames } from '@sentry/integrations';
 import {
   defaultIntegrations as reactDefaultIntegrations,
