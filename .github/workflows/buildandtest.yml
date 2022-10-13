@@ -43,7 +43,7 @@ jobs:
       - name: Lint
         run: yarn lint
 
-  job_lint_sample:
+  job_lint_sample_new_arch:
     name: Lint Sample
     runs-on: ubuntu-latest
     steps:
