@@ -13,9 +13,9 @@ Pod::Spec.new do |s|
   s.homepage       = "https://github.com/getsentry/sentry-react-native"
   s.source         = { :git => 'https://github.com/getsentry/sentry-react-native.git', :tag => "#{s.version}"}
 
-  s.ios.deployment_target = "11.0"
+  s.ios.deployment_target = "12.4"
   s.osx.deployment_target = "10.10"
-  s.tvos.deployment_target = "11.0"
+  s.tvos.deployment_target = "12.4"
 
   s.preserve_paths = '*.js'
 
