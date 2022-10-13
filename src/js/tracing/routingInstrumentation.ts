@@ -1,4 +1,4 @@
-import { Hub } from '@sentry/hub';
+import { Hub } from '@sentry/core';
 import { Transaction, TransactionContext } from '@sentry/types';
 
 import { BeforeNavigate } from './types';
