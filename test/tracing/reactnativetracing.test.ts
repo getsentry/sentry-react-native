@@ -12,6 +12,7 @@ jest.mock('../../src/js/wrapper', () => {
       fetchNativeAppStart: jest.fn(),
       fetchNativeFrames: jest.fn(() => Promise.resolve()),
       disableNativeFramesTracking: jest.fn(() => Promise.resolve()),
+      enableNativeFramesTracking: jest.fn(() => Promise.resolve()),
       enableNative: true,
     },
   };
@@ -517,6 +518,21 @@ describe('ReactNativeTracing', () => {
   });
 
   describe('Native Frames', () => {
+    it('Initialize native frames instrumentation if flag is true', (done) => {
+      const integration = new ReactNativeTracing({
+        enableNativeFramesTracking: true,
+      });
+      const mockHub = getMockHub();
+      integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+
+      setImmediate(() => {
+        expect(integration.nativeFramesInstrumentation).toBeDefined();
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(NATIVE.enableNativeFramesTracking).toBeCalledTimes(1);
+
+        done();
+      });
+    });
     it('Does not initialize native frames instrumentation if flag is false', (done) => {
       const integration = new ReactNativeTracing({
         enableNativeFramesTracking: false,

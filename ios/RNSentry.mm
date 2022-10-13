@@ -407,6 +407,14 @@ RCT_EXPORT_METHOD(disableNativeFramesTracking)
     // Do nothing on iOS, this bridge method only has an effect on android.
 }
 
+RCT_EXPORT_METHOD(enableNativeFramesTracking)
+{
+    // Do nothing on iOS, this bridge method only has an effect on android.
+    // If you're starting the Cocoa SDK manually,
+    // you can set the 'enableAutoPerformanceTracking: true' option and
+    // the 'tracesSampleRate' or 'tracesSampler' option.
+}
+
 // Thanks to this guard, we won't compile this code when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
@@ -415,4 +423,5 @@ RCT_EXPORT_METHOD(disableNativeFramesTracking)
     return std::make_shared<facebook::react::NativeRNSentrySpecJSI>(params);
 }
 #endif
+
 @end

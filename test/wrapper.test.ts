@@ -66,13 +66,26 @@ const RNSentry = RN.NativeModules.RNSentry as Spec;
 const callAllScopeMethods = () => {
   NATIVE.addBreadcrumb({
     message: 'test',
+    data: {
+      map: { a: 1 },
+      array: [1, 2, 3],
+      unique: 123,
+     },
   });
   NATIVE.clearBreadcrumbs();
   NATIVE.setUser({
     id: 'setUser',
   });
   NATIVE.setTag('key', 'value');
-  NATIVE.setContext('key', { value: 'value' });
+  NATIVE.setContext('key',
+    {
+      value: 'value',
+      data: {
+        map: { a: 1 },
+        array: [1, 2, 3],
+        unique: 123,
+       },
+    });
   NATIVE.setExtra('key', 'value');
 };
 
@@ -136,6 +149,11 @@ describe('Tests Native Wrapper', () => {
       callAllScopeMethods();
       expect(RNSentry.addBreadcrumb).toBeCalledWith({
         message: 'test',
+        data: {
+          map: { a: 1 },
+          array: [1, 2, 3],
+          unique: 123,
+         },
       });
       expect(RNSentry.clearBreadcrumbs).toBeCalled();
       expect(RNSentry.setUser).toBeCalledWith(
@@ -147,6 +165,11 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.setTag).toBeCalledWith('key', 'value');
       expect(RNSentry.setContext).toBeCalledWith('key', {
         value: 'value',
+        data: {
+          map: { a: 1 },
+          array: [1, 2, 3],
+          unique: 123,
+        },
       });
       expect(RNSentry.setExtra).toBeCalledWith('key', 'value');
     });

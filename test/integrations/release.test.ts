@@ -71,7 +71,7 @@ describe('Tests the Release integration', () => {
       dist: 'options_dist',
     }));
 
-    const event = await eventProcessor({});
+    const event = await eventProcessor({}, {});
 
     expect(event?.release).toBe('native_id@native_version+native_build');
     expect(event?.dist).toBe('options_dist');
@@ -93,7 +93,7 @@ describe('Tests the Release integration', () => {
       release: 'options_release',
     }));
 
-    const event = await eventProcessor({});
+    const event = await eventProcessor({}, {});
 
     expect(event?.release).toBe('options_release');
     expect(event?.dist).toBe('native_build');
@@ -118,7 +118,7 @@ describe('Tests the Release integration', () => {
       release: 'options_release',
     }));
 
-    const event = await eventProcessor({});
+    const event = await eventProcessor({}, {});
 
     expect(event?.release).toBe('options_release');
     expect(event?.dist).toBe('options_dist');
@@ -148,7 +148,7 @@ describe('Tests the Release integration', () => {
         __sentry_dist: 'sentry_dist',
         __sentry_release: 'sentry_release',
       },
-    });
+    }, {});
 
     expect(event?.release).toBe('sentry_release');
     expect(event?.dist).toBe('sentry_dist');

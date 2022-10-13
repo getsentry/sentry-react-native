@@ -97,7 +97,7 @@ describe('NativeFramesInstrumentation', () => {
               },
               start_timestamp: finishTimestamp - 10,
               timestamp: finishTimestamp,
-            });
+            }, {});
 
             jest.runOnlyPendingTimers();
 
@@ -182,7 +182,7 @@ describe('NativeFramesInstrumentation', () => {
             start_timestamp: finishTimestamp - 10,
             timestamp: finishTimestamp,
             measurements: {},
-          });
+          }, {});
 
           jest.runOnlyPendingTimers();
 
@@ -259,7 +259,7 @@ describe('NativeFramesInstrumentation', () => {
               },
               start_timestamp: finishTimestamp - 10,
               timestamp: finishTimestamp,
-            });
+            }, {});
 
             jest.runOnlyPendingTimers();
 
@@ -334,7 +334,7 @@ describe('NativeFramesInstrumentation', () => {
               },
               start_timestamp: finishTimestamp - 10,
               timestamp: finishTimestamp,
-            });
+            }, {});
 
             expect(event).toBeDefined();
 

@@ -29,6 +29,7 @@ export interface Spec extends TurboModule {
   setContext(key: string, value: UnsafeObject | null): void;
   setExtra(key: string, value: string): void;
   setTag(key: string, value: string): void;
+  enableNativeFramesTracking(): void;
 }
 
 export type NativeAppStartResponse = {
