@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { logger } from '@sentry/utils';
 
 interface MockedClient {

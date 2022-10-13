@@ -118,7 +118,7 @@ describe('Tests ReactNativeClient', () => {
       }).not.toThrow();
     });
 
-    test('falls back to YellowBox if no LogBox', async () => {
+    test.skip('falls back to YellowBox if no LogBox', async () => {
       // @ts-ignore: Is Mocked
       RN.LogBox = undefined;
 

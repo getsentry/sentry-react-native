@@ -6,18 +6,16 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.util.SparseIntArray;
 
+import androidx.annotation.Nullable;
 import androidx.core.app.FrameMetricsAggregator;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.module.annotations.ReactModule;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -45,13 +43,13 @@ import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
 
-@ReactModule(name = RNSentryModule.NAME)
-public class RNSentryModule extends ReactContextBaseJavaModule {
+public class RNSentryModuleImpl {
 
     public static final String NAME = "RNSentry";
 
     private static final Logger logger = Logger.getLogger("react-native-sentry");
 
+    private final ReactApplicationContext reactApplicationContext;
     private final PackageInfo packageInfo;
     private FrameMetricsAggregator frameMetricsAggregator = null;
     private boolean androidXAvailable;
@@ -63,18 +61,20 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     // 16ms (slower than 60fps) to constitute slow frames.
     private static final int SLOW_FRAME_THRESHOLD = 16;
 
-    public RNSentryModule(ReactApplicationContext reactContext) {
-        super(reactContext);
-        packageInfo = getPackageInfo(reactContext);
+    public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
+        packageInfo = getPackageInfo(reactApplicationContext);
+        this.reactApplicationContext = reactApplicationContext;
     }
 
-    @Override
-    public String getName() {
-        return NAME;
+    private ReactApplicationContext getReactApplicationContext() {
+        return this.reactApplicationContext;
     }
 
+    private @Nullable
+    Activity getCurrentActivity() {
+        return this.reactApplicationContext.getCurrentActivity();
+    }
 
-    @ReactMethod
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
@@ -166,12 +166,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         promise.resolve(true);
     }
 
-    @ReactMethod
     public void crash() {
         throw new RuntimeException("TEST - Sentry Client Crash (only works in release mode)");
     }
 
-    @ReactMethod
     public void fetchNativeRelease(Promise promise) {
         WritableMap release = Arguments.createMap();
         release.putString("id", packageInfo.packageName);
@@ -180,7 +178,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         promise.resolve(release);
     }
 
-    @ReactMethod
     public void fetchNativeAppStart(Promise promise) {
         final AppStartState appStartInstance = AppStartState.getInstance();
         final Date appStartTime = appStartInstance.getAppStartTime();
@@ -212,7 +209,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     /**
      * Returns frames metrics at the current point in time.
      */
-    @ReactMethod
     public void fetchNativeFrames(Promise promise) {
         if (!isFrameMetricsAggregatorAvailable()) {
             promise.resolve(null);
@@ -262,7 +258,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
     }
 
-    @ReactMethod
     public void captureEnvelope(ReadableArray rawBytes, ReadableMap options, Promise promise) {
         byte[] bytes = new byte[rawBytes.size()];
         for (int i = 0; i < rawBytes.size(); i++) {
@@ -296,7 +291,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
     }
 
-    @ReactMethod
     public void setUser(final ReadableMap user, final ReadableMap otherUserKeys) {
         Sentry.configureScope(scope -> {
             if (user == null && otherUserKeys == null) {
@@ -343,7 +337,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         });
     }
 
-    @ReactMethod
     public void addBreadcrumb(final ReadableMap breadcrumb) {
         Sentry.configureScope(scope -> {
             Breadcrumb breadcrumbInstance = new Breadcrumb();
@@ -383,7 +376,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
             if (breadcrumb.hasKey("data")) {
                 final ReadableMap data = breadcrumb.getMap("data");
-                for(final Map.Entry<String, Object> entry : data.toHashMap().entrySet()) {
+                for (final Map.Entry<String, Object> entry : data.toHashMap().entrySet()) {
                     final Object value = entry.getValue();
                     // data is ConcurrentHashMap and can't have null values
                     if (value != null) {
@@ -396,21 +389,18 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         });
     }
 
-    @ReactMethod
     public void clearBreadcrumbs() {
         Sentry.configureScope(scope -> {
             scope.clearBreadcrumbs();
         });
     }
 
-    @ReactMethod
     public void setExtra(String key, String extra) {
         Sentry.configureScope(scope -> {
             scope.setExtra(key, extra);
         });
     }
 
-    @ReactMethod
     public void setContext(final String key, final ReadableMap context) {
         if (key == null || context == null) {
             return;
@@ -422,14 +412,12 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         });
     }
 
-    @ReactMethod
     public void setTag(String key, String value) {
         Sentry.configureScope(scope -> {
             scope.setTag(key, value);
         });
     }
 
-    @ReactMethod
     public void closeNativeSdk(Promise promise) {
         Sentry.close();
 
@@ -438,7 +426,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         promise.resolve(true);
     }
 
-    @ReactMethod
     public void enableNativeFramesTracking() {
         androidXAvailable = checkAndroidXAvailability();
 
@@ -464,7 +451,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
     }
 
-    @ReactMethod
     public void disableNativeFramesTracking() {
         if (isFrameMetricsAggregatorAvailable()) {
             frameMetricsAggregator.stop();
