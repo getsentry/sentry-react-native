@@ -27,6 +27,10 @@ export type TouchEventBoundaryProps = {
    * @deprecated
    */
   ignoredDisplayNames?: Array<string | RegExp>;
+  /**
+   * React Node wrapped by TouchEventBoundary.
+   */
+  children?: React.ReactNode;
 };
 
 const touchEventStyles = StyleSheet.create({
