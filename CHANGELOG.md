@@ -5,6 +5,11 @@
 ### Features
 - Add initial support for the RN New Architecture, backwards compatible RNSentry Turbo Module ([#2522](https://github.com/getsentry/sentry-react-native/pull/2522))
 
+### Breaking changes
+
+- New ReactNativeTracingOptions idleTimeoutMs and finalTimeoutMs replacing idleTimeout and maxTransactionDuration respectively ([#2481](https://github.com/getsentry/sentry-react-native/pull/2481))
+- iOS min target 12.4, Android API min 21, min React Native version 0.70 ([#2522](https://github.com/getsentry/sentry-react-native/pull/2522))
+
 ## 5.0.0-alpha.5
 
 ### Dependencies
