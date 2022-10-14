@@ -21,6 +21,20 @@
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7150)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.14.2...7.15.0)
 
+## 5.0.0-alpha.6
+
+### Various fixes & improvements
+
+- build(deps-dev): bump eslint-plugin-react from 7.20.6 to 7.31.10 (#2537) by @dependabot
+- build(deps): bump async from 2.6.3 to 2.6.4 in /sample (#2491) by @dependabot
+- build(deps): bump github/codeql-action from 2.1.26 to 2.1.27 (#2529) by @dependabot
+- chore(deps): update JavaScript SDK to v7.15.0 (#2536) by @github-actions
+- chore(deps): update Android SDK to v6.5.0 (#2535) by @github-actions
+- release: 4.6.1 (3c8631d1) by @getsentry-bot
+- chore(deps): update JavaScript SDK to v7.14.2 (#2526) by @github-actions
+- Allows collecting app start and slow/frozen frames if Native SDK is inited manually (#2517) by @marandaneto
+- Nested breadcrumb data on android was not treated correctly (#2519) by @marandaneto
+
 ## 4.6.1
 
 ### Fixes
