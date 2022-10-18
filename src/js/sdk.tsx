@@ -17,6 +17,7 @@ import {
   ReactNativeErrorHandlers,
   Release,
   SdkInfo,
+  ReactNativeInfo,
 } from './integrations';
 import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { ReactNativeScope } from './scope';
@@ -24,7 +25,7 @@ import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { makeReactNativeTransport } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
-import { isFabricEnabled, isHermesEnabled, isTurboModuleEnabled } from './utils/architecture';
+import { isHermesEnabled } from './utils/architecture';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
@@ -87,6 +88,7 @@ export function init(passedOptions: ReactNativeOptions): void {
 
     defaultIntegrations.push(new EventOrigin());
     defaultIntegrations.push(new SdkInfo());
+    defaultIntegrations.push(new ReactNativeInfo());
 
     if (__DEV__) {
       defaultIntegrations.push(new DebugSymbolicator());
@@ -135,13 +137,6 @@ export function init(passedOptions: ReactNativeOptions): void {
     getCurrentHub().setTag('hermes', 'true');
   }
 
-  if (isTurboModuleEnabled()) {
-    getCurrentHub().setContext('turboModule', { enabled: true });
-  }
-
-  if (isFabricEnabled()) {
-    getCurrentHub().setContext('fabric', { enabled: true });
-  }
 }
 
 /**
