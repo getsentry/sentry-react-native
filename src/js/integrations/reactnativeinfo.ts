@@ -4,7 +4,7 @@ import { isFabricEnabled, isHermesEnabled, isTurboModuleEnabled } from '../utils
 import { ReactNativeError } from "./debugsymbolicator";
 
 interface ReactNativeContext extends Context {
-  jsEngine?: 'hermes';
+  jsEngine?: string;
   turboModule: boolean;
   fabric: boolean;
   componentStack?: string;
@@ -32,6 +32,10 @@ export class ReactNativeInfo implements Integration {
         return event;
       }
 
+      const reactNativeError = hint?.originalException
+        ? hint?.originalException as ReactNativeError
+        : undefined;
+
       const reactNativeContext: ReactNativeContext = {
         turboModule: isTurboModuleEnabled(),
         fabric: isFabricEnabled(),
@@ -39,11 +43,12 @@ export class ReactNativeInfo implements Integration {
 
       if (isHermesEnabled()) {
         reactNativeContext.jsEngine = 'hermes';
+      } else if (reactNativeError?.jsEngine) {
+        reactNativeContext.jsEngine = reactNativeError.jsEngine;
       }
 
-      if (hint?.originalException !== undefined) {
-        const reactError = hint.originalException as ReactNativeError;
-        reactNativeContext.componentStack = reactError.componentStack;
+      if (reactNativeError?.componentStack) {
+        reactNativeContext.componentStack = reactNativeError.componentStack;
       }
 
       event.contexts = {
