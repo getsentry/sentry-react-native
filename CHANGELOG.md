@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Features
-- Send react native js engine, turbo modules, fabric flags and component stack in Event contexts
+- Send react native js engine, turbo module, fabric flags and component stack in Event contexts
 
 ## 5.0.0-alpha.6
 
