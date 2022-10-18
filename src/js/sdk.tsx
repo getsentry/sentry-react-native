@@ -15,9 +15,9 @@ import {
   DeviceContext,
   EventOrigin,
   ReactNativeErrorHandlers,
+  ReactNativeInfo,
   Release,
   SdkInfo,
-  ReactNativeInfo,
 } from './integrations';
 import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { ReactNativeScope } from './scope';

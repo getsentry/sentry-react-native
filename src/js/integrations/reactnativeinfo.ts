@@ -1,7 +1,8 @@
 import { addGlobalEventProcessor, getCurrentHub } from '@sentry/core';
 import { Context, Event, EventHint, Integration } from '@sentry/types';
+
 import { isFabricEnabled, isHermesEnabled, isTurboModuleEnabled } from '../utils/architecture';
-import { ReactNativeError } from "./debugsymbolicator";
+import { ReactNativeError } from './debugsymbolicator';
 
 interface ReactNativeContext extends Context {
   jsEngine?: string;

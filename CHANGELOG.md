@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Features
+- Send react native js engine, turbo modules, fabric flags and component stack in Event contexts
+
 ## 5.0.0-alpha.6
 
 - Latest changes from 4.6.1
