@@ -1,10 +1,9 @@
-import { addGlobalEventProcessor, getCurrentHub } from '@sentry/core';
-import { Context, Event, EventHint, Integration } from '@sentry/types';
+import { Context, Event, EventHint, EventProcessor, Integration } from '@sentry/types';
 
 import { isFabricEnabled, isHermesEnabled, isTurboModuleEnabled } from '../utils/architecture';
 import { ReactNativeError } from './debugsymbolicator';
 
-interface ReactNativeContext extends Context {
+export interface ReactNativeContext extends Context {
   jsEngine?: string;
   turboModule: boolean;
   fabric: boolean;
@@ -26,13 +25,8 @@ export class ReactNativeInfo implements Integration {
   /**
    * @inheritDoc
    */
-  public setupOnce(): void {
+  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void): void {
     addGlobalEventProcessor(async (event: Event, hint?: EventHint) => {
-      const self = getCurrentHub().getIntegration(ReactNativeInfo);
-      if (!self) {
-        return event;
-      }
-
       const reactNativeError = hint?.originalException
         ? hint?.originalException as ReactNativeError
         : undefined;
@@ -46,6 +40,13 @@ export class ReactNativeInfo implements Integration {
         reactNativeContext.jsEngine = 'hermes';
       } else if (reactNativeError?.jsEngine) {
         reactNativeContext.jsEngine = reactNativeError.jsEngine;
+      }
+
+      if (reactNativeContext.jsEngine === 'hermes') {
+        event.tags = {
+          hermes: 'true',
+          ...event.tags,
+        };
       }
 
       if (reactNativeError?.componentStack) {

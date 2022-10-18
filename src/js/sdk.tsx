@@ -25,7 +25,6 @@ import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { makeReactNativeTransport } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
-import { isHermesEnabled } from './utils/architecture';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
@@ -132,11 +131,6 @@ export function init(passedOptions: ReactNativeOptions): void {
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
-
-  if (isHermesEnabled()) {
-    getCurrentHub().setTag('hermes', 'true');
-  }
-
 }
 
 /**
