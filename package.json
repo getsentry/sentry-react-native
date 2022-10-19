@@ -41,7 +41,6 @@
   },
   "dependencies": {
     "@sentry/browser": "7.15.0",
-    "@sentry/cli": "1.74.4",
     "@sentry/core": "7.15.0",
     "@sentry/hub": "7.15.0",
     "@sentry/integrations": "7.15.0",
@@ -51,6 +50,7 @@
     "@sentry/utils": "7.15.0"
   },
   "devDependencies": {
+    "@sentry/cli": "1.74.4",
     "@sentry-internal/eslint-config-sdk": "7.15.0",
     "@sentry-internal/eslint-plugin-sdk": "7.15.0",
     "@sentry/typescript": "^5.20.1",
