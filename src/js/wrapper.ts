@@ -21,7 +21,7 @@ import {
   Spec,
 } from './NativeRNSentry';
 import { ReactNativeOptions } from './options';
-import { isTurboModuleEnabled } from './utils/architecture'
+import { isTurboModuleEnabled } from './utils/environment'
 import { utf8ToBytes } from './vendor';
 
 const RNSentry: Spec | undefined  = isTurboModuleEnabled()

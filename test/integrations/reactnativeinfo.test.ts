@@ -7,7 +7,7 @@ let mockedIsHermesEnabled: jest.Mock<boolean, []>;
 let mockedIsTurboModuleEnabled: jest.Mock<boolean, []>;
 let mockedIsFabricEnabled: jest.Mock<boolean, []>;
 
-jest.mock('../../src/js/utils/architecture', () => ({
+jest.mock('../../src/js/utils/environment', () => ({
   isHermesEnabled: () => mockedIsHermesEnabled(),
   isTurboModuleEnabled: () => mockedIsTurboModuleEnabled(),
   isFabricEnabled: () => mockedIsFabricEnabled(),

@@ -1,6 +1,6 @@
 import { Context, Event, EventHint, EventProcessor, Integration } from '@sentry/types';
 
-import { isFabricEnabled, isHermesEnabled, isTurboModuleEnabled } from '../utils/architecture';
+import { isFabricEnabled, isHermesEnabled, isTurboModuleEnabled } from '../utils/environment';
 import { ReactNativeError } from './debugsymbolicator';
 
 export interface ReactNativeContext extends Context {
