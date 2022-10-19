@@ -50,7 +50,7 @@ describe('React Native Info', () => {
     expectMocksToBeCalledOnce();
     expect(actualEvent?.tags?.hermes).toEqual('true');
     expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.jsEngine,
+      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.js_engine,
     ).toEqual('hermes');
   });
 
@@ -78,7 +78,7 @@ describe('React Native Info', () => {
     expectMocksToBeCalledOnce();
     expect(actualEvent?.tags?.hermes).toEqual(undefined);
     expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.jsEngine,
+      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.js_engine,
     ).toEqual('test_engine');
   });
 
@@ -92,7 +92,7 @@ describe('React Native Info', () => {
 
     expectMocksToBeCalledOnce();
     expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.componentStack,
+      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.component_stack,
     ).toEqual('test_stack');
   });
 
@@ -102,7 +102,7 @@ describe('React Native Info', () => {
 
     expectMocksToBeCalledOnce();
     expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.turboModule,
+      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.turbo_module,
     ).toEqual(true);
   });
 
