@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Remove hardcoded Folly version ([#2558](https://github.com/getsentry/sentry-react-native/pull/2558))
+
 ### Features
 
 - Send react native js engine, turbo module, fabric flags and component stack in Event contexts ([#2552](https://github.com/getsentry/sentry-react-native/pull/2552))
