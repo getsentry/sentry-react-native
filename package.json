@@ -50,7 +50,6 @@
     "@sentry/utils": "7.15.0"
   },
   "devDependencies": {
-    "@sentry/cli": "1.74.4",
     "@sentry-internal/eslint-config-sdk": "7.15.0",
     "@sentry-internal/eslint-plugin-sdk": "7.15.0",
     "@sentry/typescript": "^5.20.1",
