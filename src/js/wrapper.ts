@@ -279,21 +279,21 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    // separate and serialze all non-default user keys.
-    let defaultUserKeys = null;
-    let otherUserKeys = null;
+    // separate and serialize all non-default user keys.
+    let userKeys = null;
+    let userDataKeys = null;
     if (user) {
       const { id, ip_address, email, username, ...otherKeys } = user;
-      defaultUserKeys = this._serializeObject({
+      userKeys = this._serializeObject({
         email,
         id,
         ip_address,
         username,
       });
-      otherUserKeys = this._serializeObject(otherKeys);
+      userDataKeys = this._serializeObject(otherKeys);
     }
 
-    RNSentry.setUser(defaultUserKeys, otherUserKeys);
+    RNSentry.setUser(userKeys, userDataKeys);
   },
 
   /**

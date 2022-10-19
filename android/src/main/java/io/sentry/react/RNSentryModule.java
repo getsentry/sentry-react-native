@@ -297,45 +297,45 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void setUser(final ReadableMap user, final ReadableMap otherUserKeys) {
+    public void setUser(final ReadableMap userKeys, final ReadableMap userDataKeys) {
         Sentry.configureScope(scope -> {
-            if (user == null && otherUserKeys == null) {
+            if (userKeys == null && userDataKeys == null) {
                 scope.setUser(null);
             } else {
                 User userInstance = new User();
 
-                if (user != null) {
-                    if (user.hasKey("email")) {
-                        userInstance.setEmail(user.getString("email"));
+                if (userKeys != null) {
+                    if (userKeys.hasKey("email")) {
+                        userInstance.setEmail(userKeys.getString("email"));
                     }
 
-                    if (user.hasKey("id")) {
-                        userInstance.setId(user.getString("id"));
+                    if (userKeys.hasKey("id")) {
+                        userInstance.setId(userKeys.getString("id"));
                     }
 
-                    if (user.hasKey("username")) {
-                        userInstance.setUsername(user.getString("username"));
+                    if (userKeys.hasKey("username")) {
+                        userInstance.setUsername(userKeys.getString("username"));
                     }
 
-                    if (user.hasKey("ip_address")) {
-                        userInstance.setIpAddress(user.getString("ip_address"));
+                    if (userKeys.hasKey("ip_address")) {
+                        userInstance.setIpAddress(userKeys.getString("ip_address"));
                     }
                 }
 
-                if (otherUserKeys != null) {
-                    HashMap<String, String> otherUserKeysMap = new HashMap<>();
-                    ReadableMapKeySetIterator it = otherUserKeys.keySetIterator();
+                if (userDataKeys != null) {
+                    HashMap<String, String> userDataMap = new HashMap<>();
+                    ReadableMapKeySetIterator it = userDataKeys.keySetIterator();
                     while (it.hasNextKey()) {
                         String key = it.nextKey();
-                        String value = otherUserKeys.getString(key);
+                        String value = userDataKeys.getString(key);
 
                         // other is ConcurrentHashMap and can't have null values
                         if (value != null) {
-                            otherUserKeysMap.put(key, value);
+                            userDataMap.put(key, value);
                         }
                     }
 
-                    userInstance.setOthers(otherUserKeysMap);
+                    userInstance.setData(userDataMap);
                 }
 
                 scope.setUser(userInstance);
