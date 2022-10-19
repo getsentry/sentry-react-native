@@ -6,7 +6,7 @@ import {
   getCurrentHub,
 } from '@sentry/react';
 import { Integration, Scope, StackFrame, UserFeedback } from '@sentry/types';
-import { getGlobalObject, logger, stackParserFromStackParserOptions } from '@sentry/utils';
+import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
 import { ReactNativeClient } from './client';
@@ -15,6 +15,7 @@ import {
   DeviceContext,
   EventOrigin,
   ReactNativeErrorHandlers,
+  ReactNativeInfo,
   Release,
   SdkInfo,
 } from './integrations';
@@ -86,6 +87,7 @@ export function init(passedOptions: ReactNativeOptions): void {
 
     defaultIntegrations.push(new EventOrigin());
     defaultIntegrations.push(new SdkInfo());
+    defaultIntegrations.push(new ReactNativeInfo());
 
     if (__DEV__) {
       defaultIntegrations.push(new DebugSymbolicator());
@@ -129,11 +131,6 @@ export function init(passedOptions: ReactNativeOptions): void {
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
-  if (getGlobalObject<any>().HermesInternal) {
-    getCurrentHub().setTag('hermes', 'true');
-  }
 }
 
 /**
