@@ -35,15 +35,15 @@ describe('React Native Info', () => {
     expect(actualEvent).toEqual(<Event>{
       message: 'test',
       contexts: {
-        react_native_context: {
-          turboModule: false,
+        react_native_context: <ReactNativeContext>{
+          turbo_module: false,
           fabric: false,
         },
       },
     });
   });
 
-  it('adds hermes tag and jsEngine to context if hermes enabled', async () => {
+  it('adds hermes tag and js_engine to context if hermes enabled', async () => {
     mockedIsHermesEnabled = jest.fn().mockReturnValue(true);
     const actualEvent = await executeIntegrationFor({}, {});
 
