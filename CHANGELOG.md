@@ -6,6 +6,12 @@
 
 - Send react native js engine, turbo module, fabric flags and component stack in Event contexts ([#2552](https://github.com/getsentry/sentry-react-native/pull/2552))
 
+### Dependencies
+
+- Bump CLI from v1.74.4 to v2.7.0 ([#2457](https://github.com/getsentry/sentry-react-native/pull/2457))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#270)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/1.74.4...2.7.0)
+
 ## 5.0.0-alpha.6
 
 - Latest changes from 4.6.1
