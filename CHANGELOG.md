@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Send react native js engine, turbo module, fabric flags and component stack in Event contexts ([#2552](https://github.com/getsentry/sentry-react-native/pull/2552))
+
 ### Dependencies
 
 - Bump CLI from v1.74.4 to v2.7.0 ([#2457](https://github.com/getsentry/sentry-react-native/pull/2457))
@@ -13,6 +17,7 @@
 - Latest changes from 4.6.1
 
 ### Features
+
 - Add initial support for the RN New Architecture, backwards compatible RNSentry Turbo Module ([#2522](https://github.com/getsentry/sentry-react-native/pull/2522))
 
 ### Breaking changes

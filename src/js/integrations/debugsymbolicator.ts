@@ -24,7 +24,7 @@ interface ReactNativeFrame {
 /**
  * React Native Error
  */
-type ReactNativeError = Error & {
+export type ReactNativeError = Error & {
   framesToPop?: number;
   jsEngine?: string;
   preventSymbolication?: boolean;
@@ -65,13 +65,6 @@ export class DebugSymbolicator implements Integration {
         // In RN 0.64 `parseErrorStack` now only takes a string
         stack = parseErrorStack(reactError.stack);
       }
-
-      // Ideally this should go into contexts but android sdk doesn't support it
-      event.extra = {
-        ...event.extra,
-        componentStack: reactError.componentStack,
-        jsEngine: reactError.jsEngine,
-      };
 
       await self._symbolicate(event, stack);
 

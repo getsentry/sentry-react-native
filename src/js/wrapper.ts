@@ -21,16 +21,10 @@ import {
   Spec,
 } from './NativeRNSentry';
 import { ReactNativeOptions } from './options';
+import { isTurboModuleEnabled } from './utils/environment'
 import { utf8ToBytes } from './vendor';
 
-declare global {
-  // eslint-disable-next-line no-var
-  var __turboModuleProxy: unknown;
-}
-
-const isTurboModuleEnabled = globalThis.__turboModuleProxy != null;
-
-const RNSentry: Spec | undefined  = isTurboModuleEnabled
+const RNSentry: Spec | undefined  = isTurboModuleEnabled()
   ? TurboModuleRegistry.getEnforcing<Spec>('RNSentry')
   : NativeModules.RNSentry;
 
