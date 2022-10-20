@@ -308,8 +308,10 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary *)userKeys
 
             if (nil != userKeys) {
                 [userInstance setUserId:userKeys[@"id"]];
+                [userInstance setIpAddress:userKeys[@"ip_address"]];
                 [userInstance setEmail:userKeys[@"email"]];
                 [userInstance setUsername:userKeys[@"username"]];
+                [userInstance setSegment:userKeys[@"segment"]];
             }
 
             if (nil != userDataKeys) {

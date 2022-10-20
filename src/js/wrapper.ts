@@ -21,6 +21,7 @@ import {
 } from './definitions';
 import { isHardCrash } from './misc';
 import { ReactNativeOptions } from './options';
+import { RequiredKeysUser } from './user';
 import { utf8ToBytes } from './vendor';
 
 const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
@@ -283,13 +284,15 @@ export const NATIVE: SentryNativeWrapper = {
     let userKeys = null;
     let userDataKeys = null;
     if (user) {
-      const { id, ip_address, email, username, ...otherKeys } = user;
-      userKeys = this._serializeObject({
-        email,
+      const { id, ip_address, email, username, segment, ...otherKeys } = user;
+      const requiredUser: RequiredKeysUser = {
         id,
         ip_address,
+        email,
         username,
-      });
+        segment,
+      };
+      userKeys = this._serializeObject(requiredUser);
       userDataKeys = this._serializeObject(otherKeys);
     }
 
