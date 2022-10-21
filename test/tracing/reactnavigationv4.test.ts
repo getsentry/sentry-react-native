@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Transaction } from '@sentry/tracing';
 import { TransactionContext } from '@sentry/types';
-import { getGlobalObject } from '@sentry/utils';
 
 import {
   AppContainerInstance,
@@ -10,6 +9,7 @@ import {
   NavigationStateV4,
   ReactNavigationV4Instrumentation,
 } from '../../src/js/tracing/reactnavigationv4';
+import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 
 const initialRoute = {
   routeName: 'Initial Route',
@@ -82,12 +82,8 @@ class MockAppContainer implements AppContainerInstance {
   }
 }
 
-const _global = getGlobalObject<{
-  __sentry_rn_v4_registered?: boolean;
-}>();
-
 afterEach(() => {
-  _global.__sentry_rn_v4_registered = false;
+  RN_GLOBAL_OBJ.__sentry_rn_v4_registered = false;
 
   jest.resetAllMocks();
 });
@@ -313,7 +309,7 @@ describe('ReactNavigationV4Instrumentation', () => {
         current: mockAppContainer,
       });
 
-      expect(_global.__sentry_rn_v4_registered).toBe(true);
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v4_registered).toBe(true);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(1);
@@ -336,7 +332,7 @@ describe('ReactNavigationV4Instrumentation', () => {
       const mockAppContainer = new MockAppContainer();
       instrumentation.registerAppContainer(mockAppContainer);
 
-      expect(_global.__sentry_rn_v4_registered).toBe(true);
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v4_registered).toBe(true);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(1);
@@ -345,7 +341,7 @@ describe('ReactNavigationV4Instrumentation', () => {
     });
 
     test('does not register navigation container if there is an existing one', async () => {
-      _global.__sentry_rn_v4_registered = true;
+      RN_GLOBAL_OBJ.__sentry_rn_v4_registered = true;
 
       const instrumentation = new ReactNavigationV4Instrumentation();
       const mockTransaction = getMockTransaction();
@@ -361,7 +357,7 @@ describe('ReactNavigationV4Instrumentation', () => {
       const mockAppContainer = new MockAppContainer();
       instrumentation.registerAppContainer(mockAppContainer);
 
-      expect(_global.__sentry_rn_v4_registered).toBe(true);
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v4_registered).toBe(true);
 
       await new Promise<void>((resolve) => {
         setTimeout(() => {

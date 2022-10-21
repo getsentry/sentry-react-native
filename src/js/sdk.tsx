@@ -6,7 +6,7 @@ import {
   getCurrentHub,
 } from '@sentry/react';
 import { Integration, Scope, StackFrame, UserFeedback } from '@sentry/types';
-import { getGlobalObject, logger, stackParserFromStackParserOptions } from '@sentry/utils';
+import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
 import { ReactNativeClient } from './client';
@@ -25,6 +25,7 @@ import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { makeReactNativeTransport } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
 import { safeFactory, safeTracesSampler } from './utils/safe';
+import { RN_GLOBAL_OBJ } from './utils/worldwide';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
@@ -130,8 +131,7 @@ export function init(passedOptions: ReactNativeOptions): void {
   });
   initAndBind(ReactNativeClient, options);
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
-  if (getGlobalObject<any>().HermesInternal) {
+  if (RN_GLOBAL_OBJ.HermesInternal) {
     getCurrentHub().setTag('hermes', 'true');
   }
 }
