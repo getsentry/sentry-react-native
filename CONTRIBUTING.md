@@ -48,7 +48,7 @@ yarn
 
 ### Run the emulators (legacy-architecture):
 
-For android switch `newArchEnabled` to `false` in [android/gradle.properties](https://github.com/getsentry/sentry-react-native/blob/c95aa21497ca93aaaaf0b44d170dc39dc7bcf660/sample-new-architecture/android/gradle.properties#L40)
+For android switch `newArchEnabled` to `false` in [android/gradle.properties](https://github.com/getsentry/sentry-react-native/blob/c95aa21497ca93aaaaf0b44d170dc39dc7bcf660/sample-new-architecture/android/gradle.properties#L40). For iOS explicitly disable fabric in `sample-new-architecture/ios/Podfile` by setting `:fabric_enabled => false` before `pod install`.
 
 ```sh
 yarn pod-install-legacy
