@@ -63,8 +63,8 @@ export interface NavigationDelegate {
  *
  * How this works:
  * - `_onCommand` is called every time a commands happens and sets an IdleTransaction on the scope without any route context.
- * - `onComponentWillAppear` is then called AFTER the state change happens due to a dispatch and sets the route context onto the active transaction.
- * - If `onComponentWillAppear` isn't called within `options.routeChangeTimeoutMs` of the dispatch, then the transaction is not sampled and finished.
+ * - `_onComponentWillAppear` is then called AFTER the state change happens due to a dispatch and sets the route context onto the active transaction.
+ * - If `_onComponentWillAppear` isn't called within `options.routeChangeTimeoutMs` of the dispatch, then the transaction is not sampled and finished.
  */
 export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrumentation {
   public static instrumentationName: string = 'react-native-navigation';
@@ -114,32 +114,14 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
     this._navigation
       .events()
       .registerComponentWillAppearListener(
-        this.onComponentWillAppear.bind(this)
+        this._onComponentWillAppear.bind(this)
       );
   }
-
-  /**
-   * To be called when a navigation command is dispatched
-   */
-  private _onCommand(): void {
-    if (this._latestTransaction) {
-      this._discardLatestTransaction();
-    }
-
-    this._latestTransaction = this.onRouteWillChange(
-      getBlankTransactionContext(ReactNativeNavigationInstrumentation.name)
-    );
-
-    this._stateChangeTimeout = setTimeout(
-      this._discardLatestTransaction.bind(this),
-      this._options.routeChangeTimeoutMs
-    );
-  }
-
+  
   /**
    * To be called AFTER the state has been changed to populate the transaction with the current route.
    */
-  protected onComponentWillAppear(event: ComponentWillAppearEvent): void {
+  protected _onComponentWillAppear(event: ComponentWillAppearEvent): void {
     // If the route is a different key, this is so we ignore actions that pertain to the same screen.
     if (this._latestTransaction) {
       if (
@@ -195,6 +177,24 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
 
       this._latestTransaction = undefined;
     }
+  }
+
+  /**
+   * To be called when a navigation command is dispatched
+   */
+  private _onCommand(): void {
+    if (this._latestTransaction) {
+      this._discardLatestTransaction();
+    }
+
+    this._latestTransaction = this.onRouteWillChange(
+      getBlankTransactionContext(ReactNativeNavigationInstrumentation.name)
+    );
+
+    this._stateChangeTimeout = setTimeout(
+      this._discardLatestTransaction.bind(this),
+      this._options.routeChangeTimeoutMs
+    );
   }
 
   /** Creates final transaction context before confirmation */
