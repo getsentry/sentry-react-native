@@ -1,8 +1,9 @@
 import { getCurrentHub } from '@sentry/core';
 import { Integration, SeverityLevel } from '@sentry/types';
-import { addExceptionMechanism, getGlobalObject, logger } from '@sentry/utils';
+import { addExceptionMechanism, logger } from '@sentry/utils';
 
 import { ReactNativeClient } from '../client';
+import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
 /** ReactNativeErrorHandlers Options */
 interface ReactNativeErrorHandlersOptions {
@@ -142,9 +143,7 @@ export class ReactNativeErrorHandlers implements Integration {
       // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
       const Promise = require('promise/setimmediate/es6-extensions');
 
-      const _global = getGlobalObject<{ Promise: typeof Promise }>();
-
-      if (Promise !== _global.Promise) {
+      if (Promise !== RN_GLOBAL_OBJ.Promise) {
         logger.warn(
           'Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page.'
         );
