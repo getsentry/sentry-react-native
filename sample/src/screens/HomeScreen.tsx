@@ -39,6 +39,8 @@ const HomeScreen = (props: Props) => {
       id: 'test-id-0',
       email: 'testing@testing.test',
       username: 'USER-TEST',
+      ip_address: '1.1.1.1',
+      segment: 'test-segment',
       specialField: 'special user field',
       specialFieldNumber: 418,
     });
