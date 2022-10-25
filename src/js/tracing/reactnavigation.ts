@@ -1,7 +1,8 @@
 /* eslint-disable max-lines */
 import { Transaction as TransactionType, TransactionContext } from '@sentry/types';
-import { getGlobalObject, logger } from '@sentry/utils';
+import { logger } from '@sentry/utils';
 
+import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import {
   InternalRoutingInstrumentation,
   OnConfirmRoute,
@@ -105,14 +106,12 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
   public registerNavigationContainer(navigationContainerRef: any): void {
-    const _global = getGlobalObject<{ __sentry_rn_v5_registered?: boolean }>();
-
     /* We prevent duplicate routing instrumentation to be initialized on fast refreshes
 
       Explanation: If the user triggers a fast refresh on the file that the instrumentation is
       initialized in, it will initialize a new instance and will cause undefined behavior.
      */
-    if (!_global.__sentry_rn_v5_registered) {
+    if (!RN_GLOBAL_OBJ.__sentry_rn_v5_registered) {
       if ('current' in navigationContainerRef) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this._navigationContainer = navigationContainerRef.current;
@@ -143,7 +142,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
           }
         }
 
-        _global.__sentry_rn_v5_registered = true;
+        RN_GLOBAL_OBJ.__sentry_rn_v5_registered = true;
       } else {
         logger.warn(
           '[ReactNavigationInstrumentation] Received invalid navigation container ref!'
