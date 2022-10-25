@@ -57,7 +57,6 @@ export class SdkInfo implements Integration {
         packages: [
           ...((event.sdk && event.sdk.packages) || []),
           ...((this._nativeSdkInfo && [this._nativeSdkInfo]) || []),
-          ...defaultSdkInfo.packages,
         ],
       };
 
