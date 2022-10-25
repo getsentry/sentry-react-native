@@ -2,6 +2,10 @@
 
 ## 4.7.0
 
+### Fixes
+
+- Remove duplicate sdk package record from envelope ([#2570](https://github.com/getsentry/sentry-react-native/pull/2570))
+
 ### Dependencies
 
 - Bump Android SDK from v6.4.3 to v6.5.0 ([#2535](https://github.com/getsentry/sentry-react-native/pull/2535))
