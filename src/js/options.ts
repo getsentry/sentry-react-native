@@ -120,7 +120,7 @@ export interface BaseReactNativeOptions {
    *
    * @default 2
    */
-  appHangsTimeoutInterval?: number;
+  appHangTimeoutInterval?: number;
 }
 
 /**

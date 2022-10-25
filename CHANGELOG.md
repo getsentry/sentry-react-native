@@ -1,10 +1,13 @@
 # Changelog
 
-## 4.7.0
+## Unreleased
 
 ### Fixes
 
 - Remove duplicate sdk package record from envelope ([#2570](https://github.com/getsentry/sentry-react-native/pull/2570))
+- Fix `appHangsTimeoutInterval` -> `appHangTimeoutInterval` option name ([#2574](https://github.com/getsentry/sentry-react-native/pull/2574))
+
+## 4.7.0
 
 ### Dependencies
 
