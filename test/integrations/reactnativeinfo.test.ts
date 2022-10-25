@@ -35,7 +35,9 @@ describe('React Native Info', () => {
     expect(actualEvent).toEqual(<Event>{
       message: 'test',
       contexts: {
-        react_native_context: <ReactNativeContext>{
+        react_native: <ReactNativeContext>{
+          type: 'runtime',
+          name: 'react-native',
           turbo_module: false,
           fabric: false,
         },
@@ -50,7 +52,7 @@ describe('React Native Info', () => {
     expectMocksToBeCalledOnce();
     expect(actualEvent?.tags?.hermes).toEqual('true');
     expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.js_engine,
+      (actualEvent?.contexts?.react_native as ReactNativeContext | undefined)?.js_engine,
     ).toEqual('hermes');
   });
 
@@ -78,7 +80,7 @@ describe('React Native Info', () => {
     expectMocksToBeCalledOnce();
     expect(actualEvent?.tags?.hermes).toEqual(undefined);
     expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.js_engine,
+      (actualEvent?.contexts?.react_native as ReactNativeContext | undefined)?.js_engine,
     ).toEqual('test_engine');
   });
 
@@ -92,7 +94,7 @@ describe('React Native Info', () => {
 
     expectMocksToBeCalledOnce();
     expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.component_stack,
+      (actualEvent?.contexts?.react_native as ReactNativeContext | undefined)?.component_stack,
     ).toEqual('test_stack');
   });
 
@@ -102,7 +104,7 @@ describe('React Native Info', () => {
 
     expectMocksToBeCalledOnce();
     expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.turbo_module,
+      (actualEvent?.contexts?.react_native as ReactNativeContext | undefined)?.turbo_module,
     ).toEqual(true);
   });
 
@@ -112,14 +114,14 @@ describe('React Native Info', () => {
 
     expectMocksToBeCalledOnce();
     expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.fabric,
+      (actualEvent?.contexts?.react_native as ReactNativeContext | undefined)?.fabric,
     ).toEqual(true);
   });
 
-  it('does not override existing react_native_context', async () => {
+  it('does not override existing react_native', async () => {
     const mockedEvent: Event = {
       contexts: {
-        react_native_context: {
+        react_native: {
           test: 'context',
         },
       },
@@ -127,7 +129,7 @@ describe('React Native Info', () => {
     const actualEvent = await executeIntegrationFor(mockedEvent, {});
 
     expectMocksToBeCalledOnce();
-    expect(actualEvent?.contexts?.react_native_context).toEqual({
+    expect(actualEvent?.contexts?.react_native).toEqual({
       test: 'context',
     });
   });

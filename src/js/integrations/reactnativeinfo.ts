@@ -1,9 +1,13 @@
-import { Context, Event, EventHint, EventProcessor, Integration } from '@sentry/types';
+import { Runtime, Context, Event, EventHint, EventProcessor, Integration } from '@sentry/types';
 
 import { isFabricEnabled, isHermesEnabled, isTurboModuleEnabled } from '../utils/environment';
 import { ReactNativeError } from './debugsymbolicator';
 
-export interface ReactNativeContext extends Context {
+export interface ReactNativeContext extends Context, Runtime {
+  type: 'runtime',
+  name: 'react-native',
+  version?: string,
+  raw_description?: string,
   js_engine?: string;
   turbo_module: boolean;
   fabric: boolean;
@@ -32,6 +36,8 @@ export class ReactNativeInfo implements Integration {
         : undefined;
 
       const reactNativeContext: ReactNativeContext = {
+        type: 'runtime',
+        name: 'react-native',
         turbo_module: isTurboModuleEnabled(),
         fabric: isFabricEnabled(),
       };
@@ -54,7 +60,7 @@ export class ReactNativeInfo implements Integration {
       }
 
       event.contexts = {
-        react_native_context: reactNativeContext,
+        react_native: reactNativeContext,
         ...event.contexts,
       };
 
