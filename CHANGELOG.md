@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Latest changes from 4.7.0
+- Latest changes from 4.7.1
 
 ### Fixes
 
@@ -17,6 +17,13 @@
 - Bump CLI from v1.74.4 to v2.7.0 ([#2457](https://github.com/getsentry/sentry-react-native/pull/2457))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#270)
   - [diff](https://github.com/getsentry/sentry-cli/compare/1.74.4...2.7.0)
+
+## 4.7.1
+
+### Fixes
+
+- Remove duplicate sdk package record from envelope ([#2570](https://github.com/getsentry/sentry-react-native/pull/2570))
+- Fix `appHangsTimeoutInterval` -> `appHangTimeoutInterval` option name ([#2574](https://github.com/getsentry/sentry-react-native/pull/2574))
 
 ## 4.7.0
 

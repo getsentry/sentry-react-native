@@ -1,11 +1,11 @@
-import { Envelope, Outcome, Transport } from '@sentry/types';
+import { Envelope, Event,Outcome, Transport } from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';
 import { ReactNativeClientOptions, ReactNativeOptions } from '../src/js/options';
 import { NativeTransport } from '../src/js/transports/native';
-import { SDK_NAME, SDK_VERSION } from '../src/js/version';
+import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../src/js/version';
 import { NATIVE } from '../src/js/wrapper';
 import {
   envelopeHeader,
@@ -134,8 +134,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     test('use custom transport function', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const mySend = (request: Envelope) => Promise.resolve();
+      const mySend = (_request: Envelope) => Promise.resolve();
       const myFlush = (timeout?: number) => Promise.resolve(Boolean(timeout));
       const myCustomTransportFn = (): Transport => ({
         send: mySend,
@@ -295,6 +294,32 @@ describe('Tests ReactNativeClient', () => {
     test('send SdkInfo in the user feedback envelope header', () => {
       client.captureUserFeedback(getMockUserFeedback());
       expect(getSdkInfoFrom(mockTransportSend)).toStrictEqual(expectedSdkInfo);
+    });
+  });
+
+  describe('event data enhancement', () => {
+    test('event contains sdk default information', async () => {
+      const mockedSend = jest.fn<PromiseLike<void>, [Envelope]>();
+      const mockedTransport = (): Transport => ({
+        send: mockedSend,
+        flush: jest.fn().mockResolvedValue(true),
+      });
+      const client = new ReactNativeClient(<ReactNativeClientOptions> {
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: mockedTransport,
+      });
+
+      client.captureEvent({ message: 'test event' });
+
+      expect(mockedSend).toBeCalled();
+      const actualEvent: Event | undefined = <Event>mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
+      expect(actualEvent?.sdk?.packages).toEqual([
+        {
+          name: SDK_PACKAGE_NAME,
+          version: SDK_VERSION,
+        },
+      ]);
     });
   });
 
