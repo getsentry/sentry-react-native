@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Dependencies
+
+- Bump Android SDK from v6.5.0 to v6.6.0 ([#2572](https://github.com/getsentry/sentry-react-native/pull/2572))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#660)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.5.0...6.6.0)
+
 ## 4.7.1
 
 ### Fixes
