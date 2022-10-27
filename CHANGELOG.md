@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Features
+- Add buffer size option to native transport ([#2578](https://github.com/getsentry/sentry-react-native/pull/2578))
+
 ### Dependencies
 
 - Bump Android SDK from v6.5.0 to v6.6.0 ([#2572](https://github.com/getsentry/sentry-react-native/pull/2572))
