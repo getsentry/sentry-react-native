@@ -16,7 +16,7 @@ export class NativeTransport implements Transport {
   /** A simple buffer holding all requests. */
   protected readonly _buffer: PromiseBuffer<void>;
 
-  constructor(options: BaseNativeTransportOptions = {}) {
+  public constructor(options: BaseNativeTransportOptions = {}) {
     this._buffer = makePromiseBuffer(options.bufferSize || DEFAULT_BUFFER_SIZE);
   }
 
