@@ -284,8 +284,8 @@ export function withScope(callback: (scope: Scope) => void): ReturnType<Hub['wit
  * @param Severity Define the level of the message.
  * @returns The generated eventId.
  */
-export function captureMessage(message: string, level?: SeverityLevel): void {
-  getCurrentHub().getClient<ReactNativeClient>()?.captureMessage(
+export function captureMessage(message: string, level?: SeverityLevel): string | undefined {
+  return getCurrentHub().getClient<ReactNativeClient>()?.captureMessage(
     message,
     level,
     {
