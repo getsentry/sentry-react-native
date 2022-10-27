@@ -19,7 +19,7 @@ import { Alert, LogBox, YellowBox } from 'react-native';
 
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { ReactNativeClientOptions } from './options';
-import { NativeTransport } from './transports/native';
+import { makeReactNativeTransport } from './transports/native';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { mergeOutcomes } from './utils/outcome';
 import { NATIVE } from './wrapper';
@@ -44,7 +44,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
      if (!options.transport) {
        options.transport = (options: BrowserTransportOptions, nativeFetch?: FetchImpl): Transport => {
          if (NATIVE.isNativeTransportAvailable()) {
-           return new NativeTransport();
+           return makeReactNativeTransport(options);
          }
          return makeFetchTransport(options, nativeFetch);
        };

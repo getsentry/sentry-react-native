@@ -22,7 +22,7 @@ import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
-import { makeReactNativeTransport } from './transports/native';
+import { DEFAULT_BUFFER_SIZE, makeReactNativeTransport } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { RN_GLOBAL_OBJ } from './utils/worldwide';
@@ -40,6 +40,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableOutOfMemoryTracking: true,
   patchGlobalPromise: true,
   transportOptions: {
+    bufferSize: DEFAULT_BUFFER_SIZE,
     textEncoder: makeUtf8TextEncoder(),
   },
   sendClientReports: true,
