@@ -291,7 +291,6 @@ public class RNSentryModuleImpl {
         }
     }
 
-    @ReactMethod
     public void setUser(final ReadableMap userKeys, final ReadableMap userDataKeys) {
         Sentry.configureScope(scope -> {
             if (userKeys == null && userDataKeys == null) {
