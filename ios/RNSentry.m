@@ -150,10 +150,6 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 RCT_EXPORT_METHOD(fetchNativeSdkInfo:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (PrivateSentrySDKOnly.options == nil) {
-        return reject(@"SentryReactNative",@"Called fetchNativeSdkInfo without initializing the SDK first.", nil);
-    }
-
     resolve(@{
         @"name": PrivateSentrySDKOnly.options.sdkInfo.name,
         @"version": PrivateSentrySDKOnly.options.sdkInfo.version
@@ -185,7 +181,7 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
         if (tempContexts != nil) {
             [contexts setValue:tempContexts forKey:@"context"];
         }
-        if (PrivateSentrySDKOnly.options != nil && PrivateSentrySDKOnly.options.debug) {
+        if (PrivateSentrySDKOnly.options.debug) {
             NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
             NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
             NSLog(@"Contexts: %@", debugContext);
