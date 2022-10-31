@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## Fixes
+
+- Message event can have attached stacktrace ([#2577](https://github.com/getsentry/sentry-react-native/pull/2577))
+
 ### Dependencies
 
 - Bump Android SDK from v6.5.0 to v6.6.0 ([#2572](https://github.com/getsentry/sentry-react-native/pull/2572))
