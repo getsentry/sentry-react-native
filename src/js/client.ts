@@ -72,6 +72,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       stackParser: options.stackParser || defaultStackParser,
       integrations: [],
       _metadata: options._metadata,
+      attachStacktrace: options.attachStacktrace,
     });
 
      void this._initNativeSdk();
