@@ -1,7 +1,9 @@
-import { Event } from '@sentry/types';
+import { Event, EventHint, Package } from '@sentry/types';
 
 import { SdkInfo } from '../../src/js/integrations';
 import { NATIVE } from '../../src/js/wrapper';
+
+let mockedFetchNativeSdkInfo: jest.Mock<PromiseLike<Package | null>, []>;
 
 const mockPackage = {
   name: 'sentry-cocoa',
@@ -15,7 +17,7 @@ jest.mock('../../src/js/wrapper', () => {
     NATIVE: {
       ...actual.NATIVE,
       platform: 'ios',
-      fetchNativeSdkInfo: jest.fn(() => Promise.resolve(mockPackage)),
+      fetchNativeSdkInfo: () => mockedFetchNativeSdkInfo(),
     },
   };
 });
@@ -25,72 +27,48 @@ afterEach(() => {
 });
 
 describe('Sdk Info', () => {
-  it('Adds native package and javascript platform to event on iOS', (done) => {
-    const integration = new SdkInfo();
-
+  it('Adds native package and javascript platform to event on iOS', async () => {
+    mockedFetchNativeSdkInfo = jest.fn().mockResolvedValue(mockPackage);
     const mockEvent: Event = {};
+    const processedEvent = await executeIntegrationFor(mockEvent);
 
-    integration.setupOnce(async (eventProcessor) => {
-      try {
-        const processedEvent = await eventProcessor(mockEvent);
-
-        expect(processedEvent).toBeDefined();
-        if (processedEvent) {
-          expect(processedEvent.sdk).toBeDefined();
-          if (processedEvent.sdk) {
-            expect(processedEvent.sdk.packages).toBeDefined();
-            if (processedEvent.sdk.packages) {
-              expect(
-                processedEvent.sdk.packages.some(
-                  (pkg) =>
-                    pkg.name === mockPackage.name &&
-                    pkg.version === mockPackage.version
-                )
-              ).toBe(true);
-            }
-          }
-          expect(processedEvent.platform === 'javascript');
-        }
-
-        done();
-      } catch (e) {
-        done(e);
-      }
-    });
+    expect(processedEvent?.sdk?.packages).toEqual(expect.arrayContaining([mockPackage]));
+    expect(processedEvent?.platform === 'javascript');
+    expect(mockedFetchNativeSdkInfo).toBeCalledTimes(1);
   });
 
-  it('Adds javascript platform but not native package on Android', (done) => {
+  it('Adds javascript platform but not native package on Android', async () => {
     NATIVE.platform = 'android';
-    const integration = new SdkInfo();
-
+    mockedFetchNativeSdkInfo = jest.fn().mockResolvedValue(mockPackage);
     const mockEvent: Event = {};
+    const processedEvent = await executeIntegrationFor(mockEvent);
 
-    integration.setupOnce(async (eventProcessor) => {
-      try {
-        const processedEvent = await eventProcessor(mockEvent);
+    expect(processedEvent?.sdk?.packages).toEqual(expect.not.arrayContaining([mockPackage]));
+    expect(processedEvent?.platform === 'javascript');
+    expect(mockedFetchNativeSdkInfo).not.toBeCalled();
+  });
 
-        expect(processedEvent).toBeDefined();
-        if (processedEvent) {
-          expect(processedEvent.sdk).toBeDefined();
-          if (processedEvent.sdk) {
-            expect(processedEvent.sdk.packages).toBeDefined();
-            if (processedEvent.sdk.packages) {
-              expect(
-                processedEvent.sdk.packages.some(
-                  (pkg) =>
-                    pkg.name === mockPackage.name &&
-                    pkg.version === mockPackage.version
-                )
-              ).toBe(false);
-            }
-          }
-          expect(processedEvent.platform === 'javascript');
-        }
+  it('Does not add any default non native packages', async () => {
+    mockedFetchNativeSdkInfo = jest.fn().mockResolvedValue(null);
+    const mockEvent: Event = {};
+    const processedEvent = await executeIntegrationFor(mockEvent);
 
-        done();
-      } catch (e) {
-        done(e);
-      }
-    });
+    expect(processedEvent?.sdk?.packages).toEqual([]);
+    expect(processedEvent?.platform === 'javascript');
+    expect(mockedFetchNativeSdkInfo).toBeCalledTimes(1);
   });
 });
+
+function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint = {}): Promise<Event | null> {
+  const integration = new SdkInfo();
+  return new Promise((resolve, reject) => {
+    integration.setupOnce(async (eventProcessor) => {
+      try {
+        const processedEvent = await eventProcessor(mockedEvent, mockedHint);
+        resolve(processedEvent);
+      } catch (e) {
+        reject(e);
+      }
+    });
+  });
+}
