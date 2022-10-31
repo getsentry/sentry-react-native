@@ -5,7 +5,7 @@ import {
   defaultStackParser,
   getCurrentHub,
 } from '@sentry/react';
-import { Integration, Scope, SeverityLevel, StackFrame, UserFeedback } from '@sentry/types';
+import { Integration, Scope, StackFrame, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -275,21 +275,4 @@ export function withScope(callback: (scope: Scope) => void): ReturnType<Hub['wit
     }
   };
   getCurrentHub().configureScope(safeCallback);
-}
-
-/**
- * Captures a message event and sends it to Sentry.
- *
- * @param message The message to send to Sentry.
- * @param Severity Define the level of the message.
- * @returns The generated eventId.
- */
-export function captureMessage(message: string, level?: SeverityLevel): string | undefined {
-  return getCurrentHub().getClient<ReactNativeClient>()?.captureMessage(
-    message,
-    level,
-    {
-      syntheticException: new Error(message),
-    },
-  );
 }
