@@ -5,6 +5,7 @@
 ## Fixes
 
 - Message event can have attached stacktrace ([#2577](https://github.com/getsentry/sentry-react-native/pull/2577))
+- Fixed maximum call stack exceeded error resulting from large payloads ([#2579](https://github.com/getsentry/sentry-react-native/pull/2579))
 
 ### Dependencies
 
@@ -14,10 +15,6 @@
 - Bump Cocoa SDK from v7.28.0 to v7.29.0 ([#2571](https://github.com/getsentry/sentry-react-native/pull/2571))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7290)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.28.0...7.29.0)
-
-### Fixes
-
-- Fixed maximum call stack exceeded error resulting from large payloads ([#2579](https://github.com/getsentry/sentry-react-native/pull/2579))
 
 ## 4.7.1
 
