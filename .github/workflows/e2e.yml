@@ -107,7 +107,7 @@ jobs:
 
         # Wait until the Appium server starts.
       - name: Check Appium Server
-        uses: nick-fields/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f # pin@v2
+        uses: nick-fields/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482 # pin@v2
         with:
           timeout_seconds: 60
           max_attempts: 10
