@@ -20,7 +20,7 @@ jobs:
         include:
           - platform: ios
             runtime: '15.2'
-            device: 'iPhone 12'
+            device: 'iPhone 14'
     env:
       PLATFORM: ${{ matrix.platform }}
       RUNTIME: ${{ matrix.runtime }}
