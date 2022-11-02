@@ -130,7 +130,7 @@ export interface BaseReactNativeOptions {
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {
   /**
-   * @deprecated use `maxQueueSize` in te root of the SDK options.
+   * @deprecated use `maxQueueSize` in the root of the SDK options.
    *
    * Setting this option does not have any effect.
   */
