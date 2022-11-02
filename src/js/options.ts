@@ -131,8 +131,6 @@ export interface BaseReactNativeOptions {
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {
   /**
    * @deprecated use `maxQueueSize` in the root of the SDK options.
-   *
-   * Setting this option does not have any effect.
   */
   bufferSize?: number;
 }
@@ -142,9 +140,11 @@ export interface ReactNativeTransportOptions extends BrowserTransportOptions {
  * @see ReactNativeFrontend for more information.
  */
 
-export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {}
+export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
+}
 
-export interface ReactNativeClientOptions extends ClientOptions<ReactNativeTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {}
+export interface ReactNativeClientOptions extends ClientOptions<ReactNativeTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
+}
 
 
 export interface ReactNativeWrapperOptions {
