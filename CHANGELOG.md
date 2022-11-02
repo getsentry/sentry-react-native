@@ -10,13 +10,6 @@
 
 ## 4.8.0
 
-### Various fixes & improvements
-
-- fix(attachments): Maximum call stack exceeded error for large attachments (#2579) by @old
-- fix(event): Message event contains stacktrace if `attachStacktrace` o… (#2577) by @krystofwoldrich
-- chore: update scripts/update-cocoa.sh to 7.29.0 (#2571) by @github-actions
-- chore: update scripts/update-android.sh to 6.6.0 (#2572) by @github-actions
-
 ## Fixes
 
 - Message event can have attached stacktrace ([#2577](https://github.com/getsentry/sentry-react-native/pull/2577))
