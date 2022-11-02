@@ -1,5 +1,4 @@
 import { BrowserClient, defaultStackParser, makeFetchTransport } from '@sentry/browser';
-import { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
 import { FetchImpl } from '@sentry/browser/types/transports/utils';
 import { BaseClient } from '@sentry/core';
 import {
@@ -18,7 +17,7 @@ import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 import { Alert, LogBox, YellowBox } from 'react-native';
 
 import { defaultSdkInfo } from './integrations/sdkinfo';
-import { ReactNativeClientOptions } from './options';
+import { ReactNativeClientOptions, ReactNativeTransportOptions } from './options';
 import { makeReactNativeTransport } from './transports/native';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { mergeOutcomes } from './utils/outcome';
@@ -42,7 +41,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    */
    public constructor(options: ReactNativeClientOptions) {
      if (!options.transport) {
-       options.transport = (options: BrowserTransportOptions, nativeFetch?: FetchImpl): Transport => {
+       options.transport = (options: ReactNativeTransportOptions, nativeFetch?: FetchImpl): Transport => {
          if (NATIVE.isNativeTransportAvailable()) {
            return makeReactNativeTransport(options);
          }

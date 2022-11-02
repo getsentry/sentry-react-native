@@ -130,11 +130,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("sendDefaultPii")) {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
             }
-            if (rnOptions.hasKey("transportOptions")) {
-                final ReadableMap transportOptions = rnOptions.getMap("transportOptions");
-                if (transportOptions.hasKey("bufferSize")) {
-                    options.setMaxQueueSize(rnOptions.getInt("bufferSize"));
-                }
+            if (rnOptions.hasKey("maxQueueSize")) {
+                options.setMaxQueueSize(rnOptions.getInt("maxQueueSize"));
             }
 
             options.setBeforeSend((event, hint) -> {

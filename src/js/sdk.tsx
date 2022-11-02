@@ -40,10 +40,10 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableOutOfMemoryTracking: true,
   patchGlobalPromise: true,
   transportOptions: {
-    bufferSize: DEFAULT_BUFFER_SIZE,
     textEncoder: makeUtf8TextEncoder(),
   },
   sendClientReports: true,
+  maxQueueSize: DEFAULT_BUFFER_SIZE,
 };
 
 /**
@@ -53,6 +53,10 @@ export function init(passedOptions: ReactNativeOptions): void {
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
   makeMain(reactNativeHub);
 
+  const maxQueueSize = passedOptions.maxQueueSize
+    // eslint-disable-next-line deprecation/deprecation
+    ?? passedOptions.transportOptions?.bufferSize
+    ?? DEFAULT_OPTIONS.maxQueueSize;
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
@@ -61,7 +65,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(passedOptions.transportOptions ?? {}),
+      bufferSize: maxQueueSize,
     },
+    maxQueueSize,
     integrations: [],
     stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser),
     beforeBreadcrumb: safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' }),
