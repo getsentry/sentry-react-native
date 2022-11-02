@@ -6,6 +6,14 @@
 
 - Add buffer size option to native transport ([#2578](https://github.com/getsentry/sentry-react-native/pull/2578))
 
+### Dependencies
+
+- Bump JavaScript SDK from v7.16.0 to v7.17.3 ([#2582](https://github.com/getsentry/sentry-react-native/pull/2582))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7173)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.16.0...7.17.3)
+
+## 4.8.0
+
 ## Fixes
 
 - Message event can have attached stacktrace ([#2577](https://github.com/getsentry/sentry-react-native/pull/2577))
