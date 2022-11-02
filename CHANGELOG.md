@@ -4,7 +4,7 @@
 
 ### Features
 
-- Add buffer size option to native transport ([#2578](https://github.com/getsentry/sentry-react-native/pull/2578))
+- Add `maxQueueSize` option ([#2578](https://github.com/getsentry/sentry-react-native/pull/2578))
 
 ### Dependencies
 
