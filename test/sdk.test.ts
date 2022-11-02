@@ -201,6 +201,13 @@ describe('Tests the SDK functionality', () => {
         });
         expect(usedOptions()?.transportOptions?.bufferSize).toBe(99);
       });
+
+      it('uses max queue size', () => {
+        init({
+          maxQueueSize: 88,
+        });
+        expect(usedOptions()?.transportOptions?.bufferSize).toBe(88);
+      });
     });
   });
 
