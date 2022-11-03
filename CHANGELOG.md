@@ -10,7 +10,7 @@
 
 ## 4.8.0
 
-## Fixes
+### Fixes
 
 - Message event can have attached stacktrace ([#2577](https://github.com/getsentry/sentry-react-native/pull/2577))
 - Fixed maximum call stack exceeded error resulting from large payloads ([#2579](https://github.com/getsentry/sentry-react-native/pull/2579))
