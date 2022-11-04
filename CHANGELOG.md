@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add `maxQueueSize` option ([#2578](https://github.com/getsentry/sentry-react-native/pull/2578))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v7.16.0 to v7.17.4 ([#2582](https://github.com/getsentry/sentry-react-native/pull/2582), [#2598](https://github.com/getsentry/sentry-react-native/pull/2598))
