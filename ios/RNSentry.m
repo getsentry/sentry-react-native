@@ -151,8 +151,8 @@ RCT_EXPORT_METHOD(fetchNativeSdkInfo:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     resolve(@{
-        @"name": PrivateSentrySDKOnly.options.sdkInfo.name,
-        @"version": PrivateSentrySDKOnly.options.sdkInfo.version
+        @"name": PrivateSentrySDKOnly.getSdkName,
+        @"version": PrivateSentrySDKOnly.getSdkVersionString
             });
 }
 
