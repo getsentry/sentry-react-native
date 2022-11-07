@@ -11,8 +11,10 @@
   },
   "main": "dist/js/index.js",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "build:watch": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
+    "build": "yarn build:sdk && yarn build:tools",
+    "build:sdk": "tsc -p tsconfig.build.json",
+    "build:sdk:watch": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
+    "build:tools": "tsc -p tsconfig.build.tools.json",
     "clean": "rimraf dist coverage",
     "test": "jest",
     "lint": "eslint .",

@@ -1,7 +1,7 @@
 {
   "extends": "./node_modules/@sentry/typescript/tsconfig.json",
   "include": [
-    "src/js/*.ts"
+    "src/js/tools/*.ts"
   ],
   "exclude": [
     "node_modules"
@@ -13,14 +13,12 @@
     "lib": [
       "es7"
     ],
-    "jsx": "react-native",
     "types": [
-      "react-native"
+      "node"
     ],
     "target": "es6",
-    "module": "es6",
+    "module": "CommonJS",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule" : true,
-  },
+  }
 }

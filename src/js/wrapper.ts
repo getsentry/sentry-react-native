@@ -67,12 +67,17 @@ interface SentryNativeWrapper {
   setTag(key: string, value: string): void;
 
   nativeCrash(): void;
+
+  fetchModules(): PromiseLike<Record<string, string>>;
 }
 
 /**
  * Our internal interface for calling native functions
  */
 export const NATIVE: SentryNativeWrapper = {
+  async fetchModules(): Promise<Record<string, string>> {
+    return RNSentry?.fetchModules?.() ?? {};
+  },
   /**
    * Sending the envelope over the bridge to native
    * @param envelope Envelope
