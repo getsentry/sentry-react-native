@@ -17,13 +17,17 @@ export class ModulesLoader implements Integration {
    * @inheritDoc
    */
   public setupOnce(addGlobalEventProcessor: (e: EventProcessor) => void): void {
-    let modules: Record<string, string> | undefined;
+    let isSetup = false;
+    let modules: Record<string, string> | null;
 
     addGlobalEventProcessor(async (event: Event) => {
-      if (!modules) {
+      if (!isSetup) {
         modules = await NATIVE.fetchModules();
+        isSetup = true;
       }
-      event.modules = modules;
+      if (modules) {
+        event.modules = modules;
+      }
       return event;
     });
   }

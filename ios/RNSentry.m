@@ -166,7 +166,6 @@ RCT_EXPORT_METHOD(fetchModules:(RCTPromiseResolveBlock)resolve
     resolve(modulesString);
 }
 
-
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {

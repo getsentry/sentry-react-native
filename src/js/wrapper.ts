@@ -68,15 +68,24 @@ interface SentryNativeWrapper {
 
   nativeCrash(): void;
 
-  fetchModules(): PromiseLike<Record<string, string>>;
+  fetchModules(): Promise<Record<string, string> | null>;
 }
 
 /**
  * Our internal interface for calling native functions
  */
 export const NATIVE: SentryNativeWrapper = {
-  async fetchModules(): Promise<Record<string, string>> {
-    return RNSentry?.fetchModules?.() ?? {};
+  async fetchModules(): Promise<Record<string, string> | null> {
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    const raw = await RNSentry.fetchModules();
+    console.log('fetchModules', raw);
+    if (raw) {
+      return JSON.parse(raw);
+    }
+    return null;
   },
   /**
    * Sending the envelope over the bridge to native
