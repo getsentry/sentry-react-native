@@ -15,7 +15,6 @@
   "devDependencies": {
     "@babel/core": "^7.12.9",
     "@babel/runtime": "^7.12.5",
-    "@react-native-community/cli-config": "^9.2.1",
     "@react-native-community/eslint-config": "^2.0.0",
     "appium": "^2.0.0-beta.44",
     "appium-uiautomator2-driver": "^2.7.0",
