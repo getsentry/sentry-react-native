@@ -21,6 +21,5 @@
     "module": "es6",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule" : true,
-  },
+  }
 }
