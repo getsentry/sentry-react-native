@@ -1,12 +1,5 @@
-import { EventProcessor, Integration } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import { EventProcessor, Integration, Event } from '@sentry/types';
 import { NATIVE } from '../wrapper';
-
-import modules from './modules.json';
-
-const test: {} = modules;
-
-export { test };
 
 /** Loads runtime JS modules from prepared file. */
 export class ModulesLoader implements Integration {
@@ -23,10 +16,15 @@ export class ModulesLoader implements Integration {
   /**
    * @inheritDoc
    */
-  public setupOnce(_addGlobalEventProcessor: (e: EventProcessor) => void): void {
-    NATIVE.fetchModules().then((modules: unknown) => {
-      console.log('modules', modules);
+  public setupOnce(addGlobalEventProcessor: (e: EventProcessor) => void): void {
+    let modules: Record<string, string> | undefined;
+
+    addGlobalEventProcessor(async (event: Event) => {
+      if (!modules) {
+        modules = await NATIVE.fetchModules();
+      }
+      event.modules = modules;
+      return event;
     });
-    logger.log('ModulesLoader.setupOnce()', modules);
   }
 }
