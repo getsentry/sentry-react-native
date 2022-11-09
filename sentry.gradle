@@ -41,6 +41,8 @@ gradle.projectsEvaluated {
         def bundleOutput
         def props = bundleTask.getProperties()
         def reactRoot = props.get("workingDir")
+        def modulesOutput = "$reactRoot/android/app/src/main/assets/modules.json"
+        def modulesTask = null
 
         (shouldCleanUp, bundleOutput, sourcemapOutput) = forceSourceMapOutputFromBundleTask(bundleTask)
 
@@ -60,6 +62,7 @@ gradle.projectsEvaluated {
         def previousCliTask = null
 
         def nameCleanup = "${bundleTask.name}_SentryUploadCleanUp"
+        def nameModulesCleanup = "${bundleTask.name}_SentryCollectModulesCleanUp"
         // Upload the source map several times if necessary: once for each release and versionCode.
         currentVariants.each { key, currentVariant ->
           variant = currentVariant[0]
@@ -154,19 +157,18 @@ gradle.projectsEvaluated {
               enabled true
           }
 
-          def modulesTask = tasks.create(nameModulesTask, Exec) {
+          modulesTask = tasks.create(nameModulesTask, Exec) {
               description = "collect javascript modules from bundle source map"
               group = 'sentry.io'
 
               workingDir reactRoot
 
               def collectModulesScript = project.hasProperty('sentry.collectModulesScript')
-                ? file(project.getProperty('sentry.collectModulesScript')).getAbsolutePath()
-                : "$reactRoot/node_modules/@sentry/react-native/dist/js/tools/collectModules.js"
-              def modulesOutput = "$reactRoot/android/app/src/main/assets/modules.json"
+                  ? file(project.getProperty('sentry.collectModulesScript')).getAbsolutePath()
+                  : "$reactRoot/node_modules/@sentry/react-native/dist/js/tools/collectModules.js"
               def modulesPaths = project.hasProperty('sentry.modulesPaths')
-                ? project.getProperty('sentry.modulesPaths')
-                : "$reactRoot/node_modules"
+                  ? project.getProperty('sentry.modulesPaths')
+                  : "$reactRoot/node_modules"
               def args = ["node",
                           collectModulesScript,
                           sourcemapOutput,
@@ -177,7 +179,10 @@ gradle.projectsEvaluated {
               project.logger.info("Sentry-CollectModules arguments: ${args}")
               commandLine(*args)
 
-              enabled true
+              def skip = project.hasProperty('sentry.skipCollectModules')
+                  ? project.getProperty('sentry.skipCollectModules') == 'true'
+                  : false
+              enabled !skip
           }
 
           // chain the upload tasks so they run sequentially in order to run
@@ -197,7 +202,21 @@ gradle.projectsEvaluated {
             group = 'sentry.io'
 
             delete sourcemapOutput
-            delete "$buildDir/intermediates/assets/release/index.android.bundle.map" // react native default bundle dir
+            delete "$buildDir/intermediates/assets/release/index.android.bundle.map"
+            // react native default bundle dir
+        }
+
+        def modulesCleanUpTask = tasks.create(name: nameModulesCleanup, type: Delete) {
+            description = "clean up collected modules generated file"
+            group = 'sentry.io'
+
+            delete modulesOutput
+        }
+
+        def packageTasks = tasks.findAll { task -> task.name.startsWith("package") && !task.name.contains("Debug") && task.enabled }
+        packageTasks.each { packageTask ->
+            packageTask.dependsOn modulesTask
+            packageTask.finalizedBy modulesCleanUpTask
         }
 
         // register clean task extension
