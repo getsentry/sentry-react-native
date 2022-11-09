@@ -115,7 +115,7 @@ jobs:
 
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
-        uses: reactivecircus/android-emulator-runner@d7b53ddc6e44254e1f4cf4a6ad67345837027a66 # pin@v2
+        uses: reactivecircus/android-emulator-runner@50986b1464923454c95e261820bc626f38490ec0 # pin@v2
         with:
           api-level: 29
           emulator-options: -accel on -no-snapshot -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none -timezone US/Pacific
