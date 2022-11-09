@@ -8,6 +8,7 @@ export {
   Stacktrace,
   Thread,
   User,
+  UserFeedback,
 } from '@sentry/types';
 
 export {
@@ -16,7 +17,6 @@ export {
   captureException,
   captureEvent,
   captureMessage,
-  configureScope,
   getHubFromCarrier,
   getCurrentHub,
   Hub,
@@ -28,7 +28,6 @@ export {
   setTags,
   setUser,
   startTransaction,
-  withScope,
 } from '@sentry/core';
 
 // We need to import it so we patch the hub with global functions
@@ -64,6 +63,9 @@ export {
   nativeCrash,
   flush,
   close,
+  captureUserFeedback,
+  withScope,
+  configureScope,
 } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 

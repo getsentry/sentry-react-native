@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { BrowserClient, User } from '@sentry/browser';
-import { addGlobalEventProcessor, Hub } from '@sentry/hub';
+import { addGlobalEventProcessor, Hub } from '@sentry/core';
 import { IdleTransaction, Transaction } from '@sentry/tracing';
 
 import { NativeAppStartResponse } from '../../src/js/definitions';
@@ -12,6 +12,7 @@ jest.mock('../../src/js/wrapper', () => {
       fetchNativeAppStart: jest.fn(),
       fetchNativeFrames: jest.fn(() => Promise.resolve()),
       disableNativeFramesTracking: jest.fn(() => Promise.resolve()),
+      enableNativeFramesTracking: jest.fn(() => Promise.resolve()),
       enableNative: true,
     },
   };
@@ -113,11 +114,11 @@ describe('ReactNativeTracing', () => {
 
             expect(
               // @ts-ignore access private for test
-              transaction._measurements?.app_start_cold?.value
+              transaction._measurements['app.start.cold'].value
             ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
             expect(
               // @ts-ignore access private for test
-              transaction._measurements?.app_start_cold?.unit).toBe('millisecond');
+              transaction._measurements['app.start.cold'].unit).toBe('millisecond');
 
             done();
           }
@@ -162,11 +163,11 @@ describe('ReactNativeTracing', () => {
 
             expect(
               // @ts-ignore access private for test
-              transaction._measurements?.app_start_warm?.value
+              transaction._measurements['app.start.warm'].value
             ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
             expect(
               // @ts-ignore access private for test
-              transaction._measurements?.app_start_warm?.unit).toBe('millisecond');
+              transaction._measurements['app.start.warm'].unit).toBe('millisecond');
 
             done();
           }
@@ -206,12 +207,12 @@ describe('ReactNativeTracing', () => {
           if (transaction) {
             expect(
               // @ts-ignore access private for test
-              transaction._measurements?.app_start_warm
+              transaction._measurements['app.start.warm']
             ).toBeUndefined();
 
             expect(
               // @ts-ignore access private for test
-              transaction._measurements?.app_start_cold
+              transaction._measurements['app.start.cold']
             ).toBeUndefined();
 
             done();
@@ -298,7 +299,7 @@ describe('ReactNativeTracing', () => {
             jest.runOnlyPendingTimers();
 
             // @ts-ignore access private for test
-            expect(routeTransaction._measurements?.app_start_cold?.value).toBe(
+            expect(routeTransaction._measurements['app.start.cold'].value).toBe(
               timeOriginMilliseconds - appStartTimeMilliseconds
             );
 
@@ -314,7 +315,7 @@ describe('ReactNativeTracing', () => {
 
               const span = spanRecorder.spans[spanRecorder.spans.length - 1];
 
-              expect(span.op).toBe('app_start_cold');
+              expect(span.op).toBe('app.start.cold');
               expect(span.description).toBe('Cold App Start');
               expect(span.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
               expect(span.endTimestamp).toBe(timeOriginMilliseconds / 1000);
@@ -368,7 +369,7 @@ describe('ReactNativeTracing', () => {
             jest.runOnlyPendingTimers();
 
             // @ts-ignore access private for test
-            expect(routeTransaction._measurements?.app_start_warm?.value).toBe(
+            expect(routeTransaction._measurements['app.start.warm'].value).toBe(
               timeOriginMilliseconds - appStartTimeMilliseconds
             );
 
@@ -384,7 +385,7 @@ describe('ReactNativeTracing', () => {
 
               const span = spanRecorder.spans[spanRecorder.spans.length - 1];
 
-              expect(span.op).toBe('app_start_warm');
+              expect(span.op).toBe('app.start.warm');
               expect(span.description).toBe('Warm App Start');
               expect(span.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
               expect(span.endTimestamp).toBe(timeOriginMilliseconds / 1000);
@@ -517,6 +518,21 @@ describe('ReactNativeTracing', () => {
   });
 
   describe('Native Frames', () => {
+    it('Initialize native frames instrumentation if flag is true', (done) => {
+      const integration = new ReactNativeTracing({
+        enableNativeFramesTracking: true,
+      });
+      const mockHub = getMockHub();
+      integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+
+      setImmediate(() => {
+        expect(integration.nativeFramesInstrumentation).toBeDefined();
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(NATIVE.enableNativeFramesTracking).toBeCalledTimes(1);
+
+        done();
+      });
+    });
     it('Does not initialize native frames instrumentation if flag is false', (done) => {
       const integration = new ReactNativeTracing({
         enableNativeFramesTracking: false,

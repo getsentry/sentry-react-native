@@ -11,58 +11,56 @@ on:
 
 jobs:
   android:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-android.sh
       name: Android SDK
+      pr-strategy: update
     secrets:
-      # If a custom token is used instead, a CI would be triggered on a created PR.
-      api_token: ${{ secrets.CI_DEPLOY_KEY }}
-      # api_token: ${{ github.token }}
+      api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   cocoa:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-cocoa.sh
       name: Cocoa SDK
+      pr-strategy: update
     secrets:
-      # If a custom token is used instead, a CI would be triggered on a created PR.
-      api_token: ${{ secrets.CI_DEPLOY_KEY }}
-      # api_token: ${{ github.token }}
+      api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   javascript:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-javascript.sh
       name: JavaScript SDK
+      pr-strategy: update
     secrets:
-      # If a custom token is used instead, a CI would be triggered on a created PR.
-      api_token: ${{ secrets.CI_DEPLOY_KEY }}
-      # api_token: ${{ github.token }}
+      api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   wizard:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-wizard.sh
       name: Wizard
+      pr-strategy: update
     secrets:
-      # If a custom token is used instead, a CI would be triggered on a created PR.
-      api_token: ${{ secrets.CI_DEPLOY_KEY }}
-      # api_token: ${{ github.token }}
+      api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   cli:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-cli.sh
       name: CLI
+      pr-strategy: update
     secrets:
-      api_token: ${{ secrets.CI_DEPLOY_KEY }}
+      api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   sample-rn:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v1
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: sample/scripts/update-rn.sh
       name: Sample React Native
       pattern: '^v[0-9.]+$' # only match non-preview versions, also ignores "latest"
+      pr-strategy: update
     secrets:
-      api_token: ${{ secrets.CI_DEPLOY_KEY }}
+      api-token: ${{ secrets.CI_DEPLOY_KEY }}

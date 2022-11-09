@@ -8,8 +8,8 @@ const hub = {
   getClient: jest.fn(),
 };
 
-jest.mock('@sentry/hub', () => {
-  const hubOriginal = jest.requireActual('@sentry/hub');
+jest.mock('@sentry/core', () => {
+  const hubOriginal = jest.requireActual('@sentry/core');
 
   return {
     ...hubOriginal,
@@ -96,7 +96,7 @@ describe('StallTracking', () => {
 
       expect(measurements).toBeDefined();
       if (measurements) {
-        expect(measurements.stall_count.value).toBe(2);
+        expect(measurements.stall_count.value).toBeGreaterThanOrEqual(2);
         expect(measurements.stall_longest_time.value).toBeGreaterThan(0);
         expect(measurements.stall_total_time.value).toBeGreaterThan(0);
       }

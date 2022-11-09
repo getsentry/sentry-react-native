@@ -6,7 +6,8 @@
     "esModuleInterop": true,
     "paths": {
       "@sentry/react-native": ["../"]
-    }
+    },
+    "types": ["webdriverio/async"]
   },
   "exclude": ["**/node_modules/*"]
 }

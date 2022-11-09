@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Transaction } from '@sentry/tracing';
 import { TransactionContext } from '@sentry/types';
-import { getGlobalObject } from '@sentry/utils';
 
 import {
   BLANK_TRANSACTION_CONTEXT,
   NavigationRoute,
   ReactNavigationInstrumentation,
 } from '../../src/js/tracing/reactnavigation';
+import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 
 const dummyRoute = {
   name: 'Route',
@@ -15,14 +15,14 @@ const dummyRoute = {
 };
 
 class MockNavigationContainer {
-  currentRoute: NavigationRoute = dummyRoute;
+  currentRoute: NavigationRoute | undefined = dummyRoute;
   listeners: Record<string, (e: any) => void> = {};
   addListener: any = jest.fn(
     (eventType: string, listener: (e: any) => void): void => {
       this.listeners[eventType] = listener;
     }
   );
-  getCurrentRoute(): NavigationRoute {
+  getCurrentRoute(): NavigationRoute | undefined {
     return this.currentRoute;
   }
 }
@@ -36,12 +36,8 @@ const getMockTransaction = () => {
   return transaction;
 };
 
-const _global = getGlobalObject<{
-  __sentry_rn_v5_registered?: boolean;
-}>();
-
 afterEach(() => {
-  _global.__sentry_rn_v5_registered = false;
+  RN_GLOBAL_OBJ.__sentry_rn_v5_registered = false;
 
   jest.resetAllMocks();
 });
@@ -80,6 +76,7 @@ describe('ReactNavigationInstrumentation', () => {
       },
       previousRoute: null,
     });
+    expect(mockTransaction.metadata.source).toBe('component');
   });
 
   test('transaction sent on navigation', async () => {
@@ -119,6 +116,10 @@ describe('ReactNavigationInstrumentation', () => {
             someParam: 42,
           },
         };
+        // If .getCurrentRoute() is undefined, ignore state change
+        mockNavigationContainerRef.current.currentRoute = undefined;
+        mockNavigationContainerRef.current.listeners['state']({});
+
         mockNavigationContainerRef.current.currentRoute = route;
         mockNavigationContainerRef.current.listeners['state']({});
 
@@ -140,6 +141,7 @@ describe('ReactNavigationInstrumentation', () => {
             params: {},
           },
         });
+        expect(mockTransaction.metadata.source).toBe('component');
 
         resolve();
       }, 50);
@@ -192,6 +194,7 @@ describe('ReactNavigationInstrumentation', () => {
         expect(mockTransaction.sampled).toBe(false);
         expect(mockTransaction.name).toBe('New Name');
         expect(mockTransaction.description).toBe('Description');
+        expect(mockTransaction.metadata.source).toBe('custom');
         resolve();
       }, 50);
     });
@@ -290,7 +293,7 @@ describe('ReactNavigationInstrumentation', () => {
         current: mockNavigationContainer,
       });
 
-      expect(_global.__sentry_rn_v5_registered).toBe(true);
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
@@ -311,7 +314,7 @@ describe('ReactNavigationInstrumentation', () => {
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer(mockNavigationContainer);
 
-      expect(_global.__sentry_rn_v5_registered).toBe(true);
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
@@ -328,7 +331,7 @@ describe('ReactNavigationInstrumentation', () => {
     });
 
     test('does not register navigation container if there is an existing one', () => {
-      _global.__sentry_rn_v5_registered = true;
+      RN_GLOBAL_OBJ.__sentry_rn_v5_registered = true;
 
       const instrumentation = new ReactNavigationInstrumentation();
       const mockNavigationContainer = new MockNavigationContainer();
@@ -336,7 +339,7 @@ describe('ReactNavigationInstrumentation', () => {
         current: mockNavigationContainer,
       });
 
-      expect(_global.__sentry_rn_v5_registered).toBe(true);
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).not.toHaveBeenCalled();
@@ -488,6 +491,7 @@ describe('ReactNavigationInstrumentation', () => {
       expect(confirmedContext).toBeDefined();
       if (confirmedContext) {
         expect(confirmedContext.name).toBe(route2.name);
+        expect(confirmedContext.metadata).toBeUndefined();
         expect(confirmedContext.data).toBeDefined();
         if (confirmedContext.data) {
           expect(confirmedContext.data.route.name).toBe(route2.name);

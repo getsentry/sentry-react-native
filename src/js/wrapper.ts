@@ -1,19 +1,15 @@
 /* eslint-disable max-lines */
 import {
-  AttachmentItem,
   BaseEnvelopeItemHeaders,
   Breadcrumb,
-  ClientReportItem,
   Envelope,
+  EnvelopeItem,
   Event,
-  EventItem,
   Package,
-  SessionItem,
   SeverityLevel,
   User,
-  UserFeedbackItem,
 } from '@sentry/types';
-import { logger, SentryError } from '@sentry/utils';
+import { logger, normalize, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
 
 import {
@@ -23,8 +19,10 @@ import {
   NativeReleaseResponse,
   SentryNativeBridgeModule,
 } from './definitions';
+import { isHardCrash } from './misc';
 import { ReactNativeOptions } from './options';
-
+import { RequiredKeysUser } from './user';
+import { utf8ToBytes } from './vendor';
 
 const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
 
@@ -36,13 +34,14 @@ interface SentryNativeWrapper {
   _NativeClientError: Error;
   _DisabledNativeError: Error;
 
-  _getEvent(envelopeItem: EventItem | AttachmentItem | UserFeedbackItem | SessionItem | ClientReportItem): Event | undefined;
+  _processItem(envelopeItem: EnvelopeItem): EnvelopeItem;
   _processLevels(event: Event): Event;
   _processLevel(level: SeverityLevel): SeverityLevel;
   _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
   _isModuleLoaded(
     module: SentryNativeBridgeModule | undefined
   ): module is SentryNativeBridgeModule;
+  _getBreadcrumbs(event: Event): Breadcrumb[] | undefined;
 
   isNativeTransportAvailable(): boolean;
 
@@ -58,6 +57,7 @@ interface SentryNativeWrapper {
   fetchNativeSdkInfo(): PromiseLike<Package | null>;
 
   disableNativeFramesTracking(): void;
+  enableNativeFramesTracking(): void;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   setContext(key: string, context: { [key: string]: unknown } | null): void;
@@ -87,77 +87,42 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const header = envelope[0];
+    const [EOL] = utf8ToBytes('\n');
 
-    if (NATIVE.platform === 'android') {
-      // Android
+    const [envelopeHeader, envelopeItems] = envelope;
 
-      const headerString = JSON.stringify(header);
+    const headerString = JSON.stringify(envelopeHeader);
+    const envelopeBytes: number[] = utf8ToBytes(headerString);
+    envelopeBytes.push(EOL);
 
-      let envelopeItemsBuilder = `${headerString}`;
+    let hardCrashed: boolean = false;
+    for (const rawItem of envelopeItems) {
+      const [itemHeader, itemPayload] = this._processItem(rawItem);
 
-      for (const envelopeItems of envelope[1]) {
-
-        const event = this._getEvent(envelopeItems);
-        if (event != undefined) {
-
-          // @ts-ignore Android still uses the old message object, without this the serialization of events will break.
-          event.message = { message: event.message };
-
-          /*
-        We do this to avoid duplicate breadcrumbs on Android as sentry-android applies the breadcrumbs
-        from the native scope onto every envelope sent through it. This scope will contain the breadcrumbs
-        sent through the scope sync feature. This causes duplicate breadcrumbs.
-        We then remove the breadcrumbs in all cases but if it is handled == false,
-        this is a signal that the app would crash and android would lose the breadcrumbs by the time the app is restarted to read
-        the envelope.
-          */
-          if (event.exception?.values?.[0]?.mechanism?.handled != false && event.breadcrumbs) {
-            event.breadcrumbs = [];
-          }
-          envelopeItems[1] = event;
+      let bytesPayload: number[] = [];
+      if (typeof itemPayload === 'string') {
+        bytesPayload = utf8ToBytes(itemPayload);
+      } else if (itemPayload instanceof Uint8Array) {
+        bytesPayload = [...itemPayload];
+      } else {
+        bytesPayload = utf8ToBytes(JSON.stringify(itemPayload));
+        if (!hardCrashed) {
+          hardCrashed = isHardCrash(itemPayload);
         }
-
-        // Content type is not inside BaseEnvelopeItemHeaders.
-        (envelopeItems[0] as BaseEnvelopeItemHeaders).content_type = 'application/json';
-
-        const itemPayload = JSON.stringify(envelopeItems[1]);
-
-        let length = itemPayload.length;
-        try {
-          length = await RNSentry.getStringBytesLength(itemPayload);
-        } catch {
-          // The native call failed, we do nothing, we have payload.length as a fallback
-        }
-
-        (envelopeItems[0] as BaseEnvelopeItemHeaders).length = length;
-        const itemHeader = JSON.stringify(envelopeItems[0]);
-
-        envelopeItemsBuilder += `\n${itemHeader}\n${itemPayload}`;
       }
 
-      await RNSentry.captureEnvelope(envelopeItemsBuilder);
-    } else {
-      // iOS/Mac
+      // Content type is not inside BaseEnvelopeItemHeaders.
+      (itemHeader as BaseEnvelopeItemHeaders).content_type = 'application/json';
+      (itemHeader as BaseEnvelopeItemHeaders).length = bytesPayload.length;
+      const serializedItemHeader = JSON.stringify(itemHeader);
 
-      for (const envelopeItems of envelope[1]) {
-        const event = this._getEvent(envelopeItems);
-        if (event != undefined) {
-          envelopeItems[1] = event;
-        }
+      envelopeBytes.push(...utf8ToBytes(serializedItemHeader));
+      envelopeBytes.push(EOL);
+      bytesPayload.forEach(byte => envelopeBytes.push(byte));
+      envelopeBytes.push(EOL);
+    }
 
-        const itemPayload = JSON.parse(JSON.stringify(envelopeItems[1]));
-
-        // The envelope item is created (and its length determined) on the iOS side of the native bridge.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-
-        await RNSentry.captureEnvelope({
-          header,
-          payload: itemPayload,
-        });
-      }
-    };
-
+    await RNSentry.captureEnvelope(envelopeBytes, { store: hardCrashed });
   },
 
   /**
@@ -315,21 +280,23 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    // separate and serialze all non-default user keys.
-    let defaultUserKeys = null;
-    let otherUserKeys = null;
+    // separate and serialize all non-default user keys.
+    let userKeys = null;
+    let userDataKeys = null;
     if (user) {
-      const { id, ip_address, email, username, ...otherKeys } = user;
-      defaultUserKeys = this._serializeObject({
-        email,
+      const { id, ip_address, email, username, segment, ...otherKeys } = user;
+      const requiredUser: RequiredKeysUser = {
         id,
         ip_address,
+        email,
         username,
-      });
-      otherUserKeys = this._serializeObject(otherKeys);
+        segment,
+      };
+      userKeys = this._serializeObject(requiredUser);
+      userDataKeys = this._serializeObject(otherKeys);
     }
 
-    RNSentry.setUser(defaultUserKeys, otherUserKeys);
+    RNSentry.setUser(userKeys, userDataKeys);
   },
 
   /**
@@ -391,7 +358,7 @@ export const NATIVE: SentryNativeWrapper = {
         ? this._processLevel(breadcrumb.level)
         : undefined,
       data: breadcrumb.data
-        ? this._serializeObject(breadcrumb.data)
+        ? normalize(breadcrumb.data)
         : undefined,
     });
   },
@@ -425,7 +392,7 @@ export const NATIVE: SentryNativeWrapper = {
 
     RNSentry.setContext(
       key,
-      context !== null ? this._serializeObject(context) : null
+      context !== null ? normalize(context) : null
     );
   },
 
@@ -456,6 +423,17 @@ export const NATIVE: SentryNativeWrapper = {
     RNSentry.disableNativeFramesTracking();
   },
 
+  enableNativeFramesTracking(): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return;
+    }
+
+    RNSentry.enableNativeFramesTracking();
+  },
+
   isNativeTransportAvailable(): boolean {
     return this.enableNative && this._isModuleLoaded(RNSentry);
   },
@@ -465,11 +443,24 @@ export const NATIVE: SentryNativeWrapper = {
    * @param data An envelope item containing the event.
    * @returns The event from envelopeItem or undefined.
    */
-  _getEvent(envelopeItem: EventItem | AttachmentItem | UserFeedbackItem | SessionItem | ClientReportItem): Event | undefined {
-      if (envelopeItem[0].type == 'event' || envelopeItem[0].type == 'transaction') {
-        return this._processLevels(envelopeItem[1] as Event);
+  _processItem(item: EnvelopeItem): EnvelopeItem {
+    const [itemHeader, itemPayload] = item;
+
+    if (itemHeader.type == 'event' || itemHeader.type == 'transaction') {
+      const event = this._processLevels(itemPayload as Event);
+
+      if (NATIVE.platform === 'android') {
+        if ('message' in event) {
+          // @ts-ignore Android still uses the old message object, without this the serialization of events will break.
+          event.message = { message: event.message };
+        }
+        event.breadcrumbs = this._getBreadcrumbs(event);
       }
-      return undefined;
+
+      return [itemHeader, event];
+    }
+
+    return item;
   },
 
   /**
@@ -544,6 +535,29 @@ export const NATIVE: SentryNativeWrapper = {
   _NativeClientError: new SentryError(
     "Native Client is not available, can't start on native."
   ),
+
+  /**
+   * Get breadcrumbs (removes breadcrumbs from handled exceptions on Android)
+   *
+   * We do this to avoid duplicate breadcrumbs on Android as sentry-android applies the breadcrumbs
+   * from the native scope onto every envelope sent through it. This scope will contain the breadcrumbs
+   * sent through the scope sync feature. This causes duplicate breadcrumbs.
+   * We then remove the breadcrumbs in all cases but if it is handled == false,
+   * this is a signal that the app would crash and android would lose the breadcrumbs by the time the app is restarted to read
+   * the envelope.
+   */
+  _getBreadcrumbs(event: Event): Breadcrumb[] | undefined {
+    let breadcrumbs: Breadcrumb[] | undefined = event.breadcrumbs;
+
+    const hardCrashed = isHardCrash(event);
+    if (NATIVE.platform === 'android'
+      && event.breadcrumbs
+      && !hardCrashed) {
+      breadcrumbs = [];
+    }
+
+    return breadcrumbs;
+  },
 
   enableNative: true,
   nativeIsReady: false,

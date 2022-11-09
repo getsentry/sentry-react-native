@@ -1,7 +1,8 @@
 /* eslint-disable max-lines */
-import { Transaction } from '@sentry/types';
-import { getGlobalObject, logger } from '@sentry/utils';
+import { Transaction, TransactionContext } from '@sentry/types';
+import { logger } from '@sentry/utils';
 
+import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import {
   InternalRoutingInstrumentation,
   OnConfirmRoute,
@@ -12,6 +13,7 @@ import {
   ReactNavigationTransactionContext,
   RouteChangeContextData,
 } from './types';
+import { customTransactionSource, defaultTransactionSource } from './utils';
 
 export interface NavigationRouteV4 {
   routeName: string;
@@ -43,7 +45,11 @@ export interface AppContainerInstance {
 
 interface ReactNavigationV4Options {
   /**
-   * The time the transaction will wait for route to mount before it is discarded.
+   * How long the instrumentation will wait for the route to mount after a change has been initiated,
+   * before the transaction is discarded.
+   * Time is in ms.
+   *
+   * Default: 1000
    */
   routeChangeTimeoutMs: number;
 }
@@ -119,14 +125,12 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
   public registerAppContainer(appContainerRef: any): void {
-    const _global = getGlobalObject<{ __sentry_rn_v4_registered?: boolean }>();
-
     /* We prevent duplicate routing instrumentation to be initialized on fast refreshes
 
       Explanation: If the user triggers a fast refresh on the file that the instrumentation is
       initialized in, it will initialize a new instance and will cause undefined behavior.
      */
-    if (!_global.__sentry_rn_v4_registered) {
+    if (!RN_GLOBAL_OBJ.__sentry_rn_v4_registered) {
       if ('current' in appContainerRef) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this._appContainer = appContainerRef.current;
@@ -148,7 +152,7 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
           this._initialStateHandled = true;
         }
 
-        _global.__sentry_rn_v4_registered = true;
+        RN_GLOBAL_OBJ.__sentry_rn_v4_registered = true;
       } else {
         logger.warn(
           '[ReactNavigationV4Instrumentation] Received invalid app container ref!'
@@ -230,27 +234,16 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
         };
       }
 
-      let finalContext = this._beforeNavigate?.(mergedContext);
-
-      // This block is to catch users not returning a transaction context
-      if (!finalContext) {
-        logger.error(
-          `[ReactNavigationV4Instrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
-        );
-
-        finalContext = {
-          ...mergedContext,
-          sampled: false,
-        };
-      }
-
-      if (finalContext.sampled === false) {
-        this._onBeforeNavigateNotSampled(finalContext.name);
-      }
+      const finalContext = this._prepareFinalContext(mergedContext);
 
       if (updateLatestTransaction && this._latestTransaction) {
         // Update the latest transaction instead of calling onRouteWillChange
         this._latestTransaction.updateWithContext(finalContext);
+        const isCustomName = mergedContext.name !== finalContext.name;
+        this._latestTransaction.setName(
+          finalContext.name,
+          isCustomName ? customTransactionSource : defaultTransactionSource,
+        );
       } else {
         this._latestTransaction = this.onRouteWillChange(finalContext);
       }
@@ -260,6 +253,29 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
       this._pushRecentRouteKey(currentRoute.key);
       this._prevRoute = currentRoute;
     }
+  }
+
+  /** Creates final transaction context before confirmation */
+  private _prepareFinalContext(mergedContext: TransactionContext): TransactionContext {
+    let finalContext = this._beforeNavigate?.({ ...mergedContext });
+
+    // This block is to catch users not returning a transaction context
+    if (!finalContext) {
+      logger.error(
+        `[ReactNavigationV4Instrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
+      );
+
+      finalContext = {
+        ...mergedContext,
+        sampled: false,
+      };
+    }
+
+    if (finalContext.sampled === false) {
+      this._onBeforeNavigateNotSampled(finalContext.name);
+    }
+
+    return finalContext;
   }
 
   /**
@@ -345,7 +361,7 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
   }
 }
 
-const INITIAL_TRANSACTION_CONTEXT_V4 = {
+const INITIAL_TRANSACTION_CONTEXT_V4: TransactionContext = {
   name: 'App Launch',
   op: 'navigation',
   tags: {
@@ -353,6 +369,9 @@ const INITIAL_TRANSACTION_CONTEXT_V4 = {
       ReactNavigationV4Instrumentation.instrumentationName,
   },
   data: {},
+  metadata: {
+    source: 'view',
+  },
 };
 
 export { ReactNavigationV4Instrumentation, INITIAL_TRANSACTION_CONTEXT_V4 };

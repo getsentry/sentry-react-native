@@ -9,11 +9,11 @@ import android.util.SparseIntArray;
 import androidx.core.app.FrameMetricsAggregator;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
@@ -21,8 +21,6 @@ import com.facebook.react.module.annotations.ReactModule;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -31,17 +29,17 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.sentry.SentryEvent;
-import io.sentry.android.core.AnrIntegration;
-import io.sentry.android.core.AppStartState;
-import io.sentry.android.core.NdkIntegration;
-import io.sentry.android.core.SentryAndroid;
 import io.sentry.Breadcrumb;
 import io.sentry.HubAdapter;
 import io.sentry.Integration;
 import io.sentry.Sentry;
+import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
 import io.sentry.UncaughtExceptionHandlerIntegration;
+import io.sentry.android.core.AnrIntegration;
+import io.sentry.android.core.AppStartState;
+import io.sentry.android.core.NdkIntegration;
+import io.sentry.android.core.SentryAndroid;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
@@ -54,9 +52,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private static final Logger logger = Logger.getLogger("react-native-sentry");
 
-    private PackageInfo packageInfo = null;
+    private final PackageInfo packageInfo;
     private FrameMetricsAggregator frameMetricsAggregator = null;
-    private boolean androidXAvailable = true;
+    private boolean androidXAvailable;
 
     private static boolean didFetchAppStart;
 
@@ -75,13 +73,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         return NAME;
     }
 
-    @Override
-    public Map<String, Object> getConstants() {
-        final Map<String, Object> constants = new HashMap<>();
-        constants.put("nativeClientAvailable", true);
-        constants.put("nativeTransport", true);
-        return constants;
-    }
 
     @ReactMethod
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
@@ -97,6 +88,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             } else {
                 // SentryAndroid needs an empty string fallback for the dsn.
                 options.setDsn("");
+            }
+            if (rnOptions.hasKey("sendClientReports")) {
+                options.setSendClientReports(rnOptions.getBoolean("sendClientReports"));
             }
             if (rnOptions.hasKey("maxBreadcrumbs")) {
                 options.setMaxBreadcrumbs(rnOptions.getInt("maxBreadcrumbs"));
@@ -129,7 +123,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 options.setAttachStacktrace(rnOptions.getBoolean("attachStacktrace"));
             }
             if (rnOptions.hasKey("attachThreads")) {
-                // JS use top level stacktraces and android attaches Threads which hides them so
+                // JS use top level stacktrace and android attaches Threads which hides them so
                 // by default we hide.
                 options.setAttachThreads(rnOptions.getBoolean("attachThreads"));
             }
@@ -139,28 +133,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             if (rnOptions.hasKey("sendDefaultPii")) {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
             }
-            if (rnOptions.hasKey("enableAutoPerformanceTracking")
-                    && rnOptions.getBoolean("enableAutoPerformanceTracking")) {
-                androidXAvailable = checkAndroidXAvailability();
-
-                if (androidXAvailable) {
-                    frameMetricsAggregator = new FrameMetricsAggregator();
-                    final Activity currentActivity = getCurrentActivity();
-
-                    if (frameMetricsAggregator != null && currentActivity != null) {
-                        try {
-                            frameMetricsAggregator.add(currentActivity);
-                        } catch (Throwable ignored) {
-                            // throws ConcurrentModification when calling addOnFrameMetricsAvailableListener
-                            // this is a best effort since we can't reproduce it
-                            logger.warning("Error adding Activity to frameMetricsAggregator.");
-                        }
-                    }
-                } else {
-                    logger.warning("androidx.core' isn't available as a dependency.");
-                }
-            } else {
-                this.disableNativeFramesTracking();
+            if (rnOptions.hasKey("maxQueueSize")) {
+                options.setMaxQueueSize(rnOptions.getInt("maxQueueSize"));
             }
 
             options.setBeforeSend((event, hint) -> {
@@ -192,7 +166,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 }
             }
 
-            logger.info(String.format("Native Integrations '%s'", options.getIntegrations().toString()));
+            logger.info(String.format("Native Integrations '%s'", options.getIntegrations()));
         });
 
         promise.resolve(true);
@@ -295,7 +269,12 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void captureEnvelope(String envelope, Promise promise) {
+    public void captureEnvelope(ReadableArray rawBytes, ReadableMap options, Promise promise) {
+        byte[] bytes = new byte[rawBytes.size()];
+        for (int i = 0; i < rawBytes.size(); i++) {
+            bytes[i] = (byte) rawBytes.getInt(i);
+        }
+
         try {
             final String outboxPath = HubAdapter.getInstance().getOptions().getOutboxPath();
 
@@ -305,22 +284,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             } else {
                 File installation = new File(outboxPath, UUID.randomUUID().toString());
                 try (FileOutputStream out = new FileOutputStream(installation)) {
-                    out.write(envelope.getBytes(Charset.forName("UTF-8")));
+                    out.write(bytes);
                 }
             }
         } catch (Throwable ignored) {
-            logger.severe("Error reading envelope");
+            logger.severe("Error while writing envelope to outbox.");
         }
         promise.resolve(true);
-    }
-
-    @ReactMethod
-    public void getStringBytesLength(String payload, Promise promise) {
-        try {
-            promise.resolve(payload.getBytes("UTF-8").length);
-        } catch (UnsupportedEncodingException e) {
-            promise.reject(e);
-        }
     }
 
     private static PackageInfo getPackageInfo(Context ctx) {
@@ -333,42 +303,49 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void setUser(final ReadableMap user, final ReadableMap otherUserKeys) {
+    public void setUser(final ReadableMap userKeys, final ReadableMap userDataKeys) {
         Sentry.configureScope(scope -> {
-            if (user == null && otherUserKeys == null) {
+            if (userKeys == null && userDataKeys == null) {
                 scope.setUser(null);
             } else {
                 User userInstance = new User();
 
-                if (user != null) {
-                    if (user.hasKey("email")) {
-                        userInstance.setEmail(user.getString("email"));
+                if (userKeys != null) {
+                    if (userKeys.hasKey("email")) {
+                        userInstance.setEmail(userKeys.getString("email"));
                     }
 
-                    if (user.hasKey("id")) {
-                        userInstance.setId(user.getString("id"));
+                    if (userKeys.hasKey("id")) {
+                        userInstance.setId(userKeys.getString("id"));
                     }
 
-                    if (user.hasKey("username")) {
-                        userInstance.setUsername(user.getString("username"));
+                    if (userKeys.hasKey("username")) {
+                        userInstance.setUsername(userKeys.getString("username"));
                     }
 
-                    if (user.hasKey("ip_address")) {
-                        userInstance.setIpAddress(user.getString("ip_address"));
+                    if (userKeys.hasKey("ip_address")) {
+                        userInstance.setIpAddress(userKeys.getString("ip_address"));
+                    }
+
+                    if (userKeys.hasKey("segment")) {
+                        userInstance.setSegment(userKeys.getString("segment"));
                     }
                 }
 
-                if (otherUserKeys != null) {
-                    HashMap<String, String> otherUserKeysMap = new HashMap<String, String>();
-                    ReadableMapKeySetIterator it = otherUserKeys.keySetIterator();
+                if (userDataKeys != null) {
+                    HashMap<String, String> userDataMap = new HashMap<>();
+                    ReadableMapKeySetIterator it = userDataKeys.keySetIterator();
                     while (it.hasNextKey()) {
                         String key = it.nextKey();
-                        String value = otherUserKeys.getString(key);
+                        String value = userDataKeys.getString(key);
 
-                        otherUserKeysMap.put(key, value);
+                        // other is ConcurrentHashMap and can't have null values
+                        if (value != null) {
+                            userDataMap.put(key, value);
+                        }
                     }
 
-                    userInstance.setOthers(otherUserKeysMap);
+                    userInstance.setData(userDataMap);
                 }
 
                 scope.setUser(userInstance);
@@ -401,29 +378,27 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     case "warning":
                         breadcrumbInstance.setLevel(SentryLevel.WARNING);
                         break;
-                    case "info":
-                        breadcrumbInstance.setLevel(SentryLevel.INFO);
-                        break;
                     case "debug":
                         breadcrumbInstance.setLevel(SentryLevel.DEBUG);
                         break;
                     case "error":
                         breadcrumbInstance.setLevel(SentryLevel.ERROR);
                         break;
+                    case "info":
                     default:
-                        breadcrumbInstance.setLevel(SentryLevel.ERROR);
+                        breadcrumbInstance.setLevel(SentryLevel.INFO);
                         break;
                 }
             }
 
             if (breadcrumb.hasKey("data")) {
-                ReadableMap data = breadcrumb.getMap("data");
-                ReadableMapKeySetIterator it = data.keySetIterator();
-                while (it.hasNextKey()) {
-                    String key = it.nextKey();
-                    String value = data.getString(key);
-
-                    breadcrumbInstance.setData(key, value);
+                final ReadableMap data = breadcrumb.getMap("data");
+                for(final Map.Entry<String, Object> entry : data.toHashMap().entrySet()) {
+                    final Object value = entry.getValue();
+                    // data is ConcurrentHashMap and can't have null values
+                    if (value != null) {
+                        breadcrumbInstance.setData(entry.getKey(), entry.getValue());
+                    }
                 }
             }
 
@@ -474,6 +449,32 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void enableNativeFramesTracking() {
+        androidXAvailable = checkAndroidXAvailability();
+
+        if (androidXAvailable) {
+            frameMetricsAggregator = new FrameMetricsAggregator();
+            final Activity currentActivity = getCurrentActivity();
+
+            if (frameMetricsAggregator != null && currentActivity != null) {
+                try {
+                    frameMetricsAggregator.add(currentActivity);
+
+                    logger.info("FrameMetricsAggregator installed.");
+                } catch (Throwable ignored) {
+                    // throws ConcurrentModification when calling addOnFrameMetricsAvailableListener
+                    // this is a best effort since we can't reproduce it
+                    logger.severe("Error adding Activity to frameMetricsAggregator.");
+                }
+            } else {
+                logger.info("currentActivity isn't available.");
+            }
+        } else {
+            logger.warning("androidx.core' isn't available as a dependency.");
+        }
+    }
+
+    @ReactMethod
     public void disableNativeFramesTracking() {
         if (isFrameMetricsAggregatorAvailable()) {
             frameMetricsAggregator.stop();
@@ -488,10 +489,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 // If the event is from capacitor js, it gets set there and we do not handle it
                 // here.
                 case "sentry.native":
-                    setEventEnvironmentTag(event, "android", "native");
+                    setEventEnvironmentTag(event, "native");
                     break;
                 case "sentry.java.android":
-                    setEventEnvironmentTag(event, "android", "java");
+                    setEventEnvironmentTag(event, "java");
                     break;
                 default:
                     break;
@@ -499,8 +500,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private void setEventEnvironmentTag(SentryEvent event, String origin, String environment) {
-        event.setTag("event.origin", origin);
+    private void setEventEnvironmentTag(SentryEvent event, String environment) {
+        event.setTag("event.origin", "android");
         event.setTag("event.environment", environment);
     }
 

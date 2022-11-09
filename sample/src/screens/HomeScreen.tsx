@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   Image,
   ScrollView,
@@ -16,6 +16,11 @@ import * as Sentry from '@sentry/react-native';
 import { getTestProps } from '../../utils/getTestProps';
 import { SENTRY_INTERNAL_DSN } from '../dsn';
 import { SeverityLevel } from '@sentry/types';
+import { Scope } from '@sentry/react-native';
+import { NativeModules } from 'react-native';
+import { UserFeedbackModal } from '../components/UserFeedbackModal';
+
+const {AssetsModule} = NativeModules;
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -34,6 +39,8 @@ const HomeScreen = (props: Props) => {
       id: 'test-id-0',
       email: 'testing@testing.test',
       username: 'USER-TEST',
+      ip_address: '1.1.1.1',
+      segment: 'test-segment',
       specialField: 'special user field',
       specialFieldNumber: 418,
     });
@@ -105,6 +112,12 @@ const HomeScreen = (props: Props) => {
 
     console.log('Test scope properties were set.');
   };
+
+  const [data, setData] = React.useState<Uint8Array>(null);
+  useEffect(() => {
+    AssetsModule.getExampleAssetData()
+      .then((asset: number[]) => setData(new Uint8Array(asset)));
+  }, []);
 
   return (
     <>
@@ -223,6 +236,31 @@ const HomeScreen = (props: Props) => {
                 </Text>
               </TouchableOpacity>
             </Sentry.ErrorBoundary>
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={async () => {
+                Sentry.configureScope((scope: Scope) => {
+                  scope.addAttachment({
+                    data: 'Attachment content',
+                    filename: 'attachment.txt',
+                  });
+                  scope.addAttachment({data: data, filename: 'logo.png'});
+                  console.log('Sentry attachment added.');
+                });
+              }}>
+              <Text style={styles.buttonText}>Add attachment</Text>
+            </TouchableOpacity>
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={async () => {
+                Sentry.configureScope((scope: Scope) => {
+                  console.log(scope.getAttachments());
+                });
+              }}>
+              <Text style={styles.buttonText}>Get attachment</Text>
+            </TouchableOpacity>
+            <View style={styles.spacer} />
+            <UserFeedbackModal/>
           </View>
           <View style={styles.buttonArea}>
             <TouchableOpacity
@@ -271,7 +309,7 @@ const HomeScreen = (props: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   scrollView: {
     backgroundColor: '#fff',
     flex: 1,

@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { Hub } from '@sentry/hub';
+import { Hub } from '@sentry/core';
 import {
   defaultRequestInstrumentationOptions,
   IdleTransaction,
@@ -163,6 +163,7 @@ export class ReactNativeTracing implements Integration {
     }
 
     if (enableNativeFramesTracking) {
+      NATIVE.enableNativeFramesTracking();
       this.nativeFramesInstrumentation = new NativeFramesInstrumentation(
         addGlobalEventProcessor,
         () => {
@@ -285,7 +286,7 @@ export class ReactNativeTracing implements Integration {
 
     const appStartTimeSeconds = appStart.appStartTime / 1000;
 
-    const appStartMode = appStart.isColdStart ? 'app_start_cold' : 'app_start_warm';
+    const appStartMode = appStart.isColdStart ? 'app.start.cold' : 'app.start.warm';
     transaction.startChild({
       description: appStart.isColdStart ? 'Cold App Start' : 'Warm App Start',
       op: appStartMode,
@@ -361,7 +362,7 @@ export class ReactNativeTracing implements Integration {
       hub as Hub,
       expandedContext,
       idleTimeout,
-      idleTimeout, // BREAKCHANGE: check the correct parameter here
+      maxTransactionDuration * 1000, // convert seconds to milliseconds
       true
     );
 
