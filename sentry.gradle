@@ -213,7 +213,7 @@ gradle.projectsEvaluated {
             delete modulesOutput
         }
 
-        def packageTasks = tasks.findAll { task -> task.name.startsWith("package") && !task.name.contains("Debug") && task.enabled }
+        def packageTasks = tasks.findAll { task -> task.name == 'packageRelease' && task.enabled }
         packageTasks.each { packageTask ->
             packageTask.dependsOn modulesTask
             packageTask.finalizedBy modulesCleanUpTask
