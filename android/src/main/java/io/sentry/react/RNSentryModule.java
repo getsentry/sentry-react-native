@@ -20,7 +20,10 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +54,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public static final String NAME = "RNSentry";
 
     private static final Logger logger = Logger.getLogger("react-native-sentry");
+    private static final String modulesPath = "modules.json";
 
     private final PackageInfo packageInfo;
     private FrameMetricsAggregator frameMetricsAggregator = null;
@@ -172,6 +176,24 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void crash() {
         throw new RuntimeException("TEST - Sentry Client Crash (only works in release mode)");
+    }
+
+    @ReactMethod
+    public void fetchModules(Promise promise) {
+        try {
+            InputStream stream = this.getReactApplicationContext().getResources().getAssets()
+                    .open(RNSentryModule.modulesPath);
+            int size = stream.available();
+            byte[] buffer = new byte[size];
+            stream.read(buffer);
+            stream.close();
+            String modulesJson = new String(buffer, StandardCharsets.UTF_8);
+            promise.resolve(modulesJson);
+        } catch (FileNotFoundException e) {
+            promise.resolve(null);
+        } catch (Exception e) {
+            promise.reject(e);
+        }
     }
 
     @ReactMethod

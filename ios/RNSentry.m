@@ -162,7 +162,7 @@ RCT_EXPORT_METHOD(fetchModules:(RCTPromiseResolveBlock)resolve
     NSString *filePath = [[NSBundle mainBundle] pathForResource:@"modules" ofType:@"json"];
     NSString* modulesString = [NSString stringWithContentsOfFile:filePath
                                                   encoding:NSUTF8StringEncoding
-                                                     error:NULL];
+                                                     error:nil];
     resolve(modulesString);
 }
 

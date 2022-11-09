@@ -79,6 +79,7 @@ gradle.projectsEvaluated {
           // below) and distribution identifier (`--dist` below).  Give the task a unique name
           // based on where we're uploading to.
           def nameCliTask = "${bundleTask.name}_SentryUpload_${releaseName}_${versionCode}"
+          def nameModulesTask = "${bundleTask.name}_SentryCollectModules_${releaseName}_${versionCode}"
 
           // If several outputs have the same releaseName and versionCode, we'd do the exact same
           // upload for each of them.  No need to repeat.
@@ -153,6 +154,32 @@ gradle.projectsEvaluated {
               enabled true
           }
 
+          def modulesTask = tasks.create(nameModulesTask, Exec) {
+              description = "collect javascript modules from bundle source map"
+              group = 'sentry.io'
+
+              workingDir reactRoot
+
+              def collectModulesScript = project.hasProperty('sentry.collectModulesScript')
+                ? file(project.getProperty('sentry.collectModulesScript')).getAbsolutePath()
+                : "$reactRoot/node_modules/@sentry/react-native/dist/js/tools/collectModules.js"
+              def modulesOutput = "$reactRoot/android/app/src/main/assets/modules.json"
+              def modulesPaths = project.hasProperty('sentry.modulesPaths')
+                ? project.getProperty('sentry.modulesPaths')
+                : "$reactRoot/node_modules"
+              def args = ["node",
+                          collectModulesScript,
+                          sourcemapOutput,
+                          modulesOutput,
+                          modulesPaths
+              ]
+
+              project.logger.info("Sentry-CollectModules arguments: ${args}")
+              commandLine(*args)
+
+              enabled true
+          }
+
           // chain the upload tasks so they run sequentially in order to run
           // the cliCleanUpTask after the final upload task is run
           if (previousCliTask != null) {
@@ -161,6 +188,7 @@ gradle.projectsEvaluated {
             bundleTask.finalizedBy cliTask
           }
           previousCliTask = cliTask
+          cliTask.finalizedBy modulesTask
         }
 
         /** Delete sourcemap files */
