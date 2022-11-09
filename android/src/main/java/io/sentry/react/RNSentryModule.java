@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.util.SparseIntArray;
 
 import androidx.core.app.FrameMetricsAggregator;
@@ -19,11 +20,12 @@ import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +57,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private static final Logger logger = Logger.getLogger("react-native-sentry");
     private static final String modulesPath = "modules.json";
+    private static final Charset UTF_8 = Charset.forName("UTF-8");
 
     private final PackageInfo packageInfo;
     private FrameMetricsAggregator frameMetricsAggregator = null;
@@ -180,14 +183,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void fetchModules(Promise promise) {
-        try {
-            InputStream stream = this.getReactApplicationContext().getResources().getAssets()
-                    .open(RNSentryModule.modulesPath);
+        final AssetManager assets = this.getReactApplicationContext().getResources().getAssets();
+        try (final InputStream stream =
+                     new BufferedInputStream(assets.open(RNSentryModule.modulesPath))) {
             int size = stream.available();
             byte[] buffer = new byte[size];
             stream.read(buffer);
             stream.close();
-            String modulesJson = new String(buffer, StandardCharsets.UTF_8);
+            String modulesJson = new String(buffer, RNSentryModule.UTF_8);
             promise.resolve(modulesJson);
         } catch (FileNotFoundException e) {
             promise.resolve(null);
