@@ -1,4 +1,5 @@
-import { EventProcessor, Integration, Event } from '@sentry/types';
+import { Event,EventProcessor, Integration } from '@sentry/types';
+
 import { NATIVE } from '../wrapper';
 
 /** Loads runtime JS modules from prepared file. */

@@ -60,7 +60,7 @@ function collectModules(sources: string[], modulesPaths: string[]): Record<strin
         if (info.name && info.version) {
           infos[info.name] = info.version;
         } else if (info.name) {
-          infos[info.name] = "unknown";
+          infos[info.name] = 'unknown';
         }
       } catch (_oO) {
         // do-nothing

@@ -81,7 +81,6 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     const raw = await RNSentry.fetchModules();
-    console.log('fetchModules', raw);
     if (raw) {
       return JSON.parse(raw);
     }
