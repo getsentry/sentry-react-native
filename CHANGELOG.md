@@ -2,15 +2,22 @@
 
 ## Unreleased
 
+### Features
+
+- Add `maxQueueSize` option ([#2578](https://github.com/getsentry/sentry-react-native/pull/2578))
+
 ### Dependencies
 
-- Bump JavaScript SDK from v7.16.0 to v7.17.3 ([#2582](https://github.com/getsentry/sentry-react-native/pull/2582))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7173)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.16.0...7.17.3)
+- Bump JavaScript SDK from v7.16.0 to v7.17.4 ([#2582](https://github.com/getsentry/sentry-react-native/pull/2582), [#2598](https://github.com/getsentry/sentry-react-native/pull/2598))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7174)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.16.0...7.17.4)
+- Bump Cocoa SDK from v7.29.0 to v7.30.0 ([#2597](https://github.com/getsentry/sentry-react-native/pull/2597))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7300)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.29.0...7.30.0)
 
 ## 4.8.0
 
-## Fixes
+### Fixes
 
 - Message event can have attached stacktrace ([#2577](https://github.com/getsentry/sentry-react-native/pull/2577))
 - Fixed maximum call stack exceeded error resulting from large payloads ([#2579](https://github.com/getsentry/sentry-react-native/pull/2579))
