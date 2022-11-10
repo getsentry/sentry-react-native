@@ -42,21 +42,9 @@ jobs:
         with:
           path: |
             node_modules
-            sample/node_modules
           key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
 
-      - name: iOS cache
-        if: ${{ matrix.platform == 'ios' }}
-        uses: actions/cache@v3
-        with:
-          path: |
-            sample/ios/Pods
-            sample/ios/DerivedData
-          # Note: we cannot use sample/ios/Podfile.lock because it's not source controlled.
-          key: ${{ github.workflow }}-${{ github.job }}-ios${{ matrix.runtime }}-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
-
       - name: Install Dependencies
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
 
       - name: Build SDK
@@ -74,7 +62,6 @@ jobs:
         run: yalc add @sentry/react-native
 
       - name: Install Sample Dependencies
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
         working-directory: ./sample
         run: yarn install
 
