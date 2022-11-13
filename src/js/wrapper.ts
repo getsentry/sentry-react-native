@@ -26,6 +26,12 @@ import { utf8ToBytes } from './vendor';
 
 const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
 
+export interface Screenshot {
+  data: Uint8Array;
+  contentType: string;
+  filename: string;
+}
+
 interface SentryNativeWrapper {
   enableNative: boolean;
   nativeIsReady: boolean;
@@ -49,6 +55,7 @@ interface SentryNativeWrapper {
   closeNativeSdk(): PromiseLike<void>;
 
   sendEnvelope(envelope: Envelope): Promise<void>;
+  captureScreenshot(): Promise<Screenshot | null>;
 
   fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
@@ -436,6 +443,26 @@ export const NATIVE: SentryNativeWrapper = {
 
   isNativeTransportAvailable(): boolean {
     return this.enableNative && this._isModuleLoaded(RNSentry);
+  },
+
+  async captureScreenshot(): Promise<Screenshot | null> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    try {
+      const raw = await RNSentry.captureScreenshot();
+      return {
+        ...raw,
+        data: new Uint8Array(raw.data),
+      }
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
   },
 
   /**

@@ -21,7 +21,7 @@ import { ReactNativeClientOptions, ReactNativeTransportOptions } from './options
 import { makeReactNativeTransport } from './transports/native';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { mergeOutcomes } from './utils/outcome';
-import { NATIVE } from './wrapper';
+import { NATIVE, Screenshot } from './wrapper';
 
 /**
  * The Sentry React Native SDK Client.
@@ -81,8 +81,15 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   /**
    * @inheritDoc
    */
-  public eventFromException(_exception: unknown, _hint?: EventHint): PromiseLike<Event> {
-    return this._browserClient.eventFromException(_exception, _hint);
+  public eventFromException(_exception: unknown, _hint: EventHint = {}): PromiseLike<Event> {
+    const capturingScreenshot = NATIVE.captureScreenshot();
+    return capturingScreenshot.then((screenshot: Screenshot | null) => {
+      _hint.attachments = [
+        ...(screenshot ? [screenshot] : []),
+        ...(_hint?.attachments || []),
+      ];
+      return this._browserClient.eventFromException(_exception, _hint);
+    });
   }
 
   /**

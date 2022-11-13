@@ -4,7 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.util.SparseIntArray;
+import android.view.View;
 
 import androidx.core.app.FrameMetricsAggregator;
 
@@ -17,8 +20,11 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeArray;
+import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.module.annotations.ReactModule;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Date;
@@ -127,9 +133,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 // by default we hide.
                 options.setAttachThreads(rnOptions.getBoolean("attachThreads"));
             }
-            if (rnOptions.hasKey("attachScreenshot")) {
+/*            if (rnOptions.hasKey("attachScreenshot")) {
                 options.setAttachScreenshot(rnOptions.getBoolean("attachScreenshot"));
-            }
+            }*/
             if (rnOptions.hasKey("sendDefaultPii")) {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
             }
@@ -291,6 +297,58 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             logger.severe("Error while writing envelope to outbox.");
         }
         promise.resolve(true);
+    }
+
+    @ReactMethod
+    public void captureScreenshot(Promise promise) {
+        final Activity activity = this.getReactApplicationContext().getCurrentActivity();
+        if (activity == null
+                || activity.isFinishing()
+                || activity.getWindow() == null
+                || activity.getWindow().getDecorView() == null
+                || activity.getWindow().getDecorView().getRootView() == null) {
+            promise.reject("Invalid Activity Error", "Activity isn't valid, not taking screenshot.");
+            return;
+        }
+
+        final View view = activity.getWindow().getDecorView().getRootView();
+
+        if (view.getWidth() <= 0 || view.getHeight() <= 0) {
+            promise.reject("Zero Size View Error", "View's width and height is zeroed, not taking screenshot.");
+            return;
+        }
+
+        try {
+            // ARGB_8888 -> This configuration is very flexible and offers the best quality
+            final Bitmap bitmap =
+                    Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
+
+            final Canvas canvas = new Canvas(bitmap);
+            view.draw(canvas);
+
+            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+            // 0 meaning compress for small size, 100 meaning compress for max quality.
+            // Some formats, like PNG which is lossless, will ignore the quality setting.
+            bitmap.compress(Bitmap.CompressFormat.PNG, 0, byteArrayOutputStream);
+
+            if (byteArrayOutputStream.size() <= 0) {
+                throw new Exception("Screenshot is 0 bytes, not attaching the image.");
+            }
+
+            // screenshot png is around ~100-150 kb
+            final WritableNativeArray screenshot = new WritableNativeArray();
+            for (final byte b:byteArrayOutputStream.toByteArray()) {
+                screenshot.pushInt(b);
+            }
+            final WritableMap result = new WritableNativeMap();
+            result.putString("contentType", "image/png");
+            result.putArray("data", screenshot);
+            result.putString("filename", "screenshot.png");
+            promise.resolve(result);
+        } catch (Throwable e) {
+            promise.reject("Screenshot Failed Error", e);
+        }
     }
 
     private static PackageInfo getPackageInfo(Context ctx) {
