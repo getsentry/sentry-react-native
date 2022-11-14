@@ -106,12 +106,18 @@ export const NATIVE: SentryNativeWrapper = {
     for (const rawItem of envelopeItems) {
       const [itemHeader, itemPayload] = this._processItem(rawItem);
 
+      let bytesContentType: string;
       let bytesPayload: number[] = [];
       if (typeof itemPayload === 'string') {
+        bytesContentType = 'text/plain';
         bytesPayload = utf8ToBytes(itemPayload);
       } else if (itemPayload instanceof Uint8Array) {
+        bytesContentType = typeof itemHeader.content_type === 'string'
+          ? itemHeader.content_type
+          : 'application/octet-stream';
         bytesPayload = [...itemPayload];
       } else {
+        bytesContentType = 'application/json';
         bytesPayload = utf8ToBytes(JSON.stringify(itemPayload));
         if (!hardCrashed) {
           hardCrashed = isHardCrash(itemPayload);
@@ -119,7 +125,7 @@ export const NATIVE: SentryNativeWrapper = {
       }
 
       // Content type is not inside BaseEnvelopeItemHeaders.
-      (itemHeader as BaseEnvelopeItemHeaders).content_type = 'application/json';
+      (itemHeader as BaseEnvelopeItemHeaders).content_type = bytesContentType;
       (itemHeader as BaseEnvelopeItemHeaders).length = bytesPayload.length;
       const serializedItemHeader = JSON.stringify(itemHeader);
 
