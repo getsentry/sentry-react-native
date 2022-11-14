@@ -324,7 +324,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
 
             final Canvas canvas = new Canvas(bitmap);
-            view.draw(canvas);
+            UiThreadUtil.runOnUiThread(() -> view.draw(canvas));
 
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
