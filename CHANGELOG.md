@@ -5,7 +5,7 @@
 ### Features
 
 - Add `maxQueueSize` option ([#2578](https://github.com/getsentry/sentry-react-native/pull/2578))
-- Screenshots ([#2373](https://github.com/getsentry/sentry-react-native/pull/2373))
+- Screenshots ([#2610](https://github.com/getsentry/sentry-react-native/pull/2610))
 
 ### Dependencies
 
