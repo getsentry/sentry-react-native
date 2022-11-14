@@ -331,7 +331,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
             // 0 meaning compress for small size, 100 meaning compress for max quality.
             // Some formats, like PNG which is lossless, will ignore the quality setting.
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 0, byteArrayOutputStream);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 0, byteArrayOutputStream);
 
             if (byteArrayOutputStream.size() <= 0) {
                 throw new Exception("Screenshot is 0 bytes, not attaching the image.");
@@ -343,9 +343,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 screenshot.pushInt(b);
             }
             final WritableMap result = new WritableNativeMap();
-            result.putString("contentType", "image/jpeg");
+            result.putString("contentType", "image/png");
             result.putArray("data", screenshot);
-            result.putString("filename", "screenshot.jpg");
+            result.putString("filename", "screenshot.png");
             promise.resolve(result);
         } catch (Throwable e) {
             promise.reject("Screenshot Failed Error", e);
