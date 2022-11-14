@@ -21,7 +21,7 @@ import { ReactNativeClientOptions, ReactNativeTransportOptions } from './options
 import { makeReactNativeTransport } from './transports/native';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { mergeOutcomes } from './utils/outcome';
-import { NATIVE, Screenshot } from './wrapper';
+import { NATIVE } from './wrapper';
 
 /**
  * The Sentry React Native SDK Client.
@@ -81,15 +81,9 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   /**
    * @inheritDoc
    */
-  public eventFromException(_exception: unknown, _hint: EventHint = {}): PromiseLike<Event> {
-    const capturingScreenshot = NATIVE.captureScreenshot();
-    return capturingScreenshot.then((screenshot: Screenshot | null) => {
-      _hint.attachments = [
-        ...(screenshot ? [screenshot] : []),
-        ...(_hint?.attachments || []),
-      ];
-      return this._browserClient.eventFromException(_exception, _hint);
-    });
+  public async eventFromException(_exception: unknown, _hint: EventHint = {}): Promise<Event> {
+    const hint = await this._attachScreenshotToEventHint(_hint);
+    return this._browserClient.eventFromException(_exception, hint);
   }
 
   /**
@@ -210,5 +204,23 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
       envelope[items].push(clientReportItem);
     }
+  }
+
+  /**
+   * If enabled attaches a screenshot to the event hint.
+   */
+  private async _attachScreenshotToEventHint(hint: EventHint): Promise<EventHint> {
+    if (!this._options.attachScreenshot) {
+      return hint;
+    }
+
+    const screenshot = await NATIVE.captureScreenshot();
+    if (screenshot) {
+      hint.attachments = [
+        screenshot,
+        ...(hint?.attachments || []),
+      ];
+    }
+    return hint;
   }
 }

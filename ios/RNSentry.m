@@ -291,6 +291,33 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSArray * _Nonnull)bytes
     resolve(@YES);
 }
 
+RCT_EXPORT_METHOD(captureScreenshot: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
+{
+    NSData *data;
+    UIWindow *window = [[UIApplication sharedApplication] keyWindow];
+    UIGraphicsBeginImageContext(window.frame.size);
+
+    if ([window drawViewHierarchyInRect:window.bounds afterScreenUpdates:false]) {
+        UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+        data = UIImagePNGRepresentation(img);
+    }
+
+    UIGraphicsEndImageContext();
+
+    NSMutableArray *screenshot = [NSMutableArray arrayWithCapacity:data.length];
+    const char *bytes = [data bytes];
+    for (int i = 0; i < [data length]; i++) {
+        [screenshot addObject:[[NSNumber alloc] initWithChar:bytes[i]]];
+    }
+
+    resolve(@{
+        @"data": screenshot,
+        @"contentType": @"image/png",
+        @"filename": @"screenshot.png",
+    });
+}
+
 RCT_EXPORT_METHOD(setUser:(NSDictionary *)userKeys
                   otherUserKeys:(NSDictionary *)userDataKeys
 )
