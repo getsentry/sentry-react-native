@@ -19,6 +19,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
@@ -133,9 +134,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 // by default we hide.
                 options.setAttachThreads(rnOptions.getBoolean("attachThreads"));
             }
-/*            if (rnOptions.hasKey("attachScreenshot")) {
+            if (rnOptions.hasKey("attachScreenshot")) {
                 options.setAttachScreenshot(rnOptions.getBoolean("attachScreenshot"));
-            }*/
+            }
             if (rnOptions.hasKey("sendDefaultPii")) {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
             }
@@ -330,7 +331,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
             // 0 meaning compress for small size, 100 meaning compress for max quality.
             // Some formats, like PNG which is lossless, will ignore the quality setting.
-            bitmap.compress(Bitmap.CompressFormat.PNG, 0, byteArrayOutputStream);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 0, byteArrayOutputStream);
 
             if (byteArrayOutputStream.size() <= 0) {
                 throw new Exception("Screenshot is 0 bytes, not attaching the image.");
@@ -342,9 +343,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 screenshot.pushInt(b);
             }
             final WritableMap result = new WritableNativeMap();
-            result.putString("contentType", "image/png");
+            result.putString("contentType", "image/jpeg");
             result.putArray("data", screenshot);
-            result.putString("filename", "screenshot.png");
+            result.putString("filename", "screenshot.jpg");
             promise.resolve(result);
         } catch (Throwable e) {
             promise.reject("Screenshot Failed Error", e);
