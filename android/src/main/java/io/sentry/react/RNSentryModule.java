@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.sentry.Breadcrumb;
+import io.sentry.EventProcessor;
 import io.sentry.HubAdapter;
 import io.sentry.Integration;
 import io.sentry.Sentry;
@@ -46,6 +47,7 @@ import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.NdkIntegration;
+import io.sentry.android.core.ScreenshotEventProcessor;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
@@ -62,6 +64,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     private final PackageInfo packageInfo;
     private FrameMetricsAggregator frameMetricsAggregator = null;
     private boolean androidXAvailable;
+    private ScreenshotEventProcessor screenshotEventProcessor;
 
     private static boolean didFetchAppStart;
 
@@ -142,6 +145,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
             if (rnOptions.hasKey("maxQueueSize")) {
                 options.setMaxQueueSize(rnOptions.getInt("maxQueueSize"));
+            }
+
+            screenshotEventProcessor = ScreenshotEventProcessor.getInstance();
+            final Activity currentActivity = getCurrentActivity();
+            if (screenshotEventProcessor != null
+                && currentActivity != null) {
+                screenshotEventProcessor.setCurrentActivity(currentActivity);
             }
 
             options.setBeforeSend((event, hint) -> {
@@ -302,54 +312,36 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void captureScreenshot(Promise promise) {
+        if (screenshotEventProcessor == null) {
+            logger.warning("ScreenshotEventProcessor is null, can't capture screenshot.");
+            promise.resolve(null);
+            return;
+        }
+
         final Activity activity = this.getReactApplicationContext().getCurrentActivity();
-        if (activity == null
-                || activity.isFinishing()
-                || activity.getWindow() == null
-                || activity.getWindow().getDecorView() == null
-                || activity.getWindow().getDecorView().getRootView() == null) {
-            promise.reject("Invalid Activity Error", "Activity isn't valid, not taking screenshot.");
+        if (activity == null) {
+            logger.warning("CurrentActivity is null, can't capture screenshot.");
+            promise.resolve(null);
             return;
         }
 
-        final View view = activity.getWindow().getDecorView().getRootView();
-
-        if (view.getWidth() <= 0 || view.getHeight() <= 0) {
-            promise.reject("Zero Size View Error", "View's width and height is zeroed, not taking screenshot.");
+        screenshotEventProcessor.setCurrentActivity(activity);
+        final byte[] data = screenshotEventProcessor.takeScreenshot();
+        if (data == null) {
+            logger.warning("Screenshot is null, screen was not captured.");
+            promise.resolve(null);
             return;
         }
 
-        try {
-            // ARGB_8888 -> This configuration is very flexible and offers the best quality
-            final Bitmap bitmap =
-                    Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
-
-            final Canvas canvas = new Canvas(bitmap);
-            UiThreadUtil.runOnUiThread(() -> view.draw(canvas));
-
-            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-            // 0 meaning compress for small size, 100 meaning compress for max quality.
-            // Some formats, like PNG which is lossless, will ignore the quality setting.
-            bitmap.compress(Bitmap.CompressFormat.PNG, 0, byteArrayOutputStream);
-
-            if (byteArrayOutputStream.size() <= 0) {
-                throw new Exception("Screenshot is 0 bytes, not attaching the image.");
-            }
-
-            // screenshot png is around ~100-150 kb
-            final WritableNativeArray screenshot = new WritableNativeArray();
-            for (final byte b:byteArrayOutputStream.toByteArray()) {
-                screenshot.pushInt(b);
-            }
-            final WritableMap result = new WritableNativeMap();
-            result.putString("contentType", "image/png");
-            result.putArray("data", screenshot);
-            result.putString("filename", "screenshot.png");
-            promise.resolve(result);
-        } catch (Throwable e) {
-            promise.reject("Screenshot Failed Error", e);
+        final WritableNativeArray screenshot = new WritableNativeArray();
+        for (final byte b:data) {
+            screenshot.pushInt(b);
         }
+        final WritableMap result = new WritableNativeMap();
+        result.putString("contentType", "image/png");
+        result.putArray("data", screenshot);
+        result.putString("filename", "screenshot.png");
+        promise.resolve(result);
     }
 
     private static PackageInfo getPackageInfo(Context ctx) {
