@@ -3,7 +3,7 @@ import { Event } from '@sentry/types';
 
 import { StallTrackingInstrumentation } from '../../src/js/tracing/stalltracking';
 
-const hub = {
+const mockHub = {
   captureEvent: jest.fn(),
   getClient: jest.fn(),
 };
@@ -13,12 +13,12 @@ jest.mock('@sentry/core', () => {
 
   return {
     ...hubOriginal,
-    getCurrentHub: () => hub,
+    getCurrentHub: () => mockHub,
   };
 });
 
 const getLastEvent = (): Event => {
-  return hub.captureEvent.mock.calls[hub.captureEvent.mock.calls.length - 1][0];
+  return mockHub.captureEvent.mock.calls[mockHub.captureEvent.mock.calls.length - 1][0];
 };
 
 const expensiveOperation = () => {
@@ -337,7 +337,7 @@ describe('StallTracking', () => {
 
   it('Stall tracking supports idleTransaction with unfinished spans', (done) => {
     const stallTracking = new StallTrackingInstrumentation();
-    const localHub = hub;
+    const localHub = mockHub;
     const idleTransaction = new IdleTransaction({
       name: 'Test Transaction',
       trimEnd: true,

@@ -118,21 +118,6 @@ describe('Tests ReactNativeClient', () => {
       }).not.toThrow();
     });
 
-    test('falls back to YellowBox if no LogBox', async () => {
-      // @ts-ignore: Is Mocked
-      RN.LogBox = undefined;
-
-      const client = new ReactNativeClient({
-        ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
-        transport: () => new NativeTransport()
-      } as ReactNativeClientOptions);
-
-      await expect(client.eventFromMessage('test')).resolves.toBeDefined();
-      // eslint-disable-next-line deprecation/deprecation
-      await expect(RN.YellowBox.ignoreWarnings).toBeCalled();
-    });
-
     test('use custom transport function', async () => {
       const mySend = (_request: Envelope) => Promise.resolve();
       const myFlush = (timeout?: number) => Promise.resolve(Boolean(timeout));
