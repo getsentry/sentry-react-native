@@ -63,3 +63,78 @@ Run the emulators:
 yarn react-native run-ios
 yarn react-native run-android
 ```
+
+## Develop with sentry-cocoa
+
+Here are step on how to test your changes in `sentry-cocoa` with `sentry-react-native`. We assume you have both repositories cloned in siblings folders.
+
+1. Build `sentry-cocoa`.
+
+```sh
+cd sentry-cocoa
+make init
+make build-xcframework
+```
+
+2. Link local `sentry-cocoa` build in `sentry-react-native`
+
+```sh
+cd sentry-react-native
+```
+
+Comment out sentry dependency in `RNSentry.podspec`.
+
+```diff
+-   s.dependency 'Sentry/HybridSDK', '7.31.0'
++   # s.dependency 'Sentry/HybridSDK', '7.31.0'
+```
+
+Add local pods to `sample/ios/Podfile`.
+
+```diff
+target 'sample' do
+
+  # ... react native config
+
++  pod 'Sentry/HybridSDK', :path => '../../../sentry-cocoa'
+
+  # ... rest of the configuration
+
+end
+```
+
+## Develop with sentry-java
+
+Here are step on how to test your changes in `sentry-java` with `sentry-react-native`. We assume that you have `sentry-java` setup, Android SDK installed, correct JAVA version etc.
+
+1. Build and publish `sentry-java` locally.
+
+```sh
+cd sentry-java
+make dryRelease
+ls ~/.m2/repository/io/sentry/sentry-android # check that `sentry-java` was published
+```
+
+2. Add local maven to the sample project.
+
+```sh
+cd sentry-react-native/sample
+```
+
+Add local maven to `sample/android/build.gradle`.
+
+```diff
+allprojects {
+    repositories {
++        mavenLocal()
+```
+
+Update `sentry-android` version, to the one locally published, in `android/build.gradle`.
+
+```diff
+dependencies {
+    implementation 'com.facebook.react:react-native:+'
+-    api 'io.sentry:sentry-android:5.4.0'
++    api 'io.sentry:sentry-android:6.7.7-my-local-version'
+}
+```
