@@ -85,9 +85,7 @@ cd sentry-react-native
 Comment out sentry dependency in `RNSentry.podspec`.
 
 ```diff
--   s.dependency 'Sentry', '7.31.0'
 -   s.dependency 'Sentry/HybridSDK', '7.31.0'
-+   # s.dependency 'Sentry', '7.31.0'
 +   # s.dependency 'Sentry/HybridSDK', '7.31.0'
 ```
 
@@ -98,7 +96,6 @@ target 'sample' do
 
   # ... react native config
 
-+  pod 'Sentry', :path => '../../../sentry-cocoa'
 +  pod 'Sentry/HybridSDK', :path => '../../../sentry-cocoa'
 
   # ... rest of the configuration
@@ -108,5 +105,14 @@ end
 
 ## Develop with sentry-java
 
-Here are step on how to test your changes in `sentry-java` with `sentry-react-native`.
+Here are step on how to test your changes in `sentry-java` with `sentry-react-native`. We assume that you have `sentry-java` setup, Android SDK installed, correct JAVA version etc.
+
+1. Build and publish `sentry-java` locally.
+
+```sh
+cd `sentry-java`
+make dryRelease
+
+```
+
 
