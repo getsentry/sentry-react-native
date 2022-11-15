@@ -121,6 +121,18 @@ export interface BaseReactNativeOptions {
    * @default 2
    */
   appHangTimeoutInterval?: number;
+
+  /**
+   * The max queue size for capping the number of envelopes waiting to be sent by Transport.
+   */
+  maxQueueSize?: number;
+}
+
+export interface ReactNativeTransportOptions extends BrowserTransportOptions {
+  /**
+   * @deprecated use `maxQueueSize` in the root of the SDK options.
+  */
+  bufferSize?: number;
 }
 
 /**
@@ -128,10 +140,10 @@ export interface BaseReactNativeOptions {
  * @see ReactNativeFrontend for more information.
  */
 
-export interface ReactNativeOptions extends Options<BrowserTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
+export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
 }
 
-export interface ReactNativeClientOptions extends ClientOptions<BrowserTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
+export interface ReactNativeClientOptions extends ClientOptions<ReactNativeTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
 }
 
 
