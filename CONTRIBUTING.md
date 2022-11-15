@@ -110,9 +110,31 @@ Here are step on how to test your changes in `sentry-java` with `sentry-react-na
 1. Build and publish `sentry-java` locally.
 
 ```sh
-cd `sentry-java`
+cd sentry-java
 make dryRelease
-
+ls ~/.m2/repository/io/sentry/sentry-android # check that `sentry-java` was published
 ```
 
+2. Add local maven to the sample project.
 
+```sh
+cd sentry-react-native/sample
+```
+
+Add local maven to `sample/android/build.gradle`.
+
+```diff
+allprojects {
+    repositories {
++        mavenLocal()
+```
+
+Update `sentry-android` version, to the one locally published, in `android/build.gradle`.
+
+```diff
+dependencies {
+    implementation 'com.facebook.react:react-native:+'
+-    api 'io.sentry:sentry-android:5.4.0'
++    api 'io.sentry:sentry-android:6.7.7-my-local-version'
+}
+```
