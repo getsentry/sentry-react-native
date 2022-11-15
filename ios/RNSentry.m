@@ -7,6 +7,7 @@
 #endif
 
 #import <Sentry/Sentry.h>
+#import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryScreenFrames.h>
 
 @interface SentryTraceContext : NSObject
@@ -294,20 +295,12 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSArray * _Nonnull)bytes
 RCT_EXPORT_METHOD(captureScreenshot: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 {
-    NSData *data;
-    UIWindow *window = [[UIApplication sharedApplication] keyWindow];
-    UIGraphicsBeginImageContext(window.frame.size);
+    NSArray<NSData *>* screenshots = [PrivateSentrySDKOnly captureScreenshots];
 
-    if ([window drawViewHierarchyInRect:window.bounds afterScreenUpdates:false]) {
-        UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
-        data = UIImagePNGRepresentation(img);
-    }
-
-    UIGraphicsEndImageContext();
-
-    NSMutableArray *screenshot = [NSMutableArray arrayWithCapacity:data.length];
-    const char *bytes = [data bytes];
-    for (int i = 0; i < [data length]; i++) {
+    //TODO: Return array of screenshots
+    NSMutableArray *screenshot = [NSMutableArray arrayWithCapacity:screenshots[0].length];
+    const char *bytes = [screenshots[0] bytes];
+    for (int i = 0; i < [screenshots[0] length]; i++) {
         [screenshot addObject:[[NSNumber alloc] initWithChar:bytes[i]]];
     }
 
