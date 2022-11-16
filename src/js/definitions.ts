@@ -43,7 +43,7 @@ export interface SentryNativeBridgeModule {
       store: boolean,
     },
   ): PromiseLike<boolean>;
-  captureScreenshot(): PromiseLike<NativeScreenshot>;
+  captureScreenshot(): PromiseLike<NativeScreenshot[]>;
   clearBreadcrumbs(): void;
   crash(): void;
   closeNativeSdk(): PromiseLike<void>;

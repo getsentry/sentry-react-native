@@ -18,6 +18,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
@@ -316,22 +317,25 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             return;
         }
 
-        final byte[] data = takeScreenshot(activity, logger, buildInfo);
-        if (data == null) {
+        final byte[] raw = takeScreenshot(activity, logger, buildInfo);
+        if (raw == null) {
             logger.log(SentryLevel.WARNING, "Screenshot is null, screen was not captured.");
             promise.resolve(null);
             return;
         }
 
-        final WritableNativeArray screenshot = new WritableNativeArray();
-        for (final byte b:data) {
-            screenshot.pushInt(b);
+        final WritableNativeArray data = new WritableNativeArray();
+        for (final byte b : raw) {
+            data.pushInt(b);
         }
-        final WritableMap result = new WritableNativeMap();
-        result.putString("contentType", "image/png");
-        result.putArray("data", screenshot);
-        result.putString("filename", "screenshot.png");
-        promise.resolve(result);
+        final WritableMap screenshot = new WritableNativeMap();
+        screenshot.putString("contentType", "image/png");
+        screenshot.putArray("data", data);
+        screenshot.putString("filename", "screenshot.png");
+
+        final WritableArray screenshotsArray = new WritableNativeArray();
+        screenshotsArray.pushMap(screenshot);
+        promise.resolve(screenshotsArray);
     }
 
     private static PackageInfo getPackageInfo(Context ctx) {

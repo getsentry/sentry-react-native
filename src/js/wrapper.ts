@@ -17,6 +17,7 @@ import {
   NativeDeviceContextsResponse,
   NativeFramesResponse,
   NativeReleaseResponse,
+  NativeScreenshot,
   SentryNativeBridgeModule,
 } from './definitions';
 import { isHardCrash } from './misc';
@@ -55,7 +56,7 @@ interface SentryNativeWrapper {
   closeNativeSdk(): PromiseLike<void>;
 
   sendEnvelope(envelope: Envelope): Promise<void>;
-  captureScreenshot(): Promise<Screenshot | null>;
+  captureScreenshot(): Promise<Screenshot[] | null>;
 
   fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
@@ -99,7 +100,7 @@ export const NATIVE: SentryNativeWrapper = {
     const [envelopeHeader, envelopeItems] = envelope;
 
     const headerString = JSON.stringify(envelopeHeader);
-    const envelopeBytes: number[] = utf8ToBytes(headerString);
+    let envelopeBytes: number[] = utf8ToBytes(headerString);
     envelopeBytes.push(EOL);
 
     let hardCrashed: boolean = false;
@@ -131,7 +132,7 @@ export const NATIVE: SentryNativeWrapper = {
 
       envelopeBytes.push(...utf8ToBytes(serializedItemHeader));
       envelopeBytes.push(EOL);
-      bytesPayload.forEach(byte => envelopeBytes.push(byte));
+      envelopeBytes = envelopeBytes.concat(bytesPayload);
       envelopeBytes.push(EOL);
     }
 
@@ -451,7 +452,7 @@ export const NATIVE: SentryNativeWrapper = {
     return this.enableNative && this._isModuleLoaded(RNSentry);
   },
 
-  async captureScreenshot(): Promise<Screenshot | null> {
+  async captureScreenshot(): Promise<Screenshot[] | null> {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -461,10 +462,10 @@ export const NATIVE: SentryNativeWrapper = {
 
     try {
       const raw = await RNSentry.captureScreenshot();
-      return {
-        ...raw,
-        data: new Uint8Array(raw.data),
-      }
+      return raw.map((item: NativeScreenshot) => ({
+        ...item,
+        data: new Uint8Array(item.data),
+      }));
     } catch (e) {
       console.error(e);
       return null;

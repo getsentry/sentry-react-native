@@ -214,10 +214,10 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       return hint;
     }
 
-    const screenshot = await NATIVE.captureScreenshot();
-    if (screenshot) {
+    const screenshots = await NATIVE.captureScreenshot();
+    if (screenshots !== null && screenshots.length > 0) {
       hint.attachments = [
-        screenshot,
+        ...screenshots,
         ...(hint?.attachments || []),
       ];
     }
