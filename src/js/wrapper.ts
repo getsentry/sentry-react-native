@@ -467,7 +467,6 @@ export const NATIVE: SentryNativeWrapper = {
         data: new Uint8Array(item.data),
       }));
     } catch (e) {
-      console.error(e);
       return null;
     }
   },
