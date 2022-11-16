@@ -1,13 +1,12 @@
 package io.sentry.react;
 
+import static io.sentry.android.core.internal.util.ScreenshotUtils.takeScreenshot;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.util.SparseIntArray;
-import android.view.View;
 
 import androidx.core.app.FrameMetricsAggregator;
 
@@ -19,13 +18,11 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
-import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.module.annotations.ReactModule;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Date;
@@ -33,12 +30,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import io.sentry.Breadcrumb;
-import io.sentry.EventProcessor;
 import io.sentry.HubAdapter;
+import io.sentry.ILogger;
 import io.sentry.Integration;
 import io.sentry.Sentry;
 import io.sentry.SentryEvent;
@@ -46,9 +41,12 @@ import io.sentry.SentryLevel;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.AppStartState;
+import io.sentry.android.core.BuildInfoProvider;
+import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.ScreenshotEventProcessor;
 import io.sentry.android.core.SentryAndroid;
+import io.sentry.android.core.AndroidLogger;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
@@ -59,7 +57,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     public static final String NAME = "RNSentry";
 
-    private static final Logger logger = Logger.getLogger("react-native-sentry");
+    private static final ILogger logger = new AndroidLogger(NAME);
+    private static final BuildInfoProvider buildInfo = new BuildInfoProvider(logger);
 
     private final PackageInfo packageInfo;
     private FrameMetricsAggregator frameMetricsAggregator = null;
@@ -89,11 +88,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
-                logger.setLevel(Level.INFO);
             }
             if (rnOptions.hasKey("dsn") && rnOptions.getString("dsn") != null) {
                 String dsn = rnOptions.getString("dsn");
-                logger.info(String.format("Starting with DSN: '%s'", dsn));
+                logger.log(SentryLevel.INFO, String.format("Starting with DSN: '%s'", dsn));
                 options.setDsn(dsn);
             } else {
                 // SentryAndroid needs an empty string fallback for the dsn.
@@ -147,13 +145,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 options.setMaxQueueSize(rnOptions.getInt("maxQueueSize"));
             }
 
-            screenshotEventProcessor = ScreenshotEventProcessor.getInstance();
-            final Activity currentActivity = getCurrentActivity();
-            if (screenshotEventProcessor != null
-                && currentActivity != null) {
-                screenshotEventProcessor.setCurrentActivity(currentActivity);
-            }
-
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException
                 // Since we catch it before that, we don't want to send this one
@@ -182,8 +173,13 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     }
                 }
             }
+            logger.log(SentryLevel.INFO, String.format("Native Integrations '%s'", options.getIntegrations()));
 
-            logger.info(String.format("Native Integrations '%s'", options.getIntegrations()));
+            final CurrentActivityHolder currentActivityHolder = CurrentActivityHolder.getInstance();
+            final Activity currentActivity = getCurrentActivity();
+            if (currentActivity != null) {
+                currentActivityHolder.setActivity(currentActivity);
+            }
         });
 
         promise.resolve(true);
@@ -210,10 +206,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         final Boolean isColdStart = appStartInstance.isColdStart();
 
         if (appStartTime == null) {
-            logger.warning("App start won't be sent due to missing appStartTime.");
+            logger.log(SentryLevel.WARNING, "App start won't be sent due to missing appStartTime.");
             promise.resolve(null);
         } else if (isColdStart == null) {
-            logger.warning("App start won't be sent due to missing isColdStart.");
+            logger.log(SentryLevel.WARNING, "App start won't be sent due to missing isColdStart.");
             promise.resolve(null);
         } else {
             final double appStartTimestamp = (double) appStartTime.getTime();
@@ -279,7 +275,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
                 promise.resolve(map);
             } catch (Throwable ignored) {
-                logger.warning("Error fetching native frames.");
+                logger.log(SentryLevel.WARNING, "Error fetching native frames.");
                 promise.resolve(null);
             }
         }
@@ -296,7 +292,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             final String outboxPath = HubAdapter.getInstance().getOptions().getOutboxPath();
 
             if (outboxPath == null) {
-                logger.severe(
+                logger.log(SentryLevel.ERROR,
                         "Error retrieving outboxPath. Envelope will not be sent. Is the Android SDK initialized?");
             } else {
                 File installation = new File(outboxPath, UUID.randomUUID().toString());
@@ -305,30 +301,24 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 }
             }
         } catch (Throwable ignored) {
-            logger.severe("Error while writing envelope to outbox.");
+            logger.log(SentryLevel.ERROR, "Error while writing envelope to outbox.");
         }
         promise.resolve(true);
     }
 
     @ReactMethod
     public void captureScreenshot(Promise promise) {
-        if (screenshotEventProcessor == null) {
-            logger.warning("ScreenshotEventProcessor is null, can't capture screenshot.");
-            promise.resolve(null);
-            return;
-        }
 
         final Activity activity = this.getReactApplicationContext().getCurrentActivity();
         if (activity == null) {
-            logger.warning("CurrentActivity is null, can't capture screenshot.");
+            logger.log(SentryLevel.WARNING, "CurrentActivity is null, can't capture screenshot.");
             promise.resolve(null);
             return;
         }
 
-        screenshotEventProcessor.setCurrentActivity(activity);
-        final byte[] data = screenshotEventProcessor.takeScreenshot();
+        final byte[] data = takeScreenshot(activity, logger, buildInfo);
         if (data == null) {
-            logger.warning("Screenshot is null, screen was not captured.");
+            logger.log(SentryLevel.WARNING, "Screenshot is null, screen was not captured.");
             promise.resolve(null);
             return;
         }
@@ -348,7 +338,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         try {
             return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException e) {
-            logger.warning("Error getting package info.");
+            logger.log(SentryLevel.WARNING, "Error getting package info.");
             return null;
         }
     }
@@ -511,17 +501,17 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                 try {
                     frameMetricsAggregator.add(currentActivity);
 
-                    logger.info("FrameMetricsAggregator installed.");
+                    logger.log(SentryLevel.INFO, "FrameMetricsAggregator installed.");
                 } catch (Throwable ignored) {
                     // throws ConcurrentModification when calling addOnFrameMetricsAvailableListener
                     // this is a best effort since we can't reproduce it
-                    logger.severe("Error adding Activity to frameMetricsAggregator.");
+                    logger.log(SentryLevel.ERROR, "Error adding Activity to frameMetricsAggregator.");
                 }
             } else {
-                logger.info("currentActivity isn't available.");
+                logger.log(SentryLevel.INFO, "currentActivity isn't available.");
             }
         } else {
-            logger.warning("androidx.core' isn't available as a dependency.");
+            logger.log(SentryLevel.WARNING, "androidx.core' isn't available as a dependency.");
         }
     }
 
