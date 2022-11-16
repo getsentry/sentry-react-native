@@ -12,7 +12,7 @@ import {
   Transport,
   UserFeedback,
 } from '@sentry/types';
-import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
+import { dateTimestampInSeconds, logger, resolvedSyncPromise, SentryError } from '@sentry/utils';
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
 
@@ -81,9 +81,9 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   /**
    * @inheritDoc
    */
-  public async eventFromException(_exception: unknown, _hint: EventHint = {}): Promise<Event> {
-    const hint = await this._attachScreenshotToEventHint(_hint);
-    return this._browserClient.eventFromException(_exception, hint);
+  public eventFromException(_exception: unknown, _hint: EventHint = {}): PromiseLike<Event> {
+    return this._attachScreenshotToEventHint(_hint)
+      .then(hint => this._browserClient.eventFromException(_exception, hint));
   }
 
   /**
@@ -209,18 +209,20 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   /**
    * If enabled attaches a screenshot to the event hint.
    */
-  private async _attachScreenshotToEventHint(hint: EventHint): Promise<EventHint> {
+  private _attachScreenshotToEventHint(hint: EventHint): PromiseLike<EventHint> {
     if (!this._options.attachScreenshot) {
-      return hint;
+      return resolvedSyncPromise(hint);
     }
 
-    const screenshots = await NATIVE.captureScreenshot();
-    if (screenshots !== null && screenshots.length > 0) {
-      hint.attachments = [
-        ...screenshots,
-        ...(hint?.attachments || []),
-      ];
-    }
-    return hint;
+    return NATIVE.captureScreenshot()
+      .then((screenshots) => {
+        if (screenshots !== null && screenshots.length > 0) {
+          hint.attachments = [
+            ...screenshots,
+            ...(hint?.attachments || []),
+          ];
+        }
+        return hint;
+      });
   }
 }
