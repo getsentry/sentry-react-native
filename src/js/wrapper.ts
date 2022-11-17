@@ -467,6 +467,7 @@ export const NATIVE: SentryNativeWrapper = {
         data: new Uint8Array(item.data),
       }));
     } catch (e) {
+      logger.warn('Failed to capture screenshot', e);
       return null;
     }
   },
