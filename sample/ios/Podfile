@@ -22,6 +22,9 @@ target 'sample' do
     pod 'RNSentry', :path => '../../RNSentry.podspec'
   end
 
+  pod 'Sentry/HybridSDK', :git => 'https://github.com/getsentry/sentry-cocoa/', :branch => 'feat/swift'
+  pod 'SentryPrivate', :git => 'https://github.com/getsentry/sentry-cocoa/', :branch => 'feat/swift'
+
   target 'sampleTests' do
     inherit! :complete
     # Pods for testing
