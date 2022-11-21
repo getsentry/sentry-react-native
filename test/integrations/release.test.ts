@@ -3,6 +3,8 @@ import { EventProcessor } from '@sentry/types';
 
 import { Release } from '../../src/js/integrations/release';
 
+const mockRelease = Release;
+
 jest.mock('@sentry/core', () => {
   const client = {
     getOptions: jest.fn(),
@@ -10,7 +12,7 @@ jest.mock('@sentry/core', () => {
 
   const hub = {
     getClient: () => client,
-    getIntegration: () => Release,
+    getIntegration: () => mockRelease,
   };
 
   return {
