@@ -2,7 +2,7 @@
   "name": "@sentry/react-native",
   "homepage": "https://github.com/getsentry/sentry-react-native",
   "repository": "https://github.com/getsentry/sentry-react-native",
-  "version": "3.2.12",
+  "version": "4.8.0",
   "description": "Official Sentry SDK for react-native",
   "typings": "dist/js/index.d.ts",
   "types": "dist/js/index.d.ts",
@@ -40,36 +40,36 @@
     "react-native": ">=0.56.0"
   },
   "dependencies": {
-    "@sentry/browser": "6.12.0",
-    "@sentry/cli": "^1.68.0",
-    "@sentry/core": "6.12.0",
-    "@sentry/hub": "6.12.0",
-    "@sentry/integrations": "6.12.0",
-    "@sentry/react": "6.12.0",
-    "@sentry/tracing": "6.12.0",
-    "@sentry/types": "6.12.0",
-    "@sentry/utils": "6.12.0"
+    "@sentry/browser": "7.17.4",
+    "@sentry/cli": "1.74.4",
+    "@sentry/core": "7.17.4",
+    "@sentry/hub": "7.17.4",
+    "@sentry/integrations": "7.17.4",
+    "@sentry/react": "7.17.4",
+    "@sentry/tracing": "7.17.4",
+    "@sentry/types": "7.17.4",
+    "@sentry/utils": "7.17.4",
+    "@sentry/wizard": "1.2.17"
   },
   "devDependencies": {
-    "@sentry-internal/eslint-config-sdk": "6.12.0",
-    "@sentry-internal/eslint-plugin-sdk": "6.12.0",
-    "@sentry/typescript": "^5.20.0",
-    "@sentry/wizard": "^1.2.15",
+    "@sentry-internal/eslint-config-sdk": "7.17.4",
+    "@sentry-internal/eslint-plugin-sdk": "7.17.4",
+    "@sentry/typescript": "^5.20.1",
     "@types/jest": "^26.0.15",
-    "@types/react": "^16.9.49",
-    "@types/react-native": "^0.66.11",
+    "@types/react": "^18.0.25",
+    "@types/react-native": "^0.70.6",
     "babel-jest": "^26.1.0",
     "eslint": "^7.6.0",
     "eslint-plugin-react": "^7.20.6",
     "eslint-plugin-react-native": "^3.8.1",
     "jest": "^24.9.0",
     "prettier": "^2.0.5",
-    "react": ">=16.4.1",
-    "react-native": ">=0.56.0",
+    "react": "^18.2.0",
+    "react-native": "^0.70.5",
     "replace-in-file": "^6.0.0",
     "rimraf": "^3.0.0",
     "ts-jest": "^24.3.0",
-    "typescript": "^3.4.5"
+    "typescript": "3.8.3"
   },
   "rnpm": {
     "commands": {
@@ -88,10 +88,6 @@
   "jest": {
     "collectCoverage": true,
     "preset": "react-native",
-    "transform": {
-      "^.+\\.(tsx)$": "<rootDir>/node_modules/react-native/jest/preprocessor.js",
-      "^.+\\.(ts|tsx)$": "ts-jest"
-    },
     "globals": {
       "__DEV__": true,
       "ts-jest": {

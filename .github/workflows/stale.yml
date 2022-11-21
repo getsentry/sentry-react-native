@@ -1,13 +1,13 @@
-name: 'close stale issues/PRs'
+name: "close stale issues/PRs"
 on:
   schedule:
-    - cron: '* */3 * * *'
+    - cron: "0 0 * * *"
   workflow_dispatch:
 jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@87c2b794b9b47a9bec68ae03c01aeb572ffebdb1
+      - uses: actions/stale@9c1b1c6e115ca2af09755448e0dbba24e5061cc8
         with:
           repo-token: ${{ github.token }}
           days-before-stale: 21

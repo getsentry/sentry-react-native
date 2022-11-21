@@ -70,3 +70,11 @@ wheelhouse
 # Yalc
 .yalc/
 yalc.lock
+
+# Sample
+sample/.vscode/.react/index.bundle
+sample/.vscode/.react/index.map
+sample/.vscode/.react/debuggerWorker.js
+
+# E2E tests
+sample/*.png

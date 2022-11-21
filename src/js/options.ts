@@ -1,21 +1,18 @@
-import { BrowserOptions } from "@sentry/react";
-import { ProfilerProps } from "@sentry/react/dist/profiler";
-import { CaptureContext } from "@sentry/types/dist/scope";
+import { BaseBrowserOptions } from '@sentry/browser/types/client';
+import { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
+import { ProfilerProps } from '@sentry/react/types/profiler';
+import { ClientOptions, Options } from '@sentry/types';
+import { CaptureContext } from '@sentry/types/types/scope';
 
-import { TouchEventBoundaryProps } from "./touchevents";
+import { TouchEventBoundaryProps } from './touchevents';
 
-/**
- * Configuration options for the Sentry ReactNative SDK.
- * @see ReactNativeFrontend for more information.
- */
-
-export interface ReactNativeOptions extends BrowserOptions {
+export interface BaseReactNativeOptions {
   /**
-   * Enables native transport + device info + offline caching.
-   * Be careful, disabling this also breaks automatic release setting.
-   * This means you have to manage setting the release yourself.
-   * Defaults to `true`.
-   */
+    * Enables native transport + device info + offline caching.
+    * Be careful, disabling this also breaks automatic release setting.
+    * This means you have to manage setting the release yourself.
+    * Defaults to `true`.
+    */
   enableNative?: boolean;
 
   /**
@@ -37,9 +34,6 @@ export interface ReactNativeOptions extends BrowserOptions {
    */
   autoInitializeNativeSdk?: boolean;
 
-  /** Maximum time to wait to drain the request queue, before the process is allowed to exit. */
-  shutdownTimeout?: number;
-
   /** Should the native nagger alert be shown or not. */
   enableNativeNagger?: boolean;
 
@@ -59,7 +53,7 @@ export interface ReactNativeOptions extends BrowserOptions {
    *  When enabled, certain personally identifiable information (PII) is added by active integrations.
    *
    * @default false
-   * */
+   */
   sendDefaultPii?: boolean;
 
   /**
@@ -79,7 +73,7 @@ export interface ReactNativeOptions extends BrowserOptions {
    * https://docs.sentry.io/platforms/apple/guides/ios/configuration/out-of-memory/
    *
    * @default true
-   * */
+   */
   enableOutOfMemoryTracking?: boolean;
 
   /**
@@ -94,10 +88,64 @@ export interface ReactNativeOptions extends BrowserOptions {
    * Read more at https://docs.sentry.io/platforms/react-native/troubleshooting/#unhandled-promise-rejections
    *
    * When disabled, this option will not disable unhandled rejection tracking. Set `onunhandledrejection: false` on the `ReactNativeErrorHandlers` integration instead.
+   *
    * @default true
    */
   patchGlobalPromise?: boolean;
+
+  /**
+   * The max cache items for capping the number of envelopes.
+   *
+   * @default 30
+   */
+  maxCacheItems?: number;
+
+  /**
+   * When enabled, the SDK tracks when the application stops responding for a specific amount of
+   * time defined by the `appHangTimeoutInterval` option.
+   *
+   * iOS only
+   *
+   * @default true
+   */
+  enableAppHangTracking?: boolean;
+
+  /**
+   * The minimum amount of time an app should be unresponsive to be classified as an App Hanging.
+   * The actual amount may be a little longer.
+   * Avoid using values lower than 100ms, which may cause a lot of app hangs events being transmitted.
+   * Value should be in seconds.
+   *
+   * iOS only
+   *
+   * @default 2
+   */
+  appHangTimeoutInterval?: number;
+
+  /**
+   * The max queue size for capping the number of envelopes waiting to be sent by Transport.
+   */
+  maxQueueSize?: number;
 }
+
+export interface ReactNativeTransportOptions extends BrowserTransportOptions {
+  /**
+   * @deprecated use `maxQueueSize` in the root of the SDK options.
+  */
+  bufferSize?: number;
+}
+
+/**
+ * Configuration options for the Sentry ReactNative SDK.
+ * @see ReactNativeFrontend for more information.
+ */
+
+export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
+}
+
+export interface ReactNativeClientOptions extends ClientOptions<ReactNativeTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
+}
+
 
 export interface ReactNativeWrapperOptions {
   /** Props for the root React profiler */

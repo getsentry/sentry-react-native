@@ -1,142 +1,145 @@
 // tslint:disable: no-unsafe-any
-import wd from 'wd';
+import {remote, RemoteOptions} from 'webdriverio';
 import path from 'path';
 
 import {fetchEvent} from '../utils/fetchEvent';
+import {waitForTruthyResult} from '../utils/waitFor';
 
-// 10 minutes timeout.
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 3e5;
-const PORT = 4723;
+const T_20_MINUTES_IN_MS = 20 * 60e3;
+jest.setTimeout(T_20_MINUTES_IN_MS);
 
-const driver = wd.promiseChainRemote('localhost', PORT);
+declare let driver: WebdriverIO.Browser;
 
-// 20 min timeout why not
-jest.setTimeout(1.2e6);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function getElement(accessibilityId: string) {
+  const element = await driver.$(`~${accessibilityId}`);
+  await element.waitForDisplayed({timeout: 60_000});
+  return element;
+}
+
+async function waitForEventId() {
+  const element = await getElement('eventId');
+  let value: string;
+  await waitForTruthyResult(async () => {
+    value = await element.getText();
+    return value.length > 0;
+  });
+  return value;
+}
+
+async function waitUntilEventIdIsEmpty() {
+  const element = await getElement('eventId');
+  await waitForTruthyResult(async () => (await element.getText()).length === 0);
+}
 
 beforeAll(async () => {
-  const config =
-    process.env.PLATFORM === 'android'
-      ? {
-          platformName: 'Android',
+  const conf: RemoteOptions = {
+    logLevel: 'info',
+    port: 4723,
+    capabilities: undefined,
+  };
 
-          deviceName: 'Android Emulator',
+  if (process.env.PLATFORM === 'android') {
+    conf.capabilities = {
+      platformName: 'Android',
+      'appium:automationName': 'UIAutomator2',
+      'appium:app': './android/app/build/outputs/apk/release/app-release.apk',
+    };
+  } else {
+    conf.capabilities = {
+      platformName: 'iOS',
+      'appium:automationName': 'XCUITest',
+      'appium:app':
+        './ios/DerivedData/Build/Products/Release-iphonesimulator/sample.app',
+      'appium:derivedDataPath': path.resolve('./ios/DerivedData'),
+      'appium:showXcodeLog': true,
+      'appium:usePrebuiltWDA': true,
+    };
+  }
 
-          app: './android/app/build/outputs/apk/release/app-release.apk',
-          newCommandTimeout: 600000,
-        }
-      : {
-          app: 'io.sentry.sample',
-          deviceName: 'iPhone 13',
-          platformName: 'iOS',
-          newCommandTimeout: 600000,
-          automationName: 'XCUITest',
-          derivedDataPath: path.resolve('./xc-build'),
-          showXcodeLog: true,
-          usePrebuiltWDA: true,
-        };
+  if (process.env.RUNTIME !== undefined) {
+    conf.capabilities['appium:platformVersion'] = process.env.RUNTIME;
+  }
 
-  await driver.init(config);
-  await driver.sleep(10000);
+  if (process.env.DEVICE !== undefined) {
+    conf.capabilities['appium:deviceName'] = process.env.DEVICE;
+  }
 
-  expect(await driver.hasElementByAccessibilityId('openEndToEndTests')).toBe(
-    true,
-  );
-  const element = await driver.elementByAccessibilityId('openEndToEndTests');
-  await element.click();
-  await driver.sleep(2000);
+  // 5 minutes - to accommodate the timeouts for things like getting events from Sentry.
+  conf.capabilities['appium:newCommandTimeout'] = 300_000;
+
+  driver = await remote(conf);
+
+  const maxInitTries = 3;
+  for (var i = 1; i <= maxInitTries; i++) {
+    const element = await getElement('openEndToEndTests');
+    await element.click();
+    if (i === maxInitTries) {
+      await getElement('eventId');
+    } else {
+      try {
+        await getElement('eventId');
+        break;
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }
+});
+
+afterAll(async () => {
+  await driver.deleteSession();
 });
 
 beforeEach(async () => {
-  await driver.hasElementByAccessibilityId('clearEventId');
-  const element = await driver.elementByAccessibilityId('clearEventId');
+  const element = await getElement('clearEventId');
   await element.click();
-  await driver.sleep(2000);
+  await waitUntilEventIdIsEmpty();
+});
+
+afterEach(async () => {
+  const testName = expect.getState().currentTestName;
+  const fileName = `screen-${testName}.png`.replace(/[^0-9a-zA-Z-+.]/g, '_');
+  await driver.saveScreenshot(fileName);
 });
 
 describe('End to end tests for common events', () => {
   test('captureMessage', async () => {
-    expect(await driver.hasElementByAccessibilityId('captureMessage')).toBe(
-      true,
-    );
-
-    const element = await driver.elementByAccessibilityId('captureMessage');
+    const element = await getElement('captureMessage');
     await element.click();
 
-    await driver.sleep(100);
-
-    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
-
-    const eventIdElement = await driver.elementByAccessibilityId('eventId');
-    const eventId = await eventIdElement.text();
-
-    await driver.sleep(10000);
-
+    const eventId = await waitForEventId();
     const sentryEvent = await fetchEvent(eventId);
-
     expect(sentryEvent.eventID).toMatch(eventId);
   });
 
   test('captureException', async () => {
-    expect(await driver.hasElementByAccessibilityId('captureException')).toBe(
-      true,
-    );
-
-    const element = await driver.elementByAccessibilityId('captureException');
+    const element = await getElement('captureException');
     await element.click();
 
-    await driver.sleep(100);
-
-    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
-
-    const eventIdElement = await driver.elementByAccessibilityId('eventId');
-    const eventId = await eventIdElement.text();
-
-    await driver.sleep(10000);
-
+    const eventId = await waitForEventId();
     const sentryEvent = await fetchEvent(eventId);
-
     expect(sentryEvent.eventID).toMatch(eventId);
   });
 
   test('unhandledPromiseRejection', async () => {
-    expect(
-      await driver.hasElementByAccessibilityId('unhandledPromiseRejection'),
-    ).toBe(true);
-
-    const element = await driver.elementByAccessibilityId(
-      'unhandledPromiseRejection',
-    );
+    const element = await getElement('unhandledPromiseRejection');
     await element.click();
 
-    // Promises needs a while to fail
-    await driver.sleep(5000);
-
-    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
-
-    const eventIdElement = await driver.elementByAccessibilityId('eventId');
-    const eventId = await eventIdElement.text();
-
-    await driver.sleep(10000);
-
+    const eventId = await waitForEventId();
     const sentryEvent = await fetchEvent(eventId);
-
     expect(sentryEvent.eventID).toMatch(eventId);
   });
 
   test('close', async () => {
-    expect(await driver.hasElementByAccessibilityId('close')).toBe(true);
-
-    const element = await driver.elementByAccessibilityId('close');
+    const element = await getElement('close');
     await element.click();
 
-    // Wait a while in case
-    await driver.sleep(5000);
+    // Wait a while in case it gets set.
+    await sleep(5000);
 
-    // This time we don't expect an eventId
-    expect(await driver.hasElementByAccessibilityId('eventId')).toBe(true);
-    const eventIdElement = await driver.elementByAccessibilityId('eventId');
-    const eventId = await eventIdElement.text();
-
-    expect(eventId).toBe('');
+    // This time we don't expect an eventId.
+    await waitUntilEventIdIsEmpty();
   });
 });

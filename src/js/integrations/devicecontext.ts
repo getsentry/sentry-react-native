@@ -1,15 +1,15 @@
-import { addGlobalEventProcessor, getCurrentHub } from "@sentry/core";
-import { Event, Integration } from "@sentry/types";
-import { logger } from "@sentry/utils";
+import { addGlobalEventProcessor, getCurrentHub } from '@sentry/core';
+import { Contexts, Event, Integration } from '@sentry/types';
+import { logger } from '@sentry/utils';
 
-import { NATIVE } from "../wrapper";
+import { NATIVE } from '../wrapper';
 
 /** Load device context from native. */
 export class DeviceContext implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = "DeviceContext";
+  public static id: string = 'DeviceContext';
 
   /**
    * @inheritDoc
@@ -27,8 +27,16 @@ export class DeviceContext implements Integration {
       }
 
       try {
-        const deviceContexts = await NATIVE.fetchNativeDeviceContexts();
-        event.contexts = { ...deviceContexts, ...event.contexts };
+        const contexts = await NATIVE.fetchNativeDeviceContexts();
+
+        const context = contexts['context'] as Contexts ?? {};
+        const user = contexts['user'] ?? {};
+
+        event.contexts = { ...context, ...event.contexts };
+
+        if (!event.user) {
+          event.user = { ...user };
+        }
       } catch (e) {
         logger.log(`Failed to get device context from native: ${e}`);
       }

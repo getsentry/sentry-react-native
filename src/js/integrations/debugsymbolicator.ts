@@ -1,9 +1,9 @@
-import { addGlobalEventProcessor, getCurrentHub } from "@sentry/core";
-import { Event, EventHint, Integration, StackFrame } from "@sentry/types";
-import { addContextToFrame, logger } from "@sentry/utils";
+import { addGlobalEventProcessor, getCurrentHub } from '@sentry/core';
+import { Event, EventHint, Integration, StackFrame } from '@sentry/types';
+import { addContextToFrame, logger } from '@sentry/utils';
 
 const INTERNAL_CALLSITES_REGEX = new RegExp(
-  ["ReactNativeRenderer-dev\\.js$", "MessageQueue\\.js$"].join("|")
+  ['ReactNativeRenderer-dev\\.js$', 'MessageQueue\\.js$'].join('|')
 );
 
 interface GetDevServer {
@@ -36,7 +36,7 @@ export class DebugSymbolicator implements Integration {
   /**
    * @inheritDoc
    */
-  public static id: string = "DebugSymbolicator";
+  public static id: string = 'DebugSymbolicator';
   /**
    * @inheritDoc
    */
@@ -56,7 +56,7 @@ export class DebugSymbolicator implements Integration {
       const reactError = hint.originalException as ReactNativeError;
 
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const parseErrorStack = require("react-native/Libraries/Core/Devtools/parseErrorStack");
+      const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
 
       let stack;
       try {
@@ -75,7 +75,7 @@ export class DebugSymbolicator implements Integration {
 
       await self._symbolicate(event, stack);
 
-      event.platform = "node"; // Setting platform node makes sure we do not show source maps errors
+      event.platform = 'node'; // Setting platform node makes sure we do not show source maps errors
 
       return event;
     });
@@ -91,7 +91,7 @@ export class DebugSymbolicator implements Integration {
   ): Promise<void> {
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const symbolicateStackTrace = require("react-native/Libraries/Core/Devtools/symbolicateStackTrace");
+      const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
       const prettyStack = await symbolicateStackTrace(stack);
 
       if (prettyStack) {
@@ -114,7 +114,7 @@ export class DebugSymbolicator implements Integration {
         );
         this._replaceFramesInEvent(event, symbolicatedFrames);
       } else {
-        logger.error("The stack is null");
+        logger.error('The stack is null');
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -132,7 +132,7 @@ export class DebugSymbolicator implements Integration {
   ): Promise<StackFrame[]> {
     let getDevServer: GetDevServer;
     try {
-      getDevServer = require("react-native/Libraries/Core/Devtools/getDevServer");
+      getDevServer = require('react-native/Libraries/Core/Devtools/getDevServer');
     } catch (_oO) {
       // We can't load devserver URL
     }
@@ -145,8 +145,8 @@ export class DebugSymbolicator implements Integration {
           inApp =
             inApp &&
             frame.file !== undefined &&
-            !frame.file.includes("node_modules") &&
-            !frame.file.includes("native code");
+            !frame.file.includes('node_modules') &&
+            !frame.file.includes('native code');
 
           const newFrame: StackFrame = {
             colno: frame.column,
@@ -154,7 +154,7 @@ export class DebugSymbolicator implements Integration {
             function: frame.methodName,
             in_app: inApp,
             lineno: inApp ? frame.lineNumber : undefined, // :HACK
-            platform: inApp ? "javascript" : "node", // :HACK
+            platform: inApp ? 'javascript' : 'node', // :HACK
           };
 
           // The upstream `react-native@0.61` delegates parsing of stacks to `stacktrace-parser`, which is buggy and
@@ -162,7 +162,7 @@ export class DebugSymbolicator implements Integration {
           // `react-native@0.62` seems to have custom logic to parse hermes frames specially.
           // Anyway, all we do here is throw away the bogus suffix.
           if (newFrame.function) {
-            const addressAtPos = newFrame.function.indexOf("(address at");
+            const addressAtPos = newFrame.function.indexOf('(address at');
             if (addressAtPos >= 0) {
               newFrame.function = newFrame.function
                 .substr(0, addressAtPos)
@@ -208,15 +208,15 @@ export class DebugSymbolicator implements Integration {
   ): Promise<void> {
     let response;
 
-    const segments = frame.filename?.split("/") ?? [];
+    const segments = frame.filename?.split('/') ?? [];
 
     if (getDevServer) {
       for (const idx in segments) {
         if (Object.prototype.hasOwnProperty.call(segments, idx)) {
           response = await fetch(
-            `${getDevServer().url}${segments.slice(-idx).join("/")}`,
+            `${getDevServer().url}${segments.slice(-idx).join('/')}`,
             {
-              method: "GET",
+              method: 'GET',
             }
           );
 
@@ -229,7 +229,7 @@ export class DebugSymbolicator implements Integration {
 
     if (response && response.ok) {
       const content = await response.text();
-      const lines = content.split("\n");
+      const lines = content.split('\n');
 
       addContextToFrame(lines, frame);
     }

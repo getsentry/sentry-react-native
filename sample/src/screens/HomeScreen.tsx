@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   Image,
   ScrollView,
@@ -8,17 +8,19 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {
-  CommonActions,
-  useNavigation,
-  useNavigationState,
-} from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { CommonActions } from '@react-navigation/native';
 
 import * as Sentry from '@sentry/react-native';
 
-import {getTestProps} from '../../utils/getTestProps';
-import {SENTRY_INTERNAL_DSN} from '../dsn';
+import { getTestProps } from '../../utils/getTestProps';
+import { SENTRY_INTERNAL_DSN } from '../dsn';
+import { SeverityLevel } from '@sentry/types';
+import { Scope } from '@sentry/react-native';
+import { NativeModules } from 'react-native';
+import { UserFeedbackModal } from '../components/UserFeedbackModal';
+
+const {AssetsModule} = NativeModules;
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -37,6 +39,8 @@ const HomeScreen = (props: Props) => {
       id: 'test-id-0',
       email: 'testing@testing.test',
       username: 'USER-TEST',
+      ip_address: '1.1.1.1',
+      segment: 'test-segment',
       specialField: 'special user field',
       specialFieldNumber: 418,
     });
@@ -55,7 +59,7 @@ const HomeScreen = (props: Props) => {
     Sentry.setExtra('SINGLE-EXTRA-OBJECT', {
       message: 'I am a teapot',
       status: 418,
-      array: ['boo', 100, 400, {objectInsideArray: 'foobar'}],
+      array: ['boo', 100, 400, { objectInsideArray: 'foobar' }],
     });
     Sentry.setExtras({
       'MULTI-EXTRA-0': dateString,
@@ -75,23 +79,23 @@ const HomeScreen = (props: Props) => {
     });
 
     Sentry.addBreadcrumb({
-      level: Sentry.Severity.Info,
+      level: 'info' as SeverityLevel,
       message: `TEST-BREADCRUMB-INFO: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: Sentry.Severity.Debug,
+      level: 'debug' as SeverityLevel,
       message: `TEST-BREADCRUMB-DEBUG: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: Sentry.Severity.Error,
+      level: 'error' as SeverityLevel,
       message: `TEST-BREADCRUMB-ERROR: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: Sentry.Severity.Fatal,
+      level: 'fatal' as SeverityLevel,
       message: `TEST-BREADCRUMB-FATAL: ${dateString}`,
     });
     Sentry.addBreadcrumb({
-      level: Sentry.Severity.Info,
+      level: 'info' as SeverityLevel,
       message: `TEST-BREADCRUMB-DATA: ${dateString}`,
       data: {
         stringTest: 'Hello',
@@ -108,6 +112,12 @@ const HomeScreen = (props: Props) => {
 
     console.log('Test scope properties were set.');
   };
+
+  const [data, setData] = React.useState<Uint8Array>(null);
+  useEffect(() => {
+    AssetsModule.getExampleAssetData()
+      .then((asset: number[]) => setData(new Uint8Array(asset)));
+  }, []);
 
   return (
     <>
@@ -153,21 +163,24 @@ const HomeScreen = (props: Props) => {
             <TouchableOpacity
               onPress={() => {
                 Sentry.captureMessage('Test Message');
-              }}>
+              }}
+              sentry-label="captureMessage">
               <Text style={styles.buttonText}>Capture Message</Text>
             </TouchableOpacity>
             <View style={styles.spacer} />
             <TouchableOpacity
               onPress={() => {
                 Sentry.captureException(new Error('Test Error'));
-              }}>
+              }}
+              accessibilityLabel="captureException">
               <Text style={styles.buttonText}>Capture Exception</Text>
             </TouchableOpacity>
             <View style={styles.spacer} />
             <TouchableOpacity
               onPress={() => {
                 throw new Error('Thrown Error');
-              }}>
+              }}
+              sentry-label="throwError">
               <Text style={styles.buttonText}>Uncaught Thrown Error</Text>
             </TouchableOpacity>
             <View style={styles.spacer} />
@@ -211,7 +224,7 @@ const HomeScreen = (props: Props) => {
             </TouchableOpacity>
             <View style={styles.spacer} />
             <Sentry.ErrorBoundary
-              fallback={({eventId}) => (
+              fallback={({ eventId }) => (
                 <Text>Error boundary caught with event id: {eventId}</Text>
               )}>
               <TouchableOpacity
@@ -223,6 +236,31 @@ const HomeScreen = (props: Props) => {
                 </Text>
               </TouchableOpacity>
             </Sentry.ErrorBoundary>
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={async () => {
+                Sentry.configureScope((scope: Scope) => {
+                  scope.addAttachment({
+                    data: 'Attachment content',
+                    filename: 'attachment.txt',
+                  });
+                  scope.addAttachment({data: data, filename: 'logo.png'});
+                  console.log('Sentry attachment added.');
+                });
+              }}>
+              <Text style={styles.buttonText}>Add attachment</Text>
+            </TouchableOpacity>
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={async () => {
+                Sentry.configureScope((scope: Scope) => {
+                  console.log(scope.getAttachments());
+                });
+              }}>
+              <Text style={styles.buttonText}>Get attachment</Text>
+            </TouchableOpacity>
+            <View style={styles.spacer} />
+            <UserFeedbackModal/>
           </View>
           <View style={styles.buttonArea}>
             <TouchableOpacity
@@ -246,10 +284,10 @@ const HomeScreen = (props: Props) => {
                   CommonActions.reset({
                     index: 1,
                     routes: [
-                      {name: 'Home'},
+                      { name: 'Home' },
                       {
                         name: 'PerformanceTiming',
-                        params: {someParam: 'hello'},
+                        params: { someParam: 'hello' },
                       },
                     ],
                   }),
@@ -271,7 +309,7 @@ const HomeScreen = (props: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   scrollView: {
     backgroundColor: '#fff',
     flex: 1,

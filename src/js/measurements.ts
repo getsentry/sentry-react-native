@@ -1,8 +1,8 @@
-import { getCurrentHub, getMainCarrier, Hub } from "@sentry/hub";
-import { Transaction } from "@sentry/tracing";
-import { CustomSamplingContext, TransactionContext } from "@sentry/types";
+import { getCurrentHub, getMainCarrier, Hub } from '@sentry/core';
+import { Transaction } from '@sentry/tracing';
+import { CustomSamplingContext, TransactionContext } from '@sentry/types';
 
-import { ReactNativeTracing } from "./tracing";
+import { ReactNativeTracing } from './tracing';
 
 /**
  * Adds React Native's extensions. Needs to be called after @sentry/tracing's extension methods are added

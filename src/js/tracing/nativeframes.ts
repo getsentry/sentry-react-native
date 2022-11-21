@@ -1,15 +1,16 @@
-import { Span, Transaction } from "@sentry/tracing";
-import { Event, EventProcessor } from "@sentry/types";
-import { logger, timestampInSeconds } from "@sentry/utils";
+import { Span, Transaction } from '@sentry/tracing';
+import { Event, EventProcessor, Measurements, MeasurementUnit } from '@sentry/types';
+import { logger, timestampInSeconds } from '@sentry/utils';
 
-import { NativeFramesResponse } from "../definitions";
-import { NATIVE } from "../wrapper";
-import { instrumentChildSpanFinish } from "./utils";
+import { NativeFramesResponse } from '../definitions';
+import { NATIVE } from '../wrapper';
+import { instrumentChildSpanFinish } from './utils';
 
-type FramesMeasurements = Record<
-  "frames_total" | "frames_slow" | "frames_frozen",
-  { value: number }
->;
+export interface FramesMeasurements extends Measurements {
+    'frames_total': { value: number, unit: MeasurementUnit };
+    'frames_slow': { value: number, unit: MeasurementUnit };
+    'frames_frozen': { value: number, unit: MeasurementUnit };
+}
 
 /**
  * A margin of error of 50ms is allowed for the async native bridge call.
@@ -39,7 +40,7 @@ export class NativeFramesInstrumentation {
     doesExist: () => boolean
   ) {
     logger.log(
-      "[ReactNativeTracing] Native frames instrumentation initialized."
+      '[ReactNativeTracing] Native frames instrumentation initialized.'
     );
 
     addGlobalEventProcessor((event) => this._processEvent(event, doesExist));
@@ -52,7 +53,7 @@ export class NativeFramesInstrumentation {
   public onTransactionStart(transaction: Transaction): void {
     void NATIVE.fetchNativeFrames().then((framesMetrics) => {
       if (framesMetrics) {
-        transaction.setData("__startFrames", framesMetrics);
+        transaction.setData('__startFrames', framesMetrics);
       }
     });
 
@@ -138,7 +139,7 @@ export class NativeFramesInstrumentation {
     } else if (
       this._lastSpanFinishFrames &&
       Math.abs(this._lastSpanFinishFrames.timestamp - finalEndTimestamp) <
-        MARGIN_OF_ERROR_SECONDS
+      MARGIN_OF_ERROR_SECONDS
     ) {
       // Fallback to the last span finish if it is within the margin of error of the actual finish timestamp.
       // This should be the case for trimEnd.
@@ -150,14 +151,18 @@ export class NativeFramesInstrumentation {
     const measurements = {
       frames_total: {
         value: finalFinishFrames.totalFrames - startFrames.totalFrames,
+        unit: 'none'
       },
       frames_frozen: {
         value: finalFinishFrames.frozenFrames - startFrames.frozenFrames,
+        unit: 'none'
       },
       frames_slow: {
         value: finalFinishFrames.slowFrames - startFrames.slowFrames,
+        unit: 'none'
       },
     };
+
 
     return measurements;
   }
@@ -215,7 +220,7 @@ export class NativeFramesInstrumentation {
     }
 
     if (
-      event.type === "transaction" &&
+      event.type === 'transaction' &&
       event.transaction &&
       event.contexts &&
       event.contexts.trace
@@ -242,8 +247,7 @@ export class NativeFramesInstrumentation {
           );
         } else {
           logger.log(
-            `[Measurements] Adding measurements to ${
-              traceContext.op
+            `[Measurements] Adding measurements to ${traceContext.op
             } transaction ${event.transaction}: ${JSON.stringify(
               measurements,
               undefined,

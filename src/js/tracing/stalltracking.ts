@@ -1,12 +1,12 @@
 /* eslint-disable max-lines */
-import { IdleTransaction, Span, Transaction } from "@sentry/tracing";
-import { Measurements } from "@sentry/types";
-import { logger, timestampInSeconds } from "@sentry/utils";
+import { IdleTransaction, Span, Transaction } from '@sentry/tracing';
+import { Measurements, MeasurementUnit } from '@sentry/types';
+import { logger, timestampInSeconds } from '@sentry/utils';
 
 export interface StallMeasurements extends Measurements {
-  stall_count: { value: number };
-  stall_total_time: { value: number };
-  stall_longest_time: { value: number };
+  'stall_count': { value: number, unit: MeasurementUnit };
+  'stall_total_time': { value: number, unit: MeasurementUnit };
+  'stall_longest_time': { value: number, unit: MeasurementUnit };
 }
 
 export type StallTrackingOptions = {
@@ -78,7 +78,7 @@ export class StallTrackingInstrumentation {
   public onTransactionStart(transaction: Transaction): void {
     if (this._statsByTransaction.has(transaction)) {
       logger.error(
-        "[StallTracking] Tried to start stall tracking on a transaction already being tracked. Measurements might be lost."
+        '[StallTracking] Tried to start stall tracking on a transaction already being tracked. Measurements might be lost.'
       );
 
       return;
@@ -129,7 +129,7 @@ export class StallTrackingInstrumentation {
     if (!transactionStats) {
       // Transaction has been flushed out somehow, we return null.
       logger.log(
-        "[StallTracking] Stall measurements were not added to transaction due to exceeding the max count."
+        '[StallTracking] Stall measurements were not added to transaction due to exceeding the max count.'
       );
 
       this._statsByTransaction.delete(transaction);
@@ -155,7 +155,7 @@ export class StallTrackingInstrumentation {
       This is not safe in the case that something changes upstream, but if we're planning to move this over to @sentry/javascript anyways,
       we can have this temporarily for now.
     */
-    const isIdleTransaction = "activities" in transaction;
+    const isIdleTransaction = 'activities' in transaction;
 
     let statsOnFinish: StallMeasurements | undefined;
     if (endTimestamp && isIdleTransaction) {
@@ -198,34 +198,32 @@ export class StallTrackingInstrumentation {
     this._shouldStopTracking();
 
     if (!statsOnFinish) {
-      if (typeof endTimestamp !== "undefined") {
+      if (typeof endTimestamp !== 'undefined') {
         logger.log(
-          "[StallTracking] Stall measurements not added due to `endTimestamp` being set."
+          '[StallTracking] Stall measurements not added due to `endTimestamp` being set.'
         );
       } else if (trimEnd) {
         logger.log(
-          "[StallTracking] Stall measurements not added due to `trimEnd` being set but we could not determine the stall measurements at that time."
+          '[StallTracking] Stall measurements not added due to `trimEnd` being set but we could not determine the stall measurements at that time.'
         );
       }
 
       return;
     }
 
-    const measurements = {
-      stall_count: {
-        value:
-          statsOnFinish.stall_count.value -
-          transactionStats.atStart.stall_count.value,
-      },
-      stall_total_time: {
-        value:
-          statsOnFinish.stall_total_time.value -
-          transactionStats.atStart.stall_total_time.value,
-      },
-      stall_longest_time: statsOnFinish.stall_longest_time,
-    };
+    transaction.setMeasurement('stall_count',
+      statsOnFinish.stall_count.value -
+      transactionStats.atStart.stall_count.value,
+      transactionStats.atStart.stall_count.unit);
 
-    transaction.setMeasurements(measurements);
+    transaction.setMeasurement('stall_total_time',
+      statsOnFinish.stall_total_time.value -
+      transactionStats.atStart.stall_total_time.value,
+      transactionStats.atStart.stall_total_time.unit);
+
+    transaction.setMeasurement('stall_longest_time',
+      statsOnFinish.stall_longest_time.value,
+      statsOnFinish.stall_longest_time.unit);
   }
 
   /**
@@ -242,7 +240,7 @@ export class StallTrackingInstrumentation {
         MARGIN_OF_ERROR_SECONDS
       ) {
         logger.log(
-          "[StallTracking] Span end not logged due to end timestamp being outside the margin of error from now."
+          '[StallTracking] Span end not logged due to end timestamp being outside the margin of error from now.'
         );
 
         if (
@@ -272,10 +270,10 @@ export class StallTrackingInstrumentation {
    */
   private _getCurrentStats(transaction: Transaction): StallMeasurements {
     return {
-      stall_count: { value: this._stallCount },
-      stall_total_time: { value: this._totalStallTime },
+      stall_count: { value: this._stallCount, unit: 'none' },
+      stall_total_time: { value: this._totalStallTime, unit: 'millisecond' },
       stall_longest_time: {
-        value: this._statsByTransaction.get(transaction)?.longestStallTime ?? 0,
+        value: this._statsByTransaction.get(transaction)?.longestStallTime ?? 0, unit: 'millisecond'
       },
     };
   }

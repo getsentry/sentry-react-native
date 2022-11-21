@@ -1,7 +1,8 @@
-import { addBreadcrumb } from "@sentry/core";
-import { Severity } from "@sentry/types";
-import * as React from "react";
-import { StyleSheet, View } from "react-native";
+import { addBreadcrumb } from '@sentry/core';
+import { SeverityLevel } from '@sentry/types';
+import { logger } from '@sentry/utils';
+import * as React from 'react';
+import { StyleSheet, View } from 'react-native';
 
 export type TouchEventBoundaryProps = {
   /**
@@ -26,6 +27,10 @@ export type TouchEventBoundaryProps = {
    * @deprecated
    */
   ignoredDisplayNames?: Array<string | RegExp>;
+  /**
+   * React Node wrapped by TouchEventBoundary.
+   */
+  children?: React.ReactNode;
 };
 
 const touchEventStyles = StyleSheet.create({
@@ -34,15 +39,18 @@ const touchEventStyles = StyleSheet.create({
   },
 });
 
-const DEFAULT_BREADCRUMB_CATEGORY = "touch";
-const DEFAULT_BREADCRUMB_TYPE = "user";
+const DEFAULT_BREADCRUMB_CATEGORY = 'touch';
+const DEFAULT_BREADCRUMB_TYPE = 'user';
 const DEFAULT_MAX_COMPONENT_TREE_SIZE = 20;
+
+const PROP_KEY = 'sentry-label';
 
 interface ElementInstance {
   elementType?: {
     displayName?: string;
     name?: string;
   };
+  memoizedProps?: Record<string, unknown>;
   return?: ElementInstance;
 }
 
@@ -50,7 +58,7 @@ interface ElementInstance {
  * Boundary to log breadcrumbs for interaction events.
  */
 class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
-  public static displayName: string = "__Sentry.TouchEventBoundary";
+  public static displayName: string = '__Sentry.TouchEventBoundary';
   public static defaultProps: Partial<TouchEventBoundaryProps> = {
     breadcrumbCategory: DEFAULT_BREADCRUMB_CATEGORY,
     breadcrumbType: DEFAULT_BREADCRUMB_TYPE,
@@ -66,7 +74,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
       <View
         style={touchEventStyles.wrapperView}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onTouchStart={this._onTouchStart as any}
+        onTouchStart={this._onTouchStart.bind(this) as any}
       >
         {this.props.children}
       </View>
@@ -74,24 +82,31 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
   }
 
   /**
-   *
+   * Logs the touch event given the component tree names and a label.
    */
   private _logTouchEvent(
     componentTreeNames: string[],
-    displayName: string | null
+    activeLabel?: string
   ): void {
-    addBreadcrumb({
+    const level = 'info' as SeverityLevel;
+    const crumb = {
       category: this.props.breadcrumbCategory,
       data: { componentTree: componentTreeNames },
-      level: Severity.Info,
-      message: displayName
-        ? `Touch event within element: ${displayName}`
-        : `Touch event within component tree`,
-      type: this.props.breadcrumbType,
-    });
+      level: level,
+      message: activeLabel
+        ? `Touch event within element: ${activeLabel}`
+        : 'Touch event within component tree',
+      type: this.props.breadcrumbType
+    }
+    addBreadcrumb(crumb);
+
+    logger.log(`[TouchEvents] ${crumb.message}`);
   }
 
-  private _isNameIgnored = (name: string): boolean => {
+  /**
+   * Checks if the name is supposed to be ignored.
+   */
+  private _isNameIgnored(name: string): boolean {
     let ignoreNames = this.props.ignoreNames || [];
     // eslint-disable-next-line deprecation/deprecation
     if (this.props.ignoredDisplayNames) {
@@ -102,20 +117,26 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 
     return ignoreNames.some(
       (ignoreName: string | RegExp) =>
-        (typeof ignoreName === "string" && name === ignoreName) ||
+        (typeof ignoreName === 'string' && name === ignoreName) ||
         (ignoreName instanceof RegExp && name.match(ignoreName))
     );
-  };
+  }
 
   // Originally was going to clean the names of any HOCs as well but decided that it might hinder debugging effectively. Will leave here in case
   // private readonly _cleanName = (name: string): string =>
   //   name.replace(/.*\(/g, "").replace(/\)/g, "");
 
-  private _onTouchStart = (e: { _targetInst?: ElementInstance }): void => {
+  /**
+   * Traverses through the component tree when a touch happens and logs it.
+   * @param e
+   */
+  // eslint-disable-next-line complexity
+  private _onTouchStart(e: { _targetInst?: ElementInstance }): void {
     if (e._targetInst) {
       let currentInst: ElementInstance | undefined = e._targetInst;
 
-      let activeDisplayName = null;
+      let activeLabel: string | undefined;
+      let activeDisplayName: string | undefined;
       const componentTreeNames: string[] = [];
 
       while (
@@ -124,40 +145,59 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
         this.props.maxComponentTreeSize &&
         componentTreeNames.length < this.props.maxComponentTreeSize
       ) {
-        if (currentInst.elementType) {
-          if (
-            // If the loop gets to the boundary itself, break.
-            currentInst.elementType.displayName ===
-            TouchEventBoundary.displayName
-          ) {
-            break;
+        if (
+          // If the loop gets to the boundary itself, break.
+          currentInst.elementType?.displayName ===
+          TouchEventBoundary.displayName
+        ) {
+          break;
+        }
+
+        const props = currentInst.memoizedProps;
+        const label =
+          typeof props?.[PROP_KEY] !== 'undefined'
+            ? `${props[PROP_KEY]}`
+            : undefined;
+
+        // Check the label first
+        if (label && !this._isNameIgnored(label)) {
+          if (!activeLabel) {
+            activeLabel = label;
           }
+          componentTreeNames.push(label);
+        } else if (
+          typeof props?.accessibilityLabel === 'string' &&
+          !this._isNameIgnored(props.accessibilityLabel)
+        ) {
+          if (!activeLabel) {
+            activeLabel = props.accessibilityLabel;
+          }
+          componentTreeNames.push(props.accessibilityLabel);
+        } else if (currentInst.elementType) {
+          const { elementType } = currentInst;
 
           if (
-            typeof currentInst.elementType.displayName === "string" &&
-            !this._isNameIgnored(currentInst.elementType.displayName)
+            elementType.displayName &&
+            !this._isNameIgnored(elementType.displayName)
           ) {
-            const { displayName } = currentInst.elementType;
-            if (activeDisplayName === null) {
-              activeDisplayName = displayName;
+            // Check display name
+            if (!activeDisplayName) {
+              activeDisplayName = elementType.displayName;
             }
-            componentTreeNames.push(displayName);
-          } else if (
-            typeof currentInst.elementType.name === "string" &&
-            !this._isNameIgnored(currentInst.elementType.name)
-          ) {
-            componentTreeNames.push(currentInst.elementType.name);
+            componentTreeNames.push(elementType.displayName);
           }
         }
 
         currentInst = currentInst.return;
       }
 
-      if (componentTreeNames.length > 0 || activeDisplayName) {
-        this._logTouchEvent(componentTreeNames, activeDisplayName);
+      const finalLabel = activeLabel ?? activeDisplayName;
+
+      if (componentTreeNames.length > 0 || finalLabel) {
+        this._logTouchEvent(componentTreeNames, finalLabel);
       }
     }
-  };
+  }
 }
 
 /**
@@ -168,15 +208,15 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 const withTouchEventBoundary = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   InnerComponent: React.ComponentType<any>,
-  boundaryProps: TouchEventBoundaryProps
+  boundaryProps?: TouchEventBoundaryProps
 ): React.FunctionComponent => {
   const WrappedComponent: React.FunctionComponent = (props) => (
-    <TouchEventBoundary {...boundaryProps}>
+    <TouchEventBoundary {...(boundaryProps ?? {})}>
       <InnerComponent {...props} />
     </TouchEventBoundary>
   );
 
-  WrappedComponent.displayName = "WithTouchEventBoundary";
+  WrappedComponent.displayName = 'WithTouchEventBoundary';
 
   return WrappedComponent;
 };

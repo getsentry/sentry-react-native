@@ -19,28 +19,28 @@ import ReduxScreen from './screens/ReduxScreen';
 import {store} from './reduxApp';
 import {SENTRY_INTERNAL_DSN} from './dsn';
 
-const reactNavigationV5Instrumentation = new Sentry.ReactNavigationV5Instrumentation(
-  {
+const reactNavigationInstrumentation =
+  new Sentry.ReactNavigationInstrumentation({
     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
-  },
-);
+  });
 Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
-  beforeSend: (e) => {
-    console.log('Event beforeSend:', e);
+  beforeSend: (e, hint) => {
+    console.log('Event beforeSend:', e, 'hint:', hint);
     return e;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
   onReady: ({didCallNativeInit}) => {
     console.log('onReady called with didCallNativeInit:', didCallNativeInit);
   },
-  maxBreadcrumbs: 150, // Extend from the default 100 breadcrumbs.
+  maxCacheItems: 40, // Extend from the default 30.
   integrations: [
     new Sentry.ReactNativeTracing({
-      idleTimeout: 5000, // This is the default timeout
-      routingInstrumentation: reactNavigationV5Instrumentation,
+      // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
+      idleTimeout: 5000,
+      routingInstrumentation: reactNavigationInstrumentation,
       tracingOrigins: ['localhost', /^\//, /^https:\/\//],
       beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
         // Example of not sending a transaction for the screen with the name "Manual Tracker"
@@ -59,8 +59,9 @@ Sentry.init({
   tracesSampleRate: 1.0,
   // Sets the `release` and `dist` on Sentry events. Make sure this matches EXACTLY with the values on your sourcemaps
   // otherwise they will not work.
-  release: '1.2.3',
-  dist: `1.2.3.0`,
+  // release: 'myapp@1.2.3+1',
+  // dist: `1`,
+  attachStacktrace: true,
 });
 
 const Stack = createStackNavigator();
@@ -73,7 +74,7 @@ const App = () => {
       <NavigationContainer
         ref={navigation}
         onReady={() => {
-          reactNavigationV5Instrumentation.registerNavigationContainer(
+          reactNavigationInstrumentation.registerNavigationContainer(
             navigation,
           );
         }}>

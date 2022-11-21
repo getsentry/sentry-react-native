@@ -1,6 +1,6 @@
-import { Breadcrumb, Package } from "@sentry/types";
+import { Breadcrumb, Package } from '@sentry/types';
 
-import { ReactNativeOptions } from "./options";
+import { ReactNativeOptions } from './options';
 
 export type NativeAppStartResponse = {
   isColdStart: boolean;
@@ -29,21 +29,19 @@ interface SerializedObject {
 }
 
 export interface SentryNativeBridgeModule {
-  nativeClientAvailable: boolean;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   captureEnvelope(
-    payload:
-      | string
-      | {
-          header: Record<string, unknown>;
-          payload: Record<string, unknown>;
-        }
+    bytes: number[],
+    options: {
+      store: boolean,
+    },
   ): PromiseLike<boolean>;
   clearBreadcrumbs(): void;
   crash(): void;
   closeNativeSdk(): PromiseLike<void>;
   disableNativeFramesTracking(): void;
+  enableNativeFramesTracking(): void;
   fetchNativeRelease(): Promise<{
     build: string;
     id: string;
@@ -53,7 +51,6 @@ export interface SentryNativeBridgeModule {
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
   fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
   fetchNativeFrames(): PromiseLike<NativeFramesResponse | null>;
-  getStringBytesLength(str: string): Promise<number>;
   initNativeSdk(options: ReactNativeOptions): Promise<boolean>;
   setUser(
     defaultUserKeys: SerializedObject | null,

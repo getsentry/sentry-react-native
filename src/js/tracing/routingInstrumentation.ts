@@ -1,7 +1,7 @@
-import { Hub } from "@sentry/hub";
-import { Transaction, TransactionContext } from "@sentry/types";
+import { Hub } from '@sentry/core';
+import { Transaction, TransactionContext } from '@sentry/types';
 
-import { BeforeNavigate } from "./reactnativetracing";
+import { BeforeNavigate } from './types';
 
 export type TransactionCreator = (
   context: TransactionContext
@@ -38,7 +38,7 @@ export interface RoutingInstrumentationInstance {
  * Pass this to the tracing integration, and call `onRouteWillChange` every time before a route changes.
  */
 export class RoutingInstrumentation implements RoutingInstrumentationInstance {
-  public static instrumentationName: string = "base-routing-instrumentation";
+  public static instrumentationName: string = 'base-routing-instrumentation';
 
   protected _getCurrentHub?: () => Hub;
   protected _beforeNavigate?: BeforeNavigate;

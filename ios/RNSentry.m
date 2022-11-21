@@ -7,7 +7,12 @@
 #endif
 
 #import <Sentry/Sentry.h>
+#import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryScreenFrames.h>
+
+@interface SentryTraceContext : NSObject
+- (nullable instancetype)initWithDict:(NSDictionary<NSString *, id> *)dictionary;
+@end
 
 @interface SentrySDK (RNSentry)
 
@@ -21,7 +26,6 @@ static bool didFetchAppStart;
 
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
-    SentryOptions *sentryOptions;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -35,17 +39,11 @@ static bool didFetchAppStart;
 
 RCT_EXPORT_MODULE()
 
-- (NSDictionary<NSString *, id> *)constantsToExport
-{
-    return @{@"nativeClientAvailable": @YES, @"nativeTransport": @YES};
-}
 
 RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = true;
-
     NSError *error = nil;
 
     SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
@@ -71,15 +69,42 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
 
-    sentryOptions = [[SentryOptions alloc] initWithDict:options didFailWithError:&error];
+    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:&error];
     if (error) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
+
+    if ([mutableOptions valueForKey:@"enableNativeCrashHandling"] != nil) {
+        BOOL enableNativeCrashHandling = (BOOL)[mutableOptions valueForKey:@"enableNativeCrashHandling"];
+
+        if (!enableNativeCrashHandling) {
+            NSMutableArray *integrations = sentryOptions.integrations.mutableCopy;
+            [integrations removeObject:@"SentryCrashIntegration"];
+            sentryOptions.integrations = integrations;
+        }
+    }
+
+    // Enable the App start and Frames tracking measurements
+    if ([mutableOptions valueForKey:@"enableAutoPerformanceTracking"] != nil) {
+        BOOL enableAutoPerformanceTracking = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracking"];
+
+        PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracking;
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+        PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracking;
+#endif
+    }
+
     [SentrySDK startWithOptionsObject:sentryOptions];
 
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+    BOOL appIsActive = [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
+#else
+    BOOL appIsActive = [[NSApplication sharedApplication] isActive];
+#endif
+
     // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
-    if ([[UIApplication sharedApplication] applicationState] == UIApplicationStateActive && !sentHybridSdkDidBecomeActive && sentryOptions.enableAutoSessionTracking) {
+    if (appIsActive && !sentHybridSdkDidBecomeActive && (PrivateSentrySDKOnly.options.enableAutoSessionTracking || PrivateSentrySDKOnly.options.enableOutOfMemoryTracking)) {
         [[NSNotificationCenter defaultCenter]
             postNotificationName:@"SentryHybridSdkDidBecomeActive"
             object:nil];
@@ -126,13 +151,9 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 RCT_EXPORT_METHOD(fetchNativeSdkInfo:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (sentryOptions == nil) {
-        return reject(@"SentryReactNative",@"Called fetchNativeSdkInfo without initializing the SDK first.", nil);
-    }
-
     resolve(@{
-        @"name": sentryOptions.sdkInfo.name,
-        @"version": sentryOptions.sdkInfo.version
+        @"name": PrivateSentrySDKOnly.getSdkName,
+        @"version": PrivateSentrySDKOnly.getSdkVersionString
             });
 }
 
@@ -147,14 +168,25 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
         NSDictionary<NSString *, id> *serializedScope = [scope serialize];
         // Scope serializes as 'context' instead of 'contexts' as it does for the event.
         NSDictionary<NSString *, id> *tempContexts = [serializedScope valueForKey:@"context"];
-        if (tempContexts != nil) {
-            [contexts addEntriesFromDictionary:tempContexts];
+
+        NSMutableDictionary<NSString *, id> *user = [NSMutableDictionary new];
+
+        NSDictionary<NSString *, id> *tempUser = [serializedScope valueForKey:@"user"];
+        if (tempUser != nil) {
+            [user addEntriesFromDictionary:[tempUser valueForKey:@"user"]];
+        } else {
+            [user setValue:PrivateSentrySDKOnly.installationID forKey:@"id"];
         }
-#if DEBUG
-        NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
-        NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        NSLog(@"Contexts: %@", debugContext);
-#endif
+        [contexts setValue:user forKey:@"user"];
+
+        if (tempContexts != nil) {
+            [contexts setValue:tempContexts forKey:@"context"];
+        }
+        if (PrivateSentrySDKOnly.options.debug) {
+            NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
+            NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            NSLog(@"Contexts: %@", debugContext);
+        }
     }];
     resolve(contexts);
 }
@@ -187,21 +219,36 @@ RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
 
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     if (PrivateSentrySDKOnly.isFramesTrackingRunning) {
         SentryScreenFrames *frames = PrivateSentrySDKOnly.currentScreenFrames;
 
         if (frames == nil) {
             resolve(nil);
+            return;
+        }
+
+        NSNumber *total = [NSNumber numberWithLong:frames.total];
+        NSNumber *frozen = [NSNumber numberWithLong:frames.frozen];
+        NSNumber *slow = [NSNumber numberWithLong:frames.slow];
+        NSNumber *zero = [NSNumber numberWithLong:0L];
+
+        if ([total isEqualToNumber:zero] && [frozen isEqualToNumber:zero] && [slow isEqualToNumber:zero]) {
+            resolve(nil);
+            return;
         }
 
         resolve(@{
-            @"totalFrames": [NSNumber numberWithLong:frames.total],
-            @"frozenFrames": [NSNumber numberWithLong:frames.frozen],
-            @"slowFrames": [NSNumber numberWithLong:frames.slow],
+            @"totalFrames": total,
+            @"frozenFrames": frozen,
+            @"slowFrames": slow,
         });
     } else {
       resolve(nil);
     }
+#else
+    resolve(nil);
+#endif
 }
 
 RCT_EXPORT_METHOD(fetchNativeRelease:(RCTPromiseResolveBlock)resolve
@@ -215,66 +262,56 @@ RCT_EXPORT_METHOD(fetchNativeRelease:(RCTPromiseResolveBlock)resolve
               });
 }
 
-RCT_EXPORT_METHOD(captureEnvelope:(NSDictionary * _Nonnull)envelopeDict
+RCT_EXPORT_METHOD(captureEnvelope:(NSArray * _Nonnull)bytes
+                  options: (NSDictionary * _Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if ([NSJSONSerialization isValidJSONObject:envelopeDict]) {
-        SentrySdkInfo *sdkInfo = [[SentrySdkInfo alloc] initWithDict:envelopeDict[@"header"]];
-        SentryId *eventId = [[SentryId alloc] initWithUUIDString:envelopeDict[@"header"][@"event_id"]];
-        SentryEnvelopeHeader *envelopeHeader = [[SentryEnvelopeHeader alloc] initWithId:eventId sdkInfo:sdkInfo traceState:nil];
-
-        NSError *error;
-        NSData *envelopeItemData = [NSJSONSerialization dataWithJSONObject:envelopeDict[@"payload"] options:0 error:&error];
-        if (nil != error) {
-            reject(@"SentryReactNative", @"Cannot serialize event", error);
-        }
-
-        NSString *itemType = envelopeDict[@"payload"][@"type"];
-        if (itemType == nil) {
-            // Default to event type.
-            itemType = @"event";
-        }
-
-        SentryEnvelopeItemHeader *envelopeItemHeader = [[SentryEnvelopeItemHeader alloc] initWithType:itemType length:envelopeItemData.length];
-        SentryEnvelopeItem *envelopeItem = [[SentryEnvelopeItem alloc] initWithHeader:envelopeItemHeader data:envelopeItemData];
-
-        SentryEnvelope *envelope = [[SentryEnvelope alloc] initWithHeader:envelopeHeader singleItem:envelopeItem];
-
-        #if DEBUG
-            [SentrySDK captureEnvelope:envelope];
-        #else
-            if ([envelopeDict[@"payload"][@"level"] isEqualToString:@"fatal"]) {
-                // Storing to disk happens asynchronously with captureEnvelope
-                [SentrySDK storeEnvelope:envelope];
-            } else {
-                [SentrySDK captureEnvelope:envelope];
-            }
-        #endif
-        resolve(@YES);
-    } else {
-        reject(@"SentryReactNative", @"Cannot serialize event", nil);
+    NSMutableData *data = [[NSMutableData alloc] initWithCapacity: [bytes count]];
+    for(NSNumber *number in bytes) {
+        char byte = [number charValue];
+        [data appendBytes: &byte length: 1];
     }
+
+    SentryEnvelope *envelope = [PrivateSentrySDKOnly envelopeWithData:data];
+    if (envelope == nil) {
+        reject(@"SentryReactNative",@"Failed to parse envelope from byte array.", nil);
+        return;
+    }
+
+    #if DEBUG
+        [PrivateSentrySDKOnly captureEnvelope:envelope];
+    #else
+        if (options[@'store']) {
+            // Storing to disk happens asynchronously with captureEnvelope
+            [PrivateSentrySDKOnly storeEnvelope:envelope];
+        } else {
+            [PrivateSentrySDKOnly captureEnvelope:envelope];
+        }
+    #endif
+    resolve(@YES);
 }
 
-RCT_EXPORT_METHOD(setUser:(NSDictionary *)user
-                  otherUserKeys:(NSDictionary *)otherUserKeys
+RCT_EXPORT_METHOD(setUser:(NSDictionary *)userKeys
+                  otherUserKeys:(NSDictionary *)userDataKeys
 )
 {
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        if (nil == user && nil == otherUserKeys) {
+        if (nil == userKeys && nil == userDataKeys) {
             [scope setUser:nil];
         } else {
             SentryUser* userInstance = [[SentryUser alloc] init];
 
-            if (nil != user) {
-                [userInstance setUserId:user[@"id"]];
-                [userInstance setEmail:user[@"email"]];
-                [userInstance setUsername:user[@"username"]];
+            if (nil != userKeys) {
+                [userInstance setUserId:userKeys[@"id"]];
+                [userInstance setIpAddress:userKeys[@"ip_address"]];
+                [userInstance setEmail:userKeys[@"email"]];
+                [userInstance setUsername:userKeys[@"username"]];
+                [userInstance setSegment:userKeys[@"segment"]];
             }
 
-            if (nil != otherUserKeys) {
-                [userInstance setData:otherUserKeys];
+            if (nil != userDataKeys) {
+                [userInstance setData:userDataKeys];
             }
 
             [scope setUser:userInstance];
@@ -362,6 +399,14 @@ RCT_EXPORT_METHOD(closeNativeSdk:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(disableNativeFramesTracking)
 {
     // Do nothing on iOS, this bridge method only has an effect on android.
+}
+
+RCT_EXPORT_METHOD(enableNativeFramesTracking)
+{
+    // Do nothing on iOS, this bridge method only has an effect on android.
+    // If you're starting the Cocoa SDK manually,
+    // you can set the 'enableAutoPerformanceTracking: true' option and
+    // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 
 @end

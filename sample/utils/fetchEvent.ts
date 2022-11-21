@@ -3,7 +3,7 @@ import {Event} from '@sentry/types';
 import fetch from 'node-fetch';
 
 const domain = 'sentry.io';
-const eventEndpoint = `/api/0/projects/sentry-sdks/sentry-react-native/events/`;
+const eventEndpoint = '/api/0/projects/sentry-sdks/sentry-react-native/events/';
 
 interface ApiEvent extends Event {
   /**
@@ -12,11 +12,14 @@ interface ApiEvent extends Event {
   eventID: string;
 }
 
-const RETRY_COUNT = 20;
-const RETRY_INTERVAL = 30000;
+const RETRY_COUNT = 600;
+const RETRY_INTERVAL = 1000;
 
 const fetchEvent = async (eventId): Promise<ApiEvent> => {
   const url = `https://${domain}${eventEndpoint}${eventId}/`;
+
+  expect(process.env.SENTRY_AUTH_TOKEN).toBeDefined();
+  expect(process.env.SENTRY_AUTH_TOKEN.length).toBeGreaterThan(0);
 
   const request = new fetch.Request(url, {
     headers: {

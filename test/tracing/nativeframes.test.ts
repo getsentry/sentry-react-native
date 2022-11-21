@@ -1,4 +1,4 @@
-jest.mock("../../src/js/wrapper", () => {
+jest.mock('../../src/js/wrapper', () => {
   return {
     NATIVE: {
       fetchNativeFrames: jest.fn(),
@@ -8,19 +8,19 @@ jest.mock("../../src/js/wrapper", () => {
   };
 });
 
-import { Transaction } from "@sentry/tracing";
-import { EventProcessor } from "@sentry/types";
+import { Transaction } from '@sentry/tracing';
+import { EventProcessor } from '@sentry/types';
 
-import { NativeFramesInstrumentation } from "../../src/js/tracing/nativeframes";
-import { NATIVE } from "../../src/js/wrapper";
-import { mockFunction } from "../testutils";
+import { NativeFramesInstrumentation } from '../../src/js/tracing/nativeframes';
+import { NATIVE } from '../../src/js/wrapper';
+import { mockFunction } from '../testutils';
 
 beforeEach(() => {
   jest.useFakeTimers();
 });
 
-describe("NativeFramesInstrumentation", () => {
-  it("Sets start frames to trace context on transaction start.", (done) => {
+describe('NativeFramesInstrumentation', () => {
+  it('Sets start frames to trace context on transaction start.', (done) => {
     const startFrames = {
       totalFrames: 100,
       slowFrames: 20,
@@ -35,7 +35,7 @@ describe("NativeFramesInstrumentation", () => {
       () => true
     );
 
-    const transaction = new Transaction({ name: "test" });
+    const transaction = new Transaction({ name: 'test' });
 
     instance.onTransactionStart(transaction);
 
@@ -50,7 +50,7 @@ describe("NativeFramesInstrumentation", () => {
     });
   });
 
-  it("Sets measurements on the transaction event and removes startFrames from trace context.", (done) => {
+  it('Sets measurements on the transaction event and removes startFrames from trace context.', (done) => {
     const startFrames = {
       totalFrames: 100,
       slowFrames: 20,
@@ -73,7 +73,7 @@ describe("NativeFramesInstrumentation", () => {
       () => true
     );
 
-    const transaction = new Transaction({ name: "test" });
+    const transaction = new Transaction({ name: 'test' });
 
     instance.onTransactionStart(transaction);
 
@@ -89,15 +89,15 @@ describe("NativeFramesInstrumentation", () => {
           expect(eventProcessor).toBeDefined();
           if (eventProcessor) {
             const event = await eventProcessor({
-              event_id: "0",
-              type: "transaction",
+              event_id: '0',
+              type: 'transaction',
               transaction: transaction.name,
               contexts: {
                 trace: transaction.getTraceContext(),
               },
               start_timestamp: finishTimestamp - 10,
               timestamp: finishTimestamp,
-            });
+            }, {});
 
             jest.runOnlyPendingTimers();
 
@@ -112,12 +112,17 @@ describe("NativeFramesInstrumentation", () => {
                 expect(event.measurements.frames_total.value).toBe(
                   finishFrames.totalFrames - startFrames.totalFrames
                 );
+                expect(event.measurements.frames_total.unit).toBe('none');
+
                 expect(event.measurements.frames_slow.value).toBe(
                   finishFrames.slowFrames - startFrames.slowFrames
                 );
+                expect(event.measurements.frames_slow.unit).toBe('none');
+
                 expect(event.measurements.frames_frozen.value).toBe(
                   finishFrames.frozenFrames - startFrames.frozenFrames
                 );
+                expect(event.measurements.frames_frozen.unit).toBe('none');
               }
 
               expect(event.contexts?.trace?.data).toBeDefined();
@@ -138,7 +143,7 @@ describe("NativeFramesInstrumentation", () => {
     });
   });
 
-  it("Does not set measurements on transactions without startFrames.", (done) => {
+  it('Does not set measurements on transactions without startFrames.', (done) => {
     const finishFrames = {
       totalFrames: 200,
       slowFrames: 40,
@@ -156,9 +161,9 @@ describe("NativeFramesInstrumentation", () => {
       () => true
     );
 
-    const transaction = new Transaction({ name: "test" });
+    const transaction = new Transaction({ name: 'test' });
 
-    transaction.setData("test", {});
+    transaction.setData('test', {});
 
     setImmediate(() => {
       const finishTimestamp = Date.now() / 1000;
@@ -168,8 +173,8 @@ describe("NativeFramesInstrumentation", () => {
         expect(eventProcessor).toBeDefined();
         if (eventProcessor) {
           const event = await eventProcessor({
-            event_id: "0",
-            type: "transaction",
+            event_id: '0',
+            type: 'transaction',
             transaction: transaction.name,
             contexts: {
               trace: transaction.getTraceContext(),
@@ -177,7 +182,7 @@ describe("NativeFramesInstrumentation", () => {
             start_timestamp: finishTimestamp - 10,
             timestamp: finishTimestamp,
             measurements: {},
-          });
+          }, {});
 
           jest.runOnlyPendingTimers();
 
@@ -211,7 +216,7 @@ describe("NativeFramesInstrumentation", () => {
     });
   });
 
-  it("Sets measurements on the transaction event and removes startFrames if finishFrames is null.", (done) => {
+  it('Sets measurements on the transaction event and removes startFrames if finishFrames is null.', (done) => {
     const startFrames = {
       totalFrames: 100,
       slowFrames: 20,
@@ -230,7 +235,7 @@ describe("NativeFramesInstrumentation", () => {
       () => true
     );
 
-    const transaction = new Transaction({ name: "test" });
+    const transaction = new Transaction({ name: 'test' });
 
     instance.onTransactionStart(transaction);
 
@@ -246,15 +251,15 @@ describe("NativeFramesInstrumentation", () => {
           expect(eventProcessor).toBeDefined();
           if (eventProcessor) {
             const event = await eventProcessor({
-              event_id: "0",
-              type: "transaction",
+              event_id: '0',
+              type: 'transaction',
               transaction: transaction.name,
               contexts: {
                 trace: transaction.getTraceContext(),
               },
               start_timestamp: finishTimestamp - 10,
               timestamp: finishTimestamp,
-            });
+            }, {});
 
             jest.runOnlyPendingTimers();
 
@@ -282,7 +287,7 @@ describe("NativeFramesInstrumentation", () => {
     });
   });
 
-  it("Does not set measurements on the transaction event and removes startFrames if finishFrames times out.", (done) => {
+  it('Does not set measurements on the transaction event and removes startFrames if finishFrames times out.', (done) => {
     jest.useRealTimers();
 
     const startFrames = {
@@ -302,7 +307,7 @@ describe("NativeFramesInstrumentation", () => {
       () => true
     );
 
-    const transaction = new Transaction({ name: "test" });
+    const transaction = new Transaction({ name: 'test' });
 
     instance.onTransactionStart(transaction);
 
@@ -321,15 +326,15 @@ describe("NativeFramesInstrumentation", () => {
           expect(eventProcessor).toBeDefined();
           if (eventProcessor) {
             const event = await eventProcessor({
-              event_id: "0",
-              type: "transaction",
+              event_id: '0',
+              type: 'transaction',
               transaction: transaction.name,
               contexts: {
                 trace: transaction.getTraceContext(),
               },
               start_timestamp: finishTimestamp - 10,
               timestamp: finishTimestamp,
-            });
+            }, {});
 
             expect(event).toBeDefined();
 

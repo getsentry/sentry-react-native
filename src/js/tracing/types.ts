@@ -1,4 +1,4 @@
-import { TransactionContext } from "@sentry/types";
+import { TransactionContext } from '@sentry/types';
 
 export interface ReactNavigationRoute {
   name: string;
@@ -25,8 +25,12 @@ export type RouteChangeContextData = {
 
 export interface ReactNavigationTransactionContext extends TransactionContext {
   tags: {
-    "routing.instrumentation": string;
-    "routing.route.name": string;
+    'routing.instrumentation': string;
+    'routing.route.name': string;
   };
   data: RouteChangeContextData;
 }
+
+export type BeforeNavigate = (
+  context: TransactionContext
+) => TransactionContext;
