@@ -186,6 +186,20 @@ describe("Tests Native Wrapper", () => {
   });
 
   describe("sendEvent", () => {
+    test("handles circular input", async () => {
+      const event = {
+        message: "test",
+        extra: {
+          circular: {},
+        },
+      };
+      event.extra.circular = event;
+
+      await NATIVE.sendEvent(event);
+
+      expect(RNSentry.captureEnvelope).toBeCalled();
+    });
+
     test("calls only captureEnvelope on iOS", async () => {
       const event = {
         event_id: "event0",
