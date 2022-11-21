@@ -7,6 +7,7 @@
 - Add `maxQueueSize` option ([#2578](https://github.com/getsentry/sentry-react-native/pull/2578))
 
 ### Fixes
+
 - Use `Scope` class rather than `Scope` type for top-level functions ([#2627](https://github.com/getsentry/sentry-react-native/pull/2627))
 
 ### Dependencies
