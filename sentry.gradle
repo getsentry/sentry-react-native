@@ -194,6 +194,19 @@ gradle.projectsEvaluated {
           }
           previousCliTask = cliTask
           cliTask.finalizedBy modulesTask
+
+          def modulesCleanUpTask = tasks.create(name: nameModulesCleanup, type: Delete) {
+              description = "clean up collected modules generated file"
+              group = 'sentry.io'
+
+              delete modulesOutput
+          }
+
+          def packageTasks = tasks.findAll { task -> task.name.toLowerCase() == "package${variant}" && task.enabled }
+          packageTasks.each { packageTask ->
+              packageTask.dependsOn modulesTask
+              packageTask.finalizedBy modulesCleanUpTask
+          }
         }
 
         /** Delete sourcemap files */
@@ -204,19 +217,6 @@ gradle.projectsEvaluated {
             delete sourcemapOutput
             delete "$buildDir/intermediates/assets/release/index.android.bundle.map"
             // react native default bundle dir
-        }
-
-        def modulesCleanUpTask = tasks.create(name: nameModulesCleanup, type: Delete) {
-            description = "clean up collected modules generated file"
-            group = 'sentry.io'
-
-            delete modulesOutput
-        }
-
-        def packageTasks = tasks.findAll { task -> task.name == 'packageRelease' && task.enabled }
-        packageTasks.each { packageTask ->
-            packageTask.dependsOn modulesTask
-            packageTask.finalizedBy modulesCleanUpTask
         }
 
         // register clean task extension
