@@ -8,6 +8,7 @@ describe('collectModules', () => {
         `${__dirname}/fixtures/root-module/modules/module1/lib/module1.js`,
         `${__dirname}/fixtures/root-module/modules/module1/modules/not-collected/lib/notCollected.js`,
         `${__dirname}/fixtures/root-module/modules/module2/module2.js`,
+        `${__dirname}/fixtures/root-module/modules/@organization/module3/module3.js`,
       ],
       [
         `${__dirname}/fixtures/root-module/modules`,
@@ -18,7 +19,8 @@ describe('collectModules', () => {
     expect(modules).toEqual({
       'root-module': 'root-module-version',
       'module-1': 'module-1-version',
-      'module-2': 'unknown'
+      'module-2': 'unknown',
+      'module-3': 'module-3-version',
     });
   });
 

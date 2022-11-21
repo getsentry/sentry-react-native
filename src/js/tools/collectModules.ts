@@ -7,7 +7,7 @@ import ModulesCollector from './ModulesCollector';
 const sourceMapPath: string | undefined = argv[2]; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
 const outputModulesPath: string | undefined = argv[3]; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
 const modulesPaths: string[] = argv[4] // eslint-disable-line @typescript-eslint/no-unsafe-member-access
-  ? argv[4].split(',').map((p: string) => resolve(p)) // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+  ? argv[4].split(',') // eslint-disable-line @typescript-eslint/no-unsafe-member-access
   : [];
 
 if (!sourceMapPath) {
