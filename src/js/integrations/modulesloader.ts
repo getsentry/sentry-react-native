@@ -27,7 +27,10 @@ export class ModulesLoader implements Integration {
         isSetup = true;
       }
       if (modules) {
-        event.modules = modules;
+        event.modules = {
+          ...event.modules,
+          ...modules,
+        };
       }
       return event;
     });
