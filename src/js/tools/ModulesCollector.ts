@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'fs';
 import { posix, sep } from 'path';
-const { dirname, join, resolve } = posix;
+const { dirname, join, resolve, sep: posixSep } = posix;
 
 interface Package {
   name?: string,
@@ -14,7 +14,7 @@ export default class ModulesCollector {
 
   /** Collect method */
   public static collect(sources: string[], modulesPaths: string[]): Record<string, string> {
-    modulesPaths = modulesPaths.map((modulesPath) => resolve(modulesPath.split(sep).join(posix.sep)));
+    const normalizedModulesPaths = modulesPaths.map((modulesPath) => resolve(modulesPath.split(sep).join(posixSep)));
 
     const infos: Record<string, string> = {};
     const seen: Record<string, true> = {};
@@ -28,7 +28,7 @@ export default class ModulesCollector {
         const parentDir = dir;
         dir = dirname(parentDir);
 
-        if (modulesPaths.includes(resolve(dir))) {
+        if (normalizedModulesPaths.includes(resolve(dir))) {
           if (candidate?.name && candidate?.version) {
             infos[candidate.name] = candidate.version;
           } else if (candidate?.name) {

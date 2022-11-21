@@ -1,5 +1,4 @@
 import { readFileSync, writeFileSync } from 'fs';
-import { resolve } from 'path';
 import { argv } from 'process';
 
 import ModulesCollector from './ModulesCollector';
