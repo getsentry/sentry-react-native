@@ -18,6 +18,7 @@ import {
   Release,
   SdkInfo,
 } from './integrations';
+import { Screenshot } from './integrations/screenshot';
 import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
@@ -129,6 +130,9 @@ export function init(passedOptions: ReactNativeOptions): void {
       if (options.enableAutoPerformanceTracking) {
         defaultIntegrations.push(new ReactNativeTracing());
       }
+    }
+    if (options.attachScreenshot) {
+      defaultIntegrations.push(new Screenshot());
     }
   }
 

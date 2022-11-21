@@ -12,10 +12,11 @@ import {
   Transport,
   UserFeedback,
 } from '@sentry/types';
-import { dateTimestampInSeconds, logger, resolvedSyncPromise, SentryError } from '@sentry/utils';
+import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
 
+import { Screenshot } from './integrations/screenshot';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { ReactNativeClientOptions, ReactNativeTransportOptions } from './options';
 import { makeReactNativeTransport } from './transports/native';
@@ -81,9 +82,9 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   /**
    * @inheritDoc
    */
-  public eventFromException(_exception: unknown, _hint: EventHint = {}): PromiseLike<Event> {
-    return this._attachScreenshotToEventHint(_hint)
-      .then(hint => this._browserClient.eventFromException(_exception, hint));
+  public eventFromException(exception: unknown, hint: EventHint = {}): PromiseLike<Event> {
+    return Screenshot.attachScreenshotToEventHint(hint, this._options)
+      .then(enrichedHint => this._browserClient.eventFromException(exception, enrichedHint));
   }
 
   /**
@@ -204,25 +205,5 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
       envelope[items].push(clientReportItem);
     }
-  }
-
-  /**
-   * If enabled attaches a screenshot to the event hint.
-   */
-  private _attachScreenshotToEventHint(hint: EventHint): PromiseLike<EventHint> {
-    if (!this._options.attachScreenshot) {
-      return resolvedSyncPromise(hint);
-    }
-
-    return NATIVE.captureScreenshot()
-      .then((screenshots) => {
-        if (screenshots !== null && screenshots.length > 0) {
-          hint.attachments = [
-            ...screenshots,
-            ...(hint?.attachments || []),
-          ];
-        }
-        return hint;
-      });
   }
 }
