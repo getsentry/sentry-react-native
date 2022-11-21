@@ -6,6 +6,10 @@
 
 - Add `maxQueueSize` option ([#2578](https://github.com/getsentry/sentry-react-native/pull/2578))
 
+### Fixes
+
+- Use `Scope` class rather than `Scope` type for top-level functions ([#2627](https://github.com/getsentry/sentry-react-native/pull/2627))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v7.16.0 to v7.20.0 ([#2582](https://github.com/getsentry/sentry-react-native/pull/2582), [#2598](https://github.com/getsentry/sentry-react-native/pull/2598), [#2632](https://github.com/getsentry/sentry-react-native/pull/2632))
