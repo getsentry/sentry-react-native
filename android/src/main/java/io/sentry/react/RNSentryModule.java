@@ -310,7 +310,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void captureScreenshot(Promise promise) {
 
-        final Activity activity = this.getReactApplicationContext().getCurrentActivity();
+        final Activity activity = getCurrentActivity();
         if (activity == null) {
             logger.log(SentryLevel.WARNING, "CurrentActivity is null, can't capture screenshot.");
             promise.resolve(null);
