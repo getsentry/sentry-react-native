@@ -333,7 +333,7 @@ describe('Tests ReactNativeClient', () => {
       const actualEvent: Event | undefined = <Event>mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
       expect(actualEvent?.extra).toEqual({
         circular: {
-          extra: "[Circular ~]",
+          extra: '[Circular ~]',
         },
       });
     });
