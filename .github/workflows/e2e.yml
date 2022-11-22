@@ -19,8 +19,8 @@ jobs:
         platform: ['ios', 'android']
         include:
           - platform: ios
-            runtime: '15.2'
-            device: 'iPhone 12'
+            runtime: '16.0'
+            device: 'iPhone 14'
     env:
       PLATFORM: ${{ matrix.platform }}
       RUNTIME: ${{ matrix.runtime }}
@@ -107,7 +107,7 @@ jobs:
 
         # Wait until the Appium server starts.
       - name: Check Appium Server
-        uses: nick-fields/retry@b4fa57557dda8c2f30bcb2d19372cc3237190f7f # pin@v2
+        uses: nick-fields/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482 # pin@v2
         with:
           timeout_seconds: 60
           max_attempts: 10
@@ -115,7 +115,7 @@ jobs:
 
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
-        uses: reactivecircus/android-emulator-runner@d7b53ddc6e44254e1f4cf4a6ad67345837027a66 # pin@v2
+        uses: reactivecircus/android-emulator-runner@50986b1464923454c95e261820bc626f38490ec0 # pin@v2
         with:
           api-level: 29
           emulator-options: -accel on -no-snapshot -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none -timezone US/Pacific

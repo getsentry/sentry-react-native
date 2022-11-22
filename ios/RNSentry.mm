@@ -7,6 +7,7 @@
 #endif
 
 #import <Sentry/Sentry.h>
+#import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryScreenFrames.h>
 
 // Thanks to this guard, we won't import this header when we build for the old architecture.
@@ -30,7 +31,6 @@ static bool didFetchAppStart;
 
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
-    SentryOptions *sentryOptions;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -73,7 +73,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
 
-    sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:&error];
+    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:&error];
     if (error) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
@@ -108,7 +108,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 #endif
 
     // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
-    if (appIsActive && !sentHybridSdkDidBecomeActive && (sentryOptions.enableAutoSessionTracking || sentryOptions.enableOutOfMemoryTracking)) {
+    if (appIsActive && !sentHybridSdkDidBecomeActive && (PrivateSentrySDKOnly.options.enableAutoSessionTracking || PrivateSentrySDKOnly.options.enableOutOfMemoryTracking)) {
         [[NSNotificationCenter defaultCenter]
             postNotificationName:@"SentryHybridSdkDidBecomeActive"
             object:nil];
@@ -155,13 +155,9 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 RCT_EXPORT_METHOD(fetchNativeSdkInfo:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (sentryOptions == nil) {
-        return reject(@"SentryReactNative",@"Called fetchNativeSdkInfo without initializing the SDK first.", nil);
-    }
-
     resolve(@{
-        @"name": sentryOptions.sdkInfo.name,
-        @"version": sentryOptions.sdkInfo.version
+        @"name": PrivateSentrySDKOnly.getSdkName,
+        @"version": PrivateSentrySDKOnly.getSdkVersionString
             });
 }
 
@@ -190,7 +186,7 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
         if (tempContexts != nil) {
             [contexts setValue:tempContexts forKey:@"context"];
         }
-        if (sentryOptions != nil && sentryOptions.debug) {
+        if (PrivateSentrySDKOnly.options.debug) {
             NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
             NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
             NSLog(@"Contexts: %@", debugContext);

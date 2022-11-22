@@ -121,7 +121,7 @@ export const NATIVE: SentryNativeWrapper = {
 
       envelopeBytes.push(...utf8ToBytes(serializedItemHeader));
       envelopeBytes.push(EOL);
-      envelopeBytes.push(...bytesPayload);
+      bytesPayload.forEach(byte => envelopeBytes.push(byte));
       envelopeBytes.push(EOL);
     }
 

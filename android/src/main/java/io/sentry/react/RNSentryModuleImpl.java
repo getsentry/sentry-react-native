@@ -130,6 +130,9 @@ public class RNSentryModuleImpl {
             if (rnOptions.hasKey("sendDefaultPii")) {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
             }
+            if (rnOptions.hasKey("maxQueueSize")) {
+                options.setMaxQueueSize(rnOptions.getInt("maxQueueSize"));
+            }
 
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException

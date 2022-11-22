@@ -65,7 +65,7 @@ jest.spyOn(logger, 'error');
 
 import { initAndBind } from '@sentry/core';
 import { getCurrentHub } from '@sentry/react';
-import { Integration, Scope } from '@sentry/types';
+import { BaseTransportOptions,ClientOptions, Integration, Scope  } from '@sentry/types';
 
 import { ReactNativeClientOptions } from '../src/js/options';
 import { configureScope,flush, init, withScope } from '../src/js/sdk';
@@ -180,6 +180,36 @@ describe('Tests the SDK functionality', () => {
             'Failed to flush the event queue.'
           );
         }
+      });
+    });
+
+    describe('transport options buffer size', () => {
+      const usedOptions = (): ClientOptions<BaseTransportOptions> | undefined => {
+        return mockedInitAndBind.mock.calls[0]?.[1];
+      }
+
+      it('uses default transport options buffer size', () => {
+        init({
+          tracesSampleRate: 0.5,
+          enableAutoPerformanceTracking: true,
+        });
+        expect(usedOptions()?.transportOptions?.bufferSize).toBe(30);
+      });
+
+      it('uses custom transport options buffer size', () => {
+        init({
+          transportOptions: {
+            bufferSize: 99,
+          },
+        });
+        expect(usedOptions()?.transportOptions?.bufferSize).toBe(99);
+      });
+
+      it('uses max queue size', () => {
+        init({
+          maxQueueSize: 88,
+        });
+        expect(usedOptions()?.transportOptions?.bufferSize).toBe(88);
       });
     });
   });

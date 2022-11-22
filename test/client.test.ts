@@ -118,21 +118,6 @@ describe('Tests ReactNativeClient', () => {
       }).not.toThrow();
     });
 
-    test.skip('falls back to YellowBox if no LogBox', async () => {
-      // @ts-ignore: Is Mocked
-      RN.LogBox = undefined;
-
-      const client = new ReactNativeClient({
-        ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
-        transport: () => new NativeTransport()
-      } as ReactNativeClientOptions);
-
-      await expect(client.eventFromMessage('test')).resolves.toBeDefined();
-      // eslint-disable-next-line deprecation/deprecation
-      await expect(RN.YellowBox.ignoreWarnings).toBeCalled();
-    });
-
     test('use custom transport function', async () => {
       const mySend = (_request: Envelope) => Promise.resolve();
       const myFlush = (timeout?: number) => Promise.resolve(Boolean(timeout));
@@ -320,6 +305,37 @@ describe('Tests ReactNativeClient', () => {
           version: SDK_VERSION,
         },
       ]);
+    });
+  });
+
+  describe('normalizes events', () => {
+    test('handles circular input', async () => {
+      const mockedSend = jest.fn<PromiseLike<void>, [Envelope]>();
+      const mockedTransport = (): Transport => ({
+        send: mockedSend,
+        flush: jest.fn().mockResolvedValue(true),
+      });
+      const client = new ReactNativeClient(<ReactNativeClientOptions> {
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: mockedTransport,
+      });
+      const circularEvent = {
+        extra: {
+          circular: {},
+        },
+      };
+      circularEvent.extra.circular = circularEvent;
+
+      client.captureEvent(circularEvent);
+
+      expect(mockedSend).toBeCalled();
+      const actualEvent: Event | undefined = <Event>mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
+      expect(actualEvent?.extra).toEqual({
+        circular: {
+          extra: '[Circular ~]',
+        },
+      });
     });
   });
 

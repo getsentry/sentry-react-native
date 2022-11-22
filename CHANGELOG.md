@@ -12,6 +12,33 @@
 
 - Send react native js engine, turbo module, fabric flags and component stack in Event contexts ([#2552](https://github.com/getsentry/sentry-react-native/pull/2552))
 
+### Features
+
+- Add `maxQueueSize` option ([#2578](https://github.com/getsentry/sentry-react-native/pull/2578))
+
+### Fixes
+
+- Use `Scope` class rather than `Scope` type for top-level functions ([#2627](https://github.com/getsentry/sentry-react-native/pull/2627))
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.16.0 to v7.20.1 ([#2582](https://github.com/getsentry/sentry-react-native/pull/2582), [#2598](https://github.com/getsentry/sentry-react-native/pull/2598), [#2632](https://github.com/getsentry/sentry-react-native/pull/2632), [#2607](https://github.com/getsentry/sentry-react-native/pull/2607))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7201)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.16.0...7.20.1)
+- Bump Cocoa SDK from v7.29.0 to v7.31.2 ([#2592](https://github.com/getsentry/sentry-react-native/pull/2592), [#2601](https://github.com/getsentry/sentry-react-native/pull/2601), [#2629](https://github.com/getsentry/sentry-react-native/pull/2629))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7312)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.29.0...7.31.2)
+- Bump Android SDK from v6.6.0 to v6.8.0 ([#2600](https://github.com/getsentry/sentry-react-native/pull/2600), [#2628](https://github.com/getsentry/sentry-react-native/pull/2628))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#680)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.6.0...6.8.0)
+
+## 4.8.0
+
+### Fixes
+
+- Message event can have attached stacktrace ([#2577](https://github.com/getsentry/sentry-react-native/pull/2577))
+- Fixed maximum call stack exceeded error resulting from large payloads ([#2579](https://github.com/getsentry/sentry-react-native/pull/2579))
+
 ### Dependencies
 
 - Bump CLI from v1.74.4 to v2.7.0 ([#2457](https://github.com/getsentry/sentry-react-native/pull/2457))

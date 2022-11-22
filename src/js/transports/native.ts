@@ -3,12 +3,22 @@ import { makePromiseBuffer, PromiseBuffer } from '@sentry/utils';
 
 import { NATIVE } from '../wrapper';
 
+export const DEFAULT_BUFFER_SIZE = 30;
+
 export type BaseNativeTransport = BaseTransportOptions
+
+export interface BaseNativeTransportOptions {
+  bufferSize?: number;
+}
 
 /** Native Transport class implementation */
 export class NativeTransport implements Transport {
   /** A simple buffer holding all requests. */
-  protected readonly _buffer: PromiseBuffer<void> = makePromiseBuffer(30);
+  protected readonly _buffer: PromiseBuffer<void>;
+
+  public constructor(options: BaseNativeTransportOptions = {}) {
+    this._buffer = makePromiseBuffer(options.bufferSize || DEFAULT_BUFFER_SIZE);
+  }
 
   /**
    * Sends the envelope to the Store endpoint in Sentry.
@@ -35,4 +45,6 @@ export class NativeTransport implements Transport {
 /**
  * Creates a Native Transport.
  */
-export function makeReactNativeTransport(): NativeTransport { return new NativeTransport(); }
+export function makeReactNativeTransport(options: BaseNativeTransportOptions = {}): NativeTransport {
+  return new NativeTransport(options);
+}

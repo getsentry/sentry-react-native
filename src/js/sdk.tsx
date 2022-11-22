@@ -1,11 +1,11 @@
-import { getIntegrationsToSetup, Hub, initAndBind, makeMain,setExtra } from '@sentry/core';
+import { getIntegrationsToSetup, Hub, initAndBind, makeMain, Scope, setExtra } from '@sentry/core';
 import { RewriteFrames } from '@sentry/integrations';
 import {
   defaultIntegrations as reactDefaultIntegrations,
   defaultStackParser,
   getCurrentHub,
 } from '@sentry/react';
-import { Integration, Scope, StackFrame, UserFeedback } from '@sentry/types';
+import { Integration, StackFrame, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -23,7 +23,7 @@ import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
-import { makeReactNativeTransport } from './transports/native';
+import { DEFAULT_BUFFER_SIZE, makeReactNativeTransport } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 
@@ -43,6 +43,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
     textEncoder: makeUtf8TextEncoder(),
   },
   sendClientReports: true,
+  maxQueueSize: DEFAULT_BUFFER_SIZE,
 };
 
 /**
@@ -52,6 +53,10 @@ export function init(passedOptions: ReactNativeOptions): void {
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
   makeMain(reactNativeHub);
 
+  const maxQueueSize = passedOptions.maxQueueSize
+    // eslint-disable-next-line deprecation/deprecation
+    ?? passedOptions.transportOptions?.bufferSize
+    ?? DEFAULT_OPTIONS.maxQueueSize;
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
@@ -60,7 +65,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(passedOptions.transportOptions ?? {}),
+      bufferSize: maxQueueSize,
     },
+    maxQueueSize,
     integrations: [],
     stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser),
     beforeBreadcrumb: safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' }),
