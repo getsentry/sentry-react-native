@@ -308,6 +308,37 @@ describe('Tests ReactNativeClient', () => {
     });
   });
 
+  describe('normalizes events', () => {
+    test('handles circular input', async () => {
+      const mockedSend = jest.fn<PromiseLike<void>, [Envelope]>();
+      const mockedTransport = (): Transport => ({
+        send: mockedSend,
+        flush: jest.fn().mockResolvedValue(true),
+      });
+      const client = new ReactNativeClient(<ReactNativeClientOptions> {
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: mockedTransport,
+      });
+      const circularEvent = {
+        extra: {
+          circular: {},
+        },
+      };
+      circularEvent.extra.circular = circularEvent;
+
+      client.captureEvent(circularEvent);
+
+      expect(mockedSend).toBeCalled();
+      const actualEvent: Event | undefined = <Event>mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
+      expect(actualEvent?.extra).toEqual({
+        circular: {
+          extra: "[Circular ~]",
+        },
+      });
+    });
+  });
+
   describe('clientReports', () => {
     test('does not send client reports if disabled', () => {
       const mockTransportSend = jest.fn((_envelope: Envelope) => Promise.resolve());

@@ -198,30 +198,6 @@ describe('Tests Native Wrapper', () => {
   });
 
   describe('sendEnvelope', () => {
-    test.skip('handles circular input', async () => {
-      const event = {
-        event_id: 'event0',
-        message: 'test',
-        sdk: {
-          name: 'test-sdk-name',
-          version: '2.1.3',
-        },
-        extra: {
-          circular: {},
-        },
-      };
-      event.extra.circular = event;
-    
-      const env = createEnvelope<EventEnvelope>(
-        { event_id: event.event_id, sent_at: '123' },
-        [[{ type: 'event' }, event] as EventItem]
-      );
-    
-      await NATIVE.sendEnvelope(env);
-    
-      expect(RNSentry.captureEnvelope).toBeCalled();
-    });
-
     test('calls only captureEnvelope', async () => {
       const event = {
         event_id: 'event0',
