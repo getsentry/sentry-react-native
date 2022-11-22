@@ -1,16 +1,6 @@
 # Changelog
 
-## 5.0.0-alpha.7
-
-- Latest changes from 4.7.1
-
-### Fixes
-
-- Remove hardcoded Folly version ([#2558](https://github.com/getsentry/sentry-react-native/pull/2558))
-
-### Features
-
-- Send react native js engine, turbo module, fabric flags and component stack in Event contexts ([#2552](https://github.com/getsentry/sentry-react-native/pull/2552))
+## Unreleased
 
 ### Features
 
@@ -38,6 +28,27 @@
 
 - Message event can have attached stacktrace ([#2577](https://github.com/getsentry/sentry-react-native/pull/2577))
 - Fixed maximum call stack exceeded error resulting from large payloads ([#2579](https://github.com/getsentry/sentry-react-native/pull/2579))
+
+### Dependencies
+
+- Bump Android SDK from v6.5.0 to v6.6.0 ([#2572](https://github.com/getsentry/sentry-react-native/pull/2572))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#660)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.5.0...6.6.0)
+- Bump Cocoa SDK from v7.28.0 to v7.29.0 ([#2571](https://github.com/getsentry/sentry-react-native/pull/2571))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/master/CHANGELOG.md#7290)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.28.0...7.29.0)
+
+## 5.0.0-alpha.7
+
+- Latest changes from 4.7.1
+
+### Fixes
+
+- Remove hardcoded Folly version ([#2558](https://github.com/getsentry/sentry-react-native/pull/2558))
+
+### Features
+
+- Send react native js engine, turbo module, fabric flags and component stack in Event contexts ([#2552](https://github.com/getsentry/sentry-react-native/pull/2552))
 
 ### Dependencies
 
