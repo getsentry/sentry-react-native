@@ -1,11 +1,11 @@
-import { getIntegrationsToSetup, Hub, initAndBind, makeMain,setExtra } from '@sentry/core';
+import { getIntegrationsToSetup, Hub, initAndBind, makeMain, Scope, setExtra } from '@sentry/core';
 import { RewriteFrames } from '@sentry/integrations';
 import {
   defaultIntegrations as reactDefaultIntegrations,
   defaultStackParser,
   getCurrentHub,
 } from '@sentry/react';
-import { Integration, Scope, StackFrame, UserFeedback } from '@sentry/types';
+import { Integration, StackFrame, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 

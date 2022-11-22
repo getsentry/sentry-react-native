@@ -41,7 +41,7 @@ Sentry.init({
       // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
       idleTimeout: 5000,
       routingInstrumentation: reactNavigationInstrumentation,
-      tracingOrigins: ['localhost', /^\//, /^https:\/\//],
+      tracePropagationTargets: ['localhost', /^\//, /^https:\/\//],
       beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
         // Example of not sending a transaction for the screen with the name "Manual Tracker"
         if (context.data.route.name === 'ManualTracker') {
