@@ -147,9 +147,11 @@ export class ReactNativeTracing implements Integration {
     const {
       traceFetch,
       traceXHR,
+      // eslint-disable-next-line deprecation/deprecation
       tracingOrigins,
       // @ts-ignore TODO
       shouldCreateSpanForRequest,
+      tracePropagationTargets,
       routingInstrumentation,
       enableAppStartTracking,
       enableNativeFramesTracking,
@@ -201,6 +203,7 @@ export class ReactNativeTracing implements Integration {
       traceXHR,
       tracingOrigins,
       shouldCreateSpanForRequest,
+      tracePropagationTargets,
     });
   }
 
