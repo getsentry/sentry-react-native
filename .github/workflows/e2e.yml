@@ -200,7 +200,7 @@ jobs:
           cd ${{ matrix.platform }}
           if [[ "${{ matrix.platform }}" == "android" ]]; then
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
-              sed -i 's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+              perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
             fi
           else
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
