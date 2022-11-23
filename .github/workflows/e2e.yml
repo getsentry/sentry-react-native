@@ -199,6 +199,7 @@ jobs:
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
               perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
             fi
+            ./gradlew assembleRelease
           else
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
               export RCT_NEW_ARCH_ENABLED=1
