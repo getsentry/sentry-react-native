@@ -205,7 +205,7 @@ jobs:
             fi
             which -a ruby
             ruby -v
-            bundle exec pod install
+            pod install
             cd ../..
             fastlane build_perf_test_app_plain
           fi
