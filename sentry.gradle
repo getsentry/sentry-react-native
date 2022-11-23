@@ -202,7 +202,7 @@ gradle.projectsEvaluated {
               delete modulesOutput
           }
 
-          def packageTasks = tasks.findAll { task -> task.name.toLowerCase() == "package${variant}" && task.enabled }
+          def packageTasks = tasks.findAll { task -> "package${variant}".equalsIgnoreCase(task.name) && task.enabled }
           packageTasks.each { packageTask ->
               packageTask.dependsOn modulesTask
               packageTask.finalizedBy modulesCleanUpTask
