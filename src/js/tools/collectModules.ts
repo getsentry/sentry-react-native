@@ -1,5 +1,6 @@
+import { logger } from '@sentry/utils';
 import { readFileSync, writeFileSync } from 'fs';
-import { argv } from 'process';
+import { argv, exit } from 'process';
 
 import ModulesCollector from './ModulesCollector';
 
@@ -10,21 +11,26 @@ const modulesPaths: string[] = argv[4] // eslint-disable-line @typescript-eslint
   : [];
 
 if (!sourceMapPath) {
-  throw new Error('First argument `source-map-path` is missing!');
+  exitGracefully('First argument `source-map-path` is missing!');
 }
 if (!outputModulesPath) {
-  throw new Error('Second argument `modules-output-path` is missing!');
+  exitGracefully('Second argument `modules-output-path` is missing!');
 }
 if (modulesPaths.length === 0) {
-  throw new Error('Third argument `modules-paths` is missing!');
+  exitGracefully('Third argument `modules-paths` is missing!');
 }
 
 const map: { sources?: string[] } = JSON.parse(readFileSync(sourceMapPath, 'utf8'));
 if (!map.sources) {
-  throw new Error('No sources found in source map!');
+  exitGracefully(`Modules not collected. No sources found in the source map (${sourceMapPath})!`);
 }
 
 const sources: string[] = map.sources;
 const modules = ModulesCollector.collect(sources, modulesPaths);
 
 writeFileSync(outputModulesPath, JSON.stringify(modules, null, 2));
+
+function exitGracefully(message: string): never {
+  logger.error(message);
+  exit(0);
+};
