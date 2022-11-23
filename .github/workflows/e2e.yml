@@ -165,6 +165,9 @@ jobs:
         with:
           java-version: "11"
           distribution: "adopt"
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7.5
       - name: Install Global Dependencies
         run: yarn global add react-native-cli @sentry/cli yalc
       - uses: actions/cache@v3
