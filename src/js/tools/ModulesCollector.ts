@@ -58,8 +58,8 @@ export default class ModulesCollector {
             name: info.name,
             version: info.version,
           };
-        } catch (_oO) {
-          // do-nothing
+        } catch (error) {
+          console.warn(`Failed to read ${pkgPath}`);
         }
 
         return upDirSearch(); // processed package.json file, continue up search
