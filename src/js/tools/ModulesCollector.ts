@@ -1,3 +1,4 @@
+import { logger } from '@sentry/utils';
 import { existsSync, readFileSync } from 'fs';
 import { posix, sep } from 'path';
 const { dirname, join, resolve, sep: posixSep } = posix;
@@ -59,7 +60,7 @@ export default class ModulesCollector {
             version: info.version,
           };
         } catch (error) {
-          console.warn(`Failed to read ${pkgPath}`);
+          logger.warn(`Failed to read ${pkgPath}`);
         }
 
         return upDirSearch(); // processed package.json file, continue up search
