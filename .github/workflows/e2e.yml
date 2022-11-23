@@ -147,6 +147,7 @@ jobs:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
       matrix:
+        rn-architecture: ['legacy', 'new']
         platform: ["ios", "android"]
         include:
           - platform: ios
@@ -195,9 +196,14 @@ jobs:
           yarn install
           cd ${{ matrix.platform }}
           if [[ "${{ matrix.platform }}" == "android" ]]; then
-            ./gradlew assembleRelease
+            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+              sed -i 's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+            fi
           else
-            pod install
+            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+              export RCT_NEW_ARCH_ENABLED=1
+            fi
+            bundle exec pod install
             cd ../..
             fastlane build_perf_test_app_plain
           fi
@@ -216,9 +222,15 @@ jobs:
           yarn install
           cd ${{ matrix.platform }}
           if [[ "${{ matrix.platform }}" == "android" ]]; then
+              if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+                sed -i 's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+              fi
             ./gradlew assembleRelease
           else
-            pod install
+            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+              export RCT_NEW_ARCH_ENABLED=1
+            fi
+            bundle exec pod install
             cd ../..
             fastlane build_perf_test_app_sentry
             cd TestAppSentry
