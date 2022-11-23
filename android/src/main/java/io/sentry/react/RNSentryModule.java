@@ -194,8 +194,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             promise.resolve(modulesJson);
         } catch (FileNotFoundException e) {
             promise.resolve(null);
-        } catch (Exception e) {
-            promise.reject(e);
+        } catch (Throwable e) {
+            logger.warning("Fetching JS Modules failed.");
+            promise.resolve(null);
         }
     }
 
