@@ -206,6 +206,7 @@ jobs:
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
               export RCT_NEW_ARCH_ENABLED=1
             fi
+            ruby -v
             bundle exec pod install
             cd ../..
             fastlane build_perf_test_app_plain
