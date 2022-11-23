@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Latest changes from 4.9.0
+
+## 4.9.0
+
 ### Features
 
 - Add `maxQueueSize` option ([#2578](https://github.com/getsentry/sentry-react-native/pull/2578))
