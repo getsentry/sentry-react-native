@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Add missing source Spec for RNSentry Codegen.
+
 ## 5.0.0-alpha.8
 
 - Latest changes from 4.9.0

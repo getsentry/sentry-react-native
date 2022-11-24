@@ -10,3 +10,4 @@
 !react-native.config.js
 !/ios/**/*
 !/android/**/*
+!src/js/NativeRNSentry.ts
