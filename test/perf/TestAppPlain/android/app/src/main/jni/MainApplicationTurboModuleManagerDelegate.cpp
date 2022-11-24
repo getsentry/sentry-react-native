@@ -23,8 +23,7 @@ void MainApplicationTurboModuleManagerDelegate::registerNatives() {
 std::shared_ptr<TurboModule>
 MainApplicationTurboModuleManagerDelegate::getTurboModule(
     const std::string &name,
-    const std::shared_ptr<CallInvoker> &jsInvoker)
-{
+    const std::shared_ptr<CallInvoker> &jsInvoker) {
   // Not implemented yet: provide pure-C++ NativeModules here.
   return nullptr;
 }
@@ -32,14 +31,12 @@ MainApplicationTurboModuleManagerDelegate::getTurboModule(
 std::shared_ptr<TurboModule>
 MainApplicationTurboModuleManagerDelegate::getTurboModule(
     const std::string &name,
-    const JavaTurboModule::InitParams &params)
-{
+    const JavaTurboModule::InitParams &params) {
   return MainApplicationModuleProvider(name, params);
 }
 
 bool MainApplicationTurboModuleManagerDelegate::canCreateTurboModule(
-    const std::string &name)
-{
+    const std::string &name) {
   return getTurboModule(name, nullptr) != nullptr ||
       getTurboModule(name, {.moduleName = name}) != nullptr;
 }
