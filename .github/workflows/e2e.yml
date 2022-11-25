@@ -142,7 +142,7 @@ jobs:
             ./sample/*.png
 
   metrics:
-    runs-on: macos-latest
+    runs-on: macos-11
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
