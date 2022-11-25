@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Add missing source Spec for RNSentry Codegen.
+- Add missing source Spec for RNSentry Codegen. ([#2639](https://github.com/getsentry/sentry-react-native/pull/2639))
 
 ## 5.0.0-alpha.8
 
