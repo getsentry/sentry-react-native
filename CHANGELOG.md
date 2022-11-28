@@ -7,6 +7,12 @@
 - JS Runtime dependencies are sent in Events ([#2606](https://github.com/getsentry/sentry-react-native/pull/2606))
   - To collect JS dependencies on iOS add `../node_modules/@sentry/react-native/scripts/collect-modules.sh` at the end of the `Bundle React Native code and images` build phase. The collection only works on Release builds. Android builds have a new step in `sentry.gradle` plugin. More in [the migration documentation](https://docs.sentry.io/platforms/react-native/migration#from-48x-to-49x).
 
+### Dependencies
+
+- Bump JavaScript SDK from v7.20.1 to v7.21.1 ([#2636](https://github.com/getsentry/sentry-react-native/pull/2636))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7211)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.20.1...7.21.1)
+
 ## 4.9.0
 
 ### Features
