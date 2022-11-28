@@ -255,7 +255,7 @@ jobs:
       - name: Collect apps metrics
         uses: getsentry/action-app-sdk-overhead-metrics@v1
         with:
-          name: ${{ matrix.name }}_${{ matrix.rn-architecture }}
+          name: ${{ matrix.name }} (${{ matrix.rn-architecture }})
           config: ./test/perf/metrics-${{ matrix.platform }}.yml
           sauce-user: ${{ secrets.SAUCE_USERNAME }}
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
