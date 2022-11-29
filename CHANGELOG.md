@@ -7,6 +7,9 @@
 - Bump Android SDK from v6.8.0 to v6.9.0 ([#2643](https://github.com/getsentry/sentry-react-native/pull/2643))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#690)
   - [diff](https://github.com/getsentry/sentry-java/compare/6.8.0...6.9.0)
+- Bump Wizard from v1.2.17 to v2.3.1 ([#2458](https://github.com/getsentry/sentry-react-native/pull/2458))
+  - [changelog](https://github.com/getsentry/sentry-wizard/blob/master/CHANGELOG.md#v231)
+  - [diff](https://github.com/getsentry/sentry-wizard/compare/v1.2.17...v2.3.1)
 
 ## 4.10.0
 
