@@ -66,4 +66,5 @@ export interface SentryNativeBridgeModule {
   setContext(key: string, value: SerializedObject | null): void;
   setExtra(key: string, value: string): void;
   setTag(key: string, value: string): void;
+  fetchModules(): PromiseLike<string | undefined | null>;
 }
