@@ -2,9 +2,13 @@
 
 ## Unreleased
 
+- Latest changes from 4.10.0
+
 ### Fixes
 
 - Add missing source Spec for RNSentry Codegen. ([#2639](https://github.com/getsentry/sentry-react-native/pull/2639))
+
+## 4.10.0
 
 ### Features
 
