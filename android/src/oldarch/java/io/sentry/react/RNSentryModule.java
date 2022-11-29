@@ -33,6 +33,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void fetchModules(Promise promise) {
+        this.impl.fetchModules(promise);
+    }
+
+    @ReactMethod
     public void fetchNativeRelease(Promise promise) {
         this.impl.fetchNativeRelease(promise);
     }

@@ -14,6 +14,7 @@ import {
   DebugSymbolicator,
   DeviceContext,
   EventOrigin,
+  ModulesLoader,
   ReactNativeErrorHandlers,
   ReactNativeInfo,
   Release,
@@ -82,6 +83,7 @@ export function init(passedOptions: ReactNativeOptions): void {
 
   const defaultIntegrations: Integration[] = passedOptions.defaultIntegrations || [];
   if (passedOptions.defaultIntegrations === undefined) {
+    defaultIntegrations.push(new ModulesLoader());
     defaultIntegrations.push(new ReactNativeErrorHandlers({
       patchGlobalPromise: options.patchGlobalPromise,
     }));

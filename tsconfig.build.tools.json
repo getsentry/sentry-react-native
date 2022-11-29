@@ -1,0 +1,24 @@
+{
+  "extends": "./node_modules/@sentry/typescript/tsconfig.json",
+  "include": [
+    "src/js/tools/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "dist",
+    "rootDir": "src",
+    "lib": [
+      "es7"
+    ],
+    "types": [
+      "node"
+    ],
+    "target": "es6",
+    "module": "CommonJS",
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+  }
+}

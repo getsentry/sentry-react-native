@@ -161,6 +161,16 @@ RCT_EXPORT_METHOD(fetchNativeSdkInfo:(RCTPromiseResolveBlock)resolve
             });
 }
 
+RCT_EXPORT_METHOD(fetchModules:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"modules" ofType:@"json"];
+    NSString* modulesString = [NSString stringWithContentsOfFile:filePath
+                                                  encoding:NSUTF8StringEncoding
+                                                     error:nil];
+    resolve(modulesString);
+}
+
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {

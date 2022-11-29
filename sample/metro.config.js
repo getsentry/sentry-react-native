@@ -7,8 +7,6 @@
 
 const path = require('path');
 const blacklist = require('metro-config/src/defaults/exclusionList');
-const resolve = require('metro-resolver/src/resolve');
-
 const parentDir = path.resolve(__dirname, '..');
 
 module.exports = {

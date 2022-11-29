@@ -82,6 +82,15 @@ project.ext.react = [
     enableHermes: true,  // clean and rebuild if changing
 ]
 
+project.ext.sentryCli = [
+    collectModulesScript: "../../../dist/js/tools/collectModules.js",
+    modulesPaths: [
+      "node_modules",
+      "../..",
+    ],
+    skipCollectModules: false,
+]
+
 apply from: "../../node_modules/react-native/react.gradle"
 apply from: "../../../sentry.gradle"
 

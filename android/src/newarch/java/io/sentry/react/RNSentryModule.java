@@ -33,6 +33,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
     }
 
     @Override
+    public void fetchModules(Promise promise) {
+        this.impl.fetchModules(promise);
+    }
+
+    @Override
     public void fetchNativeRelease(Promise promise) {
         this.impl.fetchNativeRelease(promise);
     }
