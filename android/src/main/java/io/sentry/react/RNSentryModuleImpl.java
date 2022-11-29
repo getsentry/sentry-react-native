@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.util.SparseIntArray;
 
 import androidx.annotation.Nullable;
@@ -17,8 +18,12 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +53,8 @@ public class RNSentryModuleImpl {
     public static final String NAME = "RNSentry";
 
     private static final Logger logger = Logger.getLogger("react-native-sentry");
+    private static final String modulesPath = "modules.json";
+    private static final Charset UTF_8 = Charset.forName("UTF-8");
 
     private final ReactApplicationContext reactApplicationContext;
     private final PackageInfo packageInfo;
@@ -171,6 +178,24 @@ public class RNSentryModuleImpl {
 
     public void crash() {
         throw new RuntimeException("TEST - Sentry Client Crash (only works in release mode)");
+    }
+
+    public void fetchModules(Promise promise) {
+        final AssetManager assets = this.getReactApplicationContext().getResources().getAssets();
+        try (final InputStream stream =
+                     new BufferedInputStream(assets.open(RNSentryModuleImpl.modulesPath))) {
+            int size = stream.available();
+            byte[] buffer = new byte[size];
+            stream.read(buffer);
+            stream.close();
+            String modulesJson = new String(buffer, RNSentryModuleImpl.UTF_8);
+            promise.resolve(modulesJson);
+        } catch (FileNotFoundException e) {
+            promise.resolve(null);
+        } catch (Throwable e) {
+            logger.warning("Fetching JS Modules failed.");
+            promise.resolve(null);
+        }
     }
 
     public void fetchNativeRelease(Promise promise) {

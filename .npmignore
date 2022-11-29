@@ -11,3 +11,4 @@
 !/ios/**/*
 !/android/**/*
 !src/js/NativeRNSentry.ts
+!scripts/collect-modules.sh
