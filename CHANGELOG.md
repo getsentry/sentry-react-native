@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Screenshots ([#2610](https://github.com/getsentry/sentry-react-native/pull/2610))
+
 ### Dependencies
 
 - Bump Android SDK from v6.8.0 to v6.9.0 ([#2643](https://github.com/getsentry/sentry-react-native/pull/2643))
@@ -26,7 +30,6 @@
 ### Features
 
 - Add `maxQueueSize` option ([#2578](https://github.com/getsentry/sentry-react-native/pull/2578))
-- Screenshots ([#2610](https://github.com/getsentry/sentry-react-native/pull/2610))
 
 ### Fixes
 
