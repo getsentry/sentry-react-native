@@ -1,3 +1,5 @@
+import { existsSync, readFileSync, unlinkSync, rmdirSync } from 'fs';
+import { dirname } from 'path';
 import ModulesCollector from '../../src/js/tools/ModulesCollector';
 
 describe('collectModules', () => {
@@ -40,6 +42,68 @@ describe('collectModules', () => {
     expect(modules).toEqual({
       'module-1': 'module-1-version',
       'module-2': 'unknown'
+    });
+  });
+
+  test('should skip non string source value', () => {
+    const modules = ModulesCollector.collect(
+      [1, {}],
+      [
+        `${__dirname}/fixtures/root-module/modules`,
+      ],
+    );
+
+    expect(modules).toEqual({});
+  });
+
+  test('should gracefully return if source map does not exist', () => {
+    const mockCollect = jest.fn();
+    ModulesCollector.run({
+      sourceMapPath: 'not-exist',
+      collect: mockCollect,
+    });
+
+    expect(mockCollect).not.toHaveBeenCalled();
+  });
+
+  test('should gracefully return if one of the modules paths does not exist', () => {
+    const mockCollect = jest.fn();
+    ModulesCollector.run({
+      sourceMapPath: `${__dirname}/fixtures/mock.map`,
+      modulesPaths: [
+        `${__dirname}/fixtures/root-module/modules`,
+        'not-exist',
+      ],
+      collect: mockCollect,
+    });
+
+    expect(mockCollect).not.toHaveBeenCalled();
+  });
+
+  describe('write output json', () => {
+    const outputModulesPath = `${__dirname}/assets/output.json`;
+
+    const cleanUp = () => {
+      if (existsSync(outputModulesPath)) {
+        unlinkSync(outputModulesPath);
+        rmdirSync(dirname(outputModulesPath));
+      }
+    };
+
+    beforeEach(cleanUp);
+    afterEach(cleanUp);
+
+    test('should write output to file', () => {
+      ModulesCollector.run({
+        sourceMapPath: `${__dirname}/fixtures/mock.map`,
+        outputModulesPath,
+        modulesPaths: [
+          `${__dirname}/fixtures/root-module/modules`,
+        ],
+      });
+
+      expect(existsSync(outputModulesPath)).toEqual(true);
+      expect(readFileSync(outputModulesPath, 'utf8')).toEqual('{}');
     });
   });
 });

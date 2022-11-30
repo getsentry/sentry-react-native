@@ -1,45 +1,12 @@
-import { logger } from '@sentry/utils';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { dirname } from 'path';
-import { argv, exit } from 'process';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { argv } from 'process';
 
 import ModulesCollector from './ModulesCollector';
 
-const sourceMapPath: string | undefined = argv[2]; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
-const outputModulesPath: string | undefined = argv[3]; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
-const modulesPaths: string[] = argv[4] // eslint-disable-line @typescript-eslint/no-unsafe-member-access
-  ? argv[4].split(',') // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+const sourceMapPath: string | undefined = argv[2];
+const outputModulesPath: string | undefined = argv[3];
+const modulesPaths: string[] = argv[4]
+  ? argv[4].split(',')
   : [];
 
-if (!sourceMapPath) {
-  exitGracefully('First argument `source-map-path` is missing!');
-}
-if (!outputModulesPath) {
-  exitGracefully('Second argument `modules-output-path` is missing!');
-}
-if (modulesPaths.length === 0) {
-  exitGracefully('Third argument `modules-paths` is missing!');
-}
-
-if (!existsSync(sourceMapPath)) {
-  exitGracefully(`Source map file does not exist at ${sourceMapPath}`);
-}
-
-const map: { sources?: string[] } = JSON.parse(readFileSync(sourceMapPath, 'utf8'));
-if (!map.sources || !Array.isArray(map.sources)) {
-  exitGracefully(`Modules not collected. No sources found in the source map (${sourceMapPath})!`);
-}
-
-const sources: string[] = map.sources;
-const modules = ModulesCollector.collect(sources, modulesPaths);
-
-const outputModulesDirPath = dirname(outputModulesPath);
-if (!existsSync(outputModulesDirPath)) {
-  mkdirSync(outputModulesDirPath, { recursive: true });
-}
-writeFileSync(outputModulesPath, JSON.stringify(modules, null, 2));
-
-function exitGracefully(message: string): never {
-  logger.error(message);
-  exit(0);
-};
+ModulesCollector.run({ sourceMapPath, outputModulesPath, modulesPaths });
