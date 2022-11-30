@@ -5,7 +5,7 @@
 ### Fixes
 
 - Android builds without ext config, auto create assets dir for modules ([#2652](https://github.com/getsentry/sentry-react-native/pull/2652))
-- Exit gracefully if source map file for collecting modules doesn't exist ([#2653](https://github.com/getsentry/sentry-react-native/pull/2653))
+- Exit gracefully if source map file for collecting modules doesn't exist ([#2655](https://github.com/getsentry/sentry-react-native/pull/2655))
 
 ## 4.10.0
 
