@@ -4,8 +4,17 @@
 
 ### Fixes
 
+- Bump Wizard from v1.2.17 to v1.4.0 ([#2645](https://github.com/getsentry/sentry-react-native/pull/2645))
+  - [changelog](https://github.com/getsentry/sentry-wizard/blob/master/CHANGELOG.md#140)
+  - [diff](https://github.com/getsentry/sentry-wizard/compare/v1.2.17...v1.4.0)
 - Android builds without ext config, auto create assets dir for modules ([#2652](https://github.com/getsentry/sentry-react-native/pull/2652))
 - Exit gracefully if source map file for collecting modules doesn't exist ([#2655](https://github.com/getsentry/sentry-react-native/pull/2655))
+
+### Dependencies
+
+- Bump Android SDK from v6.8.0 to v6.9.1 ([#2653](https://github.com/getsentry/sentry-react-native/pull/2653))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#691)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.8.0...6.9.1)
 
 ## 4.10.0
 
