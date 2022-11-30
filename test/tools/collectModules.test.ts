@@ -58,9 +58,13 @@ describe('collectModules', () => {
   });
 
   test('should gracefully return if source map does not exist', () => {
-    const mockCollect = jest.fn();
+    const mockCollect = jest.fn().mockReturnValue({});
     ModulesCollector.run({
       sourceMapPath: 'not-exist',
+      outputModulesPath: `${__dirname}/fixtures/mock.json`,
+      modulesPaths: [
+        `${__dirname}/fixtures/root-module/modules`,
+      ],
       collect: mockCollect,
     });
 
@@ -68,9 +72,10 @@ describe('collectModules', () => {
   });
 
   test('should gracefully return if one of the modules paths does not exist', () => {
-    const mockCollect = jest.fn();
+    const mockCollect = jest.fn().mockReturnValue({});
     ModulesCollector.run({
       sourceMapPath: `${__dirname}/fixtures/mock.map`,
+      outputModulesPath: `${__dirname}/fixtures/mock.json`,
       modulesPaths: [
         `${__dirname}/fixtures/root-module/modules`,
         'not-exist',

@@ -1,6 +1,8 @@
-/* eslint-disable no-console */
+import { logger } from '@sentry/utils';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { posix, sep } from 'path';
+
+logger.enable();
 
 const { dirname, join, resolve, sep: posixSep } = posix;
 
@@ -65,7 +67,7 @@ export default class ModulesCollector {
             version: info.version,
           };
         } catch (error) {
-          console.warn(`Failed to read ${pkgPath}`);
+          logger.error(`Failed to read ${pkgPath}`);
         }
 
         return upDirSearch(); // processed package.json file, continue up search
@@ -92,36 +94,36 @@ export default class ModulesCollector {
     collect: (sources: unknown[], modulesPaths: string[]) => Record<string, string>,
   }>): void {
     if (!sourceMapPath) {
-      console.error('First argument `source-map-path` is missing!');
+      logger.error('First argument `source-map-path` is missing!');
       return;
     }
     if (!outputModulesPath) {
-      console.error('Second argument `modules-output-path` is missing!');
+      logger.error('Second argument `modules-output-path` is missing!');
       return;
     }
     if (!modulesPaths || modulesPaths.length === 0) {
-      console.error('Third argument `modules-paths` is missing!');
+      logger.error('Third argument `modules-paths` is missing!');
       return;
     }
 
-    console.info('Reading source map from', sourceMapPath);
-    console.info('Saving modules to', outputModulesPath);
-    console.info('Resolving modules from paths', outputModulesPath);
+    logger.info('Reading source map from', sourceMapPath);
+    logger.info('Saving modules to', outputModulesPath);
+    logger.info('Resolving modules from paths', outputModulesPath);
 
     if (!existsSync(sourceMapPath)) {
-      console.error(`Source map file does not exist at ${sourceMapPath}`);
+      logger.error(`Source map file does not exist at ${sourceMapPath}`);
       return;
     }
-    modulesPaths.forEach((modulesPath) => {
+    for (const modulesPath of modulesPaths) {
       if (!existsSync(modulesPath)) {
-        console.error(`Modules path does not exist at ${modulesPath}`);
+        logger.error(`Modules path does not exist at ${modulesPath}`);
         return;
       }
-    });
+    }
 
     const map: { sources?: unknown } = JSON.parse(readFileSync(sourceMapPath, 'utf8'));
     if (!map.sources || !Array.isArray(map.sources)) {
-      console.error(`Modules not collected. No sources found in the source map (${sourceMapPath})!`);
+      logger.error(`Modules not collected. No sources found in the source map (${sourceMapPath})!`);
       return;
     }
 
@@ -135,7 +137,7 @@ export default class ModulesCollector {
       mkdirSync(outputModulesDirPath, { recursive: true });
     }
     writeFileSync(outputModulesPath, JSON.stringify(modules, null, 2));
-    console.info(`Modules collected and saved to: ${outputModulesPath}`);
+    logger.info(`Modules collected and saved to: ${outputModulesPath}`);
   }
 
 }
