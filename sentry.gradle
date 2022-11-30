@@ -163,10 +163,10 @@ gradle.projectsEvaluated {
 
               workingDir reactRoot
 
-              def collectModulesScript = config.containsKey('collectModulesScript')
+              def collectModulesScript = config.collectModulesScript
                   ? file(config.collectModulesScript).getAbsolutePath()
                   : "$reactRoot/node_modules/@sentry/react-native/dist/js/tools/collectModules.js"
-              def modulesPaths = config.containsKey('modulesPaths')
+              def modulesPaths = config.modulesPaths
                   ? config.modulesPaths.join(',')
                   : "$reactRoot/node_modules"
               def args = ["node",
@@ -179,7 +179,7 @@ gradle.projectsEvaluated {
               project.logger.info("Sentry-CollectModules arguments: ${args}")
               commandLine(*args)
 
-              def skip = config.containsKey('skipCollectModules')
+              def skip = config.skipCollectModules
                   ? config.skipCollectModules == true
                   : false
               enabled !skip
