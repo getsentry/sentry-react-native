@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Exit gracefully if source map file for collecting modules doesn't exist ([#2606](https://github.com/getsentry/sentry-react-native/pull/2606))
+
 ## 4.10.0
 
 ### Features

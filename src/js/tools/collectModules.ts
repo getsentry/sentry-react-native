@@ -1,5 +1,5 @@
 import { logger } from '@sentry/utils';
-import { readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { argv, exit } from 'process';
 
 import ModulesCollector from './ModulesCollector';
@@ -18,6 +18,10 @@ if (!outputModulesPath) {
 }
 if (modulesPaths.length === 0) {
   exitGracefully('Third argument `modules-paths` is missing!');
+}
+
+if (!existsSync(sourceMapPath)) {
+  exitGracefully(`Source map file does not exist at ${sourceMapPath}`);
 }
 
 const map: { sources?: string[] } = JSON.parse(readFileSync(sourceMapPath, 'utf8'));
