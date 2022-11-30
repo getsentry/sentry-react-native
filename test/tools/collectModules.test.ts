@@ -1,5 +1,6 @@
-import { existsSync, readFileSync, unlinkSync, rmdirSync } from 'fs';
+import { existsSync, readFileSync, rmdirSync,unlinkSync } from 'fs';
 import { dirname } from 'path';
+
 import ModulesCollector from '../../src/js/tools/ModulesCollector';
 
 describe('collectModules', () => {
