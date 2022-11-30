@@ -1,5 +1,6 @@
 import { logger } from '@sentry/utils';
-import { readFileSync, writeFileSync } from 'fs';
+import { mkdirSync,readFileSync, writeFileSync } from 'fs';
+import { dirname } from 'path';
 import { argv, exit } from 'process';
 
 import ModulesCollector from './ModulesCollector';
@@ -28,6 +29,7 @@ if (!map.sources) {
 const sources: string[] = map.sources;
 const modules = ModulesCollector.collect(sources, modulesPaths);
 
+mkdirSync(dirname(outputModulesPath), { recursive: true });
 writeFileSync(outputModulesPath, JSON.stringify(modules, null, 2));
 
 function exitGracefully(message: string): never {
