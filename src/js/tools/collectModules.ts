@@ -1,5 +1,6 @@
 import { logger } from '@sentry/utils';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { dirname } from 'path';
 import { argv, exit } from 'process';
 
 import ModulesCollector from './ModulesCollector';
@@ -25,13 +26,17 @@ if (!existsSync(sourceMapPath)) {
 }
 
 const map: { sources?: string[] } = JSON.parse(readFileSync(sourceMapPath, 'utf8'));
-if (!map.sources) {
+if (!map.sources || !Array.isArray(map.sources)) {
   exitGracefully(`Modules not collected. No sources found in the source map (${sourceMapPath})!`);
 }
 
 const sources: string[] = map.sources;
 const modules = ModulesCollector.collect(sources, modulesPaths);
 
+const outputModulesDirPath = dirname(outputModulesPath);
+if (!existsSync(outputModulesDirPath)) {
+  mkdirSync(outputModulesDirPath, { recursive: true });
+}
 writeFileSync(outputModulesPath, JSON.stringify(modules, null, 2));
 
 function exitGracefully(message: string): never {
