@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Android builds without ext config, auto create assets dir for modules ([#2652](https://github.com/getsentry/sentry-react-native/pull/2652))
+
 ## 4.10.0
 
 ### Features
