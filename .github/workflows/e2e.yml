@@ -192,7 +192,10 @@ jobs:
         id: app-plain-cache
         with:
           path: ${{ matrix.appPlain }}
-          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.rn-architecture }}-${{ hashFiles('test/perf/TestAppPlain/**') }}
+          # if the whole plain app folder is hashed the cache is never hit as there are files generated in the folder
+          # the cache key is calculated both at cache retrieval and save time
+          # hashFiles fails when there are rn android new arch generated files in the folder (exact reason unknown)
+          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('test/perf/TestAppPlain/yarn.lock') }}
       - name: Build app plain
         if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
         working-directory: ./test/perf/TestAppPlain
