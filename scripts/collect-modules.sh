@@ -40,4 +40,4 @@ else
   modulesPaths="$MODULES_PATHS"
 fi
 
-$nodePath $collectModulesScript $sourceMap $modulesOutput $modulesPaths
+$nodePath "$collectModulesScript" "$sourceMap" "$modulesOutput" "$modulesPaths"
