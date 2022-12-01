@@ -62,6 +62,7 @@ gradle.projectsEvaluated {
         def previousCliTask = null
 
         def nameCleanup = "${bundleTask.name}_SentryUploadCleanUp"
+        def nameModulesCleanup = "${bundleTask.name}_SentryCollectModulesCleanUp"
         // Upload the source map several times if necessary: once for each release and versionCode.
         currentVariants.each { key, currentVariant ->
           variant = currentVariant[0]
@@ -82,7 +83,6 @@ gradle.projectsEvaluated {
           // based on where we're uploading to.
           def nameCliTask = "${bundleTask.name}_SentryUpload_${releaseName}_${versionCode}"
           def nameModulesTask = "${bundleTask.name}_SentryCollectModules_${releaseName}_${versionCode}"
-          def nameModulesCleanup = "${bundleTask.name}_SentryCollectModulesCleanUp_${releaseName}_${versionCode}"
 
           // If several outputs have the same releaseName and versionCode, we'd do the exact same
           // upload for each of them.  No need to repeat.
@@ -194,19 +194,19 @@ gradle.projectsEvaluated {
           }
           previousCliTask = cliTask
           cliTask.finalizedBy modulesTask
+        }
 
-          def modulesCleanUpTask = tasks.create(name: nameModulesCleanup, type: Delete) {
-              description = "clean up collected modules generated file"
-              group = 'sentry.io'
+        def modulesCleanUpTask = tasks.create(name: nameModulesCleanup, type: Delete) {
+            description = "clean up collected modules generated file"
+            group = 'sentry.io'
 
-              delete modulesOutput
-          }
+            delete modulesOutput
+        }
 
-          def packageTasks = tasks.findAll { task -> "package${variant}".equalsIgnoreCase(task.name) && task.enabled }
-          packageTasks.each { packageTask ->
-              packageTask.dependsOn modulesTask
-              packageTask.finalizedBy modulesCleanUpTask
-          }
+        def packageTasks = tasks.findAll { task -> "package${variant}".equalsIgnoreCase(task.name) && task.enabled }
+        packageTasks.each { packageTask ->
+            packageTask.dependsOn modulesTask
+            packageTask.finalizedBy modulesCleanUpTask
         }
 
         /** Delete sourcemap files */
