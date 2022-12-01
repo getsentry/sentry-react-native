@@ -203,7 +203,10 @@ gradle.projectsEvaluated {
             delete modulesOutput
         }
 
-        def packageTasks = tasks.findAll { task -> "package${variant}".equalsIgnoreCase(task.name) && task.enabled }
+        def variantTaskName = variant.replaceAll("[\\s\\-()]", "") // variant is dev-release beta-release etc.
+        def packageTasks = tasks.findAll {
+          task -> "package${variantTaskName}".equalsIgnoreCase(task.name) && task.enabled
+        }
         packageTasks.each { packageTask ->
             packageTask.dependsOn modulesTask
             packageTask.finalizedBy modulesCleanUpTask
