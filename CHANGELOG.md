@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.10.1
 
 ### Features
 
@@ -9,6 +9,8 @@
 ### Fixes
 
 - Android builds without ext config, auto create assets dir for modules ([#2652](https://github.com/getsentry/sentry-react-native/pull/2652))
+- Exit gracefully if source map file for collecting modules doesn't exist ([#2655](https://github.com/getsentry/sentry-react-native/pull/2655))
+- Create only one clean-up tasks for modules collection ([#2657](https://github.com/getsentry/sentry-react-native/pull/2657))
 
 ### Dependencies
 

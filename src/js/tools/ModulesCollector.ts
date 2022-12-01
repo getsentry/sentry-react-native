@@ -1,6 +1,9 @@
 import { logger } from '@sentry/utils';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { posix, sep } from 'path';
+
+logger.enable();
+
 const { dirname, join, resolve, sep: posixSep } = posix;
 
 interface Package {
@@ -14,13 +17,17 @@ interface Package {
 export default class ModulesCollector {
 
   /** Collect method */
-  public static collect(sources: string[], modulesPaths: string[]): Record<string, string> {
+  public static collect(sources: unknown[], modulesPaths: string[]): Record<string, string> {
     const normalizedModulesPaths = modulesPaths.map((modulesPath) => resolve(modulesPath.split(sep).join(posixSep)));
 
     const infos: Record<string, string> = {};
     const seen: Record<string, true> = {};
 
-    sources.forEach((path: string) => {
+    sources.forEach((path: unknown) => {
+      if (typeof path !== 'string') {
+        return;
+      }
+
       let dir = path; // included source file path
       let candidate: Package | null = null;
 
@@ -60,7 +67,7 @@ export default class ModulesCollector {
             version: info.version,
           };
         } catch (error) {
-          logger.warn(`Failed to read ${pkgPath}`);
+          logger.error(`Failed to read ${pkgPath}`);
         }
 
         return upDirSearch(); // processed package.json file, continue up search
@@ -70,6 +77,67 @@ export default class ModulesCollector {
     });
 
     return infos;
+  }
+
+  /**
+   * Runs collection of modules.
+   */
+  public static run({
+    sourceMapPath,
+    outputModulesPath,
+    modulesPaths,
+    collect,
+  }: Partial<{
+    sourceMapPath: string,
+    outputModulesPath: string,
+    modulesPaths: string[],
+    collect: (sources: unknown[], modulesPaths: string[]) => Record<string, string>,
+  }>): void {
+    if (!sourceMapPath) {
+      logger.error('First argument `source-map-path` is missing!');
+      return;
+    }
+    if (!outputModulesPath) {
+      logger.error('Second argument `modules-output-path` is missing!');
+      return;
+    }
+    if (!modulesPaths || modulesPaths.length === 0) {
+      logger.error('Third argument `modules-paths` is missing!');
+      return;
+    }
+
+    logger.info('Reading source map from', sourceMapPath);
+    logger.info('Saving modules to', outputModulesPath);
+    logger.info('Resolving modules from paths', outputModulesPath);
+
+    if (!existsSync(sourceMapPath)) {
+      logger.error(`Source map file does not exist at ${sourceMapPath}`);
+      return;
+    }
+    for (const modulesPath of modulesPaths) {
+      if (!existsSync(modulesPath)) {
+        logger.error(`Modules path does not exist at ${modulesPath}`);
+        return;
+      }
+    }
+
+    const map: { sources?: unknown } = JSON.parse(readFileSync(sourceMapPath, 'utf8'));
+    if (!map.sources || !Array.isArray(map.sources)) {
+      logger.error(`Modules not collected. No sources found in the source map (${sourceMapPath})!`);
+      return;
+    }
+
+    const sources: unknown[] = map.sources;
+    const modules = collect
+      ? collect(sources, modulesPaths)
+      : ModulesCollector.collect(sources, modulesPaths);
+
+    const outputModulesDirPath = dirname(outputModulesPath);
+    if (!existsSync(outputModulesDirPath)) {
+      mkdirSync(outputModulesDirPath, { recursive: true });
+    }
+    writeFileSync(outputModulesPath, JSON.stringify(modules, null, 2));
+    logger.info(`Modules collected and saved to: ${outputModulesPath}`);
   }
 
 }
