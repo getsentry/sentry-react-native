@@ -194,19 +194,24 @@ gradle.projectsEvaluated {
           }
           previousCliTask = cliTask
           cliTask.finalizedBy modulesTask
+        }
 
-          def modulesCleanUpTask = tasks.create(name: nameModulesCleanup, type: Delete) {
-              description = "clean up collected modules generated file"
-              group = 'sentry.io'
+        def modulesCleanUpTask = tasks.create(name: nameModulesCleanup, type: Delete) {
+            description = "clean up collected modules generated file"
+            group = 'sentry.io'
 
-              delete modulesOutput
-          }
+            delete modulesOutput
+        }
 
-          def packageTasks = tasks.findAll { task -> "package${variant}".equalsIgnoreCase(task.name) && task.enabled }
-          packageTasks.each { packageTask ->
-              packageTask.dependsOn modulesTask
-              packageTask.finalizedBy modulesCleanUpTask
-          }
+        def variantTaskName = variant.replaceAll("[\\s\\-()]", "") // variant is dev-release beta-release etc.
+        // task.name could be packageDev-debugRelease but in that case currentVariants == null
+        // because of the regex in `extractCurrentVariants` and this code doesn't run
+        def packageTasks = tasks.findAll {
+          task -> "package${variantTaskName}".equalsIgnoreCase(task.name) && task.enabled
+        }
+        packageTasks.each { packageTask ->
+            packageTask.dependsOn modulesTask
+            packageTask.finalizedBy modulesCleanUpTask
         }
 
         /** Delete sourcemap files */
