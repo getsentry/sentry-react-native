@@ -92,7 +92,7 @@ jobs:
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ github.sha }}
-      - name: Install Dependencies (immutable)
+      - name: Install Dependencies
         if: steps.cache.outputs['cache-hit'] != 'true'
         run: yarn install
       - name: Build
