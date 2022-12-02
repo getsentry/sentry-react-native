@@ -74,9 +74,9 @@ jobs:
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ github.sha }}
-      - name: Install Dependencies
+      - name: Install Dependencies (immutable)
         if: steps.cache.outputs['cache-hit'] != 'true'
-        run: yarn install
+        run: yarn install --frozen-lockfile
       - name: Build
         run: yarn build
       - name: Pack
