@@ -61,7 +61,7 @@ jobs:
         run: yarn lint
         working-directory: sample-new-architecture
 
-  job_check_yarn_lock:
+  job_check_integrity:
     name: Check package integrity
     runs-on: ubuntu-latest
     steps:
@@ -71,11 +71,13 @@ jobs:
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ github.sha }}
-      - name: Install Dependencies (immutable)
-        if: steps.cache.outputs['cache-hit'] != 'true'
-        run: yarn install --frozen-lockfile
-      - name: Check integrity
-        run: yarn check --integrity
+      - name: Save initial lock file
+        run: cp yarn.lock yarn.lock.initial
+      - name: Install Dependencies (update lock if necessary)
+        run: yarn install
+      - name: Check lock file integrity
+        run: |
+          ["$(diff yarn.lock.initial yarn.lock)" -eq ""]
 
   job_build:
     name: Build
