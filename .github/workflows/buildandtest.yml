@@ -61,6 +61,22 @@ jobs:
         run: yarn lint
         working-directory: sample-new-architecture
 
+  job_check_yarn_lock:
+    name: Check package integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        id: cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ github.sha }}
+      - name: Install Dependencies (immutable)
+        if: steps.cache.outputs['cache-hit'] != 'true'
+        run: yarn install --frozen-lockfile
+      - name: Check integrity
+        run: yarn check --integrity
+
   job_build:
     name: Build
     runs-on: ubuntu-latest
@@ -76,7 +92,7 @@ jobs:
           key: ${{ runner.os }}-${{ github.sha }}
       - name: Install Dependencies (immutable)
         if: steps.cache.outputs['cache-hit'] != 'true'
-        run: yarn install --frozen-lockfile
+        run: yarn install
       - name: Build
         run: yarn build
       - name: Pack
