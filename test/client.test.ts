@@ -27,6 +27,7 @@ interface MockedReactNative {
       initNativeSdk: jest.Mock;
       crash: jest.Mock;
       captureEnvelope: jest.Mock;
+      captureScreenshot: jest.Mock;
     };
   };
   Platform: {
@@ -48,6 +49,7 @@ jest.mock(
         initNativeSdk: jest.fn(() => Promise.resolve(true)),
         crash: jest.fn(),
         captureEnvelope: jest.fn(),
+        captureScreenshot: jest.fn().mockResolvedValue(null),
       },
     },
     Platform: {
@@ -284,12 +286,12 @@ describe('Tests ReactNativeClient', () => {
 
   describe('event data enhancement', () => {
     test('event contains sdk default information', async () => {
-      const mockedSend = jest.fn<PromiseLike<void>, [Envelope]>();
+      const mockedSend = jest.fn<PromiseLike<void>, [Envelope]>().mockResolvedValue(undefined);
       const mockedTransport = (): Transport => ({
         send: mockedSend,
         flush: jest.fn().mockResolvedValue(true),
       });
-      const client = new ReactNativeClient(<ReactNativeClientOptions> {
+      const client  = new ReactNativeClient(<ReactNativeClientOptions>{
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
         transport: mockedTransport,

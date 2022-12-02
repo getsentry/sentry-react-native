@@ -62,6 +62,8 @@ Sentry.init({
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
   attachStacktrace: true,
+  // Attach screenshots to events.
+  attachScreenshot: true,
 });
 
 const Stack = createStackNavigator();

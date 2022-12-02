@@ -302,6 +302,35 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSArray * _Nonnull)bytes
     resolve(@YES);
 }
 
+RCT_EXPORT_METHOD(captureScreenshot: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
+{
+    NSArray<NSData *>* rawScreenshots = [PrivateSentrySDKOnly captureScreenshots];
+    NSMutableArray *screenshotsArray = [NSMutableArray arrayWithCapacity:[rawScreenshots count]];
+
+    int counter = 1;
+    for (NSData* raw in rawScreenshots) {
+        NSMutableArray *screenshot = [NSMutableArray arrayWithCapacity:raw.length];
+        const char *bytes = [raw bytes];
+        for (int i = 0; i < [raw length]; i++) {
+            [screenshot addObject:[[NSNumber alloc] initWithChar:bytes[i]]];
+        }
+
+        NSString* filename = @"screenshot.png";
+        if (counter > 1) {
+            filename = [NSString stringWithFormat:@"screenshot-%d.png", counter];
+        }
+        [screenshotsArray addObject:@{
+            @"data": screenshot,
+            @"contentType": @"image/png",
+            @"filename": filename,
+        }];
+        counter++;
+    }
+
+    resolve(screenshotsArray);
+}
+
 RCT_EXPORT_METHOD(setUser:(NSDictionary *)userKeys
                   otherUserKeys:(NSDictionary *)userDataKeys
 )

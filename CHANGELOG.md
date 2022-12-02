@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Screenshots ([#2610](https://github.com/getsentry/sentry-react-native/pull/2610))
+
 ## 4.10.1
 
 ### Fixes

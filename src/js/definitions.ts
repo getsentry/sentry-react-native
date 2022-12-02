@@ -24,6 +24,12 @@ export type NativeDeviceContextsResponse = {
   [key: string]: Record<string, unknown>;
 };
 
+export interface NativeScreenshot {
+  data: number[];
+  contentType: string;
+  filename: string;
+}
+
 interface SerializedObject {
   [key: string]: string;
 }
@@ -37,6 +43,7 @@ export interface SentryNativeBridgeModule {
       store: boolean,
     },
   ): PromiseLike<boolean>;
+  captureScreenshot(): PromiseLike<NativeScreenshot[]>;
   clearBreadcrumbs(): void;
   crash(): void;
   closeNativeSdk(): PromiseLike<void>;
