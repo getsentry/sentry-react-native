@@ -157,12 +157,12 @@ jobs:
       - uses: actions/checkout@v3
         if: |
           (matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
-          || (matrix.rn-architecture == 'legacy'
+          || (matrix.rn-architecture == 'legacy')
 
       - uses: actions/setup-java@v3
         if: |
           (matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
-          || (matrix.rn-architecture == 'legacy'
+          || (matrix.rn-architecture == 'legacy')
         with:
           java-version: '11'
           distribution: 'adopt'
@@ -173,7 +173,7 @@ jobs:
       - name: Install App Dependencies
         if: |
           (matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
-          || (matrix.rn-architecture == 'legacy'
+          || (matrix.rn-architecture == 'legacy')
         working-directory: test/apps-repo-poc/${{ matrix.rn-version }}
         run: yarn install
 
