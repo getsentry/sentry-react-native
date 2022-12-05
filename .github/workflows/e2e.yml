@@ -181,7 +181,7 @@ jobs:
         if: |
           matrix.platform == 'android'
           && ((matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
-            || (matrix.rn-architecture == 'legacy')
+            || (matrix.rn-architecture == 'legacy'))
         working-directory: test/apps-repo-poc/${{ matrix.rn-version }}/android
         run: ./gradlew :app:assembleRelease
 
@@ -189,7 +189,7 @@ jobs:
         if: |
           matrix.platform == 'ios'
           && ((matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
-            || (matrix.rn-architecture == 'legacy')
+            || (matrix.rn-architecture == 'legacy'))
         working-directory: test/apps-repo-poc/${{ matrix.rn-version }}/ios
         run: |
           xcodebuild \
