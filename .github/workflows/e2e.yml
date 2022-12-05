@@ -140,3 +140,63 @@ jobs:
           path: |
             ./sample/*.log
             ./sample/*.png
+
+  react-native-build:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false # keeps matrix running if one fails
+      matrix:
+        rn-version: ['0.64.4']
+        rn-architecture: ['legacy', 'new']
+        platform: ['android', 'ios']
+        include:
+          - platform: ios
+            runtime: '16.0'
+            device: 'iPhone 14'
+    steps:
+      - uses: actions/checkout@v3
+        if: |
+          (matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
+          || (matrix.rn-architecture == 'legacy'}}
+
+      - uses: actions/setup-java@v3
+        if: |
+          (matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
+          || (matrix.rn-architecture == 'legacy'}}
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      # - name: Install Yalc
+      #   run: yarn global add yalc
+
+      - name: Install App Dependencies
+        if: |
+          (matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
+          || (matrix.rn-architecture == 'legacy'}}
+        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}
+        run: yarn install
+
+      - name: Build Android App
+        if: |
+          ${{ matrix.platform == 'android'
+          && ((matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
+          || (matrix.rn-architecture == 'legacy')}}
+        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}/android
+        run: ./gradlew :app:assembleRelease
+
+      - name: Build iOS App
+        if: |
+          ${{ matrix.platform == 'ios'
+          && ((matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
+          || (matrix.rn-architecture == 'legacy')}}
+        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}/ios
+        run: |
+          xcodebuild \
+            -workspace sample.xcworkspace \
+            -configuration Release \
+            -scheme sample \
+            -destination 'platform=iOS Simulator,name=${{ matrix.device }}' \
+            -sdk 'iphonesimulator${{ matrix.runtime }}' \
+            -derivedDataPath "$(cd "DerivedData" ; pwd -P)"
+            build
