@@ -131,7 +131,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.rnsixtyfourfour"
+        applicationId "com.sample"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
