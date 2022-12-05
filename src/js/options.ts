@@ -126,6 +126,13 @@ export interface BaseReactNativeOptions {
    * The max queue size for capping the number of envelopes waiting to be sent by Transport.
    */
   maxQueueSize?: number;
+
+  /**
+   * When enabled and a user experiences an error, Sentry provides the ability to take a screenshot and include it as an attachment.
+   *
+   * @default false
+   */
+  attachScreenshot?: boolean;
 }
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {

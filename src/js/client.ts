@@ -16,6 +16,7 @@ import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
 
+import { Screenshot } from './integrations/screenshot';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { ReactNativeClientOptions, ReactNativeTransportOptions } from './options';
 import { makeReactNativeTransport } from './transports/native';
@@ -81,8 +82,9 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   /**
    * @inheritDoc
    */
-  public eventFromException(_exception: unknown, _hint?: EventHint): PromiseLike<Event> {
-    return this._browserClient.eventFromException(_exception, _hint);
+  public eventFromException(exception: unknown, hint: EventHint = {}): PromiseLike<Event> {
+    return Screenshot.attachScreenshotToEventHint(hint, this._options)
+      .then(enrichedHint => this._browserClient.eventFromException(exception, enrichedHint));
   }
 
   /**

@@ -1,5 +1,7 @@
 package io.sentry.react;
 
+import static io.sentry.android.core.internal.util.ScreenshotUtils.takeScreenshot;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -16,7 +18,11 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeArray;
+import com.facebook.react.bridge.WritableNativeMap;
+import com.facebook.react.module.annotations.ReactModule;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -29,11 +35,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import io.sentry.Breadcrumb;
 import io.sentry.HubAdapter;
+import io.sentry.ILogger;
 import io.sentry.Integration;
 import io.sentry.Sentry;
 import io.sentry.SentryEvent;
@@ -41,8 +46,12 @@ import io.sentry.SentryLevel;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.AppStartState;
+import io.sentry.android.core.BuildInfoProvider;
+import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.NdkIntegration;
+import io.sentry.android.core.ScreenshotEventProcessor;
 import io.sentry.android.core.SentryAndroid;
+import io.sentry.android.core.AndroidLogger;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
@@ -52,7 +61,8 @@ public class RNSentryModuleImpl {
 
     public static final String NAME = "RNSentry";
 
-    private static final Logger logger = Logger.getLogger("react-native-sentry");
+    private static final ILogger logger = new AndroidLogger(NAME);
+    private static final BuildInfoProvider buildInfo = new BuildInfoProvider(logger);
     private static final String modulesPath = "modules.json";
     private static final Charset UTF_8 = Charset.forName("UTF-8");
 
@@ -60,6 +70,7 @@ public class RNSentryModuleImpl {
     private final PackageInfo packageInfo;
     private FrameMetricsAggregator frameMetricsAggregator = null;
     private boolean androidXAvailable;
+    private ScreenshotEventProcessor screenshotEventProcessor;
 
     private static boolean didFetchAppStart;
 
@@ -86,11 +97,10 @@ public class RNSentryModuleImpl {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
-                logger.setLevel(Level.INFO);
             }
             if (rnOptions.hasKey("dsn") && rnOptions.getString("dsn") != null) {
                 String dsn = rnOptions.getString("dsn");
-                logger.info(String.format("Starting with DSN: '%s'", dsn));
+                logger.log(SentryLevel.INFO, String.format("Starting with DSN: '%s'", dsn));
                 options.setDsn(dsn);
             } else {
                 // SentryAndroid needs an empty string fallback for the dsn.
@@ -134,6 +144,9 @@ public class RNSentryModuleImpl {
                 // by default we hide.
                 options.setAttachThreads(rnOptions.getBoolean("attachThreads"));
             }
+            if (rnOptions.hasKey("attachScreenshot")) {
+                options.setAttachScreenshot(rnOptions.getBoolean("attachScreenshot"));
+            }
             if (rnOptions.hasKey("sendDefaultPii")) {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
             }
@@ -169,8 +182,13 @@ public class RNSentryModuleImpl {
                     }
                 }
             }
+            logger.log(SentryLevel.INFO, String.format("Native Integrations '%s'", options.getIntegrations()));
 
-            logger.info(String.format("Native Integrations '%s'", options.getIntegrations()));
+            final CurrentActivityHolder currentActivityHolder = CurrentActivityHolder.getInstance();
+            final Activity currentActivity = getCurrentActivity();
+            if (currentActivity != null) {
+                currentActivityHolder.setActivity(currentActivity);
+            }
         });
 
         promise.resolve(true);
@@ -193,7 +211,7 @@ public class RNSentryModuleImpl {
         } catch (FileNotFoundException e) {
             promise.resolve(null);
         } catch (Throwable e) {
-            logger.warning("Fetching JS Modules failed.");
+            logger.log(SentryLevel.WARNING, "Fetching JS Modules failed.");
             promise.resolve(null);
         }
     }
@@ -212,10 +230,10 @@ public class RNSentryModuleImpl {
         final Boolean isColdStart = appStartInstance.isColdStart();
 
         if (appStartTime == null) {
-            logger.warning("App start won't be sent due to missing appStartTime.");
+            logger.log(SentryLevel.WARNING, "App start won't be sent due to missing appStartTime.");
             promise.resolve(null);
         } else if (isColdStart == null) {
-            logger.warning("App start won't be sent due to missing isColdStart.");
+            logger.log(SentryLevel.WARNING, "App start won't be sent due to missing isColdStart.");
             promise.resolve(null);
         } else {
             final double appStartTimestamp = (double) appStartTime.getTime();
@@ -280,7 +298,7 @@ public class RNSentryModuleImpl {
 
                 promise.resolve(map);
             } catch (Throwable ignored) {
-                logger.warning("Error fetching native frames.");
+                logger.log(SentryLevel.WARNING, "Error fetching native frames.");
                 promise.resolve(null);
             }
         }
@@ -296,7 +314,7 @@ public class RNSentryModuleImpl {
             final String outboxPath = HubAdapter.getInstance().getOptions().getOutboxPath();
 
             if (outboxPath == null) {
-                logger.severe(
+                logger.log(SentryLevel.ERROR,
                         "Error retrieving outboxPath. Envelope will not be sent. Is the Android SDK initialized?");
             } else {
                 File installation = new File(outboxPath, UUID.randomUUID().toString());
@@ -305,16 +323,46 @@ public class RNSentryModuleImpl {
                 }
             }
         } catch (Throwable ignored) {
-            logger.severe("Error while writing envelope to outbox.");
+            logger.log(SentryLevel.ERROR, "Error while writing envelope to outbox.");
         }
         promise.resolve(true);
+    }
+
+    public void captureScreenshot(Promise promise) {
+
+        final Activity activity = getCurrentActivity();
+        if (activity == null) {
+            logger.log(SentryLevel.WARNING, "CurrentActivity is null, can't capture screenshot.");
+            promise.resolve(null);
+            return;
+        }
+
+        final byte[] raw = takeScreenshot(activity, logger, buildInfo);
+        if (raw == null) {
+            logger.log(SentryLevel.WARNING, "Screenshot is null, screen was not captured.");
+            promise.resolve(null);
+            return;
+        }
+
+        final WritableNativeArray data = new WritableNativeArray();
+        for (final byte b : raw) {
+            data.pushInt(b);
+        }
+        final WritableMap screenshot = new WritableNativeMap();
+        screenshot.putString("contentType", "image/png");
+        screenshot.putArray("data", data);
+        screenshot.putString("filename", "screenshot.png");
+
+        final WritableArray screenshotsArray = new WritableNativeArray();
+        screenshotsArray.pushMap(screenshot);
+        promise.resolve(screenshotsArray);
     }
 
     private static PackageInfo getPackageInfo(Context ctx) {
         try {
             return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException e) {
-            logger.warning("Error getting package info.");
+            logger.log(SentryLevel.WARNING, "Error getting package info.");
             return null;
         }
     }
@@ -469,17 +517,17 @@ public class RNSentryModuleImpl {
                 try {
                     frameMetricsAggregator.add(currentActivity);
 
-                    logger.info("FrameMetricsAggregator installed.");
+                    logger.log(SentryLevel.INFO, "FrameMetricsAggregator installed.");
                 } catch (Throwable ignored) {
                     // throws ConcurrentModification when calling addOnFrameMetricsAvailableListener
                     // this is a best effort since we can't reproduce it
-                    logger.severe("Error adding Activity to frameMetricsAggregator.");
+                    logger.log(SentryLevel.ERROR, "Error adding Activity to frameMetricsAggregator.");
                 }
             } else {
-                logger.info("currentActivity isn't available.");
+                logger.log(SentryLevel.INFO, "currentActivity isn't available.");
             }
         } else {
-            logger.warning("androidx.core' isn't available as a dependency.");
+            logger.log(SentryLevel.WARNING, "androidx.core' isn't available as a dependency.");
         }
     }
 

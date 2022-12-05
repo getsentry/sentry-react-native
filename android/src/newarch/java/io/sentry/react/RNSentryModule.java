@@ -58,6 +58,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
     }
 
     @Override
+    public void captureScreenshot(Promise promise) {
+        this.impl.captureScreenshot(promise);
+    }
+
+    @Override
     public void setUser(final ReadableMap user, final ReadableMap otherUserKeys) {
         this.impl.setUser(user, otherUserKeys);
     }

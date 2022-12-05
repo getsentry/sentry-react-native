@@ -58,6 +58,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void captureScreenshot(Promise promise) {
+        this.impl.captureScreenshot(promise);
+    }
+
+    @ReactMethod
     public void setUser(final ReadableMap user, final ReadableMap otherUserKeys) {
         this.impl.setUser(user, otherUserKeys);
     }

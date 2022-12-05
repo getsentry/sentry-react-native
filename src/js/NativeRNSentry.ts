@@ -12,6 +12,7 @@ export interface Spec extends TurboModule {
       store: boolean,
     },
   ): Promise<boolean>;
+  captureScreenshot(): Promise<NativeScreenshot[]>;
   clearBreadcrumbs(): void;
   crash(): void;
   closeNativeSdk(): Promise<void>;
@@ -54,6 +55,12 @@ export type NativeReleaseResponse = {
 export type NativeDeviceContextsResponse = {
   [key: string]: Record<string, unknown>;
 };
+
+export type NativeScreenshot = {
+  data: number[];
+  contentType: string;
+  filename: string;
+}
 
 // The export must be here to pass codegen even if not used
 export default TurboModuleRegistry.getEnforcing<Spec>('RNSentry');

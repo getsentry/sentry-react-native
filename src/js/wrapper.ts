@@ -18,6 +18,7 @@ import {
   NativeDeviceContextsResponse,
   NativeFramesResponse,
   NativeReleaseResponse,
+  NativeScreenshot,
   Spec,
 } from './NativeRNSentry';
 import { ReactNativeOptions } from './options';
@@ -28,6 +29,12 @@ import { utf8ToBytes } from './vendor';
 const RNSentry: Spec | undefined  = isTurboModuleEnabled()
   ? TurboModuleRegistry.getEnforcing<Spec>('RNSentry')
   : NativeModules.RNSentry;
+
+export interface Screenshot {
+  data: Uint8Array;
+  contentType: string;
+  filename: string;
+}
 
 interface SentryNativeWrapper {
   enableNative: boolean;
@@ -52,6 +59,7 @@ interface SentryNativeWrapper {
   closeNativeSdk(): PromiseLike<void>;
 
   sendEnvelope(envelope: Envelope): Promise<void>;
+  captureScreenshot(): Promise<Screenshot[] | null>;
 
   fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
@@ -108,19 +116,25 @@ export const NATIVE: SentryNativeWrapper = {
     const [envelopeHeader, envelopeItems] = envelope;
 
     const headerString = JSON.stringify(envelopeHeader);
-    const envelopeBytes: number[] = utf8ToBytes(headerString);
+    let envelopeBytes: number[] = utf8ToBytes(headerString);
     envelopeBytes.push(EOL);
 
     let hardCrashed: boolean = false;
     for (const rawItem of envelopeItems) {
       const [itemHeader, itemPayload] = this._processItem(rawItem);
 
+      let bytesContentType: string;
       let bytesPayload: number[] = [];
       if (typeof itemPayload === 'string') {
+        bytesContentType = 'text/plain';
         bytesPayload = utf8ToBytes(itemPayload);
       } else if (itemPayload instanceof Uint8Array) {
+        bytesContentType = typeof itemHeader.content_type === 'string'
+          ? itemHeader.content_type
+          : 'application/octet-stream';
         bytesPayload = [...itemPayload];
       } else {
+        bytesContentType = 'application/json';
         bytesPayload = utf8ToBytes(JSON.stringify(itemPayload));
         if (!hardCrashed) {
           hardCrashed = isHardCrash(itemPayload);
@@ -128,13 +142,13 @@ export const NATIVE: SentryNativeWrapper = {
       }
 
       // Content type is not inside BaseEnvelopeItemHeaders.
-      (itemHeader as BaseEnvelopeItemHeaders).content_type = 'application/json';
+      (itemHeader as BaseEnvelopeItemHeaders).content_type = bytesContentType;
       (itemHeader as BaseEnvelopeItemHeaders).length = bytesPayload.length;
       const serializedItemHeader = JSON.stringify(itemHeader);
 
       envelopeBytes.push(...utf8ToBytes(serializedItemHeader));
       envelopeBytes.push(EOL);
-      bytesPayload.forEach(byte => envelopeBytes.push(byte));
+      envelopeBytes = envelopeBytes.concat(bytesPayload);
       envelopeBytes.push(EOL);
     }
 
@@ -452,6 +466,26 @@ export const NATIVE: SentryNativeWrapper = {
 
   isNativeTransportAvailable(): boolean {
     return this.enableNative && this._isModuleLoaded(RNSentry);
+  },
+
+  async captureScreenshot(): Promise<Screenshot[] | null> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    try {
+      const raw = await RNSentry.captureScreenshot();
+      return raw.map((item: NativeScreenshot) => ({
+        ...item,
+        data: new Uint8Array(item.data),
+      }));
+    } catch (e) {
+      logger.warn('Failed to capture screenshot', e);
+      return null;
+    }
   },
 
   /**
