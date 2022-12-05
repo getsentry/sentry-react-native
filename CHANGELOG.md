@@ -2,17 +2,19 @@
 
 ## Unreleased
 
-- Latest changes from 4.10.1
-
-### Features
-
-- Screenshots ([#2610](https://github.com/getsentry/sentry-react-native/pull/2610))
+- Latest changes from 4.11.0
 
 ### Dependencies
 
 - Bump CLI from v1.74.4 to v2.10.0 ([#2669](https://github.com/getsentry/sentry-react-native/pull/2669))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2100)
   - [diff](https://github.com/getsentry/sentry-cli/compare/1.74.4...2.10.0)
+
+## 4.11.0
+
+### Features
+
+- Screenshots ([#2610](https://github.com/getsentry/sentry-react-native/pull/2610))
 
 ## 4.10.1
 
