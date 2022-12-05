@@ -6,7 +6,7 @@
 
 ### Dependencies
 
-- Bump CLI from v1.74.4 to v2.10.0 ([#2549](https://github.com/getsentry/sentry-react-native/pull/2549))
+- Bump CLI from v1.74.4 to v2.10.0 ([#2669](https://github.com/getsentry/sentry-react-native/pull/2669))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2100)
   - [diff](https://github.com/getsentry/sentry-cli/compare/1.74.4...2.10.0)
 
