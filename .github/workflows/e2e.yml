@@ -209,11 +209,13 @@ jobs:
             || (matrix.rn-architecture == 'legacy'))
         working-directory: test/apps-repo-poc/${{ matrix.rn-version }}/ios
         run: |
+          derivedData="$(cd "DerivedData" ; pwd -P)"
+          mkdir -p "$derivedData"
           xcodebuild \
             -workspace sample.xcworkspace \
             -configuration Release \
             -scheme sample \
             -destination 'platform=iOS Simulator,name=${{ matrix.device }}' \
             -sdk 'iphonesimulator${{ matrix.runtime }}' \
-            -derivedDataPath "$(cd "DerivedData" ; pwd -P)"
+            -derivedDataPath "$derivedData" \
             build
