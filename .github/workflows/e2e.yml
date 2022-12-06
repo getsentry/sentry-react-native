@@ -161,52 +161,69 @@ jobs:
           - platform: ios
             runtime: '16.0'
             device: 'iPhone 14'
+        # exclude all rn versions lower than 0.70.0 for new architecture
+        exclude:
+          - rn-version: '0.64.4'
+            rn-architecture: 'new'
     steps:
       # the version conditions are using lexical comparison, so 0.70.0-rc.1 is greater than 0.70.0
       - uses: actions/checkout@v3
-        if: |
-          (matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
-          || (matrix.rn-architecture == 'legacy')
 
       - uses: actions/setup-java@v3
-        if: |
-          (matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
-          || (matrix.rn-architecture == 'legacy')
         with:
           java-version: '11'
           distribution: 'adopt'
 
-      # - name: Setup Yalc
-      #   run: yarn global add yalc
+      - name: Setup Yalc
+        run: yarn global yalc
 
-      - name: Install JS Dependencies
-        if: |
-          (matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
-          || (matrix.rn-architecture == 'legacy')
+      - name: NPM cache SDK
+        uses: actions/cache@v3
+        id: deps-cache
+        with:
+          path: node_modules
+          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock') }}
+
+      - name: Install SDK JS Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Package SDK
+        run: yalc publish
+
+      - name: Add SDK to App
+        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}
+        run: yalc add @sentry/react-native
+
+      - name: Install App JS Dependencies
         working-directory: test/apps-repo-poc/${{ matrix.rn-version }}
         run: yarn install
 
-      - name: Install Pods
-        if: |
-          matrix.platform == 'ios'
-          && ((matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
-            || (matrix.rn-architecture == 'legacy'))
+      - name: Install App Pods
+        if: matrix.platform == 'ios'
         working-directory: test/apps-repo-poc/${{ matrix.rn-version }}/ios
         run: pod install
 
+      - name: Path App RN < 0.69.0
+        if: matrix.rn-version < '0.69.0'
+        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}
+        run: patch --silent --strip=0 --force < ../rn-lower-than-0.69.0.patch
+
+      - name: Path App RN >= 0.69.0
+        if: matrix.rn-version >= '0.69.0'
+        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}
+        run: patch --silent --strip=0 --force < ../rn-latest.patch # TODO: create the patch
+
       - name: Build Android App
-        if: |
-          matrix.platform == 'android'
-          && ((matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
-            || (matrix.rn-architecture == 'legacy'))
+        if: matrix.platform == 'android'
         working-directory: test/apps-repo-poc/${{ matrix.rn-version }}/android
         run: ./gradlew :app:assembleRelease
 
       - name: Build iOS App
-        if: |
-          matrix.platform == 'ios'
-          && ((matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
-            || (matrix.rn-architecture == 'legacy'))
+        if: matrix.platform == 'ios'
         working-directory: test/apps-repo-poc/${{ matrix.rn-version }}/ios
         run: |
           derivedData="$(cd "DerivedData" ; pwd -P)"
