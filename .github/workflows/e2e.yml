@@ -175,7 +175,7 @@ jobs:
           distribution: 'adopt'
 
       - name: Setup Yalc
-        run: yarn global yalc
+        run: yarn global add yalc
 
       - name: NPM cache SDK
         uses: actions/cache@v3
