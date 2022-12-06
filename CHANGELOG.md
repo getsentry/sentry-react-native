@@ -4,7 +4,7 @@
 
 ### Features
 
-- Add `lastEventId` method to the API ([#2647](https://github.com/getsentry/sentry-react-native/pull/2647))
+- Add `lastEventId` method to the API ([#2675](https://github.com/getsentry/sentry-react-native/pull/2675))
 
 ### Dependencies
 
