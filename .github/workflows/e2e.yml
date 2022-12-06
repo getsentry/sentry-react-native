@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
@@ -147,6 +151,7 @@ jobs:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
       matrix:
+        rn-architecture: ['legacy', 'new']
         platform: ["ios", "android"]
         include:
           - platform: ios
@@ -187,7 +192,10 @@ jobs:
         id: app-plain-cache
         with:
           path: ${{ matrix.appPlain }}
-          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ hashFiles('test/perf/TestAppPlain/**') }}
+          # if the whole plain app folder is hashed the cache is never hit as there are files generated in the folder
+          # the cache key is calculated both at cache retrieval and save time
+          # hashFiles fails when there are rn android new arch generated files in the folder (exact reason unknown)
+          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('test/perf/TestAppPlain/yarn.lock') }}
       - name: Build app plain
         if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
         working-directory: ./test/perf/TestAppPlain
@@ -195,8 +203,15 @@ jobs:
           yarn install
           cd ${{ matrix.platform }}
           if [[ "${{ matrix.platform }}" == "android" ]]; then
+            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+              perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+            fi
             ./gradlew assembleRelease
           else
+            export PRODUCTION=1
+            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+              export RCT_NEW_ARCH_ENABLED=1
+            fi
             pod install
             cd ../..
             fastlane build_perf_test_app_plain
@@ -216,8 +231,15 @@ jobs:
           yarn install
           cd ${{ matrix.platform }}
           if [[ "${{ matrix.platform }}" == "android" ]]; then
+            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+              perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+            fi
             ./gradlew assembleRelease
           else
+            export PRODUCTION=1
+            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+              export RCT_NEW_ARCH_ENABLED=1
+            fi
             pod install
             cd ../..
             fastlane build_perf_test_app_sentry
@@ -236,7 +258,7 @@ jobs:
       - name: Collect apps metrics
         uses: getsentry/action-app-sdk-overhead-metrics@v1
         with:
-          name: ${{ matrix.name }}
+          name: ${{ matrix.name }} (${{ matrix.rn-architecture }})
           config: ./test/perf/metrics-${{ matrix.platform }}.yml
           sauce-user: ${{ secrets.SAUCE_USERNAME }}
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
