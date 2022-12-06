@@ -216,12 +216,12 @@ jobs:
       - name: Path App RN < 0.69.0
         if: matrix.rn-version < '0.69.0'
         working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: patch --strip=0 --force < ../rn-lower-than-0.69.0.patch
+        run: patch --strip=0 --force < ../../../rn-lower-than-0.69.0.patch
 
       - name: Path App RN >= 0.69.0
         if: matrix.rn-version >= '0.69.0'
         working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: patch --strip=0 --force < ../rn-latest.patch # TODO: create the patch
+        run: patch --strip=0 --force < ../../../rn-latest.patch # TODO: create the patch
 
       - name: Build Android App
         if: matrix.platform == 'android'
