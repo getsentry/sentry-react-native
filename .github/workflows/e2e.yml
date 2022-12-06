@@ -154,6 +154,7 @@ jobs:
             runtime: '16.0'
             device: 'iPhone 14'
     steps:
+      # the version conditions are using lexical comparison, so 0.70.0-rc.1 is greater than 0.70.0
       - uses: actions/checkout@v3
         if: |
           (matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
@@ -167,15 +168,23 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
 
-      # - name: Install Yalc
+      # - name: Setup Yalc
       #   run: yarn global add yalc
 
-      - name: Install App Dependencies
+      - name: Install JS Dependencies
         if: |
           (matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
           || (matrix.rn-architecture == 'legacy')
         working-directory: test/apps-repo-poc/${{ matrix.rn-version }}
         run: yarn install
+
+      - name: Install Pods
+        if: |
+          matrix.platform == 'ios'
+          && ((matrix.rn-architecture == 'new' && matrix.rn-version >= '0.70.0')
+            || (matrix.rn-architecture == 'legacy'))
+        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}/ios
+        run: pod install
 
       - name: Build Android App
         if: |
