@@ -151,6 +151,8 @@ jobs:
 
   react-native-build:
     runs-on: macos-latest
+    env:
+      RN_DIFF_REPOSITORY: git@github.com:react-native-community/rn-diff-purge.git
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
@@ -194,37 +196,41 @@ jobs:
       - name: Package SDK
         run: yalc publish
 
+      - name: Download Plain RN ${{ matrix.rn-version }} App
+        working-directory: test/apps-repo-poc/versions
+        run: git clone $RN_DIFF_REPOSITORY --branch release/${{ matrix.rn-version }} --single-branch ${{ matrix.rn-version }}
+
       - name: Add SDK to App
-        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}
+        working-directory: test/apps-repo-poc/versions${{ matrix.rn-version }}/RnDiffApp
         run: yalc add @sentry/react-native
 
       - name: Install App JS Dependencies
-        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}
+        working-directory: test/apps-repo-poc/versions${{ matrix.rn-version }}/RnDiffApp
         run: yarn install
 
       - name: Install App Pods
         if: matrix.platform == 'ios'
-        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}/ios
+        working-directory: test/apps-repo-poc/versions${{ matrix.rn-version }}/RnDiffApp/ios
         run: pod install
 
       - name: Path App RN < 0.69.0
         if: matrix.rn-version < '0.69.0'
-        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}
+        working-directory: test/apps-repo-poc/versions${{ matrix.rn-version }}/RnDiffApp
         run: patch --strip=0 --force < ../rn-lower-than-0.69.0.patch
 
       - name: Path App RN >= 0.69.0
         if: matrix.rn-version >= '0.69.0'
-        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}
+        working-directory: test/apps-repo-poc/versions${{ matrix.rn-version }}/RnDiffApp
         run: patch --strip=0 --force < ../rn-latest.patch # TODO: create the patch
 
       - name: Build Android App
         if: matrix.platform == 'android'
-        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}/android
+        working-directory: test/apps-repo-poc/versions${{ matrix.rn-version }}/RnDiffApp/android
         run: ./gradlew :app:assembleRelease
 
       - name: Build iOS App
         if: matrix.platform == 'ios'
-        working-directory: test/apps-repo-poc/${{ matrix.rn-version }}/ios
+        working-directory: test/apps-repo-poc/versions${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
           derivedData="$(cd "DerivedData" ; pwd -P)"
           mkdir -p "$derivedData"
