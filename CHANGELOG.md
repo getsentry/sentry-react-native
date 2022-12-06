@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add `lastEventId` method to the API ([#2647](https://github.com/getsentry/sentry-react-native/pull/2647))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v7.31.2 to v7.31.3 ([#2647](https://github.com/getsentry/sentry-react-native/pull/2647))
