@@ -152,7 +152,7 @@ jobs:
   react-native-build:
     runs-on: macos-latest
     env:
-      RN_DIFF_REPOSITORY: git@github.com:react-native-community/rn-diff-purge.git
+      RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
