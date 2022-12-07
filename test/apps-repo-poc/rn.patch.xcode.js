@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-disable no-useless-escape */
 
 const fs = require('fs');
 const { argv } = require('process');
@@ -49,7 +48,7 @@ set -e
 WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
 REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"
 
-/bin/sh -c "$WITH_ENVIRONMENT \"../node_modules/@sentry/cli/bin/sentry-cli react-native xcode $REACT_NATIVE_XCODE\""
+/bin/sh -c "$WITH_ENVIRONMENT \\"../node_modules/@sentry/cli/bin/sentry-cli react-native xcode $REACT_NATIVE_XCODE\\""
 
 /bin/sh ../node_modules/@sentry/react-native/scripts/collect-modules.sh
 `;
