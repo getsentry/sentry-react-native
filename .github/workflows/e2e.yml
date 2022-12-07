@@ -150,6 +150,7 @@ jobs:
             ./sample/*.png
 
   react-native-build:
+    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
     runs-on: macos-latest
     env:
       RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
