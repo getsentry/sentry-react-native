@@ -213,15 +213,25 @@ jobs:
         working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: pod install
 
-      - name: Patch App RN < 0.69.0
-        if: matrix.rn-version < '0.69.0'
+      - name: Patch App RN
         working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn-lower-than-0.69.0.patch
+        run: patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn.patch
 
-      - name: Patch App RN >= 0.69.0
-        if: matrix.rn-version >= '0.69.0'
-        working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn-latest.patch # TODO: create the patch
+      - name: Patch iOS App RN < 0.69
+        if: matrix.platform == 'ios' && matrix.rn-version < '0.69.0'
+        working-directory: test/apps-repo-poc
+        run: |
+          ./rn.patch.xcode.js \
+            --project 'versions/${{ matrix.rn-version }}/RnDiffApp/ios/RnDiffApp.xcodeproj/project.pbxproj' \
+            --rn-version '<0.69'
+
+      - name: Patch iOS App RN >= 0.69
+        if: matrix.platform == 'ios' && matrix.rn-version >= '0.69.0'
+        working-directory: test/apps-repo-poc
+        run: |
+          ./rn.patch.xcode.js \
+            --project 'versions/${{ matrix.rn-version }}/RnDiffApp/ios/RnDiffApp.xcodeproj/project.pbxproj' \
+            --rn-version '>=0.69'
 
       - name: Build Android App
         if: matrix.platform == 'android'

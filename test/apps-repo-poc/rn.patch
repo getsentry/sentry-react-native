@@ -34,47 +34,6 @@ diff -ruN android/sentry.properties android/sentry.properties
 +defaults.org=sentry-sdks
 +defaults.project=sentry-react-native
 +# auth.token=
-diff -ruN ios/RnDiffApp.xcodeproj/project.pbxproj ios/RnDiffApp.xcodeproj/project.pbxproj
---- ios/RnDiffApp.xcodeproj/project.pbxproj	2022-12-06 16:58:08.000000000 +0100
-+++ ios/RnDiffApp.xcodeproj/project.pbxproj	2022-12-06 17:01:20.000000000 +0100
-@@ -185,6 +185,7 @@
- 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
- 				45AEC172A42301C26DA7AC0E /* [CP] Embed Pods Frameworks */,
- 				5D72B5C69524314EF4DE75AA /* [CP] Copy Pods Resources */,
-+				FA7C51A307DE44C7AEA8C788 /* Upload Debug Symbols to Sentry */,
- 			);
- 			buildRules = (
- 			);
-@@ -263,7 +264,7 @@
- 			);
- 			runOnlyForDeploymentPostprocessing = 0;
- 			shellPath = /bin/sh;
--			shellScript = "set -e\n\nexport NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
-+			shellScript = "export SENTRY_PROPERTIES=sentry.properties\nexport EXTRA_PACKAGER_ARGS=\"--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map\"\nset -e\n\nexport NODE_BINARY=node\n../node_modules/@sentry/cli/bin/sentry-cli react-native xcode ../node_modules/react-native/scripts/react-native-xcode.sh\n\n/bin/sh ../node_modules/@sentry/react-native/scripts/collect-modules.sh\n";
- 		};
- 		1C6119B8ED954F9E22133D73 /* [CP] Check Pods Manifest.lock */ = {
- 			isa = PBXShellScriptBuildPhase;
-@@ -396,6 +397,20 @@
- 			shellScript = "export RCT_METRO_PORT=\"${RCT_METRO_PORT:=8081}\"\necho \"export RCT_METRO_PORT=${RCT_METRO_PORT}\" > \"${SRCROOT}/../node_modules/react-native/scripts/.packager.env\"\nif [ -z \"${RCT_NO_LAUNCH_PACKAGER+xxx}\" ] ; then\n  if nc -w 5 -z localhost ${RCT_METRO_PORT} ; then\n    if ! curl -s \"http://localhost:${RCT_METRO_PORT}/status\" | grep -q \"packager-status:running\" ; then\n      echo \"Port ${RCT_METRO_PORT} already in use, packager is either not running or not running correctly\"\n      exit 2\n    fi\n  else\n    open \"$SRCROOT/../node_modules/react-native/scripts/launchPackager.command\" || echo \"Can't start packager automatically\"\n  fi\nfi\n";
- 			showEnvVarsInLog = 0;
- 		};
-+		FA7C51A307DE44C7AEA8C788 /* Upload Debug Symbols to Sentry */ = {
-+			isa = PBXShellScriptBuildPhase;
-+			buildActionMask = 2147483647;
-+			files = (
-+			);
-+			runOnlyForDeploymentPostprocessing = 0;
-+			name = "Upload Debug Symbols to Sentry";
-+			inputPaths = (
-+			);
-+			outputPaths = (
-+			);
-+			shellPath = /bin/sh;
-+			shellScript = "export SENTRY_PROPERTIES=sentry.properties\n../node_modules/@sentry/cli/bin/sentry-cli upload-dsym";
-+		};
- /* End PBXShellScriptBuildPhase section */
-
- /* Begin PBXSourcesBuildPhase section */
 diff -ruN ios/sentry.properties ios/sentry.properties
 --- ios/sentry.properties	1970-01-01 01:00:00.000000000 +0100
 +++ ios/sentry.properties	2022-12-06 11:45:31.000000000 +0100

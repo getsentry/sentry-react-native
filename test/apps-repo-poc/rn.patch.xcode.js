@@ -1,48 +1,95 @@
+#!/usr/bin/env node
 const fs = require('fs');
 const { argv } = require('process');
 
 const xcode = require('xcode');
 const parseArgs = require('minimist');
+const { logger } = require('@sentry/utils');
+logger.enable();
 
 const args = parseArgs(argv.slice(2));
+if (!args.project) {
+  throw new Error('Missing --project');
+}
+if (!args['rn-version']) {
+  throw new Error('Missing --rn-version');
+}
 
-const test = true;
-let bundleScript = '';
-let bundleScriptRegex = '';
-let bundlePatchRegex = '';
-let symbolsScript = '';
-let symbolsPatchRegex = '';
-if (test || args['rn-version'] === '<0.69') {
-  bundleScript = bundleScriptRNOlderThan69;
+let bundleScript;
+let bundleScriptRegex;
+let bundlePatchRegex;
+let symbolsScript;
+const symbolsPatchRegex = /sentry-cli\s+(upload-dsym|debug-files upload)/;
+if (args['rn-version'] === '<0.69') {
+  bundleScript = `
+export SENTRY_PROPERTIES=sentry.properties
+export EXTRA_PACKAGER_ARGS="--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map"
+set -e
+
+export NODE_BINARY=node
+../node_modules/@sentry/cli/bin/sentry-cli react-native xcode ../node_modules/react-native/scripts/react-native-xcode.sh
+
+/bin/sh ../node_modules/@sentry/react-native/scripts/collect-modules.sh
+`;
+  bundleScriptRegex = /(packager|scripts)\/react-native-xcode\.sh\b/;
+  bundlePatchRegex = /sentry-cli\s+react-native[\s-]xcode/;
+
+  symbolsScript = `
+export SENTRY_PROPERTIES=sentry.properties
+../node_modules/@sentry/cli/bin/sentry-cli upload-dsym
+`;
 } else if (args['rn-version'] === '>=0.69') {
-  bundleScript = bundleScriptRNNewerOrEqualThan69;
+  bundleScript = `
+export SENTRY_PROPERTIES=sentry.properties
+export EXTRA_PACKAGER_ARGS="--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map"
+set -e
+
+WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
+../node_modules/@sentry/cli/bin/sentry-cli react-native xcode REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"
+
+/bin/sh -c "$WITH_ENVIRONMENT $REACT_NATIVE_XCODE"
+
+/bin/sh ../node_modules/@sentry/react-native/scripts/collect-modules.sh
+`;
+  bundleScriptRegex = /\/scripts\/react-native-xcode\.sh/i;
+  bundlePatchRegex = /sentry-cli\s+react-native\s+xcode/i;
+
+  symbolsScript = `
+export SENTRY_PROPERTIES=sentry.properties
+[[ $SENTRY_INCLUDE_NATIVE_SOURCES == "true" ]] && INCLUDE_SOURCES_FLAG="--include-sources" || INCLUDE_SOURCES_FLAG=""
+../node_modules/@sentry/cli/bin/sentry-cli debug-files upload "$INCLUDE_SOURCES_FLAG"
+`;
 } else {
   throw new Error('Unknown RN version');
 }
 
-const project = xcode.project('/Users/krystofwoldrich/repos/sentry-react-native/test/apps-repo-poc/versions/0.63.5/RnDiffApp/ios/RnDiffApp.xcodeproj/project.pbxproj');
+const project = xcode.project(args.project);
 
 project.parseSync();
 
 const buildPhasesRaw = project.hash.project.objects.PBXShellScriptBuildPhase;
 const buildPhases = [];
 for (const key in buildPhasesRaw) {
-  if (buildPhasesRaw.hasOwnProperty(key)
-    && buildPhasesRaw[key].isa) {
+  if (buildPhasesRaw[key].isa) {
     buildPhases.push(buildPhasesRaw[key]);
   }
 }
 
 buildPhases.forEach((phase) => {
-  const isBundleReactNative = phase.shellScript.match(/\/scripts\/react-native-xcode\.sh/i);
-  const isPatched = phase.shellScript.match(/sentry-cli\s+react-native\s+xcode/i);
-  if (!isBundleReactNative || isPatched) {
+  const isBundleReactNative = phase.shellScript.match(bundleScriptRegex);
+  const isPatched = phase.shellScript.match(bundlePatchRegex);
+  if (!isBundleReactNative) {
     return;
   }
-  phase.shellScript = bundleScript;
+  if (isPatched) {
+    logger.warn('Xcode project Bundle RN Build phase already patched');
+    return;
+  }
+  phase.shellScript = JSON.stringify(bundleScript);
+  logger.info('Patched Xcode project Bundle RN Build phase');
 });
 
-const isSymbolsPhase = (phase) => phase.shellScript.match(/sentry-cli\s+(upload-dsym|debug-files upload)/);
+const isSymbolsPhase = (phase) => phase.shellScript.match(symbolsPatchRegex);
 const areSymbolsPatched = buildPhases.some(isSymbolsPhase);
 
 if (!areSymbolsPatched) {
@@ -56,6 +103,10 @@ if (!areSymbolsPatched) {
       shellScript: symbolsScript,
     },
   );
+  logger.info('Added Xcode project Upload Debug Symbols Build phase');
+} else {
+  logger.warn('Xcode project Upload Debug Symbols Build phase already patched');
 }
 
 fs.writeFileSync(args.project, project.writeSync());
+logger.info('Patched Xcode project successfully!');
