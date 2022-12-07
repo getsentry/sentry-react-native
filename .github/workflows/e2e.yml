@@ -245,9 +245,9 @@ jobs:
           derivedData="$(cd "DerivedData" ; pwd -P)"
           mkdir -p "$derivedData"
           xcodebuild \
-            -workspace sample.xcworkspace \
+            -workspace RnDiffApp.xcworkspace \
             -configuration Release \
-            -scheme sample \
+            -scheme RnDiffApp \
             -destination 'platform=iOS Simulator,name=${{ matrix.device }}' \
             -sdk 'iphonesimulator${{ matrix.runtime }}' \
             -derivedDataPath "$derivedData" \
