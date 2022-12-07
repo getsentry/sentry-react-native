@@ -156,9 +156,10 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.64.4']
+        rn-version: ['0.64.4', '0.70.6']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
+        build-type: ['dev', 'production']
         include:
           - platform: ios
             runtime: '16.0'
@@ -211,42 +212,46 @@ jobs:
       - name: Install App Pods
         if: matrix.platform == 'ios'
         working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp/ios
-        run: pod install
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
+          [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
+          PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH pod install
 
       - name: Patch App RN
         working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp
         run: patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn.patch
 
-      - name: Patch iOS App RN < 0.69
-        if: matrix.platform == 'ios' && matrix.rn-version < '0.69.0'
+      - name: Patch iOS App RN
+        if: matrix.platform == 'ios'
         working-directory: test/apps-repo-poc
         run: |
+          [[ '${{ matrix.rn-version }}' > '0.69.0' || '${{ matrix.rn-version }}' == '0.69.0' ]] \
+            && RN_VERSION='>=0.69' \
+            || RN_VERSION='<0.69'
           ./rn.patch.xcode.js \
             --project 'versions/${{ matrix.rn-version }}/RnDiffApp/ios/RnDiffApp.xcodeproj/project.pbxproj' \
-            --rn-version '<0.69'
-
-      - name: Patch iOS App RN >= 0.69
-        if: matrix.platform == 'ios' && matrix.rn-version >= '0.69.0'
-        working-directory: test/apps-repo-poc
-        run: |
-          ./rn.patch.xcode.js \
-            --project 'versions/${{ matrix.rn-version }}/RnDiffApp/ios/RnDiffApp.xcodeproj/project.pbxproj' \
-            --rn-version '>=0.69'
+            --rn-version "$RN_VERSION"
 
       - name: Build Android App
         if: matrix.platform == 'android'
         working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp/android
-        run: ./gradlew :app:assembleRelease
+        run: |
+          if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+            perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+          fi
+          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          ./gradlew ":app:assemble$CONFIG"
 
       - name: Build iOS App
         if: matrix.platform == 'ios'
         working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           derivedData="$(cd "DerivedData" ; pwd -P)"
           mkdir -p "$derivedData"
           xcodebuild \
             -workspace RnDiffApp.xcworkspace \
-            -configuration Release \
+            -configuration "$CONFIG" \
             -scheme RnDiffApp \
             -destination 'platform=iOS Simulator,name=${{ matrix.device }}' \
             -sdk 'iphonesimulator${{ matrix.runtime }}' \
