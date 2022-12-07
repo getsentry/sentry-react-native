@@ -18,7 +18,10 @@ if (!args['rn-version']) {
 let bundleScript;
 let bundleScriptRegex;
 let bundlePatchRegex;
-let symbolsScript;
+const symbolsScript = `
+export SENTRY_PROPERTIES=sentry.properties
+../node_modules/@sentry/cli/bin/sentry-cli upload-dsym
+`;
 const symbolsPatchRegex = /sentry-cli\s+(upload-dsym|debug-files upload)/;
 if (args['rn-version'] === '<0.69') {
   bundleScript = `
@@ -34,10 +37,7 @@ export NODE_BINARY=node
   bundleScriptRegex = /(packager|scripts)\/react-native-xcode\.sh\b/;
   bundlePatchRegex = /sentry-cli\s+react-native[\s-]xcode/;
 
-  symbolsScript = `
-export SENTRY_PROPERTIES=sentry.properties
-../node_modules/@sentry/cli/bin/sentry-cli upload-dsym
-`;
+
 } else if (args['rn-version'] === '>=0.69') {
   bundleScript = `
 export SENTRY_PROPERTIES=sentry.properties
@@ -45,20 +45,14 @@ export EXTRA_PACKAGER_ARGS="--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.m
 set -e
 
 WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
-../node_modules/@sentry/cli/bin/sentry-cli react-native xcode REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"
+REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"
 
-/bin/sh -c "$WITH_ENVIRONMENT $REACT_NATIVE_XCODE"
+/bin/sh -c "$WITH_ENVIRONMENT \"../node_modules/@sentry/cli/bin/sentry-cli react-native xcode $REACT_NATIVE_XCODE\""
 
 /bin/sh ../node_modules/@sentry/react-native/scripts/collect-modules.sh
 `;
   bundleScriptRegex = /\/scripts\/react-native-xcode\.sh/i;
   bundlePatchRegex = /sentry-cli\s+react-native\s+xcode/i;
-
-  symbolsScript = `
-export SENTRY_PROPERTIES=sentry.properties
-[[ $SENTRY_INCLUDE_NATIVE_SOURCES == "true" ]] && INCLUDE_SOURCES_FLAG="--include-sources" || INCLUDE_SOURCES_FLAG=""
-../node_modules/@sentry/cli/bin/sentry-cli debug-files upload "$INCLUDE_SOURCES_FLAG"
-`;
 } else {
   throw new Error('Unknown RN version');
 }
