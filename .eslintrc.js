@@ -12,6 +12,9 @@ module.exports = {
   settings: {
     version: 'detect', // React version. "detect" automatically picks the version you have installed.
   },
+  ignorePatterns: [
+    'test/apps-repo-poc/versions/*',
+  ],
   overrides: [
     {
       // Typescript Files
@@ -44,6 +47,13 @@ module.exports = {
         'no-console': 'off',
       },
     },
+    {
+      // RN Versions Test Tools
+      files: ['test/apps-repo-poc/*'],
+      parserOptions: {
+        ecmaVersion: 2017,
+      },
+    }
   ],
   rules: {
     // Bundle size isn't too much of an issue for React Native.
