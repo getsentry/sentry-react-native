@@ -170,7 +170,6 @@ jobs:
           - rn-version: '0.64.4'
             rn-architecture: 'new'
     steps:
-      # the version conditions are using lexical comparison, so 0.70.0-rc.1 is greater than 0.70.0
       - uses: actions/checkout@v3
 
       - uses: actions/setup-java@v3
@@ -178,8 +177,8 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
 
-      - name: Setup Yalc
-        run: yarn global add yalc
+      - name: Setup JS Tools
+        run: yarn global add yalc semver
 
       - name: NPM cache SDK
         uses: actions/cache@v3
@@ -216,6 +215,8 @@ jobs:
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
+          echo "ENABLE_PROD=$ENABLE_PROD"
+          echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
           PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH pod install
 
       - name: Patch App RN
@@ -226,12 +227,9 @@ jobs:
         if: matrix.platform == 'ios'
         working-directory: test/apps-repo-poc
         run: |
-          [[ '${{ matrix.rn-version }}' > '0.69.0' || '${{ matrix.rn-version }}' == '0.69.0' ]] \
-            && RN_VERSION='>=0.69' \
-            || RN_VERSION='<0.69'
           ./rn.patch.xcode.js \
             --project 'versions/${{ matrix.rn-version }}/RnDiffApp/ios/RnDiffApp.xcodeproj/project.pbxproj' \
-            --rn-version "$RN_VERSION"
+            --rn-version '${{ matrix.rn-version }}'
 
       - name: Build Android App
         if: matrix.platform == 'android'
@@ -239,8 +237,10 @@ jobs:
         run: |
           if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
             perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+            echo 'New Architecture enabled'
           fi
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          echo "Building $CONFIG"
           ./gradlew ":app:assemble$CONFIG"
 
       - name: Build iOS App
@@ -248,6 +248,7 @@ jobs:
         working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          echo "Building $CONFIG"
           derivedData="$(cd "DerivedData" ; pwd -P)"
           mkdir -p "$derivedData"
           xcodebuild \

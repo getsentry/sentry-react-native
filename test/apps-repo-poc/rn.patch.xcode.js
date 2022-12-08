@@ -5,6 +5,7 @@ const { argv } = require('process');
 
 const xcode = require('xcode');
 const parseArgs = require('minimist');
+const semver = require('semver');
 const { logger } = require('@sentry/utils');
 logger.enable();
 
@@ -16,6 +17,10 @@ if (!args['rn-version']) {
   throw new Error('Missing --rn-version');
 }
 
+logger.info('Patching Xcode project', args.project, 'for RN version', args['rn-version']);
+
+const newBundleScriptRNVersion = '0.69.0-rc.0';
+
 let bundleScript;
 let bundleScriptRegex;
 let bundlePatchRegex;
@@ -24,7 +29,8 @@ export SENTRY_PROPERTIES=sentry.properties
 ../node_modules/@sentry/cli/bin/sentry-cli upload-dsym
 `;
 const symbolsPatchRegex = /sentry-cli\s+(upload-dsym|debug-files upload)/;
-if (args['rn-version'] === '<0.69') {
+if (semver.satisfies(args['rn-version'], `< ${newBundleScriptRNVersion}`)) {
+  logger.info('Applying old bundle script patch');
   bundleScript = `
 export SENTRY_PROPERTIES=sentry.properties
 export EXTRA_PACKAGER_ARGS="--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map"
@@ -39,7 +45,8 @@ export NODE_BINARY=node
   bundlePatchRegex = /sentry-cli\s+react-native[\s-]xcode/;
 
 
-} else if (args['rn-version'] === '>=0.69') {
+} else if (semver.satisfies(args['rn-version'], `>= ${newBundleScriptRNVersion}`)) {
+  logger.info('Applying new bundle script patch');
   bundleScript = `
 export SENTRY_PROPERTIES=sentry.properties
 export EXTRA_PACKAGER_ARGS="--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map"
