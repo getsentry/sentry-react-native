@@ -1,4 +1,3 @@
-import { BaseBrowserOptions } from '@sentry/browser/types/client';
 import { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
 import { ProfilerProps } from '@sentry/react/types/profiler';
 import { ClientOptions, Options } from '@sentry/types';
@@ -147,10 +146,10 @@ export interface ReactNativeTransportOptions extends BrowserTransportOptions {
  * @see ReactNativeFrontend for more information.
  */
 
-export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
+export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseReactNativeOptions {
 }
 
-export interface ReactNativeClientOptions extends ClientOptions<ReactNativeTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
+export interface ReactNativeClientOptions extends ClientOptions<ReactNativeTransportOptions>, BaseReactNativeOptions {
 }
 
 
