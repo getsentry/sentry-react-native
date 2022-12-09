@@ -103,10 +103,26 @@ jobs:
           else
             mkdir -p DerivedData
             defaults write com.apple.dt.Xcode ShowBuildOperationDuration YES
-            buildArgs=('-destination' 'platform=iOS Simulator,name=${{ matrix.device }}' 'ONLY_ACTIVE_ARCH=yes' '-sdk' 'iphonesimulator${{ matrix.runtime }}' '-derivedDataPath' $(cd "DerivedData" ; pwd -P))
+            buildArgs=(
+              '-destination' 'platform=iOS Simulator,name=${{ matrix.device }}'
+              'ONLY_ACTIVE_ARCH=yes'
+              '-sdk' 'iphonesimulator${{ matrix.runtime }}'
+              '-derivedDataPath' $(cd "DerivedData" ; pwd -P)
+            )
             echo "buildArgs = ${buildArgs[@]}"
-            xcodebuild -workspace sample.xcworkspace -configuration Release -scheme sample "${buildArgs[@]}" build
-            xcodebuild -project ../node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO "${buildArgs[@]}" build
+            xcodebuild \
+              -workspace sample.xcworkspace \
+              -configuration Release \
+              -scheme sample \
+              "${buildArgs[@]}" \
+              build
+            xcodebuild \
+              -project ../node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
+              -scheme WebDriverAgentRunner \
+              GCC_TREAT_WARNINGS_AS_ERRORS=0 \
+              COMPILER_INDEX_STORE_ENABLE=NO \
+              "${buildArgs[@]}" \
+              build
           fi
 
       - name: Start Appium Server
