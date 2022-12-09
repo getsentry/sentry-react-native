@@ -24,7 +24,6 @@ jobs:
   device-test:
     # Android emulator said to perform best with macos HAXM
     runs-on: macos-latest
-    if: ${{ secrets.SENTRY_AUTH_TOKEN }} != null
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
@@ -99,6 +98,7 @@ jobs:
           TEST: true
 
       - name: Build ${{ matrix.platform }} sample app
+        if: env.SENTRY_AUTH_TOKEN != null
         id: build
         working-directory: ./sample/${{ matrix.platform }}
         run: |
@@ -290,7 +290,6 @@ jobs:
   react-native-build:
     name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
     runs-on: macos-latest
-    if: ${{ secrets.SENTRY_AUTH_TOKEN }} != null
     env:
       RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
     strategy:
