@@ -215,20 +215,20 @@ jobs:
         run: yalc publish
 
       - name: Download Plain RN ${{ matrix.rn-version }} App
-        working-directory: test/apps-repo-poc/versions
+        working-directory: test/react-native/versions
         run: git clone $RN_DIFF_REPOSITORY --branch release/${{ matrix.rn-version }} --single-branch ${{ matrix.rn-version }}
 
       - name: Add SDK to App
-        working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: yalc add @sentry/react-native
 
       - name: Install App JS Dependencies
-        working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: yarn install
 
       - name: Install App Pods
         if: matrix.platform == 'ios'
-        working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp/ios
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
@@ -237,12 +237,12 @@ jobs:
           PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH pod install
 
       - name: Patch App RN
-        working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn.patch
 
       - name: Patch iOS App RN
         if: matrix.platform == 'ios'
-        working-directory: test/apps-repo-poc
+        working-directory: test/react-native
         run: |
           ./rn.patch.xcode.js \
             --project 'versions/${{ matrix.rn-version }}/RnDiffApp/ios/RnDiffApp.xcodeproj/project.pbxproj' \
@@ -250,7 +250,7 @@ jobs:
 
       - name: Build Android App
         if: matrix.platform == 'android'
-        working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp/android
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/android
         run: |
           if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
             perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
@@ -262,7 +262,7 @@ jobs:
 
       - name: Build iOS App
         if: matrix.platform == 'ios'
-        working-directory: test/apps-repo-poc/versions/${{ matrix.rn-version }}/RnDiffApp/ios
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"

@@ -13,7 +13,7 @@ module.exports = {
     version: 'detect', // React version. "detect" automatically picks the version you have installed.
   },
   ignorePatterns: [
-    'test/apps-repo-poc/versions/*',
+    'test/react-native/versions/*',
   ],
   overrides: [
     {
@@ -49,7 +49,7 @@ module.exports = {
     },
     {
       // RN Versions Test Tools
-      files: ['test/apps-repo-poc/*'],
+      files: ['test/react-native/*'],
       parserOptions: {
         ecmaVersion: 2017,
       },
