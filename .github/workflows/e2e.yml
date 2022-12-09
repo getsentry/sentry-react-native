@@ -175,7 +175,7 @@ jobs:
       fail-fast: false # keeps matrix running if one fails
       matrix:
         rn-version: ['0.64.4', '0.70.6']
-        rn-architecture: ['legacy', 'new']
+        rn-architecture: ['legacy']
         platform: ['android', 'ios']
         build-type: ['dev', 'production']
         include:
