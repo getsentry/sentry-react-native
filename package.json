@@ -17,7 +17,7 @@
     "build:tools": "tsc -p tsconfig.build.tools.json",
     "clean": "rimraf dist coverage",
     "test": "jest",
-    "lint": "eslint .",
+    "lint": "eslint --config .eslintrc.js .",
     "test:watch": "jest --watch",
     "run-ios": "cd sample && yarn react-native run-ios",
     "run-android": "cd sample && yarn react-native run-android"
