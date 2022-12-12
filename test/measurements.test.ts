@@ -1,4 +1,5 @@
-import { getMainCarrier, getCurrentHub } from '@sentry/core';
+import { getCurrentHub,getMainCarrier } from '@sentry/core';
+
 import { _addTracingExtensions, StartTransactionFunction } from '../src/js/measurements';
 
 describe('Tracing extensions', () => {
