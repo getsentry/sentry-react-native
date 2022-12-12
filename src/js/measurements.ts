@@ -1,6 +1,6 @@
 import { getCurrentHub, getMainCarrier, Hub } from '@sentry/core';
 import { Transaction } from '@sentry/tracing';
-import { CustomSamplingContext, TransactionContext } from '@sentry/types';
+import { CustomSamplingContext, Span, SpanContext, TransactionContext } from '@sentry/types';
 
 import { ReactNativeTracing } from './tracing';
 
@@ -56,6 +56,15 @@ const _patchStartTransaction = (
       transactionContext,
       customSamplingContext,
     ]);
+    const originalStartChild: Transaction['startChild'] = transaction.startChild.bind(transaction);
+    transaction.startChild = (
+      spanContext?: Pick<SpanContext, Exclude<keyof SpanContext, 'sampled' | 'traceId' | 'parentSpanId'>>,
+    ): Span => {
+      return originalStartChild({
+        ...spanContext,
+        op: spanContext?.op || 'default',
+      });
+    };
 
     const reactNativeTracing = getCurrentHub().getIntegration(
       ReactNativeTracing
