@@ -28,7 +28,7 @@ export function _addTracingExtensions(): void {
   }
 }
 
-type StartTransactionFunction = (
+export type StartTransactionFunction = (
   this: Hub,
   transactionContext: TransactionContext,
   customSamplingContext?: CustomSamplingContext
@@ -48,6 +48,10 @@ const _patchStartTransaction = (
     transactionContext: TransactionContext,
     customSamplingContext?: CustomSamplingContext
   ): Transaction {
+    if (!transactionContext.op) {
+      transactionContext.op = 'default';
+    }
+
     const transaction: Transaction = originalStartTransaction.apply(this, [
       transactionContext,
       customSamplingContext,
