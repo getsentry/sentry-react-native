@@ -7,6 +7,7 @@
 - Add `lastEventId` method to the API ([#2675](https://github.com/getsentry/sentry-react-native/pull/2675))
 
 ### Fix
+
 - `Sentry.startTransaction` doesn't require `op` ([#2691](https://github.com/getsentry/sentry-react-native/pull/2691))
 
 ### Dependencies
