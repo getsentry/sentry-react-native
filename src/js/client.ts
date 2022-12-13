@@ -1,4 +1,4 @@
-import { makeFetchTransport } from '@sentry/browser';
+import { makeFetchTransport, eventFromException, eventFromMessage } from '@sentry/browser';
 import { FetchImpl } from '@sentry/browser/types/transports/utils';
 import { BaseClient } from '@sentry/core';
 import {
@@ -7,15 +7,16 @@ import {
   Envelope,
   Event,
   EventHint,
+  Exception,
   Outcome,
   SeverityLevel,
+  Thread,
   Transport,
   UserFeedback,
 } from '@sentry/types';
 import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
-import { eventFromException, eventFromMessage } from './eventbuilder';
 
 import { Screenshot } from './integrations/screenshot';
 import { defaultSdkInfo } from './integrations/sdkinfo';
@@ -91,7 +92,20 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       level,
       hint,
       this._options.attachStacktrace,
-    );
+    ).then((event: Event) => {
+      // TMP! Remove this function once JS SDK uses threads for messages
+      if (!event.exception?.values || event.exception.values.length <= 0) {
+        return event;
+      }
+
+      const values = event.exception.values.map((exception: Exception): Thread => ({
+        id: exception.thread_id,
+        stacktrace: exception.stacktrace,
+      }));
+      (event as { threads?: { values: Thread[] } }).threads = { values };
+      delete event.exception;
+      return event;
+    });
   }
 
   /**
