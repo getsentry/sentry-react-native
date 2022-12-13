@@ -99,7 +99,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       }
 
       const values = event.exception.values.map((exception: Exception): Thread => ({
-        id: exception.thread_id,
         stacktrace: exception.stacktrace,
       }));
       (event as { threads?: { values: Thread[] } }).threads = { values };
