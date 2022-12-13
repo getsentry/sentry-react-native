@@ -1,4 +1,4 @@
-import { BrowserClient, defaultStackParser, makeFetchTransport } from '@sentry/browser';
+import { makeFetchTransport } from '@sentry/browser';
 import { FetchImpl } from '@sentry/browser/types/transports/utils';
 import { BaseClient } from '@sentry/core';
 import {
@@ -15,6 +15,7 @@ import {
 import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
+import { eventFromException, eventFromMessage } from './eventbuilder';
 
 import { Screenshot } from './integrations/screenshot';
 import { defaultSdkInfo } from './integrations/sdkinfo';
@@ -34,26 +35,24 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
   private _outcomesBuffer: Outcome[];
 
-  private readonly _browserClient: BrowserClient;
-
   /**
    * Creates a new React Native SDK instance.
    * @param options Configuration options for this SDK.
    */
-   public constructor(options: ReactNativeClientOptions) {
-     if (!options.transport) {
-       options.transport = (options: ReactNativeTransportOptions, nativeFetch?: FetchImpl): Transport => {
-         if (NATIVE.isNativeTransportAvailable()) {
-           return makeReactNativeTransport(options);
-         }
-         return makeFetchTransport(options, nativeFetch);
-       };
-     }
-     options._metadata = options._metadata || {};
-     options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
-     super(options);
+  public constructor(options: ReactNativeClientOptions) {
+    if (!options.transport) {
+      options.transport = (options: ReactNativeTransportOptions, nativeFetch?: FetchImpl): Transport => {
+        if (NATIVE.isNativeTransportAvailable()) {
+          return makeReactNativeTransport(options);
+        }
+        return makeFetchTransport(options, nativeFetch);
+      };
+    }
+    options._metadata = options._metadata || {};
+    options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
+    super(options);
 
-      this._outcomesBuffer = [];
+    this._outcomesBuffer = [];
 
     // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
     // YellowBox deprecated and replaced with with LogBox in RN 0.63
@@ -65,17 +64,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       YellowBox.ignoreWarnings(['Require cycle:']);
     }
 
-    this._browserClient = new BrowserClient({
-      dsn: options.dsn,
-      transport: options.transport,
-      transportOptions: options.transportOptions,
-      stackParser: options.stackParser || defaultStackParser,
-      integrations: [],
-      _metadata: options._metadata,
-      attachStacktrace: options.attachStacktrace,
-    });
-
-     void this._initNativeSdk();
+    void this._initNativeSdk();
    }
 
 
@@ -84,14 +73,25 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    */
   public eventFromException(exception: unknown, hint: EventHint = {}): PromiseLike<Event> {
     return Screenshot.attachScreenshotToEventHint(hint, this._options)
-      .then(enrichedHint => this._browserClient.eventFromException(exception, enrichedHint));
+      .then(hintWithScreenshot => eventFromException(
+        this._options.stackParser,
+        exception,
+        hintWithScreenshot,
+        this._options.attachStacktrace,
+      ));
   }
 
   /**
    * @inheritDoc
    */
-  public eventFromMessage(_message: string, _level?: SeverityLevel, _hint?: EventHint): PromiseLike<Event> {
-    return this._browserClient.eventFromMessage(_message, _level, _hint);
+  public eventFromMessage(message: string, level?: SeverityLevel, hint?: EventHint): PromiseLike<Event> {
+    return eventFromMessage(
+      this._options.stackParser,
+      message,
+      level,
+      hint,
+      this._options.attachStacktrace,
+    );
   }
 
   /**
