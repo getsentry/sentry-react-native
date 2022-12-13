@@ -1,4 +1,4 @@
-import { defaultStackParser } from '@sentry/browser';
+import { defaultStackParser, eventFromException, eventFromMessage } from '@sentry/browser';
 import { BaseClient } from '@sentry/core';
 import {
   ClientReportEnvelope,
@@ -6,23 +6,24 @@ import {
   Envelope,
   Event,
   EventHint,
+  Exception,
   Outcome,
   SeverityLevel,
+  Thread,
   UserFeedback,
 } from '@sentry/types';
 import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 // @ts-ignore LogBox introduced in RN 0.63
 import { Alert, LogBox, YellowBox } from 'react-native';
-import { eventFromException, eventFromMessage } from './eventbuilder';
 
 import { Screenshot } from './integrations/screenshot';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { ReactNativeClientOptions } from './options';
+import { makeTransport } from './transports/factory';
+import { disableRequireCycleLogs } from './utils/disablerequirecyclelogs';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { mergeOutcomes } from './utils/outcome';
 import { NATIVE } from './wrapper';
-import { makeTransport } from './transports/factory';
-import { disableRequireCycleLogs } from './utils/disablerequirecyclelogs';
 
 /**
  * The Sentry React Native SDK Client.
@@ -73,7 +74,19 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       level,
       hint,
       this._options.attachStacktrace,
-    );
+    ).then((event: Event) => {
+      // TMP! Remove this function once JS SDK uses threads for messages
+      if (!event.exception?.values || event.exception.values.length <= 0) {
+        return event;
+      }
+
+      const values = event.exception.values.map((exception: Exception): Thread => ({
+        stacktrace: exception.stacktrace,
+      }));
+      (event as { threads?: { values: Thread[] } }).threads = { values };
+      delete event.exception;
+      return event;
+    });
   }
 
   /**
