@@ -65,7 +65,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     }
 
     void this._initNativeSdk();
-   }
+  }
 
 
   /**
