@@ -24,7 +24,7 @@ import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
-import { DEFAULT_BUFFER_SIZE, makeReactNativeTransport } from './transports/native';
+import { DEFAULT_BUFFER_SIZE, makeNativeTransport } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { RN_GLOBAL_OBJ } from './utils/worldwide';
@@ -63,7 +63,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
     // If custom transport factory fails the SDK won't initialize
-    transport: passedOptions.transport || makeReactNativeTransport,
+    transport: passedOptions.transport || makeNativeTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(passedOptions.transportOptions ?? {}),

@@ -45,6 +45,9 @@ export class NativeTransport implements Transport {
 /**
  * Creates a Native Transport.
  */
-export function makeReactNativeTransport(options: BaseNativeTransportOptions = {}): NativeTransport {
-  return new NativeTransport(options);
+export function makeNativeTransport(options: BaseNativeTransportOptions = {}): NativeTransport | null {
+  if (NATIVE.isNativeTransportAvailable()) {
+    return new NativeTransport(options);
+  }
+  return null;
 }

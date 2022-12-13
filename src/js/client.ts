@@ -1,4 +1,4 @@
-import { defaultStackParser, eventFromException, eventFromMessage } from '@sentry/browser';
+import { defaultStackParser, eventFromException, eventFromMessage, makeFetchTransport } from '@sentry/browser';
 import { BaseClient } from '@sentry/core';
 import {
   ClientReportEnvelope,
@@ -13,15 +13,14 @@ import {
   UserFeedback,
 } from '@sentry/types';
 import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
-// @ts-ignore LogBox introduced in RN 0.63
-import { Alert, LogBox, YellowBox } from 'react-native';
+import { Alert } from 'react-native';
 
 import { Screenshot } from './integrations/screenshot';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { ReactNativeClientOptions } from './options';
-import { makeTransport } from './transports/factory';
-import { disableRequireCycleLogs } from './utils/disablerequirecyclelogs';
+import { makeNativeTransport } from './transports/native';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
+import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';
 import { NATIVE } from './wrapper';
 
@@ -40,8 +39,8 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @param options Configuration options for this SDK.
    */
   public constructor(options: ReactNativeClientOptions) {
-    disableRequireCycleLogs();
-    options.transport = options.transport || makeTransport;
+    ignoreRequireCycleLogs();
+    options.transport = options.transport || makeNativeTransport || makeFetchTransport;
     options._metadata = options._metadata || {};
     options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
     options.stackParser = options.stackParser || defaultStackParser;
