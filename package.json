@@ -2,7 +2,7 @@
   "name": "@sentry/react-native",
   "homepage": "https://github.com/getsentry/sentry-react-native",
   "repository": "https://github.com/getsentry/sentry-react-native",
-  "version": "4.11.0",
+  "version": "5.0.0-alpha.10",
   "description": "Official Sentry SDK for react-native",
   "typings": "dist/js/index.d.ts",
   "types": "dist/js/index.d.ts",
@@ -38,25 +38,25 @@
     "When bumping make sure to update the version of react, i.e:  https://github.com/facebook/react-native/blob/v0.56.0/package.json"
   ],
   "peerDependencies": {
-    "react": ">=16.4.1",
-    "react-native": ">=0.56.0"
+    "react": ">=17.0.0",
+    "react-native": ">=0.70.0"
   },
   "dependencies": {
-    "@sentry/browser": "7.24.2",
-    "@sentry/cli": "1.74.4",
-    "@sentry/core": "7.24.2",
-    "@sentry/hub": "7.24.2",
-    "@sentry/integrations": "7.24.2",
-    "@sentry/react": "7.24.2",
-    "@sentry/tracing": "7.24.2",
-    "@sentry/types": "7.24.2",
-    "@sentry/utils": "7.24.2",
-    "@sentry/wizard": "1.4.0"
+    "@sentry/browser": "7.26.0",
+    "@sentry/cli": "2.10.0",
+    "@sentry/core": "7.26.0",
+    "@sentry/hub": "7.26.0",
+    "@sentry/integrations": "7.26.0",
+    "@sentry/react": "7.26.0",
+    "@sentry/tracing": "7.26.0",
+    "@sentry/types": "7.26.0",
+    "@sentry/utils": "7.26.0"
   },
   "devDependencies": {
-    "@sentry-internal/eslint-config-sdk": "7.24.2",
-    "@sentry-internal/eslint-plugin-sdk": "7.24.2",
+    "@sentry-internal/eslint-config-sdk": "7.26.0",
+    "@sentry-internal/eslint-plugin-sdk": "7.26.0",
     "@sentry/typescript": "^5.20.1",
+    "@sentry/wizard": "2.2.0",
     "@types/jest": "^26.0.15",
     "@types/react": "^18.0.25",
     "@types/react-native": "^0.70.6",
@@ -74,18 +74,12 @@
     "typescript": "3.8.3"
   },
   "rnpm": {
-    "commands": {
-      "postlink": "node node_modules/@sentry/wizard/dist/bin.js -i reactNative -p ios android",
-      "postunlink": "node node_modules/@sentry/wizard/dist/bin.js -i reactNative -p ios android --uninstall"
-    },
+    "commands": {},
     "android": {
-      "packageInstance": "new RNSentryPackage()"
+      "packageInstance": "new RNSentryPackage()",
+      "packageImportPath": "import io.sentry.react.RNSentryPackage;"
     },
-    "ios": {
-      "sharedLibraries": [
-        "libz"
-      ]
-    }
+    "ios": {}
   },
   "jest": {
     "collectCoverage": true,
@@ -109,5 +103,13 @@
     "testMatch": [
       "**/*.test.(ts|tsx)"
     ]
+  },
+  "codegenConfig": {
+    "name": "RNSentrySpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "io.sentry.react"
+    }
   }
 }

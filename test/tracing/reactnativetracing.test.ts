@@ -3,7 +3,7 @@ import { BrowserClient, User } from '@sentry/browser';
 import { addGlobalEventProcessor, Hub } from '@sentry/core';
 import { IdleTransaction, Transaction } from '@sentry/tracing';
 
-import { NativeAppStartResponse } from '../../src/js/definitions';
+import { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
 import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
 
 jest.mock('../../src/js/wrapper', () => {
@@ -611,6 +611,54 @@ describe('ReactNativeTracing', () => {
           },
         });
       });
+    });
+  });
+  describe('Handling deprecated options', () => {
+    test('finalTimeoutMs overrides maxTransactionDuration', () => {
+      const tracing = new ReactNativeTracing({
+        finalTimeoutMs: 123000,
+        maxTransactionDuration: 456,
+      });
+      expect(tracing.options.finalTimeoutMs).toBe(123000);
+      // eslint-disable-next-line deprecation/deprecation
+      expect(tracing.options.maxTransactionDuration).toBe(456);
+    });
+    test('maxTransactionDuration translates to finalTimeoutMs', () => {
+      const tracing = new ReactNativeTracing({
+        maxTransactionDuration: 123,
+      });
+      expect(tracing.options.finalTimeoutMs).toBe(123000);
+      // eslint-disable-next-line deprecation/deprecation
+      expect(tracing.options.maxTransactionDuration).toBe(123);
+    });
+    test('if none maxTransactionDuration and finalTimeoutMs is specified use default', () => {
+      const tracing = new ReactNativeTracing({});
+      expect(tracing.options.finalTimeoutMs).toBe(600000);
+      // eslint-disable-next-line deprecation/deprecation
+      expect(tracing.options.maxTransactionDuration).toBe(600);
+    });
+    test('idleTimeoutMs overrides idleTimeout', () => {
+      const tracing = new ReactNativeTracing({
+        idleTimeoutMs: 123,
+        idleTimeout: 456,
+      });
+      expect(tracing.options.idleTimeoutMs).toBe(123);
+      // eslint-disable-next-line deprecation/deprecation
+      expect(tracing.options.idleTimeout).toBe(456);
+    });
+    test('idleTimeout translates to idleTimeoutMs', () => {
+      const tracing = new ReactNativeTracing({
+        idleTimeout: 123,
+      });
+      expect(tracing.options.idleTimeoutMs).toBe(123);
+      // eslint-disable-next-line deprecation/deprecation
+      expect(tracing.options.idleTimeout).toBe(123);
+    });
+    test('if none idleTimeout and idleTimeoutMs is specified use default', () => {
+      const tracing = new ReactNativeTracing({});
+      expect(tracing.options.idleTimeoutMs).toBe(1000);
+      // eslint-disable-next-line deprecation/deprecation
+      expect(tracing.options.idleTimeout).toBe(1000);
     });
   });
 });

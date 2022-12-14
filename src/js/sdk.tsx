@@ -16,6 +16,7 @@ import {
   EventOrigin,
   ModulesLoader,
   ReactNativeErrorHandlers,
+  ReactNativeInfo,
   Release,
   SdkInfo,
 } from './integrations';
@@ -27,7 +28,6 @@ import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransport } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
 import { safeFactory, safeTracesSampler } from './utils/safe';
-import { RN_GLOBAL_OBJ } from './utils/worldwide';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
@@ -97,6 +97,7 @@ export function init(passedOptions: ReactNativeOptions): void {
 
     defaultIntegrations.push(new EventOrigin());
     defaultIntegrations.push(new SdkInfo());
+    defaultIntegrations.push(new ReactNativeInfo());
 
     if (__DEV__) {
       defaultIntegrations.push(new DebugSymbolicator());
@@ -143,10 +144,6 @@ export function init(passedOptions: ReactNativeOptions): void {
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
-
-  if (RN_GLOBAL_OBJ.HermesInternal) {
-    getCurrentHub().setTag('hermes', 'true');
-  }
 }
 
 /**

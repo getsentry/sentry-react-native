@@ -10,22 +10,25 @@ import {
   User,
 } from '@sentry/types';
 import { logger, normalize, SentryError } from '@sentry/utils';
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules, Platform , TurboModuleRegistry } from 'react-native';
 
+import { isHardCrash } from './misc';
 import {
   NativeAppStartResponse,
   NativeDeviceContextsResponse,
   NativeFramesResponse,
   NativeReleaseResponse,
   NativeScreenshot,
-  SentryNativeBridgeModule,
-} from './definitions';
-import { isHardCrash } from './misc';
+  Spec,
+} from './NativeRNSentry';
 import { ReactNativeOptions } from './options';
 import { RequiredKeysUser } from './user';
+import { isTurboModuleEnabled } from './utils/environment'
 import { utf8ToBytes } from './vendor';
 
-const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
+const RNSentry: Spec | undefined  = isTurboModuleEnabled()
+  ? TurboModuleRegistry.getEnforcing<Spec>('RNSentry')
+  : NativeModules.RNSentry;
 
 export interface Screenshot {
   data: Uint8Array;
@@ -46,8 +49,8 @@ interface SentryNativeWrapper {
   _processLevel(level: SeverityLevel): SeverityLevel;
   _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
   _isModuleLoaded(
-    module: SentryNativeBridgeModule | undefined
-  ): module is SentryNativeBridgeModule;
+    module: Spec | undefined
+  ): module is Spec;
   _getBreadcrumbs(event: Event): Breadcrumb[] | undefined;
 
   isNativeTransportAvailable(): boolean;
@@ -572,8 +575,8 @@ export const NATIVE: SentryNativeWrapper = {
    * Checks whether the RNSentry module is loaded.
    */
   _isModuleLoaded(
-    module: SentryNativeBridgeModule | undefined
-  ): module is SentryNativeBridgeModule {
+    module: Spec | undefined
+  ): module is Spec {
     return !!module;
   },
 

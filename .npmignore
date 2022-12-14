@@ -10,4 +10,5 @@
 !react-native.config.js
 !/ios/**/*
 !/android/**/*
+!src/js/NativeRNSentry.ts
 !scripts/collect-modules.sh
