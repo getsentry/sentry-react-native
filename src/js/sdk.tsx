@@ -47,6 +47,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   },
   sendClientReports: true,
   maxQueueSize: DEFAULT_BUFFER_SIZE,
+  attachStacktrace: true,
 };
 
 /**
