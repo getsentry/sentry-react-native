@@ -1,4 +1,4 @@
-import { defaultStackParser, eventFromException, eventFromMessage, makeFetchTransport } from '@sentry/browser';
+import { defaultStackParser, eventFromException, eventFromMessage } from '@sentry/browser';
 import { BaseClient } from '@sentry/core';
 import {
   ClientReportEnvelope,
@@ -18,7 +18,6 @@ import { Alert } from 'react-native';
 import { Screenshot } from './integrations/screenshot';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { ReactNativeClientOptions } from './options';
-import { makeNativeTransport } from './transports/native';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';
@@ -40,7 +39,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    */
   public constructor(options: ReactNativeClientOptions) {
     ignoreRequireCycleLogs();
-    options.transport = options.transport || makeNativeTransport || makeFetchTransport;
     options._metadata = options._metadata || {};
     options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
     options.stackParser = options.stackParser || defaultStackParser;

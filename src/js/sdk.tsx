@@ -4,6 +4,7 @@ import {
   defaultIntegrations as reactDefaultIntegrations,
   defaultStackParser,
   getCurrentHub,
+  makeFetchTransport,
 } from '@sentry/react';
 import { Integration, StackFrame, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
@@ -25,7 +26,7 @@ import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
-import { DEFAULT_BUFFER_SIZE, makeNativeTransport } from './transports/native';
+import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 
@@ -63,7 +64,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
     // If custom transport factory fails the SDK won't initialize
-    transport: passedOptions.transport || makeNativeTransport,
+    transport: passedOptions.transport || makeNativeTransportFactory() || makeFetchTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(passedOptions.transportOptions ?? {}),
