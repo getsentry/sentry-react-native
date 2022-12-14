@@ -97,7 +97,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       if (!event.exception?.values || event.exception.values.length <= 0) {
         return event;
       }
-
       const values = event.exception.values.map((exception: Exception): Thread => ({
         stacktrace: exception.stacktrace,
       }));
