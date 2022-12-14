@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Latest changes from 4.12.0
+
+## 4.12.0
+
 ### Features
 
 - Add `lastEventId` method to the API ([#2675](https://github.com/getsentry/sentry-react-native/pull/2675))
