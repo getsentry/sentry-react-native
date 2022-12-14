@@ -12,7 +12,7 @@
 
 ### Fixes
 
-- Unreachable fallback to fetch transport if native is not available
+- Unreachable fallback to fetch transport if native is not available ([#2695](https://github.com/getsentry/sentry-react-native/pull/2695))
 
 ### Dependencies
 
