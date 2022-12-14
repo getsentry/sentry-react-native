@@ -4,4 +4,5 @@ export { ReactNativeErrorHandlers } from './reactnativeerrorhandlers';
 export { Release } from './release';
 export { EventOrigin } from './eventorigin';
 export { SdkInfo } from './sdkinfo';
+export { ReactNativeInfo } from './reactnativeinfo';
 export { ModulesLoader } from './modulesloader';

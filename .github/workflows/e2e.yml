@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
@@ -140,3 +144,121 @@ jobs:
           path: |
             ./sample/*.log
             ./sample/*.png
+
+  metrics:
+    runs-on: macos-latest
+    strategy:
+      # we want that the matrix keeps running, default is to cancel them if it fails.
+      fail-fast: false
+      matrix:
+        rn-architecture: ['legacy', 'new']
+        platform: ["ios", "android"]
+        include:
+          - platform: ios
+            name: iOS
+            appPlain: test/perf/test-app-plain.ipa
+          - platform: android
+            name: Android
+            appPlain: test/perf/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "14"
+      - uses: actions/setup-java@v3
+        with:
+          java-version: "11"
+          distribution: "adopt"
+      - name: Install Global Dependencies
+        run: yarn global add react-native-cli @sentry/cli yalc
+      - uses: actions/cache@v3
+        id: deps-cache
+        with:
+          path: |
+            node_modules
+            test/perf/TestAppSentry/node_modules
+          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'test/perf/TestAppSentry/yarn.lock') }}
+      - name: Install Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        run: yarn install
+      - name: Build SDK
+        run: yarn build
+      - name: Package SDK
+        run: yalc publish
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+      - uses: actions/cache@v3
+        id: app-plain-cache
+        with:
+          path: ${{ matrix.appPlain }}
+          # if the whole plain app folder is hashed the cache is never hit as there are files generated in the folder
+          # the cache key is calculated both at cache retrieval and save time
+          # hashFiles fails when there are rn android new arch generated files in the folder (exact reason unknown)
+          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('test/perf/TestAppPlain/yarn.lock') }}
+      - name: Build app plain
+        if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
+        working-directory: ./test/perf/TestAppPlain
+        run: |
+          yarn install
+          cd ${{ matrix.platform }}
+          if [[ "${{ matrix.platform }}" == "android" ]]; then
+            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+              perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+            fi
+            ./gradlew assembleRelease
+          else
+            export PRODUCTION=1
+            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+              export RCT_NEW_ARCH_ENABLED=1
+            fi
+            pod install
+            cd ../..
+            fastlane build_perf_test_app_plain
+          fi
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+          FASTLANE_KEYCHAIN_PASSWORD: ${{ secrets.FASTLANE_KEYCHAIN_PASSWORD }}
+          MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
+      - name: Build app with Sentry
+        working-directory: ./test/perf/TestAppSentry
+        run: |
+          yalc add @sentry/react-native
+          yarn install
+          cd ${{ matrix.platform }}
+          if [[ "${{ matrix.platform }}" == "android" ]]; then
+            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+              perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+            fi
+            ./gradlew assembleRelease
+          else
+            export PRODUCTION=1
+            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+              export RCT_NEW_ARCH_ENABLED=1
+            fi
+            pod install
+            cd ../..
+            fastlane build_perf_test_app_sentry
+            cd TestAppSentry
+          fi
+          # Remove after build so that the cache isn't invaldiated due to the changes in yarn.lock.
+          yarn remove @sentry/react-native
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+          FASTLANE_KEYCHAIN_PASSWORD: ${{ secrets.FASTLANE_KEYCHAIN_PASSWORD }}
+          MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
+      - name: Collect apps metrics
+        uses: getsentry/action-app-sdk-overhead-metrics@v1
+        with:
+          name: ${{ matrix.name }} (${{ matrix.rn-architecture }})
+          config: ./test/perf/metrics-${{ matrix.platform }}.yml
+          sauce-user: ${{ secrets.SAUCE_USERNAME }}
+          sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
