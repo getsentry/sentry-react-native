@@ -10,6 +10,10 @@
 
 - Message event current stack trace moved from exception to threads ([#2694](https://github.com/getsentry/sentry-react-native/pull/2694))
 
+### Fixes
+
+- Unreachable fallback to fetch transport if native is not available
+
 ### Dependencies
 
 - Bump Cocoa SDK from v7.31.2 to v7.31.3 ([#2647](https://github.com/getsentry/sentry-react-native/pull/2647))
