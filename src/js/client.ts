@@ -1,4 +1,4 @@
-import { makeFetchTransport, eventFromException, eventFromMessage } from '@sentry/browser';
+import { eventFromException, eventFromMessage,makeFetchTransport } from '@sentry/browser';
 import { FetchImpl } from '@sentry/browser/types/transports/utils';
 import { BaseClient } from '@sentry/core';
 import {
