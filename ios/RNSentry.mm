@@ -9,6 +9,7 @@
 #import <Sentry/Sentry.h>
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryScreenFrames.h>
+#import "SentryOptions+RNOptions.h"
 
 // Thanks to this guard, we won't import this header when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED
@@ -73,7 +74,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
 
-    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:&error];
+    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithRNOptions:options didFailWithError:&error];
     if (error) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
@@ -99,7 +100,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 #endif
     }
 
-    [SentrySDK startWithOptionsObject:sentryOptions];
+    [SentrySDK startWithOptions:sentryOptions];
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     BOOL appIsActive = [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
