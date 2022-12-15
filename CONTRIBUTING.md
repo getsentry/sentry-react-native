@@ -97,6 +97,7 @@ target 'sample' do
   # ... react native config
 
 +  pod 'Sentry/HybridSDK', :path => '../../../sentry-cocoa'
++  pod 'SentryPrivate', :path => '../../../sentry-cocoa/SentryPrivate.podspec'
 
   # ... rest of the configuration
 
