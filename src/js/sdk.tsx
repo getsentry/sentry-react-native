@@ -28,6 +28,7 @@ import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { DEFAULT_BUFFER_SIZE, makeReactNativeTransport } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
 import { safeFactory, safeTracesSampler } from './utils/safe';
+import { ViewHierarchy } from "./integrations/viewhierarchy";
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
@@ -137,6 +138,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (options.attachScreenshot) {
       defaultIntegrations.push(new Screenshot());
     }
+    defaultIntegrations.push(new ViewHierarchy());
   }
 
   options.integrations = getIntegrationsToSetup({
