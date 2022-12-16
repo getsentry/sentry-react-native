@@ -4,6 +4,10 @@
 
 - Latest changes from 4.12.0
 
+### Breaking changes
+
+- Message event current stack trace moved from exception to threads ([#2694](https://github.com/getsentry/sentry-react-native/pull/2694))
+
 ## 4.12.0
 
 ### Features
