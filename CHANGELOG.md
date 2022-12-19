@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Missing `originalException` in `beforeSend` for events from react native error handler ([#](https://github.com/getsentry/sentry-react-native/pull/))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v7.31.3 to v7.31.4 ([#2699](https://github.com/getsentry/sentry-react-native/pull/2699))
