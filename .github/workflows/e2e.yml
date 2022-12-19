@@ -9,6 +9,14 @@ env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
 jobs:
+  cancel-previous-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@b173b6ec0100793626c2d9e6b90435061f4fc3e5 # pin@0.11.0
+        with:
+          access_token: ${{ github.token }}
+
   device-test:
     # Android emulator said to perform best with macos HAXM
     runs-on: macos-latest
@@ -95,10 +103,26 @@ jobs:
           else
             mkdir -p DerivedData
             defaults write com.apple.dt.Xcode ShowBuildOperationDuration YES
-            buildArgs=('-destination' 'platform=iOS Simulator,name=${{ matrix.device }}' 'ONLY_ACTIVE_ARCH=yes' '-sdk' 'iphonesimulator${{ matrix.runtime }}' '-derivedDataPath' $(cd "DerivedData" ; pwd -P))
+            buildArgs=(
+              '-destination' 'platform=iOS Simulator,name=${{ matrix.device }}'
+              'ONLY_ACTIVE_ARCH=yes'
+              '-sdk' 'iphonesimulator${{ matrix.runtime }}'
+              '-derivedDataPath' $(cd "DerivedData" ; pwd -P)
+            )
             echo "buildArgs = ${buildArgs[@]}"
-            xcodebuild -workspace sample.xcworkspace -configuration Release -scheme sample "${buildArgs[@]}" build
-            xcodebuild -project ../node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner GCC_TREAT_WARNINGS_AS_ERRORS=0 COMPILER_INDEX_STORE_ENABLE=NO "${buildArgs[@]}" build
+            xcodebuild \
+              -workspace sample.xcworkspace \
+              -configuration Release \
+              -scheme sample \
+              "${buildArgs[@]}" \
+              build
+            xcodebuild \
+              -project ../node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
+              -scheme WebDriverAgentRunner \
+              GCC_TREAT_WARNINGS_AS_ERRORS=0 \
+              COMPILER_INDEX_STORE_ENABLE=NO \
+              "${buildArgs[@]}" \
+              build
           fi
 
       - name: Start Appium Server
@@ -140,3 +164,115 @@ jobs:
           path: |
             ./sample/*.log
             ./sample/*.png
+
+  react-native-build:
+    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
+    runs-on: macos-latest
+    env:
+      RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
+    strategy:
+      fail-fast: false # keeps matrix running if one fails
+      matrix:
+        rn-version: ['0.64.4', '0.70.6']
+        rn-architecture: ['legacy']
+        platform: ['android', 'ios']
+        build-type: ['dev', 'production']
+        include:
+          - platform: ios
+            runtime: '16.0'
+            device: 'iPhone 14'
+        # exclude all rn versions lower than 0.70.0 for new architecture
+        exclude:
+          - rn-version: '0.64.4'
+            rn-architecture: 'new'
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Setup JS Tools
+        run: yarn global add yalc semver
+
+      - name: NPM cache SDK
+        uses: actions/cache@v3
+        id: deps-cache
+        with:
+          path: node_modules
+          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock') }}
+
+      - name: Install SDK JS Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Package SDK
+        run: yalc publish
+
+      - name: Download Plain RN ${{ matrix.rn-version }} App
+        working-directory: test/react-native/versions
+        run: git clone $RN_DIFF_REPOSITORY --branch release/${{ matrix.rn-version }} --single-branch ${{ matrix.rn-version }}
+
+      - name: Add SDK to App
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
+        run: yalc add @sentry/react-native
+
+      - name: Install App JS Dependencies
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
+        run: yarn install
+
+      - name: Install App Pods
+        if: matrix.platform == 'ios'
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
+          [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
+          echo "ENABLE_PROD=$ENABLE_PROD"
+          echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
+          PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH pod install
+
+      - name: Patch App RN
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
+        run: patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn.patch
+
+      - name: Patch iOS App RN
+        if: matrix.platform == 'ios'
+        working-directory: test/react-native
+        run: |
+          ./rn.patch.xcode.js \
+            --project 'versions/${{ matrix.rn-version }}/RnDiffApp/ios/RnDiffApp.xcodeproj/project.pbxproj' \
+            --rn-version '${{ matrix.rn-version }}'
+
+      - name: Build Android App
+        if: matrix.platform == 'android'
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/android
+        run: |
+          if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+            perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+            echo 'New Architecture enabled'
+          fi
+          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          echo "Building $CONFIG"
+          ./gradlew ":app:assemble$CONFIG" -PreactNativeArchitectures=x86
+
+      - name: Build iOS App
+        if: matrix.platform == 'ios'
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          echo "Building $CONFIG"
+          derivedData="$(cd "DerivedData" ; pwd -P)"
+          mkdir -p "$derivedData"
+          xcodebuild \
+            -workspace RnDiffApp.xcworkspace \
+            -configuration "$CONFIG" \
+            -scheme RnDiffApp \
+            -destination 'platform=iOS Simulator,name=${{ matrix.device }}' \
+            ONLY_ACTIVE_ARCH=yes \
+            -sdk 'iphonesimulator${{ matrix.runtime }}' \
+            -derivedDataPath "$derivedData" \
+            build
