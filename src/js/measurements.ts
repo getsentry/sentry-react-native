@@ -1,8 +1,10 @@
 import { getCurrentHub, getMainCarrier, Hub } from '@sentry/core';
 import { Transaction } from '@sentry/tracing';
-import { CustomSamplingContext, TransactionContext } from '@sentry/types';
+import { CustomSamplingContext, Span, SpanContext, TransactionContext } from '@sentry/types';
 
 import { ReactNativeTracing } from './tracing';
+
+const SPAN_OP_DEFAULT = 'default';
 
 /**
  * Adds React Native's extensions. Needs to be called after @sentry/tracing's extension methods are added
@@ -28,7 +30,7 @@ export function _addTracingExtensions(): void {
   }
 }
 
-type StartTransactionFunction = (
+export type StartTransactionFunction = (
   this: Hub,
   transactionContext: TransactionContext,
   customSamplingContext?: CustomSamplingContext
@@ -48,10 +50,25 @@ const _patchStartTransaction = (
     transactionContext: TransactionContext,
     customSamplingContext?: CustomSamplingContext
   ): Transaction {
+    // Native SDKs require op to be set - for JS Relay sets `default`
+    if (!transactionContext.op) {
+      transactionContext.op = SPAN_OP_DEFAULT;
+    }
+
     const transaction: Transaction = originalStartTransaction.apply(this, [
       transactionContext,
       customSamplingContext,
     ]);
+    const originalStartChild: Transaction['startChild'] = transaction.startChild.bind(transaction);
+    transaction.startChild = (
+      spanContext?: Pick<SpanContext, Exclude<keyof SpanContext, 'sampled' | 'traceId' | 'parentSpanId'>>,
+    ): Span => {
+      return originalStartChild({
+        ...spanContext,
+        // Native SDKs require op to be set
+        op: spanContext?.op || SPAN_OP_DEFAULT,
+      });
+    };
 
     const reactNativeTracing = getCurrentHub().getIntegration(
       ReactNativeTracing
