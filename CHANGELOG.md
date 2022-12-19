@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Missing `originalException` in `beforeSend` for events from react native error handler ([#](https://github.com/getsentry/sentry-react-native/pull/))
+- Missing `originalException` in `beforeSend` for events from react native error handler ([#2706](https://github.com/getsentry/sentry-react-native/pull/2706))
 
 ### Dependencies
 
