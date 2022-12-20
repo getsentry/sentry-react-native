@@ -41,7 +41,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     ignoreRequireCycleLogs();
     options._metadata = options._metadata || {};
     options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
-    options.stackParser = options.stackParser || defaultStackParser;
     super(options);
 
     this._outcomesBuffer = [];
