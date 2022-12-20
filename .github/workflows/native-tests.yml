@@ -1,0 +1,54 @@
+name: Native Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+jobs:
+  cancel-previous-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@b173b6ec0100793626c2d9e6b90435061f4fc3e5 # pin@0.11.0
+        with:
+          access_token: ${{ github.token }}
+
+  test:
+    name: ios
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: NPM cache SDK
+        uses: actions/cache@v3
+        id: deps-cache
+        with:
+          path: node_modules
+          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock') }}
+
+      - name: Install SDK JS Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Install App Pods
+        working-directory: sample/ios
+        run: PRODUCTION=1 pod install
+
+      - name: Run iOS Tests
+        working-directory: sample/ios
+        env:
+          SCHEME: sample
+          CONFIGURATION: Release
+          DESTINATION: 'platform=iOS Simulator,OS=latest,name=iPhone 14'
+        run: |
+          env NSUnbufferedIO=YES xcodebuild -workspace *.xcworkspace \
+            -scheme $SCHEME -configuration $CONFIGURATION \
+            -destination "$DESTINATION" \
+            test
