@@ -48,7 +48,9 @@ jobs:
           CONFIGURATION: Release
           DESTINATION: 'platform=iOS Simulator,OS=latest,name=iPhone 14'
         run: |
-          env NSUnbufferedIO=YES xcodebuild -workspace *.xcworkspace \
+          env NSUnbufferedIO=YES \
+            ONLY_ACTIVE_ARCH=yes \
+            xcodebuild -workspace *.xcworkspace \
             -scheme $SCHEME -configuration $CONFIGURATION \
             -destination "$DESTINATION" \
             test
