@@ -139,7 +139,7 @@
     [self setBool:options[@"enableNetworkTracking"]
             block:^(BOOL value) { _self.enableNetworkTracking = value; }];
 
-    [self setBool:options[@"enableFileIOTracking"]
+    [self setBool:options[@"enableFileIOTracing"]
             block:^(BOOL value) { _self.enableFileIOTracing = value; }];
 
     if ([options[@"tracesSampleRate"] isKindOfClass:[NSNumber class]]) {

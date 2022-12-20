@@ -25,6 +25,7 @@ target 'sample' do
   target 'sampleTests' do
     inherit! :complete
     # Pods for testing
+    pod 'RNSentryPrivate', :path => '../../RNSentryPrivate.podspec'
   end
 
   post_install do |installer|

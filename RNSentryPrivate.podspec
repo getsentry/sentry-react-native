@@ -4,25 +4,28 @@ version = JSON.parse(File.read('package.json'))["version"]
 folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -Wno-comma -Wno-shorten-64-to-32'
 
 Pod::Spec.new do |s|
-  s.name           = 'RNSentry'
+  s.name           = 'RNSentryPrivate'
   s.version        = version
   s.license        = 'MIT'
-  s.summary        = 'Official Sentry SDK for react-native'
+  s.summary        = 'RNSentry Private Library'
   s.author         = 'Sentry'
   s.homepage       = "https://github.com/getsentry/sentry-react-native"
   s.source         = { :git => 'https://github.com/getsentry/sentry-react-native.git', :tag => "#{s.version}"}
+
+  s.description      = <<-DESC
+   Not for public use.
+   Common APIs for internal Sentry usage.
+                          DESC
+
+  s.preserve_paths = '*.js'
+
+  s.dependency 'React-Core'
 
   s.ios.deployment_target = "12.4"
   s.osx.deployment_target = "10.10"
   s.tvos.deployment_target = "12.4"
 
-  s.preserve_paths = '*.js'
-
-  s.dependency 'React-Core'
-  s.dependency 'Sentry/HybridSDK', '8.0.0-beta.4'
-
-  s.source_files = 'ios/**/*.{h,mm}'
-  s.public_header_files = 'ios/RNSentry.h'
+  s.source_files = 'ios/Private/**/*.{h,mm}'
 
   # This guard prevent to install the dependencies when we run `pod install` in the old architecture.
   if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then
