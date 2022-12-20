@@ -23,23 +23,30 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: NPM cache SDK
+      - name: NPM cache
         uses: actions/cache@v3
         id: deps-cache
         with:
-          path: node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock') }}
+          path: |
+            node_modules
+            sample/node_modules
+          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
 
       - name: Install SDK JS Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
 
-      - name: Build SDK
-        run: yarn build
+      - name: Install App JS Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        working-directory: sample
+        run: yarn install
 
       - name: Install App Pods
         working-directory: sample/ios
         run: PRODUCTION=1 pod install
+
+      - name: Build SDK
+        run: yarn build
 
       - name: Run iOS Tests
         working-directory: sample/ios
