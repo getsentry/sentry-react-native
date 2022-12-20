@@ -1,4 +1,4 @@
-import { defaultStackParser, eventFromException, eventFromMessage } from '@sentry/browser';
+import { eventFromException, eventFromMessage } from '@sentry/browser';
 import { BaseClient } from '@sentry/core';
 import {
   ClientReportEnvelope,
