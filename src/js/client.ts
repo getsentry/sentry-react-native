@@ -1,5 +1,4 @@
-import { eventFromException, eventFromMessage,makeFetchTransport } from '@sentry/browser';
-import { FetchImpl } from '@sentry/browser/types/transports/utils';
+import { eventFromException, eventFromMessage } from '@sentry/browser';
 import { BaseClient } from '@sentry/core';
 import {
   ClientReportEnvelope,
@@ -11,18 +10,16 @@ import {
   Outcome,
   SeverityLevel,
   Thread,
-  Transport,
   UserFeedback,
 } from '@sentry/types';
 import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
-// @ts-ignore LogBox introduced in RN 0.63
-import { Alert, LogBox, YellowBox } from 'react-native';
+import { Alert } from 'react-native';
 
 import { Screenshot } from './integrations/screenshot';
 import { defaultSdkInfo } from './integrations/sdkinfo';
-import { ReactNativeClientOptions, ReactNativeTransportOptions } from './options';
-import { makeReactNativeTransport } from './transports/native';
+import { ReactNativeClientOptions } from './options';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
+import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';
 import { NATIVE } from './wrapper';
 
@@ -41,33 +38,14 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @param options Configuration options for this SDK.
    */
   public constructor(options: ReactNativeClientOptions) {
-    if (!options.transport) {
-      options.transport = (options: ReactNativeTransportOptions, nativeFetch?: FetchImpl): Transport => {
-        if (NATIVE.isNativeTransportAvailable()) {
-          return makeReactNativeTransport(options);
-        }
-        return makeFetchTransport(options, nativeFetch);
-      };
-    }
+    ignoreRequireCycleLogs();
     options._metadata = options._metadata || {};
     options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
     super(options);
 
     this._outcomesBuffer = [];
-
-    // This is a workaround for now using fetch on RN, this is a known issue in react-native and only generates a warning
-    // YellowBox deprecated and replaced with with LogBox in RN 0.63
-    if (LogBox) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      LogBox.ignoreLogs(['Require cycle:']);
-    } else {
-      // eslint-disable-next-line deprecation/deprecation
-      YellowBox.ignoreWarnings(['Require cycle:']);
-    }
-
     void this._initNativeSdk();
   }
-
 
   /**
    * @inheritDoc

@@ -8,6 +8,10 @@
 
 - Message event current stack trace moved from exception to threads ([#2694](https://github.com/getsentry/sentry-react-native/pull/2694))
 
+### Fixes
+
+- Unreachable fallback to fetch transport if native is not available ([#2695](https://github.com/getsentry/sentry-react-native/pull/2695))
+
 ## 4.12.0
 
 ### Features
