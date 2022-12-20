@@ -5,9 +5,6 @@ on:
     branches: [main]
   pull_request:
 
-env:
-  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-
 jobs:
   cancel-previous-workflow:
     runs-on: ubuntu-latest
@@ -27,36 +24,25 @@ jobs:
         uses: actions/cache@v3
         id: deps-cache
         with:
-          path: |
-            node_modules
-            sample/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
+          path: node_modules
+          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock') }}
 
       - name: Install SDK JS Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
 
-      - name: Install App JS Dependencies
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
-        working-directory: sample
-        run: yarn install
-
       - name: Install App Pods
-        working-directory: sample/ios
-        run: PRODUCTION=1 pod install
-
-      - name: Build SDK
-        run: yarn build
+        working-directory: RNSentryTester
+        run: pod install
 
       - name: Run iOS Tests
-        working-directory: sample/ios
+        working-directory: RNSentryTester
         env:
-          SCHEME: sample
+          SCHEME: RNSentryTester
           CONFIGURATION: Release
           DESTINATION: 'platform=iOS Simulator,OS=latest,name=iPhone 14'
         run: |
           env NSUnbufferedIO=YES \
-            ONLY_ACTIVE_ARCH=yes \
             xcodebuild -workspace *.xcworkspace \
             -scheme $SCHEME -configuration $CONFIGURATION \
             -destination "$DESTINATION" \
