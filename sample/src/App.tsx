@@ -97,4 +97,8 @@ const App = () => {
 };
 
 // Wrap your app to get more features out of the box such as auto performance monitoring.
-export default Sentry.wrap(App);
+export default Sentry.wrap(App, {
+  touchEventBoundaryProps: {
+    labelName: 'custom-sentry-label',
+  },
+});
