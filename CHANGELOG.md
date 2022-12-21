@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Sync `tags`, `extra`, `fingerprint`, `level`, `environment` and `breadcrumbs` from `sentry-cocoa` during event processing.
+
 ### Dependencies
 
 - Bump Cocoa SDK from v7.31.3 to v7.31.4 ([#2699](https://github.com/getsentry/sentry-react-native/pull/2699))
