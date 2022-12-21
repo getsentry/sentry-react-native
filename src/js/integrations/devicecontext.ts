@@ -87,6 +87,7 @@ export class DeviceContext implements Integration {
             event.breadcrumbs.push(breadcrumb);
           }
         }
+        // TODO: native breadcrumbs timestamp is ISO string not a number
         event.breadcrumbs = event.breadcrumbs.sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0));
       }
 
