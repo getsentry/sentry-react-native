@@ -171,33 +171,27 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSLog(@"Bridge call to: deviceContexts");
-    NSMutableDictionary<NSString *, id> *contexts = [NSMutableDictionary new];
+    __block NSMutableDictionary *contexts;
     // Temp work around until sorted out this API in sentry-cocoa.
     // TODO: If the callback isnt' executed the promise wouldn't be resolved.
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        NSDictionary<NSString *, id> *serializedScope = [scope serialize];
-        // Scope serializes as 'context' instead of 'contexts' as it does for the event.
-        NSDictionary<NSString *, id> *tempContexts = [serializedScope valueForKey:@"context"];
+        NSDictionary *serializedScope = [scope serialize];
+        contexts = [serializedScope mutableCopy];
 
-        NSMutableDictionary<NSString *, id> *user = [NSMutableDictionary new];
-
-        NSDictionary<NSString *, id> *tempUser = [serializedScope valueForKey:@"user"];
-        if (tempUser != nil) {
-            [user addEntriesFromDictionary:[tempUser valueForKey:@"user"]];
-        } else {
-            [user setValue:PrivateSentrySDKOnly.installationID forKey:@"id"];
+        NSDictionary *user = [contexts valueForKey:@"user"];
+        if (user == nil) {
+            [contexts
+                setValue:@{ @"id": PrivateSentrySDKOnly.installationID }
+                forKey:@"user"];
         }
-        [contexts setValue:user forKey:@"user"];
 
-        if (tempContexts != nil) {
-            [contexts setValue:tempContexts forKey:@"context"];
-        }
         if (PrivateSentrySDKOnly.options.debug) {
             NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
             NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
             NSLog(@"Contexts: %@", debugContext);
         }
     }];
+
     resolve(contexts);
 }
 

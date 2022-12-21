@@ -21,7 +21,7 @@ export type NativeReleaseResponse = {
 };
 
 export type NativeDeviceContextsResponse = {
-  [key: string]: Record<string, unknown>;
+  [key: string]: Record<string, unknown> | undefined;
 };
 
 export interface NativeScreenshot {
