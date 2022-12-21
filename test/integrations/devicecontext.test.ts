@@ -33,12 +33,12 @@ describe('Device Context Integration', () => {
 
   it('merge event and native contexts', async () => {
     const { processedEvent } = await executeIntegrationWith({
-      nativeContexts: { context: { duplicate: { context: 'value' }, native: { context: 'value' } } },
-      mockEvent: { contexts: { duplicate: { context: 'value' }, event: { context: 'value' } } },
+      nativeContexts: { context: { duplicate: { context: 'native-value' }, native: { context: 'value' } } },
+      mockEvent: { contexts: { duplicate: { context: 'event-value' }, event: { context: 'value' } } },
     });
     expect(processedEvent).toStrictEqual({
       contexts: {
-        duplicate: { context: 'value' },
+        duplicate: { context: 'event-value' },
         native: { context: 'value' },
         event: { context: 'value' },
       },
@@ -47,12 +47,12 @@ describe('Device Context Integration', () => {
 
   it('merge native tags', async () => {
     const { processedEvent } = await executeIntegrationWith({
-      nativeContexts: { tags: { duplicate: 'tag', native: 'tag' } },
-      mockEvent: { tags: { duplicate: 'tag', event: 'tag' } },
+      nativeContexts: { tags: { duplicate: 'native-tag', native: 'tag' } },
+      mockEvent: { tags: { duplicate: 'event-tag', event: 'tag' } },
     });
     expect(processedEvent).toStrictEqual({
       tags: {
-        duplicate: 'tag',
+        duplicate: 'event-tag',
         native: 'tag',
         event: 'tag',
       },
@@ -61,12 +61,12 @@ describe('Device Context Integration', () => {
 
   it('merge native extra', async () => {
     const { processedEvent } = await executeIntegrationWith({
-      nativeContexts: { extra: { duplicate: 'extra', native: 'extra' } },
-      mockEvent: { extra: { duplicate: 'extra', event: 'extra' } },
+      nativeContexts: { extra: { duplicate: 'native-extra', native: 'extra' } },
+      mockEvent: { extra: { duplicate: 'event-extra', event: 'extra' } },
     });
     expect(processedEvent).toStrictEqual({
       extra: {
-        duplicate: 'extra',
+        duplicate: 'event-extra',
         native: 'extra',
         event: 'extra',
       },
