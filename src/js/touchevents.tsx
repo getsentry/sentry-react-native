@@ -32,7 +32,7 @@ export type TouchEventBoundaryProps = {
    */
   children?: React.ReactNode;
   /**
-   * React Node wrapped by TouchEventBoundary.
+   * Label Name used to identify the touched element.
    */
   labelName?: string;
 };
