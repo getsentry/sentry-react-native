@@ -43,9 +43,12 @@ describe('TouchEventBoundary._onTouchStart', () => {
     expect(addBreadcrumb).not.toBeCalled();
   });
 
-  it('label is preferred over accessibilityLabel and displayName', () => {
+  it('label is preferred over labelName and displayName', () => {
     const { defaultProps } = TouchEventBoundary;
-    const boundary = new TouchEventBoundary(defaultProps);
+    const boundary = new TouchEventBoundary({
+      ...defaultProps,
+      labelName: 'custom-sentry-label-name',
+    });
 
     const event = {
       _targetInst: {
@@ -63,7 +66,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
             return: {
               memoizedProps: {
                 'sentry-label': 'LABEL!',
-                accessibilityLabel: 'access!',
+                'custom-sentry-label-name': 'access!',
               },
             },
           },
@@ -89,6 +92,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     const { defaultProps } = TouchEventBoundary;
     const boundary = new TouchEventBoundary({
       ...defaultProps,
+      labelName: 'custom-sentry-label-name',
       ignoreNames: ['View', 'Ignore', /^Connect\(/, new RegExp('^Happy\\(')],
     });
 
@@ -108,7 +112,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
             return: {
               memoizedProps: {
                 'sentry-label': 'Ignore',
-                accessibilityLabel: 'Ignore',
+                'custom-sentry-label-name': 'Ignore',
               },
               elementType: {
                 displayName: 'Styled(View2)',
@@ -148,6 +152,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     const boundary = new TouchEventBoundary({
       ...defaultProps,
       maxComponentTreeSize: 2,
+      labelName: 'custom-sentry-label-name',
     });
 
     const event = {
@@ -161,7 +166,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
           },
           return: {
             memoizedProps: {
-              accessibilityLabel: 'Connect(View)',
+              'custom-sentry-label-name': 'Connect(View)',
             },
             return: {
               elementType: {
