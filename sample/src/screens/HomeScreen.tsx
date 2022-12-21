@@ -172,7 +172,7 @@ const HomeScreen = (props: Props) => {
               onPress={() => {
                 Sentry.captureException(new Error('Test Error'));
               }}
-              custom-sentry-label="captureException via custom Sentry label">
+              custom-sentry-label-name="captureException via custom Sentry label">
               <Text style={styles.buttonText}>Capture Exception</Text>
             </TouchableOpacity>
             <View style={styles.spacer} />
