@@ -8,7 +8,7 @@ type BreadcrumbCandidate = {
 /**
  * Convert plain object to a valid Breadcrumb
  */
-export function breadcrumbFromObject(candidate: BreadcrumbCandidate) {
+export function breadcrumbFromObject(candidate: BreadcrumbCandidate): Breadcrumb {
   const breadcrumb: Breadcrumb = {};
 
   if (typeof candidate.type === 'string') {

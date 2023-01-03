@@ -1,7 +1,8 @@
+/* eslint-disable complexity */
 import { Breadcrumb, Event, EventProcessor, Hub, Integration } from '@sentry/types';
 import { logger, severityLevelFromString } from '@sentry/utils';
-import { breadcrumbEquals, breadcrumbFromObject } from '../breadcrumb';
 
+import { breadcrumbEquals, breadcrumbFromObject } from '../breadcrumb';
 import { NativeDeviceContextsResponse } from '../definitions';
 import { NATIVE } from '../wrapper';
 
