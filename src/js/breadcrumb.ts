@@ -1,5 +1,5 @@
 import { Breadcrumb } from '@sentry/types';
-import { normalize, severityLevelFromString } from '@sentry/utils';
+import { severityLevelFromString } from '@sentry/utils';
 
 type BreadcrumbCandidate = {
   [K in keyof Partial<Breadcrumb>]: unknown;
