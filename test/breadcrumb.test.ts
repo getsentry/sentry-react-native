@@ -77,6 +77,58 @@ describe('Breadcrumb', () => {
       expect(breadcrumbEquals(breadcrumb, other)).toBe(true);
     });
 
+    it('returns true if two breadcrumbs with different level are equal', () => {
+      const breadcrumb: Breadcrumb = {
+        type: 'test',
+        level: 'info',
+        event_id: '1234',
+        category: 'test',
+        message: 'test',
+        data: {
+          test: 'test',
+        },
+        timestamp: 1577836800000,
+      };
+      const other: Breadcrumb = {
+        type: 'test',
+        level: 'warning',
+        event_id: '1234',
+        category: 'test',
+        message: 'test',
+        data: {
+          test: 'test',
+        },
+        timestamp: 1577836800000,
+      };
+      expect(breadcrumbEquals(breadcrumb, other)).toBe(true);
+    });
+
+    it('returns true if two breadcrumbs with different data are equal', () => {
+      const breadcrumb: Breadcrumb = {
+        type: 'test',
+        level: 'info',
+        event_id: '1234',
+        category: 'test',
+        message: 'test',
+        data: {
+          test: 'test',
+        },
+        timestamp: 1577836800000,
+      };
+      const other: Breadcrumb = {
+        type: 'test',
+        level: 'info',
+        event_id: '1234',
+        category: 'test',
+        message: 'test',
+        data: {
+          test: 'test2',
+        },
+        timestamp: 1577836800000,
+      };
+      expect(breadcrumbEquals(breadcrumb, other)).toBe(true);
+    });
+
     it('returns false if breadcrumbs message is different', () => {
       const breadcrumb: Breadcrumb = {
         type: 'test',

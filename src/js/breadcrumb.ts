@@ -41,14 +41,12 @@ export function breadcrumbFromObject(candidate: BreadcrumbCandidate): Breadcrumb
 
 /**
  * Compares two breadcrumbs and returns true if they are equal
- * Warning: This function does not check timestamp
+ * Warning: This function does not check timestamp and level, data
  */
 export function breadcrumbEquals(breadcrumb: Breadcrumb, other: Breadcrumb): boolean {
   return (
     breadcrumb.category === other.category &&
-    JSON.stringify(normalize(breadcrumb.data)) === JSON.stringify(normalize(other.data)) &&
     breadcrumb.event_id === other.event_id &&
-    breadcrumb.level === other.level &&
     breadcrumb.message === other.message &&
     breadcrumb.type === other.type
   );
