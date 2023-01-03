@@ -1,5 +1,5 @@
 import { Hub } from '@sentry/core';
-import { Event } from '@sentry/types';
+import { Event, SeverityLevel } from '@sentry/types';
 
 import { NativeDeviceContextsResponse } from '../../src/js/definitions';
 import { DeviceContext } from '../../src/js/integrations';
@@ -85,7 +85,7 @@ describe('Device Context Integration', () => {
 
   it('add native level', async () => {
     (await executeIntegrationWith({
-      nativeContexts: { level: 'native-level' },
+      nativeContexts: { level: <SeverityLevel>'fatal' },
     })).expectEvent.toStrictEqualToNativeContexts();
   });
 
@@ -127,25 +127,28 @@ describe('Device Context Integration', () => {
     const { processedEvent } = await executeIntegrationWith({
       nativeContexts: {
         breadcrumbs: [
-          { message: 'breadcrumb-0' },
-          { message: 'breadcrumb-2', timestamp: 2 },
           { message: 'breadcrumb-1' },
+          { message: 'breadcrumb-2', timestamp: '2023-10-01T11:00:00.000Z' },
+          { message: 'breadcrumb-0' },
         ]
       },
       mockEvent: {
         breadcrumbs: [
-          { message: 'breadcrumb-4', timestamp: 4 },
-          { message: 'breadcrumb-3', timestamp: 3 },
+          { message: 'breadcrumb-4', timestamp: Date.parse('2025-10-01T11:00:00.000Z') },
+          { message: 'breadcrumb-3', timestamp: Date.parse('2024-10-01T11:00:00.000Z') },
+          { message: 'breadcrumb-5' },
         ]
       },
     });
+
     expect(processedEvent).toStrictEqual({
       breadcrumbs: [
-        { message: 'breadcrumb-0' },
+        { message: 'breadcrumb-5' },
         { message: 'breadcrumb-1' },
-        { message: 'breadcrumb-2', timestamp: 2 },
-        { message: 'breadcrumb-3', timestamp: 3 },
-        { message: 'breadcrumb-4', timestamp: 4 },
+        { message: 'breadcrumb-0' },
+        { message: 'breadcrumb-2', timestamp: Date.parse('2023-10-01T11:00:00.000Z') },
+        { message: 'breadcrumb-3', timestamp: Date.parse('2024-10-01T11:00:00.000Z') },
+        { message: 'breadcrumb-4', timestamp: Date.parse('2025-10-01T11:00:00.000Z') },
       ],
     });
   });

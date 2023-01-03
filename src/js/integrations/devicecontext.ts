@@ -1,5 +1,6 @@
 import { Breadcrumb, Event, EventProcessor, Hub, Integration } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import { logger, severityLevelFromString } from '@sentry/utils';
+import { breadcrumbEquals, breadcrumbFromObject } from '../breadcrumb';
 
 import { NativeDeviceContextsResponse } from '../definitions';
 import { NATIVE } from '../wrapper';
@@ -67,7 +68,9 @@ export class DeviceContext implements Integration {
         )
       }
 
-      const nativeLevel = contexts['level'] as Event['level'];
+      const nativeLevel = typeof contexts['level'] === 'string'
+        ? severityLevelFromString(contexts['level'])
+        : undefined;
       if (!event.level && nativeLevel) {
         event.level = nativeLevel;
       }
@@ -77,17 +80,18 @@ export class DeviceContext implements Integration {
         event.environment = nativeEnvironment;
       }
 
-      const nativeBreadcrumbs = contexts['breadcrumbs'] as Event['breadcrumbs'];
+      const nativeBreadcrumbs = Array.isArray(contexts['breadcrumbs'])
+        ? contexts['breadcrumbs'].map(breadcrumbFromObject)
+        : undefined;
       if (nativeBreadcrumbs) {
         event.breadcrumbs = event.breadcrumbs ?? []
         for (const breadcrumb of nativeBreadcrumbs ?? []) {
-          const equals = (i: Breadcrumb): boolean => JSON.stringify(i) === JSON.stringify(breadcrumb)
+          const equals = (b: Breadcrumb): boolean => breadcrumbEquals(b, breadcrumb);
           const exists = event.breadcrumbs.findIndex(equals) >= 0;
           if (!exists) {
             event.breadcrumbs.push(breadcrumb);
           }
         }
-        // TODO: native breadcrumbs timestamp is ISO string not a number
         event.breadcrumbs = event.breadcrumbs.sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0));
       }
 
