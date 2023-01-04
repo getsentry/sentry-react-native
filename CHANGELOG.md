@@ -7,6 +7,7 @@
 ### Breaking changes
 
 - Message event current stack trace moved from exception to threads ([#2694](https://github.com/getsentry/sentry-react-native/pull/2694))
+- `touchEventBoundaryProps.labelName` property instead of default `accessibilityLabel` fallback ([#2712](https://github.com/getsentry/sentry-react-native/pull/2712))
 
 ### Fixes
 
@@ -1074,10 +1075,10 @@ This release is a breaking change an code changes are necessary.
 New way to import and init the SDK:
 
 ```js
-import * as Sentry from "@sentry/react-native";
+import * as Sentry from '@sentry/react-native';
 
 Sentry.init({
-  dsn: "DSN",
+  dsn: 'DSN',
 });
 ```
 
@@ -1312,7 +1313,7 @@ We decided to deactivate stack trace merging by default on iOS since it seems to
 To activate it set:
 
 ```js
-Sentry.config("___DSN___", {
+Sentry.config('___DSN___', {
   deactivateStacktraceMerging: false,
 });
 ```
