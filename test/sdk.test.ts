@@ -3,6 +3,8 @@
  */
 import { logger } from '@sentry/utils';
 
+import { NATIVE } from '../src/js/wrapper';
+
 interface MockedClient {
   flush: jest.Mock;
 }
@@ -61,18 +63,24 @@ jest.mock('../src/js/client', () => {
   };
 });
 
+jest.mock('../src/js/wrapper');
+
 jest.spyOn(logger, 'error');
 
 import { initAndBind } from '@sentry/core';
-import { getCurrentHub } from '@sentry/react';
+import { getCurrentHub, makeFetchTransport } from '@sentry/react';
 import { BaseTransportOptions,ClientOptions, Integration, Scope  } from '@sentry/types';
 
 import { ReactNativeClientOptions } from '../src/js/options';
 import { configureScope,flush, init, withScope } from '../src/js/sdk';
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
+import { makeNativeTransport } from '../src/js/transports/native';
 import { firstArg, secondArg } from './testutils';
 
 const mockedInitAndBind = initAndBind as jest.MockedFunction<typeof initAndBind>;
+const usedOptions = (): ClientOptions<BaseTransportOptions> | undefined => {
+  return mockedInitAndBind.mock.calls[0]?.[1];
+}
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -184,10 +192,6 @@ describe('Tests the SDK functionality', () => {
     });
 
     describe('transport options buffer size', () => {
-      const usedOptions = (): ClientOptions<BaseTransportOptions> | undefined => {
-        return mockedInitAndBind.mock.calls[0]?.[1];
-      }
-
       it('uses default transport options buffer size', () => {
         init({
           tracesSampleRate: 0.5,
@@ -211,6 +215,28 @@ describe('Tests the SDK functionality', () => {
         });
         expect(usedOptions()?.transportOptions?.bufferSize).toBe(88);
       });
+    });
+  });
+
+  describe('transport initialization', () => {
+    it('uses transport from the options', () => {
+      const mockTransport = jest.fn();
+      init({
+        transport: mockTransport,
+      });
+      expect(usedOptions()?.transport).toEqual(mockTransport);
+    });
+
+    it('uses native transport', () => {
+      (NATIVE.isNativeTransportAvailable as jest.Mock).mockImplementation(() => true);
+      init({});
+      expect(usedOptions()?.transport).toEqual(makeNativeTransport);
+    });
+
+    it('uses fallback fetch transport', () => {
+      (NATIVE.isNativeTransportAvailable as jest.Mock).mockImplementation(() => false);
+      init({});
+      expect(usedOptions()?.transport).toEqual(makeFetchTransport);
     });
   });
 

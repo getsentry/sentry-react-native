@@ -2,14 +2,51 @@
 
 ## Unreleased
 
+- Latest changes from 4.12.0
+
+### Breaking changes
+
+- Message event current stack trace moved from exception to threads ([#2694](https://github.com/getsentry/sentry-react-native/pull/2694))
+
+### Fixes
+
+- Unreachable fallback to fetch transport if native is not available ([#2695](https://github.com/getsentry/sentry-react-native/pull/2695))
+- Missing `originalException` in `beforeSend` for events from react native error handler ([#2706](https://github.com/getsentry/sentry-react-native/pull/2706))
+- ModulesLoader integration returns original event if native is not available and event modules overwrite native modules ([#2730](https://github.com/getsentry/sentry-react-native/pull/2730))
+
+### Dependencies
+
+- Bump Cocoa SDK from v7.31.3 to v7.31.5 ([#2699](https://github.com/getsentry/sentry-react-native/pull/2699), [#2714](https://github.com/getsentry/sentry-react-native/pull/2714))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/8.0.0/CHANGELOG.md#7315)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.31.3...7.31.5)
+- Bump JavaScript SDK from v7.26.0 to v7.28.1 ([#2705](https://github.com/getsentry/sentry-react-native/pull/2705), [#2709](https://github.com/getsentry/sentry-react-native/pull/2709), [#2715](https://github.com/getsentry/sentry-react-native/pull/2715))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7281)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.26.0...7.28.1)
+- Bump Android SDK from v6.9.2 to v6.11.0 ([#2704](https://github.com/getsentry/sentry-react-native/pull/2704), [#2724](https://github.com/getsentry/sentry-react-native/pull/2724))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6110)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.9.2...6.11.0)
+
+## 4.12.0
+
+### Features
+
+- Add `lastEventId` method to the API ([#2675](https://github.com/getsentry/sentry-react-native/pull/2675))
+
+### Fix
+
+- `Sentry.startTransaction` doesn't require `op` ([#2691](https://github.com/getsentry/sentry-react-native/pull/2691))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v7.31.2 to v7.31.3 ([#2647](https://github.com/getsentry/sentry-react-native/pull/2647))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/8.0.0/CHANGELOG.md#7313)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.31.2...7.31.3)
-- Bump JavaScript SDK from v7.21.1 to v7.24.2 ([#2672](https://github.com/getsentry/sentry-react-native/pull/2672), [#2648](https://github.com/getsentry/sentry-react-native/pull/2648))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7242)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.21.1...7.24.2)
+- Bump JavaScript SDK from v7.21.1 to v7.26.0 ([#2672](https://github.com/getsentry/sentry-react-native/pull/2672), [#2648](https://github.com/getsentry/sentry-react-native/pull/2648), [#2692](https://github.com/getsentry/sentry-react-native/pull/2692))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7260)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.21.1...7.26.0)
+- Bump Android SDK from v6.9.1 to v6.9.2 ([#2677](https://github.com/getsentry/sentry-react-native/pull/2677))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#692)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.9.1...6.9.2)
 
 ## 5.0.0-alpha.10
 
