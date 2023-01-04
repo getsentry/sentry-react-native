@@ -1,5 +1,5 @@
 import { getCurrentHub } from '@sentry/core';
-import { Integration, SeverityLevel } from '@sentry/types';
+import { EventHint, Integration, SeverityLevel } from '@sentry/types';
 import { addExceptionMechanism, logger } from '@sentry/utils';
 
 import { ReactNativeClient } from '../client';
@@ -200,10 +200,11 @@ export class ReactNativeErrorHandlers implements Integration {
 
         const options = client.getOptions();
 
-        const event = await client.eventFromException(error, {
+        const hint: EventHint = {
           originalException: error,
           attachments: scope?.getAttachments(),
-        });
+        };
+        const event = await client.eventFromException(error, hint);
 
         if (isFatal) {
           event.level = 'fatal' as SeverityLevel;
@@ -214,7 +215,7 @@ export class ReactNativeErrorHandlers implements Integration {
           });
         }
 
-        currentHub.captureEvent(event);
+        currentHub.captureEvent(event, hint);
 
         if (!__DEV__) {
           void client.flush(options.shutdownTimeout || 2000).then(() => {
