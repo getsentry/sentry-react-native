@@ -1704,10 +1704,10 @@
     "@sentry/types" "7.28.1"
     tslib "^1.9.3"
 
-"@sentry/wizard@1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-1.4.0.tgz#9356ae2cb9e81ee6fa64418d15638607f1a957bd"
-  integrity sha512-Q/f9wJAAAr/YB6oWUzMQP/y5LIgx9la1SanMHNr3hMtVPKkMhvIZO5UWVn2G763yi85zARqSCLDx31/tZd4new==
+"@sentry/wizard@2.4.0":
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-2.4.0.tgz#29757f937214330388d4e857bc3447f32563c97d"
+  integrity sha512-8QhmlmUCyf2rxg6vKpabvhkYQEfi0LIDHhvUUN6j0xXRn/mg6cyC3beCTMTdZ5MZGnHVThyj5KrYtNm7K4KC8w==
   dependencies:
     "@sentry/cli" "^1.72.0"
     chalk "^2.4.1"
