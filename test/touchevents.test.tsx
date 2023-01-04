@@ -46,7 +46,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     expect(addBreadcrumb).not.toBeCalled();
   });
 
-  it('label is preferred over labelName and displayName', () => {
+  it('sentry-label is preferred over labelName and displayName', () => {
     const { defaultProps } = TouchEventBoundary;
     const boundary = new TouchEventBoundary({
       ...defaultProps,
