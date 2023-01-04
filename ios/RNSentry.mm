@@ -175,14 +175,14 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSLog(@"Bridge call to: deviceContexts");
-    __block NSMutableDictionary *contexts;
+    __block NSMutableDictionary<NSString *, id> *contexts;
     // Temp work around until sorted out this API in sentry-cocoa.
     // TODO: If the callback isnt' executed the promise wouldn't be resolved.
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        NSDictionary *serializedScope = [scope serialize];
+        NSDictionary<NSString *, id>  *serializedScope = [scope serialize];
         contexts = [serializedScope mutableCopy];
 
-        NSDictionary *user = [contexts valueForKey:@"user"];
+        NSDictionary<NSString *, id>  *user = [contexts valueForKey:@"user"];
         if (user == nil) {
             [contexts
                 setValue:@{ @"id": PrivateSentrySDKOnly.installationID }
