@@ -5,7 +5,7 @@
 ### Fixes
 
 - Missing `originalException` in `beforeSend` for events from react native error handler ([#2706](https://github.com/getsentry/sentry-react-native/pull/2706))
-- ModulesLoader integration returns original event if native is not available and event modules overwrite native modules ([#](https://github.com/getsentry/sentry-react-native/pull/))
+- ModulesLoader integration returns original event if native is not available and event modules overwrite native modules ([#2730](https://github.com/getsentry/sentry-react-native/pull/2730))
 
 ### Dependencies
 
