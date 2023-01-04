@@ -1,0 +1,37 @@
+name: Codegen
+
+on:
+  push:
+    branches:
+      - main
+      - release/**
+  pull_request:
+
+jobs:
+  codegen:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: ["android"] # "ios" will be added after codegen is fixed
+        include:
+          - platform: android
+            command: |
+              cd sample-new-architecture/android
+              ./gradlew generateCodegenArtifactsFromSchema
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14
+      - uses: actions/cache@v3
+        id: cache
+        with:
+          path: sample-new-architecture/node_modules
+          key: ${{ runner.os }}-${{ github.sha }}
+      - name: Install Dependencies
+        if: steps.cache.outputs['cache-hit'] != 'true'
+        run: |
+          cd sample-new-architecture
+          yarn install
+      - name: Codegen
+        run: ${{ matrix.command }}

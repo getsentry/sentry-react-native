@@ -6,6 +6,8 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   __sentry_rn_v5_registered?: boolean;
   HermesInternal: unknown;
   Promise: unknown;
+  __turboModuleProxy: unknown;
+  nativeFabricUIManager: unknown;
 }
 
 /** Get's the global object for the current JavaScript runtime */

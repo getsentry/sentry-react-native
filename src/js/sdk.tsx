@@ -4,6 +4,7 @@ import {
   defaultIntegrations as reactDefaultIntegrations,
   defaultStackParser,
   getCurrentHub,
+  makeFetchTransport,
 } from '@sentry/react';
 import { Integration, StackFrame, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
@@ -16,6 +17,7 @@ import {
   EventOrigin,
   ModulesLoader,
   ReactNativeErrorHandlers,
+  ReactNativeInfo,
   Release,
   SdkInfo,
 } from './integrations';
@@ -24,10 +26,9 @@ import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
-import { DEFAULT_BUFFER_SIZE, makeReactNativeTransport } from './transports/native';
+import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
 import { safeFactory, safeTracesSampler } from './utils/safe';
-import { RN_GLOBAL_OBJ } from './utils/worldwide';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
@@ -46,6 +47,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   },
   sendClientReports: true,
   maxQueueSize: DEFAULT_BUFFER_SIZE,
+  attachStacktrace: true,
 };
 
 /**
@@ -63,7 +65,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
     // If custom transport factory fails the SDK won't initialize
-    transport: passedOptions.transport || makeReactNativeTransport,
+    transport: passedOptions.transport || makeNativeTransportFactory() || makeFetchTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(passedOptions.transportOptions ?? {}),
@@ -97,6 +99,7 @@ export function init(passedOptions: ReactNativeOptions): void {
 
     defaultIntegrations.push(new EventOrigin());
     defaultIntegrations.push(new SdkInfo());
+    defaultIntegrations.push(new ReactNativeInfo());
 
     if (__DEV__) {
       defaultIntegrations.push(new DebugSymbolicator());
@@ -143,10 +146,6 @@ export function init(passedOptions: ReactNativeOptions): void {
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
-
-  if (RN_GLOBAL_OBJ.HermesInternal) {
-    getCurrentHub().setTag('hermes', 'true');
-  }
 }
 
 /**

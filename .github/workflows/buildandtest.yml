@@ -14,7 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-
+        with:
+          node-version: 14
       - uses: actions/cache@v3
         id: cache
         with:
@@ -42,12 +43,50 @@ jobs:
       - name: Lint
         run: yarn lint
 
+  job_lint_sample_new_arch:
+    name: Lint Sample
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        id: cache
+        with:
+          path: sample-new-architecture/node_modules
+          key: ${{ runner.os }}-${{ github.sha }}
+      - name: Install Dependencies
+        if: steps.cache.outputs['cache-hit'] != 'true'
+        run: yarn install
+        working-directory: sample-new-architecture
+      - name: Lint Sample
+        run: yarn lint
+        working-directory: sample-new-architecture
+
+  job_check_integrity:
+    name: Check package integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        id: cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ github.sha }}
+      - name: Save initial lock file
+        run: cp yarn.lock yarn.lock.initial
+      - name: Install Dependencies (update lock if necessary)
+        run: yarn install
+      - name: Check lock file integrity
+        run: |
+          ["$(diff yarn.lock.initial yarn.lock)" -eq ""]
+
   job_build:
     name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+        with:
+          node-version: 14
       - uses: actions/cache@v3
         id: cache
         with:

@@ -51,6 +51,12 @@ Sentry.init({
         return context;
       },
     }),
+    {
+      name: 'Dedupe',
+      setupOnce: (_addGlobalEventProcessor, _getCurrentHub) => {
+        console.log('Dedupe Dummy Integration');
+      },
+    },
   ],
   enableAutoSessionTracking: true,
   // For testing, session close when 5 seconds (instead of the default 30) in the background.

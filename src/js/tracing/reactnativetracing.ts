@@ -16,7 +16,7 @@ import {
 } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
-import { NativeAppStartResponse } from '../definitions';
+import { NativeAppStartResponse } from '../NativeRNSentry';
 import { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
 import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
@@ -31,22 +31,33 @@ import {
 export interface ReactNativeTracingOptions
   extends RequestInstrumentationOptions {
   /**
+   * @deprecated Replaced by idleTimeoutMs
+   */
+  idleTimeout: number;
+
+  /**
+   * @deprecated Replaced by maxTransactionDurationMs
+   */
+  maxTransactionDuration: number;
+
+  /**
    * The time to wait in ms until the transaction will be finished. The transaction will use the end timestamp of
    * the last finished span as the endtime for the transaction.
    * Time is in ms.
    *
    * Default: 1000
    */
-  idleTimeout: number;
+  idleTimeoutMs: number;
 
   /**
-   * The maximum duration of a transaction before it will be marked as "deadline_exceeded".
+   * The maximum duration (transaction duration + idle timeout) of a transaction
+   * before it will be marked as "deadline_exceeded".
    * If you never want to mark a transaction set it to 0.
-   * Time is in seconds.
+   * Time is in ms.
    *
-   * Default: 600
+   * Default: 600000
    */
-  maxTransactionDuration: number;
+  finalTimeoutMs: number;
 
   /**
    * The routing instrumentation to be used with the tracing integration.
@@ -95,6 +106,8 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   ...defaultRequestInstrumentationOptions,
   idleTimeout: 1000,
   maxTransactionDuration: 600,
+  idleTimeoutMs: 1000,
+  finalTimeoutMs: 600000,
   ignoreEmptyBackNavigationTransactions: true,
   beforeNavigate: (context) => context,
   enableAppStartTracking: true,
@@ -132,6 +145,17 @@ export class ReactNativeTracing implements Integration {
     this.options = {
       ...defaultReactNativeTracingOptions,
       ...options,
+      finalTimeoutMs: options.finalTimeoutMs
+        // eslint-disable-next-line deprecation/deprecation
+        ?? (typeof options.maxTransactionDuration === 'number'
+              // eslint-disable-next-line deprecation/deprecation
+              ? options.maxTransactionDuration * 1000
+              : undefined)
+        ?? defaultReactNativeTracingOptions.finalTimeoutMs,
+      idleTimeoutMs: options.idleTimeoutMs
+        // eslint-disable-next-line deprecation/deprecation
+        ?? options.idleTimeout
+        ?? defaultReactNativeTracingOptions.idleTimeoutMs,
     };
   }
 
@@ -353,7 +377,7 @@ export class ReactNativeTracing implements Integration {
     }
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { idleTimeout, maxTransactionDuration } = this.options;
+    const { idleTimeoutMs, finalTimeoutMs } = this.options;
 
     const expandedContext = {
       ...context,
@@ -364,8 +388,8 @@ export class ReactNativeTracing implements Integration {
     const idleTransaction = startIdleTransaction(
       hub as Hub,
       expandedContext,
-      idleTimeout,
-      maxTransactionDuration * 1000, // convert seconds to milliseconds
+      idleTimeoutMs,
+      finalTimeoutMs,
       true
     );
 
@@ -396,7 +420,7 @@ export class ReactNativeTracing implements Integration {
     idleTransaction.registerBeforeFinishCallback(
       (transaction, endTimestamp) => {
         adjustTransactionDuration(
-          maxTransactionDuration,
+          finalTimeoutMs,
           transaction,
           endTimestamp
         );

@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import * as core from '@sentry/core';
 import { SeverityLevel } from '@sentry/types';
 

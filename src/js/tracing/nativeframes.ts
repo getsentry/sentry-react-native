@@ -2,7 +2,7 @@ import { Span, Transaction } from '@sentry/tracing';
 import { Event, EventProcessor, Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
-import { NativeFramesResponse } from '../definitions';
+import { NativeFramesResponse } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';
 import { instrumentChildSpanFinish } from './utils';
 
