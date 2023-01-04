@@ -1,8 +1,8 @@
 import { Hub } from '@sentry/core';
 import { Event, SeverityLevel } from '@sentry/types';
 
-import { NativeDeviceContextsResponse } from '../../src/js/definitions';
 import { DeviceContext } from '../../src/js/integrations';
+import { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { NATIVE } from '../../src/js/wrapper';
 
 jest.mock('../../src/js/wrapper');
@@ -109,7 +109,7 @@ describe('Device Context Integration', () => {
     })).expectEvent.toStrictEqualMockEvent();
   });
 
-  it('merge breadcrumbs', async () => {
+  it('use only native breadcrumbs', async () => {
     const { processedEvent } = await executeIntegrationWith({
       nativeContexts: { breadcrumbs: [{ message: 'duplicate-breadcrumb' }, { message: 'native-breadcrumb' }] },
       mockEvent: { breadcrumbs: [{ message: 'duplicate-breadcrumb' }, { message: 'event-breadcrumb' }] },
@@ -117,38 +117,7 @@ describe('Device Context Integration', () => {
     expect(processedEvent).toStrictEqual({
       breadcrumbs: [
         { message: 'duplicate-breadcrumb' },
-        { message: 'event-breadcrumb' },
         { message: 'native-breadcrumb' },
-      ],
-    });
-  });
-
-  it('asc oder breadcrumbs by timestamp', async () => {
-    const { processedEvent } = await executeIntegrationWith({
-      nativeContexts: {
-        breadcrumbs: [
-          { message: 'breadcrumb-1' },
-          { message: 'breadcrumb-2', timestamp: '2023-10-01T11:00:00.000Z' },
-          { message: 'breadcrumb-0' },
-        ]
-      },
-      mockEvent: {
-        breadcrumbs: [
-          { message: 'breadcrumb-4', timestamp: Date.parse('2025-10-01T11:00:00.000Z') },
-          { message: 'breadcrumb-3', timestamp: Date.parse('2024-10-01T11:00:00.000Z') },
-          { message: 'breadcrumb-5' },
-        ]
-      },
-    });
-
-    expect(processedEvent).toStrictEqual({
-      breadcrumbs: [
-        { message: 'breadcrumb-5' },
-        { message: 'breadcrumb-1' },
-        { message: 'breadcrumb-0' },
-        { message: 'breadcrumb-2', timestamp: Date.parse('2023-10-01T11:00:00.000Z') },
-        { message: 'breadcrumb-3', timestamp: Date.parse('2024-10-01T11:00:00.000Z') },
-        { message: 'breadcrumb-4', timestamp: Date.parse('2025-10-01T11:00:00.000Z') },
       ],
     });
   });

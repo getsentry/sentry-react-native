@@ -377,12 +377,10 @@ RCT_EXPORT_METHOD(addBreadcrumb:(NSDictionary *)breadcrumb)
         [breadcrumbInstance setLevel:sentryLevel];
 
         [breadcrumbInstance setCategory:breadcrumb[@"category"]];
-
         [breadcrumbInstance setType:breadcrumb[@"type"]];
-
         [breadcrumbInstance setMessage:breadcrumb[@"message"]];
-
         [breadcrumbInstance setData:breadcrumb[@"data"]];
+        [breadcrumbInstance setTimestamp:[NSDate dateWithTimeIntervalSince1970:[breadcrumb[@"timestamp"] doubleValue]]];
 
         [scope addBreadcrumb:breadcrumbInstance];
     }];

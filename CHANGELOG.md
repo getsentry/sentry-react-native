@@ -7,6 +7,9 @@
 ### Features
 
 - Sync `tags`, `extra`, `fingerprint`, `level`, `environment` and `breadcrumbs` from `sentry-cocoa` during event processing. ([#2713](https://github.com/getsentry/sentry-react-native/pull/2713))
+  - `breadcrumb.level` value `log` is transformed to `debug` when syncing with native layers.
+  - Deprecated `breadcrumb.level` value `critical` is removed and not transformed.
+  - Default `breadcrumb.level` is `error`
 
 ### Breaking changes
 

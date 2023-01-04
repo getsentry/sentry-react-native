@@ -1,9 +1,9 @@
 /* eslint-disable complexity */
-import { Breadcrumb, Event, EventProcessor, Hub, Integration } from '@sentry/types';
+import { Event, EventProcessor, Hub, Integration } from '@sentry/types';
 import { logger, severityLevelFromString } from '@sentry/utils';
 
-import { breadcrumbEquals, breadcrumbFromObject } from '../breadcrumb';
-import { NativeDeviceContextsResponse } from '../definitions';
+import { breadcrumbFromObject } from '../breadcrumb';
+import { NativeDeviceContextsResponse } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';
 
 /** Load device context from native. */
@@ -31,69 +31,61 @@ export class DeviceContext implements Integration {
         return event;
       }
 
-      let contexts: NativeDeviceContextsResponse | null = null;
+      let native: NativeDeviceContextsResponse | null = null;
       try {
-        contexts = await NATIVE.fetchNativeDeviceContexts();
+        native = await NATIVE.fetchNativeDeviceContexts();
       } catch (e) {
         logger.log(`Failed to get device context from native: ${e}`);
       }
 
-      if (!contexts) {
+      if (!native) {
         return event;
       }
 
-      const nativeUser = contexts['user'] as Event['user'];
+      const nativeUser = native.user;
       if (!event.user && nativeUser) {
         event.user = nativeUser;
       }
 
-      const nativeContext = contexts['context'] as Event['contexts'];
+      const nativeContext = native.context;
       if (nativeContext) {
         event.contexts = { ...nativeContext, ...event.contexts };
       }
 
-      const nativeTags = contexts['tags'] as Event['tags'];
+      const nativeTags = native.tags;
       if (nativeTags) {
         event.tags = { ...nativeTags, ...event.tags };
       }
 
-      const nativeExtra = contexts['extra'] as Event['extra'];
+      const nativeExtra = native.extra;
       if (nativeExtra) {
         event.extra = { ...nativeExtra, ...event.extra };
       }
 
-      const nativeFingerprint = contexts['fingerprint'] as Event['fingerprint'];
+      const nativeFingerprint = native.fingerprint;
       if (nativeFingerprint) {
         event.fingerprint = (event.fingerprint ?? []).concat(
           nativeFingerprint.filter((item) => (event.fingerprint ?? []).indexOf(item) < 0),
         )
       }
 
-      const nativeLevel = typeof contexts['level'] === 'string'
-        ? severityLevelFromString(contexts['level'])
+      const nativeLevel = typeof native['level'] === 'string'
+        ? severityLevelFromString(native['level'])
         : undefined;
       if (!event.level && nativeLevel) {
         event.level = nativeLevel;
       }
 
-      const nativeEnvironment = contexts['environment'] as Event['environment'];
+      const nativeEnvironment = native['environment'];
       if (!event.environment && nativeEnvironment) {
         event.environment = nativeEnvironment;
       }
 
-      const nativeBreadcrumbs = Array.isArray(contexts['breadcrumbs'])
-        ? contexts['breadcrumbs'].map(breadcrumbFromObject)
+      const nativeBreadcrumbs = Array.isArray(native['breadcrumbs'])
+        ? native['breadcrumbs'].map(breadcrumbFromObject)
         : undefined;
       if (nativeBreadcrumbs) {
-        event.breadcrumbs = event.breadcrumbs ?? []
-        for (const breadcrumb of nativeBreadcrumbs ?? []) {
-          const equals = (b: Breadcrumb): boolean => breadcrumbEquals(b, breadcrumb);
-          const exists = event.breadcrumbs.findIndex(equals) >= 0;
-          if (!exists) {
-            event.breadcrumbs.push(breadcrumb);
-          }
-        }
-        event.breadcrumbs = event.breadcrumbs.sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0));
+        event.breadcrumbs = nativeBreadcrumbs;
       }
 
       return event;

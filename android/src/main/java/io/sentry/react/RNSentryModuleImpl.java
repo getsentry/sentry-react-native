@@ -444,12 +444,12 @@ public class RNSentryModuleImpl {
                     case "debug":
                         breadcrumbInstance.setLevel(SentryLevel.DEBUG);
                         break;
-                    case "error":
-                        breadcrumbInstance.setLevel(SentryLevel.ERROR);
-                        break;
                     case "info":
-                    default:
                         breadcrumbInstance.setLevel(SentryLevel.INFO);
+                        break;
+                    case "error":
+                    default:
+                        breadcrumbInstance.setLevel(SentryLevel.ERROR);
                         break;
                 }
             }

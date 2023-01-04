@@ -1,5 +1,7 @@
-import { Breadcrumb } from '@sentry/types';
+import { Breadcrumb, SeverityLevel } from '@sentry/types';
 import { severityLevelFromString } from '@sentry/utils';
+
+export const DEFAULT_BREADCRUMB_LEVEL: SeverityLevel = 'error';
 
 type BreadcrumbCandidate = {
   [K in keyof Partial<Breadcrumb>]: unknown;
@@ -37,17 +39,4 @@ export function breadcrumbFromObject(candidate: BreadcrumbCandidate): Breadcrumb
   }
 
   return breadcrumb;
-}
-
-/**
- * Compares two breadcrumbs and returns true if they are equal
- * Warning: This function does not check timestamp and level, data
- */
-export function breadcrumbEquals(breadcrumb: Breadcrumb, other: Breadcrumb): boolean {
-  return (
-    breadcrumb.category === other.category &&
-    breadcrumb.event_id === other.event_id &&
-    breadcrumb.message === other.message &&
-    breadcrumb.type === other.type
-  );
 }
