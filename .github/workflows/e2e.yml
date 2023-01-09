@@ -325,11 +325,27 @@ jobs:
           path: node_modules
           key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock') }}
 
+      - name: NPM cache E2E Tests Library
+        uses: actions/cache@v3
+        id: deps-cache-e2e-library
+        with:
+          path: test/e2e/node_modules
+          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('test/e2e/yarn.lock') }}
+
       - name: Install SDK JS Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
 
+      - name: Install E2E Tests Library JS Dependencies
+        if: steps.deps-cache.outputs['deps-cache-e2e-library'] != 'true'
+        working-directory: test/e2e
+        run: yarn install
+
       - name: Build SDK
+        run: yarn build
+
+      - name: Build E2E Tests Library
+        working-directory: test/e2e
         run: yarn build
 
       - name: Package SDK
@@ -346,6 +362,10 @@ jobs:
       - name: Install App JS Dependencies
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: yarn install
+
+      - name: Add E2E Tests Library to App
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
+        run: yarn add ../../../../e2e
 
       - name: Install App Pods
         if: matrix.platform == 'ios'
