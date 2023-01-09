@@ -1,16 +1,17 @@
+// eslint-disable-next-line import/no-unresolved
+import * as Sentry from '@sentry/react-native';
 import * as React from 'react';
 import { Text, View } from 'react-native';
-import * as Sentry from '@sentry/react-native';
 
-import { getTestProps } from './utils/getTestProps';
 import { SENTRY_INTERNAL_DSN } from './dsn';
+import { getTestProps } from './utils/getTestProps';
 
 export { getTestProps };
 /**
  * This screen is for internal end-to-end testing purposes only. Do not use.
  * Not visible through the UI (no button to load it).
  */
-const EndToEndTestsScreen = () => {
+const EndToEndTestsScreen = (): JSX.Element => {
   const [eventId, setEventId] = React.useState<string | null | undefined>();
 
   // !!! WARNING: Do not put Sentry.init inside React.useEffect like we do here. This is only for testing purposes.
@@ -53,18 +54,16 @@ const EndToEndTestsScreen = () => {
         throw new Error
       </Text>
       <Text
-        onPress={() => {
-          new Promise(() => {
-            throw new Error('Unhandled Promise Rejection');
-          });
+        onPress={async () => {
+          await Promise.reject(new Error('Unhandled Promise Rejection'));
         }}
         {...getTestProps('unhandledPromiseRejection')}>
         Unhandled Promise Rejection
       </Text>
       <Text
         {...getTestProps('close')}
-        onPress={() => {
-          Sentry.close();
+        onPress={async () => {
+          await Sentry.close();
         }}>
         close
       </Text>

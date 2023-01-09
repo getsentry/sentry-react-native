@@ -6,7 +6,11 @@ import {Platform} from 'react-native';
  * @param id
  * @param platform
  */
-const getTestProps = (id: string) =>
+const getTestProps = (id: string): {
+  accessibilityLabel?: string;
+  accessible?: boolean;
+  testID?: string;
+} =>
   Platform.OS === 'android'
     ? {
         accessibilityLabel: id,

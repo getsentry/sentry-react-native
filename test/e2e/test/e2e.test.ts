@@ -1,5 +1,5 @@
-import { remote, RemoteOptions } from 'webdriverio';
 import path from 'path';
+import { remote, RemoteOptions } from 'webdriverio';
 
 import { fetchEvent } from './utils/fetchEvent';
 import { waitForTruthyResult } from './utils/waitFor';
@@ -84,7 +84,7 @@ beforeAll(async () => {
   driver = await remote(conf);
 
   const maxInitTries = 3;
-  for (var i = 1; i <= maxInitTries; i++) {
+  for (let i = 1; i <= maxInitTries; i++) {
     if (i === maxInitTries) {
       await getElement('eventId');
     } else {
@@ -92,6 +92,7 @@ beforeAll(async () => {
         await getElement('eventId');
         break;
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.log(error);
       }
     }

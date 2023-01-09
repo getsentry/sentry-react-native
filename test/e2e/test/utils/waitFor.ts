@@ -3,11 +3,14 @@ import {expect} from '@jest/globals';
 const RETRY_TIMEOUT_MS = 1000;
 const FINAL_TIMEOUT_MS = 1 * 60 * 1000;
 
-export async function waitForTruthyResult<T>(value: () => Promise<T>) {
+export async function waitForTruthyResult<T>(value: () => Promise<T>): Promise<void> {
   const promise = new Promise<T>((resolve, reject) => {
+    // eslint-disable-next-line prefer-const
     let timeout: NodeJS.Timeout;
+    // eslint-disable-next-line prefer-const
     let interval: NodeJS.Timer;
 
+    // eslint-disable-next-line prefer-const
     interval = setInterval(async () => {
       const result = await value();
       if (result) {
@@ -17,6 +20,7 @@ export async function waitForTruthyResult<T>(value: () => Promise<T>) {
       }
     }, RETRY_TIMEOUT_MS);
 
+    // eslint-disable-next-line prefer-const
     timeout = setTimeout(() => {
       clearInterval(interval);
       reject(

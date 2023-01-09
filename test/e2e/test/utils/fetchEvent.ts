@@ -1,4 +1,3 @@
-// tslint:disable: no-implicit-dependencies no-unsafe-any no-console
 import {Event} from '@sentry/types';
 import fetch from 'node-fetch';
 
@@ -15,7 +14,7 @@ interface ApiEvent extends Event {
 const RETRY_COUNT = 600;
 const RETRY_INTERVAL = 1000;
 
-const fetchEvent = async (eventId): Promise<ApiEvent> => {
+const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
   const url = `https://${domain}${eventEndpoint}${eventId}/`;
 
   expect(process.env.SENTRY_AUTH_TOKEN).toBeDefined();
@@ -36,6 +35,7 @@ const fetchEvent = async (eventId): Promise<ApiEvent> => {
         if (retries < RETRY_COUNT) {
           setTimeout(() => {
             retries++;
+            // eslint-disable-next-line no-console
             console.log(`Retrying api request. Retry number: ${retries}`);
             resolve(
               fetch(request)
