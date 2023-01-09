@@ -295,7 +295,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.64.4', '0.70.6']
+        rn-version: ['0.65.3', '0.70.6']
         rn-architecture: ['legacy']
         platform: ['android', 'ios']
         build-type: ['dev', 'production']
@@ -305,7 +305,7 @@ jobs:
             device: 'iPhone 14'
         # exclude all rn versions lower than 0.70.0 for new architecture
         exclude:
-          - rn-version: '0.64.4'
+          - rn-version: '0.65.3'
             rn-architecture: 'new'
     steps:
       - uses: actions/checkout@v3
