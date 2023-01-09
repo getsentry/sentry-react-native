@@ -492,6 +492,7 @@ jobs:
         if: matrix.platform == 'ios'
         working-directory: test/e2e
         run: |
+          ls
           mkdir -p "DerivedData"
           derivedData="$(cd "DerivedData" ; pwd -P)"
           xcodebuild \
