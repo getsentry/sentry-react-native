@@ -457,15 +457,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Download App APK
+      - name: Download App Package
         if: matrix.platform == 'android' && matrix.build-type == 'production'
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
-          path: test/e2e
-
-      - name: Download App APP
-        if: matrix.platform == 'ios' && matrix.build-type == 'production'
         uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
@@ -486,13 +479,14 @@ jobs:
       - name: Install E2E Tests Library JS Dependencies
         if: steps.deps-cache.outputs['deps-cache-e2e-library'] != 'true'
         working-directory: test/e2e
-        run: yarn install
+        run: |
+          ls .
+          yarn install
 
       - name: Build iOS WebDriverAgent
         if: matrix.platform == 'ios'
         working-directory: test/e2e
         run: |
-          ls
           mkdir -p "DerivedData"
           derivedData="$(cd "DerivedData" ; pwd -P)"
           xcodebuild \
