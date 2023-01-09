@@ -437,6 +437,7 @@ jobs:
 
   react-native-test:
     name: Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
+    needs: react-native-build
     runs-on: macos-latest
     strategy:
       fail-fast: false # keeps matrix running if one fails
