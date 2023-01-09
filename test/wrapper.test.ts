@@ -474,6 +474,9 @@ describe('Tests Native Wrapper', () => {
   });
 
   describe('_processLevel', () => {
+    test('converts deprecated levels', () => {
+      expect(NATIVE._processLevel('log' as SeverityLevel)).toBe('debug' as SeverityLevel);
+    });
     test('returns non-deprecated levels', () => {
       expect(NATIVE._processLevel('debug' as SeverityLevel)).toBe('debug' as SeverityLevel);
       expect(NATIVE._processLevel('fatal' as SeverityLevel)).toBe('fatal' as SeverityLevel);
