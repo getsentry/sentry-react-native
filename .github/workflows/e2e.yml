@@ -420,14 +420,14 @@ jobs:
             build
 
       - name: Archive Android APK
-        if: matrix.platform == 'android'
+        if: matrix.platform == 'android' && matrix.build-type == 'production'
         run: |
           BUILD_PATH=test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/android/app/build/outputs/apk/release
           BUILD_NAME=app-release.apk
           tar -cvf apk.tar -C $BUILD_PATH $BUILD_NAME
 
       - name: Archive iOS APP
-        if: matrix.platform == 'ios'
+        if: matrix.platform == 'ios' && matrix.build-type == 'production'
         run: |
           BUILD_PATH=test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios/DerivedData/Build/Products/Release-iphonesimulator
           BUILD_NAME=RnDiffApp.app
