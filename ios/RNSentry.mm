@@ -367,12 +367,12 @@ RCT_EXPORT_METHOD(addBreadcrumb:(NSDictionary *)breadcrumb)
             sentryLevel = kSentryLevelFatal;
         } else if ([levelString isEqualToString:@"warning"]) {
             sentryLevel = kSentryLevelWarning;
-        } else if ([levelString isEqualToString:@"info"]) {
-            sentryLevel = kSentryLevelInfo;
+        } else if ([levelString isEqualToString:@"error"]) {
+            sentryLevel = kSentryLevelError;
         } else if ([levelString isEqualToString:@"debug"]) {
             sentryLevel = kSentryLevelDebug;
         } else {
-            sentryLevel = kSentryLevelError;
+            sentryLevel = kSentryLevelInfo;
         }
         [breadcrumbInstance setLevel:sentryLevel];
 

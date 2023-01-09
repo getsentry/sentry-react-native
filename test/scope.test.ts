@@ -18,7 +18,7 @@ describe('Scope', () => {
       expect(scope._breadcrumbs).toEqual([{
         message: 'test',
         timestamp: 1234,
-        level: 'error',
+        level: 'info',
       }]);
     });
   });
