@@ -73,8 +73,6 @@ beforeAll(async () => {
 
   const maxInitTries = 3;
   for (var i = 1; i <= maxInitTries; i++) {
-    const element = await getElement('openEndToEndTests');
-    await element.click();
     if (i === maxInitTries) {
       await getElement('eventId');
     } else {
