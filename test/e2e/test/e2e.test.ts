@@ -44,19 +44,27 @@ beforeAll(async () => {
     capabilities: {},
   };
 
+  if (process.env.APPIUM_APP === undefined) {
+    throw new Error('APPIUM_APP environment variable must be set');
+  }
+  if (process.env.PLATFORM === 'ios' &&
+      process.env.APPIUM_DERIVED_DATA === undefined) {
+    throw new Error('APPIUM_DERIVED_DATA environment variable must be set');
+  }
+
   if (process.env.PLATFORM === 'android') {
     conf.capabilities = {
       platformName: 'Android',
       'appium:automationName': 'UIAutomator2',
-      'appium:app': './android/app/build/outputs/apk/release/app-release.apk',
+      'appium:app': process.env.APPIUM_APP,
     };
   } else {
     conf.capabilities = {
       platformName: 'iOS',
       'appium:automationName': 'XCUITest',
-      'appium:app':
-        './ios/DerivedData/Build/Products/Release-iphonesimulator/sample.app',
-      'appium:derivedDataPath': path.resolve('./ios/DerivedData'),
+      'appium:app': process.env.APPIUM_APP,
+      // DerivedData of the WebDriverRunner Xcode project.
+      'appium:derivedDataPath': path.resolve((process.env.APPIUM_DERIVED_DATA || '')),
       'appium:showXcodeLog': true,
       'appium:usePrebuiltWDA': true,
     };
@@ -77,8 +85,6 @@ beforeAll(async () => {
 
   const maxInitTries = 3;
   for (var i = 1; i <= maxInitTries; i++) {
-    const element = await getElement('openEndToEndTests');
-    await element.click();
     if (i === maxInitTries) {
       await getElement('eventId');
     } else {
