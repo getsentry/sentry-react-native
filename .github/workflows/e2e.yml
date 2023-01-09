@@ -419,12 +419,26 @@ jobs:
             -derivedDataPath "$derivedData" \
             build
 
+      - name: Archive Android APK
+        if: matrix.platform == 'android'
+        run: |
+          BUILD_PATH=test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/android/app/build/outputs/apk/release
+          BUILD_NAME=app-release.apk
+          tar -cvf apk.tar -C $BUILD_PATH $BUILD_NAME
+
+      - name: Archive iOS APP
+        if: matrix.platform == 'ios'
+        run: |
+          BUILD_PATH=test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios/DerivedData/Build/Products/Release-iphonesimulator
+          BUILD_NAME=RnDiffApp.app
+          tar -cvf app.tar -C $BUILD_PATH $BUILD_NAME
+
       - name: Upload App APK
         if: matrix.platform == 'android' && matrix.build-type == 'production'
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
-          path: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/android/app/build/outputs/apk/release/app-release.apk
+          path: apk.tar
           retention-days: 1
 
       - name: Upload App APP
@@ -432,7 +446,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
-          path: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios/DerivedData/Build/Products/Release-iphonesimulator/RnDiffApp.app
+          path: app.tar
           retention-days: 1
 
   react-native-test:
@@ -458,11 +472,15 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Download App Package
-        if: matrix.platform == 'android' && matrix.build-type == 'production'
+        if: matrix.build-type == 'production'
         uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
           path: test/e2e
+
+      - name: Extract App Package
+        working-directory: test/e2e
+        run: tar -xvf *.tar
 
       - uses: actions/setup-java@v3
         with:
