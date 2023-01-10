@@ -16,9 +16,6 @@
     "jsx": "react-native",
     "types": [
       "jest"
-    ],
-    "paths": {
-      "@sentry/react-native": ["."]
-    },
+    ]
   }
 }

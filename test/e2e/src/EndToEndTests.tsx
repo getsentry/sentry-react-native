@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-unresolved
+/* eslint-disable import/no-unresolved, @typescript-eslint/no-unsafe-member-access */
 import * as Sentry from '@sentry/react-native';
 import * as React from 'react';
 import { Text, View } from 'react-native';

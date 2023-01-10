@@ -1,4 +1,5 @@
-import {expect} from '@jest/globals';
+/* eslint-disable import/no-unresolved */
+import { expect } from '@jest/globals';
 
 const RETRY_TIMEOUT_MS = 1000;
 const FINAL_TIMEOUT_MS = 1 * 60 * 1000;

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import path from 'path';
 import { remote, RemoteOptions } from 'webdriverio';
 
