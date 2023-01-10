@@ -548,6 +548,7 @@ jobs:
             -camera-front none
             -timezone US/Pacific
           script: |
+            export PLATFORM=${{ matrix.platform }}
             # Collect logs
             adb logcat '*:D' 2>&1 >adb.log &
             adb devices -l
@@ -560,7 +561,11 @@ jobs:
         env:
           APPIUM_APP: ./RnDiffApp.app
           APPIUM_DERIVED_DATA: DerivedData
-        run: yarn test --verbose
+        run: |
+          export PLATFORM=${{ matrix.platform }}
+          export DEVICE=${{ matrix.device }}
+          export RUNTIME=${{ matrix.runtime }}
+          yarn test --verbose
 
       - name: Upload logs
         if: ${{ always() }}
