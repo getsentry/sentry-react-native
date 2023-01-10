@@ -2,7 +2,35 @@
 
 ## Unreleased
 
-- Latest changes from 4.12.0
+- Latest changes from 4.13.0
+
+### Breaking changes
+
+- Message event current stack trace moved from exception to threads ([#2694](https://github.com/getsentry/sentry-react-native/pull/2694))
+- `touchEventBoundaryProps.labelName` property instead of default `accessibilityLabel` fallback ([#2712](https://github.com/getsentry/sentry-react-native/pull/2712))
+
+### Fixes
+
+- Unreachable fallback to fetch transport if native is not available ([#2695](https://github.com/getsentry/sentry-react-native/pull/2695))
+
+## 4.13.0
+
+### Fixes
+
+- Missing `originalException` in `beforeSend` for events from react native error handler ([#2706](https://github.com/getsentry/sentry-react-native/pull/2706))
+- ModulesLoader integration returns original event if native is not available and event modules overwrite native modules ([#2730](https://github.com/getsentry/sentry-react-native/pull/2730))
+
+### Dependencies
+
+- Bump Cocoa SDK from v7.31.3 to v7.31.5 ([#2699](https://github.com/getsentry/sentry-react-native/pull/2699), [#2714](https://github.com/getsentry/sentry-react-native/pull/2714))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/8.0.0/CHANGELOG.md#7315)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.31.3...7.31.5)
+- Bump JavaScript SDK from v7.26.0 to v7.29.0 ([#2705](https://github.com/getsentry/sentry-react-native/pull/2705), [#2709](https://github.com/getsentry/sentry-react-native/pull/2709), [#2715](https://github.com/getsentry/sentry-react-native/pull/2715), [#2736](https://github.com/getsentry/sentry-react-native/pull/2736))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7290)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.26.0...7.29.0)
+- Bump Android SDK from v6.9.2 to v6.11.0 ([#2704](https://github.com/getsentry/sentry-react-native/pull/2704), [#2724](https://github.com/getsentry/sentry-react-native/pull/2724))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6110)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.9.2...6.11.0)
 
 ## 4.12.0
 
@@ -1066,10 +1094,10 @@ This release is a breaking change an code changes are necessary.
 New way to import and init the SDK:
 
 ```js
-import * as Sentry from "@sentry/react-native";
+import * as Sentry from '@sentry/react-native';
 
 Sentry.init({
-  dsn: "DSN",
+  dsn: 'DSN',
 });
 ```
 
@@ -1304,7 +1332,7 @@ We decided to deactivate stack trace merging by default on iOS since it seems to
 To activate it set:
 
 ```js
-Sentry.config("___DSN___", {
+Sentry.config('___DSN___', {
   deactivateStacktraceMerging: false,
 });
 ```

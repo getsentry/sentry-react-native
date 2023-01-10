@@ -59,29 +59,26 @@ afterEach(() => {
 
 describe('ReactNativeErrorHandlers', () => {
   describe('onError', () => {
-    test('Sets handled:false on a fatal error', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      let callback: (error: Error, isFatal: boolean) => Promise<void> = () =>
-        Promise.resolve();
+    let errorHandlerCallback: (error: Error, isFatal: boolean) => Promise<void>;
+
+    beforeEach(() => {
+      errorHandlerCallback = () => Promise.resolve();
 
       ErrorUtils.setGlobalHandler = jest.fn((_callback) => {
-        callback = _callback as typeof callback;
+        errorHandlerCallback = _callback as typeof errorHandlerCallback;
       });
 
       const integration = new ReactNativeErrorHandlers();
 
       integration.setupOnce();
 
-      expect(ErrorUtils.setGlobalHandler).toHaveBeenCalledWith(callback);
+      expect(ErrorUtils.setGlobalHandler).toHaveBeenCalledWith(errorHandlerCallback);
+    });
 
-      await callback(new Error('Test Error'), true);
+    test('Sets handled:false on a fatal error', async () => {
+      await errorHandlerCallback(new Error('Test Error'), true);
 
-      const hub = getCurrentHub();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      const mockCall = (hub.captureEvent as jest.MockedFunction<
-        typeof hub.captureEvent
-      >).mock.calls[0];
-      const event = mockCall[0];
+      const [event] = getActualCaptureEventArgs();
 
       expect(event.level).toBe('fatal' as SeverityLevel);
       expect(event.exception?.values?.[0].mechanism?.handled).toBe(false);
@@ -89,32 +86,31 @@ describe('ReactNativeErrorHandlers', () => {
     });
 
     test('Does not set handled:false on a non-fatal error', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      let callback: (error: Error, isFatal: boolean) => Promise<void> = () =>
-        Promise.resolve();
+      await errorHandlerCallback(new Error('Test Error'), false);
 
-      ErrorUtils.setGlobalHandler = jest.fn((_callback) => {
-        callback = _callback as typeof callback;
-      });
-
-      const integration = new ReactNativeErrorHandlers();
-
-      integration.setupOnce();
-
-      expect(ErrorUtils.setGlobalHandler).toHaveBeenCalledWith(callback);
-
-      await callback(new Error('Test Error'), false);
-
-      const hub = getCurrentHub();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      const mockCall = (hub.captureEvent as jest.MockedFunction<
-        typeof hub.captureEvent
-      >).mock.calls[0];
-      const event = mockCall[0];
+      const [event] = getActualCaptureEventArgs();
 
       expect(event.level).toBe('error' as SeverityLevel);
       expect(event.exception?.values?.[0].mechanism?.handled).toBe(true);
       expect(event.exception?.values?.[0].mechanism?.type).toBe('generic');
     });
+
+    test('Includes original exception in hint', async () => {
+      await errorHandlerCallback(new Error('Test Error'), false);
+
+      const [, hint] = getActualCaptureEventArgs();
+
+      expect(hint).toEqual(expect.objectContaining({ originalException: new Error('Test Error') }));
+    });
   });
 });
+
+function getActualCaptureEventArgs() {
+  const hub = getCurrentHub();
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const mockCall = (hub.captureEvent as jest.MockedFunction<
+    typeof hub.captureEvent
+  >).mock.calls[0];
+
+  return mockCall;
+}
