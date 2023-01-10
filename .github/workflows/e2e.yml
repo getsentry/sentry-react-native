@@ -533,6 +533,7 @@ jobs:
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
         env:
+          PLATFORM: android
           APPIUM_APP: ./app-release.apk
         uses: reactivecircus/android-emulator-runner@50986b1464923454c95e261820bc626f38490ec0 # pin@v2
         with:
@@ -548,7 +549,6 @@ jobs:
             -camera-front none
             -timezone US/Pacific
           script: |
-            export PLATFORM='${{ matrix.platform }}'
             # Collect logs
             adb logcat '*:D' 2>&1 >adb.log &
             adb devices -l
@@ -559,10 +559,10 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         working-directory: test/e2e
         env:
+          PLATFORM: ios
           APPIUM_APP: ./RnDiffApp.app
           APPIUM_DERIVED_DATA: DerivedData
         run: |
-          export PLATFORM='${{ matrix.platform }}'
           export DEVICE='${{ matrix.device }}'
           export RUNTIME='${{ matrix.runtime }}'
           yarn test --verbose
