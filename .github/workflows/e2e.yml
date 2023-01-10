@@ -237,7 +237,7 @@ jobs:
       fail-fast: false # keeps matrix running if one fails
       matrix:
         rn-version: ['0.65.3', '0.70.6']
-        rn-architecture: ['legacy']
+        rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['dev', 'production']
         include:
@@ -409,6 +409,10 @@ jobs:
         exclude:
           - rn-version: '0.65.3'
             rn-architecture: 'new'
+    env:
+      PLATFORM: ${{ matrix.platform }}
+      RUNTIME: ${{ matrix.runtime }}
+      DEVICE: ${{ matrix.device }}
     steps:
       - uses: actions/checkout@v3
 
@@ -438,9 +442,7 @@ jobs:
       - name: Install E2E Tests Library JS Dependencies
         if: steps.deps-cache.outputs['deps-cache-e2e-library'] != 'true'
         working-directory: test/e2e
-        run: |
-          ls .
-          yarn install
+        run: yarn install
 
       - name: Build iOS WebDriverAgent
         if: matrix.platform == 'ios'
@@ -474,7 +476,6 @@ jobs:
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
         env:
-          PLATFORM: android
           APPIUM_APP: ./app-release.apk
         uses: reactivecircus/android-emulator-runner@50986b1464923454c95e261820bc626f38490ec0 # pin@v2
         with:
@@ -500,13 +501,9 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         working-directory: test/e2e
         env:
-          PLATFORM: ios
           APPIUM_APP: ./RnDiffApp.app
           APPIUM_DERIVED_DATA: DerivedData
-        run: |
-          export DEVICE='${{ matrix.device }}'
-          export RUNTIME='${{ matrix.runtime }}'
-          yarn test --verbose
+        run: yarn test --verbose
 
       - name: Upload logs
         if: ${{ always() }}
