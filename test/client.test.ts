@@ -3,7 +3,7 @@ import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';
-import { ReactNativeClientOptions, ReactNativeOptions } from '../src/js/options';
+import { ReactNativeClientOptions } from '../src/js/options';
 import { NativeTransport } from '../src/js/transports/native';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../src/js/version';
 import { NATIVE } from '../src/js/wrapper';
@@ -66,14 +66,20 @@ jest.mock(
   { virtual: true }
 );
 
-const DEFAULT_OPTIONS: ReactNativeOptions = {
+const DEFAULT_OPTIONS: ReactNativeClientOptions = {
   enableNative: true,
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
   enableAutoPerformanceTracking: true,
   enableOutOfMemoryTracking: true,
-  patchGlobalPromise: true
+  patchGlobalPromise: true,
+  integrations: [],
+  transport: () => ({
+    send: jest.fn(),
+    flush: jest.fn(),
+  }),
+  stackParser: jest.fn().mockReturnValue([]),
 };
 
 afterEach(() => {
@@ -88,7 +94,7 @@ describe('Tests ReactNativeClient', () => {
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
         transport: () => new NativeTransport()
-      } as ReactNativeClientOptions);
+      });
 
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
       // @ts-ignore: Is Mocked
@@ -102,7 +108,7 @@ describe('Tests ReactNativeClient', () => {
           ...DEFAULT_OPTIONS,
           dsn: 'not a dsn',
           transport: () => new NativeTransport()
-        } as ReactNativeClientOptions);
+        });
       } catch (e: any) {
         expect(e.message).toBe('Invalid Sentry Dsn: not a dsn');
       }
@@ -114,7 +120,7 @@ describe('Tests ReactNativeClient', () => {
           ...DEFAULT_OPTIONS,
           dsn: undefined,
           transport: () => new NativeTransport()
-        } as ReactNativeClientOptions);
+        });
 
         return expect(backend.eventFromMessage('test')).resolves.toBeDefined();
       }).not.toThrow();
@@ -131,7 +137,7 @@ describe('Tests ReactNativeClient', () => {
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
         transport: myCustomTransportFn
-      } as ReactNativeClientOptions);
+      });
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(client.getTransport()?.flush).toBe(myFlush);
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -141,7 +147,7 @@ describe('Tests ReactNativeClient', () => {
 
   describe('onReady', () => {
     test('calls onReady callback with true if Native SDK is initialized', (done) => {
-      new ReactNativeClient({
+      new ReactNativeClient(mockedOptions({
         dsn: EXAMPLE_DSN,
         enableNative: true,
         onReady: ({ didCallNativeInit }) => {
@@ -150,11 +156,11 @@ describe('Tests ReactNativeClient', () => {
           done();
         },
         transport: () => new NativeTransport()
-      } as ReactNativeOptions as ReactNativeClientOptions);
+      }));
     });
 
     test('calls onReady callback with false if Native SDK was not initialized', (done) => {
-      new ReactNativeClient({
+      new ReactNativeClient(mockedOptions({
         dsn: EXAMPLE_DSN,
         enableNative: false,
         onReady: ({ didCallNativeInit }) => {
@@ -163,7 +169,7 @@ describe('Tests ReactNativeClient', () => {
           done();
         },
         transport: () => new NativeTransport()
-      } as ReactNativeOptions as ReactNativeClientOptions);
+      }));
     });
 
     test('calls onReady callback with false if Native SDK failed to initialize', (done) => {
@@ -173,7 +179,7 @@ describe('Tests ReactNativeClient', () => {
         throw new Error();
       });
 
-      new ReactNativeClient({
+      new ReactNativeClient(mockedOptions({
         dsn: EXAMPLE_DSN,
         enableNative: true,
         onReady: ({ didCallNativeInit }) => {
@@ -182,7 +188,7 @@ describe('Tests ReactNativeClient', () => {
           done();
         },
         transport: () => new NativeTransport()
-      } as ReactNativeOptions as ReactNativeClientOptions);
+      }));
     });
   });
 
@@ -195,7 +201,7 @@ describe('Tests ReactNativeClient', () => {
         enableNative: true,
         transport: () => new NativeTransport()
 
-      } as ReactNativeClientOptions);
+      });
       client.nativeCrash();
 
       expect(RN.NativeModules.RNSentry.crash).toBeCalled();
@@ -212,7 +218,7 @@ describe('Tests ReactNativeClient', () => {
           send: mockTransportSend,
           flush: jest.fn(),
         }),
-      } as ReactNativeClientOptions);
+      });
 
       client.captureUserFeedback({
         comments: 'Test Comments',
@@ -247,7 +253,7 @@ describe('Tests ReactNativeClient', () => {
           send: mockTransportSend,
           flush: jest.fn(),
         }),
-      } as ReactNativeClientOptions);
+      });
     });
 
     afterEach(() => {
@@ -291,7 +297,7 @@ describe('Tests ReactNativeClient', () => {
         send: mockedSend,
         flush: jest.fn().mockResolvedValue(true),
       });
-      const client  = new ReactNativeClient(<ReactNativeClientOptions>{
+      const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
         transport: mockedTransport,
@@ -317,7 +323,7 @@ describe('Tests ReactNativeClient', () => {
         send: mockedSend,
         flush: jest.fn().mockResolvedValue(true),
       });
-      const client = new ReactNativeClient(<ReactNativeClientOptions> {
+      const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
         transport: mockedTransport,
@@ -352,7 +358,7 @@ describe('Tests ReactNativeClient', () => {
           flush: jest.fn(),
         }),
         sendClientReports: false,
-      } as ReactNativeClientOptions);
+      });
 
       mockDroppedEvent(client);
 
@@ -371,7 +377,7 @@ describe('Tests ReactNativeClient', () => {
           flush: jest.fn(),
         }),
         sendClientReports: true,
-      } as ReactNativeClientOptions);
+      });
 
       mockDroppedEvent(client);
 
@@ -405,7 +411,7 @@ describe('Tests ReactNativeClient', () => {
           flush: jest.fn(),
         }),
         sendClientReports: true,
-      } as ReactNativeClientOptions);
+      });
 
       client.captureMessage('message_test_value');
 
@@ -423,7 +429,7 @@ describe('Tests ReactNativeClient', () => {
           flush: jest.fn(),
         }),
         sendClientReports: true,
-      } as ReactNativeClientOptions);
+      });
 
       mockDroppedEvent(client);
 
@@ -444,7 +450,7 @@ describe('Tests ReactNativeClient', () => {
           flush: jest.fn(),
         }),
         sendClientReports: true,
-      } as ReactNativeClientOptions);
+      });
 
       mockDroppedEvent(client);
       client.captureMessage('message_test_value_1');
@@ -485,3 +491,15 @@ describe('Tests ReactNativeClient', () => {
     }
   });
 });
+
+function mockedOptions(options: Partial<ReactNativeClientOptions>): ReactNativeClientOptions {
+  return {
+    integrations: [],
+    stackParser: jest.fn().mockReturnValue([]),
+    transport: () => ({
+      send: jest.fn(),
+      flush: jest.fn(),
+    }),
+    ...options,
+  };
+}
