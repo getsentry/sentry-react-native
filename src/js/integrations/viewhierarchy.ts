@@ -1,4 +1,5 @@
 import { Event, EventHint, EventProcessor, Integration } from '@sentry/types';
+import { logger } from '@sentry/utils';
 
 import { NATIVE } from '../wrapper';
 
@@ -9,8 +10,8 @@ export class ViewHierarchy implements Integration {
    */
   public static id: string = 'ViewHierarchy';
 
-  private static fileName = 'view-hierarchy.json';
-  private static contentType = 'application/json';
+  private static _fileName: string = 'view-hierarchy.json';
+  private static _contentType: string = 'application/json';
 
   /**
    * @inheritDoc
@@ -27,15 +28,23 @@ export class ViewHierarchy implements Integration {
         return event;
       }
 
-      const viewHierarchy = await NATIVE.fetchViewHierarchy()
-      hint.attachments = [
-        {
-          filename: ViewHierarchy.fileName,
-          contentType: ViewHierarchy.contentType,
-          data: viewHierarchy,
-        },
-        ...(hint?.attachments || []),
-      ];
+      let viewHierarchy: Uint8Array | null = null;
+      try {
+        viewHierarchy = await NATIVE.fetchViewHierarchy()
+      } catch (e) {
+        logger.error('Failed to get view hierarchy from native.', e);
+      }
+
+      if (viewHierarchy) {
+        hint.attachments = [
+          {
+            filename: ViewHierarchy._fileName,
+            contentType: ViewHierarchy._contentType,
+            data: viewHierarchy,
+          },
+          ...(hint?.attachments || []),
+        ];
+      }
 
       return event;
     });

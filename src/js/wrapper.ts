@@ -80,7 +80,7 @@ interface SentryNativeWrapper {
   nativeCrash(): void;
 
   fetchModules(): Promise<Record<string, string> | null>;
-  fetchViewHierarchy(): PromiseLike<Uint8Array>;
+  fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
 }
 
 /**
@@ -492,7 +492,7 @@ export const NATIVE: SentryNativeWrapper = {
     }
   },
 
-  async fetchViewHierarchy(): Promise<Uint8Array> {
+  async fetchViewHierarchy(): Promise<Uint8Array | null> {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -500,7 +500,8 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    return new Uint8Array(await RNSentry.fetchViewHierarchy());
+    const raw = await RNSentry.fetchViewHierarchy();
+    return raw ? new Uint8Array(raw) : null;
   },
 
   /**

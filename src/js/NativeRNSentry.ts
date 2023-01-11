@@ -32,7 +32,7 @@ export interface Spec extends TurboModule {
   setTag(key: string, value: string): void;
   enableNativeFramesTracking(): void;
   fetchModules(): Promise<string | undefined | null>;
-  fetchViewHierarchy(): Promise<number[]>;
+  fetchViewHierarchy(): Promise<number[] | undefined | null>;
 }
 
 export type NativeAppStartResponse = {

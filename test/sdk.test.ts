@@ -342,6 +342,26 @@ describe('Tests the SDK functionality', () => {
       expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Screenshot' })]));
     });
 
+    it('no view hierarchy integration by default', () => {
+      init({});
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'ViewHierarchy' })]));
+    });
+
+    it('adds view hierarchy integration', () => {
+      init({
+        attachViewHierarchy: true,
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'ViewHierarchy' })]));
+    });
+
     it('no default integrations', () => {
       init({
         defaultIntegrations: false,

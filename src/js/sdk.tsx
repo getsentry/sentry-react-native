@@ -22,6 +22,7 @@ import {
   SdkInfo,
 } from './integrations';
 import { Screenshot } from './integrations/screenshot';
+import { ViewHierarchy } from './integrations/viewhierarchy';
 import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
@@ -29,7 +30,6 @@ import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
 import { safeFactory, safeTracesSampler } from './utils/safe';
-import { ViewHierarchy } from "./integrations/viewhierarchy";
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
@@ -140,7 +140,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (options.attachScreenshot) {
       defaultIntegrations.push(new Screenshot());
     }
-    defaultIntegrations.push(new ViewHierarchy());
+    if (options.attachViewHierarchy) {
+      defaultIntegrations.push(new ViewHierarchy());
+    }
   }
 
   options.integrations = getIntegrationsToSetup({

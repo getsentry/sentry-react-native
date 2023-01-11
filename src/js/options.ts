@@ -132,6 +132,13 @@ export interface BaseReactNativeOptions {
    * @default false
    */
   attachScreenshot?: boolean;
+
+  /**
+   * When enabled Sentry includes the current view hierarchy in the error attachments.
+   *
+   * @default false
+   */
+  attachViewHierarchy?: boolean;
 }
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {
