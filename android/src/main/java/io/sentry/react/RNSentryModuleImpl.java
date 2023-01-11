@@ -8,6 +8,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.util.SparseIntArray;
+import android.view.View;
+import android.view.Window;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.FrameMetricsAggregator;
@@ -22,13 +24,17 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
-import com.facebook.react.module.annotations.ReactModule;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.HashMap;
@@ -40,10 +46,12 @@ import io.sentry.Breadcrumb;
 import io.sentry.HubAdapter;
 import io.sentry.ILogger;
 import io.sentry.Integration;
+import io.sentry.JsonObjectWriter;
 import io.sentry.Sentry;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
 import io.sentry.UncaughtExceptionHandlerIntegration;
+import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.BuildInfoProvider;
@@ -51,11 +59,12 @@ import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.ScreenshotEventProcessor;
 import io.sentry.android.core.SentryAndroid;
-import io.sentry.android.core.AndroidLogger;
+import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
+import io.sentry.protocol.ViewHierarchy;
 
 public class RNSentryModuleImpl {
 
@@ -356,6 +365,67 @@ public class RNSentryModuleImpl {
         final WritableArray screenshotsArray = new WritableNativeArray();
         screenshotsArray.pushMap(screenshot);
         promise.resolve(screenshotsArray);
+    }
+
+    public void fetchViewHierarchy(Promise promise) {
+        final @Nullable Activity activity = getCurrentActivity();
+        final @Nullable View decorView = getCurrentDecorViewForViewHierarchy(activity);
+
+        if (decorView == null) {
+            promise.resolve(null);
+            return;
+        }
+
+        final @NotNull ViewHierarchy viewHierarchy = ViewHierarchyEventProcessor.snapshotViewHierarchy(decorView);
+
+        byte[] bytes;
+        try {
+            try (final @NotNull ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                 final @NotNull BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stream, UTF_8));
+                 final @NotNull JsonObjectWriter jsonWriter = new JsonObjectWriter(writer, 100)) {
+
+                viewHierarchy.serialize(jsonWriter, logger);
+                jsonWriter.flush();
+                bytes = stream.toByteArray();
+            }
+        } catch (Throwable t) {
+            logger.log(SentryLevel.ERROR, "Could not serialize ViewHierarchy", t);
+            promise.resolve(null);
+            return;
+        }
+
+        if (bytes.length < 1) {
+            logger.log(SentryLevel.ERROR, "Got empty bytes array ViewHierarchy");
+            promise.resolve(null);
+            return;
+        }
+
+        final WritableNativeArray data = new WritableNativeArray();
+        for (final byte b : bytes) {
+            data.pushInt(b);
+        }
+        promise.resolve(data);
+    }
+
+    private @Nullable View getCurrentDecorViewForViewHierarchy(final @Nullable Activity activity) {
+        if (activity == null) {
+            logger.log(SentryLevel.INFO, "Missing activity for view hierarchy snapshot.");
+            return null;
+        }
+
+        final @Nullable Window window = activity.getWindow();
+        if (window == null) {
+            logger.log(SentryLevel.INFO, "Missing window for view hierarchy snapshot.");
+            return null;
+        }
+
+        final @Nullable View decorView = window.peekDecorView();
+        if (decorView == null) {
+            logger.log(SentryLevel.INFO, "Missing decor view for view hierarchy snapshot.");
+            return null;
+        }
+
+        return decorView;
     }
 
     private static PackageInfo getPackageInfo(Context ctx) {

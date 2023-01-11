@@ -63,6 +63,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void fetchViewHierarchy(Promise promise){
+        this.impl.fetchViewHierarchy(promise);
+    }
+
+    @ReactMethod
     public void setUser(final ReadableMap user, final ReadableMap otherUserKeys) {
         this.impl.setUser(user, otherUserKeys);
     }
