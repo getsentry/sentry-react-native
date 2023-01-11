@@ -87,6 +87,9 @@ interface SentryNativeWrapper {
  */
 export const NATIVE: SentryNativeWrapper = {
   async fetchModules(): Promise<Record<string, string> | null> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
     if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }

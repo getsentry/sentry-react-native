@@ -17,7 +17,7 @@
     "build:tools": "tsc -p tsconfig.build.tools.json",
     "clean": "rimraf dist coverage",
     "test": "jest",
-    "lint": "eslint .",
+    "lint": "eslint --config .eslintrc.js .",
     "test:watch": "jest --watch",
     "run-ios": "cd sample && yarn react-native run-ios",
     "run-android": "cd sample && yarn react-native run-android"
@@ -39,22 +39,22 @@
   ],
   "peerDependencies": {
     "react": ">=17.0.0",
-    "react-native": ">=0.70.0"
+    "react-native": ">=0.65.0"
   },
   "dependencies": {
-    "@sentry/browser": "7.26.0",
+    "@sentry/browser": "7.29.0",
     "@sentry/cli": "2.10.0",
-    "@sentry/core": "7.26.0",
-    "@sentry/hub": "7.26.0",
-    "@sentry/integrations": "7.26.0",
-    "@sentry/react": "7.26.0",
-    "@sentry/tracing": "7.26.0",
-    "@sentry/types": "7.26.0",
-    "@sentry/utils": "7.26.0"
+    "@sentry/core": "7.29.0",
+    "@sentry/hub": "7.29.0",
+    "@sentry/integrations": "7.29.0",
+    "@sentry/react": "7.29.0",
+    "@sentry/tracing": "7.29.0",
+    "@sentry/types": "7.29.0",
+    "@sentry/utils": "7.29.0"
   },
   "devDependencies": {
-    "@sentry-internal/eslint-config-sdk": "7.26.0",
-    "@sentry-internal/eslint-plugin-sdk": "7.26.0",
+    "@sentry-internal/eslint-config-sdk": "7.29.0",
+    "@sentry-internal/eslint-plugin-sdk": "7.29.0",
     "@sentry/typescript": "^5.20.1",
     "@sentry/wizard": "2.2.0",
     "@types/jest": "^26.0.15",
