@@ -11,7 +11,11 @@ const parentDir = path.resolve(__dirname, '..');
 
 module.exports = {
   projectRoot: __dirname,
-  watchFolders: [path.resolve(__dirname, 'node_modules'), parentDir],
+  watchFolders: [
+    path.resolve(__dirname, 'node_modules'),
+    `${parentDir}/dist`,
+    `${parentDir}/node_modules`,
+  ],
   resolver: {
     blacklistRE: blacklist([
       new RegExp(`${parentDir}/node_modules/react-native/.*`),
