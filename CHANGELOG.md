@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Take screenshot runs on UI thread on Android
+
 ## 4.13.0
 
 ### Fixes

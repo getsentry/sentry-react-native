@@ -19,6 +19,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
@@ -36,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 import io.sentry.Breadcrumb;
 import io.sentry.HubAdapter;
@@ -45,6 +47,7 @@ import io.sentry.Sentry;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
 import io.sentry.UncaughtExceptionHandlerIntegration;
+import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.BuildInfoProvider;
@@ -52,7 +55,6 @@ import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.ScreenshotEventProcessor;
 import io.sentry.android.core.SentryAndroid;
-import io.sentry.android.core.AndroidLogger;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
@@ -343,15 +345,29 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             return;
         }
 
-        final byte[] raw = takeScreenshot(activity, logger, buildInfo);
-        if (raw == null) {
+        CountDownLatch doneSignal = new CountDownLatch(1);
+        final byte[][] bytesWrapper = {{}};
+        UiThreadUtil.runOnUiThread(() -> {
+            bytesWrapper[0] = takeScreenshot(activity, logger, buildInfo);
+            doneSignal.countDown();
+        });
+
+        try {
+            doneSignal.await();
+        } catch (InterruptedException e) {
+            logger.log(SentryLevel.ERROR, "Screenshot process was interrupted.");
+            promise.resolve(null);
+            return;
+        }
+
+        if (bytesWrapper[0] == null) {
             logger.log(SentryLevel.WARNING, "Screenshot is null, screen was not captured.");
             promise.resolve(null);
             return;
         }
 
         final WritableNativeArray data = new WritableNativeArray();
-        for (final byte b : raw) {
+        for (final byte b : bytesWrapper[0]) {
             data.pushInt(b);
         }
         final WritableMap screenshot = new WritableNativeMap();
