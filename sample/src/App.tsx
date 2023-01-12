@@ -27,8 +27,8 @@ Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
-  beforeSend: (e, hint) => {
-    console.log('Event beforeSend:', e, 'hint:', hint);
+  beforeSend: (e: Sentry.Event) => {
+    console.log('Event beforeSend:', e);
     return e;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
@@ -70,6 +70,8 @@ Sentry.init({
   attachStacktrace: true,
   // Attach screenshots to events.
   attachScreenshot: true,
+  // Attach view hierarchy to events.
+  attachViewHierarchy: true,
 });
 
 const Stack = createStackNavigator();
