@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Take screenshot runs on UI thread on Android
+- Take screenshot runs on UI thread on Android ([#2743](https://github.com/getsentry/sentry-react-native/pull/2743))
 
 ## 4.13.0
 
