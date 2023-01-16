@@ -566,11 +566,6 @@ export const NATIVE: SentryNativeWrapper = {
     if (level == 'log' as SeverityLevel) {
       return 'debug' as SeverityLevel;
     }
-    else if (level == 'critical' as SeverityLevel) {
-      return 'fatal' as SeverityLevel;
-    }
-
-
     return level;
   },
 
