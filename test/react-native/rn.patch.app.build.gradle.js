@@ -12,7 +12,7 @@ if (!args['app-build-gradle']) {
   throw new Error('Missing --app-build-gradle');
 }
 
-logger.info('Patching app/build.gradle', args['app-build-gradle'], args['rn-version']);
+logger.info('Patching app/build.gradle', args['app-build-gradle']);
 
 const newBuildGradleRNVersion = `0.70.0-rc.0`;
 
