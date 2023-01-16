@@ -183,6 +183,18 @@ android {
 
         }
     }
+
+    //2 files found for path lib/arm64-v8a/libc++_shared.so. This version of the Android Gradle Plugin chooses the f
+    packagingOptions {
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        pickFirst 'lib/x86/libfbjni.so'
+        pickFirst 'lib/x86_64/libfbjni.so'
+        pickFirst 'lib/armeabi-v7a/libfbjni.so'
+        pickFirst 'lib/arm64-v8a/libfbjni.so'
+    }
 }
 
 dependencies {
