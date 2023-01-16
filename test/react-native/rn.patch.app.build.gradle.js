@@ -14,8 +14,6 @@ if (!args['app-build-gradle']) {
 
 logger.info('Patching app/build.gradle', args['app-build-gradle']);
 
-const newBuildGradleRNVersion = `0.70.0-rc.0`;
-
 const sentryGradlePatch = `
 apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
 
