@@ -244,7 +244,9 @@ jobs:
       - name: Patch Android App RN
         if: matrix.platform == 'android'
         working-directory: test/react-native
-        run: ../rn.patch.app.build.gradle.js --app-build-gradle versions/${{ matrix.rn-version }}/RnDiffApp/android/app/build.gradle
+        run: |
+          ./rn.patch.app.build.gradle.js \
+            --app-build-gradle 'versions/${{ matrix.rn-version }}/RnDiffApp/android/app/build.gradle'
 
       - name: Patch iOS App RN
         if: matrix.platform == 'ios'
