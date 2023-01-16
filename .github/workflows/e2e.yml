@@ -173,7 +173,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.64.4', '0.70.6']
+        rn-version: ['0.64.4', '0.71.0']
         rn-architecture: ['legacy']
         platform: ['android', 'ios']
         build-type: ['dev', 'production']
@@ -237,7 +237,14 @@ jobs:
 
       - name: Patch App RN
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn.patch
+        run: |
+          patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn.patch
+          ../../../rn.patch.app.js --app .
+
+      - name: Patch Android App RN
+        if: matrix.platform == 'android'
+        working-directory: test/react-native
+        run: ../rn.patch.app.build.gradle.js --app-build-gradle versions/${{ matrix.rn-version }}/RnDiffApp/android/app/build.gradle
 
       - name: Patch iOS App RN
         if: matrix.platform == 'ios'
