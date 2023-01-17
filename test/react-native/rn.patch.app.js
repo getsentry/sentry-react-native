@@ -9,7 +9,6 @@ const { logger } = require('@sentry/utils');
 logger.enable();
 
 const args = parseArgs(argv.slice(2));
-console.log(args, args.app);
 if (!args.app) {
   throw new Error('Missing --app');
 }
