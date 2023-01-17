@@ -52,8 +52,35 @@ export type NativeReleaseResponse = {
   version: string;
 };
 
+/**
+ * This type describes serialized scope from sentry-cocoa. (This is not used for Android)
+ * https://github.com/getsentry/sentry-cocoa/blob/master/Sources/Sentry/SentryScope.m
+ */
 export type NativeDeviceContextsResponse = {
-  [key: string]: Record<string, unknown>;
+  [key: string]: unknown;
+  tags?: Record<string, string>;
+  extra?: Record<string, unknown>;
+  context?: Record<string, Record<string, unknown>>;
+  user?: {
+    userId?: string;
+    email?: string;
+    username?: string;
+    ipAddress?: string;
+    segment?: string;
+    data?: Record<string, unknown>;
+  };
+  dist?: string;
+  environment?: string;
+  fingerprint?: string[];
+  level?: string;
+  breadcrumbs?: {
+    level?: string;
+    timestamp?: string;
+    category?: string;
+    type?: string;
+    message?: string;
+    data?: Record<string, unknown>;
+  }[];
 };
 
 export type NativeScreenshot = {
