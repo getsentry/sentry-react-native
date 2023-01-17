@@ -14,6 +14,7 @@ module.exports = {
   },
   ignorePatterns: [
     'test/react-native/versions/*',
+    'coverage/**/*',
   ],
   overrides: [
     {

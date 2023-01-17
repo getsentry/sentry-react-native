@@ -335,7 +335,8 @@ describe('StallTracking', () => {
     }, 400);
   });
 
-  it('Stall tracking supports idleTransaction with unfinished spans', (done) => {
+  it('Stall tracking supports idleTransaction with unfinished spans', async () => {
+    jest.useFakeTimers();
     const stallTracking = new StallTrackingInstrumentation();
     const localHub = mockHub;
     const idleTransaction = new IdleTransaction({
@@ -357,24 +358,24 @@ describe('StallTracking', () => {
       description: 'Test Span',
     });
 
-    setTimeout(() => {
-      stallTracking.onTransactionFinish(idleTransaction, + 0.015);
-      idleTransaction.finish();
+    await Promise.resolve();
+    jest.advanceTimersByTime(100);
 
-      const measurements = getLastEvent()?.measurements;
+    stallTracking.onTransactionFinish(idleTransaction, + 0.015);
+    idleTransaction.finish();
 
-      expect(measurements).toBeDefined();
+    const measurements = getLastEvent()?.measurements;
 
-      if (measurements) {
-        expect(measurements.stall_count.value).toEqual(expect.any(Number));
-        expect(measurements.stall_longest_time.value).toEqual(
-          expect.any(Number)
-        );
-        expect(measurements.stall_total_time.value).toEqual(expect.any(Number));
-      }
+    expect(measurements).toBeDefined();
 
-      done();
-    }, 100);
+    expect(measurements?.stall_count.value).toEqual(expect.any(Number));
+    expect(measurements?.stall_longest_time.value).toEqual(
+      expect.any(Number)
+    );
+    expect(measurements?.stall_total_time.value).toEqual(expect.any(Number));
+
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   it('Stall tracking ignores unfinished spans in normal transactions', (done) => {
