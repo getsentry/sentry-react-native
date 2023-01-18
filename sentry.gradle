@@ -34,11 +34,7 @@ gradle.projectsEvaluated {
     // separately we then hook into the bundle task of react native to inject
     // sourcemap generation parameters.  In case for whatever reason no release
     // was found for the asset folder we just bail.
-    def bundleTasks = tasks.findAll { task -> (task.name.startsWith("createBundle") || task.name.startsWith("bundle"))
-      && task.name.endsWith("JsAndAssets")
-      && !task.name.contains("Debug")
-      && task.enabled
-    }
+    def bundleTasks = tasks.findAll { task -> (task.name.startsWith("createBundle") || task.name.startsWith("bundle")) && task.name.endsWith("JsAndAssets") && !task.name.contains("Debug") && task.enabled }
     bundleTasks.each { bundleTask ->
         def shouldCleanUp
         def sourcemapOutput
@@ -313,7 +309,12 @@ static extractBundleTaskArgumentsLegacy(cmdArgs, Project project) {
   */
 static extractBundleTaskArgumentsRN71AndAbove(bundleTask, logger) {
     def props = bundleTask.getProperties()
-    def bundleAssetName = props.bundleAssetName.get()
+    def bundleAssetName = props.bundleAssetName?.get()
+
+    if (bundleAssetName == null) {
+        return [null, null]
+    }
+
     def bundleFile = new File(props.jsBundleDir.get().asFile.absolutePath, bundleAssetName)
     def outputSourceMap = new File(props.jsSourceMapsDir.get().asFile.absolutePath, "${bundleAssetName}.map")
 
