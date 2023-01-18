@@ -97,7 +97,8 @@
       "js"
     ],
     "testPathIgnorePatterns": [
-      "<rootDir>/sample/"
+      "<rootDir>/sample/",
+      "<rootDir>/test/e2e/"
     ],
     "testEnvironment": "node",
     "testMatch": [

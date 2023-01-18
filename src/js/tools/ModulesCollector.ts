@@ -4,6 +4,7 @@ import { posix, sep } from 'path';
 
 logger.enable();
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const { dirname, join, resolve, sep: posixSep } = posix;
 
 interface Package {

@@ -18,9 +18,7 @@ target 'sample' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  if !ENV['TEST']
-    pod 'RNSentry', :path => '../../RNSentry.podspec'
-  end
+  pod 'RNSentry', :path => '../../RNSentry.podspec'
 
   target 'sampleTests' do
     inherit! :complete
