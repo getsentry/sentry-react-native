@@ -1,4 +1,4 @@
-import {
+import type {
   EnvelopeItem,
   Exception,
 } from '@sentry/types';

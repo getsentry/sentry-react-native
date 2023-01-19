@@ -45,7 +45,7 @@ jest.mock('@sentry/utils', () => {
 });
 
 import { getCurrentHub } from '@sentry/core';
-import { Event, EventHint, SeverityLevel } from '@sentry/types';
+import type { Event, EventHint, SeverityLevel } from '@sentry/types';
 
 import { ReactNativeErrorHandlers } from '../../src/js/integrations/reactnativeerrorhandlers';
 

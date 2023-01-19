@@ -1,6 +1,6 @@
-import { Breadcrumb, Package } from '@sentry/types';
+import type { Breadcrumb, Package } from '@sentry/types';
 
-import { ReactNativeOptions } from './options';
+import type { ReactNativeOptions } from './options';
 
 export type NativeAppStartResponse = {
   isColdStart: boolean;

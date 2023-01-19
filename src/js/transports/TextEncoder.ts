@@ -1,4 +1,4 @@
-import { TextEncoderInternal } from '@sentry/types';
+import type { TextEncoderInternal } from '@sentry/types';
 
 import { utf8ToBytes } from '../vendor';
 

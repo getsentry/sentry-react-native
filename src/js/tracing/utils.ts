@@ -1,5 +1,5 @@
-import { IdleTransaction, Span, Transaction } from '@sentry/tracing';
-import { TransactionContext, TransactionSource } from '@sentry/types';
+import type { IdleTransaction, Span, Transaction } from '@sentry/tracing';
+import type { TransactionContext, TransactionSource } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 
 export const defaultTransactionSource: TransactionSource = 'component';

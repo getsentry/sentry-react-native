@@ -1,14 +1,15 @@
 /* eslint-disable max-lines */
-import { Transaction as TransactionType, TransactionContext } from '@sentry/types';
+import type { Transaction as TransactionType, TransactionContext } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
-import {
-  InternalRoutingInstrumentation,
+import type {
   OnConfirmRoute,
-  TransactionCreator,
-} from './routingInstrumentation';
+  TransactionCreator} from './routingInstrumentation';
 import {
+  InternalRoutingInstrumentation
+} from './routingInstrumentation';
+import type {
   BeforeNavigate,
   ReactNavigationTransactionContext,
   RouteChangeContextData,

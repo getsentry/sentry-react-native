@@ -1,7 +1,7 @@
-import { Hub } from '@sentry/core';
-import { Transaction, TransactionContext } from '@sentry/types';
+import type { Hub } from '@sentry/core';
+import type { Transaction, TransactionContext } from '@sentry/types';
 
-import { BeforeNavigate } from './types';
+import type { BeforeNavigate } from './types';
 
 export type TransactionCreator = (
   context: TransactionContext

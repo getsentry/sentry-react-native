@@ -1,6 +1,6 @@
 import { logger } from '@sentry/utils';
 
-import { ReactNativeOptions } from '../options';
+import type { ReactNativeOptions } from '../options';
 
 type DangerTypesWithoutCallSignature =
 // eslint-disable-next-line @typescript-eslint/ban-types
