@@ -39,17 +39,6 @@
                ReferencedContainer = "container:RNSentryTester.xcodeproj">
             </BuildableReference>
          </TestableReference>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "3360899629524164007C7730"
-               BuildableName = "RNSentryTesterUITests.xctest"
-               BlueprintName = "RNSentryTesterUITests"
-               ReferencedContainer = "container:RNSentryTester.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

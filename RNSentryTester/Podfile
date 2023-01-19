@@ -5,5 +5,4 @@ platform :ios, '12.4'
 target 'RNSentryTesterTests' do
   use_react_native!()
   pod 'RNSentry', :path => '../RNSentry.podspec'
-  pod 'RNSentryPrivate', :path => '../RNSentryPrivate.podspec'
 end

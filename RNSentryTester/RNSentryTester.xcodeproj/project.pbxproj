@@ -7,14 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3360899229524164007C7730 /* SentryOptions+RNOptionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3360899129524164007C7730 /* SentryOptions+RNOptionsTests.m */; };
+		33F58AD02977037D008F60EA /* RNSentry+initNativeSdk.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33F58ACF2977037D008F60EA /* RNSentry+initNativeSdk.mm */; };
 		B5859A50A3E865EF5E61465A /* libPods-RNSentryTesterTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650CB718ACFBD05609BF2126 /* libPods-RNSentryTesterTests.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1482D5685A340AB93348A43D /* Pods-RNSentryTesterTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryTesterTests.release.xcconfig"; path = "Target Support Files/Pods-RNSentryTesterTests/Pods-RNSentryTesterTests.release.xcconfig"; sourceTree = "<group>"; };
 		3360898D29524164007C7730 /* RNSentryTesterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RNSentryTesterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		3360899129524164007C7730 /* SentryOptions+RNOptionsTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "SentryOptions+RNOptionsTests.m"; sourceTree = "<group>"; };
+		33F58ACF2977037D008F60EA /* RNSentry+initNativeSdk.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "RNSentry+initNativeSdk.mm"; sourceTree = "<group>"; };
 		650CB718ACFBD05609BF2126 /* libPods-RNSentryTesterTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RNSentryTesterTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2321E7CFA55AB617247098E /* Pods-RNSentryTesterTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryTesterTests.debug.xcconfig"; path = "Target Support Files/Pods-RNSentryTesterTests/Pods-RNSentryTesterTests.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -61,7 +61,7 @@
 		3360899029524164007C7730 /* RNSentryTesterTests */ = {
 			isa = PBXGroup;
 			children = (
-				3360899129524164007C7730 /* SentryOptions+RNOptionsTests.m */,
+				33F58ACF2977037D008F60EA /* RNSentry+initNativeSdk.mm */,
 			);
 			path = RNSentryTesterTests;
 			sourceTree = "<group>";
@@ -192,7 +192,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3360899229524164007C7730 /* SentryOptions+RNOptionsTests.m in Sources */,
+				33F58AD02977037D008F60EA /* RNSentry+initNativeSdk.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### Breaking changes
+
+- Option `enableAutoPerformanceTracking` renamed to `enableAutoPerformanceTracing`
+- Option `enableOutOfMemoryTracking` renamed to `enableWatchdogTerminationTracking`
+
+### Features
+
+- Sync `tags`, `extra`, `fingerprint`, `level`, `environment` and `breadcrumbs` from `sentry-cocoa` during event processing. ([#2713](https://github.com/getsentry/sentry-react-native/pull/2713))
+  - `breadcrumb.level` value `log` is transformed to `debug` when syncing with native layers.
+  - Remove `breadcrumb.level` value `critical` transformation to `fatal`.
+  - Default `breadcrumb.level` is `info`
+
+### Dependencies
+
+- Bump Cocoa SDK from v7.31.5 to v8.0.0 ([#2756](https://github.com/getsentry/sentry-react-native/pull/2756))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#800)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.31.5...8.0.0)
+
 ## 5.0.0-alpha.11
 
 - Latest changes from 4.13.0
