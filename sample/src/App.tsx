@@ -8,6 +8,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
+import * as Integrations from '@sentry/integrations';
 
 import HomeScreen from './screens/HomeScreen';
 import TrackerScreen from './screens/TrackerScreen';
@@ -50,6 +51,15 @@ Sentry.init({
 
         return context;
       },
+    }),
+    new Integrations.HttpClient({
+      // This array can contain tuples of `[begin, end]` (both inclusive),
+      // Single status codes, or a combinations of both.
+      // default: [[500, 599]]
+      failedRequestStatusCodes: [[400, 405], [500, 505], 507],
+      // This array can contain Regexes or strings, or combinations of both.
+      // default: [/.*/]
+      failedRequestTargets: ['http://localhost'],
     }),
   ],
   enableAutoSessionTracking: true,

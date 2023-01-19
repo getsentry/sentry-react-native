@@ -119,6 +119,14 @@ const HomeScreen = (props: Props) => {
       .then((asset: number[]) => setData(new Uint8Array(asset)));
   }, []);
 
+  useEffect(() => {
+    try {
+      fetch('http://localhost:8081/not-found');
+    } catch (error) {
+      //ignore the error, it will be send to Sentry
+    }
+  });
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
