@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import {
+import type {
   BaseEnvelopeItemHeaders,
   Breadcrumb,
   Envelope,
@@ -12,7 +12,7 @@ import {
 import { logger, normalize, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
 
-import {
+import type {
   NativeAppStartResponse,
   NativeDeviceContextsResponse,
   NativeFramesResponse,
@@ -21,8 +21,8 @@ import {
   SentryNativeBridgeModule,
 } from './definitions';
 import { isHardCrash } from './misc';
-import { ReactNativeOptions } from './options';
-import { RequiredKeysUser } from './user';
+import type { ReactNativeOptions } from './options';
+import type { RequiredKeysUser } from './user';
 import { utf8ToBytes } from './vendor';
 
 const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;

@@ -1,4 +1,5 @@
-import { GLOBAL_OBJ, InternalGlobal } from '@sentry/utils';
+import type { InternalGlobal } from '@sentry/utils';
+import { GLOBAL_OBJ } from '@sentry/utils';
 
 /** Internal Global object interface with common and Sentry specific properties */
 export interface ReactNativeInternalGlobal extends InternalGlobal {
