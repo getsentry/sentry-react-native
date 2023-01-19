@@ -63,17 +63,19 @@ export interface BaseReactNativeOptions {
     didCallNativeInit: boolean;
   }) => void;
 
-  /** Enable auto performance tracking by default. */
-  enableAutoPerformanceTracking?: boolean;
+  /** Enable auto performance tracking by default. Renamed from `enableAutoPerformanceTracking` in v5. */
+  enableAutoPerformanceTracing?: boolean;
 
   /**
    * Enables Out of Memory Tracking for iOS and macCatalyst.
    * See the following link for more information and possible restrictions:
    * https://docs.sentry.io/platforms/apple/guides/ios/configuration/out-of-memory/
    *
+   * Renamed from `enableOutOfMemoryTracking` in v5.
+   *
    * @default true
    */
-  enableOutOfMemoryTracking?: boolean;
+  enableWatchdogTerminationTracking?: boolean;
 
   /**
    * Set data to the inital scope

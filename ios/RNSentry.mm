@@ -118,12 +118,12 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     }
 
     // Enable the App start and Frames tracking measurements
-    if ([mutableOptions valueForKey:@"enableAutoPerformanceTracking"] != nil) {
-        BOOL enableAutoPerformanceTracking = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracking"];
+    if ([mutableOptions valueForKey:@"enableAutoPerformanceTracing"] != nil) {
+        BOOL enableAutoPerformanceTracing = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracing"];
 
-        PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracking;
+        PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracing;
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-        PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracking;
+        PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracing;
 #endif
     }
 
@@ -450,7 +450,7 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
 {
     // Do nothing on iOS, this bridge method only has an effect on android.
     // If you're starting the Cocoa SDK manually,
-    // you can set the 'enableAutoPerformanceTracking: true' option and
+    // you can set the 'enableAutoPerformanceTracing: true' option and
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 

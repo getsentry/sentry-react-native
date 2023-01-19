@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Breaking changes
+
+- Option `enableAutoPerformanceTracking` renamed to `enableAutoPerformanceTracing`
+- Option `enableOutOfMemoryTracking` renamed to `enableWatchdogTerminationTracking`
+
 ### Features
 
 - Sync `tags`, `extra`, `fingerprint`, `level`, `environment` and `breadcrumbs` from `sentry-cocoa` during event processing. ([#2713](https://github.com/getsentry/sentry-react-native/pull/2713))
