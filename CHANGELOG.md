@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add support for RNGP introduced in React Native 0.71.0 ([#2759](https://github.com/getsentry/sentry-react-native/pull/2759))
+
 ## 4.13.0
 
 ### Fixes
