@@ -351,16 +351,16 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             return;
         }
 
-        final @Nullable byte[] bytes = takeScreenshotOnUiThread(activity);
+        final @Nullable byte[] raw = takeScreenshotOnUiThread(activity);
 
-        if (bytes == null) {
+        if (raw == null) {
             logger.log(SentryLevel.WARNING, "Screenshot is null, screen was not captured.");
             promise.resolve(null);
             return;
         }
 
         final WritableNativeArray data = new WritableNativeArray();
-        for (final byte b : bytes) {
+        for (final byte b : raw) {
             data.pushInt(b);
         }
         final WritableMap screenshot = new WritableNativeMap();
