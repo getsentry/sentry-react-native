@@ -26,6 +26,9 @@ import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.module.annotations.ReactModule;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import io.sentry.Breadcrumb;
 import io.sentry.HubAdapter;
@@ -81,6 +85,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     private static final int FROZEN_FRAME_THRESHOLD = 700;
     // 16ms (slower than 60fps) to constitute slow frames.
     private static final int SLOW_FRAME_THRESHOLD = 16;
+
+    private static final int SCREENSHOT_TIMEOUT_SECONDS = 10;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -345,29 +351,16 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             return;
         }
 
-        CountDownLatch doneSignal = new CountDownLatch(1);
-        final byte[][] bytesWrapper = {{}};
-        UiThreadUtil.runOnUiThread(() -> {
-            bytesWrapper[0] = takeScreenshot(activity, logger, buildInfo);
-            doneSignal.countDown();
-        });
+        final @Nullable byte[] bytes = takeScreenshotOnUiThread(activity);
 
-        try {
-            doneSignal.await();
-        } catch (InterruptedException e) {
-            logger.log(SentryLevel.ERROR, "Screenshot process was interrupted.");
-            promise.resolve(null);
-            return;
-        }
-
-        if (bytesWrapper[0] == null) {
+        if (bytes == null) {
             logger.log(SentryLevel.WARNING, "Screenshot is null, screen was not captured.");
             promise.resolve(null);
             return;
         }
 
         final WritableNativeArray data = new WritableNativeArray();
-        for (final byte b : bytesWrapper[0]) {
+        for (final byte b : bytes) {
             data.pushInt(b);
         }
         final WritableMap screenshot = new WritableNativeMap();
@@ -378,6 +371,30 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         final WritableArray screenshotsArray = new WritableNativeArray();
         screenshotsArray.pushMap(screenshot);
         promise.resolve(screenshotsArray);
+    }
+
+    private static @Nullable byte[] takeScreenshotOnUiThread(@NotNull Activity activity) {
+        CountDownLatch doneSignal = new CountDownLatch(1);
+        final byte[][] bytesWrapper = {{}};
+        final Runnable runTakeScreenshot = () -> {
+            bytesWrapper[0] = takeScreenshot(activity, logger, buildInfo);
+            doneSignal.countDown();
+        };
+
+        if (UiThreadUtil.isOnUiThread()) {
+            runTakeScreenshot.run();
+        } else {
+            UiThreadUtil.runOnUiThread(runTakeScreenshot);
+        }
+
+        try {
+            doneSignal.await(SCREENSHOT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.log(SentryLevel.ERROR, "Screenshot process was interrupted.");
+            return null;
+        }
+
+        return bytesWrapper[0];
     }
 
     private static PackageInfo getPackageInfo(Context ctx) {
