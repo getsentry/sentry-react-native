@@ -265,6 +265,7 @@ jobs:
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"
+          mkdir -p "DerivedData"
           derivedData="$(cd "DerivedData" ; pwd -P)"
           mkdir -p "$derivedData"
           xcodebuild \
