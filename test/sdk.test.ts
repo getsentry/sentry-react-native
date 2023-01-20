@@ -62,9 +62,9 @@ jest.spyOn(logger, 'error');
 
 import { initAndBind } from '@sentry/core';
 import { getCurrentHub } from '@sentry/react';
-import { BaseTransportOptions,ClientOptions, Integration, Scope  } from '@sentry/types';
+import type { BaseTransportOptions,ClientOptions, Integration, Scope  } from '@sentry/types';
 
-import { ReactNativeClientOptions } from '../src/js/options';
+import type { ReactNativeClientOptions } from '../src/js/options';
 import { configureScope,flush, init, withScope } from '../src/js/sdk';
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
 import { firstArg, secondArg } from './testutils';

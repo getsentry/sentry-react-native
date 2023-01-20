@@ -1,4 +1,4 @@
-import { EventHint, Integration } from '@sentry/types';
+import type { EventHint, Integration } from '@sentry/types';
 import { resolvedSyncPromise } from '@sentry/utils';
 
 import { NATIVE } from '../wrapper';
