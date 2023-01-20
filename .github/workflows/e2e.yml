@@ -27,7 +27,7 @@ jobs:
         platform: ['ios', 'android']
         include:
           - platform: ios
-            runtime: '16.0'
+            runtime: 'latest'
             device: 'iPhone 14'
     env:
       PLATFORM: ${{ matrix.platform }}
@@ -104,9 +104,8 @@ jobs:
             mkdir -p DerivedData
             defaults write com.apple.dt.Xcode ShowBuildOperationDuration YES
             buildArgs=(
-              '-destination' 'platform=iOS Simulator,name=${{ matrix.device }}'
+              '-destination' 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}'
               'ONLY_ACTIVE_ARCH=yes'
-              '-sdk' 'iphonesimulator${{ matrix.runtime }}'
               '-derivedDataPath' $(cd "DerivedData" ; pwd -P)
             )
             echo "buildArgs = ${buildArgs[@]}"
@@ -179,7 +178,7 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
-            runtime: '16.0'
+            runtime: 'latest'
             device: 'iPhone 14'
         # exclude all rn versions lower than 0.70.0 for new architecture
         exclude:
@@ -267,13 +266,12 @@ jobs:
           echo "Building $CONFIG"
           mkdir -p "DerivedData"
           derivedData="$(cd "DerivedData" ; pwd -P)"
-          mkdir -p "$derivedData"
           xcodebuild \
             -workspace RnDiffApp.xcworkspace \
             -configuration "$CONFIG" \
             -scheme RnDiffApp \
-            -destination 'platform=iOS Simulator,name=${{ matrix.device }}' \
+            -destination 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}' \
             ONLY_ACTIVE_ARCH=yes \
-            -sdk 'iphonesimulator${{ matrix.runtime }}' \
+            -sdk 'iphonesimulator' \
             -derivedDataPath "$derivedData" \
             build
