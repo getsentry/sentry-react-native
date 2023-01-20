@@ -26,9 +26,6 @@ import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.module.annotations.ReactModule;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -351,7 +348,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             return;
         }
 
-        final @Nullable byte[] raw = takeScreenshotOnUiThread(activity);
+        final byte[] raw = takeScreenshotOnUiThread(activity);
 
         if (raw == null) {
             logger.log(SentryLevel.WARNING, "Screenshot is null, screen was not captured.");
@@ -373,7 +370,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         promise.resolve(screenshotsArray);
     }
 
-    private static @Nullable byte[] takeScreenshotOnUiThread(@NotNull Activity activity) {
+    private static byte[] takeScreenshotOnUiThread(Activity activity) {
         CountDownLatch doneSignal = new CountDownLatch(1);
         final byte[][] bytesWrapper = {{}};
         final Runnable runTakeScreenshot = () -> {
