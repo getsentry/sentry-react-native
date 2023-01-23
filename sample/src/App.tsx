@@ -56,7 +56,7 @@ Sentry.init({
       // This array can contain tuples of `[begin, end]` (both inclusive),
       // Single status codes, or a combinations of both.
       // default: [[500, 599]]
-      failedRequestStatusCodes: [[400, 405], [500, 505], 507],
+      failedRequestStatusCodes: [[400, 599]],
       // This array can contain Regexes or strings, or combinations of both.
       // default: [/.*/]
       failedRequestTargets: ['http://localhost'],
