@@ -54,7 +54,7 @@ jobs:
           key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
 
       - name: iOS cache
-        if: ${{ matrix.platform == 'ios' }}
+        if: matrix.platform == 'ios'
         uses: actions/cache@v3
         with:
           path: |
@@ -87,7 +87,7 @@ jobs:
         run: yarn install
 
       - run: pod install
-        if: ${{ matrix.platform == 'ios' }}
+        if: matrix.platform == 'ios'
         working-directory: ./sample/ios
         env:
           # TEST env var is used in podfile to determine whether to include the sentry SDK from relative path or node_modules.
@@ -137,7 +137,7 @@ jobs:
           command: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/sessions
 
       - name: Run tests on Android
-        if: ${{ matrix.platform == 'android' }}
+        if: matrix.platform == 'android'
         uses: reactivecircus/android-emulator-runner@50986b1464923454c95e261820bc626f38490ec0 # pin@v2
         with:
           api-level: 29
@@ -151,12 +151,12 @@ jobs:
             yarn test --verbose
 
       - name: Run tests on iOS
-        if: ${{ matrix.platform == 'ios' }}
+        if: matrix.platform == 'ios'
         working-directory: ./sample
         run: yarn test --verbose
 
       - name: Upload logs
-        if: ${{ always() }}
+        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.platform }}-logs
