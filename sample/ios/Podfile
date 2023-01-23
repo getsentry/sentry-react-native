@@ -22,7 +22,6 @@ target 'sample' do
 
   target 'sampleTests' do
     inherit! :complete
-    # Pods for testing
   end
 
   post_install do |installer|

@@ -40,8 +40,8 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
-  enableAutoPerformanceTracking: true,
-  enableOutOfMemoryTracking: true,
+  enableAutoPerformanceTracing: true,
+  enableWatchdogTerminationTracking: true,
   patchGlobalPromise: true,
   transportOptions: {
     textEncoder: makeUtf8TextEncoder(),
@@ -133,7 +133,7 @@ export function init(passedOptions: ReactNativeOptions): void {
       defaultIntegrations.push(new DeviceContext());
     }
     if (tracingEnabled) {
-      if (options.enableAutoPerformanceTracking) {
+      if (options.enableAutoPerformanceTracing) {
         defaultIntegrations.push(new ReactNativeTracing());
       }
     }

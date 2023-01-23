@@ -88,7 +88,7 @@ afterEach(() => {
 
 describe('Tests the SDK functionality', () => {
   describe('init', () => {
-    describe('enableAutoPerformanceTracking', () => {
+    describe('enableAutoPerformanceTracing', () => {
       const usedOptions = (): Integration[] => {
         const mockCall = mockedInitAndBind.mock.calls[0];
 
@@ -114,7 +114,7 @@ describe('Tests the SDK functionality', () => {
       it('Auto Performance is enabled when tracing is enabled (tracesSampler)', () => {
         init({
           tracesSampler: () => true,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
         });
 
         expect(autoPerformanceIsEnabled()).toBe(true);
@@ -123,7 +123,7 @@ describe('Tests the SDK functionality', () => {
       it('Auto Performance is enabled when tracing is enabled (tracesSampleRate)', () => {
         init({
           tracesSampleRate: 0.5,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
         });
 
         expect(autoPerformanceIsEnabled()).toBe(true);
@@ -133,7 +133,7 @@ describe('Tests the SDK functionality', () => {
         const tracing = reactNavigationInstrumentation();
         init({
           tracesSampleRate: 0.5,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
           integrations: [tracing],
         });
 
@@ -146,7 +146,7 @@ describe('Tests the SDK functionality', () => {
         const tracing = reactNavigationInstrumentation();
         init({
           tracesSampleRate: 0.5,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
           defaultIntegrations: [tracing],
         });
 
@@ -195,7 +195,7 @@ describe('Tests the SDK functionality', () => {
       it('uses default transport options buffer size', () => {
         init({
           tracesSampleRate: 0.5,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
         });
         expect(usedOptions()?.transportOptions?.bufferSize).toBe(30);
       });

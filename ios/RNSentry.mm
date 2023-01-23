@@ -9,6 +9,7 @@
 #import <Sentry/Sentry.h>
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryScreenFrames.h>
+#import <Sentry/SentryOptions+HybridSDKs.h>
 
 // Thanks to this guard, we won't import this header when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED
@@ -49,7 +50,35 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSError *error = nil;
+    SentryOptions* sentryOptions = [self createOptionsWithDictionary:options error:&error];
+    if (error != nil) {
+        reject(@"SentryReactNative", error.localizedDescription, error);
+        return;
+    }
 
+    [SentrySDK startWithOptions:sentryOptions];
+
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+    BOOL appIsActive = [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
+#else
+    BOOL appIsActive = [[NSApplication sharedApplication] isActive];
+#endif
+
+    // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
+    if (appIsActive && !sentHybridSdkDidBecomeActive && (PrivateSentrySDKOnly.options.enableAutoSessionTracking || PrivateSentrySDKOnly.options.enableWatchdogTerminationTracking)) {
+        [[NSNotificationCenter defaultCenter]
+            postNotificationName:@"SentryHybridSdkDidBecomeActive"
+            object:nil];
+
+        sentHybridSdkDidBecomeActive = true;
+    }
+
+    resolve(@YES);
+}
+
+- (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
+                                         error: (NSError *_Nonnull *_Nonnull) errorPointer
+{
     SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
         // We don't want to send an event after startup that came from a Unhandled JS Exception of react native
         // Because we sent it already before the app crashed.
@@ -73,10 +102,9 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
 
-    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:&error];
-    if (error) {
-        reject(@"SentryReactNative", error.localizedDescription, error);
-        return;
+    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:errorPointer];
+    if (*errorPointer != nil) {
+        return nil;
     }
 
     if ([mutableOptions valueForKey:@"enableNativeCrashHandling"] != nil) {
@@ -90,36 +118,16 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     }
 
     // Enable the App start and Frames tracking measurements
-    if ([mutableOptions valueForKey:@"enableAutoPerformanceTracking"] != nil) {
-        BOOL enableAutoPerformanceTracking = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracking"];
+    if ([mutableOptions valueForKey:@"enableAutoPerformanceTracing"] != nil) {
+        BOOL enableAutoPerformanceTracing = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracing"];
 
-        PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracking;
+        PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracing;
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-        PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracking;
+        PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracing;
 #endif
     }
 
-    [SentrySDK startWithOptionsObject:sentryOptions];
-
-#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-    BOOL appIsActive = [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
-#else
-    BOOL appIsActive = [[NSApplication sharedApplication] isActive];
-#endif
-
-    // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
-    if (appIsActive && !sentHybridSdkDidBecomeActive && (PrivateSentrySDKOnly.options.enableAutoSessionTracking || PrivateSentrySDKOnly.options.enableOutOfMemoryTracking)) {
-        [[NSNotificationCenter defaultCenter]
-            postNotificationName:@"SentryHybridSdkDidBecomeActive"
-            object:nil];
-
-        sentHybridSdkDidBecomeActive = true;
-    }
-
-
-
-
-    resolve(@YES);
+    return sentryOptions;
 }
 
 - (void)setEventOriginTag:(SentryEvent *)event {
@@ -442,7 +450,7 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
 {
     // Do nothing on iOS, this bridge method only has an effect on android.
     // If you're starting the Cocoa SDK manually,
-    // you can set the 'enableAutoPerformanceTracking: true' option and
+    // you can set the 'enableAutoPerformanceTracing: true' option and
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 
