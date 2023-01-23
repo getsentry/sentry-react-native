@@ -83,7 +83,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     // 16ms (slower than 60fps) to constitute slow frames.
     private static final int SLOW_FRAME_THRESHOLD = 16;
 
-    private static final int SCREENSHOT_TIMEOUT_SECONDS = 10;
+    private static final int SCREENSHOT_TIMEOUT_SECONDS = 2;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
