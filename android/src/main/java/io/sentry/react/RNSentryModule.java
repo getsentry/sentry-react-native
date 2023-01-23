@@ -19,6 +19,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
@@ -36,6 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import io.sentry.Breadcrumb;
 import io.sentry.HubAdapter;
@@ -45,6 +48,7 @@ import io.sentry.Sentry;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
 import io.sentry.UncaughtExceptionHandlerIntegration;
+import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.BuildInfoProvider;
@@ -52,7 +56,6 @@ import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.ScreenshotEventProcessor;
 import io.sentry.android.core.SentryAndroid;
-import io.sentry.android.core.AndroidLogger;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
@@ -79,6 +82,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     private static final int FROZEN_FRAME_THRESHOLD = 700;
     // 16ms (slower than 60fps) to constitute slow frames.
     private static final int SLOW_FRAME_THRESHOLD = 16;
+
+    private static final int SCREENSHOT_TIMEOUT_SECONDS = 2;
 
     public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -343,7 +348,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             return;
         }
 
-        final byte[] raw = takeScreenshot(activity, logger, buildInfo);
+        final byte[] raw = takeScreenshotOnUiThread(activity);
+
         if (raw == null) {
             logger.log(SentryLevel.WARNING, "Screenshot is null, screen was not captured.");
             promise.resolve(null);
@@ -362,6 +368,30 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         final WritableArray screenshotsArray = new WritableNativeArray();
         screenshotsArray.pushMap(screenshot);
         promise.resolve(screenshotsArray);
+    }
+
+    private static byte[] takeScreenshotOnUiThread(Activity activity) {
+        CountDownLatch doneSignal = new CountDownLatch(1);
+        final byte[][] bytesWrapper = {{}}; // wrapper to be able to set the value in the runnable
+        final Runnable runTakeScreenshot = () -> {
+            bytesWrapper[0] = takeScreenshot(activity, logger, buildInfo);
+            doneSignal.countDown();
+        };
+
+        if (UiThreadUtil.isOnUiThread()) {
+            runTakeScreenshot.run();
+        } else {
+            UiThreadUtil.runOnUiThread(runTakeScreenshot);
+        }
+
+        try {
+            doneSignal.await(SCREENSHOT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.log(SentryLevel.ERROR, "Screenshot process was interrupted.");
+            return null;
+        }
+
+        return bytesWrapper[0];
     }
 
     private static PackageInfo getPackageInfo(Context ctx) {

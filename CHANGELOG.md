@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Take screenshot runs on UI thread on Android ([#2743](https://github.com/getsentry/sentry-react-native/pull/2743))
+
 ### Dependencies
 
 - Bump Android SDK from v6.11.0 to v6.12.1 ([#2755](https://github.com/getsentry/sentry-react-native/pull/2755))
