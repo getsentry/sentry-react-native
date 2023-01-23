@@ -59,7 +59,7 @@ Sentry.init({
       failedRequestStatusCodes: [[400, 599]],
       // This array can contain Regexes or strings, or combinations of both.
       // default: [/.*/]
-      failedRequestTargets: ['http://localhost'],
+      failedRequestTargets: [/.*/],
     }),
   ],
   enableAutoSessionTracking: true,
