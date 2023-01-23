@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
+import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
 import { createEnvelope, logger } from '@sentry/utils';
 import * as RN from 'react-native';
 
-import { SentryNativeBridgeModule } from '../src/js/definitions';
-import { ReactNativeOptions } from '../src/js/options';
+import type { SentryNativeBridgeModule } from '../src/js/definitions';
+import type { ReactNativeOptions } from '../src/js/options';
 import { utf8ToBytes } from '../src/js/vendor';
 import { NATIVE } from '../src/js/wrapper';
 

@@ -59,5 +59,7 @@ module.exports = {
   rules: {
     // Bundle size isn't too much of an issue for React Native.
     '@sentry-internal/sdk/no-async-await': 'off',
+    '@sentry-internal/sdk/no-optional-chaining': 'off',
+    '@sentry-internal/sdk/no-nullish-coalescing': 'off',
   },
 };

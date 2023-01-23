@@ -1,7 +1,7 @@
 import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';
-import { ReactNativeClientOptions, ReactNativeOptions } from '../src/js/options';
+import type { ReactNativeClientOptions, ReactNativeOptions } from '../src/js/options';
 import { NativeTransport } from '../src/js/transports/native';
 import { NATIVE } from '../src/js/wrapper';
 

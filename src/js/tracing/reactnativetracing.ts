@@ -1,14 +1,15 @@
 /* eslint-disable max-lines */
-import { Hub } from '@sentry/core';
+import type { Hub } from '@sentry/core';
+import type {
+  IdleTransaction,
+  RequestInstrumentationOptions,
+  Transaction} from '@sentry/tracing';
 import {
   defaultRequestInstrumentationOptions,
-  IdleTransaction,
   instrumentOutgoingRequests,
-  RequestInstrumentationOptions,
-  startIdleTransaction,
-  Transaction,
+  startIdleTransaction
 } from '@sentry/tracing';
-import {
+import type {
   EventProcessor,
   Integration,
   Transaction as TransactionType,
@@ -16,12 +17,12 @@ import {
 } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
-import { NativeAppStartResponse } from '../definitions';
-import { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
+import type { NativeAppStartResponse } from '../definitions';
+import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
 import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
 import { StallTrackingInstrumentation } from './stalltracking';
-import { BeforeNavigate, RouteChangeContextData } from './types';
+import type { BeforeNavigate, RouteChangeContextData } from './types';
 import {
   adjustTransactionDuration,
   getTimeOriginMilliseconds,

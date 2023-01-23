@@ -1,5 +1,5 @@
 import { addGlobalEventProcessor, getCurrentHub } from '@sentry/core';
-import { EventProcessor } from '@sentry/types';
+import type { EventProcessor } from '@sentry/types';
 
 import { Release } from '../../src/js/integrations/release';
 
