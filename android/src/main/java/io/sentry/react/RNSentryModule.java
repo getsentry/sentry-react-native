@@ -372,7 +372,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private static byte[] takeScreenshotOnUiThread(Activity activity) {
         CountDownLatch doneSignal = new CountDownLatch(1);
-        final byte[][] bytesWrapper = {{}};
+        final byte[][] bytesWrapper = {{}}; // wrapper to be able to set the value in the runnable
         final Runnable runTakeScreenshot = () -> {
             bytesWrapper[0] = takeScreenshot(activity, logger, buildInfo);
             doneSignal.countDown();
