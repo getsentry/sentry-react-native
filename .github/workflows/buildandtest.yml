@@ -21,7 +21,7 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-${{ github.sha }}
       - name: Install Dependencies
-        if: steps.cache.outputs['cache-hit'] != 'true'
+        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Test
         run: yarn test
@@ -37,7 +37,7 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-${{ github.sha }}
       - name: Install Dependencies
-        if: steps.cache.outputs['cache-hit'] != 'true'
+        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Lint
         run: yarn lint
@@ -54,7 +54,7 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-${{ github.sha }}
       - name: Install Dependencies
-        if: steps.cache.outputs['cache-hit'] != 'true'
+        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Build
         run: yarn build
@@ -95,10 +95,10 @@ jobs:
           path: sample/node_modules
           key: ${{ runner.os }}-${{ hashFiles('sample/yarn.lock') }}
       - name: Install Dependencies
-        if: steps.cache.outputs['cache-hit'] != 'true'
+        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Install Sample Dependencies
-        if: steps.cache-sample.outputs['cache-hit'] != 'true'
+        if: ${{ steps.cache-sample.outputs['cache-hit'] != 'true' }}
         run: yarn install
         working-directory: sample
       - name: Build
