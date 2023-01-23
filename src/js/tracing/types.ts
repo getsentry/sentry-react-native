@@ -1,4 +1,4 @@
-import { TransactionContext } from '@sentry/types';
+import type { TransactionContext } from '@sentry/types';
 
 export interface ReactNavigationRoute {
   name: string;

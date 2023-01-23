@@ -1,7 +1,7 @@
 import { BrowserClient, defaultStackParser, makeFetchTransport } from '@sentry/browser';
-import { FetchImpl } from '@sentry/browser/types/transports/utils';
+import type { FetchImpl } from '@sentry/browser/types/transports/utils';
 import { BaseClient } from '@sentry/core';
-import {
+import type {
   ClientReportEnvelope,
   ClientReportItem,
   Envelope,
@@ -18,7 +18,7 @@ import { Alert, LogBox, YellowBox } from 'react-native';
 
 import { Screenshot } from './integrations/screenshot';
 import { defaultSdkInfo } from './integrations/sdkinfo';
-import { ReactNativeClientOptions, ReactNativeTransportOptions } from './options';
+import type { ReactNativeClientOptions, ReactNativeTransportOptions } from './options';
 import { makeReactNativeTransport } from './transports/native';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { mergeOutcomes } from './utils/outcome';

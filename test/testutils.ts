@@ -1,5 +1,5 @@
 import { Transaction } from '@sentry/tracing';
-import { Session, UserFeedback } from '@sentry/types';
+import type { Session, UserFeedback } from '@sentry/types';
 import { rejectedSyncPromise } from '@sentry/utils';
 
 import { getBlankTransactionContext } from '../src/js/tracing/utils';

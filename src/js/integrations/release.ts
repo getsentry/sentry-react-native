@@ -1,5 +1,5 @@
 import { addGlobalEventProcessor, getCurrentHub } from '@sentry/core';
-import { Event, Integration } from '@sentry/types';
+import type { Event, Integration } from '@sentry/types';
 
 import { NATIVE } from '../wrapper';
 

@@ -1,6 +1,7 @@
-import { getCurrentHub, getMainCarrier, Hub } from '@sentry/core';
-import { Transaction } from '@sentry/tracing';
-import { CustomSamplingContext, Span, SpanContext, TransactionContext } from '@sentry/types';
+import type { Hub } from '@sentry/core';
+import { getCurrentHub, getMainCarrier } from '@sentry/core';
+import type { Transaction } from '@sentry/tracing';
+import type { CustomSamplingContext, Span, SpanContext, TransactionContext } from '@sentry/types';
 
 import { ReactNativeTracing } from './tracing';
 

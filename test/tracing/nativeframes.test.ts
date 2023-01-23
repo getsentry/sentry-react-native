@@ -1,5 +1,5 @@
 import { Transaction } from '@sentry/tracing';
-import { EventProcessor } from '@sentry/types';
+import type { EventProcessor } from '@sentry/types';
 
 import { NativeFramesInstrumentation } from '../../src/js/tracing/nativeframes';
 import { NATIVE } from '../../src/js/wrapper';
@@ -27,7 +27,7 @@ describe('NativeFramesInstrumentation', () => {
 
     const instance = new NativeFramesInstrumentation(
       // eslint-disable-next-line @typescript-eslint/no-empty-function
-      (_eventProcessor) => {},
+      (_eventProcessor) => { },
       () => true
     );
 
@@ -303,7 +303,7 @@ describe('NativeFramesInstrumentation', () => {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       mockFunction(NATIVE.fetchNativeFrames).mockImplementation(
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        async () => new Promise(() => {})
+        async () => new Promise(() => { })
       );
 
       const finishTimestamp = Date.now() / 1000;
