@@ -119,14 +119,6 @@ const HomeScreen = (props: Props) => {
       .then((asset: number[]) => setData(new Uint8Array(asset)));
   }, []);
 
-  useEffect(() => {
-    try {
-      fetch('http://localhost:8081/not-found');
-    } catch (error) {
-      //ignore the error, it will be send to Sentry
-    }
-  });
-
   return (
     <>
       <StatusBar barStyle="dark-content" />
@@ -268,7 +260,18 @@ const HomeScreen = (props: Props) => {
               <Text style={styles.buttonText}>Get attachment</Text>
             </TouchableOpacity>
             <View style={styles.spacer} />
-            <UserFeedbackModal/>
+            <UserFeedbackModal />
+            <View style={styles.spacer} />
+            <TouchableOpacity
+              onPress={async () => {
+                try {
+                  fetch('http://localhost:8081/not-found');
+                } catch (error) {
+                  //ignore the error, it will be send to Sentry
+                }
+              }}>
+              <Text style={styles.buttonText}>Capture HTTP Client Error</Text>
+            </TouchableOpacity>
           </View>
           <View style={styles.buttonArea}>
             <TouchableOpacity
