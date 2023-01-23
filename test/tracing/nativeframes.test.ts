@@ -1,3 +1,10 @@
+import { Transaction } from '@sentry/tracing';
+import type { EventProcessor } from '@sentry/types';
+
+import { NativeFramesInstrumentation } from '../../src/js/tracing/nativeframes';
+import { NATIVE } from '../../src/js/wrapper';
+import { mockFunction } from '../testutils';
+
 jest.mock('../../src/js/wrapper', () => {
   return {
     NATIVE: {
@@ -6,17 +13,6 @@ jest.mock('../../src/js/wrapper', () => {
       enableNative: true,
     },
   };
-});
-
-import { Transaction } from '@sentry/tracing';
-import type { EventProcessor } from '@sentry/types';
-
-import { NativeFramesInstrumentation } from '../../src/js/tracing/nativeframes';
-import { NATIVE } from '../../src/js/wrapper';
-import { mockFunction } from '../testutils';
-
-beforeEach(() => {
-  jest.useFakeTimers();
 });
 
 describe('NativeFramesInstrumentation', () => {
@@ -31,7 +27,7 @@ describe('NativeFramesInstrumentation', () => {
 
     const instance = new NativeFramesInstrumentation(
       // eslint-disable-next-line @typescript-eslint/no-empty-function
-      (_eventProcessor) => {},
+      (_eventProcessor) => { },
       () => true
     );
 
@@ -98,8 +94,6 @@ describe('NativeFramesInstrumentation', () => {
               start_timestamp: finishTimestamp - 10,
               timestamp: finishTimestamp,
             }, {});
-
-            jest.runOnlyPendingTimers();
 
             // This setImmediate needs to be here for the assertions to not be caught by the promise handler.
 
@@ -184,8 +178,6 @@ describe('NativeFramesInstrumentation', () => {
             measurements: {},
           }, {});
 
-          jest.runOnlyPendingTimers();
-
           // This setImmediate needs to be here for the assertions to not be caught by the promise handler.
           setImmediate(() => {
             expect(event).toBeDefined();
@@ -261,8 +253,6 @@ describe('NativeFramesInstrumentation', () => {
               timestamp: finishTimestamp,
             }, {});
 
-            jest.runOnlyPendingTimers();
-
             expect(event).toBeDefined();
 
             if (event) {
@@ -288,8 +278,6 @@ describe('NativeFramesInstrumentation', () => {
   });
 
   it('Does not set measurements on the transaction event and removes startFrames if finishFrames times out.', (done) => {
-    jest.useRealTimers();
-
     const startFrames = {
       totalFrames: 100,
       slowFrames: 20,
@@ -315,7 +303,7 @@ describe('NativeFramesInstrumentation', () => {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       mockFunction(NATIVE.fetchNativeFrames).mockImplementation(
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        async () => new Promise(() => {})
+        async () => new Promise(() => { })
       );
 
       const finishTimestamp = Date.now() / 1000;
