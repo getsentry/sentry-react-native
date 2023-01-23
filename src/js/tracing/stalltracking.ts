@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
-import { IdleTransaction, Span, Transaction } from '@sentry/tracing';
-import { Measurements, MeasurementUnit } from '@sentry/types';
+import type { IdleTransaction, Span, Transaction } from '@sentry/tracing';
+import type { Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
 export interface StallMeasurements extends Measurements {

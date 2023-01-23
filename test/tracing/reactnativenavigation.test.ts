@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { TransactionContext } from '@sentry/types';
-import { EmitterSubscription } from 'react-native';
+import type { TransactionContext } from '@sentry/types';
+import type { EmitterSubscription } from 'react-native';
 
-import {
+import type {
   ComponentWillAppearEvent,
   EventsRegistry,
-  NavigationDelegate,
+  NavigationDelegate} from '../../src/js/tracing/reactnativenavigation';
+import {
   ReactNativeNavigationInstrumentation,
 } from '../../src/js/tracing/reactnativenavigation';
 import { getBlankTransactionContext } from '../../src/js/tracing/utils';

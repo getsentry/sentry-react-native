@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Transaction } from '@sentry/tracing';
-import { TransactionContext } from '@sentry/types';
+import type { TransactionContext } from '@sentry/types';
 
-import {
+import type {
   AppContainerInstance,
-  INITIAL_TRANSACTION_CONTEXT_V4,
   NavigationRouteV4,
-  NavigationStateV4,
+  NavigationStateV4} from '../../src/js/tracing/reactnavigationv4';
+import {
+  INITIAL_TRANSACTION_CONTEXT_V4,
   ReactNavigationV4Instrumentation,
 } from '../../src/js/tracing/reactnavigationv4';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';

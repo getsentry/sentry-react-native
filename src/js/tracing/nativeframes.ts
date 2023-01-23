@@ -1,8 +1,8 @@
-import { Span, Transaction } from '@sentry/tracing';
-import { Event, EventProcessor, Measurements, MeasurementUnit } from '@sentry/types';
+import type { Span, Transaction } from '@sentry/tracing';
+import type { Event, EventProcessor, Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
-import { NativeFramesResponse } from '../definitions';
+import type { NativeFramesResponse } from '../definitions';
 import { NATIVE } from '../wrapper';
 import { instrumentChildSpanFinish } from './utils';
 

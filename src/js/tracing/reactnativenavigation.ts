@@ -1,13 +1,14 @@
-import { Transaction as TransactionType, TransactionContext } from '@sentry/types';
+import type { Transaction as TransactionType, TransactionContext } from '@sentry/types';
 import { logger } from '@sentry/utils';
-import { EmitterSubscription } from 'react-native';
+import type { EmitterSubscription } from 'react-native';
 
-import {
-  InternalRoutingInstrumentation,
+import type {
   OnConfirmRoute,
-  TransactionCreator,
+  TransactionCreator} from './routingInstrumentation';
+import {
+  InternalRoutingInstrumentation
 } from './routingInstrumentation';
-import { BeforeNavigate, RouteChangeContextData } from './types';
+import type { BeforeNavigate, RouteChangeContextData } from './types';
 import { customTransactionSource, defaultTransactionSource, getBlankTransactionContext } from './utils';
 
 interface ReactNativeNavigationOptions {

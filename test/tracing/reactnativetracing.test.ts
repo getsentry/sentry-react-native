@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { BrowserClient, User } from '@sentry/browser';
+import type { User } from '@sentry/browser';
+import { BrowserClient } from '@sentry/browser';
 import { addGlobalEventProcessor, Hub } from '@sentry/core';
-import { IdleTransaction, Transaction } from '@sentry/tracing';
+import type { IdleTransaction, Transaction } from '@sentry/tracing';
 
-import { NativeAppStartResponse } from '../../src/js/definitions';
+import type { NativeAppStartResponse } from '../../src/js/definitions';
 import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
 
 jest.mock('../../src/js/wrapper', () => {
@@ -54,7 +55,7 @@ const getMockHub = () => {
   return mockHub;
 };
 
-import { BrowserClientOptions } from '@sentry/browser/types/client';
+import type { BrowserClientOptions } from '@sentry/browser/types/client';
 
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';

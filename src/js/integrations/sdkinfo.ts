@@ -1,4 +1,4 @@
-import { EventProcessor, Integration, Package, SdkInfo as SdkInfoType } from '@sentry/types';
+import type { EventProcessor, Integration, Package, SdkInfo as SdkInfoType } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { SDK_NAME, SDK_PACKAGE_NAME,SDK_VERSION } from '../version';
