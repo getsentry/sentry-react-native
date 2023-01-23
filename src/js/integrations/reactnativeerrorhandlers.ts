@@ -1,8 +1,8 @@
 import { getCurrentHub } from '@sentry/core';
-import { EventHint, Integration, SeverityLevel } from '@sentry/types';
+import type { EventHint, Integration, SeverityLevel } from '@sentry/types';
 import { addExceptionMechanism, logger } from '@sentry/utils';
 
-import { ReactNativeClient } from '../client';
+import type { ReactNativeClient } from '../client';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
 /** ReactNativeErrorHandlers Options */
@@ -16,9 +16,6 @@ interface PromiseRejectionTrackingOptions {
   onUnhandled: (id: string, error: unknown) => void;
   onHandled: (id: string) => void;
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const global: any;
 
 /** ReactNativeErrorHandlers Integration */
 export class ReactNativeErrorHandlers implements Integration {

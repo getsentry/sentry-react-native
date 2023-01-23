@@ -1,7 +1,8 @@
-import { Event, EventHint } from '@sentry/types';
+import type { Event, EventHint } from '@sentry/types';
 
-import { ReactNativeError } from '../../src/js/integrations/debugsymbolicator';
-import { ReactNativeContext, ReactNativeInfo } from '../../src/js/integrations/reactnativeinfo';
+import type { ReactNativeError } from '../../src/js/integrations/debugsymbolicator';
+import type { ReactNativeContext} from '../../src/js/integrations/reactnativeinfo';
+import { ReactNativeInfo } from '../../src/js/integrations/reactnativeinfo';
 
 let mockedIsHermesEnabled: jest.Mock<boolean, []>;
 let mockedIsTurboModuleEnabled: jest.Mock<boolean, []>;

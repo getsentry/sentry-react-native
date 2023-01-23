@@ -31,7 +31,7 @@ jest.mock('@sentry/react', () => {
         configureScope: mockedGetCurrentHubConfigureScope,
       };
     }),
-    defaultIntegrations: [ { name: 'MockedDefaultReactIntegration', setupOnce: jest.fn() } ],
+    defaultIntegrations: [{ name: 'MockedDefaultReactIntegration', setupOnce: jest.fn() }],
   };
 });
 
@@ -69,10 +69,10 @@ jest.spyOn(logger, 'error');
 
 import { initAndBind } from '@sentry/core';
 import { getCurrentHub, makeFetchTransport } from '@sentry/react';
-import { BaseTransportOptions,ClientOptions, Integration, Scope  } from '@sentry/types';
+import type { BaseTransportOptions, ClientOptions, Integration, Scope } from '@sentry/types';
 
-import { ReactNativeClientOptions } from '../src/js/options';
-import { configureScope,flush, init, withScope } from '../src/js/sdk';
+import type { ReactNativeClientOptions } from '../src/js/options';
+import { configureScope, flush, init, withScope } from '../src/js/sdk';
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
 import { firstArg, secondArg } from './testutils';
@@ -92,11 +92,11 @@ describe('Tests the SDK functionality', () => {
       const usedOptions = (): Integration[] => {
         const mockCall = mockedInitAndBind.mock.calls[0];
 
-          if (mockCall) {
-            const options = mockCall[1];
+        if (mockCall) {
+          const options = mockCall[1];
 
-            return options.integrations;
-          }
+          return options.integrations;
+        }
         return [];
       }
 
@@ -448,7 +448,7 @@ function getMockClient(): MockedClient {
   return mockClient;
 }
 
-function getMockedIntegration({name}: { name?: string } = {}): Integration {
+function getMockedIntegration({ name }: { name?: string } = {}): Integration {
   return {
     name: name ?? 'MockedIntegration',
     setupOnce: jest.fn(),

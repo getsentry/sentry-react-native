@@ -9,7 +9,7 @@ jest.mock('../../src/js/wrapper', () => {
 });
 
 import { Transaction } from '@sentry/tracing';
-import { EventProcessor } from '@sentry/types';
+import type { EventProcessor } from '@sentry/types';
 
 import { NativeFramesInstrumentation } from '../../src/js/tracing/nativeframes';
 import { NATIVE } from '../../src/js/wrapper';

@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import {
+import type {
   BaseEnvelopeItemHeaders,
   Breadcrumb,
   Envelope,
@@ -10,10 +10,10 @@ import {
   User,
 } from '@sentry/types';
 import { logger, normalize, SentryError } from '@sentry/utils';
-import { NativeModules, Platform , TurboModuleRegistry } from 'react-native';
+import { NativeModules, Platform, TurboModuleRegistry } from 'react-native';
 
 import { isHardCrash } from './misc';
-import {
+import type {
   NativeAppStartResponse,
   NativeDeviceContextsResponse,
   NativeFramesResponse,
@@ -21,12 +21,12 @@ import {
   NativeScreenshot,
   Spec,
 } from './NativeRNSentry';
-import { ReactNativeOptions } from './options';
-import { RequiredKeysUser } from './user';
+import type { ReactNativeOptions } from './options';
+import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment'
 import { utf8ToBytes } from './vendor';
 
-const RNSentry: Spec | undefined  = isTurboModuleEnabled()
+const RNSentry: Spec | undefined = isTurboModuleEnabled()
   ? TurboModuleRegistry.getEnforcing<Spec>('RNSentry')
   : NativeModules.RNSentry;
 

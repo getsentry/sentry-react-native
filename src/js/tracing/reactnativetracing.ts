@@ -1,14 +1,16 @@
 /* eslint-disable max-lines */
-import { Hub } from '@sentry/core';
-import {
-  defaultRequestInstrumentationOptions,
+import type { Hub } from '@sentry/core';
+import type {
   IdleTransaction,
-  instrumentOutgoingRequests,
   RequestInstrumentationOptions,
-  startIdleTransaction,
-  Transaction,
+  Transaction
 } from '@sentry/tracing';
 import {
+  defaultRequestInstrumentationOptions,
+  instrumentOutgoingRequests,
+  startIdleTransaction
+} from '@sentry/tracing';
+import type {
   EventProcessor,
   Integration,
   Transaction as TransactionType,
@@ -16,12 +18,12 @@ import {
 } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
-import { NativeAppStartResponse } from '../NativeRNSentry';
-import { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
+import type { NativeAppStartResponse } from '../NativeRNSentry';
+import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
 import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
 import { StallTrackingInstrumentation } from './stalltracking';
-import { BeforeNavigate, RouteChangeContextData } from './types';
+import type { BeforeNavigate, RouteChangeContextData } from './types';
 import {
   adjustTransactionDuration,
   getTimeOriginMilliseconds,
@@ -123,7 +125,7 @@ export class ReactNativeTracing implements Integration {
    * @inheritDoc
    */
   public static id: string = 'ReactNativeTracing';
-   /** We filter out App starts more than 60s */
+  /** We filter out App starts more than 60s */
   private static _maxAppStart: number = 60000;
   /**
    * @inheritDoc
@@ -148,9 +150,9 @@ export class ReactNativeTracing implements Integration {
       finalTimeoutMs: options.finalTimeoutMs
         // eslint-disable-next-line deprecation/deprecation
         ?? (typeof options.maxTransactionDuration === 'number'
-              // eslint-disable-next-line deprecation/deprecation
-              ? options.maxTransactionDuration * 1000
-              : undefined)
+          // eslint-disable-next-line deprecation/deprecation
+          ? options.maxTransactionDuration * 1000
+          : undefined)
         ?? defaultReactNativeTracingOptions.finalTimeoutMs,
       idleTimeoutMs: options.idleTimeoutMs
         // eslint-disable-next-line deprecation/deprecation
