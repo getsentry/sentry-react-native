@@ -1,10 +1,10 @@
 import { defaultStackParser } from '@sentry/browser';
-import { Envelope, Event, Outcome, Transport } from '@sentry/types';
+import type { Envelope, Event, Outcome, Transport } from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';
-import { ReactNativeClientOptions } from '../src/js/options';
+import type { ReactNativeClientOptions } from '../src/js/options';
 import { NativeTransport } from '../src/js/transports/native';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../src/js/version';
 import { NATIVE } from '../src/js/wrapper';

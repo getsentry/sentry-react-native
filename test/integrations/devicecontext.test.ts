@@ -1,8 +1,8 @@
-import { Hub } from '@sentry/core';
-import { Event, SeverityLevel } from '@sentry/types';
+import type { Hub } from '@sentry/core';
+import type { Event, SeverityLevel } from '@sentry/types';
 
 import { DeviceContext } from '../../src/js/integrations';
-import { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
+import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { NATIVE } from '../../src/js/wrapper';
 
 jest.mock('../../src/js/wrapper');

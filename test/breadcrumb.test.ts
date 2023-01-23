@@ -1,4 +1,4 @@
-import { Breadcrumb } from '@sentry/types';
+import type { Breadcrumb } from '@sentry/types';
 
 import { breadcrumbFromObject } from '../src/js/breadcrumb';
 

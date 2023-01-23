@@ -1,4 +1,5 @@
-import { getIntegrationsToSetup, Hub, initAndBind, makeMain, Scope, setExtra } from '@sentry/core';
+import type { Scope} from '@sentry/core';
+import { getIntegrationsToSetup, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
 import { RewriteFrames } from '@sentry/integrations';
 import {
   defaultIntegrations as reactDefaultIntegrations,
@@ -6,7 +7,7 @@ import {
   getCurrentHub,
   makeFetchTransport,
 } from '@sentry/react';
-import { Integration, StackFrame, UserFeedback } from '@sentry/types';
+import type { Integration, StackFrame, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -22,7 +23,7 @@ import {
   SdkInfo,
 } from './integrations';
 import { Screenshot } from './integrations/screenshot';
-import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
+import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';

@@ -1,6 +1,7 @@
 /* eslint-disable import/no-unresolved */
 import path from 'path';
-import { remote, RemoteOptions } from 'webdriverio';
+import type { RemoteOptions } from 'webdriverio';
+import { remote } from 'webdriverio';
 
 import { fetchEvent } from './utils/fetchEvent';
 import { waitForTruthyResult } from './utils/waitFor';

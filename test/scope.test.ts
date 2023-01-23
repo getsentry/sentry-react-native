@@ -1,4 +1,4 @@
-import { Breadcrumb } from '@sentry/types';
+import type { Breadcrumb } from '@sentry/types';
 
 import { ReactNativeScope } from '../src/js/scope';
 import { NATIVE } from '../src/js/wrapper';

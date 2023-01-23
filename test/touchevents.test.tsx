@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import * as core from '@sentry/core';
-import { SeverityLevel } from '@sentry/types';
+import type { SeverityLevel } from '@sentry/types';
 
 import { TouchEventBoundary } from '../src/js/touchevents';
 
