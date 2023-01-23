@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add support for RNGP introduced in React Native 0.71.0 ([#2759](https://github.com/getsentry/sentry-react-native/pull/2759))
+
 ### Fixes
 
 - Take screenshot runs on UI thread on Android ([#2743](https://github.com/getsentry/sentry-react-native/pull/2743))
