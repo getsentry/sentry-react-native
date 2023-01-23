@@ -1,12 +1,8 @@
 import { logger } from '@sentry/utils';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { posix, sep } from 'path';
-import { env } from 'process';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-if (env['NODE_ENV'] !== 'test') {
-  logger.enable();
-}
+logger.enable();
 
 const { dirname, join, resolve, sep: posixSep } = posix;
 
