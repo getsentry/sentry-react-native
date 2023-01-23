@@ -1,5 +1,9 @@
-import { existsSync, readFileSync, rmdirSync,unlinkSync } from 'fs';
+import { logger } from '@sentry/utils';
+import { existsSync, readFileSync, rmdirSync, unlinkSync } from 'fs';
 import { dirname } from 'path';
+
+jest.mock('@sentry/utils');
+(logger.enable as jest.Mock).mockImplementation(() => { });
 
 import ModulesCollector from '../../src/js/tools/ModulesCollector';
 
