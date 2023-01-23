@@ -1,9 +1,9 @@
-import { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
-import { ProfilerProps } from '@sentry/react/types/profiler';
-import { ClientOptions, Options } from '@sentry/types';
-import { CaptureContext } from '@sentry/types/types/scope';
+import type { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
+import type { ProfilerProps } from '@sentry/react/types/profiler';
+import type { ClientOptions, Options } from '@sentry/types';
+import type { CaptureContext } from '@sentry/types/types/scope';
 
-import { TouchEventBoundaryProps } from './touchevents';
+import type { TouchEventBoundaryProps } from './touchevents';
 
 export interface BaseReactNativeOptions {
   /**

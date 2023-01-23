@@ -1,4 +1,5 @@
-import { getIntegrationsToSetup, Hub, initAndBind, makeMain, Scope, setExtra } from '@sentry/core';
+import type { Scope } from '@sentry/core';
+import { getIntegrationsToSetup, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
 import { RewriteFrames } from '@sentry/integrations';
 import {
   defaultIntegrations as reactDefaultIntegrations,
@@ -6,7 +7,7 @@ import {
   getCurrentHub,
   makeFetchTransport,
 } from '@sentry/react';
-import { Integration, StackFrame, UserFeedback } from '@sentry/types';
+import type { Integration, StackFrame, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -23,7 +24,7 @@ import {
 } from './integrations';
 import { Screenshot } from './integrations/screenshot';
 import { ViewHierarchy } from './integrations/viewhierarchy';
-import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
+import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
@@ -250,9 +251,9 @@ export async function close(): Promise<void> {
 /**
  * Captures user feedback and sends it to Sentry.
  */
- export function captureUserFeedback(feedback: UserFeedback): void {
+export function captureUserFeedback(feedback: UserFeedback): void {
   getCurrentHub().getClient<ReactNativeClient>()?.captureUserFeedback(feedback);
- }
+}
 
 /**
  * Creates a new scope with and executes the given operation within.
@@ -282,7 +283,7 @@ export function withScope(callback: (scope: Scope) => void): ReturnType<Hub['wit
  * Callback to set context information onto the scope.
  * @param callback Callback function that receives Scope.
  */
- export function configureScope(callback: (scope: Scope) => void): ReturnType<Hub['configureScope']> {
+export function configureScope(callback: (scope: Scope) => void): ReturnType<Hub['configureScope']> {
   const safeCallback = (scope: Scope): void => {
     try {
       callback(scope);

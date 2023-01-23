@@ -1,5 +1,5 @@
 import { addGlobalEventProcessor, getCurrentHub } from '@sentry/core';
-import { Event, EventHint, Integration, StackFrame } from '@sentry/types';
+import type { Event, EventHint, Integration, StackFrame } from '@sentry/types';
 import { addContextToFrame, logger } from '@sentry/utils';
 
 const INTERNAL_CALLSITES_REGEX = new RegExp(

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
+import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
 import { createEnvelope, logger } from '@sentry/utils';
 
-import { Spec } from '../src/js/NativeRNSentry';
-import { ReactNativeOptions } from '../src/js/options';
+import type { Spec } from '../src/js/NativeRNSentry';
+import type { ReactNativeOptions } from '../src/js/options';
 import { utf8ToBytes } from '../src/js/vendor';
 import { NATIVE } from '../src/js/wrapper';
 
@@ -70,7 +70,7 @@ const callAllScopeMethods = () => {
       map: { a: 1 },
       array: [1, 2, 3],
       unique: 123,
-     },
+    },
   });
   NATIVE.clearBreadcrumbs();
   NATIVE.setUser({
@@ -84,7 +84,7 @@ const callAllScopeMethods = () => {
         map: { a: 1 },
         array: [1, 2, 3],
         unique: 123,
-       },
+      },
     });
   NATIVE.setExtra('key', 'value');
 };
@@ -153,7 +153,7 @@ describe('Tests Native Wrapper', () => {
           map: { a: 1 },
           array: [1, 2, 3],
           unique: 123,
-         },
+        },
       });
       expect(RNSentry.clearBreadcrumbs).toBeCalled();
       expect(RNSentry.setUser).toBeCalledWith(

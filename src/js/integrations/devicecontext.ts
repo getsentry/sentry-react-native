@@ -1,9 +1,9 @@
 /* eslint-disable complexity */
-import { Event, EventProcessor, Hub, Integration } from '@sentry/types';
+import type { Event, EventProcessor, Hub, Integration } from '@sentry/types';
 import { logger, severityLevelFromString } from '@sentry/utils';
 
 import { breadcrumbFromObject } from '../breadcrumb';
-import { NativeDeviceContextsResponse } from '../NativeRNSentry';
+import type { NativeDeviceContextsResponse } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';
 
 /** Load device context from native. */

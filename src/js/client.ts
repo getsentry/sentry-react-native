@@ -1,6 +1,6 @@
 import { eventFromException, eventFromMessage } from '@sentry/browser';
 import { BaseClient } from '@sentry/core';
-import {
+import type {
   ClientReportEnvelope,
   ClientReportItem,
   Envelope,
@@ -17,7 +17,7 @@ import { Alert } from 'react-native';
 
 import { Screenshot } from './integrations/screenshot';
 import { defaultSdkInfo } from './integrations/sdkinfo';
-import { ReactNativeClientOptions } from './options';
+import type { ReactNativeClientOptions } from './options';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';

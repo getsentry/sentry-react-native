@@ -1,4 +1,4 @@
-import { Event } from '@sentry/types';
+import type { Event } from '@sentry/types';
 
 import { EventOrigin } from '../../src/js/integrations';
 

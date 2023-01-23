@@ -1,5 +1,6 @@
-import { Package } from '@sentry/types';
-import { TurboModule, TurboModuleRegistry } from 'react-native';
+import type { Package } from '@sentry/types';
+import type { TurboModule} from 'react-native';
+import { TurboModuleRegistry } from 'react-native';
 import type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 
 // There has to be only one interface and it has to be named `Spec`

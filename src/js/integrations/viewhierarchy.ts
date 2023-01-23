@@ -1,4 +1,4 @@
-import { Event, EventHint, EventProcessor, Integration } from '@sentry/types';
+import type { Event, EventHint, EventProcessor, Integration } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { NATIVE } from '../wrapper';

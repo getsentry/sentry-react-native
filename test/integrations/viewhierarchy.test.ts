@@ -1,4 +1,4 @@
-import { Event, EventHint } from '@sentry/types';
+import type { Event, EventHint } from '@sentry/types';
 
 import { ViewHierarchy } from '../../src/js/integrations/viewhierarchy';
 import { NATIVE } from '../../src/js/wrapper';

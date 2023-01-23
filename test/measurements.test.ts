@@ -1,8 +1,10 @@
-import { Carrier, getCurrentHub, getMainCarrier } from '@sentry/core';
-import { Transaction } from '@sentry/tracing';
-import { Hub } from '@sentry/types';
+import type { Carrier} from '@sentry/core';
+import { getCurrentHub, getMainCarrier } from '@sentry/core';
+import type { Transaction } from '@sentry/tracing';
+import type { Hub } from '@sentry/types';
 
-import { _addTracingExtensions, StartTransactionFunction } from '../src/js/measurements';
+import type { StartTransactionFunction } from '../src/js/measurements';
+import { _addTracingExtensions } from '../src/js/measurements';
 
 describe('Tracing extensions', () => {
   let hub: Hub;
