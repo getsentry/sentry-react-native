@@ -15,6 +15,7 @@ import { setScopeProperties } from '../setScopeProperties';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { CommonActions } from '@react-navigation/native';
 import { UserFeedbackModal } from '../components/UserFeedbackModal';
+import { FallbackRender } from '@sentry/react';
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -41,13 +42,14 @@ const HomeScreen = (props: Props) => {
     );
   };
 
+  const errorBoundaryFallback: FallbackRender = ({ eventId }) => (
+    <Text>Error boundary caught with event id: {eventId}</Text>
+  );
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
-      <ScrollView
-        style={{
-          padding: 20,
-        }}>
+      <ScrollView style={styles.mainView}>
         <Text style={styles.welcomeTitle}>Hey there!</Text>
         <Button
           title="Capture message"
@@ -102,10 +104,7 @@ const HomeScreen = (props: Props) => {
 
         <Spacer />
 
-        <Sentry.ErrorBoundary
-          fallback={({ eventId }) => (
-            <Text>Error boundary caught with event id: {eventId}</Text>
-          )}>
+        <Sentry.ErrorBoundary fallback={errorBoundaryFallback}>
           <Button
             title="Activate Error Boundary"
             onPress={() => {
@@ -168,7 +167,7 @@ const HomeScreen = (props: Props) => {
             }}
           />
         ) : null}
-        <View style={{ marginTop: 32 }} />
+        <View style={styles.mainViewBottomWhiteSpace} />
       </ScrollView>
     </>
   );
@@ -199,6 +198,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#c6becf',
     marginBottom: 16,
     marginTop: 8,
+  },
+  mainView: {
+    padding: 20,
+  },
+  mainViewBottomWhiteSpace: {
+    marginTop: 32,
   },
 });
 
