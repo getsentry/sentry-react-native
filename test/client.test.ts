@@ -40,6 +40,9 @@ interface MockedReactNative {
   YellowBox: {
     ignoreWarnings: jest.Mock;
   };
+  Alert: {
+    alert: jest.Mock;
+  };
 }
 
 jest.mock(
@@ -61,6 +64,9 @@ jest.mock(
     },
     YellowBox: {
       ignoreWarnings: jest.fn(),
+    },
+    Alert: {
+      alert: jest.fn(),
     },
   }),
   /* virtual allows us to mock modules that aren't in package.json */

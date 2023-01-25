@@ -72,10 +72,6 @@ beforeAll(async () => {
     };
   }
 
-  if (process.env.RUNTIME !== undefined) {
-    conf.capabilities['appium:platformVersion'] = process.env.RUNTIME;
-  }
-
   if (process.env.DEVICE !== undefined) {
     conf.capabilities['appium:deviceName'] = process.env.DEVICE;
   }

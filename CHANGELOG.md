@@ -13,6 +13,11 @@
   - `breadcrumb.level` value `log` is transformed to `debug` when syncing with native layers.
   - Remove `breadcrumb.level` value `critical` transformation to `fatal`.
   - Default `breadcrumb.level` is `info`
+- Add support for RNGP introduced in React Native 0.71.0 ([#2759](https://github.com/getsentry/sentry-react-native/pull/2759))
+
+### Fixes
+
+- Take screenshot runs on UI thread on Android ([#2743](https://github.com/getsentry/sentry-react-native/pull/2743))
 
 ### Dependencies
 
@@ -22,9 +27,9 @@
 - Bump Android SDK from v6.11.0 to v6.12.1 ([#2755](https://github.com/getsentry/sentry-react-native/pull/2755))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6121)
   - [diff](https://github.com/getsentry/sentry-java/compare/6.11.0...6.12.1)
-- Bump JavaScript SDK from v7.29.0 to v7.31.1 ([#2738](https://github.com/getsentry/sentry-react-native/pull/2738))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7311)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.29.0...7.31.1)
+- Bump JavaScript SDK from v7.29.0 to v7.32.1 ([#2738](https://github.com/getsentry/sentry-react-native/pull/2738), [#2777](https://github.com/getsentry/sentry-react-native/pull/2777))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7321)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.29.0...7.32.1)
 
 ## 5.0.0-alpha.11
 
