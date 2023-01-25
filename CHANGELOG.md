@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Latest changes from 4.14.0
+
 ### Breaking changes
 
 - Option `enableAutoPerformanceTracking` renamed to `enableAutoPerformanceTracing`
@@ -13,6 +15,17 @@
   - `breadcrumb.level` value `log` is transformed to `debug` when syncing with native layers.
   - Remove `breadcrumb.level` value `critical` transformation to `fatal`.
   - Default `breadcrumb.level` is `info`
+
+### Dependencies
+
+- Bump Cocoa SDK from v7.31.5 to v8.0.0 ([#2756](https://github.com/getsentry/sentry-react-native/pull/2756))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#800)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.31.5...8.0.0)
+
+## 4.14.0
+
+### Features
+
 - Add support for RNGP introduced in React Native 0.71.0 ([#2759](https://github.com/getsentry/sentry-react-native/pull/2759))
 
 ### Fixes
@@ -21,9 +34,6 @@
 
 ### Dependencies
 
-- Bump Cocoa SDK from v7.31.5 to v8.0.0 ([#2756](https://github.com/getsentry/sentry-react-native/pull/2756))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#800)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.31.5...8.0.0)
 - Bump Android SDK from v6.11.0 to v6.12.1 ([#2755](https://github.com/getsentry/sentry-react-native/pull/2755))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6121)
   - [diff](https://github.com/getsentry/sentry-java/compare/6.11.0...6.12.1)
