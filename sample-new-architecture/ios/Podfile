@@ -41,8 +41,12 @@ target 'sampleNewArchitecture' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  if ENV['RCT_NEW_ARCH_ENABLED'] == '1'
+    pod 'AppTurboModules', :path => "./../tm"
+  end
+
   if !ENV['TEST']
-    pod 'RNSentry', :path => '../../RNSentry.podspec'
+    pod 'RNSentry', :path => '../..'
   end
 
   target 'sampleNewArchitectureTests' do

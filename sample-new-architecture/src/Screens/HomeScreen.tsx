@@ -16,6 +16,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { CommonActions } from '@react-navigation/native';
 import { UserFeedbackModal } from '../components/UserFeedbackModal';
 import { FallbackRender } from '@sentry/react';
+import NativeSampleModule from '../../tm/NativeSampleModule';
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -99,6 +100,12 @@ const HomeScreen = (props: Props) => {
           onPress={async () => {
             await Sentry.close();
             console.log('Sentry.close() completed.');
+          }}
+        />
+        <Button
+          title="Crash in Cpp"
+          onPress={() => {
+            NativeSampleModule.crash();
           }}
         />
 
