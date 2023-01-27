@@ -133,15 +133,6 @@ android {
         }
     }
 
-    sourceSets.main {
-        java {
-            // RNSentry.
-            srcDirs += [
-                "../../android/app/src/main",
-            ]
-        }
-    }
-
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
@@ -158,11 +149,7 @@ android {
         }
     }
 
-  externalNativeBuild {
-      cmake {
-          path "src/main/jni/CMakeLists.txt"
-      }
-  }
+
 }
 
 dependencies {
@@ -186,3 +173,11 @@ dependencies {
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+
+// android {
+//     externalNativeBuild {
+//       cmake {
+//           path "src/main/jni/CMakeLists.txt"
+//       }
+//   }
+// }
