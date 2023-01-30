@@ -32,7 +32,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,10 +40,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.sentry.Breadcrumb;
+import io.sentry.DateUtils;
 import io.sentry.HubAdapter;
 import io.sentry.ILogger;
 import io.sentry.Integration;
 import io.sentry.Sentry;
+import io.sentry.SentryDate;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
 import io.sentry.UncaughtExceptionHandlerIntegration;
@@ -234,7 +235,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void fetchNativeAppStart(Promise promise) {
         final AppStartState appStartInstance = AppStartState.getInstance();
-        final Date appStartTime = appStartInstance.getAppStartTime();
+        final SentryDate appStartTime = appStartInstance.getAppStartTime();
         final Boolean isColdStart = appStartInstance.isColdStart();
 
         if (appStartTime == null) {
@@ -244,11 +245,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             logger.log(SentryLevel.WARNING, "App start won't be sent due to missing isColdStart.");
             promise.resolve(null);
         } else {
-            final double appStartTimestamp = (double) appStartTime.getTime();
+            final double appStartTimestampMs = DateUtils.nanosToMillis(appStartTime.nanoTimestamp());
 
             WritableMap appStart = Arguments.createMap();
 
-            appStart.putDouble("appStartTime", appStartTimestamp);
+            appStart.putDouble("appStartTime", appStartTimestampMs);
             appStart.putBoolean("isColdStart", isColdStart);
             appStart.putBoolean("didFetchAppStart", didFetchAppStart);
 
