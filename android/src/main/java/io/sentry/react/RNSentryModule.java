@@ -40,6 +40,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.sentry.Breadcrumb;
+import io.sentry.DateUtils;
 import io.sentry.HubAdapter;
 import io.sentry.ILogger;
 import io.sentry.Integration;
@@ -244,7 +245,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             logger.log(SentryLevel.WARNING, "App start won't be sent due to missing isColdStart.");
             promise.resolve(null);
         } else {
-            final double appStartTimestampMs = appStartTime.nanoTimestamp() / 1e6;
+            final double appStartTimestampMs = DateUtils.nanosToMillis(appStartTime.nanoTimestamp());
 
             WritableMap appStart = Arguments.createMap();
 
