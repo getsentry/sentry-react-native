@@ -364,7 +364,6 @@ jobs:
             -scheme RnDiffApp \
             -destination 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}' \
             ONLY_ACTIVE_ARCH=yes \
-            -sdk 'iphonesimulator' \
             -derivedDataPath "$derivedData" \
             build
 
@@ -405,13 +404,13 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.70.6']
+        rn-version: ['0.65.3', '0.71.0']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
         include:
           - platform: ios
-            runtime: '16.0'
+            runtime: 'latest'
             device: 'iPhone 14'
         # exclude all rn versions lower than 0.70.0 for new architecture
         exclude:
@@ -419,7 +418,6 @@ jobs:
             rn-architecture: 'new'
     env:
       PLATFORM: ${{ matrix.platform }}
-      RUNTIME: ${{ matrix.runtime }}
       DEVICE: ${{ matrix.device }}
     steps:
       - uses: actions/checkout@v3
@@ -463,9 +461,8 @@ jobs:
             -scheme WebDriverAgentRunner \
             GCC_TREAT_WARNINGS_AS_ERRORS=0 \
             COMPILER_INDEX_STORE_ENABLE=NO \
-            -destination 'platform=iOS Simulator,name=${{ matrix.device }}' \
+            -destination 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}' \
             ONLY_ACTIVE_ARCH=yes \
-            -sdk 'iphonesimulator${{ matrix.runtime }}' \
             -derivedDataPath "$derivedData" \
             build
 
