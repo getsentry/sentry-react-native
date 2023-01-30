@@ -157,7 +157,6 @@ dependencies {
     implementation("com.facebook.react:react-android")
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
-    implementation project(path: ':sentry_react-native')
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
@@ -174,10 +173,10 @@ dependencies {
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
 
-// android {
-//     externalNativeBuild {
-//       cmake {
-//           path "src/main/jni/CMakeLists.txt"
-//       }
-//   }
-// }
+android {
+    externalNativeBuild {
+      cmake {
+          path "src/main/jni/CMakeLists.txt"
+      }
+  }
+}
