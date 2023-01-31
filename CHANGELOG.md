@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.0.0-beta.1
 
 - Latest changes from 4.14.0
 
@@ -21,6 +21,9 @@
 - Bump Cocoa SDK from v7.31.5 to v8.0.0 ([#2756](https://github.com/getsentry/sentry-react-native/pull/2756))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#800)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.31.5...8.0.0)
+- Bump Android SDK from v6.12.1 to v6.13.0 ([#2790](https://github.com/getsentry/sentry-react-native/pull/2790))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6130)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.12.1...6.13.0)
 
 ## 4.14.0
 

@@ -6,13 +6,14 @@ import type { SeverityLevel } from '@sentry/types';
 
 import { TouchEventBoundary } from '../src/js/touchevents';
 
-const addBreadcrumb = jest.spyOn(core, 'addBreadcrumb');
-
-afterEach(() => {
-  jest.resetAllMocks();
-});
-
 describe('TouchEventBoundary._onTouchStart', () => {
+  let addBreadcrumb: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+    addBreadcrumb = jest.spyOn(core, 'addBreadcrumb');
+  });
+
   it('tree without displayName or label is not logged', () => {
     const { defaultProps } = TouchEventBoundary;
     const boundary = new TouchEventBoundary(defaultProps);
