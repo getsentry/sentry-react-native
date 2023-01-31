@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
 import { createEnvelope, logger } from '@sentry/utils';
+import * as RN from 'react-native';
 
 import type { Spec } from '../src/js/NativeRNSentry';
 import type { ReactNativeOptions } from '../src/js/options';
@@ -60,7 +61,6 @@ jest.mock(
   { virtual: true }
 );
 
-const RN = require('react-native');
 const RNSentry = RN.NativeModules.RNSentry as Spec;
 
 const callAllScopeMethods = () => {

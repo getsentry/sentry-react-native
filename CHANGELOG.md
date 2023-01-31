@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Features
+
+- Add View Hierarchy to the crashed/errored events ([#2708](https://github.com/getsentry/sentry-react-native/pull/2708))
+
+## 5.0.0-beta.1
+
+- Latest changes from 4.14.0
+
 ### Breaking changes
 
 - Option `enableAutoPerformanceTracking` renamed to `enableAutoPerformanceTracing`
@@ -9,7 +17,6 @@
 
 ### Features
 
-- Add View Hierarchy to the crashed/errored events ([#2708](https://github.com/getsentry/sentry-react-native/pull/2708))
 - Sync `tags`, `extra`, `fingerprint`, `level`, `environment` and `breadcrumbs` from `sentry-cocoa` during event processing. ([#2713](https://github.com/getsentry/sentry-react-native/pull/2713))
   - `breadcrumb.level` value `log` is transformed to `debug` when syncing with native layers.
   - Remove `breadcrumb.level` value `critical` transformation to `fatal`.
@@ -20,12 +27,28 @@
 - Bump Cocoa SDK from v7.31.5 to v8.0.0 ([#2756](https://github.com/getsentry/sentry-react-native/pull/2756))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#800)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.31.5...8.0.0)
+- Bump Android SDK from v6.12.1 to v6.13.0 ([#2790](https://github.com/getsentry/sentry-react-native/pull/2790))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6130)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.12.1...6.13.0)
+
+## 4.14.0
+
+### Features
+
+- Add support for RNGP introduced in React Native 0.71.0 ([#2759](https://github.com/getsentry/sentry-react-native/pull/2759))
+
+### Fixes
+
+- Take screenshot runs on UI thread on Android ([#2743](https://github.com/getsentry/sentry-react-native/pull/2743))
+
+### Dependencies
+
 - Bump Android SDK from v6.11.0 to v6.12.1 ([#2755](https://github.com/getsentry/sentry-react-native/pull/2755))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6121)
   - [diff](https://github.com/getsentry/sentry-java/compare/6.11.0...6.12.1)
-- Bump JavaScript SDK from v7.29.0 to v7.31.1 ([#2738](https://github.com/getsentry/sentry-react-native/pull/2738))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7311)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.29.0...7.31.1)
+- Bump JavaScript SDK from v7.29.0 to v7.32.1 ([#2738](https://github.com/getsentry/sentry-react-native/pull/2738), [#2777](https://github.com/getsentry/sentry-react-native/pull/2777))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7321)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.29.0...7.32.1)
 
 ## 5.0.0-alpha.11
 

@@ -61,14 +61,14 @@ jobs:
           key: ${{ github.workflow }}-${{ github.job }}-ios${{ matrix.runtime }}-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
 
       - name: Install Dependencies
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
 
       - name: Build SDK
         run: yarn build
 
       - name: Install Sample Dependencies
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
         working-directory: ./sample
         run: yarn install
 
@@ -79,7 +79,7 @@ jobs:
         working-directory: ./sample/ios
 
       - name: Build ${{ matrix.platform }} sample app
-        if: env.SENTRY_AUTH_TOKEN != null
+        if: ${{ env.SENTRY_AUTH_TOKEN != null }}
         id: build
         working-directory: ./sample/${{ matrix.platform }}
         run: |
@@ -235,7 +235,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.70.6']
+        rn-version: ['0.65.3', '0.71.0']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['dev', 'production']
@@ -273,7 +273,7 @@ jobs:
           key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('test/e2e/yarn.lock') }}
 
       - name: Install SDK JS Dependencies
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
 
       - name: Install E2E Tests Library JS Dependencies
@@ -308,7 +308,7 @@ jobs:
         run: yarn add ../../../../e2e
 
       - name: Install App Pods
-        if: matrix.platform == 'ios'
+        if: ${{ matrix.platform == 'ios' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
@@ -319,10 +319,19 @@ jobs:
 
       - name: Patch App RN
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn.patch
+        run: |
+          patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn.patch
+          ../../../rn.patch.app.js --app .
+
+      - name: Patch Android App RN
+        if: ${{ matrix.platform == 'android' }}
+        working-directory: test/react-native
+        run: |
+          ./rn.patch.app.build.gradle.js \
+            --app-build-gradle 'versions/${{ matrix.rn-version }}/RnDiffApp/android/app/build.gradle'
 
       - name: Patch iOS App RN
-        if: matrix.platform == 'ios'
+        if: ${{ matrix.platform == 'ios' }}
         working-directory: test/react-native
         run: |
           ./rn.patch.xcode.js \
@@ -330,7 +339,7 @@ jobs:
             --rn-version '${{ matrix.rn-version }}'
 
       - name: Build Android App
-        if: matrix.platform == 'android'
+        if: ${{ matrix.platform == 'android' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/android
         run: |
           if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
@@ -342,7 +351,7 @@ jobs:
           ./gradlew ":app:assemble$CONFIG" -PreactNativeArchitectures=x86
 
       - name: Build iOS App
-        if: matrix.platform == 'ios'
+        if: ${{ matrix.platform == 'ios' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
@@ -355,7 +364,6 @@ jobs:
             -scheme RnDiffApp \
             -destination 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}' \
             ONLY_ACTIVE_ARCH=yes \
-            -sdk 'iphonesimulator' \
             -derivedDataPath "$derivedData" \
             build
 
@@ -396,13 +404,13 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.70.6']
+        rn-version: ['0.65.3', '0.71.0']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
         include:
           - platform: ios
-            runtime: '16.0'
+            runtime: 'latest'
             device: 'iPhone 14'
         # exclude all rn versions lower than 0.70.0 for new architecture
         exclude:
@@ -410,7 +418,6 @@ jobs:
             rn-architecture: 'new'
     env:
       PLATFORM: ${{ matrix.platform }}
-      RUNTIME: ${{ matrix.runtime }}
       DEVICE: ${{ matrix.device }}
     steps:
       - uses: actions/checkout@v3
@@ -454,9 +461,8 @@ jobs:
             -scheme WebDriverAgentRunner \
             GCC_TREAT_WARNINGS_AS_ERRORS=0 \
             COMPILER_INDEX_STORE_ENABLE=NO \
-            -destination 'platform=iOS Simulator,name=${{ matrix.device }}' \
+            -destination 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}' \
             ONLY_ACTIVE_ARCH=yes \
-            -sdk 'iphonesimulator${{ matrix.runtime }}' \
             -derivedDataPath "$derivedData" \
             build
 
