@@ -29,6 +29,9 @@ import {
   getTimeOriginMilliseconds,
   isNearToNow,
 } from './utils';
+import {
+  createIntegration,
+} from '../integrations/factory';
 
 export interface ReactNativeTracingOptions
   extends RequestInstrumentationOptions {
@@ -213,6 +216,9 @@ export class ReactNativeTracing implements Integration {
     }
 
     if (routingInstrumentation) {
+      getCurrentHub().getClient()?.addIntegration?.(createIntegration(routingInstrumentation.name));
+      console.log('routingInstrumentation added to integrations', getCurrentHub().getClient()?.addIntegration);
+
       routingInstrumentation.registerRoutingInstrumentation(
         this._onRouteWillChange.bind(this),
         this.options.beforeNavigate,

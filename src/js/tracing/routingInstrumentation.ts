@@ -11,6 +11,10 @@ export type OnConfirmRoute = (context: TransactionContext) => void;
 
 export interface RoutingInstrumentationInstance {
   /**
+   * Name of the routing instrumentation
+   */
+  readonly name: string;
+  /**
    * Registers a listener that's called on every route change with a `TransactionContext`.
    *
    * Do not overwrite this unless you know what you are doing.
@@ -39,6 +43,8 @@ export interface RoutingInstrumentationInstance {
  */
 export class RoutingInstrumentation implements RoutingInstrumentationInstance {
   public static instrumentationName: string = 'base-routing-instrumentation';
+
+  public readonly name: string = RoutingInstrumentation.instrumentationName;
 
   protected _getCurrentHub?: () => Hub;
   protected _beforeNavigate?: BeforeNavigate;

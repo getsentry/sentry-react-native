@@ -54,6 +54,8 @@ const defaultOptions: ReactNavigationOptions = {
 export class ReactNavigationInstrumentation extends InternalRoutingInstrumentation {
   public static instrumentationName: string = 'react-navigation-v5';
 
+  public readonly name: string = ReactNavigationInstrumentation.instrumentationName;
+
   private _navigationContainer: NavigationContainer | null = null;
 
   private readonly _maxRecentRouteLen: number = 200;
