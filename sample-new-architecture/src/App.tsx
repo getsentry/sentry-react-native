@@ -63,6 +63,7 @@ Sentry.init({
   // otherwise they will not work.
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
+  attachViewHierarchy: true,
 });
 
 const Stack = createStackNavigator();

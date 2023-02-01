@@ -197,7 +197,6 @@ public class RNSentryModuleImpl {
             if (currentActivity != null) {
                 currentActivityHolder.setActivity(currentActivity);
             }
-            serializer = options.getSerializer();
         });
 
         promise.resolve(true);
@@ -393,12 +392,6 @@ public class RNSentryModuleImpl {
     }
 
     public void fetchViewHierarchy(Promise promise) {
-        if (serializer == null) {
-            logger.log(SentryLevel.ERROR, "Could not get ViewHierarchy, serializer is null, likely native sdk has not been initialized.");
-            promise.resolve(null);
-            return;
-        }
-
         final @Nullable Activity activity = getCurrentActivity();
         final @Nullable ViewHierarchy viewHierarchy = ViewHierarchyEventProcessor.snapshotViewHierarchy(activity, logger);
         if (viewHierarchy == null) {
@@ -407,6 +400,7 @@ public class RNSentryModuleImpl {
             return;
         }
 
+        ISerializer serializer = HubAdapter.getInstance().getOptions().getSerializer();
         final @Nullable byte[] bytes = JsonSerializationUtils.bytesFrom(serializer, logger, viewHierarchy);
         if (bytes == null) {
             logger.log(SentryLevel.ERROR, "Could not serialize ViewHierarchy.");
