@@ -76,7 +76,6 @@ public class RNSentryModuleImpl {
     private final PackageInfo packageInfo;
     private FrameMetricsAggregator frameMetricsAggregator = null;
     private boolean androidXAvailable;
-    private @Nullable ISerializer serializer = null;
 
     private static boolean didFetchAppStart;
 
