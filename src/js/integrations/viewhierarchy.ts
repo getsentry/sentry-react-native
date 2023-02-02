@@ -12,6 +12,7 @@ export class ViewHierarchy implements Integration {
 
   private static _fileName: string = 'view-hierarchy.json';
   private static _contentType: string = 'application/json';
+  private static _attachmentType: string = 'event.view_hierarchy';
 
   /**
    * @inheritDoc
@@ -40,6 +41,7 @@ export class ViewHierarchy implements Integration {
           {
             filename: ViewHierarchy._fileName,
             contentType: ViewHierarchy._contentType,
+            attachmentType: ViewHierarchy._attachmentType,
             data: viewHierarchy,
           },
           ...(hint?.attachments || []),
