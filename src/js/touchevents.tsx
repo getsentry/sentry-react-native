@@ -1,8 +1,10 @@
-import { addBreadcrumb } from '@sentry/core';
+import { addBreadcrumb, getCurrentHub } from '@sentry/core';
 import type { SeverityLevel } from '@sentry/types';
 import { logger } from '@sentry/utils';
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
+
+import { createIntegration } from './integrations/factory';
 
 export type TouchEventBoundaryProps = {
   /**
@@ -69,6 +71,15 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     ignoreNames: [],
     maxComponentTreeSize: DEFAULT_MAX_COMPONENT_TREE_SIZE,
   };
+
+  public readonly name: string = 'TouchEventBoundary';
+
+  /**
+   * Registers the TouchEventBoundary as a Sentry Integration.
+   */
+  public componentDidMount(): void {
+    getCurrentHub().getClient()?.addIntegration?.(createIntegration(this.name));
+  }
 
   /**
    *
