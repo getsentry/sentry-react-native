@@ -57,6 +57,7 @@ describe('ViewHierarchy', () => {
       attachments: [{
         filename: 'view-hierarchy.json',
         contentType: 'application/json',
+        attachmentType: 'event.view_hierarchy',
         data: new Uint8Array([ 1, 2, 3 ]),
       }],
     });
@@ -80,6 +81,7 @@ describe('ViewHierarchy', () => {
         {
           filename: 'view-hierarchy.json',
           contentType: 'application/json',
+          attachmentType: 'event.view_hierarchy',
           data: new Uint8Array([1, 2, 3]),
         },
         {
