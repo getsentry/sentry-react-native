@@ -10,9 +10,9 @@
 - Bump Sample React Native from v0.71.0 to v0.71.1 ([#2767](https://github.com/getsentry/sentry-react-native/pull/2767))
   - [changelog](https://github.com/facebook/react-native/blob/main/CHANGELOG.md#v0711)
   - [diff](https://github.com/facebook/react-native/compare/v0.71.0...v0.71.1)
-- Bump JavaScript SDK from v7.32.1 to v7.34.0 ([#2785](https://github.com/getsentry/sentry-react-native/pull/2785))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7340)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.32.1...7.34.0)
+- Bump JavaScript SDK from v7.32.1 to v7.36.0 ([#2785](https://github.com/getsentry/sentry-react-native/pull/2785), [#2799](https://github.com/getsentry/sentry-react-native/pull/2799))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7360)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.32.1...7.36.0)
 
 ## 4.14.0
 
