@@ -18,6 +18,9 @@ import type {
 } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
+import {
+  createIntegration,
+} from '../integrations/factory';
 import type { NativeAppStartResponse } from '../NativeRNSentry';
 import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
 import { NATIVE } from '../wrapper';
@@ -29,9 +32,6 @@ import {
   getTimeOriginMilliseconds,
   isNearToNow,
 } from './utils';
-import {
-  createIntegration,
-} from '../integrations/factory';
 
 export interface ReactNativeTracingOptions
   extends RequestInstrumentationOptions {
@@ -217,7 +217,6 @@ export class ReactNativeTracing implements Integration {
 
     if (routingInstrumentation) {
       getCurrentHub().getClient()?.addIntegration?.(createIntegration(routingInstrumentation.name));
-      console.log('routingInstrumentation added to integrations', getCurrentHub().getClient()?.addIntegration);
 
       routingInstrumentation.registerRoutingInstrumentation(
         this._onRouteWillChange.bind(this),
