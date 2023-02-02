@@ -154,6 +154,9 @@ public class RNSentryModuleImpl {
             if (rnOptions.hasKey("attachScreenshot")) {
                 options.setAttachScreenshot(rnOptions.getBoolean("attachScreenshot"));
             }
+            if (rnOptions.hasKey("attachViewHierarchy")) {
+                options.setAttachViewHierarchy(rnOptions.getBoolean("attachViewHierarchy"));
+            }
             if (rnOptions.hasKey("sendDefaultPii")) {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
             }
