@@ -6,12 +6,29 @@ import type { SeverityLevel } from '@sentry/types';
 
 import { TouchEventBoundary } from '../src/js/touchevents';
 
+jest.mock('@sentry/core');
+
 describe('TouchEventBoundary._onTouchStart', () => {
   let addBreadcrumb: jest.SpyInstance;
 
   beforeEach(() => {
     jest.resetAllMocks();
     addBreadcrumb = jest.spyOn(core, 'addBreadcrumb');
+  });
+
+  it('register itself as integration', () => {
+    const mockAddIntegration = jest.fn();
+    (core.getCurrentHub as jest.Mock).mockReturnValue({
+      getClient: jest.fn().mockReturnValue({
+        addIntegration: mockAddIntegration,
+      }),
+    });
+    const { defaultProps } = TouchEventBoundary;
+    const boundary = new TouchEventBoundary(defaultProps);
+
+    boundary.componentDidMount();
+
+    expect(mockAddIntegration).toBeCalledWith(expect.objectContaining({ name: 'TouchEventBoundary' }));
   });
 
   it('tree without displayName or label is not logged', () => {
