@@ -18,9 +18,6 @@ import type {
 } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
-import {
-  createIntegration,
-} from '../integrations/factory';
 import type { NativeAppStartResponse } from '../NativeRNSentry';
 import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
 import { NATIVE } from '../wrapper';
@@ -216,8 +213,6 @@ export class ReactNativeTracing implements Integration {
     }
 
     if (routingInstrumentation) {
-      getCurrentHub().getClient()?.addIntegration?.(createIntegration(routingInstrumentation.name));
-
       routingInstrumentation.registerRoutingInstrumentation(
         this._onRouteWillChange.bind(this),
         this.options.beforeNavigate,
