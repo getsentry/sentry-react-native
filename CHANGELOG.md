@@ -4,7 +4,7 @@
 
 ### Features
 
-- Collect modules script for XCode builds supports NODE_BINARY to set path to node executable
+- Collect modules script for XCode builds supports NODE_BINARY to set path to node executable ([#2805](https://github.com/getsentry/sentry-react-native/pull/2805))
 
 ### Dependencies
 
