@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Collect modules script for XCode builds supports NODE_BINARY to set path to node executable
+
 ### Dependencies
 
 - Bump Android SDK from v6.12.1 to v6.13.0 ([#2790](https://github.com/getsentry/sentry-react-native/pull/2790))
