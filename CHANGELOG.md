@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Collect modules script for XCode builds supports NODE_BINARY to set path to node executable ([#2805](https://github.com/getsentry/sentry-react-native/pull/2805))
+
 ### Dependencies
 
 - Bump Sample React Native from v0.71.0 to v0.71.1 ([#2767](https://github.com/getsentry/sentry-react-native/pull/2767))
