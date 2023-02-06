@@ -5,6 +5,8 @@ import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';
 import type { ReactNativeClientOptions } from '../src/js/options';
+import type { RoutingInstrumentationInstance } from '../src/js/tracing';
+import { ReactNativeTracing } from '../src/js/tracing';
 import { NativeTransport } from '../src/js/transports/native';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../src/js/version';
 import { NATIVE } from '../src/js/wrapper';
@@ -29,6 +31,8 @@ interface MockedReactNative {
       crash: jest.Mock;
       captureEnvelope: jest.Mock;
       captureScreenshot: jest.Mock;
+      fetchNativeAppStart: jest.Mock;
+      enableNativeFramesTracking: jest.Mock;
     };
   };
   Platform: {
@@ -54,6 +58,8 @@ jest.mock(
         crash: jest.fn(),
         captureEnvelope: jest.fn(),
         captureScreenshot: jest.fn().mockResolvedValue(null),
+        fetchNativeAppStart: jest.fn(),
+        enableNativeFramesTracking: jest.fn(),
       },
     },
     Platform: {
@@ -529,6 +535,27 @@ describe('Tests ReactNativeClient', () => {
     ) {
       client.recordDroppedEvent('before_send', 'error');
     }
+  });
+
+  describe('register enabled instrumentation as integrations', () => {
+    test('register routing instrumentation', () => {
+      const mockRoutingInstrumentation: RoutingInstrumentationInstance = {
+        registerRoutingInstrumentation: jest.fn(),
+        onRouteWillChange: jest.fn(),
+        name: 'MockRoutingInstrumentation',
+      }
+      const client = new ReactNativeClient(mockedOptions({
+        dsn: EXAMPLE_DSN,
+        integrations: [
+          new ReactNativeTracing({
+            routingInstrumentation: mockRoutingInstrumentation,
+          }),
+        ],
+      }));
+      client.setupIntegrations();
+
+      expect(client.getIntegrationById('MockRoutingInstrumentation')).toBeTruthy();
+    });
   });
 });
 
