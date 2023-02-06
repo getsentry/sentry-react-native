@@ -225,7 +225,7 @@ export class ReactNativeErrorHandlers implements Integration {
             defaultHandler(error, isFatal);
           }
         });
-      } catch () {
+      } catch(e) {
         console.warn('react-native-web does not support ErrorUtils');
     }
   }
