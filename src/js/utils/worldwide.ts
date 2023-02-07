@@ -7,6 +7,7 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   __sentry_rn_v5_registered?: boolean;
   HermesInternal: unknown;
   Promise: unknown;
+  ErrorUtils?: ErrorUtils;
 }
 
 /** Get's the global object for the current JavaScript runtime */
