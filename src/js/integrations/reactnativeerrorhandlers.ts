@@ -228,5 +228,6 @@ export class ReactNativeErrorHandlers implements Integration {
           defaultHandler(error, isFatal);
         }
       });
+    }
   }
 }
