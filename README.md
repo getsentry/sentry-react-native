@@ -21,7 +21,7 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 
 ## Requirements
 
-- `react-native >= 0.56.0`
+- `react-native >= 0.65.0`
 
 ## Features
 
@@ -34,6 +34,7 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 - RAM bundle support
 - Hermes support
 - Expo support ([sentry-expo](https://github.com/expo/sentry-expo))
+- RN New Architecture support
 
 ## Installation and Usage
 
@@ -43,14 +44,10 @@ To install the package:
 npm install --save @sentry/react-native
 # OR
 yarn add @sentry/react-native
-```
 
-If you are using a version of React Native <= 0.60.x link the package using `react-native`.
-
-```sh
-react-native link @sentry/react-native
-# OR, if self hosting
-SENTRY_WIZARD_URL=http://sentry.acme.com/ react-native link @sentry/react-native
+# AND
+npx @sentry/wizard -i reactNative -p ios android
+npx pod-install
 ```
 
 How to use it:
