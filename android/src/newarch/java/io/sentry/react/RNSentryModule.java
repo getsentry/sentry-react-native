@@ -63,6 +63,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
     }
 
     @Override
+    public void fetchViewHierarchy(Promise promise){
+        this.impl.fetchViewHierarchy(promise);
+    }
+
+    @Override
     public void setUser(final ReadableMap user, final ReadableMap otherUserKeys) {
         this.impl.setUser(user, otherUserKeys);
     }

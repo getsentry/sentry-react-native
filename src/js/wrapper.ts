@@ -80,6 +80,7 @@ interface SentryNativeWrapper {
   nativeCrash(): void;
 
   fetchModules(): Promise<Record<string, string> | null>;
+  fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
 }
 
 /**
@@ -489,6 +490,18 @@ export const NATIVE: SentryNativeWrapper = {
       logger.warn('Failed to capture screenshot', e);
       return null;
     }
+  },
+
+  async fetchViewHierarchy(): Promise<Uint8Array | null> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    const raw = await RNSentry.fetchViewHierarchy();
+    return raw ? new Uint8Array(raw) : null;
   },
 
   /**

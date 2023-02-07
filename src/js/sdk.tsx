@@ -1,4 +1,4 @@
-import type { Scope} from '@sentry/core';
+import type { Scope } from '@sentry/core';
 import { getIntegrationsToSetup, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
 import { RewriteFrames } from '@sentry/integrations';
 import {
@@ -23,6 +23,7 @@ import {
   SdkInfo,
 } from './integrations';
 import { Screenshot } from './integrations/screenshot';
+import { ViewHierarchy } from './integrations/viewhierarchy';
 import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
@@ -140,6 +141,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (options.attachScreenshot) {
       defaultIntegrations.push(new Screenshot());
     }
+    if (options.attachViewHierarchy) {
+      defaultIntegrations.push(new ViewHierarchy());
+    }
   }
 
   options.integrations = getIntegrationsToSetup({
@@ -247,9 +251,9 @@ export async function close(): Promise<void> {
 /**
  * Captures user feedback and sends it to Sentry.
  */
- export function captureUserFeedback(feedback: UserFeedback): void {
+export function captureUserFeedback(feedback: UserFeedback): void {
   getCurrentHub().getClient<ReactNativeClient>()?.captureUserFeedback(feedback);
- }
+}
 
 /**
  * Creates a new scope with and executes the given operation within.
@@ -279,7 +283,7 @@ export function withScope(callback: (scope: Scope) => void): ReturnType<Hub['wit
  * Callback to set context information onto the scope.
  * @param callback Callback function that receives Scope.
  */
- export function configureScope(callback: (scope: Scope) => void): ReturnType<Hub['configureScope']> {
+export function configureScope(callback: (scope: Scope) => void): ReturnType<Hub['configureScope']> {
   const safeCallback = (scope: Scope): void => {
     try {
       callback(scope);

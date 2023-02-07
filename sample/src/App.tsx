@@ -79,6 +79,8 @@ Sentry.init({
   attachStacktrace: true,
   // Attach screenshots to events.
   attachScreenshot: true,
+  // Attach view hierarchy to events.
+  attachViewHierarchy: true,
 });
 
 const Stack = createStackNavigator();

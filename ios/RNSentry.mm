@@ -337,6 +337,20 @@ RCT_EXPORT_METHOD(captureScreenshot: (RCTPromiseResolveBlock)resolve
     resolve(screenshotsArray);
 }
 
+RCT_EXPORT_METHOD(fetchViewHierarchy: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
+{
+    NSData * rawViewHierarchy = [PrivateSentrySDKOnly captureViewHierarchy];
+
+    NSMutableArray *viewHierarchy = [NSMutableArray arrayWithCapacity:rawViewHierarchy.length];
+    const char *bytes = (char*) [rawViewHierarchy bytes];
+    for (int i = 0; i < [rawViewHierarchy length]; i++) {
+        [viewHierarchy addObject:[[NSNumber alloc] initWithChar:bytes[i]]];
+    }
+
+    resolve(viewHierarchy);
+}
+
 RCT_EXPORT_METHOD(setUser:(NSDictionary *)userKeys
                   otherUserKeys:(NSDictionary *)userDataKeys
 )

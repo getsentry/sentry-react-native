@@ -23,7 +23,6 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
-import com.facebook.react.module.annotations.ReactModule;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -42,6 +41,7 @@ import io.sentry.Breadcrumb;
 import io.sentry.DateUtils;
 import io.sentry.HubAdapter;
 import io.sentry.ILogger;
+import io.sentry.ISerializer;
 import io.sentry.Integration;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
@@ -54,12 +54,14 @@ import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.NdkIntegration;
-import io.sentry.android.core.ScreenshotEventProcessor;
 import io.sentry.android.core.SentryAndroid;
+import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
+import io.sentry.protocol.ViewHierarchy;
+import io.sentry.util.JsonSerializationUtils;
 
 public class RNSentryModuleImpl {
 
@@ -74,7 +76,6 @@ public class RNSentryModuleImpl {
     private final PackageInfo packageInfo;
     private FrameMetricsAggregator frameMetricsAggregator = null;
     private boolean androidXAvailable;
-    private ScreenshotEventProcessor screenshotEventProcessor;
 
     private static boolean didFetchAppStart;
 
@@ -152,6 +153,9 @@ public class RNSentryModuleImpl {
             }
             if (rnOptions.hasKey("attachScreenshot")) {
                 options.setAttachScreenshot(rnOptions.getBoolean("attachScreenshot"));
+            }
+            if (rnOptions.hasKey("attachViewHierarchy")) {
+                options.setAttachViewHierarchy(rnOptions.getBoolean("attachViewHierarchy"));
             }
             if (rnOptions.hasKey("sendDefaultPii")) {
                 options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
@@ -387,6 +391,35 @@ public class RNSentryModuleImpl {
         }
 
         return bytesWrapper[0];
+    }
+
+    public void fetchViewHierarchy(Promise promise) {
+        final @Nullable Activity activity = getCurrentActivity();
+        final @Nullable ViewHierarchy viewHierarchy = ViewHierarchyEventProcessor.snapshotViewHierarchy(activity, logger);
+        if (viewHierarchy == null) {
+            logger.log(SentryLevel.ERROR, "Could not get ViewHierarchy.");
+            promise.resolve(null);
+            return;
+        }
+
+        ISerializer serializer = HubAdapter.getInstance().getOptions().getSerializer();
+        final @Nullable byte[] bytes = JsonSerializationUtils.bytesFrom(serializer, logger, viewHierarchy);
+        if (bytes == null) {
+            logger.log(SentryLevel.ERROR, "Could not serialize ViewHierarchy.");
+            promise.resolve(null);
+            return;
+        }
+        if (bytes.length < 1) {
+            logger.log(SentryLevel.ERROR, "Got empty bytes array after serializing ViewHierarchy.");
+            promise.resolve(null);
+            return;
+        }
+
+        final WritableNativeArray data = new WritableNativeArray();
+        for (final byte b : bytes) {
+            data.pushInt(b);
+        }
+        promise.resolve(data);
     }
 
     private static PackageInfo getPackageInfo(Context ctx) {
