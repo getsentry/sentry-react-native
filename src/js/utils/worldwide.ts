@@ -1,5 +1,6 @@
 import type { InternalGlobal } from '@sentry/utils';
 import { GLOBAL_OBJ } from '@sentry/utils';
+import type { ErrorUtils } from 'react-native/types';
 
 /** Internal Global object interface with common and Sentry specific properties */
 export interface ReactNativeInternalGlobal extends InternalGlobal {
