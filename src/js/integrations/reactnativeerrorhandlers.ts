@@ -163,7 +163,7 @@ export class ReactNativeErrorHandlers implements Integration {
 
       if(!global.ErrorUtils) {
         logger.warn('ErrorUtils not found. Can be caused by different environment for example react-native-web.');
-	      return;
+      	return;
       }
       const defaultHandler =
         ErrorUtils.getGlobalHandler && ErrorUtils.getGlobalHandler();
