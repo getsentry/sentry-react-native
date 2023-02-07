@@ -47,7 +47,7 @@ export function UserFeedbackModal(props: { onDismiss: () => void }) {
               clearComments();
             }}
           />
-          <View style={{ marginBottom: 8 }} />
+          <View style={styles.buttonSpacer} />
           <Button
             title="Close"
             color="#6C5FC7"
@@ -102,5 +102,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: 80,
     height: 80,
+  },
+  buttonSpacer: {
+    marginBottom: 8,
   },
 });
