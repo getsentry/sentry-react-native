@@ -161,72 +161,72 @@ export class ReactNativeErrorHandlers implements Integration {
     if (this._options.onerror) {
       let handlingFatal = false;
 
-      try {
-        const defaultHandler =
-          ErrorUtils.getGlobalHandler && ErrorUtils.getGlobalHandler();
+      if(!global.ErrorUtils) {
+        logger.warn('ErrorUtils not found. Can be caused by different environment for example react-native-web.');
+	      return;
+      }
+      const defaultHandler =
+        ErrorUtils.getGlobalHandler && ErrorUtils.getGlobalHandler();
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ErrorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
-          // We want to handle fatals, but only in production mode.
-          const shouldHandleFatal = isFatal && !__DEV__;
-          if (shouldHandleFatal) {
-            if (handlingFatal) {
-              logger.log(
-                'Encountered multiple fatals in a row. The latest:',
-                error
-              );
-              return;
-            }
-            handlingFatal = true;
-          }
-
-          const currentHub = getCurrentHub();
-          const client = currentHub.getClient<ReactNativeClient>();
-          const scope = currentHub.getScope();
-
-          if (!client) {
-            logger.error(
-              'Sentry client is missing, the error event might be lost.',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ErrorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
+        // We want to handle fatals, but only in production mode.
+        const shouldHandleFatal = isFatal && !__DEV__;
+        if (shouldHandleFatal) {
+          if (handlingFatal) {
+            logger.log(
+              'Encountered multiple fatals in a row. The latest:',
               error
             );
-
-            // If there is no client something is fishy, anyway we call the default handler
-            defaultHandler(error, isFatal);
-
             return;
           }
+          handlingFatal = true;
+        }
 
-          const options = client.getOptions();
+        const currentHub = getCurrentHub();
+        const client = currentHub.getClient<ReactNativeClient>();
+        const scope = currentHub.getScope();
 
-          const hint: EventHint = {
-            originalException: error,
-            attachments: scope?.getAttachments(),
-          };
-          const event = await client.eventFromException(error, hint);
+        if (!client) {
+          logger.error(
+            'Sentry client is missing, the error event might be lost.',
+            error
+          );
 
-          if (isFatal) {
-            event.level = 'fatal' as SeverityLevel;
+          // If there is no client something is fishy, anyway we call the default handler
+          defaultHandler(error, isFatal);
 
-            addExceptionMechanism(event, {
-              handled: false,
-              type: 'onerror',
-            });
-          }
+          return;
+        }
 
-          currentHub.captureEvent(event, hint);
+        const options = client.getOptions();
 
-          if (!__DEV__) {
-            void client.flush(options.shutdownTimeout || 2000).then(() => {
-              defaultHandler(error, isFatal);
-            });
-          } else {
-            // If in dev, we call the default handler anyway and hope the error will be sent
-            // Just for a better dev experience
+        const hint: EventHint = {
+          originalException: error,
+          attachments: scope?.getAttachments(),
+        };
+        const event = await client.eventFromException(error, hint);
+
+        if (isFatal) {
+          event.level = 'fatal' as SeverityLevel;
+
+          addExceptionMechanism(event, {
+            handled: false,
+            type: 'onerror',
+          });
+        }
+
+        currentHub.captureEvent(event, hint);
+
+        if (!__DEV__) {
+          void client.flush(options.shutdownTimeout || 2000).then(() => {
             defaultHandler(error, isFatal);
-          }
-        });
-      } catch(e) {
-        console.warn('react-native-web does not support ErrorUtils');
-    }
+          });
+        } else {
+          // If in dev, we call the default handler anyway and hope the error will be sent
+          // Just for a better dev experience
+          defaultHandler(error, isFatal);
+        }
+      });
   }
 }
