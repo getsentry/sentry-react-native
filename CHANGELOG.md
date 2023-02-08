@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Breaking changes
+
+- Events captured by Native SDKs are reporting as RN SDK ([#2814](https://github.com/getsentry/sentry-react-native/pull/2814))
+
 ## 5.0.0-beta.2
 
 ### Features
