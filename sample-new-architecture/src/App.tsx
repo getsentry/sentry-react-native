@@ -59,6 +59,7 @@ Sentry.init({
   // This will capture ALL TRACES and likely use up all your quota
   tracesSampleRate: 1.0,
   attachStacktrace: true,
+  attachScreenshot: true,
   // Sets the `release` and `dist` on Sentry events. Make sure this matches EXACTLY with the values on your sourcemaps
   // otherwise they will not work.
   // release: 'myapp@1.2.3+1',

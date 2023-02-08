@@ -10,6 +10,7 @@ import android.content.res.AssetManager;
 import android.util.SparseIntArray;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 import androidx.core.app.FrameMetricsAggregator;
 
 import com.facebook.react.bridge.Arguments;
@@ -102,6 +103,17 @@ public class RNSentryModuleImpl {
 
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
+            if (rnOptions.hasKey("_metadata")) {
+                @Nullable final ReadableMap metadata = rnOptions.getMap("_metadata");
+                @Nullable final ReadableMap sdkMap = metadata != null ? metadata.getMap("sdk") : null;
+                @Nullable final String sdkMapName = sdkMap != null ? sdkMap.getString("name") : null;
+                @Nullable final String sdkMapVersion = sdkMap != null ? sdkMap.getString("version") : null;
+                if (sdkMapName != null && sdkMapVersion != null) {
+                    @NonNull final SdkVersion sdkVersion = new SdkVersion(sdkMapName, sdkMapVersion);
+                    options.setSentryClientName(sdkMapName + "/" + sdkMapVersion);
+                    options.setSdkVersion(sdkVersion);
+                }
+            }
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
             }

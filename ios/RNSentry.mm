@@ -56,6 +56,15 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         return;
     }
 
+    if ([options[@"_metadata"] isKindOfClass: [NSDictionary class]]
+        && [options[@"_metadata"][@"sdk"] isKindOfClass: [NSDictionary class]]
+        && [options[@"_metadata"][@"sdk"][@"name"] isKindOfClass:[NSString class]]
+        && [options[@"_metadata"][@"sdk"][@"version"] isKindOfClass:[NSString class]]) {
+        [PrivateSentrySDKOnly
+            setSdkName:options[@"_metadata"][@"sdk"][@"name"]
+            andVersionString: options[@"_metadata"][@"sdk"][@"version"]];
+    }
+
     [SentrySDK startWithOptions:sentryOptions];
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
