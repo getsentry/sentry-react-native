@@ -1,4 +1,5 @@
 /* eslint-disable complexity */
+import { AppState } from 'react-native';
 import type { Event, EventProcessor, Hub, Integration } from '@sentry/types';
 import { logger, severityLevelFromString } from '@sentry/utils';
 
@@ -47,7 +48,13 @@ export class DeviceContext implements Integration {
         event.user = nativeUser;
       }
 
-      const nativeContext = native.context;
+      const nativeContext: Record<string, Record<string, unknown>> = native.context || {};
+      if (AppState.currentState !== 'unknown') {
+        nativeContext.app = {
+          ...nativeContext.app,
+          in_foreground: AppState.currentState === 'active',
+        }
+      }
       if (nativeContext) {
         event.contexts = { ...nativeContext, ...event.contexts };
       }
