@@ -172,7 +172,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.64.4', '0.71.0']
+        rn-version: ['0.64.4', '0.71.2']
         rn-architecture: ['legacy']
         platform: ['android', 'ios']
         build-type: ['dev', 'production']
