@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- React Native Error Handlers Integration doesn't crash if ErrorUtils are not available ([#2808](https://github.com/getsentry/sentry-react-native/pull/2808))
+
 ## 5.0.0-beta.2
 
 ### Features
