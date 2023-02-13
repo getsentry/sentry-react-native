@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+The React Native SDK version 5 supports both Legacy (from RN 0.65 and above) and New Architecture (from RN 0.69 and above) as well as the new React Native Gradle Plugin (introduced in RN 0.71). For detailed [migration guide visit our docs](https://docs.sentry.io/platforms/react-native/migration/#from-4x-to-5x).
+
 ### Features
 
 - Add support for the RN New Architecture, backwards compatible RNSentry Turbo Module ([#2522](https://github.com/getsentry/sentry-react-native/pull/2522))
@@ -17,7 +19,7 @@
 - Option `enableAutoPerformanceTracking` renamed to `enableAutoPerformanceTracing`
 - Option `enableOutOfMemoryTracking` renamed to `enableWatchdogTerminationTracking`
 - Auto linking for RN >= 0.69 ([#2332](https://github.com/getsentry/sentry-react-native/pull/2332))
-- iOS min target 12.4, Android API min 21, min React Native version 0.65 ([#2522](https://github.com/getsentry/sentry-react-native/pull/2522), [](TODO: add RN version min PR))
+- iOS min target 11, Android API min 21, min React Native version 0.65 ([#2522](https://github.com/getsentry/sentry-react-native/pull/2522), [#2687](https://github.com/getsentry/sentry-react-native/pull/2687))
 - New ReactNativeTracingOptions idleTimeoutMs and finalTimeoutMs replacing idleTimeout and maxTransactionDuration respectively ([#2481](https://github.com/getsentry/sentry-react-native/pull/2481))
 - `touchEventBoundaryProps.labelName` property instead of default `accessibilityLabel` fallback ([#2712](https://github.com/getsentry/sentry-react-native/pull/2712))
 - Message event current stack trace moved from exception to threads ([#2694](https://github.com/getsentry/sentry-react-native/pull/2694))
