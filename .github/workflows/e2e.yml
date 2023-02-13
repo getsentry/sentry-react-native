@@ -199,8 +199,10 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
 
-      - name: Setup JS Tools
-        run: yarn global add yalc semver
+      - name: Setup Global Tools
+        run: |
+          yarn global add yalc semver
+          brew install xcbeautify
 
       - name: NPM cache SDK
         uses: actions/cache@v3
