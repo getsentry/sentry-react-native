@@ -42,7 +42,9 @@ jobs:
           distribution: 'adopt'
 
       - name: Install Global Dependencies
-        run: yarn global add @sentry/cli yalc
+        run: |
+          yarn global add @sentry/cli yalc
+          brew install xcbeautify
 
       - name: NPM cache
         uses: actions/cache@v3
@@ -109,19 +111,23 @@ jobs:
               '-derivedDataPath' $(cd "DerivedData" ; pwd -P)
             )
             echo "buildArgs = ${buildArgs[@]}"
-            xcodebuild \
+            set -o pipefail && xcodebuild \
               -workspace sample.xcworkspace \
               -configuration Release \
               -scheme sample \
               "${buildArgs[@]}" \
-              build
-            xcodebuild \
+              build \
+              | tee sample-xcodebuild.log \
+              | xcbeautify --quieter --is-ci --disable-colored-output
+            set -o pipefail && xcodebuild \
               -project ../node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
               -scheme WebDriverAgentRunner \
               GCC_TREAT_WARNINGS_AS_ERRORS=0 \
               COMPILER_INDEX_STORE_ENABLE=NO \
               "${buildArgs[@]}" \
-              build
+              build \
+              | tee webdriveragent-xcodebuild.log \
+              | xcbeautify --quieter --is-ci --disable-colored-output
           fi
 
       - name: Start Appium Server
@@ -163,6 +169,7 @@ jobs:
           path: |
             ./sample/*.log
             ./sample/*.png
+            ./sample/ios/*.log
 
   react-native-build:
     name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
@@ -275,7 +282,7 @@ jobs:
           echo "Building $CONFIG"
           mkdir -p "DerivedData"
           derivedData="$(cd "DerivedData" ; pwd -P)"
-          xcodebuild \
+          set -o pipefail && xcodebuild \
             -workspace RnDiffApp.xcworkspace \
             -configuration "$CONFIG" \
             -scheme RnDiffApp \
@@ -283,4 +290,14 @@ jobs:
             ONLY_ACTIVE_ARCH=yes \
             -sdk 'iphonesimulator' \
             -derivedDataPath "$derivedData" \
-            build
+            build \
+            | tee xcodebuild.log \
+            | xcbeautify --quieter --is-ci --disable-colored-output
+
+      - name: Upload logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}
+          path: |
+            test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios/*.log
