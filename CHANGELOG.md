@@ -1,12 +1,6 @@
 # Changelog
 
-## 5.0.0-rc.1
-
-### Fixes
-
-- React Native Error Handlers Integration doesn't crash if ErrorUtils are not available ([#2808](https://github.com/getsentry/sentry-react-native/pull/2808))
-
-## 5.0.0-beta.2
+## Unreleased
 
 The React Native SDK version 5 supports both Legacy (from RN 0.65 and above) and New Architecture (from RN 0.69 and above) as well as the new React Native Gradle Plugin (introduced in RN 0.71). For detailed [migration guide visit our docs](https://docs.sentry.io/platforms/react-native/migration/#from-4x-to-5x).
 
@@ -42,6 +36,31 @@ The React Native SDK version 5 supports both Legacy (from RN 0.65 and above) and
 - Bump CLI from v1.74.4 to v2.10.0 ([#2669](https://github.com/getsentry/sentry-react-native/pull/2669))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2100)
   - [diff](https://github.com/getsentry/sentry-cli/compare/1.74.4...2.10.0)
+
+## 5.0.0-rc.1
+
+### Fixes
+
+- React Native Error Handlers Integration doesn't crash if ErrorUtils are not available ([#2808](https://github.com/getsentry/sentry-react-native/pull/2808))
+
+## 5.0.0-beta.2
+
+### Features
+
+- Add View Hierarchy to the crashed/errored events ([#2708](https://github.com/getsentry/sentry-react-native/pull/2708))
+- Collect modules script for XCode builds supports NODE_BINARY to set path to node executable ([#2805](https://github.com/getsentry/sentry-react-native/pull/2805))
+
+### Dependencies
+
+- Bump Android SDK from v6.12.1 to v6.13.1 ([#2790](https://github.com/getsentry/sentry-react-native/pull/2790), [#2809](https://github.com/getsentry/sentry-react-native/pull/2809))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6131)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.12.1...6.13.1)
+- Bump Sample React Native from v0.71.0 to v0.71.1 ([#2767](https://github.com/getsentry/sentry-react-native/pull/2767))
+  - [changelog](https://github.com/facebook/react-native/blob/main/CHANGELOG.md#v0711)
+  - [diff](https://github.com/facebook/react-native/compare/v0.71.0...v0.71.1)
+- Bump JavaScript SDK from v7.32.1 to v7.36.0 ([#2785](https://github.com/getsentry/sentry-react-native/pull/2785), [#2799](https://github.com/getsentry/sentry-react-native/pull/2799))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7360)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.32.1...7.36.0)
 
 ## 5.0.0-beta.1
 
