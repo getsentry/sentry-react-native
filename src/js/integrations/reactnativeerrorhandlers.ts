@@ -161,11 +161,17 @@ export class ReactNativeErrorHandlers implements Integration {
     if (this._options.onerror) {
       let handlingFatal = false;
 
+      const errorUtils = RN_GLOBAL_OBJ.ErrorUtils;
+      if (!errorUtils) {
+        logger.warn('ErrorUtils not found. Can be caused by different environment for example react-native-web.');
+        return;
+      }
+
       const defaultHandler =
-        ErrorUtils.getGlobalHandler && ErrorUtils.getGlobalHandler();
+        errorUtils.getGlobalHandler && errorUtils.getGlobalHandler();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ErrorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
+      errorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
         // We want to handle fatals, but only in production mode.
         const shouldHandleFatal = isFatal && !__DEV__;
         if (shouldHandleFatal) {
