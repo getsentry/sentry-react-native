@@ -5,7 +5,14 @@ import { DeviceContext } from '../../src/js/integrations';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { NATIVE } from '../../src/js/wrapper';
 
+let mockCurrentAppState: string = 'unknown';
+
 jest.mock('../../src/js/wrapper');
+jest.mock('react-native', () => ({
+  AppState: new Proxy({}, { get: () => mockCurrentAppState }),
+  NativeModules: {},
+  Platform: {},
+}));
 
 describe('Device Context Integration', () => {
   let integration: DeviceContext;
@@ -119,6 +126,35 @@ describe('Device Context Integration', () => {
         { message: 'duplicate-breadcrumb' },
         { message: 'native-breadcrumb' },
       ],
+    });
+  });
+
+  it('adds in_foreground to native app contexts', async () => {
+    mockCurrentAppState = 'active';
+    const { processedEvent } = await executeIntegrationWith({
+      nativeContexts: { context: { app: { native: "value" } } },
+    });
+    expect(processedEvent).toStrictEqual({
+      contexts: {
+        app: {
+          native: "value",
+          in_foreground: true,
+        },
+      },
+    });
+  });
+
+  it('do not add in_foreground if unknown', async () => {
+    mockCurrentAppState = 'unknown';
+    const { processedEvent } = await executeIntegrationWith({
+      nativeContexts: { context: { app: { native: "value" } } },
+    });
+    expect(processedEvent).toStrictEqual({
+      contexts: {
+        app: {
+          native: "value",
+        },
+      },
     });
   });
 

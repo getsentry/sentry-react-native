@@ -1,7 +1,7 @@
 /* eslint-disable complexity */
-import { AppState } from 'react-native';
 import type { Event, EventProcessor, Hub, Integration } from '@sentry/types';
 import { logger, severityLevelFromString } from '@sentry/utils';
+import { AppState } from 'react-native';
 
 import { breadcrumbFromObject } from '../breadcrumb';
 import type { NativeDeviceContextsResponse } from '../NativeRNSentry';
