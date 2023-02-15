@@ -132,12 +132,12 @@ describe('Device Context Integration', () => {
   it('adds in_foreground to native app contexts', async () => {
     mockCurrentAppState = 'active';
     const { processedEvent } = await executeIntegrationWith({
-      nativeContexts: { context: { app: { native: "value" } } },
+      nativeContexts: { context: { app: { native: 'value' } } },
     });
     expect(processedEvent).toStrictEqual({
       contexts: {
         app: {
-          native: "value",
+          native: 'value',
           in_foreground: true,
         },
       },
@@ -147,12 +147,12 @@ describe('Device Context Integration', () => {
   it('do not add in_foreground if unknown', async () => {
     mockCurrentAppState = 'unknown';
     const { processedEvent } = await executeIntegrationWith({
-      nativeContexts: { context: { app: { native: "value" } } },
+      nativeContexts: { context: { app: { native: 'value' } } },
     });
     expect(processedEvent).toStrictEqual({
       contexts: {
         app: {
-          native: "value",
+          native: 'value',
         },
       },
     });
