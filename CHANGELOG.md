@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add App Context `in_foreground` ([#2826](https://github.com/getsentry/sentry-react-native/pull/2826))
+
 ## 5.0.0-beta.2
 
 ### Features
