@@ -12,9 +12,9 @@
 
 ### Dependencies
 
-- Bump Android SDK from v6.12.1 to v6.13.1 ([#2790](https://github.com/getsentry/sentry-react-native/pull/2790), [#2809](https://github.com/getsentry/sentry-react-native/pull/2809))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6131)
-  - [diff](https://github.com/getsentry/sentry-java/compare/6.12.1...6.13.1)
+- Bump Android SDK from v6.12.1 to v6.14.0 ([#2790](https://github.com/getsentry/sentry-react-native/pull/2790), [#2809](https://github.com/getsentry/sentry-react-native/pull/2809), [#2828](https://github.com/getsentry/sentry-react-native/pull/2828))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6140)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.12.1...6.14.0)
 - Bump Sample React Native from v0.71.0 to v0.71.1 ([#2767](https://github.com/getsentry/sentry-react-native/pull/2767))
   - [changelog](https://github.com/facebook/react-native/blob/main/CHANGELOG.md#v0711)
   - [diff](https://github.com/facebook/react-native/compare/v0.71.0...v0.71.1)
