@@ -1,5 +1,6 @@
 /* eslint-disable max-lines */
 import type { Hub } from '@sentry/core';
+import { getCurrentHub } from '@sentry/core';
 import type {
   IdleTransaction,
   RequestInstrumentationOptions,
@@ -7,6 +8,8 @@ import type {
 } from '@sentry/tracing';
 import {
   defaultRequestInstrumentationOptions,
+  getActiveTransaction
+  ,
   instrumentOutgoingRequests,
   startIdleTransaction
 } from '@sentry/tracing';
@@ -23,6 +26,9 @@ import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumen
 import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
 import { StallTrackingInstrumentation } from './stalltracking';
+import {
+  onlySampleIfChildSpans,
+} from './transaction';
 import type { BeforeNavigate, RouteChangeContextData } from './types';
 import {
   adjustTransactionDuration,
@@ -102,6 +108,8 @@ export interface ReactNativeTracingOptions
    * Track when and how long the JS event loop stalls for. Adds stalls as measurements to all transactions.
    */
   enableStallTracking: boolean;
+
+  enableUserInteractionTracing: boolean;
 }
 
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
@@ -115,6 +123,7 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   enableAppStartTracking: true,
   enableNativeFramesTracking: true,
   enableStallTracking: true,
+  enableUserInteractionTracing: true,
 };
 
 /**
@@ -139,9 +148,11 @@ export class ReactNativeTracing implements Integration {
   public stallTrackingInstrumentation?: StallTrackingInstrumentation;
   public useAppStartWithProfiler: boolean = false;
 
+  private _inflightInteractionTransaction?: IdleTransaction;
   private _getCurrentHub?: () => Hub;
   private _awaitingAppStartData?: NativeAppStartResponse;
   private _appStartFinishTimestamp?: number;
+  private _currentRoute?: string;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this.options = {
@@ -266,6 +277,64 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
+   * TODO:
+   */
+  public startUserInteractionTransaction(userInteractionId: {
+    elementId: string | undefined;
+    op: string;
+  }): void {
+    const { elementId, op } = userInteractionId;
+    if (!this.options.enableUserInteractionTracing) {
+      logger.log('[ReactNativeTracing] User Interaction Tracing is disabled.');
+      return;
+    }
+    if (!this.options.routingInstrumentation) {
+      logger.error('[ReactNativeTracing] User Interaction Tracing is not working because no routing instrumentation is set.');
+      return;
+    }
+    if (!elementId) {
+      logger.log('[ReactNativeTracing] User Interaction Tracing can not create transaction with undefined elementId.');
+      return;
+    }
+    if (!this._currentRoute) {
+      logger.log('[ReactNativeTracing] User Interaction Tracing can not create transaction without a current route.');
+      return;
+    }
+
+    const { idleTimeoutMs, finalTimeoutMs } = this.options;
+
+    const isSameInteraction = this._inflightInteractionTransaction !== undefined
+      && this._inflightInteractionTransaction.op === op
+      && this._inflightInteractionTransaction.name === elementId;
+    if (this._inflightInteractionTransaction && isSameInteraction) {
+      this._inflightInteractionTransaction.finish();
+      this._inflightInteractionTransaction = undefined;
+    }
+
+    const context: TransactionContext = {
+      name: `${this._currentRoute}.${elementId}`,
+      op,
+      trimEnd: true,
+    };
+
+    const hub = this._getCurrentHub?.() || getCurrentHub();
+    const activeTransaction = getActiveTransaction(hub);
+    if (activeTransaction) {
+      logger.warn(`[ReactNativeTracing] Did not create ${op} transaction because active transaction ${activeTransaction.name} exists on the scope.`);
+      return;
+    }
+
+    this._inflightInteractionTransaction = startIdleTransaction(
+      hub,
+      context,
+      idleTimeoutMs,
+      finalTimeoutMs,
+      true,
+    );
+    this._inflightInteractionTransaction.registerBeforeFinishCallback(onlySampleIfChildSpans);
+  }
+
+  /**
    * Instruments the app start measurements on the first route transaction.
    * Starts a route transaction if there isn't routing instrumentation.
    */
@@ -347,6 +416,9 @@ export class ReactNativeTracing implements Integration {
    * Creates a breadcrumb and sets the current route as a tag.
    */
   private _onConfirmRoute(context: TransactionContext): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    this._currentRoute = context.data?.route?.name;
+
     this._getCurrentHub?.().configureScope((scope) => {
       if (context.data) {
         const contextData = context.data as RouteChangeContextData;

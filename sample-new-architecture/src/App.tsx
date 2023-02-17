@@ -41,6 +41,7 @@ Sentry.init({
         idleTimeout: 5000,
         routingInstrumentation: reactNavigationInstrumentation,
         tracingOrigins: ['localhost', /^\//, /^https:\/\//],
+        enableUserInteractionTracing: true,
         beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
           // Example of not sending a transaction for the screen with the name "Manual Tracker"
           if (context.data.route.name === 'ManualTracker') {
