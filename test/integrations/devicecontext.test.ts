@@ -129,6 +129,21 @@ describe('Device Context Integration', () => {
     });
   });
 
+  it('adds in_foreground false to native app contexts', async () => {
+    mockCurrentAppState = 'background';
+    const { processedEvent } = await executeIntegrationWith({
+      nativeContexts: { context: { app: { native: 'value' } } },
+    });
+    expect(processedEvent).toStrictEqual({
+      contexts: {
+        app: {
+          native: 'value',
+          in_foreground: false,
+        },
+      },
+    });
+  });
+
   it('adds in_foreground to native app contexts', async () => {
     mockCurrentAppState = 'active';
     const { processedEvent } = await executeIntegrationWith({
