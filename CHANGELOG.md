@@ -1,5 +1,44 @@
 # Changelog
 
+## Unreleased
+
+The React Native SDK version 5 supports both Legacy (from RN 0.65 and above) and New Architecture (from RN 0.69 and above) as well as the new React Native Gradle Plugin (introduced in RN 0.71). For detailed [migration guide visit our docs](https://docs.sentry.io/platforms/react-native/migration/#from-4x-to-5x).
+
+### Features
+
+- Add support for the RN New Architecture, backwards compatible RNSentry Turbo Module ([#2522](https://github.com/getsentry/sentry-react-native/pull/2522))
+- Add View Hierarchy to the crashed/errored events ([#2708](https://github.com/getsentry/sentry-react-native/pull/2708))
+- Send react native js engine, turbo module, fabric flags and component stack in Event contexts ([#2552](https://github.com/getsentry/sentry-react-native/pull/2552))
+- Sync `tags`, `extra`, `fingerprint`, `level`, `environment` and `breadcrumbs` from `sentry-cocoa` during event processing. ([#2713](https://github.com/getsentry/sentry-react-native/pull/2713))
+  - `breadcrumb.level` value `log` is transformed to `debug` when syncing with native layers.
+  - Remove `breadcrumb.level` value `critical` transformation to `fatal`.
+  - Default `breadcrumb.level` is `info`
+
+### Breaking changes
+
+- Option `enableAutoPerformanceTracking` renamed to `enableAutoPerformanceTracing`
+- Option `enableOutOfMemoryTracking` renamed to `enableWatchdogTerminationTracking`
+- Remove link hooks (RN 0.68 and older) ([#2332](https://github.com/getsentry/sentry-react-native/pull/2332))
+- iOS min target 11, Android API min 21, min React Native version 0.65 ([#2522](https://github.com/getsentry/sentry-react-native/pull/2522), [#2687](https://github.com/getsentry/sentry-react-native/pull/2687))
+- New ReactNativeTracingOptions ([#2481](https://github.com/getsentry/sentry-react-native/pull/2481))
+  - `idleTimeout` renamed to `idleTimeoutMs`
+  - `maxTransactionDuration` renamed to `finalTimeoutMs`
+- `touchEventBoundaryProps.labelName` property instead of default `accessibilityLabel` fallback ([#2712](https://github.com/getsentry/sentry-react-native/pull/2712))
+- Message event current stack trace moved from `exception` to `threads` ([#2694](https://github.com/getsentry/sentry-react-native/pull/2694))
+
+### Fixes
+
+- Unreachable fallback to fetch transport if native is not available ([#2695](https://github.com/getsentry/sentry-react-native/pull/2695))
+
+### Dependencies
+
+- Bump Cocoa SDK from v7.31.5 to v8.0.0 ([#2756](https://github.com/getsentry/sentry-react-native/pull/2756))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#800)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/7.31.5...8.0.0)
+- Bump CLI from v1.74.4 to v2.10.0 ([#2669](https://github.com/getsentry/sentry-react-native/pull/2669))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2100)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/1.74.4...2.10.0)
+
 ## 4.15.0
 
 ### Features
