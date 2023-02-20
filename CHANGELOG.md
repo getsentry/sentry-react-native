@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.15.0
 
 ### Features
 
@@ -12,15 +12,15 @@
 
 ### Dependencies
 
-- Bump Android SDK from v6.12.1 to v6.13.1 ([#2790](https://github.com/getsentry/sentry-react-native/pull/2790), [#2809](https://github.com/getsentry/sentry-react-native/pull/2809))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6131)
-  - [diff](https://github.com/getsentry/sentry-java/compare/6.12.1...6.13.1)
+- Bump Android SDK from v6.12.1 to v6.14.0 ([#2790](https://github.com/getsentry/sentry-react-native/pull/2790), [#2809](https://github.com/getsentry/sentry-react-native/pull/2809), [#2828](https://github.com/getsentry/sentry-react-native/pull/2828))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6140)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.12.1...6.14.0)
 - Bump Sample React Native from v0.71.0 to v0.71.1 ([#2767](https://github.com/getsentry/sentry-react-native/pull/2767))
   - [changelog](https://github.com/facebook/react-native/blob/main/CHANGELOG.md#v0711)
   - [diff](https://github.com/facebook/react-native/compare/v0.71.0...v0.71.1)
-- Bump JavaScript SDK from v7.32.1 to v7.36.0 ([#2785](https://github.com/getsentry/sentry-react-native/pull/2785), [#2799](https://github.com/getsentry/sentry-react-native/pull/2799))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7360)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.32.1...7.36.0)
+- Bump JavaScript SDK from v7.32.1 to v7.37.2 ([#2785](https://github.com/getsentry/sentry-react-native/pull/2785), [#2799](https://github.com/getsentry/sentry-react-native/pull/2799), [#2818](https://github.com/getsentry/sentry-react-native/pull/2818))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#7372)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.32.1...7.37.2)
 
 ## 4.14.0
 
