@@ -303,16 +303,19 @@ export class ReactNativeTracing implements Integration {
 
     const { idleTimeoutMs, finalTimeoutMs } = this.options;
 
+    const name = `${this._currentRoute}.${elementId}`;
     const isSameInteraction = this._inflightInteractionTransaction !== undefined
       && this._inflightInteractionTransaction.op === op
-      && this._inflightInteractionTransaction.name === elementId;
+      && this._inflightInteractionTransaction.name === name;
     if (this._inflightInteractionTransaction && isSameInteraction) {
-      this._inflightInteractionTransaction.finish();
-      this._inflightInteractionTransaction = undefined;
+      (this._inflightInteractionTransaction as unknown as { _startIdleTimeout: (endTimestamp?: number) => void })
+        ._startIdleTimeout();
+      console.log('restarted idle timeout');
+      return;
     }
 
     const context: TransactionContext = {
-      name: `${this._currentRoute}.${elementId}`,
+      name,
       op,
       trimEnd: true,
     };
