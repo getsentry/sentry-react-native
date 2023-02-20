@@ -123,7 +123,7 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   enableAppStartTracking: true,
   enableNativeFramesTracking: true,
   enableStallTracking: true,
-  enableUserInteractionTracing: true,
+  enableUserInteractionTracing: false,
 };
 
 /**

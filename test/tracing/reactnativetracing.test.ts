@@ -5,7 +5,8 @@ import { addGlobalEventProcessor, Hub } from '@sentry/core';
 import type { IdleTransaction, Transaction } from '@sentry/tracing';
 
 import type { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
-import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
+import { RoutingInstrumentation, TransactionCreator, OnConfirmRoute } from '../../src/js/tracing/routingInstrumentation';
+import { BeforeNavigate } from '../../src/js/tracing/types';
 
 jest.mock('../../src/js/wrapper', () => {
   return {
@@ -28,16 +29,16 @@ jest.mock('../../src/js/tracing/utils', () => {
   };
 });
 
-const getMockHub = () => {
-  const mockHub = new Hub(new BrowserClient({ tracesSampleRate: 1 } as BrowserClientOptions));
+const getMockScope = () => {
   let scopeTransaction: Transaction | undefined;
   let scopeUser: User | undefined;
-  const mockScope = {
+
+  return {
     getTransaction: () => scopeTransaction,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setSpan(span: any) {
+    setSpan: jest.fn((span: any) => {
       scopeTransaction = span;
-    },
+    }),
     setTag(_tag: any) {
       // Placeholder
     },
@@ -45,7 +46,12 @@ const getMockHub = () => {
       // Placeholder
     },
     getUser: () => scopeUser,
-  };
+  }
+};
+
+const getMockHub = () => {
+  const mockHub = new Hub(new BrowserClient({ tracesSampleRate: 1 } as BrowserClientOptions));
+  const mockScope = getMockScope();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mockHub.getScope = () => mockScope as any;
@@ -61,6 +67,7 @@ import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
 import { NATIVE } from '../../src/js/wrapper';
 import { mockFunction } from '../testutils';
+import { Scope } from '@sentry/types';
 
 const DEFAULT_IDLE_TIMEOUT = 1000;
 
@@ -655,4 +662,66 @@ describe('ReactNativeTracing', () => {
       expect(tracing.options.idleTimeout).toBe(1000);
     });
   });
+
+  describe('User Interaction Tracing', () => {
+    const mockedConfirmedRouteTransactionContext = {
+      name: 'mockedRouteName',
+      data: {
+        route: {
+          name: 'mockedRouteName',
+        },
+      },
+    };
+    let mockedScope: Scope;
+    let mockedHub: Hub;
+    let tracing: ReactNativeTracing;
+    let mockedUserInteractionId: { elementId: string | undefined; op: string; };
+    let mockedRoutingInstrumentation: RoutingInstrumentation & {
+      registeredListener?: TransactionCreator,
+      registeredBeforeNavigate?: BeforeNavigate,
+      registeredOnConfirmRoute?: OnConfirmRoute,
+    };
+
+    beforeEach(() => {
+      mockedUserInteractionId = { elementId: 'mockedElementId', op: 'mocked.op' };
+      mockedHub = getMockHub();
+      mockedScope = mockedHub.getScope()!;
+      mockedRoutingInstrumentation = {
+        name: 'TestRoutingInstrumentationInstance',
+        onRouteWillChange: jest.fn(),
+        registerRoutingInstrumentation: jest.fn((
+          listener: TransactionCreator,
+          beforeNavigate: BeforeNavigate,
+          onConfirmRoute: OnConfirmRoute,
+        ) => {
+          mockedRoutingInstrumentation.registeredListener = listener;
+          mockedRoutingInstrumentation.registeredBeforeNavigate = beforeNavigate;
+          mockedRoutingInstrumentation.registeredOnConfirmRoute = onConfirmRoute;
+        }),
+      };
+    });
+
+    test('User interaction tracing is disabled by default', () => {
+      tracing = new ReactNativeTracing();
+      tracing.setupOnce(jest.fn(), () => mockedHub);
+      tracing.startUserInteractionTransaction(mockedUserInteractionId);
+
+      expect(tracing.options.enableUserInteractionTracing).toBeFalsy();
+      expect(mockedScope.setSpan).not.toBeCalled();
+    });
+
+    test('User interaction tracing is enabled', () => {
+      tracing = new ReactNativeTracing({
+        routingInstrumentation: mockedRoutingInstrumentation,
+        enableUserInteractionTracing: true,
+      });
+      tracing.setupOnce(jest.fn(), () => mockedHub);
+      mockedRoutingInstrumentation.registeredOnConfirmRoute!(mockedConfirmedRouteTransactionContext);
+
+      tracing.startUserInteractionTransaction(mockedUserInteractionId);
+
+      expect(tracing.options.enableUserInteractionTracing).toBeTruthy();
+      expect(mockedScope.setSpan).toBeCalled();
+    });
+  })
 });
