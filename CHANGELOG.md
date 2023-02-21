@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.0.0
 
 The React Native SDK version 5 supports both Legacy (from RN 0.65 and above) and New Architecture (from RN 0.69 and above) as well as the new React Native Gradle Plugin (introduced in RN 0.71). For detailed [migration guide visit our docs](https://docs.sentry.io/platforms/react-native/migration/#from-4x-to-5x).
 
