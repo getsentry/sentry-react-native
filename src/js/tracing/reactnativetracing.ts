@@ -339,6 +339,9 @@ export class ReactNativeTracing implements Integration {
       finalTimeoutMs,
       true,
     );
+    this._inflightInteractionTransaction.registerBeforeFinishCallback(() => {
+      this._inflightInteractionTransaction = undefined;
+    });
     this._inflightInteractionTransaction.registerBeforeFinishCallback(onlySampleIfChildSpans);
   }
 
@@ -456,6 +459,14 @@ export class ReactNativeTracing implements Integration {
         `[ReactNativeTracing] Did not create ${context.op} transaction because _getCurrentHub is invalid.`
       );
       return undefined;
+    }
+
+    if (this._inflightInteractionTransaction) {
+      logger.log(
+        `[ReactNativeTracing] Canceling ${this._inflightInteractionTransaction.op} transaction because navigation ${context.op}.`
+      );
+      this._inflightInteractionTransaction.setStatus('cancelled');
+      this._inflightInteractionTransaction.finish();
     }
 
     // eslint-disable-next-line @typescript-eslint/unbound-method

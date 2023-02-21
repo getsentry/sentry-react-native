@@ -3,7 +3,8 @@ import { SpanStatusType } from '@sentry/tracing';
 import type { User } from '@sentry/browser';
 import { BrowserClient } from '@sentry/browser';
 import { addGlobalEventProcessor, Hub } from '@sentry/core';
-import type { IdleTransaction, Transaction } from '@sentry/tracing';
+import type { IdleTransaction } from '@sentry/tracing';
+import { Transaction } from '@sentry/tracing';
 
 import type { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
 import { RoutingInstrumentation, TransactionCreator, OnConfirmRoute } from '../../src/js/tracing/routingInstrumentation';
@@ -729,7 +730,7 @@ describe('ReactNativeTracing', () => {
         jest.useRealTimers();
       });
 
-      test('User interaction tracing is enabled and transaction is bound to scope', () => {
+      test('user interaction tracing is enabled and transaction is bound to scope', () => {
         tracing.startUserInteractionTransaction(mockedUserInteractionId);
 
         const actualTransaction = mockFunction(mockedScope.setSpan).mock.calls[0][firstArg];
@@ -751,7 +752,7 @@ describe('ReactNativeTracing', () => {
         expect(actualTransactionContext?.sampled).toEqual(false);
       });
 
-      test('Do not overwrite existing status of UI event transactions', () => {
+      test('do not overwrite existing status of UI event transactions', () => {
         tracing.startUserInteractionTransaction(mockedUserInteractionId);
 
         const actualTransaction = mockedScope.getTransaction() as Transaction | undefined;
@@ -807,6 +808,56 @@ describe('ReactNativeTracing', () => {
         }));
         expect(firstTransactionContext?.endTimestamp)
           .toBeGreaterThanOrEqual(secondTransactionContext?.startTimestamp!);
+      });
+
+      test('same ui event after UI event transaction finished', () => {
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        const firstTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        jest.runAllTimers();
+
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        const secondTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        jest.runAllTimers();
+
+        const firstTransactionContext = firstTransaction?.toContext();
+        const secondTransactionContext = secondTransaction?.toContext();
+        expect(firstTransactionContext?.endTimestamp).toEqual(expect.any(Number));
+        expect(secondTransactionContext?.endTimestamp).toEqual(expect.any(Number));
+        expect(firstTransactionContext?.spanId).not.toEqual(secondTransactionContext?.spanId);
+      });
+
+      test('do not start UI event transaction if active transaction on scope', () => {
+        const activeTransaction = new Transaction({ name: 'activeTransactionOnScope' }, mockedHub);
+        mockedScope.setSpan(activeTransaction);
+
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+
+        expect(mockedScope.setSpan).toBeCalledTimes(1);
+        expect(mockedScope.setSpan).toBeCalledWith(activeTransaction);
+      });
+
+      test('UI event transaction is canceled when routing transaction starts', () => {
+        const timeoutCloseToActualIdleTimeoutMs = 800;
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        const interactionTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
+
+        const routingTransaction = mockedRoutingInstrumentation.registeredListener!({
+          name: 'newMockedRouteName',
+        });
+        jest.runAllTimers();
+
+        const interactionTransactionContext = interactionTransaction?.toContext();
+        const routingTransactionContext = routingTransaction?.toContext();
+        expect(interactionTransactionContext).toEqual(expect.objectContaining({
+          endTimestamp: expect.any(Number),
+          status: 'cancelled',
+        }));
+        expect(routingTransactionContext).toEqual(expect.objectContaining({
+          endTimestamp: expect.any(Number),
+        }));
+        expect(interactionTransactionContext?.endTimestamp)
+          .toBeLessThanOrEqual(routingTransactionContext?.startTimestamp!);
       });
     });
   })
