@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SpanStatusType } from '@sentry/tracing';
 import type { User } from '@sentry/browser';
 import { BrowserClient } from '@sentry/browser';
 import { addGlobalEventProcessor, Hub } from '@sentry/core';
-import type { IdleTransaction } from '@sentry/tracing';
+import type { IdleTransaction, SpanStatusType } from '@sentry/tracing';
 import { Transaction } from '@sentry/tracing';
 
 import type { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
-import { RoutingInstrumentation, TransactionCreator, OnConfirmRoute } from '../../src/js/tracing/routingInstrumentation';
-import { BeforeNavigate } from '../../src/js/tracing/types';
+import type { OnConfirmRoute, TransactionCreator } from '../../src/js/tracing/routingInstrumentation';
+import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
+import type { BeforeNavigate } from '../../src/js/tracing/types';
 
 jest.mock('../../src/js/wrapper', () => {
   return {
@@ -64,12 +64,12 @@ const getMockHub = () => {
 };
 
 import type { BrowserClientOptions } from '@sentry/browser/types/client';
+import type { Scope } from '@sentry/types';
 
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
 import { NATIVE } from '../../src/js/wrapper';
 import { firstArg, mockFunction } from '../testutils';
-import { Scope } from '@sentry/types';
 
 const DEFAULT_IDLE_TIMEOUT = 1000;
 
@@ -710,6 +710,7 @@ describe('ReactNativeTracing', () => {
         tracing.startUserInteractionTransaction(mockedUserInteractionId);
 
         expect(tracing.options.enableUserInteractionTracing).toBeFalsy();
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedScope.setSpan).not.toBeCalled();
       });
     });
@@ -733,6 +734,7 @@ describe('ReactNativeTracing', () => {
       test('user interaction tracing is enabled and transaction is bound to scope', () => {
         tracing.startUserInteractionTransaction(mockedUserInteractionId);
 
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         const actualTransaction = mockFunction(mockedScope.setSpan).mock.calls[0][firstArg];
         const actualTransactionContext = actualTransaction?.toContext();
         expect(tracing.options.enableUserInteractionTracing).toBeTruthy();
@@ -747,6 +749,7 @@ describe('ReactNativeTracing', () => {
 
         jest.runAllTimers();
 
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         const actualTransaction = mockFunction(mockedScope.setSpan).mock.calls[0][firstArg];
         const actualTransactionContext = actualTransaction?.toContext();
         expect(actualTransactionContext?.sampled).toEqual(false);
@@ -806,8 +809,8 @@ describe('ReactNativeTracing', () => {
           endTimestamp: expect.any(Number),
           op: 'different.op',
         }));
-        expect(firstTransactionContext?.endTimestamp)
-          .toBeGreaterThanOrEqual(secondTransactionContext?.startTimestamp!);
+        expect(firstTransactionContext!.endTimestamp)
+          .toBeGreaterThanOrEqual(secondTransactionContext!.startTimestamp!);
       });
 
       test('same ui event after UI event transaction finished', () => {
@@ -821,9 +824,9 @@ describe('ReactNativeTracing', () => {
 
         const firstTransactionContext = firstTransaction?.toContext();
         const secondTransactionContext = secondTransaction?.toContext();
-        expect(firstTransactionContext?.endTimestamp).toEqual(expect.any(Number));
-        expect(secondTransactionContext?.endTimestamp).toEqual(expect.any(Number));
-        expect(firstTransactionContext?.spanId).not.toEqual(secondTransactionContext?.spanId);
+        expect(firstTransactionContext!.endTimestamp).toEqual(expect.any(Number));
+        expect(secondTransactionContext!.endTimestamp).toEqual(expect.any(Number));
+        expect(firstTransactionContext!.spanId).not.toEqual(secondTransactionContext!.spanId);
       });
 
       test('do not start UI event transaction if active transaction on scope', () => {
@@ -832,7 +835,9 @@ describe('ReactNativeTracing', () => {
 
         tracing.startUserInteractionTransaction(mockedUserInteractionId);
 
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedScope.setSpan).toBeCalledTimes(1);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedScope.setSpan).toBeCalledWith(activeTransaction);
       });
 
@@ -856,8 +861,8 @@ describe('ReactNativeTracing', () => {
         expect(routingTransactionContext).toEqual(expect.objectContaining({
           endTimestamp: expect.any(Number),
         }));
-        expect(interactionTransactionContext?.endTimestamp)
-          .toBeLessThanOrEqual(routingTransactionContext?.startTimestamp!);
+        expect(interactionTransactionContext!.endTimestamp)
+          .toBeLessThanOrEqual(routingTransactionContext!.startTimestamp!);
       });
     });
   })
