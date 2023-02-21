@@ -4,6 +4,11 @@
 #import "RCTBridge.h"
 #endif
 
+#import <Sentry/SentryOptions.h>
+
 @interface RNSentry : NSObject <RCTBridgeModule>
+
+- (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
+                                                  error:(NSError *_Nullable*_Nonnull)errorPointer;
 
 @end

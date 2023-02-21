@@ -1,6 +1,7 @@
 import { Scope } from '@sentry/core';
 import type { Attachment, Breadcrumb, User } from '@sentry/types';
 
+import { DEFAULT_BREADCRUMB_LEVEL } from './breadcrumb';
 import { NATIVE } from './wrapper';
 
 /**
@@ -58,8 +59,12 @@ export class ReactNativeScope extends Scope {
    * @inheritDoc
    */
   public addBreadcrumb(breadcrumb: Breadcrumb, maxBreadcrumbs?: number): this {
-    NATIVE.addBreadcrumb(breadcrumb);
-    return super.addBreadcrumb(breadcrumb, maxBreadcrumbs);
+    const mergedBreadcrumb = {
+      ...breadcrumb,
+      level: breadcrumb.level || DEFAULT_BREADCRUMB_LEVEL,
+    };
+    NATIVE.addBreadcrumb(mergedBreadcrumb);
+    return super.addBreadcrumb(mergedBreadcrumb, maxBreadcrumbs);
   }
 
   /**

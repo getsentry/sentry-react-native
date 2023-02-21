@@ -1,10 +1,10 @@
 import * as React from 'react';
-import {Provider} from 'react-redux';
+import { Provider } from 'react-redux';
 import {
   NavigationContainer,
   NavigationContainerRef,
 } from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
@@ -14,11 +14,10 @@ import HomeScreen from './screens/HomeScreen';
 import TrackerScreen from './screens/TrackerScreen';
 import ManualTrackerScreen from './screens/ManualTrackerScreen';
 import PerformanceTimingScreen from './screens/PerformanceTimingScreen';
-import EndToEndTestsScreen from './screens/EndToEndTestsScreen';
 import ReduxScreen from './screens/ReduxScreen';
 
-import {store} from './reduxApp';
-import {SENTRY_INTERNAL_DSN} from './dsn';
+import { store } from './reduxApp';
+import { SENTRY_INTERNAL_DSN } from './dsn';
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
@@ -33,7 +32,7 @@ Sentry.init({
     return e;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
-  onReady: ({didCallNativeInit}) => {
+  onReady: ({ didCallNativeInit }) => {
     console.log('onReady called with didCallNativeInit:', didCallNativeInit);
   },
   maxCacheItems: 40, // Extend from the default 30.
@@ -52,6 +51,12 @@ Sentry.init({
         return context;
       },
     }),
+    {
+      name: 'Dedupe',
+      setupOnce: (_addGlobalEventProcessor, _getCurrentHub) => {
+        console.log('Dedupe Dummy Integration');
+      },
+    },
     new Integrations.HttpClient({
       // This array can contain tuples of `[begin, end]` (both inclusive),
       // Single status codes, or a combinations of both.
@@ -74,6 +79,8 @@ Sentry.init({
   attachStacktrace: true,
   // Attach screenshots to events.
   attachScreenshot: true,
+  // Attach view hierarchy to events.
+  attachViewHierarchy: true,
 });
 
 const Stack = createStackNavigator();
@@ -99,7 +106,6 @@ const App = () => {
             component={PerformanceTimingScreen}
           />
           <Stack.Screen name="Redux" component={ReduxScreen} />
-          <Stack.Screen name="EndToEndTests" component={EndToEndTestsScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
@@ -107,4 +113,8 @@ const App = () => {
 };
 
 // Wrap your app to get more features out of the box such as auto performance monitoring.
-export default Sentry.wrap(App);
+export default Sentry.wrap(App, {
+  touchEventBoundaryProps: {
+    labelName: 'custom-sentry-label-name',
+  },
+});
