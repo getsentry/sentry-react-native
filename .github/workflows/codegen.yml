@@ -20,9 +20,10 @@ jobs:
               ./gradlew generateCodegenArtifactsFromSchema
           - platform: ios
             command: |
+              cd sample-new-architecture
               node node_modules/react-native/scripts/generate-codegen-artifacts.js \
-                --path sample-new-architecture \
-                --outputPath sample-new-architecture/ios/codegen
+                --path . \
+                --outputPath ios/codegen
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
