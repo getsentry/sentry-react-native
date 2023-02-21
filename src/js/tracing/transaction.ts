@@ -1,8 +1,10 @@
-import type { BeforeFinishCallback, IdleTransaction } from '@sentry/tracing/types/idletransaction';
 import { logger } from '@sentry/utils';
+import type { IdleTransaction } from '@sentry/tracing';
+import type { BeforeFinishCallback } from '@sentry/tracing/types/idletransaction';
 
 /**
- * TODO:
+ * Idle Transaction callback to only sample transactions with child spans.
+ * To avoid side effects of other callbacks this should be hooked as the last callback.
  */
 export const onlySampleIfChildSpans: BeforeFinishCallback = (
   transaction: IdleTransaction,

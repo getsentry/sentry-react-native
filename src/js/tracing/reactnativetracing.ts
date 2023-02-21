@@ -277,12 +277,13 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
-   * TODO:
+   * Starts a new transaction for a user interaction.
+   * @param userInteractionId Consists of `op` representation UI Event and `elementId` unique element identifier on current screen.
    */
   public startUserInteractionTransaction(userInteractionId: {
     elementId: string | undefined;
     op: string;
-  }): void {
+  }): TransactionType | undefined {
     const { elementId, op } = userInteractionId;
     if (!this.options.enableUserInteractionTracing) {
       logger.log('[ReactNativeTracing] User Interaction Tracing is disabled.');
@@ -345,6 +346,7 @@ export class ReactNativeTracing implements Integration {
     });
     this._inflightInteractionTransaction.registerBeforeFinishCallback(onlySampleIfChildSpans);
     this.onTransactionStart(this._inflightInteractionTransaction);
+    return this._inflightInteractionTransaction;
   }
 
   /**
