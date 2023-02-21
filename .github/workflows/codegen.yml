@@ -12,12 +12,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: ["android"] # "ios" will be added after codegen is fixed
+        platform: ["android", "ios"]
         include:
           - platform: android
             command: |
               cd sample-new-architecture/android
               ./gradlew generateCodegenArtifactsFromSchema
+          - platform: ios
+            command: |
+              node node_modules/react-native/scripts/generate-codegen-artifacts.js \
+                --path sample-new-architecture \
+                --outputPath sample-new-architecture/ios/codegen
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
