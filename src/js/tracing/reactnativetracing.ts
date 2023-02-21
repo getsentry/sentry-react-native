@@ -339,10 +339,12 @@ export class ReactNativeTracing implements Integration {
       finalTimeoutMs,
       true,
     );
-    this._inflightInteractionTransaction.registerBeforeFinishCallback(() => {
+    this._inflightInteractionTransaction.registerBeforeFinishCallback((transaction: IdleTransaction) => {
       this._inflightInteractionTransaction = undefined;
+      this.onTransactionFinish(transaction);
     });
     this._inflightInteractionTransaction.registerBeforeFinishCallback(onlySampleIfChildSpans);
+    this.onTransactionStart(this._inflightInteractionTransaction);
   }
 
   /**

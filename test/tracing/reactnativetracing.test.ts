@@ -864,6 +864,23 @@ describe('ReactNativeTracing', () => {
         expect(interactionTransactionContext!.endTimestamp)
           .toBeLessThanOrEqual(routingTransactionContext!.startTimestamp!);
       });
+
+      test('UI event transaction calls lifecycle callbacks', () => {
+        tracing.onTransactionStart = jest.fn(tracing.onTransactionStart.bind(tracing));
+        tracing.onTransactionFinish = jest.fn(tracing.onTransactionFinish.bind(tracing));
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        const actualTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        jest.runAllTimers();
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(tracing.onTransactionStart).toBeCalledTimes(1);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(tracing.onTransactionFinish).toBeCalledTimes(1);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(tracing.onTransactionStart).toBeCalledWith(actualTransaction);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(tracing.onTransactionFinish).toBeCalledWith(actualTransaction);
+      });
     });
   })
 });
