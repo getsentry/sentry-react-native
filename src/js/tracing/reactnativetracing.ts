@@ -301,17 +301,30 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
-    const { idleTimeoutMs, finalTimeoutMs } = this.options;
-
     const name = `${this._currentRoute}.${elementId}`;
-    const isSameInteraction = this._inflightInteractionTransaction !== undefined
-      && this._inflightInteractionTransaction.op === op
-      && this._inflightInteractionTransaction.name === name;
-    if (this._inflightInteractionTransaction && isSameInteraction) {
+
+    const isSameOp = this._inflightInteractionTransaction?.op === op
+    const isSameName = this._inflightInteractionTransaction?.name === name;
+    if (this._inflightInteractionTransaction && isSameOp && isSameName) {
       (this._inflightInteractionTransaction as unknown as { _startIdleTimeout: (endTimestamp?: number) => void })
         ._startIdleTimeout();
-      console.log('restarted idle timeout');
       return;
+    }
+
+    const hub = this._getCurrentHub?.() || getCurrentHub();
+    const activeTransaction = getActiveTransaction(hub);
+    const activeTransactionIsNotInteraction =
+      activeTransaction?.spanId !== this._inflightInteractionTransaction?.spanId;
+    if (activeTransaction && activeTransactionIsNotInteraction) {
+      logger.warn(`[ReactNativeTracing] Did not create ${op} transaction because active transaction ${activeTransaction.name} exists on the scope.`);
+      return;
+    }
+
+    const { idleTimeoutMs, finalTimeoutMs } = this.options;
+
+    if (this._inflightInteractionTransaction && isSameName && !isSameOp) {
+      this._inflightInteractionTransaction = undefined;
+      // TODO: cancel the idle timeout
     }
 
     const context: TransactionContext = {
@@ -319,14 +332,6 @@ export class ReactNativeTracing implements Integration {
       op,
       trimEnd: true,
     };
-
-    const hub = this._getCurrentHub?.() || getCurrentHub();
-    const activeTransaction = getActiveTransaction(hub);
-    if (activeTransaction) {
-      logger.warn(`[ReactNativeTracing] Did not create ${op} transaction because active transaction ${activeTransaction.name} exists on the scope.`);
-      return;
-    }
-
     this._inflightInteractionTransaction = startIdleTransaction(
       hub,
       context,
