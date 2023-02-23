@@ -1,0 +1,3 @@
+export {
+  fromByteArray,
+} from './fromByteArray';
