@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Capture large envelopes (10s of MB) correctly. ([#2708](https://github.com/getsentry/sentry-react-native/pull/2708))
+- Capture large envelopes (10s of MB) correctly. ([#2852](https://github.com/getsentry/sentry-react-native/pull/2852))
   - Note that this fix require rebuild of the native app
 
 ## 5.0.0
