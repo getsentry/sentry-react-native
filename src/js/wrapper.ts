@@ -83,6 +83,8 @@ interface SentryNativeWrapper {
   fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
 }
 
+const EOL = utf8ToBytes('\n');
+
 /**
  * Our internal interface for calling native functions
  */
@@ -115,20 +117,20 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const [EOL] = utf8ToBytes('\n');
-
     const [envelopeHeader, envelopeItems] = envelope;
 
     const headerString = JSON.stringify(envelopeHeader);
-    let envelopeBytes: number[] = utf8ToBytes(headerString);
-    envelopeBytes.push(EOL);
+    const headerBytes = utf8ToBytes(headerString);
+    let envelopeBytes: Uint8Array = new Uint8Array(headerBytes.length + EOL.length);
+    envelopeBytes.set(headerBytes);
+    envelopeBytes.set(EOL, headerBytes.length);
 
     let hardCrashed: boolean = false;
     for (const rawItem of envelopeItems) {
       const [itemHeader, itemPayload] = this._processItem(rawItem);
 
       let bytesContentType: string;
-      let bytesPayload: number[] = [];
+      let bytesPayload: number[] | Uint8Array | undefined;
       if (typeof itemPayload === 'string') {
         bytesContentType = 'text/plain';
         bytesPayload = utf8ToBytes(itemPayload);
@@ -136,7 +138,7 @@ export const NATIVE: SentryNativeWrapper = {
         bytesContentType = typeof itemHeader.content_type === 'string'
           ? itemHeader.content_type
           : 'application/octet-stream';
-        bytesPayload = [...itemPayload];
+        bytesPayload = itemPayload;
       } else {
         bytesContentType = 'application/json';
         bytesPayload = utf8ToBytes(JSON.stringify(itemPayload));
@@ -150,10 +152,16 @@ export const NATIVE: SentryNativeWrapper = {
       (itemHeader as BaseEnvelopeItemHeaders).length = bytesPayload.length;
       const serializedItemHeader = JSON.stringify(itemHeader);
 
-      envelopeBytes.push(...utf8ToBytes(serializedItemHeader));
-      envelopeBytes.push(EOL);
-      envelopeBytes = envelopeBytes.concat(bytesPayload);
-      envelopeBytes.push(EOL);
+      const bytesItemHeader = utf8ToBytes(serializedItemHeader);
+      const newBytes = new Uint8Array(
+        envelopeBytes.length + bytesItemHeader.length + EOL.length + bytesPayload.length + EOL.length,
+      );
+      newBytes.set(envelopeBytes);
+      newBytes.set(bytesItemHeader, envelopeBytes.length);
+      newBytes.set(EOL, envelopeBytes.length + bytesItemHeader.length);
+      newBytes.set(bytesPayload, envelopeBytes.length + bytesItemHeader.length + EOL.length);
+      newBytes.set(EOL, envelopeBytes.length + bytesItemHeader.length + EOL.length + bytesPayload.length);
+      envelopeBytes = newBytes;
     }
 
     await RNSentry.captureEnvelope(fromByteArray(envelopeBytes), { store: hardCrashed });
