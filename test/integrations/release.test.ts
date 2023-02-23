@@ -12,6 +12,7 @@ jest.mock('@sentry/core', () => {
 
   const hub = {
     getClient: () => client,
+    // out-of-scope variables have to be prefixed with `mock` caseSensitive
     getIntegration: () => mockRelease,
   };
 

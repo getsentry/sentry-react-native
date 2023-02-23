@@ -1,0 +1,21 @@
+{
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "test/**/*.ts",
+    "test/**/*.tsx",
+  ],
+  "exclude": [
+    "dist"
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "jsx": "react-native",
+    "esModuleInterop": true,
+    "types": [
+      "jest",
+      "webdriverio/async",
+    ],
+    "strict": true,
+  }
+}

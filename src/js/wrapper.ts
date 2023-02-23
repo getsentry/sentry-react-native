@@ -10,22 +10,25 @@ import type {
   User,
 } from '@sentry/types';
 import { logger, normalize, SentryError } from '@sentry/utils';
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules, Platform, TurboModuleRegistry } from 'react-native';
 
+import { isHardCrash } from './misc';
 import type {
   NativeAppStartResponse,
   NativeDeviceContextsResponse,
   NativeFramesResponse,
   NativeReleaseResponse,
   NativeScreenshot,
-  SentryNativeBridgeModule,
-} from './definitions';
-import { isHardCrash } from './misc';
+  Spec,
+} from './NativeRNSentry';
 import type { ReactNativeOptions } from './options';
 import type { RequiredKeysUser } from './user';
+import { isTurboModuleEnabled } from './utils/environment'
 import { utf8ToBytes } from './vendor';
 
-const RNSentry = NativeModules.RNSentry as SentryNativeBridgeModule | undefined;
+const RNSentry: Spec | undefined = isTurboModuleEnabled()
+  ? TurboModuleRegistry.getEnforcing<Spec>('RNSentry')
+  : NativeModules.RNSentry;
 
 export interface Screenshot {
   data: Uint8Array;
@@ -46,8 +49,8 @@ interface SentryNativeWrapper {
   _processLevel(level: SeverityLevel): SeverityLevel;
   _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
   _isModuleLoaded(
-    module: SentryNativeBridgeModule | undefined
-  ): module is SentryNativeBridgeModule;
+    module: Spec | undefined
+  ): module is Spec;
   _getBreadcrumbs(event: Event): Breadcrumb[] | undefined;
 
   isNativeTransportAvailable(): boolean;
@@ -77,6 +80,7 @@ interface SentryNativeWrapper {
   nativeCrash(): void;
 
   fetchModules(): Promise<Record<string, string> | null>;
+  fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
 }
 
 /**
@@ -488,6 +492,18 @@ export const NATIVE: SentryNativeWrapper = {
     }
   },
 
+  async fetchViewHierarchy(): Promise<Uint8Array | null> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    const raw = await RNSentry.fetchViewHierarchy();
+    return raw ? new Uint8Array(raw) : null;
+  },
+
   /**
    * Gets the event from envelopeItem and applies the level filter to the selected event.
    * @param data An envelope item containing the event.
@@ -563,11 +579,6 @@ export const NATIVE: SentryNativeWrapper = {
     if (level == 'log' as SeverityLevel) {
       return 'debug' as SeverityLevel;
     }
-    else if (level == 'critical' as SeverityLevel) {
-      return 'fatal' as SeverityLevel;
-    }
-
-
     return level;
   },
 
@@ -575,8 +586,8 @@ export const NATIVE: SentryNativeWrapper = {
    * Checks whether the RNSentry module is loaded.
    */
   _isModuleLoaded(
-    module: SentryNativeBridgeModule | undefined
-  ): module is SentryNativeBridgeModule {
+    module: Spec | undefined
+  ): module is Spec {
     return !!module;
   },
 

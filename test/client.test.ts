@@ -1,9 +1,12 @@
-import type { Envelope, Event,Outcome, Transport } from '@sentry/types';
+import { defaultStackParser } from '@sentry/browser';
+import type { Envelope, Event, Outcome, Transport } from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';
 import type { ReactNativeClientOptions } from '../src/js/options';
+import type { RoutingInstrumentationInstance } from '../src/js/tracing';
+import { ReactNativeTracing } from '../src/js/tracing';
 import { NativeTransport } from '../src/js/transports/native';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../src/js/version';
 import { NATIVE } from '../src/js/wrapper';
@@ -28,6 +31,8 @@ interface MockedReactNative {
       crash: jest.Mock;
       captureEnvelope: jest.Mock;
       captureScreenshot: jest.Mock;
+      fetchNativeAppStart: jest.Mock;
+      enableNativeFramesTracking: jest.Mock;
     };
   };
   Platform: {
@@ -53,6 +58,8 @@ jest.mock(
         crash: jest.fn(),
         captureEnvelope: jest.fn(),
         captureScreenshot: jest.fn().mockResolvedValue(null),
+        fetchNativeAppStart: jest.fn(),
+        enableNativeFramesTracking: jest.fn(),
       },
     },
     Platform: {
@@ -77,8 +84,8 @@ const DEFAULT_OPTIONS: ReactNativeClientOptions = {
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
-  enableAutoPerformanceTracking: true,
-  enableOutOfMemoryTracking: true,
+  enableAutoPerformanceTracing: true,
+  enableWatchdogTerminationTracking: true,
   patchGlobalPromise: true,
   integrations: [],
   transport: () => ({
@@ -243,6 +250,39 @@ describe('Tests ReactNativeClient', () => {
         name: 'Test User',
         event_id: 'testEvent123',
       });
+    });
+  });
+
+  describe('attachStacktrace', () => {
+    let mockTransportSend: jest.Mock;
+    let client: ReactNativeClient;
+
+    beforeEach(() => {
+      mockTransportSend = jest.fn(() => Promise.resolve());
+      client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        attachStacktrace: true,
+        stackParser: defaultStackParser,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+      } as ReactNativeClientOptions);
+    });
+
+    afterEach(() => {
+      mockTransportSend.mockClear();
+    });
+
+    const getMessageEventFrom = (func: jest.Mock) =>
+      func.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
+
+    test('captureMessage contains stack trace in threads', async () => {
+      const mockSyntheticExceptionFromHub = new Error();
+      client.captureMessage('test message', 'error', { syntheticException: mockSyntheticExceptionFromHub });
+      expect(getMessageEventFrom(mockTransportSend).threads.values.length).toBeGreaterThan(0);
+      expect(getMessageEventFrom(mockTransportSend).exception).toBeUndefined();
     });
   });
 
@@ -495,6 +535,27 @@ describe('Tests ReactNativeClient', () => {
     ) {
       client.recordDroppedEvent('before_send', 'error');
     }
+  });
+
+  describe('register enabled instrumentation as integrations', () => {
+    test('register routing instrumentation', () => {
+      const mockRoutingInstrumentation: RoutingInstrumentationInstance = {
+        registerRoutingInstrumentation: jest.fn(),
+        onRouteWillChange: jest.fn(),
+        name: 'MockRoutingInstrumentation',
+      }
+      const client = new ReactNativeClient(mockedOptions({
+        dsn: EXAMPLE_DSN,
+        integrations: [
+          new ReactNativeTracing({
+            routingInstrumentation: mockRoutingInstrumentation,
+          }),
+        ],
+      }));
+      client.setupIntegrations();
+
+      expect(client.getIntegrationById('MockRoutingInstrumentation')).toBeTruthy();
+    });
   });
 });
 
