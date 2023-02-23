@@ -24,7 +24,7 @@ import type {
 import type { ReactNativeOptions } from './options';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment'
-import { utf8ToBytes } from './vendor';
+import { fromByteArray, utf8ToBytes } from './vendor';
 
 const RNSentry: Spec | undefined = isTurboModuleEnabled()
   ? TurboModuleRegistry.getEnforcing<Spec>('RNSentry')
@@ -156,7 +156,7 @@ export const NATIVE: SentryNativeWrapper = {
       envelopeBytes.push(EOL);
     }
 
-    await RNSentry.captureEnvelope(envelopeBytes, { store: hardCrashed });
+    await RNSentry.captureEnvelope(fromByteArray(envelopeBytes), { store: hardCrashed });
   },
 
   /**

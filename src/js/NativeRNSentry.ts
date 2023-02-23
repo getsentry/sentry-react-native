@@ -8,7 +8,7 @@ import type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 export interface Spec extends TurboModule {
   addBreadcrumb(breadcrumb: UnsafeObject): void;
   captureEnvelope(
-    bytes: number[],
+    bytes: string,
     options: {
       store: boolean,
     },
