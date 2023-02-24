@@ -114,11 +114,11 @@ describe('ReactNativeTracing', () => {
 
             expect(
               // @ts-ignore access private for test
-              transaction._measurements['app.start.cold'].value
+              transaction._measurements['app_start_cold'].value
             ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
             expect(
               // @ts-ignore access private for test
-              transaction._measurements['app.start.cold'].unit).toBe('millisecond');
+              transaction._measurements['app_start_cold'].unit).toBe('millisecond');
 
             done();
           }
@@ -161,11 +161,11 @@ describe('ReactNativeTracing', () => {
 
             expect(
               // @ts-ignore access private for test
-              transaction._measurements['app.start.warm'].value
+              transaction._measurements['app_start_warm'].value
             ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
             expect(
               // @ts-ignore access private for test
-              transaction._measurements['app.start.warm'].unit).toBe('millisecond');
+              transaction._measurements['app_start_warm'].unit).toBe('millisecond');
 
             done();
           }
@@ -203,12 +203,12 @@ describe('ReactNativeTracing', () => {
           if (transaction) {
             expect(
               // @ts-ignore access private for test
-              transaction._measurements['app.start.warm']
+              transaction._measurements['app_start_warm']
             ).toBeUndefined();
 
             expect(
               // @ts-ignore access private for test
-              transaction._measurements['app.start.cold']
+              transaction._measurements['app_start_cold']
             ).toBeUndefined();
 
             done();
@@ -301,7 +301,7 @@ describe('ReactNativeTracing', () => {
         jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT);
 
         // @ts-ignore access private for test
-        expect(routeTransaction._measurements['app.start.cold'].value).toBe(
+        expect(routeTransaction._measurements['app_start_cold'].value).toBe(
           timeOriginMilliseconds - appStartTimeMilliseconds
         );
 
@@ -364,7 +364,7 @@ describe('ReactNativeTracing', () => {
         jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT);
 
         // @ts-ignore access private for test
-        expect(routeTransaction._measurements['app.start.warm'].value).toBe(
+        expect(routeTransaction._measurements['app_start_warm'].value).toBe(
           timeOriginMilliseconds - appStartTimeMilliseconds
         );
 
