@@ -3,7 +3,7 @@ import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/typ
 import { createEnvelope, logger } from '@sentry/utils';
 import * as RN from 'react-native';
 
-import type { SentryNativeBridgeModule } from '../src/js/definitions';
+import type { Spec } from '../src/js/NativeRNSentry';
 import type { ReactNativeOptions } from '../src/js/options';
 import { utf8ToBytes } from '../src/js/vendor';
 import { NATIVE } from '../src/js/wrapper';
@@ -13,7 +13,7 @@ jest.mock(
   () => {
     let initPayload: ReactNativeOptions | null = null;
 
-    const RNSentry: SentryNativeBridgeModule = {
+    const RNSentry: Spec = {
       addBreadcrumb: jest.fn(),
       captureEnvelope: jest.fn(),
       clearBreadcrumbs: jest.fn(),
@@ -61,7 +61,7 @@ jest.mock(
   { virtual: true }
 );
 
-const RNSentry = RN.NativeModules.RNSentry as SentryNativeBridgeModule;
+const RNSentry = RN.NativeModules.RNSentry as Spec;
 
 const callAllScopeMethods = () => {
   NATIVE.addBreadcrumb({
@@ -70,7 +70,7 @@ const callAllScopeMethods = () => {
       map: { a: 1 },
       array: [1, 2, 3],
       unique: 123,
-     },
+    },
   });
   NATIVE.clearBreadcrumbs();
   NATIVE.setUser({
@@ -84,7 +84,7 @@ const callAllScopeMethods = () => {
         map: { a: 1 },
         array: [1, 2, 3],
         unique: 123,
-       },
+      },
     });
   NATIVE.setExtra('key', 'value');
 };
@@ -153,7 +153,7 @@ describe('Tests Native Wrapper', () => {
           map: { a: 1 },
           array: [1, 2, 3],
           unique: 123,
-         },
+        },
       });
       expect(RNSentry.clearBreadcrumbs).toBeCalled();
       expect(RNSentry.setUser).toBeCalledWith(
@@ -476,7 +476,6 @@ describe('Tests Native Wrapper', () => {
   describe('_processLevel', () => {
     test('converts deprecated levels', () => {
       expect(NATIVE._processLevel('log' as SeverityLevel)).toBe('debug' as SeverityLevel);
-      expect(NATIVE._processLevel('critical' as SeverityLevel)).toBe('fatal' as SeverityLevel);
     });
     test('returns non-deprecated levels', () => {
       expect(NATIVE._processLevel('debug' as SeverityLevel)).toBe('debug' as SeverityLevel);

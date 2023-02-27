@@ -1,4 +1,9 @@
+/**
+ * @jest-environment jsdom
+ */
 import { logger } from '@sentry/utils';
+
+import { NATIVE } from '../src/js/wrapper';
 
 interface MockedClient {
   flush: jest.Mock;
@@ -26,7 +31,7 @@ jest.mock('@sentry/react', () => {
         configureScope: mockedGetCurrentHubConfigureScope,
       };
     }),
-    defaultIntegrations: [ { name: 'MockedDefaultReactIntegration', setupOnce: jest.fn() } ],
+    defaultIntegrations: [{ name: 'MockedDefaultReactIntegration', setupOnce: jest.fn() }],
   };
 });
 
@@ -58,18 +63,24 @@ jest.mock('../src/js/client', () => {
   };
 });
 
+jest.mock('../src/js/wrapper');
+
 jest.spyOn(logger, 'error');
 
 import { initAndBind } from '@sentry/core';
-import { getCurrentHub } from '@sentry/react';
-import type { BaseTransportOptions,ClientOptions, Integration, Scope  } from '@sentry/types';
+import { getCurrentHub, makeFetchTransport } from '@sentry/react';
+import type { BaseTransportOptions, ClientOptions, Integration, Scope } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../src/js/options';
-import { configureScope,flush, init, withScope } from '../src/js/sdk';
+import { configureScope, flush, init, withScope } from '../src/js/sdk';
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
+import { makeNativeTransport } from '../src/js/transports/native';
 import { firstArg, secondArg } from './testutils';
 
 const mockedInitAndBind = initAndBind as jest.MockedFunction<typeof initAndBind>;
+const usedOptions = (): ClientOptions<BaseTransportOptions> | undefined => {
+  return mockedInitAndBind.mock.calls[0]?.[1];
+}
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -77,15 +88,15 @@ afterEach(() => {
 
 describe('Tests the SDK functionality', () => {
   describe('init', () => {
-    describe('enableAutoPerformanceTracking', () => {
+    describe('enableAutoPerformanceTracing', () => {
       const usedOptions = (): Integration[] => {
         const mockCall = mockedInitAndBind.mock.calls[0];
 
-          if (mockCall) {
-            const options = mockCall[1];
+        if (mockCall) {
+          const options = mockCall[1];
 
-            return options.integrations;
-          }
+          return options.integrations;
+        }
         return [];
       }
 
@@ -103,7 +114,7 @@ describe('Tests the SDK functionality', () => {
       it('Auto Performance is enabled when tracing is enabled (tracesSampler)', () => {
         init({
           tracesSampler: () => true,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
         });
 
         expect(autoPerformanceIsEnabled()).toBe(true);
@@ -112,7 +123,7 @@ describe('Tests the SDK functionality', () => {
       it('Auto Performance is enabled when tracing is enabled (tracesSampleRate)', () => {
         init({
           tracesSampleRate: 0.5,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
         });
 
         expect(autoPerformanceIsEnabled()).toBe(true);
@@ -122,7 +133,7 @@ describe('Tests the SDK functionality', () => {
         const tracing = reactNavigationInstrumentation();
         init({
           tracesSampleRate: 0.5,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
           integrations: [tracing],
         });
 
@@ -135,7 +146,7 @@ describe('Tests the SDK functionality', () => {
         const tracing = reactNavigationInstrumentation();
         init({
           tracesSampleRate: 0.5,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
           defaultIntegrations: [tracing],
         });
 
@@ -181,14 +192,10 @@ describe('Tests the SDK functionality', () => {
     });
 
     describe('transport options buffer size', () => {
-      const usedOptions = (): ClientOptions<BaseTransportOptions> | undefined => {
-        return mockedInitAndBind.mock.calls[0]?.[1];
-      }
-
       it('uses default transport options buffer size', () => {
         init({
           tracesSampleRate: 0.5,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
         });
         expect(usedOptions()?.transportOptions?.bufferSize).toBe(30);
       });
@@ -208,6 +215,28 @@ describe('Tests the SDK functionality', () => {
         });
         expect(usedOptions()?.transportOptions?.bufferSize).toBe(88);
       });
+    });
+  });
+
+  describe('transport initialization', () => {
+    it('uses transport from the options', () => {
+      const mockTransport = jest.fn();
+      init({
+        transport: mockTransport,
+      });
+      expect(usedOptions()?.transport).toEqual(mockTransport);
+    });
+
+    it('uses native transport', () => {
+      (NATIVE.isNativeTransportAvailable as jest.Mock).mockImplementation(() => true);
+      init({});
+      expect(usedOptions()?.transport).toEqual(makeNativeTransport);
+    });
+
+    it('uses fallback fetch transport', () => {
+      (NATIVE.isNativeTransportAvailable as jest.Mock).mockImplementation(() => false);
+      init({});
+      expect(usedOptions()?.transport).toEqual(makeFetchTransport);
     });
   });
 
@@ -311,6 +340,26 @@ describe('Tests the SDK functionality', () => {
       const actualIntegrations = actualOptions.integrations;
 
       expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Screenshot' })]));
+    });
+
+    it('no view hierarchy integration by default', () => {
+      init({});
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'ViewHierarchy' })]));
+    });
+
+    it('adds view hierarchy integration', () => {
+      init({
+        attachViewHierarchy: true,
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'ViewHierarchy' })]));
     });
 
     it('no default integrations', () => {
@@ -419,7 +468,7 @@ function getMockClient(): MockedClient {
   return mockClient;
 }
 
-function getMockedIntegration({name}: { name?: string } = {}): Integration {
+function getMockedIntegration({ name }: { name?: string } = {}): Integration {
   return {
     name: name ?? 'MockedIntegration',
     setupOnce: jest.fn(),

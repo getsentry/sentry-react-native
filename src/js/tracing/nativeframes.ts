@@ -2,14 +2,14 @@ import type { Span, Transaction } from '@sentry/tracing';
 import type { Event, EventProcessor, Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
-import type { NativeFramesResponse } from '../definitions';
+import type { NativeFramesResponse } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';
 import { instrumentChildSpanFinish } from './utils';
 
 export interface FramesMeasurements extends Measurements {
-    'frames_total': { value: number, unit: MeasurementUnit };
-    'frames_slow': { value: number, unit: MeasurementUnit };
-    'frames_frozen': { value: number, unit: MeasurementUnit };
+  'frames_total': { value: number, unit: MeasurementUnit };
+  'frames_slow': { value: number, unit: MeasurementUnit };
+  'frames_frozen': { value: number, unit: MeasurementUnit };
 }
 
 /**

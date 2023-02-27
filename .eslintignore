@@ -1,8 +1,10 @@
 # Ignore build generated dir
 dist
 
-# Ignore sample folder
+# Ignore standalone apps
 sample
+sample-new-architecture
+test/perf/TestApp*
 
 # Ignore dangerfile
 dangerfile.js

@@ -1,18 +1,11 @@
 module.exports = {
   dependency: {
     platforms: {
-      ios: {
-        sharedLibraries: ['libz']
-      },
+      ios: {},
       android: {
-        packageInstance: 'new RNSentryPackage()'
+        packageInstance: 'new RNSentryPackage()',
+        packageImportPath: 'import io.sentry.react.RNSentryPackage;'
       }
-    },
-    hooks: {
-      postlink:
-        'node node_modules/@sentry/wizard/dist/bin.js -i reactNative -p ios android',
-      postunlink:
-        'node node_modules/@sentry/wizard/dist/bin.js -i reactNative -p ios android --uninstall'
     }
   }
 };

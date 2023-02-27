@@ -70,6 +70,8 @@ export interface NavigationDelegate {
 export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrumentation {
   public static instrumentationName: string = 'react-native-navigation';
 
+  public readonly name: string = ReactNativeNavigationInstrumentation.instrumentationName;
+
   private _navigation: NavigationDelegate;
   private _options: ReactNativeNavigationOptions;
 
