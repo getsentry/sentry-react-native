@@ -57,16 +57,16 @@ const getMockHub = () => {
 
 import type { BrowserClientOptions } from '@sentry/browser/types/client';
 
+import { APP_START_COLD, APP_START_WARM } from '../../src/js/measurements';
+import {
+  APP_START_COLD as APP_START_COLD_OP,
+  APP_START_WARM as APP_START_WARM_OP,
+  UI_LOAD,
+} from '../../src/js/tracing';
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
 import { NATIVE } from '../../src/js/wrapper';
 import { mockFunction } from '../testutils';
-import { APP_START_COLD, APP_START_WARM } from '../../src/js/measurements';
-import {
-  UI_LOAD,
-  APP_START_WARM as APP_START_WARM_OP,
-  APP_START_COLD as APP_START_COLD_OP,
-} from '../../src/js/tracing';
 
 const DEFAULT_IDLE_TIMEOUT = 1000;
 
