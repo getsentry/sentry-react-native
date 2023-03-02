@@ -6,6 +6,18 @@
 
 - Add App Context `in_foreground` ([#2826](https://github.com/getsentry/sentry-react-native/pull/2826))
 
+### Dependencies
+
+- Bump Cocoa SDK from v8.0.0 to v8.2.0 ([#2776](https://github.com/getsentry/sentry-react-native/pull/2776))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#820)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.0.0...8.2.0)
+- Bump JavaScript SDK from v7.37.2 to v7.40.0 ([#2836](https://github.com/getsentry/sentry-react-native/pull/2836), [#2864](https://github.com/getsentry/sentry-react-native/pull/2864))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7400)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.37.2...7.40.0)
+- Bump CLI from v2.10.0 to v2.13.0 ([#2848](https://github.com/getsentry/sentry-react-native/pull/2848))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2130)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.10.0...2.13.0)
+
 ## 5.0.0
 
 The React Native SDK version 5 supports both Legacy (from RN 0.65 and above) and New Architecture (from RN 0.69 and above) as well as the new React Native Gradle Plugin (introduced in RN 0.71). For detailed [migration guide visit our docs](https://docs.sentry.io/platforms/react-native/migration/#from-4x-to-5x).
