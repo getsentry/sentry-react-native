@@ -17,9 +17,6 @@
 - Bump CLI from v2.10.0 to v2.13.0 ([#2848](https://github.com/getsentry/sentry-react-native/pull/2848))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2130)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.10.0...2.13.0)
-- Bump Sample React Native from v0.71.1 to v0.71.3 ([#2800](https://github.com/getsentry/sentry-react-native/pull/2800))
-  - [changelog](https://github.com/facebook/react-native/blob/main/CHANGELOG.md#v0713)
-  - [diff](https://github.com/facebook/react-native/compare/v0.71.1...v0.71.3)
 
 ## 5.0.0
 
