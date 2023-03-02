@@ -2,7 +2,7 @@ import { addBreadcrumb, getCurrentHub } from '@sentry/core';
 import type { SeverityLevel } from '@sentry/types';
 import { logger } from '@sentry/utils';
 import * as React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { GestureResponderEvent, StyleSheet, View } from 'react-native';
 
 import { createIntegration } from './integrations/factory';
 import { ReactNativeTracing } from './tracing';
@@ -60,6 +60,10 @@ interface ElementInstance {
   };
   memoizedProps?: Record<string, unknown>;
   return?: ElementInstance;
+}
+
+interface PrivateGestureResponderEvent extends GestureResponderEvent {
+  _targetInst?: ElementInstance;
 }
 
 /**
@@ -155,7 +159,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
    * @param e
    */
   // eslint-disable-next-line complexity
-  private _onTouchStart(e: { _targetInst?: ElementInstance }): void {
+  private _onTouchStart(e: PrivateGestureResponderEvent): void {
     if (!e._targetInst) {
       return;
     }

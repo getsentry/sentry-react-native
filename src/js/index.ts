@@ -82,6 +82,7 @@ export {
   ReactNativeNavigationInstrumentation,
   RoutingInstrumentation,
   ReactNavigationTransactionContext,
+  traceGesture,
 } from './tracing';
 
 export { Integrations, SDK_NAME, SDK_VERSION };

@@ -16,6 +16,8 @@ import PerformanceTimingScreen from './Screens/PerformanceTimingScreen';
 import ReduxScreen from './Screens/ReduxScreen';
 import { Provider } from 'react-redux';
 import { store } from './reduxApp';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
@@ -73,26 +75,29 @@ const App = () => {
   const navigation = React.useRef<NavigationContainerRef<{}>>(null);
 
   return (
-    <Provider store={store}>
-      <NavigationContainer
-        ref={navigation}
-        onReady={() => {
-          reactNavigationInstrumentation.registerNavigationContainer(
-            navigation,
-          );
-        }}>
-        <Stack.Navigator>
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Tracker" component={TrackerScreen} />
-          <Stack.Screen name="ManualTracker" component={ManualTrackerScreen} />
-          <Stack.Screen
-            name="PerformanceTiming"
-            component={PerformanceTimingScreen}
-          />
-          <Stack.Screen name="Redux" component={ReduxScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </Provider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Provider store={store}>
+        <NavigationContainer
+          ref={navigation}
+          onReady={() => {
+            reactNavigationInstrumentation.registerNavigationContainer(
+              navigation,
+            );
+          }}>
+          <Stack.Navigator>
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Tracker" component={TrackerScreen} />
+            <Stack.Screen name="ManualTracker" component={ManualTrackerScreen} />
+            <Stack.Screen
+              name="PerformanceTiming"
+              component={PerformanceTimingScreen}
+            />
+            <Stack.Screen name="Redux" component={ReduxScreen} />
+            <Stack.Screen name="Gestures" component={GesturesTracingScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </Provider>
+    </GestureHandlerRootView>
   );
 };
 
