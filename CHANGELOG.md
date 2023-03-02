@@ -6,6 +6,12 @@
 
 - Add App Context `in_foreground` ([#2826](https://github.com/getsentry/sentry-react-native/pull/2826))
 
+### Fixes
+
+- Match app start measurements naming with other SDKs ([#2855](https://github.com/getsentry/sentry-react-native/pull/2855))
+  - `app.start.cold` to `app_start_cold`
+  - `app.start.warm` to `app_start_warm`
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.0.0 to v8.2.0 ([#2776](https://github.com/getsentry/sentry-react-native/pull/2776))
