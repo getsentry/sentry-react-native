@@ -21,10 +21,16 @@ import type {
 } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
+import { APP_START_COLD, APP_START_WARM } from '../measurements';
 import type { NativeAppStartResponse } from '../NativeRNSentry';
 import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
 import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
+import {
+  APP_START_COLD as APP_START_COLD_OP,
+  APP_START_WARM as APP_START_WARM_OP,
+  UI_LOAD,
+} from './ops';
 import { StallTrackingInstrumentation } from './stalltracking';
 import {
   onlySampleIfChildSpans,
@@ -302,16 +308,6 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
-    const name = `${this._currentRoute}.${elementId}`;
-
-    const isSameOp = this._inflightInteractionTransaction?.op === op
-    const isSameName = this._inflightInteractionTransaction?.name === name;
-    if (this._inflightInteractionTransaction && isSameOp && isSameName) {
-      (this._inflightInteractionTransaction as unknown as { _startIdleTimeout: (endTimestamp?: number) => void })
-        ._startIdleTimeout();
-      return;
-    }
-
     const hub = this._getCurrentHub?.() || getCurrentHub();
     const activeTransaction = getActiveTransaction(hub);
     const activeTransactionIsNotInteraction =
@@ -323,11 +319,12 @@ export class ReactNativeTracing implements Integration {
 
     const { idleTimeoutMs, finalTimeoutMs } = this.options;
 
-    if (this._inflightInteractionTransaction && isSameName && !isSameOp) {
+    if (this._inflightInteractionTransaction) {
       this._inflightInteractionTransaction = undefined;
       // TODO: cancel the idle timeout
     }
 
+    const name = `${this._currentRoute}.${elementId}`;
     const context: TransactionContext = {
       name,
       op,
@@ -346,6 +343,7 @@ export class ReactNativeTracing implements Integration {
     });
     this._inflightInteractionTransaction.registerBeforeFinishCallback(onlySampleIfChildSpans);
     this.onTransactionStart(this._inflightInteractionTransaction);
+    logger.log(`[ReactNativeTracing] User Interaction Tracing Created ${op} transaction ${name}.`);
     return this._inflightInteractionTransaction;
   }
 
@@ -375,7 +373,7 @@ export class ReactNativeTracing implements Integration {
 
       const idleTransaction = this._createRouteTransaction({
         name: 'App Start',
-        op: 'ui.load',
+        op: UI_LOAD,
         startTimestamp: appStartTimeSeconds,
       });
 
@@ -399,10 +397,10 @@ export class ReactNativeTracing implements Integration {
 
     const appStartTimeSeconds = appStart.appStartTime / 1000;
 
-    const appStartMode = appStart.isColdStart ? 'app.start.cold' : 'app.start.warm';
+    const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
     transaction.startChild({
       description: appStart.isColdStart ? 'Cold App Start' : 'Warm App Start',
-      op: appStartMode,
+      op,
       startTimestamp: appStartTimeSeconds,
       endTimestamp: this._appStartFinishTimestamp,
     });
@@ -417,7 +415,8 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
-    transaction.setMeasurement(appStartMode, appStartDurationMilliseconds, 'millisecond');
+    const measurement = appStart.isColdStart ? APP_START_COLD : APP_START_WARM;
+    transaction.setMeasurement(measurement, appStartDurationMilliseconds, 'millisecond');
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */

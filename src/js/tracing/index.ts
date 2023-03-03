@@ -24,3 +24,5 @@ export { ReactNativeProfiler } from './reactnativeprofiler';
 export {
   traceGesture,
 } from './gesturetracing';
+
+export * from './ops';
