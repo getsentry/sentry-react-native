@@ -20,3 +20,5 @@ export {
 } from './types';
 
 export { ReactNativeProfiler } from './reactnativeprofiler';
+
+export * from './ops';
