@@ -302,16 +302,6 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
-    const name = `${this._currentRoute}.${elementId}`;
-
-    const isSameOp = this._inflightInteractionTransaction?.op === op
-    const isSameName = this._inflightInteractionTransaction?.name === name;
-    if (this._inflightInteractionTransaction && isSameOp && isSameName) {
-      (this._inflightInteractionTransaction as unknown as { _startIdleTimeout: (endTimestamp?: number) => void })
-        ._startIdleTimeout();
-      return;
-    }
-
     const hub = this._getCurrentHub?.() || getCurrentHub();
     const activeTransaction = getActiveTransaction(hub);
     const activeTransactionIsNotInteraction =
@@ -323,11 +313,12 @@ export class ReactNativeTracing implements Integration {
 
     const { idleTimeoutMs, finalTimeoutMs } = this.options;
 
-    if (this._inflightInteractionTransaction && isSameName && !isSameOp) {
+    if (this._inflightInteractionTransaction) {
       this._inflightInteractionTransaction = undefined;
       // TODO: cancel the idle timeout
     }
 
+    const name = `${this._currentRoute}.${elementId}`;
     const context: TransactionContext = {
       name,
       op,
@@ -346,6 +337,7 @@ export class ReactNativeTracing implements Integration {
     });
     this._inflightInteractionTransaction.registerBeforeFinishCallback(onlySampleIfChildSpans);
     this.onTransactionStart(this._inflightInteractionTransaction);
+    logger.log(`[ReactNativeTracing] User Interaction Tracing Created ${op} transaction ${name}.`);
     return this._inflightInteractionTransaction;
   }
 

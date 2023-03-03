@@ -770,7 +770,7 @@ describe('ReactNativeTracing', () => {
         }));
       });
 
-      test('same UI event and same element reschedule idle timeout', () => {
+      test('same UI event and same element does not reschedule idle timeout', () => {
         const timeoutCloseToActualIdleTimeoutMs = 800;
         tracing.startUserInteractionTransaction(mockedUserInteractionId);
         const actualTransaction = mockedScope.getTransaction() as Transaction | undefined;
@@ -778,9 +778,6 @@ describe('ReactNativeTracing', () => {
 
         tracing.startUserInteractionTransaction(mockedUserInteractionId);
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
-
-        expect(actualTransaction?.toContext().endTimestamp).toBeUndefined();
-        jest.runAllTimers();
 
         expect(actualTransaction?.toContext().endTimestamp).toEqual(expect.any(Number));
       });
