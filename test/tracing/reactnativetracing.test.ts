@@ -6,9 +6,7 @@ import type { IdleTransaction, SpanStatusType } from '@sentry/tracing';
 import { Transaction } from '@sentry/tracing';
 
 import type { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
-import type { OnConfirmRoute, TransactionCreator } from '../../src/js/tracing/routingInstrumentation';
 import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
-import type { BeforeNavigate } from '../../src/js/tracing/types';
 
 jest.mock('../../src/js/wrapper', () => {
   return {
@@ -76,6 +74,8 @@ import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
 import { NATIVE } from '../../src/js/wrapper';
 import { firstArg, mockFunction } from '../testutils';
+import type { MockedRoutingInstrumentation } from './mockedrountinginstrumention';
+import { createMockedRoutingInstrumentation, mockedConfirmedRouteTransactionContext } from './mockedrountinginstrumention';
 
 const DEFAULT_IDLE_TIMEOUT = 1000;
 
@@ -672,41 +672,17 @@ describe('ReactNativeTracing', () => {
   });
 
   describe('User Interaction Tracing', () => {
-    const mockedConfirmedRouteTransactionContext = {
-      name: 'mockedRouteName',
-      data: {
-        route: {
-          name: 'mockedRouteName',
-        },
-      },
-    };
     let mockedScope: Scope;
     let mockedHub: Hub;
     let tracing: ReactNativeTracing;
     let mockedUserInteractionId: { elementId: string | undefined; op: string; };
-    let mockedRoutingInstrumentation: RoutingInstrumentation & {
-      registeredListener?: TransactionCreator,
-      registeredBeforeNavigate?: BeforeNavigate,
-      registeredOnConfirmRoute?: OnConfirmRoute,
-    };
+    let mockedRoutingInstrumentation: MockedRoutingInstrumentation;
 
     beforeEach(() => {
       mockedUserInteractionId = { elementId: 'mockedElementId', op: 'mocked.op' };
       mockedHub = getMockHub();
       mockedScope = mockedHub.getScope()!;
-      mockedRoutingInstrumentation = {
-        name: 'TestRoutingInstrumentationInstance',
-        onRouteWillChange: jest.fn(),
-        registerRoutingInstrumentation: jest.fn((
-          listener: TransactionCreator,
-          beforeNavigate: BeforeNavigate,
-          onConfirmRoute: OnConfirmRoute,
-        ) => {
-          mockedRoutingInstrumentation.registeredListener = listener;
-          mockedRoutingInstrumentation.registeredBeforeNavigate = beforeNavigate;
-          mockedRoutingInstrumentation.registeredOnConfirmRoute = onConfirmRoute;
-        }),
-      };
+      mockedRoutingInstrumentation = createMockedRoutingInstrumentation();
     });
 
     describe('disabled user interaction', () => {

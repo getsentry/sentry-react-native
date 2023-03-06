@@ -1,4 +1,5 @@
 import { getCurrentHub } from '@sentry/core';
+import type { Hub } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { ACTION_GESTURE_OP } from './operations';
@@ -10,7 +11,7 @@ import { ReactNativeTracing } from './reactnativetracing';
  * https://github.com/software-mansion/react-native-gesture-handler/blob/2.9.0/src/handlers/gestures/gesture.ts#L55
  * @hidden
  */
-interface GestureEvent extends Record<string, unknown> { }
+type GestureEvent = Record<string, unknown>
 
 /**
  * Internal interface for RNGH 2 Gesture API.
@@ -24,6 +25,10 @@ interface BaseGesture {
   };
 }
 
+interface GestureTracingOptions {
+  getCurrentHub: () => Hub;
+}
+
 /**
  * Patches React Native Gesture Handler v2 Gesture to start a transaction on gesture begin with the appropriate label.
  * Example: ShoppingCartScreen.dismissGesture
@@ -35,6 +40,7 @@ export function traceGesture<GestureT>(
    */
   label: string,
   gesture: GestureT,
+  options: Partial<GestureTracingOptions> = {},
 ): GestureT {
   const gestureCandidate = gesture as BaseGesture | undefined | null;
   if (!gestureCandidate) {
@@ -49,10 +55,11 @@ export function traceGesture<GestureT>(
     logger.warn('[ReactNativeTracing] Can not wrap gesture without name.');
     return gesture;
   }
+  const currentHub = options.getCurrentHub?.() || getCurrentHub();
 
   const originalOnBegin = gestureCandidate.handlers.onBegin;
-  (gesture as BaseGesture).handlers!.onBegin = (event: GestureEvent) => {
-    getCurrentHub().getClient()?.getIntegration(ReactNativeTracing)
+  (gesture as Required<BaseGesture>).handlers.onBegin = (event: GestureEvent) => {
+    currentHub.getClient()?.getIntegration(ReactNativeTracing)
       ?.startUserInteractionTransaction({ elementId: label, op: ACTION_GESTURE_OP });
 
     if (originalOnBegin) {

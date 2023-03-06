@@ -2,7 +2,8 @@ import { addBreadcrumb, getCurrentHub } from '@sentry/core';
 import type { SeverityLevel } from '@sentry/types';
 import { logger } from '@sentry/utils';
 import * as React from 'react';
-import { GestureResponderEvent, StyleSheet, View } from 'react-native';
+import type { GestureResponderEvent} from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { createIntegration } from './integrations/factory';
 import { ReactNativeTracing } from './tracing';
