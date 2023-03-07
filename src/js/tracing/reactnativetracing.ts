@@ -115,6 +115,9 @@ export interface ReactNativeTracingOptions
    */
   enableStallTracking: boolean;
 
+  /**
+   * Trace User Interaction events like touch and gestures.
+   */
   enableUserInteractionTracing: boolean;
 }
 
@@ -320,8 +323,8 @@ export class ReactNativeTracing implements Integration {
     const { idleTimeoutMs, finalTimeoutMs } = this.options;
 
     if (this._inflightInteractionTransaction) {
+      this._inflightInteractionTransaction.cancelIdleTimeout(undefined, { restartOnChildSpanChange: false });
       this._inflightInteractionTransaction = undefined;
-      // TODO: cancel the idle timeout
     }
 
     const name = `${this._currentRoute}.${elementId}`;
