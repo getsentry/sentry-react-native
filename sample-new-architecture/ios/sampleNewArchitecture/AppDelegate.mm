@@ -3,7 +3,10 @@
 #import <React/RCTBundleURLProvider.h>
 #import <React/CoreModulesPlugins.h>
 #import <ReactCommon/RCTTurboModuleManager.h>
+
+#ifdef RCT_NEW_ARCH_ENABLED
 #import <NativeSampleModule.h>
+#endif
 
 @interface AppDelegate () <RCTTurboModuleManagerDelegate> {}
 @end
@@ -44,9 +47,11 @@
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const std::string &)name
                                                       jsInvoker:(std::shared_ptr<facebook::react::CallInvoker>)jsInvoker
 {
+#ifdef RCT_NEW_ARCH_ENABLED
   if (name == "NativeSampleModule") {
     return std::make_shared<facebook::react::NativeSampleModule>(jsInvoker);
   }
+#endif
   return nullptr;
 }
 
