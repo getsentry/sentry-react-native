@@ -3,10 +3,12 @@ import type { IdleTransaction, Span, Transaction } from '@sentry/tracing';
 import type { Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
+import { STALL_COUNT, STALL_LONGEST_TIME, STALL_TOTAL_TIME } from '../measurements';
+
 export interface StallMeasurements extends Measurements {
-  'stall_count': { value: number, unit: MeasurementUnit };
-  'stall_total_time': { value: number, unit: MeasurementUnit };
-  'stall_longest_time': { value: number, unit: MeasurementUnit };
+  [STALL_COUNT]: { value: number, unit: MeasurementUnit };
+  [STALL_TOTAL_TIME]: { value: number, unit: MeasurementUnit };
+  [STALL_LONGEST_TIME]: { value: number, unit: MeasurementUnit };
 }
 
 export type StallTrackingOptions = {
@@ -211,17 +213,17 @@ export class StallTrackingInstrumentation {
       return;
     }
 
-    transaction.setMeasurement('stall_count',
+    transaction.setMeasurement(STALL_COUNT,
       statsOnFinish.stall_count.value -
       transactionStats.atStart.stall_count.value,
       transactionStats.atStart.stall_count.unit);
 
-    transaction.setMeasurement('stall_total_time',
+    transaction.setMeasurement(STALL_TOTAL_TIME,
       statsOnFinish.stall_total_time.value -
       transactionStats.atStart.stall_total_time.value,
       transactionStats.atStart.stall_total_time.unit);
 
-    transaction.setMeasurement('stall_longest_time',
+    transaction.setMeasurement(STALL_LONGEST_TIME,
       statsOnFinish.stall_longest_time.value,
       statsOnFinish.stall_longest_time.unit);
   }

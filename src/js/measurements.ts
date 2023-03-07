@@ -3,9 +3,14 @@ import { getCurrentHub, getMainCarrier } from '@sentry/core';
 import type { Transaction } from '@sentry/tracing';
 import type { CustomSamplingContext, Span, SpanContext, TransactionContext } from '@sentry/types';
 
-import { ReactNativeTracing } from './tracing';
+import { DEFAULT,ReactNativeTracing } from './tracing';
 
-const SPAN_OP_DEFAULT = 'default';
+export const APP_START_WARM = 'app_start_warm';
+export const APP_START_COLD = 'app_start_cold';
+
+export const STALL_COUNT = 'stall_count';
+export const STALL_TOTAL_TIME = 'stall_total_time';
+export const STALL_LONGEST_TIME = 'stall_longest_time';
 
 /**
  * Adds React Native's extensions. Needs to be called after @sentry/tracing's extension methods are added
@@ -53,7 +58,7 @@ const _patchStartTransaction = (
   ): Transaction {
     // Native SDKs require op to be set - for JS Relay sets `default`
     if (!transactionContext.op) {
-      transactionContext.op = SPAN_OP_DEFAULT;
+      transactionContext.op = DEFAULT;
     }
 
     const transaction: Transaction = originalStartTransaction.apply(this, [
@@ -67,7 +72,7 @@ const _patchStartTransaction = (
       return originalStartChild({
         ...spanContext,
         // Native SDKs require op to be set
-        op: spanContext?.op || SPAN_OP_DEFAULT,
+        op: spanContext?.op || DEFAULT,
       });
     };
 
