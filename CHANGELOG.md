@@ -1,10 +1,16 @@
 # Changelog
 
-## Unreleased
+## 5.1.0
 
 ### Features
 
 - Add App Context `in_foreground` ([#2826](https://github.com/getsentry/sentry-react-native/pull/2826))
+
+### Fixes
+
+- Match app start measurements naming with other SDKs ([#2855](https://github.com/getsentry/sentry-react-native/pull/2855))
+  - `app.start.cold` to `app_start_cold`
+  - `app.start.warm` to `app_start_warm`
 
 ### Dependencies
 
@@ -14,9 +20,12 @@
 - Bump JavaScript SDK from v7.37.2 to v7.40.0 ([#2836](https://github.com/getsentry/sentry-react-native/pull/2836), [#2864](https://github.com/getsentry/sentry-react-native/pull/2864))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7400)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.37.2...7.40.0)
-- Bump CLI from v2.10.0 to v2.13.0 ([#2848](https://github.com/getsentry/sentry-react-native/pull/2848))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2130)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.10.0...2.13.0)
+- Bump CLI from v2.10.0 to v2.14.3 ([#2848](https://github.com/getsentry/sentry-react-native/pull/2848), [#2869](https://github.com/getsentry/sentry-react-native/pull/2869))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2143)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.10.0...2.14.3)
+- Bump Android SDK from v6.14.0 to v6.15.0 ([#2868](https://github.com/getsentry/sentry-react-native/pull/2868))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6150)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.14.0...6.15.0)
 
 ## 5.0.0
 

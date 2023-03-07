@@ -57,6 +57,12 @@ const getMockHub = () => {
 
 import type { BrowserClientOptions } from '@sentry/browser/types/client';
 
+import { APP_START_COLD, APP_START_WARM } from '../../src/js/measurements';
+import {
+  APP_START_COLD as APP_START_COLD_OP,
+  APP_START_WARM as APP_START_WARM_OP,
+  UI_LOAD,
+} from '../../src/js/tracing';
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
 import { NATIVE } from '../../src/js/wrapper';
@@ -110,15 +116,15 @@ describe('ReactNativeTracing', () => {
             expect(transaction.startTimestamp).toBe(
               appStartTimeMilliseconds / 1000
             );
-            expect(transaction.op).toBe('ui.load');
+            expect(transaction.op).toBe(UI_LOAD);
 
             expect(
               // @ts-ignore access private for test
-              transaction._measurements['app.start.cold'].value
+              transaction._measurements[APP_START_COLD].value
             ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
             expect(
               // @ts-ignore access private for test
-              transaction._measurements['app.start.cold'].unit).toBe('millisecond');
+              transaction._measurements[APP_START_COLD].unit).toBe('millisecond');
 
             done();
           }
@@ -157,15 +163,15 @@ describe('ReactNativeTracing', () => {
             expect(transaction.startTimestamp).toBe(
               appStartTimeMilliseconds / 1000
             );
-            expect(transaction.op).toBe('ui.load');
+            expect(transaction.op).toBe(UI_LOAD);
 
             expect(
               // @ts-ignore access private for test
-              transaction._measurements['app.start.warm'].value
+              transaction._measurements[APP_START_WARM].value
             ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
             expect(
               // @ts-ignore access private for test
-              transaction._measurements['app.start.warm'].unit).toBe('millisecond');
+              transaction._measurements[APP_START_WARM].unit).toBe('millisecond');
 
             done();
           }
@@ -203,12 +209,12 @@ describe('ReactNativeTracing', () => {
           if (transaction) {
             expect(
               // @ts-ignore access private for test
-              transaction._measurements['app.start.warm']
+              transaction._measurements[APP_START_WARM]
             ).toBeUndefined();
 
             expect(
               // @ts-ignore access private for test
-              transaction._measurements['app.start.cold']
+              transaction._measurements[APP_START_COLD]
             ).toBeUndefined();
 
             done();
@@ -301,11 +307,11 @@ describe('ReactNativeTracing', () => {
         jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT);
 
         // @ts-ignore access private for test
-        expect(routeTransaction._measurements['app.start.cold'].value).toBe(
+        expect(routeTransaction._measurements[APP_START_COLD].value).toBe(
           timeOriginMilliseconds - appStartTimeMilliseconds
         );
 
-        expect(routeTransaction.op).toBe('ui.load');
+        expect(routeTransaction.op).toBe(UI_LOAD);
         expect(routeTransaction.startTimestamp).toBe(
           appStartTimeMilliseconds / 1000
         );
@@ -316,7 +322,7 @@ describe('ReactNativeTracing', () => {
 
         const span = spanRecorder?.spans[spanRecorder?.spans.length - 1];
 
-        expect(span?.op).toBe('app.start.cold');
+        expect(span?.op).toBe(APP_START_COLD_OP);
         expect(span?.description).toBe('Cold App Start');
         expect(span?.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
         expect(span?.endTimestamp).toBe(timeOriginMilliseconds / 1000);
@@ -364,11 +370,11 @@ describe('ReactNativeTracing', () => {
         jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT);
 
         // @ts-ignore access private for test
-        expect(routeTransaction._measurements['app.start.warm'].value).toBe(
+        expect(routeTransaction._measurements[APP_START_WARM].value).toBe(
           timeOriginMilliseconds - appStartTimeMilliseconds
         );
 
-        expect(routeTransaction.op).toBe('ui.load');
+        expect(routeTransaction.op).toBe(UI_LOAD);
         expect(routeTransaction.startTimestamp).toBe(
           appStartTimeMilliseconds / 1000
         );
@@ -379,7 +385,7 @@ describe('ReactNativeTracing', () => {
 
         const span = spanRecorder?.spans[spanRecorder?.spans.length - 1];
 
-        expect(span?.op).toBe('app.start.warm');
+        expect(span?.op).toBe(APP_START_WARM_OP);
         expect(span?.description).toBe('Warm App Start');
         expect(span?.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
         expect(span?.endTimestamp).toBe(timeOriginMilliseconds / 1000);
@@ -429,7 +435,7 @@ describe('ReactNativeTracing', () => {
         // @ts-ignore access private for test
         expect(routeTransaction._measurements).toMatchObject({});
 
-        expect(routeTransaction.op).not.toBe('ui.load');
+        expect(routeTransaction.op).not.toBe(UI_LOAD);
         expect(routeTransaction.startTimestamp).not.toBe(
           appStartTimeMilliseconds / 1000
         );
