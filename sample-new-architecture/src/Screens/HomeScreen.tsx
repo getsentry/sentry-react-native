@@ -144,13 +144,6 @@ const HomeScreen = (props: Props) => {
               if (data) {
                 scope.addAttachment({ data, filename: 'logo.png' });
               }
-
-              // const dataSize = 20e6; // 30MB
-              // const simulatedData = new Uint8Array(dataSize);
-              // for (let i = 0; i < dataSize; i++) {
-              //   simulatedData[i] = i % 256;
-              // }
-              // scope.addAttachment({ data: simulatedData.toString(), filename: 'big.bin', contentType: 'application/octet-stream' });
               console.log('Sentry attachment added.');
             });
           }}
