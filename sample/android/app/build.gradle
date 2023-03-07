@@ -5,43 +5,17 @@ apply plugin: "io.sentry.android.gradle"
 import com.android.build.OutputFile
 
 sentry {
-    // Disables or enables the handling of Proguard mapping for Sentry.
-    // If enabled the plugin will generate a UUID and will take care of
-    // uploading the mapping to Sentry. If disabled, all the logic
-    // related to proguard mapping will be excluded.
-    // Default is enabled.
-    includeProguardMapping = true
-
-    // Whether the plugin should attempt to auto-upload the mapping file to Sentry or not.
-    // If disabled the plugin will run a dry-run and just generate a UUID.
-    // The mapping file has to be uploaded manually via sentry-cli in this case.
-    // Default is enabled.
-    autoUploadProguardMapping = true
-
-    // Experimental flag to turn on support for GuardSquare's tools integration (Dexguard and External Proguard).
-    // If enabled, the plugin will try to consume and upload the mapping file produced by Dexguard and External Proguard.
-    // Default is disabled.
-    experimentalGuardsquareSupport = false
-
     // Disables or enables the automatic configuration of Native Symbols
     // for Sentry. This executes sentry-cli automatically so
     // you don't need to do it manually.
     // Default is disabled.
-    uploadNativeSymbols = false
+    uploadNativeSymbols = true
 
     // Does or doesn't include the source code of native code for Sentry.
     // This executes sentry-cli with the --include-sources param. automatically so
     // you don't need to do it manually.
     // Default is disabled.
-    includeNativeSources = false
-
-    // Disables or enables dependencies metadata reporting for Sentry.
-    // If enabled, the plugin will collect external dependencies and
-    // upload them to Sentry as part of events. If disabled, all the logic
-    // related to the dependencies metadata report will be excluded.
-    //
-    // Default is enabled.
-    includeDependenciesReport = true
+    includeNativeSources = true
 }
 
 /**
