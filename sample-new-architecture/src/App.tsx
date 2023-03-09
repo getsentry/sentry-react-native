@@ -18,6 +18,7 @@ import { Provider } from 'react-redux';
 import { store } from './reduxApp';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
+import { StyleSheet } from 'react-native';
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
@@ -75,7 +76,7 @@ const App = () => {
   const navigation = React.useRef<NavigationContainerRef<{}>>(null);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={styles.wrapper}>
       <Provider store={store}>
         <NavigationContainer
           ref={navigation}
@@ -87,7 +88,10 @@ const App = () => {
           <Stack.Navigator>
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Tracker" component={TrackerScreen} />
-            <Stack.Screen name="ManualTracker" component={ManualTrackerScreen} />
+            <Stack.Screen
+              name="ManualTracker"
+              component={ManualTrackerScreen}
+            />
             <Stack.Screen
               name="PerformanceTiming"
               component={PerformanceTimingScreen}
@@ -100,5 +104,11 @@ const App = () => {
     </GestureHandlerRootView>
   );
 };
+
+const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+  },
+});
 
 export default Sentry.wrap(App);

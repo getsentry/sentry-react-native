@@ -24,17 +24,19 @@ const GesturesTracingScreen = () => {
 
 const startExampleSpan = () => {
   getCurrentHub().withScope((scope: Scope) => {
-    const child = scope.getTransaction()?.startChild({ op: 'example' })
-    setTimeout(() => { child?.finish() }, 1000);
+    const child = scope.getTransaction()?.startChild({ op: 'example' });
+    setTimeout(() => {
+      child?.finish();
+    }, 1000);
   });
-}
+};
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center"
-  }
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default GesturesTracingScreen;

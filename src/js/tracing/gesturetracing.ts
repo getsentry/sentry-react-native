@@ -1,9 +1,12 @@
 import { getCurrentHub } from '@sentry/core';
-import type { Hub } from '@sentry/types';
+import type { Breadcrumb, Hub } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { ACTION_GESTURE_OP } from './operations';
 import { ReactNativeTracing } from './reactnativetracing';
+
+export const DEFAULT_BREADCRUMB_CATEGORY = 'gesture';
+export const DEFAULT_BREADCRUMB_TYPE = 'user';
 
 /**
  * Internal interface following RNGH 2 Gesture Event API.
@@ -11,7 +14,7 @@ import { ReactNativeTracing } from './reactnativetracing';
  * https://github.com/software-mansion/react-native-gesture-handler/blob/2.9.0/src/handlers/gestures/gesture.ts#L55
  * @hidden
  */
-type GestureEvent = Record<string, unknown>
+type GestureEvent = Record<string, unknown>;
 
 /**
  * Internal interface for RNGH 2 Gesture API.
@@ -22,6 +25,7 @@ type GestureEvent = Record<string, unknown>
 interface BaseGesture {
   handlers?: {
     onBegin?: (event: GestureEvent) => void;
+    onEnd?: (event: GestureEvent) => void;
   };
 }
 
@@ -58,14 +62,73 @@ export function traceGesture<GestureT>(
   const currentHub = options.getCurrentHub?.() || getCurrentHub();
 
   const originalOnBegin = gestureCandidate.handlers.onBegin;
-  (gesture as Required<BaseGesture>).handlers.onBegin = (event: GestureEvent) => {
+  (gesture as unknown as Required<BaseGesture>).handlers.onBegin = (event: GestureEvent) => {
     currentHub.getClient()?.getIntegration(ReactNativeTracing)
       ?.startUserInteractionTransaction({ elementId: label, op: ACTION_GESTURE_OP });
+
+    addGestureBreadcrumb(`Gesture ${label} begin.`, event, currentHub);
 
     if (originalOnBegin) {
       originalOnBegin(event);
     }
   };
 
+  const originalOnEnd = gestureCandidate.handlers.onEnd;
+  (gesture as unknown as Required<BaseGesture>).handlers.onEnd = (event: GestureEvent) => {
+    addGestureBreadcrumb(`Gesture ${label} end.`, event, currentHub);
+
+    if (originalOnEnd) {
+      originalOnEnd(event);
+    }
+  };
+
   return gesture;
 }
+
+function addGestureBreadcrumb(
+  message: string,
+  event: Record<string, unknown> | undefined | null,
+  hub: Hub,
+): void {
+  const crumb: Breadcrumb = {
+    message,
+    level: 'info',
+    type: DEFAULT_BREADCRUMB_TYPE,
+    category: DEFAULT_BREADCRUMB_CATEGORY,
+  };
+
+  if (event) {
+    const data: Record<string, unknown> = {};
+    for (const key of Object.keys(GestureEventKeys)) {
+      const eventKey = GestureEventKeys[key as keyof typeof GestureEventKeys];
+      if (eventKey in event) {
+        data[eventKey] = event[eventKey];
+      }
+    }
+    crumb.data = data;
+  }
+
+  hub.addBreadcrumb(crumb);
+
+  logger.log(`[GestureTracing] ${crumb.message}`);
+}
+
+/**
+ * Selected keys from RNGH 2 Gesture Event API.
+ * We only want to send relevant data to save on payload size.
+ * @hidden
+ */
+const GestureEventKeys = {
+  NUMBER_OF_POINTERS: 'numberOfPointers',
+  NUMBER_OF_TOUCHES: 'numberOfTouches',
+  FORCE: 'force',
+  FORCE_CHANGE: 'forceChange',
+  ROTATION: 'rotation',
+  ROTATION_CHANGE: 'rotationChange',
+  SCALE: 'scale',
+  SCALE_CHANGE: 'scaleChange',
+  DURATION: 'duration',
+  VELOCITY: 'velocity',
+  VELOCITY_X: 'velocityX',
+  VELOCITY_Y: 'velocityY',
+} as const;

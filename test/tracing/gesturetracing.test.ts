@@ -2,10 +2,14 @@ import { BrowserClient } from '@sentry/browser';
 import type { BrowserClientOptions } from '@sentry/browser/types/client';
 import { Hub } from '@sentry/core';
 import type { IntegrationIndex } from '@sentry/core/types/integration';
-import type { Scope, Transaction, User } from '@sentry/types';
+import type { Breadcrumb, Scope, Transaction, User } from '@sentry/types';
 
 import { UI_ACTION_GESTURE } from '../../src/js/tracing';
-import { traceGesture } from '../../src/js/tracing/gesturetracing';
+import {
+  DEFAULT_BREADCRUMB_CATEGORY as DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
+  DEFAULT_BREADCRUMB_TYPE as DEFAULT_GESTURE_BREADCRUMB_TYPE,
+  traceGesture,
+} from '../../src/js/tracing/gesturetracing';
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import type {
   MockedRoutingInstrumentation
@@ -45,6 +49,8 @@ const getMockScope = () => {
   }
 };
 
+const mockAddBreadcrumb = jest.fn();
+
 const getMockHub = () => {
   const mockHub = new Hub(new BrowserClient({ tracesSampleRate: 1 } as BrowserClientOptions));
   const mockScope = getMockScope();
@@ -54,12 +60,15 @@ const getMockHub = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mockHub.configureScope = jest.fn((callback) => callback(mockScope as any));
 
+  mockHub.addBreadcrumb = mockAddBreadcrumb;
+
   return mockHub;
 };
 
 interface MockGesture {
   handlers?: {
     onBegin?: jest.Mock;
+    onEnd?: jest.Mock;
   };
 }
 
@@ -86,6 +95,7 @@ describe('GestureTracing', () => {
     let mockedGesture: MockGesture;
 
     beforeEach(() => {
+      jest.clearAllMocks();
       jest.useFakeTimers();
       mockedHub = getMockHub();
       mockedScope = mockedHub.getScope()!;
@@ -99,7 +109,7 @@ describe('GestureTracing', () => {
       (mockedHub.getClient() as unknown as { _integrations: IntegrationIndex })
         ._integrations[ReactNativeTracing.name] = tracing;
       mockedRoutingInstrumentation.registeredOnConfirmRoute!(mockedConfirmedRouteTransactionContext);
-      mockedGesture = { handlers: { onBegin: jest.fn() } };
+      mockedGesture = { handlers: { onBegin: jest.fn(), onEnd: jest.fn() } };
     });
 
     afterEach(() => {
@@ -151,12 +161,12 @@ describe('GestureTracing', () => {
     });
 
     it('gesture original on begin handler is called', () => {
-      const originalOnBegin = mockedGesture.handlers?.onBegin;
+      const original = mockedGesture.handlers?.onBegin;
       traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
       mockedGesture.handlers!.onBegin!();
       jest.runAllTimers();
 
-      expect(originalOnBegin).toHaveBeenCalledTimes(1);
+      expect(original).toHaveBeenCalledTimes(1);
     });
 
     it('creates gesture on begin handled if non exists', () => {
@@ -166,6 +176,70 @@ describe('GestureTracing', () => {
       jest.runAllTimers();
 
       expect(mockedGesture.handlers?.onBegin).toBeDefined();
+    });
+
+    it('gesture original on end handler is called', () => {
+      const original = mockedGesture.handlers?.onEnd;
+      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      mockedGesture.handlers!.onEnd!();
+      jest.runAllTimers();
+
+      expect(original).toHaveBeenCalledTimes(1);
+    });
+
+    it('creates gesture on end handled if non exists', () => {
+      delete mockedGesture.handlers?.onEnd;
+      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      mockedGesture.handlers!.onEnd!();
+      jest.runAllTimers();
+
+      expect(mockedGesture.handlers?.onBegin).toBeDefined();
+    });
+
+    it('creates gesture on begin handled if non exists', () => {
+      delete mockedGesture.handlers?.onBegin;
+      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      mockedGesture.handlers!.onBegin!();
+      jest.runAllTimers();
+
+      expect(mockedGesture.handlers?.onBegin).toBeDefined();
+    });
+
+    it('wrapped gesture creates breadcrumb on begin', () => {
+      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      mockedGesture.handlers!.onBegin!();
+      jest.runAllTimers();
+
+      expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(expect.objectContaining(<Breadcrumb>{
+        category: DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
+        type: DEFAULT_GESTURE_BREADCRUMB_TYPE,
+        level: 'info',
+      }));
+    });
+
+    it('wrapped gesture creates breadcrumb on end', () => {
+      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      mockedGesture.handlers!.onEnd!();
+      jest.runAllTimers();
+
+      expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(expect.objectContaining(<Breadcrumb>{
+        category: DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
+        type: DEFAULT_GESTURE_BREADCRUMB_TYPE,
+        level: 'info',
+      }));
+    });
+
+    it('wrapped gesture creates breadcrumb only with selected event keys', () => {
+      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      mockedGesture.handlers!.onBegin!({ notSelectedKey: 'notSelectedValue', scale: 1 });
+      jest.runAllTimers();
+
+      expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(expect.objectContaining(<Breadcrumb>{
+        data: { scale: 1 },
+      }));
     });
   });
 });
