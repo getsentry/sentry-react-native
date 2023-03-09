@@ -4,9 +4,14 @@
 
 ### Features
 
-- Add App Context `in_foreground` ([#2826](https://github.com/getsentry/sentry-react-native/pull/2826))
 - Add User Interaction Tracing for Touch events ([#2835](https://github.com/getsentry/sentry-react-native/pull/2835))
 - Add Gesture Tracing for React Native Gesture Handler API v2 ([#2865](https://github.com/getsentry/sentry-react-native/pull/2865))
+
+## 5.1.0
+
+### Features
+
+- Add App Context `in_foreground` ([#2826](https://github.com/getsentry/sentry-react-native/pull/2826))
 
 ### Fixes
 

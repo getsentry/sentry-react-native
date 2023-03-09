@@ -792,6 +792,25 @@ describe('ReactNativeTracing', () => {
           .toBeGreaterThanOrEqual(secondTransactionContext!.startTimestamp!);
       });
 
+      test('different UI event and same element finish first transaction with last span', () => {
+        const timeoutCloseToActualIdleTimeoutMs = 800;
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        const firstTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
+        const childFirstTransaction = firstTransaction?.startChild({ op: 'child.op' });
+
+        tracing.startUserInteractionTransaction({ ...mockedUserInteractionId, op: 'different.op' });
+        jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
+        childFirstTransaction?.finish();
+
+        const firstTransactionContext = firstTransaction?.toContext();
+        expect(firstTransactionContext).toEqual(expect.objectContaining({
+          endTimestamp: expect.any(Number),
+          op: 'mocked.op',
+          sampled: true,
+        }));
+      });
+
       test('same ui event after UI event transaction finished', () => {
         tracing.startUserInteractionTransaction(mockedUserInteractionId);
         const firstTransaction = mockedScope.getTransaction() as Transaction | undefined;
