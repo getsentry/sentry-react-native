@@ -1,12 +1,15 @@
 import { getCurrentHub } from '@sentry/core';
 import type { Breadcrumb, Hub } from '@sentry/types';
 import { logger } from '@sentry/utils';
+import { UI_ACTION } from './ops';
 
-import { ACTION_GESTURE_OP } from './operations';
 import { ReactNativeTracing } from './reactnativetracing';
 
 export const DEFAULT_BREADCRUMB_CATEGORY = 'gesture';
 export const DEFAULT_BREADCRUMB_TYPE = 'user';
+
+export const GESTURE_POSTFIX_LENGTH = 'GestureHandler'.length;
+export const ACTION_GESTURE_FALLBACK = 'gesture';
 
 /**
  * Internal interface following RNGH 2 Gesture Event API.
@@ -27,6 +30,7 @@ interface BaseGesture {
     onBegin?: (event: GestureEvent) => void;
     onEnd?: (event: GestureEvent) => void;
   };
+  handlerName: string;
 }
 
 interface GestureTracingOptions {
@@ -59,14 +63,19 @@ export function traceGesture<GestureT>(
     logger.warn('[ReactNativeTracing] Can not wrap gesture without name.');
     return gesture;
   }
-  const currentHub = options.getCurrentHub?.() || getCurrentHub();
+  const hub = options.getCurrentHub?.() || getCurrentHub();
 
+  const name = gestureCandidate.handlerName.length > GESTURE_POSTFIX_LENGTH
+    ? gestureCandidate.handlerName
+      .substring(0, gestureCandidate.handlerName.length - GESTURE_POSTFIX_LENGTH).toLowerCase()
+    : ACTION_GESTURE_FALLBACK;
+  console.log(`${UI_ACTION}.${name}`);
   const originalOnBegin = gestureCandidate.handlers.onBegin;
   (gesture as unknown as Required<BaseGesture>).handlers.onBegin = (event: GestureEvent) => {
-    currentHub.getClient()?.getIntegration(ReactNativeTracing)
-      ?.startUserInteractionTransaction({ elementId: label, op: ACTION_GESTURE_OP });
+    hub.getClient()?.getIntegration(ReactNativeTracing)
+      ?.startUserInteractionTransaction({ elementId: label, op: `${UI_ACTION}.${name}` });
 
-    addGestureBreadcrumb(`Gesture ${label} begin.`, event, currentHub);
+    addGestureBreadcrumb(`Gesture ${label} begin.`, { event, hub, name });
 
     if (originalOnBegin) {
       originalOnBegin(event);
@@ -75,7 +84,7 @@ export function traceGesture<GestureT>(
 
   const originalOnEnd = gestureCandidate.handlers.onEnd;
   (gesture as unknown as Required<BaseGesture>).handlers.onEnd = (event: GestureEvent) => {
-    addGestureBreadcrumb(`Gesture ${label} end.`, event, currentHub);
+    addGestureBreadcrumb(`Gesture ${label} end.`, { event, hub, name });
 
     if (originalOnEnd) {
       originalOnEnd(event);
@@ -87,9 +96,13 @@ export function traceGesture<GestureT>(
 
 function addGestureBreadcrumb(
   message: string,
-  event: Record<string, unknown> | undefined | null,
-  hub: Hub,
+  options: {
+    event: Record<string, unknown> | undefined | null;
+    hub: Hub;
+    name: string;
+  },
 ): void {
+  const { event, hub, name } = options;
   const crumb: Breadcrumb = {
     message,
     level: 'info',
@@ -98,7 +111,9 @@ function addGestureBreadcrumb(
   };
 
   if (event) {
-    const data: Record<string, unknown> = {};
+    const data: Record<string, unknown> = {
+      gesture: name,
+    };
     for (const key of Object.keys(GestureEventKeys)) {
       const eventKey = GestureEventKeys[key as keyof typeof GestureEventKeys];
       if (eventKey in event) {

@@ -4,7 +4,7 @@ import { Hub } from '@sentry/core';
 import type { IntegrationIndex } from '@sentry/core/types/integration';
 import type { Breadcrumb, Scope, Transaction, User } from '@sentry/types';
 
-import { UI_ACTION_GESTURE } from '../../src/js/tracing';
+import { UI_ACTION } from '../../src/js/tracing';
 import {
   DEFAULT_BREADCRUMB_CATEGORY as DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
   DEFAULT_BREADCRUMB_TYPE as DEFAULT_GESTURE_BREADCRUMB_TYPE,
@@ -70,6 +70,7 @@ interface MockGesture {
     onBegin?: jest.Mock;
     onEnd?: jest.Mock;
   };
+  handlerName: string;
 }
 
 describe('GestureTracing', () => {
@@ -109,7 +110,13 @@ describe('GestureTracing', () => {
       (mockedHub.getClient() as unknown as { _integrations: IntegrationIndex })
         ._integrations[ReactNativeTracing.name] = tracing;
       mockedRoutingInstrumentation.registeredOnConfirmRoute!(mockedConfirmedRouteTransactionContext);
-      mockedGesture = { handlers: { onBegin: jest.fn(), onEnd: jest.fn() } };
+      mockedGesture = {
+        handlers: {
+          onBegin: jest.fn(),
+          onEnd: jest.fn(),
+        },
+        handlerName: 'MockGestureHandler',
+      };
     });
 
     afterEach(() => {
@@ -126,7 +133,21 @@ describe('GestureTracing', () => {
       const transactionContext = transaction?.toContext();
       expect(transactionContext).toEqual(expect.objectContaining({
         endTimestamp: expect.any(Number),
-        op: UI_ACTION_GESTURE,
+        op: `${UI_ACTION}.mock`,
+      }));
+    });
+
+    it('gesture interaction transaction falls back on invalid handler name', () => {
+      mockedGesture.handlerName = 'Invalid';
+      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      mockedGesture.handlers!.onBegin!();
+      const transaction = mockedScope.getTransaction() as Transaction | undefined;
+      jest.runAllTimers();
+
+      const transactionContext = transaction?.toContext();
+      expect(transactionContext).toEqual(expect.objectContaining({
+        endTimestamp: expect.any(Number),
+        op: `${UI_ACTION}.gesture`,
       }));
     });
 
@@ -156,7 +177,6 @@ describe('GestureTracing', () => {
       }));
       expect(gestureTransactionContext).toEqual(expect.objectContaining({
         endTimestamp: expect.any(Number),
-        op: UI_ACTION_GESTURE,
       }));
     });
 
@@ -238,7 +258,10 @@ describe('GestureTracing', () => {
 
       expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
       expect(mockAddBreadcrumb).toHaveBeenCalledWith(expect.objectContaining(<Breadcrumb>{
-        data: { scale: 1 },
+        data: {
+          scale: 1,
+          gesture: 'mock',
+        },
       }));
     });
   });
