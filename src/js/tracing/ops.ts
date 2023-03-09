@@ -3,6 +3,7 @@ export const DEFAULT = 'default';
 export const NAVIGATION = 'navigation';
 
 export const UI_LOAD = 'ui.load';
+export const ACTION_TOUCH_OP = 'ui.action.touch';
 export const UI_ACTION_GESTURE = 'ui.action.gesture';
 
 export const APP_START_COLD = 'app.start.cold';

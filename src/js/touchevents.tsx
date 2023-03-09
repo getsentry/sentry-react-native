@@ -7,7 +7,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { createIntegration } from './integrations/factory';
 import { ReactNativeTracing } from './tracing';
-import { ACTION_TOUCH_OP } from './tracing/operations';
+import { ACTION_TOUCH_OP } from './tracing/ops';
 
 export type TouchEventBoundaryProps = {
   /**
