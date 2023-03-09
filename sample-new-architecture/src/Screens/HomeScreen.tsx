@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   StatusBar,
   ScrollView,
@@ -7,6 +7,7 @@ import {
   View,
   ButtonProps,
   StyleSheet,
+  NativeModules,
 } from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
@@ -17,6 +18,8 @@ import { CommonActions } from '@react-navigation/native';
 import { UserFeedbackModal } from '../components/UserFeedbackModal';
 import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
+
+const { AssetsModule } = NativeModules;
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -46,6 +49,13 @@ const HomeScreen = (props: Props) => {
   const errorBoundaryFallback: FallbackRender = ({ eventId }) => (
     <Text>Error boundary caught with event id: {eventId}</Text>
   );
+
+  const [data, setData] = React.useState<Uint8Array | null>(null);
+  useEffect(() => {
+    AssetsModule.getExampleAssetData().then((asset: number[]) =>
+      setData(new Uint8Array(asset)),
+    );
+  }, []);
 
   return (
     <>
@@ -105,7 +115,7 @@ const HomeScreen = (props: Props) => {
         <Button
           title="Crash in Cpp"
           onPress={() => {
-            NativeSampleModule.crash();
+            NativeSampleModule?.crash();
           }}
         />
 
@@ -131,6 +141,10 @@ const HomeScreen = (props: Props) => {
                 data: 'Attachment content',
                 filename: 'attachment.txt',
               });
+              if (data) {
+                scope.addAttachment({ data, filename: 'logo.png' });
+              }
+              console.log('Sentry attachment added.');
             });
           }}
         />
