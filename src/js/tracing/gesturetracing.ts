@@ -1,8 +1,8 @@
 import { getCurrentHub } from '@sentry/core';
 import type { Breadcrumb, Hub } from '@sentry/types';
 import { logger } from '@sentry/utils';
-import { UI_ACTION } from './ops';
 
+import { UI_ACTION } from './ops';
 import { ReactNativeTracing } from './reactnativetracing';
 
 export const DEFAULT_BREADCRUMB_CATEGORY = 'gesture';
@@ -50,7 +50,7 @@ export function traceGesture<GestureT>(
   gesture: GestureT,
   options: Partial<GestureTracingOptions> = {},
 ): GestureT {
-  const gestureCandidate = gesture as BaseGesture | undefined | null;
+  const gestureCandidate = gesture as unknown as BaseGesture | undefined | null;
   if (!gestureCandidate) {
     logger.warn('[ReactNativeTracing] Gesture can not be undefined');
     return gesture;
@@ -69,7 +69,7 @@ export function traceGesture<GestureT>(
     ? gestureCandidate.handlerName
       .substring(0, gestureCandidate.handlerName.length - GESTURE_POSTFIX_LENGTH).toLowerCase()
     : ACTION_GESTURE_FALLBACK;
-  console.log(`${UI_ACTION}.${name}`);
+
   const originalOnBegin = gestureCandidate.handlers.onBegin;
   (gesture as unknown as Required<BaseGesture>).handlers.onBegin = (event: GestureEvent) => {
     hub.getClient()?.getIntegration(ReactNativeTracing)

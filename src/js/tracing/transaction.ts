@@ -1,5 +1,5 @@
+import type { BeforeFinishCallback } from '@sentry/core/types/tracing/idletransaction';
 import type { IdleTransaction } from '@sentry/tracing';
-import type { BeforeFinishCallback } from '@sentry/tracing/types/idletransaction';
 import { logger } from '@sentry/utils';
 
 /**
