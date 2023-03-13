@@ -1,13 +1,12 @@
 import type { Scope } from '@sentry/core';
 import { getIntegrationsToSetup, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
-import { RewriteFrames } from '@sentry/integrations';
 import {
   defaultIntegrations as reactDefaultIntegrations,
   defaultStackParser,
   getCurrentHub,
   makeFetchTransport,
 } from '@sentry/react';
-import type { Integration, StackFrame, UserFeedback } from '@sentry/types';
+import type { Integration, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -22,6 +21,7 @@ import {
   Release,
   SdkInfo,
 } from './integrations';
+import { createReactNativeRewriteFrames } from './integrations/rewriteframes';
 import { Screenshot } from './integrations/screenshot';
 import { ViewHierarchy } from './integrations/viewhierarchy';
 import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
@@ -107,30 +107,7 @@ export function init(passedOptions: ReactNativeOptions): void {
       defaultIntegrations.push(new DebugSymbolicator());
     }
 
-    defaultIntegrations.push(new RewriteFrames({
-      iteratee: (frame: StackFrame) => {
-        if (frame.filename) {
-          frame.filename = frame.filename
-            .replace(/^file:\/\//, '')
-            .replace(/^address at /, '')
-            .replace(/^.*\/[^.]+(\.app|CodePush|.*(?=\/))/, '');
-
-          if (
-            frame.filename !== '[native code]' &&
-            frame.filename !== 'native'
-          ) {
-            const appPrefix = 'app://';
-            // We always want to have a triple slash
-            frame.filename =
-              frame.filename.indexOf('/') === 0
-                ? `${appPrefix}${frame.filename}`
-                : `${appPrefix}/${frame.filename}`;
-          }
-          delete frame.abs_path;
-        }
-        return frame;
-      },
-    }));
+    defaultIntegrations.push(createReactNativeRewriteFrames());
     if (options.enableNative) {
       defaultIntegrations.push(new DeviceContext());
     }
