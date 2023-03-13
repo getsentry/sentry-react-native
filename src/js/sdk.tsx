@@ -126,6 +126,7 @@ export function init(passedOptions: ReactNativeOptions): void {
                 ? `${appPrefix}${frame.filename}`
                 : `${appPrefix}/${frame.filename}`;
           }
+          delete frame.abs_path;
         }
         return frame;
       },
