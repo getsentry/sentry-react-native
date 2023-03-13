@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Remove non URL `frame.abs_path` which was causing source maps to fail ([#2876](https://github.com/getsentry/sentry-react-native/pull/2876))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.2.0 to v8.3.0 ([#2876](https://github.com/getsentry/sentry-react-native/pull/2876))
