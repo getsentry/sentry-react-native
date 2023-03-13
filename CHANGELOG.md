@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Remove non URL `frame.abs_path` which was causing source maps to fail ([#2876](https://github.com/getsentry/sentry-react-native/pull/2876))
+- Remove non URL `frame.abs_path` which was causing source maps to fail ([#2891](https://github.com/getsentry/sentry-react-native/pull/2891))
 
 ### Dependencies
 
