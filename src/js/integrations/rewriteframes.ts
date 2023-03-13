@@ -6,7 +6,7 @@ import type { StackFrame } from '@sentry/types';
  * which appends app:// to the beginning of the filename
  * and removes file://, 'address at' prefixes and CodePush postfix.
  */
-export function createReactNativeRewriteFrames() {
+export function createReactNativeRewriteFrames(): RewriteFrames {
   return new RewriteFrames({
     iteratee: (frame: StackFrame) => {
       if (frame.filename) {
