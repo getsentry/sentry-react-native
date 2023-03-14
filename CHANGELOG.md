@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fix use Fetch transport when option `enableNative` is `false`
+- Improve logs when `enableNative` is `false`
+
 ### Dependencies
 
 - Bump JavaScript SDK from v7.40.0 to v7.43.0 ([#2874](https://github.com/getsentry/sentry-react-native/pull/2874))
