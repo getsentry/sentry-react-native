@@ -84,12 +84,52 @@ gradle.projectsEvaluated {
           // The Sentry server distinguishes source maps by release (`--release` in the command
           // below) and distribution identifier (`--dist` below).  Give the task a unique name
           // based on where we're uploading to.
+          def nameInjectDebugIdTask = "${bundleTask.name}_SentryInjectDebugId_${releaseName}_${versionCode}"
           def nameCliTask = "${bundleTask.name}_SentryUpload_${releaseName}_${versionCode}"
           def nameModulesTask = "${bundleTask.name}_SentryCollectModules_${releaseName}_${versionCode}"
 
           // If several outputs have the same releaseName and versionCode, we'd do the exact same
           // upload for each of them.  No need to repeat.
           try { tasks.named(nameCliTask); return } catch (Exception e) {}
+
+          def propertiesFile = config.sentryProperties
+                  ? config.sentryProperties
+                  : "$reactRoot/android/sentry.properties"
+
+          /** Inject debug id into the bundle output. */
+          def injectDebugIdTask = tasks.create(nameInjectDebugIdTask, Exec) {
+              description = "inject debug id into bundle output"
+              group = 'sentry.io'
+
+              workingDir reactRoot
+
+              Properties sentryProps = getSentryProps(propertiesFile)
+              def cliExecutable = getCliExecutable(sentryProps)
+              def args = [cliExecutable]
+
+              args.addAll(!config.logLevel ? [] : [
+                      "--log-level", config.logLevel      // control verbosity of the output
+              ])
+              args.addAll(!config.flavorAware ? [] : [
+                      "--url", sentryProps.get("defaults.url"),
+                      "--auth-token", sentryProps.get("auth.token")
+              ])
+              args.addAll(["sourcemaps", "inject",
+                           "--bundle", bundleOutput,           // The path to a bundle that should be uploaded.
+                           "--sourcemap", sourcemapOutput,     // The path to a sourcemap that should be uploaded.
+              ])
+              args.addAll(!config.flavorAware ? [] : [
+                      "--org", sentryProps.get("defaults.org"),
+                      "--project", sentryProps.get("defaults.project")
+              ])
+
+              project.logger.info("Sentry-CLI arguments: ${args}")
+
+              def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
+              commandLine(*osCompatibility, *args)
+
+              enabled false
+          }
 
           /** Upload source map file to the sentry server via CLI call. */
           def cliTask = tasks.create(nameCliTask, Exec) {
@@ -98,10 +138,6 @@ gradle.projectsEvaluated {
 
               workingDir reactRoot
 
-              def propertiesFile = config.sentryProperties
-                      ? config.sentryProperties
-                      : "$reactRoot/android/sentry.properties"
-
               if (config.flavorAware) {
                   propertiesFile = "$reactRoot/android/sentry-${variant}.properties"
                   project.logger.info("For $variant using: $propertiesFile")
@@ -109,24 +145,9 @@ gradle.projectsEvaluated {
                   environment("SENTRY_PROPERTIES", propertiesFile)
               }
 
-              Properties sentryProps = new Properties()
-              try {
-                  sentryProps.load(new FileInputStream(propertiesFile))
-              } catch (FileNotFoundException e) {
-                  project.logger.info("file not found '$propertiesFile' for '$variant'")
-              }
+              Properties sentryProps = getSentryProps(propertiesFile)
 
-              def resolvedCliPackage = null
-              try {
-                  resolvedCliPackage = new File(["node", "--print", "require.resolve('@sentry/cli/package.json')"].execute(null, rootDir).text.trim()).getParentFile();
-              } catch (Throwable ignored) {}
-              def cliPackage = resolvedCliPackage != null && resolvedCliPackage.exists() ? resolvedCliPackage.getAbsolutePath() : "$reactRoot/node_modules/@sentry/cli"
-              def cliExecutable = sentryProps.get("cli.executable", "$cliPackage/bin/sentry-cli")
-
-              // fix path separator for Windows
-              if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                  cliExecutable = cliExecutable.replaceAll("/", "\\\\")
-              }
+              def cliExecutable = getCliExecutable(sentryProps)
 
               //
               // based on:
@@ -152,6 +173,7 @@ gradle.projectsEvaluated {
                       "--project", sentryProps.get("defaults.project")
               ])
 
+              println("Sentry-CLI arguments: ${args}")
               project.logger.info("Sentry-CLI arguments: ${args}")
 
               def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
@@ -190,7 +212,9 @@ gradle.projectsEvaluated {
 
           // chain the upload tasks so they run sequentially in order to run
           // the cliCleanUpTask after the final upload task is run
+
           if (previousCliTask != null) {
+            injectDebugIdTask.finalizedBy cliTask
             previousCliTask.finalizedBy cliTask
           } else {
             bundleTask.finalizedBy cliTask
@@ -233,6 +257,32 @@ gradle.projectsEvaluated {
         // upload task, after which the cleanup can be done
         previousCliTask.finalizedBy cliCleanUpTask
     }
+}
+
+def getSentryProps(propertiesFile) {
+  Properties sentryProps = new Properties()
+  try {
+      sentryProps.load(new FileInputStream(propertiesFile))
+  } catch (FileNotFoundException e) {
+      project.logger.info("file not found '$propertiesFile' for '$variant'")
+  }
+  return sentryProps
+}
+
+def getCliExecutable(sentryProps) {
+  def resolvedCliPackage = null
+  try {
+      resolvedCliPackage = new File(["node", "--print", "require.resolve('@sentry/cli/package.json')"].execute(null, rootDir).text.trim()).getParentFile();
+  } catch (Throwable ignored) {}
+  def cliPackage = resolvedCliPackage != null && resolvedCliPackage.exists() ? resolvedCliPackage.getAbsolutePath() : "$reactRoot/node_modules/@sentry/cli"
+  def cliExecutable = sentryProps.get("cli.executable", "$cliPackage/bin/sentry-cli")
+
+  // fix path separator for Windows
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+      cliExecutable = cliExecutable.replaceAll("/", "\\\\")
+  }
+
+  return cliExecutable
 }
 
 /** Compose lookup map of build variants - to - outputs. */
