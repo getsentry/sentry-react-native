@@ -6,6 +6,27 @@
 
 - Add User Interaction Tracing for Touch events ([#2835](https://github.com/getsentry/sentry-react-native/pull/2835))
 
+### Dependencies
+
+- Bump JavaScript SDK from v7.40.0 to v7.43.0 ([#2874](https://github.com/getsentry/sentry-react-native/pull/2874))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7430)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.40.0...7.43.0)
+
+## 5.1.1
+
+### Fixes
+
+- Remove non URL `frame.abs_path` which was causing source maps to fail ([#2891](https://github.com/getsentry/sentry-react-native/pull/2891))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.2.0 to v8.3.0 ([#2876](https://github.com/getsentry/sentry-react-native/pull/2876))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#830)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.2.0...8.3.0)
+- Bump CLI from v2.14.3 to v2.14.4 ([#2873](https://github.com/getsentry/sentry-react-native/pull/2873))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2144)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.14.3...2.14.4)
+
 ## 5.1.0
 
 ### Features

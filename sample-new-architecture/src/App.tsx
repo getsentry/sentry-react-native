@@ -26,8 +26,8 @@ Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
-  beforeSend: (event, hint) => {
-    console.log('Event beforeSend:', event, 'hint:', hint);
+  beforeSend: (event: Sentry.Event) => {
+    console.log('Event beforeSend:', event);
     return event;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
@@ -60,11 +60,14 @@ Sentry.init({
   // This will capture ALL TRACES and likely use up all your quota
   tracesSampleRate: 1.0,
   attachStacktrace: true,
+  // Attach screenshots to events.
+  attachScreenshot: true,
+  // Attach view hierarchy to events.
+  attachViewHierarchy: true,
   // Sets the `release` and `dist` on Sentry events. Make sure this matches EXACTLY with the values on your sourcemaps
   // otherwise they will not work.
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
-  attachViewHierarchy: true,
 });
 
 const Stack = createStackNavigator();

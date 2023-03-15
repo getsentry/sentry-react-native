@@ -1,3 +1,4 @@
+import type { Hub } from '@sentry/core';
 import { IdleTransaction, Transaction } from '@sentry/tracing';
 import type { Event } from '@sentry/types';
 
@@ -7,15 +8,6 @@ const mockHub = {
   captureEvent: jest.fn(),
   getClient: jest.fn(),
 };
-
-jest.mock('@sentry/core', () => {
-  const hubOriginal = jest.requireActual('@sentry/core');
-
-  return {
-    ...hubOriginal,
-    getCurrentHub: () => mockHub,
-  };
-});
 
 const getLastEvent = (): Event => {
   return mockHub.captureEvent.mock.calls[mockHub.captureEvent.mock.calls.length - 1][0];
@@ -37,13 +29,18 @@ beforeEach(() => {
 });
 
 describe('StallTracking', () => {
+  const localHub: Hub = mockHub as unknown as Hub;
+
   it('Stall tracking detects a JS stall', (done) => {
     const stallTracking = new StallTrackingInstrumentation();
 
-    const transaction = new Transaction({
-      name: 'Test Transaction',
-      sampled: true,
-    });
+    const transaction = new Transaction(
+      {
+        name: 'Test Transaction',
+        sampled: true,
+      },
+      localHub,
+    );
     transaction.initSpanRecorder();
 
     stallTracking.onTransactionStart(transaction);
@@ -75,10 +72,13 @@ describe('StallTracking', () => {
   it('Stall tracking detects multiple JS stalls', (done) => {
     const stallTracking = new StallTrackingInstrumentation();
 
-    const transaction = new Transaction({
-      name: 'Test Transaction',
-      sampled: true,
-    });
+    const transaction = new Transaction(
+      {
+        name: 'Test Transaction',
+        sampled: true,
+      },
+      localHub,
+    );
     transaction.initSpanRecorder();
 
     stallTracking.onTransactionStart(transaction);
@@ -108,10 +108,13 @@ describe('StallTracking', () => {
   it('Stall tracking timeout is stopped after finishing all transactions (single)', () => {
     const stallTracking = new StallTrackingInstrumentation();
 
-    const transaction = new Transaction({
-      name: 'Test Transaction',
-      sampled: true,
-    });
+    const transaction = new Transaction(
+      {
+        name: 'Test Transaction',
+        sampled: true,
+      },
+      localHub,
+    );
 
     stallTracking.onTransactionStart(transaction);
 
@@ -128,18 +131,27 @@ describe('StallTracking', () => {
   it('Stall tracking timeout is stopped after finishing all transactions (multiple)', (done) => {
     const stallTracking = new StallTrackingInstrumentation();
 
-    const transaction0 = new Transaction({
-      name: 'Test Transaction 0',
-      sampled: true,
-    });
-    const transaction1 = new Transaction({
-      name: 'Test Transaction 1',
-      sampled: true,
-    });
-    const transaction2 = new Transaction({
-      name: 'Test Transaction 2',
-      sampled: true,
-    });
+    const transaction0 = new Transaction(
+      {
+        name: 'Test Transaction 0',
+        sampled: true,
+      },
+      localHub,
+    );
+    const transaction1 = new Transaction(
+      {
+        name: 'Test Transaction 1',
+        sampled: true,
+      },
+      localHub,
+    );
+    const transaction2 = new Transaction(
+      {
+        name: 'Test Transaction 2',
+        sampled: true,
+      },
+      localHub,
+    );
 
     stallTracking.onTransactionStart(transaction0);
     stallTracking.onTransactionStart(transaction1);
@@ -177,10 +189,13 @@ describe('StallTracking', () => {
   it('Stall tracking returns measurements format on finish', () => {
     const stallTracking = new StallTrackingInstrumentation();
 
-    const transaction = new Transaction({
-      name: 'Test Transaction',
-      sampled: true,
-    });
+    const transaction = new Transaction(
+      {
+        name: 'Test Transaction',
+        sampled: true,
+      },
+      localHub,
+    );
 
     stallTracking.onTransactionStart(transaction);
 
@@ -200,10 +215,13 @@ describe('StallTracking', () => {
   it("Stall tracking returns null on a custom endTimestamp that is not a span's", () => {
     const stallTracking = new StallTrackingInstrumentation();
 
-    const transaction = new Transaction({
-      name: 'Test Transaction',
-      sampled: true,
-    });
+    const transaction = new Transaction(
+      {
+        name: 'Test Transaction',
+        sampled: true,
+      },
+      localHub,
+    );
 
     stallTracking.onTransactionStart(transaction);
 
@@ -217,11 +235,14 @@ describe('StallTracking', () => {
   it('Stall tracking supports endTimestamp that is from the last span (trimEnd case)', (done) => {
     const stallTracking = new StallTrackingInstrumentation();
 
-    const transaction = new Transaction({
-      name: 'Test Transaction',
-      trimEnd: true,
-      sampled: true,
-    });
+    const transaction = new Transaction(
+      {
+        name: 'Test Transaction',
+        trimEnd: true,
+        sampled: true,
+      },
+      localHub,
+    );
     transaction.initSpanRecorder();
 
     stallTracking.onTransactionStart(transaction);
@@ -262,11 +283,14 @@ describe('StallTracking', () => {
   it('Stall tracking rejects endTimestamp that is from the last span if trimEnd is false (trimEnd case)', (done) => {
     const stallTracking = new StallTrackingInstrumentation();
 
-    const transaction = new Transaction({
-      name: 'Test Transaction',
-      trimEnd: false,
-      sampled: true,
-    });
+    const transaction = new Transaction(
+      {
+        name: 'Test Transaction',
+        trimEnd: false,
+        sampled: true,
+      },
+      localHub,
+    );
     transaction.initSpanRecorder();
 
     stallTracking.onTransactionStart(transaction);
@@ -299,10 +323,13 @@ describe('StallTracking', () => {
   it('Stall tracking rejects endTimestamp even if it is a span time (custom endTimestamp case)', (done) => {
     const stallTracking = new StallTrackingInstrumentation();
 
-    const transaction = new Transaction({
-      name: 'Test Transaction',
-      sampled: true,
-    });
+    const transaction = new Transaction(
+      {
+        name: 'Test Transaction',
+        sampled: true,
+      },
+      localHub,
+    );
     transaction.initSpanRecorder();
 
     stallTracking.onTransactionStart(transaction);
@@ -338,13 +365,16 @@ describe('StallTracking', () => {
   it('Stall tracking supports idleTransaction with unfinished spans', async () => {
     jest.useFakeTimers();
     const stallTracking = new StallTrackingInstrumentation();
-    const localHub = mockHub;
-    const idleTransaction = new IdleTransaction({
-      name: 'Test Transaction',
-      trimEnd: true,
-      sampled: true,
-      // @ts-ignore use the mocked hub.
-    }, localHub, undefined, undefined);
+    const idleTransaction = new IdleTransaction(
+      {
+        name: 'Test Transaction',
+        trimEnd: true,
+        sampled: true,
+      },
+      localHub,
+      undefined,
+      undefined,
+    );
     idleTransaction.initSpanRecorder();
 
     stallTracking.onTransactionStart(idleTransaction);
@@ -381,11 +411,14 @@ describe('StallTracking', () => {
   it('Stall tracking ignores unfinished spans in normal transactions', (done) => {
     const stallTracking = new StallTrackingInstrumentation();
 
-    const transaction = new Transaction({
-      name: 'Test Transaction',
-      trimEnd: true,
-      sampled: true,
-    });
+    const transaction = new Transaction(
+      {
+        name: 'Test Transaction',
+        trimEnd: true,
+        sampled: true,
+      },
+      localHub,
+    );
     transaction.initSpanRecorder();
 
     stallTracking.onTransactionStart(transaction);
@@ -426,11 +459,14 @@ describe('StallTracking', () => {
   it('Stall tracking only measures stalls inside the final time when trimEnd is used', (done) => {
     const stallTracking = new StallTrackingInstrumentation();
 
-    const transaction = new Transaction({
-      name: 'Test Transaction',
-      trimEnd: true,
-      sampled: true,
-    });
+    const transaction = new Transaction(
+      {
+        name: 'Test Transaction',
+        trimEnd: true,
+        sampled: true,
+      },
+      localHub,
+    );
     transaction.initSpanRecorder();
 
     stallTracking.onTransactionStart(transaction);
@@ -474,10 +510,13 @@ describe('StallTracking', () => {
     const stallTracking = new StallTrackingInstrumentation();
 
     const transactions = new Array(11).fill(0).map((_, i) => {
-      const transaction = new Transaction({
-        name: `Test Transaction ${i}`,
-        sampled: true,
-      });
+      const transaction = new Transaction(
+        {
+          name: `Test Transaction ${i}`,
+          sampled: true,
+        },
+        localHub,
+      );
 
       stallTracking.onTransactionStart(transaction);
 
