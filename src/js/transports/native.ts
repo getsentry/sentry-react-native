@@ -53,8 +53,10 @@ export function makeNativeTransport(options: BaseNativeTransportOptions = {}): N
 /**
  * Creates a Native Transport factory if the native transport is available.
  */
-export function makeNativeTransportFactory(): typeof makeNativeTransport | null {
-  if (NATIVE.isNativeTransportAvailable()) {
+export function makeNativeTransportFactory(
+  { enableNative }: { enableNative?: boolean },
+): typeof makeNativeTransport | null {
+  if (enableNative && NATIVE.isNativeAvailable()) {
     return makeNativeTransport;
   }
   return null;

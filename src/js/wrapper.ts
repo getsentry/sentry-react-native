@@ -53,7 +53,7 @@ interface SentryNativeWrapper {
   ): module is Spec;
   _getBreadcrumbs(event: Event): Breadcrumb[] | undefined;
 
-  isNativeTransportAvailable(): boolean;
+  isNativeAvailable(): boolean;
 
   initNativeSdk(options: ReactNativeOptions): PromiseLike<boolean>;
   closeNativeSdk(): PromiseLike<void>;
@@ -267,10 +267,12 @@ export const NATIVE: SentryNativeWrapper = {
 
   async fetchNativeAppStart(): Promise<NativeAppStartResponse | null> {
     if (!this.enableNative) {
-      throw this._DisabledNativeError;
+      logger.warn(this._DisabledNativeError);
+      return null;
     }
     if (!this._isModuleLoaded(RNSentry)) {
-      throw this._NativeClientError;
+      logger.error(this._NativeClientError);
+      return null;
     }
 
     return RNSentry.fetchNativeAppStart();
@@ -468,16 +470,18 @@ export const NATIVE: SentryNativeWrapper = {
     RNSentry.enableNativeFramesTracking();
   },
 
-  isNativeTransportAvailable(): boolean {
+  isNativeAvailable(): boolean {
     return this.enableNative && this._isModuleLoaded(RNSentry);
   },
 
   async captureScreenshot(): Promise<Screenshot[] | null> {
     if (!this.enableNative) {
-      throw this._DisabledNativeError;
+      logger.warn(this._DisabledNativeError);
+      return null;
     }
     if (!this._isModuleLoaded(RNSentry)) {
-      throw this._NativeClientError;
+      logger.error(this._NativeClientError);
+      return null;
     }
 
     try {
