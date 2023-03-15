@@ -4,8 +4,8 @@
 
 ### Fixes
 
-- Fix use Fetch transport when option `enableNative` is `false`
-- Improve logs when `enableNative` is `false`
+- Fix use Fetch transport when option `enableNative` is `false` ([#2897](https://github.com/getsentry/sentry-react-native/pull/2897))
+- Improve logs when `enableNative` is `false` ([#2897](https://github.com/getsentry/sentry-react-native/pull/2897))
 
 ### Dependencies
 
