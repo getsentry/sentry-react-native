@@ -96,41 +96,6 @@ gradle.projectsEvaluated {
                   ? config.sentryProperties
                   : "$reactRoot/android/sentry.properties"
 
-          /** Inject debug id into the bundle output. */
-          def injectDebugIdTask = tasks.create(nameInjectDebugIdTask, Exec) {
-              description = "inject debug id into bundle output"
-              group = 'sentry.io'
-
-              workingDir reactRoot
-
-              Properties sentryProps = getSentryProps(propertiesFile)
-              def cliExecutable = getCliExecutable(sentryProps)
-              def args = [cliExecutable]
-
-              args.addAll(!config.logLevel ? [] : [
-                      "--log-level", config.logLevel      // control verbosity of the output
-              ])
-              args.addAll(!config.flavorAware ? [] : [
-                      "--url", sentryProps.get("defaults.url"),
-                      "--auth-token", sentryProps.get("auth.token")
-              ])
-              args.addAll(["sourcemaps", "inject",
-                           "--bundle", bundleOutput,           // The path to a bundle that should be uploaded.
-                           "--sourcemap", sourcemapOutput,     // The path to a sourcemap that should be uploaded.
-              ])
-              args.addAll(!config.flavorAware ? [] : [
-                      "--org", sentryProps.get("defaults.org"),
-                      "--project", sentryProps.get("defaults.project")
-              ])
-
-              project.logger.info("Sentry-CLI arguments: ${args}")
-
-              def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
-              commandLine(*osCompatibility, *args)
-
-              enabled false
-          }
-
           /** Upload source map file to the sentry server via CLI call. */
           def cliTask = tasks.create(nameCliTask, Exec) {
               description = "upload debug symbols to sentry"
@@ -162,11 +127,10 @@ gradle.projectsEvaluated {
                       "--url", sentryProps.get("defaults.url"),
                       "--auth-token", sentryProps.get("auth.token")
               ])
-              args.addAll(["react-native", "gradle",
-                           "--bundle", bundleOutput,           // The path to a bundle that should be uploaded.
-                           "--sourcemap", sourcemapOutput,     // The path to a sourcemap that should be uploaded.
-                           "--release", releaseName,            // The name of the release to publish.
-                           "--dist", versionCode
+              args.addAll(["sourcemaps", "upload",
+                      // TODO: test with < 0.71
+                      bundleOutput.getParentFile().getAbsolutePath(), // bundle directory
+                      sourcemapOutput.getParentFile().getAbsolutePath(), // sourcemap directory
               ])
               args.addAll(!config.flavorAware ? [] : [
                       "--org", sentryProps.get("defaults.org"),
@@ -214,7 +178,6 @@ gradle.projectsEvaluated {
           // the cliCleanUpTask after the final upload task is run
 
           if (previousCliTask != null) {
-            injectDebugIdTask.finalizedBy cliTask
             previousCliTask.finalizedBy cliTask
           } else {
             bundleTask.finalizedBy cliTask
@@ -315,10 +278,10 @@ static extractBundleTaskArgumentsLegacy(cmdArgs, Project project) {
 
     cmdArgs.eachWithIndex { String arg, int i ->
         if (arg == "--bundle-output") {
-            bundleOutput = cmdArgs[i + 1]
+            bundleOutput = new File(cmdArgs[i + 1])
             project.logger.info("--bundle-output: `${bundleOutput}`")
         } else if (arg == "--sourcemap-output") {
-            sourcemapOutput = cmdArgs[i + 1]
+            sourcemapOutput = new File(cmdArgs[i + 1])
             project.logger.info("--sourcemap-output param: `${sourcemapOutput}`")
         }
     }
