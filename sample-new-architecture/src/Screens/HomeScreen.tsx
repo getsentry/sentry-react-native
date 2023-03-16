@@ -71,7 +71,7 @@ const HomeScreen = (props: Props) => {
         <Button
           title="Capture exception"
           onPress={() => {
-            Sentry.captureException(new Error('Captured exception'));
+            Sentry.captureException(new Error(`Captured exception ${Math.floor(Math.random() * 100) + 1}`));
           }}
         />
         <Button
