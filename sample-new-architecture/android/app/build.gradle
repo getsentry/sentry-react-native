@@ -115,8 +115,11 @@ android {
         applicationId "com.samplenewarchitecture"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // versionCode and versionName without existing release
+        // with uploaded sourcemap, so when events is symbolicated
+        // it's clear it's from artifact bundlle
+        versionCode 10
+        versionName "10.7"
     }
 
     splits {
