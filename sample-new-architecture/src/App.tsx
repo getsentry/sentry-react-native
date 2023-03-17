@@ -16,6 +16,7 @@ import PerformanceTimingScreen from './Screens/PerformanceTimingScreen';
 import ReduxScreen from './Screens/ReduxScreen';
 import { Provider } from 'react-redux';
 import { store } from './reduxApp';
+import { DebugImage } from '@sentry/types';
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
@@ -28,6 +29,18 @@ Sentry.init({
   debug: true,
   beforeSend: (event: Sentry.Event) => {
     console.log('Event beforeSend:', event);
+    if (event.debug_meta?.images) {
+      event.debug_meta.images = event.debug_meta.images.map((image: DebugImage) => {
+        if (image.type === 'sourcemap') {
+          return {
+            ...image,
+            code_file: 'app:///' + image.code_file,
+          };
+        } else {
+          return image;
+        }
+      });
+    }
     return event;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
