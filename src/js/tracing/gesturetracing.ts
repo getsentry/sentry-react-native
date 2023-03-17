@@ -14,7 +14,7 @@ export const ACTION_GESTURE_FALLBACK = 'gesture';
 /**
  * Internal interface following RNGH 2 Gesture Event API.
  * We need to use this to avoid importing RNGH 2 types and depending on it.
- * https://github.com/software-mansion/react-native-gesture-handler/blob/2.9.0/src/handlers/gestures/gesture.ts#L55
+ * https://github.com/software-mansion/react-native-gesture-handler/blob/f0868f7ccf678c947ef65519ebf97ae149a10289/src/handlers/gestures/gesture.ts#L55
  * @hidden
  */
 type GestureEvent = Record<string, unknown>;
