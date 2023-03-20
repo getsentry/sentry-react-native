@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { getCurrentHub, Scope, traceGesture } from '@sentry/react-native';
-import { PinchGesture } from 'react-native-gesture-handler/lib/typescript/handlers/gestures/pinchGesture';
 
 const GesturesTracingScreen = () => {
   const gesture = Gesture.Pinch()
