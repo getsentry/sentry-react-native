@@ -6,11 +6,16 @@
 
 - Add User Interaction Tracing for Touch events ([#2835](https://github.com/getsentry/sentry-react-native/pull/2835))
 
+### Fixes
+
+- Fix use Fetch transport when option `enableNative` is `false` ([#2897](https://github.com/getsentry/sentry-react-native/pull/2897))
+- Improve logs when `enableNative` is `false` ([#2897](https://github.com/getsentry/sentry-react-native/pull/2897))
+
 ### Dependencies
 
-- Bump JavaScript SDK from v7.40.0 to v7.43.0 ([#2874](https://github.com/getsentry/sentry-react-native/pull/2874))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7430)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.40.0...7.43.0)
+- Bump JavaScript SDK from v7.40.0 to v7.44.0 ([#2874](https://github.com/getsentry/sentry-react-native/pull/2874), [#2908](https://github.com/getsentry/sentry-react-native/pull/2908))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7440)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.40.0...7.44.0)
 
 ## 5.1.1
 

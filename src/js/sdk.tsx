@@ -67,7 +67,13 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
     // If custom transport factory fails the SDK won't initialize
-    transport: passedOptions.transport || makeNativeTransportFactory() || makeFetchTransport,
+    transport: passedOptions.transport
+      || makeNativeTransportFactory({
+        enableNative: passedOptions.enableNative !== undefined
+          ? passedOptions.enableNative
+          : DEFAULT_OPTIONS.enableNative
+      })
+      || makeFetchTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(passedOptions.transportOptions ?? {}),
