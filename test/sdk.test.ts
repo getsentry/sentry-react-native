@@ -228,15 +228,31 @@ describe('Tests the SDK functionality', () => {
     });
 
     it('uses native transport', () => {
-      (NATIVE.isNativeTransportAvailable as jest.Mock).mockImplementation(() => true);
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
       init({});
       expect(usedOptions()?.transport).toEqual(makeNativeTransport);
     });
 
     it('uses fallback fetch transport', () => {
-      (NATIVE.isNativeTransportAvailable as jest.Mock).mockImplementation(() => false);
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
       init({});
       expect(usedOptions()?.transport).toEqual(makeFetchTransport);
+    });
+
+    it('checks sdk options first', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
+      init({ enableNative: false });
+      expect(usedOptions()?.transport).toEqual(makeFetchTransport);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(NATIVE.isNativeAvailable).not.toBeCalled();
+    });
+
+    it('check both options and native availability', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
+      init({ enableNative: true });
+      expect(usedOptions()?.transport).toEqual(makeNativeTransport);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(NATIVE.isNativeAvailable).toBeCalled();
     });
   });
 

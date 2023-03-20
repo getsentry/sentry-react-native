@@ -55,6 +55,8 @@ export class NativeFramesInstrumentation {
       if (framesMetrics) {
         transaction.setData('__startFrames', framesMetrics);
       }
+    }).then(undefined, (error) => {
+      logger.error(`[ReactNativeTracing] Error while fetching native frames: ${error}`);
     });
 
     instrumentChildSpanFinish(transaction, (_: Span, endTimestamp?: number) => {
@@ -85,6 +87,8 @@ export class NativeFramesInstrumentation {
           nativeFrames,
         };
       }
+    }).then(undefined, (error) => {
+      logger.error(`[ReactNativeTracing] Error while fetching native frames: ${error}`);
     });
   }
 
