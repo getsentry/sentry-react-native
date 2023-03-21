@@ -1,20 +1,15 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { getCurrentHub, Scope, traceGesture } from '@sentry/react-native';
+import { getCurrentHub, Scope, sentryTraceGesture } from '@sentry/react-native';
 
 const GesturesTracingScreen = () => {
-  const gesture = Gesture.Pinch()
-    .onBegin(() => {
-      console.log('Pinch gesture begin');
-    })
-    .onEnd(() => {
-      console.log('Pinch gesture end');
-      startExampleSpan();
-    });
+  const gesture = Gesture.Pinch().onBegin(() => {
+    startExampleSpan();
+  });
 
   return (
-    <GestureDetector gesture={traceGesture('pinch', gesture)}>
+    <GestureDetector gesture={sentryTraceGesture('pinch', gesture)}>
       <View style={styles.screen}>
         <Text>Do pinch gesture</Text>
       </View>

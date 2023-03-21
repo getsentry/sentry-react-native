@@ -8,7 +8,7 @@ import { UI_ACTION } from '../../src/js/tracing';
 import {
   DEFAULT_BREADCRUMB_CATEGORY as DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
   DEFAULT_BREADCRUMB_TYPE as DEFAULT_GESTURE_BREADCRUMB_TYPE,
-  traceGesture,
+  sentryTraceGesture,
 } from '../../src/js/tracing/gesturetracing';
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import type {
@@ -79,12 +79,12 @@ describe('GestureTracing', () => {
   describe('gracefully fails on invalid gestures', () => {
     it('gesture is undefined', () => {
       const gesture = undefined;
-      expect(traceGesture(label, gesture)).toBeUndefined();
+      expect(sentryTraceGesture(label, gesture)).toBeUndefined();
     });
 
     it('gesture has no handlers', () => {
       const gesture = {};
-      expect(traceGesture(label, gesture)).toEqual({});
+      expect(sentryTraceGesture(label, gesture)).toEqual({});
     });
   });
 
@@ -125,7 +125,7 @@ describe('GestureTracing', () => {
     });
 
     it('gesture creates interaction transaction', () => {
-      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
       mockedGesture.handlers!.onBegin!();
       const transaction = mockedScope.getTransaction() as Transaction | undefined;
       jest.runAllTimers();
@@ -139,7 +139,7 @@ describe('GestureTracing', () => {
 
     it('gesture interaction transaction falls back on invalid handler name', () => {
       mockedGesture.handlerName = 'Invalid';
-      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
       mockedGesture.handlers!.onBegin!();
       const transaction = mockedScope.getTransaction() as Transaction | undefined;
       jest.runAllTimers();
@@ -154,7 +154,7 @@ describe('GestureTracing', () => {
     it('gesture cancel previous interaction transaction', () => {
       const timeoutCloseToActualIdleTimeoutMs = 800;
 
-      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
 
       const mockedTouchInteractionId = { elementId: 'mockedElementId', op: 'mocked.op' };
       tracing.startUserInteractionTransaction(mockedTouchInteractionId);
@@ -182,7 +182,7 @@ describe('GestureTracing', () => {
 
     it('gesture original on begin handler is called', () => {
       const original = mockedGesture.handlers?.onBegin;
-      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
       mockedGesture.handlers!.onBegin!();
       jest.runAllTimers();
 
@@ -191,7 +191,7 @@ describe('GestureTracing', () => {
 
     it('creates gesture on begin handled if non exists', () => {
       delete mockedGesture.handlers?.onBegin;
-      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
       mockedGesture.handlers!.onBegin!();
       jest.runAllTimers();
 
@@ -200,7 +200,7 @@ describe('GestureTracing', () => {
 
     it('gesture original on end handler is called', () => {
       const original = mockedGesture.handlers?.onEnd;
-      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
       mockedGesture.handlers!.onEnd!();
       jest.runAllTimers();
 
@@ -209,7 +209,7 @@ describe('GestureTracing', () => {
 
     it('creates gesture on end handled if non exists', () => {
       delete mockedGesture.handlers?.onEnd;
-      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
       mockedGesture.handlers!.onEnd!();
       jest.runAllTimers();
 
@@ -218,7 +218,7 @@ describe('GestureTracing', () => {
 
     it('creates gesture on begin handled if non exists', () => {
       delete mockedGesture.handlers?.onBegin;
-      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
       mockedGesture.handlers!.onBegin!();
       jest.runAllTimers();
 
@@ -226,7 +226,7 @@ describe('GestureTracing', () => {
     });
 
     it('wrapped gesture creates breadcrumb on begin', () => {
-      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
       mockedGesture.handlers!.onBegin!();
       jest.runAllTimers();
 
@@ -239,7 +239,7 @@ describe('GestureTracing', () => {
     });
 
     it('wrapped gesture creates breadcrumb on end', () => {
-      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
       mockedGesture.handlers!.onEnd!();
       jest.runAllTimers();
 
@@ -252,7 +252,7 @@ describe('GestureTracing', () => {
     });
 
     it('wrapped gesture creates breadcrumb only with selected event keys', () => {
-      traceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
       mockedGesture.handlers!.onBegin!({ notSelectedKey: 'notSelectedValue', scale: 1 });
       jest.runAllTimers();
 

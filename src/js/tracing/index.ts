@@ -22,7 +22,7 @@ export {
 export { ReactNativeProfiler } from './reactnativeprofiler';
 
 export {
-  traceGesture,
+  sentryTraceGesture,
 } from './gesturetracing';
 
 export * from './ops';

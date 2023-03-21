@@ -82,7 +82,7 @@ export {
   ReactNativeNavigationInstrumentation,
   RoutingInstrumentation,
   ReactNavigationTransactionContext,
-  traceGesture,
+  sentryTraceGesture,
 } from './tracing';
 
 export { Integrations, SDK_NAME, SDK_VERSION };

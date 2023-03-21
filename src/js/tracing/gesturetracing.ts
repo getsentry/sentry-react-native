@@ -41,7 +41,7 @@ interface GestureTracingOptions {
  * Patches React Native Gesture Handler v2 Gesture to start a transaction on gesture begin with the appropriate label.
  * Example: ShoppingCartScreen.dismissGesture
  */
-export function traceGesture<GestureT>(
+export function sentryTraceGesture<GestureT>(
   /**
    * Label of the gesture to be used in transaction name.
    * Example: dismissGesture
@@ -52,15 +52,15 @@ export function traceGesture<GestureT>(
 ): GestureT {
   const gestureCandidate = gesture as unknown as BaseGesture | undefined | null;
   if (!gestureCandidate) {
-    logger.warn('[ReactNativeTracing] Gesture can not be undefined');
+    logger.warn('[GestureTracing] Gesture can not be undefined');
     return gesture;
   }
   if (!gestureCandidate.handlers) {
-    logger.warn('[ReactNativeTracing] Can not wrap gesture without handlers. If you want to wrap a gesture composition wrap individual gestures.');
+    logger.warn('[GestureTracing] Can not wrap gesture without handlers. If you want to wrap a gesture composition wrap individual gestures.');
     return gesture;
   }
   if (!label) {
-    logger.warn('[ReactNativeTracing] Can not wrap gesture without name.');
+    logger.warn('[GestureTracing] Can not wrap gesture without name.');
     return gesture;
   }
   const hub = options.getCurrentHub?.() || getCurrentHub();
