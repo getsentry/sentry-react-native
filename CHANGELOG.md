@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add User Interaction Tracing for Touch events ([#2835](https://github.com/getsentry/sentry-react-native/pull/2835))
+
 ### Fixes
 
 - Fix use Fetch transport when option `enableNative` is `false` ([#2897](https://github.com/getsentry/sentry-react-native/pull/2897))

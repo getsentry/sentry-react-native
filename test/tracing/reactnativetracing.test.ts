@@ -2,10 +2,13 @@
 import type { User } from '@sentry/browser';
 import { BrowserClient } from '@sentry/browser';
 import { addGlobalEventProcessor, Hub } from '@sentry/core';
-import type { IdleTransaction, Transaction } from '@sentry/tracing';
+import type { IdleTransaction, SpanStatusType } from '@sentry/tracing';
+import { Transaction } from '@sentry/tracing';
 
 import type { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
+import type { OnConfirmRoute, TransactionCreator } from '../../src/js/tracing/routingInstrumentation';
 import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
+import type { BeforeNavigate } from '../../src/js/tracing/types';
 
 jest.mock('../../src/js/wrapper', () => {
   return {
@@ -28,16 +31,16 @@ jest.mock('../../src/js/tracing/utils', () => {
   };
 });
 
-const getMockHub = () => {
-  const mockHub = new Hub(new BrowserClient({ tracesSampleRate: 1 } as BrowserClientOptions));
+const getMockScope = () => {
   let scopeTransaction: Transaction | undefined;
   let scopeUser: User | undefined;
-  const mockScope = {
+
+  return {
     getTransaction: () => scopeTransaction,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setSpan(span: any) {
+    setSpan: jest.fn((span: any) => {
       scopeTransaction = span;
-    },
+    }),
     setTag(_tag: any) {
       // Placeholder
     },
@@ -45,7 +48,12 @@ const getMockHub = () => {
       // Placeholder
     },
     getUser: () => scopeUser,
-  };
+  }
+};
+
+const getMockHub = () => {
+  const mockHub = new Hub(new BrowserClient({ tracesSampleRate: 1 } as BrowserClientOptions));
+  const mockScope = getMockScope();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mockHub.getScope = () => mockScope as any;
@@ -56,6 +64,7 @@ const getMockHub = () => {
 };
 
 import type { BrowserClientOptions } from '@sentry/browser/types/client';
+import type { Scope } from '@sentry/types';
 
 import { APP_START_COLD, APP_START_WARM } from '../../src/js/measurements';
 import {
@@ -66,7 +75,7 @@ import {
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
 import { NATIVE } from '../../src/js/wrapper';
-import { mockFunction } from '../testutils';
+import { firstArg, mockFunction } from '../testutils';
 
 const DEFAULT_IDLE_TIMEOUT = 1000;
 
@@ -661,4 +670,239 @@ describe('ReactNativeTracing', () => {
       expect(tracing.options.idleTimeout).toBe(1000);
     });
   });
+
+  describe('User Interaction Tracing', () => {
+    const mockedConfirmedRouteTransactionContext = {
+      name: 'mockedRouteName',
+      data: {
+        route: {
+          name: 'mockedRouteName',
+        },
+      },
+    };
+    let mockedScope: Scope;
+    let mockedHub: Hub;
+    let tracing: ReactNativeTracing;
+    let mockedUserInteractionId: { elementId: string | undefined; op: string; };
+    let mockedRoutingInstrumentation: RoutingInstrumentation & {
+      registeredListener?: TransactionCreator,
+      registeredBeforeNavigate?: BeforeNavigate,
+      registeredOnConfirmRoute?: OnConfirmRoute,
+    };
+
+    beforeEach(() => {
+      mockedUserInteractionId = { elementId: 'mockedElementId', op: 'mocked.op' };
+      mockedHub = getMockHub();
+      mockedScope = mockedHub.getScope()!;
+      mockedRoutingInstrumentation = {
+        name: 'TestRoutingInstrumentationInstance',
+        onRouteWillChange: jest.fn(),
+        registerRoutingInstrumentation: jest.fn((
+          listener: TransactionCreator,
+          beforeNavigate: BeforeNavigate,
+          onConfirmRoute: OnConfirmRoute,
+        ) => {
+          mockedRoutingInstrumentation.registeredListener = listener;
+          mockedRoutingInstrumentation.registeredBeforeNavigate = beforeNavigate;
+          mockedRoutingInstrumentation.registeredOnConfirmRoute = onConfirmRoute;
+        }),
+      };
+    });
+
+    describe('disabled user interaction', () => {
+      test('User interaction tracing is disabled by default', () => {
+        tracing = new ReactNativeTracing();
+        tracing.setupOnce(jest.fn(), () => mockedHub);
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+
+        expect(tracing.options.enableUserInteractionTracing).toBeFalsy();
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(mockedScope.setSpan).not.toBeCalled();
+      });
+    });
+
+    describe('enabled user interaction', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+        tracing = new ReactNativeTracing({
+          routingInstrumentation: mockedRoutingInstrumentation,
+          enableUserInteractionTracing: true,
+        });
+        tracing.setupOnce(jest.fn(), () => mockedHub);
+        mockedRoutingInstrumentation.registeredOnConfirmRoute!(mockedConfirmedRouteTransactionContext);
+      });
+
+      afterEach(() => {
+        jest.runAllTimers();
+        jest.useRealTimers();
+      });
+
+      test('user interaction tracing is enabled and transaction is bound to scope', () => {
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        const actualTransaction = mockFunction(mockedScope.setSpan).mock.calls[0][firstArg];
+        const actualTransactionContext = actualTransaction?.toContext();
+        expect(tracing.options.enableUserInteractionTracing).toBeTruthy();
+        expect(actualTransactionContext).toEqual(expect.objectContaining({
+          name: 'mockedRouteName.mockedElementId',
+          op: 'mocked.op',
+        }));
+      });
+
+      test('UI event transaction not sampled if no child spans', () => {
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+
+        jest.runAllTimers();
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        const actualTransaction = mockFunction(mockedScope.setSpan).mock.calls[0][firstArg];
+        const actualTransactionContext = actualTransaction?.toContext();
+        expect(actualTransactionContext?.sampled).toEqual(false);
+      });
+
+      test('do not overwrite existing status of UI event transactions', () => {
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+
+        const actualTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        actualTransaction?.setStatus('mocked_status' as SpanStatusType);
+
+        jest.runAllTimers();
+
+        const actualTransactionContext = actualTransaction?.toContext();
+        expect(actualTransactionContext).toEqual(expect.objectContaining({
+          endTimestamp: expect.any(Number),
+          status: 'mocked_status',
+        }));
+      });
+
+      test('same UI event and same element does not reschedule idle timeout', () => {
+        const timeoutCloseToActualIdleTimeoutMs = 800;
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        const actualTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
+
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
+
+        expect(actualTransaction?.toContext().endTimestamp).toEqual(expect.any(Number));
+      });
+
+      test('different UI event and same element finish first and start new transaction', () => {
+        const timeoutCloseToActualIdleTimeoutMs = 800;
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        const firstTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
+        const childFirstTransaction = firstTransaction?.startChild({ op: 'child.op' });
+
+        tracing.startUserInteractionTransaction({ ...mockedUserInteractionId, op: 'different.op' });
+        const secondTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
+        childFirstTransaction?.finish();
+        jest.runAllTimers();
+
+        const firstTransactionContext = firstTransaction?.toContext();
+        const secondTransactionContext = secondTransaction?.toContext();
+        expect(firstTransactionContext).toEqual(expect.objectContaining({
+          endTimestamp: expect.any(Number),
+          op: 'mocked.op',
+          sampled: true,
+        }));
+        expect(secondTransactionContext).toEqual(expect.objectContaining({
+          endTimestamp: expect.any(Number),
+          op: 'different.op',
+        }));
+        expect(firstTransactionContext!.endTimestamp)
+          .toBeGreaterThanOrEqual(secondTransactionContext!.startTimestamp!);
+      });
+
+      test('different UI event and same element finish first transaction with last span', () => {
+        const timeoutCloseToActualIdleTimeoutMs = 800;
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        const firstTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
+        const childFirstTransaction = firstTransaction?.startChild({ op: 'child.op' });
+
+        tracing.startUserInteractionTransaction({ ...mockedUserInteractionId, op: 'different.op' });
+        jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
+        childFirstTransaction?.finish();
+
+        const firstTransactionContext = firstTransaction?.toContext();
+        expect(firstTransactionContext).toEqual(expect.objectContaining({
+          endTimestamp: expect.any(Number),
+          op: 'mocked.op',
+          sampled: true,
+        }));
+      });
+
+      test('same ui event after UI event transaction finished', () => {
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        const firstTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        jest.runAllTimers();
+
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        const secondTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        jest.runAllTimers();
+
+        const firstTransactionContext = firstTransaction?.toContext();
+        const secondTransactionContext = secondTransaction?.toContext();
+        expect(firstTransactionContext!.endTimestamp).toEqual(expect.any(Number));
+        expect(secondTransactionContext!.endTimestamp).toEqual(expect.any(Number));
+        expect(firstTransactionContext!.spanId).not.toEqual(secondTransactionContext!.spanId);
+      });
+
+      test('do not start UI event transaction if active transaction on scope', () => {
+        const activeTransaction = new Transaction({ name: 'activeTransactionOnScope' }, mockedHub);
+        mockedScope.setSpan(activeTransaction);
+
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(mockedScope.setSpan).toBeCalledTimes(1);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(mockedScope.setSpan).toBeCalledWith(activeTransaction);
+      });
+
+      test('UI event transaction is canceled when routing transaction starts', () => {
+        const timeoutCloseToActualIdleTimeoutMs = 800;
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        const interactionTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
+
+        const routingTransaction = mockedRoutingInstrumentation.registeredListener!({
+          name: 'newMockedRouteName',
+        });
+        jest.runAllTimers();
+
+        const interactionTransactionContext = interactionTransaction?.toContext();
+        const routingTransactionContext = routingTransaction?.toContext();
+        expect(interactionTransactionContext).toEqual(expect.objectContaining({
+          endTimestamp: expect.any(Number),
+          status: 'cancelled',
+        }));
+        expect(routingTransactionContext).toEqual(expect.objectContaining({
+          endTimestamp: expect.any(Number),
+        }));
+        expect(interactionTransactionContext!.endTimestamp)
+          .toBeLessThanOrEqual(routingTransactionContext!.startTimestamp!);
+      });
+
+      test('UI event transaction calls lifecycle callbacks', () => {
+        tracing.onTransactionStart = jest.fn(tracing.onTransactionStart.bind(tracing));
+        tracing.onTransactionFinish = jest.fn(tracing.onTransactionFinish.bind(tracing));
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        const actualTransaction = mockedScope.getTransaction() as Transaction | undefined;
+        jest.runAllTimers();
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(tracing.onTransactionStart).toBeCalledTimes(1);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(tracing.onTransactionFinish).toBeCalledTimes(1);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(tracing.onTransactionStart).toBeCalledWith(actualTransaction);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(tracing.onTransactionFinish).toBeCalledWith(actualTransaction);
+      });
+    });
+  })
 });
