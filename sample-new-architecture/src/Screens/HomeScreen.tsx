@@ -168,6 +168,12 @@ const HomeScreen = (props: Props) => {
             props.navigation.navigate('ManualTracker');
           }}
         />
+        <Button
+          title="Gestures Tracing Example"
+          onPress={() => {
+            props.navigation.navigate('Gestures');
+          }}
+        />
         <Button title="Performance Timing" onPress={onPressPerformanceTiming} />
         <Button
           title="Redux Example"

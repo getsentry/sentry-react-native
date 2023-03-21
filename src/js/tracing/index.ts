@@ -21,4 +21,8 @@ export {
 
 export { ReactNativeProfiler } from './reactnativeprofiler';
 
+export {
+  sentryTraceGesture,
+} from './gesturetracing';
+
 export * from './ops';
