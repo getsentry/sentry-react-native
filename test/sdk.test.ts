@@ -338,6 +338,26 @@ describe('Tests the SDK functionality', () => {
       expect(actualIntegrations).toEqual([mockDefaultIntegration]);
     });
 
+    it('no http client integration by default', () => {
+      init({});
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'HttpClient' })]));
+    });
+
+    it('adds http client integration', () => {
+      init({
+        enableCaptureFailedRequests: true,
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'HttpClient' })]));
+    });
+
     it('no screenshot integration by default', () => {
       init({});
 

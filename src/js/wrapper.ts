@@ -1,5 +1,4 @@
 /* eslint-disable max-lines */
-import { HttpClient } from '@sentry/integrations';
 import type {
   BaseEnvelopeItemHeaders,
   Breadcrumb,
@@ -85,13 +84,6 @@ interface SentryNativeWrapper {
 }
 
 /**
- * Internal interface for options passed to native SDKs
- */
-interface NativeClientOptions extends ReactNativeClientOptions {
-  enableCaptureFailedRequests: boolean;
-}
-
-/**
  * Our internal interface for calling native functions
  */
 export const NATIVE: SentryNativeWrapper = {
@@ -172,15 +164,11 @@ export const NATIVE: SentryNativeWrapper = {
    * @param options ReactNativeClientOptions
    */
   async initNativeSdk(originalOptions: Partial<ReactNativeClientOptions>): Promise<boolean> {
-    const options: Partial<NativeClientOptions> = {
+    const options: Partial<ReactNativeClientOptions> = {
       enableNative: true,
       autoInitializeNativeSdk: true,
       ...originalOptions,
     };
-
-    const httpClientIntegration = originalOptions.integrations
-      ?.find(i => i.name === HttpClient.id) as HttpClient | undefined;
-    options.enableCaptureFailedRequests = httpClientIntegration ? true : false;
 
     if (!options.enableNative) {
       if (options.enableNativeNagger) {

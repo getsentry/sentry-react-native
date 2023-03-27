@@ -56,6 +56,7 @@ Sentry.init({
         },
       }),
       new HttpClient({
+        // These options are effective only in JS.
         // This array can contain tuples of `[begin, end]` (both inclusive),
         // Single status codes, or a combinations of both.
         // default: [[500, 599]]
@@ -77,6 +78,8 @@ Sentry.init({
   attachScreenshot: true,
   // Attach view hierarchy to events.
   attachViewHierarchy: true,
+  // Enables capture failed requests in JS and native.
+  enableCaptureFailedRequests: true,
   // Sets the `release` and `dist` on Sentry events. Make sure this matches EXACTLY with the values on your sourcemaps
   // otherwise they will not work.
   // release: 'myapp@1.2.3+1',
