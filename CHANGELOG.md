@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add Tabs auto instrumentation for React Native Navigation
+
 ## 5.2.0
 
 ### Features

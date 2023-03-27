@@ -20,10 +20,18 @@ interface ReactNativeNavigationOptions {
    * Default: 1000
    */
   routeChangeTimeoutMs: number;
+  /**
+   * Instrumentation will create a transaction on tab change.
+   * By default only navigation commands create transactions.
+   *
+   * Default: false
+   */
+  enableTabsInstrumentation: boolean;
 }
 
 const defaultOptions: ReactNativeNavigationOptions = {
   routeChangeTimeoutMs: 1000,
+  enableTabsInstrumentation: false,
 };
 
 interface ComponentEvent {
@@ -46,6 +54,10 @@ export interface EventSubscription {
   remove(): void;
 }
 
+export interface BottomTabPressedEvent {
+  tabIndex: number;
+}
+
 export interface EventsRegistry {
   registerComponentWillAppearListener(
     callback: (event: ComponentWillAppearEvent) => void
@@ -53,6 +65,9 @@ export interface EventsRegistry {
   registerCommandListener(
     callback: (name: string, params: unknown) => void
   ): EventSubscription;
+  registerBottomTabPressedListener(
+    callback: (event: BottomTabPressedEvent) => void
+  ): EmitterSubscription;
 }
 
 export interface NavigationDelegate {
@@ -112,7 +127,13 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
 
     this._navigation
       .events()
-      .registerCommandListener(this._onCommand.bind(this));
+      .registerCommandListener(this._onNavigation.bind(this));
+
+    if (this._options.enableTabsInstrumentation) {
+      this._navigation
+        .events()
+        .registerBottomTabPressedListener(this._onNavigation.bind(this));
+    }
 
     this._navigation
       .events()
@@ -122,9 +143,9 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
   }
 
   /**
-   * To be called when a navigation command is dispatched
+   * To be called when when navigation is initiated. (Command, BottomTabSelected, etc.)
    */
-  private _onCommand(): void {
+  private _onNavigation(): void {
     if (this._latestTransaction) {
       this._discardLatestTransaction();
     }
@@ -143,61 +164,66 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
    * To be called AFTER the state has been changed to populate the transaction with the current route.
    */
   private _onComponentWillAppear(event: ComponentWillAppearEvent): void {
-    // If the route is a different key, this is so we ignore actions that pertain to the same screen.
-    if (this._latestTransaction) {
-      if (
-        !this._prevComponentEvent ||
-        event.componentId != this._prevComponentEvent.componentId
-      ) {
-        this._clearStateChangeTimeout();
+    const { _latestTransaction: latestTransaction } = this;
 
-        const originalContext = this._latestTransaction.toContext();
-        const routeHasBeenSeen = this._recentComponentIds.includes(
-          event.componentId
-        );
-
-        const data: RouteChangeContextData = {
-          ...originalContext.data,
-          route: {
-            ...event,
-            name: event.componentName,
-            hasBeenSeen: routeHasBeenSeen,
-          },
-          previousRoute: this._prevComponentEvent
-            ? {
-                ...this._prevComponentEvent,
-                name: this._prevComponentEvent?.componentName,
-              }
-            : null,
-        };
-
-        const updatedContext = {
-          ...originalContext,
-          name: event.componentName,
-          tags: {
-            ...originalContext.tags,
-            'routing.route.name': event.componentName,
-          },
-          data,
-        };
-
-        const finalContext = this._prepareFinalContext(updatedContext);
-        this._latestTransaction.updateWithContext(finalContext);
-
-        const isCustomName = updatedContext.name !== finalContext.name;
-        this._latestTransaction.setName(
-          finalContext.name,
-          isCustomName ? customTransactionSource : defaultTransactionSource,
-        );
-
-        this._onConfirmRoute?.(finalContext);
-        this._prevComponentEvent = event;
-      } else {
-        this._discardLatestTransaction();
-      }
-
-      this._latestTransaction = undefined;
+    const noNavigationComponentWillAppear = !latestTransaction;
+    if (noNavigationComponentWillAppear) {
+      return;
     }
+
+    // We ignore actions that pertain to the same screen.
+    const isSameComponent = this._prevComponentEvent
+      && event.componentId === this._prevComponentEvent.componentId;
+    if (isSameComponent) {
+      this._discardLatestTransaction();
+      return;
+    }
+
+    this._clearStateChangeTimeout();
+
+    const originalContext = latestTransaction.toContext();
+    const routeHasBeenSeen = this._recentComponentIds.includes(
+      event.componentId
+    );
+
+    const data: RouteChangeContextData = {
+      ...originalContext.data,
+      route: {
+        ...event,
+        name: event.componentName,
+        hasBeenSeen: routeHasBeenSeen,
+      },
+      previousRoute: this._prevComponentEvent
+        ? {
+          ...this._prevComponentEvent,
+          name: this._prevComponentEvent?.componentName,
+        }
+        : null,
+    };
+
+    const updatedContext = {
+      ...originalContext,
+      name: event.componentName,
+      tags: {
+        ...originalContext.tags,
+        'routing.route.name': event.componentName,
+      },
+      data,
+    };
+
+    const finalContext = this._prepareFinalContext(updatedContext);
+    latestTransaction.updateWithContext(finalContext);
+
+    const isCustomName = updatedContext.name !== finalContext.name;
+    latestTransaction.setName(
+      finalContext.name,
+      isCustomName ? customTransactionSource : defaultTransactionSource,
+    );
+
+    this._onConfirmRoute?.(finalContext);
+    this._prevComponentEvent = event;
+
+    this._latestTransaction = undefined;
   }
 
   /** Creates final transaction context before confirmation */
