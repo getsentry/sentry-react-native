@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Enable iOS HTTP Client Reports only if enabled in RN ([#](https://github.com/getsentry/sentry-react-native/pull/))
+
 ## 5.2.0
 
 ### Features

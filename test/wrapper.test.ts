@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+import { HttpClient } from '@sentry/integrations';
 import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
 import { createEnvelope, logger } from '@sentry/utils';
 import * as RN from 'react-native';
@@ -194,6 +195,30 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.setTag).not.toBeCalled();
       expect(RNSentry.setContext).not.toBeCalled();
       expect(RNSentry.setExtra).not.toBeCalled();
+    });
+
+    test('enables http client errors on ios', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        integrations: [new HttpClient()],
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalledWith(expect.objectContaining({
+        enableCaptureFailedRequests: true,
+      }));
+    });
+
+    test('disables http client errors on ios', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        integrations: [],
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalledWith(expect.objectContaining({
+        enableCaptureFailedRequests: false,
+      }));
     });
   });
 

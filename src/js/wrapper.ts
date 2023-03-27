@@ -1,4 +1,5 @@
 /* eslint-disable max-lines */
+import { HttpClient } from '@sentry/integrations';
 import type {
   BaseEnvelopeItemHeaders,
   Breadcrumb,
@@ -21,7 +22,7 @@ import type {
   NativeScreenshot,
   Spec,
 } from './NativeRNSentry';
-import type { ReactNativeOptions } from './options';
+import type { ReactNativeClientOptions } from './options';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment'
 import { utf8ToBytes } from './vendor';
@@ -55,7 +56,7 @@ interface SentryNativeWrapper {
 
   isNativeAvailable(): boolean;
 
-  initNativeSdk(options: ReactNativeOptions): PromiseLike<boolean>;
+  initNativeSdk(options: Partial<ReactNativeClientOptions>): PromiseLike<boolean>;
   closeNativeSdk(): PromiseLike<void>;
 
   sendEnvelope(envelope: Envelope): Promise<void>;
@@ -81,6 +82,13 @@ interface SentryNativeWrapper {
 
   fetchModules(): Promise<Record<string, string> | null>;
   fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
+}
+
+/**
+ * Internal interface for options passed to native SDKs
+ */
+interface NativeClientOptions extends ReactNativeClientOptions {
+  enableCaptureFailedRequests: boolean;
 }
 
 /**
@@ -161,14 +169,18 @@ export const NATIVE: SentryNativeWrapper = {
 
   /**
    * Starts native with the provided options.
-   * @param options ReactNativeOptions
+   * @param options ReactNativeClientOptions
    */
-  async initNativeSdk(originalOptions: ReactNativeOptions): Promise<boolean> {
-    const options = {
+  async initNativeSdk(originalOptions: Partial<ReactNativeClientOptions>): Promise<boolean> {
+    const options: Partial<NativeClientOptions> = {
       enableNative: true,
       autoInitializeNativeSdk: true,
       ...originalOptions,
     };
+
+    const httpClientIntegration = originalOptions.integrations
+      ?.find(i => i.name === HttpClient.id) as HttpClient | undefined;
+    options.enableCaptureFailedRequests = httpClientIntegration ? true : false;
 
     if (!options.enableNative) {
       if (options.enableNativeNagger) {

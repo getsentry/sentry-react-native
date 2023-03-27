@@ -19,6 +19,7 @@ import { store } from './reduxApp';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { StyleSheet } from 'react-native';
+import { HttpClient } from '@sentry/integrations';
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
@@ -53,6 +54,15 @@ Sentry.init({
 
           return context;
         },
+      }),
+      new HttpClient({
+        // This array can contain tuples of `[begin, end]` (both inclusive),
+        // Single status codes, or a combinations of both.
+        // default: [[500, 599]]
+        failedRequestStatusCodes: [[400, 599]],
+        // This array can contain Regexes or strings, or combinations of both.
+        // default: [/.*/]
+        failedRequestTargets: [/.*/],
       }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
