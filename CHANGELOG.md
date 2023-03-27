@@ -4,7 +4,8 @@
 
 ### Fixes
 
-- Enable iOS HTTP Client Reports only if enabled in RN ([#](https://github.com/getsentry/sentry-react-native/pull/))
+- Enable iOS HTTP Client Errors only if enabled in RN ([#](https://github.com/getsentry/sentry-react-native/pull/))
+  - Add [HttpClient](https://docs.sentry.io/platforms/javascript/configuration/integrations/plugin/#httpclient) to enable HTTP Client Errors on iOS.
 
 ## 5.2.0
 
