@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add `enableTracing` option
+
 ## 5.2.0
 
 ### Features

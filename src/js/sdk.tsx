@@ -1,4 +1,4 @@
-import type { Scope } from '@sentry/core';
+import { hasTracingEnabled, Scope } from '@sentry/core';
 import { getIntegrationsToSetup, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
 import {
   defaultIntegrations as reactDefaultIntegrations,
@@ -87,11 +87,6 @@ export function init(passedOptions: ReactNativeOptions): void {
     tracesSampler: safeTracesSampler(passedOptions.tracesSampler),
   };
 
-  // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.
-  const tracingEnabled =
-    typeof options.tracesSampler !== 'undefined' ||
-    typeof options.tracesSampleRate !== 'undefined';
-
   const defaultIntegrations: Integration[] = passedOptions.defaultIntegrations || [];
   if (passedOptions.defaultIntegrations === undefined) {
     defaultIntegrations.push(new ModulesLoader());
@@ -117,10 +112,8 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (options.enableNative) {
       defaultIntegrations.push(new DeviceContext());
     }
-    if (tracingEnabled) {
-      if (options.enableAutoPerformanceTracing) {
-        defaultIntegrations.push(new ReactNativeTracing());
-      }
+    if (hasTracingEnabled(options) && options.enableAutoPerformanceTracing) {
+      defaultIntegrations.push(new ReactNativeTracing());
     }
     if (options.attachScreenshot) {
       defaultIntegrations.push(new Screenshot());
