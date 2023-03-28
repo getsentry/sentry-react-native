@@ -1,5 +1,5 @@
-import { hasTracingEnabled, Scope } from '@sentry/core';
-import { getIntegrationsToSetup, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
+import type { Scope } from '@sentry/core';
+import { getIntegrationsToSetup, hasTracingEnabled , Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
 import {
   defaultIntegrations as reactDefaultIntegrations,
   defaultStackParser,
