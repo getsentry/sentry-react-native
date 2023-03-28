@@ -164,10 +164,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
    * To be called AFTER the state has been changed to populate the transaction with the current route.
    */
   private _onComponentWillAppear(event: ComponentWillAppearEvent): void {
-    const { _latestTransaction: latestTransaction } = this;
-
-    const noNavigationComponentWillAppear = !latestTransaction;
-    if (noNavigationComponentWillAppear) {
+    if (!this._latestTransaction) {
       return;
     }
 
@@ -181,7 +178,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
 
     this._clearStateChangeTimeout();
 
-    const originalContext = latestTransaction.toContext();
+    const originalContext = this._latestTransaction.toContext();
     const routeHasBeenSeen = this._recentComponentIds.includes(
       event.componentId
     );
@@ -212,10 +209,10 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
     };
 
     const finalContext = this._prepareFinalContext(updatedContext);
-    latestTransaction.updateWithContext(finalContext);
+    this._latestTransaction.updateWithContext(finalContext);
 
     const isCustomName = updatedContext.name !== finalContext.name;
-    latestTransaction.setName(
+    this._latestTransaction.setName(
       finalContext.name,
       isCustomName ? customTransactionSource : defaultTransactionSource,
     );
