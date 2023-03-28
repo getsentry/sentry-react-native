@@ -4,7 +4,7 @@
 
 ### Features
 
-- Add `enableTracing` option
+- Add `enableTracing` option ([#2933](https://github.com/getsentry/sentry-react-native/pull/2933))
 
 ## 5.2.0
 
