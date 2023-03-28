@@ -4,7 +4,7 @@
 
 ### Features
 
-- Add Tabs auto instrumentation for React Native Navigation
+- Add Tabs auto instrumentation for React Native Navigation ([#2932](https://github.com/getsentry/sentry-react-native/pull/2932))
 
 ## 5.2.0
 
