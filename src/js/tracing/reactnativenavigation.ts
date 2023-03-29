@@ -143,7 +143,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
   }
 
   /**
-   * To be called when when navigation is initiated. (Command, BottomTabSelected, etc.)
+   * To be called when a navigation is initiated. (Command, BottomTabSelected, etc.)
    */
   private _onNavigation(): void {
     if (this._latestTransaction) {
