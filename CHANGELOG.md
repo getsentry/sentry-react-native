@@ -6,6 +6,11 @@
 
 - Add `enableTracing` option ([#2933](https://github.com/getsentry/sentry-react-native/pull/2933))
 
+### Fixes
+
+- Enable iOS HTTP Client Errors only if enabled in RN ([#2931](https://github.com/getsentry/sentry-react-native/pull/2931))
+  - Add [HttpClient](https://docs.sentry.io/platforms/javascript/configuration/integrations/plugin/#httpclient) to enable HTTP Client Errors on iOS.
+
 ## 5.2.0
 
 ### Features

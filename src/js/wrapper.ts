@@ -21,7 +21,7 @@ import type {
   NativeScreenshot,
   Spec,
 } from './NativeRNSentry';
-import type { ReactNativeOptions } from './options';
+import type { ReactNativeClientOptions } from './options';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment'
 import { utf8ToBytes } from './vendor';
@@ -55,7 +55,7 @@ interface SentryNativeWrapper {
 
   isNativeAvailable(): boolean;
 
-  initNativeSdk(options: ReactNativeOptions): PromiseLike<boolean>;
+  initNativeSdk(options: Partial<ReactNativeClientOptions>): PromiseLike<boolean>;
   closeNativeSdk(): PromiseLike<void>;
 
   sendEnvelope(envelope: Envelope): Promise<void>;
@@ -161,10 +161,10 @@ export const NATIVE: SentryNativeWrapper = {
 
   /**
    * Starts native with the provided options.
-   * @param options ReactNativeOptions
+   * @param options ReactNativeClientOptions
    */
-  async initNativeSdk(originalOptions: ReactNativeOptions): Promise<boolean> {
-    const options = {
+  async initNativeSdk(originalOptions: Partial<ReactNativeClientOptions>): Promise<boolean> {
+    const options: Partial<ReactNativeClientOptions> = {
       enableNative: true,
       autoInitializeNativeSdk: true,
       ...originalOptions,

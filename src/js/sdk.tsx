@@ -1,5 +1,6 @@
 import type { Scope } from '@sentry/core';
 import { getIntegrationsToSetup, hasTracingEnabled , Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
+import { HttpClient } from '@sentry/integrations';
 import {
   defaultIntegrations as reactDefaultIntegrations,
   defaultStackParser,
@@ -50,6 +51,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   sendClientReports: true,
   maxQueueSize: DEFAULT_BUFFER_SIZE,
   attachStacktrace: true,
+  enableCaptureFailedRequests: false,
 };
 
 /**
@@ -120,6 +122,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     }
     if (options.attachViewHierarchy) {
       defaultIntegrations.push(new ViewHierarchy());
+    }
+    if (options.enableCaptureFailedRequests) {
+      defaultIntegrations.push(new HttpClient());
     }
   }
 
