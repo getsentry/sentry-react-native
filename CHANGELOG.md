@@ -5,6 +5,24 @@
 ### Features
 
 - Add Tabs auto instrumentation for React Native Navigation ([#2932](https://github.com/getsentry/sentry-react-native/pull/2932))
+- Add `enableTracing` option ([#2933](https://github.com/getsentry/sentry-react-native/pull/2933))
+
+### Fixes
+
+- Enable iOS HTTP Client Errors only if enabled in RN ([#2931](https://github.com/getsentry/sentry-react-native/pull/2931))
+  - Add [HttpClient](https://docs.sentry.io/platforms/javascript/configuration/integrations/plugin/#httpclient) to enable HTTP Client Errors on iOS.
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.44.2 to v7.45.0 ([#2927](https://github.com/getsentry/sentry-react-native/pull/2927))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7450)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.44.2...7.45.0)
+- Bump CLI from v2.15.2 to v2.16.1 ([#2926](https://github.com/getsentry/sentry-react-native/pull/2926))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2161)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.15.2...2.16.1)
+- Bump Cocoa SDK from v8.3.2 to v8.3.3 ([#2925](https://github.com/getsentry/sentry-react-native/pull/2925))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#833)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.3.2...8.3.3)
 
 ## 5.2.0
 
