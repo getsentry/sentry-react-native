@@ -24,14 +24,14 @@ interface ReactNativeNavigationOptions {
    * Instrumentation will create a transaction on tab change.
    * By default only navigation commands create transactions.
    *
-   * Default: false
+   * Default: true
    */
   enableTabsInstrumentation: boolean;
 }
 
 const defaultOptions: ReactNativeNavigationOptions = {
   routeChangeTimeoutMs: 1000,
-  enableTabsInstrumentation: false,
+  enableTabsInstrumentation: true,
 };
 
 interface ComponentEvent {
