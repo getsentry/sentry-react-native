@@ -11,6 +11,12 @@
 - Enable iOS HTTP Client Errors only if enabled in RN ([#2931](https://github.com/getsentry/sentry-react-native/pull/2931))
   - Add [HttpClient](https://docs.sentry.io/platforms/javascript/configuration/integrations/plugin/#httpclient) to enable HTTP Client Errors on iOS.
 
+### Dependencies
+
+- Bump JavaScript SDK from v7.44.2 to v7.45.0 ([#2927](https://github.com/getsentry/sentry-react-native/pull/2927))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7450)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.44.2...7.45.0)
+
 ## 5.2.0
 
 ### Features
