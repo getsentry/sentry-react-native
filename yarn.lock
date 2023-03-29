@@ -1843,10 +1843,10 @@
     "@sentry/types" "7.44.2"
     tslib "^1.9.3"
 
-"@sentry/wizard@2.6.0":
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-2.6.0.tgz#8a52265748979439196ff0bfb59ad0b056da3f61"
-  integrity sha512-YH0LbhZttGaX3Cd/c+BIUXIWPopaRTajQlr+VaUlr6U5r8e9uXDL6R47jE1zzZvhLag6LGpniHgydyGwepwdFg==
+"@sentry/wizard@2.6.1":
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-2.6.1.tgz#771e77dea32c394e04feb9f64a08864fedf9d34b"
+  integrity sha512-mvpbgV5Ix9vbyj434btucr8kVaP6TWdOPYNsmbtoiAcubNAOU2WAIAj8n9tkWTPImLzmp2wnzu9MP5hwkwfhFg==
   dependencies:
     "@sentry/cli" "^1.72.0"
     chalk "^2.4.1"
