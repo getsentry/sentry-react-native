@@ -11,12 +11,6 @@
 - Enable iOS HTTP Client Errors only if enabled in RN ([#2931](https://github.com/getsentry/sentry-react-native/pull/2931))
   - Add [HttpClient](https://docs.sentry.io/platforms/javascript/configuration/integrations/plugin/#httpclient) to enable HTTP Client Errors on iOS.
 
-### Dependencies
-
-- Bump Wizard from v2.6.0 to v2.6.1 ([#2918](https://github.com/getsentry/sentry-react-native/pull/2918))
-  - [changelog](https://github.com/getsentry/sentry-wizard/blob/master/CHANGELOG.md#v261)
-  - [diff](https://github.com/getsentry/sentry-wizard/compare/v2.6.0...v2.6.1)
-
 ## 5.2.0
 
 ### Features
