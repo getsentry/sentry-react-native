@@ -14,8 +14,13 @@ const routingInstrumentation = new Sentry.ReactNativeNavigationInstrumentation(N
 
 ### Fixes
 
-- Enable iOS HTTP Client Errors only if enabled in RN ([#2931](https://github.com/getsentry/sentry-react-native/pull/2931))
-  - Add [HttpClient](https://docs.sentry.io/platforms/javascript/configuration/integrations/plugin/#httpclient) to enable HTTP Client Errors on iOS.
+- Disable HTTP Client Errors by default on all platform ([#2931](https://github.com/getsentry/sentry-react-native/pull/2931))
+  - See [HttpClient](https://docs.sentry.io/platforms/javascript/configuration/integrations/plugin/#httpclient) for configuration details.
+  - Use `enableCaptureFailedRequests` to enable the feature.
+
+```js
+Sentry.init({ enableCaptureFailedRequests: true })
+```
 
 ### Dependencies
 
