@@ -5,6 +5,12 @@
 ### Features
 
 - Add `enableTracing` option ([#2933](https://github.com/getsentry/sentry-react-native/pull/2933))
+- Add Tabs auto instrumentation for React Native Navigation ([#2932](https://github.com/getsentry/sentry-react-native/pull/2932))
+  - This is enabled by default, if you want to disable tabs instrumentation see the example below.
+
+```js
+const routingInstrumentation = new Sentry.ReactNativeNavigationInstrumentation(Navigation, { enableTabsInstrumentation: false })
+```
 
 ### Fixes
 
