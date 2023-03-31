@@ -141,6 +141,15 @@ export interface BaseReactNativeOptions {
    * @default false
    */
   attachViewHierarchy?: boolean;
+
+  /**
+   * When enabled, Sentry will capture failed XHR/Fetch requests. This option also enabled HTTP Errors on iOS.
+   * [Sentry Android Gradle Plugin](https://docs.sentry.io/platforms/android/configuration/integrations/okhttp/)
+   * is needed to capture HTTP Errors on Android.
+   *
+   * @default false
+   */
+  enableCaptureFailedRequests?: boolean;
 }
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {

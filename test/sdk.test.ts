@@ -338,6 +338,48 @@ describe('Tests the SDK functionality', () => {
       expect(actualIntegrations).toEqual([mockDefaultIntegration]);
     });
 
+    it('no http client integration by default', () => {
+      init({});
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'HttpClient' })]));
+    });
+
+    it('adds http client integration', () => {
+      init({
+        enableCaptureFailedRequests: true,
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'HttpClient' })]));
+    });
+
+    it('user defined http client integration overwrites default', () => {
+      init({
+        enableCaptureFailedRequests: true,
+        integrations: [
+          <Integration>{
+            name: 'HttpClient',
+            setupOnce: () => { },
+            isUserDefined: true,
+          },
+        ],
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({
+        name: 'HttpClient',
+        isUserDefined: true,
+      })]));
+      expect(actualIntegrations.filter(integration => integration.name === 'HttpClient')).toHaveLength(1);
+    });
+
     it('no screenshot integration by default', () => {
       init({});
 
