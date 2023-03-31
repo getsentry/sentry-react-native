@@ -29,6 +29,96 @@
     XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be passed to native");
 }
 
+- (void)testCreateOptionsWithDictionaryNativeCrashHandlingDefault
+{
+    RNSentry * rnSentry = [[RNSentry alloc] init];
+    NSError* error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn": @"https://abcd@efgh.ingest.sentry.io/123456",
+    };
+    SentryOptions* actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], true, @"Did not set native crash handling");
+}
+
+- (void)testCreateOptionsWithDictionaryPerformanceTrackingDefault
+{
+    RNSentry * rnSentry = [[RNSentry alloc] init];
+    NSError* error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn": @"https://abcd@efgh.ingest.sentry.io/123456",
+    };
+    SentryOptions* actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertEqual(actualOptions.enableAutoPerformanceTracing, true, @"Did not set Auto Performance Tracing");
+}
+
+- (void)testCreateOptionsWithDictionaryNativeCrashHandlingEnabled
+{
+    RNSentry * rnSentry = [[RNSentry alloc] init];
+    NSError* error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn": @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"enableNativeCrashHandling": @YES,
+    };
+    SentryOptions* actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], true, @"Did not set native crash handling");
+}
+
+- (void)testCreateOptionsWithDictionaryPerformanceTrackingEnabled
+{
+    RNSentry * rnSentry = [[RNSentry alloc] init];
+    NSError* error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn": @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"enableAutoPerformanceTracing": @YES,
+
+    };
+    SentryOptions* actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertEqual(actualOptions.enableAutoPerformanceTracing, true, @"Did not set Auto Performance Tracing");
+}
+
+- (void)testCreateOptionsWithDictionaryNativeCrashHandlingDisabled
+{
+    RNSentry * rnSentry = [[RNSentry alloc] init];
+    NSError* error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn": @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"enableNativeCrashHandling": @NO,
+
+    };
+    SentryOptions* actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], false, @"Did not disable native crash handling");
+}
+
+- (void)testCreateOptionsWithDictionaryPerformanceTrackingDisabled
+{
+    RNSentry * rnSentry = [[RNSentry alloc] init];
+    NSError* error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn": @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"enableAutoPerformanceTracing": @NO,
+
+    };
+    SentryOptions* actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertEqual(actualOptions.enableAutoPerformanceTracing, false, @"Did not disable Auto Performance Tracing");
+}
 
 - (void)testPassesErrorOnWrongDsn
 {

@@ -108,7 +108,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     }
 
     if ([mutableOptions valueForKey:@"enableNativeCrashHandling"] != nil) {
-        BOOL enableNativeCrashHandling = (BOOL)[mutableOptions valueForKey:@"enableNativeCrashHandling"];
+        BOOL enableNativeCrashHandling = [mutableOptions[@"enableNativeCrashHandling"] boolValue];
 
         if (!enableNativeCrashHandling) {
             NSMutableArray *integrations = sentryOptions.integrations.mutableCopy;
@@ -119,8 +119,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 
     // Enable the App start and Frames tracking measurements
     if ([mutableOptions valueForKey:@"enableAutoPerformanceTracing"] != nil) {
-        BOOL enableAutoPerformanceTracing = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracing"];
-
+        BOOL enableAutoPerformanceTracing = [mutableOptions[@"enableAutoPerformanceTracing"] boolValue];
         PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracing;
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
         PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracing;
