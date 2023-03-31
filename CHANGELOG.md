@@ -7,6 +7,12 @@
 - Disable `enableNativeCrashHandling` and `enableAutoPerformanceTracing` on Apple ([#2936](https://github.com/getsentry/sentry-react-native/pull/))
   - Mac Catalyst builds sucessfully
 
+### Dependencies
+
+- Bump JavaScript SDK from v7.45.0 to v7.46.0 ([#2946](https://github.com/getsentry/sentry-react-native/pull/2946))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7460)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.45.0...7.46.0)
+
 ## 5.3.0
 
 ### Features
