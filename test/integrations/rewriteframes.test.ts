@@ -3,19 +3,22 @@ import { defaultStackParser, eventFromException } from '@sentry/browser';
 
 import { createReactNativeRewriteFrames } from '../../src/js/integrations/rewriteframes';
 
-
 describe('RewriteFrames', () => {
   const HINT = {};
   const ATTACH_STACKTRACE = true;
 
-  const exceptionFromError = async (options: { message: string, name: string, stack: string }): Promise<Exception | undefined> => {
+  const exceptionFromError = async (options: {
+    message: string;
+    name: string;
+    stack: string;
+  }): Promise<Exception | undefined> => {
     const error = new Error(options.message);
     error.stack = options.stack;
     const event = await eventFromException(defaultStackParser, error, HINT, ATTACH_STACKTRACE);
     createReactNativeRewriteFrames().process(event);
     const exception = event.exception?.values?.[0];
     return exception;
-  }
+  };
 
   it('should parse exceptions for react-native-v8', async () => {
     const REACT_NATIVE_V8_EXCEPTION = {
@@ -118,32 +121,28 @@ describe('RewriteFrames', () => {
         frames: [
           { filename: '[native code]', function: 'forEach', in_app: true },
           {
-            filename:
-              'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
+            filename: 'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
             function: 'p',
             lineno: 96,
             colno: 385,
             in_app: true,
           },
           {
-            filename:
-              'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
+            filename: 'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
             function: 'onResponderRelease',
             lineno: 221,
             colno: 5666,
             in_app: true,
           },
           {
-            filename:
-              'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
+            filename: 'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
             function: 'value',
             lineno: 221,
             colno: 7656,
             in_app: true,
           },
           {
-            filename:
-              'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
+            filename: 'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
             function: 'onPress',
             lineno: 595,
             colno: 658,

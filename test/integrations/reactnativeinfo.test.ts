@@ -1,7 +1,7 @@
 import type { Event, EventHint } from '@sentry/types';
 
 import type { ReactNativeError } from '../../src/js/integrations/debugsymbolicator';
-import type { ReactNativeContext} from '../../src/js/integrations/reactnativeinfo';
+import type { ReactNativeContext } from '../../src/js/integrations/reactnativeinfo';
 import { ReactNativeInfo } from '../../src/js/integrations/reactnativeinfo';
 
 let mockedIsHermesEnabled: jest.Mock<boolean, []>;
@@ -27,7 +27,7 @@ describe('React Native Info', () => {
 
   it('does not pollute event with undefined fields', async () => {
     const mockEvent: Event = {
-      message: 'test'
+      message: 'test',
     };
     const mockedHint: EventHint = {};
     const actualEvent = await executeIntegrationFor(mockEvent, mockedHint);
@@ -50,9 +50,9 @@ describe('React Native Info', () => {
 
     expectMocksToBeCalledOnce();
     expect(actualEvent?.tags?.hermes).toEqual('true');
-    expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.js_engine,
-    ).toEqual('hermes');
+    expect((actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.js_engine).toEqual(
+      'hermes',
+    );
   });
 
   it('does not override existing hermes tag', async () => {
@@ -78,9 +78,9 @@ describe('React Native Info', () => {
 
     expectMocksToBeCalledOnce();
     expect(actualEvent?.tags?.hermes).toEqual(undefined);
-    expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.js_engine,
-    ).toEqual('test_engine');
+    expect((actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.js_engine).toEqual(
+      'test_engine',
+    );
   });
 
   it('adds component stack', async () => {
@@ -92,9 +92,9 @@ describe('React Native Info', () => {
     const actualEvent = await executeIntegrationFor({}, mockedHint);
 
     expectMocksToBeCalledOnce();
-    expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.component_stack,
-    ).toEqual('test_stack');
+    expect((actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.component_stack).toEqual(
+      'test_stack',
+    );
   });
 
   it('marks turbo modules enabled', async () => {
@@ -102,9 +102,7 @@ describe('React Native Info', () => {
     const actualEvent = await executeIntegrationFor({}, {});
 
     expectMocksToBeCalledOnce();
-    expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.turbo_module,
-    ).toEqual(true);
+    expect((actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.turbo_module).toEqual(true);
   });
 
   it('marks fabric enabled', async () => {
@@ -112,9 +110,7 @@ describe('React Native Info', () => {
     const actualEvent = await executeIntegrationFor({}, {});
 
     expectMocksToBeCalledOnce();
-    expect(
-      (actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.fabric,
-    ).toEqual(true);
+    expect((actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.fabric).toEqual(true);
   });
 
   it('does not override existing react_native_context', async () => {
@@ -143,7 +139,7 @@ function expectMocksToBeCalledOnce() {
 function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Promise<Event | null> {
   const integration = new ReactNativeInfo();
   return new Promise((resolve, reject) => {
-    integration.setupOnce(async (eventProcessor) => {
+    integration.setupOnce(async eventProcessor => {
       try {
         const processedEvent = await eventProcessor(mockedEvent, mockedHint);
         resolve(processedEvent);

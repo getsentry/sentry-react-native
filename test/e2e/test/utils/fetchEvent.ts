@@ -1,4 +1,4 @@
-import type {Event} from '@sentry/types';
+import type { Event } from '@sentry/types';
 import fetch from 'node-fetch';
 
 const domain = 'sentry.io';
@@ -39,7 +39,7 @@ const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
             console.log(`Retrying api request. Retry number: ${retries}`);
             resolve(
               fetch(request)
-                .then((res) => res.json())
+                .then(res => res.json())
                 .then(retryer),
             );
           }, RETRY_INTERVAL);
@@ -53,10 +53,10 @@ const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
 
   const json: ApiEvent = await fetch(request)
     // tslint:disable-next-line: no-unsafe-any
-    .then((res) => res.json())
+    .then(res => res.json())
     .then(retryer);
 
   return json;
 };
 
-export {fetchEvent};
+export { fetchEvent };

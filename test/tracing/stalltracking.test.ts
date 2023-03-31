@@ -31,7 +31,7 @@ beforeEach(() => {
 describe('StallTracking', () => {
   const localHub: Hub = mockHub as unknown as Hub;
 
-  it('Stall tracking detects a JS stall', (done) => {
+  it('Stall tracking detects a JS stall', done => {
     const stallTracking = new StallTrackingInstrumentation();
 
     const transaction = new Transaction(
@@ -56,10 +56,10 @@ describe('StallTracking', () => {
       expect(measurements).toBeDefined();
       if (measurements) {
         expect(measurements.stall_count.value).toBeGreaterThan(0);
-        expect(measurements.stall_count.unit).toBe('none')
+        expect(measurements.stall_count.unit).toBe('none');
 
         expect(measurements.stall_longest_time.value).toBeGreaterThan(0);
-        expect(measurements.stall_longest_time.unit).toBe('millisecond')
+        expect(measurements.stall_longest_time.unit).toBe('millisecond');
 
         expect(measurements.stall_total_time.value).toBeGreaterThan(0);
         expect(measurements.stall_total_time.unit).toBe('millisecond');
@@ -69,7 +69,7 @@ describe('StallTracking', () => {
     }, 500);
   });
 
-  it('Stall tracking detects multiple JS stalls', (done) => {
+  it('Stall tracking detects multiple JS stalls', done => {
     const stallTracking = new StallTrackingInstrumentation();
 
     const transaction = new Transaction(
@@ -128,7 +128,7 @@ describe('StallTracking', () => {
     expect(stallTracking.isTracking).toBe(false);
   });
 
-  it('Stall tracking timeout is stopped after finishing all transactions (multiple)', (done) => {
+  it('Stall tracking timeout is stopped after finishing all transactions (multiple)', done => {
     const stallTracking = new StallTrackingInstrumentation();
 
     const transaction0 = new Transaction(
@@ -232,7 +232,7 @@ describe('StallTracking', () => {
     expect(measurements).toBeUndefined();
   });
 
-  it('Stall tracking supports endTimestamp that is from the last span (trimEnd case)', (done) => {
+  it('Stall tracking supports endTimestamp that is from the last span (trimEnd case)', done => {
     const stallTracking = new StallTrackingInstrumentation();
 
     const transaction = new Transaction(
@@ -270,9 +270,7 @@ describe('StallTracking', () => {
 
       if (measurements) {
         expect(measurements.stall_count.value).toEqual(expect.any(Number));
-        expect(measurements.stall_longest_time.value).toEqual(
-          expect.any(Number)
-        );
+        expect(measurements.stall_longest_time.value).toEqual(expect.any(Number));
         expect(measurements.stall_total_time.value).toEqual(expect.any(Number));
       }
 
@@ -280,7 +278,7 @@ describe('StallTracking', () => {
     }, 400);
   });
 
-  it('Stall tracking rejects endTimestamp that is from the last span if trimEnd is false (trimEnd case)', (done) => {
+  it('Stall tracking rejects endTimestamp that is from the last span if trimEnd is false (trimEnd case)', done => {
     const stallTracking = new StallTrackingInstrumentation();
 
     const transaction = new Transaction(
@@ -320,7 +318,7 @@ describe('StallTracking', () => {
     }, 400);
   });
 
-  it('Stall tracking rejects endTimestamp even if it is a span time (custom endTimestamp case)', (done) => {
+  it('Stall tracking rejects endTimestamp even if it is a span time (custom endTimestamp case)', done => {
     const stallTracking = new StallTrackingInstrumentation();
 
     const transaction = new Transaction(
@@ -391,7 +389,7 @@ describe('StallTracking', () => {
     await Promise.resolve();
     jest.advanceTimersByTime(100);
 
-    stallTracking.onTransactionFinish(idleTransaction, + 0.015);
+    stallTracking.onTransactionFinish(idleTransaction, +0.015);
     idleTransaction.finish();
 
     const measurements = getLastEvent()?.measurements;
@@ -399,16 +397,14 @@ describe('StallTracking', () => {
     expect(measurements).toBeDefined();
 
     expect(measurements?.stall_count.value).toEqual(expect.any(Number));
-    expect(measurements?.stall_longest_time.value).toEqual(
-      expect.any(Number)
-    );
+    expect(measurements?.stall_longest_time.value).toEqual(expect.any(Number));
     expect(measurements?.stall_total_time.value).toEqual(expect.any(Number));
 
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
   });
 
-  it('Stall tracking ignores unfinished spans in normal transactions', (done) => {
+  it('Stall tracking ignores unfinished spans in normal transactions', done => {
     const stallTracking = new StallTrackingInstrumentation();
 
     const transaction = new Transaction(
@@ -446,9 +442,7 @@ describe('StallTracking', () => {
 
       if (measurements) {
         expect(measurements.stall_count.value).toEqual(expect.any(Number));
-        expect(measurements.stall_longest_time.value).toEqual(
-          expect.any(Number)
-        );
+        expect(measurements.stall_longest_time.value).toEqual(expect.any(Number));
         expect(measurements.stall_total_time.value).toEqual(expect.any(Number));
       }
 
@@ -456,7 +450,7 @@ describe('StallTracking', () => {
     }, 500);
   });
 
-  it('Stall tracking only measures stalls inside the final time when trimEnd is used', (done) => {
+  it('Stall tracking only measures stalls inside the final time when trimEnd is used', done => {
     const stallTracking = new StallTrackingInstrumentation();
 
     const transaction = new Transaction(
@@ -489,9 +483,7 @@ describe('StallTracking', () => {
 
       if (measurements) {
         expect(measurements.stall_count.value).toEqual(1);
-        expect(measurements.stall_longest_time.value).toEqual(
-          expect.any(Number)
-        );
+        expect(measurements.stall_longest_time.value).toEqual(expect.any(Number));
         expect(measurements.stall_total_time.value).toEqual(expect.any(Number));
       }
 
@@ -533,7 +525,7 @@ describe('StallTracking', () => {
     const measurements1 = getLastEvent()?.measurements;
     expect(measurements1).toBeDefined();
 
-    transactions.slice(2).forEach((transaction) => {
+    transactions.slice(2).forEach(transaction => {
       stallTracking.onTransactionFinish(transaction);
       transaction.finish();
     });

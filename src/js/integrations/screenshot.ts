@@ -26,16 +26,12 @@ export class Screenshot implements Integration {
       return resolvedSyncPromise(hint);
     }
 
-    return NATIVE.captureScreenshot()
-      .then((screenshots) => {
-        if (screenshots !== null && screenshots.length > 0) {
-          hint.attachments = [
-            ...screenshots,
-            ...(hint?.attachments || []),
-          ];
-        }
-        return hint;
-      });
+    return NATIVE.captureScreenshot().then(screenshots => {
+      if (screenshots !== null && screenshots.length > 0) {
+        hint.attachments = [...screenshots, ...(hint?.attachments || [])];
+      }
+      return hint;
+    });
   }
 
   /**

@@ -48,9 +48,7 @@ export {
   withProfiler,
 } from '@sentry/react';
 
-export {
-  lastEventId,
-} from '@sentry/browser';
+export { lastEventId } from '@sentry/browser';
 
 import * as Integrations from './integrations';
 import { SDK_NAME, SDK_VERSION } from './version';

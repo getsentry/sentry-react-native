@@ -13,7 +13,9 @@ describe('Modules Loader', () => {
   });
 
   it('integration event processor does not throw on native error', async () => {
-    (NATIVE.fetchModules as jest.Mock).mockImplementation(() => { throw new Error('Test Error') });
+    (NATIVE.fetchModules as jest.Mock).mockImplementation(() => {
+      throw new Error('Test Error');
+    });
     const mockEvent: Event = {
       modules: {
         eventModule: 'eventModuleVersion',
@@ -33,7 +35,7 @@ describe('Modules Loader', () => {
       modules: {
         eventModule: 'eventModuleVersion',
         duplicateModule: 'duplicateEventModuleVersion',
-      }
+      },
     };
     const processedEvent = await executeIntegrationFor(mockEvent);
 
@@ -46,7 +48,7 @@ describe('Modules Loader', () => {
 
   function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint = {}): Promise<Event | null> {
     return new Promise((resolve, reject) => {
-      integration.setupOnce(async (eventProcessor) => {
+      integration.setupOnce(async eventProcessor => {
         try {
           const processedEvent = await eventProcessor(mockedEvent, mockedHint);
           resolve(processedEvent);

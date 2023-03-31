@@ -21,12 +21,14 @@ describe('safe', () => {
       expect(actualSafeFunction).not.toBeDefined();
     });
     test('passes object trough', () => {
-      const actualSafeFunction = safeFactory({ 'foo': 'bar' });
-      expect(actualSafeFunction).toEqual({ 'foo': 'bar' });
+      const actualSafeFunction = safeFactory({ foo: 'bar' });
+      expect(actualSafeFunction).toEqual({ foo: 'bar' });
     });
     test('returns input object if function failed', () => {
-      const mockFn = jest.fn(() => { throw 'Test error' });
-      const actualSafeFunction = safeFactory(<(foo:string) => string>mockFn);
+      const mockFn = jest.fn(() => {
+        throw 'Test error';
+      });
+      const actualSafeFunction = safeFactory(<(foo: string) => string>mockFn);
       const actualResult = actualSafeFunction('foo');
       expect(mockFn).toBeCalledTimes(1);
       expect(actualResult).toEqual('foo');
@@ -52,7 +54,9 @@ describe('safe', () => {
       expect(actualSafeFunction).not.toBeDefined();
     });
     test('returns input object if function failed', () => {
-      const mockFn = jest.fn(() => { throw 'Test error' });
+      const mockFn = jest.fn(() => {
+        throw 'Test error';
+      });
       const actualSafeFunction = safeTracesSampler(mockFn);
       const actualResult = actualSafeFunction?.({ transactionContext: { name: 'foo' } });
       expect(mockFn).toBeCalledTimes(1);

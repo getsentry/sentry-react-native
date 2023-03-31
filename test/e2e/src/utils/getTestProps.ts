@@ -1,4 +1,4 @@
-import {Platform} from 'react-native';
+import { Platform } from 'react-native';
 
 /**
  * Each platform uses different test ids There is a bug in Appium where accessibilityLabel does not work on iOS so we need testID,
@@ -6,7 +6,9 @@ import {Platform} from 'react-native';
  * @param id
  * @param platform
  */
-const getTestProps = (id: string): {
+const getTestProps = (
+  id: string,
+): {
   accessibilityLabel?: string;
   accessible?: boolean;
   testID?: string;
@@ -20,4 +22,4 @@ const getTestProps = (id: string): {
         testID: id,
       };
 
-export {getTestProps};
+export { getTestProps };
