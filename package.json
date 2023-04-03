@@ -20,7 +20,7 @@
     "fix": "yarn fix:eslint && yarn fix:prettier",
     "fix:eslint": "eslint --config .eslintrc.js --fix .",
     "fix:prettier": "prettier --write \"{src,test,scripts}/**/**.ts\"",
-    "lint": "yarn lint:eslint && lint:prettier",
+    "lint": "yarn lint:eslint && yarn lint:prettier",
     "lint:eslint": "eslint --config .eslintrc.js .",
     "lint:prettier": "prettier --check \"{src,test,scripts}/**/**.ts\"",
     "test:watch": "jest --watch",
