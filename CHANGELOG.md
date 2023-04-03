@@ -5,8 +5,8 @@
 ### Fixes
 
 - Disable `enableNativeCrashHandling` and `enableAutoPerformanceTracing` on Apple ([#2936](https://github.com/getsentry/sentry-react-native/pull/))
-  - Mac Catalyst builds sucessfully
-- `sentry.gradle` Gracefully skip modules collecting if script doesn't exist
+  - Mac Catalyst builds successfully
+- `sentry.gradle` Gracefully skip modules collecting if the script doesn't exist
 
 ### Dependencies
 
