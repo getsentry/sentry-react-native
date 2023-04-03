@@ -31,7 +31,7 @@ export class ViewHierarchy implements Integration {
 
       let viewHierarchy: Uint8Array | null = null;
       try {
-        viewHierarchy = await NATIVE.fetchViewHierarchy()
+        viewHierarchy = await NATIVE.fetchViewHierarchy();
       } catch (e) {
         logger.error('Failed to get view hierarchy from native.', e);
       }

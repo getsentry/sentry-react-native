@@ -3,17 +3,9 @@ import type { Transaction as TransactionType, TransactionContext } from '@sentry
 import { logger } from '@sentry/utils';
 
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
-import type {
-  OnConfirmRoute,
-  TransactionCreator} from './routingInstrumentation';
-import {
-  InternalRoutingInstrumentation
-} from './routingInstrumentation';
-import type {
-  BeforeNavigate,
-  ReactNavigationTransactionContext,
-  RouteChangeContextData,
-} from './types';
+import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
+import { InternalRoutingInstrumentation } from './routingInstrumentation';
+import type { BeforeNavigate, ReactNavigationTransactionContext, RouteChangeContextData } from './types';
 import { customTransactionSource, defaultTransactionSource, getBlankTransactionContext } from './utils';
 
 export interface NavigationRoute {
@@ -83,13 +75,9 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
   public registerRoutingInstrumentation(
     listener: TransactionCreator,
     beforeNavigate: BeforeNavigate,
-    onConfirmRoute: OnConfirmRoute
+    onConfirmRoute: OnConfirmRoute,
   ): void {
-    super.registerRoutingInstrumentation(
-      listener,
-      beforeNavigate,
-      onConfirmRoute
-    );
+    super.registerRoutingInstrumentation(listener, beforeNavigate, onConfirmRoute);
 
     // We create an initial state here to ensure a transaction gets created before the first route mounts.
     if (!this._initialStateHandled) {
@@ -125,11 +113,11 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       if (this._navigationContainer) {
         this._navigationContainer.addListener(
           '__unsafe_action__', // This action is emitted on every dispatch
-          this._onDispatch.bind(this)
+          this._onDispatch.bind(this),
         );
         this._navigationContainer.addListener(
           'state', // This action is emitted on every state change
-          this._onStateChange.bind(this)
+          this._onStateChange.bind(this),
         );
 
         if (!this._initialStateHandled) {
@@ -140,20 +128,18 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             this._initialStateHandled = true;
           } else {
             logger.log(
-              '[ReactNavigationInstrumentation] Navigation container registered, but integration has not been setup yet.'
+              '[ReactNavigationInstrumentation] Navigation container registered, but integration has not been setup yet.',
             );
           }
         }
 
         RN_GLOBAL_OBJ.__sentry_rn_v5_registered = true;
       } else {
-        logger.warn(
-          '[ReactNavigationInstrumentation] Received invalid navigation container ref!'
-        );
+        logger.warn('[ReactNavigationInstrumentation] Received invalid navigation container ref!');
       }
     } else {
       logger.log(
-        '[ReactNavigationInstrumentation] Instrumentation already exists, but register has been called again, doing nothing.'
+        '[ReactNavigationInstrumentation] Instrumentation already exists, but register has been called again, doing nothing.',
       );
     }
   }
@@ -166,21 +152,19 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
   private _onDispatch(): void {
     if (this._latestTransaction) {
       logger.log(
-        '[ReactNavigationInstrumentation] A transaction was detected that turned out to be a noop, discarding.'
+        '[ReactNavigationInstrumentation] A transaction was detected that turned out to be a noop, discarding.',
       );
       this._discardLatestTransaction();
       this._clearStateChangeTimeout();
     }
 
     this._latestTransaction = this.onRouteWillChange(
-      getBlankTransactionContext(
-        ReactNavigationInstrumentation.instrumentationName
-      )
+      getBlankTransactionContext(ReactNavigationInstrumentation.instrumentationName),
     );
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
-      this._options.routeChangeTimeoutMs
+      this._options.routeChangeTimeoutMs,
     );
   }
 
@@ -193,7 +177,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
 
     if (!this._navigationContainer) {
       logger.warn(
-        '[ReactNavigationInstrumentation] Missing navigation container ref. Route transactions will not be sent.'
+        '[ReactNavigationInstrumentation] Missing navigation container ref. Route transactions will not be sent.',
       );
 
       return;
@@ -262,7 +246,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
     // This block is to catch users not returning a transaction context
     if (!finalContext) {
       logger.error(
-        `[ReactNavigationInstrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
+        `[ReactNavigationInstrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`,
       );
 
       finalContext = {
@@ -274,7 +258,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
     // Note: finalContext.sampled will be false at this point only if the user sets it to be so in beforeNavigate.
     if (finalContext.sampled === false) {
       logger.log(
-        `[ReactNavigationInstrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
+        `[ReactNavigationInstrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`,
       );
     } else {
       // Clear the timeout so the transaction does not get cancelled.
@@ -289,9 +273,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
     this._recentRouteKeys.push(key);
 
     if (this._recentRouteKeys.length > this._maxRecentRouteLen) {
-      this._recentRouteKeys = this._recentRouteKeys.slice(
-        this._recentRouteKeys.length - this._maxRecentRouteLen
-      );
+      this._recentRouteKeys = this._recentRouteKeys.slice(this._recentRouteKeys.length - this._maxRecentRouteLen);
     }
   };
 
@@ -325,8 +307,7 @@ export const BLANK_TRANSACTION_CONTEXT = {
   name: 'Route Change',
   op: 'navigation',
   tags: {
-    'routing.instrumentation':
-      ReactNavigationInstrumentation.instrumentationName,
+    'routing.instrumentation': ReactNavigationInstrumentation.instrumentationName,
   },
   data: {},
 };

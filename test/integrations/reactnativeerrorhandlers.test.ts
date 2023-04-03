@@ -6,7 +6,6 @@ const mockBrowserClient: BrowserClient = new BrowserClient({
   transport: jest.fn(),
 });
 
-
 jest.mock('@sentry/core', () => {
   const core = jest.requireActual('@sentry/core');
 
@@ -16,7 +15,8 @@ jest.mock('@sentry/core', () => {
 
   const client = {
     getOptions: () => ({}),
-    eventFromException: (_exception: any, _hint?: EventHint): PromiseLike<Event> => mockBrowserClient.eventFromException(_exception, _hint)
+    eventFromException: (_exception: any, _hint?: EventHint): PromiseLike<Event> =>
+      mockBrowserClient.eventFromException(_exception, _hint),
   };
 
   const hub = {
@@ -64,7 +64,7 @@ describe('ReactNativeErrorHandlers', () => {
     beforeEach(() => {
       errorHandlerCallback = () => Promise.resolve();
 
-      ErrorUtils.setGlobalHandler = jest.fn((_callback) => {
+      ErrorUtils.setGlobalHandler = jest.fn(_callback => {
         errorHandlerCallback = _callback as typeof errorHandlerCallback;
       });
 
@@ -108,9 +108,7 @@ describe('ReactNativeErrorHandlers', () => {
 function getActualCaptureEventArgs() {
   const hub = getCurrentHub();
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  const mockCall = (hub.captureEvent as jest.MockedFunction<
-    typeof hub.captureEvent
-  >).mock.calls[0];
+  const mockCall = (hub.captureEvent as jest.MockedFunction<typeof hub.captureEvent>).mock.calls[0];
 
   return mockCall;
 }

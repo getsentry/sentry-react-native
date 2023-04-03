@@ -56,7 +56,9 @@ export function sentryTraceGesture<GestureT>(
     return gesture;
   }
   if (!gestureCandidate.handlers) {
-    logger.warn('[GestureTracing] Can not wrap gesture without handlers. If you want to wrap a gesture composition wrap individual gestures.');
+    logger.warn(
+      '[GestureTracing] Can not wrap gesture without handlers. If you want to wrap a gesture composition wrap individual gestures.',
+    );
     return gesture;
   }
   if (!label) {
@@ -65,14 +67,18 @@ export function sentryTraceGesture<GestureT>(
   }
   const hub = options.getCurrentHub?.() || getCurrentHub();
 
-  const name = gestureCandidate.handlerName.length > GESTURE_POSTFIX_LENGTH
-    ? gestureCandidate.handlerName
-      .substring(0, gestureCandidate.handlerName.length - GESTURE_POSTFIX_LENGTH).toLowerCase()
-    : ACTION_GESTURE_FALLBACK;
+  const name =
+    gestureCandidate.handlerName.length > GESTURE_POSTFIX_LENGTH
+      ? gestureCandidate.handlerName
+          .substring(0, gestureCandidate.handlerName.length - GESTURE_POSTFIX_LENGTH)
+          .toLowerCase()
+      : ACTION_GESTURE_FALLBACK;
 
   const originalOnBegin = gestureCandidate.handlers.onBegin;
   (gesture as unknown as Required<BaseGesture>).handlers.onBegin = (event: GestureEvent) => {
-    hub.getClient()?.getIntegration(ReactNativeTracing)
+    hub
+      .getClient()
+      ?.getIntegration(ReactNativeTracing)
       ?.startUserInteractionTransaction({ elementId: label, op: `${UI_ACTION}.${name}` });
 
     addGestureBreadcrumb(`Gesture ${label} begin.`, { event, hub, name });

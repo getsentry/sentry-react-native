@@ -29,7 +29,7 @@ export class ReactNativeScope extends Scope {
    */
   public setTags(tags: { [key: string]: string }): this {
     // As native only has setTag, we just loop through each tag key.
-    Object.keys(tags).forEach((key) => {
+    Object.keys(tags).forEach(key => {
       NATIVE.setTag(key, tags[key]);
     });
     return super.setTags(tags);
@@ -40,7 +40,7 @@ export class ReactNativeScope extends Scope {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public setExtras(extras: { [key: string]: any }): this {
-    Object.keys(extras).forEach((key) => {
+    Object.keys(extras).forEach(key => {
       NATIVE.setExtra(key, extras[key]);
     });
     return super.setExtras(extras);
@@ -92,8 +92,8 @@ export class ReactNativeScope extends Scope {
   }
 
   /**
-  * @inheritDoc
-  */
+   * @inheritDoc
+   */
   public clearAttachments(): this {
     return super.clearAttachments();
   }

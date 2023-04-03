@@ -27,9 +27,7 @@ export class ReactNativeInfo implements Integration {
    */
   public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void): void {
     addGlobalEventProcessor(async (event: Event, hint?: EventHint) => {
-      const reactNativeError = hint?.originalException
-        ? hint?.originalException as ReactNativeError
-        : undefined;
+      const reactNativeError = hint?.originalException ? (hint?.originalException as ReactNativeError) : undefined;
 
       const reactNativeContext: ReactNativeContext = {
         turbo_module: isTurboModuleEnabled(),
