@@ -157,6 +157,16 @@ const HomeScreen = (props: Props) => {
           }}
         />
         <Button
+          title="Capture HTTP Client Error"
+          onPress={async () => {
+            try {
+              fetch('http://localhost:8081/not-found');
+            } catch (error) {
+              //ignore the error, it will be send to Sentry
+            }
+          }}
+        />
+        <Button
           title="Auto Tracing Example"
           onPress={() => {
             props.navigation.navigate('Tracker');
