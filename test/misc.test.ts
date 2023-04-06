@@ -11,7 +11,7 @@ describe('misc', () => {
           exception: {
             values: [{}],
           },
-        })
+        }),
       ).toBe(false);
     });
     test('handled true is not a hard crash', () => {
@@ -27,7 +27,7 @@ describe('misc', () => {
               },
             ],
           },
-        })
+        }),
       ).toBe(false);
     });
     test('any handled false is a hard crash', () => {
@@ -50,7 +50,7 @@ describe('misc', () => {
               },
             ],
           },
-        })
+        }),
       ).toBe(true);
     });
   });

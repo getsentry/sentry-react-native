@@ -46,7 +46,7 @@ const getMockScope = () => {
       // Placeholder
     },
     getUser: () => scopeUser,
-  }
+  };
 };
 
 const getMockHub = () => {
@@ -56,7 +56,7 @@ const getMockHub = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mockHub.getScope = () => mockScope as any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mockHub.configureScope = jest.fn((callback) => callback(mockScope as any));
+  mockHub.configureScope = jest.fn(callback => callback(mockScope as any));
 
   return mockHub;
 };
@@ -75,7 +75,10 @@ import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
 import { NATIVE } from '../../src/js/wrapper';
 import { firstArg, mockFunction } from '../testutils';
 import type { MockedRoutingInstrumentation } from './mockedrountinginstrumention';
-import { createMockedRoutingInstrumentation, mockedConfirmedRouteTransactionContext } from './mockedrountinginstrumention';
+import {
+  createMockedRoutingInstrumentation,
+  mockedConfirmedRouteTransactionContext,
+} from './mockedrountinginstrumention';
 
 const DEFAULT_IDLE_TIMEOUT = 1000;
 
@@ -90,7 +93,7 @@ afterEach(() => {
 describe('ReactNativeTracing', () => {
   describe('App Start', () => {
     describe('Without routing instrumentation', () => {
-      it('Starts route transaction (cold)', (done) => {
+      it('Starts route transaction (cold)', done => {
         const integration = new ReactNativeTracing({
           enableNativeFramesTracking: false,
         });
@@ -103,13 +106,9 @@ describe('ReactNativeTracing', () => {
           didFetchAppStart: false,
         };
 
-        mockFunction(getTimeOriginMilliseconds).mockReturnValue(
-          timeOriginMilliseconds
-        );
+        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(
-          mockAppStartResponse
-        );
+        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
@@ -122,25 +121,24 @@ describe('ReactNativeTracing', () => {
           expect(transaction).toBeDefined();
 
           if (transaction) {
-            expect(transaction.startTimestamp).toBe(
-              appStartTimeMilliseconds / 1000
-            );
+            expect(transaction.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
             expect(transaction.op).toBe(UI_LOAD);
 
             expect(
               // @ts-ignore access private for test
-              transaction._measurements[APP_START_COLD].value
+              transaction._measurements[APP_START_COLD].value,
             ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
             expect(
               // @ts-ignore access private for test
-              transaction._measurements[APP_START_COLD].unit).toBe('millisecond');
+              transaction._measurements[APP_START_COLD].unit,
+            ).toBe('millisecond');
 
             done();
           }
         });
       });
 
-      it('Starts route transaction (warm)', (done) => {
+      it('Starts route transaction (warm)', done => {
         const integration = new ReactNativeTracing();
 
         const timeOriginMilliseconds = Date.now();
@@ -151,13 +149,9 @@ describe('ReactNativeTracing', () => {
           didFetchAppStart: false,
         };
 
-        mockFunction(getTimeOriginMilliseconds).mockReturnValue(
-          timeOriginMilliseconds
-        );
+        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(
-          mockAppStartResponse
-        );
+        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
@@ -169,25 +163,24 @@ describe('ReactNativeTracing', () => {
           expect(transaction).toBeDefined();
 
           if (transaction) {
-            expect(transaction.startTimestamp).toBe(
-              appStartTimeMilliseconds / 1000
-            );
+            expect(transaction.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
             expect(transaction.op).toBe(UI_LOAD);
 
             expect(
               // @ts-ignore access private for test
-              transaction._measurements[APP_START_WARM].value
+              transaction._measurements[APP_START_WARM].value,
             ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
             expect(
               // @ts-ignore access private for test
-              transaction._measurements[APP_START_WARM].unit).toBe('millisecond');
+              transaction._measurements[APP_START_WARM].unit,
+            ).toBe('millisecond');
 
             done();
           }
         });
       });
 
-      it('Does not add app start measurement if more than 60s', (done) => {
+      it('Does not add app start measurement if more than 60s', done => {
         const integration = new ReactNativeTracing();
 
         const timeOriginMilliseconds = Date.now();
@@ -198,13 +191,9 @@ describe('ReactNativeTracing', () => {
           didFetchAppStart: false,
         };
 
-        mockFunction(getTimeOriginMilliseconds).mockReturnValue(
-          timeOriginMilliseconds
-        );
+        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(
-          mockAppStartResponse
-        );
+        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
@@ -218,12 +207,12 @@ describe('ReactNativeTracing', () => {
           if (transaction) {
             expect(
               // @ts-ignore access private for test
-              transaction._measurements[APP_START_WARM]
+              transaction._measurements[APP_START_WARM],
             ).toBeUndefined();
 
             expect(
               // @ts-ignore access private for test
-              transaction._measurements[APP_START_COLD]
+              transaction._measurements[APP_START_COLD],
             ).toBeUndefined();
 
             done();
@@ -231,7 +220,7 @@ describe('ReactNativeTracing', () => {
         });
       });
 
-      it('Does not create app start transaction if didFetchAppStart == true', (done) => {
+      it('Does not create app start transaction if didFetchAppStart == true', done => {
         const integration = new ReactNativeTracing();
 
         const timeOriginMilliseconds = Date.now();
@@ -242,13 +231,9 @@ describe('ReactNativeTracing', () => {
           didFetchAppStart: true,
         };
 
-        mockFunction(getTimeOriginMilliseconds).mockReturnValue(
-          timeOriginMilliseconds
-        );
+        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(
-          mockAppStartResponse
-        );
+        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
@@ -288,13 +273,9 @@ describe('ReactNativeTracing', () => {
           didFetchAppStart: false,
         };
 
-        mockFunction(getTimeOriginMilliseconds).mockReturnValue(
-          timeOriginMilliseconds
-        );
+        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(
-          mockAppStartResponse
-        );
+        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
@@ -317,13 +298,11 @@ describe('ReactNativeTracing', () => {
 
         // @ts-ignore access private for test
         expect(routeTransaction._measurements[APP_START_COLD].value).toBe(
-          timeOriginMilliseconds - appStartTimeMilliseconds
+          timeOriginMilliseconds - appStartTimeMilliseconds,
         );
 
         expect(routeTransaction.op).toBe(UI_LOAD);
-        expect(routeTransaction.startTimestamp).toBe(
-          appStartTimeMilliseconds / 1000
-        );
+        expect(routeTransaction.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
 
         const spanRecorder = routeTransaction.spanRecorder;
         expect(spanRecorder).toBeDefined();
@@ -351,13 +330,9 @@ describe('ReactNativeTracing', () => {
           didFetchAppStart: false,
         };
 
-        mockFunction(getTimeOriginMilliseconds).mockReturnValue(
-          timeOriginMilliseconds
-        );
+        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(
-          mockAppStartResponse
-        );
+        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
@@ -380,13 +355,11 @@ describe('ReactNativeTracing', () => {
 
         // @ts-ignore access private for test
         expect(routeTransaction._measurements[APP_START_WARM].value).toBe(
-          timeOriginMilliseconds - appStartTimeMilliseconds
+          timeOriginMilliseconds - appStartTimeMilliseconds,
         );
 
         expect(routeTransaction.op).toBe(UI_LOAD);
-        expect(routeTransaction.startTimestamp).toBe(
-          appStartTimeMilliseconds / 1000
-        );
+        expect(routeTransaction.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
 
         const spanRecorder = routeTransaction.spanRecorder;
         expect(spanRecorder).toBeDefined();
@@ -414,13 +387,9 @@ describe('ReactNativeTracing', () => {
           didFetchAppStart: true,
         };
 
-        mockFunction(getTimeOriginMilliseconds).mockReturnValue(
-          timeOriginMilliseconds
-        );
+        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(
-          mockAppStartResponse
-        );
+        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
@@ -445,9 +414,7 @@ describe('ReactNativeTracing', () => {
         expect(routeTransaction._measurements).toMatchObject({});
 
         expect(routeTransaction.op).not.toBe(UI_LOAD);
-        expect(routeTransaction.startTimestamp).not.toBe(
-          appStartTimeMilliseconds / 1000
-        );
+        expect(routeTransaction.startTimestamp).not.toBe(appStartTimeMilliseconds / 1000);
 
         const spanRecorder = routeTransaction.spanRecorder;
         expect(spanRecorder).toBeDefined();
@@ -455,7 +422,7 @@ describe('ReactNativeTracing', () => {
       });
     });
 
-    it('Does not instrument app start if app start is disabled', (done) => {
+    it('Does not instrument app start if app start is disabled', done => {
       const integration = new ReactNativeTracing({
         enableAppStartTracking: false,
       });
@@ -474,7 +441,7 @@ describe('ReactNativeTracing', () => {
       });
     });
 
-    it('Does not instrument app start if native is disabled', (done) => {
+    it('Does not instrument app start if native is disabled', done => {
       NATIVE.enableNative = false;
 
       const integration = new ReactNativeTracing();
@@ -493,7 +460,7 @@ describe('ReactNativeTracing', () => {
       });
     });
 
-    it('Does not instrument app start if fetchNativeAppStart returns null', (done) => {
+    it('Does not instrument app start if fetchNativeAppStart returns null', done => {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(null);
 
@@ -515,7 +482,7 @@ describe('ReactNativeTracing', () => {
   });
 
   describe('Native Frames', () => {
-    it('Initialize native frames instrumentation if flag is true', (done) => {
+    it('Initialize native frames instrumentation if flag is true', done => {
       const integration = new ReactNativeTracing({
         enableNativeFramesTracking: true,
       });
@@ -530,7 +497,7 @@ describe('ReactNativeTracing', () => {
         done();
       });
     });
-    it('Does not initialize native frames instrumentation if flag is false', (done) => {
+    it('Does not initialize native frames instrumentation if flag is false', done => {
       const integration = new ReactNativeTracing({
         enableNativeFramesTracking: false,
       });
@@ -571,9 +538,9 @@ describe('ReactNativeTracing', () => {
           setTag: jest.fn(),
 
           // Not relevant to test
-          setSpan: () => { },
-          getTransaction: () => { },
-          clearTransaction: () => { },
+          setSpan: () => {},
+          getTransaction: () => {},
+          clearTransaction: () => {},
         };
 
         const mockHub = {
@@ -585,12 +552,12 @@ describe('ReactNativeTracing', () => {
           getScope: () => mockScope,
           getClient: () => ({
             getOptions: () => ({}),
-            recordDroppedEvent: () => { },
+            recordDroppedEvent: () => {},
           }),
         };
         integration.setupOnce(
-          () => { },
-          () => mockHub as any
+          () => {},
+          () => mockHub as any,
         );
 
         const routeContext = {
@@ -606,10 +573,7 @@ describe('ReactNativeTracing', () => {
         };
         routing.onRouteWillChange(routeContext);
 
-        expect(mockScope.setTag).toBeCalledWith(
-          'routing.route.name',
-          routeContext.name
-        );
+        expect(mockScope.setTag).toBeCalledWith('routing.route.name', routeContext.name);
         expect(mockScope.addBreadcrumb).toBeCalledWith({
           type: 'navigation',
           category: 'navigation',
@@ -675,7 +639,7 @@ describe('ReactNativeTracing', () => {
     let mockedScope: Scope;
     let mockedHub: Hub;
     let tracing: ReactNativeTracing;
-    let mockedUserInteractionId: { elementId: string | undefined; op: string; };
+    let mockedUserInteractionId: { elementId: string | undefined; op: string };
     let mockedRoutingInstrumentation: MockedRoutingInstrumentation;
 
     beforeEach(() => {
@@ -720,10 +684,12 @@ describe('ReactNativeTracing', () => {
         const actualTransaction = mockFunction(mockedScope.setSpan).mock.calls[0][firstArg];
         const actualTransactionContext = actualTransaction?.toContext();
         expect(tracing.options.enableUserInteractionTracing).toBeTruthy();
-        expect(actualTransactionContext).toEqual(expect.objectContaining({
-          name: 'mockedRouteName.mockedElementId',
-          op: 'mocked.op',
-        }));
+        expect(actualTransactionContext).toEqual(
+          expect.objectContaining({
+            name: 'mockedRouteName.mockedElementId',
+            op: 'mocked.op',
+          }),
+        );
       });
 
       test('UI event transaction not sampled if no child spans', () => {
@@ -746,10 +712,12 @@ describe('ReactNativeTracing', () => {
         jest.runAllTimers();
 
         const actualTransactionContext = actualTransaction?.toContext();
-        expect(actualTransactionContext).toEqual(expect.objectContaining({
-          endTimestamp: expect.any(Number),
-          status: 'mocked_status',
-        }));
+        expect(actualTransactionContext).toEqual(
+          expect.objectContaining({
+            endTimestamp: expect.any(Number),
+            status: 'mocked_status',
+          }),
+        );
       });
 
       test('same UI event and same element does not reschedule idle timeout', () => {
@@ -779,17 +747,20 @@ describe('ReactNativeTracing', () => {
 
         const firstTransactionContext = firstTransaction?.toContext();
         const secondTransactionContext = secondTransaction?.toContext();
-        expect(firstTransactionContext).toEqual(expect.objectContaining({
-          endTimestamp: expect.any(Number),
-          op: 'mocked.op',
-          sampled: true,
-        }));
-        expect(secondTransactionContext).toEqual(expect.objectContaining({
-          endTimestamp: expect.any(Number),
-          op: 'different.op',
-        }));
-        expect(firstTransactionContext!.endTimestamp)
-          .toBeGreaterThanOrEqual(secondTransactionContext!.startTimestamp!);
+        expect(firstTransactionContext).toEqual(
+          expect.objectContaining({
+            endTimestamp: expect.any(Number),
+            op: 'mocked.op',
+            sampled: true,
+          }),
+        );
+        expect(secondTransactionContext).toEqual(
+          expect.objectContaining({
+            endTimestamp: expect.any(Number),
+            op: 'different.op',
+          }),
+        );
+        expect(firstTransactionContext!.endTimestamp).toBeGreaterThanOrEqual(secondTransactionContext!.startTimestamp!);
       });
 
       test('different UI event and same element finish first transaction with last span', () => {
@@ -804,11 +775,13 @@ describe('ReactNativeTracing', () => {
         childFirstTransaction?.finish();
 
         const firstTransactionContext = firstTransaction?.toContext();
-        expect(firstTransactionContext).toEqual(expect.objectContaining({
-          endTimestamp: expect.any(Number),
-          op: 'mocked.op',
-          sampled: true,
-        }));
+        expect(firstTransactionContext).toEqual(
+          expect.objectContaining({
+            endTimestamp: expect.any(Number),
+            op: 'mocked.op',
+            sampled: true,
+          }),
+        );
       });
 
       test('same ui event after UI event transaction finished', () => {
@@ -852,15 +825,20 @@ describe('ReactNativeTracing', () => {
 
         const interactionTransactionContext = interactionTransaction?.toContext();
         const routingTransactionContext = routingTransaction?.toContext();
-        expect(interactionTransactionContext).toEqual(expect.objectContaining({
-          endTimestamp: expect.any(Number),
-          status: 'cancelled',
-        }));
-        expect(routingTransactionContext).toEqual(expect.objectContaining({
-          endTimestamp: expect.any(Number),
-        }));
-        expect(interactionTransactionContext!.endTimestamp)
-          .toBeLessThanOrEqual(routingTransactionContext!.startTimestamp!);
+        expect(interactionTransactionContext).toEqual(
+          expect.objectContaining({
+            endTimestamp: expect.any(Number),
+            status: 'cancelled',
+          }),
+        );
+        expect(routingTransactionContext).toEqual(
+          expect.objectContaining({
+            endTimestamp: expect.any(Number),
+          }),
+        );
+        expect(interactionTransactionContext!.endTimestamp).toBeLessThanOrEqual(
+          routingTransactionContext!.startTimestamp!,
+        );
       });
 
       test('UI event transaction calls lifecycle callbacks', () => {
@@ -880,5 +858,5 @@ describe('ReactNativeTracing', () => {
         expect(tracing.onTransactionFinish).toBeCalledWith(actualTransaction);
       });
     });
-  })
+  });
 });

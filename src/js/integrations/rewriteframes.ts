@@ -15,16 +15,11 @@ export function createReactNativeRewriteFrames(): RewriteFrames {
           .replace(/^address at /, '')
           .replace(/^.*\/[^.]+(\.app|CodePush|.*(?=\/))/, '');
 
-        if (
-          frame.filename !== '[native code]' &&
-          frame.filename !== 'native'
-        ) {
+        if (frame.filename !== '[native code]' && frame.filename !== 'native') {
           const appPrefix = 'app://';
           // We always want to have a triple slash
           frame.filename =
-            frame.filename.indexOf('/') === 0
-              ? `${appPrefix}${frame.filename}`
-              : `${appPrefix}/${frame.filename}`;
+            frame.filename.indexOf('/') === 0 ? `${appPrefix}${frame.filename}` : `${appPrefix}/${frame.filename}`;
         }
         delete frame.abs_path;
       }

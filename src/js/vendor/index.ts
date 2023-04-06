@@ -1,4 +1,1 @@
-
-export {
-  utf8ToBytes,
-} from './buffer';
+export { utf8ToBytes } from './buffer';

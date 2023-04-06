@@ -2,12 +2,8 @@ import type { Transaction as TransactionType, TransactionContext } from '@sentry
 import { logger } from '@sentry/utils';
 import type { EmitterSubscription } from 'react-native';
 
-import type {
-  OnConfirmRoute,
-  TransactionCreator} from './routingInstrumentation';
-import {
-  InternalRoutingInstrumentation
-} from './routingInstrumentation';
+import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
+import { InternalRoutingInstrumentation } from './routingInstrumentation';
 import type { BeforeNavigate, RouteChangeContextData } from './types';
 import { customTransactionSource, defaultTransactionSource, getBlankTransactionContext } from './utils';
 
@@ -38,11 +34,7 @@ interface ComponentEvent {
   componentId: string;
 }
 
-type ComponentType =
-  | 'Component'
-  | 'TopBarTitle'
-  | 'TopBarBackground'
-  | 'TopBarButton';
+type ComponentType = 'Component' | 'TopBarTitle' | 'TopBarBackground' | 'TopBarButton';
 
 export interface ComponentWillAppearEvent extends ComponentEvent {
   componentName: string;
@@ -59,15 +51,9 @@ export interface BottomTabPressedEvent {
 }
 
 export interface EventsRegistry {
-  registerComponentWillAppearListener(
-    callback: (event: ComponentWillAppearEvent) => void
-  ): EmitterSubscription;
-  registerCommandListener(
-    callback: (name: string, params: unknown) => void
-  ): EventSubscription;
-  registerBottomTabPressedListener(
-    callback: (event: BottomTabPressedEvent) => void
-  ): EmitterSubscription;
+  registerComponentWillAppearListener(callback: (event: ComponentWillAppearEvent) => void): EmitterSubscription;
+  registerCommandListener(callback: (name: string, params: unknown) => void): EventSubscription;
+  registerBottomTabPressedListener(callback: (event: BottomTabPressedEvent) => void): EmitterSubscription;
 }
 
 export interface NavigationDelegate {
@@ -99,7 +85,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
   public constructor(
     /** The react native navigation `NavigationDelegate`. This is usually the import named `Navigation`. */
     navigation: unknown,
-    options: Partial<ReactNativeNavigationOptions> = {}
+    options: Partial<ReactNativeNavigationOptions> = {},
   ) {
     super();
 
@@ -117,29 +103,17 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
   public registerRoutingInstrumentation(
     listener: TransactionCreator,
     beforeNavigate: BeforeNavigate,
-    onConfirmRoute: OnConfirmRoute
+    onConfirmRoute: OnConfirmRoute,
   ): void {
-    super.registerRoutingInstrumentation(
-      listener,
-      beforeNavigate,
-      onConfirmRoute
-    );
+    super.registerRoutingInstrumentation(listener, beforeNavigate, onConfirmRoute);
 
-    this._navigation
-      .events()
-      .registerCommandListener(this._onNavigation.bind(this));
+    this._navigation.events().registerCommandListener(this._onNavigation.bind(this));
 
     if (this._options.enableTabsInstrumentation) {
-      this._navigation
-        .events()
-        .registerBottomTabPressedListener(this._onNavigation.bind(this));
+      this._navigation.events().registerBottomTabPressedListener(this._onNavigation.bind(this));
     }
 
-    this._navigation
-      .events()
-      .registerComponentWillAppearListener(
-        this._onComponentWillAppear.bind(this)
-      );
+    this._navigation.events().registerComponentWillAppearListener(this._onComponentWillAppear.bind(this));
   }
 
   /**
@@ -151,12 +125,12 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
     }
 
     this._latestTransaction = this.onRouteWillChange(
-      getBlankTransactionContext(ReactNativeNavigationInstrumentation.name)
+      getBlankTransactionContext(ReactNativeNavigationInstrumentation.name),
     );
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
-      this._options.routeChangeTimeoutMs
+      this._options.routeChangeTimeoutMs,
     );
   }
 
@@ -169,8 +143,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
     }
 
     // We ignore actions that pertain to the same screen.
-    const isSameComponent = this._prevComponentEvent
-      && event.componentId === this._prevComponentEvent.componentId;
+    const isSameComponent = this._prevComponentEvent && event.componentId === this._prevComponentEvent.componentId;
     if (isSameComponent) {
       this._discardLatestTransaction();
       return;
@@ -179,9 +152,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
     this._clearStateChangeTimeout();
 
     const originalContext = this._latestTransaction.toContext();
-    const routeHasBeenSeen = this._recentComponentIds.includes(
-      event.componentId
-    );
+    const routeHasBeenSeen = this._recentComponentIds.includes(event.componentId);
 
     const data: RouteChangeContextData = {
       ...originalContext.data,
@@ -192,9 +163,9 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
       },
       previousRoute: this._prevComponentEvent
         ? {
-          ...this._prevComponentEvent,
-          name: this._prevComponentEvent?.componentName,
-        }
+            ...this._prevComponentEvent,
+            name: this._prevComponentEvent?.componentName,
+          }
         : null,
     };
 
@@ -230,7 +201,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
     // This block is to catch users not returning a transaction context
     if (!finalContext) {
       logger.error(
-        `[${ReactNativeNavigationInstrumentation.name}] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`
+        `[${ReactNativeNavigationInstrumentation.name}] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`,
       );
 
       finalContext = {
@@ -241,7 +212,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
 
     if (finalContext.sampled === false) {
       logger.log(
-        `[${ReactNativeNavigationInstrumentation.name}] Will not send transaction "${finalContext.name}" due to beforeNavigate.`
+        `[${ReactNativeNavigationInstrumentation.name}] Will not send transaction "${finalContext.name}" due to beforeNavigate.`,
       );
     }
 

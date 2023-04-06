@@ -31,6 +31,4 @@ export interface ReactNavigationTransactionContext extends TransactionContext {
   data: RouteChangeContextData;
 }
 
-export type BeforeNavigate = (
-  context: TransactionContext
-) => TransactionContext;
+export type BeforeNavigate = (context: TransactionContext) => TransactionContext;

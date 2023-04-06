@@ -1,24 +1,14 @@
 /* eslint-disable max-lines */
 import type { Hub } from '@sentry/core';
 import { getCurrentHub } from '@sentry/core';
-import type {
-  IdleTransaction,
-  RequestInstrumentationOptions,
-  Transaction
-} from '@sentry/tracing';
+import type { IdleTransaction, RequestInstrumentationOptions, Transaction } from '@sentry/tracing';
 import {
   defaultRequestInstrumentationOptions,
-  getActiveTransaction
-  ,
+  getActiveTransaction,
   instrumentOutgoingRequests,
-  startIdleTransaction
+  startIdleTransaction,
 } from '@sentry/tracing';
-import type {
-  EventProcessor,
-  Integration,
-  Transaction as TransactionType,
-  TransactionContext,
-} from '@sentry/types';
+import type { EventProcessor, Integration, Transaction as TransactionType, TransactionContext } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { APP_START_COLD, APP_START_WARM } from '../measurements';
@@ -26,24 +16,13 @@ import type { NativeAppStartResponse } from '../NativeRNSentry';
 import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
 import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
-import {
-  APP_START_COLD as APP_START_COLD_OP,
-  APP_START_WARM as APP_START_WARM_OP,
-  UI_LOAD,
-} from './ops';
+import { APP_START_COLD as APP_START_COLD_OP, APP_START_WARM as APP_START_WARM_OP, UI_LOAD } from './ops';
 import { StallTrackingInstrumentation } from './stalltracking';
-import {
-  onlySampleIfChildSpans,
-} from './transaction';
+import { onlySampleIfChildSpans } from './transaction';
 import type { BeforeNavigate, RouteChangeContextData } from './types';
-import {
-  adjustTransactionDuration,
-  getTimeOriginMilliseconds,
-  isNearToNow,
-} from './utils';
+import { adjustTransactionDuration, getTimeOriginMilliseconds, isNearToNow } from './utils';
 
-export interface ReactNativeTracingOptions
-  extends RequestInstrumentationOptions {
+export interface ReactNativeTracingOptions extends RequestInstrumentationOptions {
   /**
    * @deprecated Replaced by idleTimeoutMs
    */
@@ -128,7 +107,7 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   idleTimeoutMs: 1000,
   finalTimeoutMs: 600000,
   ignoreEmptyBackNavigationTransactions: true,
-  beforeNavigate: (context) => context,
+  beforeNavigate: context => context,
   enableAppStartTracking: true,
   enableNativeFramesTracking: true,
   enableStallTracking: true,
@@ -167,17 +146,19 @@ export class ReactNativeTracing implements Integration {
     this.options = {
       ...defaultReactNativeTracingOptions,
       ...options,
-      finalTimeoutMs: options.finalTimeoutMs
+      finalTimeoutMs:
+        options.finalTimeoutMs ??
         // eslint-disable-next-line deprecation/deprecation
-        ?? (typeof options.maxTransactionDuration === 'number'
-          // eslint-disable-next-line deprecation/deprecation
-          ? options.maxTransactionDuration * 1000
-          : undefined)
-        ?? defaultReactNativeTracingOptions.finalTimeoutMs,
-      idleTimeoutMs: options.idleTimeoutMs
+        (typeof options.maxTransactionDuration === 'number'
+          ? // eslint-disable-next-line deprecation/deprecation
+            options.maxTransactionDuration * 1000
+          : undefined) ??
+        defaultReactNativeTracingOptions.finalTimeoutMs,
+      idleTimeoutMs:
+        options.idleTimeoutMs ??
         // eslint-disable-next-line deprecation/deprecation
-        ?? options.idleTimeout
-        ?? defaultReactNativeTracingOptions.idleTimeoutMs,
+        options.idleTimeout ??
+        defaultReactNativeTracingOptions.idleTimeoutMs,
     };
   }
 
@@ -187,7 +168,7 @@ export class ReactNativeTracing implements Integration {
   public setupOnce(
     // @ts-ignore TODO
     addGlobalEventProcessor: (callback: EventProcessor) => void,
-    getCurrentHub: () => Hub
+    getCurrentHub: () => Hub,
   ): void {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const {
@@ -212,18 +193,15 @@ export class ReactNativeTracing implements Integration {
 
     if (enableNativeFramesTracking) {
       NATIVE.enableNativeFramesTracking();
-      this.nativeFramesInstrumentation = new NativeFramesInstrumentation(
-        addGlobalEventProcessor,
-        () => {
-          const self = getCurrentHub().getIntegration(ReactNativeTracing);
+      this.nativeFramesInstrumentation = new NativeFramesInstrumentation(addGlobalEventProcessor, () => {
+        const self = getCurrentHub().getIntegration(ReactNativeTracing);
 
-          if (self) {
-            return !!self.nativeFramesInstrumentation;
-          }
-
-          return false;
+        if (self) {
+          return !!self.nativeFramesInstrumentation;
         }
-      );
+
+        return false;
+      });
     } else {
       NATIVE.disableNativeFramesTracking();
     }
@@ -236,12 +214,10 @@ export class ReactNativeTracing implements Integration {
       routingInstrumentation.registerRoutingInstrumentation(
         this._onRouteWillChange.bind(this),
         this.options.beforeNavigate,
-        this._onConfirmRoute.bind(this)
+        this._onConfirmRoute.bind(this),
       );
     } else {
-      logger.log(
-        '[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.'
-      );
+      logger.log('[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.');
     }
 
     instrumentOutgoingRequests({
@@ -267,15 +243,9 @@ export class ReactNativeTracing implements Integration {
   /**
    * To be called on a transaction finish. Cannot have async methods.
    */
-  public onTransactionFinish(
-    transaction: Transaction,
-    endTimestamp?: number
-  ): void {
+  public onTransactionFinish(transaction: Transaction, endTimestamp?: number): void {
     this.nativeFramesInstrumentation?.onTransactionFinish(transaction);
-    this.stallTrackingInstrumentation?.onTransactionFinish(
-      transaction,
-      endTimestamp
-    );
+    this.stallTrackingInstrumentation?.onTransactionFinish(transaction, endTimestamp);
   }
 
   /**
@@ -299,7 +269,9 @@ export class ReactNativeTracing implements Integration {
       return;
     }
     if (!this.options.routingInstrumentation) {
-      logger.error('[ReactNativeTracing] User Interaction Tracing is not working because no routing instrumentation is set.');
+      logger.error(
+        '[ReactNativeTracing] User Interaction Tracing is not working because no routing instrumentation is set.',
+      );
       return;
     }
     if (!elementId) {
@@ -316,7 +288,9 @@ export class ReactNativeTracing implements Integration {
     const activeTransactionIsNotInteraction =
       activeTransaction?.spanId !== this._inflightInteractionTransaction?.spanId;
     if (activeTransaction && activeTransactionIsNotInteraction) {
-      logger.warn(`[ReactNativeTracing] Did not create ${op} transaction because active transaction ${activeTransaction.name} exists on the scope.`);
+      logger.warn(
+        `[ReactNativeTracing] Did not create ${op} transaction because active transaction ${activeTransaction.name} exists on the scope.`,
+      );
       return;
     }
 
@@ -333,13 +307,7 @@ export class ReactNativeTracing implements Integration {
       op,
       trimEnd: true,
     };
-    this._inflightInteractionTransaction = startIdleTransaction(
-      hub,
-      context,
-      idleTimeoutMs,
-      finalTimeoutMs,
-      true,
-    );
+    this._inflightInteractionTransaction = startIdleTransaction(hub, context, idleTimeoutMs, finalTimeoutMs, true);
     this._inflightInteractionTransaction.registerBeforeFinishCallback((transaction: IdleTransaction) => {
       this._inflightInteractionTransaction = undefined;
       this.onTransactionFinish(transaction);
@@ -389,10 +357,7 @@ export class ReactNativeTracing implements Integration {
   /**
    * Adds app start measurements and starts a child span on a transaction.
    */
-  private _addAppStartData(
-    transaction: IdleTransaction,
-    appStart: NativeAppStartResponse
-  ): void {
+  private _addAppStartData(transaction: IdleTransaction, appStart: NativeAppStartResponse): void {
     if (!this._appStartFinishTimestamp) {
       logger.warn('App start was never finished.');
       return;
@@ -408,8 +373,7 @@ export class ReactNativeTracing implements Integration {
       endTimestamp: this._appStartFinishTimestamp,
     });
 
-    const appStartDurationMilliseconds =
-      this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
+    const appStartDurationMilliseconds = this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
 
     // we filter out app start more than 60s.
     // this could be due to many different reasons.
@@ -423,9 +387,7 @@ export class ReactNativeTracing implements Integration {
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */
-  private _onRouteWillChange(
-    context: TransactionContext
-  ): TransactionType | undefined {
+  private _onRouteWillChange(context: TransactionContext): TransactionType | undefined {
     return this._createRouteTransaction(context);
   }
 
@@ -436,7 +398,7 @@ export class ReactNativeTracing implements Integration {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     this._currentRoute = context.data?.route?.name;
 
-    this._getCurrentHub?.().configureScope((scope) => {
+    this._getCurrentHub?.().configureScope(scope => {
       if (context.data) {
         const contextData = context.data as RouteChangeContextData;
 
@@ -457,19 +419,15 @@ export class ReactNativeTracing implements Integration {
   }
 
   /** Create routing idle transaction. */
-  private _createRouteTransaction(
-    context: TransactionContext
-  ): IdleTransaction | undefined {
+  private _createRouteTransaction(context: TransactionContext): IdleTransaction | undefined {
     if (!this._getCurrentHub) {
-      logger.warn(
-        `[ReactNativeTracing] Did not create ${context.op} transaction because _getCurrentHub is invalid.`
-      );
+      logger.warn(`[ReactNativeTracing] Did not create ${context.op} transaction because _getCurrentHub is invalid.`);
       return undefined;
     }
 
     if (this._inflightInteractionTransaction) {
       logger.log(
-        `[ReactNativeTracing] Canceling ${this._inflightInteractionTransaction.op} transaction because navigation ${context.op}.`
+        `[ReactNativeTracing] Canceling ${this._inflightInteractionTransaction.op} transaction because navigation ${context.op}.`,
       );
       this._inflightInteractionTransaction.setStatus('cancelled');
       this._inflightInteractionTransaction.finish();
@@ -484,30 +442,19 @@ export class ReactNativeTracing implements Integration {
     };
 
     const hub = this._getCurrentHub();
-    const idleTransaction = startIdleTransaction(
-      hub as Hub,
-      expandedContext,
-      idleTimeoutMs,
-      finalTimeoutMs,
-      true
-    );
+    const idleTransaction = startIdleTransaction(hub as Hub, expandedContext, idleTimeoutMs, finalTimeoutMs, true);
 
     this.onTransactionStart(idleTransaction);
 
-    logger.log(
-      `[ReactNativeTracing] Starting ${context.op} transaction "${context.name}" on scope`
-    );
+    logger.log(`[ReactNativeTracing] Starting ${context.op} transaction "${context.name}" on scope`);
 
-    idleTransaction.registerBeforeFinishCallback(
-      (transaction, endTimestamp) => {
-        this.onTransactionFinish(transaction, endTimestamp);
-      }
-    );
+    idleTransaction.registerBeforeFinishCallback((transaction, endTimestamp) => {
+      this.onTransactionFinish(transaction, endTimestamp);
+    });
 
-    idleTransaction.registerBeforeFinishCallback((transaction) => {
+    idleTransaction.registerBeforeFinishCallback(transaction => {
       if (this.options.enableAppStartTracking && this._awaitingAppStartData) {
-        transaction.startTimestamp =
-          this._awaitingAppStartData.appStartTime / 1000;
+        transaction.startTimestamp = this._awaitingAppStartData.appStartTime / 1000;
         transaction.op = 'ui.load';
 
         this._addAppStartData(transaction, this._awaitingAppStartData);
@@ -516,28 +463,20 @@ export class ReactNativeTracing implements Integration {
       }
     });
 
-    idleTransaction.registerBeforeFinishCallback(
-      (transaction, endTimestamp) => {
-        adjustTransactionDuration(
-          finalTimeoutMs,
-          transaction,
-          endTimestamp
-        );
-      }
-    );
+    idleTransaction.registerBeforeFinishCallback((transaction, endTimestamp) => {
+      adjustTransactionDuration(finalTimeoutMs, transaction, endTimestamp);
+    });
 
     if (this.options.ignoreEmptyBackNavigationTransactions) {
-      idleTransaction.registerBeforeFinishCallback((transaction) => {
+      idleTransaction.registerBeforeFinishCallback(transaction => {
         if (
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           transaction.data?.route?.hasBeenSeen &&
           (!transaction.spanRecorder ||
-            transaction.spanRecorder.spans.filter(
-              (span) => span.spanId !== transaction.spanId
-            ).length === 0)
+            transaction.spanRecorder.spans.filter(span => span.spanId !== transaction.spanId).length === 0)
         ) {
           logger.log(
-            '[ReactNativeTracing] Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.'
+            '[ReactNativeTracing] Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.',
           );
           // Route has been seen before and has no child spans.
           transaction.sampled = false;
