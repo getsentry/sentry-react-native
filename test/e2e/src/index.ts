@@ -1,6 +1,3 @@
-
 import EndToEndTestsScreen from './EndToEndTests';
 
-export {
-  EndToEndTestsScreen,
-};
+export { EndToEndTestsScreen };

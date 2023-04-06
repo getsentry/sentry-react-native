@@ -11,4 +11,4 @@ export const makeUtf8TextEncoder = (): TextEncoderInternal => {
     encoding: 'utf-8',
   };
   return textEncoder;
-}
+};

@@ -11,12 +11,10 @@ import {
   sentryTraceGesture,
 } from '../../src/js/tracing/gesturetracing';
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
-import type {
-  MockedRoutingInstrumentation
-} from './mockedrountinginstrumention';
+import type { MockedRoutingInstrumentation } from './mockedrountinginstrumention';
 import {
   createMockedRoutingInstrumentation,
-  mockedConfirmedRouteTransactionContext
+  mockedConfirmedRouteTransactionContext,
 } from './mockedrountinginstrumention';
 
 jest.mock('../../src/js/wrapper', () => {
@@ -46,7 +44,7 @@ const getMockScope = () => {
       // Placeholder
     },
     getUser: () => scopeUser,
-  }
+  };
 };
 
 const mockAddBreadcrumb = jest.fn();
@@ -58,7 +56,7 @@ const getMockHub = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mockHub.getScope = () => mockScope as any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mockHub.configureScope = jest.fn((callback) => callback(mockScope as any));
+  mockHub.configureScope = jest.fn(callback => callback(mockScope as any));
 
   mockHub.addBreadcrumb = mockAddBreadcrumb;
 
@@ -107,8 +105,8 @@ describe('GestureTracing', () => {
       });
       tracing.setupOnce(jest.fn(), jest.fn().mockReturnValue(mockedHub));
       // client.addIntegration uses global getCurrentHub, so we don't use it to keep the mockedHub
-      (mockedHub.getClient() as unknown as { _integrations: IntegrationIndex })
-        ._integrations[ReactNativeTracing.name] = tracing;
+      (mockedHub.getClient() as unknown as { _integrations: IntegrationIndex })._integrations[ReactNativeTracing.name] =
+        tracing;
       mockedRoutingInstrumentation.registeredOnConfirmRoute!(mockedConfirmedRouteTransactionContext);
       mockedGesture = {
         handlers: {
@@ -131,10 +129,12 @@ describe('GestureTracing', () => {
       jest.runAllTimers();
 
       const transactionContext = transaction?.toContext();
-      expect(transactionContext).toEqual(expect.objectContaining({
-        endTimestamp: expect.any(Number),
-        op: `${UI_ACTION}.mock`,
-      }));
+      expect(transactionContext).toEqual(
+        expect.objectContaining({
+          endTimestamp: expect.any(Number),
+          op: `${UI_ACTION}.mock`,
+        }),
+      );
     });
 
     it('gesture interaction transaction falls back on invalid handler name', () => {
@@ -145,10 +145,12 @@ describe('GestureTracing', () => {
       jest.runAllTimers();
 
       const transactionContext = transaction?.toContext();
-      expect(transactionContext).toEqual(expect.objectContaining({
-        endTimestamp: expect.any(Number),
-        op: `${UI_ACTION}.gesture`,
-      }));
+      expect(transactionContext).toEqual(
+        expect.objectContaining({
+          endTimestamp: expect.any(Number),
+          op: `${UI_ACTION}.gesture`,
+        }),
+      );
     });
 
     it('gesture cancel previous interaction transaction', () => {
@@ -170,14 +172,18 @@ describe('GestureTracing', () => {
 
       const touchTransactionContext = touchTransaction?.toContext();
       const gestureTransactionContext = gestureTransaction?.toContext();
-      expect(touchTransactionContext).toEqual(expect.objectContaining({
-        endTimestamp: expect.any(Number),
-        op: 'mocked.op',
-        sampled: true,
-      }));
-      expect(gestureTransactionContext).toEqual(expect.objectContaining({
-        endTimestamp: expect.any(Number),
-      }));
+      expect(touchTransactionContext).toEqual(
+        expect.objectContaining({
+          endTimestamp: expect.any(Number),
+          op: 'mocked.op',
+          sampled: true,
+        }),
+      );
+      expect(gestureTransactionContext).toEqual(
+        expect.objectContaining({
+          endTimestamp: expect.any(Number),
+        }),
+      );
     });
 
     it('gesture original on begin handler is called', () => {
@@ -231,11 +237,13 @@ describe('GestureTracing', () => {
       jest.runAllTimers();
 
       expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
-      expect(mockAddBreadcrumb).toHaveBeenCalledWith(expect.objectContaining(<Breadcrumb>{
-        category: DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
-        type: DEFAULT_GESTURE_BREADCRUMB_TYPE,
-        level: 'info',
-      }));
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining(<Breadcrumb>{
+          category: DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
+          type: DEFAULT_GESTURE_BREADCRUMB_TYPE,
+          level: 'info',
+        }),
+      );
     });
 
     it('wrapped gesture creates breadcrumb on end', () => {
@@ -244,11 +252,13 @@ describe('GestureTracing', () => {
       jest.runAllTimers();
 
       expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
-      expect(mockAddBreadcrumb).toHaveBeenCalledWith(expect.objectContaining(<Breadcrumb>{
-        category: DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
-        type: DEFAULT_GESTURE_BREADCRUMB_TYPE,
-        level: 'info',
-      }));
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining(<Breadcrumb>{
+          category: DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
+          type: DEFAULT_GESTURE_BREADCRUMB_TYPE,
+          level: 'info',
+        }),
+      );
     });
 
     it('wrapped gesture creates breadcrumb only with selected event keys', () => {
@@ -257,12 +267,14 @@ describe('GestureTracing', () => {
       jest.runAllTimers();
 
       expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
-      expect(mockAddBreadcrumb).toHaveBeenCalledWith(expect.objectContaining(<Breadcrumb>{
-        data: {
-          scale: 1,
-          gesture: 'mock',
-        },
-      }));
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining(<Breadcrumb>{
+          data: {
+            scale: 1,
+            gesture: 'mock',
+          },
+        }),
+      );
     });
   });
 });

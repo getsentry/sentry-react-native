@@ -13,7 +13,7 @@ jest.setTimeout(T_20_MINUTES_IN_MS);
 
 let driver: WebdriverIO.Browser | null = null;
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 async function getElement(accessibilityId: string): Promise<WebdriverIO.Element> {
   if (!driver) {
@@ -49,8 +49,7 @@ beforeAll(async () => {
   if (process.env.APPIUM_APP === undefined) {
     throw new Error('APPIUM_APP environment variable must be set');
   }
-  if (process.env.PLATFORM === 'ios' &&
-      process.env.APPIUM_DERIVED_DATA === undefined) {
+  if (process.env.PLATFORM === 'ios' && process.env.APPIUM_DERIVED_DATA === undefined) {
     throw new Error('APPIUM_DERIVED_DATA environment variable must be set');
   }
 
@@ -66,7 +65,7 @@ beforeAll(async () => {
       'appium:automationName': 'XCUITest',
       'appium:app': process.env.APPIUM_APP,
       // DerivedData of the WebDriverRunner Xcode project.
-      'appium:derivedDataPath': path.resolve((process.env.APPIUM_DERIVED_DATA || '')),
+      'appium:derivedDataPath': path.resolve(process.env.APPIUM_DERIVED_DATA || ''),
       'appium:showXcodeLog': true,
       'appium:usePrebuiltWDA': true,
     };

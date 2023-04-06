@@ -6,9 +6,9 @@ import { logger, timestampInSeconds } from '@sentry/utils';
 import { STALL_COUNT, STALL_LONGEST_TIME, STALL_TOTAL_TIME } from '../measurements';
 
 export interface StallMeasurements extends Measurements {
-  [STALL_COUNT]: { value: number, unit: MeasurementUnit };
-  [STALL_TOTAL_TIME]: { value: number, unit: MeasurementUnit };
-  [STALL_LONGEST_TIME]: { value: number, unit: MeasurementUnit };
+  [STALL_COUNT]: { value: number; unit: MeasurementUnit };
+  [STALL_TOTAL_TIME]: { value: number; unit: MeasurementUnit };
+  [STALL_LONGEST_TIME]: { value: number; unit: MeasurementUnit };
 }
 
 export type StallTrackingOptions = {
@@ -59,9 +59,7 @@ export class StallTrackingInstrumentation {
     }
   > = new Map();
 
-  public constructor(
-    options: StallTrackingOptions = { minimumStallThreshold: 50 }
-  ) {
+  public constructor(options: StallTrackingOptions = { minimumStallThreshold: 50 }) {
     this._minimumStallThreshold = options.minimumStallThreshold;
   }
 
@@ -80,7 +78,7 @@ export class StallTrackingInstrumentation {
   public onTransactionStart(transaction: Transaction): void {
     if (this._statsByTransaction.has(transaction)) {
       logger.error(
-        '[StallTracking] Tried to start stall tracking on a transaction already being tracked. Measurements might be lost.'
+        '[StallTracking] Tried to start stall tracking on a transaction already being tracked. Measurements might be lost.',
       );
 
       return;
@@ -122,17 +120,12 @@ export class StallTrackingInstrumentation {
    * Stops stall tracking if no more transactions are running.
    * @returns The stall measurements
    */
-  public onTransactionFinish(
-    transaction: Transaction | IdleTransaction,
-    passedEndTimestamp?: number
-  ): void {
+  public onTransactionFinish(transaction: Transaction | IdleTransaction, passedEndTimestamp?: number): void {
     const transactionStats = this._statsByTransaction.get(transaction);
 
     if (!transactionStats) {
       // Transaction has been flushed out somehow, we return null.
-      logger.log(
-        '[StallTracking] Stall measurements were not added to transaction due to exceeding the max count.'
-      );
+      logger.log('[StallTracking] Stall measurements were not added to transaction due to exceeding the max count.');
 
       this._statsByTransaction.delete(transaction);
       this._shouldStopTracking();
@@ -142,13 +135,8 @@ export class StallTrackingInstrumentation {
 
     const endTimestamp = passedEndTimestamp ?? transaction.endTimestamp;
 
-    const spans = transaction.spanRecorder
-      ? transaction.spanRecorder.spans
-      : [];
-    const finishedSpanCount = spans.reduce(
-      (count, s) => (s !== transaction && s.endTimestamp ? count + 1 : count),
-      0
-    );
+    const spans = transaction.spanRecorder ? transaction.spanRecorder.spans : [];
+    const finishedSpanCount = spans.reduce((count, s) => (s !== transaction && s.endTimestamp ? count + 1 : count), 0);
 
     const trimEnd = transaction.toContext().trimEnd;
     const endWillBeTrimmed = trimEnd && finishedSpanCount > 0;
@@ -171,10 +159,7 @@ export class StallTrackingInstrumentation {
 
       // There will be cancelled spans, which means that the end won't be trimmed
       const spansWillBeCancelled = spans.some(
-        (s) =>
-          s !== transaction &&
-          s.startTimestamp < endTimestamp &&
-          !s.endTimestamp
+        s => s !== transaction && s.startTimestamp < endTimestamp && !s.endTimestamp,
       );
 
       if (endWillBeTrimmed && !spansWillBeCancelled) {
@@ -201,54 +186,47 @@ export class StallTrackingInstrumentation {
 
     if (!statsOnFinish) {
       if (typeof endTimestamp !== 'undefined') {
-        logger.log(
-          '[StallTracking] Stall measurements not added due to `endTimestamp` being set.'
-        );
+        logger.log('[StallTracking] Stall measurements not added due to `endTimestamp` being set.');
       } else if (trimEnd) {
         logger.log(
-          '[StallTracking] Stall measurements not added due to `trimEnd` being set but we could not determine the stall measurements at that time.'
+          '[StallTracking] Stall measurements not added due to `trimEnd` being set but we could not determine the stall measurements at that time.',
         );
       }
 
       return;
     }
 
-    transaction.setMeasurement(STALL_COUNT,
-      statsOnFinish.stall_count.value -
-      transactionStats.atStart.stall_count.value,
-      transactionStats.atStart.stall_count.unit);
+    transaction.setMeasurement(
+      STALL_COUNT,
+      statsOnFinish.stall_count.value - transactionStats.atStart.stall_count.value,
+      transactionStats.atStart.stall_count.unit,
+    );
 
-    transaction.setMeasurement(STALL_TOTAL_TIME,
-      statsOnFinish.stall_total_time.value -
-      transactionStats.atStart.stall_total_time.value,
-      transactionStats.atStart.stall_total_time.unit);
+    transaction.setMeasurement(
+      STALL_TOTAL_TIME,
+      statsOnFinish.stall_total_time.value - transactionStats.atStart.stall_total_time.value,
+      transactionStats.atStart.stall_total_time.unit,
+    );
 
-    transaction.setMeasurement(STALL_LONGEST_TIME,
+    transaction.setMeasurement(
+      STALL_LONGEST_TIME,
       statsOnFinish.stall_longest_time.value,
-      statsOnFinish.stall_longest_time.unit);
+      statsOnFinish.stall_longest_time.unit,
+    );
   }
 
   /**
    * Logs the finish time of the span for use in `trimEnd: true` transactions.
    */
-  private _markSpanFinish(
-    transaction: Transaction,
-    spanEndTimestamp: number
-  ): void {
+  private _markSpanFinish(transaction: Transaction, spanEndTimestamp: number): void {
     const previousStats = this._statsByTransaction.get(transaction);
     if (previousStats) {
-      if (
-        Math.abs(timestampInSeconds() - spanEndTimestamp) >
-        MARGIN_OF_ERROR_SECONDS
-      ) {
+      if (Math.abs(timestampInSeconds() - spanEndTimestamp) > MARGIN_OF_ERROR_SECONDS) {
         logger.log(
-          '[StallTracking] Span end not logged due to end timestamp being outside the margin of error from now.'
+          '[StallTracking] Span end not logged due to end timestamp being outside the margin of error from now.',
         );
 
-        if (
-          previousStats.atTimestamp &&
-          previousStats.atTimestamp.timestamp < spanEndTimestamp
-        ) {
+        if (previousStats.atTimestamp && previousStats.atTimestamp.timestamp < spanEndTimestamp) {
           // We also need to delete the stat for the last span, as the transaction would be trimmed to this span not the last one.
           this._statsByTransaction.set(transaction, {
             ...previousStats,
@@ -275,7 +253,8 @@ export class StallTrackingInstrumentation {
       stall_count: { value: this._stallCount, unit: 'none' },
       stall_total_time: { value: this._totalStallTime, unit: 'millisecond' },
       stall_longest_time: {
-        value: this._statsByTransaction.get(transaction)?.longestStallTime ?? 0, unit: 'millisecond'
+        value: this._statsByTransaction.get(transaction)?.longestStallTime ?? 0,
+        unit: 'millisecond',
       },
     };
   }
@@ -333,19 +312,13 @@ export class StallTrackingInstrumentation {
     const now = timestampInSeconds() * 1000;
     const totalTimeTaken = now - this._lastIntervalMs;
 
-    if (
-      totalTimeTaken >=
-      LOOP_TIMEOUT_INTERVAL_MS + this._minimumStallThreshold
-    ) {
+    if (totalTimeTaken >= LOOP_TIMEOUT_INTERVAL_MS + this._minimumStallThreshold) {
       const stallTime = totalTimeTaken - LOOP_TIMEOUT_INTERVAL_MS;
       this._stallCount += 1;
       this._totalStallTime += stallTime;
 
       for (const [transaction, value] of this._statsByTransaction.entries()) {
-        const longestStallTime = Math.max(
-          value.longestStallTime ?? 0,
-          stallTime
-        );
+        const longestStallTime = Math.max(value.longestStallTime ?? 0, stallTime);
 
         this._statsByTransaction.set(transaction, {
           ...value,
@@ -357,10 +330,7 @@ export class StallTrackingInstrumentation {
     this._lastIntervalMs = now;
 
     if (this.isTracking) {
-      this._timeout = setTimeout(
-        this._iteration.bind(this),
-        LOOP_TIMEOUT_INTERVAL_MS
-      );
+      this._timeout = setTimeout(this._iteration.bind(this), LOOP_TIMEOUT_INTERVAL_MS);
     }
   }
 

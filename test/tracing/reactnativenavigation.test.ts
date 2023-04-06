@@ -6,10 +6,9 @@ import type {
   BottomTabPressedEvent,
   ComponentWillAppearEvent,
   EventsRegistry,
-  NavigationDelegate} from '../../src/js/tracing/reactnativenavigation';
-import {
-  ReactNativeNavigationInstrumentation,
+  NavigationDelegate,
 } from '../../src/js/tracing/reactnativenavigation';
+import { ReactNativeNavigationInstrumentation } from '../../src/js/tracing/reactnativenavigation';
 import type { TransactionCreator } from '../../src/js/tracing/routingInstrumentation';
 import { getMockTransaction } from '../testutils';
 
@@ -32,9 +31,7 @@ const mockEventsRegistry: MockEventsRegistry = {
   onBottomTabPressed(event) {
     this.bottomTabPressedListener?.(event);
   },
-  registerComponentWillAppearListener(
-    callback: (event: ComponentWillAppearEvent) => void
-  ) {
+  registerComponentWillAppearListener(callback: (event: ComponentWillAppearEvent) => void) {
     this.componentWillAppearListener = callback;
     return {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -52,7 +49,7 @@ const mockEventsRegistry: MockEventsRegistry = {
     this.bottomTabPressedListener = callback;
     return {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
-      remove() { },
+      remove() {},
     } as EmitterSubscription;
   },
 };
@@ -69,19 +66,15 @@ describe('React Native Navigation Instrumentation', () => {
   let mockTransaction: Transaction;
 
   beforeEach(() => {
-    instrumentation = new ReactNativeNavigationInstrumentation(
-      mockNavigationDelegate
-    );
+    instrumentation = new ReactNativeNavigationInstrumentation(mockNavigationDelegate);
 
-    mockTransaction = getMockTransaction(
-      ReactNativeNavigationInstrumentation.instrumentationName
-    );
+    mockTransaction = getMockTransaction(ReactNativeNavigationInstrumentation.instrumentationName);
 
     tracingListener = jest.fn((_context: TransactionContext) => mockTransaction);
     instrumentation.registerRoutingInstrumentation(
       tracingListener,
-      (context) => context,
-      () => {}
+      context => context,
+      () => {},
     );
   });
 
@@ -102,40 +95,42 @@ describe('React Native Navigation Instrumentation', () => {
     };
     mockEventsRegistry.onComponentWillAppear(mockEvent);
 
-    expect(mockTransaction).toEqual(expect.objectContaining(<Partial<Transaction>>{
-      name: 'Test',
-      tags: {
-        'routing.instrumentation': 'react-native-navigation',
-        'routing.route.name': 'Test',
-      },
-      data: {
-        route: {
-          componentId: '0',
-          componentName: 'Test',
-          componentType: 'Component',
-          passProps: {},
-          name: 'Test',
-          hasBeenSeen: false,
+    expect(mockTransaction).toEqual(
+      expect.objectContaining(<Partial<Transaction>>{
+        name: 'Test',
+        tags: {
+          'routing.instrumentation': 'react-native-navigation',
+          'routing.route.name': 'Test',
         },
-        previousRoute: null,
-      },
-      metadata: expect.objectContaining({
-        source: 'component',
+        data: {
+          route: {
+            componentId: '0',
+            componentName: 'Test',
+            componentType: 'Component',
+            passProps: {},
+            name: 'Test',
+            hasBeenSeen: false,
+          },
+          previousRoute: null,
+        },
+        metadata: expect.objectContaining({
+          source: 'component',
+        }),
       }),
-    }));
+    );
   });
 
   test('Transaction context is changed with beforeNavigate', () => {
     instrumentation.registerRoutingInstrumentation(
       tracingListener,
-      (context) => {
+      context => {
         context.sampled = false;
         context.description = 'Description';
         context.name = 'New Name';
 
         return context;
       },
-      () => {}
+      () => {},
     );
 
     mockEventsRegistry.onCommand('root', {});
@@ -150,29 +145,31 @@ describe('React Native Navigation Instrumentation', () => {
     };
     mockEventsRegistry.onComponentWillAppear(mockEvent);
 
-    expect(mockTransaction).toEqual(expect.objectContaining(<Partial<Transaction>>{
-      name: 'New Name',
-      description: 'Description',
-      sampled: false,
-      tags: {
-        'routing.instrumentation': 'react-native-navigation',
-        'routing.route.name': 'Test',
-      },
-      data: {
-        route: {
-          componentId: '0',
-          componentName: 'Test',
-          componentType: 'Component',
-          passProps: {},
-          name: 'Test',
-          hasBeenSeen: false,
+    expect(mockTransaction).toEqual(
+      expect.objectContaining(<Partial<Transaction>>{
+        name: 'New Name',
+        description: 'Description',
+        sampled: false,
+        tags: {
+          'routing.instrumentation': 'react-native-navigation',
+          'routing.route.name': 'Test',
         },
-        previousRoute: null,
-      },
-      metadata: expect.objectContaining({
-        source: 'custom',
+        data: {
+          route: {
+            componentId: '0',
+            componentName: 'Test',
+            componentType: 'Component',
+            passProps: {},
+            name: 'Test',
+            hasBeenSeen: false,
+          },
+          previousRoute: null,
+        },
+        metadata: expect.objectContaining({
+          source: 'custom',
+        }),
       }),
-    }));
+    );
   });
 
   test('Transaction not sent on a cancelled route change', () => {
@@ -216,11 +213,13 @@ describe('React Native Navigation Instrumentation', () => {
 
   describe('tab change', () => {
     beforeEach(() => {
-      instrumentation = new ReactNativeNavigationInstrumentation(mockNavigationDelegate, { enableTabsInstrumentation: true });
+      instrumentation = new ReactNativeNavigationInstrumentation(mockNavigationDelegate, {
+        enableTabsInstrumentation: true,
+      });
       instrumentation.registerRoutingInstrumentation(
         tracingListener,
-        (context) => context,
-        () => { },
+        context => context,
+        () => {},
       );
     });
 
@@ -233,38 +232,39 @@ describe('React Native Navigation Instrumentation', () => {
         passProps: {},
       });
 
-      expect(mockTransaction.toContext()).toEqual(expect.objectContaining(<Partial<TransactionContext>>{
-        name: 'TestScreenName',
-        tags: {
-          'routing.instrumentation': 'react-native-navigation',
-          'routing.route.name': 'TestScreenName',
-        },
-        data: {
-          route: {
-            componentId: '0',
-            componentName: 'TestScreenName',
-            componentType: 'Component',
-            passProps: {},
-            name: 'TestScreenName',
-            hasBeenSeen: false,
+      expect(mockTransaction.toContext()).toEqual(
+        expect.objectContaining(<Partial<TransactionContext>>{
+          name: 'TestScreenName',
+          tags: {
+            'routing.instrumentation': 'react-native-navigation',
+            'routing.route.name': 'TestScreenName',
           },
-          previousRoute: null,
-        },
-      }));
+          data: {
+            route: {
+              componentId: '0',
+              componentName: 'TestScreenName',
+              componentType: 'Component',
+              passProps: {},
+              name: 'TestScreenName',
+              hasBeenSeen: false,
+            },
+            previousRoute: null,
+          },
+        }),
+      );
     });
 
     test('not instrument tabs if disabled', () => {
       jest.useFakeTimers();
 
-      instrumentation = new ReactNativeNavigationInstrumentation(
-        mockNavigationDelegate,
-        { enableTabsInstrumentation: false },
-      );
+      instrumentation = new ReactNativeNavigationInstrumentation(mockNavigationDelegate, {
+        enableTabsInstrumentation: false,
+      });
       tracingListener = jest.fn((_context: TransactionContext) => mockTransaction);
       instrumentation.registerRoutingInstrumentation(
         tracingListener,
-        (context) => context,
-        () => { },
+        context => context,
+        () => {},
       );
 
       mockEventsRegistry.onBottomTabPressed({ tabIndex: 0 });
@@ -289,10 +289,10 @@ describe('React Native Navigation Instrumentation', () => {
     beforeEach(() => {
       instrumentation.registerRoutingInstrumentation(
         tracingListener,
-        (context) => context,
-        (context) => {
+        context => context,
+        context => {
           confirmedContext = context;
-        }
+        },
       );
     });
 
@@ -319,17 +319,19 @@ describe('React Native Navigation Instrumentation', () => {
       };
       mockEventsRegistry.onComponentWillAppear(mockEvent2);
 
-      expect(confirmedContext).toEqual(expect.objectContaining(<Partial<TransactionContext>>{
-        name: 'Test 2',
-        data: {
-          route: expect.objectContaining({
-            name: 'Test 2',
-          }),
-          previousRoute: expect.objectContaining({
-            name: 'Test 1',
-          }),
-        },
-      }));
+      expect(confirmedContext).toEqual(
+        expect.objectContaining(<Partial<TransactionContext>>{
+          name: 'Test 2',
+          data: {
+            route: expect.objectContaining({
+              name: 'Test 2',
+            }),
+            previousRoute: expect.objectContaining({
+              name: 'Test 1',
+            }),
+          },
+        }),
+      );
     });
 
     test('onRouteConfirmed clears transaction', () => {
@@ -353,9 +355,11 @@ describe('React Native Navigation Instrumentation', () => {
       };
       mockEventsRegistry.onComponentWillAppear(mockEvent2);
 
-      expect(confirmedContext).toEqual(expect.objectContaining(<Partial<TransactionContext>>{
-        name: 'Test 1',
-      }));
+      expect(confirmedContext).toEqual(
+        expect.objectContaining(<Partial<TransactionContext>>{
+          name: 'Test 1',
+        }),
+      );
     });
   });
 });

@@ -3,7 +3,7 @@ import { getCurrentHub, getMainCarrier } from '@sentry/core';
 import type { Transaction } from '@sentry/tracing';
 import type { CustomSamplingContext, Span, SpanContext, TransactionContext } from '@sentry/types';
 
-import { DEFAULT,ReactNativeTracing } from './tracing';
+import { DEFAULT, ReactNativeTracing } from './tracing';
 
 export const APP_START_WARM = 'app_start_warm';
 export const APP_START_COLD = 'app_start_cold';
@@ -20,16 +20,13 @@ export function _addTracingExtensions(): void {
   if (carrier.__SENTRY__) {
     carrier.__SENTRY__.extensions = carrier.__SENTRY__.extensions || {};
     if (carrier.__SENTRY__.extensions.startTransaction) {
-      const originalStartTransaction = carrier.__SENTRY__.extensions
-        .startTransaction as StartTransactionFunction;
+      const originalStartTransaction = carrier.__SENTRY__.extensions.startTransaction as StartTransactionFunction;
 
       /*
         Overwrites the transaction start and finish to start and finish stall tracking.
         Preferably instead of overwriting add a callback method for this in the Transaction itself.
       */
-      const _startTransaction = _patchStartTransaction(
-        originalStartTransaction
-      );
+      const _startTransaction = _patchStartTransaction(originalStartTransaction);
 
       carrier.__SENTRY__.extensions.startTransaction = _startTransaction;
     }
@@ -39,32 +36,27 @@ export function _addTracingExtensions(): void {
 export type StartTransactionFunction = (
   this: Hub,
   transactionContext: TransactionContext,
-  customSamplingContext?: CustomSamplingContext
+  customSamplingContext?: CustomSamplingContext,
 ) => Transaction;
 
 /**
  * Overwrite the startTransaction extension method to start and end stall tracking.
  */
-const _patchStartTransaction = (
-  originalStartTransaction: StartTransactionFunction
-): StartTransactionFunction => {
+const _patchStartTransaction = (originalStartTransaction: StartTransactionFunction): StartTransactionFunction => {
   /**
    * Method to overwrite with
    */
   function _startTransaction(
     this: Hub,
     transactionContext: TransactionContext,
-    customSamplingContext?: CustomSamplingContext
+    customSamplingContext?: CustomSamplingContext,
   ): Transaction {
     // Native SDKs require op to be set - for JS Relay sets `default`
     if (!transactionContext.op) {
       transactionContext.op = DEFAULT;
     }
 
-    const transaction: Transaction = originalStartTransaction.apply(this, [
-      transactionContext,
-      customSamplingContext,
-    ]);
+    const transaction: Transaction = originalStartTransaction.apply(this, [transactionContext, customSamplingContext]);
     const originalStartChild: Transaction['startChild'] = transaction.startChild.bind(transaction);
     transaction.startChild = (
       spanContext?: Pick<SpanContext, Exclude<keyof SpanContext, 'sampled' | 'traceId' | 'parentSpanId'>>,
@@ -76,9 +68,7 @@ const _patchStartTransaction = (
       });
     };
 
-    const reactNativeTracing = getCurrentHub().getIntegration(
-      ReactNativeTracing
-    );
+    const reactNativeTracing = getCurrentHub().getIntegration(ReactNativeTracing);
 
     if (reactNativeTracing) {
       reactNativeTracing.onTransactionStart(transaction);
