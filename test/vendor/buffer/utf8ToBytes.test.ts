@@ -1,12 +1,29 @@
+// Adapted from https://github.com/feross/buffer/blob/795bbb5bda1b39f1370ebd784bea6107b087e3a7/index.js#L1956
+
+// The MIT License (MIT)
+
+// Copyright (c) Feross Aboukhadijeh, and other contributors.
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 import { utf8ToBytes } from '../../../src/js/vendor';
 
-/**
- * These test are taken over from encode-utf8 library to test the utf8ToBytes function
- *
- * https://github.com/LinusU/encode-utf8/blob/9c112ab99827e07667f9a349ca5498157479f68e/test.js
- *
- * License: MIT (https://github.com/LinusU/encode-utf8)
- */
 describe('Buffer utf8 tests', () => {
   const testCases = [
     'ﾟ･✿ヾ╲(｡◕‿◕｡)╱✿･ﾟ',
