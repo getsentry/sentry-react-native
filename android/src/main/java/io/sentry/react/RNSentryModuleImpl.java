@@ -52,6 +52,7 @@ import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.AppStartState;
+import io.sentry.android.core.BuildConfig;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.NdkIntegration;
@@ -103,17 +104,17 @@ public class RNSentryModuleImpl {
 
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
-            if (rnOptions.hasKey("_metadata")) {
-                @Nullable final ReadableMap metadata = rnOptions.getMap("_metadata");
-                @Nullable final ReadableMap sdkMap = metadata != null ? metadata.getMap("sdk") : null;
-                @Nullable final String sdkMapName = sdkMap != null ? sdkMap.getString("name") : null;
-                @Nullable final String sdkMapVersion = sdkMap != null ? sdkMap.getString("version") : null;
-                if (sdkMapName != null && sdkMapVersion != null) {
-                    @NonNull final SdkVersion sdkVersion = new SdkVersion(sdkMapName, sdkMapVersion);
-                    options.setSentryClientName(sdkMapName + "/" + sdkMapVersion);
-                    options.setSdkVersion(sdkVersion);
-                }
+            @NonNull final String sdkName = "sentry.java.android.react-native";
+            @Nullable SdkVersion sdkVersion = options.getSdkVersion();
+            if (sdkVersion == null) {
+                sdkVersion = new SdkVersion(sdkName, BuildConfig.VERSION_NAME);
+            } else {
+                sdkVersion.setName(sdkName);
             }
+
+            options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
+            options.setSdkVersion(sdkVersion);
+
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
             }

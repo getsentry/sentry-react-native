@@ -56,14 +56,9 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         return;
     }
 
-    if ([options[@"_metadata"] isKindOfClass: [NSDictionary class]]
-        && [options[@"_metadata"][@"sdk"] isKindOfClass: [NSDictionary class]]
-        && [options[@"_metadata"][@"sdk"][@"name"] isKindOfClass:[NSString class]]
-        && [options[@"_metadata"][@"sdk"][@"version"] isKindOfClass:[NSString class]]) {
-        [PrivateSentrySDKOnly
-            setSdkName:options[@"_metadata"][@"sdk"][@"name"]
-            andVersionString: options[@"_metadata"][@"sdk"][@"version"]];
-    }
+    NSString *sdkName = @"sentry.cocoa.react-native";
+    NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
+    [PrivateSentrySDKOnly setSdkName: sdkName andVersionString: sdkVersion];
 
     [SentrySDK startWithOptions:sentryOptions];
 
