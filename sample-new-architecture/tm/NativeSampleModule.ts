@@ -5,4 +5,4 @@ export interface Spec extends TurboModule {
   readonly crash: () => void;
 }
 
-export default TurboModuleRegistry.getEnforcing<Spec>('NativeSampleModule');
+export default TurboModuleRegistry.get<Spec>('NativeSampleModule');

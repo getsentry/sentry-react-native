@@ -1,5 +1,5 @@
 import type { Package } from '@sentry/types';
-import type { TurboModule} from 'react-native';
+import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 import type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 
@@ -10,7 +10,7 @@ export interface Spec extends TurboModule {
   captureEnvelope(
     bytes: number[],
     options: {
-      store: boolean,
+      store: boolean;
     },
   ): Promise<boolean>;
   captureScreenshot(): Promise<NativeScreenshot[]>;
@@ -24,10 +24,7 @@ export interface Spec extends TurboModule {
   fetchNativeAppStart(): Promise<NativeAppStartResponse | null>;
   fetchNativeFrames(): Promise<NativeFramesResponse | null>;
   initNativeSdk(options: UnsafeObject): Promise<boolean>;
-  setUser(
-    defaultUserKeys: UnsafeObject | null,
-    otherUserKeys: UnsafeObject | null
-  ): void;
+  setUser(defaultUserKeys: UnsafeObject | null, otherUserKeys: UnsafeObject | null): void;
   setContext(key: string, value: UnsafeObject | null): void;
   setExtra(key: string, value: string): void;
   setTag(key: string, value: string): void;
@@ -89,7 +86,7 @@ export type NativeScreenshot = {
   data: number[];
   contentType: string;
   filename: string;
-}
+};
 
 // The export must be here to pass codegen even if not used
 export default TurboModuleRegistry.getEnforcing<Spec>('RNSentry');

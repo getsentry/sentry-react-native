@@ -21,8 +21,7 @@ import {
   getSyncPromiseRejectOnFirstCall,
 } from './testutils';
 
-const EXAMPLE_DSN =
-  'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053';
+const EXAMPLE_DSN = 'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053';
 
 interface MockedReactNative {
   NativeModules: {
@@ -76,7 +75,7 @@ jest.mock(
     },
   }),
   /* virtual allows us to mock modules that aren't in package.json */
-  { virtual: true }
+  { virtual: true },
 );
 
 const DEFAULT_OPTIONS: ReactNativeClientOptions = {
@@ -106,7 +105,7 @@ describe('Tests ReactNativeClient', () => {
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
-        transport: () => new NativeTransport()
+        transport: () => new NativeTransport(),
       });
 
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
@@ -120,7 +119,7 @@ describe('Tests ReactNativeClient', () => {
         new ReactNativeClient({
           ...DEFAULT_OPTIONS,
           dsn: 'not a dsn',
-          transport: () => new NativeTransport()
+          transport: () => new NativeTransport(),
         });
       } catch (e: any) {
         expect(e.message).toBe('Invalid Sentry Dsn: not a dsn');
@@ -132,7 +131,7 @@ describe('Tests ReactNativeClient', () => {
         const backend = new ReactNativeClient({
           ...DEFAULT_OPTIONS,
           dsn: undefined,
-          transport: () => new NativeTransport()
+          transport: () => new NativeTransport(),
         });
 
         return expect(backend.eventFromMessage('test')).resolves.toBeDefined();
@@ -144,12 +143,12 @@ describe('Tests ReactNativeClient', () => {
       const myFlush = (timeout?: number) => Promise.resolve(Boolean(timeout));
       const myCustomTransportFn = (): Transport => ({
         send: mySend,
-        flush: myFlush
+        flush: myFlush,
       });
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
-        transport: myCustomTransportFn
+        transport: myCustomTransportFn,
       });
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(client.getTransport()?.flush).toBe(myFlush);
@@ -159,49 +158,55 @@ describe('Tests ReactNativeClient', () => {
   });
 
   describe('onReady', () => {
-    test('calls onReady callback with true if Native SDK is initialized', (done) => {
-      new ReactNativeClient(mockedOptions({
-        dsn: EXAMPLE_DSN,
-        enableNative: true,
-        onReady: ({ didCallNativeInit }) => {
-          expect(didCallNativeInit).toBe(true);
+    test('calls onReady callback with true if Native SDK is initialized', done => {
+      new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          enableNative: true,
+          onReady: ({ didCallNativeInit }) => {
+            expect(didCallNativeInit).toBe(true);
 
-          done();
-        },
-        transport: () => new NativeTransport()
-      }));
+            done();
+          },
+          transport: () => new NativeTransport(),
+        }),
+      );
     });
 
-    test('calls onReady callback with false if Native SDK was not initialized', (done) => {
-      new ReactNativeClient(mockedOptions({
-        dsn: EXAMPLE_DSN,
-        enableNative: false,
-        onReady: ({ didCallNativeInit }) => {
-          expect(didCallNativeInit).toBe(false);
+    test('calls onReady callback with false if Native SDK was not initialized', done => {
+      new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          enableNative: false,
+          onReady: ({ didCallNativeInit }) => {
+            expect(didCallNativeInit).toBe(false);
 
-          done();
-        },
-        transport: () => new NativeTransport()
-      }));
+            done();
+          },
+          transport: () => new NativeTransport(),
+        }),
+      );
     });
 
-    test('calls onReady callback with false if Native SDK failed to initialize', (done) => {
+    test('calls onReady callback with false if Native SDK failed to initialize', done => {
       const RN: MockedReactNative = require('react-native');
 
       RN.NativeModules.RNSentry.initNativeSdk = jest.fn(() => {
         throw new Error();
       });
 
-      new ReactNativeClient(mockedOptions({
-        dsn: EXAMPLE_DSN,
-        enableNative: true,
-        onReady: ({ didCallNativeInit }) => {
-          expect(didCallNativeInit).toBe(false);
+      new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          enableNative: true,
+          onReady: ({ didCallNativeInit }) => {
+            expect(didCallNativeInit).toBe(false);
 
-          done();
-        },
-        transport: () => new NativeTransport()
-      }));
+            done();
+          },
+          transport: () => new NativeTransport(),
+        }),
+      );
     });
   });
 
@@ -212,8 +217,7 @@ describe('Tests ReactNativeClient', () => {
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         enableNative: true,
-        transport: () => new NativeTransport()
-
+        transport: () => new NativeTransport(),
       });
       client.nativeCrash();
 
@@ -242,7 +246,7 @@ describe('Tests ReactNativeClient', () => {
 
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeHeader].event_id).toEqual('testEvent123');
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemHeader].type).toEqual(
-        'user_report'
+        'user_report',
       );
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload]).toEqual({
         comments: 'Test Comments',
@@ -307,8 +311,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     const expectedSdkInfo = { name: SDK_NAME, version: SDK_VERSION };
-    const getSdkInfoFrom = (func: jest.Mock) =>
-      func.mock.calls[0][firstArg][envelopeHeader].sdk;
+    const getSdkInfoFrom = (func: jest.Mock) => func.mock.calls[0][firstArg][envelopeHeader].sdk;
 
     test('send SdkInfo in the message envelope header', () => {
       client.captureMessage('message_test_value');
@@ -352,7 +355,9 @@ describe('Tests ReactNativeClient', () => {
       client.captureEvent({ message: 'test event' });
 
       expect(mockedSend).toBeCalled();
-      const actualEvent: Event | undefined = <Event>mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
+      const actualEvent: Event | undefined = <Event>(
+        mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload]
+      );
       expect(actualEvent?.sdk?.packages).toEqual([
         {
           name: SDK_PACKAGE_NAME,
@@ -384,7 +389,9 @@ describe('Tests ReactNativeClient', () => {
       client.captureEvent(circularEvent);
 
       expect(mockedSend).toBeCalled();
-      const actualEvent: Event | undefined = <Event>mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
+      const actualEvent: Event | undefined = <Event>(
+        mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload]
+      );
       expect(actualEvent?.extra).toEqual({
         circular: {
           extra: '[Circular ~]',
@@ -430,9 +437,9 @@ describe('Tests ReactNativeClient', () => {
       client.captureMessage('message_test_value');
 
       expect(mockTransportSend).toBeCalledTimes(1);
-      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual(
-        { type: 'client_report' }
-      );
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual({
+        type: 'client_report',
+      });
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemPayload]).toEqual(
         expect.objectContaining({
           discarded_events: [
@@ -440,7 +447,7 @@ describe('Tests ReactNativeClient', () => {
               reason: 'before_send',
               category: 'error',
               quantity: 1,
-            }
+            },
           ],
         }),
       );
@@ -465,8 +472,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     test('keeps outcomes in case envelope fails to send', () => {
-      const mockTransportSend = jest.fn((_envelope: Envelope) =>
-        rejectedSyncPromise(new SentryError('Test')));
+      const mockTransportSend = jest.fn((_envelope: Envelope) => rejectedSyncPromise(new SentryError('Test')));
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
@@ -505,9 +511,9 @@ describe('Tests ReactNativeClient', () => {
 
       expect(mockTransportSend).toBeCalledTimes(2);
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems].length).toEqual(2);
-      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual(
-        { type: 'client_report' }
-      );
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual({
+        type: 'client_report',
+      });
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemPayload]).toEqual(
         expect.objectContaining({
           discarded_events: [
@@ -530,9 +536,7 @@ describe('Tests ReactNativeClient', () => {
       );
     }
 
-    function mockDroppedEvent(
-      client: ReactNativeClient,
-    ) {
+    function mockDroppedEvent(client: ReactNativeClient) {
       client.recordDroppedEvent('before_send', 'error');
     }
   });
@@ -543,15 +547,17 @@ describe('Tests ReactNativeClient', () => {
         registerRoutingInstrumentation: jest.fn(),
         onRouteWillChange: jest.fn(),
         name: 'MockRoutingInstrumentation',
-      }
-      const client = new ReactNativeClient(mockedOptions({
-        dsn: EXAMPLE_DSN,
-        integrations: [
-          new ReactNativeTracing({
-            routingInstrumentation: mockRoutingInstrumentation,
-          }),
-        ],
-      }));
+      };
+      const client = new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          integrations: [
+            new ReactNativeTracing({
+              routingInstrumentation: mockRoutingInstrumentation,
+            }),
+          ],
+        }),
+      );
       client.setupIntegrations();
 
       expect(client.getIntegrationById('MockRoutingInstrumentation')).toBeTruthy();

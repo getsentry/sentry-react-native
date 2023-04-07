@@ -5,30 +5,42 @@ import { DeviceContext } from '../../src/js/integrations';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { NATIVE } from '../../src/js/wrapper';
 
+let mockCurrentAppState: string = 'unknown';
+
 jest.mock('../../src/js/wrapper');
+jest.mock('react-native', () => ({
+  AppState: new Proxy({}, { get: () => mockCurrentAppState }),
+  NativeModules: {},
+  Platform: {},
+}));
 
 describe('Device Context Integration', () => {
   let integration: DeviceContext;
 
-  const mockGetCurrentHub = () => ({
-    getIntegration: () => integration,
-  } as unknown as Hub);
+  const mockGetCurrentHub = () =>
+    ({
+      getIntegration: () => integration,
+    } as unknown as Hub);
 
   beforeEach(() => {
     integration = new DeviceContext();
   });
 
   it('add native user', async () => {
-    (await executeIntegrationWith({
-      nativeContexts: { user: { id: 'native-user' } },
-    })).expectEvent.toStrictEqualToNativeContexts();
+    (
+      await executeIntegrationWith({
+        nativeContexts: { user: { id: 'native-user' } },
+      })
+    ).expectEvent.toStrictEqualToNativeContexts();
   });
 
   it('do not overwrite event user', async () => {
-    (await executeIntegrationWith({
-      nativeContexts: { user: { id: 'native-user' } },
-      mockEvent: { user: { id: 'event-user' } },
-    })).expectEvent.toStrictEqualMockEvent();
+    (
+      await executeIntegrationWith({
+        nativeContexts: { user: { id: 'native-user' } },
+        mockEvent: { user: { id: 'event-user' } },
+      })
+    ).expectEvent.toStrictEqualMockEvent();
   });
 
   it('merge event and native contexts', async () => {
@@ -84,29 +96,37 @@ describe('Device Context Integration', () => {
   });
 
   it('add native level', async () => {
-    (await executeIntegrationWith({
-      nativeContexts: { level: <SeverityLevel>'fatal' },
-    })).expectEvent.toStrictEqualToNativeContexts();
+    (
+      await executeIntegrationWith({
+        nativeContexts: { level: <SeverityLevel>'fatal' },
+      })
+    ).expectEvent.toStrictEqualToNativeContexts();
   });
 
   it('do not overwrite event level', async () => {
-    (await executeIntegrationWith({
-      nativeContexts: { level: 'native-level' },
-      mockEvent: { level: 'info' },
-    })).expectEvent.toStrictEqualMockEvent();
+    (
+      await executeIntegrationWith({
+        nativeContexts: { level: 'native-level' },
+        mockEvent: { level: 'info' },
+      })
+    ).expectEvent.toStrictEqualMockEvent();
   });
 
   it('add native environment', async () => {
-    (await executeIntegrationWith({
-      nativeContexts: { environment: 'native-environment' },
-    })).expectEvent.toStrictEqualToNativeContexts();
+    (
+      await executeIntegrationWith({
+        nativeContexts: { environment: 'native-environment' },
+      })
+    ).expectEvent.toStrictEqualToNativeContexts();
   });
 
   it('do not overwrite event environment', async () => {
-    (await executeIntegrationWith({
-      nativeContexts: { environment: 'native-environment' },
-      mockEvent: { environment: 'event-environment' },
-    })).expectEvent.toStrictEqualMockEvent();
+    (
+      await executeIntegrationWith({
+        nativeContexts: { environment: 'native-environment' },
+        mockEvent: { environment: 'event-environment' },
+      })
+    ).expectEvent.toStrictEqualMockEvent();
   });
 
   it('use only native breadcrumbs', async () => {
@@ -115,14 +135,58 @@ describe('Device Context Integration', () => {
       mockEvent: { breadcrumbs: [{ message: 'duplicate-breadcrumb' }, { message: 'event-breadcrumb' }] },
     });
     expect(processedEvent).toStrictEqual({
-      breadcrumbs: [
-        { message: 'duplicate-breadcrumb' },
-        { message: 'native-breadcrumb' },
-      ],
+      breadcrumbs: [{ message: 'duplicate-breadcrumb' }, { message: 'native-breadcrumb' }],
     });
   });
 
-  async function executeIntegrationWith({ nativeContexts, mockEvent }: {
+  it('adds in_foreground false to native app contexts', async () => {
+    mockCurrentAppState = 'background';
+    const { processedEvent } = await executeIntegrationWith({
+      nativeContexts: { context: { app: { native: 'value' } } },
+    });
+    expect(processedEvent).toStrictEqual({
+      contexts: {
+        app: {
+          native: 'value',
+          in_foreground: false,
+        },
+      },
+    });
+  });
+
+  it('adds in_foreground to native app contexts', async () => {
+    mockCurrentAppState = 'active';
+    const { processedEvent } = await executeIntegrationWith({
+      nativeContexts: { context: { app: { native: 'value' } } },
+    });
+    expect(processedEvent).toStrictEqual({
+      contexts: {
+        app: {
+          native: 'value',
+          in_foreground: true,
+        },
+      },
+    });
+  });
+
+  it('do not add in_foreground if unknown', async () => {
+    mockCurrentAppState = 'unknown';
+    const { processedEvent } = await executeIntegrationWith({
+      nativeContexts: { context: { app: { native: 'value' } } },
+    });
+    expect(processedEvent).toStrictEqual({
+      contexts: {
+        app: {
+          native: 'value',
+        },
+      },
+    });
+  });
+
+  async function executeIntegrationWith({
+    nativeContexts,
+    mockEvent,
+  }: {
     nativeContexts: Record<string, unknown>;
     mockEvent?: Event;
   }): Promise<{
@@ -132,10 +196,9 @@ describe('Device Context Integration', () => {
       toStrictEqualMockEvent: () => void;
     };
   }> {
-    (NATIVE.fetchNativeDeviceContexts as jest.MockedFunction<typeof NATIVE.fetchNativeDeviceContexts>)
-      .mockImplementation(
-        () => Promise.resolve(nativeContexts as NativeDeviceContextsResponse),
-      );
+    (
+      NATIVE.fetchNativeDeviceContexts as jest.MockedFunction<typeof NATIVE.fetchNativeDeviceContexts>
+    ).mockImplementation(() => Promise.resolve(nativeContexts as NativeDeviceContextsResponse));
     const originalNativeContexts = { ...nativeContexts };
     const originalMockEvent = { ...mockEvent };
     const processedEvent = await executeIntegrationFor(mockEvent ?? {});
@@ -150,17 +213,14 @@ describe('Device Context Integration', () => {
 
   function executeIntegrationFor(mockedEvent: Event): Promise<Event | null> {
     return new Promise((resolve, reject) => {
-      integration.setupOnce(
-        async (eventProcessor) => {
-          try {
-            const processedEvent = await eventProcessor(mockedEvent, {});
-            resolve(processedEvent);
-          } catch (e) {
-            reject(e);
-          }
-        },
-        mockGetCurrentHub,
-      );
+      integration.setupOnce(async eventProcessor => {
+        try {
+          const processedEvent = await eventProcessor(mockedEvent, {});
+          resolve(processedEvent);
+        } catch (e) {
+          reject(e);
+        }
+      }, mockGetCurrentHub);
     });
   }
 });

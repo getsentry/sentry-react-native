@@ -1,13 +1,13 @@
 import type { Scope } from '@sentry/core';
-import { getIntegrationsToSetup, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
-import { RewriteFrames } from '@sentry/integrations';
+import { getIntegrationsToSetup, hasTracingEnabled , Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
+import { HttpClient } from '@sentry/integrations';
 import {
   defaultIntegrations as reactDefaultIntegrations,
   defaultStackParser,
   getCurrentHub,
   makeFetchTransport,
 } from '@sentry/react';
-import type { Integration, StackFrame, UserFeedback } from '@sentry/types';
+import type { Integration, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -22,6 +22,7 @@ import {
   Release,
   SdkInfo,
 } from './integrations';
+import { createReactNativeRewriteFrames } from './integrations/rewriteframes';
 import { Screenshot } from './integrations/screenshot';
 import { ViewHierarchy } from './integrations/viewhierarchy';
 import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
@@ -50,6 +51,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   sendClientReports: true,
   maxQueueSize: DEFAULT_BUFFER_SIZE,
   attachStacktrace: true,
+  enableCaptureFailedRequests: false,
 };
 
 /**
@@ -67,7 +69,13 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
     // If custom transport factory fails the SDK won't initialize
-    transport: passedOptions.transport || makeNativeTransportFactory() || makeFetchTransport,
+    transport: passedOptions.transport
+      || makeNativeTransportFactory({
+        enableNative: passedOptions.enableNative !== undefined
+          ? passedOptions.enableNative
+          : DEFAULT_OPTIONS.enableNative
+      })
+      || makeFetchTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(passedOptions.transportOptions ?? {}),
@@ -80,11 +88,6 @@ export function init(passedOptions: ReactNativeOptions): void {
     initialScope: safeFactory(passedOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
     tracesSampler: safeTracesSampler(passedOptions.tracesSampler),
   };
-
-  // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.
-  const tracingEnabled =
-    typeof options.tracesSampler !== 'undefined' ||
-    typeof options.tracesSampleRate !== 'undefined';
 
   const defaultIntegrations: Integration[] = passedOptions.defaultIntegrations || [];
   if (passedOptions.defaultIntegrations === undefined) {
@@ -107,42 +110,21 @@ export function init(passedOptions: ReactNativeOptions): void {
       defaultIntegrations.push(new DebugSymbolicator());
     }
 
-    defaultIntegrations.push(new RewriteFrames({
-      iteratee: (frame: StackFrame) => {
-        if (frame.filename) {
-          frame.filename = frame.filename
-            .replace(/^file:\/\//, '')
-            .replace(/^address at /, '')
-            .replace(/^.*\/[^.]+(\.app|CodePush|.*(?=\/))/, '');
-
-          if (
-            frame.filename !== '[native code]' &&
-            frame.filename !== 'native'
-          ) {
-            const appPrefix = 'app://';
-            // We always want to have a triple slash
-            frame.filename =
-              frame.filename.indexOf('/') === 0
-                ? `${appPrefix}${frame.filename}`
-                : `${appPrefix}/${frame.filename}`;
-          }
-        }
-        return frame;
-      },
-    }));
+    defaultIntegrations.push(createReactNativeRewriteFrames());
     if (options.enableNative) {
       defaultIntegrations.push(new DeviceContext());
     }
-    if (tracingEnabled) {
-      if (options.enableAutoPerformanceTracing) {
-        defaultIntegrations.push(new ReactNativeTracing());
-      }
+    if (hasTracingEnabled(options) && options.enableAutoPerformanceTracing) {
+      defaultIntegrations.push(new ReactNativeTracing());
     }
     if (options.attachScreenshot) {
       defaultIntegrations.push(new Screenshot());
     }
     if (options.attachViewHierarchy) {
       defaultIntegrations.push(new ViewHierarchy());
+    }
+    if (options.enableCaptureFailedRequests) {
+      defaultIntegrations.push(new HttpClient());
     }
   }
 

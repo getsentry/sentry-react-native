@@ -1,6 +1,7 @@
 /* eslint-disable complexity */
 import type { Event, EventProcessor, Hub, Integration } from '@sentry/types';
 import { logger, severityLevelFromString } from '@sentry/utils';
+import { AppState } from 'react-native';
 
 import { breadcrumbFromObject } from '../breadcrumb';
 import type { NativeDeviceContextsResponse } from '../NativeRNSentry';
@@ -21,10 +22,7 @@ export class DeviceContext implements Integration {
   /**
    * @inheritDoc
    */
-  public setupOnce(
-    addGlobalEventProcessor: (callback: EventProcessor) => void,
-    getCurrentHub: () => Hub,
-  ): void {
+  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
     addGlobalEventProcessor(async (event: Event) => {
       const self = getCurrentHub().getIntegration(DeviceContext);
       if (!self) {
@@ -47,7 +45,14 @@ export class DeviceContext implements Integration {
         event.user = nativeUser;
       }
 
-      const nativeContext = native.context;
+      let nativeContext = native.context;
+      if (AppState.currentState !== 'unknown') {
+        nativeContext = nativeContext || {};
+        nativeContext.app = {
+          ...nativeContext.app,
+          in_foreground: AppState.currentState === 'active',
+        };
+      }
       if (nativeContext) {
         event.contexts = { ...nativeContext, ...event.contexts };
       }
@@ -65,13 +70,11 @@ export class DeviceContext implements Integration {
       const nativeFingerprint = native.fingerprint;
       if (nativeFingerprint) {
         event.fingerprint = (event.fingerprint ?? []).concat(
-          nativeFingerprint.filter((item) => (event.fingerprint ?? []).indexOf(item) < 0),
-        )
+          nativeFingerprint.filter(item => (event.fingerprint ?? []).indexOf(item) < 0),
+        );
       }
 
-      const nativeLevel = typeof native['level'] === 'string'
-        ? severityLevelFromString(native['level'])
-        : undefined;
+      const nativeLevel = typeof native['level'] === 'string' ? severityLevelFromString(native['level']) : undefined;
       if (!event.level && nativeLevel) {
         event.level = nativeLevel;
       }

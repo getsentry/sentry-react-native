@@ -74,9 +74,7 @@ export class ReactNativeErrorHandlers implements Integration {
    */
   private _polyfillPromise(): void {
     /* eslint-disable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
-    const {
-      polyfillGlobal,
-    } = require('react-native/Libraries/Utilities/PolyfillFunctions');
+    const { polyfillGlobal } = require('react-native/Libraries/Utilities/PolyfillFunctions');
 
     // Below, we follow the exact way React Native initializes its promise library, and we globally replace it.
     const Promise = require('promise/setimmediate/es6-extensions');
@@ -101,16 +99,14 @@ export class ReactNativeErrorHandlers implements Integration {
     const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
       onUnhandled: (id, rejection = {}) => {
         // eslint-disable-next-line no-console
-        console.warn(
-          `Possible Unhandled Promise Rejection (id: ${id}):\n${rejection}`
-        );
+        console.warn(`Possible Unhandled Promise Rejection (id: ${id}):\n${rejection}`);
       },
-      onHandled: (id) => {
+      onHandled: id => {
         // eslint-disable-next-line no-console
         console.warn(
           `Promise Rejection Handled (id: ${id})\n` +
-          'This means you can ignore any previous messages of the form ' +
-          `"Possible Unhandled Promise Rejection (id: ${id}):"`
+            'This means you can ignore any previous messages of the form ' +
+            `"Possible Unhandled Promise Rejection (id: ${id}):"`,
         );
       },
     };
@@ -142,7 +138,7 @@ export class ReactNativeErrorHandlers implements Integration {
 
       if (Promise !== RN_GLOBAL_OBJ.Promise) {
         logger.warn(
-          'Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page.'
+          'Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page.',
         );
       } else {
         logger.log('Unhandled promise rejections will be caught by Sentry.');
@@ -150,7 +146,7 @@ export class ReactNativeErrorHandlers implements Integration {
     } catch (e) {
       // Do Nothing
       logger.warn(
-        'Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page.'
+        'Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page.',
       );
     }
   }
@@ -161,19 +157,21 @@ export class ReactNativeErrorHandlers implements Integration {
     if (this._options.onerror) {
       let handlingFatal = false;
 
-      const defaultHandler =
-        ErrorUtils.getGlobalHandler && ErrorUtils.getGlobalHandler();
+      const errorUtils = RN_GLOBAL_OBJ.ErrorUtils;
+      if (!errorUtils) {
+        logger.warn('ErrorUtils not found. Can be caused by different environment for example react-native-web.');
+        return;
+      }
+
+      const defaultHandler = errorUtils.getGlobalHandler && errorUtils.getGlobalHandler();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ErrorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
+      errorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
         // We want to handle fatals, but only in production mode.
         const shouldHandleFatal = isFatal && !__DEV__;
         if (shouldHandleFatal) {
           if (handlingFatal) {
-            logger.log(
-              'Encountered multiple fatals in a row. The latest:',
-              error
-            );
+            logger.log('Encountered multiple fatals in a row. The latest:', error);
             return;
           }
           handlingFatal = true;
@@ -184,10 +182,7 @@ export class ReactNativeErrorHandlers implements Integration {
         const scope = currentHub.getScope();
 
         if (!client) {
-          logger.error(
-            'Sentry client is missing, the error event might be lost.',
-            error
-          );
+          logger.error('Sentry client is missing, the error event might be lost.', error);
 
           // If there is no client something is fishy, anyway we call the default handler
           defaultHandler(error, isFatal);
