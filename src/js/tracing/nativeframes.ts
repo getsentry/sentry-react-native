@@ -1,4 +1,4 @@
-import type { Span, Transaction } from '@sentry/tracing';
+import type { Span, Transaction } from '@sentry/browser';
 import type { Event, EventProcessor, Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 

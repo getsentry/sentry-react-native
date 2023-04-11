@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Transaction } from '@sentry/tracing';
+import { Transaction } from '@sentry/browser';
 import type { TransactionContext } from '@sentry/types';
 
 import type {

@@ -1,6 +1,6 @@
 import type { Carrier } from '@sentry/core';
 import { getCurrentHub, getMainCarrier } from '@sentry/core';
-import type { Transaction } from '@sentry/tracing';
+import type { Transaction } from '@sentry/browser';
 import type { Hub } from '@sentry/types';
 
 import type { StartTransactionFunction } from '../src/js/measurements';

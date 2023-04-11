@@ -1,4 +1,4 @@
-import { Transaction } from '@sentry/tracing';
+import { Transaction } from '@sentry/browser';
 import type { Session, UserFeedback } from '@sentry/types';
 import { rejectedSyncPromise } from '@sentry/utils';
 
