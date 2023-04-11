@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { User } from '@sentry/browser';
+import type { SpanStatusType, User } from '@sentry/browser';
 import { BrowserClient } from '@sentry/browser';
-import { addGlobalEventProcessor, Hub } from '@sentry/core';
-import type { IdleTransaction, SpanStatusType } from '@sentry/browser';
-import { Transaction } from '@sentry/browser';
+import type { IdleTransaction } from '@sentry/core';
+import { addGlobalEventProcessor, Hub, Transaction } from '@sentry/core';
 
 import type { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
 import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';

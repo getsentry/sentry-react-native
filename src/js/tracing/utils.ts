@@ -1,4 +1,4 @@
-import type { IdleTransaction, Span, Transaction } from '@sentry/browser';
+import type { IdleTransaction, Span, Transaction } from '@sentry/core';
 import type { TransactionContext, TransactionSource } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 
