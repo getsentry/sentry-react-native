@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Transaction } from '@sentry/browser';
+import { Transaction } from '@sentry/core';
 import type { TransactionContext } from '@sentry/types';
 
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';

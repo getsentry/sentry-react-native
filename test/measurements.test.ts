@@ -1,5 +1,4 @@
-import type { Transaction } from '@sentry/browser';
-import type { Carrier } from '@sentry/core';
+import type { Carrier, Transaction } from '@sentry/core';
 import { getCurrentHub, getMainCarrier } from '@sentry/core';
 import type { Hub } from '@sentry/types';
 

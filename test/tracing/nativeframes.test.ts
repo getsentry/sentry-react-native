@@ -1,4 +1,4 @@
-import { Transaction } from '@sentry/browser';
+import { Transaction } from '@sentry/core';
 import type { EventProcessor } from '@sentry/types';
 
 import { NativeFramesInstrumentation } from '../../src/js/tracing/nativeframes';
