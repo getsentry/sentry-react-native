@@ -1,4 +1,4 @@
-import type { Hub, Transaction } from '@sentry/core';
+import { addTracingExtensions, Hub, Transaction } from '@sentry/core';
 import { getCurrentHub, getMainCarrier } from '@sentry/core';
 import type { CustomSamplingContext, Span, SpanContext, TransactionContext } from '@sentry/types';
 
@@ -15,6 +15,7 @@ export const STALL_LONGEST_TIME = 'stall_longest_time';
  * Adds React Native's extensions. Needs to be called after @sentry/browser's extension methods are added
  */
 export function _addTracingExtensions(): void {
+  addTracingExtensions();
   const carrier = getMainCarrier();
   if (carrier.__SENTRY__) {
     carrier.__SENTRY__.extensions = carrier.__SENTRY__.extensions || {};

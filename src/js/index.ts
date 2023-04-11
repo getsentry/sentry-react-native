@@ -30,11 +30,6 @@ export {
   startTransaction,
 } from '@sentry/core';
 
-// We need to import it so we patch the hub with global functions
-// aka. this has side effects
-import '@sentry/browser';
-
-// Add the React Native SDK's own tracing extensions, this needs to happen AFTER @sentry/browser's
 import { _addTracingExtensions } from './measurements';
 _addTracingExtensions();
 
