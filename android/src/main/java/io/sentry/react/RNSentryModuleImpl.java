@@ -10,6 +10,7 @@ import android.content.res.AssetManager;
 import android.util.SparseIntArray;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 import androidx.core.app.FrameMetricsAggregator;
 
 import com.facebook.react.bridge.Arguments;
@@ -51,6 +52,7 @@ import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.AppStartState;
+import io.sentry.android.core.BuildConfig;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.NdkIntegration;
@@ -102,6 +104,17 @@ public class RNSentryModuleImpl {
 
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
+            @NonNull final String sdkName = "sentry.java.android.react-native";
+            @Nullable SdkVersion sdkVersion = options.getSdkVersion();
+            if (sdkVersion == null) {
+                sdkVersion = new SdkVersion(sdkName, BuildConfig.VERSION_NAME);
+            } else {
+                sdkVersion.setName(sdkName);
+            }
+
+            options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
+            options.setSdkVersion(sdkVersion);
+
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
             }

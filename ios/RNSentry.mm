@@ -56,6 +56,10 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         return;
     }
 
+    NSString *sdkName = @"sentry.cocoa.react-native";
+    NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
+    [PrivateSentrySDKOnly setSdkName: sdkName andVersionString: sdkVersion];
+
     [SentrySDK startWithOptions:sentryOptions];
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
