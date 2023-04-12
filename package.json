@@ -49,7 +49,7 @@
   "dependencies": {
     "@sentry-internal/tracing": "7.47.0",
     "@sentry/browser": "7.47.0",
-    "@sentry/cli": "2.17.0",
+    "@sentry/cli": "2.17.1",
     "@sentry/core": "7.47.0",
     "@sentry/hub": "7.47.0",
     "@sentry/integrations": "7.47.0",
