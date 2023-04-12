@@ -12,7 +12,7 @@ export const STALL_TOTAL_TIME = 'stall_total_time';
 export const STALL_LONGEST_TIME = 'stall_longest_time';
 
 /**
- * Adds React Native's extensions. Needs to be called after @sentry/browser's extension methods are added
+ * Adds React Native's extensions. Needs to be called before any transactions are created.
  */
 export function _addTracingExtensions(): void {
   addTracingExtensions();
