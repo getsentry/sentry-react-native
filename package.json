@@ -2,7 +2,7 @@
   "name": "@sentry/react-native",
   "homepage": "https://github.com/getsentry/sentry-react-native",
   "repository": "https://github.com/getsentry/sentry-react-native",
-  "version": "5.3.0",
+  "version": "5.3.1",
   "description": "Official Sentry SDK for react-native",
   "typings": "dist/js/index.d.ts",
   "types": "dist/js/index.d.ts",
@@ -49,7 +49,7 @@
   "dependencies": {
     "@sentry-internal/tracing": "7.47.0",
     "@sentry/browser": "7.47.0",
-    "@sentry/cli": "2.17.0",
+    "@sentry/cli": "2.17.1",
     "@sentry/core": "7.47.0",
     "@sentry/hub": "7.47.0",
     "@sentry/integrations": "7.47.0",
