@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.3.1
 
 ### Fixes
 
@@ -10,18 +10,18 @@
 
 ### Dependencies
 
-- Bump JavaScript SDK from v7.45.0 to v7.46.0 ([#2946](https://github.com/getsentry/sentry-react-native/pull/2946))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7460)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.45.0...7.46.0)
+- Bump JavaScript SDK from v7.45.0 to v7.47.0 ([#2946](https://github.com/getsentry/sentry-react-native/pull/2946), [#2958](https://github.com/getsentry/sentry-react-native/pull/2958))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7470)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.45.0...7.47.0)
 - Bump Android SDK from v6.16.0 to v6.17.0 ([#2948](https://github.com/getsentry/sentry-react-native/pull/2948))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6170)
   - [diff](https://github.com/getsentry/sentry-java/compare/6.16.0...6.17.0)
 - Bump Cocoa SDK from v8.3.3 to v8.4.0 ([#2954](https://github.com/getsentry/sentry-react-native/pull/2954))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#840)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.3.3...8.4.0)
-- Bump CLI from v2.16.1 to v2.17.0 ([#2957](https://github.com/getsentry/sentry-react-native/pull/2957))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2170)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.16.1...2.17.0)
+- Bump CLI from v2.16.1 to v2.17.1 ([#2957](https://github.com/getsentry/sentry-react-native/pull/2957), [#2964](https://github.com/getsentry/sentry-react-native/pull/2964))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2171)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.16.1...2.17.1)
 
 ## 5.3.0
 

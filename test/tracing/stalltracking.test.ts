@@ -1,5 +1,5 @@
 import type { Hub } from '@sentry/core';
-import { IdleTransaction, Transaction } from '@sentry/tracing';
+import { IdleTransaction, Transaction } from '@sentry/core';
 import type { Event } from '@sentry/types';
 
 import { StallTrackingInstrumentation } from '../../src/js/tracing/stalltracking';
