@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Allow disabling native on RNNA
+- Allow disabling native on RNNA ([#2978](https://github.com/getsentry/sentry-react-native/pull/2978))
 
 ## 5.3.1
 
