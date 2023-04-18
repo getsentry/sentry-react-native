@@ -27,7 +27,7 @@ import { isTurboModuleEnabled } from './utils/environment';
 import { utf8ToBytes } from './vendor';
 
 const RNSentry: Spec | undefined = isTurboModuleEnabled()
-  ? TurboModuleRegistry.getEnforcing<Spec>('RNSentry')
+  ? TurboModuleRegistry.get<Spec>('RNSentry')
   : NativeModules.RNSentry;
 
 export interface Screenshot {
