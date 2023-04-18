@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Allow disabling native on RNNA ([#2978](https://github.com/getsentry/sentry-react-native/pull/2978))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v7.47.0 to v7.48.0 ([#2975](https://github.com/getsentry/sentry-react-native/pull/2975)
