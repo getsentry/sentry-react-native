@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Allow disabling native on RNNA
+
 ## 5.3.1
 
 ### Fixes
