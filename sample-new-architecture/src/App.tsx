@@ -20,11 +20,17 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { StyleSheet } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
+import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
+import { SentrySpanProcessor } from '@sentry/opentelemetry-node';
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
   });
+
+const provider = new WebTracerProvider();
+provider.addSpanProcessor(new SentrySpanProcessor());
+provider.register();
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
@@ -34,27 +40,32 @@ Sentry.init({
     console.log('Event beforeSend:', event);
     return event;
   },
+  beforeSendTransaction: (transaction) => {
+    console.log('Transaction beforeSend:', transaction);
+    return transaction;
+  },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
   onReady: ({ didCallNativeInit }) => {
     console.log('onReady called with didCallNativeInit:', didCallNativeInit);
   },
+  instrumenter: 'otel',
   integrations(integrations) {
     integrations.push(
-      new Sentry.ReactNativeTracing({
-        // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
-        idleTimeout: 5000,
-        routingInstrumentation: reactNavigationInstrumentation,
-        tracingOrigins: ['localhost', /^\//, /^https:\/\//],
-        enableUserInteractionTracing: true,
-        beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
-          // Example of not sending a transaction for the screen with the name "Manual Tracker"
-          if (context.data.route.name === 'ManualTracker') {
-            context.sampled = false;
-          }
+      // new Sentry.ReactNativeTracing({
+      //   // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
+      //   idleTimeout: 5000,
+      //   routingInstrumentation: reactNavigationInstrumentation,
+      //   tracingOrigins: ['localhost', /^\//, /^https:\/\//],
+      //   enableUserInteractionTracing: false,
+      //   beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
+      //     // Example of not sending a transaction for the screen with the name "Manual Tracker"
+      //     if (context.data.route.name === 'ManualTracker') {
+      //       context.sampled = false;
+      //     }
 
-          return context;
-        },
-      }),
+      //     return context;
+      //   },
+      // }),
       new HttpClient({
         // These options are effective only in JS.
         // This array can contain tuples of `[begin, end]` (both inclusive),

@@ -18,12 +18,17 @@ import { CommonActions } from '@react-navigation/native';
 import { UserFeedbackModal } from '../components/UserFeedbackModal';
 import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
+import opentelemetry from "@opentelemetry/api";
 
 const { AssetsModule } = NativeModules;
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
 }
+
+const tracer = opentelemetry.trace.getTracer(
+  'home-screen-tracer'
+);
 
 const HomeScreen = (props: Props) => {
   // Show bad code inside error boundary to trigger it.
@@ -62,6 +67,15 @@ const HomeScreen = (props: Props) => {
       <StatusBar barStyle="dark-content" />
       <ScrollView style={styles.mainView}>
         <Text style={styles.welcomeTitle}>Hey there!</Text>
+        <Button
+          title="Create open telemetry span"
+          onPress={() => {
+            const span = tracer.startSpan("test-span");
+            setTimeout(() => {
+              span.end();
+            }, 1000);
+          }}
+        />
         <Button
           title="Capture message"
           onPress={() => {
