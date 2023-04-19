@@ -17,9 +17,6 @@
 - Bump CLI from v2.17.1 to v2.17.2 ([#2966](https://github.com/getsentry/sentry-react-native/pull/2966))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2172)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.17.1...2.17.2)
-- Bump Wizard from v2.6.1 to v3.0.0 ([#2967](https://github.com/getsentry/sentry-react-native/pull/2967))
-  - [changelog](https://github.com/getsentry/sentry-wizard/blob/master/CHANGELOG.md#v300)
-  - [diff](https://github.com/getsentry/sentry-wizard/compare/v2.6.1...v3.0.0)
 
 ## 5.3.1
 
