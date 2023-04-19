@@ -1,6 +1,5 @@
-import type { Hub } from '@sentry/core';
-import { getCurrentHub, getMainCarrier } from '@sentry/core';
-import type { Transaction } from '@sentry/tracing';
+import type { Hub, Transaction } from '@sentry/core';
+import { addTracingExtensions, getCurrentHub, getMainCarrier } from '@sentry/core';
 import type { CustomSamplingContext, Span, SpanContext, TransactionContext } from '@sentry/types';
 
 import { DEFAULT, ReactNativeTracing } from './tracing';
@@ -13,9 +12,10 @@ export const STALL_TOTAL_TIME = 'stall_total_time';
 export const STALL_LONGEST_TIME = 'stall_longest_time';
 
 /**
- * Adds React Native's extensions. Needs to be called after @sentry/tracing's extension methods are added
+ * Adds React Native's extensions. Needs to be called before any transactions are created.
  */
 export function _addTracingExtensions(): void {
+  addTracingExtensions();
   const carrier = getMainCarrier();
   if (carrier.__SENTRY__) {
     carrier.__SENTRY__.extensions = carrier.__SENTRY__.extensions || {};

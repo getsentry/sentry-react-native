@@ -162,7 +162,7 @@ const HomeScreen = (props: Props) => {
             try {
               fetch('http://localhost:8081/not-found');
             } catch (error) {
-              //ignore the error, it will be send to Sentry
+              //ignore the error, it will be send to Sentry automatically
             }
           }}
         />
