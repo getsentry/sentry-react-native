@@ -1742,10 +1742,10 @@
     "@sentry/utils" "7.48.0"
     tslib "^1.9.3"
 
-"@sentry/cli@2.17.1":
-  version "2.17.1"
-  resolved "https://registry.yarnpkg.com/@sentry/cli/-/cli-2.17.1.tgz#e13f5ee7f2f47fe52082694a67793e250728c33c"
-  integrity sha512-NBTJl6qGPKFWYetE/quhySgaETeLzA80FtDcGOVvAyhfonrDGm/hGHkOr/DEzA/FqwrGj8MTk3lafE+qEnHglg==
+"@sentry/cli@2.17.2":
+  version "2.17.2"
+  resolved "https://registry.yarnpkg.com/@sentry/cli/-/cli-2.17.2.tgz#28468dcdbbc510db8cfdc64397c84d6174e11773"
+  integrity sha512-A9WBLyf39NHmyJSFwa2ez1Qxfce0cxlyZ5RIJnYvTRDdyigV6HXmmJwOgbE1LgDCXmsBrDJ/iEGXU3Tnn75WGg==
   dependencies:
     https-proxy-agent "^5.0.0"
     node-fetch "^2.6.7"
@@ -1836,10 +1836,10 @@
     "@sentry/types" "7.48.0"
     tslib "^1.9.3"
 
-"@sentry/wizard@2.6.1":
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-2.6.1.tgz#771e77dea32c394e04feb9f64a08864fedf9d34b"
-  integrity sha512-mvpbgV5Ix9vbyj434btucr8kVaP6TWdOPYNsmbtoiAcubNAOU2WAIAj8n9tkWTPImLzmp2wnzu9MP5hwkwfhFg==
+"@sentry/wizard@3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-3.0.0.tgz#7a7bc42d7ba9da4360c64a53ea3875fdb8179d3c"
+  integrity sha512-x8+chcBpuE9mu0g++JRo/Sb33aUYBi2fmDZek+sZwGy0Wi55rbS4k6kmVr7arZIXb/9YHH8fo+TyW23LDyj2bQ==
   dependencies:
     "@sentry/cli" "^1.72.0"
     chalk "^2.4.1"

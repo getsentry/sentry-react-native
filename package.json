@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@sentry/browser": "7.48.0",
-    "@sentry/cli": "2.17.1",
+    "@sentry/cli": "2.17.2",
     "@sentry/core": "7.48.0",
     "@sentry/hub": "7.48.0",
     "@sentry/integrations": "7.48.0",
@@ -60,7 +60,7 @@
     "@sentry-internal/eslint-config-sdk": "7.48.0",
     "@sentry-internal/eslint-plugin-sdk": "7.48.0",
     "@sentry/typescript": "^5.20.1",
-    "@sentry/wizard": "2.6.1",
+    "@sentry/wizard": "3.0.0",
     "@types/jest": "^29.2.5",
     "@types/react": "^18.0.25",
     "babel-jest": "^29.3.1",
