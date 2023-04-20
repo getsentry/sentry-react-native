@@ -1,0 +1,15 @@
+{
+  "include": [
+    "index.ts",
+  ],
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": [
+      "react-native",
+    ],
+    "jsx": "react-native",
+    "target": "es6",
+    "moduleResolution": "node",
+  },
+}

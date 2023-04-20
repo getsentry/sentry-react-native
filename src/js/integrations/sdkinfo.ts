@@ -64,3 +64,13 @@ export class SdkInfo implements Integration {
     });
   }
 }
+
+type World = "world";
+
+type Greeting = `hello ${World}`;
+
+export function _rest(val: Greeting) {
+  return val;
+}
+
+_rest("hello world");
