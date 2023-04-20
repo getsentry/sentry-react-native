@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add CPU Info to Device Context ([#2984](https://github.com/getsentry/sentry-react-native/pull/2984))
+
 ### Fixes
 
 - Allow disabling native on RNNA ([#2978](https://github.com/getsentry/sentry-react-native/pull/2978))
