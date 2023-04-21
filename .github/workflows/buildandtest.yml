@@ -100,7 +100,7 @@ jobs:
       - name: Archive dist
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ github.sha }}-dist
+          name: dist
           path: dist
       - name: Pack
         run: yarn pack
@@ -128,7 +128,8 @@ jobs:
       - name: Download dist
         uses: actions/download-artifact@v3
         with:
-          name: ${{ github.sha }}-dist
+          name: dist
+          path: dist
       - name: Install Global Dependencies
         run: yarn global add yalc
       - name: Publish SDK
