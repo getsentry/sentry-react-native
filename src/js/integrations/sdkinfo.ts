@@ -65,12 +65,15 @@ export class SdkInfo implements Integration {
   }
 }
 
-type World = "world";
+type World = 'world';
 
 type Greeting = `hello ${World}`;
 
-export function _rest(val: Greeting) {
+/**
+ *
+ */
+export function _rest(val: Greeting): Greeting {
   return val;
 }
 
-_rest("hello world");
+_rest('hello world');
