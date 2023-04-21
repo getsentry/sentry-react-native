@@ -8,7 +8,7 @@ namespace facebook::react
 
   void NativeSampleModule::crash(jsi::Runtime &rt)
   {
-    throw "Error from native cxx module";
+    throw std::runtime_error("Error from native cxx module");
   }
 
 } // namespace facebook::react
