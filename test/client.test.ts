@@ -564,7 +564,7 @@ describe('Tests ReactNativeClient', () => {
     });
   });
 
-  describe('register enabled user interactions tracing as integrations', () => {
+  describe('user interactions tracing as integrations', () => {
     test('register user interactions tracing', () => {
       const client = new ReactNativeClient(
         mockedOptions({
@@ -579,6 +579,22 @@ describe('Tests ReactNativeClient', () => {
       client.setupIntegrations();
 
       expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeTruthy();
+    });
+
+    test('do not register user interactions tracing', () => {
+      const client = new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          integrations: [
+            new ReactNativeTracing({
+              enableUserInteractionTracing: false,
+            }),
+          ],
+        }),
+      );
+      client.setupIntegrations();
+
+      expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeUndefined();
     });
   });
 });
