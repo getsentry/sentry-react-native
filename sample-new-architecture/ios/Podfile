@@ -54,9 +54,6 @@ target 'sampleNewArchitecture' do
     # Pods for testing
   end
 
-  pod 'Sentry/HybridSDK', :path => '../../../sentry-cocoa'
-  pod 'SentryPrivate', :path => '../../../sentry-cocoa/SentryPrivate.podspec'
-
   post_install do |installer|
     react_native_post_install(
       installer,
