@@ -131,15 +131,15 @@ jobs:
           name: ${{ github.sha }}-dist
       - name: Install Global Dependencies
         run: yarn global add yalc
-      - name: Install Dependencies
-        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
-        working-directory: test/typescript/ts3.8
-        run: yarn install
       - name: Publish SDK
         run: yalc publish
       - name: Install SDK
         working-directory: test/typescript/ts3.8
         run: yalc add @sentry/react-native
+      - name: Install Dependencies
+        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
+        working-directory: test/typescript/ts3.8
+        run: yarn install
       - name: Type Check
         working-directory: test/typescript/ts3.8
         run: yarn type-check
