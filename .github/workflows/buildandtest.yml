@@ -102,6 +102,11 @@ jobs:
         with:
           name: dist
           path: dist
+      - name: Archive ts3.8
+        uses: actions/upload-artifact@v3
+        with:
+          name: ts3.8
+          path: ts3.8
       - name: Pack
         run: yarn pack
       - name: Archive Artifacts
@@ -130,6 +135,11 @@ jobs:
         with:
           name: dist
           path: dist
+      - name: Download ts3.8
+        uses: actions/download-artifact@v3
+        with:
+          name: ts3.8
+          path: ts3.8
       - name: Install Global Dependencies
         run: yarn global add yalc
       - name: Publish SDK
