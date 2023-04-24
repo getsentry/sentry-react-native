@@ -34,7 +34,7 @@ export function breadcrumbFromObject(candidate: BreadcrumbCandidate): Breadcrumb
   if (typeof candidate.timestamp === 'string') {
     const timestamp = Date.parse(candidate.timestamp);
     if (!isNaN(timestamp)) {
-      breadcrumb.timestamp = timestamp;
+      breadcrumb.timestamp = timestamp / 1000; // breadcrumb timestamp is in seconds
     }
   }
 

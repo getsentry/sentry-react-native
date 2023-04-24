@@ -7,10 +7,14 @@ jest.mock('../src/js/wrapper');
 
 describe('Scope', () => {
   describe('addBreadcrumb', () => {
-    it('addBreadcrumb without level', () => {
+
+    beforeEach(() => {
       (NATIVE.addBreadcrumb as jest.Mock).mockImplementationOnce(() => {
         return;
       });
+    });
+
+    it('adds default level if no level specified', () => {
       const scope = new ReactNativeScope() as ReactNativeScope & { _breadcrumbs: Breadcrumb[] };
       const breadcrumb = {
         message: 'test',
@@ -24,6 +28,17 @@ describe('Scope', () => {
           level: 'info',
         },
       ]);
+    });
+
+    it('adds timestamp to breadcrumb without timestamp', () => {
+      const scope = new ReactNativeScope() as ReactNativeScope & { _breadcrumbs: Breadcrumb[] };
+      const breadcrumb = {
+        message: 'test',
+      };
+      scope.addBreadcrumb(breadcrumb);
+      expect(NATIVE.addBreadcrumb).toBeCalledWith(expect.objectContaining({
+        timestamp: expect.any(Number),
+      }));
     });
   });
 });
