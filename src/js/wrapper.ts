@@ -24,7 +24,6 @@ import type {
 import type { ReactNativeClientOptions } from './options';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
-import { convertToRecord } from './utils/normalize';
 import { utf8ToBytes } from './vendor';
 
 const RNSentry: Spec | undefined = isTurboModuleEnabled()
@@ -382,7 +381,6 @@ export const NATIVE: SentryNativeWrapper = {
       ...breadcrumb,
       // Process and convert deprecated levels
       level: breadcrumb.level ? this._processLevel(breadcrumb.level) : undefined,
-      data: breadcrumb.data ? convertToRecord(breadcrumb.data) : undefined,
     });
   },
 

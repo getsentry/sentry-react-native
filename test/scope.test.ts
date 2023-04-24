@@ -1,3 +1,4 @@
+// eslint-disable @typescript-eslint/unbound-method
 import type { Breadcrumb } from '@sentry/types';
 
 import { ReactNativeScope } from '../src/js/scope';
@@ -5,17 +6,28 @@ import { NATIVE } from '../src/js/wrapper';
 
 jest.mock('../src/js/wrapper');
 
+type TestScope = ReactNativeScope & { _breadcrumbs: Breadcrumb[] };
+const createScope = (): TestScope => {
+  return new ReactNativeScope() as TestScope;
+};
+
 describe('Scope', () => {
   describe('addBreadcrumb', () => {
+    let scope: TestScope;
+    let nativeAddBreadcrumbMock: jest.Mock;
 
     beforeEach(() => {
-      (NATIVE.addBreadcrumb as jest.Mock).mockImplementationOnce(() => {
+      scope = createScope();
+      nativeAddBreadcrumbMock = (NATIVE.addBreadcrumb as jest.Mock).mockImplementationOnce(() => {
         return;
       });
     });
 
+    afterEach(() => {
+      jest.resetAllMocks();
+    });
+
     it('adds default level if no level specified', () => {
-      const scope = new ReactNativeScope() as ReactNativeScope & { _breadcrumbs: Breadcrumb[] };
       const breadcrumb = {
         message: 'test',
         timestamp: 1234,
@@ -31,14 +43,66 @@ describe('Scope', () => {
     });
 
     it('adds timestamp to breadcrumb without timestamp', () => {
-      const scope = new ReactNativeScope() as ReactNativeScope & { _breadcrumbs: Breadcrumb[] };
       const breadcrumb = {
         message: 'test',
       };
       scope.addBreadcrumb(breadcrumb);
-      expect(NATIVE.addBreadcrumb).toBeCalledWith(expect.objectContaining({
-        timestamp: expect.any(Number),
-      }));
+      expect(scope._breadcrumbs).toEqual([expect.objectContaining(<Breadcrumb>{ timestamp: expect.any(Number) })]);
+    });
+
+    it('passes breadcrumb with timestamp to native', () => {
+      const breadcrumb = {
+        message: 'test',
+      };
+      scope.addBreadcrumb(breadcrumb);
+      expect(nativeAddBreadcrumbMock).toBeCalledWith(
+        expect.objectContaining({
+          timestamp: expect.any(Number),
+        }),
+      );
+    });
+
+    it('does not passes breadcrumb to native if not added in javascript', () => {
+      scope.addBreadcrumb({}, 0);
+      expect(nativeAddBreadcrumbMock).not.toBeCalled();
+    });
+
+    test('undefined breadcrumb data is not normalized when passing to the native layer', () => {
+      const breadcrumb: Breadcrumb = {
+        data: undefined,
+      };
+      scope.addBreadcrumb(breadcrumb);
+      expect(nativeAddBreadcrumbMock).toBeCalledWith(
+        expect.objectContaining({
+          data: undefined,
+        }),
+      );
+    });
+
+    test('object is normalized when passing to the native layer', () => {
+      const breadcrumb: Breadcrumb = {
+        data: {
+          foo: undefined,
+        },
+      };
+      scope.addBreadcrumb(breadcrumb);
+      expect(nativeAddBreadcrumbMock).toBeCalledWith(
+        expect.objectContaining({
+          data: { foo: '[undefined]' },
+        }),
+      );
+    });
+
+    test('not object data is converted to object', () => {
+      const breadcrumb: Breadcrumb = {
+        data: 'foo' as unknown as object,
+      };
+      scope.addBreadcrumb(breadcrumb);
+      expect(nativeAddBreadcrumbMock).toBeCalledWith(
+        expect.objectContaining({
+          data: { unknown: 'foo' },
+        }),
+      );
     });
   });
 });
