@@ -3,11 +3,9 @@
     "index.ts",
   ],
   "compilerOptions": {
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "noEmit": true,
-    "types": [
-      "react-native",
-    ],
+    "types": [],
     "jsx": "react-native",
     "target": "es6",
     "moduleResolution": "node",
