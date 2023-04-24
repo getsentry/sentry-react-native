@@ -64,12 +64,3 @@ export class SdkInfo implements Integration {
     });
   }
 }
-
-//this is 4.0 feature and cant be downleveled
-type Strings = [string, string];
-type Numbers = [number, number];
-export type StrStrNumNumBool = [...Strings, ...Numbers, boolean];
-
-//this will be downleveled
-type World = "world";
-export type Greeting = `hello ${World}`;
