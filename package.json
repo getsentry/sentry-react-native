@@ -7,7 +7,7 @@
   "typings": "dist/js/index.d.ts",
   "types": "dist/js/index.d.ts",
   "typesVersions": {
-    "<4.1": { "*": ["dist/ts3.8/*"] }
+    "<4.1": { "*": ["ts3.8/*"] }
   },
   "typescript": {
     "definition": "dist/js/index.d.ts"
@@ -18,7 +18,7 @@
     "build:sdk": "tsc -p tsconfig.build.json",
     "build:sdk:watch": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
     "build:tools": "tsc -p tsconfig.build.tools.json",
-    "downlevel": "downlevel-dts dist dist/ts3.8/dist --to=3.8",
+    "downlevel": "downlevel-dts dist ts3.8/dist --to=3.8",
     "clean": "rimraf dist coverage",
     "test": "jest",
     "fix": "yarn fix:eslint && yarn fix:prettier",
