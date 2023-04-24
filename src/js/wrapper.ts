@@ -24,8 +24,8 @@ import type {
 import type { ReactNativeClientOptions } from './options';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
-import { utf8ToBytes } from './vendor';
 import { convertToRecord } from './utils/normalize';
+import { utf8ToBytes } from './vendor';
 
 const RNSentry: Spec | undefined = isTurboModuleEnabled()
   ? TurboModuleRegistry.get<Spec>('RNSentry')

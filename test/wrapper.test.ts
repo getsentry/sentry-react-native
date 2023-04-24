@@ -494,4 +494,38 @@ describe('Tests Native Wrapper', () => {
       expect(NATIVE.enableNative).toBe(false);
     });
   });
+
+  describe('addBreadcrumb', () => {
+    test('undefined breadcrumb data is not normalized when passing to the native layer', () => {
+      NATIVE.addBreadcrumb({
+        data: undefined,
+      });
+
+      expect(RNSentry.addBreadcrumb).toBeCalledWith({
+        data: undefined,
+      });
+    });
+
+    test('object is normalized when passing to the native layer', () => {
+      NATIVE.addBreadcrumb({
+        data: {
+          foo: undefined,
+        },
+      });
+
+      expect(RNSentry.addBreadcrumb).toBeCalledWith({
+        data: { foo: '[undefined]' },
+      });
+    });
+
+    test('not object data is converted to object', () => {
+      NATIVE.addBreadcrumb({
+        data: 'foo' as unknown as object,
+      });
+
+      expect(RNSentry.addBreadcrumb).toBeCalledWith({
+        data: { unknown: 'foo' },
+      });
+    });
+  });
 });
