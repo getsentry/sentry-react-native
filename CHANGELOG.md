@@ -9,6 +9,7 @@
 ### Fixes
 
 - Allow disabling native on RNNA ([#2978](https://github.com/getsentry/sentry-react-native/pull/2978))
+- iOS Autolinking for RN 0.68 and older ([#2980](https://github.com/getsentry/sentry-react-native/pull/2980))
 
 ### Dependencies
 
