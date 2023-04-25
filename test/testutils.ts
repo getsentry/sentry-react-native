@@ -1,13 +1,11 @@
-import { Transaction } from '@sentry/tracing';
+import { Transaction } from '@sentry/core';
 import type { Session, UserFeedback } from '@sentry/types';
 import { rejectedSyncPromise } from '@sentry/utils';
 
 import { getBlankTransactionContext } from '../src/js/tracing/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function mockFunction<T extends (...args: any[]) => any>(
-  fn: T
-): jest.MockedFunction<T> {
+export function mockFunction<T extends (...args: any[]) => any>(fn: T): jest.MockedFunction<T> {
   return fn as jest.MockedFunction<T>;
 }
 

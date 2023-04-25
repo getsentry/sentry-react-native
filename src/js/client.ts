@@ -32,7 +32,6 @@ import { NATIVE } from './wrapper';
  * @see SentryClient for usage documentation.
  */
 export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
-
   private _outcomesBuffer: Outcome[];
 
   /**
@@ -53,37 +52,31 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @inheritDoc
    */
   public eventFromException(exception: unknown, hint: EventHint = {}): PromiseLike<Event> {
-    return Screenshot.attachScreenshotToEventHint(hint, this._options)
-      .then(hintWithScreenshot => eventFromException(
-        this._options.stackParser,
-        exception,
-        hintWithScreenshot,
-        this._options.attachStacktrace,
-      ));
+    return Screenshot.attachScreenshotToEventHint(hint, this._options).then(hintWithScreenshot =>
+      eventFromException(this._options.stackParser, exception, hintWithScreenshot, this._options.attachStacktrace),
+    );
   }
 
   /**
    * @inheritDoc
    */
   public eventFromMessage(message: string, level?: SeverityLevel, hint?: EventHint): PromiseLike<Event> {
-    return eventFromMessage(
-      this._options.stackParser,
-      message,
-      level,
-      hint,
-      this._options.attachStacktrace,
-    ).then((event: Event) => {
-      // TMP! Remove this function once JS SDK uses threads for messages
-      if (!event.exception?.values || event.exception.values.length <= 0) {
+    return eventFromMessage(this._options.stackParser, message, level, hint, this._options.attachStacktrace).then(
+      (event: Event) => {
+        // TMP! Remove this function once JS SDK uses threads for messages
+        if (!event.exception?.values || event.exception.values.length <= 0) {
+          return event;
+        }
+        const values = event.exception.values.map(
+          (exception: Exception): Thread => ({
+            stacktrace: exception.stacktrace,
+          }),
+        );
+        (event as { threads?: { values: Thread[] } }).threads = { values };
+        delete event.exception;
         return event;
-      }
-      const values = event.exception.values.map((exception: Exception): Thread => ({
-        stacktrace: exception.stacktrace,
-      }));
-      (event as { threads?: { values: Thread[] } }).threads = { values };
-      delete event.exception;
-      return event;
-    });
+      },
+    );
   }
 
   /**
@@ -108,14 +101,11 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * Sends user feedback to Sentry.
    */
   public captureUserFeedback(feedback: UserFeedback): void {
-    const envelope = createUserFeedbackEnvelope(
-      feedback,
-      {
-        metadata: this._options._metadata,
-        dsn: this.getDsn(),
-        tunnel: this._options.tunnel,
-      },
-    );
+    const envelope = createUserFeedbackEnvelope(feedback, {
+      metadata: this._options._metadata,
+      dsn: this.getDsn(),
+      tunnel: this._options.tunnel,
+    });
     this._sendEnvelope(envelope);
   }
 
@@ -125,9 +115,13 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   public setupIntegrations(): void {
     super.setupIntegrations();
     const tracing = this.getIntegration(ReactNativeTracing);
-    const routingName = tracing?.options.routingInstrumentation?.name
+    const routingName = tracing?.options.routingInstrumentation?.name;
     if (routingName) {
       this.addIntegration(createIntegration(routingName));
+    }
+    const enableUserInteractionTracing = tracing?.options.enableUserInteractionTracing;
+    if (enableUserInteractionTracing) {
+      this.addIntegration(createIntegration('ReactNativeUserInteractionTracing'));
     }
   }
 
@@ -144,16 +138,16 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
     let shouldClearOutcomesBuffer = true;
     if (this._transport && this._dsn) {
-      this._transport.send(envelope)
-        .then(null, reason => {
-          if (reason instanceof SentryError) { // SentryError is thrown by SyncPromise
-            shouldClearOutcomesBuffer = false;
-            // If this is called asynchronously we want the _outcomesBuffer to be cleared
-            logger.error('SentryError while sending event, keeping outcomes buffer:', reason);
-          } else {
-            logger.error('Error while sending event:', reason);
-          }
-        });
+      this._transport.send(envelope).then(null, reason => {
+        if (reason instanceof SentryError) {
+          // SentryError is thrown by SyncPromise
+          shouldClearOutcomesBuffer = false;
+          // If this is called asynchronously we want the _outcomesBuffer to be cleared
+          logger.error('SentryError while sending event, keeping outcomes buffer:', reason);
+        } else {
+          logger.error('Error while sending event:', reason);
+        }
+      });
     } else {
       logger.error('Transport disabled');
     }
@@ -189,7 +183,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     if (__DEV__ && this._options.enableNativeNagger) {
       Alert.alert(
         'Sentry',
-        'Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details.'
+        'Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details.',
       );
     }
   }

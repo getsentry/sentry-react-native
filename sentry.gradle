@@ -165,13 +165,18 @@ gradle.projectsEvaluated {
                           modulesPaths
               ]
 
-              project.logger.info("Sentry-CollectModules arguments: ${args}")
-              commandLine(*args)
+              if ((new File(collectModulesScript)).exists()) {
+                  project.logger.info("Sentry-CollectModules arguments: ${args}")
+                  commandLine(*args)
 
-              def skip = config.skipCollectModules
-                  ? config.skipCollectModules == true
-                  : false
-              enabled !skip
+                  def skip = config.skipCollectModules
+                    ? config.skipCollectModules == true
+                    : false
+                  enabled !skip
+              } else {
+                  project.logger.info("collectModulesScript not found: $collectModulesScript")
+                  enabled false
+              }
           }
 
           // chain the upload tasks so they run sequentially in order to run

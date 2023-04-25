@@ -62,7 +62,7 @@ describe('Sdk Info', () => {
 function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint = {}): Promise<Event | null> {
   const integration = new SdkInfo();
   return new Promise((resolve, reject) => {
-    integration.setupOnce(async (eventProcessor) => {
+    integration.setupOnce(async eventProcessor => {
       try {
         const processedEvent = await eventProcessor(mockedEvent, mockedHint);
         resolve(processedEvent);

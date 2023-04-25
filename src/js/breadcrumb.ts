@@ -5,7 +5,7 @@ export const DEFAULT_BREADCRUMB_LEVEL: SeverityLevel = 'info';
 
 type BreadcrumbCandidate = {
   [K in keyof Partial<Breadcrumb>]: unknown;
-}
+};
 
 /**
  * Convert plain object to a valid Breadcrumb
@@ -32,9 +32,9 @@ export function breadcrumbFromObject(candidate: BreadcrumbCandidate): Breadcrumb
     breadcrumb.data = candidate.data;
   }
   if (typeof candidate.timestamp === 'string') {
-    const timestamp = Date.parse(candidate.timestamp)
-    if (!isNaN(timestamp)) {
-      breadcrumb.timestamp = timestamp;
+    const timestampSeconds = Date.parse(candidate.timestamp) / 1000; // breadcrumb timestamp is in seconds
+    if (!isNaN(timestampSeconds)) {
+      breadcrumb.timestamp = timestampSeconds;
     }
   }
 

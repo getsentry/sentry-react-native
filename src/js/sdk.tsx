@@ -1,5 +1,6 @@
 import type { Scope } from '@sentry/core';
-import { getIntegrationsToSetup, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
+import { getIntegrationsToSetup, hasTracingEnabled , Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
+import { HttpClient } from '@sentry/integrations';
 import {
   defaultIntegrations as reactDefaultIntegrations,
   defaultStackParser,
@@ -50,6 +51,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   sendClientReports: true,
   maxQueueSize: DEFAULT_BUFFER_SIZE,
   attachStacktrace: true,
+  enableCaptureFailedRequests: false,
 };
 
 /**
@@ -87,11 +89,6 @@ export function init(passedOptions: ReactNativeOptions): void {
     tracesSampler: safeTracesSampler(passedOptions.tracesSampler),
   };
 
-  // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.
-  const tracingEnabled =
-    typeof options.tracesSampler !== 'undefined' ||
-    typeof options.tracesSampleRate !== 'undefined';
-
   const defaultIntegrations: Integration[] = passedOptions.defaultIntegrations || [];
   if (passedOptions.defaultIntegrations === undefined) {
     defaultIntegrations.push(new ModulesLoader());
@@ -117,16 +114,17 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (options.enableNative) {
       defaultIntegrations.push(new DeviceContext());
     }
-    if (tracingEnabled) {
-      if (options.enableAutoPerformanceTracing) {
-        defaultIntegrations.push(new ReactNativeTracing());
-      }
+    if (hasTracingEnabled(options) && options.enableAutoPerformanceTracing) {
+      defaultIntegrations.push(new ReactNativeTracing());
     }
     if (options.attachScreenshot) {
       defaultIntegrations.push(new Screenshot());
     }
     if (options.attachViewHierarchy) {
       defaultIntegrations.push(new ViewHierarchy());
+    }
+    if (options.enableCaptureFailedRequests) {
+      defaultIntegrations.push(new HttpClient());
     }
   }
 
@@ -140,7 +138,7 @@ export function init(passedOptions: ReactNativeOptions): void {
 /**
  * Inits the Sentry React Native SDK with automatic instrumentation and wrapped features.
  */
-export function wrap<P>(
+export function wrap<P extends JSX.IntrinsicAttributes>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {

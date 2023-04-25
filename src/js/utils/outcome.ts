@@ -16,7 +16,7 @@ export function mergeOutcomes(...merge: Outcome[][]): Outcome[] {
     }
   };
 
-  merge.forEach((outcomes) => outcomes.forEach(process));
+  merge.forEach(outcomes => outcomes.forEach(process));
 
   return [...map.values()];
 }
