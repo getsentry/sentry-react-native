@@ -1,15 +1,17 @@
 import { normalize } from '@sentry/utils';
 
+const KEY = 'value';
+
 /**
  * Converts any input into a valid record with string keys.
  */
-export function convertToNormalizedObject(wat: unknown): Record<string, unknown> {
-  const normalized: unknown = normalize(wat);
-  if (typeof normalized !== 'object') {
+export function convertToNormalizedObject(data: unknown): Record<string, any> {
+  const normalized: unknown = normalize(data);
+  if (normalized === null || typeof normalized !== 'object') {
     return {
-      unknown: normalized,
+      [KEY]: normalized,
     };
   } else {
-    return normalized as Record<string, unknown>;
+    return normalized;
   }
 }

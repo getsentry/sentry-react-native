@@ -62,11 +62,6 @@ describe('Scope', () => {
       );
     });
 
-    it('does not passes breadcrumb to native if not added in javascript', () => {
-      scope.addBreadcrumb({}, 0);
-      expect(nativeAddBreadcrumbMock).not.toBeCalled();
-    });
-
     test('undefined breadcrumb data is not normalized when passing to the native layer', () => {
       const breadcrumb: Breadcrumb = {
         data: undefined,
@@ -100,7 +95,7 @@ describe('Scope', () => {
       scope.addBreadcrumb(breadcrumb);
       expect(nativeAddBreadcrumbMock).toBeCalledWith(
         expect.objectContaining({
-          data: { unknown: 'foo' },
+          data: { value: 'foo' },
         }),
       );
     });

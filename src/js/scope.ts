@@ -66,15 +66,10 @@ export class ReactNativeScope extends Scope {
       data: breadcrumb.data ? convertToNormalizedObject(breadcrumb.data) : undefined,
     };
 
-    const countBefore = this._breadcrumbs.length;
     super.addBreadcrumb(mergedBreadcrumb, maxBreadcrumbs);
-    const countAfter = this._breadcrumbs.length;
 
-    const breadcrumbAdded = countAfter > countBefore;
-    if (breadcrumbAdded) {
-      const finalBreadcrumb = this._breadcrumbs[this._breadcrumbs.length - 1];
-      NATIVE.addBreadcrumb(finalBreadcrumb);
-    }
+    const finalBreadcrumb = this._breadcrumbs[this._breadcrumbs.length - 1];
+    NATIVE.addBreadcrumb(finalBreadcrumb);
     return this;
   }
 
