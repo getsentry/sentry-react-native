@@ -3,7 +3,8 @@
 ## Unreleased
 
 ### Features
-
+- Add TS 4.1 typings ([#2995](https://github.com/getsentry/sentry-react-native/pull/2995))
+  - TS 3.8 are present and work automatically with older projects
 - Add CPU Info to Device Context ([#2984](https://github.com/getsentry/sentry-react-native/pull/2984))
 
 ### Fixes
@@ -11,6 +12,8 @@
 - Allow disabling native on RNNA ([#2978](https://github.com/getsentry/sentry-react-native/pull/2978))
 - iOS Autolinking for RN 0.68 and older ([#2980](https://github.com/getsentry/sentry-react-native/pull/2980))
 - Only include Screenshots and View Hierarchy for iOS and Mac Catalyst builds ([#3007](https://github.com/getsentry/sentry-react-native/pull/3007))
+- Breadcrumbs from Native SDKs are created with timestamps in seconds ([#2997](https://github.com/getsentry/sentry-react-native/pull/2997))
+- `addBreadcrumb` converts converts non object data to `{ value: data }` ([#2997](https://github.com/getsentry/sentry-react-native/pull/2997))
 
 ### Dependencies
 

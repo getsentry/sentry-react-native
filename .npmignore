@@ -5,6 +5,7 @@
 !CHANGELOG.md
 !README.md
 !/dist/**/*
+!ts3.8/**/*
 !RNSentry.podspec
 !sentry.gradle
 !react-native.config.js
