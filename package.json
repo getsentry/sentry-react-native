@@ -7,7 +7,11 @@
   "typings": "dist/js/index.d.ts",
   "types": "dist/js/index.d.ts",
   "typesVersions": {
-    "<4.1": { "*": ["ts3.8/*"] }
+    "<4.1": {
+      "*": [
+        "ts3.8/*"
+      ]
+    }
   },
   "typescript": {
     "definition": "dist/js/index.d.ts"
@@ -51,18 +55,18 @@
     "react-native": ">=0.65.0"
   },
   "dependencies": {
-    "@sentry/browser": "7.48.0",
+    "@sentry/browser": "7.49.0",
     "@sentry/cli": "2.17.3",
-    "@sentry/core": "7.48.0",
-    "@sentry/hub": "7.48.0",
-    "@sentry/integrations": "7.48.0",
-    "@sentry/react": "7.48.0",
-    "@sentry/types": "7.48.0",
-    "@sentry/utils": "7.48.0"
+    "@sentry/core": "7.49.0",
+    "@sentry/hub": "7.49.0",
+    "@sentry/integrations": "7.49.0",
+    "@sentry/react": "7.49.0",
+    "@sentry/types": "7.49.0",
+    "@sentry/utils": "7.49.0"
   },
   "devDependencies": {
-    "@sentry-internal/eslint-config-sdk": "7.48.0",
-    "@sentry-internal/eslint-plugin-sdk": "7.48.0",
+    "@sentry-internal/eslint-config-sdk": "7.49.0",
+    "@sentry-internal/eslint-plugin-sdk": "7.49.0",
     "@sentry/typescript": "^5.20.1",
     "@sentry/wizard": "3.0.0",
     "@types/jest": "^29.2.5",
