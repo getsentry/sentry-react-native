@@ -330,6 +330,7 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSArray * _Nonnull)bytes
 RCT_EXPORT_METHOD(captureScreenshot: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 {
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     NSArray<NSData *>* rawScreenshots = [PrivateSentrySDKOnly captureScreenshots];
     NSMutableArray *screenshotsArray = [NSMutableArray arrayWithCapacity:[rawScreenshots count]];
 
@@ -354,11 +355,15 @@ RCT_EXPORT_METHOD(captureScreenshot: (RCTPromiseResolveBlock)resolve
     }
 
     resolve(screenshotsArray);
+#else
+    resolve(nil);
+#endif
 }
 
 RCT_EXPORT_METHOD(fetchViewHierarchy: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 {
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     NSData * rawViewHierarchy = [PrivateSentrySDKOnly captureViewHierarchy];
 
     NSMutableArray *viewHierarchy = [NSMutableArray arrayWithCapacity:rawViewHierarchy.length];
@@ -368,7 +373,11 @@ RCT_EXPORT_METHOD(fetchViewHierarchy: (RCTPromiseResolveBlock)resolve
     }
 
     resolve(viewHierarchy);
+#else
+    resolve(nil);
+#endif
 }
+
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary *)userKeys
                   otherUserKeys:(NSDictionary *)userDataKeys
