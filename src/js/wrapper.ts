@@ -381,7 +381,6 @@ export const NATIVE: SentryNativeWrapper = {
       ...breadcrumb,
       // Process and convert deprecated levels
       level: breadcrumb.level ? this._processLevel(breadcrumb.level) : undefined,
-      data: breadcrumb.data ? normalize(breadcrumb.data) : undefined,
     });
   },
 

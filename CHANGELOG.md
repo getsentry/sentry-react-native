@@ -11,6 +11,8 @@
 
 - Allow disabling native on RNNA ([#2978](https://github.com/getsentry/sentry-react-native/pull/2978))
 - iOS Autolinking for RN 0.68 and older ([#2980](https://github.com/getsentry/sentry-react-native/pull/2980))
+- Breadcrumbs from Native SDKs are created with timestamps in seconds ([#2997](https://github.com/getsentry/sentry-react-native/pull/2997))
+- `addBreadcrumb` converts converts non object data to `{ value: data }` ([#2997](https://github.com/getsentry/sentry-react-native/pull/2997))
 
 ### Dependencies
 
