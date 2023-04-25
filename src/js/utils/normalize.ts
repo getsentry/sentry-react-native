@@ -12,6 +12,6 @@ export function convertToNormalizedObject(data: unknown): Record<string, any> {
       [KEY]: normalized,
     };
   } else {
-    return normalized;
+    return normalized as Record<string, any>;
   }
 }
