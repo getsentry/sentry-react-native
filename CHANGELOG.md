@@ -3,7 +3,8 @@
 ## Unreleased
 
 ### Features
-
+- Add TS 4.1 typings ([#2995](https://github.com/getsentry/sentry-react-native/pull/2995))
+  - TS 3.8 are present and work automatically with older projects
 - Add CPU Info to Device Context ([#2984](https://github.com/getsentry/sentry-react-native/pull/2984))
 
 ### Fixes
