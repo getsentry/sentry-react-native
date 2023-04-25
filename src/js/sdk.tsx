@@ -138,7 +138,7 @@ export function init(passedOptions: ReactNativeOptions): void {
 /**
  * Inits the Sentry React Native SDK with automatic instrumentation and wrapped features.
  */
-export function wrap<P>(
+export function wrap<P extends JSX.IntrinsicAttributes>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {

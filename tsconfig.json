@@ -15,7 +15,8 @@
     "rootDir": ".",
     "jsx": "react-native",
     "types": [
-      "jest"
+      "jest",
+      "react-native"
     ]
   }
 }

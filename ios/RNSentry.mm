@@ -207,6 +207,22 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
         }
     }];
 
+    NSDictionary<NSString *, id> *extraContext = [PrivateSentrySDKOnly getExtraContext];
+    NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *context = [contexts[@"context"] mutableCopy];
+
+    if (extraContext && [extraContext[@"device"] isKindOfClass:[NSDictionary class]]) {
+      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *deviceContext = [contexts[@"context"][@"device"] mutableCopy];
+      [deviceContext addEntriesFromDictionary:extraContext[@"device"]];
+      [context setValue:deviceContext forKey:@"device"];
+    }
+
+    if (extraContext && [extraContext[@"app"] isKindOfClass:[NSDictionary class]]) {
+      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *appContext = [contexts[@"context"][@"app"] mutableCopy];
+      [appContext addEntriesFromDictionary:extraContext[@"app"]];
+      [context setValue:appContext forKey:@"app"];
+    }
+
+    [contexts setValue:context forKey:@"context"];
     resolve(contexts);
 }
 
