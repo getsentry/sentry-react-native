@@ -13,7 +13,7 @@ export interface Spec extends TurboModule {
       store: boolean;
     },
   ): Promise<boolean>;
-  captureScreenshot(): Promise<NativeScreenshot[]>;
+  captureScreenshot(): Promise<NativeScreenshot[] | undefined | null>;
   clearBreadcrumbs(): void;
   crash(): void;
   closeNativeSdk(): Promise<void>;

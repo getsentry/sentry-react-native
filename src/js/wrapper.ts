@@ -466,14 +466,19 @@ export const NATIVE: SentryNativeWrapper = {
       return null;
     }
 
+    let raw: NativeScreenshot[] | null | undefined;
     try {
-      const raw = await RNSentry.captureScreenshot();
+      raw = await RNSentry.captureScreenshot();
+    } catch (e) {
+      logger.warn('Failed to capture screenshot', e);
+    }
+
+    if (raw) {
       return raw.map((item: NativeScreenshot) => ({
         ...item,
         data: new Uint8Array(item.data),
       }));
-    } catch (e) {
-      logger.warn('Failed to capture screenshot', e);
+    } else {
       return null;
     }
   },
