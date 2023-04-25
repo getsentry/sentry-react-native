@@ -10,7 +10,7 @@
 
 - Allow disabling native on RNNA ([#2978](https://github.com/getsentry/sentry-react-native/pull/2978))
 - iOS Autolinking for RN 0.68 and older ([#2980](https://github.com/getsentry/sentry-react-native/pull/2980))
-- Only include Screenshots and View Hierarchy for iOS and Mac Catalyst builds
+- Only include Screenshots and View Hierarchy for iOS and Mac Catalyst builds ([#3007](https://github.com/getsentry/sentry-react-native/pull/3007))
 
 ### Dependencies
 
