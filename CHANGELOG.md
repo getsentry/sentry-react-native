@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.4.0
 
 ### Features
 - Add TS 4.1 typings ([#2995](https://github.com/getsentry/sentry-react-native/pull/2995))
