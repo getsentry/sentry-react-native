@@ -37,10 +37,12 @@ Sentry.init({
       event.debug_meta.images = event.debug_meta.images.map(
         (image: DebugImage) => {
           if (image.type === 'sourcemap') {
-            return {
+            const tmp = {
               ...image,
               code_file: 'app:///' + image.code_file,
             };
+            console.log('debug meta data', tmp);
+            return tmp;
           } else {
             return image;
           }
