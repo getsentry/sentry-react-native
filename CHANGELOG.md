@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Store envelopes immediately during a fatal crash on iOS
+
 ## 4.15.0
 
 ### Features
