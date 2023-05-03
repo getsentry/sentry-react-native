@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Store envelopes immediately during a fatal crash on iOS
+- Store envelopes immediately during a fatal crash on iOS ([#3031](https://github.com/getsentry/sentry-react-native/pull/3031))
 
 ## 5.4.0
 
