@@ -1,10 +1,11 @@
 # Changelog
 
-## Unreleased
+## 4.15.1
 
 ### Fixes
 
 - Store envelopes immediately during a fatal crash on iOS ([#3030](https://github.com/getsentry/sentry-react-native/pull/3030))
+
 ## 5.4.0
 
 ### Features
