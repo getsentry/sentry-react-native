@@ -12,6 +12,12 @@
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7500)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.49.0...7.50.0)
 
+## 4.15.1
+
+### Fixes
+
+- Store envelopes immediately during a fatal crash on iOS ([#3030](https://github.com/getsentry/sentry-react-native/pull/3030))
+
 ## 5.4.0
 
 ### Features
