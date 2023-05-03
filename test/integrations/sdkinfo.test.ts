@@ -1,5 +1,6 @@
 import type { Event, EventHint, Package } from '@sentry/types';
 
+import { SDK_NAME, SDK_VERSION } from '../../src/js';
 import { SdkInfo } from '../../src/js/integrations';
 import { NATIVE } from '../../src/js/wrapper';
 
@@ -56,6 +57,29 @@ describe('Sdk Info', () => {
     expect(processedEvent?.sdk?.packages).toEqual([]);
     expect(processedEvent?.platform === 'javascript');
     expect(mockedFetchNativeSdkInfo).toBeCalledTimes(1);
+  });
+
+  it('Does not overwrite existing sdk name and version', async () => {
+    mockedFetchNativeSdkInfo = jest.fn().mockResolvedValue(null);
+    const mockEvent: Event = {
+      sdk: {
+        name: 'test-sdk',
+        version: '1.0.0',
+      },
+    };
+    const processedEvent = await executeIntegrationFor(mockEvent);
+
+    expect(processedEvent?.sdk?.name).toEqual('test-sdk');
+    expect(processedEvent?.sdk?.version).toEqual('1.0.0');
+  });
+
+  it('Does use default sdk name and version', async () => {
+    mockedFetchNativeSdkInfo = jest.fn().mockResolvedValue(null);
+    const mockEvent: Event = {};
+    const processedEvent = await executeIntegrationFor(mockEvent);
+
+    expect(processedEvent?.sdk?.name).toEqual(SDK_NAME);
+    expect(processedEvent?.sdk?.version).toEqual(SDK_VERSION);
   });
 });
 
