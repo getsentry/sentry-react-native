@@ -12,6 +12,7 @@ jest.mock('@sentry/core', () => {
 
   const hub = {
     getClient: () => client,
+    // out-of-scope variables have to be prefixed with `mock` caseSensitive
     getIntegration: () => mockRelease,
   };
 
@@ -38,7 +39,7 @@ describe('Tests the Release integration', () => {
     let eventProcessor: EventProcessor = () => null;
 
     // @ts-ignore Mock
-    addGlobalEventProcessor.mockImplementation((e) => (eventProcessor = e));
+    addGlobalEventProcessor.mockImplementation(e => (eventProcessor = e));
     releaseIntegration.setupOnce();
 
     expect(addGlobalEventProcessor).toBeCalled();
@@ -60,7 +61,7 @@ describe('Tests the Release integration', () => {
     let eventProcessor: EventProcessor = () => null;
 
     // @ts-ignore Mock
-    addGlobalEventProcessor.mockImplementation((e) => (eventProcessor = e));
+    addGlobalEventProcessor.mockImplementation(e => (eventProcessor = e));
     releaseIntegration.setupOnce();
 
     const client = getCurrentHub().getClient();
@@ -82,7 +83,7 @@ describe('Tests the Release integration', () => {
     let eventProcessor: EventProcessor = () => null;
 
     // @ts-ignore Mock
-    addGlobalEventProcessor.mockImplementation((e) => (eventProcessor = e));
+    addGlobalEventProcessor.mockImplementation(e => (eventProcessor = e));
     releaseIntegration.setupOnce();
 
     const client = getCurrentHub().getClient();
@@ -104,7 +105,7 @@ describe('Tests the Release integration', () => {
     let eventProcessor: EventProcessor = () => null;
 
     // @ts-ignore Mock
-    addGlobalEventProcessor.mockImplementation((e) => (eventProcessor = e));
+    addGlobalEventProcessor.mockImplementation(e => (eventProcessor = e));
     releaseIntegration.setupOnce();
 
     expect(addGlobalEventProcessor).toBeCalled();
@@ -129,7 +130,7 @@ describe('Tests the Release integration', () => {
     let eventProcessor: EventProcessor = () => null;
 
     // @ts-ignore Mock
-    addGlobalEventProcessor.mockImplementation((e) => (eventProcessor = e));
+    addGlobalEventProcessor.mockImplementation(e => (eventProcessor = e));
     releaseIntegration.setupOnce();
 
     expect(addGlobalEventProcessor).toBeCalled();
@@ -142,12 +143,15 @@ describe('Tests the Release integration', () => {
       release: 'options_release',
     }));
 
-    const event = await eventProcessor({
-      extra: {
-        __sentry_dist: 'sentry_dist',
-        __sentry_release: 'sentry_release',
+    const event = await eventProcessor(
+      {
+        extra: {
+          __sentry_dist: 'sentry_dist',
+          __sentry_release: 'sentry_release',
+        },
       },
-    }, {});
+      {},
+    );
 
     expect(event?.release).toBe('sentry_release');
     expect(event?.dist).toBe('sentry_dist');

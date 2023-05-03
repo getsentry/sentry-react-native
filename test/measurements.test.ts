@@ -1,6 +1,5 @@
-import type { Carrier} from '@sentry/core';
+import type { Carrier, Transaction } from '@sentry/core';
 import { getCurrentHub, getMainCarrier } from '@sentry/core';
-import type { Transaction } from '@sentry/tracing';
 import type { Hub } from '@sentry/types';
 
 import type { StartTransactionFunction } from '../src/js/measurements';
@@ -48,11 +47,13 @@ describe('Tracing extensions', () => {
     const transaction: Transaction = startTransaction?.apply(hub, [{ op: 'custom' }]);
     const span = transaction?.startChild({ op: 'custom' });
 
-    expect(span).toEqual(expect.objectContaining({
-      transaction,
-      parentSpanId: transaction.spanId,
-      sampled: transaction.sampled,
-      traceId: transaction.traceId,
-    }));
+    expect(span).toEqual(
+      expect.objectContaining({
+        transaction,
+        parentSpanId: transaction.spanId,
+        sampled: transaction.sampled,
+        traceId: transaction.traceId,
+      }),
+    );
   });
 });

@@ -5,9 +5,11 @@
 !CHANGELOG.md
 !README.md
 !/dist/**/*
+!ts3.8/**/*
 !RNSentry.podspec
 !sentry.gradle
 !react-native.config.js
 !/ios/**/*
 !/android/**/*
+!src/js/NativeRNSentry.ts
 !scripts/collect-modules.sh

@@ -1,0 +1,13 @@
+{
+  "data" : [
+    {
+      "filename" : "logo_mini.png",
+      "idiom" : "universal",
+      "universal-type-identifier" : "image\/png"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

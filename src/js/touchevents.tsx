@@ -1,8 +1,13 @@
-import { addBreadcrumb } from '@sentry/core';
+import { addBreadcrumb, getCurrentHub } from '@sentry/core';
 import type { SeverityLevel } from '@sentry/types';
 import { logger } from '@sentry/utils';
 import * as React from 'react';
+import type { GestureResponderEvent} from 'react-native';
 import { StyleSheet, View } from 'react-native';
+
+import { createIntegration } from './integrations/factory';
+import { ReactNativeTracing } from './tracing';
+import { UI_ACTION_TOUCH } from './tracing/ops';
 
 export type TouchEventBoundaryProps = {
   /**
@@ -31,6 +36,10 @@ export type TouchEventBoundaryProps = {
    * React Node wrapped by TouchEventBoundary.
    */
   children?: React.ReactNode;
+  /**
+   * Label Name used to identify the touched element.
+   */
+  labelName?: string;
 };
 
 const touchEventStyles = StyleSheet.create({
@@ -43,7 +52,7 @@ const DEFAULT_BREADCRUMB_CATEGORY = 'touch';
 const DEFAULT_BREADCRUMB_TYPE = 'user';
 const DEFAULT_MAX_COMPONENT_TREE_SIZE = 20;
 
-const PROP_KEY = 'sentry-label';
+const SENTRY_LABEL_PROP_KEY = 'sentry-label';
 
 interface ElementInstance {
   elementType?: {
@@ -54,10 +63,15 @@ interface ElementInstance {
   return?: ElementInstance;
 }
 
+interface PrivateGestureResponderEvent extends GestureResponderEvent {
+  _targetInst?: ElementInstance;
+}
+
 /**
  * Boundary to log breadcrumbs for interaction events.
  */
 class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
+
   public static displayName: string = '__Sentry.TouchEventBoundary';
   public static defaultProps: Partial<TouchEventBoundaryProps> = {
     breadcrumbCategory: DEFAULT_BREADCRUMB_CATEGORY,
@@ -65,6 +79,21 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     ignoreNames: [],
     maxComponentTreeSize: DEFAULT_MAX_COMPONENT_TREE_SIZE,
   };
+
+  public readonly name: string = 'TouchEventBoundary';
+
+  private _tracingIntegration: ReactNativeTracing | null = null;
+
+  /**
+   * Registers the TouchEventBoundary as a Sentry Integration.
+   */
+  public componentDidMount(): void {
+    const client = getCurrentHub().getClient();
+    client?.addIntegration?.(createIntegration(this.name));
+    if (!this._tracingIntegration && client) {
+      this._tracingIntegration = client.getIntegration(ReactNativeTracing);
+    }
+  }
 
   /**
    *
@@ -96,8 +125,8 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
       message: activeLabel
         ? `Touch event within element: ${activeLabel}`
         : 'Touch event within component tree',
-      type: this.props.breadcrumbType
-    }
+      type: this.props.breadcrumbType,
+    };
     addBreadcrumb(crumb);
 
     logger.log(`[TouchEvents] ${crumb.message}`);
@@ -131,72 +160,85 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
    * @param e
    */
   // eslint-disable-next-line complexity
-  private _onTouchStart(e: { _targetInst?: ElementInstance }): void {
-    if (e._targetInst) {
-      let currentInst: ElementInstance | undefined = e._targetInst;
-
-      let activeLabel: string | undefined;
-      let activeDisplayName: string | undefined;
-      const componentTreeNames: string[] = [];
-
-      while (
-        currentInst &&
-        // maxComponentTreeSize will always be defined as we have a defaultProps. But ts needs a check so this is here.
-        this.props.maxComponentTreeSize &&
-        componentTreeNames.length < this.props.maxComponentTreeSize
-      ) {
-        if (
-          // If the loop gets to the boundary itself, break.
-          currentInst.elementType?.displayName ===
-          TouchEventBoundary.displayName
-        ) {
-          break;
-        }
-
-        const props = currentInst.memoizedProps;
-        const label =
-          typeof props?.[PROP_KEY] !== 'undefined'
-            ? `${props[PROP_KEY]}`
-            : undefined;
-
-        // Check the label first
-        if (label && !this._isNameIgnored(label)) {
-          if (!activeLabel) {
-            activeLabel = label;
-          }
-          componentTreeNames.push(label);
-        } else if (
-          typeof props?.accessibilityLabel === 'string' &&
-          !this._isNameIgnored(props.accessibilityLabel)
-        ) {
-          if (!activeLabel) {
-            activeLabel = props.accessibilityLabel;
-          }
-          componentTreeNames.push(props.accessibilityLabel);
-        } else if (currentInst.elementType) {
-          const { elementType } = currentInst;
-
-          if (
-            elementType.displayName &&
-            !this._isNameIgnored(elementType.displayName)
-          ) {
-            // Check display name
-            if (!activeDisplayName) {
-              activeDisplayName = elementType.displayName;
-            }
-            componentTreeNames.push(elementType.displayName);
-          }
-        }
-
-        currentInst = currentInst.return;
-      }
-
-      const finalLabel = activeLabel ?? activeDisplayName;
-
-      if (componentTreeNames.length > 0 || finalLabel) {
-        this._logTouchEvent(componentTreeNames, finalLabel);
-      }
+  private _onTouchStart(e: PrivateGestureResponderEvent): void {
+    if (!e._targetInst) {
+      return;
     }
+
+    let currentInst: ElementInstance | undefined = e._targetInst;
+
+    let activeLabel: string | undefined;
+    let activeDisplayName: string | undefined;
+    const componentTreeNames: string[] = [];
+
+    while (
+      currentInst &&
+      // maxComponentTreeSize will always be defined as we have a defaultProps. But ts needs a check so this is here.
+      this.props.maxComponentTreeSize &&
+      componentTreeNames.length < this.props.maxComponentTreeSize
+    ) {
+      if (
+        // If the loop gets to the boundary itself, break.
+        currentInst.elementType?.displayName ===
+        TouchEventBoundary.displayName
+      ) {
+        break;
+      }
+
+      const props = currentInst.memoizedProps;
+      const sentryLabel =
+        typeof props?.[SENTRY_LABEL_PROP_KEY] !== 'undefined'
+          ? `${props[SENTRY_LABEL_PROP_KEY]}`
+          : undefined;
+
+      // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
+      // the "check-label" if sentence, so we have to assign it to a variable here first
+      let labelValue;
+      if (typeof this.props.labelName === 'string')
+        labelValue = props?.[this.props.labelName];
+
+      // Check the label first
+      if (sentryLabel && !this._isNameIgnored(sentryLabel)) {
+        if (!activeLabel) {
+          activeLabel = sentryLabel;
+        }
+        componentTreeNames.push(sentryLabel);
+      } else if (
+        typeof labelValue === 'string' &&
+        !this._isNameIgnored(labelValue)
+      ) {
+        if (!activeLabel) {
+          activeLabel = labelValue;
+        }
+        componentTreeNames.push(labelValue);
+      } else if (currentInst.elementType) {
+        const { elementType } = currentInst;
+
+        if (
+          elementType.displayName &&
+          !this._isNameIgnored(elementType.displayName)
+        ) {
+          // Check display name
+          if (!activeDisplayName) {
+            activeDisplayName = elementType.displayName;
+          }
+          componentTreeNames.push(elementType.displayName);
+        }
+      }
+
+      currentInst = currentInst.return;
+    }
+
+    const finalLabel = activeLabel ?? activeDisplayName;
+
+    if (componentTreeNames.length > 0 || finalLabel) {
+      this._logTouchEvent(componentTreeNames, finalLabel);
+    }
+
+    this._tracingIntegration?.startUserInteractionTransaction({
+      elementId: activeLabel,
+      op: UI_ACTION_TOUCH,
+    });
   }
 }
 

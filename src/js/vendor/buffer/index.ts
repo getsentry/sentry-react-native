@@ -1,3 +1,1 @@
-export {
-  utf8ToBytes,
-} from './utf8ToBytes';
+export { utf8ToBytes } from './utf8ToBytes';

@@ -11,6 +11,7 @@ node_modules
 build/
 DerivedData
 dist
+ts3.8
 coverage
 
 ## Various settings

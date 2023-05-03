@@ -1,9 +1,12 @@
-import type { Envelope, Event,Outcome, Transport } from '@sentry/types';
+import { defaultStackParser } from '@sentry/browser';
+import type { Envelope, Event, Outcome, Transport } from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';
 import type { ReactNativeClientOptions } from '../src/js/options';
+import type { RoutingInstrumentationInstance } from '../src/js/tracing';
+import { ReactNativeTracing } from '../src/js/tracing';
 import { NativeTransport } from '../src/js/transports/native';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../src/js/version';
 import { NATIVE } from '../src/js/wrapper';
@@ -18,8 +21,7 @@ import {
   getSyncPromiseRejectOnFirstCall,
 } from './testutils';
 
-const EXAMPLE_DSN =
-  'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053';
+const EXAMPLE_DSN = 'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053';
 
 interface MockedReactNative {
   NativeModules: {
@@ -28,6 +30,8 @@ interface MockedReactNative {
       crash: jest.Mock;
       captureEnvelope: jest.Mock;
       captureScreenshot: jest.Mock;
+      fetchNativeAppStart: jest.Mock;
+      enableNativeFramesTracking: jest.Mock;
     };
   };
   Platform: {
@@ -53,6 +57,8 @@ jest.mock(
         crash: jest.fn(),
         captureEnvelope: jest.fn(),
         captureScreenshot: jest.fn().mockResolvedValue(null),
+        fetchNativeAppStart: jest.fn(),
+        enableNativeFramesTracking: jest.fn(),
       },
     },
     Platform: {
@@ -69,7 +75,7 @@ jest.mock(
     },
   }),
   /* virtual allows us to mock modules that aren't in package.json */
-  { virtual: true }
+  { virtual: true },
 );
 
 const DEFAULT_OPTIONS: ReactNativeClientOptions = {
@@ -77,8 +83,8 @@ const DEFAULT_OPTIONS: ReactNativeClientOptions = {
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
-  enableAutoPerformanceTracking: true,
-  enableOutOfMemoryTracking: true,
+  enableAutoPerformanceTracing: true,
+  enableWatchdogTerminationTracking: true,
   patchGlobalPromise: true,
   integrations: [],
   transport: () => ({
@@ -99,7 +105,7 @@ describe('Tests ReactNativeClient', () => {
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
-        transport: () => new NativeTransport()
+        transport: () => new NativeTransport(),
       });
 
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
@@ -113,7 +119,7 @@ describe('Tests ReactNativeClient', () => {
         new ReactNativeClient({
           ...DEFAULT_OPTIONS,
           dsn: 'not a dsn',
-          transport: () => new NativeTransport()
+          transport: () => new NativeTransport(),
         });
       } catch (e: any) {
         expect(e.message).toBe('Invalid Sentry Dsn: not a dsn');
@@ -125,7 +131,7 @@ describe('Tests ReactNativeClient', () => {
         const backend = new ReactNativeClient({
           ...DEFAULT_OPTIONS,
           dsn: undefined,
-          transport: () => new NativeTransport()
+          transport: () => new NativeTransport(),
         });
 
         return expect(backend.eventFromMessage('test')).resolves.toBeDefined();
@@ -137,12 +143,12 @@ describe('Tests ReactNativeClient', () => {
       const myFlush = (timeout?: number) => Promise.resolve(Boolean(timeout));
       const myCustomTransportFn = (): Transport => ({
         send: mySend,
-        flush: myFlush
+        flush: myFlush,
       });
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
-        transport: myCustomTransportFn
+        transport: myCustomTransportFn,
       });
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(client.getTransport()?.flush).toBe(myFlush);
@@ -152,49 +158,55 @@ describe('Tests ReactNativeClient', () => {
   });
 
   describe('onReady', () => {
-    test('calls onReady callback with true if Native SDK is initialized', (done) => {
-      new ReactNativeClient(mockedOptions({
-        dsn: EXAMPLE_DSN,
-        enableNative: true,
-        onReady: ({ didCallNativeInit }) => {
-          expect(didCallNativeInit).toBe(true);
+    test('calls onReady callback with true if Native SDK is initialized', done => {
+      new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          enableNative: true,
+          onReady: ({ didCallNativeInit }) => {
+            expect(didCallNativeInit).toBe(true);
 
-          done();
-        },
-        transport: () => new NativeTransport()
-      }));
+            done();
+          },
+          transport: () => new NativeTransport(),
+        }),
+      );
     });
 
-    test('calls onReady callback with false if Native SDK was not initialized', (done) => {
-      new ReactNativeClient(mockedOptions({
-        dsn: EXAMPLE_DSN,
-        enableNative: false,
-        onReady: ({ didCallNativeInit }) => {
-          expect(didCallNativeInit).toBe(false);
+    test('calls onReady callback with false if Native SDK was not initialized', done => {
+      new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          enableNative: false,
+          onReady: ({ didCallNativeInit }) => {
+            expect(didCallNativeInit).toBe(false);
 
-          done();
-        },
-        transport: () => new NativeTransport()
-      }));
+            done();
+          },
+          transport: () => new NativeTransport(),
+        }),
+      );
     });
 
-    test('calls onReady callback with false if Native SDK failed to initialize', (done) => {
+    test('calls onReady callback with false if Native SDK failed to initialize', done => {
       const RN: MockedReactNative = require('react-native');
 
       RN.NativeModules.RNSentry.initNativeSdk = jest.fn(() => {
         throw new Error();
       });
 
-      new ReactNativeClient(mockedOptions({
-        dsn: EXAMPLE_DSN,
-        enableNative: true,
-        onReady: ({ didCallNativeInit }) => {
-          expect(didCallNativeInit).toBe(false);
+      new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          enableNative: true,
+          onReady: ({ didCallNativeInit }) => {
+            expect(didCallNativeInit).toBe(false);
 
-          done();
-        },
-        transport: () => new NativeTransport()
-      }));
+            done();
+          },
+          transport: () => new NativeTransport(),
+        }),
+      );
     });
   });
 
@@ -205,8 +217,7 @@ describe('Tests ReactNativeClient', () => {
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         enableNative: true,
-        transport: () => new NativeTransport()
-
+        transport: () => new NativeTransport(),
       });
       client.nativeCrash();
 
@@ -235,7 +246,7 @@ describe('Tests ReactNativeClient', () => {
 
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeHeader].event_id).toEqual('testEvent123');
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemHeader].type).toEqual(
-        'user_report'
+        'user_report',
       );
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload]).toEqual({
         comments: 'Test Comments',
@@ -243,6 +254,39 @@ describe('Tests ReactNativeClient', () => {
         name: 'Test User',
         event_id: 'testEvent123',
       });
+    });
+  });
+
+  describe('attachStacktrace', () => {
+    let mockTransportSend: jest.Mock;
+    let client: ReactNativeClient;
+
+    beforeEach(() => {
+      mockTransportSend = jest.fn(() => Promise.resolve());
+      client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        attachStacktrace: true,
+        stackParser: defaultStackParser,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+      } as ReactNativeClientOptions);
+    });
+
+    afterEach(() => {
+      mockTransportSend.mockClear();
+    });
+
+    const getMessageEventFrom = (func: jest.Mock) =>
+      func.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
+
+    test('captureMessage contains stack trace in threads', async () => {
+      const mockSyntheticExceptionFromHub = new Error();
+      client.captureMessage('test message', 'error', { syntheticException: mockSyntheticExceptionFromHub });
+      expect(getMessageEventFrom(mockTransportSend).threads.values.length).toBeGreaterThan(0);
+      expect(getMessageEventFrom(mockTransportSend).exception).toBeUndefined();
     });
   });
 
@@ -267,8 +311,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     const expectedSdkInfo = { name: SDK_NAME, version: SDK_VERSION };
-    const getSdkInfoFrom = (func: jest.Mock) =>
-      func.mock.calls[0][firstArg][envelopeHeader].sdk;
+    const getSdkInfoFrom = (func: jest.Mock) => func.mock.calls[0][firstArg][envelopeHeader].sdk;
 
     test('send SdkInfo in the message envelope header', () => {
       client.captureMessage('message_test_value');
@@ -312,7 +355,9 @@ describe('Tests ReactNativeClient', () => {
       client.captureEvent({ message: 'test event' });
 
       expect(mockedSend).toBeCalled();
-      const actualEvent: Event | undefined = <Event>mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
+      const actualEvent: Event | undefined = <Event>(
+        mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload]
+      );
       expect(actualEvent?.sdk?.packages).toEqual([
         {
           name: SDK_PACKAGE_NAME,
@@ -344,7 +389,9 @@ describe('Tests ReactNativeClient', () => {
       client.captureEvent(circularEvent);
 
       expect(mockedSend).toBeCalled();
-      const actualEvent: Event | undefined = <Event>mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
+      const actualEvent: Event | undefined = <Event>(
+        mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload]
+      );
       expect(actualEvent?.extra).toEqual({
         circular: {
           extra: '[Circular ~]',
@@ -390,9 +437,9 @@ describe('Tests ReactNativeClient', () => {
       client.captureMessage('message_test_value');
 
       expect(mockTransportSend).toBeCalledTimes(1);
-      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual(
-        { type: 'client_report' }
-      );
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual({
+        type: 'client_report',
+      });
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemPayload]).toEqual(
         expect.objectContaining({
           discarded_events: [
@@ -400,7 +447,7 @@ describe('Tests ReactNativeClient', () => {
               reason: 'before_send',
               category: 'error',
               quantity: 1,
-            }
+            },
           ],
         }),
       );
@@ -425,8 +472,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     test('keeps outcomes in case envelope fails to send', () => {
-      const mockTransportSend = jest.fn((_envelope: Envelope) =>
-        rejectedSyncPromise(new SentryError('Test')));
+      const mockTransportSend = jest.fn((_envelope: Envelope) => rejectedSyncPromise(new SentryError('Test')));
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
@@ -465,9 +511,9 @@ describe('Tests ReactNativeClient', () => {
 
       expect(mockTransportSend).toBeCalledTimes(2);
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems].length).toEqual(2);
-      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual(
-        { type: 'client_report' }
-      );
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual({
+        type: 'client_report',
+      });
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemPayload]).toEqual(
         expect.objectContaining({
           discarded_events: [
@@ -490,11 +536,66 @@ describe('Tests ReactNativeClient', () => {
       );
     }
 
-    function mockDroppedEvent(
-      client: ReactNativeClient,
-    ) {
+    function mockDroppedEvent(client: ReactNativeClient) {
       client.recordDroppedEvent('before_send', 'error');
     }
+  });
+
+  describe('register enabled instrumentation as integrations', () => {
+    test('register routing instrumentation', () => {
+      const mockRoutingInstrumentation: RoutingInstrumentationInstance = {
+        registerRoutingInstrumentation: jest.fn(),
+        onRouteWillChange: jest.fn(),
+        name: 'MockRoutingInstrumentation',
+      };
+      const client = new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          integrations: [
+            new ReactNativeTracing({
+              routingInstrumentation: mockRoutingInstrumentation,
+            }),
+          ],
+        }),
+      );
+      client.setupIntegrations();
+
+      expect(client.getIntegrationById('MockRoutingInstrumentation')).toBeTruthy();
+    });
+  });
+
+  describe('user interactions tracing as integrations', () => {
+    test('register user interactions tracing', () => {
+      const client = new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          integrations: [
+            new ReactNativeTracing({
+              enableUserInteractionTracing: true,
+            }),
+          ],
+        }),
+      );
+      client.setupIntegrations();
+
+      expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeTruthy();
+    });
+
+    test('do not register user interactions tracing', () => {
+      const client = new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          integrations: [
+            new ReactNativeTracing({
+              enableUserInteractionTracing: false,
+            }),
+          ],
+        }),
+      );
+      client.setupIntegrations();
+
+      expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeUndefined();
+    });
   });
 });
 

@@ -1,0 +1,14 @@
+apps:
+  - name: io.sentry.rn.perf-test-app-plain
+    path: test-app-plain.ipa
+  - name: io.sentry.rn.perf-test-app-sentry
+    path: test-app-sentry.ipa
+
+startupTimeTest:
+  runs: 50
+  diffMin: 0
+  diffMax: 150
+
+binarySizeTest:
+  diffMin: 200 KiB
+  diffMax: 600 KiB
