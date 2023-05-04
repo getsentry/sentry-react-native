@@ -1,6 +1,7 @@
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 #import <Sentry/SentryOptions.h>
+#import <Sentry/SentryEvent.h>
 #import "RNSentry.h"
 
 @interface RNSentryInitNativeSdkTests : XCTestCase
@@ -132,6 +133,24 @@
 
     XCTAssertNil(actualOptions, @"Created invalid sentry options");
     XCTAssertNotNil(error, @"Did not created error on invalid dsn");
+}
+
+- (void)testEventFromSentryCocoaHasOriginAndEnvironmentTags
+{
+  RNSentry * rnSentry = [[RNSentry alloc] init];
+  SentryEvent testEvent = [[SentryEvent alloc] init];
+  
+  
+}
+
+- (void)testEventFromSentryCocoaReactNativeHasOriginAndEnvironmentTags
+{
+  
+}
+
+- (void)testEventFromSentryReactNativeOriginAndEnvironmentTagsAreNotOverwritten
+{
+  
 }
 
 @end

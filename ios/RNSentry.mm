@@ -137,9 +137,9 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
   if (event.sdk != nil) {
     NSString *sdkName = event.sdk[@"name"];
 
-    // If the event is from react native, it gets set there and we do not handle
-    // it here.
-    if ([sdkName isEqualToString:@"sentry.cocoa"]) {
+    // If the event is from react native, it gets set
+    // there and we do not handle it here.
+    if ([sdkName hasPrefix:@"sentry.cocoa"]) {
       [self setEventEnvironmentTag:event origin:@"ios" environment:@"native"];
     }
   }
