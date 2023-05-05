@@ -8,6 +8,7 @@ import {
   ButtonProps,
   StyleSheet,
   NativeModules,
+  Platform,
 } from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
@@ -19,7 +20,7 @@ import { UserFeedbackModal } from '../components/UserFeedbackModal';
 import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
 
-const { AssetsModule } = NativeModules;
+const { AssetsModule, CppModule } = NativeModules;
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -118,7 +119,14 @@ const HomeScreen = (props: Props) => {
             NativeSampleModule?.crash();
           }}
         />
-
+        {Platform.OS === 'android' && (
+          <Button
+            title="Crash in Android Cpp"
+            onPress={() => {
+              CppModule?.crashCpp();
+            }}
+          />
+        )}
         <Spacer />
 
         <Sentry.ErrorBoundary fallback={errorBoundaryFallback}>
