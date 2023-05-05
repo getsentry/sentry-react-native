@@ -119,14 +119,14 @@ const HomeScreen = (props: Props) => {
             NativeSampleModule?.crash();
           }}
         />
-        {Platform.OS === 'android' &&
+        {Platform.OS === 'android' && (
           <Button
             title="Crash in Android Cpp"
             onPress={() => {
               CppModule?.crashCpp();
             }}
           />
-        }
+        )}
         <Spacer />
 
         <Sentry.ErrorBoundary fallback={errorBoundaryFallback}>
