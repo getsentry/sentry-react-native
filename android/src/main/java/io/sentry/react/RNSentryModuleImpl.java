@@ -10,7 +10,6 @@ import android.content.res.AssetManager;
 import android.util.SparseIntArray;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.NonNull;
 import androidx.core.app.FrameMetricsAggregator;
 
 import com.facebook.react.bridge.Arguments;
@@ -69,6 +68,7 @@ public class RNSentryModuleImpl {
 
     public static final String NAME = "RNSentry";
 
+    private static final String ANDROID_SDK_NAME = "sentry.java.android.react-native";
     private static final ILogger logger = new AndroidLogger(NAME);
     private static final BuildInfoProvider buildInfo = new BuildInfoProvider(logger);
     private static final String modulesPath = "modules.json";
@@ -104,12 +104,11 @@ public class RNSentryModuleImpl {
 
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
-            @NonNull final String sdkName = "sentry.java.android.react-native";
             @Nullable SdkVersion sdkVersion = options.getSdkVersion();
             if (sdkVersion == null) {
-                sdkVersion = new SdkVersion(sdkName, BuildConfig.VERSION_NAME);
+                sdkVersion = new SdkVersion(ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
             } else {
-                sdkVersion.setName(sdkName);
+                sdkVersion.setName(ANDROID_SDK_NAME);
             }
 
             options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
@@ -624,7 +623,7 @@ public class RNSentryModuleImpl {
                 case "sentry.native":
                     setEventEnvironmentTag(event, "native");
                     break;
-                case "sentry.java.android":
+                case ANDROID_SDK_NAME:
                     setEventEnvironmentTag(event, "java");
                     break;
                 default:
