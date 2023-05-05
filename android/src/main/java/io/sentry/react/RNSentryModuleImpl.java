@@ -68,6 +68,7 @@ public class RNSentryModuleImpl {
 
     public static final String NAME = "RNSentry";
 
+    private static final String NATIVE_SDK_NAME = "sentry.native.android";
     private static final String ANDROID_SDK_NAME = "sentry.java.android.react-native";
     private static final ILogger logger = new AndroidLogger(NAME);
     private static final BuildInfoProvider buildInfo = new BuildInfoProvider(logger);
@@ -620,7 +621,7 @@ public class RNSentryModuleImpl {
             switch (sdk.getName()) {
                 // If the event is from capacitor js, it gets set there and we do not handle it
                 // here.
-                case "sentry.native":
+                case NATIVE_SDK_NAME:
                     setEventEnvironmentTag(event, "native");
                     break;
                 case ANDROID_SDK_NAME:
