@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.facebook.react.bridge.JavaScriptExecutorFactory;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.module.model.ReactModuleInfo;
@@ -17,7 +18,7 @@ public class RNSentryPackage extends TurboReactPackage {
   @Override
   public NativeModule getModule(String name, ReactApplicationContext reactContext) {
     if (name.equals(RNSentryModuleImpl.NAME)) {
-      return new RNSentryModule(reactContext);
+      return new io.sentry.react.RNSentryModule(reactContext);
     } else {
       return null;
     }

@@ -79,6 +79,9 @@ interface SentryNativeWrapper {
 
   fetchModules(): Promise<Record<string, string> | null>;
   fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
+
+  startProfiling(): Promise<void>;
+  stopProfiling(): Promise<void>;
 }
 
 /**
@@ -493,6 +496,31 @@ export const NATIVE: SentryNativeWrapper = {
 
     const raw = await RNSentry.fetchViewHierarchy();
     return raw ? new Uint8Array(raw) : null;
+  },
+
+  async startProfiling(): Promise<void> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    const { error } = await RNSentry.startProfiling();
+    logger.error(error);
+  },
+
+  async stopProfiling(): Promise<void> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    const { error, data } = await RNSentry.stopProfiling();
+    logger.error(error);
+    logger.log(data);
   },
 
   /**

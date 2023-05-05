@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.FrameMetricsAggregator;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.JavaScriptExecutorFactory;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
@@ -26,9 +27,12 @@ import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -69,6 +73,8 @@ public class RNSentryModuleImpl {
 
     public static final String NAME = "RNSentry";
 
+    private static JavaScriptExecutorFactory javaScriptExecutorFactory = null;
+
     private static final ILogger logger = new AndroidLogger(NAME);
     private static final BuildInfoProvider buildInfo = new BuildInfoProvider(logger);
     private static final String modulesPath = "modules.json";
@@ -87,6 +93,10 @@ public class RNSentryModuleImpl {
     private static final int SLOW_FRAME_THRESHOLD = 16;
 
     private static final int SCREENSHOT_TIMEOUT_SECONDS = 2;
+
+    public static void setJavaScriptExecutorFactory(JavaScriptExecutorFactory javaScriptExecutorFactory) {
+        RNSentryModuleImpl.javaScriptExecutorFactory = javaScriptExecutorFactory;
+    }
 
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
         packageInfo = getPackageInfo(reactApplicationContext);
@@ -613,6 +623,46 @@ public class RNSentryModuleImpl {
             frameMetricsAggregator.stop();
             frameMetricsAggregator = null;
         }
+    }
+
+    public void startProfiling(Promise promise) {
+        final WritableMap result = new WritableNativeMap();
+        try {
+            RNSentryModuleImpl.javaScriptExecutorFactory.startSamplingProfiler();
+        } catch (UnsupportedOperationException e) {
+            String error = javaScriptExecutorFactory.toString() + "does not support Sampling Profiler";
+            logger.log(SentryLevel.ERROR, error);
+            result.putString("error", error);
+        }
+        promise.resolve(result);
+    }
+
+    public void stopProfiling(Promise promise) {
+        final WritableMap result = new WritableNativeMap();
+        try {
+            final File output = File.createTempFile(
+        "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
+            RNSentryModuleImpl.javaScriptExecutorFactory.stopSamplingProfiler(output.getPath());
+
+            StringBuilder text = new StringBuilder();
+            BufferedReader br = new BufferedReader(new FileReader(output));
+            String line;
+            while ((line = br.readLine()) != null) {
+                text.append(line);
+                text.append('\n');
+            }
+
+            result.putString("data", text.toString());
+        } catch (IOException e) {
+            final String error = "Could not create temporary file for saving results from Sampling Profiler";
+            logger.log(SentryLevel.ERROR, error);
+            result.putString("error", error);
+        } catch (UnsupportedOperationException e) {
+            final String error = javaScriptExecutorFactory.toString() + "does not support Sampling Profiler";
+            logger.log(SentryLevel.ERROR, error);
+            result.putString("error", error);
+        }
+        promise.resolve(result);
     }
 
     private void setEventOriginTag(SentryEvent event) {

@@ -1,21 +1,32 @@
 package com.samplenewarchitecture;
 
 import android.app.Application;
+
+import com.facebook.hermes.reactexecutor.HermesExecutorFactory;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
+import com.facebook.react.bridge.JavaScriptExecutor;
+import com.facebook.react.bridge.JavaScriptExecutorFactory;
+import com.facebook.react.common.JavascriptException;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactNativeHost;
 import com.facebook.soloader.SoLoader;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
+import io.sentry.react.RNSentryModuleImpl;
 import io.sentry.react.RNSentryPackage;
 
 public class MainApplication extends Application implements ReactApplication {
 
+  private final JavaScriptExecutorFactory mJavaScriptExecutorFactory = new HermesExecutorFactory();
+
   private final ReactNativeHost mReactNativeHost =
       new DefaultReactNativeHost(this) {
+
         @Override
         public boolean getUseDeveloperSupport() {
           return BuildConfig.DEBUG;
@@ -51,6 +62,12 @@ public class MainApplication extends Application implements ReactApplication {
         @Override
         protected Boolean isHermesEnabled() {
           return BuildConfig.IS_HERMES_ENABLED;
+        }
+
+        @Override
+        protected @Nullable JavaScriptExecutorFactory getJavaScriptExecutorFactory() {
+            RNSentryModuleImpl.setJavaScriptExecutorFactory(mJavaScriptExecutorFactory);
+            return mJavaScriptExecutorFactory;
         }
       };
 

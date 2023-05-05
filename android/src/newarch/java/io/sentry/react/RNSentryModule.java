@@ -2,6 +2,7 @@ package io.sentry.react;
 
 import androidx.annotation.NonNull;
 
+import com.facebook.react.bridge.JavaScriptExecutorFactory;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
@@ -120,5 +121,15 @@ public class RNSentryModule extends NativeRNSentrySpec {
     @Override
     public void fetchNativeSdkInfo(Promise promise) {
         // Not used on android
+    }
+
+    @Override
+    public void startProfiling(Promise promise) {
+        this.impl.startProfiling(promise);
+    }
+
+    @Override
+    public void stopProfiling(Promise promise) {
+        this.impl.stopProfiling(promise);
     }
 }

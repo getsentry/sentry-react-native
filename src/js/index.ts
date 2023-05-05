@@ -50,6 +50,8 @@ import { SDK_NAME, SDK_VERSION } from './version';
 export { ReactNativeOptions } from './options';
 export { ReactNativeClient } from './client';
 
+export { NATIVE } from './wrapper';
+
 export {
   init,
   wrap,

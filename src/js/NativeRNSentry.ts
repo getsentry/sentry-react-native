@@ -31,6 +31,8 @@ export interface Spec extends TurboModule {
   enableNativeFramesTracking(): void;
   fetchModules(): Promise<string | undefined | null>;
   fetchViewHierarchy(): Promise<number[] | undefined | null>;
+  startProfiling(): Promise<{ error?: string }>;
+  stopProfiling(): Promise<{ data?: string, error?: string }>;
 }
 
 export type NativeAppStartResponse = {
