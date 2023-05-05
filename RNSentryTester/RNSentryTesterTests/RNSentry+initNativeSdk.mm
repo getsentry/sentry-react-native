@@ -1,6 +1,7 @@
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 #import <Sentry/SentryOptions.h>
+#import <Sentry/SentryEvent.h>
 #import "RNSentry.h"
 
 @interface RNSentryInitNativeSdkTests : XCTestCase
@@ -132,6 +133,38 @@
 
     XCTAssertNil(actualOptions, @"Created invalid sentry options");
     XCTAssertNotNil(error, @"Did not created error on invalid dsn");
+}
+
+- (void)testEventFromSentryCocoaReactNativeHasOriginAndEnvironmentTags
+{
+  RNSentry* rnSentry = [[RNSentry alloc] init];
+  SentryEvent* testEvent = [[SentryEvent alloc] init];
+  testEvent.sdk = @{
+    @"name": @"sentry.cocoa.react-native"
+  };
+
+  [rnSentry setEventOriginTag: testEvent];
+  
+  XCTAssertEqual(testEvent.tags[@"event.origin"], @"ios");
+  XCTAssertEqual(testEvent.tags[@"event.environment"], @"native");
+}
+
+- (void)testEventFromSentryReactNativeOriginAndEnvironmentTagsAreOverwritten
+{
+  RNSentry* rnSentry = [[RNSentry alloc] init];
+  SentryEvent* testEvent = [[SentryEvent alloc] init];
+  testEvent.sdk = @{
+    @"name": @"sentry.cocoa.react-native"
+  };
+  testEvent.tags = @{
+    @"event.origin": @"testEventOriginTag",
+    @"event.environment": @"testEventEnvironmentTag"
+  };
+  
+  [rnSentry setEventOriginTag: testEvent];
+  
+  XCTAssertEqual(testEvent.tags[@"event.origin"], @"ios");
+  XCTAssertEqual(testEvent.tags[@"event.environment"], @"native");
 }
 
 @end

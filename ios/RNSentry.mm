@@ -30,6 +30,8 @@
 
 static bool didFetchAppStart;
 
+static NSString* const nativeSdkName = @"sentry.cocoa.react-native";
+
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
 }
@@ -56,9 +58,8 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         return;
     }
 
-    NSString *sdkName = @"sentry.cocoa.react-native";
     NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
-    [PrivateSentrySDKOnly setSdkName: sdkName andVersionString: sdkVersion];
+    [PrivateSentrySDKOnly setSdkName: nativeSdkName andVersionString: sdkVersion];
 
     [SentrySDK startWithOptions:sentryOptions];
 
@@ -137,9 +138,9 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
   if (event.sdk != nil) {
     NSString *sdkName = event.sdk[@"name"];
 
-    // If the event is from react native, it gets set there and we do not handle
-    // it here.
-    if ([sdkName isEqualToString:@"sentry.cocoa"]) {
+    // If the event is from react native, it gets set
+    // there and we do not handle it here.
+    if ([sdkName isEqual:nativeSdkName]) {
       [self setEventEnvironmentTag:event origin:@"ios" environment:@"native"];
     }
   }

@@ -91,3 +91,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
             &facebook::react::registerComponents;
   });
 }
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_samplenewarchitecture_SamplePackage_crash(JNIEnv *env, jobject thiz) {
+  char *ptr = 0;
+  *ptr += 1;
+}
