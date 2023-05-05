@@ -5,6 +5,7 @@
 ### Fixes
 
 - Fix `event.origin` and `event.environment` on unhandled exception ([#3041](https://github.com/getsentry/sentry-react-native/pull/3041))
+- Don't pass `enableTracing` from RN to `sentry-cocoa` options ([#3042](https://github.com/getsentry/sentry-react-native/pull/3042))
 
 ## 5.4.1
 

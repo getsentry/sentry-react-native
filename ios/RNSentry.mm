@@ -106,6 +106,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     // The user could tho initialize the SDK manually and set themselves.
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
+    [mutableOptions removeObjectForKey:@"enableTracing"];
 
     SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:errorPointer];
     if (*errorPointer != nil) {
