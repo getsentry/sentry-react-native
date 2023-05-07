@@ -1,4 +1,5 @@
 import type { Context, Event, EventHint, EventProcessor, Integration } from '@sentry/types';
+import * as ReactNativeVersion from 'react-native/Libraries/Core/ReactNativeVersion';
 
 import { isFabricEnabled, isHermesEnabled, isTurboModuleEnabled } from '../utils/environment';
 import type { ReactNativeError } from './debugsymbolicator';
@@ -32,6 +33,7 @@ export class ReactNativeInfo implements Integration {
       const reactNativeContext: ReactNativeContext = {
         turbo_module: isTurboModuleEnabled(),
         fabric: isFabricEnabled(),
+        react_native_version: ReactNativeVersion.version,
       };
 
       if (isHermesEnabled()) {

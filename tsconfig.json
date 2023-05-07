@@ -5,7 +5,8 @@
     "src/js/*.ts",
     "src/js/*.tsx",
     "test/**/*.ts",
-    "test/**/*.tsx"
+    "test/**/*.tsx",
+    "typings/*.d.ts"
   ],
   "exclude": [
     "dist"
