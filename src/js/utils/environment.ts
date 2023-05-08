@@ -29,7 +29,9 @@ export function isExpo(): boolean {
 
 /** Returns Hermes Version if hermes is present in the runtime */
 export function getHermesVersion(): string | undefined {
-  return RN_GLOBAL_OBJ.HermesInternal
-    && RN_GLOBAL_OBJ.HermesInternal.getRuntimeProperties
-    && RN_GLOBAL_OBJ.HermesInternal.getRuntimeProperties()['OSS Release Version'];
+  return (
+    RN_GLOBAL_OBJ.HermesInternal &&
+    RN_GLOBAL_OBJ.HermesInternal.getRuntimeProperties &&
+    RN_GLOBAL_OBJ.HermesInternal.getRuntimeProperties()['OSS Release Version']
+  );
 }

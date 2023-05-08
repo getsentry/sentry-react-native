@@ -1,6 +1,13 @@
 import type { Context, Event, EventHint, EventProcessor, Integration } from '@sentry/types';
 
-import { getHermesVersion, getReactNativeVersion, isExpo, isFabricEnabled, isHermesEnabled, isTurboModuleEnabled } from '../utils/environment';
+import {
+  getHermesVersion,
+  getReactNativeVersion,
+  isExpo,
+  isFabricEnabled,
+  isHermesEnabled,
+  isTurboModuleEnabled,
+} from '../utils/environment';
 import type { ReactNativeError } from './debugsymbolicator';
 
 export interface ReactNativeContext extends Context {
