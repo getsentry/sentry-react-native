@@ -77,13 +77,13 @@ describe('Scope', () => {
     test('object is normalized when passing to the native layer', () => {
       const breadcrumb: Breadcrumb = {
         data: {
-          foo: undefined,
+          foo: NaN,
         },
       };
       scope.addBreadcrumb(breadcrumb);
       expect(nativeAddBreadcrumbMock).toBeCalledWith(
         expect.objectContaining({
-          data: { foo: '[undefined]' },
+          data: { foo: '[NaN]' },
         }),
       );
     });
