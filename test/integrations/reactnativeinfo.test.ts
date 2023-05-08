@@ -7,11 +7,17 @@ import { ReactNativeInfo } from '../../src/js/integrations/reactnativeinfo';
 let mockedIsHermesEnabled: jest.Mock<boolean, []>;
 let mockedIsTurboModuleEnabled: jest.Mock<boolean, []>;
 let mockedIsFabricEnabled: jest.Mock<boolean, []>;
+let mockedGetReactNativeVersion: jest.Mock<string, []>;
+let mockedGetHermesVersion: jest.Mock<string | undefined, []>;
+let mockedIsExpo: jest.Mock<boolean, []>;
 
 jest.mock('../../src/js/utils/environment', () => ({
   isHermesEnabled: () => mockedIsHermesEnabled(),
   isTurboModuleEnabled: () => mockedIsTurboModuleEnabled(),
   isFabricEnabled: () => mockedIsFabricEnabled(),
+  getReactNativeVersion: () => mockedGetReactNativeVersion(),
+  getHermesVersion: () => mockedGetHermesVersion(),
+  isExpo: () => mockedIsExpo(),
 }));
 
 describe('React Native Info', () => {
@@ -19,6 +25,9 @@ describe('React Native Info', () => {
     mockedIsHermesEnabled = jest.fn().mockReturnValue(false);
     mockedIsTurboModuleEnabled = jest.fn().mockReturnValue(false);
     mockedIsFabricEnabled = jest.fn().mockReturnValue(false);
+    mockedGetReactNativeVersion = jest.fn().mockReturnValue('1000.0.0-test');
+    mockedGetHermesVersion = jest.fn().mockReturnValue(undefined);
+    mockedIsExpo = jest.fn().mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -39,6 +48,8 @@ describe('React Native Info', () => {
         react_native_context: <ReactNativeContext>{
           turbo_module: false,
           fabric: false,
+          react_native_version: '1000.0.0-test',
+          expo: false,
         },
       },
     });
