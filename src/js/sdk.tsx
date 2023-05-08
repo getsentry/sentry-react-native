@@ -138,6 +138,7 @@ export function init(passedOptions: ReactNativeOptions): void {
 /**
  * Inits the Sentry React Native SDK with automatic instrumentation and wrapped features.
  */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function wrap<P = {}>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions
