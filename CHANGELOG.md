@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add `expo`, `react_native_version` and `hermes_version` to React Native Context ([#3050](https://github.com/getsentry/sentry-react-native/pull/3050))
+
 ### Fixes
 
 - Fix `event.origin` and `event.environment` on unhandled exception ([#3041](https://github.com/getsentry/sentry-react-native/pull/3041))
