@@ -8,8 +8,8 @@ describe('normalize', () => {
     });
 
     test('converted output is normalized', () => {
-      const actualResult = convertToNormalizedObject({ foo: undefined });
-      expect(actualResult).toEqual({ foo: '[undefined]' });
+      const actualResult = convertToNormalizedObject({ foo: NaN });
+      expect(actualResult).toEqual({ foo: '[NaN]' });
     });
 
     test('converts a value to an object', () => {

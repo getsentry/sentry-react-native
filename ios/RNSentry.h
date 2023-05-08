@@ -11,4 +11,6 @@
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                                   error:(NSError *_Nullable*_Nonnull)errorPointer;
 
+- (void)setEventOriginTag:(SentryEvent *)event;
+
 @end
