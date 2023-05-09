@@ -1,4 +1,9 @@
+/**
+ * @jest-environment jsdom
+ */
 import { logger } from '@sentry/utils';
+
+import { NATIVE } from '../src/js/wrapper';
 
 interface MockedClient {
   flush: jest.Mock;
@@ -26,7 +31,7 @@ jest.mock('@sentry/react', () => {
         configureScope: mockedGetCurrentHubConfigureScope,
       };
     }),
-    defaultIntegrations: [ { name: 'MockedDefaultReactIntegration', setupOnce: jest.fn() } ],
+    defaultIntegrations: [{ name: 'MockedDefaultReactIntegration', setupOnce: jest.fn() }],
   };
 });
 
@@ -48,28 +53,34 @@ jest.mock('@sentry/hub', () => {
 
 jest.mock('../src/js/scope', () => {
   return {
-    ReactNativeScope: class ReactNativeScopeMock { },
+    ReactNativeScope: class ReactNativeScopeMock {},
   };
 });
 
 jest.mock('../src/js/client', () => {
   return {
-    ReactNativeClient: class ReactNativeClientMock { },
+    ReactNativeClient: class ReactNativeClientMock {},
   };
 });
+
+jest.mock('../src/js/wrapper');
 
 jest.spyOn(logger, 'error');
 
 import { initAndBind } from '@sentry/core';
-import { getCurrentHub } from '@sentry/react';
-import type { BaseTransportOptions,ClientOptions, Integration, Scope  } from '@sentry/types';
+import { getCurrentHub, makeFetchTransport } from '@sentry/react';
+import type { BaseTransportOptions, ClientOptions, Integration, Scope } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../src/js/options';
-import { configureScope,flush, init, withScope } from '../src/js/sdk';
+import { configureScope, flush, init, withScope } from '../src/js/sdk';
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
+import { makeNativeTransport } from '../src/js/transports/native';
 import { firstArg, secondArg } from './testutils';
 
 const mockedInitAndBind = initAndBind as jest.MockedFunction<typeof initAndBind>;
+const usedOptions = (): ClientOptions<BaseTransportOptions> | undefined => {
+  return mockedInitAndBind.mock.calls[0]?.[1];
+};
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -77,33 +88,31 @@ afterEach(() => {
 
 describe('Tests the SDK functionality', () => {
   describe('init', () => {
-    describe('enableAutoPerformanceTracking', () => {
+    describe('enableAutoPerformanceTracing', () => {
       const usedOptions = (): Integration[] => {
         const mockCall = mockedInitAndBind.mock.calls[0];
 
-          if (mockCall) {
-            const options = mockCall[1];
+        if (mockCall) {
+          const options = mockCall[1];
 
-            return options.integrations;
-          }
+          return options.integrations;
+        }
         return [];
-      }
+      };
 
       const autoPerformanceIsEnabled = (): boolean => {
-        return usedOptions().some(
-          (integration) => integration.name === ReactNativeTracing.id
-        );
+        return usedOptions().some(integration => integration.name === ReactNativeTracing.id);
       };
 
       const reactNavigationInstrumentation = (): ReactNativeTracing => {
         const nav = new ReactNavigationInstrumentation();
         return new ReactNativeTracing({ routingInstrumentation: nav });
-      }
+      };
 
       it('Auto Performance is enabled when tracing is enabled (tracesSampler)', () => {
         init({
           tracesSampler: () => true,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
         });
 
         expect(autoPerformanceIsEnabled()).toBe(true);
@@ -112,7 +121,7 @@ describe('Tests the SDK functionality', () => {
       it('Auto Performance is enabled when tracing is enabled (tracesSampleRate)', () => {
         init({
           tracesSampleRate: 0.5,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
         });
 
         expect(autoPerformanceIsEnabled()).toBe(true);
@@ -122,26 +131,26 @@ describe('Tests the SDK functionality', () => {
         const tracing = reactNavigationInstrumentation();
         init({
           tracesSampleRate: 0.5,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
           integrations: [tracing],
         });
 
         const options = usedOptions();
-        expect(options.filter((integration) => integration.name === ReactNativeTracing.id).length).toBe(1);
-        expect(options.some((integration) => integration === tracing)).toBe(true);
+        expect(options.filter(integration => integration.name === ReactNativeTracing.id).length).toBe(1);
+        expect(options.some(integration => integration === tracing)).toBe(true);
       });
 
       it('Do not overwrite user defined integrations when passing defaultIntegrations', () => {
         const tracing = reactNavigationInstrumentation();
         init({
           tracesSampleRate: 0.5,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
           defaultIntegrations: [tracing],
         });
 
         const options = usedOptions();
-        expect(options.filter((integration) => integration.name === ReactNativeTracing.id).length).toBe(1);
-        expect(options.some((integration) => integration === tracing)).toBe(true);
+        expect(options.filter(integration => integration.name === ReactNativeTracing.id).length).toBe(1);
+        expect(options.some(integration => integration === tracing)).toBe(true);
       });
     });
 
@@ -173,22 +182,16 @@ describe('Tests the SDK functionality', () => {
           expect(mockClient.flush).toBeCalled();
           expect(flushResult).toBe(false);
           // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(logger.error).toBeCalledWith(
-            'Failed to flush the event queue.'
-          );
+          expect(logger.error).toBeCalledWith('Failed to flush the event queue.');
         }
       });
     });
 
     describe('transport options buffer size', () => {
-      const usedOptions = (): ClientOptions<BaseTransportOptions> | undefined => {
-        return mockedInitAndBind.mock.calls[0]?.[1];
-      }
-
       it('uses default transport options buffer size', () => {
         init({
           tracesSampleRate: 0.5,
-          enableAutoPerformanceTracking: true,
+          enableAutoPerformanceTracing: true,
         });
         expect(usedOptions()?.transportOptions?.bufferSize).toBe(30);
       });
@@ -211,9 +214,49 @@ describe('Tests the SDK functionality', () => {
     });
   });
 
+  describe('transport initialization', () => {
+    it('uses transport from the options', () => {
+      const mockTransport = jest.fn();
+      init({
+        transport: mockTransport,
+      });
+      expect(usedOptions()?.transport).toEqual(mockTransport);
+    });
+
+    it('uses native transport', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
+      init({});
+      expect(usedOptions()?.transport).toEqual(makeNativeTransport);
+    });
+
+    it('uses fallback fetch transport', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+      init({});
+      expect(usedOptions()?.transport).toEqual(makeFetchTransport);
+    });
+
+    it('checks sdk options first', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
+      init({ enableNative: false });
+      expect(usedOptions()?.transport).toEqual(makeFetchTransport);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(NATIVE.isNativeAvailable).not.toBeCalled();
+    });
+
+    it('check both options and native availability', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
+      init({ enableNative: true });
+      expect(usedOptions()?.transport).toEqual(makeNativeTransport);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(NATIVE.isNativeAvailable).toBeCalled();
+    });
+  });
+
   describe('initIsSafe', () => {
     test('initialScope callback is safe after init', () => {
-      const mockInitialScope = jest.fn(() => { throw 'Test error' });
+      const mockInitialScope = jest.fn(() => {
+        throw 'Test error';
+      });
 
       init({ initialScope: mockInitialScope });
 
@@ -223,7 +266,9 @@ describe('Tests the SDK functionality', () => {
       expect(mockInitialScope).toBeCalledTimes(1);
     });
     test('beforeBreadcrumb callback is safe after init', () => {
-      const mockBeforeBreadcrumb = jest.fn(() => { throw 'Test error' });
+      const mockBeforeBreadcrumb = jest.fn(() => {
+        throw 'Test error';
+      });
 
       init({ beforeBreadcrumb: mockBeforeBreadcrumb });
 
@@ -234,7 +279,9 @@ describe('Tests the SDK functionality', () => {
     });
 
     test('integrations callback should not crash init', () => {
-      const mockIntegrations = jest.fn(() => { throw 'Test error' });
+      const mockIntegrations = jest.fn(() => {
+        throw 'Test error';
+      });
 
       expect(() => {
         init({ integrations: mockIntegrations });
@@ -243,7 +290,9 @@ describe('Tests the SDK functionality', () => {
     });
 
     test('tracesSampler callback is safe after init', () => {
-      const mockTraceSampler = jest.fn(() => { throw 'Test error' });
+      const mockTraceSampler = jest.fn(() => {
+        throw 'Test error';
+      });
 
       init({ tracesSampler: mockTraceSampler });
 
@@ -256,7 +305,9 @@ describe('Tests the SDK functionality', () => {
 
   describe('withScope', () => {
     test('withScope callback does not throw', () => {
-      const mockScopeCallback = jest.fn(() => { throw 'Test error' });
+      const mockScopeCallback = jest.fn(() => {
+        throw 'Test error';
+      });
 
       withScope(mockScopeCallback);
 
@@ -269,7 +320,9 @@ describe('Tests the SDK functionality', () => {
 
   describe('configureScope', () => {
     test('configureScope callback does not throw', () => {
-      const mockScopeCallback = jest.fn(() => { throw 'Test error' });
+      const mockScopeCallback = jest.fn(() => {
+        throw 'Test error';
+      });
 
       configureScope(mockScopeCallback);
 
@@ -293,6 +346,52 @@ describe('Tests the SDK functionality', () => {
       expect(actualIntegrations).toEqual([mockDefaultIntegration]);
     });
 
+    it('no http client integration by default', () => {
+      init({});
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'HttpClient' })]));
+    });
+
+    it('adds http client integration', () => {
+      init({
+        enableCaptureFailedRequests: true,
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'HttpClient' })]));
+    });
+
+    it('user defined http client integration overwrites default', () => {
+      init({
+        enableCaptureFailedRequests: true,
+        integrations: [
+          <Integration>{
+            name: 'HttpClient',
+            setupOnce: () => {},
+            isUserDefined: true,
+          },
+        ],
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            name: 'HttpClient',
+            isUserDefined: true,
+          }),
+        ]),
+      );
+      expect(actualIntegrations.filter(integration => integration.name === 'HttpClient')).toHaveLength(1);
+    });
+
     it('no screenshot integration by default', () => {
       init({});
 
@@ -311,6 +410,28 @@ describe('Tests the SDK functionality', () => {
       const actualIntegrations = actualOptions.integrations;
 
       expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Screenshot' })]));
+    });
+
+    it('no view hierarchy integration by default', () => {
+      init({});
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(
+        expect.not.arrayContaining([expect.objectContaining({ name: 'ViewHierarchy' })]),
+      );
+    });
+
+    it('adds view hierarchy integration', () => {
+      init({
+        attachViewHierarchy: true,
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'ViewHierarchy' })]));
     });
 
     it('no default integrations', () => {
@@ -335,8 +456,7 @@ describe('Tests the SDK functionality', () => {
       const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
       const actualIntegrations = actualOptions.integrations;
 
-      expect(actualIntegrations)
-        .toEqual(expect.arrayContaining([mockIntegration, mockDefaultIntegration])); // order doesn't matter
+      expect(actualIntegrations).toEqual(expect.arrayContaining([mockIntegration, mockDefaultIntegration])); // order doesn't matter
       expect(actualIntegrations.length).toBe(2); // there should be no extra unexpected integrations
     });
 
@@ -349,8 +469,7 @@ describe('Tests the SDK functionality', () => {
       const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
       const actualIntegrations = actualOptions.integrations;
 
-      expect(actualIntegrations)
-        .toEqual(expect.arrayContaining([mockIntegration]));
+      expect(actualIntegrations).toEqual(expect.arrayContaining([mockIntegration]));
       expect(actualIntegrations.length).toBeGreaterThan(1); // there should be default integrations + the test one
     });
 
@@ -408,8 +527,9 @@ describe('Tests the SDK functionality', () => {
       const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
       const actualIntegrations = actualOptions.integrations;
 
-      expect(actualIntegrations)
-        .toEqual(expect.arrayContaining([expect.objectContaining({ name: 'MockedDefaultReactIntegration' })]));
+      expect(actualIntegrations).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'MockedDefaultReactIntegration' })]),
+      );
     });
   });
 });
@@ -419,7 +539,7 @@ function getMockClient(): MockedClient {
   return mockClient;
 }
 
-function getMockedIntegration({name}: { name?: string } = {}): Integration {
+function getMockedIntegration({ name }: { name?: string } = {}): Integration {
   return {
     name: name ?? 'MockedIntegration',
     setupOnce: jest.fn(),

@@ -1,9 +1,6 @@
 export { ReactNativeTracing } from './reactnativetracing';
 
-export {
-  RoutingInstrumentation,
-  RoutingInstrumentationInstance,
-} from './routingInstrumentation';
+export { RoutingInstrumentation, RoutingInstrumentationInstance } from './routingInstrumentation';
 
 export {
   ReactNavigationInstrumentation,
@@ -13,10 +10,10 @@ export {
 export { ReactNavigationV4Instrumentation } from './reactnavigationv4';
 export { ReactNativeNavigationInstrumentation } from './reactnativenavigation';
 
-export {
-  ReactNavigationCurrentRoute,
-  ReactNavigationRoute,
-  ReactNavigationTransactionContext,
-} from './types';
+export { ReactNavigationCurrentRoute, ReactNavigationRoute, ReactNavigationTransactionContext } from './types';
 
 export { ReactNativeProfiler } from './reactnativeprofiler';
+
+export { sentryTraceGesture } from './gesturetracing';
+
+export * from './ops';

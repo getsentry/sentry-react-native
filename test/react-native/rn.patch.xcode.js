@@ -26,7 +26,7 @@ let bundleScriptRegex;
 let bundlePatchRegex;
 const symbolsScript = `
 export SENTRY_PROPERTIES=sentry.properties
-../node_modules/@sentry/cli/bin/sentry-cli upload-dsym
+../node_modules/@sentry/cli/bin/sentry-cli debug-files upload --force-foreground "$DWARF_DSYM_FOLDER_PATH"
 `;
 const symbolsPatchRegex = /sentry-cli\s+(upload-dsym|debug-files upload)/;
 if (semver.satisfies(args['rn-version'], `< ${newBundleScriptRNVersion}`)) {
@@ -37,7 +37,7 @@ export EXTRA_PACKAGER_ARGS="--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.m
 set -e
 
 export NODE_BINARY=node
-../node_modules/@sentry/cli/bin/sentry-cli react-native xcode ../node_modules/react-native/scripts/react-native-xcode.sh
+../node_modules/@sentry/cli/bin/sentry-cli react-native xcode --force-foreground ../node_modules/react-native/scripts/react-native-xcode.sh
 
 /bin/sh ../node_modules/@sentry/react-native/scripts/collect-modules.sh
 `;

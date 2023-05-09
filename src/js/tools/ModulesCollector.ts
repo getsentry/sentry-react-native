@@ -4,21 +4,21 @@ import { posix, sep } from 'path';
 
 logger.enable();
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const { dirname, join, resolve, sep: posixSep } = posix;
 
 interface Package {
-  name?: string,
-  version?: string,
+  name?: string;
+  version?: string;
 }
 
 /**
  * Collects JS modules from source paths.
  */
 export default class ModulesCollector {
-
   /** Collect method */
   public static collect(sources: unknown[], modulesPaths: string[]): Record<string, string> {
-    const normalizedModulesPaths = modulesPaths.map((modulesPath) => resolve(modulesPath.split(sep).join(posixSep)));
+    const normalizedModulesPaths = modulesPaths.map(modulesPath => resolve(modulesPath.split(sep).join(posixSep)));
 
     const infos: Record<string, string> = {};
     const seen: Record<string, true> = {};
@@ -45,11 +45,7 @@ export default class ModulesCollector {
           return;
         }
 
-        if (
-          !dir ||
-          parentDir === dir ||
-          seen[dir]
-        ) {
+        if (!dir || parentDir === dir || seen[dir]) {
           return;
         }
         seen[dir] = true;
@@ -88,10 +84,10 @@ export default class ModulesCollector {
     modulesPaths,
     collect,
   }: Partial<{
-    sourceMapPath: string,
-    outputModulesPath: string,
-    modulesPaths: string[],
-    collect: (sources: unknown[], modulesPaths: string[]) => Record<string, string>,
+    sourceMapPath: string;
+    outputModulesPath: string;
+    modulesPaths: string[];
+    collect: (sources: unknown[], modulesPaths: string[]) => Record<string, string>;
   }>): void {
     if (!sourceMapPath) {
       logger.error('First argument `source-map-path` is missing!');
@@ -128,9 +124,7 @@ export default class ModulesCollector {
     }
 
     const sources: unknown[] = map.sources;
-    const modules = collect
-      ? collect(sources, modulesPaths)
-      : ModulesCollector.collect(sources, modulesPaths);
+    const modules = collect ? collect(sources, modulesPaths) : ModulesCollector.collect(sources, modulesPaths);
 
     const outputModulesDirPath = dirname(outputModulesPath);
     if (!existsSync(outputModulesDirPath)) {
@@ -139,5 +133,4 @@ export default class ModulesCollector {
     writeFileSync(outputModulesPath, JSON.stringify(modules, null, 2));
     logger.info(`Modules collected and saved to: ${outputModulesPath}`);
   }
-
 }
