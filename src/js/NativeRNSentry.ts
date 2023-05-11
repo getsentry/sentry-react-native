@@ -33,6 +33,7 @@ export interface Spec extends TurboModule {
   fetchViewHierarchy(): Promise<number[] | undefined | null>;
   startProfiling(): Promise<{ error?: string }>;
   stopProfiling(): Promise<{ data?: string, error?: string }>;
+  getUptimeTimestampNs(): Promise<number>;
 }
 
 export type NativeAppStartResponse = {

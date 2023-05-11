@@ -24,6 +24,7 @@ import type {
 import type { ReactNativeClientOptions } from './options';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
+import type * as Hermes from './utils/hermes';
 import { utf8ToBytes } from './vendor';
 
 const RNSentry: Spec | undefined = isTurboModuleEnabled()
@@ -81,7 +82,8 @@ interface SentryNativeWrapper {
   fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
 
   startProfiling(): Promise<void>;
-  stopProfiling(): Promise<void>;
+  stopProfiling(): Promise<Hermes.Profile>;
+  getUptimeTimestampNs(): Promise<number>;
 }
 
 /**
@@ -510,7 +512,7 @@ export const NATIVE: SentryNativeWrapper = {
     logger.error(error);
   },
 
-  async stopProfiling(): Promise<void> {
+  async stopProfiling(): Promise<Hermes.Profile> {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -521,6 +523,20 @@ export const NATIVE: SentryNativeWrapper = {
     const { error, data } = await RNSentry.stopProfiling();
     logger.error(error);
     logger.log(data);
+    // TODO: safe parse/parse on native side
+    return JSON.parse(data || '') as Hermes.Profile;
+  },
+
+  async getUptimeTimestampNs(): Promise<number> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    const uptime = await RNSentry.getUptimeTimestampNs();
+    return uptime;
   },
 
   /**

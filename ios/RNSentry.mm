@@ -11,6 +11,10 @@
 #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
 
+//#ifdef SENTRY_PROFILING_ENABLED
+#import <hermes/hermes.h>
+//#endif
+
 // Thanks to this guard, we won't import this header when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED
 #import "RNSentrySpec.h"
@@ -496,6 +500,48 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // If you're starting the Cocoa SDK manually,
     // you can set the 'enableAutoPerformanceTracing: true' option and
     // the 'tracesSampleRate' or 'tracesSampler' option.
+}
+
+RCT_EXPORT_METHOD(startProfiling:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+//#ifdef SENTRY_PROFILING_ENABLED
+    facebook::hermes::HermesRuntime::enableSamplingProfiler();
+    resolve(@{});
+//#else
+//  NSLog(@"Use SENTRY_PROFILING_ENABLED env to build with enabled profiling");
+//#endif
+}
+
+RCT_EXPORT_METHOD(stopProfiling:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+//#ifdef SENTRY_PROFILING_ENABLED
+    facebook::hermes::HermesRuntime::disableSamplingProfiler();
+    std::stringstream ss;
+    facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
+    
+    std::string s = ss.str();
+    NSString *data = [NSString stringWithCString:s.c_str() encoding:[NSString defaultCStringEncoding]];
+    
+    [data writeToFile:[NSString stringWithFormat:@"%@/cpu_profile.json", NSHomeDirectory()]
+                       atomically:NO
+                             encoding:NSStringEncodingConversionAllowLossy
+                                    error:nil];
+    
+    NSLog(@"file path %@", [NSString stringWithFormat:@"%@/cpu_profile.json", NSHomeDirectory()]);
+    resolve(@{ @"data": data });
+//#else
+//  NSLog(@"Use SENTRY_PROFILING_ENABLED env to build with enabled profiling");
+//#endif
+}
+
+RCT_EXPORT_METHOD(getUptimeTimestampNs:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  double uptimeSeconds = [[NSProcessInfo processInfo] systemUptime];
+  double uptimeNanoSeconds = uptimeSeconds * 10e9;
+  resolve([[NSNumber alloc] initWithDouble: uptimeNanoSeconds]);
 }
 
 // Thanks to this guard, we won't compile this code when we build for the old architecture.
