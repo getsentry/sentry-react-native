@@ -245,8 +245,6 @@ jobs:
     name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
     runs-on: macos-latest
     env:
-      SENTRY_RELEASE_RAW: e2e/${{ github.ref }}
-      SENTRY_DIST: ${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ github.sha }}
       RN_SENTRY_POD_NAME: RNSentry
       RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
     strategy:
@@ -266,6 +264,21 @@ jobs:
             rn-architecture: 'new'
     steps:
       - uses: actions/checkout@v3
+
+      - name: Sentry Release
+        run: |
+          SENTRY_RELEASE_CANDIDATE=$(echo 'e2e/${{ github.ref }}' | perl -pe 's/\//-/g')
+          echo "SENTRY_RELEASE=$SENTRY_RELEASE_CANDIDATE" >> $GITHUB_ENV
+
+      - name: Sentry Dist
+        run: |
+          SENTRY_DIST_CANDIDATE=${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-${GITHUB_SHA:0:8}
+          echo "SENTRY_DIST=$SENTRY_DIST_CANDIDATE" >> $GITHUB_ENV
+
+      - name: Sentry Envs
+        run: |
+          echo "SENTRY_RELEASE=$SENTRY_RELEASE"
+          echo "SENTRY_DIST=$SENTRY_DIST"
 
       - uses: actions/setup-java@v3
         with:
@@ -306,7 +319,6 @@ jobs:
       - name: Build E2E Tests Library
         working-directory: test/e2e
         run: |
-          SENTRY_RELEASE=$(echo $SENTRY_RELEASE_RAW | perl -pe 's/\//-/g')
           perl -i -pe"s/<sentry_release>/$SENTRY_RELEASE/g" src/EndToEndTests.tsx
           perl -i -pe"s/<sentry_dist>/$SENTRY_DIST/g" src/EndToEndTests.tsx
           yarn build
@@ -366,7 +378,6 @@ jobs:
         if: ${{ matrix.platform == 'android' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/android
         run: |
-          export SENTRY_RELEASE=$(echo $SENTRY_RELEASE_RAW | perl -pe 's/\//-/g')
           if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
             perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
             echo 'New Architecture enabled'
@@ -379,7 +390,6 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
-          export SENTRY_RELEASE=$(echo $SENTRY_RELEASE_RAW | perl -pe 's/\//-/g')
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"
           mkdir -p "DerivedData"
