@@ -66,10 +66,12 @@ describe('React Native Info', () => {
 
     expectMocksToBeCalledOnce();
     expect(actualEvent?.tags?.hermes).toEqual('true');
-    expect(actualEvent?.contexts?.react_native_context).toEqual(expect.objectContaining({
-      js_engine: 'hermes',
-      hermes_version: 'for RN 999.0.0',
-    }));
+    expect(actualEvent?.contexts?.react_native_context).toEqual(
+      expect.objectContaining({
+        js_engine: 'hermes',
+        hermes_version: 'for RN 999.0.0',
+      }),
+    );
   });
 
   it('does not override existing hermes tag', async () => {
