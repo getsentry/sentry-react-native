@@ -18,8 +18,10 @@ const EndToEndTestsScreen = (): JSX.Element => {
   // We only do this to render the eventId onto the UI for end to end tests.
   React.useEffect(() => {
     Sentry.init({
+      release: '<sentry_release>',
+      dist: '<sentry_dist>',
       dsn: SENTRY_INTERNAL_DSN,
-      beforeSend: (e) => {
+      beforeSend: (e: Sentry.Event) => {
         setEventId(e.event_id || null);
         return e;
       },

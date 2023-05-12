@@ -245,6 +245,8 @@ jobs:
     name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
     runs-on: macos-latest
     env:
+      SENTRY_RELEASE: ${{ github.workflow }}/${{ github.ref }}
+      SENTRY_DIST: ${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ github.sha }}
       RN_SENTRY_POD_NAME: RNSentry
       RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
     strategy:
@@ -303,7 +305,10 @@ jobs:
 
       - name: Build E2E Tests Library
         working-directory: test/e2e
-        run: yarn build
+        run: |
+          perl -i -pe"s/<sentry_release>/$SENTRY_RELEASE/g" src/EndToEndTests.tsx
+          perl -i -pe"s/<sentry_dist>/$SENTRY_DIST/g" src/EndToEndTests.tsx
+          yarn build
 
       - name: Package SDK
         run: yalc publish
