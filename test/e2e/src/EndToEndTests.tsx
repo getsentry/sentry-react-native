@@ -3,7 +3,6 @@ import * as Sentry from '@sentry/react-native';
 import * as React from 'react';
 import { Text, View } from 'react-native';
 
-import { SENTRY_INTERNAL_DSN } from './dsn';
 import { getTestProps } from './utils/getTestProps';
 
 export { getTestProps };
@@ -14,18 +13,14 @@ export { getTestProps };
 const EndToEndTestsScreen = (): JSX.Element => {
   const [eventId, setEventId] = React.useState<string | null | undefined>();
 
-  // !!! WARNING: Do not put Sentry.init inside React.useEffect like we do here. This is only for testing purposes.
+  // !!! WARNING: This is only for testing purposes.
   // We only do this to render the eventId onto the UI for end to end tests.
   React.useEffect(() => {
-    Sentry.init({
-      release: '<sentry_release>',
-      dist: '<sentry_dist>',
-      dsn: SENTRY_INTERNAL_DSN,
-      beforeSend: (e: Sentry.Event) => {
-        setEventId(e.event_id || null);
-        return e;
-      },
-    });
+    const client: Sentry.ReactNativeClient | undefined = Sentry.getCurrentHub().getClient();
+    client.getOptions().beforeSend = (e: Sentry.Event) => {
+      setEventId(e.event_id || null);
+      return e;
+    };
   }, []);
 
   return (
@@ -49,13 +44,6 @@ const EndToEndTestsScreen = (): JSX.Element => {
         captureException
       </Text>
       <Text
-        {...getTestProps('throwNewError')}
-        onPress={() => {
-          throw new Error('throw new error test');
-        }}>
-        throw new Error
-      </Text>
-      <Text
         onPress={async () => {
           await Promise.reject(new Error('Unhandled Promise Rejection'));
         }}
@@ -68,12 +56,6 @@ const EndToEndTestsScreen = (): JSX.Element => {
           await Sentry.close();
         }}>
         close
-      </Text>
-      <Text
-        onPress={() => {
-          Sentry.nativeCrash();
-        }}>
-        nativeCrash
       </Text>
     </View>
   );

@@ -318,10 +318,7 @@ jobs:
 
       - name: Build E2E Tests Library
         working-directory: test/e2e
-        run: |
-          perl -i -pe"s/<sentry_release>/$SENTRY_RELEASE/g" src/EndToEndTests.tsx
-          perl -i -pe"s/<sentry_dist>/$SENTRY_DIST/g" src/EndToEndTests.tsx
-          yarn build
+        run: yarn build
 
       - name: Package SDK
         run: yalc publish
