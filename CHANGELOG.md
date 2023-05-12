@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add `expo`, `react_native_version` and `hermes_version` to React Native Context ([#3050](https://github.com/getsentry/sentry-react-native/pull/3050))
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.51.1 to v7.51.2 ([#3054](https://github.com/getsentry/sentry-react-native/pull/3054))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7512)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.51.1...7.51.2)
+
 ## 5.4.2
 
 ### Fixes
