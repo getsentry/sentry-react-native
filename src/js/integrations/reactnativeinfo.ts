@@ -48,7 +48,10 @@ export class ReactNativeInfo implements Integration {
 
       if (isHermesEnabled()) {
         reactNativeContext.js_engine = 'hermes';
-        reactNativeContext.hermes_version = getHermesVersion();
+        const hermesVersion = getHermesVersion();
+        if (hermesVersion) {
+          reactNativeContext.hermes_version = getHermesVersion();
+        }
       } else if (reactNativeError?.jsEngine) {
         reactNativeContext.js_engine = reactNativeError.jsEngine;
       }

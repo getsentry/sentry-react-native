@@ -1,10 +1,12 @@
 # Changelog
 
-## 5.4.2
+## Unreleased
 
 ### Features
 
 - Add `expo`, `react_native_version` and `hermes_version` to React Native Context ([#3050](https://github.com/getsentry/sentry-react-native/pull/3050))
+
+## 5.4.2
 
 ### Fixes
 
