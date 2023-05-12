@@ -29,6 +29,7 @@ export interface ThreadCpuProfile {
   thread_metadata: Record<ThreadId, { name?: string; priority?: number }>;
 }
 
+const UNKNOWN_FRAME_FUNCTION_NAME = '<unknown>';
 const UNKNOWN_STACK_ID = -1;
 const JS_THREAD_NAME = 'JavaScriptThread';
 const JS_THREAD_PRIORITY = 1;
@@ -114,8 +115,10 @@ export function convertToSentryProfile(
       hermesFrameChildMap.set(Number(key), hermesFrame.parent);
     }
 
+    const stackFrameName = parseHermesStackFrameName(hermesFrame.name);
     framesMap.set(key, {
-      function: hermesFrame.name, // TODO: parse function name and file from name field of hermes stack frame
+      function: stackFrameName.function || UNKNOWN_FRAME_FUNCTION_NAME,
+      file: stackFrameName.fileName,
       line: hermesFrame.line !== undefined ? Number(hermesFrame.line) : undefined,
       column: hermesFrame.column !== undefined ? Number(hermesFrame.column): undefined,
     });
@@ -153,4 +156,22 @@ export function convertToSentryProfile(
     stacks,
     thread_metadata,
   };
+}
+
+type HermesStackFrameNameParsed = {
+  function?: string;
+  fileName?: string;
+};
+const fileNameRegex = /([a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+):(\d+:\d+)\)$/;
+/**
+ *
+ */
+export function parseHermesStackFrameName(name: string): HermesStackFrameNameParsed {
+  const result: HermesStackFrameNameParsed = {};
+  const match = fileNameRegex.exec(name);
+  if (match) {
+    result.fileName = match[1];
+  }
+  result.function = name.split('(')[0]
+  return result;
 }
