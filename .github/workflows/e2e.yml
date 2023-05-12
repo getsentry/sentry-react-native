@@ -245,7 +245,7 @@ jobs:
     name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
     runs-on: macos-latest
     env:
-      SENTRY_RELEASE_RAW: ${{ github.workflow }}/${{ github.ref }}
+      SENTRY_RELEASE_RAW: e2e/${{ github.ref }}
       SENTRY_DIST: ${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ github.sha }}
       RN_SENTRY_POD_NAME: RNSentry
       RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
