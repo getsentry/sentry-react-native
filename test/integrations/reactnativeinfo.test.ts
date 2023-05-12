@@ -7,18 +7,27 @@ import { ReactNativeInfo } from '../../src/js/integrations/reactnativeinfo';
 let mockedIsHermesEnabled: jest.Mock<boolean, []>;
 let mockedIsTurboModuleEnabled: jest.Mock<boolean, []>;
 let mockedIsFabricEnabled: jest.Mock<boolean, []>;
+let mockedGetReactNativeVersion: jest.Mock<string, []>;
+let mockedGetHermesVersion: jest.Mock<string | undefined, []>;
+let mockedIsExpo: jest.Mock<boolean, []>;
 
 jest.mock('../../src/js/utils/environment', () => ({
   isHermesEnabled: () => mockedIsHermesEnabled(),
   isTurboModuleEnabled: () => mockedIsTurboModuleEnabled(),
   isFabricEnabled: () => mockedIsFabricEnabled(),
+  getReactNativeVersion: () => mockedGetReactNativeVersion(),
+  getHermesVersion: () => mockedGetHermesVersion(),
+  isExpo: () => mockedIsExpo(),
 }));
 
 describe('React Native Info', () => {
   beforeEach(() => {
-    mockedIsHermesEnabled = jest.fn().mockReturnValue(false);
+    mockedIsHermesEnabled = jest.fn().mockReturnValue(true);
     mockedIsTurboModuleEnabled = jest.fn().mockReturnValue(false);
     mockedIsFabricEnabled = jest.fn().mockReturnValue(false);
+    mockedGetReactNativeVersion = jest.fn().mockReturnValue('1000.0.0-test');
+    mockedGetHermesVersion = jest.fn().mockReturnValue(undefined);
+    mockedIsExpo = jest.fn().mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -39,20 +48,28 @@ describe('React Native Info', () => {
         react_native_context: <ReactNativeContext>{
           turbo_module: false,
           fabric: false,
+          js_engine: 'hermes',
+          react_native_version: '1000.0.0-test',
+          expo: false,
         },
+      },
+      tags: {
+        hermes: 'true',
       },
     });
   });
 
   it('adds hermes tag and js_engine to context if hermes enabled', async () => {
     mockedIsHermesEnabled = jest.fn().mockReturnValue(true);
+    mockedGetHermesVersion = jest.fn().mockReturnValue('for RN 999.0.0');
     const actualEvent = await executeIntegrationFor({}, {});
 
     expectMocksToBeCalledOnce();
     expect(actualEvent?.tags?.hermes).toEqual('true');
-    expect((actualEvent?.contexts?.react_native_context as ReactNativeContext | undefined)?.js_engine).toEqual(
-      'hermes',
-    );
+    expect(actualEvent?.contexts?.react_native_context).toEqual(expect.objectContaining({
+      js_engine: 'hermes',
+      hermes_version: 'for RN 999.0.0',
+    }));
   });
 
   it('does not override existing hermes tag', async () => {
@@ -69,6 +86,7 @@ describe('React Native Info', () => {
   });
 
   it('adds engine from rn error', async () => {
+    mockedIsHermesEnabled = jest.fn().mockReturnValue(false);
     const mockedHint: EventHint = {
       originalException: <ReactNativeError>{
         jsEngine: 'test_engine',

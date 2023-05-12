@@ -6,11 +6,14 @@ import type { ErrorUtils } from 'react-native/types';
 export interface ReactNativeInternalGlobal extends InternalGlobal {
   __sentry_rn_v4_registered?: boolean;
   __sentry_rn_v5_registered?: boolean;
-  HermesInternal: unknown;
+  HermesInternal?: {
+    getRuntimeProperties?: () => Record<string, string | undefined>;
+  };
   Promise: unknown;
   __turboModuleProxy: unknown;
   nativeFabricUIManager: unknown;
   ErrorUtils?: ErrorUtils;
+  expo: unknown;
 }
 
 /** Get's the global object for the current JavaScript runtime */
