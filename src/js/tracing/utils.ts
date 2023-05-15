@@ -1,13 +1,11 @@
-import type { IdleTransaction, Span, Transaction } from '@sentry/tracing';
+import type { IdleTransaction, Span, Transaction } from '@sentry/core';
 import type { TransactionContext, TransactionSource } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 
 export const defaultTransactionSource: TransactionSource = 'component';
 export const customTransactionSource: TransactionSource = 'custom';
 
-export const getBlankTransactionContext = (
-  name: string
-): TransactionContext => {
+export const getBlankTransactionContext = (name: string): TransactionContext => {
   return {
     name: 'Route Change',
     op: 'navigation',
@@ -35,11 +33,10 @@ const timeOriginMilliseconds = Date.now();
 export function adjustTransactionDuration(
   maxDurationMs: number,
   transaction: IdleTransaction,
-  endTimestamp: number
+  endTimestamp: number,
 ): void {
   const diff = endTimestamp - transaction.startTimestamp;
-  const isOutdatedTransaction =
-    endTimestamp && (diff > maxDurationMs || diff < 0);
+  const isOutdatedTransaction = endTimestamp && (diff > maxDurationMs || diff < 0);
   if (isOutdatedTransaction) {
     transaction.setStatus('deadline_exceeded');
     transaction.setTag('maxTransactionDurationExceeded', 'true');
@@ -58,7 +55,7 @@ export function getTimeOriginMilliseconds(): number {
  */
 export function instrumentChildSpanFinish(
   transaction: Transaction,
-  callback: (span: Span, endTimestamp?: number) => void
+  callback: (span: Span, endTimestamp?: number) => void,
 ): void {
   if (transaction.spanRecorder) {
     // eslint-disable-next-line @typescript-eslint/unbound-method

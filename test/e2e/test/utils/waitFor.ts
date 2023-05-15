@@ -24,11 +24,7 @@ export async function waitForTruthyResult<T>(value: () => Promise<T>): Promise<v
     // eslint-disable-next-line prefer-const
     timeout = setTimeout(() => {
       clearInterval(interval);
-      reject(
-        new Error(
-          `waitForTruthyResult function timed out after ${FINAL_TIMEOUT_MS} ms`,
-        ),
-      );
+      reject(new Error(`waitForTruthyResult function timed out after ${FINAL_TIMEOUT_MS} ms`));
     }, FINAL_TIMEOUT_MS);
   });
 

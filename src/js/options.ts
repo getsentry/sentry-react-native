@@ -7,11 +7,11 @@ import type { TouchEventBoundaryProps } from './touchevents';
 
 export interface BaseReactNativeOptions {
   /**
-    * Enables native transport + device info + offline caching.
-    * Be careful, disabling this also breaks automatic release setting.
-    * This means you have to manage setting the release yourself.
-    * Defaults to `true`.
-    */
+   * Enables native transport + device info + offline caching.
+   * Be careful, disabling this also breaks automatic release setting.
+   * This means you have to manage setting the release yourself.
+   * Defaults to `true`.
+   */
   enableNative?: boolean;
 
   /**
@@ -141,12 +141,21 @@ export interface BaseReactNativeOptions {
    * @default false
    */
   attachViewHierarchy?: boolean;
+
+  /**
+   * When enabled, Sentry will capture failed XHR/Fetch requests. This option also enabled HTTP Errors on iOS.
+   * [Sentry Android Gradle Plugin](https://docs.sentry.io/platforms/android/configuration/integrations/okhttp/)
+   * is needed to capture HTTP Errors on Android.
+   *
+   * @default false
+   */
+  enableCaptureFailedRequests?: boolean;
 }
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {
   /**
    * @deprecated use `maxQueueSize` in the root of the SDK options.
-  */
+   */
   bufferSize?: number;
 }
 
@@ -155,12 +164,9 @@ export interface ReactNativeTransportOptions extends BrowserTransportOptions {
  * @see ReactNativeFrontend for more information.
  */
 
-export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseReactNativeOptions {
-}
+export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseReactNativeOptions {}
 
-export interface ReactNativeClientOptions extends ClientOptions<ReactNativeTransportOptions>, BaseReactNativeOptions {
-}
-
+export interface ReactNativeClientOptions extends ClientOptions<ReactNativeTransportOptions>, BaseReactNativeOptions {}
 
 export interface ReactNativeWrapperOptions {
   /** Props for the root React profiler */

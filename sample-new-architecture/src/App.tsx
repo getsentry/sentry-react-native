@@ -16,6 +16,10 @@ import PerformanceTimingScreen from './Screens/PerformanceTimingScreen';
 import ReduxScreen from './Screens/ReduxScreen';
 import { Provider } from 'react-redux';
 import { store } from './reduxApp';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import GesturesTracingScreen from './Screens/GesturesTracingScreen';
+import { StyleSheet } from 'react-native';
+import { HttpClient } from '@sentry/integrations';
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
@@ -26,8 +30,8 @@ Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
-  beforeSend: (event, hint) => {
-    console.log('Event beforeSend:', event, 'hint:', hint);
+  beforeSend: (event: Sentry.Event) => {
+    console.log('Event beforeSend:', event);
     return event;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
@@ -41,6 +45,7 @@ Sentry.init({
         idleTimeout: 5000,
         routingInstrumentation: reactNavigationInstrumentation,
         tracingOrigins: ['localhost', /^\//, /^https:\/\//],
+        enableUserInteractionTracing: true,
         beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
           // Example of not sending a transaction for the screen with the name "Manual Tracker"
           if (context.data.route.name === 'ManualTracker') {
@@ -50,6 +55,16 @@ Sentry.init({
           return context;
         },
       }),
+      new HttpClient({
+        // These options are effective only in JS.
+        // This array can contain tuples of `[begin, end]` (both inclusive),
+        // Single status codes, or a combinations of both.
+        // default: [[500, 599]]
+        failedRequestStatusCodes: [[400, 599]],
+        // This array can contain Regexes or strings, or combinations of both.
+        // default: [/.*/]
+        failedRequestTargets: [/.*/],
+      }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
@@ -57,13 +72,19 @@ Sentry.init({
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
   sessionTrackingIntervalMillis: 5000,
   // This will capture ALL TRACES and likely use up all your quota
+  enableTracing: true,
   tracesSampleRate: 1.0,
   attachStacktrace: true,
+  // Attach screenshots to events.
+  attachScreenshot: true,
+  // Attach view hierarchy to events.
+  attachViewHierarchy: true,
+  // Enables capture failed requests in JS and native.
+  enableCaptureFailedRequests: true,
   // Sets the `release` and `dist` on Sentry events. Make sure this matches EXACTLY with the values on your sourcemaps
   // otherwise they will not work.
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
-  attachViewHierarchy: true,
 });
 
 const Stack = createStackNavigator();
@@ -72,27 +93,39 @@ const App = () => {
   const navigation = React.useRef<NavigationContainerRef<{}>>(null);
 
   return (
-    <Provider store={store}>
-      <NavigationContainer
-        ref={navigation}
-        onReady={() => {
-          reactNavigationInstrumentation.registerNavigationContainer(
-            navigation,
-          );
-        }}>
-        <Stack.Navigator>
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Tracker" component={TrackerScreen} />
-          <Stack.Screen name="ManualTracker" component={ManualTrackerScreen} />
-          <Stack.Screen
-            name="PerformanceTiming"
-            component={PerformanceTimingScreen}
-          />
-          <Stack.Screen name="Redux" component={ReduxScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </Provider>
+    <GestureHandlerRootView style={styles.wrapper}>
+      <Provider store={store}>
+        <NavigationContainer
+          ref={navigation}
+          onReady={() => {
+            reactNavigationInstrumentation.registerNavigationContainer(
+              navigation,
+            );
+          }}>
+          <Stack.Navigator>
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Tracker" component={TrackerScreen} />
+            <Stack.Screen
+              name="ManualTracker"
+              component={ManualTrackerScreen}
+            />
+            <Stack.Screen
+              name="PerformanceTiming"
+              component={PerformanceTimingScreen}
+            />
+            <Stack.Screen name="Redux" component={ReduxScreen} />
+            <Stack.Screen name="Gestures" component={GesturesTracingScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </Provider>
+    </GestureHandlerRootView>
   );
 };
+
+const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+  },
+});
 
 export default Sentry.wrap(App);

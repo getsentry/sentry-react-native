@@ -13,8 +13,9 @@ module.exports = {
     version: 'detect', // React version. "detect" automatically picks the version you have installed.
   },
   ignorePatterns: [
-    'test/react-native/versions/*',
+    'test/react-native/versions/**/*',
     'coverage/**/*',
+    'test/typescript/**/*',
   ],
   overrides: [
     {
@@ -61,5 +62,6 @@ module.exports = {
     '@sentry-internal/sdk/no-async-await': 'off',
     '@sentry-internal/sdk/no-optional-chaining': 'off',
     '@sentry-internal/sdk/no-nullish-coalescing': 'off',
+    '@sentry-internal/sdk/no-unsupported-es6-methods': 'off',
   },
 };

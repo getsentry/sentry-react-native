@@ -23,14 +23,14 @@ jest.mock(
           someContext: {
             someValue: 0,
           },
-        })
+        }),
       ),
       fetchNativeRelease: jest.fn(() =>
         Promise.resolve({
           build: '1.0.0.1',
           id: 'test-mock',
           version: '1.0.0',
-        })
+        }),
       ),
       setContext: jest.fn(),
       setExtra: jest.fn(),
@@ -38,7 +38,7 @@ jest.mock(
       setUser: jest.fn(() => {
         return;
       }),
-      initNativeSdk: jest.fn((options) => {
+      initNativeSdk: jest.fn(options => {
         initPayload = options;
 
         return Promise.resolve(true);
@@ -58,7 +58,7 @@ jest.mock(
     };
   },
   /* virtual allows us to mock modules that aren't in package.json */
-  { virtual: true }
+  { virtual: true },
 );
 
 const RNSentry = RN.NativeModules.RNSentry as Spec;
@@ -77,15 +77,14 @@ const callAllScopeMethods = () => {
     id: 'setUser',
   });
   NATIVE.setTag('key', 'value');
-  NATIVE.setContext('key',
-    {
-      value: 'value',
-      data: {
-        map: { a: 1 },
-        array: [1, 2, 3],
-        unique: 123,
-      },
-    });
+  NATIVE.setContext('key', {
+    value: 'value',
+    data: {
+      map: { a: 1 },
+      array: [1, 2, 3],
+      unique: 123,
+    },
+  });
   NATIVE.setExtra('key', 'value');
 };
 
@@ -113,7 +112,7 @@ describe('Tests Native Wrapper', () => {
 
       expect(RNSentry.initNativeSdk).not.toBeCalled();
       expect(logger.warn).toHaveBeenLastCalledWith(
-        'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.'
+        'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.',
       );
     });
 
@@ -128,9 +127,7 @@ describe('Tests Native Wrapper', () => {
 
       expect(RNSentry.initNativeSdk).not.toBeCalled();
       expect(NATIVE.enableNative).toBe(false);
-      expect(logger.warn).toHaveBeenLastCalledWith(
-        'Note: Native Sentry SDK is disabled.'
-      );
+      expect(logger.warn).toHaveBeenLastCalledWith('Note: Native Sentry SDK is disabled.');
     });
 
     test('does not initialize with autoInitializeNativeSdk: false', async () => {
@@ -160,7 +157,7 @@ describe('Tests Native Wrapper', () => {
         {
           id: 'setUser',
         },
-        {}
+        {},
       );
       expect(RNSentry.setTag).toBeCalledWith('key', 'value');
       expect(RNSentry.setContext).toBeCalledWith('key', {
@@ -257,7 +254,6 @@ describe('Tests Native Wrapper', () => {
 
         // @ts-ignore for testing, does not accept an empty class.
         await NATIVE.sendEnvelope({});
-
       } catch (error) {
         // @ts-ignore it is an error but it does not know the type.
         expect(error.message).toMatch('Native is disabled');
@@ -411,9 +407,7 @@ describe('Tests Native Wrapper', () => {
     test('returns empty object on android', async () => {
       NATIVE.platform = 'android';
 
-      await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject(
-        {}
-      );
+      await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject({});
 
       expect(RNSentry.fetchNativeDeviceContexts).not.toBeCalled();
     });
@@ -455,7 +449,7 @@ describe('Tests Native Wrapper', () => {
         },
         {
           unique: '123',
-        }
+        },
       );
     });
 
@@ -468,7 +462,7 @@ describe('Tests Native Wrapper', () => {
         {
           id: 'Hello',
         },
-        {}
+        {},
       );
     });
   });

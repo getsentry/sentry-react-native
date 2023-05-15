@@ -2,6 +2,7 @@ import { Scope } from '@sentry/core';
 import type { Attachment, Breadcrumb, User } from '@sentry/types';
 
 import { DEFAULT_BREADCRUMB_LEVEL } from './breadcrumb';
+import { convertToNormalizedObject } from './utils/normalize';
 import { NATIVE } from './wrapper';
 
 /**
@@ -29,7 +30,7 @@ export class ReactNativeScope extends Scope {
    */
   public setTags(tags: { [key: string]: string }): this {
     // As native only has setTag, we just loop through each tag key.
-    Object.keys(tags).forEach((key) => {
+    Object.keys(tags).forEach(key => {
       NATIVE.setTag(key, tags[key]);
     });
     return super.setTags(tags);
@@ -40,7 +41,7 @@ export class ReactNativeScope extends Scope {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public setExtras(extras: { [key: string]: any }): this {
-    Object.keys(extras).forEach((key) => {
+    Object.keys(extras).forEach(key => {
       NATIVE.setExtra(key, extras[key]);
     });
     return super.setExtras(extras);
@@ -59,12 +60,17 @@ export class ReactNativeScope extends Scope {
    * @inheritDoc
    */
   public addBreadcrumb(breadcrumb: Breadcrumb, maxBreadcrumbs?: number): this {
-    const mergedBreadcrumb = {
+    const mergedBreadcrumb: Breadcrumb = {
       ...breadcrumb,
       level: breadcrumb.level || DEFAULT_BREADCRUMB_LEVEL,
+      data: breadcrumb.data ? convertToNormalizedObject(breadcrumb.data) : undefined,
     };
-    NATIVE.addBreadcrumb(mergedBreadcrumb);
-    return super.addBreadcrumb(mergedBreadcrumb, maxBreadcrumbs);
+
+    super.addBreadcrumb(mergedBreadcrumb, maxBreadcrumbs);
+
+    const finalBreadcrumb = this._breadcrumbs[this._breadcrumbs.length - 1];
+    NATIVE.addBreadcrumb(finalBreadcrumb);
+    return this;
   }
 
   /**
@@ -92,8 +98,8 @@ export class ReactNativeScope extends Scope {
   }
 
   /**
-  * @inheritDoc
-  */
+   * @inheritDoc
+   */
   public clearAttachments(): this {
     return super.clearAttachments();
   }

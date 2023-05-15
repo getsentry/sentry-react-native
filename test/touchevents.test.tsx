@@ -7,6 +7,7 @@ import type { SeverityLevel } from '@sentry/types';
 import { TouchEventBoundary } from '../src/js/touchevents';
 
 jest.mock('@sentry/core');
+jest.mock('../src/js/tracing', () => ({}));
 
 describe('TouchEventBoundary._onTouchStart', () => {
   let addBreadcrumb: jest.SpyInstance;
@@ -21,6 +22,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     (core.getCurrentHub as jest.Mock).mockReturnValue({
       getClient: jest.fn().mockReturnValue({
         addIntegration: mockAddIntegration,
+        getIntegration: jest.fn(),
       }),
     });
     const { defaultProps } = TouchEventBoundary;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   StatusBar,
   ScrollView,
@@ -7,6 +7,8 @@ import {
   View,
   ButtonProps,
   StyleSheet,
+  NativeModules,
+  Platform,
 } from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
@@ -17,6 +19,8 @@ import { CommonActions } from '@react-navigation/native';
 import { UserFeedbackModal } from '../components/UserFeedbackModal';
 import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
+
+const { AssetsModule, CppModule } = NativeModules;
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -46,6 +50,13 @@ const HomeScreen = (props: Props) => {
   const errorBoundaryFallback: FallbackRender = ({ eventId }) => (
     <Text>Error boundary caught with event id: {eventId}</Text>
   );
+
+  const [data, setData] = React.useState<Uint8Array | null>(null);
+  useEffect(() => {
+    AssetsModule.getExampleAssetData().then((asset: number[]) =>
+      setData(new Uint8Array(asset)),
+    );
+  }, []);
 
   return (
     <>
@@ -105,10 +116,17 @@ const HomeScreen = (props: Props) => {
         <Button
           title="Crash in Cpp"
           onPress={() => {
-            NativeSampleModule.crash();
+            NativeSampleModule?.crash();
           }}
         />
-
+        {Platform.OS === 'android' && (
+          <Button
+            title="Crash in Android Cpp"
+            onPress={() => {
+              CppModule?.crashCpp();
+            }}
+          />
+        )}
         <Spacer />
 
         <Sentry.ErrorBoundary fallback={errorBoundaryFallback}>
@@ -131,6 +149,10 @@ const HomeScreen = (props: Props) => {
                 data: 'Attachment content',
                 filename: 'attachment.txt',
               });
+              if (data) {
+                scope.addAttachment({ data, filename: 'logo.png' });
+              }
+              console.log('Sentry attachment added.');
             });
           }}
         />
@@ -143,6 +165,16 @@ const HomeScreen = (props: Props) => {
           }}
         />
         <Button
+          title="Capture HTTP Client Error"
+          onPress={async () => {
+            try {
+              fetch('http://localhost:8081/not-found');
+            } catch (error) {
+              //ignore the error, it will be send to Sentry automatically
+            }
+          }}
+        />
+        <Button
           title="Auto Tracing Example"
           onPress={() => {
             props.navigation.navigate('Tracker');
@@ -152,6 +184,12 @@ const HomeScreen = (props: Props) => {
           title="Manual Tracing Example"
           onPress={() => {
             props.navigation.navigate('ManualTracker');
+          }}
+        />
+        <Button
+          title="Gestures Tracing Example"
+          onPress={() => {
+            props.navigation.navigate('Gestures');
           }}
         />
         <Button title="Performance Timing" onPress={onPressPerformanceTiming} />

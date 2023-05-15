@@ -179,13 +179,18 @@ gradle.projectsEvaluated {
                           modulesPaths
               ]
 
-              project.logger.info("Sentry-CollectModules arguments: ${args}")
-              commandLine(*args)
+              if ((new File(collectModulesScript)).exists()) {
+                  project.logger.info("Sentry-CollectModules arguments: ${args}")
+                  commandLine(*args)
 
-              def skip = config.skipCollectModules
-                  ? config.skipCollectModules == true
-                  : false
-              enabled !skip
+                  def skip = config.skipCollectModules
+                    ? config.skipCollectModules == true
+                    : false
+                  enabled !skip
+              } else {
+                  project.logger.info("collectModulesScript not found: $collectModulesScript")
+                  enabled false
+              }
           }
 
           // chain the upload tasks so they run sequentially in order to run
@@ -210,7 +215,10 @@ gradle.projectsEvaluated {
         // task.name could be packageDev-debugRelease but in that case currentVariants == null
         // because of the regex in `extractCurrentVariants` and this code doesn't run
         def packageTasks = tasks.findAll {
-          task -> "package${variantTaskName}".equalsIgnoreCase(task.name) && task.enabled
+          task -> (
+            "package${variantTaskName}".equalsIgnoreCase(task.name)
+              || "package${variantTaskName}Bundle".equalsIgnoreCase(task.name)
+            ) && task.enabled
         }
         packageTasks.each { packageTask ->
             packageTask.dependsOn modulesTask

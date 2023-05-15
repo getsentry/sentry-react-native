@@ -38,16 +38,10 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 
 ## Installation and Usage
 
-To install the package:
+To install the package and setup your project:
 
 ```sh
-npm install --save @sentry/react-native
-# OR
-yarn add @sentry/react-native
-
-# AND
-npx @sentry/wizard -i reactNative -p ios android
-npx pod-install
+npx @sentry/wizard -s -i reactNative
 ```
 
 How to use it:
@@ -57,6 +51,11 @@ import * as Sentry from "@sentry/react-native";
 
 Sentry.init({
   dsn: "__DSN__",
+
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: 1.0,
 });
 
 Sentry.setTag("myTag", "tag-value");

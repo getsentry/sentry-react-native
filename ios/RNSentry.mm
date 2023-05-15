@@ -30,6 +30,8 @@
 
 static bool didFetchAppStart;
 
+static NSString* const nativeSdkName = @"sentry.cocoa.react-native";
+
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
 }
@@ -55,6 +57,9 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
+
+    NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
+    [PrivateSentrySDKOnly setSdkName: nativeSdkName andVersionString: sdkVersion];
 
     [SentrySDK startWithOptions:sentryOptions];
 
@@ -101,6 +106,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     // The user could tho initialize the SDK manually and set themselves.
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
+    [mutableOptions removeObjectForKey:@"enableTracing"];
 
     SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:errorPointer];
     if (*errorPointer != nil) {
@@ -108,7 +114,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     }
 
     if ([mutableOptions valueForKey:@"enableNativeCrashHandling"] != nil) {
-        BOOL enableNativeCrashHandling = (BOOL)[mutableOptions valueForKey:@"enableNativeCrashHandling"];
+        BOOL enableNativeCrashHandling = [mutableOptions[@"enableNativeCrashHandling"] boolValue];
 
         if (!enableNativeCrashHandling) {
             NSMutableArray *integrations = sentryOptions.integrations.mutableCopy;
@@ -119,8 +125,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 
     // Enable the App start and Frames tracking measurements
     if ([mutableOptions valueForKey:@"enableAutoPerformanceTracing"] != nil) {
-        BOOL enableAutoPerformanceTracing = (BOOL)[mutableOptions valueForKey:@"enableAutoPerformanceTracing"];
-
+        BOOL enableAutoPerformanceTracing = [mutableOptions[@"enableAutoPerformanceTracing"] boolValue];
         PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracing;
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
         PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracing;
@@ -134,9 +139,9 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
   if (event.sdk != nil) {
     NSString *sdkName = event.sdk[@"name"];
 
-    // If the event is from react native, it gets set there and we do not handle
-    // it here.
-    if ([sdkName isEqualToString:@"sentry.cocoa"]) {
+    // If the event is from react native, it gets set
+    // there and we do not handle it here.
+    if ([sdkName isEqual:nativeSdkName]) {
       [self setEventEnvironmentTag:event origin:@"ios" environment:@"native"];
     }
   }
@@ -204,6 +209,22 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
         }
     }];
 
+    NSDictionary<NSString *, id> *extraContext = [PrivateSentrySDKOnly getExtraContext];
+    NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *context = [contexts[@"context"] mutableCopy];
+
+    if (extraContext && [extraContext[@"device"] isKindOfClass:[NSDictionary class]]) {
+      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *deviceContext = [contexts[@"context"][@"device"] mutableCopy];
+      [deviceContext addEntriesFromDictionary:extraContext[@"device"]];
+      [context setValue:deviceContext forKey:@"device"];
+    }
+
+    if (extraContext && [extraContext[@"app"] isKindOfClass:[NSDictionary class]]) {
+      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *appContext = [contexts[@"context"][@"app"] mutableCopy];
+      [appContext addEntriesFromDictionary:extraContext[@"app"]];
+      [context setValue:appContext forKey:@"app"];
+    }
+
+    [contexts setValue:context forKey:@"context"];
     resolve(contexts);
 }
 
@@ -294,7 +315,7 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSString * _Nonnull)bytes
     #if DEBUG
         [PrivateSentrySDKOnly captureEnvelope:envelope];
     #else
-        if (options[@'store']) {
+        if ([[options objectForKey:@"store"] boolValue]) {
             // Storing to disk happens asynchronously with captureEnvelope
             [PrivateSentrySDKOnly storeEnvelope:envelope];
         } else {
@@ -307,6 +328,7 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSString * _Nonnull)bytes
 RCT_EXPORT_METHOD(captureScreenshot: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 {
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     NSArray<NSData *>* rawScreenshots = [PrivateSentrySDKOnly captureScreenshots];
     NSMutableArray *screenshotsArray = [NSMutableArray arrayWithCapacity:[rawScreenshots count]];
 
@@ -331,11 +353,15 @@ RCT_EXPORT_METHOD(captureScreenshot: (RCTPromiseResolveBlock)resolve
     }
 
     resolve(screenshotsArray);
+#else
+    resolve(nil);
+#endif
 }
 
 RCT_EXPORT_METHOD(fetchViewHierarchy: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 {
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     NSData * rawViewHierarchy = [PrivateSentrySDKOnly captureViewHierarchy];
 
     NSMutableArray *viewHierarchy = [NSMutableArray arrayWithCapacity:rawViewHierarchy.length];
@@ -345,7 +371,11 @@ RCT_EXPORT_METHOD(fetchViewHierarchy: (RCTPromiseResolveBlock)resolve
     }
 
     resolve(viewHierarchy);
+#else
+    resolve(nil);
+#endif
 }
+
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary *)userKeys
                   otherUserKeys:(NSDictionary *)userDataKeys
