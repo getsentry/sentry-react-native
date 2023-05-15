@@ -1,3 +1,1 @@
-export {
-  fromByteArray,
-} from './fromByteArray';
+export { fromByteArray } from './fromByteArray';

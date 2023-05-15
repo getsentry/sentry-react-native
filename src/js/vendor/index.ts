@@ -1,8 +1,3 @@
+export { utf8ToBytes } from './buffer';
 
-export {
-  utf8ToBytes,
-} from './buffer';
-
-export {
-  fromByteArray,
-} from './base64-js';
+export { fromByteArray } from './base64-js';

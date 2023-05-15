@@ -212,10 +212,13 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(utf8ToBytes('{"event_id":"event0","sent_at":"123"}\n'
-          + '{"type":"event","content_type":"application/json","length":87}\n'
-          + '{"event_id":"event0","message":"test","sdk":{"name":"test-sdk-name","version":"2.1.3"}}\n'
-        )),
+        fromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":87}\n' +
+              '{"event_id":"event0","message":"test","sdk":{"name":"test-sdk-name","version":"2.1.3"}}\n',
+          ),
+        ),
         { store: false },
       );
     });
@@ -241,10 +244,13 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(utf8ToBytes('{"event_id":"event0","sent_at":"123"}\n'
-          + '{"type":"event","content_type":"application/json","length":93}\n'
-          + '{"event_id":"event0","sdk":{"name":"test-sdk-name","version":"2.1.3"},"instance":{"value":0}}\n'
-        )),
+        fromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":93}\n' +
+              '{"event_id":"event0","sdk":{"name":"test-sdk-name","version":"2.1.3"},"instance":{"value":0}}\n',
+          ),
+        ),
         { store: false },
       );
     });
@@ -275,10 +281,13 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(utf8ToBytes('{"event_id":"event0","sent_at":"123"}\n'
-          + '{"type":"event","content_type":"application/json","length":50}\n'
-          + '{"event_id":"event0","message":{"message":"test"}}\n'
-        )),
+        fromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":50}\n' +
+              '{"event_id":"event0","message":{"message":"test"}}\n',
+          ),
+        ),
         { store: false },
       );
     });
@@ -311,10 +320,13 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(utf8ToBytes('{"event_id":"event0","sent_at":"123"}\n'
-          + '{"type":"event","content_type":"application/json","length":104}\n'
-          + '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[]}\n'
-        )),
+        fromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":104}\n' +
+              '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[]}\n',
+          ),
+        ),
         { store: false },
       );
     });
@@ -337,10 +349,13 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(utf8ToBytes('{"event_id":"event0","sent_at":"123"}\n'
-          + '{"type":"event","content_type":"application/json","length":38}\n'
-          + '{"event_id":"event0","breadcrumbs":[]}\n'
-        )),
+        fromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":38}\n' +
+              '{"event_id":"event0","breadcrumbs":[]}\n',
+          ),
+        ),
         { store: false },
       );
     });
@@ -373,10 +388,13 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(utf8ToBytes('{"event_id":"event0","sent_at":"123"}\n'
-          + '{"type":"event","content_type":"application/json","length":125}\n'
-          + '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":false,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n'
-        )),
+        fromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":125}\n' +
+              '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":false,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
+          ),
+        ),
         { store: true },
       );
     });
