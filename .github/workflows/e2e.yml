@@ -265,6 +265,21 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Sentry Release
+        run: |
+          SENTRY_RELEASE_CANDIDATE=$(echo 'e2e/${{ github.ref }}' | perl -pe 's/\//-/g')
+          echo "SENTRY_RELEASE=$SENTRY_RELEASE_CANDIDATE" >> $GITHUB_ENV
+
+      - name: Sentry Dist
+        run: |
+          SENTRY_DIST_CANDIDATE=${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-${GITHUB_SHA:0:8}
+          echo "SENTRY_DIST=$SENTRY_DIST_CANDIDATE" >> $GITHUB_ENV
+
+      - name: Sentry Envs
+        run: |
+          echo "SENTRY_RELEASE=$SENTRY_RELEASE"
+          echo "SENTRY_DIST=$SENTRY_DIST"
+
       - uses: actions/setup-java@v3
         with:
           java-version: '11'
