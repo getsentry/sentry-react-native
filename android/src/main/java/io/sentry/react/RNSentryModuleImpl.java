@@ -113,6 +113,7 @@ public class RNSentryModuleImpl {
             }
 
             options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
+            options.setNativeSdkName("sentry.native.android.react-native");
             options.setSdkVersion(sdkVersion);
 
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
