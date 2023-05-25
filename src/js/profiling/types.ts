@@ -1,4 +1,3 @@
-
 export type ThreadId = string;
 export type FrameId = number;
 export type StackId = number;

@@ -1,13 +1,6 @@
 import type * as Hermes from './hermes';
 import { parseHermesStackFrameName } from './hermes';
-import type {
-  Frame,
-  Sample,
-  Stack,
-  StackId,
-  ThreadCpuProfile,
-  ThreadId,
-} from './types';
+import type { Frame, Sample, Stack, StackId, ThreadCpuProfile, ThreadId } from './types';
 
 const UNKNOWN_FRAME_FUNCTION_NAME = '<unknown>';
 const UNKNOWN_STACK_ID = -1;
@@ -17,9 +10,7 @@ const JS_THREAD_PRIORITY = 1;
 /**
  *
  */
-export function convertToSentryProfile(
-  hermesProfile: Hermes.Profile,
-): ThreadCpuProfile {
+export function convertToSentryProfile(hermesProfile: Hermes.Profile): ThreadCpuProfile {
   const jsThreads = new Set<ThreadId>();
   const hermesStacks = new Set<Hermes.StackFrameId>();
 
@@ -59,7 +50,7 @@ export function convertToSentryProfile(
       function: stackFrameName.function || UNKNOWN_FRAME_FUNCTION_NAME,
       file: stackFrameName.fileName,
       line: hermesFrame.line !== undefined ? Number(hermesFrame.line) : undefined,
-      column: hermesFrame.column !== undefined ? Number(hermesFrame.column): undefined,
+      column: hermesFrame.column !== undefined ? Number(hermesFrame.column) : undefined,
     });
   }
 
@@ -69,7 +60,7 @@ export function convertToSentryProfile(
     const stackId = stacks.length;
     hermesStackToSentryStackMap.set(hermesStackFunctionFrameId, stackId);
     const stack: Stack = [];
-    let currentHermesFrameId: Hermes.StackFrameId | undefined  = hermesStackFunctionFrameId;
+    let currentHermesFrameId: Hermes.StackFrameId | undefined = hermesStackFunctionFrameId;
     while (currentHermesFrameId !== undefined) {
       stack.push(currentHermesFrameId - 1); // Sentry frames are indexed from 0
       currentHermesFrameId = hermesFrameChildToParentMap.get(currentHermesFrameId);

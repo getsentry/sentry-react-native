@@ -509,9 +509,9 @@ export const NATIVE: SentryNativeWrapper = {
 
     const { started, error } = RNSentry.startProfiling();
     if (started) {
-      __DEV__ && logger.log('[NATIVE] Start Profiling');
+      logger.log('[NATIVE] Start Profiling');
     } else {
-      __DEV__ && logger.error('[NATIVE] Start Profiling Failed', error);
+      logger.error('[NATIVE] Start Profiling Failed', error);
     }
 
     return !!started;
@@ -527,14 +527,14 @@ export const NATIVE: SentryNativeWrapper = {
 
     const { profile, error } = RNSentry.stopProfiling();
     if (!profile || error) {
-      __DEV__ && logger.error('[NATIVE] Stop Profiling Failed', error);
+      logger.error('[NATIVE] Stop Profiling Failed', error);
       return null;
     }
 
     try {
-      return JSON.parse( profile) as Hermes.Profile
+      return JSON.parse(profile) as Hermes.Profile;
     } catch (e) {
-      __DEV__ && logger.error('[NATIVE] Failed to parse Hermes Profile JSON', e);
+      logger.error('[NATIVE] Failed to parse Hermes Profile JSON', e);
       return null;
     }
   },

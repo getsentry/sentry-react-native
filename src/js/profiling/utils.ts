@@ -70,13 +70,13 @@ export function createProfilingEvent(profile: ThreadCpuProfile, event: Event): P
     event_id: event.event_id || '',
     transaction: event.transaction || '',
     start_timestamp: event.start_timestamp ? event.start_timestamp * 1000 : Date.now(),
-    trace_id: event?.contexts?.trace?.trace_id as string ?? '',
+    trace_id: (event?.contexts?.trace?.trace_id as string) ?? '',
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     profile_id: profile.profile_id,
     os_platform: event.contexts?.os?.name || '',
     os_version: event.contexts?.os?.version || '',
     os_build: event.contexts?.os?.build || '',
-    device_locale: event.contexts?.device?.locale as string || '',
+    device_locale: (event.contexts?.device?.locale as string) || '',
     device_model: event.contexts?.device?.model || '',
     device_manufacturer: event.contexts?.device?.manufacturer || '',
     device_architecture: event.contexts?.device?.arch || '',
@@ -122,16 +122,16 @@ function createProfilePayload(
     device_locale: string;
     device_model: string;
     device_manufacturer: string;
-    device_architecture:  string;
+    device_architecture: string;
     device_is_emulator: boolean;
-  }
+  },
 ): Profile {
   // Log a warning if the profile has an invalid traceId (should be uuidv4).
   // All profiles and transactions are rejected if this is the case and we want to
   // warn users that this is happening if they enable debug flag
   if (trace_id && trace_id.length !== 32) {
     if (__DEV__) {
-      logger.log(`[Profiling] Invalid traceId: ${  trace_id  } on profiled event`);
+      logger.log(`[Profiling] Invalid traceId: ${trace_id} on profiled event`);
     }
   }
 
@@ -163,8 +163,8 @@ function createProfilePayload(
       name: transaction,
       id: event_id,
       trace_id: trace_id || '',
-      active_thread_id: ACTIVE_THREAD_ID_STRING
-    }
+      active_thread_id: ACTIVE_THREAD_ID_STRING,
+    },
   };
 
   return profile;

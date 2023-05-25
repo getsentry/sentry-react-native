@@ -1,12 +1,13 @@
-// sentry-javascript/packages/browser/src/profiling/cache.ts
-// TODO: Remove after exporting from @sentry/utils
-import type { Event } from '@sentry/types';
+import type { ThreadCpuProfile } from './types';
 
 /**
  * Creates a cache that evicts keys in fifo order
  * @param size {Number}
  */
-export function makeProfilingCache<Key extends string, Value extends Event>(
+// sentry-javascript/packages/browser/src/profiling/cache.ts
+// https://github.com/getsentry/sentry-javascript/blob/bf8c0551e2a969083199f014d07ac2a617e323fc/packages/browser/src/profiling/cache.ts#L7
+// TODO: Remove after exporting from @sentry/utils
+export function makeProfilingCache<Key extends string, Value>(
   size: number,
 ): {
   get: (key: Key) => Value | undefined;
@@ -71,4 +72,4 @@ export function makeProfilingCache<Key extends string, Value extends Event>(
   };
 }
 
-export const PROFILING_EVENT_CACHE = makeProfilingCache<string, Event>(20);
+export const PROFILE_QUEUE = makeProfilingCache<string, ThreadCpuProfile>(20);

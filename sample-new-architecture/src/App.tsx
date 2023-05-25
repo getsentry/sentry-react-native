@@ -22,7 +22,7 @@ import { StyleSheet } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
 import { Integrations } from '@sentry/react-native';
 
-const { ProfilingIntegration } = Integrations;
+const { HermesProfiling } = Integrations;
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
@@ -68,7 +68,7 @@ Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
-      new ProfilingIntegration(),
+      new HermesProfiling(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
@@ -89,6 +89,9 @@ Sentry.init({
   // otherwise they will not work.
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
+  _experiments: {
+    profilesSampleRate: 1,
+  },
 });
 
 const Stack = createStackNavigator();

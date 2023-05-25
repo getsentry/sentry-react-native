@@ -6,4 +6,4 @@ export { EventOrigin } from './eventorigin';
 export { SdkInfo } from './sdkinfo';
 export { ReactNativeInfo } from './reactnativeinfo';
 export { ModulesLoader } from './modulesloader';
-export { ProfilingIntegration } from '../profiling/integration';
+export { HermesProfiling } from '../profiling/integration';

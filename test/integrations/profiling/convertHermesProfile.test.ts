@@ -1,6 +1,6 @@
 import { convertToSentryProfile } from '../../../src/js/profiling/convertHermesProfile';
 import type * as Hermes from '../../../src/js/profiling/hermes';
-import type { ThreadCpuProfile} from '../../../src/js/profiling/types';
+import type { ThreadCpuProfile } from '../../../src/js/profiling/types';
 
 describe('convert hermes profile to sentry profile', () => {
   it('simple test profile', async () => {
@@ -14,7 +14,7 @@ describe('convert hermes profile to sentry profile', () => {
           pid: 54822,
           tid: '14509472',
           weight: '1',
-          sf: 4
+          sf: 4,
         },
         {
           cpu: '-1',
@@ -23,7 +23,7 @@ describe('convert hermes profile to sentry profile', () => {
           pid: 54822,
           tid: '14509472',
           weight: '1',
-          sf: 4
+          sf: 4,
         },
         {
           cpu: '-1',
@@ -32,7 +32,7 @@ describe('convert hermes profile to sentry profile', () => {
           pid: 54822,
           tid: '14509472',
           weight: '1',
-          sf: 1
+          sf: 1,
         },
         {
           cpu: '-1',
@@ -41,13 +41,13 @@ describe('convert hermes profile to sentry profile', () => {
           pid: 54822,
           tid: '14509472',
           weight: '1',
-          sf: 3
+          sf: 3,
         },
       ],
       stackFrames: {
         1: {
           name: '[root]',
-          category: 'root'
+          category: 'root',
         },
         2: {
           line: '1610',
@@ -56,7 +56,7 @@ describe('convert hermes profile to sentry profile', () => {
           funcColumn: '14',
           name: 'fooA(/absolute/path/main.jsbundle:1610:33)',
           category: 'JavaScript',
-          parent: 1
+          parent: 1,
         },
         3: {
           line: '1616',
@@ -65,7 +65,7 @@ describe('convert hermes profile to sentry profile', () => {
           funcColumn: '14',
           name: 'fooB(/absolute/path/main.jsbundle:1616:21)',
           category: 'JavaScript',
-          parent: 1
+          parent: 1,
         },
         4: {
           line: '1627',
@@ -74,7 +74,7 @@ describe('convert hermes profile to sentry profile', () => {
           funcColumn: '16',
           name: 'fooC(/absolute/path/main.jsbundle:1627:18)',
           category: 'JavaScript',
-          parent: 2
+          parent: 2,
         },
       },
     };
@@ -127,22 +127,9 @@ describe('convert hermes profile to sentry profile', () => {
           thread_id: '14509472',
         },
       ],
-      stacks: [
-        [
-          3,
-          1,
-          0,
-        ],
-        [
-          0,
-        ],
-        [
-          2,
-          0,
-        ],
-      ],
+      stacks: [[3, 1, 0], [0], [2, 0]],
       thread_metadata: {
-        '14509472':  {
+        '14509472': {
           name: 'JavaScriptThread',
           priority: 1,
         },

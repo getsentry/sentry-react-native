@@ -1,24 +1,20 @@
 import { NATIVE } from '../wrapper';
-import {
-  convertToSentryProfile,
-} from './convertHermesProfile';
-import type {
-  ThreadCpuProfile,
-} from './types';
+import { convertToSentryProfile } from './convertHermesProfile';
+import type { ThreadCpuProfile } from './types';
 
 export type StackFrameId = number;
 export type MicrosecondsSinceBoot = string;
 
 export interface TraceEvent {
-  name: string,
-  ph: string,
-  cat: string,
-  pid: number,
-  ts: MicrosecondsSinceBoot,
-  tid: string,
+  name: string;
+  ph: string;
+  cat: string;
+  pid: number;
+  ts: MicrosecondsSinceBoot;
+  tid: string;
   args: {
-    name?: string,
-  },
+    name?: string;
+  };
 }
 
 export interface Sample {
@@ -64,19 +60,22 @@ export function parseHermesStackFrameName(name: string): HermesStackFrameNamePar
   if (match) {
     result.fileName = match[1];
   }
-  result.function = name.split('(')[0]
+  result.function = name.split('(')[0];
   return result;
 }
-
 
 const MS_TO_NS: number = 1e6;
 
 /**
  * Starts Hermes Sampling Profiler and returns the timestamp when profiling started in nanoseconds.
  */
-export function startProfiling(): number {
+export function startProfiling(): number | null {
+  const started = NATIVE.startProfiling();
+  if (!started) {
+    return null;
+  }
+
   const profileStartTimestampNs = Date.now() * MS_TO_NS;
-  void NATIVE.startProfiling();
   return profileStartTimestampNs;
 }
 
@@ -90,4 +89,3 @@ export function stopProfiling(): ThreadCpuProfile | null {
   }
   return convertToSentryProfile(hermesProfile);
 }
-
