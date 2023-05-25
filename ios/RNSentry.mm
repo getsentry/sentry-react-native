@@ -11,9 +11,10 @@
 #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
 
-//#ifdef SENTRY_PROFILING_ENABLED
+// This guard prevents importing Hermes in JSC apps
+#ifdef SENTRY_PROFILING_ENABLED
 #import <hermes/hermes.h>
-//#endif
+#endif
 
 // Thanks to this guard, we won't import this header when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED
@@ -502,46 +503,44 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 
-RCT_EXPORT_METHOD(startProfiling:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+static NSString* const enabledProfilingMessage = @"Use SENTRY_PROFILING_ENABLED env to build with enabled profiling";
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
 {
-//#ifdef SENTRY_PROFILING_ENABLED
-    facebook::hermes::HermesRuntime::enableSamplingProfiler();
-    resolve(@{});
-//#else
-//  NSLog(@"Use SENTRY_PROFILING_ENABLED env to build with enabled profiling");
-//#endif
+#ifdef SENTRY_PROFILING_ENABLED
+    try {
+        facebook::hermes::HermesRuntime::enableSamplingProfiler();
+        return @{ @"started": @YES };
+    } catch (const std::exception& ex) {
+        return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
+    } catch (...) {
+        return @{ @"error": @"Failed to start profiling" };
+    }
+#else
+    return @{ @"error": enabledProfilingMessage };
+#endif
 }
 
-RCT_EXPORT_METHOD(stopProfiling:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
 {
-//#ifdef SENTRY_PROFILING_ENABLED
-    facebook::hermes::HermesRuntime::disableSamplingProfiler();
-    std::stringstream ss;
-    facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
-    
-    std::string s = ss.str();
-    NSString *data = [NSString stringWithCString:s.c_str() encoding:[NSString defaultCStringEncoding]];
-    
-    [data writeToFile:[NSString stringWithFormat:@"%@/cpu_profile.json", NSHomeDirectory()]
-                       atomically:NO
-                             encoding:NSStringEncodingConversionAllowLossy
-                                    error:nil];
-    
-    NSLog(@"file path %@", [NSString stringWithFormat:@"%@/cpu_profile.json", NSHomeDirectory()]);
-    resolve(@{ @"data": data });
-//#else
-//  NSLog(@"Use SENTRY_PROFILING_ENABLED env to build with enabled profiling");
-//#endif
-}
+#ifdef SENTRY_PROFILING_ENABLED
+    try {
+        facebook::hermes::HermesRuntime::disableSamplingProfiler();
+        std::stringstream ss;
+        facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
 
-RCT_EXPORT_METHOD(getUptimeTimestampNs:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-  double uptimeSeconds = [[NSProcessInfo processInfo] systemUptime];
-  double uptimeNanoSeconds = uptimeSeconds * 10e9;
-  resolve([[NSNumber alloc] initWithDouble: uptimeNanoSeconds]);
+        std::string s = ss.str();
+        NSString *data = [NSString stringWithCString:s.c_str() encoding:[NSString defaultCStringEncoding]];
+
+        return @{ @"profile": data };
+    } catch (const std::exception& ex) {
+        return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
+    } catch (...) {
+        return @{ @"error": @"Failed to stop profiling" };
+    }
+#else
+    return @{ @"error": enabledProfilingMessage };
+#endif
 }
 
 // Thanks to this guard, we won't compile this code when we build for the old architecture.

@@ -20,6 +20,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { StyleSheet } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
+import { Integrations } from '@sentry/react-native';
+
+const { ProfilingIntegration } = Integrations;
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
@@ -31,7 +34,7 @@ Sentry.init({
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   beforeSend: (event: Sentry.Event) => {
-    console.log('Event beforeSend:', event);
+    console.log('Event beforeSend:', event.event_id);
     return event;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
@@ -65,6 +68,7 @@ Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
+      new ProfilingIntegration(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },

@@ -22,9 +22,9 @@ import type {
   Spec,
 } from './NativeRNSentry';
 import type { ReactNativeClientOptions } from './options';
+import type * as Hermes from './profiling/hermes';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
-import type * as Hermes from './utils/hermes';
 import { utf8ToBytes } from './vendor';
 
 const RNSentry: Spec | undefined = isTurboModuleEnabled()
@@ -81,9 +81,8 @@ interface SentryNativeWrapper {
   fetchModules(): Promise<Record<string, string> | null>;
   fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
 
-  startProfiling(): Promise<void>;
-  stopProfiling(): Promise<Hermes.Profile>;
-  getUptimeTimestampNs(): Promise<number>;
+  startProfiling(): boolean;
+  stopProfiling(): Hermes.Profile | null;
 }
 
 /**
@@ -500,7 +499,7 @@ export const NATIVE: SentryNativeWrapper = {
     return raw ? new Uint8Array(raw) : null;
   },
 
-  async startProfiling(): Promise<void> {
+  startProfiling(): boolean {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -508,11 +507,17 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const { error } = await RNSentry.startProfiling();
-    logger.error(error);
+    const { started, error } = RNSentry.startProfiling();
+    if (started) {
+      __DEV__ && logger.log('[NATIVE] Start Profiling');
+    } else {
+      __DEV__ && logger.error('[NATIVE] Start Profiling Failed', error);
+    }
+
+    return !!started;
   },
 
-  async stopProfiling(): Promise<Hermes.Profile> {
+  stopProfiling(): Hermes.Profile | null {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -520,23 +525,18 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const { error, data } = await RNSentry.stopProfiling();
-    logger.error(error);
-    logger.log(data);
-    // TODO: safe parse/parse on native side
-    return JSON.parse(data || '') as Hermes.Profile;
-  },
-
-  async getUptimeTimestampNs(): Promise<number> {
-    if (!this.enableNative) {
-      throw this._DisabledNativeError;
-    }
-    if (!this._isModuleLoaded(RNSentry)) {
-      throw this._NativeClientError;
+    const { profile, error } = RNSentry.stopProfiling();
+    if (!profile || error) {
+      __DEV__ && logger.error('[NATIVE] Stop Profiling Failed', error);
+      return null;
     }
 
-    const uptime = await RNSentry.getUptimeTimestampNs();
-    return uptime;
+    try {
+      return JSON.parse( profile) as Hermes.Profile
+    } catch (e) {
+      __DEV__ && logger.error('[NATIVE] Failed to parse Hermes Profile JSON', e);
+      return null;
+    }
   },
 
   /**

@@ -11,7 +11,8 @@
     "pod-install": "cd ios; RCT_NEW_ARCH_ENABLED=1 bundle exec pod install; cd ..",
     "pod-install-production": "cd ios; PRODUCTION=1 RCT_NEW_ARCH_ENABLED=1 bundle exec pod install; cd ..",
     "pod-install-legacy": "cd ios; bundle exec pod install; cd ..",
-    "pod-install-legacy-production": "cd ios; PRODUCTION=1 bundle exec pod install; cd .."
+    "pod-install-legacy-production": "cd ios; PRODUCTION=1 bundle exec pod install; cd ..",
+    "clean-ios": "cd ios; xcodebuild clean; rm -rf Podfile.lock Pods; cd .."
   },
   "dependencies": {
     "@react-native-community/cli-platform-android": "^10.1.3",
