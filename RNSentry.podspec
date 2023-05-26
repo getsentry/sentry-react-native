@@ -1,7 +1,14 @@
 require 'json'
 version = JSON.parse(File.read('package.json'))["version"]
 
-folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -Wno-comma -Wno-shorten-64-to-32'
+folly_flags = ' -DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1'
+folly_compiler_flags = folly_flags + ' ' + '-Wno-comma -Wno-shorten-64-to-32'
+
+is_new_arch_enabled = ENV["RCT_NEW_ARCH_ENABLED"] == "1"
+new_arch_enabled_flag = (is_new_arch_enabled ? folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED" : "")
+is_sentry_profiling_enabled = ENV["SENTRY_PROFILING_ENABLED"] == "1"
+sentry_profiling_enabled_flag = (is_sentry_profiling_enabled ? " -DSENTRY_PROFILING_ENABLED" : "")
+other_cflags = "$(inherited)" + new_arch_enabled_flag + sentry_profiling_enabled_flag
 
 Pod::Spec.new do |s|
   s.name           = 'RNSentry'
@@ -25,8 +32,8 @@ Pod::Spec.new do |s|
   s.public_header_files = 'ios/RNSentry.h'
 
   # This guard prevent to install the dependencies when we run `pod install` in the old architecture.
-  if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then
-    s.compiler_flags = folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED=1"
+  s.compiler_flags = other_cflags
+  if is_new_arch_enabled then
     s.pod_target_xcconfig    = {
         "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
         "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"

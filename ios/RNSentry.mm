@@ -12,7 +12,7 @@
 #import <Sentry/SentryOptions+HybridSDKs.h>
 
 // This guard prevents importing Hermes in JSC apps
-#ifdef SENTRY_PROFILING_ENABLED
+#if SENTRY_PROFILING_ENABLED
 #import <hermes/hermes.h>
 #endif
 
@@ -503,11 +503,11 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 
-static NSString* const enabledProfilingMessage = @"Use SENTRY_PROFILING_ENABLED env to build with enabled profiling";
+static NSString* const enabledProfilingMessage = @"Use SENTRY_PROFILING_ENABLED=1 env when installing RNSentry pod";
 
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
 {
-#ifdef SENTRY_PROFILING_ENABLED
+#if SENTRY_PROFILING_ENABLED
     try {
         facebook::hermes::HermesRuntime::enableSamplingProfiler();
         return @{ @"started": @YES };
@@ -523,7 +523,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
 
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
 {
-#ifdef SENTRY_PROFILING_ENABLED
+#if SENTRY_PROFILING_ENABLED
     try {
         facebook::hermes::HermesRuntime::disableSamplingProfiler();
         std::stringstream ss;
