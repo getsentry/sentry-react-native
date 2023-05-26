@@ -128,23 +128,6 @@ const HomeScreen = (props: Props) => {
           />
         )}
         <Spacer />
-
-        <Button
-          title="Start profiling"
-          onPress={() => {
-            Sentry.NATIVE.startProfiling();
-          }}
-        />
-
-        <Button
-          title="Stop profiling"
-          onPress={() => {
-            Sentry.NATIVE.stopProfiling();
-          }}
-        />
-
-        <Spacer />
-
         <Sentry.ErrorBoundary fallback={errorBoundaryFallback}>
           <Button
             title="Activate Error Boundary"
