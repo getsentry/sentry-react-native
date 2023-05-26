@@ -15,15 +15,10 @@ import com.facebook.react.defaults.DefaultReactNativeHost;
 import com.facebook.soloader.SoLoader;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import io.sentry.react.RNSentryModuleImpl;
 import io.sentry.react.RNSentryPackage;
 
 public class MainApplication extends Application implements ReactApplication {
-
-  private final JavaScriptExecutorFactory mJavaScriptExecutorFactory = new HermesExecutorFactory();
-
   private final ReactNativeHost mReactNativeHost =
       new DefaultReactNativeHost(this) {
 
@@ -62,12 +57,6 @@ public class MainApplication extends Application implements ReactApplication {
         @Override
         protected Boolean isHermesEnabled() {
           return BuildConfig.IS_HERMES_ENABLED;
-        }
-
-        @Override
-        protected @Nullable JavaScriptExecutorFactory getJavaScriptExecutorFactory() {
-            RNSentryModuleImpl.setJavaScriptExecutorFactory(mJavaScriptExecutorFactory);
-            return mJavaScriptExecutorFactory;
         }
       };
 

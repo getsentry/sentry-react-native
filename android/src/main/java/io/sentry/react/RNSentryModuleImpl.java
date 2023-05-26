@@ -12,8 +12,8 @@ import android.util.SparseIntArray;
 import androidx.annotation.Nullable;
 import androidx.core.app.FrameMetricsAggregator;
 
+import com.facebook.hermes.instrumentation.HermesSamplingProfiler;
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.JavaScriptExecutorFactory;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -72,8 +71,6 @@ public class RNSentryModuleImpl {
 
     public static final String NAME = "RNSentry";
 
-    private static JavaScriptExecutorFactory javaScriptExecutorFactory = null;
-
     private static final String NATIVE_SDK_NAME = "sentry.native.android";
     private static final String ANDROID_SDK_NAME = "sentry.java.android.react-native";
     private static final ILogger logger = new AndroidLogger(NAME);
@@ -94,10 +91,6 @@ public class RNSentryModuleImpl {
     private static final int SLOW_FRAME_THRESHOLD = 16;
 
     private static final int SCREENSHOT_TIMEOUT_SECONDS = 2;
-
-    public static void setJavaScriptExecutorFactory(JavaScriptExecutorFactory javaScriptExecutorFactory) {
-        RNSentryModuleImpl.javaScriptExecutorFactory = javaScriptExecutorFactory;
-    }
 
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
         packageInfo = getPackageInfo(reactApplicationContext);
@@ -625,24 +618,25 @@ public class RNSentryModuleImpl {
         }
     }
 
-    public void startProfiling(Promise promise) {
+    public WritableMap startProfiling() {
         final WritableMap result = new WritableNativeMap();
         try {
-            RNSentryModuleImpl.javaScriptExecutorFactory.startSamplingProfiler();
-        } catch (UnsupportedOperationException e) {
-            String error = javaScriptExecutorFactory.toString() + "does not support Sampling Profiler";
-            logger.log(SentryLevel.ERROR, error);
-            result.putString("error", error);
+            HermesSamplingProfiler.enable();
+            result.putBoolean("started", true);
+        } catch (Throwable e) {
+            result.putBoolean("started", false);
+            result.putString("error", e.toString());
         }
-        promise.resolve(result);
+        return result;
     }
 
-    public void stopProfiling(Promise promise) {
+    public WritableMap stopProfiling() {
         final WritableMap result = new WritableNativeMap();
         try {
             final File output = File.createTempFile(
         "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
-            RNSentryModuleImpl.javaScriptExecutorFactory.stopSamplingProfiler(output.getPath());
+            HermesSamplingProfiler.disable();
+            HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
 
             StringBuilder text = new StringBuilder();
             BufferedReader br = new BufferedReader(new FileReader(output));
@@ -652,17 +646,11 @@ public class RNSentryModuleImpl {
                 text.append('\n');
             }
 
-            result.putString("data", text.toString());
-        } catch (IOException e) {
-            final String error = "Could not create temporary file for saving results from Sampling Profiler";
-            logger.log(SentryLevel.ERROR, error);
-            result.putString("error", error);
-        } catch (UnsupportedOperationException e) {
-            final String error = javaScriptExecutorFactory.toString() + "does not support Sampling Profiler";
-            logger.log(SentryLevel.ERROR, error);
-            result.putString("error", error);
+            result.putString("profile", text.toString());
+        } catch (Throwable e) {
+            result.putString("error", e.toString());
         }
-        promise.resolve(result);
+        return result;
     }
 
     private void setEventOriginTag(SentryEvent event) {
