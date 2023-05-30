@@ -20,9 +20,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { StyleSheet } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
-import { Integrations } from '@sentry/react-native';
-
-const { HermesProfiling } = Integrations;
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
@@ -68,7 +65,6 @@ Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
-      new HermesProfiling(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
