@@ -1,11 +1,12 @@
-import { BaseTransportOptions, Envelope, Transport } from '@sentry/types';
-import { makePromiseBuffer, PromiseBuffer } from '@sentry/utils';
+import type { BaseTransportOptions, Envelope, Transport } from '@sentry/types';
+import type { PromiseBuffer } from '@sentry/utils';
+import { makePromiseBuffer } from '@sentry/utils';
 
 import { NATIVE } from '../wrapper';
 
 export const DEFAULT_BUFFER_SIZE = 30;
 
-export type BaseNativeTransport = BaseTransportOptions
+export type BaseNativeTransport = BaseTransportOptions;
 
 export interface BaseNativeTransportOptions {
   bufferSize?: number;
@@ -45,6 +46,20 @@ export class NativeTransport implements Transport {
 /**
  * Creates a Native Transport.
  */
-export function makeReactNativeTransport(options: BaseNativeTransportOptions = {}): NativeTransport {
+export function makeNativeTransport(options: BaseNativeTransportOptions = {}): NativeTransport {
   return new NativeTransport(options);
+}
+
+/**
+ * Creates a Native Transport factory if the native transport is available.
+ */
+export function makeNativeTransportFactory({
+  enableNative,
+}: {
+  enableNative?: boolean;
+}): typeof makeNativeTransport | null {
+  if (enableNative && NATIVE.isNativeAvailable()) {
+    return makeNativeTransport;
+  }
+  return null;
 }

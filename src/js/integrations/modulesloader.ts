@@ -1,4 +1,5 @@
-import { Event,EventProcessor, Integration } from '@sentry/types';
+import type { Event, EventProcessor, Integration } from '@sentry/types';
+import { logger } from '@sentry/utils';
 
 import { NATIVE } from '../wrapper';
 
@@ -23,13 +24,17 @@ export class ModulesLoader implements Integration {
 
     addGlobalEventProcessor(async (event: Event) => {
       if (!isSetup) {
-        modules = await NATIVE.fetchModules();
+        try {
+          modules = await NATIVE.fetchModules();
+        } catch (e) {
+          logger.log(`Failed to get modules from native: ${e}`);
+        }
         isSetup = true;
       }
       if (modules) {
         event.modules = {
-          ...event.modules,
           ...modules,
+          ...event.modules,
         };
       }
       return event;

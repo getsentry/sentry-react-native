@@ -1,5 +1,9 @@
-import { existsSync, readFileSync, rmdirSync,unlinkSync } from 'fs';
+import { logger } from '@sentry/utils';
+import { existsSync, readFileSync, rmdirSync, unlinkSync } from 'fs';
 import { dirname } from 'path';
+
+jest.mock('@sentry/utils');
+(logger.enable as jest.Mock).mockImplementation(() => {});
 
 import ModulesCollector from '../../src/js/tools/ModulesCollector';
 
@@ -13,10 +17,7 @@ describe('collectModules', () => {
         `${__dirname}/fixtures/root-module/modules/module2/module2.js`,
         `${__dirname}/fixtures/root-module/modules/@organization/module3/module3.js`,
       ],
-      [
-        `${__dirname}/fixtures/root-module/modules`,
-        `${__dirname}/fixtures`,
-      ],
+      [`${__dirname}/fixtures/root-module/modules`, `${__dirname}/fixtures`],
     );
 
     expect(modules).toEqual({
@@ -35,24 +36,17 @@ describe('collectModules', () => {
         `${__dirname}/fixtures/root-module/modules/module1/modules/not-collected/lib/notCollected.js`,
         `${__dirname}/fixtures/root-module/modules/module2/module2.js`,
       ],
-      [
-        `${__dirname}/fixtures/root-module/modules`,
-      ],
+      [`${__dirname}/fixtures/root-module/modules`],
     );
 
     expect(modules).toEqual({
       'module-1': 'module-1-version',
-      'module-2': 'unknown'
+      'module-2': 'unknown',
     });
   });
 
   test('should skip non string source value', () => {
-    const modules = ModulesCollector.collect(
-      [1, {}],
-      [
-        `${__dirname}/fixtures/root-module/modules`,
-      ],
-    );
+    const modules = ModulesCollector.collect([1, {}], [`${__dirname}/fixtures/root-module/modules`]);
 
     expect(modules).toEqual({});
   });
@@ -62,9 +56,7 @@ describe('collectModules', () => {
     ModulesCollector.run({
       sourceMapPath: 'not-exist',
       outputModulesPath: `${__dirname}/fixtures/mock.json`,
-      modulesPaths: [
-        `${__dirname}/fixtures/root-module/modules`,
-      ],
+      modulesPaths: [`${__dirname}/fixtures/root-module/modules`],
       collect: mockCollect,
     });
 
@@ -76,10 +68,7 @@ describe('collectModules', () => {
     ModulesCollector.run({
       sourceMapPath: `${__dirname}/fixtures/mock.map`,
       outputModulesPath: `${__dirname}/fixtures/mock.json`,
-      modulesPaths: [
-        `${__dirname}/fixtures/root-module/modules`,
-        'not-exist',
-      ],
+      modulesPaths: [`${__dirname}/fixtures/root-module/modules`, 'not-exist'],
       collect: mockCollect,
     });
 
@@ -103,9 +92,7 @@ describe('collectModules', () => {
       ModulesCollector.run({
         sourceMapPath: `${__dirname}/fixtures/mock.map`,
         outputModulesPath,
-        modulesPaths: [
-          `${__dirname}/fixtures/root-module/modules`,
-        ],
+        modulesPaths: [`${__dirname}/fixtures/root-module/modules`],
       });
 
       expect(existsSync(outputModulesPath)).toEqual(true);

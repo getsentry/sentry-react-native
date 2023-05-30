@@ -1,4 +1,4 @@
-import { Outcome } from '@sentry/types';
+import type { Outcome } from '@sentry/types';
 
 /**
  * Merges buffer with new outcomes.
@@ -16,7 +16,7 @@ export function mergeOutcomes(...merge: Outcome[][]): Outcome[] {
     }
   };
 
-  merge.forEach((outcomes) => outcomes.forEach(process));
+  merge.forEach(outcomes => outcomes.forEach(process));
 
   return [...map.values()];
 }

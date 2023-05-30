@@ -11,6 +11,7 @@ node_modules
 build/
 DerivedData
 dist
+ts3.8
 coverage
 
 ## Various settings
@@ -78,3 +79,4 @@ sample/.vscode/.react/debuggerWorker.js
 
 # E2E tests
 sample/*.png
+test/react-native/versions

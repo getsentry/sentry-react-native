@@ -1,10 +1,4 @@
-import {
-  DsnComponents,
-  EventEnvelope,
-  SdkMetadata,
-  UserFeedback,
-  UserFeedbackItem,
-} from '@sentry/types';
+import type { DsnComponents, EventEnvelope, SdkMetadata, UserFeedback, UserFeedbackItem } from '@sentry/types';
 import { createEnvelope, dsnToString } from '@sentry/utils';
 
 export const header = 0;
@@ -20,18 +14,21 @@ export function createUserFeedbackEnvelope(
     tunnel,
     dsn,
   }: {
-    metadata: SdkMetadata | undefined,
-    tunnel: string | undefined,
-    dsn: DsnComponents | undefined,
+    metadata: SdkMetadata | undefined;
+    tunnel: string | undefined;
+    dsn: DsnComponents | undefined;
   },
 ): EventEnvelope {
   const headers: EventEnvelope[0] = {
     event_id: feedback.event_id,
     sent_at: new Date().toISOString(),
-    ...(metadata && metadata.sdk && { sdk: {
-      name: metadata.sdk.name,
-      version: metadata.sdk.version,
-    }}),
+    ...(metadata &&
+      metadata.sdk && {
+        sdk: {
+          name: metadata.sdk.name,
+          version: metadata.sdk.version,
+        },
+      }),
     ...(!!tunnel && !!dsn && { dsn: dsnToString(dsn) }),
   };
   const item = createUserFeedbackEnvelopeItem(feedback);
@@ -39,9 +36,7 @@ export function createUserFeedbackEnvelope(
   return createEnvelope(headers, [item]);
 }
 
-function createUserFeedbackEnvelopeItem(
-  feedback: UserFeedback
-): UserFeedbackItem {
+function createUserFeedbackEnvelopeItem(feedback: UserFeedback): UserFeedbackItem {
   const feedbackHeaders: UserFeedbackItem[0] = {
     type: 'user_report',
   };

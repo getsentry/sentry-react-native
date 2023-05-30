@@ -1,15 +1,38 @@
+/**
+ * @jest-environment jsdom
+ */
 import * as core from '@sentry/core';
-import { SeverityLevel } from '@sentry/types';
+import type { SeverityLevel } from '@sentry/types';
 
 import { TouchEventBoundary } from '../src/js/touchevents';
 
-const addBreadcrumb = jest.spyOn(core, 'addBreadcrumb');
-
-afterEach(() => {
-  jest.resetAllMocks();
-});
+jest.mock('@sentry/core');
+jest.mock('../src/js/tracing', () => ({}));
 
 describe('TouchEventBoundary._onTouchStart', () => {
+  let addBreadcrumb: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+    addBreadcrumb = jest.spyOn(core, 'addBreadcrumb');
+  });
+
+  it('register itself as integration', () => {
+    const mockAddIntegration = jest.fn();
+    (core.getCurrentHub as jest.Mock).mockReturnValue({
+      getClient: jest.fn().mockReturnValue({
+        addIntegration: mockAddIntegration,
+        getIntegration: jest.fn(),
+      }),
+    });
+    const { defaultProps } = TouchEventBoundary;
+    const boundary = new TouchEventBoundary(defaultProps);
+
+    boundary.componentDidMount();
+
+    expect(mockAddIntegration).toBeCalledWith(expect.objectContaining({ name: 'TouchEventBoundary' }));
+  });
+
   it('tree without displayName or label is not logged', () => {
     const { defaultProps } = TouchEventBoundary;
     const boundary = new TouchEventBoundary(defaultProps);
@@ -43,9 +66,12 @@ describe('TouchEventBoundary._onTouchStart', () => {
     expect(addBreadcrumb).not.toBeCalled();
   });
 
-  it('label is preferred over accessibilityLabel and displayName', () => {
+  it('sentry-label is preferred over labelName and displayName', () => {
     const { defaultProps } = TouchEventBoundary;
-    const boundary = new TouchEventBoundary(defaultProps);
+    const boundary = new TouchEventBoundary({
+      ...defaultProps,
+      labelName: 'custom-sentry-label-name',
+    });
 
     const event = {
       _targetInst: {
@@ -63,7 +89,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
             return: {
               memoizedProps: {
                 'sentry-label': 'LABEL!',
-                accessibilityLabel: 'access!',
+                'custom-sentry-label-name': 'access!',
               },
             },
           },
@@ -89,6 +115,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     const { defaultProps } = TouchEventBoundary;
     const boundary = new TouchEventBoundary({
       ...defaultProps,
+      labelName: 'custom-sentry-label-name',
       ignoreNames: ['View', 'Ignore', /^Connect\(/, new RegExp('^Happy\\(')],
     });
 
@@ -108,7 +135,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
             return: {
               memoizedProps: {
                 'sentry-label': 'Ignore',
-                accessibilityLabel: 'Ignore',
+                'custom-sentry-label-name': 'Ignore',
               },
               elementType: {
                 displayName: 'Styled(View2)',
@@ -148,6 +175,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     const boundary = new TouchEventBoundary({
       ...defaultProps,
       maxComponentTreeSize: 2,
+      labelName: 'custom-sentry-label-name',
     });
 
     const event = {
@@ -161,7 +189,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
           },
           return: {
             memoizedProps: {
-              accessibilityLabel: 'Connect(View)',
+              'custom-sentry-label-name': 'Connect(View)',
             },
             return: {
               elementType: {

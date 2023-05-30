@@ -34,13 +34,16 @@ gradle.projectsEvaluated {
     // separately we then hook into the bundle task of react native to inject
     // sourcemap generation parameters.  In case for whatever reason no release
     // was found for the asset folder we just bail.
-    def bundleTasks = tasks.findAll { task -> task.name.startsWith("bundle") && task.name.endsWith("JsAndAssets") && !task.name.contains("Debug") && task.enabled }
+    def bundleTasks = tasks.findAll { task -> (task.name.startsWith("createBundle") || task.name.startsWith("bundle")) && task.name.endsWith("JsAndAssets") && !task.name.contains("Debug") && task.enabled }
     bundleTasks.each { bundleTask ->
         def shouldCleanUp
         def sourcemapOutput
         def bundleOutput
         def props = bundleTask.getProperties()
         def reactRoot = props.get("workingDir")
+        if (reactRoot == null) {
+            reactRoot = props.get("root").get() // RN 0.71 and above
+        }
         def modulesOutput = "$reactRoot/android/app/src/main/assets/modules.json"
         def modulesTask = null
 
@@ -182,13 +185,18 @@ gradle.projectsEvaluated {
                           modulesPaths
               ]
 
-              project.logger.info("Sentry-CollectModules arguments: ${args}")
-              commandLine(*args)
+              if ((new File(collectModulesScript)).exists()) {
+                  project.logger.info("Sentry-CollectModules arguments: ${args}")
+                  commandLine(*args)
 
-              def skip = config.skipCollectModules
-                  ? config.skipCollectModules == true
-                  : false
-              enabled !skip
+                  def skip = config.skipCollectModules
+                    ? config.skipCollectModules == true
+                    : false
+                  enabled !skip
+              } else {
+                  project.logger.info("collectModulesScript not found: $collectModulesScript")
+                  enabled false
+              }
           }
 
           // chain the upload tasks so they run sequentially in order to run
@@ -213,7 +221,10 @@ gradle.projectsEvaluated {
         // task.name could be packageDev-debugRelease but in that case currentVariants == null
         // because of the regex in `extractCurrentVariants` and this code doesn't run
         def packageTasks = tasks.findAll {
-          task -> "package${variantTaskName}".equalsIgnoreCase(task.name) && task.enabled
+          task -> (
+            "package${variantTaskName}".equalsIgnoreCase(task.name)
+              || "package${variantTaskName}Bundle".equalsIgnoreCase(task.name)
+            ) && task.enabled
         }
         packageTasks.each { packageTask ->
             packageTask.dependsOn modulesTask
@@ -262,7 +273,7 @@ def extractReleasesInfo() {
 }
 
 /** Extract from arguments collection bundle and sourcemap files output names. */
-static extractBundleTaskArguments(cmdArgs, Project project) {
+static extractBundleTaskArgumentsLegacy(cmdArgs, Project project) {
     def bundleOutput = null
     def sourcemapOutput = null
 
@@ -306,6 +317,26 @@ static extractBundleTaskArguments(cmdArgs, Project project) {
     return [bundleOutput, sourcemapOutput]
 }
 
+/** Extract bundle and sourcemap paths from bundle task props.
+  * Based on https://github.dev/facebook/react-native/blob/473eb1dd870a4f62c4ebcba27e12bde1e99e3d07/packages/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/tasks/BundleHermesCTask.kt#L109
+  * Output source map path is the same for both Hermes and JSC.
+  */
+static extractBundleTaskArgumentsRN71AndAbove(bundleTask, logger) {
+    def props = bundleTask.getProperties()
+    def bundleAssetName = props.bundleAssetName?.get()
+
+    if (bundleAssetName == null) {
+        return [null, null]
+    }
+
+    def bundleFile = new File(props.jsBundleDir.get().asFile.absolutePath, bundleAssetName)
+    def outputSourceMap = new File(props.jsSourceMapsDir.get().asFile.absolutePath, "${bundleAssetName}.map")
+
+    logger.info("bundleFile: `${bundleFile}`")
+    logger.info("outputSourceMap: `${outputSourceMap}`")
+    return [bundleFile, outputSourceMap]
+}
+
 /** Force Bundle task to produce sourcemap files if they are not pre-configured by user yet. */
 def forceSourceMapOutputFromBundleTask(bundleTask) {
     def props = bundleTask.getProperties()
@@ -315,7 +346,10 @@ def forceSourceMapOutputFromBundleTask(bundleTask) {
     def bundleOutput = null
     def sourcemapOutput = null
 
-    (bundleOutput, sourcemapOutput) = extractBundleTaskArguments(cmdArgs, project)
+    (bundleOutput, sourcemapOutput) = extractBundleTaskArgumentsRN71AndAbove(bundleTask, logger)
+    if (bundleOutput == null) {
+        (bundleOutput, sourcemapOutput) = extractBundleTaskArgumentsLegacy(cmdArgs, project)
+    }
 
     if (sourcemapOutput == null) {
         sourcemapOutput = bundleOutput + ".map"
@@ -338,8 +372,8 @@ def forceSourceMapOutputFromBundleTask(bundleTask) {
 
 /** compose array with one item - current build flavor name */
 static extractCurrentVariants(bundleTask, releases) {
-    // examples: bundleLocalReleaseJsAndAssets, bundleYellowDebugJsAndAssets
-    def pattern = Pattern.compile("bundle([A-Z][A-Za-z0-9_]+)JsAndAssets")
+    // examples: bundleLocalReleaseJsAndAssets, createBundleYellowDebugJsAndAssets
+    def pattern = Pattern.compile("(?:create)?(?:B|b)undle([A-Z][A-Za-z0-9_]+)JsAndAssets")
 
     def currentRelease = ""
 

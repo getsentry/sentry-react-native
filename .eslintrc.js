@@ -12,6 +12,11 @@ module.exports = {
   settings: {
     version: 'detect', // React version. "detect" automatically picks the version you have installed.
   },
+  ignorePatterns: [
+    'test/react-native/versions/**/*',
+    'coverage/**/*',
+    'test/typescript/**/*',
+  ],
   overrides: [
     {
       // Typescript Files
@@ -44,9 +49,19 @@ module.exports = {
         'no-console': 'off',
       },
     },
+    {
+      // RN Versions Test Tools
+      files: ['test/react-native/*'],
+      parserOptions: {
+        ecmaVersion: 2017,
+      },
+    }
   ],
   rules: {
     // Bundle size isn't too much of an issue for React Native.
     '@sentry-internal/sdk/no-async-await': 'off',
+    '@sentry-internal/sdk/no-optional-chaining': 'off',
+    '@sentry-internal/sdk/no-nullish-coalescing': 'off',
+    '@sentry-internal/sdk/no-unsupported-es6-methods': 'off',
   },
 };

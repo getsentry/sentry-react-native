@@ -13,7 +13,7 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 # Sentry SDK for React Native
 
 [![Build & Test](https://github.com/getsentry/sentry-react-native/actions/workflows/buildandtest.yml/badge.svg)](https://github.com/getsentry/sentry-react-native/actions/workflows/buildandtest.yml)
-[![E2E Tests](https://img.shields.io/github/workflow/status/getsentry/sentry-react-native/End-to-End%20Tests?label=E2E%20Tests)](https://github.com/getsentry/sentry-react-native/actions?query=workflow%3A"End-to-End%20Tests")
+[![E2E Tests](https://img.shields.io/github/actions/workflow/status/getsentry/sentry-react-native/.github/workflows/e2e.yml?branch=main)](https://github.com/getsentry/sentry-react-native/actions?query=workflow%3A"End-to-End%20Tests")
 [![npm version](https://img.shields.io/npm/v/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
 [![npm dm](https://img.shields.io/npm/dm/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
 [![npm dt](https://img.shields.io/npm/dt/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
@@ -21,7 +21,7 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 
 ## Requirements
 
-- `react-native >= 0.56.0`
+- `react-native >= 0.65.0`
 
 ## Features
 
@@ -34,23 +34,14 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 - RAM bundle support
 - Hermes support
 - Expo support ([sentry-expo](https://github.com/expo/sentry-expo))
+- RN New Architecture support
 
 ## Installation and Usage
 
-To install the package:
+To install the package and setup your project:
 
 ```sh
-npm install --save @sentry/react-native
-# OR
-yarn add @sentry/react-native
-```
-
-If you are using a version of React Native <= 0.60.x link the package using `react-native`.
-
-```sh
-react-native link @sentry/react-native
-# OR, if self hosting
-SENTRY_WIZARD_URL=http://sentry.acme.com/ react-native link @sentry/react-native
+npx @sentry/wizard -s -i reactNative
 ```
 
 How to use it:
@@ -60,6 +51,11 @@ import * as Sentry from "@sentry/react-native";
 
 Sentry.init({
   dsn: "__DSN__",
+
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: 1.0,
 });
 
 Sentry.setTag("myTag", "tag-value");

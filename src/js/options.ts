@@ -1,18 +1,17 @@
-import { BaseBrowserOptions } from '@sentry/browser/types/client';
-import { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
-import { ProfilerProps } from '@sentry/react/types/profiler';
-import { ClientOptions, Options } from '@sentry/types';
-import { CaptureContext } from '@sentry/types/types/scope';
+import type { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
+import type { ProfilerProps } from '@sentry/react/types/profiler';
+import type { ClientOptions, Options } from '@sentry/types';
+import type { CaptureContext } from '@sentry/types/types/scope';
 
-import { TouchEventBoundaryProps } from './touchevents';
+import type { TouchEventBoundaryProps } from './touchevents';
 
 export interface BaseReactNativeOptions {
   /**
-    * Enables native transport + device info + offline caching.
-    * Be careful, disabling this also breaks automatic release setting.
-    * This means you have to manage setting the release yourself.
-    * Defaults to `true`.
-    */
+   * Enables native transport + device info + offline caching.
+   * Be careful, disabling this also breaks automatic release setting.
+   * This means you have to manage setting the release yourself.
+   * Defaults to `true`.
+   */
   enableNative?: boolean;
 
   /**
@@ -64,17 +63,19 @@ export interface BaseReactNativeOptions {
     didCallNativeInit: boolean;
   }) => void;
 
-  /** Enable auto performance tracking by default. */
-  enableAutoPerformanceTracking?: boolean;
+  /** Enable auto performance tracking by default. Renamed from `enableAutoPerformanceTracking` in v5. */
+  enableAutoPerformanceTracing?: boolean;
 
   /**
    * Enables Out of Memory Tracking for iOS and macCatalyst.
    * See the following link for more information and possible restrictions:
    * https://docs.sentry.io/platforms/apple/guides/ios/configuration/out-of-memory/
    *
+   * Renamed from `enableOutOfMemoryTracking` in v5.
+   *
    * @default true
    */
-  enableOutOfMemoryTracking?: boolean;
+  enableWatchdogTerminationTracking?: boolean;
 
   /**
    * Set data to the inital scope
@@ -126,12 +127,35 @@ export interface BaseReactNativeOptions {
    * The max queue size for capping the number of envelopes waiting to be sent by Transport.
    */
   maxQueueSize?: number;
+
+  /**
+   * When enabled and a user experiences an error, Sentry provides the ability to take a screenshot and include it as an attachment.
+   *
+   * @default false
+   */
+  attachScreenshot?: boolean;
+
+  /**
+   * When enabled Sentry includes the current view hierarchy in the error attachments.
+   *
+   * @default false
+   */
+  attachViewHierarchy?: boolean;
+
+  /**
+   * When enabled, Sentry will capture failed XHR/Fetch requests. This option also enabled HTTP Errors on iOS.
+   * [Sentry Android Gradle Plugin](https://docs.sentry.io/platforms/android/configuration/integrations/okhttp/)
+   * is needed to capture HTTP Errors on Android.
+   *
+   * @default false
+   */
+  enableCaptureFailedRequests?: boolean;
 }
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {
   /**
    * @deprecated use `maxQueueSize` in the root of the SDK options.
-  */
+   */
   bufferSize?: number;
 }
 
@@ -140,12 +164,9 @@ export interface ReactNativeTransportOptions extends BrowserTransportOptions {
  * @see ReactNativeFrontend for more information.
  */
 
-export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
-}
+export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseReactNativeOptions {}
 
-export interface ReactNativeClientOptions extends ClientOptions<ReactNativeTransportOptions>, BaseBrowserOptions, BaseReactNativeOptions {
-}
-
+export interface ReactNativeClientOptions extends ClientOptions<ReactNativeTransportOptions>, BaseReactNativeOptions {}
 
 export interface ReactNativeWrapperOptions {
   /** Props for the root React profiler */

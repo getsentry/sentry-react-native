@@ -1,11 +1,13 @@
-import { getIntegrationsToSetup, Hub, initAndBind, makeMain, Scope, setExtra } from '@sentry/core';
-import { RewriteFrames } from '@sentry/integrations';
+import type { Scope } from '@sentry/core';
+import { getIntegrationsToSetup, hasTracingEnabled , Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
+import { HttpClient } from '@sentry/integrations';
 import {
   defaultIntegrations as reactDefaultIntegrations,
   defaultStackParser,
   getCurrentHub,
+  makeFetchTransport,
 } from '@sentry/react';
-import { Integration, StackFrame, UserFeedback } from '@sentry/types';
+import type { Integration, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -16,17 +18,20 @@ import {
   EventOrigin,
   ModulesLoader,
   ReactNativeErrorHandlers,
+  ReactNativeInfo,
   Release,
   SdkInfo,
 } from './integrations';
-import { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
+import { createReactNativeRewriteFrames } from './integrations/rewriteframes';
+import { Screenshot } from './integrations/screenshot';
+import { ViewHierarchy } from './integrations/viewhierarchy';
+import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
-import { DEFAULT_BUFFER_SIZE, makeReactNativeTransport } from './transports/native';
+import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
 import { safeFactory, safeTracesSampler } from './utils/safe';
-import { RN_GLOBAL_OBJ } from './utils/worldwide';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
@@ -37,14 +42,16 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
-  enableAutoPerformanceTracking: true,
-  enableOutOfMemoryTracking: true,
+  enableAutoPerformanceTracing: true,
+  enableWatchdogTerminationTracking: true,
   patchGlobalPromise: true,
   transportOptions: {
     textEncoder: makeUtf8TextEncoder(),
   },
   sendClientReports: true,
   maxQueueSize: DEFAULT_BUFFER_SIZE,
+  attachStacktrace: true,
+  enableCaptureFailedRequests: false,
 };
 
 /**
@@ -62,7 +69,13 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
     // If custom transport factory fails the SDK won't initialize
-    transport: passedOptions.transport || makeReactNativeTransport,
+    transport: passedOptions.transport
+      || makeNativeTransportFactory({
+        enableNative: passedOptions.enableNative !== undefined
+          ? passedOptions.enableNative
+          : DEFAULT_OPTIONS.enableNative
+      })
+      || makeFetchTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(passedOptions.transportOptions ?? {}),
@@ -75,11 +88,6 @@ export function init(passedOptions: ReactNativeOptions): void {
     initialScope: safeFactory(passedOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
     tracesSampler: safeTracesSampler(passedOptions.tracesSampler),
   };
-
-  // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.
-  const tracingEnabled =
-    typeof options.tracesSampler !== 'undefined' ||
-    typeof options.tracesSampleRate !== 'undefined';
 
   const defaultIntegrations: Integration[] = passedOptions.defaultIntegrations || [];
   if (passedOptions.defaultIntegrations === undefined) {
@@ -96,41 +104,27 @@ export function init(passedOptions: ReactNativeOptions): void {
 
     defaultIntegrations.push(new EventOrigin());
     defaultIntegrations.push(new SdkInfo());
+    defaultIntegrations.push(new ReactNativeInfo());
 
     if (__DEV__) {
       defaultIntegrations.push(new DebugSymbolicator());
     }
 
-    defaultIntegrations.push(new RewriteFrames({
-      iteratee: (frame: StackFrame) => {
-        if (frame.filename) {
-          frame.filename = frame.filename
-            .replace(/^file:\/\//, '')
-            .replace(/^address at /, '')
-            .replace(/^.*\/[^.]+(\.app|CodePush|.*(?=\/))/, '');
-
-          if (
-            frame.filename !== '[native code]' &&
-            frame.filename !== 'native'
-          ) {
-            const appPrefix = 'app://';
-            // We always want to have a triple slash
-            frame.filename =
-              frame.filename.indexOf('/') === 0
-                ? `${appPrefix}${frame.filename}`
-                : `${appPrefix}/${frame.filename}`;
-          }
-        }
-        return frame;
-      },
-    }));
+    defaultIntegrations.push(createReactNativeRewriteFrames());
     if (options.enableNative) {
       defaultIntegrations.push(new DeviceContext());
     }
-    if (tracingEnabled) {
-      if (options.enableAutoPerformanceTracking) {
-        defaultIntegrations.push(new ReactNativeTracing());
-      }
+    if (hasTracingEnabled(options) && options.enableAutoPerformanceTracing) {
+      defaultIntegrations.push(new ReactNativeTracing());
+    }
+    if (options.attachScreenshot) {
+      defaultIntegrations.push(new Screenshot());
+    }
+    if (options.attachViewHierarchy) {
+      defaultIntegrations.push(new ViewHierarchy());
+    }
+    if (options.enableCaptureFailedRequests) {
+      defaultIntegrations.push(new HttpClient());
     }
   }
 
@@ -139,16 +133,12 @@ export function init(passedOptions: ReactNativeOptions): void {
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
-
-  if (RN_GLOBAL_OBJ.HermesInternal) {
-    getCurrentHub().setTag('hermes', 'true');
-  }
 }
 
 /**
  * Inits the Sentry React Native SDK with automatic instrumentation and wrapped features.
  */
-export function wrap<P>(
+export function wrap<P extends JSX.IntrinsicAttributes>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
@@ -243,9 +233,9 @@ export async function close(): Promise<void> {
 /**
  * Captures user feedback and sends it to Sentry.
  */
- export function captureUserFeedback(feedback: UserFeedback): void {
+export function captureUserFeedback(feedback: UserFeedback): void {
   getCurrentHub().getClient<ReactNativeClient>()?.captureUserFeedback(feedback);
- }
+}
 
 /**
  * Creates a new scope with and executes the given operation within.
@@ -275,7 +265,7 @@ export function withScope(callback: (scope: Scope) => void): ReturnType<Hub['wit
  * Callback to set context information onto the scope.
  * @param callback Callback function that receives Scope.
  */
- export function configureScope(callback: (scope: Scope) => void): ReturnType<Hub['configureScope']> {
+export function configureScope(callback: (scope: Scope) => void): ReturnType<Hub['configureScope']> {
   const safeCallback = (scope: Scope): void => {
     try {
       callback(scope);

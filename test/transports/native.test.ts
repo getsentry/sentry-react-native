@@ -1,4 +1,4 @@
-import { Envelope } from '@sentry/types';
+import type { Envelope } from '@sentry/types';
 
 import { NativeTransport } from '../../src/js/transports/native';
 

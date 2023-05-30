@@ -1,12 +1,10 @@
 import { logger } from '@sentry/utils';
 
-import { ReactNativeOptions } from '../options';
+import type { ReactNativeOptions } from '../options';
 
 type DangerTypesWithoutCallSignature =
-// eslint-disable-next-line @typescript-eslint/ban-types
-  | Object
-  | null
-  | undefined;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  Object | null | undefined;
 
 /**
  * Returns callback factory wrapped with try/catch
@@ -27,9 +25,7 @@ export function safeFactory<A extends [R, ...unknown[]], R, T extends DangerType
         return danger(...args);
       } catch (error) {
         logger.error(
-          options.loggerMessage
-            ? options.loggerMessage
-            : `The ${danger.name} callback threw an error`,
+          options.loggerMessage ? options.loggerMessage : `The ${danger.name} callback threw an error`,
           error,
         );
         return args[0];
@@ -49,16 +45,14 @@ export function safeTracesSampler(
   tracesSampler: ReactNativeOptions['tracesSampler'],
 ): ReactNativeOptions['tracesSampler'] {
   if (tracesSampler) {
-    return (
-      ...args: Parameters<TracesSampler>
-    ): ReturnType<TracesSampler> => {
+    return (...args: Parameters<TracesSampler>): ReturnType<TracesSampler> => {
       try {
         return tracesSampler(...args);
       } catch (error) {
         logger.error('The tracesSampler callback threw an error', error);
         return 0;
       }
-    }
+    };
   } else {
     return tracesSampler;
   }

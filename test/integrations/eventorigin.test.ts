@@ -1,14 +1,14 @@
-import { Event } from '@sentry/types';
+import type { Event } from '@sentry/types';
 
 import { EventOrigin } from '../../src/js/integrations';
 
 describe('Event Origin', () => {
-  it('Adds event.origin and event.environment javascript tags to events', (done) => {
+  it('Adds event.origin and event.environment javascript tags to events', done => {
     const integration = new EventOrigin();
 
     const mockEvent: Event = {};
 
-    integration.setupOnce(async (eventProcessor) => {
+    integration.setupOnce(async eventProcessor => {
       try {
         const processedEvent = await eventProcessor(mockEvent, {});
 
