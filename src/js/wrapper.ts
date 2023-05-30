@@ -201,6 +201,7 @@ export const NATIVE: SentryNativeWrapper = {
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 
     this.nativeIsReady = nativeIsReady;
+    this.enableNative = true;
 
     return nativeIsReady;
   },
