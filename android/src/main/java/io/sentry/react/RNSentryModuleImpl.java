@@ -68,7 +68,7 @@ public class RNSentryModuleImpl {
 
     public static final String NAME = "RNSentry";
 
-    private static final String NATIVE_SDK_NAME = "sentry.native.android";
+    private static final String NATIVE_SDK_NAME = "sentry.native.android.react-native";
     private static final String ANDROID_SDK_NAME = "sentry.java.android.react-native";
     private static final ILogger logger = new AndroidLogger(NAME);
     private static final BuildInfoProvider buildInfo = new BuildInfoProvider(logger);
@@ -113,6 +113,7 @@ public class RNSentryModuleImpl {
             }
 
             options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
+            options.setNativeSdkName(NATIVE_SDK_NAME);
             options.setSdkVersion(sdkVersion);
 
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
