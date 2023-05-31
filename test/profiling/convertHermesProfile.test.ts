@@ -1,6 +1,6 @@
-import { convertToSentryProfile } from '../../../src/js/profiling/convertHermesProfile';
-import type * as Hermes from '../../../src/js/profiling/hermes';
-import type { ThreadCpuProfile } from '../../../src/js/profiling/types';
+import { convertToSentryProfile } from '../../src/js/profiling/convertHermesProfile';
+import type * as Hermes from '../../src/js/profiling/hermes';
+import type { ThreadCpuProfile } from '../../src/js/profiling/types';
 
 describe('convert hermes profile to sentry profile', () => {
   it('simple test profile', async () => {

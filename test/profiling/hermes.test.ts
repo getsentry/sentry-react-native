@@ -1,4 +1,4 @@
-import { parseHermesStackFrameName } from '../../../src/js/profiling/hermes';
+import { parseHermesStackFrameName } from '../../src/js/profiling/hermes';
 
 describe('hermes', () => {
   describe('parseHermesStackFrameName', () => {

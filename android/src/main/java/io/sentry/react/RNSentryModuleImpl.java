@@ -633,14 +633,14 @@ public class RNSentryModuleImpl {
 
     public WritableMap stopProfiling() {
         final WritableMap result = new WritableNativeMap();
-        try {
-            final File output = File.createTempFile(
-        "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
+        try (final File output = File.createTempFile(
+                "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
+            final BufferedReader br = new BufferedReader(new FileReader(output));
+        ) {
             HermesSamplingProfiler.disable();
             HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
 
-            StringBuilder text = new StringBuilder();
-            BufferedReader br = new BufferedReader(new FileReader(output));
+            final StringBuilder text = new StringBuilder();
             String line;
             while ((line = br.readLine()) != null) {
                 text.append(line);

@@ -439,19 +439,23 @@ describe('Tests the SDK functionality', () => {
 
       const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
       const actualIntegrations = actualOptions.integrations;
-      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'HermesProfiling' })]));
+      expect(actualIntegrations).toEqual(
+        expect.not.arrayContaining([expect.objectContaining({ name: 'HermesProfiling' })]),
+      );
     });
 
     it('adds profiling integration', () => {
       init({
         _experiments: {
-          profilesSampleRate: 0.7,
+          profileSampleRate: 0.7,
         },
       });
 
       const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
       const actualIntegrations = actualOptions.integrations;
-      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'HermesProfiling' })]));
+      expect(actualIntegrations).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'HermesProfiling' })]),
+      );
     });
 
     it('no default integrations', () => {

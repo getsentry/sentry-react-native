@@ -127,7 +127,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (options.enableCaptureFailedRequests) {
       defaultIntegrations.push(new HttpClient());
     }
-    if (options._experiments && typeof options._experiments.profilesSampleRate === 'number') {
+    if (options._experiments && typeof options._experiments.profileSampleRate === 'number') {
       defaultIntegrations.push(new HermesProfiling());
     }
   }
