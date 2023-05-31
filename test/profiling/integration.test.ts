@@ -1,6 +1,6 @@
 import * as mockWrapper from '../mockWrapper';
-jest.mock('../../../src/js/wrapper', () => mockWrapper);
-jest.mock('../../../src/js/utils/environment');
+jest.mock('../../src/js/wrapper', () => mockWrapper);
+jest.mock('../../src/js/utils/environment');
 
 import type { Envelope, Event, Transaction, Transport } from '@sentry/types';
 
