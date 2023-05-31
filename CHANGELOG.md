@@ -44,6 +44,7 @@
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.50.0...7.51.1)
 
 ## 4.15.2
+
 - Only store envelopes of fatal crashes on iOS ([#3051](https://github.com/getsentry/sentry-react-native/pull/3051))
 
 ## 5.4.1
