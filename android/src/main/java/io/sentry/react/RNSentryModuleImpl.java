@@ -633,11 +633,13 @@ public class RNSentryModuleImpl {
 
     public WritableMap stopProfiling() {
         final WritableMap result = new WritableNativeMap();
-        try (final File output = File.createTempFile(
+        try {
+            HermesSamplingProfiler.disable();
+
+            final File output = File.createTempFile(
                 "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
             final BufferedReader br = new BufferedReader(new FileReader(output));
-        ) {
-            HermesSamplingProfiler.disable();
+
             HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
 
             final StringBuilder text = new StringBuilder();
@@ -646,6 +648,7 @@ public class RNSentryModuleImpl {
                 text.append(line);
                 text.append('\n');
             }
+            br.close();
 
             result.putString("profile", text.toString());
         } catch (Throwable e) {
