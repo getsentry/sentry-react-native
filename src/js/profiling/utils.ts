@@ -1,14 +1,14 @@
-import type { Envelope, Event } from '@sentry/types';
+import type { Envelope, Event, Profile } from '@sentry/types';
 import { forEachEnvelopeItem, logger } from '@sentry/utils';
 
-import type { Profile, ThreadCpuProfile } from './types';
+import type { RawThreadCpuProfile } from './types';
 
 const ACTIVE_THREAD_ID_STRING = '0';
 
 /**
  *
  */
-export function isValidProfile(profile: ThreadCpuProfile): profile is ThreadCpuProfile & { profile_id: string } {
+export function isValidProfile(profile: RawThreadCpuProfile): profile is RawThreadCpuProfile & { profile_id: string } {
   if (profile.samples.length <= 1) {
     if (__DEV__) {
       // Log a warning if the profile has less than 2 samples so users can know why
@@ -59,7 +59,7 @@ export function findProfiledTransactionsFromEnvelope(envelope: Envelope): Event[
  * @param event
  * @returns {Profile | null}
  */
-export function createProfilingEvent(profile: ThreadCpuProfile, event: Event): Profile | null {
+export function createProfilingEvent(profile: RawThreadCpuProfile, event: Event): Profile | null {
   if (!isValidProfile(profile)) {
     return null;
   }
@@ -91,7 +91,7 @@ export function createProfilingEvent(profile: ThreadCpuProfile, event: Event): P
  * @returns
  */
 function createProfilePayload(
-  cpuProfile: ThreadCpuProfile,
+  cpuProfile: RawThreadCpuProfile,
   {
     release,
     environment,

@@ -1,11 +1,12 @@
-import type { Envelope, Event, EventProcessor, Hub, Integration, Transaction } from '@sentry/types';
+import type { Envelope, Event, EventProcessor, Hub, Integration, Profile, Transaction  } from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 
 import { isHermesEnabled } from '../utils/environment';
 import { PROFILE_QUEUE } from './cache';
 import { startProfiling, stopProfiling } from './hermes';
-import type { Profile } from './types';
 import { addProfilesToEnvelope, createProfilingEvent, findProfiledTransactionsFromEnvelope } from './utils';
+
+export const MAX_PROFILE_DURATION_MS = 30 * 1e6;
 
 /**
  * Profiling integration creates a profile for each transaction and adds it to the event envelope.
@@ -32,6 +33,8 @@ export class HermesProfiling implements Integration {
       }
     | undefined;
 
+  private _currentProfileTimeout: number | undefined;
+
   /**
    * @inheritDoc
    */
@@ -49,6 +52,7 @@ export class HermesProfiling implements Integration {
     }
 
     client.on('startTransaction', (transaction: Transaction) => {
+      typeof this._currentProfileTimeout === 'number' && clearTimeout(this._currentProfileTimeout);
       this._finishCurrentProfile();
 
       const shouldStartProfiling = this._shouldStartProfiling(transaction);
@@ -57,9 +61,14 @@ export class HermesProfiling implements Integration {
       }
 
       this._startNewProfile(transaction);
+      setTimeout(
+        this._finishCurrentProfile,
+        MAX_PROFILE_DURATION_MS,
+      );
     });
 
     client.on('finishTransaction', () => {
+      typeof this._currentProfileTimeout === 'number' && clearTimeout(this._currentProfileTimeout);
       this._finishCurrentProfile();
     });
 
@@ -117,7 +126,6 @@ export class HermesProfiling implements Integration {
    * Starts a new profile and links it to the transaction.
    */
   private _startNewProfile = (transaction: Transaction): void => {
-    // TODO: _startProfileTimeout
     const profileStartTimestampNs = startProfiling();
     if (!profileStartTimestampNs) {
       return;
@@ -140,8 +148,6 @@ export class HermesProfiling implements Integration {
     if (this._currentProfile === undefined) {
       return;
     }
-
-    // TODO: _stopProfileTimeout
 
     const profile = stopProfiling();
     if (!profile) {

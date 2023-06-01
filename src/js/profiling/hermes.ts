@@ -1,6 +1,6 @@
 import { NATIVE } from '../wrapper';
 import { convertToSentryProfile } from './convertHermesProfile';
-import type { ThreadCpuProfile } from './types';
+import type { RawThreadCpuProfile } from './types';
 
 export type StackFrameId = number;
 export type MicrosecondsSinceBoot = string;
@@ -82,7 +82,7 @@ export function startProfiling(): number | null {
 /**
  * Stops Hermes Sampling Profiler and returns the profile.
  */
-export function stopProfiling(): ThreadCpuProfile | null {
+export function stopProfiling(): RawThreadCpuProfile | null {
   const hermesProfile = NATIVE.stopProfiling();
   if (!hermesProfile) {
     return null;

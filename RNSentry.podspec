@@ -31,8 +31,8 @@ Pod::Spec.new do |s|
   s.source_files = 'ios/**/*.{h,mm}'
   s.public_header_files = 'ios/RNSentry.h'
 
-  # This guard prevent to install the dependencies when we run `pod install` in the old architecture.
   s.compiler_flags = other_cflags
+  # This guard prevent to install the dependencies when we run `pod install` in the old architecture.
   if is_new_arch_enabled then
     s.pod_target_xcconfig    = {
         "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
