@@ -6,9 +6,7 @@ folly_compiler_flags = folly_flags + ' ' + '-Wno-comma -Wno-shorten-64-to-32'
 
 is_new_arch_enabled = ENV["RCT_NEW_ARCH_ENABLED"] == "1"
 new_arch_enabled_flag = (is_new_arch_enabled ? folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED" : "")
-is_sentry_profiling_enabled = ENV["SENTRY_PROFILING_ENABLED"] == "1"
-sentry_profiling_enabled_flag = (is_sentry_profiling_enabled ? " -DSENTRY_PROFILING_ENABLED" : "")
-other_cflags = "$(inherited)" + new_arch_enabled_flag + sentry_profiling_enabled_flag
+other_cflags = "$(inherited)" + new_arch_enabled_flag
 
 Pod::Spec.new do |s|
   s.name           = 'RNSentry'

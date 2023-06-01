@@ -11,6 +11,12 @@
 #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
 
+#if __has_include(<hermes/hermes.h>)
+#define SENTRY_PROFILING_ENABLED 1
+#else
+#define SENTRY_PROFILING_ENABLED 0
+#endif
+
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
 #import <hermes/hermes.h>
