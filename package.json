@@ -33,7 +33,8 @@
     "lint:prettier": "prettier --check \"{src,test,scripts}/**/**.ts\"",
     "test:watch": "jest --watch",
     "run-ios": "cd sample && yarn react-native run-ios",
-    "run-android": "cd sample && yarn react-native run-android"
+    "run-android": "cd sample && yarn react-native run-android",
+    "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/hub @sentry/integrations @sentry/react @sentry/types @sentry/utils"
   },
   "keywords": [
     "react-native",
@@ -55,14 +56,14 @@
     "react-native": ">=0.65.0"
   },
   "dependencies": {
-    "@sentry/browser": "7.52.1",
+    "@sentry/browser": "file:.yalc/@sentry/browser",
     "@sentry/cli": "2.17.5",
-    "@sentry/core": "7.52.1",
-    "@sentry/hub": "7.52.1",
-    "@sentry/integrations": "7.52.1",
-    "@sentry/react": "7.52.1",
-    "@sentry/types": "7.52.1",
-    "@sentry/utils": "7.52.1"
+    "@sentry/core": "file:.yalc/@sentry/core",
+    "@sentry/hub": "file:.yalc/@sentry/hub",
+    "@sentry/integrations": "file:.yalc/@sentry/integrations",
+    "@sentry/react": "file:.yalc/@sentry/react",
+    "@sentry/types": "file:.yalc/@sentry/types",
+    "@sentry/utils": "file:.yalc/@sentry/utils"
   },
   "devDependencies": {
     "@sentry-internal/eslint-config-sdk": "7.52.1",
