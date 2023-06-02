@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-### Features
+### Fixes
 
 - Dynamically resolve `collectModulesScript` path to support monorepos ([#3092])(https://github.com/getsentry/sentry-react-native/pull/3092)
 
