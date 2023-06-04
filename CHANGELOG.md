@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Disable enableNative if Native SDK was not initialized ([3099](https://github.com/getsentry/sentry-react-native/pull/3099))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v7.52.0 to v7.53.1 ([#3071](https://github.com/getsentry/sentry-react-native/pull/3071), [#3088](https://github.com/getsentry/sentry-react-native/pull/3088))
