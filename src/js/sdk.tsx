@@ -1,5 +1,5 @@
 import type { Scope } from '@sentry/core';
-import { getIntegrationsToSetup, hasTracingEnabled , Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
+import { getIntegrationsToSetup, hasTracingEnabled, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
 import { HttpClient } from '@sentry/integrations';
 import {
   defaultIntegrations as reactDefaultIntegrations,
@@ -7,7 +7,7 @@ import {
   getCurrentHub,
   makeFetchTransport,
 } from '@sentry/react';
-import type { Integration, UserFeedback } from '@sentry/types';
+import type { Integration, Transport, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -25,7 +25,7 @@ import {
 import { createReactNativeRewriteFrames } from './integrations/rewriteframes';
 import { Screenshot } from './integrations/screenshot';
 import { ViewHierarchy } from './integrations/viewhierarchy';
-import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
+import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeTransportOptions, ReactNativeWrapperOptions } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
@@ -65,17 +65,23 @@ export function init(passedOptions: ReactNativeOptions): void {
     // eslint-disable-next-line deprecation/deprecation
     ?? passedOptions.transportOptions?.bufferSize
     ?? DEFAULT_OPTIONS.maxQueueSize;
+
+  // If custom transport factory fails the SDK won't initialize
+  let chosenTransport: ((transportOptions: ReactNativeTransportOptions) => Transport) | null
+    = passedOptions.transport
+    || makeNativeTransportFactory({
+      enableNative: passedOptions.enableNative !== undefined
+        ? passedOptions.enableNative
+        : DEFAULT_OPTIONS.enableNative
+    });
+  if (chosenTransport == null) {
+    DEFAULT_OPTIONS.enableNative = false;
+    chosenTransport = makeFetchTransport;
+  }
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
-    // If custom transport factory fails the SDK won't initialize
-    transport: passedOptions.transport
-      || makeNativeTransportFactory({
-        enableNative: passedOptions.enableNative !== undefined
-          ? passedOptions.enableNative
-          : DEFAULT_OPTIONS.enableNative
-      })
-      || makeFetchTransport,
+    transport: chosenTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(passedOptions.transportOptions ?? {}),
