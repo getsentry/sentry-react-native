@@ -66,21 +66,23 @@ export function init(passedOptions: ReactNativeOptions): void {
     ?? passedOptions.transportOptions?.bufferSize
     ?? DEFAULT_OPTIONS.maxQueueSize;
 
+  let enableNative = passedOptions.enableNative !== undefined
+    ? passedOptions.enableNative
+    : DEFAULT_OPTIONS.enableNative;
   // If custom transport factory fails the SDK won't initialize
   let chosenTransport: ((transportOptions: ReactNativeTransportOptions) => Transport) | null
     = passedOptions.transport
     || makeNativeTransportFactory({
-      enableNative: passedOptions.enableNative !== undefined
-        ? passedOptions.enableNative
-        : DEFAULT_OPTIONS.enableNative
+      enableNative: enableNative
     });
   if (chosenTransport == null) {
-    DEFAULT_OPTIONS.enableNative = false;
+    enableNative = false;
     chosenTransport = makeFetchTransport;
   }
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
+    enableNative,
     transport: chosenTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
