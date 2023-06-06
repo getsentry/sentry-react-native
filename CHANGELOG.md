@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+### Fixes
+
+- Native wrapper methods don't throw disabled error after re-initializing [#3093](https://github.com/getsentry/sentry-react-native/pull/3093)
 
 ### Dependencies
 
