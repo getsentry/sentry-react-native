@@ -216,6 +216,7 @@ describe('Tests ReactNativeClient', () => {
 
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
         enableNative: true,
         transport: () => new NativeTransport(),
       });
