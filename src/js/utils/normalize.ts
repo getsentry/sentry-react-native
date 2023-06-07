@@ -5,6 +5,7 @@ const KEY = 'value';
 /**
  * Converts any input into a valid record with string keys.
  */
+// test sample
 export function convertToNormalizedObject(data: unknown): Record<string, any> {
   const normalized: unknown = normalize(data);
   if (normalized === null || typeof normalized !== 'object') {
