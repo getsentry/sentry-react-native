@@ -5,7 +5,7 @@ const KEY = 'value';
 /**
  * Converts any input into a valid record with string keys.
  */
-// test sample
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function convertToNormalizedObject(data: unknown): Record<string, any> {
   const normalized: unknown = normalize(data);
   if (normalized === null || typeof normalized !== 'object') {
@@ -13,6 +13,7 @@ export function convertToNormalizedObject(data: unknown): Record<string, any> {
       [KEY]: normalized,
     };
   } else {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return normalized as Record<string, any>;
   }
 }
