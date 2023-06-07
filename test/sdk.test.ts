@@ -53,13 +53,13 @@ jest.mock('@sentry/hub', () => {
 
 jest.mock('../src/js/scope', () => {
   return {
-    ReactNativeScope: class ReactNativeScopeMock {},
+    ReactNativeScope: class ReactNativeScopeMock { },
   };
 });
 
 jest.mock('../src/js/client', () => {
   return {
-    ReactNativeClient: class ReactNativeClientMock {},
+    ReactNativeClient: class ReactNativeClientMock { },
   };
 });
 
@@ -215,6 +215,30 @@ describe('Tests the SDK functionality', () => {
   });
 
   describe('transport initialization', () => {
+    describe('native SDK unavailable', () => {
+      it('fetchTransport set and enableNative set to false', () => {
+        (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+        init({});
+        expect(NATIVE.isNativeAvailable).toBeCalled();
+        // @ts-ignore enableNative not publicly available here.
+        expect(usedOptions()?.enableNative).toEqual(false);
+        expect(usedOptions()?.transport).toEqual(makeFetchTransport);
+      });
+
+      it('custom transport set and enableNative set to false', () => {
+        (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+        const mockTransport = jest.fn();
+        init({
+          transport: mockTransport,
+        });
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(usedOptions()?.transport).toEqual(mockTransport);
+        expect(NATIVE.isNativeAvailable).toBeCalled();
+        // @ts-ignore enableNative not publicly available here.
+        expect(usedOptions()?.enableNative).toEqual(false);
+      });
+    });
+
     it('uses transport from the options', () => {
       const mockTransport = jest.fn();
       init({
@@ -372,7 +396,7 @@ describe('Tests the SDK functionality', () => {
         integrations: [
           <Integration>{
             name: 'HttpClient',
-            setupOnce: () => {},
+            setupOnce: () => { },
             isUserDefined: true,
           },
         ],

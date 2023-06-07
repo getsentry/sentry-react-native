@@ -7,7 +7,7 @@ import {
   getCurrentHub,
   makeFetchTransport,
 } from '@sentry/react';
-import type { Integration, Transport, UserFeedback } from '@sentry/types';
+import type { Integration, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -25,20 +25,20 @@ import {
 import { createReactNativeRewriteFrames } from './integrations/rewriteframes';
 import { Screenshot } from './integrations/screenshot';
 import { ViewHierarchy } from './integrations/viewhierarchy';
-import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeTransportOptions, ReactNativeWrapperOptions } from './options';
+import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
 import { safeFactory, safeTracesSampler } from './utils/safe';
+import { NATIVE } from './wrapper';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
   'TryCatch', // We don't need this
 ];
 const DEFAULT_OPTIONS: ReactNativeOptions = {
-  enableNative: true,
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
@@ -68,22 +68,17 @@ export function init(passedOptions: ReactNativeOptions): void {
 
   let enableNative = passedOptions.enableNative !== undefined
     ? passedOptions.enableNative
-    : DEFAULT_OPTIONS.enableNative;
-  // If custom transport factory fails the SDK won't initialize
-  let chosenTransport: ((transportOptions: ReactNativeTransportOptions) => Transport) | null
-    = passedOptions.transport
-    || makeNativeTransportFactory({
-      enableNative: enableNative
-    });
-  if (chosenTransport == null) {
-    enableNative = false;
-    chosenTransport = makeFetchTransport;
-  }
+    : NATIVE.isNativeAvailable();
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
     enableNative,
-    transport: chosenTransport,
+    // If custom transport factory fails the SDK won't initialize
+    transport: passedOptions.transport
+      || makeNativeTransportFactory({
+        enableNative,
+      })
+      || makeFetchTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(passedOptions.transportOptions ?? {}),
