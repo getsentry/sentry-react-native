@@ -53,13 +53,13 @@ jest.mock('@sentry/hub', () => {
 
 jest.mock('../src/js/scope', () => {
   return {
-    ReactNativeScope: class ReactNativeScopeMock { },
+    ReactNativeScope: class ReactNativeScopeMock {},
   };
 });
 
 jest.mock('../src/js/client', () => {
   return {
-    ReactNativeClient: class ReactNativeClientMock { },
+    ReactNativeClient: class ReactNativeClientMock {},
   };
 });
 
@@ -397,7 +397,7 @@ describe('Tests the SDK functionality', () => {
         integrations: [
           <Integration>{
             name: 'HttpClient',
-            setupOnce: () => { },
+            setupOnce: () => {},
             isUserDefined: true,
           },
         ],
