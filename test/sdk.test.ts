@@ -219,6 +219,7 @@ describe('Tests the SDK functionality', () => {
       it('fetchTransport set and enableNative set to false', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({});
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.isNativeAvailable).toBeCalled();
         // @ts-ignore enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
@@ -231,8 +232,8 @@ describe('Tests the SDK functionality', () => {
         init({
           transport: mockTransport,
         });
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(usedOptions()?.transport).toEqual(mockTransport);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.isNativeAvailable).toBeCalled();
         // @ts-ignore enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
