@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Dynamically resolve `collectModulesScript` path to support monorepos ([#3092])(https://github.com/getsentry/sentry-react-native/pull/3092)
+
 ### Dependencies
 
 - Bump JavaScript SDK from v7.52.0 to v7.53.1 ([#3071](https://github.com/getsentry/sentry-react-native/pull/3071), [#3088](https://github.com/getsentry/sentry-react-native/pull/3088))
