@@ -4,16 +4,20 @@
 
 ### Fixes
 
+- Dynamically resolve `collectModulesScript` path to support monorepos ([#3092])(https://github.com/getsentry/sentry-react-native/pull/3092)
 - Native wrapper methods don't throw disabled error after re-initializing [#3093](https://github.com/getsentry/sentry-react-native/pull/3093)
 
 ### Dependencies
 
-- Bump JavaScript SDK from v7.52.0 to v7.52.1 ([#3071](https://github.com/getsentry/sentry-react-native/pull/3071))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7521)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.52.0...7.52.1)
+- Bump JavaScript SDK from v7.52.0 to v7.53.1 ([#3071](https://github.com/getsentry/sentry-react-native/pull/3071), [#3088](https://github.com/getsentry/sentry-react-native/pull/3088))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7531)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.52.0...7.53.1)
 - Bump Android SDK from v6.18.1 to v6.19.0 ([#3086](https://github.com/getsentry/sentry-react-native/pull/3086))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6190)
   - [diff](https://github.com/getsentry/sentry-java/compare/6.18.1...6.19.0)
+- Bump Cocoa SDK from v8.7.1 to v8.7.3 ([#3076](https://github.com/getsentry/sentry-react-native/pull/3076))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#873)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.7.1...8.7.3)
 
 ## 5.5.0
 
@@ -43,6 +47,10 @@
 - Bump JavaScript SDK from v7.50.0 to v7.51.1 ([#3043](https://github.com/getsentry/sentry-react-native/pull/3043), [#3053](https://github.com/getsentry/sentry-react-native/pull/3053))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7511)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.50.0...7.51.1)
+
+## 4.15.2
+
+- Only store envelopes of fatal crashes on iOS ([#3051](https://github.com/getsentry/sentry-react-native/pull/3051))
 
 ## 5.4.1
 
