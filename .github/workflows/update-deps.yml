@@ -43,6 +43,7 @@ jobs:
       path: scripts/update-wizard.sh
       name: Wizard
       pr-strategy: update
+      changelog-entry: false
     secrets:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
