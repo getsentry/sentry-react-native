@@ -180,6 +180,7 @@ export const NATIVE: SentryNativeWrapper = {
           'Note: Native Sentry SDK was not initialized automatically, you will need to initialize it manually. If you wish to disable the native SDK and get rid of this warning, pass enableNative: false',
         );
       }
+      this.enableNative = true;
       return false;
     }
 
@@ -187,6 +188,7 @@ export const NATIVE: SentryNativeWrapper = {
       logger.warn(
         'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.',
       );
+      this.enableNative = false;
       return false;
     }
 
@@ -201,6 +203,7 @@ export const NATIVE: SentryNativeWrapper = {
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 
     this.nativeIsReady = nativeIsReady;
+    this.enableNative = true;
 
     return nativeIsReady;
   },
