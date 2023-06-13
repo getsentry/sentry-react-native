@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Features
+
+- Overwrite Expo bundle names in stack frames ([#3115])(https://github.com/getsentry/sentry-react-native/pull/3115)
+  - This enables source maps to resolve correctly without using `sentry-expo` package
+
 ### Fixes
 
 - Dynamically resolve `collectModulesScript` path to support monorepos ([#3092])(https://github.com/getsentry/sentry-react-native/pull/3092)
