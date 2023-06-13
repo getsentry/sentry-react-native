@@ -5,6 +5,7 @@
 ### Fixes
 
 - Dynamically resolve `collectModulesScript` path to support monorepos ([#3092])(https://github.com/getsentry/sentry-react-native/pull/3092)
+- Native wrapper methods don't throw disabled error after re-initializing [#3093](https://github.com/getsentry/sentry-react-native/pull/3093)
 
 ### Dependencies
 
