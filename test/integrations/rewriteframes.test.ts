@@ -1,7 +1,13 @@
 import type { Exception } from '@sentry/browser';
 import { defaultStackParser, eventFromException } from '@sentry/browser';
+import { Platform } from 'react-native';
 
 import { createReactNativeRewriteFrames } from '../../src/js/integrations/rewriteframes';
+import { isExpo } from '../../src/js/utils/environment';
+import { mockFunction } from '../testutils';
+
+jest.mock('../../src/js/utils/environment');
+jest.mock('react-native', () => ({ Platform: { OS: 'ios' } }));
 
 describe('RewriteFrames', () => {
   const HINT = {};
@@ -19,6 +25,11 @@ describe('RewriteFrames', () => {
     const exception = event.exception?.values?.[0];
     return exception;
   };
+
+  beforeEach(() => {
+    mockFunction(isExpo).mockReturnValue(false);
+    jest.resetAllMocks();
+  });
 
   it('should parse exceptions for react-native-v8', async () => {
     const REACT_NATIVE_V8_EXCEPTION = {
@@ -98,7 +109,10 @@ describe('RewriteFrames', () => {
     });
   });
 
-  it('should parse exceptions for react-native Expo bundles', async () => {
+  it('should parse exceptions for react-native Expo bundles on ios', async () => {
+    mockFunction(isExpo).mockReturnValue(true);
+    Platform.OS = 'ios';
+
     const REACT_NATIVE_EXPO_EXCEPTION = {
       message: 'Test Error Expo',
       name: 'Error',
@@ -121,28 +135,86 @@ describe('RewriteFrames', () => {
         frames: [
           { filename: '[native code]', function: 'forEach', in_app: true },
           {
-            filename: 'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
+            filename: 'app:///main.jsbundle',
             function: 'p',
             lineno: 96,
             colno: 385,
             in_app: true,
           },
           {
-            filename: 'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
+            filename: 'app:///main.jsbundle',
             function: 'onResponderRelease',
             lineno: 221,
             colno: 5666,
             in_app: true,
           },
           {
-            filename: 'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
+            filename: 'app:///main.jsbundle',
             function: 'value',
             lineno: 221,
             colno: 7656,
             in_app: true,
           },
           {
-            filename: 'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
+            filename: 'app:///main.jsbundle',
+            function: 'onPress',
+            lineno: 595,
+            colno: 658,
+            in_app: true,
+          },
+        ],
+      },
+    });
+  });
+
+  it('should parse exceptions for react-native Expo bundles on android', async () => {
+    mockFunction(isExpo).mockReturnValue(true);
+    Platform.OS = 'android';
+
+    const REACT_NATIVE_EXPO_EXCEPTION = {
+      message: 'Test Error Expo',
+      name: 'Error',
+      stack: `onPress@/data/user/0/com.sentrytest/files/.expo-internal/bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3:595:658
+          value@/data/user/0/com.sentrytest/files/.expo-internal/bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3:221:7656
+          onResponderRelease@/data/user/0/com.sentrytest/files/.expo-internal/bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3:221:5666
+          p@/data/user/0/com.sentrytest/files/.expo-internal/bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3:96:385
+          forEach@[native code]`,
+    };
+    const exception = await exceptionFromError(REACT_NATIVE_EXPO_EXCEPTION);
+
+    expect(exception).toEqual({
+      value: 'Test Error Expo',
+      type: 'Error',
+      mechanism: {
+        handled: true,
+        type: 'generic',
+      },
+      stacktrace: {
+        frames: [
+          { filename: '[native code]', function: 'forEach', in_app: true },
+          {
+            filename: 'app:///index.android.bundle',
+            function: 'p',
+            lineno: 96,
+            colno: 385,
+            in_app: true,
+          },
+          {
+            filename: 'app:///index.android.bundle',
+            function: 'onResponderRelease',
+            lineno: 221,
+            colno: 5666,
+            in_app: true,
+          },
+          {
+            filename: 'app:///index.android.bundle',
+            function: 'value',
+            lineno: 221,
+            colno: 7656,
+            in_app: true,
+          },
+          {
+            filename: 'app:///index.android.bundle',
             function: 'onPress',
             lineno: 595,
             colno: 658,
