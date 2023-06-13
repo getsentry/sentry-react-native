@@ -53,13 +53,13 @@ jest.mock('@sentry/hub', () => {
 
 jest.mock('../src/js/scope', () => {
   return {
-    ReactNativeScope: class ReactNativeScopeMock {},
+    ReactNativeScope: class ReactNativeScopeMock { },
   };
 });
 
 jest.mock('../src/js/client', () => {
   return {
-    ReactNativeClient: class ReactNativeClientMock {},
+    ReactNativeClient: class ReactNativeClientMock { },
   };
 });
 
@@ -221,6 +221,26 @@ describe('Tests the SDK functionality', () => {
         init({});
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.isNativeAvailable).toBeCalled();
+        // @ts-ignore enableNative not publicly available here.
+        expect(usedOptions()?.enableNative).toEqual(false);
+        expect(usedOptions()?.transport).toEqual(makeFetchTransport);
+      });
+
+      it('fetchTransport set and passed enableNative ignored when true', () => {
+        (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+        init({ enableNative: true });
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(NATIVE.isNativeAvailable).toBeCalled();
+        // @ts-ignore enableNative not publicly available here.
+        expect(usedOptions()?.enableNative).toEqual(false);
+        expect(usedOptions()?.transport).toEqual(makeFetchTransport);
+      });
+
+      it('fetchTransport set and isNativeAvailable not called when passed enableNative set to false', () => {
+        (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+        init({ enableNative: false });
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(NATIVE.isNativeAvailable).not.toBeCalled();
         // @ts-ignore enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
@@ -397,7 +417,7 @@ describe('Tests the SDK functionality', () => {
         integrations: [
           <Integration>{
             name: 'HttpClient',
-            setupOnce: () => {},
+            setupOnce: () => { },
             isUserDefined: true,
           },
         ],
