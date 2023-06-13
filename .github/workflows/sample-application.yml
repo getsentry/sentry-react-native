@@ -82,7 +82,7 @@ jobs:
 
       - name: Build Android App
         if: ${{ matrix.platform == 'android' }}
-        working-directory: sample-new-architecture
+        working-directory: sample-new-architecture/android
         run: |
           if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
             perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
@@ -94,7 +94,7 @@ jobs:
 
       - name: Build iOS App
         if: ${{ matrix.platform == 'ios' }}
-        working-directory: sample-new-architecture
+        working-directory: sample-new-architecture/ios
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"
