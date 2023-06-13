@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Disable enableNative if Native SDK was not initialized ([#3099](https://github.com/getsentry/sentry-react-native/pull/3099))
+- Disable `enableNative` if Native SDK is not available ([#3099](https://github.com/getsentry/sentry-react-native/pull/3099))
 
 ### Dependencies
 

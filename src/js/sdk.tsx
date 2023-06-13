@@ -66,9 +66,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     ?? passedOptions.transportOptions?.bufferSize
     ?? DEFAULT_OPTIONS.maxQueueSize;
 
-  const enableNative = passedOptions.enableNative !== undefined
-    ? passedOptions.enableNative
-    : NATIVE.isNativeAvailable();
+  const enableNative = passedOptions.enableNative === undefined || passedOptions.enableNative
+    ? NATIVE.isNativeAvailable()
+    : false;
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
