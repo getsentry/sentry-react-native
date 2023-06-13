@@ -4,6 +4,9 @@ import { Platform } from 'react-native';
 
 import { isExpo } from '../utils/environment';
 
+const ANDROID_DEFAULT_BUNDLE_NAME = 'app:///index.android.bundle';
+const IOS_DEFAULT_BUNDLE_NAME = 'app:///main.jsbundle';
+
 /**
  * Creates React Native default rewrite frames integration
  * which appends app:// to the beginning of the filename
@@ -28,8 +31,13 @@ export function createReactNativeRewriteFrames(): RewriteFrames {
       }
 
       // Expo adds hash to the end of bundle names
-      if (isExpo()) {
-        frame.filename = Platform.OS === 'android' ? 'app:///index.android.bundle' : 'app:///main.jsbundle';
+      if (isExpo() && Platform.OS === 'android') {
+        frame.filename = ANDROID_DEFAULT_BUNDLE_NAME;
+        return frame;
+      }
+
+      if (isExpo() && Platform.OS === 'ios') {
+        frame.filename = IOS_DEFAULT_BUNDLE_NAME;
         return frame;
       }
 
