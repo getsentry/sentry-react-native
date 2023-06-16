@@ -19,6 +19,9 @@
 - Bump Cocoa SDK from v8.3.3 to v8.4.0 ([#2954](https://github.com/getsentry/sentry-react-native/pull/2954))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#840)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.3.3...8.4.0)
+- Bump Sample React Native from v0.71.4 to v0.71.11 ([#8](https://github.com/w3security/sentry-react-native/pull/8))
+  - [changelog](https://github.com/facebook/react-native/blob/main/CHANGELOG.md#v07111)
+  - [diff](https://github.com/facebook/react-native/compare/v0.71.4...v0.71.11)
 
 ## 5.3.0
 
