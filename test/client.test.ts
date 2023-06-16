@@ -216,6 +216,7 @@ describe('Tests ReactNativeClient', () => {
 
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
         enableNative: true,
         transport: () => new NativeTransport(),
       });
@@ -561,6 +562,40 @@ describe('Tests ReactNativeClient', () => {
       client.setupIntegrations();
 
       expect(client.getIntegrationById('MockRoutingInstrumentation')).toBeTruthy();
+    });
+  });
+
+  describe('user interactions tracing as integrations', () => {
+    test('register user interactions tracing', () => {
+      const client = new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          integrations: [
+            new ReactNativeTracing({
+              enableUserInteractionTracing: true,
+            }),
+          ],
+        }),
+      );
+      client.setupIntegrations();
+
+      expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeTruthy();
+    });
+
+    test('do not register user interactions tracing', () => {
+      const client = new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          integrations: [
+            new ReactNativeTracing({
+              enableUserInteractionTracing: false,
+            }),
+          ],
+        }),
+      );
+      client.setupIntegrations();
+
+      expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeUndefined();
     });
   });
 });

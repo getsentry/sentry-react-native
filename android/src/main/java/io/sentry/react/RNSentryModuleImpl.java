@@ -51,6 +51,7 @@ import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.AppStartState;
+import io.sentry.android.core.BuildConfig;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.NdkIntegration;
@@ -67,6 +68,8 @@ public class RNSentryModuleImpl {
 
     public static final String NAME = "RNSentry";
 
+    private static final String NATIVE_SDK_NAME = "sentry.native.android.react-native";
+    private static final String ANDROID_SDK_NAME = "sentry.java.android.react-native";
     private static final ILogger logger = new AndroidLogger(NAME);
     private static final BuildInfoProvider buildInfo = new BuildInfoProvider(logger);
     private static final String modulesPath = "modules.json";
@@ -102,6 +105,17 @@ public class RNSentryModuleImpl {
 
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
+            @Nullable SdkVersion sdkVersion = options.getSdkVersion();
+            if (sdkVersion == null) {
+                sdkVersion = new SdkVersion(ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
+            } else {
+                sdkVersion.setName(ANDROID_SDK_NAME);
+            }
+
+            options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
+            options.setNativeSdkName(NATIVE_SDK_NAME);
+            options.setSdkVersion(sdkVersion);
+
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
             }
@@ -608,10 +622,10 @@ public class RNSentryModuleImpl {
             switch (sdk.getName()) {
                 // If the event is from capacitor js, it gets set there and we do not handle it
                 // here.
-                case "sentry.native":
+                case NATIVE_SDK_NAME:
                     setEventEnvironmentTag(event, "native");
                     break;
-                case "sentry.java.android":
+                case ANDROID_SDK_NAME:
                     setEventEnvironmentTag(event, "java");
                     break;
                 default:

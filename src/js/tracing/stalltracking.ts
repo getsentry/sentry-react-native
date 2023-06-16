@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import type { IdleTransaction, Span, Transaction } from '@sentry/tracing';
+import type { IdleTransaction, Span, Transaction } from '@sentry/core';
 import type { Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 

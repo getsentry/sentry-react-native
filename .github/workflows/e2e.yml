@@ -142,7 +142,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: 16
       - uses: actions/setup-java@v3
         with:
           java-version: "11"
@@ -165,7 +165,7 @@ jobs:
         run: yalc publish
       - uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: 16
       - uses: actions/cache@v3
         id: app-plain-cache
         with:
@@ -245,6 +245,7 @@ jobs:
     name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
     runs-on: macos-latest
     env:
+      RN_SENTRY_POD_NAME: RNSentry
       RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
     strategy:
       fail-fast: false # keeps matrix running if one fails
@@ -263,6 +264,21 @@ jobs:
             rn-architecture: 'new'
     steps:
       - uses: actions/checkout@v3
+
+      - name: Sentry Release
+        run: |
+          SENTRY_RELEASE_CANDIDATE=$(echo 'e2e/${{ github.ref }}' | perl -pe 's/\//-/g')
+          echo "SENTRY_RELEASE=$SENTRY_RELEASE_CANDIDATE" >> $GITHUB_ENV
+
+      - name: Sentry Dist
+        run: |
+          SENTRY_DIST_CANDIDATE=${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-${GITHUB_SHA:0:8}
+          echo "SENTRY_DIST=$SENTRY_DIST_CANDIDATE" >> $GITHUB_ENV
+
+      - name: Sentry Envs
+        run: |
+          echo "SENTRY_RELEASE=$SENTRY_RELEASE"
+          echo "SENTRY_DIST=$SENTRY_DIST"
 
       - uses: actions/setup-java@v3
         with:
@@ -332,6 +348,7 @@ jobs:
           echo "ENABLE_PROD=$ENABLE_PROD"
           echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
           PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH pod install
+          cat Podfile.lock | grep $RN_SENTRY_POD_NAME
 
       - name: Patch App RN
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp

@@ -1,12 +1,22 @@
 import type { Context, Event, EventHint, EventProcessor, Integration } from '@sentry/types';
 
-import { isFabricEnabled, isHermesEnabled, isTurboModuleEnabled } from '../utils/environment';
+import {
+  getHermesVersion,
+  getReactNativeVersion,
+  isExpo,
+  isFabricEnabled,
+  isHermesEnabled,
+  isTurboModuleEnabled,
+} from '../utils/environment';
 import type { ReactNativeError } from './debugsymbolicator';
 
 export interface ReactNativeContext extends Context {
   js_engine?: string;
   turbo_module: boolean;
   fabric: boolean;
+  expo: boolean;
+  hermes_version?: string;
+  react_native_version: string;
   component_stack?: string;
 }
 
@@ -32,10 +42,16 @@ export class ReactNativeInfo implements Integration {
       const reactNativeContext: ReactNativeContext = {
         turbo_module: isTurboModuleEnabled(),
         fabric: isFabricEnabled(),
+        react_native_version: getReactNativeVersion(),
+        expo: isExpo(),
       };
 
       if (isHermesEnabled()) {
         reactNativeContext.js_engine = 'hermes';
+        const hermesVersion = getHermesVersion();
+        if (hermesVersion) {
+          reactNativeContext.hermes_version = getHermesVersion();
+        }
       } else if (reactNativeError?.jsEngine) {
         reactNativeContext.js_engine = reactNativeError.jsEngine;
       }

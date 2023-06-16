@@ -26,7 +26,7 @@ describe('Breadcrumb', () => {
         data: {
           test: 'test',
         },
-        timestamp: 1577836800000,
+        timestamp: 1577836800,
       });
     });
 

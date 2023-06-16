@@ -27,7 +27,7 @@ import { isTurboModuleEnabled } from './utils/environment';
 import { utf8ToBytes } from './vendor';
 
 const RNSentry: Spec | undefined = isTurboModuleEnabled()
-  ? TurboModuleRegistry.getEnforcing<Spec>('RNSentry')
+  ? TurboModuleRegistry.get<Spec>('RNSentry')
   : NativeModules.RNSentry;
 
 export interface Screenshot {
@@ -180,6 +180,7 @@ export const NATIVE: SentryNativeWrapper = {
           'Note: Native Sentry SDK was not initialized automatically, you will need to initialize it manually. If you wish to disable the native SDK and get rid of this warning, pass enableNative: false',
         );
       }
+      this.enableNative = true;
       return false;
     }
 
@@ -187,6 +188,7 @@ export const NATIVE: SentryNativeWrapper = {
       logger.warn(
         'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.',
       );
+      this.enableNative = false;
       return false;
     }
 
@@ -201,6 +203,7 @@ export const NATIVE: SentryNativeWrapper = {
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 
     this.nativeIsReady = nativeIsReady;
+    this.enableNative = true;
 
     return nativeIsReady;
   },
@@ -381,7 +384,6 @@ export const NATIVE: SentryNativeWrapper = {
       ...breadcrumb,
       // Process and convert deprecated levels
       level: breadcrumb.level ? this._processLevel(breadcrumb.level) : undefined,
-      data: breadcrumb.data ? normalize(breadcrumb.data) : undefined,
     });
   },
 
@@ -467,14 +469,19 @@ export const NATIVE: SentryNativeWrapper = {
       return null;
     }
 
+    let raw: NativeScreenshot[] | null | undefined;
     try {
-      const raw = await RNSentry.captureScreenshot();
+      raw = await RNSentry.captureScreenshot();
+    } catch (e) {
+      logger.warn('Failed to capture screenshot', e);
+    }
+
+    if (raw) {
       return raw.map((item: NativeScreenshot) => ({
         ...item,
         data: new Uint8Array(item.data),
       }));
-    } catch (e) {
-      logger.warn('Failed to capture screenshot', e);
+    } else {
       return null;
     }
   },

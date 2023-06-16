@@ -1,13 +1,8 @@
 /* eslint-disable max-lines */
-import type { Hub } from '@sentry/core';
-import { getCurrentHub } from '@sentry/core';
-import type { IdleTransaction, RequestInstrumentationOptions, Transaction } from '@sentry/tracing';
-import {
-  defaultRequestInstrumentationOptions,
-  getActiveTransaction,
-  instrumentOutgoingRequests,
-  startIdleTransaction,
-} from '@sentry/tracing';
+import type { RequestInstrumentationOptions } from '@sentry/browser';
+import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from '@sentry/browser';
+import type { Hub, IdleTransaction, Transaction } from '@sentry/core';
+import { getActiveTransaction, getCurrentHub, startIdleTransaction } from '@sentry/core';
 import type { EventProcessor, Integration, Transaction as TransactionType, TransactionContext } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
