@@ -447,7 +447,7 @@ describe('Tests the SDK functionality', () => {
     it('adds profiling integration', () => {
       init({
         _experiments: {
-          profileSampleRate: 0.7,
+          profilesSampleRate: 0.7,
         },
       });
 

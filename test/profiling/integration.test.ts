@@ -198,7 +198,7 @@ function initTestClient(): {
   Sentry.init({
     dsn: MOCK_DSN,
     _experiments: {
-      profileSampleRate: 1,
+      profilesSampleRate: 1,
     },
     transport: () => ({
       send: transportSendMock.mockResolvedValue(undefined),

@@ -102,17 +102,17 @@ export class HermesProfiling implements Integration {
     const options = client && client.getOptions();
 
     // @ts-ignore not part of the browser options yet
-    const profileSampleRate =
-      options && options._experiments && typeof options._experiments.profileSampleRate === 'number'
-        ? options._experiments.profileSampleRate
+    const profilesSampleRate =
+      options && options._experiments && typeof options._experiments.profilesSampleRate === 'number'
+        ? options._experiments.profilesSampleRate
         : undefined;
-    if (profileSampleRate === undefined) {
+    if (profilesSampleRate === undefined) {
       logger.log('[Profiling] Profiling disabled, enable it by setting `profilesSampleRate` option to SDK init call.');
       return false;
     }
 
     // Check if we should sample this profile
-    if (Math.random() > profileSampleRate) {
+    if (Math.random() > profilesSampleRate) {
       logger.log('[Profiling] Skip profiling transaction due to sampling.');
       return false;
     }

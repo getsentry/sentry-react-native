@@ -86,7 +86,7 @@ Sentry.init({
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
   _experiments: {
-    profileSampleRate: 1,
+    profilesSampleRate: 1,
   },
 });
 
