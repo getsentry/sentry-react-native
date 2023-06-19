@@ -638,19 +638,19 @@ public class RNSentryModuleImpl {
 
             final File output = File.createTempFile(
                 "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
-            final BufferedReader br = new BufferedReader(new FileReader(output));
 
-            HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
+            try (final BufferedReader br = new BufferedReader(new FileReader(output));) {
+                HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
 
-            final StringBuilder text = new StringBuilder();
-            String line;
-            while ((line = br.readLine()) != null) {
-                text.append(line);
-                text.append('\n');
+                final StringBuilder text = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    text.append(line);
+                    text.append('\n');
+                }
+
+                result.putString("profile", text.toString());
             }
-            br.close();
-
-            result.putString("profile", text.toString());
         } catch (Throwable e) {
             result.putString("error", e.toString());
         }
