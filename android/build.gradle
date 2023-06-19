@@ -12,6 +12,7 @@ if (isNewArchitectureEnabled()) {
 }
 
 android {
+    namespace = "io.sentry.react"
     compileSdkVersion safeExtGet('compileSdkVersion', 31)
 
     defaultConfig {
