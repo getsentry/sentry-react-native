@@ -52,7 +52,6 @@ export class HermesProfiling implements Integration {
     }
 
     client.on('startTransaction', (transaction: Transaction) => {
-      typeof this._currentProfileTimeout === 'number' && clearTimeout(this._currentProfileTimeout);
       this._finishCurrentProfile();
 
       const shouldStartProfiling = this._shouldStartProfiling(transaction);
@@ -61,14 +60,13 @@ export class HermesProfiling implements Integration {
       }
 
       this._startNewProfile(transaction);
-      setTimeout(
+      this._currentProfileTimeout = setTimeout(
         this._finishCurrentProfile,
         MAX_PROFILE_DURATION_MS,
       );
     });
 
     client.on('finishTransaction', () => {
-      typeof this._currentProfileTimeout === 'number' && clearTimeout(this._currentProfileTimeout);
       this._finishCurrentProfile();
     });
 
@@ -145,6 +143,7 @@ export class HermesProfiling implements Integration {
    * Stops profiling and adds the profile to the queue to be processed on beforeEnvelope.
    */
   private _finishCurrentProfile = (): void => {
+    this._clearCurrentProfileTimeout();
     if (this._currentProfile === undefined) {
       return;
     }
@@ -187,4 +186,9 @@ export class HermesProfiling implements Integration {
     logger.log(`[Profiling] Created profile ${profile_id} for transaction ${profiledTransaction.event_id}`);
     return profile;
   };
+
+  private _clearCurrentProfileTimeout = (): void => {
+    this._currentProfileTimeout !== undefined && clearTimeout(this._currentProfileTimeout);
+    this._currentProfileTimeout = undefined;
+  }
 }

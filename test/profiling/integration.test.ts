@@ -5,6 +5,7 @@ jest.mock('../../src/js/utils/environment');
 import type { Envelope, Event, Profile, Transaction, Transport } from '@sentry/types';
 
 import * as Sentry from '../../src/js';
+import { HermesProfiling } from '../../src/js/integrations';
 import type * as Hermes from '../../src/js/profiling/hermes';
 import { isHermesEnabled } from '../../src/js/utils/environment';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
@@ -158,7 +159,37 @@ describe('profiling integration', () => {
       }),
     ]);
   });
+
+  test('profile timeout is reset when transaction is finished', () => {
+    const integration = getCurrentHermesProfilingIntegration();
+    const transaction: Transaction = Sentry.startTransaction({
+      name: 'test-name',
+    });
+    const timeoutAfterProfileStarted = integration._currentProfileTimeout;
+
+    jest.advanceTimersByTime(40 * 1e6);
+
+    transaction.finish();
+    const timeoutAfterProfileFinished = integration._currentProfileTimeout;
+
+    jest.runAllTimers();
+
+    expect(timeoutAfterProfileStarted).toBeDefined();
+    expect(timeoutAfterProfileFinished).toBeUndefined();
+  });
 });
+
+
+type TestHermesIntegration = Omit<HermesProfiling, '_currentProfileTimeout'> & {
+  _currentProfileTimeout: number | undefined;
+};
+function getCurrentHermesProfilingIntegration(): TestHermesIntegration {
+  const integration = Sentry.getCurrentHub().getClient()?.getIntegration(HermesProfiling);
+  if (!integration) {
+    throw new Error('HermesProfiling integration is not installed');
+  }
+  return integration as unknown as TestHermesIntegration;
+}
 
 function initTestClient(): {
   transportSendMock: jest.Mock<ReturnType<Transport['send']>, Parameters<Transport['send']>>;
