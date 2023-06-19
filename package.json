@@ -68,7 +68,7 @@
     "@sentry-internal/eslint-config-sdk": "7.54.0",
     "@sentry-internal/eslint-plugin-sdk": "7.54.0",
     "@sentry/typescript": "^5.20.1",
-    "@sentry/wizard": "3.0.0",
+    "@sentry/wizard": "3.2.3",
     "@types/jest": "^29.2.5",
     "@types/react": "^18.0.25",
     "babel-jest": "^29.3.1",
