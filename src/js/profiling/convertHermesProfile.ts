@@ -12,64 +12,26 @@ const JS_THREAD_PRIORITY = 1;
 
 /**
  * Converts a Hermes profile to a Sentry profile.
+ *
+ * Maps Hermes samples to Sentry samples.
+ * Maps Hermes stack frames to Sentry frames.
+ * Hermes stack frame is an object representing a function call in the stack
+ * with a link to its parent stack frame. Root of the represented stack tree
+ * is main function call in Hermes that is [root] stack frame.
+ *
+ * @returns Sentry profile or null if no samples are found.
  */
 export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThreadCpuProfile | null {
-  const jsThreads = new Set<ThreadId>();
-  const hermesStacks = new Set<Hermes.StackFrameId>();
-
   if (hermesProfile.samples.length === 0) {
     logger.warn('[Profiling] No samples found in profile.');
     return null;
   }
 
-  const start = Number(hermesProfile.samples[0].ts);
-  const samples = hermesProfile.samples.map((hermesSample: Hermes.Sample): ThreadCpuSample => {
-    jsThreads.add(hermesSample.tid);
-    hermesStacks.add(hermesSample.sf);
+  const { samples, hermesStacks, jsThreads } = mapSamples(hermesProfile.samples);
 
-    const elapsed_since_start_ns = (Number(hermesSample.ts) - start) * 1e3;
+  const frames = mapFrames(hermesProfile.stackFrames);
 
-    return {
-      stack_id: hermesSample.sf,
-      thread_id: hermesSample.tid,
-      elapsed_since_start_ns: elapsed_since_start_ns.toFixed(0),
-    };
-  });
-
-  const hermesFrameChildToParentMap = new Map<Hermes.StackFrameId, Hermes.StackFrameId>();
-  const framesMap = new Map<string, ThreadCpuFrame>();
-  for (const key in hermesProfile.stackFrames) {
-    if (!Object.prototype.hasOwnProperty.call(hermesProfile.stackFrames, key)) {
-      continue;
-    }
-    const hermesFrame = hermesProfile.stackFrames[key];
-
-    if (hermesFrame.parent !== undefined) {
-      hermesFrameChildToParentMap.set(Number(key), hermesFrame.parent);
-    }
-
-    const stackFrameName = parseHermesStackFrameName(hermesFrame.name);
-    framesMap.set(key, {
-      function: stackFrameName.function || UNKNOWN_FRAME_FUNCTION_NAME,
-      file: stackFrameName.fileName,
-      line: hermesFrame.line !== undefined ? Number(hermesFrame.line) : undefined,
-      column: hermesFrame.column !== undefined ? Number(hermesFrame.column) : undefined,
-    });
-  }
-
-  const hermesStackToSentryStackMap = new Map<Hermes.StackFrameId, StackId>();
-  const stacks: ThreadCpuStack[] = [];
-  for (const hermesStackFunctionFrameId of hermesStacks) {
-    const stackId = stacks.length;
-    hermesStackToSentryStackMap.set(hermesStackFunctionFrameId, stackId);
-    const stack: ThreadCpuStack = [];
-    let currentHermesFrameId: Hermes.StackFrameId | undefined = hermesStackFunctionFrameId;
-    while (currentHermesFrameId !== undefined) {
-      stack.push(currentHermesFrameId - 1); // Sentry frames are indexed from 0
-      currentHermesFrameId = hermesFrameChildToParentMap.get(currentHermesFrameId);
-    }
-    stacks.push(stack);
-  }
+  const { stacks, hermesStackToSentryStackMap } = mapStacks(hermesStacks, hermesProfile.stackFrames);
 
   for (const sample of samples) {
     sample.stack_id = hermesStackToSentryStackMap.get(sample.stack_id) ?? UNKNOWN_STACK_ID;
@@ -85,10 +47,100 @@ export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThread
 
   return {
     samples,
-    frames: Array.from(framesMap.entries())
-      .sort(([aKey]: [string, ThreadCpuFrame], [bKey]: [string, ThreadCpuFrame]) => Number(aKey) - Number(bKey))
-      .map(([_, frame]: [string, ThreadCpuFrame]) => frame),
+    frames,
     stacks,
     thread_metadata,
+  };
+}
+
+/**
+ * Maps Hermes samples to Sentry samples.
+ * Calculates the elapsed time since the first sample based on the absolute timestamps of the Hermes samples.
+ * Hermes stack frame IDs represent the last (leaf, furthest from the main func) frame of the call stack.
+ * @returns the mapped Sentry samples, the set of Hermes stack frame IDs, and the set of JS thread IDs
+ */
+function mapSamples(hermesSamples: Hermes.Sample[]): {
+  samples: ThreadCpuSample[];
+  hermesStacks: Set<Hermes.StackFrameId>;
+  jsThreads: Set<ThreadId>;
+} {
+  const jsThreads = new Set<ThreadId>();
+  const hermesStacks = new Set<Hermes.StackFrameId>();
+
+  const start = Number(hermesSamples[0].ts);
+  const samples = hermesSamples.map((hermesSample: Hermes.Sample): ThreadCpuSample => {
+    jsThreads.add(hermesSample.tid);
+    hermesStacks.add(hermesSample.sf);
+
+    const elapsed_since_start_ns = (Number(hermesSample.ts) - start) * 1e3;
+
+    return {
+      stack_id: hermesSample.sf,
+      thread_id: hermesSample.tid,
+      elapsed_since_start_ns: elapsed_since_start_ns.toFixed(0),
+    };
+  });
+
+  return {
+    samples,
+    hermesStacks,
+    jsThreads,
+  };
+};
+
+/**
+ * Maps Hermes StackFrames tree represented as an JS object to a Sentry frames array.
+ * Converts line and columns strings to numbers.
+ * @returns the mapped Sentry frames
+ */
+function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFrame>): ThreadCpuFrame[] {
+  const frames: ThreadCpuFrame[] = [];
+  for (const key in hermesStackFrames) {
+    if (!Object.prototype.hasOwnProperty.call(hermesStackFrames, key)) {
+      continue;
+    }
+    const hermesFrame = hermesStackFrames[key];
+
+    const stackFrameName = parseHermesStackFrameName(hermesFrame.name);
+    frames.push({
+      function: stackFrameName.function || UNKNOWN_FRAME_FUNCTION_NAME,
+      file: stackFrameName.fileName,
+      line: hermesFrame.line !== undefined ? Number(hermesFrame.line) : undefined,
+      column: hermesFrame.column !== undefined ? Number(hermesFrame.column) : undefined,
+    });
+  }
+
+  return frames;
+}
+
+/**
+ * Maps Hermes stack frame IDs to Sentry stack arrays.
+ * Hermes stack frame IDs represent the last (leaf, furthest from the main func) frame of the call stack.
+ * @returns the mapped Sentry stacks and a map from Hermes stack IDs to Sentry stack IDs (indices in the stacks array)
+ */
+function mapStacks(
+  hermesStacks: Set<Hermes.StackFrameId>,
+  hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFrame>,
+): {
+  stacks: ThreadCpuStack[];
+  hermesStackToSentryStackMap: Map<Hermes.StackFrameId, StackId>;
+} {
+  const hermesStackToSentryStackMap = new Map<Hermes.StackFrameId, StackId>();
+  const stacks: ThreadCpuStack[] = [];
+  for (const hermesStackFunctionFrameId of hermesStacks) {
+    const stackId = stacks.length;
+    hermesStackToSentryStackMap.set(hermesStackFunctionFrameId, stackId);
+    const stack: ThreadCpuStack = [];
+    let currentHermesFrameId: Hermes.StackFrameId | undefined = hermesStackFunctionFrameId;
+    while (currentHermesFrameId !== undefined) {
+      stack.push(currentHermesFrameId - 1); // Sentry frames are indexed from 0
+      currentHermesFrameId = hermesStackFrames[currentHermesFrameId] && hermesStackFrames[currentHermesFrameId].parent;
+    }
+    stacks.push(stack);
+  }
+
+  return {
+    stacks,
+    hermesStackToSentryStackMap,
   };
 }
