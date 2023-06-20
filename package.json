@@ -32,8 +32,8 @@
     "lint:eslint": "eslint --config .eslintrc.js .",
     "lint:prettier": "prettier --check \"{src,test,scripts}/**/**.ts\"",
     "test:watch": "jest --watch",
-    "run-ios": "cd sample && yarn react-native run-ios",
-    "run-android": "cd sample && yarn react-native run-android"
+    "run-ios": "cd sample-new-architecture && yarn react-native run-ios",
+    "run-android": "cd sample-new-architecture && yarn react-native run-android"
   },
   "keywords": [
     "react-native",
@@ -110,7 +110,6 @@
       "js"
     ],
     "testPathIgnorePatterns": [
-      "<rootDir>/sample/",
       "<rootDir>/test/e2e/"
     ],
     "testEnvironment": "node",
