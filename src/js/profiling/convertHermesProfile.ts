@@ -5,7 +5,7 @@ import type * as Hermes from './hermes';
 import { parseHermesStackFrameName } from './hermes';
 import type { RawThreadCpuProfile } from './types';
 
-const UNKNOWN_FRAME_FUNCTION_NAME = '<unknown>';
+const ANONYMOUS_FUNCTION_NAME = 'anonymous';
 const UNKNOWN_STACK_ID = -1;
 const JS_THREAD_NAME = 'JavaScriptThread';
 const JS_THREAD_PRIORITY = 1;
@@ -112,7 +112,7 @@ function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFr
 
     const stackFrameName = parseHermesStackFrameName(hermesFrame.name);
     frames.push({
-      function: stackFrameName.function || UNKNOWN_FRAME_FUNCTION_NAME,
+      function: stackFrameName.function || ANONYMOUS_FUNCTION_NAME,
       file: stackFrameName.fileName,
       line: hermesFrame.line !== undefined ? Number(hermesFrame.line) : undefined,
       column: hermesFrame.column !== undefined ? Number(hermesFrame.column) : undefined,

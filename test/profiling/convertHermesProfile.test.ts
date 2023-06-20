@@ -72,7 +72,7 @@ describe('convert hermes profile to sentry profile', () => {
           column: '18',
           funcLine: '1623',
           funcColumn: '16',
-          name: 'fooC(/absolute/path/main.jsbundle:1627:18)',
+          name: '(/absolute/path/main.jsbundle:1627:18)',
           category: 'JavaScript',
           parent: 2,
         },
@@ -101,7 +101,7 @@ describe('convert hermes profile to sentry profile', () => {
         {
           column: 18,
           file: 'main.jsbundle',
-          function: 'fooC',
+          function: 'anonymous',
           line: 1627,
         },
       ],
