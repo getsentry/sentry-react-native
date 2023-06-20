@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Use `android.namespace` to be compatible with AGP 8.x and RN 0.73 ([#3133](https://github.com/getsentry/sentry-react-native/pull/3133))
+
 ## 5.6.0
 
 ### Features
