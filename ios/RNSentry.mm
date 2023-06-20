@@ -509,7 +509,7 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 
-static NSString* const enabledProfilingMessage = @"Use SENTRY_PROFILING_ENABLED=1 env when installing RNSentry pod";
+static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";
 
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
 {
