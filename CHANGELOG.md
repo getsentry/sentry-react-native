@@ -4,15 +4,37 @@
 
 ### Dependencies
 
-- Bump JavaScript SDK from v7.52.0 to v7.53.1 ([#3071](https://github.com/getsentry/sentry-react-native/pull/3071), [#3088](https://github.com/getsentry/sentry-react-native/pull/3088))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7531)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.52.0...7.53.1)
-- Bump Android SDK from v6.18.1 to v6.19.0 ([#3086](https://github.com/getsentry/sentry-react-native/pull/3086))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6190)
-  - [diff](https://github.com/getsentry/sentry-java/compare/6.18.1...6.19.0)
+- Bump JavaScript SDK from v7.54.0 to v7.56.0 ([#3119](https://github.com/getsentry/sentry-react-native/pull/3119))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7560)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.54.0...7.56.0)
+
+## 5.6.0
+
+### Features
+
+- Overwrite Expo bundle names in stack frames ([#3115](https://github.com/getsentry/sentry-react-native/pull/3115))
+  - This enables source maps to resolve correctly without using `sentry-expo` package
+
+### Fixes
+
+- Disable `enableNative` if Native SDK is not available ([#3099](https://github.com/getsentry/sentry-react-native/pull/3099))
+- Dynamically resolve `collectModulesScript` path to support monorepos ([#3092](https://github.com/getsentry/sentry-react-native/pull/3092))
+- Native wrapper methods don't throw disabled error after re-initializing ([#3093](https://github.com/getsentry/sentry-react-native/pull/3093))
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.52.0 to v7.54.0 ([#3071](https://github.com/getsentry/sentry-react-native/pull/3071), [#3088](https://github.com/getsentry/sentry-react-native/pull/3088), [#3094](https://github.com/getsentry/sentry-react-native/pull/3094))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7540)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.52.0...7.54.0)
+- Bump Android SDK from v6.18.1 to v6.22.0 ([#3086](https://github.com/getsentry/sentry-react-native/pull/3086), [#3075](https://github.com/getsentry/sentry-react-native/pull/3075))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6220)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.18.1...6.22.0)
 - Bump Cocoa SDK from v8.7.1 to v8.7.3 ([#3076](https://github.com/getsentry/sentry-react-native/pull/3076))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#873)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.7.1...8.7.3)
+- Bump CLI from v2.17.5 to v2.18.1 ([#3082](https://github.com/getsentry/sentry-react-native/pull/3082))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2181)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.17.5...2.18.1)
 
 ## 5.5.0
 

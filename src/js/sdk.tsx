@@ -1,5 +1,5 @@
 import type { Scope } from '@sentry/core';
-import { getIntegrationsToSetup, hasTracingEnabled , Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
+import { getIntegrationsToSetup, hasTracingEnabled, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
 import { HttpClient } from '@sentry/integrations';
 import {
   defaultIntegrations as reactDefaultIntegrations,
@@ -33,13 +33,13 @@ import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
 import { safeFactory, safeTracesSampler } from './utils/safe';
+import { NATIVE } from './wrapper';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
   'TryCatch', // We don't need this
 ];
 const DEFAULT_OPTIONS: ReactNativeOptions = {
-  enableNative: true,
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
@@ -66,15 +66,18 @@ export function init(passedOptions: ReactNativeOptions): void {
     // eslint-disable-next-line deprecation/deprecation
     ?? passedOptions.transportOptions?.bufferSize
     ?? DEFAULT_OPTIONS.maxQueueSize;
+
+  const enableNative = passedOptions.enableNative === undefined || passedOptions.enableNative
+    ? NATIVE.isNativeAvailable()
+    : false;
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
+    enableNative,
     // If custom transport factory fails the SDK won't initialize
     transport: passedOptions.transport
       || makeNativeTransportFactory({
-        enableNative: passedOptions.enableNative !== undefined
-          ? passedOptions.enableNative
-          : DEFAULT_OPTIONS.enableNative
+        enableNative,
       })
       || makeFetchTransport,
     transportOptions: {

@@ -133,6 +133,7 @@ describe('Tests Native Wrapper', () => {
     });
 
     test('does not initialize with autoInitializeNativeSdk: false', async () => {
+      NATIVE.enableNative = false;
       logger.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
@@ -489,6 +490,7 @@ describe('Tests Native Wrapper', () => {
   });
 
   describe('closeNativeSdk', () => {
+    NATIVE.enableNative = true;
     test('closeNativeSdk calls native bridge', async () => {
       await NATIVE.closeNativeSdk();
 
