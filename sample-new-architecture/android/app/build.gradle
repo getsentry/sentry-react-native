@@ -16,6 +16,13 @@ sentry {
     // you don't need to do it manually.
     // Default is disabled.
     includeNativeSources = true
+
+    // Enable auto-installation of Sentry components (sentry-android SDK and okhttp, timber and fragment integrations).
+    // Default is enabled.
+    // Only available v3.1.0 and above.
+    autoInstallation {
+      enabled = false
+    }
 }
 
 react {
