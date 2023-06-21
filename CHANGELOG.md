@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+### Features
+
+- Alpha support for Hermes JavaScript Profiling ([#3057](https://github.com/getsentry/sentry-react-native/pull/3057))
+
+  Profiling is disabled by default. To enable it, configure both
+  `tracesSampleRate` and `profilesSampleRate` when initializing the SDK:
+
+  ```javascript
+  Sentry.init({
+    dsn: '__DSN__',
+    tracesSampleRate: 1.0,
+    _experiments: {
+      // The sampling rate for profiling is relative to TracesSampleRate.
+      // In this case, we'll capture profiles for 100% of transactions.
+      profilesSampleRate: 1.0,
+    },
+  });
+  ```
+
+  More documentation on profiling and current limitations [can be found here](https://docs.sentry.io/platforms/react-native/profiling/).
+
 ### Dependencies
 
 - Bump JavaScript SDK from v7.54.0 to v7.56.0 ([#3119](https://github.com/getsentry/sentry-react-native/pull/3119))
