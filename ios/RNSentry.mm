@@ -538,6 +538,17 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
         std::string s = ss.str();
         NSString *data = [NSString stringWithCString:s.c_str() encoding:[NSString defaultCStringEncoding]];
 
+#if SENTRY_PROFILING_DEBUG_ENABLED
+        NSString *rawProfileFileName = @"hermes.profile";
+        NSError *error = nil;
+        NSString *rawProfileFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:rawProfileFileName];
+        if (![data writeToFile:rawProfileFilePath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
+            NSLog(@"Error writing Raw Hermes Profile to %@: %@", rawProfileFilePath, error);
+        } else {
+            NSLog(@"Raw Hermes Profile saved to %@", rawProfileFilePath);
+        }
+#endif
+
         return @{ @"profile": data };
     } catch (const std::exception& ex) {
         return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };

@@ -82,6 +82,7 @@ public class RNSentryModuleImpl {
     private final PackageInfo packageInfo;
     private FrameMetricsAggregator frameMetricsAggregator = null;
     private boolean androidXAvailable;
+    private boolean debugEnabled = false;
 
     private static boolean didFetchAppStart;
 
@@ -121,6 +122,7 @@ public class RNSentryModuleImpl {
 
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
+                this.debugEnabled = true;
             }
             if (rnOptions.hasKey("dsn") && rnOptions.getString("dsn") != null) {
                 String dsn = rnOptions.getString("dsn");
@@ -638,6 +640,10 @@ public class RNSentryModuleImpl {
 
             final File output = File.createTempFile(
                 "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
+
+            if (this.debugEnabled) {
+                logger.log(SentryLevel.INFO, "Profile saved to: " + output.getAbsolutePath());
+            }
 
             try (final BufferedReader br = new BufferedReader(new FileReader(output));) {
                 HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
