@@ -38,7 +38,13 @@ export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThread
 );
 
   for (const sample of samples) {
-    sample.stack_id = hermesStackToSentryStackMap.get(sample.stack_id) ?? UNKNOWN_STACK_ID;
+    const sentryStackId = hermesStackToSentryStackMap.get(sample.stack_id)
+    if (sentryStackId === undefined) {
+      logger.error(`[Profiling] Hermes Stack ID ${sample.stack_id} not found when mapping to Sentry Stack ID.`);
+      sample.stack_id = UNKNOWN_STACK_ID;
+    } else {
+      sample.stack_id = sentryStackId;
+    }
   }
 
   const thread_metadata: Record<ThreadId, { name?: string; priority?: number }> = {};
