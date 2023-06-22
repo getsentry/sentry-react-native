@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixes
+
+- Filter beforeSendTransaction from the Native SDK ([#3140](https://github.com/getsentry/sentry-react-native/pull/3140))
+
+
 ### Dependencies
 
 - Bump JavaScript SDK from v7.54.0 to v7.56.0 ([#3119](https://github.com/getsentry/sentry-react-native/pull/3119))
