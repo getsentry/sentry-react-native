@@ -2,7 +2,6 @@
 dist
 
 # Ignore standalone apps
-sample
 sample-new-architecture
 test/perf/TestApp*
 

@@ -180,20 +180,20 @@ jobs:
         uses: actions/cache@v3
         id: cache-sample
         with:
-          path: sample/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('sample/yarn.lock') }}
+          path: sample-new-architecture/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('sample-new-architecture/yarn.lock') }}
       - name: Install Dependencies
         if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Install Sample Dependencies
         if: ${{ steps.cache-sample.outputs['cache-hit'] != 'true' }}
         run: yarn install
-        working-directory: sample
+        working-directory: sample-new-architecture
       - name: Build
         run: yarn build
       - name: Make Sample Build Directory
         run: mkdir build
-        working-directory: sample
+        working-directory: sample-new-architecture
       - name: Bundle
         run: |
           yarn run react-native bundle \
@@ -203,4 +203,4 @@ jobs:
           --reset-cache \
           --bundle-output build/bundle.${{ matrix.platform }}.js \
           --sourcemap-output build/bundle.${{ matrix.platform }}.map
-        working-directory: sample
+        working-directory: sample-new-architecture
