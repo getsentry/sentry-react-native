@@ -1,4 +1,4 @@
-import type { Envelope, Event, Profile } from '@sentry/types';
+import type { Envelope, Event, Profile,ThreadCpuProfile } from '@sentry/types';
 import { forEachEnvelopeItem, logger } from '@sentry/utils';
 
 import type { RawThreadCpuProfile } from './types';
@@ -184,4 +184,43 @@ export function addProfilesToEnvelope(envelope: Envelope, profiles: Profile[]): 
     envelope[1].push([{ type: 'profile' }, profile]);
   }
   return envelope;
+}
+
+/**
+ *
+ */
+export function deepCloneThreadCpuProfile(original: ThreadCpuProfile): ThreadCpuProfile {
+  return JSON.parse(JSON.stringify(original));
+}
+
+
+/**
+ *
+ */
+export function mergeThreadCpuProfile(
+  finalProfile: ThreadCpuProfile,
+  addDataFromProfile: ThreadCpuProfile,
+  samplingFrequencyNs: number = 10,
+): void {
+  const newStackIdsOffset = finalProfile.stacks.length;
+  const newFrameIdsOffset = finalProfile.frames.length;
+  const newElapsedSinceStartNsOffset = finalProfile.samples[finalProfile.samples.length - 1].elapsed_since_start_ns + samplingFrequencyNs;
+  finalProfile.frames = finalProfile.frames.concat(addDataFromProfile.frames);
+
+  for (const sample of addDataFromProfile.samples) {
+    finalProfile.samples.push({
+      ...sample,
+      elapsed_since_start_ns: sample.elapsed_since_start_ns + newElapsedSinceStartNsOffset,
+      stack_id: sample.stack_id + newStackIdsOffset,
+      // thread_id we can keep old one as Hermes JS is single threaded
+    });
+  }
+
+  for (const stack of addDataFromProfile.stacks) {
+    const newStack = [];
+    for (const frameId of stack) {
+      newStack.push(frameId + newFrameIdsOffset);
+    }
+    finalProfile.stacks.push(newStack);
+  }
 }

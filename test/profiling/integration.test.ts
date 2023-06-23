@@ -2,15 +2,15 @@ import * as mockWrapper from '../mockWrapper';
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
 
-import type { Envelope, Event, Profile, Transaction, Transport } from '@sentry/types';
+import type { Envelope, Event, Profile, ThreadCpuProfile, ThreadCpuSample, Transaction, Transport } from '@sentry/types';
 
 import * as Sentry from '../../src/js';
 import { HermesProfiling } from '../../src/js/integrations';
-import type * as Hermes from '../../src/js/profiling/hermes';
 import { isHermesEnabled } from '../../src/js/utils/environment';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { MOCK_DSN } from '../mockDsn';
 import { envelopeItemPayload, envelopeItems } from '../testutils';
+import { createMockMinimalValidHermesProfile, createThreeConsecutiveMinimalValidHermesProfiles,MOCK_THREAD_ID } from './integration.fixtures';
 
 const SEC_TO_MS = 1e6;
 
@@ -60,7 +60,13 @@ describe('profiling integration', () => {
     ]);
   });
 
-  test('should finish previous profile when a new transaction starts', () => {
+  test('should profile two concurrent transactions', () => {
+    const hermesProfiles = createThreeConsecutiveMinimalValidHermesProfiles();
+    mockWrapper.NATIVE.stopProfiling.mockReset()
+      .mockReturnValueOnce(hermesProfiles.first)
+      .mockReturnValueOnce(hermesProfiles.second)
+      .mockReturnValueOnce(hermesProfiles.third);
+
     const transaction1: Transaction = Sentry.startTransaction({
       name: 'test-name-1',
     });
@@ -89,6 +95,72 @@ describe('profiling integration', () => {
           id: transaction1EnvelopeItemPayload.event_id,
           trace_id: transaction1.traceId,
         }),
+        profile: expect.objectContaining<Partial<ThreadCpuProfile>>({
+          samples: [
+            {
+              thread_id: MOCK_THREAD_ID,
+              stack_id: 0,
+              elapsed_since_start_ns: '0',
+            },
+            {
+              thread_id: MOCK_THREAD_ID,
+              stack_id: 0,
+              elapsed_since_start_ns: '10',
+            },
+            {
+              thread_id: MOCK_THREAD_ID,
+              stack_id: 1,
+              elapsed_since_start_ns: '20',
+            },
+            {
+              thread_id: MOCK_THREAD_ID,
+              stack_id: 1,
+              elapsed_since_start_ns: '30',
+            },
+          ],
+          frames: [
+            {
+              column: undefined,
+              file: undefined,
+              function: '[root]',
+              line: undefined,
+            },
+            {
+              function: 'fooA',
+              line: 1610,
+              column: 33,
+              file: 'main.jsbundle',
+            },
+            {
+              column: undefined,
+              file: undefined,
+              function: '[root]',
+              line: undefined,
+            },
+            {
+              function: 'fooB',
+              line: 1620,
+              column: 33,
+              file: 'second.jsbundle',
+            },
+          ],
+          stacks: [
+            [
+              1,
+              0,
+            ],
+            [
+              3,
+              2,
+            ],
+          ],
+          thread_metadata: {
+            [MOCK_THREAD_ID]: {
+              name: 'JavaScriptThread',
+              priority: 1,
+            }
+          },
+        }),
       }),
     ]);
     expect(profile2EnvelopeItem).toEqual([
@@ -99,6 +171,72 @@ describe('profiling integration', () => {
           name: 'test-name-2',
           id: transaction2EnvelopeItemPayload.event_id,
           trace_id: transaction2.traceId,
+        }),
+        profile: expect.objectContaining<Partial<ThreadCpuProfile>>({
+          samples: [
+            {
+              thread_id: MOCK_THREAD_ID,
+              stack_id: 0,
+              elapsed_since_start_ns: '0',
+            },
+            {
+              thread_id: MOCK_THREAD_ID,
+              stack_id: 0,
+              elapsed_since_start_ns: '10',
+            },
+            {
+              thread_id: MOCK_THREAD_ID,
+              stack_id: 1,
+              elapsed_since_start_ns: '20',
+            },
+            {
+              thread_id: MOCK_THREAD_ID,
+              stack_id: 1,
+              elapsed_since_start_ns: '30',
+            },
+          ],
+          frames: [
+            {
+              column: undefined,
+              file: undefined,
+              function: '[root]',
+              line: undefined,
+            },
+            {
+              function: 'fooB',
+              line: 1620,
+              column: 33,
+              file: 'second.jsbundle',
+            },
+            {
+              column: undefined,
+              file: undefined,
+              function: '[root]',
+              line: undefined,
+            },
+            {
+              function: 'fooC',
+              line: 1630,
+              column: 33,
+              file: 'third.jsbundle',
+            },
+          ],
+          stacks: [
+            [
+              1,
+              0,
+            ],
+            [
+              3,
+              2,
+            ],
+          ],
+          thread_metadata: {
+            [MOCK_THREAD_ID]: {
+              name: 'JavaScriptThread',
+              priority: 1,
+            }
+          },
         }),
       }),
     ]);
@@ -216,41 +354,5 @@ function initTestClient(): {
 
   return {
     transportSendMock,
-  };
-}
-
-/**
- * Creates a mock Hermes profile that is valid enough to be added to an envelope.
- * Min 2 samples are required by Sentry to be valid.
- */
-function createMockMinimalValidHermesProfile(): Hermes.Profile {
-  return {
-    samples: [
-      {
-        cpu: '-1',
-        name: '',
-        ts: '10',
-        pid: 54822,
-        tid: '14509472',
-        weight: '1',
-        sf: 1,
-      },
-      {
-        cpu: '-1',
-        name: '',
-        ts: '20',
-        pid: 54822,
-        tid: '14509472',
-        weight: '1',
-        sf: 1,
-      },
-    ],
-    stackFrames: {
-      1: {
-        name: '[root]',
-        category: 'root',
-      },
-    },
-    traceEvents: [],
   };
 }
