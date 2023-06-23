@@ -120,10 +120,7 @@ describe('profiling integration', () => {
           ],
           frames: [
             {
-              column: undefined,
-              file: undefined,
               function: '[root]',
-              line: undefined,
             },
             {
               function: 'fooA',
@@ -197,10 +194,7 @@ describe('profiling integration', () => {
           ],
           frames: [
             {
-              column: undefined,
-              file: undefined,
               function: '[root]',
-              line: undefined,
             },
             {
               function: 'fooB',
@@ -209,10 +203,7 @@ describe('profiling integration', () => {
               file: 'second.jsbundle',
             },
             {
-              column: undefined,
-              file: undefined,
               function: '[root]',
-              line: undefined,
             },
             {
               function: 'fooC',
@@ -329,6 +320,7 @@ function getCurrentHermesProfilingIntegration(): TestHermesIntegration {
   return integration as unknown as TestHermesIntegration;
 }
 
+let isFirstInit = true;
 function initTestClient(): {
   transportSendMock: jest.Mock<ReturnType<Transport['send']>, Parameters<Transport['send']>>;
 } {
@@ -344,11 +336,14 @@ function initTestClient(): {
     }),
   });
 
-  // In production integrations are setup only once, but in the tests we want them to setup on every init
-  const integrations = Sentry.getCurrentHub().getClient()?.getOptions().integrations
-  if (integrations) {
-    for (const integration of integrations) {
-      integration.setupOnce(Sentry.addGlobalEventProcessor, Sentry.getCurrentHub);
+  if (!isFirstInit) {
+    isFirstInit = false;
+    // In production integrations are setup only once, but in the tests we want them to setup on every init
+    const integrations = Sentry.getCurrentHub().getClient()?.getOptions().integrations
+    if (integrations) {
+      for (const integration of integrations) {
+        integration.setupOnce(Sentry.addGlobalEventProcessor, Sentry.getCurrentHub);
+      }
     }
   }
 

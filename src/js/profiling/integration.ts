@@ -55,7 +55,7 @@ export class HermesProfiling implements Integration {
         return;
       }
 
-      this._startNewProfile(transaction);
+      this._createProfile(transaction);
     });
 
     client.on('finishTransaction', (transaction: Transaction) => {
@@ -120,10 +120,9 @@ export class HermesProfiling implements Integration {
   /**
    * Starts a new profile and links it to the transaction.
    */
-  private _startNewProfile = (transaction: Transaction): void => {
+  private _createProfile = (transaction: Transaction): void => {
     this._stopProfilerAndSavePartialProfile();
     const profileStartTimestampNs = this._startProfiler();
-
 
     const profileId = uuid4();
     const currentProfile = {
@@ -172,8 +171,9 @@ export class HermesProfiling implements Integration {
     for (let i = 1; i < candidate.partialProfiles.length; i++) {
       mergeThreadCpuProfile(profile, candidate.partialProfiles[i]);
     }
-    PROFILE_QUEUE.add(candidate.profileId, profile);
-    logger.log('[Profiling] finished profiling: ', candidate.profileId);
+    profile.profile_id = profileId;
+    PROFILE_QUEUE.add(profileId, profile);
+    logger.log('[Profiling] finished profiling: ', profileId);
   };
 
   private _stopProfilerAndSavePartialProfile = (): void => {

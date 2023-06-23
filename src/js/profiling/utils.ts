@@ -189,7 +189,7 @@ export function addProfilesToEnvelope(envelope: Envelope, profiles: Profile[]): 
 /**
  *
  */
-export function deepCloneThreadCpuProfile(original: ThreadCpuProfile): ThreadCpuProfile {
+export function deepCloneThreadCpuProfile(original: RawThreadCpuProfile): RawThreadCpuProfile {
   return JSON.parse(JSON.stringify(original));
 }
 
