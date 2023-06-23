@@ -53,7 +53,7 @@ export function createThreeConsecutiveMinimalValidHermesProfiles(): {
         {
           cpu: '-1',
           name: '',
-          ts: '10',
+          ts: '0.010',
           pid: 54822,
           tid: MOCK_THREAD_ID,
           weight: '1',
@@ -62,7 +62,7 @@ export function createThreeConsecutiveMinimalValidHermesProfiles(): {
         {
           cpu: '-1',
           name: '',
-          ts: '20',
+          ts: '0.020',
           pid: 54822,
           tid: MOCK_THREAD_ID,
           weight: '1',
@@ -91,7 +91,7 @@ export function createThreeConsecutiveMinimalValidHermesProfiles(): {
         {
           cpu: '-1',
           name: '',
-          ts: '30',
+          ts: '0.030',
           pid: 54822,
           tid: MOCK_THREAD_ID,
           weight: '1',
@@ -100,7 +100,7 @@ export function createThreeConsecutiveMinimalValidHermesProfiles(): {
         {
           cpu: '-1',
           name: '',
-          ts: '40',
+          ts: '0.040',
           pid: 54822,
           tid: MOCK_THREAD_ID,
           weight: '1',
@@ -129,7 +129,7 @@ export function createThreeConsecutiveMinimalValidHermesProfiles(): {
         {
           cpu: '-1',
           name: '',
-          ts: '50',
+          ts: '0.050',
           pid: 54822,
           tid: MOCK_THREAD_ID,
           weight: '1',
@@ -138,7 +138,7 @@ export function createThreeConsecutiveMinimalValidHermesProfiles(): {
         {
           cpu: '-1',
           name: '',
-          ts: '60',
+          ts: '0.060',
           pid: 54822,
           tid: MOCK_THREAD_ID,
           weight: '1',

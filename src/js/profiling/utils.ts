@@ -204,13 +204,13 @@ export function mergeThreadCpuProfile(
 ): void {
   const newStackIdsOffset = finalProfile.stacks.length;
   const newFrameIdsOffset = finalProfile.frames.length;
-  const newElapsedSinceStartNsOffset = finalProfile.samples[finalProfile.samples.length - 1].elapsed_since_start_ns + samplingFrequencyNs;
+  const newElapsedSinceStartNsOffset = Number(finalProfile.samples[finalProfile.samples.length - 1].elapsed_since_start_ns) + samplingFrequencyNs;
   finalProfile.frames = finalProfile.frames.concat(addDataFromProfile.frames);
 
   for (const sample of addDataFromProfile.samples) {
     finalProfile.samples.push({
       ...sample,
-      elapsed_since_start_ns: sample.elapsed_since_start_ns + newElapsedSinceStartNsOffset,
+      elapsed_since_start_ns: (Number(sample.elapsed_since_start_ns) + newElapsedSinceStartNsOffset).toString(),
       stack_id: sample.stack_id + newStackIdsOffset,
       // thread_id we can keep old one as Hermes JS is single threaded
     });
