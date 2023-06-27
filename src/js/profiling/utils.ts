@@ -1,4 +1,4 @@
-import type { Envelope, Event, Profile,ThreadCpuProfile } from '@sentry/types';
+import type { Envelope, Event, Profile, ThreadCpuProfile } from '@sentry/types';
 import { forEachEnvelopeItem, logger } from '@sentry/utils';
 
 import type { RawThreadCpuProfile } from './types';
@@ -193,7 +193,6 @@ export function deepCloneThreadCpuProfile(original: RawThreadCpuProfile): RawThr
   return JSON.parse(JSON.stringify(original));
 }
 
-
 /**
  *
  */
@@ -204,7 +203,8 @@ export function mergeThreadCpuProfile(
 ): void {
   const newStackIdsOffset = finalProfile.stacks.length;
   const newFrameIdsOffset = finalProfile.frames.length;
-  const newElapsedSinceStartNsOffset = Number(finalProfile.samples[finalProfile.samples.length - 1].elapsed_since_start_ns) + samplingFrequencyNs;
+  const newElapsedSinceStartNsOffset =
+    Number(finalProfile.samples[finalProfile.samples.length - 1].elapsed_since_start_ns) + samplingFrequencyNs;
   finalProfile.frames = finalProfile.frames.concat(addDataFromProfile.frames);
 
   for (const sample of addDataFromProfile.samples) {

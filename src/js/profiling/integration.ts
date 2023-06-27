@@ -1,10 +1,25 @@
-import type { Envelope, Event, EventProcessor, Hub, Integration, Profile, ThreadCpuProfile, Transaction  } from '@sentry/types';
+import type {
+  Envelope,
+  Event,
+  EventProcessor,
+  Hub,
+  Integration,
+  Profile,
+  ThreadCpuProfile,
+  Transaction,
+} from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 
 import { isHermesEnabled } from '../utils/environment';
 import { PROFILE_QUEUE } from './cache';
 import { startProfiling, stopProfiling } from './hermes';
-import { addProfilesToEnvelope, createProfilingEvent, deepCloneThreadCpuProfile, findProfiledTransactionsFromEnvelope, mergeThreadCpuProfile } from './utils';
+import {
+  addProfilesToEnvelope,
+  createProfilingEvent,
+  deepCloneThreadCpuProfile,
+  findProfiledTransactionsFromEnvelope,
+  mergeThreadCpuProfile,
+} from './utils';
 
 export const MAX_PROFILE_DURATION_MS = 30 * 1e6;
 
@@ -26,12 +41,15 @@ export class HermesProfiling implements Integration {
 
   private _getCurrentHub?: () => Hub;
 
-  private _currentProfilesCandidatesMap: Map<string, {
-    profileId: string;
-    startTimestampNs: number;
-    timeout: number | undefined;
-    partialProfiles: ThreadCpuProfile[];
-  }> = new Map();
+  private _currentProfilesCandidatesMap: Map<
+    string,
+    {
+      profileId: string;
+      startTimestampNs: number;
+      timeout: number | undefined;
+      partialProfiles: ThreadCpuProfile[];
+    }
+  > = new Map();
 
   /**
    * @inheritDoc
@@ -128,10 +146,7 @@ export class HermesProfiling implements Integration {
     const currentProfile = {
       profileId,
       startTimestampNs: profileStartTimestampNs,
-      timeout: setTimeout(
-        () => this._finishProfile(profileId),
-        MAX_PROFILE_DURATION_MS,
-      ),
+      timeout: setTimeout(() => this._finishProfile(profileId), MAX_PROFILE_DURATION_MS),
       partialProfiles: [],
     };
 
@@ -157,10 +172,8 @@ export class HermesProfiling implements Integration {
       this._startProfiler();
     }
 
-    if (candidate.timeout === undefined) {
-      return;
-    }
-    clearTimeout(candidate.timeout);
+    candidate.timeout !== undefined && clearTimeout(candidate.timeout);
+    candidate.timeout = undefined;
 
     if (candidate.partialProfiles.length === 0) {
       logger.warn('[Profiling] No partial profiles found for profile: ', profileId);
@@ -187,16 +200,16 @@ export class HermesProfiling implements Integration {
       return;
     }
 
-    this._currentProfilesCandidatesMap.forEach((candidate) => {
+    this._currentProfilesCandidatesMap.forEach(candidate => {
       candidate.partialProfiles.push(partial);
     });
-  }
+  };
 
   private _startProfiler = (): number | null => {
     const profileStartTimestampNs = startProfiling();
     profileStartTimestampNs === null && logger.warn('[Profiling] Start failed.');
     return profileStartTimestampNs;
-  }
+  };
 
   private _createProfileEventFor = (profiledTransaction: Event): Profile | null => {
     const profile_id = profiledTransaction?.contexts?.['profile']?.['profile_id'];

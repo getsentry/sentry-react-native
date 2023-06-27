@@ -2,7 +2,7 @@ import * as mockWrapper from '../mockWrapper';
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
 
-import type { Envelope, Event, Profile, ThreadCpuProfile, ThreadCpuSample, Transaction, Transport } from '@sentry/types';
+import type { Envelope, Event, Profile, ThreadCpuProfile, Transaction, Transport } from '@sentry/types';
 
 import * as Sentry from '../../src/js';
 import { HermesProfiling } from '../../src/js/integrations';
@@ -10,7 +10,11 @@ import { isHermesEnabled } from '../../src/js/utils/environment';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { MOCK_DSN } from '../mockDsn';
 import { envelopeItemPayload, envelopeItems } from '../testutils';
-import { createMockMinimalValidHermesProfile, createThreeConsecutiveMinimalValidHermesProfiles,MOCK_THREAD_ID } from './integration.fixtures';
+import {
+  createMockMinimalValidHermesProfile,
+  createThreeConsecutiveMinimalValidHermesProfiles,
+  MOCK_THREAD_ID,
+} from './integration.fixtures';
 
 const SEC_TO_MS = 1e6;
 
@@ -29,7 +33,7 @@ describe('profiling integration', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(async() => {
+  afterEach(async () => {
     jest.runAllTimers();
     jest.useRealTimers();
     RN_GLOBAL_OBJ.__SENTRY__.globalEventProcessors = []; // resets integrations
@@ -62,7 +66,8 @@ describe('profiling integration', () => {
 
   test('should profile two concurrent transactions', () => {
     const hermesProfiles = createThreeConsecutiveMinimalValidHermesProfiles();
-    mockWrapper.NATIVE.stopProfiling.mockReset()
+    mockWrapper.NATIVE.stopProfiling
+      .mockReset()
       .mockReturnValueOnce(hermesProfiles.first)
       .mockReturnValueOnce(hermesProfiles.second)
       .mockReturnValueOnce(hermesProfiles.third);
@@ -142,20 +147,14 @@ describe('profiling integration', () => {
             },
           ],
           stacks: [
-            [
-              1,
-              0,
-            ],
-            [
-              3,
-              2,
-            ],
+            [1, 0],
+            [3, 2],
           ],
           thread_metadata: {
             [MOCK_THREAD_ID]: {
               name: 'JavaScriptThread',
               priority: 1,
-            }
+            },
           },
         }),
       }),
@@ -213,20 +212,14 @@ describe('profiling integration', () => {
             },
           ],
           stacks: [
-            [
-              1,
-              0,
-            ],
-            [
-              3,
-              2,
-            ],
+            [1, 0],
+            [3, 2],
           ],
           thread_metadata: {
             [MOCK_THREAD_ID]: {
               name: 'JavaScriptThread',
               priority: 1,
-            }
+            },
           },
         }),
       }),
@@ -245,7 +238,7 @@ describe('profiling integration', () => {
     const transactionEnvelopeItemPayload = envelope?.[envelopeItems][0][envelopeItemPayload] as Event;
     const profileEnvelopeItemPayload = envelope?.[envelopeItems][1][envelopeItemPayload] as unknown as Profile;
     const transactionStart = Math.floor(transactionEnvelopeItemPayload.start_timestamp! * SEC_TO_MS);
-    const profileStart = (new Date(profileEnvelopeItemPayload.timestamp)).getTime();
+    const profileStart = new Date(profileEnvelopeItemPayload.timestamp).getTime();
     expect(profileStart - transactionStart).toBeLessThan(10);
   });
 
@@ -290,27 +283,37 @@ describe('profiling integration', () => {
   });
 
   test('profile timeout is reset when transaction is finished', () => {
+    jest.spyOn(global, 'clearTimeout');
     const integration = getCurrentHermesProfilingIntegration();
     const transaction: Transaction = Sentry.startTransaction({
       name: 'test-name',
     });
-    const timeoutAfterProfileStarted = integration._currentProfileTimeout;
+    const profileCandidate = integration._currentProfilesCandidatesMap.values().next().value;
+    const candidateTimeoutAfterProfileStarted = profileCandidate.timeout;
 
     jest.advanceTimersByTime(40 * 1e6);
 
     transaction.finish();
-    const timeoutAfterProfileFinished = integration._currentProfileTimeout;
+    const candidateTimeoutAfterProfileFinish = profileCandidate.timeout;
 
     jest.runAllTimers();
 
-    expect(timeoutAfterProfileStarted).toBeDefined();
-    expect(timeoutAfterProfileFinished).toBeUndefined();
+    expect(candidateTimeoutAfterProfileStarted).toBeDefined();
+    expect(candidateTimeoutAfterProfileFinish).toBeUndefined();
+    expect(clearTimeout).toHaveBeenCalledWith(candidateTimeoutAfterProfileStarted);
   });
 });
 
-
 type TestHermesIntegration = Omit<HermesProfiling, '_currentProfileTimeout'> & {
-  _currentProfileTimeout: number | undefined;
+  _currentProfilesCandidatesMap: Map<
+    string,
+    {
+      profileId: string;
+      startTimestampNs: number;
+      timeout: number | undefined;
+      partialProfiles: ThreadCpuProfile[];
+    }
+  >;
 };
 function getCurrentHermesProfilingIntegration(): TestHermesIntegration {
   const integration = Sentry.getCurrentHub().getClient()?.getIntegration(HermesProfiling);
@@ -341,7 +344,7 @@ function initTestClient(): {
     isFirstInit = false;
   } else {
     // In production integrations are setup only once, but in the tests we want them to setup on every init
-    const integrations = Sentry.getCurrentHub().getClient()?.getOptions().integrations
+    const integrations = Sentry.getCurrentHub().getClient()?.getOptions().integrations;
     if (integrations) {
       for (const integration of integrations) {
         integration.setupOnce(Sentry.addGlobalEventProcessor, Sentry.getCurrentHub);

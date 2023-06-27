@@ -1,4 +1,4 @@
-import type { FrameId, StackId, ThreadCpuFrame,ThreadCpuSample, ThreadCpuStack, ThreadId } from '@sentry/types';
+import type { FrameId, StackId, ThreadCpuFrame, ThreadCpuSample, ThreadCpuStack, ThreadId } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import type * as Hermes from './hermes';
@@ -35,10 +35,10 @@ export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThread
     hermesStacks,
     hermesProfile.stackFrames,
     hermesStackFrameIdToSentryFrameIdMap,
-);
+  );
 
   for (const sample of samples) {
-    const sentryStackId = hermesStackToSentryStackMap.get(sample.stack_id)
+    const sentryStackId = hermesStackToSentryStackMap.get(sample.stack_id);
     if (sentryStackId === undefined) {
       logger.error(`[Profiling] Hermes Stack ID ${sample.stack_id} not found when mapping to Sentry Stack ID.`);
       sample.stack_id = UNKNOWN_STACK_ID;
@@ -96,7 +96,7 @@ function mapSamples(hermesSamples: Hermes.Sample[]): {
     hermesStacks,
     jsThreads,
   };
-};
+}
 
 /**
  * Maps Hermes StackFrames tree represented as an JS object to a Sentry frames array.
@@ -109,7 +109,8 @@ function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFr
 } {
   const frames: ThreadCpuFrame[] = [];
   const hermesStackFrameIdToSentryFrameIdMap = new Map<Hermes.StackFrameId, FrameId>();
-  for (const key in hermesStackFrames) { // asc order based on the key is not guaranteed
+  for (const key in hermesStackFrames) {
+    // asc order based on the key is not guaranteed
     if (!Object.prototype.hasOwnProperty.call(hermesStackFrames, key)) {
       continue;
     }
