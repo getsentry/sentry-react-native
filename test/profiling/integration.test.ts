@@ -336,8 +336,10 @@ function initTestClient(): {
     }),
   });
 
-  if (!isFirstInit) {
+  if (isFirstInit) {
+    // Avoid setting up integrations twice on the first run
     isFirstInit = false;
+  } else {
     // In production integrations are setup only once, but in the tests we want them to setup on every init
     const integrations = Sentry.getCurrentHub().getClient()?.getOptions().integrations
     if (integrations) {
