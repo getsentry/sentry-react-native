@@ -55,7 +55,7 @@ jobs:
           path: |
             node_modules
             sample-new-architecture/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock', 'sample-new-architecture/node_modules/yarn.lock') }}
+          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock', 'sample-new-architecture/yarn.lock') }}
 
       - name: Install SDK Dependencies
         if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
