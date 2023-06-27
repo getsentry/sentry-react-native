@@ -1910,10 +1910,10 @@
     "@sentry/utils" "7.56.0"
     tslib "^1.9.3"
 
-"@sentry/cli@2.18.1":
-  version "2.18.1"
-  resolved "https://registry.yarnpkg.com/@sentry/cli/-/cli-2.18.1.tgz#c44f189a1a72a83087a297c5fcc7668f86dd4308"
-  integrity sha512-lc/dX/cvcmznWNbLzDbzxn224vwY5zLIDBe3yOO6Usg3CDgkZZ3xfjN4AIUZwkiTEPIOELodrOfdoMxqpXyYDw==
+"@sentry/cli@2.19.2":
+  version "2.19.2"
+  resolved "https://registry.yarnpkg.com/@sentry/cli/-/cli-2.19.2.tgz#408ae2b6d5a46c6cbb19531969e6bc8f131f4dfb"
+  integrity sha512-i0g54+T1w0bVOIkKnD8FO8AdXqnbmzvVaacU74Avyew3Imh1fyHut9Pa7BFpExsyQdOAAlQZnwfh6yngXVQzzw==
   dependencies:
     https-proxy-agent "^5.0.0"
     node-fetch "^2.6.7"
