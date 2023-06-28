@@ -1,3 +1,4 @@
+import { ThreadCpuSample } from '@sentry/types';
 import { convertToSentryProfile } from '../../src/js/profiling/convertHermesProfile';
 import type * as Hermes from '../../src/js/profiling/hermes';
 import type { ThreadCpuProfile } from '../../src/js/profiling/types';
@@ -136,5 +137,11 @@ describe('convert hermes profile to sentry profile', () => {
       },
     };
     expect(convertToSentryProfile(hermesProfile)).toStrictEqual(expectedSentryProfile);
+  });
+
+  it('removes samples that are over the max duration of profile', () => {
+    const hermesSamples: Hermes.Sample[] = [];
+    const expectedSentrySamples: ThreadCpuSample = [];
+
   });
 });

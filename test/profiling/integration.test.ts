@@ -29,7 +29,7 @@ describe('profiling integration', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(async() => {
+  afterEach(async () => {
     jest.runAllTimers();
     jest.useRealTimers();
     RN_GLOBAL_OBJ.__SENTRY__.globalEventProcessors = []; // resets integrations
@@ -116,7 +116,7 @@ describe('profiling integration', () => {
     const transactionEnvelopeItemPayload = envelope?.[envelopeItems][0][envelopeItemPayload] as Event;
     const profileEnvelopeItemPayload = envelope?.[envelopeItems][1][envelopeItemPayload] as unknown as Profile;
     const transactionStart = Math.floor(transactionEnvelopeItemPayload.start_timestamp! * SEC_TO_MS);
-    const profileStart = (new Date(profileEnvelopeItemPayload.timestamp)).getTime();
+    const profileStart = new Date(profileEnvelopeItemPayload.timestamp).getTime();
     expect(profileStart - transactionStart).toBeLessThan(10);
   });
 
@@ -179,7 +179,6 @@ describe('profiling integration', () => {
   });
 });
 
-
 type TestHermesIntegration = Omit<HermesProfiling, '_currentProfileTimeout'> & {
   _currentProfileTimeout: number | undefined;
 };
@@ -207,7 +206,7 @@ function initTestClient(): {
   });
 
   // In production integrations are setup only once, but in the tests we want them to setup on every init
-  const integrations = Sentry.getCurrentHub().getClient()?.getOptions().integrations
+  const integrations = Sentry.getCurrentHub().getClient()?.getOptions().integrations;
   if (integrations) {
     for (const integration of integrations) {
       integration.setupOnce(Sentry.addGlobalEventProcessor, Sentry.getCurrentHub);

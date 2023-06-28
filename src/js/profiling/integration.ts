@@ -1,4 +1,4 @@
-import type { Envelope, Event, EventProcessor, Hub, Integration, Profile, Transaction  } from '@sentry/types';
+import type { Envelope, Event, EventProcessor, Hub, Integration, Profile, Transaction } from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 
 import { isHermesEnabled } from '../utils/environment';
@@ -59,10 +59,7 @@ export class HermesProfiling implements Integration {
         return;
       }
 
-      this._currentProfileTimeout = setTimeout(
-        this._finishCurrentProfile,
-        MAX_PROFILE_DURATION_MS,
-      );
+      this._currentProfileTimeout = setTimeout(this._finishCurrentProfile, MAX_PROFILE_DURATION_MS);
       this._startNewProfile(transaction);
     });
 
@@ -190,5 +187,5 @@ export class HermesProfiling implements Integration {
   private _clearCurrentProfileTimeout = (): void => {
     this._currentProfileTimeout !== undefined && clearTimeout(this._currentProfileTimeout);
     this._currentProfileTimeout = undefined;
-  }
+  };
 }
