@@ -43,25 +43,15 @@ export interface Profile {
   stackFrames: Record<string, StackFrame>;
 }
 
-export interface HermesStackFrameNameParsed {
-  function?: string;
-  fileName?: string;
-}
-
-const FILE_NAME_REGEX = /([a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+)(?::(\d+:\d+))?\)/;
 /**
  * Hermes Profile Stack Frame Name contains function name and file path.
  *
- * `foo(/path/to/file.js:1:2)` -> `{ function: 'foo', fileName: 'file.js' }`
+ * `foo(/path/to/file.js:1:2)` -> `foo`
  */
-export function parseHermesStackFrameName(name: string): HermesStackFrameNameParsed {
-  const result: HermesStackFrameNameParsed = {};
-  const match = FILE_NAME_REGEX.exec(name);
-  if (match) {
-    result.fileName = match[1];
-  }
-  result.function = name.split('(')[0];
-  return result;
+export function parseHermesStackFrameFunctionName(hermesName: string): string {
+  const indexOfLeftParenthesis = hermesName.indexOf('(');
+  const name = indexOfLeftParenthesis !== -1 ? hermesName.substring(0, indexOfLeftParenthesis) : hermesName;
+  return name;
 }
 
 const MS_TO_NS: number = 1e6;

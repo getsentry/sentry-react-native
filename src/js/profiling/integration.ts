@@ -6,7 +6,7 @@ import { PROFILE_QUEUE } from './cache';
 import { startProfiling, stopProfiling } from './hermes';
 import { addProfilesToEnvelope, createProfilingEvent, findProfiledTransactionsFromEnvelope } from './utils';
 
-export const MAX_PROFILE_DURATION_MS = 30 * 1e6;
+export const MAX_PROFILE_DURATION_MS = 30 * 1e3;
 
 /**
  * Profiling integration creates a profile for each transaction and adds it to the event envelope.
@@ -59,11 +59,11 @@ export class HermesProfiling implements Integration {
         return;
       }
 
-      this._startNewProfile(transaction);
       this._currentProfileTimeout = setTimeout(
         this._finishCurrentProfile,
         MAX_PROFILE_DURATION_MS,
       );
+      this._startNewProfile(transaction);
     });
 
     client.on('finishTransaction', () => {
