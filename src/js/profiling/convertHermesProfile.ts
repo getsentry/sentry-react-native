@@ -76,7 +76,7 @@ export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThread
  * Hermes stack frame IDs represent the last (leaf, furthest from the main func) frame of the call stack.
  * @returns the mapped Sentry samples, the set of Hermes stack frame IDs, and the set of JS thread IDs
  */
-function mapSamples(
+export function mapSamples(
   hermesSamples: Hermes.Sample[],
   maxElapsedSinceStartNs: number = MAX_PROFILE_DURATION_NS,
 ): {

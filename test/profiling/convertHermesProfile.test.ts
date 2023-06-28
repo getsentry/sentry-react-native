@@ -1,7 +1,7 @@
-import { ThreadCpuSample } from '@sentry/types';
-import { convertToSentryProfile } from '../../src/js/profiling/convertHermesProfile';
+import type { ThreadCpuProfile, ThreadCpuSample } from '@sentry/types';
+
+import { convertToSentryProfile, mapSamples } from '../../src/js/profiling/convertHermesProfile';
 import type * as Hermes from '../../src/js/profiling/hermes';
-import type { ThreadCpuProfile } from '../../src/js/profiling/types';
 
 describe('convert hermes profile to sentry profile', () => {
   it('simple test profile', async () => {
@@ -139,9 +139,67 @@ describe('convert hermes profile to sentry profile', () => {
     expect(convertToSentryProfile(hermesProfile)).toStrictEqual(expectedSentryProfile);
   });
 
-  it('removes samples that are over the max duration of profile', () => {
-    const hermesSamples: Hermes.Sample[] = [];
-    const expectedSentrySamples: ThreadCpuSample = [];
+  describe('converts profile samples', () => {
+    it('removes samples that are over the max duration of profile', () => {
+      const TEST_MAX_PROFILE_DURATION = 1000;
+      const hermesSamples: Hermes.Sample[] = [
+        {
+          ...getMinimumHermesSample(),
+          ts: '1',
+        },
+        {
+          ...getMinimumHermesSample(),
+          ts: '3',
+        },
+      ];
+      const expectedSentrySamples: ThreadCpuSample[] = [
+        {
+          ...getMinimumSentrySample(),
+          elapsed_since_start_ns: '0',
+        },
+      ];
+      expect(mapSamples(hermesSamples, TEST_MAX_PROFILE_DURATION).samples).toStrictEqual(expectedSentrySamples);
+    });
 
+    it('removes samples that are equal the max duration of profile', () => {
+      const TEST_MAX_PROFILE_DURATION = 1000;
+      const hermesSamples: Hermes.Sample[] = [
+        {
+          ...getMinimumHermesSample(),
+          ts: '1',
+        },
+        {
+          ...getMinimumHermesSample(),
+          ts: '2',
+        },
+      ];
+      const expectedSentrySamples: ThreadCpuSample[] = [
+        {
+          ...getMinimumSentrySample(),
+          elapsed_since_start_ns: '0',
+        },
+      ];
+      expect(mapSamples(hermesSamples, TEST_MAX_PROFILE_DURATION).samples).toStrictEqual(expectedSentrySamples);
+    });
+
+    function getMinimumHermesSample(): Hermes.Sample {
+      return {
+        cpu: '-1',
+        name: '',
+        ts: '1',
+        pid: 54822,
+        tid: '14509472',
+        weight: '1',
+        sf: 4,
+      };
+    }
+
+    function getMinimumSentrySample(): ThreadCpuSample {
+      return {
+        elapsed_since_start_ns: '0',
+        stack_id: 4,
+        thread_id: '14509472',
+      };
+    }
   });
 });
