@@ -1,5 +1,5 @@
-import { makeProfilingCache } from '@sentry/utils';
+import { makeFifoCache } from '@sentry/utils';
 
 import type { RawThreadCpuProfile } from './types';
 
-export const PROFILE_QUEUE = makeProfilingCache<string, RawThreadCpuProfile>(20);
+export const PROFILE_QUEUE = makeFifoCache<string, RawThreadCpuProfile>(20);
