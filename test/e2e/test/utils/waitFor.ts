@@ -28,5 +28,5 @@ export async function waitForTruthyResult<T>(value: () => Promise<T>): Promise<v
     }, FINAL_TIMEOUT_MS);
   });
 
-  return await expect(promise).resolves.toBeTruthy();
+  await expect(promise).resolves.toBeTruthy();
 }
