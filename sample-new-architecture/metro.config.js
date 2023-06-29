@@ -3,12 +3,19 @@ const path = require('path');
 const blacklist = require('metro-config/src/defaults/exclusionList');
 const bundleToString = require('metro/src/lib/bundleToString');
 const baseJSBundle = require('metro/src/DeltaBundler/Serializers/baseJSBundle');
+const sourceMapString = require('metro/src/DeltaBundler/Serializers/sourceMapString');
 const CountingSet = require('metro/src/lib/CountingSet').default;
 const countLines = require('metro/src/lib/countLines');
+const uuidv4 = require('uuid').v4;
 
 const parentDir = path.resolve(__dirname, '..');
 
-const debugIdCode = 'console.log("debugId");';
+function getDebugIdSnippet(debugId) {
+  return `;!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:{},n=(new Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="${debugId}",e._sentryDebugIdIdentifier="sentry-dbid-${debugId}")}catch(e){}}();`;
+}
+
+const debugId = uuidv4();
+const debugIdCode = getDebugIdSnippet(debugId);
 const debugIdModule = {
   dependencies: new Map(),
   getSource: () => Buffer.from(debugIdCode),
@@ -63,15 +70,50 @@ const config = {
     ),
   },
   serializer: {
-    customSerializer: (entryPoint, preModules, graph, options) => {
+    customSerializer: function (entryPoint, preModules, graph, options) {
+      const createModuleId = this.createModuleIdFactory();
+      const getSortedModules = () => {
+        const modules = [...graph.dependencies.values()];
+        // Assign IDs to modules in a consistent order
+        for (const module of modules) {
+          createModuleId(module.path);
+        }
+        // Sort by IDs
+        return modules.sort(
+          (a, b) => createModuleId(a.path) - createModuleId(b.path),
+        );
+      };
+
       // TODO:
       // 1. Deterministically order all the modules (besides assets) preModules and graph dependencies
       // 2. Generate Debug ID using https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/36bf09880f983d562d9179cbbeac40f7083be0ff/packages/bundler-plugin-core/src/utils.ts#L174
       console.log('Adding debugId module...');
-      console.log('Adding debugId module...');
       preModules.unshift(debugIdModule);
       const bundle = baseJSBundle(entryPoint, preModules, graph, options);
-      return bundleToString(bundle).code;
+      // TODO: Extract to addDebugIdComment
+      const bundleCodeWithoutDebugIdComment =
+        bundleToString(bundle).code + `\n//# debugId=${debugId}`;
+      const sourceMapComment = bundleCodeWithoutDebugIdComment.substring(
+        bundleCodeWithoutDebugIdComment.lastIndexOf('//# sourceMappingURL='),
+      );
+      // end addDebugIdComment
+
+      const bundleMapString = sourceMapString(
+        [...preModules, ...getSortedModules(graph)],
+        {
+          processModuleFilter: this.processModuleFilter,
+          shouldAddToIgnoreList: options.shouldAddToIgnoreList,
+        },
+      );
+      const bundleMap = JSON.parse(bundleMapString);
+      // For now we write both fields until we know what will become the standard - if ever.
+      bundleMap['debug_id'] = debugId;
+      bundleMap['debugId'] = debugId;
+
+      return {
+        code: bundleCode,
+        map: JSON.stringify(bundleMap),
+      };
     },
   },
 };
