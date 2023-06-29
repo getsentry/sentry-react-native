@@ -64,6 +64,10 @@ const config = {
   },
   serializer: {
     customSerializer: (entryPoint, preModules, graph, options) => {
+      // TODO:
+      // 1. Deterministically order all the modules (besides assets) preModules and graph dependencies
+      // 2. Generate Debug ID using https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/36bf09880f983d562d9179cbbeac40f7083be0ff/packages/bundler-plugin-core/src/utils.ts#L174
+      console.log('Adding debugId module...');
       console.log('Adding debugId module...');
       preModules.unshift(debugIdModule);
       const bundle = baseJSBundle(entryPoint, preModules, graph, options);
