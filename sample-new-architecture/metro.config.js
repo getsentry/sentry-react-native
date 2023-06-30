@@ -71,7 +71,7 @@ const config = {
   },
   serializer: {
     customSerializer: function (entryPoint, preModules, graph, options) {
-      const createModuleId = this.createModuleIdFactory();
+      const createModuleId = options.createModuleId;
       const getSortedModules = () => {
         const modules = [...graph.dependencies.values()];
         // Assign IDs to modules in a consistent order
@@ -87,7 +87,6 @@ const config = {
       // TODO:
       // 1. Deterministically order all the modules (besides assets) preModules and graph dependencies
       // 2. Generate Debug ID using https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/36bf09880f983d562d9179cbbeac40f7083be0ff/packages/bundler-plugin-core/src/utils.ts#L174
-      console.log('Adding debugId module...');
       preModules.unshift(debugIdModule);
       const bundle = baseJSBundle(entryPoint, preModules, graph, options);
       // TODO: Extract to addDebugIdComment
@@ -97,6 +96,11 @@ const config = {
         bundleCodeWithoutDebugIdComment.lastIndexOf('//# sourceMappingURL='),
       );
       // end addDebugIdComment
+
+      if (this.processModuleFilter === undefined) {
+        // processModuleFilter is undefined when processing build request from the dev server
+        return bundleCodeWithoutDebugIdComment;
+      }
 
       const bundleMapString = sourceMapString(
         [...preModules, ...getSortedModules(graph)],
@@ -111,7 +115,7 @@ const config = {
       bundleMap['debugId'] = debugId;
 
       return {
-        code: bundleCode,
+        code: bundleCodeWithoutDebugIdComment,
         map: JSON.stringify(bundleMap),
       };
     },
