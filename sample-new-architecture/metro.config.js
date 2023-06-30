@@ -11,7 +11,7 @@ const uuidv4 = require('uuid').v4;
 const parentDir = path.resolve(__dirname, '..');
 
 function getDebugIdSnippet(debugId) {
-  return `;!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:{},n=(new Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="${debugId}",e._sentryDebugIdIdentifier="sentry-dbid-${debugId}")}catch(e){}}();`;
+  return `var _sentryDebugIdIdentifier="sentry-dbid-${debugId}";`;
 }
 
 const debugId = uuidv4();
@@ -32,6 +32,11 @@ const debugIdModule = {
     },
   ],
 };
+const defaultSerializer = (entryPoint, preModules, graph, options) =>
+  bundleToString(baseJSBundle(entryPoint, preModules, graph, options)).code;
+const PRELUDE_MODULE_PATH = '__prelude__';
+const SOURCE_MAP_COMMENT = '//# sourceMappingURL=';
+const DEBUG_ID_COMMENT = '//# debugId=';
 
 /**
  * Metro configuration
@@ -87,21 +92,43 @@ const config = {
       // TODO:
       // 1. Deterministically order all the modules (besides assets) preModules and graph dependencies
       // 2. Generate Debug ID using https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/36bf09880f983d562d9179cbbeac40f7083be0ff/packages/bundler-plugin-core/src/utils.ts#L174
-      preModules.unshift(debugIdModule);
-      const bundle = baseJSBundle(entryPoint, preModules, graph, options);
-      // TODO: Extract to addDebugIdComment
-      const bundleCodeWithoutDebugIdComment =
-        bundleToString(bundle).code + `\n//# debugId=${debugId}`;
-      const sourceMapComment = bundleCodeWithoutDebugIdComment.substring(
-        bundleCodeWithoutDebugIdComment.lastIndexOf('//# sourceMappingURL='),
+
+      // TODO: Only add debug id if it's not already present
+      if (preModules[0].path === PRELUDE_MODULE_PATH) {
+        // prelude module must be first as it measures the bundle startup time
+        preModules.unshift(preModules[0]);
+        preModules[1] = debugIdModule;
+      } else {
+        preModules.unshift(debugIdModule);
+      }
+
+      const bundleCode = defaultSerializer(
+        entryPoint,
+        preModules,
+        graph,
+        options,
       );
-      // end addDebugIdComment
+
+      // Add debug id comment to the bundle
+      const debugIdComment = `${DEBUG_ID_COMMENT}${debugId}`;
+      const indexOfSourceMapComment =
+        bundleCode.lastIndexOf(SOURCE_MAP_COMMENT);
+      const bundleCodeWithDebugId =
+        indexOfSourceMapComment === -1
+          ? // If source map comment is missing lets just add the debug id comment
+            bundleCode + '\n' + debugIdComment
+          : // If source map comment is present lets add the debug id comment before it
+            bundleCode.substring(0, indexOfSourceMapComment) +
+            debugIdComment +
+            '\n' +
+            bundleCode.substring(indexOfSourceMapComment);
 
       if (this.processModuleFilter === undefined) {
         // processModuleFilter is undefined when processing build request from the dev server
-        return bundleCodeWithoutDebugIdComment;
+        return bundleCodeWithDebugId;
       }
 
+      // Generate bundle map
       const bundleMapString = sourceMapString(
         [...preModules, ...getSortedModules(graph)],
         {
@@ -115,7 +142,7 @@ const config = {
       bundleMap['debugId'] = debugId;
 
       return {
-        code: bundleCodeWithoutDebugIdComment,
+        code: bundleCodeWithDebugId,
         map: JSON.stringify(bundleMap),
       };
     },
