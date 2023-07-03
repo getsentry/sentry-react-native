@@ -8,7 +8,7 @@ import { parseHermesStackFrameFunctionName } from './hermes';
 import { MAX_PROFILE_DURATION_MS } from './integration';
 import type { RawThreadCpuProfile } from './types';
 
-const MS_TO_NS = 1e3;
+const MS_TO_NS = 1e6;
 const MAX_PROFILE_DURATION_NS = MAX_PROFILE_DURATION_MS * MS_TO_NS;
 const ANONYMOUS_FUNCTION_NAME = 'anonymous';
 const UNKNOWN_STACK_ID = -1;
