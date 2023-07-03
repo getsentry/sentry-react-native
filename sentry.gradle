@@ -44,7 +44,7 @@ gradle.projectsEvaluated {
         if (reactRoot == null) {
             reactRoot = props.get("root").get() // RN 0.71 and above
         }
-        def modulesOutput = "$reactRoot/android/app/src/main/assets/modules.json"
+        def modulesOutput = "$projectDir/src/main/assets/modules.json"
         def modulesTask = null
 
         (shouldCleanUp, bundleOutput, sourcemapOutput) = forceSourceMapOutputFromBundleTask(bundleTask)
