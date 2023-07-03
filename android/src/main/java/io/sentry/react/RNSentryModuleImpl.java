@@ -632,14 +632,16 @@ public class RNSentryModuleImpl {
     }
 
     public WritableMap stopProfiling() {
+        final boolean isDebug = HubAdapter.getInstance().getOptions().isDebug();
         final WritableMap result = new WritableNativeMap();
+        File output = null;
         try {
             HermesSamplingProfiler.disable();
 
-            final File output = File.createTempFile(
+            output = File.createTempFile(
                 "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
 
-            if (HubAdapter.getInstance().getOptions().isDebug()) {
+            if (isDebug) {
                 logger.log(SentryLevel.INFO, "Profile saved to: " + output.getAbsolutePath());
             }
 
@@ -657,6 +659,13 @@ public class RNSentryModuleImpl {
             }
         } catch (Throwable e) {
             result.putString("error", e.toString());
+        } finally {
+            if (output != null && !isDebug) {
+                final boolean wasProfileSuccessfullyDeleted = output.delete();
+                if (!wasProfileSuccessfullyDeleted) {
+                    logger.log(SentryLevel.WARNING, "Profile not deleted from:" + output.getAbsolutePath());
+                }
+            }
         }
         return result;
     }
