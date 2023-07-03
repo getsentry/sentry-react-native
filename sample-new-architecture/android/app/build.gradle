@@ -62,7 +62,7 @@ project.ext.sentryCli = [
     collectModulesScript: "../../../dist/js/tools/collectModules.js",
     modulesPaths: [
       "node_modules",
-      "../..",
+      "../node_modules",
     ],
     skipCollectModules: false,
 ]
