@@ -26,15 +26,18 @@
 
 ### Dependencies
 
-- Bump JavaScript SDK from v7.54.0 to v7.57.0-beta.0 ([#3119](https://github.com/getsentry/sentry-react-native/pull/3119), [#3057](https://github.com/getsentry/sentry-react-native/pull/3057))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/7.57.0-beta.0/CHANGELOG.md#7570-beta0)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.54.0...7.57.0-beta.0)
-- Bump CLI from v2.18.1 to v2.19.2 ([#3124](https://github.com/getsentry/sentry-react-native/pull/3124))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2192)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.18.1...2.19.2)
+- Bump JavaScript SDK from v7.54.0 to v7.57.0 ([#3119](https://github.com/getsentry/sentry-react-native/pull/3119), [#3153](https://github.com/getsentry/sentry-react-native/pull/3153))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7570)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.54.0...7.57.0)
+- Bump CLI from v2.18.1 to v2.19.4 ([#3124](https://github.com/getsentry/sentry-react-native/pull/3124), [#3151](https://github.com/getsentry/sentry-react-native/pull/3151))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2194)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.18.1...2.19.4)
 - Bump Android SDK from v6.22.0 to v6.24.0 ([#3127](https://github.com/getsentry/sentry-react-native/pull/3127))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6240)
   - [diff](https://github.com/getsentry/sentry-java/compare/6.22.0...6.24.0)
+- Bump Cocoa SDK from v8.7.3 to v8.8.0 ([#3123](https://github.com/getsentry/sentry-react-native/pull/3123))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#880)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.7.3...8.8.0)
 
 ## 5.6.0
 
