@@ -81,7 +81,7 @@
     "prettier": "^2.0.5",
     "react": "18.2.0",
     "react-native": "0.72.0",
-    "replace-in-file": "^6.0.0",
+    "replace-in-file": "^7.0.1",
     "rimraf": "^4.1.1",
     "ts-jest": "^29.0.5",
     "typescript": "4.1.3"
