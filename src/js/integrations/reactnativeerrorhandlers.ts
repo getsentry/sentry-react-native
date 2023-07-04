@@ -76,8 +76,7 @@ export class ReactNativeErrorHandlers implements Integration {
     /* eslint-disable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
     const { polyfillGlobal } = require('react-native/Libraries/Utilities/PolyfillFunctions');
 
-    // Below, we follow the exact way React Native initializes its promise library, and we globally replace it.
-    const Promise = require('promise/setimmediate/es6-extensions');
+    const Promise = this._getPromisePolyfill();
 
     // As of RN 0.67 only done and finally are used
     require('promise/setimmediate/done');
@@ -86,6 +85,17 @@ export class ReactNativeErrorHandlers implements Integration {
     polyfillGlobal('Promise', () => Promise);
     /* eslint-enable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
   }
+
+  /**
+   * Singe source of truth for the Promise implementation we want to use.
+   * This is important for verifying that the rejected promise tracing will work as expected.
+   */
+  private _getPromisePolyfill(): unknown {
+    /* eslint-disable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
+    // Below, we follow the exact way React Native initializes its promise library, and we globally replace it.
+    return require('promise/setimmediate/es6-extensions');
+  }
+
   /**
    * Attach the unhandled rejection handler
    */
@@ -133,12 +143,31 @@ export class ReactNativeErrorHandlers implements Integration {
    */
   private _checkPromiseAndWarn(): void {
     try {
+      // `promise` package is a dependency of react-native, therefore it is always available.
+      // but it is possible that the user has installed a different version of promise
+      // or dependency that uses a different version.
+      // We have to check if the React Native Promise and the `promise` package Promise are using the same reference.
+      // If they are not, likely there are multiple versions of the `promise` package installed.
       // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
-      const Promise = require('promise/setimmediate/es6-extensions');
+      const ReactNativePromise = require('react-native/Libraries/Promise');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
+      const PromisePackagePromise = require('promise/setimmediate/es6-extensions');
+      const UsedPromisePolyfill = this._getPromisePolyfill();
 
-      if (Promise !== RN_GLOBAL_OBJ.Promise) {
+      if (ReactNativePromise !== PromisePackagePromise) {
         logger.warn(
-          'Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page.',
+          'You appear to have multiple versions of the "promise" package installed. ' +
+          'This may cause unexpected behavior like undefined `Promise.allSettled`. ' +
+          'Please install the `promise` package manually using the exact version as the React Native package. ' +
+          'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
+        );
+      }
+
+      // This only make sense if the user disabled the integration Polyfill
+      if (UsedPromisePolyfill !== RN_GLOBAL_OBJ.Promise) {
+        logger.warn(
+          'Unhandled promise rejections will not be caught by Sentry. ' +
+          'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
         );
       } else {
         logger.log('Unhandled promise rejections will be caught by Sentry.');
@@ -146,7 +175,8 @@ export class ReactNativeErrorHandlers implements Integration {
     } catch (e) {
       // Do Nothing
       logger.warn(
-        'Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page.',
+        'Unhandled promise rejections will not be caught by Sentry. ' +
+        'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
       );
     }
   }
