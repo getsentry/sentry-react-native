@@ -660,9 +660,13 @@ public class RNSentryModuleImpl {
         } catch (Throwable e) {
             result.putString("error", e.toString());
         } finally {
-            if (output != null && !isDebug) {
-                final boolean wasProfileSuccessfullyDeleted = output.delete();
-                if (!wasProfileSuccessfullyDeleted) {
+            if (output != null) {
+                try {
+                    final boolean wasProfileSuccessfullyDeleted = output.delete();
+                    if (!wasProfileSuccessfullyDeleted) {
+                       logger.log(SentryLevel.WARNING, "Profile not deleted from:" + output.getAbsolutePath());
+                    }
+                } catch (Throwable e) {
                     logger.log(SentryLevel.WARNING, "Profile not deleted from:" + output.getAbsolutePath());
                 }
             }
