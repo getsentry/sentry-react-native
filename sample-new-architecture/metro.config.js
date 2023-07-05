@@ -11,7 +11,7 @@ const uuidv4 = require('uuid').v4;
 const parentDir = path.resolve(__dirname, '..');
 
 function getDebugIdSnippet(debugId) {
-  return `var _sentryDebugIdIdentifier="sentry-dbid-${debugId}";`;
+  return `var _sentryDebugIds={},_sentryDebugIdIdentifier="";try{var e=Error().stack;e&&(_sentryDebugIds[e]="${debugId}",_sentryDebugIdIdentifier="sentry-dbid-${debugId}")}catch(r){}`;
 }
 
 const debugId = uuidv4();
