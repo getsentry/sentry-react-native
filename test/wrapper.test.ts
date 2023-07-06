@@ -130,6 +130,66 @@ describe('Tests Native Wrapper', () => {
       expect(logger.warn).toHaveBeenLastCalledWith('Note: Native Sentry SDK is disabled.');
     });
 
+    test('filter beforeSend when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeSend: jest.fn()
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-ignore mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeSend');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter beforeSend when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeSend: jest.fn()
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-ignore mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeSend');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter beforeSend when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeSend: jest.fn()
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-ignore mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeSend');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter beforeBreadcrumb when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeBreadcrumb: jest.fn()
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-ignore mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeSendTransaction');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
     test('does not initialize with autoInitializeNativeSdk: false', async () => {
       NATIVE.enableNative = false;
       logger.warn = jest.fn();
@@ -215,8 +275,8 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.captureEnvelope).toBeCalledWith(
         utf8ToBytes(
           '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":87}\n' +
-            '{"event_id":"event0","message":"test","sdk":{"name":"test-sdk-name","version":"2.1.3"}}\n',
+          '{"type":"event","content_type":"application/json","length":87}\n' +
+          '{"event_id":"event0","message":"test","sdk":{"name":"test-sdk-name","version":"2.1.3"}}\n',
         ),
         { store: false },
       );
@@ -245,8 +305,8 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.captureEnvelope).toBeCalledWith(
         utf8ToBytes(
           '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":93}\n' +
-            '{"event_id":"event0","sdk":{"name":"test-sdk-name","version":"2.1.3"},"instance":{"value":0}}\n',
+          '{"type":"event","content_type":"application/json","length":93}\n' +
+          '{"event_id":"event0","sdk":{"name":"test-sdk-name","version":"2.1.3"},"instance":{"value":0}}\n',
         ),
         { store: false },
       );
@@ -280,8 +340,8 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.captureEnvelope).toBeCalledWith(
         utf8ToBytes(
           '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":50}\n' +
-            '{"event_id":"event0","message":{"message":"test"}}\n',
+          '{"type":"event","content_type":"application/json","length":50}\n' +
+          '{"event_id":"event0","message":{"message":"test"}}\n',
         ),
         { store: false },
       );
@@ -317,8 +377,8 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.captureEnvelope).toBeCalledWith(
         utf8ToBytes(
           '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":104}\n' +
-            '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[]}\n',
+          '{"type":"event","content_type":"application/json","length":104}\n' +
+          '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[]}\n',
         ),
         { store: false },
       );
@@ -344,8 +404,8 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.captureEnvelope).toBeCalledWith(
         utf8ToBytes(
           '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":38}\n' +
-            '{"event_id":"event0","breadcrumbs":[]}\n',
+          '{"type":"event","content_type":"application/json","length":38}\n' +
+          '{"event_id":"event0","breadcrumbs":[]}\n',
         ),
         { store: false },
       );
@@ -381,8 +441,8 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.captureEnvelope).toBeCalledWith(
         utf8ToBytes(
           '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":125}\n' +
-            '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":false,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
+          '{"type":"event","content_type":"application/json","length":125}\n' +
+          '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":false,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
         ),
         { store: true },
       );
