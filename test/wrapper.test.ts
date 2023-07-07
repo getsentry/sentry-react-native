@@ -130,6 +130,66 @@ describe('Tests Native Wrapper', () => {
       expect(logger.warn).toHaveBeenLastCalledWith('Note: Native Sentry SDK is disabled.');
     });
 
+    test('filter beforeSend when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeSend: jest.fn(),
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-ignore mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeSend');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter beforeBreadcrumb when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeBreadcrumb: jest.fn(),
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-ignore mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeBreadcrumb');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter beforeSendTransaction when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeSendTransaction: jest.fn(),
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-ignore mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeSendTransaction');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter integrations when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        integrations: [],
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-ignore mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('integrations');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
     test('does not initialize with autoInitializeNativeSdk: false', async () => {
       NATIVE.enableNative = false;
       logger.warn = jest.fn();
