@@ -145,36 +145,6 @@ describe('Tests Native Wrapper', () => {
       expect(NATIVE.enableNative).toBe(true);
     });
 
-    test('filter beforeSend when initializing Native SDK', async () => {
-      await NATIVE.initNativeSdk({
-        dsn: 'test',
-        enableNative: true,
-        autoInitializeNativeSdk: true,
-        beforeSend: jest.fn(),
-      });
-
-      expect(RNSentry.initNativeSdk).toBeCalled();
-      // @ts-ignore mock value
-      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
-      expect(initParameter).not.toHaveProperty('beforeSend');
-      expect(NATIVE.enableNative).toBe(true);
-    });
-
-    test('filter beforeSend when initializing Native SDK', async () => {
-      await NATIVE.initNativeSdk({
-        dsn: 'test',
-        enableNative: true,
-        autoInitializeNativeSdk: true,
-        beforeSend: jest.fn(),
-      });
-
-      expect(RNSentry.initNativeSdk).toBeCalled();
-      // @ts-ignore mock value
-      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
-      expect(initParameter).not.toHaveProperty('beforeSend');
-      expect(NATIVE.enableNative).toBe(true);
-    });
-
     test('filter beforeBreadcrumb when initializing Native SDK', async () => {
       await NATIVE.initNativeSdk({
         dsn: 'test',
@@ -186,7 +156,37 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.initNativeSdk).toBeCalled();
       // @ts-ignore mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeBreadcrumb');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter beforeSendTransaction when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeSendTransaction: jest.fn(),
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-ignore mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeSendTransaction');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter integrations when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        integrations: [],
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-ignore mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beintegrationsforeSendTransaction');
       expect(NATIVE.enableNative).toBe(true);
     });
 
