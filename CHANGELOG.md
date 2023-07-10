@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Filter beforeSendTransaction from the Native SDK ([#3140](https://github.com/getsentry/sentry-react-native/pull/3140))
+
 ### Features
 
 - Use `android.namespace` for AGP 8 and RN 0.73 ([#3133](https://github.com/getsentry/sentry-react-native/pull/3133))
