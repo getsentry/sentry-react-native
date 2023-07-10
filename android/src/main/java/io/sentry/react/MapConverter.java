@@ -8,7 +8,7 @@ import com.facebook.react.bridge.WritableMap;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import io.sentry.ILogger;
@@ -21,9 +21,9 @@ public class MapConverter {
     private static final ILogger logger = new AndroidLogger(NAME);
 
     public static Object convertToWritable(@Nullable Object serialized) {
-        if (serialized instanceof ArrayList) {
+        if (serialized instanceof List) {
             WritableArray writable = Arguments.createArray();
-            for (Object item : (ArrayList<?>) serialized) {
+            for (Object item : (List<?>) serialized) {
                 addValueToWritableArray(writable, convertToWritable(item));
             }
             return writable;
@@ -40,7 +40,14 @@ public class MapConverter {
                 }
             }
             return writable;
-        } else if (serialized instanceof Number
+        } else if (serialized instanceof Byte) {
+            return Integer.valueOf((Byte) serialized);
+        } else if (serialized instanceof Short) {
+            return Integer.valueOf((Short) serialized);
+        } else if (serialized instanceof Float) {
+            return Double.valueOf((Float) serialized);
+        } else if (serialized instanceof Integer
+            || serialized instanceof Double
             || serialized instanceof Boolean
             || serialized == null
             || serialized instanceof String) {
@@ -58,8 +65,14 @@ public class MapConverter {
             writableArray.pushBoolean((Boolean) value);
         } else if (value instanceof Double) {
             writableArray.pushDouble((Double) value);
+        } else if (value instanceof Float) {
+            writableArray.pushDouble(((Float) value).doubleValue());
         } else if (value instanceof Integer) {
             writableArray.pushInt((Integer) value);
+        } else if (value instanceof Short) {
+            writableArray.pushInt(((Short) value).intValue());
+        } else if (value instanceof Byte) {
+            writableArray.pushInt(((Byte) value).intValue());
         } else if (value instanceof String) {
             writableArray.pushString((String) value);
         } else if (value instanceof ReadableMap) {
@@ -79,8 +92,14 @@ public class MapConverter {
             writableMap.putBoolean(key, (Boolean) value);
         } else if (value instanceof Double) {
             writableMap.putDouble(key, (Double) value);
+        } else if (value instanceof Float) {
+            writableMap.putDouble(key, ((Float) value).doubleValue());
         } else if (value instanceof Integer) {
             writableMap.putInt(key, (Integer) value);
+        } else if (value instanceof Short) {
+            writableMap.putInt(key, ((Short) value).intValue());
+        } else if (value instanceof Byte) {
+            writableMap.putInt(key, ((Byte) value).intValue());
         } else if (value instanceof String) {
             writableMap.putString(key, (String) value);
         } else if (value instanceof ReadableArray) {
