@@ -29,6 +29,12 @@ android {
     kotlinOptions {
         jvmTarget = '11'
     }
+
+    testOptions.unitTests.all {
+        testLogging {
+            events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+        }
+    }
 }
 
 dependencies {
