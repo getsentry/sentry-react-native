@@ -24,10 +24,14 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -39,12 +43,18 @@ import java.util.concurrent.TimeUnit;
 
 import io.sentry.Breadcrumb;
 import io.sentry.DateUtils;
+import io.sentry.EnvelopeReader;
+import io.sentry.Hub;
 import io.sentry.HubAdapter;
+import io.sentry.IEnvelopeReader;
 import io.sentry.ILogger;
 import io.sentry.ISerializer;
 import io.sentry.Integration;
+import io.sentry.InternalSentrySdk;
+import io.sentry.Scope;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
+import io.sentry.SentryEnvelope;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
 import io.sentry.UncaughtExceptionHandlerIntegration;
@@ -334,20 +344,19 @@ public class RNSentryModuleImpl {
             bytes[i] = (byte) rawBytes.getInt(i);
         }
 
-        try {
-            final String outboxPath = HubAdapter.getInstance().getOptions().getOutboxPath();
-
-            if (outboxPath == null) {
-                logger.log(SentryLevel.ERROR,
-                        "Error retrieving outboxPath. Envelope will not be sent. Is the Android SDK initialized?");
+        final HubAdapter hubAdapter = HubAdapter.getInstance();
+        IEnvelopeReader envelopeReader = hubAdapter.getOptions().getEnvelopeReader();
+        try (final InputStream byteStream = new ByteArrayInputStream(bytes)) {
+            final SentryEnvelope sentryEnvelope = envelopeReader.read(byteStream);
+            if (sentryEnvelope != null) {
+                hubAdapter.captureEnvelope(sentryEnvelope);
             } else {
-                File installation = new File(outboxPath, UUID.randomUUID().toString());
-                try (FileOutputStream out = new FileOutputStream(installation)) {
-                    out.write(bytes);
-                }
+                logger.log(SentryLevel.ERROR, "Sentry Envelope Reader returned null after reading envelopes bytes");
+                promise.resolve(false);
             }
-        } catch (Throwable ignored) {
-            logger.log(SentryLevel.ERROR, "Error while writing envelope to outbox.");
+        } catch (IOException e) {
+            logger.log(SentryLevel.ERROR, "Error while reading envelope bytes");
+            promise.resolve(false);
         }
         promise.resolve(true);
     }
@@ -613,6 +622,28 @@ public class RNSentryModuleImpl {
         if (isFrameMetricsAggregatorAvailable()) {
             frameMetricsAggregator.stop();
             frameMetricsAggregator = null;
+        }
+    }
+
+    public void fetchNativeDeviceContexts(Promise promise) {
+        // Temp work around until sorted out this API in sentry-java.
+        // TODO: If the callback isn't executed the promise wouldn't be resolved.
+        HubAdapter.getInstance().withScope((@NotNull final Scope scope) -> {
+            final Map<String, Object> serialized = InternalSentrySdk.serializeScope(scope);
+            final Object deviceContext = MapConverter.convertToWritable(serialized);
+            promise.resolve(deviceContext);
+        });
+    }
+
+    public void fetchNativeSdkInfo(Promise promise) {
+        @Nullable final SdkVersion sdkVersion = HubAdapter.getInstance().getOptions().getSdkVersion();
+        if (sdkVersion == null) {
+            promise.resolve(null);
+        } else {
+            final WritableMap sdkInfo = new WritableNativeMap();
+            sdkInfo.putString("name", sdkVersion.getName());
+            sdkInfo.putString("version", sdkVersion.getVersion());
+            promise.resolve(sdkInfo);
         }
     }
 

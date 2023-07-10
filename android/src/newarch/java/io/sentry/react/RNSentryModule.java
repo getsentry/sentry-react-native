@@ -114,11 +114,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
 
     @Override
     public void fetchNativeDeviceContexts(Promise promise) {
-        // Not used on android
+        this.impl.fetchNativeDeviceContexts(promise);
     }
 
     @Override
     public void fetchNativeSdkInfo(Promise promise) {
-        // Not used on android
+        this.impl.fetchNativeSdkInfo(promise);
     }
 }
