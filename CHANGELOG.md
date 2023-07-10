@@ -5,6 +5,7 @@
 ### Features
 
 - Use `android.namespace` for AGP 8 and RN 0.73 ([#3133](https://github.com/getsentry/sentry-react-native/pull/3133))
+- Load Android device context before `beforeSend` callback ([#3170](https://github.com/getsentry/sentry-react-native/pull/3170))
 
 ### Dependencies
 
