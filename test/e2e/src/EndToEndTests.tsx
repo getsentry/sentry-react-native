@@ -10,7 +10,9 @@ export { getTestProps };
  * This screen is for internal end-to-end testing purposes only. Do not use.
  * Not visible through the UI (no button to load it).
  */
-const EndToEndTestsScreen = (): React.JSX.Element => {
+// Deprecated in https://github.com/DefinitelyTyped/DefinitelyTyped/commit/f1b25591890978a92c610ce575ea2ba2bbde6a89
+// eslint-disable-next-line deprecation/deprecation
+const EndToEndTestsScreen = (): JSX.Element => {
   const [eventId, setEventId] = React.useState<string | null | undefined>();
 
   // !!! WARNING: This is only for testing purposes.
