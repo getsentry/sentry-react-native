@@ -10,7 +10,7 @@ export { getTestProps };
  * This screen is for internal end-to-end testing purposes only. Do not use.
  * Not visible through the UI (no button to load it).
  */
-const EndToEndTestsScreen = (): JSX.Element => {
+const EndToEndTestsScreen = (): React.JSX.Element => {
   const [eventId, setEventId] = React.useState<string | null | undefined>();
 
   // !!! WARNING: This is only for testing purposes.

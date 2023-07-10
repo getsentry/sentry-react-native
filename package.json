@@ -70,7 +70,7 @@
     "@sentry/typescript": "^5.20.1",
     "@sentry/wizard": "3.2.3",
     "@types/jest": "^29.2.5",
-    "@types/react": "^18.0.25",
+    "@types/react": "^18.2.14",
     "babel-jest": "^29.3.1",
     "downlevel-dts": "^0.11.0",
     "eslint": "^7.6.0",
