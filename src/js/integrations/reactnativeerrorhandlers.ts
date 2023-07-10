@@ -157,9 +157,9 @@ export class ReactNativeErrorHandlers implements Integration {
       if (ReactNativePromise !== PromisePackagePromise) {
         logger.warn(
           'You appear to have multiple versions of the "promise" package installed. ' +
-          'This may cause unexpected behavior like undefined `Promise.allSettled`. ' +
-          'Please install the `promise` package manually using the exact version as the React Native package. ' +
-          'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
+            'This may cause unexpected behavior like undefined `Promise.allSettled`. ' +
+            'Please install the `promise` package manually using the exact version as the React Native package. ' +
+            'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
         );
       }
 
@@ -167,7 +167,7 @@ export class ReactNativeErrorHandlers implements Integration {
       if (UsedPromisePolyfill !== RN_GLOBAL_OBJ.Promise) {
         logger.warn(
           'Unhandled promise rejections will not be caught by Sentry. ' +
-          'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
+            'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
         );
       } else {
         logger.log('Unhandled promise rejections will be caught by Sentry.');
@@ -176,7 +176,7 @@ export class ReactNativeErrorHandlers implements Integration {
       // Do Nothing
       logger.warn(
         'Unhandled promise rejections will not be caught by Sentry. ' +
-        'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
+          'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
       );
     }
   }
