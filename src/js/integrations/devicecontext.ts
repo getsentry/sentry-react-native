@@ -45,7 +45,7 @@ export class DeviceContext implements Integration {
         event.user = nativeUser;
       }
 
-      let nativeContext = native.context;
+      let nativeContext = native.context || native.contexts;
       if (AppState.currentState !== 'unknown') {
         nativeContext = nativeContext || {};
         nativeContext.app = {
