@@ -8,6 +8,8 @@ import com.facebook.react.bridge.WritableMap;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +48,12 @@ public class MapConverter {
             return Integer.valueOf((Short) serialized);
         } else if (serialized instanceof Float) {
             return Double.valueOf((Float) serialized);
+        } else if (serialized instanceof Long) {
+            return Double.valueOf((Long) serialized);
+        } else if (serialized instanceof BigInteger) {
+            return ((BigInteger) serialized).doubleValue();
+        } else if (serialized instanceof BigDecimal) {
+            return ((BigDecimal) serialized).doubleValue();
         } else if (serialized instanceof Integer
             || serialized instanceof Double
             || serialized instanceof Boolean
@@ -53,7 +61,7 @@ public class MapConverter {
             || serialized instanceof String) {
             return serialized;
         } else {
-            logger.log(SentryLevel.ERROR, "Supplied serialized value could not be converted.", serialized);
+            logger.log(SentryLevel.ERROR, "Supplied serialized value could not be converted." + serialized);
             return null;
         }
     }
@@ -73,6 +81,12 @@ public class MapConverter {
             writableArray.pushInt(((Short) value).intValue());
         } else if (value instanceof Byte) {
             writableArray.pushInt(((Byte) value).intValue());
+        } else if (value instanceof Long) {
+            writableArray.pushDouble(((Long) value).doubleValue());
+        } else if (value instanceof BigInteger) {
+            writableArray.pushDouble(((BigInteger) value).doubleValue());
+        } else if (value instanceof BigDecimal) {
+            writableArray.pushDouble(((BigDecimal) value).doubleValue());
         } else if (value instanceof String) {
             writableArray.pushString((String) value);
         } else if (value instanceof ReadableMap) {
@@ -100,6 +114,12 @@ public class MapConverter {
             writableMap.putInt(key, ((Short) value).intValue());
         } else if (value instanceof Byte) {
             writableMap.putInt(key, ((Byte) value).intValue());
+        } else if (value instanceof Long) {
+            writableMap.putDouble(key, ((Long) value).doubleValue());
+        } else if (value instanceof BigInteger) {
+            writableMap.putDouble(key, ((BigInteger) value).doubleValue());
+        } else if (value instanceof BigDecimal) {
+            writableMap.putDouble(key, ((BigDecimal) value).doubleValue());
         } else if (value instanceof String) {
             writableMap.putString(key, (String) value);
         } else if (value instanceof ReadableArray) {
