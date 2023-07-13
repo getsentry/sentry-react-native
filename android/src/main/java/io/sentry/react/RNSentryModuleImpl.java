@@ -24,37 +24,25 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.sentry.Breadcrumb;
 import io.sentry.DateUtils;
-import io.sentry.EnvelopeReader;
-import io.sentry.Hub;
 import io.sentry.HubAdapter;
-import io.sentry.IEnvelopeReader;
 import io.sentry.ILogger;
 import io.sentry.ISerializer;
 import io.sentry.Integration;
-import io.sentry.InternalSentrySdk;
 import io.sentry.Scope;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
-import io.sentry.SentryEnvelope;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
 import io.sentry.UncaughtExceptionHandlerIntegration;
@@ -64,8 +52,10 @@ import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.BuildConfig;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.CurrentActivityHolder;
+import io.sentry.android.core.InternalSentrySdk;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
+import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
@@ -344,18 +334,10 @@ public class RNSentryModuleImpl {
             bytes[i] = (byte) rawBytes.getInt(i);
         }
 
-        final HubAdapter hubAdapter = HubAdapter.getInstance();
-        IEnvelopeReader envelopeReader = hubAdapter.getOptions().getEnvelopeReader();
-        try (final InputStream byteStream = new ByteArrayInputStream(bytes)) {
-            final SentryEnvelope sentryEnvelope = envelopeReader.read(byteStream);
-            if (sentryEnvelope != null) {
-                hubAdapter.captureEnvelope(sentryEnvelope);
-            } else {
-                logger.log(SentryLevel.ERROR, "Sentry Envelope Reader returned null after reading envelopes bytes");
-                promise.resolve(false);
-            }
-        } catch (IOException e) {
-            logger.log(SentryLevel.ERROR, "Error while reading envelope bytes");
+        try {
+            InternalSentrySdk.captureEnvelope(bytes);
+        } catch (Throwable e) {
+            logger.log(SentryLevel.ERROR, "Error while capturing envelope");
             promise.resolve(false);
         }
         promise.resolve(true);
@@ -626,13 +608,13 @@ public class RNSentryModuleImpl {
     }
 
     public void fetchNativeDeviceContexts(Promise promise) {
-        // Temp work around until sorted out this API in sentry-java.
-        // TODO: If the callback isn't executed the promise wouldn't be resolved.
-        HubAdapter.getInstance().withScope((@NotNull final Scope scope) -> {
-            final Map<String, Object> serialized = InternalSentrySdk.serializeScope(scope);
-            final Object deviceContext = MapConverter.convertToWritable(serialized);
-            promise.resolve(deviceContext);
-        });
+        final Scope currentScope = InternalSentrySdk.getCurrentScope();
+        final Map<String, Object> serialized = InternalSentrySdk.serializeScope(
+                this.getReactApplicationContext().getApplicationContext(),
+                (SentryAndroidOptions) HubAdapter.getInstance().getOptions(),
+                currentScope);
+        final Object deviceContext = MapConverter.convertToWritable(serialized);
+        promise.resolve(deviceContext);
     }
 
     public void fetchNativeSdkInfo(Promise promise) {
