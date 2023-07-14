@@ -87,7 +87,7 @@ export class ReactNativeErrorHandlers implements Integration {
   }
 
   /**
-   * Singe source of truth for the Promise implementation we want to use.
+   * Single source of truth for the Promise implementation we want to use.
    * This is important for verifying that the rejected promise tracing will work as expected.
    */
   private _getPromisePolyfill(): unknown {
