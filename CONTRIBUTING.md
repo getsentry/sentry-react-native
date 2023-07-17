@@ -152,9 +152,11 @@ cd sentry-react-native/sample
 Add local maven to `sample/android/build.gradle`.
 
 ```diff
-allprojects {
-    repositories {
-+        mavenLocal()
++ allprojects {
++     repositories {
++         mavenLocal()
++     }
++ }
 ```
 
 Update `sentry-android` version, to the one locally published, in `android/build.gradle`.
