@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Warn users about multiple versions of `promise` package which can cause unexpected behavior like undefined `Promise.allSettled` ([#3162](https://github.com/getsentry/sentry-react-native/pull/3162))
+
 ## 5.7.1
 
 ### Dependencies
@@ -17,10 +23,6 @@
 ### Features
 
 - Use `android.namespace` for AGP 8 and RN 0.73 ([#3133](https://github.com/getsentry/sentry-react-native/pull/3133))
-
-### Fixes
-
-- Warn users about multiple versions of `promise` package which can cause unexpected behavior like undefined `Promise.allSettled` ([#3162](https://github.com/getsentry/sentry-react-native/pull/3162))
 
 ### Dependencies
 
