@@ -18,6 +18,10 @@
 
 - Use `android.namespace` for AGP 8 and RN 0.73 ([#3133](https://github.com/getsentry/sentry-react-native/pull/3133))
 
+### Fixes
+
+- Warn users about multiple versions of `promise` package which can cause unexpected behavior like undefined `Promise.allSettled` ([#3162](https://github.com/getsentry/sentry-react-native/pull/3162))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v7.54.0 to v7.57.0 ([#3119](https://github.com/getsentry/sentry-react-native/pull/3119), [#3153](https://github.com/getsentry/sentry-react-native/pull/3153))
