@@ -6,6 +6,12 @@
 
 - Warn users about multiple versions of `promise` package which can cause unexpected behavior like undefined `Promise.allSettled` ([#3162](https://github.com/getsentry/sentry-react-native/pull/3162))
 
+### Dependencies
+
+- Bump JavaScript SDK from v7.57.0 to v7.58.1 ([#3184](https://github.com/getsentry/sentry-react-native/pull/3184))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7581)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.57.0...7.58.1)
+
 ## 5.7.1
 
 ### Dependencies
