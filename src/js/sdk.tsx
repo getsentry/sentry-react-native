@@ -141,6 +141,8 @@ export function init(passedOptions: ReactNativeOptions): void {
 /**
  * Inits the Sentry React Native SDK with automatic instrumentation and wrapped features.
  */
+// Deprecated in https://github.com/DefinitelyTyped/DefinitelyTyped/commit/f1b25591890978a92c610ce575ea2ba2bbde6a89
+// eslint-disable-next-line deprecation/deprecation
 export function wrap<P extends JSX.IntrinsicAttributes>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions

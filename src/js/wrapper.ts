@@ -197,7 +197,7 @@ export const NATIVE: SentryNativeWrapper = {
 
     // filter out all the options that would crash native.
     /* eslint-disable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
-    const { beforeSend, beforeBreadcrumb, integrations, ...filteredOptions } = options;
+    const { beforeSend, beforeBreadcrumb, beforeSendTransaction, integrations, ...filteredOptions } = options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 
