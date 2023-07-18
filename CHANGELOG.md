@@ -5,6 +5,7 @@
 ### Fixes
 
 - Warn users about multiple versions of `promise` package which can cause unexpected behavior like undefined `Promise.allSettled` ([#3162](https://github.com/getsentry/sentry-react-native/pull/3162))
+- `event` isn't enriched with extra context after it leaves `beforeSend` JS callback on Android ([#3170](https://github.com/getsentry/sentry-react-native/pull/3170))
 
 ### Dependencies
 
@@ -32,10 +33,6 @@
 ### Features
 
 - Use `android.namespace` for AGP 8 and RN 0.73 ([#3133](https://github.com/getsentry/sentry-react-native/pull/3133))
-
-### Fixes
-
-- `event` isn't enriched with extra context after it leaves `beforeSend` JS callback on Android ([#3170](https://github.com/getsentry/sentry-react-native/pull/3170))
 
 ### Dependencies
 
