@@ -32,13 +32,13 @@ jobs:
         run: yarn install
 
       - name: Install App Pods
-        working-directory: RNSentryTester
+        working-directory: RNSentryCocoaTester
         run: pod install
 
       - name: Run iOS Tests
-        working-directory: RNSentryTester
+        working-directory: RNSentryCocoaTester
         env:
-          SCHEME: RNSentryTester
+          SCHEME: RNSentryCocoaTester
           CONFIGURATION: Release
           DESTINATION: 'platform=iOS Simulator,OS=latest,name=iPhone 14'
         run: |

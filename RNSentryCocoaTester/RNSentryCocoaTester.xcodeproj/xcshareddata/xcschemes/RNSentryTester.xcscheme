@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3360897129524163007C7730"
-               BuildableName = "RNSentryTester.app"
-               BlueprintName = "RNSentryTester"
-               ReferencedContainer = "container:RNSentryTester.xcodeproj">
+               BuildableName = "RNSentryCocoaTester.app"
+               BlueprintName = "RNSentryCocoaTester"
+               ReferencedContainer = "container:RNSentryCocoaTester.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -34,9 +34,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3360898C29524164007C7730"
-               BuildableName = "RNSentryTesterTests.xctest"
-               BlueprintName = "RNSentryTesterTests"
-               ReferencedContainer = "container:RNSentryTester.xcodeproj">
+               BuildableName = "RNSentryCocoaTesterTests.xctest"
+               BlueprintName = "RNSentryCocoaTesterTests"
+               ReferencedContainer = "container:RNSentryCocoaTester.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -56,9 +56,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3360897129524163007C7730"
-            BuildableName = "RNSentryTester.app"
-            BlueprintName = "RNSentryTester"
-            ReferencedContainer = "container:RNSentryTester.xcodeproj">
+            BuildableName = "RNSentryCocoaTester.app"
+            BlueprintName = "RNSentryCocoaTester"
+            ReferencedContainer = "container:RNSentryCocoaTester.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -73,9 +73,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3360897129524163007C7730"
-            BuildableName = "RNSentryTester.app"
-            BlueprintName = "RNSentryTester"
-            ReferencedContainer = "container:RNSentryTester.xcodeproj">
+            BuildableName = "RNSentryCocoaTester.app"
+            BlueprintName = "RNSentryCocoaTester"
+            ReferencedContainer = "container:RNSentryCocoaTester.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
