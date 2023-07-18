@@ -24,6 +24,8 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -45,6 +47,7 @@ import io.sentry.Sentry;
 import io.sentry.SentryDate;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
+import io.sentry.SentryOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AnrIntegration;
@@ -608,12 +611,24 @@ public class RNSentryModuleImpl {
     }
 
     public void fetchNativeDeviceContexts(Promise promise) {
-        final Scope currentScope = InternalSentrySdk.getCurrentScope();
-        final Map<String, Object> serialized = InternalSentrySdk.serializeScope(
-                this.getReactApplicationContext().getApplicationContext(),
-                (SentryAndroidOptions) HubAdapter.getInstance().getOptions(),
-                currentScope);
-        final Object deviceContext = MapConverter.convertToWritable(serialized);
+        @NotNull final SentryOptions options = HubAdapter.getInstance().getOptions();
+        if (!(options instanceof SentryAndroidOptions)) {
+            promise.resolve(null);
+            return;
+        }
+
+        @Nullable final Context context = this.getReactApplicationContext().getApplicationContext();
+        if (context == null) {
+            promise.resolve(null);
+            return;
+        }
+
+        @Nullable final Scope currentScope = InternalSentrySdk.getCurrentScope();
+        @Nullable final Map<String, Object> serialized = InternalSentrySdk.serializeScope(
+            context,
+            options,
+            currentScope);
+        @Nullable final Object deviceContext = MapConverter.convertToWritable(serialized);
         promise.resolve(deviceContext);
     }
 
