@@ -1,8 +1,7 @@
+import { defaultStackParser } from '@sentry/browser';
+import type { Event,EventHint, ExtendedError, Hub, Integration, IntegrationClass } from '@sentry/types';
 
-
-// {"cause":{"name":"java.lang.RuntimeException","message":"The operation failed.","stackElements":[{"className":"com.sentryreactnativeamanightly.modules.TurboCrashModule","fileName":"TurboCrashModule.kt","lineNumber":10,"methodName":"getDataCrash"},{"className":"com.facebook.jni.NativeRunnable","fileName":"NativeRunnable.java","lineNumber":-2,"methodName":"run"},{"className":"android.os.Handler","fileName":"Handler.java","lineNumber":942,"methodName":"handleCallback"},{"className":"android.os.Handler","fileName":"Handler.java","lineNumber":99,"methodName":"dispatchMessage"},{"className":"com.facebook.react.bridge.queue.MessageQueueThreadHandler","fileName":"MessageQueueThreadHandler.java","lineNumber":27,"methodName":"dispatchMessage"},{"className":"android.os.Looper","fileName":"Looper.java","lineNumber":201,"methodName":"loopOnce"},{"className":"android.os.Looper","fileName":"Looper.java","lineNumber":288,"methodName":"loop"},{"className":"com.facebook.react.bridge.queue.MessageQueueThreadImpl$4","fileName":"MessageQueueThreadImpl.java","lineNumber":228,"methodName":"run"},{"className":"java.lang.Thread","fileName":"Thread.java","lineNumber":1012,"methodName":"run"}]}}
-
-import type { Event,EventHint, ExtendedError } from '@sentry/types';
+import { NativeLinkedErrors } from '../../src/js/integrations/nativelinkederrors';
 
 describe('NativeLinkedErrors', () => {
 
@@ -121,24 +120,7 @@ describe('NativeLinkedErrors', () => {
       exception: {
         values: [
           {
-            type: 'Error',
-            value: 'Captured exception',
-            stacktrace: {
-              frames: [
-                {
-                  colno: 17,
-                  filename: 'app:///Pressability.js',
-                  function: '_performTransitionSideEffects',
-                },
-              ]
-            },
-            mechanism: {
-              type: 'generic',
-              handled: true
-            }
-          },
-          {
-            type: 'Error',
+            type: 'java.lang.RuntimeException',
             value: 'Java error message.',
             stacktrace: {
               frames: [
@@ -158,7 +140,24 @@ describe('NativeLinkedErrors', () => {
                 },
               ],
             }
-          }
+          },
+          {
+            type: 'Error',
+            value: 'Captured exception',
+            stacktrace: {
+              frames: [
+                {
+                  colno: 17,
+                  filename: 'app:///Pressability.js',
+                  function: '_performTransitionSideEffects',
+                },
+              ]
+            },
+            mechanism: {
+              type: 'generic',
+              handled: true
+            }
+          },
         ]
       },
     });
@@ -214,23 +213,6 @@ describe('NativeLinkedErrors', () => {
         values: [
           {
             type: 'Error',
-            value: 'Captured exception',
-            stacktrace: {
-              frames: [
-                {
-                  colno: 17,
-                  filename: 'app:///Pressability.js',
-                  function: '_performTransitionSideEffects',
-                },
-              ]
-            },
-            mechanism: {
-              type: 'generic',
-              handled: true
-            }
-          },
-          {
-            type: 'Error',
             value: 'Objective-c error message.',
             stacktrace: {
               frames: [
@@ -254,7 +236,24 @@ describe('NativeLinkedErrors', () => {
                 },
               ],
             }
-          }
+          },
+          {
+            type: 'Error',
+            value: 'Captured exception',
+            stacktrace: {
+              frames: [
+                {
+                  colno: 17,
+                  filename: 'app:///Pressability.js',
+                  function: '_performTransitionSideEffects',
+                },
+              ]
+            },
+            mechanism: {
+              type: 'generic',
+              handled: true
+            }
+          },
         ]
       },
     });
@@ -310,6 +309,26 @@ describe('NativeLinkedErrors', () => {
         values: [
           {
             type: 'Error',
+            value: 'Objective-c error message.',
+            stacktrace: {
+              frames: [
+                {
+                  platform: 'cocoa',
+                  instruction_addr: '180437330',
+                },
+                {
+                  platform: 'cocoa',
+                  instruction_addr: '180051274',
+                },
+                {
+                  platform: 'cocoa',
+                  instruction_addr: '103535900',
+                },
+              ],
+            }
+          },
+          {
+            type: 'Error',
             value: 'Captured exception',
             stacktrace: {
               frames: [
@@ -325,45 +344,34 @@ describe('NativeLinkedErrors', () => {
               handled: true
             }
           },
-          {
-            type: 'Error',
-            value: 'Objective-c error message.',
-            stacktrace: {
-              frames: [
-                {
-                  platform: 'cocoa',
-                  instruction_addr: '0000000180437330',
-                },
-                {
-                  platform: 'cocoa',
-                  instruction_addr: '0000000180051274',
-                },
-                {
-                  platform: 'cocoa',
-                  instruction_addr: '0000000103535900',
-                },
-              ],
-            }
-          }
         ]
       },
     });
   });
 });
 
-function executeIntegrationFor(_mockedEvent: Event, _mockedHint: EventHint): Promise<Event | null> {
-  // const integration = new ReactNativeInfo();
-  // return new Promise((resolve, reject) => {
-  //   integration.setupOnce(async eventProcessor => {
-  //     try {
-  //       const processedEvent = await eventProcessor(mockedEvent, mockedHint);
-  //       resolve(processedEvent);
-  //     } catch (e) {
-  //       reject(e);
-  //     }
-  //   });
-  // });
-  return Promise.resolve(null);
+function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Promise<Event | null> {
+  const integration = new NativeLinkedErrors();
+  return new Promise((resolve, reject) => {
+    integration.setupOnce(
+      async eventProcessor => {
+        try {
+          const processedEvent = await eventProcessor(mockedEvent, mockedHint);
+          resolve(processedEvent);
+        } catch (e) {
+          reject(e);
+        }
+      },
+      () => ({
+        getClient: () => ({
+          getOptions: () => ({
+            stackParser: defaultStackParser,
+          })
+        }),
+        getIntegration: () => integration,
+      } as unknown as Hub),
+    );
+  });
 }
 
 function createNewError(from: {

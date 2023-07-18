@@ -1,13 +1,13 @@
-import {
+import type {
+  Event,
   EventHint,
   EventProcessor,
   Exception,
   ExtendedError,
   Hub,
   Integration,
-  StackParser,
-  Event,
   StackFrame,
+  StackParser,
 } from '@sentry/types';
 import { isInstanceOf } from '@sentry/utils';
 
@@ -19,6 +19,9 @@ interface LinkedErrorsOptions {
   limit: number;
 }
 
+/**
+ *
+ */
 export class NativeLinkedErrors implements Integration {
   /**
    * @inheritDoc
@@ -96,11 +99,11 @@ export class NativeLinkedErrors implements Integration {
     key: string,
     stack: Exception[] = [],
   ): Exception[] {
-    if (!isInstanceOf(error[key], Error) || stack.length + 1 >= limit) {
+    const linkedError = error[key];
+    if (!linkedError || stack.length + 1 >= limit) {
       return stack;
     }
 
-    const linkedError = error[key];
     let exception: Exception;
     if ('stackElements' in linkedError) {
       // isJavaException
@@ -111,14 +114,19 @@ export class NativeLinkedErrors implements Integration {
     } else if ('stackReturnAddresses' in linkedError) {
       // isObjCException
       exception = exceptionFromAppleStackReturnAddresses(linkedError);
-    } else {
+    } else if (isInstanceOf(linkedError, Error)) {
       exception = exceptionFromError(parser, error[key]);
+    } else {
+      return stack;
     }
 
     return this._walkErrorTree(parser, limit, error[key], key, [exception, ...stack]);
   }
 }
 
+/**
+ *
+ */
 export function exceptionFromJavaStackElements(
   javaThrowable: {
     name: string;
@@ -146,6 +154,9 @@ export function exceptionFromJavaStackElements(
   };
 }
 
+/**
+ *
+ */
 export function exceptionFromAppleStackSymbols(
   objCException: {
     name: string;
@@ -160,8 +171,8 @@ export function exceptionFromAppleStackSymbols(
       frames: objCException.stackSymbols.map(stackSymbol => {
         const addrStartIndex = stackSymbol.indexOf(' 0x') + 1;
         const addrEndIndex = stackSymbol.indexOf(' ', addrStartIndex);
-        const pkg = stackSymbol.substring(5, addrStartIndex).trimEnd();
-        const addr = stackSymbol.substring(addrStartIndex + 2, addrEndIndex - 1);
+        const pkg = stackSymbol.substring(4, addrStartIndex).trim();
+        const addr = stackSymbol.substring(addrStartIndex + 2, addrEndIndex);
         const functionEndIndex = stackSymbol.indexOf(' + ', addrEndIndex);
         const func = stackSymbol.substring(addrEndIndex + 1, functionEndIndex);
         return {
@@ -175,6 +186,9 @@ export function exceptionFromAppleStackSymbols(
   };
 }
 
+/**
+ *
+ */
 export function exceptionFromAppleStackReturnAddresses(
   objCException: {
     name: string;
@@ -188,7 +202,7 @@ export function exceptionFromAppleStackReturnAddresses(
     stacktrace: {
       frames: objCException.stackReturnAddresses.map( returnAddress => ({
         platform: 'cocoa',
-        instruction_addr: returnAddress.toString(16).padStart(16, '0'),
+        instruction_addr: returnAddress.toString(16),
       })),
     },
   };
