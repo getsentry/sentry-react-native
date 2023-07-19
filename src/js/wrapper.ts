@@ -223,7 +223,6 @@ export const NATIVE: SentryNativeWrapper = {
 
   /**
    * Fetches the Sdk info for the native sdk.
-   * NOTE: Only available on iOS.
    */
   async fetchNativeSdkInfo(): Promise<Package | null> {
     if (!this.enableNative) {
@@ -231,10 +230,6 @@ export const NATIVE: SentryNativeWrapper = {
     }
     if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
-    }
-
-    if (this.platform !== 'ios') {
-      return null;
     }
 
     return RNSentry.fetchNativeSdkInfo();
