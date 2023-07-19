@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.util.SparseIntArray;
 
-import androidx.annotation.Nullable;
 import androidx.core.app.FrameMetricsAggregator;
 
 import com.facebook.react.bridge.Arguments;
@@ -25,6 +24,7 @@ import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
@@ -611,29 +611,29 @@ public class RNSentryModuleImpl {
     }
 
     public void fetchNativeDeviceContexts(Promise promise) {
-        @NotNull final SentryOptions options = HubAdapter.getInstance().getOptions();
+        final @NotNull SentryOptions options = HubAdapter.getInstance().getOptions();
         if (!(options instanceof SentryAndroidOptions)) {
             promise.resolve(null);
             return;
         }
 
-        @Nullable final Context context = this.getReactApplicationContext().getApplicationContext();
+        final @Nullable Context context = this.getReactApplicationContext().getApplicationContext();
         if (context == null) {
             promise.resolve(null);
             return;
         }
 
-        @Nullable final Scope currentScope = InternalSentrySdk.getCurrentScope();
-        @Nullable final Map<String, Object> serialized = InternalSentrySdk.serializeScope(
+        final @Nullable Scope currentScope = InternalSentrySdk.getCurrentScope();
+        final @Nullable Map<String, Object> serialized = InternalSentrySdk.serializeScope(
             context,
             options,
             currentScope);
-        @Nullable final Object deviceContext = MapConverter.convertToWritable(serialized);
+        final @Nullable Object deviceContext = MapConverter.convertToWritable(serialized);
         promise.resolve(deviceContext);
     }
 
     public void fetchNativeSdkInfo(Promise promise) {
-        @Nullable final SdkVersion sdkVersion = HubAdapter.getInstance().getOptions().getSdkVersion();
+        final @Nullable SdkVersion sdkVersion = HubAdapter.getInstance().getOptions().getSdkVersion();
         if (sdkVersion == null) {
             promise.resolve(null);
         } else {
