@@ -1,5 +1,6 @@
 import type { Exception } from '@sentry/browser';
 import { defaultStackParser, eventFromException } from '@sentry/browser';
+import type { Event } from '@sentry/types';
 import { Platform } from 'react-native';
 
 import { createReactNativeRewriteFrames } from '../../src/js/integrations/rewriteframes';
@@ -29,6 +30,82 @@ describe('RewriteFrames', () => {
   beforeEach(() => {
     mockFunction(isExpo).mockReturnValue(false);
     jest.resetAllMocks();
+  });
+
+  it('should not change cocoa frames', async () => {
+    const EXPECTED_SENTRY_COCOA_EXCEPTION = {
+      type: 'Error',
+      value: 'Objective-c error message.',
+      stacktrace: {
+        frames: [
+          {
+            platform: 'cocoa',
+            package: 'CoreFoundation',
+            function: '__exceptionPreprocess',
+            instruction_addr: '0000000180437330',
+          },
+          {
+            platform: 'cocoa',
+            package: 'libobjc.A.dylib',
+            function: 'objc_exception_throw',
+            instruction_addr: '0000000180051274',
+          },
+          {
+            platform: 'cocoa',
+            package: 'RNTester',
+            function: '-[RCTSampleTurboModule getObjectThrows:]',
+            instruction_addr: '0000000103535900',
+          },
+        ],
+      }
+    };
+
+    const SENTRY_COCOA_EXCEPTION_EVENT: Event = {
+      exception: {
+        values: [
+          JSON.parse(JSON.stringify(EXPECTED_SENTRY_COCOA_EXCEPTION)),
+        ],
+      },
+    };
+
+    const event = createReactNativeRewriteFrames().process(SENTRY_COCOA_EXCEPTION_EVENT)
+    expect(event.exception?.values?.[0]).toEqual(EXPECTED_SENTRY_COCOA_EXCEPTION);
+  });
+
+  it('should not change jvm frames', async () => {
+    const EXPECTED_SENTRY_JVM_EXCEPTION = {
+      type: 'java.lang.RuntimeException',
+      value: 'Java error message.',
+      stacktrace: {
+        frames: [
+          {
+            platform: 'java',
+            module: 'com.example.modules.Crash',
+            filename: 'Crash.kt',
+            lineno: 10,
+            function: 'getDataCrash'
+          },
+          {
+            platform: 'java',
+            module: 'com.facebook.jni.NativeRunnable',
+            filename: 'NativeRunnable.java',
+            lineno: 2,
+            function: 'run'
+          },
+        ],
+      },
+    };
+
+    const SENTRY_JVM_EXCEPTION_EVENT: Event = {
+      exception: {
+        values: [
+          JSON.parse(JSON.stringify(EXPECTED_SENTRY_JVM_EXCEPTION)),
+        ],
+      },
+    };
+
+    const event = createReactNativeRewriteFrames().process(SENTRY_JVM_EXCEPTION_EVENT)
+    expect(event.exception?.values?.[0]).toEqual(EXPECTED_SENTRY_JVM_EXCEPTION);
   });
 
   it('should parse exceptions for react-native-v8', async () => {

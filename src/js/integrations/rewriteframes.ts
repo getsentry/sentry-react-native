@@ -16,6 +16,12 @@ const IOS_DEFAULT_BUNDLE_NAME = 'app:///main.jsbundle';
 export function createReactNativeRewriteFrames(): RewriteFrames {
   return new RewriteFrames({
     iteratee: (frame: StackFrame) => {
+      if (frame.platform === 'java' || frame.platform === 'cocoa') {
+        // Because platform is not required in StackFrame type
+        // we assume that if not set it's javascript
+        return frame;
+      }
+
       if (!frame.filename) {
         return frame;
       }
