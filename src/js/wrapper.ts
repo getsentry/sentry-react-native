@@ -421,7 +421,7 @@ export const NATIVE: SentryNativeWrapper = {
    * Closes the Native Layer SDK
    */
   async closeNativeSdk(): Promise<void> {
-    if (!this.enableNative) {
+    if (!this.nativeIsReady) {
       return;
     }
     if (!this._isModuleLoaded(RNSentry)) {
@@ -429,7 +429,7 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.closeNativeSdk().then(() => {
-      this.enableNative = false;
+      this.nativeIsReady = false;
     });
   },
 
