@@ -26,82 +26,82 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts unknown value to null`() {
+    fun converts_unknown_value_to_null() {
         val actual = MapConverter.convertToWritable(Unknown())
         assertNull(actual)
     }
 
     @Test
-    fun `converts float to double`() {
+    fun converts_float_to_double() {
         val actual = MapConverter.convertToWritable(Float.MAX_VALUE)
         assert(actual is Double)
         assertEquals(Float.MAX_VALUE.toDouble(), actual)
     }
 
     @Test
-    fun `converts byte to int`() {
+    fun converts_byte_to_int() {
         val actual = MapConverter.convertToWritable(Byte.MAX_VALUE)
         assert(actual is Int)
         assertEquals(Byte.MAX_VALUE.toInt(), actual)
     }
 
     @Test
-    fun `converts short to int`() {
+    fun converts_short_to_int() {
         val actual = MapConverter.convertToWritable(Short.MAX_VALUE)
         assert(actual is Int)
         assertEquals(Short.MAX_VALUE.toInt(), actual)
     }
 
     @Test
-    fun `converts long to double`() {
+    fun converts_long_to_double() {
         val actual = MapConverter.convertToWritable(Long.MAX_VALUE)
         assertEquals(Long.MAX_VALUE.toDouble(), actual)
     }
 
     @Test
-    fun `converts big decimal to double`() {
+    fun converts_big_decimal_to_double() {
         val actual = MapConverter.convertToWritable(BigDecimal.TEN)
         assertEquals(BigDecimal.TEN.toDouble(), actual)
     }
 
     @Test
-    fun `converts big integer to double`() {
+    fun converts_big_integer_to_double() {
         val actual = MapConverter.convertToWritable(BigInteger.TEN)
         assertEquals(BigInteger.TEN.toDouble(), actual)
     }
 
     @Test
-    fun `keeps null`() {
+    fun keeps_null() {
         val actual = MapConverter.convertToWritable(null)
         assertNull(actual)
     }
 
     @Test
-    fun `keeps boolean`() {
+    fun keeps_boolean() {
         val actual = MapConverter.convertToWritable(true)
         assertEquals(true, actual)
     }
 
     @Test
-    fun `keeps double`() {
+    fun keeps_double() {
         val actual = MapConverter.convertToWritable(Double.MAX_VALUE)
         assertEquals(Double.MAX_VALUE, actual)
     }
 
     @Test
-    fun `keeps integer`() {
+    fun keeps_integer() {
         val actual = MapConverter.convertToWritable(Integer.MAX_VALUE)
         assertEquals(Integer.MAX_VALUE, actual)
     }
 
     @Test
-    fun `keeps string`() {
+    fun keeps_string() {
         val actual = MapConverter.convertToWritable("string")
         assertEquals("string", actual)
     }
 
     @Test
-    fun `converts map with unknown value key`() {
+    fun converts_map_with_unknown_value_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("unknown" to Unknown()))
         val expectedMap = Arguments.createMap();
         expectedMap.putNull("unknown")
@@ -109,7 +109,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts map with null key`() {
+    fun converts_map_with_null_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("null" to null))
         val expectedMap = Arguments.createMap();
         expectedMap.putNull("null")
@@ -117,7 +117,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts map with boolean key`() {
+    fun converts_map_with_boolean_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("boolean" to true))
         val expectedMap = Arguments.createMap();
         expectedMap.putBoolean("boolean", true)
@@ -125,7 +125,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts map with double key`() {
+    fun converts_map_with_double_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("double" to Double.MAX_VALUE))
         val expectedMap = Arguments.createMap();
         expectedMap.putDouble("double", Double.MAX_VALUE)
@@ -133,7 +133,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts map with integer key`() {
+    fun converts_map_with_integer_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("integer" to Integer.MAX_VALUE))
         val expectedMap = Arguments.createMap();
         expectedMap.putInt("integer", Integer.MAX_VALUE)
@@ -141,7 +141,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts map with byte key`() {
+    fun converts_map_with_byte_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("byte" to Byte.MAX_VALUE))
         val expectedMap = Arguments.createMap();
         expectedMap.putInt("byte", Byte.MAX_VALUE.toInt())
@@ -149,7 +149,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts map with short key`() {
+    fun converts_map_with_short_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("short" to Short.MAX_VALUE))
         val expectedMap = Arguments.createMap();
         expectedMap.putInt("short", Short.MAX_VALUE.toInt())
@@ -157,7 +157,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts map with float key`() {
+    fun converts_map_with_float_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("float" to Float.MAX_VALUE))
         val expectedMap = Arguments.createMap();
         expectedMap.putDouble("float", Float.MAX_VALUE.toDouble())
@@ -165,7 +165,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts map with long key`() {
+    fun converts_map_with_long_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("long" to Long.MAX_VALUE))
         val expectedMap = Arguments.createMap();
         expectedMap.putDouble("long", Long.MAX_VALUE.toDouble())
@@ -173,7 +173,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts map with in big decimal key`() {
+    fun converts_map_with_in_big_decimal_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("big_decimal" to BigDecimal.TEN))
         val expectedMap = Arguments.createMap();
         expectedMap.putDouble("big_decimal", BigDecimal.TEN.toDouble())
@@ -181,7 +181,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts map with big int key`() {
+    fun converts_map_with_big_int_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("big_int" to BigInteger.TEN))
         val expectedMap = Arguments.createMap();
         expectedMap.putDouble("big_int", BigInteger.TEN.toDouble())
@@ -189,7 +189,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts map with string key`() {
+    fun converts_map_with_string_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("string" to "string"))
         val expectedMap = Arguments.createMap();
         expectedMap.putString("string", "string")
@@ -197,7 +197,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts map with list key`() {
+    fun converts_map_with_list_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("list" to listOf<String>()))
         val expectedMap = Arguments.createMap()
         val expectedArray = Arguments.createArray()
@@ -206,7 +206,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts map with nested map key`() {
+    fun converts_map_with_nested_map_key() {
         val actualMap = MapConverter.convertToWritable(mapOf("map" to mapOf<String, Any>()))
         val expectedMap = Arguments.createMap()
         val expectedNestedMap = Arguments.createMap()
@@ -215,77 +215,77 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts list of boolean`() {
+    fun converts_list_of_boolean() {
         val expected = Arguments.createArray()
         expected.pushBoolean(true)
         assertEquals(expected, MapConverter.convertToWritable(listOf(true)))
     }
 
     @Test
-    fun `converts list of double`() {
+    fun converts_list_of_double() {
         val expected = Arguments.createArray()
         expected.pushDouble(Double.MAX_VALUE)
         assertEquals(expected, MapConverter.convertToWritable(listOf(Double.MAX_VALUE)))
     }
 
     @Test
-    fun `converts list of float`() {
+    fun converts_list_of_float() {
         val expected = Arguments.createArray()
         expected.pushDouble(Float.MAX_VALUE.toDouble())
         assertEquals(expected, MapConverter.convertToWritable(listOf(Float.MAX_VALUE)))
     }
 
     @Test
-    fun `converts list of integer`() {
+    fun converts_list_of_integer() {
         val expected = Arguments.createArray()
         expected.pushInt(Int.MAX_VALUE)
         assertEquals(expected, MapConverter.convertToWritable(listOf(Int.MAX_VALUE)))
     }
 
     @Test
-    fun `converts list of short`() {
+    fun converts_list_of_short() {
         val expected = Arguments.createArray()
         expected.pushInt(Short.MAX_VALUE.toInt())
         assertEquals(expected, MapConverter.convertToWritable(listOf(Short.MAX_VALUE)))
     }
 
     @Test
-    fun `converts list of byte`() {
+    fun converts_list_of_byte() {
         val expected = Arguments.createArray()
         expected.pushInt(Byte.MAX_VALUE.toInt())
         assertEquals(expected, MapConverter.convertToWritable(listOf(Byte.MAX_VALUE)))
     }
 
     @Test
-    fun `converts list of Long`() {
+    fun converts_list_of_Long() {
         val expected = Arguments.createArray()
         expected.pushDouble(Long.MAX_VALUE.toDouble())
         assertEquals(expected, MapConverter.convertToWritable(listOf(Long.MAX_VALUE)))
     }
 
     @Test
-    fun `converts list of big int`() {
+    fun converts_list_of_big_int() {
         val expected = Arguments.createArray()
         expected.pushDouble(BigInteger.TEN.toDouble())
         assertEquals(expected, MapConverter.convertToWritable(listOf(BigInteger.TEN)))
     }
 
     @Test
-    fun `converts list of big decimal`() {
+    fun converts_list_of_big_decimal() {
         val expected = Arguments.createArray()
         expected.pushDouble(BigDecimal.TEN.toDouble())
         assertEquals(expected, MapConverter.convertToWritable(listOf(BigDecimal.TEN)))
     }
 
     @Test
-    fun `converts list of string`() {
+    fun converts_list_of_string() {
         val expected = Arguments.createArray()
         expected.pushString("string")
         assertEquals(expected, MapConverter.convertToWritable(listOf("string")))
     }
 
     @Test
-    fun `converts list of map`() {
+    fun converts_list_of_map() {
         val expected = Arguments.createArray()
         val expectedMap = Arguments.createMap()
         expectedMap.putString("map", "string")
@@ -294,7 +294,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts nested lists`() {
+    fun converts_nested_lists() {
         val actual = MapConverter.convertToWritable(listOf(listOf<String>()))
         val expectedArray = Arguments.createArray()
         val expectedNestedArray = Arguments.createArray()
@@ -303,7 +303,7 @@ class MapConverterTest {
     }
 
     @Test
-    fun `converts complex map correctly`() {
+    fun converts_complex_map_correctly() {
         val actual = MapConverter.convertToWritable(mapOf(
             "integer" to Integer.MAX_VALUE,
             "string" to "string1",
