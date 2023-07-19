@@ -179,8 +179,14 @@ jobs:
           echo "SENTRY_DIST=$SENTRY_DIST"
 
       - uses: actions/setup-node@v3
+        if: ${{ matrix.rn-version == '0.65.3' }}
         with:
           node-version: 16
+
+      - uses: actions/setup-node@v3
+        if: ${{ matrix.rn-version != '0.65.3' }}
+        with:
+          node-version: 18
 
       - uses: actions/setup-java@v3
         with:
@@ -381,8 +387,14 @@ jobs:
         run: tar -xvf *.tar
 
       - uses: actions/setup-node@v3
+        if: ${{ matrix.rn-version == '0.65.3' }}
         with:
           node-version: 16
+
+      - uses: actions/setup-node@v3
+        if: ${{ matrix.rn-version != '0.65.3' }}
+        with:
+          node-version: 18
 
       - uses: actions/setup-java@v3
         with:
