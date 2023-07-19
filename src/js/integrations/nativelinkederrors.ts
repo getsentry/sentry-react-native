@@ -11,6 +11,8 @@ import type {
 } from '@sentry/types';
 import { isInstanceOf } from '@sentry/utils';
 
+import { NATIVE } from '../wrapper';
+
 const DEFAULT_KEY = 'cause';
 const DEFAULT_LIMIT = 5;
 
@@ -33,15 +35,9 @@ export class NativeLinkedErrors implements Integration {
    */
   public name: string = NativeLinkedErrors.id;
 
-  /**
-   * @inheritDoc
-   */
   private readonly _key: LinkedErrorsOptions['key'];
-
-  /**
-   * @inheritDoc
-   */
   private readonly _limit: LinkedErrorsOptions['limit'];
+  private _nativePackage: string | null = null;
 
   /**
    * @inheritDoc
@@ -63,7 +59,10 @@ export class NativeLinkedErrors implements Integration {
       return;
     }
 
-    addGlobalEventProcessor((event: Event, hint?: EventHint) => {
+    addGlobalEventProcessor(async (event: Event, hint?: EventHint) => {
+      if (this._nativePackage === null) {
+        this._nativePackage = await this._fetchNativePackage();
+      }
       const self = getCurrentHub().getIntegration(NativeLinkedErrors);
       return self
         ? this._handler(client.getOptions().stackParser, self._key, self._limit, event, hint)
@@ -72,9 +71,9 @@ export class NativeLinkedErrors implements Integration {
   }
 
   /**
-   * @inheritDoc
+   *
    */
-  public _handler(
+  private _handler(
     parser: StackParser,
     key: string,
     limit: number,
@@ -85,14 +84,14 @@ export class NativeLinkedErrors implements Integration {
       return event;
     }
     const linkedErrors = this._walkErrorTree(parser, limit, hint.originalException as ExtendedError, key);
-    event.exception.values = [...linkedErrors, ...event.exception.values];
+    event.exception.values = [...event.exception.values, ...linkedErrors];
     return event;
   }
 
   /**
-   * @inheritDoc
+   *
    */
-  public _walkErrorTree(
+  private _walkErrorTree(
     parser: StackParser,
     limit: number,
     error: ExtendedError,
@@ -107,105 +106,124 @@ export class NativeLinkedErrors implements Integration {
     let exception: Exception;
     if ('stackElements' in linkedError) {
       // isJavaException
-      exception = exceptionFromJavaStackElements(linkedError);
+      exception = this._exceptionFromJavaStackElements(linkedError);
     } else if ('stackSymbols' in linkedError) {
       // isObjCException symbolicated by local debug symbols
-      exception = exceptionFromAppleStackSymbols(linkedError);
+      exception = this._exceptionFromAppleStackSymbols(linkedError);
     } else if ('stackReturnAddresses' in linkedError) {
       // isObjCException
-      exception = exceptionFromAppleStackReturnAddresses(linkedError);
+      exception = this._exceptionFromAppleStackReturnAddresses(linkedError);
     } else if (isInstanceOf(linkedError, Error)) {
       exception = exceptionFromError(parser, error[key]);
     } else {
       return stack;
     }
 
-    return this._walkErrorTree(parser, limit, error[key], key, [exception, ...stack]);
+    return this._walkErrorTree(parser, limit, error[key], key, [...stack, exception]);
   }
-}
 
-/**
- *
- */
-export function exceptionFromJavaStackElements(
-  javaThrowable: {
-    name: string;
-    message: string;
-    stackElements: {
-      className: string;
-      fileName: string;
-      methodName: string;
-      lineNumber: number;
-    }[],
-  },
-): Exception {
-  return {
-    type: javaThrowable.name,
-    value: javaThrowable.message,
-    stacktrace: {
-      frames: javaThrowable.stackElements.map(stackElement => ({
-        platform: 'java',
-        module: stackElement.className,
-        filename: stackElement.fileName,
-        lineno: stackElement.lineNumber,
-        function: stackElement.methodName,
-      })),
+  /**
+   *
+   */
+  private _exceptionFromJavaStackElements(
+    javaThrowable: {
+      name: string;
+      message: string;
+      stackElements: {
+        className: string;
+        fileName: string;
+        methodName: string;
+        lineNumber: number;
+      }[],
     },
-  };
-}
+  ): Exception {
+    return {
+      type: javaThrowable.name,
+      value: javaThrowable.message,
+      stacktrace: {
+        frames: javaThrowable.stackElements.map(stackElement => (<StackFrame>{
+          platform: 'java',
+          module: stackElement.className,
+          filename: stackElement.fileName,
+          lineno: stackElement.lineNumber >= 0 ? stackElement.lineNumber : undefined,
+          function: stackElement.methodName,
+          in_app: this._nativePackage !== null && stackElement.className.startsWith(this._nativePackage)
+            ? true
+            : undefined,
+        })).reverse(),
+      },
+    };
+  }
 
-/**
- *
- */
-export function exceptionFromAppleStackSymbols(
-  objCException: {
-    name: string;
-    message: string;
-    stackSymbols: string[];
-  },
-): Exception {
-  return {
-    type: objCException.name,
-    value: objCException.message,
-    stacktrace: {
-      frames: objCException.stackSymbols.map(stackSymbol => {
-        const addrStartIndex = stackSymbol.indexOf(' 0x') + 1;
-        const addrEndIndex = stackSymbol.indexOf(' ', addrStartIndex);
-        const pkg = stackSymbol.substring(4, addrStartIndex).trim();
-        const addr = stackSymbol.substring(addrStartIndex + 2, addrEndIndex);
-        const functionEndIndex = stackSymbol.indexOf(' + ', addrEndIndex);
-        const func = stackSymbol.substring(addrEndIndex + 1, functionEndIndex);
-        return {
+  /**
+   *
+   */
+  private _exceptionFromAppleStackSymbols(
+    objCException: {
+      name: string;
+      message: string;
+      stackSymbols: string[];
+    },
+  ): Exception {
+    return {
+      type: objCException.name,
+      value: objCException.message,
+      stacktrace: {
+        frames: objCException.stackSymbols.map(stackSymbol => {
+          const addrStartIndex = stackSymbol.indexOf(' 0x') + 1;
+          const addrEndIndex = stackSymbol.indexOf(' ', addrStartIndex);
+          const pkg = stackSymbol.substring(4, addrStartIndex).trim();
+          const addr = stackSymbol.substring(addrStartIndex + 2, addrEndIndex);
+          const functionEndIndex = stackSymbol.indexOf(' + ', addrEndIndex);
+          const func = stackSymbol.substring(addrEndIndex + 1, functionEndIndex);
+          return <StackFrame>{
+            platform: 'cocoa',
+            package: pkg,
+            function: func,
+            instruction_addr: addr,
+            in_app: this._nativePackage !== null && pkg.startsWith(this._nativePackage)
+              ? true
+              : undefined,
+          };
+        }).reverse(),
+      },
+    };
+  }
+
+  /**
+   *
+   */
+  private _exceptionFromAppleStackReturnAddresses(
+    objCException: {
+      name: string;
+      message: string;
+      stackReturnAddresses: number[];
+    },
+  ): Exception {
+    return {
+      type: objCException.name,
+      value: objCException.message,
+      stacktrace: {
+        frames: objCException.stackReturnAddresses.map( returnAddress => ({
           platform: 'cocoa',
-          package: pkg,
-          function: func,
-          instruction_addr: addr,
-        };
-      }),
-    },
-  };
-}
+          instruction_addr: returnAddress.toString(16),
+        })).reverse(),
+      },
+    };
+  }
 
-/**
- *
- */
-export function exceptionFromAppleStackReturnAddresses(
-  objCException: {
-    name: string;
-    message: string;
-    stackReturnAddresses: number[];
-  },
-): Exception {
-  return {
-    type: objCException.name,
-    value: objCException.message,
-    stacktrace: {
-      frames: objCException.stackReturnAddresses.map( returnAddress => ({
-        platform: 'cocoa',
-        instruction_addr: returnAddress.toString(16),
-      })),
-    },
-  };
+  /**
+   *
+   */
+  private async _fetchNativePackage(): Promise<string | null> {
+    try {
+      const release = await NATIVE.fetchNativeRelease();
+      return release.id;
+    } catch (_Oo) {
+      // Something went wrong, we just continue
+    }
+    return null;
+  }
 }
 
 // TODO: Needs to be exported from @sentry/browser
