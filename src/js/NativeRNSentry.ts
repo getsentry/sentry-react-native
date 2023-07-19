@@ -60,8 +60,7 @@ export type NativeDeviceContextsResponse = {
   [key: string]: unknown;
   tags?: Record<string, string>;
   extra?: Record<string, unknown>;
-  context?: Record<string, Record<string, unknown>>; // ios
-  contexts?: Record<string, Record<string, unknown>>; // android
+  contexts?: Record<string, Record<string, unknown>>;
   user?: {
     userId?: string;
     email?: string;
