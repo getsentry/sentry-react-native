@@ -59,7 +59,7 @@ interface SentryNativeWrapper {
   captureScreenshot(): Promise<Screenshot[] | null>;
 
   fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
-  fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
+  fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse | null>;
   fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
   fetchNativeFrames(): PromiseLike<NativeFramesResponse | null>;
   fetchNativeSdkInfo(): PromiseLike<Package | null>;
@@ -243,7 +243,7 @@ export const NATIVE: SentryNativeWrapper = {
   /**
    * Fetches the device contexts. Not used on Android.
    */
-  async fetchNativeDeviceContexts(): Promise<NativeDeviceContextsResponse> {
+  async fetchNativeDeviceContexts(): Promise<NativeDeviceContextsResponse | null> {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }

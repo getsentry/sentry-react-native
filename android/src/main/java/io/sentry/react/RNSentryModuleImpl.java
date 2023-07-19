@@ -624,10 +624,10 @@ public class RNSentryModuleImpl {
         }
 
         final @Nullable Scope currentScope = InternalSentrySdk.getCurrentScope();
-        final @Nullable Map<String, Object> serialized = InternalSentrySdk.serializeScope(
-            context,
-            options,
-            currentScope);
+        final @NotNull Map<String, Object> serialized = InternalSentrySdk.serializeScope(
+                context,
+                (SentryAndroidOptions) options,
+                currentScope);
         final @Nullable Object deviceContext = MapConverter.convertToWritable(serialized);
         promise.resolve(deviceContext);
     }

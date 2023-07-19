@@ -20,7 +20,7 @@ export interface Spec extends TurboModule {
   disableNativeFramesTracking(): void;
   fetchNativeRelease(): Promise<NativeReleaseResponse>;
   fetchNativeSdkInfo(): Promise<Package | null>;
-  fetchNativeDeviceContexts(): Promise<NativeDeviceContextsResponse>;
+  fetchNativeDeviceContexts(): Promise<NativeDeviceContextsResponse | null>;
   fetchNativeAppStart(): Promise<NativeAppStartResponse | null>;
   fetchNativeFrames(): Promise<NativeFramesResponse | null>;
   initNativeSdk(options: UnsafeObject): Promise<boolean>;
