@@ -421,7 +421,7 @@ export const NATIVE: SentryNativeWrapper = {
    * Closes the Native Layer SDK
    */
   async closeNativeSdk(): Promise<void> {
-    if (!this.nativeIsReady) {
+    if (!this.enableNative) {
       return;
     }
     if (!this._isModuleLoaded(RNSentry)) {
@@ -429,7 +429,7 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.closeNativeSdk().then(() => {
-      this.nativeIsReady = false;
+      this.enableNative = false;
     });
   },
 
@@ -456,7 +456,7 @@ export const NATIVE: SentryNativeWrapper = {
   },
 
   isNativeAvailable(): boolean {
-    return this.enableNative && this._isModuleLoaded(RNSentry);
+    return this._isModuleLoaded(RNSentry);
   },
 
   async captureScreenshot(): Promise<Screenshot[] | null> {
