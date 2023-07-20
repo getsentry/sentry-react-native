@@ -5,6 +5,7 @@
 ### Fixes
 
 - Warn users about multiple versions of `promise` package which can cause unexpected behavior like undefined `Promise.allSettled` ([#3162](https://github.com/getsentry/sentry-react-native/pull/3162))
+- Fix bug preventing native SDK from being called after reinitialization ([#3200](https://github.com/getsentry/sentry-react-native/pull/3200))
 
 ### Dependencies
 
