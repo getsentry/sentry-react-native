@@ -5,7 +5,7 @@
 ### Fixes
 
 - Warn users about multiple versions of `promise` package which can cause unexpected behavior like undefined `Promise.allSettled` ([#3162](https://github.com/getsentry/sentry-react-native/pull/3162))
-- `event` isn't enriched with extra context after it leaves `beforeSend` JS callback on Android ([#3170](https://github.com/getsentry/sentry-react-native/pull/3170))
+- Event is enriched with all the Android context on the JS layer and you can filter/modify all the data in the `beforeSend` callback similarly to iOS. ([#3170](https://github.com/getsentry/sentry-react-native/pull/3170))
 
 ### Dependencies
 
