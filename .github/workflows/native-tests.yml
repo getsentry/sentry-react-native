@@ -91,10 +91,6 @@ jobs:
           profile: Nexus 6
           script: echo "Generated AVD snapshot for caching."
 
-      - name: Clean Emulator
-        working-directory: RNSentryAndroidTester
-        run: ./gradlew uninstallDebug uninstallDebugAndroidTest
-
       - name: Run connected tests
         uses: reactivecircus/android-emulator-runner@d94c3fbe4fe6a29e4a5ba47c12fb47677c73656b #pin@v2.28.0
         with:
@@ -114,4 +110,6 @@ jobs:
           disable-animations: true
           arch: x86_64
           profile: Nexus 6
-          script: ./gradlew connectedCheck
+          script: |
+            ./gradlew uninstallDebug uninstallDebugAndroidTest
+            ./gradlew connectedCheck
