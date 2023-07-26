@@ -188,44 +188,44 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSLog(@"Bridge call to: deviceContexts");
-    __block NSMutableDictionary<NSString *, id> *contexts;
+    __block NSMutableDictionary<NSString *, id> *serializedScope;
     // Temp work around until sorted out this API in sentry-cocoa.
     // TODO: If the callback isnt' executed the promise wouldn't be resolved.
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        NSDictionary<NSString *, id>  *serializedScope = [scope serialize];
-        contexts = [serializedScope mutableCopy];
+        serializedScope = [[scope serialize] mutableCopy];
 
-        NSDictionary<NSString *, id>  *user = [contexts valueForKey:@"user"];
+        NSDictionary<NSString *, id>  *user = [serializedScope valueForKey:@"user"];
         if (user == nil) {
-            [contexts
+            [serializedScope
                 setValue:@{ @"id": PrivateSentrySDKOnly.installationID }
                 forKey:@"user"];
         }
 
         if (PrivateSentrySDKOnly.options.debug) {
-            NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
+            NSData *data = [NSJSONSerialization dataWithJSONObject:serializedScope options:0 error:nil];
             NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
             NSLog(@"Contexts: %@", debugContext);
         }
     }];
 
     NSDictionary<NSString *, id> *extraContext = [PrivateSentrySDKOnly getExtraContext];
-    NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *context = [contexts[@"context"] mutableCopy];
+    NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *contexts = [serializedScope[@"context"] mutableCopy];
 
     if (extraContext && [extraContext[@"device"] isKindOfClass:[NSDictionary class]]) {
-      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *deviceContext = [contexts[@"context"][@"device"] mutableCopy];
+      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *deviceContext = [contexts[@"device"] mutableCopy];
       [deviceContext addEntriesFromDictionary:extraContext[@"device"]];
-      [context setValue:deviceContext forKey:@"device"];
+      [contexts setValue:deviceContext forKey:@"device"];
     }
 
     if (extraContext && [extraContext[@"app"] isKindOfClass:[NSDictionary class]]) {
-      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *appContext = [contexts[@"context"][@"app"] mutableCopy];
+      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *appContext = [contexts[@"app"] mutableCopy];
       [appContext addEntriesFromDictionary:extraContext[@"app"]];
-      [context setValue:appContext forKey:@"app"];
+      [contexts setValue:appContext forKey:@"app"];
     }
 
-    [contexts setValue:context forKey:@"context"];
-    resolve(contexts);
+    [serializedScope setValue:contexts forKey:@"contexts"];
+    [serializedScope removeObjectForKey:@"context"];
+    resolve(serializedScope);
 }
 
 RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve

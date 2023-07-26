@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.util.SparseIntArray;
 
-import androidx.annotation.Nullable;
 import androidx.core.app.FrameMetricsAggregator;
 
 import com.facebook.react.bridge.Arguments;
@@ -24,16 +23,16 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -43,10 +42,12 @@ import io.sentry.HubAdapter;
 import io.sentry.ILogger;
 import io.sentry.ISerializer;
 import io.sentry.Integration;
+import io.sentry.Scope;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
+import io.sentry.SentryOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AnrIntegration;
@@ -54,8 +55,10 @@ import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.BuildConfig;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.CurrentActivityHolder;
+import io.sentry.android.core.InternalSentrySdk;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
+import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
@@ -335,19 +338,10 @@ public class RNSentryModuleImpl {
         }
 
         try {
-            final String outboxPath = HubAdapter.getInstance().getOptions().getOutboxPath();
-
-            if (outboxPath == null) {
-                logger.log(SentryLevel.ERROR,
-                        "Error retrieving outboxPath. Envelope will not be sent. Is the Android SDK initialized?");
-            } else {
-                File installation = new File(outboxPath, UUID.randomUUID().toString());
-                try (FileOutputStream out = new FileOutputStream(installation)) {
-                    out.write(bytes);
-                }
-            }
-        } catch (Throwable ignored) {
-            logger.log(SentryLevel.ERROR, "Error while writing envelope to outbox.");
+            InternalSentrySdk.captureEnvelope(bytes);
+        } catch (Throwable e) {
+            logger.log(SentryLevel.ERROR, "Error while capturing envelope");
+            promise.resolve(false);
         }
         promise.resolve(true);
     }
@@ -613,6 +607,40 @@ public class RNSentryModuleImpl {
         if (isFrameMetricsAggregatorAvailable()) {
             frameMetricsAggregator.stop();
             frameMetricsAggregator = null;
+        }
+    }
+
+    public void fetchNativeDeviceContexts(Promise promise) {
+        final @NotNull SentryOptions options = HubAdapter.getInstance().getOptions();
+        if (!(options instanceof SentryAndroidOptions)) {
+            promise.resolve(null);
+            return;
+        }
+
+        final @Nullable Context context = this.getReactApplicationContext().getApplicationContext();
+        if (context == null) {
+            promise.resolve(null);
+            return;
+        }
+
+        final @Nullable Scope currentScope = InternalSentrySdk.getCurrentScope();
+        final @NotNull Map<String, Object> serialized = InternalSentrySdk.serializeScope(
+                context,
+                (SentryAndroidOptions) options,
+                currentScope);
+        final @Nullable Object deviceContext = MapConverter.convertToWritable(serialized);
+        promise.resolve(deviceContext);
+    }
+
+    public void fetchNativeSdkInfo(Promise promise) {
+        final @Nullable SdkVersion sdkVersion = HubAdapter.getInstance().getOptions().getSdkVersion();
+        if (sdkVersion == null) {
+            promise.resolve(null);
+        } else {
+            final WritableMap sdkInfo = new WritableNativeMap();
+            sdkInfo.putString("name", sdkVersion.getName());
+            sdkInfo.putString("version", sdkVersion.getVersion());
+            promise.resolve(sdkInfo);
         }
     }
 
