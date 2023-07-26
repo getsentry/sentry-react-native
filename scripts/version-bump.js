@@ -8,13 +8,12 @@ replace({
   to: pjson.version,
 })
   .then(matchedFiles => {
-    console.log(
-      'Modified files:',
+    const modifiedFiles =
       matchedFiles
         .filter(file => file.hasChanged)
         .map(file => file.file)
-        .join(', ') || 'none',
-    );
+        .join(', ') || 'none';
+    console.log('Modified files:', modifiedFiles);
   })
   .catch(error => {
     console.error('Error occurred:', error);
