@@ -128,7 +128,6 @@ const HomeScreen = (props: Props) => {
           />
         )}
         <Spacer />
-
         <Sentry.ErrorBoundary fallback={errorBoundaryFallback}>
           <Button
             title="Activate Error Boundary"

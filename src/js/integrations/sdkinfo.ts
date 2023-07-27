@@ -36,9 +36,8 @@ export class SdkInfo implements Integration {
    */
   public setupOnce(addGlobalEventProcessor: (e: EventProcessor) => void): void {
     addGlobalEventProcessor(async event => {
-      // The native SDK info package here is only used on iOS as `beforeSend` is not called on `captureEnvelope`.
       // this._nativeSdkInfo should be defined a following time so this call won't always be awaited.
-      if (NATIVE.platform === 'ios' && this._nativeSdkPackage === null) {
+      if (this._nativeSdkPackage === null) {
         try {
           this._nativeSdkPackage = await NATIVE.fetchNativeSdkInfo();
         } catch (e) {

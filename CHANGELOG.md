@@ -2,9 +2,31 @@
 
 ## Unreleased
 
+### Features
+
+- Alpha support for Hermes JavaScript Profiling ([#3057](https://github.com/getsentry/sentry-react-native/pull/3057))
+
+  Profiling is disabled by default. To enable it, configure both
+  `tracesSampleRate` and `profilesSampleRate` when initializing the SDK:
+
+  ```javascript
+    Sentry.init({
+      dsn: '__DSN__',
+      tracesSampleRate: 1.0,
+      _experiments: {
+        // The sampling rate for profiling is relative to TracesSampleRate.
+        // In this case, we'll capture profiles for 100% of transactions.
+        profilesSampleRate: 1.0,
+      },
+    });
+  ```
+
+  More documentation on profiling and current limitations [can be found here](https://docs.sentry.io/platforms/react-native/profiling/).
+
 ### Fixes
 
 - Warn users about multiple versions of `promise` package which can cause unexpected behavior like undefined `Promise.allSettled` ([#3162](https://github.com/getsentry/sentry-react-native/pull/3162))
+- Event is enriched with all the Android context on the JS layer and you can filter/modify all the data in the `beforeSend` callback similarly to iOS. ([#3170](https://github.com/getsentry/sentry-react-native/pull/3170))
 - Use application variant instead of varian output to hook to correct package task for modules cleanup ([#3161](https://github.com/getsentry/sentry-react-native/pull/3161))
 
 ### Dependencies
@@ -15,6 +37,9 @@
 - Bump Cocoa SDK from v8.8.0 to v8.9.3 ([#3188](https://github.com/getsentry/sentry-react-native/pull/3188), [#3206](https://github.com/getsentry/sentry-react-native/pull/3206))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#893)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.8.0...8.9.3)
+- Bump Android SDK from v6.25.1 to v6.27.0 ([#3170](https://github.com/getsentry/sentry-react-native/pull/3170))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6270)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.25.1...6.27.0)
 
 ## 5.7.1
 

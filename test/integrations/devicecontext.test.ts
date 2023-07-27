@@ -45,7 +45,7 @@ describe('Device Context Integration', () => {
 
   it('merge event and native contexts', async () => {
     const { processedEvent } = await executeIntegrationWith({
-      nativeContexts: { context: { duplicate: { context: 'native-value' }, native: { context: 'value' } } },
+      nativeContexts: { contexts: { duplicate: { context: 'native-value' }, native: { context: 'value' } } },
       mockEvent: { contexts: { duplicate: { context: 'event-value' }, event: { context: 'value' } } },
     });
     expect(processedEvent).toStrictEqual({
@@ -142,7 +142,7 @@ describe('Device Context Integration', () => {
   it('adds in_foreground false to native app contexts', async () => {
     mockCurrentAppState = 'background';
     const { processedEvent } = await executeIntegrationWith({
-      nativeContexts: { context: { app: { native: 'value' } } },
+      nativeContexts: { contexts: { app: { native: 'value' } } },
     });
     expect(processedEvent).toStrictEqual({
       contexts: {
@@ -157,7 +157,7 @@ describe('Device Context Integration', () => {
   it('adds in_foreground to native app contexts', async () => {
     mockCurrentAppState = 'active';
     const { processedEvent } = await executeIntegrationWith({
-      nativeContexts: { context: { app: { native: 'value' } } },
+      nativeContexts: { contexts: { app: { native: 'value' } } },
     });
     expect(processedEvent).toStrictEqual({
       contexts: {
@@ -172,7 +172,7 @@ describe('Device Context Integration', () => {
   it('do not add in_foreground if unknown', async () => {
     mockCurrentAppState = 'unknown';
     const { processedEvent } = await executeIntegrationWith({
-      nativeContexts: { context: { app: { native: 'value' } } },
+      nativeContexts: { contexts: { app: { native: 'value' } } },
     });
     expect(processedEvent).toStrictEqual({
       contexts: {

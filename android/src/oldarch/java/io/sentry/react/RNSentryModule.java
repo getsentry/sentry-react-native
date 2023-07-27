@@ -7,6 +7,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableMap;
 
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
@@ -114,11 +115,21 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void fetchNativeDeviceContexts(Promise promise) {
-        // Not used on android
+        this.impl.fetchNativeDeviceContexts(promise);
     }
 
     @ReactMethod
     public void fetchNativeSdkInfo(Promise promise) {
-        // Not used on android
+        this.impl.fetchNativeSdkInfo(promise);
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public WritableMap startProfiling() {
+        return this.impl.startProfiling();
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public WritableMap stopProfiling() {
+        return this.impl.stopProfiling();
     }
 }

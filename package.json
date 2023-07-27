@@ -33,7 +33,8 @@
     "lint:prettier": "prettier --check \"{src,test,scripts}/**/**.ts\"",
     "test:watch": "jest --watch",
     "run-ios": "cd sample-new-architecture && yarn react-native run-ios",
-    "run-android": "cd sample-new-architecture && yarn react-native run-android"
+    "run-android": "cd sample-new-architecture && yarn react-native run-android",
+    "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/hub @sentry/integrations @sentry/react @sentry/types @sentry/utils"
   },
   "keywords": [
     "react-native",

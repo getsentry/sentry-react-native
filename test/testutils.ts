@@ -4,6 +4,10 @@ import { rejectedSyncPromise } from '@sentry/utils';
 
 import { getBlankTransactionContext } from '../src/js/tracing/utils';
 
+export type MockInterface<T> = {
+  [K in keyof T]: T[K] extends (...args: infer A) => infer B ? jest.Mock<B, A> : T[K];
+} & T;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function mockFunction<T extends (...args: any[]) => any>(fn: T): jest.MockedFunction<T> {
   return fn as jest.MockedFunction<T>;
