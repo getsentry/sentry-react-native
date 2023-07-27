@@ -19,8 +19,8 @@ export interface Spec extends TurboModule {
   closeNativeSdk(): Promise<void>;
   disableNativeFramesTracking(): void;
   fetchNativeRelease(): Promise<NativeReleaseResponse>;
-  fetchNativeSdkInfo(): Promise<Package>;
-  fetchNativeDeviceContexts(): Promise<NativeDeviceContextsResponse>;
+  fetchNativeSdkInfo(): Promise<Package | null>;
+  fetchNativeDeviceContexts(): Promise<NativeDeviceContextsResponse | null>;
   fetchNativeAppStart(): Promise<NativeAppStartResponse | null>;
   fetchNativeFrames(): Promise<NativeFramesResponse | null>;
   initNativeSdk(options: UnsafeObject): Promise<boolean>;
@@ -54,14 +54,15 @@ export type NativeReleaseResponse = {
 };
 
 /**
- * This type describes serialized scope from sentry-cocoa. (This is not used for Android)
+ * This type describes serialized scope from sentry-cocoa and sentry-android
  * https://github.com/getsentry/sentry-cocoa/blob/master/Sources/Sentry/SentryScope.m
+ * https://github.com/getsentry/sentry-java/blob/a461f7e125b65240004e6162b341f383ce2e1394/sentry-android-core/src/main/java/io/sentry/android/core/InternalSentrySdk.java#L32
  */
 export type NativeDeviceContextsResponse = {
   [key: string]: unknown;
   tags?: Record<string, string>;
   extra?: Record<string, unknown>;
-  context?: Record<string, Record<string, unknown>>;
+  contexts?: Record<string, Record<string, unknown>>;
   user?: {
     userId?: string;
     email?: string;

@@ -115,12 +115,12 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void fetchNativeDeviceContexts(Promise promise) {
-        // Not used on android
+        this.impl.fetchNativeDeviceContexts(promise);
     }
 
     @ReactMethod
     public void fetchNativeSdkInfo(Promise promise) {
-        // Not used on android
+        this.impl.fetchNativeSdkInfo(promise);
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
