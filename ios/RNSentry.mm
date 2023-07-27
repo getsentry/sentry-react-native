@@ -11,6 +11,17 @@
 #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
 
+#if __has_include(<hermes/hermes.h>)
+#define SENTRY_PROFILING_ENABLED 1
+#else
+#define SENTRY_PROFILING_ENABLED 0
+#endif
+
+// This guard prevents importing Hermes in JSC apps
+#if SENTRY_PROFILING_ENABLED
+#import <hermes/hermes.h>
+#endif
+
 // Thanks to this guard, we won't import this header when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED
 #import "RNSentrySpec.h"
@@ -496,6 +507,57 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // If you're starting the Cocoa SDK manually,
     // you can set the 'enableAutoPerformanceTracing: true' option and
     // the 'tracesSampleRate' or 'tracesSampler' option.
+}
+
+static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
+{
+#if SENTRY_PROFILING_ENABLED
+    try {
+        facebook::hermes::HermesRuntime::enableSamplingProfiler();
+        return @{ @"started": @YES };
+    } catch (const std::exception& ex) {
+        return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
+    } catch (...) {
+        return @{ @"error": @"Failed to start profiling" };
+    }
+#else
+    return @{ @"error": enabledProfilingMessage };
+#endif
+}
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
+{
+#if SENTRY_PROFILING_ENABLED
+    try {
+        facebook::hermes::HermesRuntime::disableSamplingProfiler();
+        std::stringstream ss;
+        facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
+
+        std::string s = ss.str();
+        NSString *data = [NSString stringWithCString:s.c_str() encoding:[NSString defaultCStringEncoding]];
+
+#if SENTRY_PROFILING_DEBUG_ENABLED
+        NSString *rawProfileFileName = @"hermes.profile";
+        NSError *error = nil;
+        NSString *rawProfileFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:rawProfileFileName];
+        if (![data writeToFile:rawProfileFilePath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
+            NSLog(@"Error writing Raw Hermes Profile to %@: %@", rawProfileFilePath, error);
+        } else {
+            NSLog(@"Raw Hermes Profile saved to %@", rawProfileFilePath);
+        }
+#endif
+
+        return @{ @"profile": data };
+    } catch (const std::exception& ex) {
+        return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
+    } catch (...) {
+        return @{ @"error": @"Failed to stop profiling" };
+    }
+#else
+    return @{ @"error": enabledProfilingMessage };
+#endif
 }
 
 // Thanks to this guard, we won't compile this code when we build for the old architecture.

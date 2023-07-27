@@ -11,6 +11,7 @@ import android.util.SparseIntArray;
 
 import androidx.core.app.FrameMetricsAggregator;
 
+import com.facebook.hermes.instrumentation.HermesSamplingProfiler;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -27,7 +28,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -608,6 +613,61 @@ public class RNSentryModuleImpl {
             frameMetricsAggregator.stop();
             frameMetricsAggregator = null;
         }
+    }
+
+    public WritableMap startProfiling() {
+        final WritableMap result = new WritableNativeMap();
+        try {
+            HermesSamplingProfiler.enable();
+            result.putBoolean("started", true);
+        } catch (Throwable e) {
+            result.putBoolean("started", false);
+            result.putString("error", e.toString());
+        }
+        return result;
+    }
+
+    public WritableMap stopProfiling() {
+        final boolean isDebug = HubAdapter.getInstance().getOptions().isDebug();
+        final WritableMap result = new WritableNativeMap();
+        File output = null;
+        try {
+            HermesSamplingProfiler.disable();
+
+            output = File.createTempFile(
+                "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
+
+            if (isDebug) {
+                logger.log(SentryLevel.INFO, "Profile saved to: " + output.getAbsolutePath());
+            }
+
+            try (final BufferedReader br = new BufferedReader(new FileReader(output));) {
+                HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
+
+                final StringBuilder text = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    text.append(line);
+                    text.append('\n');
+                }
+
+                result.putString("profile", text.toString());
+            }
+        } catch (Throwable e) {
+            result.putString("error", e.toString());
+        } finally {
+            if (output != null) {
+                try {
+                    final boolean wasProfileSuccessfullyDeleted = output.delete();
+                    if (!wasProfileSuccessfullyDeleted) {
+                       logger.log(SentryLevel.WARNING, "Profile not deleted from:" + output.getAbsolutePath());
+                    }
+                } catch (Throwable e) {
+                    logger.log(SentryLevel.WARNING, "Profile not deleted from:" + output.getAbsolutePath());
+                }
+            }
+        }
+        return result;
     }
 
     public void fetchNativeDeviceContexts(Promise promise) {

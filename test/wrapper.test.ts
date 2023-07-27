@@ -46,6 +46,8 @@ jest.mock(
       closeNativeSdk: jest.fn(() => Promise.resolve()),
       // @ts-ignore for testing.
       _getLastPayload: () => ({ initPayload }),
+      startProfiling: jest.fn(),
+      stopProfiling: jest.fn(),
     };
 
     return {
@@ -558,6 +560,39 @@ describe('Tests Native Wrapper', () => {
 
       expect(RNSentry.closeNativeSdk).toBeCalled();
       expect(NATIVE.enableNative).toBe(false);
+    });
+  });
+
+  describe('profiling', () => {
+    test('start profiling returns true', () => {
+      (RNSentry.startProfiling as jest.MockedFunction<typeof RNSentry.startProfiling>).mockReturnValue({
+        started: true,
+      });
+      expect(NATIVE.startProfiling()).toBe(true);
+    });
+    test('failed start profiling returns false', () => {
+      (RNSentry.startProfiling as jest.MockedFunction<typeof RNSentry.startProfiling>).mockReturnValue({
+        error: 'error',
+      });
+      expect(NATIVE.startProfiling()).toBe(false);
+    });
+    test('stop profiling returns profile', () => {
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        profile: '{ "valid": "json" }',
+      });
+      expect(NATIVE.stopProfiling()).toEqual({ valid: 'json' });
+    });
+    test('failed stop profiling returns null', () => {
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        error: 'error',
+      });
+      expect(NATIVE.stopProfiling()).toBe(null);
+    });
+    test('stop profiling returns null on invalid json profile', () => {
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        profile: 'invalid',
+      });
+      expect(NATIVE.stopProfiling()).toBe(null);
     });
   });
 });
