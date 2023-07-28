@@ -7,3 +7,4 @@ export { SdkInfo } from './sdkinfo';
 export { ReactNativeInfo } from './reactnativeinfo';
 export { ModulesLoader } from './modulesloader';
 export { HermesProfiling } from '../profiling/integration';
+export { BackgroundSpans } from './backgroundspans';

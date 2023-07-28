@@ -65,6 +65,7 @@ Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
+      new Sentry.Integrations.BackgroundSpans(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
