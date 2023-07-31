@@ -70,32 +70,30 @@ export class BackgroundSpans implements Integration {
           }
 
           // remove trailing background span
-          let trailingBackgroundSpanIndex: number | undefined;
-          let trailingBackgroundSpan: SpanClass | undefined;
+          let trailingSpanIndex: number | undefined;
+          let trailingSpan: SpanClass | undefined;
           for (let i = spans.length - 1; i >= 0; i--) {
             const span = spans[i]
-            if (!trailingBackgroundSpan && span.op === BACKGROUND_SPAN_OP) {
-              trailingBackgroundSpanIndex = i;
-              trailingBackgroundSpan = span;
+            if (trailingSpan
+              && typeof span.endTimestamp !== 'undefined'
+              && typeof trailingSpan.endTimestamp !== 'undefined'
+              && span.endTimestamp > trailingSpan.endTimestamp) {
+              trailingSpanIndex = i;
+              trailingSpan = span;
               continue;
             }
 
-            if (trailingBackgroundSpan
-                && typeof span.endTimestamp !== 'undefined'
-                && typeof trailingBackgroundSpan.endTimestamp !== 'undefined'
-                && span.endTimestamp > trailingBackgroundSpan.endTimestamp) {
-              if (span.op === BACKGROUND_SPAN_OP) {
-                trailingBackgroundSpanIndex = i;
-                trailingBackgroundSpan = span;
-              } else {
-                trailingBackgroundSpanIndex = undefined;
-                trailingBackgroundSpan = undefined;
-              }
+            if (!trailingSpan) {
+              trailingSpanIndex = i;
+              trailingSpan = span;
             }
           }
-          if (trailingBackgroundSpanIndex) {
-            spans.splice(trailingBackgroundSpanIndex, 1);
-            logger.debug('Removing trailing background span', tx.spanId, trailingBackgroundSpan);
+
+          if (typeof trailingSpanIndex !== 'undefined'
+            && trailingSpan
+            && trailingSpan.op === BACKGROUND_SPAN_OP) {
+            spans.splice(trailingSpanIndex, 1);
+            logger.debug('Removing trailing background span', tx.spanId, trailingSpan);
           } else {
             logger.debug('No trailing background span found', tx.spanId);
           }
