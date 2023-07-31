@@ -1,7 +1,10 @@
+import { Span as SpanClass } from '@sentry/core';
 import type { EventProcessor, Hub, Integration } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
+
+export const BACKGROUND_SPAN_OP = 'app.background';
 
 /**
  * Creates spans for the period of time that the App is in background
@@ -34,16 +37,73 @@ export class BackgroundSpans implements Integration {
 
     AppState.addEventListener('change', (state: AppStateStatus) => {
       if (state === 'active' && this._currentBackgroundStartTimestamp) {
-        const hub = getCurrentHub();
-        const tx = hub.getScope().getTransaction();
-        tx && tx.startChild({
+      const endTimestamp = timestampInSeconds();
+      const hub = getCurrentHub();
+      const tx = hub.getScope().getTransaction();
+
+        if (!tx) {
+          return;
+        }
+
+        tx.startChild({
           startTimestamp: this._currentBackgroundStartTimestamp,
-          endTimestamp: timestampInSeconds(),
           description: 'App in background',
-          op: 'app.background',
-        });
+          op: BACKGROUND_SPAN_OP,
+        }).finish(endTimestamp);
         this._currentBackgroundStartTimestamp = undefined;
-      } else if (state === 'background' || state === 'inactive' && !this._currentBackgroundStartTimestamp) {
+
+        if ((tx as unknown as Record<string, boolean>).__backgroundSpan === true) {
+          return;
+        }
+
+        (tx as unknown as Record<string, boolean>).__backgroundSpan = true;
+        const originalFinish = tx && tx.finish.bind(tx);
+        const beforeTransactionFinish = (endTimestamp?: number): void => {
+          const transaction = tx as SpanClass;
+          if (!(transaction instanceof SpanClass)) {
+            return originalFinish(endTimestamp);
+          }
+
+          const spans = transaction.spanRecorder && transaction.spanRecorder.spans;
+          if (!spans) {
+            return originalFinish(endTimestamp);
+          }
+
+          // remove trailing background span
+          let trailingBackgroundSpanIndex: number | undefined;
+          let trailingBackgroundSpan: SpanClass | undefined;
+          for (let i = spans.length - 1; i >= 0; i--) {
+            const span = spans[i]
+            if (!trailingBackgroundSpan && span.op === BACKGROUND_SPAN_OP) {
+              trailingBackgroundSpanIndex = i;
+              trailingBackgroundSpan = span;
+              continue;
+            }
+
+            if (trailingBackgroundSpan
+                && typeof span.endTimestamp !== 'undefined'
+                && typeof trailingBackgroundSpan.endTimestamp !== 'undefined'
+                && span.endTimestamp > trailingBackgroundSpan.endTimestamp) {
+              if (span.op === BACKGROUND_SPAN_OP) {
+                trailingBackgroundSpanIndex = i;
+                trailingBackgroundSpan = span;
+              } else {
+                trailingBackgroundSpanIndex = undefined;
+                trailingBackgroundSpan = undefined;
+              }
+            }
+          }
+          if (trailingBackgroundSpanIndex) {
+            spans.splice(trailingBackgroundSpanIndex, 1);
+            logger.debug('Removing trailing background span', tx.spanId, trailingBackgroundSpan);
+          } else {
+            logger.debug('No trailing background span found', tx.spanId);
+          }
+          delete (tx as unknown as Record<string, boolean>).__backgroundSpan;
+          originalFinish(endTimestamp);
+        };
+        tx.finish = beforeTransactionFinish;
+      } else if ((state === 'background' || state === 'inactive') && !this._currentBackgroundStartTimestamp) {
         this._currentBackgroundStartTimestamp = timestampInSeconds();
       } else {
         logger.warn(`AppState changed to unknown state: ${state}`);
