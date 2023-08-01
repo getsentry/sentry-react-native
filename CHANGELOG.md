@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Experimental Background Spans Integration ([#3220](https://github.com/getsentry/sentry-react-native/pull/3220))
+
+  This integration will auto create spans when your app goes to background.
+  This can help if you have missing instrumentation spans in your Transactions
+  or your transactions are longer than expected. Background spans are added only to auto created Transactions.
+
+  ```javascript
+    Sentry.init({
+      dsn: '___DSN___',
+      integrations: [
+        new Sentry.Integrations.BackgroundSpans(),
+      ],
+    });
+  ```
+
 ## 5.8.0
 
 ### Features
