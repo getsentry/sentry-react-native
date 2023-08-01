@@ -177,8 +177,7 @@ describe('background spans integration', () => {
     const spans: ReturnType<Span['toJSON']>[] | undefined = transaction.spanRecorder?.spans.map((span: Span) =>
       span.toJSON(),
     );
-    expect(spans?.filter((span: ReturnType<Span['toJSON']>) => span.op === BACKGROUND_SPAN_OP).length)
-      .toEqual(2);
+    expect(spans?.filter((span: ReturnType<Span['toJSON']>) => span.op === BACKGROUND_SPAN_OP).length).toEqual(2);
   });
 
   function mockStartIdleTransaction(mockHub: MockHub, idleTimeoutMs: number, finalTimeoutMs: number): IdleTransaction {
