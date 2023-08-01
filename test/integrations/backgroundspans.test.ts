@@ -157,6 +157,30 @@ describe('background spans integration', () => {
     );
   });
 
+  test('should record multiple background spans', () => {
+    const transaction: IdleTransaction = mockStartIdleTransaction(mockHub, 10, 20);
+
+    mockAppState.changeState('background');
+    jest.advanceTimersByTime(2);
+    mockAppState.changeState('active');
+    jest.advanceTimersByTime(2);
+    mockAppState.changeState('background');
+    jest.advanceTimersByTime(2);
+    mockAppState.changeState('active');
+    jest.advanceTimersByTime(2);
+    const child = transaction.startChild({ op: 'child' });
+    child.finish();
+    transaction.finish();
+
+    jest.runAllTimers();
+
+    const spans: ReturnType<Span['toJSON']>[] | undefined = transaction.spanRecorder?.spans.map((span: Span) =>
+      span.toJSON(),
+    );
+    expect(spans?.filter((span: ReturnType<Span['toJSON']>) => span.op === BACKGROUND_SPAN_OP).length)
+      .toEqual(2);
+  });
+
   function mockStartIdleTransaction(mockHub: MockHub, idleTimeoutMs: number, finalTimeoutMs: number): IdleTransaction {
     const transaction: IdleTransaction = new IdleTransaction(
       {
