@@ -12,7 +12,7 @@ import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumen
 import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
 import { APP_START_COLD as APP_START_COLD_OP, APP_START_WARM as APP_START_WARM_OP, UI_LOAD } from './ops';
-import { StallTrackingInstrumentation } from './stalltracking';
+import type { StallTrackingInstrumentation } from './stalltracking';
 import { onlySampleIfChildSpans } from './transaction';
 import type { BeforeNavigate, RouteChangeContextData } from './types';
 import { adjustTransactionDuration, getTimeOriginMilliseconds, isNearToNow } from './utils';
@@ -202,7 +202,8 @@ export class ReactNativeTracing implements Integration {
     }
 
     if (enableStallTracking) {
-      this.stallTrackingInstrumentation = new StallTrackingInstrumentation();
+      // For testing
+      // this.stallTrackingInstrumentation = new StallTrackingInstrumentation();
     }
 
     if (routingInstrumentation) {

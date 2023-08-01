@@ -66,6 +66,11 @@ export class StallTrackingInstrumentation {
 
   public constructor(options: StallTrackingOptions = { minimumStallThreshold: 50 }) {
     this._minimumStallThreshold = options.minimumStallThreshold;
+
+    this._backgroundEventListener = this._backgroundEventListener.bind(this);
+    // Avoids throwing any error if using React Native on a environment that doesn't implement AppState.
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    AppState?.addEventListener('change', this._backgroundEventListener);
   }
 
   /**
@@ -74,10 +79,6 @@ export class StallTrackingInstrumentation {
    */
   public setupOnce(): void {
     // Do nothing.
-    // this._backgroundEventListener = this._backgroundEventListener.bind(this);
-    // Avoids throwing any error if using React Native on a environment that doesn't implement AppState.
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    // AppState?.addEventListener('change', this._backgroundEventListener);
   }
 
   /**
