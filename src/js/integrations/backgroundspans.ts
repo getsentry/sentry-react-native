@@ -7,8 +7,9 @@ import { AppState } from 'react-native';
 export const BACKGROUND_SPAN_OP = 'app.background';
 
 /**
- * Creates spans for the period of time that the App is in background
- * (not active)
+ * Creates spans for the period of time that the App is in background (not active)
+ *
+ * @experimental
  */
 export class BackgroundSpans implements Integration {
   /**
