@@ -7,9 +7,14 @@ replace({
   from: /\d+\.\d+.\d+(?:-\w+(?:\.\w+)?)?/g,
   to: pjson.version,
 })
-  .then((changedFiles) => {
-    console.log('Modified files:', changedFiles.join(', '));
+  .then(matchedFiles => {
+    const modifiedFiles =
+      matchedFiles
+        .filter(file => file.hasChanged)
+        .map(file => file.file)
+        .join(', ') || 'none';
+    console.log('Modified files:', modifiedFiles);
   })
-  .catch((error) => {
+  .catch(error => {
     console.error('Error occurred:', error);
   });

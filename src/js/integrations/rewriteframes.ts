@@ -4,8 +4,8 @@ import { Platform } from 'react-native';
 
 import { isExpo } from '../utils/environment';
 
-const ANDROID_DEFAULT_BUNDLE_NAME = 'app:///index.android.bundle';
-const IOS_DEFAULT_BUNDLE_NAME = 'app:///main.jsbundle';
+export const ANDROID_DEFAULT_BUNDLE_NAME = 'app:///index.android.bundle';
+export const IOS_DEFAULT_BUNDLE_NAME = 'app:///main.jsbundle';
 
 /**
  * Creates React Native default rewrite frames integration

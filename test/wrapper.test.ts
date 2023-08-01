@@ -46,6 +46,8 @@ jest.mock(
       closeNativeSdk: jest.fn(() => Promise.resolve()),
       // @ts-ignore for testing.
       _getLastPayload: () => ({ initPayload }),
+      startProfiling: jest.fn(),
+      stopProfiling: jest.fn(),
     };
 
     return {
@@ -346,7 +348,7 @@ describe('Tests Native Wrapper', () => {
         { store: false },
       );
     });
-    test('Clears breadcrumbs on Android if mechanism.handled is true', async () => {
+    test('Keeps breadcrumbs on Android if mechanism.handled is true', async () => {
       NATIVE.platform = 'android';
 
       const event: Event = {
@@ -377,13 +379,13 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.captureEnvelope).toBeCalledWith(
         utf8ToBytes(
           '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":104}\n' +
-            '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[]}\n',
+            '{"type":"event","content_type":"application/json","length":124}\n' +
+            '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
         ),
         { store: false },
       );
     });
-    test('Clears breadcrumbs on Android if there is no exception', async () => {
+    test('Keeps breadcrumbs on Android if there is no exception', async () => {
       NATIVE.platform = 'android';
 
       const event: Event = {
@@ -404,13 +406,13 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.captureEnvelope).toBeCalledWith(
         utf8ToBytes(
           '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":38}\n' +
-            '{"event_id":"event0","breadcrumbs":[]}\n',
+            '{"type":"event","content_type":"application/json","length":58}\n' +
+            '{"event_id":"event0","breadcrumbs":[{"message":"crumb!"}]}\n',
         ),
         { store: false },
       );
     });
-    test('Does not clear breadcrumbs on Android if mechanism.handled is false', async () => {
+    test('Keeps breadcrumbs on Android if mechanism.handled is false', async () => {
       NATIVE.platform = 'android';
 
       const event: Event = {
@@ -471,12 +473,16 @@ describe('Tests Native Wrapper', () => {
 
       expect(RNSentry.fetchNativeDeviceContexts).toBeCalled();
     });
-    test('returns empty object on android', async () => {
+    test('returns context object from native module on android', async () => {
       NATIVE.platform = 'android';
 
-      await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject({});
+      await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject({
+        someContext: {
+          someValue: 0,
+        },
+      });
 
-      expect(RNSentry.fetchNativeDeviceContexts).not.toBeCalled();
+      expect(RNSentry.fetchNativeDeviceContexts).toBeCalled();
     });
   });
 
@@ -554,6 +560,39 @@ describe('Tests Native Wrapper', () => {
 
       expect(RNSentry.closeNativeSdk).toBeCalled();
       expect(NATIVE.enableNative).toBe(false);
+    });
+  });
+
+  describe('profiling', () => {
+    test('start profiling returns true', () => {
+      (RNSentry.startProfiling as jest.MockedFunction<typeof RNSentry.startProfiling>).mockReturnValue({
+        started: true,
+      });
+      expect(NATIVE.startProfiling()).toBe(true);
+    });
+    test('failed start profiling returns false', () => {
+      (RNSentry.startProfiling as jest.MockedFunction<typeof RNSentry.startProfiling>).mockReturnValue({
+        error: 'error',
+      });
+      expect(NATIVE.startProfiling()).toBe(false);
+    });
+    test('stop profiling returns profile', () => {
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        profile: '{ "valid": "json" }',
+      });
+      expect(NATIVE.stopProfiling()).toEqual({ valid: 'json' });
+    });
+    test('failed stop profiling returns null', () => {
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        error: 'error',
+      });
+      expect(NATIVE.stopProfiling()).toBe(null);
+    });
+    test('stop profiling returns null on invalid json profile', () => {
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        profile: 'invalid',
+      });
+      expect(NATIVE.stopProfiling()).toBe(null);
     });
   });
 });
