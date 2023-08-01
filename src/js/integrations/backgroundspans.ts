@@ -24,7 +24,7 @@ export class BackgroundSpans implements Integration {
 
   private _currentBackgroundStartTimestamp: number | undefined;
 
-  public constructor(private _appState: AppState = AppState) {}
+  private _appState: AppState = AppState;
 
   /**
    * @inheritDoc

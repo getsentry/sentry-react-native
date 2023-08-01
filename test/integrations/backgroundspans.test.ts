@@ -29,7 +29,8 @@ describe('background spans integration', () => {
       captureEvent: jest.fn().mockReturnValue('mock-event-id'),
     };
     mockAppState = new MockAppState();
-    backgroundSpans = new BackgroundSpans(mockAppState);
+    backgroundSpans = new BackgroundSpans();
+    backgroundSpans['_appState'] = mockAppState;
     backgroundSpans.setupOnce(
       () => {},
       () => mockHub as unknown as Hub,
