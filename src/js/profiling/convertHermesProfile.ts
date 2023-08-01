@@ -139,8 +139,8 @@ function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFr
     frames.push({
       function: functionName || ANONYMOUS_FUNCTION_NAME,
       file: hermesFrame.category == 'JavaScript' ? DEFAULT_BUNDLE_NAME : undefined,
-      line: hermesFrame.line !== undefined ? Number(hermesFrame.line) : undefined,
-      column: hermesFrame.column !== undefined ? Number(hermesFrame.column) : undefined,
+      lineno: hermesFrame.line !== undefined ? Number(hermesFrame.line) : undefined,
+      colno: hermesFrame.column !== undefined ? Number(hermesFrame.column) : undefined,
     });
   }
 

@@ -82,28 +82,28 @@ describe('convert hermes profile to sentry profile', () => {
     const expectedSentryProfile: ThreadCpuProfile = {
       frames: [
         {
-          column: undefined,
+          colno: undefined,
           file: undefined,
           function: '[root]',
-          line: undefined,
+          lineno: undefined,
         },
         {
-          column: 33,
+          colno: 33,
           file: 'app:///main.jsbundle',
           function: 'fooA',
-          line: 1610,
+          lineno: 1610,
         },
         {
-          column: 21,
+          colno: 21,
           file: 'app:///main.jsbundle',
           function: 'fooB',
-          line: 1616,
+          lineno: 1616,
         },
         {
-          column: 18,
+          colno: 18,
           file: 'app:///main.jsbundle',
           function: 'anonymous',
-          line: 1627,
+          lineno: 1627,
         },
       ],
       samples: [
