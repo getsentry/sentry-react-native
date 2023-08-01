@@ -96,10 +96,9 @@ export class BackgroundSpans implements Integration {
       if (lastNonBackgroundSpanEndTimestamp && transaction.spanRecorder) {
         transaction.spanRecorder.spans = spans.filter(
           span =>
-            typeof span.endTimestamp === 'undefined'
-              || span.op !== BACKGROUND_SPAN_OP
-              || (lastNonBackgroundSpanEndTimestamp
-                && span.endTimestamp <= lastNonBackgroundSpanEndTimestamp),
+            typeof span.endTimestamp === 'undefined' ||
+            span.op !== BACKGROUND_SPAN_OP ||
+            (lastNonBackgroundSpanEndTimestamp && span.endTimestamp <= lastNonBackgroundSpanEndTimestamp),
         );
       }
 
