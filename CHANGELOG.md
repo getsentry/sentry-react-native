@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Use application variant instead of variant output to hook to correct package task for modules cleanup ([#3161](https://github.com/getsentry/sentry-react-native/pull/3161))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v7.60.1 to v7.61.0 ([#3222](https://github.com/getsentry/sentry-react-native/pull/3222))
@@ -35,7 +39,6 @@
 
 - Warn users about multiple versions of `promise` package which can cause unexpected behavior like undefined `Promise.allSettled` ([#3162](https://github.com/getsentry/sentry-react-native/pull/3162))
 - Event is enriched with all the Android context on the JS layer and you can filter/modify all the data in the `beforeSend` callback similarly to iOS. ([#3170](https://github.com/getsentry/sentry-react-native/pull/3170))
-- Use application variant instead of varian output to hook to correct package task for modules cleanup ([#3161](https://github.com/getsentry/sentry-react-native/pull/3161))
 
 ### Dependencies
 
