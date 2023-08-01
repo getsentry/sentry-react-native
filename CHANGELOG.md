@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Stall Time is no longer counted when App is in Background.
+  ([#3211](https://github.com/getsentry/sentry-react-native/pull/3211))
+
 ## 5.8.0
 
 ### Features
