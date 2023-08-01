@@ -72,7 +72,7 @@ describe('background spans integration', () => {
     );
   });
 
-  test('should remove background span if it is the only span', () => {
+  test('should keep background span if it is the only span', () => {
     const transaction: IdleTransaction = mockStartIdleTransaction(mockHub, 10, 20);
 
     mockAppState.changeState('background');
@@ -86,7 +86,7 @@ describe('background spans integration', () => {
     const spans: ReturnType<Span['toJSON']>[] | undefined = transaction.spanRecorder?.spans.map((span: Span) =>
       span.toJSON(),
     );
-    expect(spans).not.toEqual(
+    expect(spans).toEqual(
       expect.arrayContaining(<Span[]>[
         expect.objectContaining<Partial<ReturnType<Span['toJSON']>>>({
           op: BACKGROUND_SPAN_OP,
@@ -101,6 +101,10 @@ describe('background spans integration', () => {
     const child = transaction.startChild({ op: 'child' });
     jest.advanceTimersByTime(2);
     child.finish();
+
+    mockAppState.changeState('background');
+    jest.advanceTimersByTime(2);
+    mockAppState.changeState('active');
 
     mockAppState.changeState('background');
     jest.advanceTimersByTime(2);
