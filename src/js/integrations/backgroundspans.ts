@@ -81,36 +81,28 @@ export class BackgroundSpans implements Integration {
         return originalFinish(endTimestamp);
       }
 
-      // remove trailing background span
-      let trailingSpanIndex: number | undefined;
-      let trailingSpan: SpanClass | undefined;
-      for (let i = spans.length - 1; i >= 0; i--) {
-        const span = spans[i];
-        if (
-          trailingSpan &&
-          typeof span.endTimestamp !== 'undefined' &&
-          typeof trailingSpan.endTimestamp !== 'undefined'
-        ) {
-          if (span.endTimestamp > trailingSpan.endTimestamp) {
-            // Update trailing span
-            trailingSpanIndex = i;
-            trailingSpan = span;
-            continue;
+      let lastNonBackgroundSpanEndTimestamp: number | undefined;
+      const nonBackgroundSpans = spans.filter(span => span != transaction && span.op !== BACKGROUND_SPAN_OP);
+
+      if (nonBackgroundSpans.length > 0) {
+        lastNonBackgroundSpanEndTimestamp = nonBackgroundSpans.reduce((prev: SpanClass, current: SpanClass) => {
+          if (prev.endTimestamp && current.endTimestamp) {
+            return prev.endTimestamp > current.endTimestamp ? prev : current;
           }
-        }
-
-        if (!trailingSpan) {
-          trailingSpanIndex = i;
-          trailingSpan = span;
-        }
+          return prev;
+        }).endTimestamp;
       }
 
-      if (typeof trailingSpanIndex !== 'undefined' && trailingSpan && trailingSpan.op === BACKGROUND_SPAN_OP) {
-        spans.splice(trailingSpanIndex, 1);
-        logger.debug('Removing trailing background span', tx.spanId, trailingSpan);
-      } else {
-        logger.debug('No trailing background span found', tx.spanId);
+      if (lastNonBackgroundSpanEndTimestamp && transaction.spanRecorder) {
+        transaction.spanRecorder.spans = spans.filter(
+          span =>
+            typeof span.endTimestamp === 'undefined'
+              || span.op !== BACKGROUND_SPAN_OP
+              || (lastNonBackgroundSpanEndTimestamp
+                && span.endTimestamp <= lastNonBackgroundSpanEndTimestamp),
+        );
       }
+
       delete (tx as unknown as Record<string, boolean>).__backgroundSpan;
       originalFinish(endTimestamp);
     };
