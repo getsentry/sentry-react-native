@@ -577,7 +577,7 @@ describe('StallTracking', () => {
       expect(stallTracking['_totalStallTime']).toBeGreaterThanOrEqual(totalTimeTaken - LOOP_TIMEOUT_INTERVAL_MS);
     });
     // Stall tracking should set _isBackground to false, update _lastIntervalMs, and call _iteration when state is active and _timeout is not null
-    it('small name', () => {
+//    it('small name', () => {
 /*
       const stallTracking = new StallTrackingInstrumentation();
       const LOOP_TIMEOUT_INTERVAL_MS = 500; // Change this value based on your actual interval value
@@ -593,7 +593,7 @@ describe('StallTracking', () => {
       jest.runOnlyPendingTimers(); // Fast-forward the timer to execute the timeout function
     });
 */
-  });
+//  });
 //  describe('BackgroundEventListener', () => {
     /*
     it('Stall tracking should set _isBackground to true when state is not active', () => {
