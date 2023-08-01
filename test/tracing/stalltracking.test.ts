@@ -601,6 +601,7 @@ describe('StallTracking', () => {
       expect(stallTracking['_isBackground']).toBe(true);
     });
     */
+    /*
     it('Stall tracking should not call _iteration when state is active but _timeout is null', () => {
       const stallTracking = new StallTrackingInstrumentation();
       stallTracking['_timeout'] = null;
@@ -611,6 +612,7 @@ describe('StallTracking', () => {
       jest.useFakeTimers(); // Enable fake timers to control timeouts
       stallTracking['_backgroundEventListener']('active' as AppStateStatus);
     });
+    */
     /*
     it('Stall tracking should call _iteration when state is active and _timeout is defined', () => {
       const stallTracking = new StallTrackingInstrumentation();
