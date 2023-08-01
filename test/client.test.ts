@@ -46,6 +46,11 @@ interface MockedReactNative {
   Alert: {
     alert: jest.Mock;
   };
+  AppState: {
+    addEventListener: jest.Mock,
+    removeEventListener: jest.Mock,
+    currentState: 'active'
+  };
 }
 
 jest.mock(
@@ -73,6 +78,11 @@ jest.mock(
     Alert: {
       alert: jest.fn(),
     },
+    AppState:  {
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      currentState: 'active',
+    }
   }),
   /* virtual allows us to mock modules that aren't in package.json */
   { virtual: true },

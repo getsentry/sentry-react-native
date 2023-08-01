@@ -49,6 +49,11 @@ jest.mock(
       startProfiling: jest.fn(),
       stopProfiling: jest.fn(),
     };
+    const mockAppState = {
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      currentState: 'active',
+    };
 
     return {
       NativeModules: {
@@ -57,6 +62,7 @@ jest.mock(
       Platform: {
         OS: 'ios',
       },
+      AppState: mockAppState
     };
   },
   /* virtual allows us to mock modules that aren't in package.json */
