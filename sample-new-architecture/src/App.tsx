@@ -30,6 +30,7 @@ Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
+  environment: 'dev',
   beforeSend: (event: Sentry.Event) => {
     console.log('Event beforeSend:', event.event_id);
     return event;
