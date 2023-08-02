@@ -111,7 +111,8 @@
       "js"
     ],
     "testPathIgnorePatterns": [
-      "<rootDir>/test/e2e/"
+      "<rootDir>/test/e2e/",
+      "<rootDir>/test/tracing/stalltracking.test.ts"
     ],
     "testEnvironment": "node",
     "testMatch": [

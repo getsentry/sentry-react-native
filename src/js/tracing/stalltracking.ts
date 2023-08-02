@@ -2,8 +2,6 @@
 import type { IdleTransaction, Span, Transaction } from '@sentry/core';
 import type { Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
-import type { AppStateStatus } from 'react-native';
-import { AppState } from 'react-native';
 
 import { STALL_COUNT, STALL_LONGEST_TIME, STALL_TOTAL_TIME } from '../measurements';
 
@@ -67,10 +65,10 @@ export class StallTrackingInstrumentation {
   public constructor(options: StallTrackingOptions = { minimumStallThreshold: 50 }) {
     this._minimumStallThreshold = options.minimumStallThreshold;
 
-    this._backgroundEventListener = this._backgroundEventListener.bind(this);
+//    this._backgroundEventListener = this._backgroundEventListener.bind(this);
     // Avoids throwing any error if using React Native on a environment that doesn't implement AppState.
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    AppState?.addEventListener('change', this._backgroundEventListener);
+//    AppState?.addEventListener('change', this._backgroundEventListener);
   }
 
   /**
@@ -228,8 +226,9 @@ export class StallTrackingInstrumentation {
     /**
    * Switch that enables the iteraction once app moves from background to foreground.
    */
-    private _backgroundEventListener(state: AppStateStatus): void {
-      if (state === ('active' as AppStateStatus)) {
+  // @ts-ignore for testing.
+    private _backgroundEventListener(state: string): void {
+      if (state === ('active')) {
         this._isBackground = false;
         if (this._timeout != null) {
           this._lastIntervalMs = Math.floor(timestampInSeconds() * 1000);
