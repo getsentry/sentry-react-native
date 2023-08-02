@@ -1,7 +1,6 @@
 import type { Hub } from '@sentry/core';
 import { IdleTransaction, Transaction } from '@sentry/core';
 import type { Event } from '@sentry/types';
-import type { AppStateStatus } from 'react-native';
 
 import { StallTrackingInstrumentation } from '../../src/js/tracing/stalltracking';
 
