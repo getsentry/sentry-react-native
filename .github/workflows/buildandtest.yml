@@ -25,7 +25,9 @@ jobs:
         if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Test
-        run: yarn test
+        run: yarn test:no-stall
+      - name: Test Stall Tracking
+        run: yarn test /test/tracing/stalltracking.test.ts
 
   job_lint:
     name: Lint
