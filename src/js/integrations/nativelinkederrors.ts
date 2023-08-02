@@ -107,9 +107,9 @@ export class NativeLinkedErrors implements Integration {
     if ('stackElements' in linkedError) {
       // isJavaException
       exception = this._exceptionFromJavaStackElements(linkedError);
-    } else if ('stackSymbols' in linkedError) {
-      // isObjCException symbolicated by local debug symbols
-      exception = this._exceptionFromAppleStackSymbols(linkedError);
+    // } else if ('stackSymbols' in linkedError) {
+    //   // isObjCException symbolicated by local debug symbols
+    //   exception = this._exceptionFromAppleStackSymbols(linkedError);
     } else if ('stackReturnAddresses' in linkedError) {
       // isObjCException
       exception = this._exceptionFromAppleStackReturnAddresses(linkedError);
@@ -158,41 +158,6 @@ export class NativeLinkedErrors implements Integration {
   /**
    *
    */
-  private _exceptionFromAppleStackSymbols(
-    objCException: {
-      name: string;
-      message: string;
-      stackSymbols: string[];
-    },
-  ): Exception {
-    return {
-      type: objCException.name,
-      value: objCException.message,
-      stacktrace: {
-        frames: objCException.stackSymbols.map(stackSymbol => {
-          const addrStartIndex = stackSymbol.indexOf(' 0x') + 1;
-          const addrEndIndex = stackSymbol.indexOf(' ', addrStartIndex);
-          const pkg = stackSymbol.substring(4, addrStartIndex).trim();
-          const addr = stackSymbol.substring(addrStartIndex + 2, addrEndIndex);
-          const functionEndIndex = stackSymbol.indexOf(' + ', addrEndIndex);
-          const func = stackSymbol.substring(addrEndIndex + 1, functionEndIndex);
-          return <StackFrame>{
-            platform: 'cocoa',
-            package: pkg,
-            function: func,
-            instruction_addr: addr,
-            in_app: this._nativePackage !== null && pkg.startsWith(this._nativePackage)
-              ? true
-              : undefined,
-          };
-        }).reverse(),
-      },
-    };
-  }
-
-  /**
-   *
-   */
   private _exceptionFromAppleStackReturnAddresses(
     objCException: {
       name: string;
@@ -206,14 +171,14 @@ export class NativeLinkedErrors implements Integration {
       stacktrace: {
         frames: objCException.stackReturnAddresses.map( returnAddress => ({
           platform: 'cocoa',
-          instruction_addr: returnAddress.toString(16),
+          instruction_addr: `0x${returnAddress.toString(16)}`,
         })).reverse(),
       },
     };
   }
 
   /**
-   *
+   * Fetches the native package/image name from the native layer
    */
   private async _fetchNativePackage(): Promise<string | null> {
     try {
@@ -224,6 +189,13 @@ export class NativeLinkedErrors implements Integration {
     }
     return null;
   }
+
+  /**
+   * Gets a Debug Image for a given address via the native layer
+   */
+  private async _getDebugImage(imageAddress: number): Promise<{
+
+  } | null> {
 }
 
 // TODO: Needs to be exported from @sentry/browser
