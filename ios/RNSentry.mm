@@ -1,3 +1,4 @@
+#import <dlfcn.h>
 #import "RNSentry.h"
 
 #if __has_include(<React/RCTConvert.h>)
@@ -10,6 +11,9 @@
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
+#import <Sentry/SentryBinaryImageCache.h>
+#import <Sentry/SentryDependencyContainer.h>
+#import <Sentry/SentryFormatter.h>
 
 #if __has_include(<hermes/hermes.h>)
 #define SENTRY_PROFILING_ENABLED 1
@@ -193,6 +197,79 @@ RCT_EXPORT_METHOD(fetchModules:(RCTPromiseResolveBlock)resolve
                                                   encoding:NSUTF8StringEncoding
                                                      error:nil];
     resolve(modulesString);
+}
+
+RCT_EXPORT_METHOD(fetchNativePackageName:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSString *packageName = [[NSBundle mainBundle] executablePath];
+    resolve(packageName);
+}
+
+RCT_EXPORT_METHOD(fetchNativeStackFramesBy: (NSArray<NSNumber *> *) instructionsAddr
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  BOOL shouldSymbolicateLocally = [SentrySDK.options debug];
+  NSString *appPackageName = [[NSBundle mainBundle] executablePath];
+
+  NSMutableSet<NSString *> * _Nonnull imagesAddrToRetrieveDebugMetaImages = [[NSMutableSet alloc] init];
+  NSMutableArray<NSDictionary<NSString *, id> *> * _Nonnull serializedFrames = [[NSMutableArray alloc] init];
+
+  for (NSNumber *addr in instructionsAddr) {
+    SentryBinaryImageInfo * _Nullable image = [[SentryBinaryImageCache shared] imageByAddress:[addr unsignedLongLongValue]];
+    if (image != nil) {
+      NSString * imageAddr = sentry_formatHexAddressUInt64([image address]);
+      [imagesAddrToRetrieveDebugMetaImages addObject: imageAddr];
+      
+      NSDictionary<NSString *, id> * _Nonnull nativeFrame = @{
+        @"platform": @"cocoa",
+        @"instruction_addr": sentry_formatHexAddress(addr),
+        @"package": [image name],
+        @"image_addr": imageAddr,
+        @"in_app": [NSNumber numberWithBool:[appPackageName isEqualToString:[image name]]],
+      };
+      
+      if (shouldSymbolicateLocally) {
+        Dl_info symbolsBuffer;
+        bool symbols_succeed = false;
+        symbols_succeed = dladdr((void *) [addr unsignedLongLongValue], &symbolsBuffer) != 0;
+        if (symbols_succeed) {
+          NSMutableDictionary<NSString *, id> * _Nonnull symbolicated = nativeFrame.mutableCopy;
+          symbolicated[@"symbolAddress"] = sentry_formatHexAddressUInt64((uintptr_t)symbolsBuffer.dli_saddr);
+          symbolicated[@"function"] = [NSString stringWithCString:symbolsBuffer.dli_sname encoding:NSUTF8StringEncoding];
+
+          nativeFrame = symbolicated;
+        }
+      }
+
+      [serializedFrames addObject:nativeFrame];
+    } else {
+      [serializedFrames addObject: @{
+        @"platform": @"cocoa",
+        @"instruction_addr": addr,
+      }];
+    }
+  }
+  
+  if (shouldSymbolicateLocally) {
+    resolve(@{
+      @"frames": serializedFrames,
+    });
+  } else {
+    NSMutableArray<NSDictionary<NSString *, id> *> * _Nonnull serializedDebugMetaImages = [[NSMutableArray alloc] init];
+
+    NSArray<SentryDebugMeta *> *debugMetaImages = [[[SentryDependencyContainer sharedInstance] debugImageProvider] getDebugImagesForAddresses:imagesAddrToRetrieveDebugMetaImages isCrash:false];
+    
+    for (SentryDebugMeta *debugImage in debugMetaImages) {
+      [serializedDebugMetaImages addObject:[debugImage serialize]];
+    }
+    
+    resolve(@{
+      @"frames": serializedFrames,
+      @"debugMetaImages": serializedDebugMetaImages,
+    });
+  }
 }
 
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve

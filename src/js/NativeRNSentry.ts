@@ -33,6 +33,51 @@ export interface Spec extends TurboModule {
   fetchViewHierarchy(): Promise<number[] | undefined | null>;
   startProfiling(): { started?: boolean; error?: string };
   stopProfiling(): { profile?: string; error?: string };
+  fetchNativePackageName(): Promise<string | undefined | null>;
+  fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | undefined | null>;
+}
+
+export type NativeStackFrame = {
+  platform: string;
+  /**
+   * The instruction address of this frame.
+   * Formatted as hex with 0x prefix.
+   */
+  instruction_addr: string;
+  package?: string;
+  /**
+   * The debug image address of this frame.
+   * Formatted as hex with 0x prefix.
+   */
+  image_addr?: string;
+  in_app?: boolean;
+  /**
+   * The symbol name of this frame.
+   * If symbolicated locally.
+   */
+  function?: string;
+  /**
+   * The symbol address of this frame.
+   * If symbolicated locally.
+   * Formatted as hex with 0x prefix.
+   */
+  symbol_addr?: string;
+};
+
+export type NativeDebugImage = {
+  name: string;
+  type?: string;
+  uuid?: string;
+  debug_id?: string;
+  image_addr?: string;
+  image_size?: string;
+  code_file?: string;
+  image_vmaddr?: string;
+};
+
+export type NativeStackFrames = {
+  frames: NativeStackFrame[];
+  debugMetaImages?: NativeDebugImage[];
 }
 
 export type NativeAppStartResponse = {

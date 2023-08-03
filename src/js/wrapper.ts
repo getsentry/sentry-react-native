@@ -19,6 +19,7 @@ import type {
   NativeFramesResponse,
   NativeReleaseResponse,
   NativeScreenshot,
+  NativeStackFrames,
   Spec,
 } from './NativeRNSentry';
 import type { ReactNativeClientOptions } from './options';
@@ -82,6 +83,13 @@ interface SentryNativeWrapper {
 
   startProfiling(): boolean;
   stopProfiling(): Hermes.Profile | null;
+
+  fetchNativePackageName(): Promise<string | null>;
+
+  /**
+   * Fetches native stack frames and debug images for the instructions addresses.
+   */
+  fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | null>;
 }
 
 /**
@@ -529,6 +537,28 @@ export const NATIVE: SentryNativeWrapper = {
       logger.error('[NATIVE] Failed to parse Hermes Profile JSON', e);
       return null;
     }
+  },
+
+  async fetchNativePackageName(): Promise<string | null> {
+    if (!this.enableNative) {
+      return null;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return null;
+    }
+
+    return await RNSentry.fetchNativePackageName() || null;
+  },
+
+  async fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | null> {
+    if (!this.enableNative) {
+      return null;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return null;
+    }
+
+    return await RNSentry.fetchNativeStackFramesBy(instructionsAddr) || null;
   },
 
   /**

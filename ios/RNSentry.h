@@ -4,7 +4,18 @@
 #import "RCTBridge.h"
 #endif
 
+#import <Sentry/Sentry.h>
 #import <Sentry/SentryOptions.h>
+#import <Sentry/SentryDebugImageProvider.h>
+
+@interface SentryDebugImageProvider ()
+- (NSArray<SentryDebugMeta *> * _Nonnull)getDebugImagesForAddresses:(NSSet<NSString *> * _Nonnull)addresses isCrash:(BOOL)isCrash;
+@end
+
+@interface
+SentrySDK (Private)
+@property (nonatomic, nullable, readonly, class) SentryOptions *options;
+@end
 
 @interface RNSentry : NSObject <RCTBridgeModule>
 
