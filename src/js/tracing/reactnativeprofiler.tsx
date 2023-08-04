@@ -20,7 +20,7 @@ export class ReactNativeProfiler extends Profiler {
     if (!client) {
       // We can't use logger here because this will be logged before the `Sentry.init`.
       // eslint-disable-next-line no-console
-      console.warn('App Start Span could not be finished. `Sentry.wrap` was called before `Sentry.init`.');
+      __DEV__ && console.warn('App Start Span could not be finished. `Sentry.wrap` was called before `Sentry.init`.');
     } else {
       const tracingIntegration = getCurrentHub().getIntegration(
         ReactNativeTracing
