@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- `Sentry.init` must be called before `Sentry.wrap`([#3227](https://github.com/getsentry/sentry-react-native/pull/3227))
+  - The SDK now shows warning if incorrect order is detected
+
 ## 5.8.1
 
 ### Dependencies
