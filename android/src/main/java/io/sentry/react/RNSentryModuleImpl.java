@@ -704,6 +704,15 @@ public class RNSentryModuleImpl {
         }
     }
 
+    public void fetchNativePackageName(Promise promise) {
+        promise.resolve(packageInfo.packageName);
+    }
+
+    public void fetchNativeStackFramesBy(Promise promise) {
+        logger.log(SentryLevel.ERROR, "This method works only on iOS.");
+        promise.resolve(null);
+    }
+
     private void setEventOriginTag(SentryEvent event) {
         SdkVersion sdk = event.getSdk();
         if (sdk != null) {

@@ -133,4 +133,14 @@ public class RNSentryModule extends NativeRNSentrySpec {
     public WritableMap stopProfiling() {
         return this.impl.stopProfiling();
     }
+
+    @Override
+    public void fetchNativePackageName(Promise promise) {
+        this.impl.fetchNativePackageName(promise);
+    }
+
+    @Override
+    public void fetchNativeStackFramesBy(Promise promise) {
+        this.impl.fetchNativeStackFramesBy(promise);
+    }
 }

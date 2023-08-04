@@ -547,7 +547,7 @@ export const NATIVE: SentryNativeWrapper = {
       return null;
     }
 
-    return await RNSentry.fetchNativePackageName() || null;
+    return (await RNSentry.fetchNativePackageName()) || null;
   },
 
   async fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | null> {
@@ -558,7 +558,7 @@ export const NATIVE: SentryNativeWrapper = {
       return null;
     }
 
-    return await RNSentry.fetchNativeStackFramesBy(instructionsAddr) || null;
+    return (await RNSentry.fetchNativeStackFramesBy(instructionsAddr)) || null;
   },
 
   /**

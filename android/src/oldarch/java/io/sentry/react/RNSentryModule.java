@@ -132,4 +132,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public WritableMap stopProfiling() {
         return this.impl.stopProfiling();
     }
+
+    @ReactMethod
+    public void fetchNativePackageName(Promise promise) {
+        this.impl.fetchNativePackageName(promise);
+    }
+
+    @ReactMethod
+    public void fetchNativeStackFramesBy(Promise promise) {
+        this.impl.fetchNativeStackFramesBy(promise);
+    }
 }

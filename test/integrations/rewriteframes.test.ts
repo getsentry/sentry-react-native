@@ -57,18 +57,16 @@ describe('RewriteFrames', () => {
             instruction_addr: '0000000103535900',
           },
         ],
-      }
+      },
     };
 
     const SENTRY_COCOA_EXCEPTION_EVENT: Event = {
       exception: {
-        values: [
-          JSON.parse(JSON.stringify(EXPECTED_SENTRY_COCOA_EXCEPTION)),
-        ],
+        values: [JSON.parse(JSON.stringify(EXPECTED_SENTRY_COCOA_EXCEPTION))],
       },
     };
 
-    const event = createReactNativeRewriteFrames().process(SENTRY_COCOA_EXCEPTION_EVENT)
+    const event = createReactNativeRewriteFrames().process(SENTRY_COCOA_EXCEPTION_EVENT);
     expect(event.exception?.values?.[0]).toEqual(EXPECTED_SENTRY_COCOA_EXCEPTION);
   });
 
@@ -83,14 +81,14 @@ describe('RewriteFrames', () => {
             module: 'com.example.modules.Crash',
             filename: 'Crash.kt',
             lineno: 10,
-            function: 'getDataCrash'
+            function: 'getDataCrash',
           },
           {
             platform: 'java',
             module: 'com.facebook.jni.NativeRunnable',
             filename: 'NativeRunnable.java',
             lineno: 2,
-            function: 'run'
+            function: 'run',
           },
         ],
       },
@@ -98,13 +96,11 @@ describe('RewriteFrames', () => {
 
     const SENTRY_JVM_EXCEPTION_EVENT: Event = {
       exception: {
-        values: [
-          JSON.parse(JSON.stringify(EXPECTED_SENTRY_JVM_EXCEPTION)),
-        ],
+        values: [JSON.parse(JSON.stringify(EXPECTED_SENTRY_JVM_EXCEPTION))],
       },
     };
 
-    const event = createReactNativeRewriteFrames().process(SENTRY_JVM_EXCEPTION_EVENT)
+    const event = createReactNativeRewriteFrames().process(SENTRY_JVM_EXCEPTION_EVENT);
     expect(event.exception?.values?.[0]).toEqual(EXPECTED_SENTRY_JVM_EXCEPTION);
   });
 

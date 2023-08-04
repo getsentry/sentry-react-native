@@ -65,12 +65,12 @@ export type NativeStackFrame = {
 };
 
 export type NativeDebugImage = {
-  name: string;
+  name?: string;
   type?: string;
   uuid?: string;
   debug_id?: string;
   image_addr?: string;
-  image_size?: string;
+  image_size?: number;
   code_file?: string;
   image_vmaddr?: string;
 };
@@ -78,7 +78,7 @@ export type NativeDebugImage = {
 export type NativeStackFrames = {
   frames: NativeStackFrame[];
   debugMetaImages?: NativeDebugImage[];
-}
+};
 
 export type NativeAppStartResponse = {
   isColdStart: boolean;

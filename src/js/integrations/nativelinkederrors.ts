@@ -52,10 +52,7 @@ export class NativeLinkedErrors implements Integration {
   /**
    * @inheritDoc
    */
-  public setupOnce(
-    addGlobalEventProcessor: (callback: EventProcessor) => void,
-    getCurrentHub: () => Hub,
-  ): void {
+  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
     const client = getCurrentHub().getClient();
     if (!client) {
       return;
@@ -66,9 +63,7 @@ export class NativeLinkedErrors implements Integration {
         this._nativePackage = await this._fetchNativePackage();
       }
       const self = getCurrentHub().getIntegration(NativeLinkedErrors);
-      return self
-        ? this._handler(client.getOptions().stackParser, self._key, self._limit, event, hint)
-        : event;
+      return self ? this._handler(client.getOptions().stackParser, self._key, self._limit, event, hint) : event;
     });
   }
 
@@ -85,7 +80,12 @@ export class NativeLinkedErrors implements Integration {
     if (!event.exception || !event.exception.values || !hint || !isInstanceOf(hint.originalException, Error)) {
       return event;
     }
-    const { exceptions: linkedErrors, debugImages } = await this._walkErrorTree(parser, limit, hint.originalException as ExtendedError, key);
+    const { exceptions: linkedErrors, debugImages } = await this._walkErrorTree(
+      parser,
+      limit,
+      hint.originalException as ExtendedError,
+      key,
+    );
     event.exception.values = [...event.exception.values, ...linkedErrors];
 
     event.debug_meta = event.debug_meta || {};
@@ -154,32 +154,36 @@ export class NativeLinkedErrors implements Integration {
   /**
    * Converts a Java Throwable to an SentryException
    */
-  private _exceptionFromJavaStackElements(
-    javaThrowable: {
-      name: string;
-      message: string;
-      stackElements: {
-        className: string;
-        fileName: string;
-        methodName: string;
-        lineNumber: number;
-      }[],
-    },
-  ): Exception {
+  private _exceptionFromJavaStackElements(javaThrowable: {
+    name: string;
+    message: string;
+    stackElements: {
+      className: string;
+      fileName: string;
+      methodName: string;
+      lineNumber: number;
+    }[];
+  }): Exception {
     return {
       type: javaThrowable.name,
       value: javaThrowable.message,
       stacktrace: {
-        frames: javaThrowable.stackElements.map(stackElement => (<StackFrame>{
-          platform: 'java',
-          module: stackElement.className,
-          filename: stackElement.fileName,
-          lineno: stackElement.lineNumber >= 0 ? stackElement.lineNumber : undefined,
-          function: stackElement.methodName,
-          in_app: this._nativePackage !== null && stackElement.className.startsWith(this._nativePackage)
-            ? true
-            : undefined,
-        })).reverse(),
+        frames: javaThrowable.stackElements
+          .map(
+            stackElement =>
+              <StackFrame>{
+                platform: 'java',
+                module: stackElement.className,
+                filename: stackElement.fileName,
+                lineno: stackElement.lineNumber >= 0 ? stackElement.lineNumber : undefined,
+                function: stackElement.methodName,
+                in_app:
+                  this._nativePackage !== null && stackElement.className.startsWith(this._nativePackage)
+                    ? true
+                    : undefined,
+              },
+          )
+          .reverse(),
       },
     };
   }
@@ -187,13 +191,11 @@ export class NativeLinkedErrors implements Integration {
   /**
    * Converts StackAddresses to a SentryException with DebugMetaImages
    */
-  private async _exceptionFromAppleStackReturnAddresses(
-    objCException: {
-      name: string;
-      message: string;
-      stackReturnAddresses: number[];
-    },
-  ): Promise<{
+  private async _exceptionFromAppleStackReturnAddresses(objCException: {
+    name: string;
+    message: string;
+    stackReturnAddresses: number[];
+  }): Promise<{
     appleException: Exception;
     appleDebugImages: DebugImage[];
   }> {
@@ -207,7 +209,7 @@ export class NativeLinkedErrors implements Integration {
           frames: (nativeStackFrames && nativeStackFrames.frames.reverse()) || [],
         },
       },
-      appleDebugImages: (nativeStackFrames && nativeStackFrames.debugMetaImages as DebugImage[]) || [],
+      appleDebugImages: (nativeStackFrames && (nativeStackFrames.debugMetaImages as DebugImage[])) || [],
     };
   }
 
