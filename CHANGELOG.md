@@ -4,7 +4,13 @@
 
 ### Features
 
-- This release adds support for [distributed tracing](https://docs.sentry.io/platforms/javascript/usage/distributed-tracing/) without requiring performance monitoring to be active on the JavaScript SDKs (browser and node). This means even if there is no sampled transaction/span, the SDK will still propagate traces to downstream services. Distributed Tracing can be configured with the `tracePropagationTargets` option, which controls what requests to attach the `sentry-trace` and `baggage` HTTP headers to (which is what propagates tracing information). ([#3230](https://github.com/getsentry/sentry-react-native/pull/3230))
+- Add `tracePropagationTargets` option ([#3230](https://github.com/getsentry/sentry-react-native/pull/3230))
+
+  This release adds support for [distributed tracing](https://docs.sentry.io/platforms/javascript/usage/distributed-tracing/)
+  without requiring performance monitoring to be active on the JavaScript SDKs (browser and node).
+  This means even if there is no sampled transaction/span, the SDK will still propagate traces to downstream services.
+  Distributed Tracing can be configured with the `tracePropagationTargets` option,
+  which controls what requests to attach the `sentry-trace` and `baggage` HTTP headers to (which is what propagates tracing information).
 
   ```javascript
   Sentry.init({
@@ -12,11 +18,11 @@
   });
   ```
 
-## 5.8.1
-
 ### Fixed
 
 - Use application variant instead of variant output to hook to correct package task for modules cleanup ([#3161](https://github.com/getsentry/sentry-react-native/pull/3161))
+
+## 5.8.1
 
 ### Dependencies
 
