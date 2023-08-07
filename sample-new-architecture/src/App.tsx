@@ -45,7 +45,6 @@ Sentry.init({
         // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
         idleTimeout: 5000,
         routingInstrumentation: reactNavigationInstrumentation,
-        tracingOrigins: ['localhost', /^\//, /^https:\/\//],
         enableUserInteractionTracing: true,
         beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
           // Example of not sending a transaction for the screen with the name "Manual Tracker"
@@ -75,6 +74,7 @@ Sentry.init({
   // This will capture ALL TRACES and likely use up all your quota
   enableTracing: true,
   tracesSampleRate: 1.0,
+  tracePropagationTargets: ['localhost', /^\//, /^https:\/\//, /^http:\/\//],
   attachStacktrace: true,
   // Attach screenshots to events.
   attachScreenshot: true,

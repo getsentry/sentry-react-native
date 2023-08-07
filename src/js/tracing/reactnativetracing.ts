@@ -177,7 +177,7 @@ export class ReactNativeTracing implements Integration {
       tracingOrigins,
       // @ts-ignore TODO
       shouldCreateSpanForRequest,
-      tracePropagationTargets: integrationTracePropagationTargets,
+      tracePropagationTargets: thisOptionsTracePropagationTargets,
       routingInstrumentation,
       enableAppStartTracking,
       enableNativeFramesTracking,
@@ -196,8 +196,8 @@ export class ReactNativeTracing implements Integration {
     // ReactNativeTracing option `tracePropagationTargets` and then `tracingOrigins` (deprecated).
     //
     // If both 1 and either one of 2 or 3 are set (from above), we log out a warning.
-    const tracePropagationTargets = clientOptionsTracePropagationTargets || integrationTracePropagationTargets;
-    if (__DEV__ && (integrationTracePropagationTargets || tracingOrigins) && clientOptionsTracePropagationTargets) {
+    const tracePropagationTargets = clientOptionsTracePropagationTargets || thisOptionsTracePropagationTargets;
+    if (__DEV__ && (thisOptionsTracePropagationTargets || tracingOrigins) && clientOptionsTracePropagationTargets) {
       logger.warn(
         '[ReactNativeTracing] The `tracePropagationTargets` option was set in the ReactNativeTracing integration and top level `Sentry.init`. The top level `Sentry.init` value is being used.',
       );
