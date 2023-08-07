@@ -2,6 +2,10 @@
 
 ## 5.8.1
 
+### Fixed
+
+- Use application variant instead of variant output to hook to correct package task for modules cleanup ([#3161](https://github.com/getsentry/sentry-react-native/pull/3161))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v7.60.1 to v7.61.0 ([#3222](https://github.com/getsentry/sentry-react-native/pull/3222))
