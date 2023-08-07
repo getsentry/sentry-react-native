@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Fix bug preventing native SDK from being called after reinitialization ([#3200](https://github.com/getsentry/sentry-react-native/pull/3200))
+- Fix `isNativeAvailable` after SDK reinitialization ([#3200](https://github.com/getsentry/sentry-react-native/pull/3200))
 
 ## 5.8.1
 
