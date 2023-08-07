@@ -64,7 +64,7 @@ export class BackgroundSpans implements Integration {
       op: BACKGROUND_SPAN_OP,
     }).finish(endTimestamp);
 
-    if ((tx as unknown as Record<string, boolean>).__backgroundSpan === true) {
+    if ((tx as unknown as Record<string, boolean>).__backgroundSpan) {
       return;
     }
 
