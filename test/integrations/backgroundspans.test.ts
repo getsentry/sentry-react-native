@@ -1,6 +1,6 @@
-import type { Hub as HubClass } from '@sentry/core';
-import { IdleTransaction } from '@sentry/core';
-import type { Hub, Span } from '@sentry/types';
+import type { Hub as HubClass, Span as SpanClass } from '@sentry/core';
+import { IdleTransaction, Transaction as TransactionClass } from '@sentry/core';
+import type { Hub, Span, Transaction } from '@sentry/types';
 
 import { BackgroundSpans } from '../../src/js/integrations';
 import { BACKGROUND_SPAN_OP } from '../../src/js/integrations/backgroundspans';
@@ -134,6 +134,44 @@ describe('background spans integration', () => {
     );
   });
 
+  test('should remove trailing background span for non idle transaction', () => {
+    const transaction: Transaction = mockStartTransactionOnScope();
+
+    const child = transaction.startChild({ op: 'child' });
+    jest.advanceTimersByTime(2);
+    child.finish();
+
+    mockAppState.changeState('background');
+    jest.advanceTimersByTime(2);
+    mockAppState.changeState('active');
+
+    mockAppState.changeState('background');
+    jest.advanceTimersByTime(2);
+    mockAppState.changeState('active');
+
+    transaction.finish();
+
+    jest.runAllTimers();
+
+    const spans: ReturnType<Span['toJSON']>[] | undefined = (transaction as SpanClass).spanRecorder?.spans.map(
+      (span: Span) => span.toJSON(),
+    );
+    expect(spans).not.toEqual(
+      expect.arrayContaining(<Span[]>[
+        expect.objectContaining<Partial<ReturnType<Span['toJSON']>>>({
+          op: BACKGROUND_SPAN_OP,
+        }),
+      ]),
+    );
+    expect(spans).toEqual(
+      expect.arrayContaining(<Span[]>[
+        expect.objectContaining<Partial<ReturnType<Span['toJSON']>>>({
+          op: 'child',
+        }),
+      ]),
+    );
+  });
+
   test('should keep non trailing background span lasting till the end of transaction', () => {
     const transaction: IdleTransaction = mockStartIdleTransaction(mockHub, 10, 20);
 
@@ -196,6 +234,13 @@ describe('background spans integration', () => {
     );
     transaction.initSpanRecorder(10);
 
+    mockHub.getScope().getTransaction.mockReturnValue(transaction);
+    return transaction;
+  }
+
+  function mockStartTransactionOnScope(): Transaction {
+    const transaction = new TransactionClass({ name: 'test-tx-name' }, mockHub as unknown as HubClass);
+    transaction.initSpanRecorder(10);
     mockHub.getScope().getTransaction.mockReturnValue(transaction);
     return transaction;
   }

@@ -1,4 +1,4 @@
-import { Span as SpanClass } from '@sentry/core';
+import { IdleTransaction, Span as SpanClass } from '@sentry/core';
 import type { EventProcessor, Hub, Integration, Transaction } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 import type { AppStateStatus } from 'react-native';
@@ -67,44 +67,54 @@ export class BackgroundSpans implements Integration {
     if ((tx as unknown as Record<string, boolean>).__backgroundSpan) {
       return;
     }
-
     (tx as unknown as Record<string, boolean>).__backgroundSpan = true;
-    const originalFinish = tx && tx.finish.bind(tx);
-    const beforeTransactionFinish = (endTimestamp?: number): void => {
-      const transaction = tx as SpanClass;
-      if (!(transaction instanceof SpanClass)) {
-        return originalFinish(endTimestamp);
+
+    if (tx instanceof IdleTransaction) {
+      tx.registerBeforeFinishCallback((finishingIdleTx: IdleTransaction) => {
+        removeTrailingBackgroundSpans(finishingIdleTx);
+        delete (finishingIdleTx as unknown as Record<string, boolean>).__backgroundSpan;
+      });
+      return;
+    } else {
+      const originalFinish = tx.finish.bind(tx);
+      const beforeTransactionFinish = (endTimestamp?: number): void => {
+        if (!(tx instanceof SpanClass)) {
+          return originalFinish(endTimestamp);
+        }
+
+        removeTrailingBackgroundSpans(tx);
+        delete (tx as unknown as Record<string, boolean>).__backgroundSpan;
+        originalFinish(endTimestamp);
+      };
+      tx.finish = beforeTransactionFinish;
+    }
+  }
+}
+
+function removeTrailingBackgroundSpans(transaction: SpanClass): void {
+  const spans = transaction.spanRecorder && transaction.spanRecorder.spans;
+  if (!spans) {
+    return;
+  }
+
+  let lastNonBackgroundSpanEndTimestamp: number | undefined;
+  const nonBackgroundSpans = spans.filter(span => span != transaction && span.op !== BACKGROUND_SPAN_OP);
+
+  if (nonBackgroundSpans.length > 0) {
+    lastNonBackgroundSpanEndTimestamp = nonBackgroundSpans.reduce((prev: SpanClass, current: SpanClass) => {
+      if (prev.endTimestamp && current.endTimestamp) {
+        return prev.endTimestamp > current.endTimestamp ? prev : current;
       }
+      return prev;
+    }).endTimestamp;
+  }
 
-      const spans = transaction.spanRecorder && transaction.spanRecorder.spans;
-      if (!spans) {
-        return originalFinish(endTimestamp);
-      }
-
-      let lastNonBackgroundSpanEndTimestamp: number | undefined;
-      const nonBackgroundSpans = spans.filter(span => span != transaction && span.op !== BACKGROUND_SPAN_OP);
-
-      if (nonBackgroundSpans.length > 0) {
-        lastNonBackgroundSpanEndTimestamp = nonBackgroundSpans.reduce((prev: SpanClass, current: SpanClass) => {
-          if (prev.endTimestamp && current.endTimestamp) {
-            return prev.endTimestamp > current.endTimestamp ? prev : current;
-          }
-          return prev;
-        }).endTimestamp;
-      }
-
-      if (lastNonBackgroundSpanEndTimestamp && transaction.spanRecorder) {
-        transaction.spanRecorder.spans = spans.filter(
-          span =>
-            typeof span.endTimestamp === 'undefined' ||
-            span.op !== BACKGROUND_SPAN_OP ||
-            (lastNonBackgroundSpanEndTimestamp && span.endTimestamp <= lastNonBackgroundSpanEndTimestamp),
-        );
-      }
-
-      delete (tx as unknown as Record<string, boolean>).__backgroundSpan;
-      originalFinish(endTimestamp);
-    };
-    tx.finish = beforeTransactionFinish;
+  if (lastNonBackgroundSpanEndTimestamp && transaction.spanRecorder) {
+    transaction.spanRecorder.spans = spans.filter(
+      span =>
+        typeof span.endTimestamp === 'undefined' ||
+        span.op !== BACKGROUND_SPAN_OP ||
+        (lastNonBackgroundSpanEndTimestamp && span.endTimestamp <= lastNonBackgroundSpanEndTimestamp),
+    );
   }
 }
