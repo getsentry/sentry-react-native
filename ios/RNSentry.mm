@@ -206,9 +206,8 @@ RCT_EXPORT_METHOD(fetchNativePackageName:(RCTPromiseResolveBlock)resolve
     resolve(packageName);
 }
 
-RCT_EXPORT_METHOD(fetchNativeStackFramesBy: (NSArray<NSNumber *> *) instructionsAddr
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+- (NSDictionary*) fetchNativeStackFramesBy: (NSArray<NSNumber*>*)instructionsAddr
+                               symbolicate: (SymbolicateCallbackType) symbolicate
 {
   BOOL shouldSymbolicateLocally = [SentrySDK.options debug];
   NSString *appPackageName = [[NSBundle mainBundle] executablePath];
@@ -221,7 +220,7 @@ RCT_EXPORT_METHOD(fetchNativeStackFramesBy: (NSArray<NSNumber *> *) instructions
     if (image != nil) {
       NSString * imageAddr = sentry_formatHexAddressUInt64([image address]);
       [imagesAddrToRetrieveDebugMetaImages addObject: imageAddr];
-      
+
       NSDictionary<NSString *, id> * _Nonnull nativeFrame = @{
         @"platform": @"cocoa",
         @"instruction_addr": sentry_formatHexAddress(addr),
@@ -229,14 +228,14 @@ RCT_EXPORT_METHOD(fetchNativeStackFramesBy: (NSArray<NSNumber *> *) instructions
         @"image_addr": imageAddr,
         @"in_app": [NSNumber numberWithBool:[appPackageName isEqualToString:[image name]]],
       };
-      
+
       if (shouldSymbolicateLocally) {
         Dl_info symbolsBuffer;
         bool symbols_succeed = false;
-        symbols_succeed = dladdr((void *) [addr unsignedLongLongValue], &symbolsBuffer) != 0;
+        symbols_succeed = symbolicate((void *) [addr unsignedLongLongValue], &symbolsBuffer) != 0;
         if (symbols_succeed) {
           NSMutableDictionary<NSString *, id> * _Nonnull symbolicated = nativeFrame.mutableCopy;
-          symbolicated[@"symbolAddress"] = sentry_formatHexAddressUInt64((uintptr_t)symbolsBuffer.dli_saddr);
+          symbolicated[@"symbol_addr"] = sentry_formatHexAddressUInt64((uintptr_t)symbolsBuffer.dli_saddr);
           symbolicated[@"function"] = [NSString stringWithCString:symbolsBuffer.dli_sname encoding:NSUTF8StringEncoding];
 
           nativeFrame = symbolicated;
@@ -247,29 +246,37 @@ RCT_EXPORT_METHOD(fetchNativeStackFramesBy: (NSArray<NSNumber *> *) instructions
     } else {
       [serializedFrames addObject: @{
         @"platform": @"cocoa",
-        @"instruction_addr": addr,
+        @"instruction_addr": sentry_formatHexAddress(addr),
       }];
     }
   }
-  
+
   if (shouldSymbolicateLocally) {
-    resolve(@{
+    return @{
       @"frames": serializedFrames,
-    });
+    };
   } else {
     NSMutableArray<NSDictionary<NSString *, id> *> * _Nonnull serializedDebugMetaImages = [[NSMutableArray alloc] init];
 
     NSArray<SentryDebugMeta *> *debugMetaImages = [[[SentryDependencyContainer sharedInstance] debugImageProvider] getDebugImagesForAddresses:imagesAddrToRetrieveDebugMetaImages isCrash:false];
-    
+
     for (SentryDebugMeta *debugImage in debugMetaImages) {
       [serializedDebugMetaImages addObject:[debugImage serialize]];
     }
-    
-    resolve(@{
+
+    return @{
       @"frames": serializedFrames,
       @"debugMetaImages": serializedDebugMetaImages,
-    });
+    };
   }
+}
+
+RCT_EXPORT_METHOD(fetchNativeStackFramesBy:(NSArray *)instructionsAddr
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+  resolve([self fetchNativeStackFramesBy:instructionsAddr
+                             symbolicate:dladdr]);
 }
 
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
