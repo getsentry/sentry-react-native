@@ -1,10 +1,12 @@
 # Changelog
 
-## 5.8.1
+## Unreleased
 
 ### Fixed
 
 - Use application variant instead of variant output to hook to correct package task for modules cleanup ([#3161](https://github.com/getsentry/sentry-react-native/pull/3161))
+
+## 5.8.1
 
 ### Dependencies
 
