@@ -11,6 +11,17 @@
 #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
 
+#if __has_include(<hermes/hermes.h>)
+#define SENTRY_PROFILING_ENABLED 1
+#else
+#define SENTRY_PROFILING_ENABLED 0
+#endif
+
+// This guard prevents importing Hermes in JSC apps
+#if SENTRY_PROFILING_ENABLED
+#import <hermes/hermes.h>
+#endif
+
 // Thanks to this guard, we won't import this header when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED
 #import "RNSentrySpec.h"
@@ -188,44 +199,44 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSLog(@"Bridge call to: deviceContexts");
-    __block NSMutableDictionary<NSString *, id> *contexts;
+    __block NSMutableDictionary<NSString *, id> *serializedScope;
     // Temp work around until sorted out this API in sentry-cocoa.
     // TODO: If the callback isnt' executed the promise wouldn't be resolved.
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        NSDictionary<NSString *, id>  *serializedScope = [scope serialize];
-        contexts = [serializedScope mutableCopy];
+        serializedScope = [[scope serialize] mutableCopy];
 
-        NSDictionary<NSString *, id>  *user = [contexts valueForKey:@"user"];
+        NSDictionary<NSString *, id>  *user = [serializedScope valueForKey:@"user"];
         if (user == nil) {
-            [contexts
+            [serializedScope
                 setValue:@{ @"id": PrivateSentrySDKOnly.installationID }
                 forKey:@"user"];
         }
 
         if (PrivateSentrySDKOnly.options.debug) {
-            NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
+            NSData *data = [NSJSONSerialization dataWithJSONObject:serializedScope options:0 error:nil];
             NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
             NSLog(@"Contexts: %@", debugContext);
         }
     }];
 
     NSDictionary<NSString *, id> *extraContext = [PrivateSentrySDKOnly getExtraContext];
-    NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *context = [contexts[@"context"] mutableCopy];
+    NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *contexts = [serializedScope[@"context"] mutableCopy];
 
     if (extraContext && [extraContext[@"device"] isKindOfClass:[NSDictionary class]]) {
-      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *deviceContext = [contexts[@"context"][@"device"] mutableCopy];
+      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *deviceContext = [contexts[@"device"] mutableCopy];
       [deviceContext addEntriesFromDictionary:extraContext[@"device"]];
-      [context setValue:deviceContext forKey:@"device"];
+      [contexts setValue:deviceContext forKey:@"device"];
     }
 
     if (extraContext && [extraContext[@"app"] isKindOfClass:[NSDictionary class]]) {
-      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *appContext = [contexts[@"context"][@"app"] mutableCopy];
+      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *appContext = [contexts[@"app"] mutableCopy];
       [appContext addEntriesFromDictionary:extraContext[@"app"]];
-      [context setValue:appContext forKey:@"app"];
+      [contexts setValue:appContext forKey:@"app"];
     }
 
-    [contexts setValue:context forKey:@"context"];
-    resolve(contexts);
+    [serializedScope setValue:contexts forKey:@"contexts"];
+    [serializedScope removeObjectForKey:@"context"];
+    resolve(serializedScope);
 }
 
 RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
@@ -496,6 +507,57 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // If you're starting the Cocoa SDK manually,
     // you can set the 'enableAutoPerformanceTracing: true' option and
     // the 'tracesSampleRate' or 'tracesSampler' option.
+}
+
+static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
+{
+#if SENTRY_PROFILING_ENABLED
+    try {
+        facebook::hermes::HermesRuntime::enableSamplingProfiler();
+        return @{ @"started": @YES };
+    } catch (const std::exception& ex) {
+        return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
+    } catch (...) {
+        return @{ @"error": @"Failed to start profiling" };
+    }
+#else
+    return @{ @"error": enabledProfilingMessage };
+#endif
+}
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
+{
+#if SENTRY_PROFILING_ENABLED
+    try {
+        facebook::hermes::HermesRuntime::disableSamplingProfiler();
+        std::stringstream ss;
+        facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
+
+        std::string s = ss.str();
+        NSString *data = [NSString stringWithCString:s.c_str() encoding:[NSString defaultCStringEncoding]];
+
+#if SENTRY_PROFILING_DEBUG_ENABLED
+        NSString *rawProfileFileName = @"hermes.profile";
+        NSError *error = nil;
+        NSString *rawProfileFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:rawProfileFileName];
+        if (![data writeToFile:rawProfileFilePath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
+            NSLog(@"Error writing Raw Hermes Profile to %@: %@", rawProfileFilePath, error);
+        } else {
+            NSLog(@"Raw Hermes Profile saved to %@", rawProfileFilePath);
+        }
+#endif
+
+        return @{ @"profile": data };
+    } catch (const std::exception& ex) {
+        return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
+    } catch (...) {
+        return @{ @"error": @"Failed to stop profiling" };
+    }
+#else
+    return @{ @"error": enabledProfilingMessage };
+#endif
 }
 
 // Thanks to this guard, we won't compile this code when we build for the old architecture.

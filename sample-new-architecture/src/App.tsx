@@ -30,8 +30,9 @@ Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
+  environment: 'dev',
   beforeSend: (event: Sentry.Event) => {
-    console.log('Event beforeSend:', event);
+    console.log('Event beforeSend:', event.event_id);
     return event;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
@@ -85,6 +86,9 @@ Sentry.init({
   // otherwise they will not work.
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
+  _experiments: {
+    profilesSampleRate: 1,
+  },
 });
 
 const Stack = createStackNavigator();

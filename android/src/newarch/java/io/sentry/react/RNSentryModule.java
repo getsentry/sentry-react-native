@@ -2,10 +2,12 @@ package io.sentry.react;
 
 import androidx.annotation.NonNull;
 
+import com.facebook.react.bridge.JavaScriptExecutorFactory;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.WritableMap;
 
 public class RNSentryModule extends NativeRNSentrySpec {
 
@@ -114,11 +116,21 @@ public class RNSentryModule extends NativeRNSentrySpec {
 
     @Override
     public void fetchNativeDeviceContexts(Promise promise) {
-        // Not used on android
+        this.impl.fetchNativeDeviceContexts(promise);
     }
 
     @Override
     public void fetchNativeSdkInfo(Promise promise) {
-        // Not used on android
+        this.impl.fetchNativeSdkInfo(promise);
+    }
+
+    @Override
+    public WritableMap startProfiling() {
+        return this.impl.startProfiling();
+    }
+
+    @Override
+    public WritableMap stopProfiling() {
+        return this.impl.stopProfiling();
     }
 }

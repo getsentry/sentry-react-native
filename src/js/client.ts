@@ -138,6 +138,8 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
     let shouldClearOutcomesBuffer = true;
     if (this._transport && this._dsn) {
+      this.emit('beforeEnvelope', envelope);
+
       this._transport.send(envelope).then(null, reason => {
         if (reason instanceof SentryError) {
           // SentryError is thrown by SyncPromise

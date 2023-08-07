@@ -2,7 +2,7 @@
   "name": "@sentry/react-native",
   "homepage": "https://github.com/getsentry/sentry-react-native",
   "repository": "https://github.com/getsentry/sentry-react-native",
-  "version": "5.7.1",
+  "version": "5.8.1",
   "description": "Official Sentry SDK for react-native",
   "typings": "dist/js/index.d.ts",
   "types": "dist/js/index.d.ts",
@@ -33,7 +33,8 @@
     "lint:prettier": "prettier --check \"{src,test,scripts}/**/**.ts\"",
     "test:watch": "jest --watch",
     "run-ios": "cd sample-new-architecture && yarn react-native run-ios",
-    "run-android": "cd sample-new-architecture && yarn react-native run-android"
+    "run-android": "cd sample-new-architecture && yarn react-native run-android",
+    "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/hub @sentry/integrations @sentry/react @sentry/types @sentry/utils"
   },
   "keywords": [
     "react-native",
@@ -55,18 +56,18 @@
     "react-native": ">=0.65.0"
   },
   "dependencies": {
-    "@sentry/browser": "7.58.1",
+    "@sentry/browser": "7.61.0",
     "@sentry/cli": "2.19.4",
-    "@sentry/core": "7.58.1",
-    "@sentry/hub": "7.58.1",
-    "@sentry/integrations": "7.58.1",
-    "@sentry/react": "7.58.1",
-    "@sentry/types": "7.58.1",
-    "@sentry/utils": "7.58.1"
+    "@sentry/core": "7.61.0",
+    "@sentry/hub": "7.61.0",
+    "@sentry/integrations": "7.61.0",
+    "@sentry/react": "7.61.0",
+    "@sentry/types": "7.61.0",
+    "@sentry/utils": "7.61.0"
   },
   "devDependencies": {
-    "@sentry-internal/eslint-config-sdk": "7.58.1",
-    "@sentry-internal/eslint-plugin-sdk": "7.58.1",
+    "@sentry-internal/eslint-config-sdk": "7.61.0",
+    "@sentry-internal/eslint-plugin-sdk": "7.61.0",
     "@sentry/typescript": "^5.20.1",
     "@sentry/wizard": "3.2.3",
     "@types/jest": "^29.2.5",
@@ -80,8 +81,8 @@
     "jest-environment-jsdom": "^29.4.1",
     "prettier": "^2.0.5",
     "react": "18.2.0",
-    "react-native": "0.72.0",
-    "replace-in-file": "^6.0.0",
+    "react-native": "0.72.3",
+    "replace-in-file": "^7.0.1",
     "rimraf": "^4.1.1",
     "ts-jest": "^29.0.5",
     "typescript": "4.1.3"

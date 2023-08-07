@@ -4,17 +4,59 @@
 
 ### Fixes
 
-- Warn users about multiple versions of `promise` package which can cause unexpected behavior like undefined `Promise.allSettled` ([#3162](https://github.com/getsentry/sentry-react-native/pull/3162))
 - Fix bug preventing native SDK from being called after reinitialization ([#3200](https://github.com/getsentry/sentry-react-native/pull/3200))
+
+## 5.8.1
+
+### Fixed
+
+- Use application variant instead of variant output to hook to correct package task for modules cleanup ([#3161](https://github.com/getsentry/sentry-react-native/pull/3161))
 
 ### Dependencies
 
-- Bump JavaScript SDK from v7.57.0 to v7.58.1 ([#3184](https://github.com/getsentry/sentry-react-native/pull/3184))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7581)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.57.0...7.58.1)
-- Bump Cocoa SDK from v8.8.0 to v8.9.1 ([#3188](https://github.com/getsentry/sentry-react-native/pull/3188))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#891)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.8.0...8.9.1)
+- Bump JavaScript SDK from v7.60.1 to v7.61.0 ([#3222](https://github.com/getsentry/sentry-react-native/pull/3222))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7610)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.60.1...7.61.0)
+
+## 5.8.0
+
+### Features
+
+- Alpha support for Hermes JavaScript Profiling ([#3057](https://github.com/getsentry/sentry-react-native/pull/3057))
+
+  Profiling is disabled by default. To enable it, configure both
+  `tracesSampleRate` and `profilesSampleRate` when initializing the SDK:
+
+  ```javascript
+    Sentry.init({
+      dsn: '__DSN__',
+      tracesSampleRate: 1.0,
+      _experiments: {
+        // The sampling rate for profiling is relative to TracesSampleRate.
+        // In this case, we'll capture profiles for 100% of transactions.
+        profilesSampleRate: 1.0,
+      },
+    });
+  ```
+
+  More documentation on profiling and current limitations [can be found here](https://docs.sentry.io/platforms/react-native/profiling/).
+
+### Fixes
+
+- Warn users about multiple versions of `promise` package which can cause unexpected behavior like undefined `Promise.allSettled` ([#3162](https://github.com/getsentry/sentry-react-native/pull/3162))
+- Event is enriched with all the Android context on the JS layer and you can filter/modify all the data in the `beforeSend` callback similarly to iOS. ([#3170](https://github.com/getsentry/sentry-react-native/pull/3170))
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.57.0 to v7.60.1 ([#3184](https://github.com/getsentry/sentry-react-native/pull/3184), [#3199](https://github.com/getsentry/sentry-react-native/pull/3199))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7601)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.57.0...7.60.1)
+- Bump Cocoa SDK from v8.8.0 to v8.9.3 ([#3188](https://github.com/getsentry/sentry-react-native/pull/3188), [#3206](https://github.com/getsentry/sentry-react-native/pull/3206))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#893)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.8.0...8.9.3)
+- Bump Android SDK from v6.25.1 to v6.27.0 ([#3170](https://github.com/getsentry/sentry-react-native/pull/3170))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6270)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.25.1...6.27.0)
 
 ## 5.7.1
 
