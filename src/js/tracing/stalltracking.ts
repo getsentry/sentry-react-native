@@ -68,8 +68,10 @@ export class StallTrackingInstrumentation {
 
     this._backgroundEventListener = this._backgroundEventListener.bind(this);
     // Avoids throwing any error if using React Native on a environment that doesn't implement AppState.
+    if (AppState?.isAvailable) {
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    AppState?.addEventListener('change', this._backgroundEventListener);
+        AppState.addEventListener('change', this._backgroundEventListener);
+    }
   }
 
   /**
@@ -231,7 +233,7 @@ export class StallTrackingInstrumentation {
     if (state === ('active' as AppStateStatus)) {
       this._isBackground = false;
       if (this._timeout != null) {
-        this._lastIntervalMs = Math.floor(timestampInSeconds() * 1000);
+        this._lastIntervalMs = timestampInSeconds() * 1000;
         this._iteration();
       }
     } else {

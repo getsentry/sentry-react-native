@@ -28,11 +28,11 @@ describe('BackgroundEventListener', () => {
     const stallTracking = new StallTrackingInstrumentation();
     stallTracking['_timeout'] = null;
     // Mock _iteration
-    stallTracking['_iteration'] = () => {
-      throw new Error('_iteration should not be called by _backgroundEventListener');
-    }; // Create a fake timeout to simulate a running interval
+    stallTracking['_iteration'] = jest.fn();
     jest.useFakeTimers(); // Enable fake timers to control timeouts
     stallTracking['_backgroundEventListener']('active' as AppStateStatus);
+
+    expect(stallTracking['_iteration']).not.toBeCalled()
   });
   it('Stall tracking should call _iteration when state is active and _timeout is defined', () => {
     const stallTracking = new StallTrackingInstrumentation();

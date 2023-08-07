@@ -43,6 +43,6 @@ describe('Iteration', () => {
     stallTracking['_iteration']();
     // Check if _stallCount and _totalStallTime have been updated as expected.
     expect(stallTracking['_stallCount']).toBe(1);
-    expect(stallTracking['_totalStallTime']).toBeGreaterThanOrEqual(totalTimeTaken - LOOP_TIMEOUT_INTERVAL_MS);
+    expect(stallTracking['_totalStallTime']).toBeGreaterThanOrEqual(Math.round(totalTimeTaken - LOOP_TIMEOUT_INTERVAL_MS));
   });
 });
