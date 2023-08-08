@@ -81,18 +81,21 @@ import {
 
 const DEFAULT_IDLE_TIMEOUT = 1000;
 
-beforeEach(() => {
-  NATIVE.enableNative = true;
-});
-
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('ReactNativeTracing', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    NATIVE.enableNative = true;
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+    jest.clearAllMocks();
+  });
+
   describe('App Start', () => {
     describe('Without routing instrumentation', () => {
-      it('Starts route transaction (cold)', done => {
+      it('Starts route transaction (cold)', async () => {
         const integration = new ReactNativeTracing({
           enableNativeFramesTracking: false,
         });
@@ -110,33 +113,30 @@ describe('ReactNativeTracing', () => {
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+        integration.onAppStartFinish(Date.now() / 1000);
 
-        // use setImmediate as app start is handled inside a promise.
-        setImmediate(() => {
-          integration.onAppStartFinish(Date.now() / 1000);
-          const transaction = mockHub.getScope()?.getTransaction();
+        await jest.advanceTimersByTimeAsync(500);
 
-          expect(transaction).toBeDefined();
+        const transaction = mockHub.getScope()?.getTransaction();
 
-          if (transaction) {
-            expect(transaction.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
-            expect(transaction.op).toBe(UI_LOAD);
+        expect(transaction).toBeDefined();
 
-            expect(
-              // @ts-ignore access private for test
-              transaction._measurements[APP_START_COLD].value,
-            ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
-            expect(
-              // @ts-ignore access private for test
-              transaction._measurements[APP_START_COLD].unit,
-            ).toBe('millisecond');
+        if (transaction) {
+          expect(transaction.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
+          expect(transaction.op).toBe(UI_LOAD);
 
-            done();
-          }
-        });
+          expect(
+            // @ts-ignore access private for test
+            transaction._measurements[APP_START_COLD].value,
+          ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
+          expect(
+            // @ts-ignore access private for test
+            transaction._measurements[APP_START_COLD].unit,
+          ).toBe('millisecond');
+        }
       });
 
-      it('Starts route transaction (warm)', done => {
+      it('Starts route transaction (warm)', async () => {
         const integration = new ReactNativeTracing();
 
         const timeOriginMilliseconds = Date.now();
@@ -153,31 +153,27 @@ describe('ReactNativeTracing', () => {
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
 
-        // use setImmediate as app start is handled inside a promise.
-        setImmediate(() => {
-          const transaction = mockHub.getScope()?.getTransaction();
+        await jest.advanceTimersByTimeAsync(500);
+        const transaction = mockHub.getScope()?.getTransaction();
 
-          expect(transaction).toBeDefined();
+        expect(transaction).toBeDefined();
 
-          if (transaction) {
-            expect(transaction.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
-            expect(transaction.op).toBe(UI_LOAD);
+        if (transaction) {
+          expect(transaction.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
+          expect(transaction.op).toBe(UI_LOAD);
 
-            expect(
-              // @ts-ignore access private for test
-              transaction._measurements[APP_START_WARM].value,
-            ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
-            expect(
-              // @ts-ignore access private for test
-              transaction._measurements[APP_START_WARM].unit,
-            ).toBe('millisecond');
-
-            done();
-          }
-        });
+          expect(
+            // @ts-ignore access private for test
+            transaction._measurements[APP_START_WARM].value,
+          ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
+          expect(
+            // @ts-ignore access private for test
+            transaction._measurements[APP_START_WARM].unit,
+          ).toBe('millisecond');
+        }
       });
 
-      it('Does not add app start measurement if more than 60s', done => {
+      it('Does not add app start measurement if more than 60s', async () => {
         const integration = new ReactNativeTracing();
 
         const timeOriginMilliseconds = Date.now();
@@ -194,29 +190,26 @@ describe('ReactNativeTracing', () => {
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
 
-        // use setImmediate as app start is handled inside a promise.
-        setImmediate(() => {
-          const transaction = mockHub.getScope()?.getTransaction();
+        await jest.advanceTimersByTimeAsync(500);
 
-          expect(transaction).toBeDefined();
+        const transaction = mockHub.getScope()?.getTransaction();
 
-          if (transaction) {
-            expect(
-              // @ts-ignore access private for test
-              transaction._measurements[APP_START_WARM],
-            ).toBeUndefined();
+        expect(transaction).toBeDefined();
 
-            expect(
-              // @ts-ignore access private for test
-              transaction._measurements[APP_START_COLD],
-            ).toBeUndefined();
+        if (transaction) {
+          expect(
+            // @ts-ignore access private for test
+            transaction._measurements[APP_START_WARM],
+          ).toBeUndefined();
 
-            done();
-          }
-        });
+          expect(
+            // @ts-ignore access private for test
+            transaction._measurements[APP_START_COLD],
+          ).toBeUndefined();
+        }
       });
 
-      it('Does not create app start transaction if didFetchAppStart == true', done => {
+      it('Does not create app start transaction if didFetchAppStart == true', async () => {
         const integration = new ReactNativeTracing();
 
         const timeOriginMilliseconds = Date.now();
@@ -233,27 +226,15 @@ describe('ReactNativeTracing', () => {
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
 
-        // use setImmediate as app start is handled inside a promise.
-        setImmediate(() => {
-          const transaction = mockHub.getScope()?.getTransaction();
+        await jest.advanceTimersByTimeAsync(500);
 
-          expect(transaction).toBeUndefined();
+        const transaction = mockHub.getScope()?.getTransaction();
 
-          done();
-        });
+        expect(transaction).toBeUndefined();
       });
     });
 
     describe('With routing instrumentation', () => {
-      beforeEach(() => {
-        jest.useFakeTimers();
-      });
-
-      afterEach(() => {
-        jest.runOnlyPendingTimers();
-        jest.useRealTimers();
-      });
-
       it('Adds measurements and child span onto existing routing transaction and sets the op (cold)', async () => {
         const routingInstrumentation = new RoutingInstrumentation();
         const integration = new ReactNativeTracing({
@@ -414,103 +395,84 @@ describe('ReactNativeTracing', () => {
       });
     });
 
-    it('Does not instrument app start if app start is disabled', done => {
+    it('Does not instrument app start if app start is disabled', async () => {
       const integration = new ReactNativeTracing({
         enableAppStartTracking: false,
       });
       const mockHub = getMockHub();
       integration.setupOnce(addGlobalEventProcessor, () => mockHub);
 
-      setImmediate(() => {
-        expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
+      await jest.advanceTimersByTimeAsync(500);
 
-        const transaction = mockHub.getScope()?.getTransaction();
+      expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
 
-        expect(transaction).toBeUndefined();
+      const transaction = mockHub.getScope()?.getTransaction();
 
-        done();
-      });
+      expect(transaction).toBeUndefined();
     });
 
-    it('Does not instrument app start if native is disabled', done => {
+    it('Does not instrument app start if native is disabled', async () => {
       NATIVE.enableNative = false;
 
       const integration = new ReactNativeTracing();
       const mockHub = getMockHub();
       integration.setupOnce(addGlobalEventProcessor, () => mockHub);
 
-      setImmediate(() => {
-        expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
+      await jest.advanceTimersByTimeAsync(500);
 
-        const transaction = mockHub.getScope()?.getTransaction();
+      expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
 
-        expect(transaction).toBeUndefined();
+      const transaction = mockHub.getScope()?.getTransaction();
 
-        done();
-      });
+      expect(transaction).toBeUndefined();
     });
 
-    it('Does not instrument app start if fetchNativeAppStart returns null', done => {
+    it('Does not instrument app start if fetchNativeAppStart returns null', async () => {
       mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(null);
 
       const integration = new ReactNativeTracing();
       const mockHub = getMockHub();
       integration.setupOnce(addGlobalEventProcessor, () => mockHub);
 
-      setImmediate(() => {
-        expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
+      await jest.advanceTimersByTimeAsync(500);
 
-        const transaction = mockHub.getScope()?.getTransaction();
+      expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
 
-        expect(transaction).toBeUndefined();
+      const transaction = mockHub.getScope()?.getTransaction();
 
-        done();
-      });
+      expect(transaction).toBeUndefined();
     });
   });
 
   describe('Native Frames', () => {
-    it('Initialize native frames instrumentation if flag is true', done => {
+    it('Initialize native frames instrumentation if flag is true', async () => {
       const integration = new ReactNativeTracing({
         enableNativeFramesTracking: true,
       });
       const mockHub = getMockHub();
       integration.setupOnce(addGlobalEventProcessor, () => mockHub);
 
-      setImmediate(() => {
-        expect(integration.nativeFramesInstrumentation).toBeDefined();
-        expect(NATIVE.enableNativeFramesTracking).toBeCalledTimes(1);
+      await jest.advanceTimersByTimeAsync(500);
 
-        done();
-      });
+      expect(integration.nativeFramesInstrumentation).toBeDefined();
+      expect(NATIVE.enableNativeFramesTracking).toBeCalledTimes(1);
     });
-    it('Does not initialize native frames instrumentation if flag is false', done => {
+    it('Does not initialize native frames instrumentation if flag is false', async () => {
       const integration = new ReactNativeTracing({
         enableNativeFramesTracking: false,
       });
       const mockHub = getMockHub();
       integration.setupOnce(addGlobalEventProcessor, () => mockHub);
 
-      setImmediate(() => {
-        expect(integration.nativeFramesInstrumentation).toBeUndefined();
-        expect(NATIVE.disableNativeFramesTracking).toBeCalledTimes(1);
-        expect(NATIVE.fetchNativeFrames).not.toBeCalled();
+      await jest.advanceTimersByTimeAsync(500);
 
-        done();
-      });
+      expect(integration.nativeFramesInstrumentation).toBeUndefined();
+      expect(NATIVE.disableNativeFramesTracking).toBeCalledTimes(1);
+      expect(NATIVE.fetchNativeFrames).not.toBeCalled();
     });
   });
 
   describe('Routing Instrumentation', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-    });
-
-    afterEach(() => {
-      jest.runOnlyPendingTimers();
-      jest.useRealTimers();
-    });
-
     describe('_onConfirmRoute', () => {
       it('Sets tag and adds breadcrumb', () => {
         const routing = new RoutingInstrumentation();
@@ -647,18 +609,12 @@ describe('ReactNativeTracing', () => {
 
     describe('enabled user interaction', () => {
       beforeEach(() => {
-        jest.useFakeTimers();
         tracing = new ReactNativeTracing({
           routingInstrumentation: mockedRoutingInstrumentation,
           enableUserInteractionTracing: true,
         });
         tracing.setupOnce(jest.fn(), () => mockedHub);
         mockedRoutingInstrumentation.registeredOnConfirmRoute!(mockedConfirmedRouteTransactionContext);
-      });
-
-      afterEach(() => {
-        jest.runAllTimers();
-        jest.useRealTimers();
       });
 
       test('user interaction tracing is enabled and transaction is bound to scope', () => {
