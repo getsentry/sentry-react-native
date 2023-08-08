@@ -110,7 +110,6 @@ describe('Tests ReactNativeClient', () => {
 
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
       // @ts-ignore: Is Mocked
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       await expect(RN.LogBox.ignoreLogs).toBeCalled();
     });
 
@@ -150,9 +149,7 @@ describe('Tests ReactNativeClient', () => {
         dsn: EXAMPLE_DSN,
         transport: myCustomTransportFn,
       });
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(client.getTransport()?.flush).toBe(myFlush);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(client.getTransport()?.send).toBe(mySend);
     });
   });

@@ -107,7 +107,6 @@ describe('ReactNativeErrorHandlers', () => {
 
 function getActualCaptureEventArgs() {
   const hub = getCurrentHub();
-  // eslint-disable-next-line @typescript-eslint/unbound-method
   const mockCall = (hub.captureEvent as jest.MockedFunction<typeof hub.captureEvent>).mock.calls[0];
 
   return mockCall;

@@ -106,7 +106,6 @@ describe('ReactNativeTracing', () => {
         };
 
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
@@ -149,7 +148,6 @@ describe('ReactNativeTracing', () => {
         };
 
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
@@ -191,7 +189,6 @@ describe('ReactNativeTracing', () => {
         };
 
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
@@ -231,7 +228,6 @@ describe('ReactNativeTracing', () => {
         };
 
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
@@ -273,7 +269,6 @@ describe('ReactNativeTracing', () => {
         };
 
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
@@ -330,7 +325,6 @@ describe('ReactNativeTracing', () => {
         };
 
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
@@ -387,7 +381,6 @@ describe('ReactNativeTracing', () => {
         };
 
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
         const mockHub = getMockHub();
@@ -429,7 +422,6 @@ describe('ReactNativeTracing', () => {
       integration.setupOnce(addGlobalEventProcessor, () => mockHub);
 
       setImmediate(() => {
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
 
         const transaction = mockHub.getScope()?.getTransaction();
@@ -448,7 +440,6 @@ describe('ReactNativeTracing', () => {
       integration.setupOnce(addGlobalEventProcessor, () => mockHub);
 
       setImmediate(() => {
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
 
         const transaction = mockHub.getScope()?.getTransaction();
@@ -460,7 +451,6 @@ describe('ReactNativeTracing', () => {
     });
 
     it('Does not instrument app start if fetchNativeAppStart returns null', done => {
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(null);
 
       const integration = new ReactNativeTracing();
@@ -468,7 +458,6 @@ describe('ReactNativeTracing', () => {
       integration.setupOnce(addGlobalEventProcessor, () => mockHub);
 
       setImmediate(() => {
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
 
         const transaction = mockHub.getScope()?.getTransaction();
@@ -490,7 +479,6 @@ describe('ReactNativeTracing', () => {
 
       setImmediate(() => {
         expect(integration.nativeFramesInstrumentation).toBeDefined();
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.enableNativeFramesTracking).toBeCalledTimes(1);
 
         done();
@@ -505,9 +493,7 @@ describe('ReactNativeTracing', () => {
 
       setImmediate(() => {
         expect(integration.nativeFramesInstrumentation).toBeUndefined();
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.disableNativeFramesTracking).toBeCalledTimes(1);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.fetchNativeFrames).not.toBeCalled();
 
         done();
@@ -655,7 +641,6 @@ describe('ReactNativeTracing', () => {
         tracing.startUserInteractionTransaction(mockedUserInteractionId);
 
         expect(tracing.options.enableUserInteractionTracing).toBeFalsy();
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedScope.setSpan).not.toBeCalled();
       });
     });
@@ -679,7 +664,6 @@ describe('ReactNativeTracing', () => {
       test('user interaction tracing is enabled and transaction is bound to scope', () => {
         tracing.startUserInteractionTransaction(mockedUserInteractionId);
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         const actualTransaction = mockFunction(mockedScope.setSpan).mock.calls[0][firstArg];
         const actualTransactionContext = actualTransaction?.toContext();
         expect(tracing.options.enableUserInteractionTracing).toBeTruthy();
@@ -696,7 +680,6 @@ describe('ReactNativeTracing', () => {
 
         jest.runAllTimers();
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         const actualTransaction = mockFunction(mockedScope.setSpan).mock.calls[0][firstArg];
         const actualTransactionContext = actualTransaction?.toContext();
         expect(actualTransactionContext?.sampled).toEqual(false);
@@ -805,9 +788,7 @@ describe('ReactNativeTracing', () => {
 
         tracing.startUserInteractionTransaction(mockedUserInteractionId);
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedScope.setSpan).toBeCalledTimes(1);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedScope.setSpan).toBeCalledWith(activeTransaction);
       });
 
@@ -847,13 +828,9 @@ describe('ReactNativeTracing', () => {
         const actualTransaction = mockedScope.getTransaction() as Transaction | undefined;
         jest.runAllTimers();
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(tracing.onTransactionStart).toBeCalledTimes(1);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(tracing.onTransactionFinish).toBeCalledTimes(1);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(tracing.onTransactionStart).toBeCalledWith(actualTransaction);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(tracing.onTransactionFinish).toBeCalledWith(actualTransaction);
       });
     });

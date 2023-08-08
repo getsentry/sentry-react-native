@@ -12,11 +12,7 @@ module.exports = {
   settings: {
     version: 'detect', // React version. "detect" automatically picks the version you have installed.
   },
-  ignorePatterns: [
-    'test/react-native/versions/**/*',
-    'coverage/**/*',
-    'test/typescript/**/*',
-  ],
+  ignorePatterns: ['test/react-native/versions/**/*', 'coverage/**/*', 'test/typescript/**/*'],
   overrides: [
     {
       // Typescript Files
@@ -24,10 +20,7 @@ module.exports = {
       extends: ['plugin:react/recommended'],
       plugins: ['react', 'react-native'],
       rules: {
-        '@typescript-eslint/typedef': [
-          'error',
-          { arrowParameter: false, variableDeclarationIgnoreFunction: true },
-        ],
+        '@typescript-eslint/typedef': ['error', { arrowParameter: false, variableDeclarationIgnoreFunction: true }],
       },
     },
     {
@@ -37,6 +30,7 @@ module.exports = {
         '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/no-empty-function': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/unbound-method': 'off',
       },
     },
     {
@@ -55,7 +49,7 @@ module.exports = {
       parserOptions: {
         ecmaVersion: 2017,
       },
-    }
+    },
   ],
   rules: {
     // Bundle size isn't too much of an issue for React Native.

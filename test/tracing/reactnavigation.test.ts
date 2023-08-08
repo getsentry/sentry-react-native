@@ -276,9 +276,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(1, '__unsafe_action__', expect.any(Function));
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(2, 'state', expect.any(Function));
     });
 
@@ -289,9 +287,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(1, '__unsafe_action__', expect.any(Function));
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(2, 'state', expect.any(Function));
     });
 
@@ -306,9 +302,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).not.toHaveBeenCalled();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).not.toHaveBeenCalled();
     });
 
