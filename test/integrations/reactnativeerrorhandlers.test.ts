@@ -49,15 +49,15 @@ import type { Event, EventHint, SeverityLevel } from '@sentry/types';
 
 import { ReactNativeErrorHandlers } from '../../src/js/integrations/reactnativeerrorhandlers';
 
-beforeEach(() => {
-  ErrorUtils.getGlobalHandler = () => jest.fn();
-});
-
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('ReactNativeErrorHandlers', () => {
+  beforeEach(() => {
+    ErrorUtils.getGlobalHandler = () => jest.fn();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('onError', () => {
     let errorHandlerCallback: (error: Error, isFatal: boolean) => Promise<void>;
 

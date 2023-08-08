@@ -84,16 +84,16 @@ const callAllScopeMethods = () => {
   NATIVE.setExtra('key', 'value');
 };
 
-beforeEach(() => {
-  NATIVE.platform = 'ios';
-  NATIVE.enableNative = true;
-});
-
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('Tests Native Wrapper', () => {
+  beforeEach(() => {
+    NATIVE.platform = 'ios';
+    NATIVE.enableNative = true;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('startWithOptions', () => {
     test('calls native module', async () => {
       await NATIVE.initNativeSdk({ dsn: 'test', enableNative: true });

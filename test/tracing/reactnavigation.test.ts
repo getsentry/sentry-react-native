@@ -31,13 +31,13 @@ const getMockTransaction = () => {
   return transaction;
 };
 
-afterEach(() => {
-  RN_GLOBAL_OBJ.__sentry_rn_v5_registered = false;
-
-  jest.resetAllMocks();
-});
-
 describe('ReactNavigationInstrumentation', () => {
+  afterEach(() => {
+    RN_GLOBAL_OBJ.__sentry_rn_v5_registered = false;
+
+    jest.resetAllMocks();
+  });
+
   test('transaction set on initialize', () => {
     const instrumentation = new ReactNavigationInstrumentation();
 

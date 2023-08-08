@@ -82,11 +82,11 @@ const usedOptions = (): ClientOptions<BaseTransportOptions> | undefined => {
   return mockedInitAndBind.mock.calls[0]?.[1];
 };
 
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('Tests the SDK functionality', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('init', () => {
     describe('enableAutoPerformanceTracing', () => {
       const usedOptions = (): Integration[] => {
