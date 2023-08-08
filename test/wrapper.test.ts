@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
 import { createEnvelope, logger } from '@sentry/utils';
 import * as RN from 'react-native';
@@ -59,8 +58,6 @@ jest.mock(
       },
     };
   },
-  /* virtual allows us to mock modules that aren't in package.json */
-  { virtual: true },
 );
 
 const RNSentry = RN.NativeModules.RNSentry as Spec;
