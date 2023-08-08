@@ -111,7 +111,8 @@
       "js"
     ],
     "testPathIgnorePatterns": [
-      "<rootDir>/test/e2e/"
+      "<rootDir>/test/e2e/",
+      "<rootDir>/test/react-native/versions"
     ],
     "testEnvironment": "node",
     "testMatch": [
