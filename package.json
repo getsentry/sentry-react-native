@@ -98,6 +98,9 @@
   "jest": {
     "collectCoverage": true,
     "preset": "react-native",
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/mockConsole.ts"
+    ],
     "globals": {
       "__DEV__": true,
       "ts-jest": {
