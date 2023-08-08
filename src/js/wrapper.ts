@@ -449,7 +449,7 @@ export const NATIVE: SentryNativeWrapper = {
   },
 
   isNativeAvailable(): boolean {
-    return this.enableNative && this._isModuleLoaded(RNSentry);
+    return this._isModuleLoaded(RNSentry);
   },
 
   async captureScreenshot(): Promise<Screenshot[] | null> {

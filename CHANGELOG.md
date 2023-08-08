@@ -2,9 +2,10 @@
 
 ## Unreleased
 
-### Fixed
+### Fixes
 
 - Use application variant instead of variant output to hook to correct package task for modules cleanup ([#3161](https://github.com/getsentry/sentry-react-native/pull/3161))
+- Fix `isNativeAvailable` after SDK reinitialization ([#3200](https://github.com/getsentry/sentry-react-native/pull/3200))
 
 ## 5.8.1
 
