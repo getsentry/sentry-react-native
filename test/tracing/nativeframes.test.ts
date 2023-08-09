@@ -22,7 +22,6 @@ describe('NativeFramesInstrumentation', () => {
       slowFrames: 20,
       frozenFrames: 5,
     };
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(startFrames);
 
     const instance = new NativeFramesInstrumentation(
@@ -55,7 +54,6 @@ describe('NativeFramesInstrumentation', () => {
       slowFrames: 40,
       frozenFrames: 10,
     };
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(startFrames);
 
     let eventProcessor: EventProcessor;
@@ -72,7 +70,6 @@ describe('NativeFramesInstrumentation', () => {
     instance.onTransactionStart(transaction);
 
     setImmediate(() => {
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(finishFrames);
 
       const finishTimestamp = Date.now() / 1000;
@@ -140,7 +137,6 @@ describe('NativeFramesInstrumentation', () => {
       slowFrames: 40,
       frozenFrames: 10,
     };
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(finishFrames);
 
     let eventProcessor: EventProcessor;
@@ -215,7 +211,6 @@ describe('NativeFramesInstrumentation', () => {
       frozenFrames: 5,
     };
     const finishFrames = null;
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(startFrames);
 
     let eventProcessor: EventProcessor;
@@ -232,7 +227,6 @@ describe('NativeFramesInstrumentation', () => {
     instance.onTransactionStart(transaction);
 
     setImmediate(() => {
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(finishFrames);
 
       const finishTimestamp = Date.now() / 1000;
@@ -286,7 +280,6 @@ describe('NativeFramesInstrumentation', () => {
       slowFrames: 20,
       frozenFrames: 5,
     };
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(startFrames);
 
     let eventProcessor: EventProcessor;
@@ -303,7 +296,6 @@ describe('NativeFramesInstrumentation', () => {
     instance.onTransactionStart(transaction);
 
     setImmediate(() => {
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       mockFunction(NATIVE.fetchNativeFrames).mockImplementation(
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         async () => new Promise(() => {}),
