@@ -10,6 +10,12 @@
 - Use application variant instead of variant output to hook to correct package task for modules cleanup ([#3161](https://github.com/getsentry/sentry-react-native/pull/3161))
 - Fix `isNativeAvailable` after SDK reinitialization ([#3200](https://github.com/getsentry/sentry-react-native/pull/3200))
 
+### Dependencies
+
+- Bump Android SDK from v6.27.0 to v6.28.0 ([#3192](https://github.com/getsentry/sentry-react-native/pull/3192))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6280)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.27.0...6.28.0)
+
 ## 5.8.1
 
 ### Dependencies
