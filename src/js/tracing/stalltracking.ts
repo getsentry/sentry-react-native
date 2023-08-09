@@ -238,7 +238,7 @@ export class StallTrackingInstrumentation {
       }
     } else {
       this._isBackground = true;
-      clearTimeout(this._timeout);
+      this._timeout !== null && clearTimeout(this._timeout);
     }
   }
 
