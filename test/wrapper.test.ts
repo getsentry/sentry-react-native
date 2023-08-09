@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
 import { createEnvelope, logger } from '@sentry/utils';
 import * as RN from 'react-native';
@@ -8,60 +7,55 @@ import type { ReactNativeOptions } from '../src/js/options';
 import { utf8ToBytes } from '../src/js/vendor';
 import { NATIVE } from '../src/js/wrapper';
 
-jest.mock(
-  'react-native',
-  () => {
-    let initPayload: ReactNativeOptions | null = null;
+jest.mock('react-native', () => {
+  let initPayload: ReactNativeOptions | null = null;
 
-    const RNSentry: Spec = {
-      addBreadcrumb: jest.fn(),
-      captureEnvelope: jest.fn(),
-      clearBreadcrumbs: jest.fn(),
-      crash: jest.fn(),
-      fetchNativeDeviceContexts: jest.fn(() =>
-        Promise.resolve({
-          someContext: {
-            someValue: 0,
-          },
-        }),
-      ),
-      fetchNativeRelease: jest.fn(() =>
-        Promise.resolve({
-          build: '1.0.0.1',
-          id: 'test-mock',
-          version: '1.0.0',
-        }),
-      ),
-      setContext: jest.fn(),
-      setExtra: jest.fn(),
-      setTag: jest.fn(),
-      setUser: jest.fn(() => {
-        return;
+  const RNSentry: Spec = {
+    addBreadcrumb: jest.fn(),
+    captureEnvelope: jest.fn(),
+    clearBreadcrumbs: jest.fn(),
+    crash: jest.fn(),
+    fetchNativeDeviceContexts: jest.fn(() =>
+      Promise.resolve({
+        someContext: {
+          someValue: 0,
+        },
       }),
-      initNativeSdk: jest.fn(options => {
-        initPayload = options;
-
-        return Promise.resolve(true);
+    ),
+    fetchNativeRelease: jest.fn(() =>
+      Promise.resolve({
+        build: '1.0.0.1',
+        id: 'test-mock',
+        version: '1.0.0',
       }),
-      closeNativeSdk: jest.fn(() => Promise.resolve()),
-      // @ts-ignore for testing.
-      _getLastPayload: () => ({ initPayload }),
-      startProfiling: jest.fn(),
-      stopProfiling: jest.fn(),
-    };
+    ),
+    setContext: jest.fn(),
+    setExtra: jest.fn(),
+    setTag: jest.fn(),
+    setUser: jest.fn(() => {
+      return;
+    }),
+    initNativeSdk: jest.fn(options => {
+      initPayload = options;
 
-    return {
-      NativeModules: {
-        RNSentry,
-      },
-      Platform: {
-        OS: 'ios',
-      },
-    };
-  },
-  /* virtual allows us to mock modules that aren't in package.json */
-  { virtual: true },
-);
+      return Promise.resolve(true);
+    }),
+    closeNativeSdk: jest.fn(() => Promise.resolve()),
+    // @ts-ignore for testing.
+    _getLastPayload: () => ({ initPayload }),
+    startProfiling: jest.fn(),
+    stopProfiling: jest.fn(),
+  };
+
+  return {
+    NativeModules: {
+      RNSentry,
+    },
+    Platform: {
+      OS: 'ios',
+    },
+  };
+});
 
 const RNSentry = RN.NativeModules.RNSentry as Spec;
 
@@ -90,16 +84,16 @@ const callAllScopeMethods = () => {
   NATIVE.setExtra('key', 'value');
 };
 
-beforeEach(() => {
-  NATIVE.platform = 'ios';
-  NATIVE.enableNative = true;
-});
-
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('Tests Native Wrapper', () => {
+  beforeEach(() => {
+    NATIVE.platform = 'ios';
+    NATIVE.enableNative = true;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('startWithOptions', () => {
     test('calls native module', async () => {
       await NATIVE.initNativeSdk({ dsn: 'test', enableNative: true });

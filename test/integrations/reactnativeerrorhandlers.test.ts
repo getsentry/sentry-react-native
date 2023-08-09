@@ -49,15 +49,15 @@ import type { Event, EventHint, SeverityLevel } from '@sentry/types';
 
 import { ReactNativeErrorHandlers } from '../../src/js/integrations/reactnativeerrorhandlers';
 
-beforeEach(() => {
-  ErrorUtils.getGlobalHandler = () => jest.fn();
-});
-
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('ReactNativeErrorHandlers', () => {
+  beforeEach(() => {
+    ErrorUtils.getGlobalHandler = () => jest.fn();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('onError', () => {
     let errorHandlerCallback: (error: Error, isFatal: boolean) => Promise<void>;
 
@@ -107,7 +107,6 @@ describe('ReactNativeErrorHandlers', () => {
 
 function getActualCaptureEventArgs() {
   const hub = getCurrentHub();
-  // eslint-disable-next-line @typescript-eslint/unbound-method
   const mockCall = (hub.captureEvent as jest.MockedFunction<typeof hub.captureEvent>).mock.calls[0];
 
   return mockCall;

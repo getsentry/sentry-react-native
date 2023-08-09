@@ -106,10 +106,8 @@ describe('ReactNavigationV4Instrumentation', () => {
 
     const firstRoute = mockAppContainerRef.current._navigation.state.routes[0] as NavigationRouteV4;
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(1);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(instrumentation.onRouteWillChange).toHaveBeenLastCalledWith(INITIAL_TRANSACTION_CONTEXT_V4);
 
     expect(mockTransaction.name).toBe(firstRoute.routeName);
@@ -158,10 +156,8 @@ describe('ReactNavigationV4Instrumentation', () => {
     };
     mockAppContainerRef.current._navigation.router.dispatchAction(action);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(2);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(instrumentation.onRouteWillChange).toHaveBeenLastCalledWith({
       name: action.routeName,
       op: 'navigation',
@@ -223,10 +219,8 @@ describe('ReactNavigationV4Instrumentation', () => {
     };
     mockAppContainerRef.current._navigation.router.dispatchAction(action);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(tracingListener).toHaveBeenCalledTimes(2);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(tracingListener).toHaveBeenLastCalledWith({
       name: 'New Name',
       op: 'navigation',
@@ -278,7 +272,6 @@ describe('ReactNavigationV4Instrumentation', () => {
     };
     mockAppContainerRef.current._navigation.router.dispatchAction(action);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(1);
   });
 
@@ -302,7 +295,6 @@ describe('ReactNavigationV4Instrumentation', () => {
 
       expect(RN_GLOBAL_OBJ.__sentry_rn_v4_registered).toBe(true);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(1);
       expect(mockTransaction.name).toBe(initialRoute.routeName);
       expect(mockTransaction.sampled).toBe(true);
@@ -325,7 +317,6 @@ describe('ReactNavigationV4Instrumentation', () => {
 
       expect(RN_GLOBAL_OBJ.__sentry_rn_v4_registered).toBe(true);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(1);
       expect(mockTransaction.name).toBe(initialRoute.routeName);
       expect(mockTransaction.sampled).toBe(true);
