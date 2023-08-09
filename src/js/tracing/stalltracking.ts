@@ -2,6 +2,8 @@
 import type { IdleTransaction, Span, Transaction } from '@sentry/core';
 import type { Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
+import type { AppStateStatus } from 'react-native';
+import { AppState } from 'react-native';
 
 import { STALL_COUNT, STALL_LONGEST_TIME, STALL_TOTAL_TIME } from '../measurements';
 
@@ -47,6 +49,8 @@ export class StallTrackingInstrumentation {
   private _lastIntervalMs: number = 0;
   private _timeout: ReturnType<typeof setTimeout> | null = null;
 
+  private _isBackground: boolean = false;
+
   private _statsByTransaction: Map<
     Transaction,
     {
@@ -61,6 +65,13 @@ export class StallTrackingInstrumentation {
 
   public constructor(options: StallTrackingOptions = { minimumStallThreshold: 50 }) {
     this._minimumStallThreshold = options.minimumStallThreshold;
+
+    this._backgroundEventListener = this._backgroundEventListener.bind(this);
+    // Avoids throwing any error if using React Native on a environment that doesn't implement AppState.
+    if (AppState?.isAvailable) {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      AppState.addEventListener('change', this._backgroundEventListener);
+    }
   }
 
   /**
@@ -216,6 +227,22 @@ export class StallTrackingInstrumentation {
   }
 
   /**
+   * Switch that enables the iteraction once app moves from background to foreground.
+   */
+  private _backgroundEventListener(state: AppStateStatus): void {
+    if (state === ('active' as AppStateStatus)) {
+      this._isBackground = false;
+      if (this._timeout != null) {
+        this._lastIntervalMs = timestampInSeconds() * 1000;
+        this._iteration();
+      }
+    } else {
+      this._isBackground = true;
+      this._timeout !== null && clearTimeout(this._timeout);
+    }
+  }
+
+  /**
    * Logs the finish time of the span for use in `trimEnd: true` transactions.
    */
   private _markSpanFinish(transaction: Transaction, spanEndTimestamp: number): void {
@@ -329,7 +356,7 @@ export class StallTrackingInstrumentation {
 
     this._lastIntervalMs = now;
 
-    if (this.isTracking) {
+    if (this.isTracking && !this._isBackground) {
       this._timeout = setTimeout(this._iteration.bind(this), LOOP_TIMEOUT_INTERVAL_MS);
     }
   }
