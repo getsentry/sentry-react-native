@@ -25,7 +25,6 @@
     "downlevel": "downlevel-dts dist ts3.8/dist --to=3.8",
     "clean": "rimraf dist coverage",
     "test": "jest",
-    "test:no-stall": "jest --testPathIgnorePatterns=test/tracing/stalltracking.test.ts  --testPathIgnorePatterns=test/e2e/",
     "fix": "yarn fix:eslint && yarn fix:prettier",
     "fix:eslint": "eslint --config .eslintrc.js --fix .",
     "fix:prettier": "prettier --write \"{src,test,scripts}/**/**.ts\"",
