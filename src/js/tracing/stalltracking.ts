@@ -69,8 +69,8 @@ export class StallTrackingInstrumentation {
     this._backgroundEventListener = this._backgroundEventListener.bind(this);
     // Avoids throwing any error if using React Native on a environment that doesn't implement AppState.
     if (AppState?.isAvailable) {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-        AppState.addEventListener('change', this._backgroundEventListener);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      AppState.addEventListener('change', this._backgroundEventListener);
     }
   }
 

@@ -32,7 +32,7 @@ describe('BackgroundEventListener', () => {
     jest.useFakeTimers(); // Enable fake timers to control timeouts
     stallTracking['_backgroundEventListener']('active' as AppStateStatus);
 
-    expect(stallTracking['_iteration']).not.toBeCalled()
+    expect(stallTracking['_iteration']).not.toBeCalled();
   });
   it('Stall tracking should call _iteration when state is active and _timeout is defined', () => {
     const stallTracking = new StallTrackingInstrumentation();
