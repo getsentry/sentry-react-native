@@ -21,8 +21,6 @@ import {
   getSyncPromiseRejectOnFirstCall,
 } from './testutils';
 
-const EXAMPLE_DSN = 'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053';
-
 interface MockedReactNative {
   NativeModules: {
     RNSentry: {
@@ -74,9 +72,9 @@ jest.mock(
       alert: jest.fn(),
     },
   }),
-  /* virtual allows us to mock modules that aren't in package.json */
-  { virtual: true },
 );
+
+const EXAMPLE_DSN = 'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053';
 
 const DEFAULT_OPTIONS: ReactNativeClientOptions = {
   enableNative: true,
@@ -94,11 +92,6 @@ const DEFAULT_OPTIONS: ReactNativeClientOptions = {
   stackParser: jest.fn().mockReturnValue([]),
 };
 
-afterEach(() => {
-  jest.clearAllMocks();
-  NATIVE.enableNative = true;
-});
-
 describe('Tests ReactNativeClient', () => {
   describe('initializing the client', () => {
     test('client initializes', async () => {
@@ -110,7 +103,6 @@ describe('Tests ReactNativeClient', () => {
 
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
       // @ts-ignore: Is Mocked
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       await expect(RN.LogBox.ignoreLogs).toBeCalled();
     });
 
@@ -150,9 +142,7 @@ describe('Tests ReactNativeClient', () => {
         dsn: EXAMPLE_DSN,
         transport: myCustomTransportFn,
       });
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(client.getTransport()?.flush).toBe(myFlush);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(client.getTransport()?.send).toBe(mySend);
     });
   });
@@ -212,6 +202,7 @@ describe('Tests ReactNativeClient', () => {
 
   describe('nativeCrash', () => {
     test('calls NativeModules crash', () => {
+      NATIVE.enableNative = true;
       const RN: MockedReactNative = require('react-native');
 
       const client = new ReactNativeClient({

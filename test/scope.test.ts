@@ -1,4 +1,3 @@
-// eslint-disable @typescript-eslint/unbound-method
 import type { Breadcrumb } from '@sentry/types';
 
 import { ReactNativeScope } from '../src/js/scope';
