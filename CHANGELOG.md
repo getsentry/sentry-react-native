@@ -13,14 +13,16 @@
   which controls what requests to attach the `sentry-trace` and `baggage` HTTP headers to (which is what propagates tracing information).
 
   ```javascript
-  Sentry.init({
-    tracePropagationTargets: ["third-party-site.com", /^https:\/\/yourserver\.io\/api/],
-  });
+    Sentry.init({
+      tracePropagationTargets: ["third-party-site.com", /^https:\/\/yourserver\.io\/api/],
+    });
   ```
 
-### Fixed
+### Fixes
 
+- Stall Time is no longer counted when App is in Background. ([#3211](https://github.com/getsentry/sentry-react-native/pull/3211))
 - Use application variant instead of variant output to hook to correct package task for modules cleanup ([#3161](https://github.com/getsentry/sentry-react-native/pull/3161))
+- Fix `isNativeAvailable` after SDK reinitialization ([#3200](https://github.com/getsentry/sentry-react-native/pull/3200))
 
 ## 5.8.1
 

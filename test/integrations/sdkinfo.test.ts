@@ -28,11 +28,11 @@ jest.mock('../../src/js/wrapper', () => {
   };
 });
 
-afterEach(() => {
-  NATIVE.platform = 'ios';
-});
-
 describe('Sdk Info', () => {
+  afterEach(() => {
+    NATIVE.platform = 'ios';
+  });
+
   it('Adds native package and javascript platform to event on iOS', async () => {
     mockedFetchNativeSdkInfo = jest.fn().mockResolvedValue(mockCocoaPackage);
     const mockEvent: Event = {};
