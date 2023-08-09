@@ -1,3 +1,4 @@
+import { exceptionFromError } from '@sentry/browser';
 import type {
   DebugImage,
   Event,
@@ -24,7 +25,7 @@ interface LinkedErrorsOptions {
 }
 
 /**
- *
+ * Processes JS and RN native linked errors.
  */
 export class NativeLinkedErrors implements Integration {
   /**
@@ -68,7 +69,7 @@ export class NativeLinkedErrors implements Integration {
   }
 
   /**
-   *
+   * Enriches passed event with linked exceptions and native debug meta images.
    */
   private async _handler(
     parser: StackParser,
@@ -96,7 +97,8 @@ export class NativeLinkedErrors implements Integration {
   }
 
   /**
-   *
+   * Walks linked errors and created Sentry exceptions chain.
+   * Collects debug images from native errors stack frames.
    */
   private async _walkErrorTree(
     parser: StackParser,
@@ -144,7 +146,7 @@ export class NativeLinkedErrors implements Integration {
     return this._walkErrorTree(
       parser,
       limit,
-      error[key],
+      linkedError,
       key,
       [...exceptions, exception],
       [...debugImages, ...(exceptionDebugImages || [])],
@@ -226,82 +228,4 @@ export class NativeLinkedErrors implements Integration {
   private _fetchNativeStackFrames(instructionsAddr: number[]): Promise<NativeStackFrames | null> {
     return NATIVE.fetchNativeStackFramesBy(instructionsAddr);
   }
-}
-
-// TODO: Needs to be exported from @sentry/browser
-/**
- * This function creates an exception from a JavaScript Error
- */
-export function exceptionFromError(stackParser: StackParser, ex: Error): Exception {
-  // Get the frames first since Opera can lose the stack if we touch anything else first
-  const frames = parseStackFrames(stackParser, ex);
-
-  const exception: Exception = {
-    type: ex && ex.name,
-    value: extractMessage(ex),
-  };
-
-  if (frames.length) {
-    exception.stacktrace = { frames };
-  }
-
-  if (exception.type === undefined && exception.value === '') {
-    exception.value = 'Unrecoverable error caught';
-  }
-
-  return exception;
-}
-
-/** Parses stack frames from an error */
-export function parseStackFrames(
-  stackParser: StackParser,
-  ex: Error & { framesToPop?: number; stacktrace?: string },
-): StackFrame[] {
-  // Access and store the stacktrace property before doing ANYTHING
-  // else to it because Opera is not very good at providing it
-  // reliably in other circumstances.
-  const stacktrace = ex.stacktrace || ex.stack || '';
-
-  const popSize = getPopSize(ex);
-
-  try {
-    return stackParser(stacktrace, popSize);
-  } catch (e) {
-    // no-empty
-  }
-
-  return [];
-}
-
-/**
- * There are cases where stacktrace.message is an Event object
- * https://github.com/getsentry/sentry-javascript/issues/1949
- * In this specific case we try to extract stacktrace.message.error.message
- */
-function extractMessage(ex: Error & { message: { error?: Error } }): string {
-  const message = ex && ex.message;
-  if (!message) {
-    return 'No error message';
-  }
-  if (message.error && typeof message.error.message === 'string') {
-    return message.error.message;
-  }
-  return message;
-}
-
-// Based on our own mapping pattern - https://github.com/getsentry/sentry/blob/9f08305e09866c8bd6d0c24f5b0aabdd7dd6c59c/src/sentry/lang/javascript/errormapping.py#L83-L108
-const reactMinifiedRegexp = /Minified React error #\d+;/i;
-
-function getPopSize(ex: Error & { framesToPop?: number }): number {
-  if (ex) {
-    if (typeof ex.framesToPop === 'number') {
-      return ex.framesToPop;
-    }
-
-    if (reactMinifiedRegexp.test(ex.message)) {
-      return 1;
-    }
-  }
-
-  return 0;
 }
