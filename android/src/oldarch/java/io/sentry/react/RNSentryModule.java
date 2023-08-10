@@ -140,6 +140,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void fetchNativeStackFramesBy(Promise promise) {
-        this.impl.fetchNativeStackFramesBy(promise);
+        // Not used on Android
     }
 }

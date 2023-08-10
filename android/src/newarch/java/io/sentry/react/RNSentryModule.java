@@ -141,6 +141,6 @@ public class RNSentryModule extends NativeRNSentrySpec {
 
     @Override
     public void fetchNativeStackFramesBy(Promise promise) {
-        this.impl.fetchNativeStackFramesBy(promise);
+        // Not used on Android
     }
 }
