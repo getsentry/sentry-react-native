@@ -6,8 +6,9 @@
 
 - Add support for React Native mixed stacktraces ([#3201](https://github.com/getsentry/sentry-react-native/pull/3201))
 
-  In the current `react-native@nightly` JS errors from native modules can contain native JVM or Objective-C exception stack trace.
-  Both JS and native stack trace is processed by default no configuration needed.
+  In the current `react-native@nightly` (`0.73.0-nightly-20230809-cb60e5c67`) JS errors from native modules can
+  contain native JVM or Objective-C exception stack trace. Both JS and native stack trace
+  are processed by default no configuration needed.
 
 ### Fixes
 
