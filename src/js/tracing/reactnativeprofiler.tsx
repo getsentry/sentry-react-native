@@ -14,17 +14,23 @@ export class ReactNativeProfiler extends Profiler {
    */
   public componentDidMount(): void {
     super.componentDidMount();
-    getCurrentHub().getClient()?.addIntegration?.(createIntegration(this.name));
+    const hub = getCurrentHub();
+    const client = hub.getClient();
 
-    const tracingIntegration = getCurrentHub().getIntegration(
-      ReactNativeTracing
-    );
-
-    if (this._mountSpan && tracingIntegration) {
-      if (typeof this._mountSpan.endTimestamp !== 'undefined') {
-        // The first root component mount is the app start finish.
-        tracingIntegration.onAppStartFinish(this._mountSpan.endTimestamp);
-      }
+    if (!client) {
+      // We can't use logger here because this will be logged before the `Sentry.init`.
+      // eslint-disable-next-line no-console
+      __DEV__ && console.warn('App Start Span could not be finished. `Sentry.wrap` was called before `Sentry.init`.');
+      return;
     }
+
+    client.addIntegration && client.addIntegration(createIntegration(this.name));
+
+    const tracingIntegration = hub.getIntegration(ReactNativeTracing);
+    tracingIntegration
+      && this._mountSpan
+      && typeof this._mountSpan.endTimestamp !== 'undefined'
+      // The first root component mount is the app start finish.
+      && tracingIntegration.onAppStartFinish(this._mountSpan.endTimestamp);
   }
 }

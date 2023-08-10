@@ -11,8 +11,26 @@
 
 ### Fixes
 
+- `Sentry.init` must be called before `Sentry.wrap`([#3227](https://github.com/getsentry/sentry-react-native/pull/3227))
+  - The SDK now shows warning if incorrect order is detected
+- Stall Time is no longer counted when App is in Background. ([#3211](https://github.com/getsentry/sentry-react-native/pull/3211))
 - Use application variant instead of variant output to hook to correct package task for modules cleanup ([#3161](https://github.com/getsentry/sentry-react-native/pull/3161))
 - Fix `isNativeAvailable` after SDK reinitialization ([#3200](https://github.com/getsentry/sentry-react-native/pull/3200))
+
+### Dependencies
+
+- Bump Android SDK from v6.27.0 to v6.28.0 ([#3192](https://github.com/getsentry/sentry-react-native/pull/3192))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6280)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.27.0...6.28.0)
+- Bump Cocoa SDK from v8.9.3 to v8.9.4 ([#3225](https://github.com/getsentry/sentry-react-native/pull/3225))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#894)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.9.3...8.9.4)
+- Bump JavaScript SDK from v7.61.0 to v7.62.0 ([#3226](https://github.com/getsentry/sentry-react-native/pull/3226))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7620)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.61.0...7.62.0)
+- Bump CLI from v2.19.4 to v2.20.4 ([#3212](https://github.com/getsentry/sentry-react-native/pull/3212))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2204)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.19.4...2.20.4)
 
 ## 5.8.1
 
