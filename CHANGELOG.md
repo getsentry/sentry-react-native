@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Features
+
+- Add `tracePropagationTargets` option ([#3230](https://github.com/getsentry/sentry-react-native/pull/3230))
+
+  This release adds support for [distributed tracing](https://docs.sentry.io/platforms/react-native/usage/distributed-tracing/)
+  without requiring performance monitoring to be active on the React Native SDK.
+  This means even if there is no sampled transaction/span, the SDK will still propagate traces to downstream services.
+  Distributed Tracing can be configured with the `tracePropagationTargets` option,
+  which controls what requests to attach the `sentry-trace` and `baggage` HTTP headers to (which is what propagates tracing information).
+
+  ```javascript
+    Sentry.init({
+      tracePropagationTargets: ["third-party-site.com", /^https:\/\/yourserver\.io\/api/],
+    });
+  ```
+
 ### Fixes
 
 - `Sentry.init` must be called before `Sentry.wrap`([#3227](https://github.com/getsentry/sentry-react-native/pull/3227))
