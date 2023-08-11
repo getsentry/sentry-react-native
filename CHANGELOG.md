@@ -10,6 +10,20 @@
   contain native JVM or Objective-C exception stack trace. Both JS and native stack trace
   are processed by default no configuration needed.
 
+- Add `tracePropagationTargets` option ([#3230](https://github.com/getsentry/sentry-react-native/pull/3230))
+
+  This release adds support for [distributed tracing](https://docs.sentry.io/platforms/react-native/usage/distributed-tracing/)
+  without requiring performance monitoring to be active on the React Native SDK.
+  This means even if there is no sampled transaction/span, the SDK will still propagate traces to downstream services.
+  Distributed Tracing can be configured with the `tracePropagationTargets` option,
+  which controls what requests to attach the `sentry-trace` and `baggage` HTTP headers to (which is what propagates tracing information).
+
+  ```javascript
+    Sentry.init({
+      tracePropagationTargets: ["third-party-site.com", /^https:\/\/yourserver\.io\/api/],
+    });
+  ```
+
 ### Fixes
 
 - `Sentry.init` must be called before `Sentry.wrap`([#3227](https://github.com/getsentry/sentry-react-native/pull/3227))
@@ -26,12 +40,12 @@
 - Bump Cocoa SDK from v8.9.3 to v8.9.4 ([#3225](https://github.com/getsentry/sentry-react-native/pull/3225))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#894)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.9.3...8.9.4)
-- Bump JavaScript SDK from v7.61.0 to v7.62.0 ([#3226](https://github.com/getsentry/sentry-react-native/pull/3226))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7620)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.61.0...7.62.0)
-- Bump CLI from v2.19.4 to v2.20.4 ([#3212](https://github.com/getsentry/sentry-react-native/pull/3212))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2204)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.19.4...2.20.4)
+- Bump JavaScript SDK from v7.61.0 to v7.63.0 ([#3226](https://github.com/getsentry/sentry-react-native/pull/3226), [#3235](https://github.com/getsentry/sentry-react-native/pull/3235))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7630)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.61.0...7.63.0)
+- Bump CLI from v2.19.4 to v2.20.5 ([#3212](https://github.com/getsentry/sentry-react-native/pull/3212), [#3233](https://github.com/getsentry/sentry-react-native/pull/3233))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2205)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.19.4...2.20.5)
 
 ## 5.8.1
 

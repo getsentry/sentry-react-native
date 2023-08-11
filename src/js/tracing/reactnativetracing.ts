@@ -165,6 +165,10 @@ export class ReactNativeTracing implements Integration {
     addGlobalEventProcessor: (callback: EventProcessor) => void,
     getCurrentHub: () => Hub,
   ): void {
+    const hub = getCurrentHub();
+    const client = hub.getClient();
+    const clientOptions = client && client.getOptions();
+
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const {
       traceFetch,
@@ -173,7 +177,7 @@ export class ReactNativeTracing implements Integration {
       tracingOrigins,
       // @ts-ignore TODO
       shouldCreateSpanForRequest,
-      tracePropagationTargets,
+      tracePropagationTargets: thisOptionsTracePropagationTargets,
       routingInstrumentation,
       enableAppStartTracking,
       enableNativeFramesTracking,
@@ -181,6 +185,23 @@ export class ReactNativeTracing implements Integration {
     } = this.options;
 
     this._getCurrentHub = getCurrentHub;
+
+    const clientOptionsTracePropagationTargets = clientOptions && clientOptions.tracePropagationTargets;
+    // There are three ways to configure tracePropagationTargets:
+    // 1. via top level client option `tracePropagationTargets`
+    // 2. via ReactNativeTracing option `tracePropagationTargets`
+    // 3. via ReactNativeTracing option `tracingOrigins` (deprecated)
+    //
+    // To avoid confusion, favour top level client option `tracePropagationTargets`, and fallback to
+    // ReactNativeTracing option `tracePropagationTargets` and then `tracingOrigins` (deprecated).
+    //
+    // If both 1 and either one of 2 or 3 are set (from above), we log out a warning.
+    const tracePropagationTargets = clientOptionsTracePropagationTargets || thisOptionsTracePropagationTargets;
+    if (__DEV__ && (thisOptionsTracePropagationTargets || tracingOrigins) && clientOptionsTracePropagationTargets) {
+      logger.warn(
+        '[ReactNativeTracing] The `tracePropagationTargets` option was set in the ReactNativeTracing integration and top level `Sentry.init`. The top level `Sentry.init` value is being used.',
+      );
+    }
 
     if (enableAppStartTracking) {
       void this._instrumentAppStart();
