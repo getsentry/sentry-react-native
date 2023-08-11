@@ -704,6 +704,10 @@ public class RNSentryModuleImpl {
         }
     }
 
+    public void fetchNativePackageName(Promise promise) {
+        promise.resolve(packageInfo.packageName);
+    }
+
     private void setEventOriginTag(SentryEvent event) {
         SdkVersion sdk = event.getSdk();
         if (sdk != null) {

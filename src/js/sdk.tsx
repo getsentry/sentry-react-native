@@ -23,6 +23,7 @@ import {
   Release,
   SdkInfo,
 } from './integrations';
+import { NativeLinkedErrors } from './integrations/nativelinkederrors';
 import { createReactNativeRewriteFrames } from './integrations/rewriteframes';
 import { Screenshot } from './integrations/screenshot';
 import { ViewHierarchy } from './integrations/viewhierarchy';
@@ -38,6 +39,7 @@ import { NATIVE } from './wrapper';
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
   'TryCatch', // We don't need this
+  'LinkedErrors', // We replace this with `NativeLinkedError`
 ];
 const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeCrashHandling: true,
@@ -106,6 +108,7 @@ export function init(passedOptions: ReactNativeOptions): void {
       ),
     ]);
 
+    defaultIntegrations.push(new NativeLinkedErrors());
     defaultIntegrations.push(new EventOrigin());
     defaultIntegrations.push(new SdkInfo());
     defaultIntegrations.push(new ReactNativeInfo());

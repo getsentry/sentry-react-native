@@ -16,7 +16,6 @@ const NATIVE: MockInterface<NativeType> = {
   _processLevel: jest.fn(),
   _serializeObject: jest.fn(),
   _isModuleLoaded: <NativeType['_isModuleLoaded'] & jest.Mock>jest.fn(),
-  _getBreadcrumbs: jest.fn(),
 
   isNativeAvailable: jest.fn(),
 
@@ -49,6 +48,9 @@ const NATIVE: MockInterface<NativeType> = {
 
   startProfiling: jest.fn(),
   stopProfiling: jest.fn(),
+
+  fetchNativePackageName: jest.fn(),
+  fetchNativeStackFramesBy: jest.fn(),
 };
 
 NATIVE.isNativeAvailable.mockReturnValue(true);
@@ -67,5 +69,7 @@ NATIVE.fetchModules.mockResolvedValue(null);
 NATIVE.fetchViewHierarchy.mockResolvedValue(null);
 NATIVE.startProfiling.mockReturnValue(false);
 NATIVE.stopProfiling.mockReturnValue(null);
+NATIVE.fetchNativePackageName.mockResolvedValue('mock-native-package-name');
+NATIVE.fetchNativeStackFramesBy.mockResolvedValue(null);
 
 export { NATIVE };
