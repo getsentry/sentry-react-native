@@ -2,7 +2,7 @@
 
 ### Dependencies
 
-## Unreleased
+## 5.9.1
 
 - Bump Cocoa SDK from v8.9.4 to v8.10.0 ([#3250](https://github.com/getsentry/sentry-react-native/pull/3250))
   - This fixes a compile error for projects that use CocoaPods with `use_frameworks!` option.
