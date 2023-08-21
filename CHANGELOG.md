@@ -14,7 +14,7 @@
 ## Important Note
 
 **Do not use this version** if you use CocoaPods with `use_frameworks!` option. It introduces a bug where the project won't compile.
-This has been fixed in [version `5.9.1`](https://github.com/getsentry/sentry-cocoa/releases/tag/5.9.1).
+This has been fixed in [version `5.9.1`](https://github.com/getsentry/sentry-react-native/releases/tag/5.9.1).
 
 ### Features
 
