@@ -1,7 +1,12 @@
 # Changelog
 
+## Unreleased
+
 ### Dependencies
 
+  Bump CLI from v2.20.5 to v2.20.6 ([#3265](https://github.com/getsentry/sentry-react-native/pull/3265))
+    [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2206)
+    [diff](https://github.com/getsentry/sentry-cli/compare/2.20.5...2.20.6)
 ## 5.9.1
 
 - Bump Cocoa SDK from v8.9.4 to v8.10.0 ([#3250](https://github.com/getsentry/sentry-react-native/pull/3250))
