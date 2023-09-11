@@ -189,6 +189,9 @@ int sucessfulSymbolicate(const void *, Dl_info *info){
   id sentrySDKMock = OCMClassMock([SentrySDK class]);
   OCMStub([(SentrySDK*) sentrySDKMock options]).andReturn(sentryOptions);
 
+  id sentryDependencyContainerMock = OCMClassMock([SentryDependencyContainer class]);
+  OCMStub(ClassMethod([sentryDependencyContainerMock sharedInstance])).andReturn(sentryDependencyContainerMock);
+  
   id sentryBinaryImageInfoMockOne = OCMClassMock([SentryBinaryImageInfo class]);
   OCMStub([(SentryBinaryImageInfo*) sentryBinaryImageInfoMockOne address]).andReturn([@112233 unsignedLongLongValue]);
   OCMStub([sentryBinaryImageInfoMockOne name]).andReturn(@"testnameone");
@@ -198,7 +201,7 @@ int sucessfulSymbolicate(const void *, Dl_info *info){
   OCMStub([sentryBinaryImageInfoMockTwo name]).andReturn(@"testnametwo");
   
   id sentryBinaryImageCacheMock = OCMClassMock([SentryBinaryImageCache class]);
-  OCMStub(ClassMethod([sentryBinaryImageCacheMock shared])).andReturn(sentryBinaryImageCacheMock);
+  OCMStub([(SentryDependencyContainer*) sentryDependencyContainerMock binaryImageCache]).andReturn(sentryBinaryImageCacheMock);
   OCMStub([sentryBinaryImageCacheMock imageByAddress:[@123 unsignedLongLongValue]]).andReturn(sentryBinaryImageInfoMockOne);
   OCMStub([sentryBinaryImageCacheMock imageByAddress:[@456 unsignedLongLongValue]]).andReturn(sentryBinaryImageInfoMockTwo);
   
@@ -214,8 +217,6 @@ int sucessfulSymbolicate(const void *, Dl_info *info){
   id sentryDebugImageProviderMock = OCMClassMock([SentryDebugImageProvider class]);
   OCMStub([sentryDebugImageProviderMock getDebugImagesForAddresses:[NSSet setWithObject:@"0x000000000001b669"] isCrash:false]).andReturn(@[sentryDebugImageMock]);
 
-  id sentryDependencyContainerMock = OCMClassMock([SentryDependencyContainer class]);
-  OCMStub(ClassMethod([sentryDependencyContainerMock sharedInstance])).andReturn(sentryDependencyContainerMock);
   OCMStub([sentryDependencyContainerMock debugImageProvider]).andReturn(sentryDebugImageProviderMock);
 }
 

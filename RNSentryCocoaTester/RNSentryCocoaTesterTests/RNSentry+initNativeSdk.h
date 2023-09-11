@@ -22,4 +22,5 @@ SentrySDK (PrivateTests)
 @interface SentryDependencyContainer : NSObject
 + (instancetype)sharedInstance;
 @property (nonatomic, strong) SentryDebugImageProvider *debugImageProvider;
+@property (nonatomic, strong) SentryBinaryImageCache *binaryImageCache;
 @end
