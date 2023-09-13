@@ -216,7 +216,7 @@ RCT_EXPORT_METHOD(fetchNativePackageName:(RCTPromiseResolveBlock)resolve
   NSMutableArray<NSDictionary<NSString *, id> *> * _Nonnull serializedFrames = [[NSMutableArray alloc] init];
 
   for (NSNumber *addr in instructionsAddr) {
-    SentryBinaryImageInfo * _Nullable image = [[SentryBinaryImageCache shared] imageByAddress:[addr unsignedLongLongValue]];
+    SentryBinaryImageInfo * _Nullable image = [[[SentryDependencyContainer sharedInstance] binaryImageCache] imageByAddress:[addr unsignedLongLongValue]];
     if (image != nil) {
       NSString * imageAddr = sentry_formatHexAddressUInt64([image address]);
       [imagesAddrToRetrieveDebugMetaImages addObject: imageAddr];
