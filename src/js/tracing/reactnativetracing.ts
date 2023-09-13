@@ -177,6 +177,7 @@ export class ReactNativeTracing implements Integration {
       tracingOrigins,
       // @ts-ignore TODO
       shouldCreateSpanForRequest,
+      // eslint-disable-next-line deprecation/deprecation
       tracePropagationTargets: thisOptionsTracePropagationTargets,
       routingInstrumentation,
       enableAppStartTracking,
