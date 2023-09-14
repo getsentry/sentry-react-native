@@ -24,9 +24,6 @@ describe('profiling integration', () => {
     mockWrapper.NATIVE.startProfiling.mockReturnValue(true);
     mockWrapper.NATIVE.stopProfiling.mockReturnValue(createMockMinimalValidHermesProfile());
     jest.useFakeTimers();
-    mock = initTestClient();
-    jest.runAllTimers();
-    jest.clearAllMocks();
   });
 
   afterEach(async () => {
@@ -36,112 +33,16 @@ describe('profiling integration', () => {
     await Sentry.close();
   });
 
-  test('should create a new profile and add in to the transaction envelope', () => {
+  test('should start profile if there is a transaction running when integration is created', () => {
     const transaction: Transaction = Sentry.startTransaction({
       name: 'test-name',
     });
-    transaction.finish();
 
+    mock = initTestClient();
     jest.runAllTimers();
-
-    const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
-    const transactionEnvelopeItemPayload = envelope?.[envelopeItems][0][envelopeItemPayload] as Event;
-    const profileEnvelopeItem = envelope?.[envelopeItems][1] as [{ type: 'profile' }, Profile];
-    expect(profileEnvelopeItem).toEqual([
-      { type: 'profile' },
-      expect.objectContaining<Partial<Profile>>({
-        event_id: expect.any(String),
-        transaction: expect.objectContaining({
-          name: 'test-name',
-          id: transactionEnvelopeItemPayload.event_id,
-          trace_id: transaction.traceId,
-        }),
-      }),
-    ]);
-  });
-
-  test('should finish previous profile when a new transaction starts', () => {
-    const transaction1: Transaction = Sentry.startTransaction({
-      name: 'test-name-1',
-    });
-    const transaction2: Transaction = Sentry.startTransaction({
-      name: 'test-name-2',
-    });
-    transaction1.finish();
-    transaction2.finish();
-
-    jest.runAllTimers();
-
-    const envelopeTransaction1: Envelope | undefined = mock.transportSendMock.mock.calls[0][0];
-    const transaction1EnvelopeItemPayload = envelopeTransaction1?.[envelopeItems][0][envelopeItemPayload] as Event;
-    const profile1EnvelopeItem = envelopeTransaction1?.[envelopeItems][1] as [{ type: 'profile' }, Profile] | undefined;
-
-    const envelopeTransaction2: Envelope | undefined = mock.transportSendMock.mock.calls[1][0];
-    const transaction2EnvelopeItemPayload = envelopeTransaction2?.[envelopeItems][0][envelopeItemPayload] as Event;
-    const profile2EnvelopeItem = envelopeTransaction2?.[envelopeItems][1] as [{ type: 'profile' }, Profile] | undefined;
-
-    expect(profile1EnvelopeItem).toEqual([
-      { type: 'profile' },
-      expect.objectContaining<Partial<Profile>>({
-        event_id: expect.any(String),
-        transaction: expect.objectContaining({
-          name: 'test-name-1',
-          id: transaction1EnvelopeItemPayload.event_id,
-          trace_id: transaction1.traceId,
-        }),
-      }),
-    ]);
-    expect(profile2EnvelopeItem).toEqual([
-      { type: 'profile' },
-      expect.objectContaining<Partial<Profile>>({
-        event_id: expect.any(String),
-        transaction: expect.objectContaining({
-          name: 'test-name-2',
-          id: transaction2EnvelopeItemPayload.event_id,
-          trace_id: transaction2.traceId,
-        }),
-      }),
-    ]);
-  });
-
-  test('profile should start at the same time as transaction', () => {
-    const transaction: Transaction = Sentry.startTransaction({
-      name: 'test-name',
-    });
-    transaction.finish();
-
-    jest.runAllTimers();
-
-    const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
-    const transactionEnvelopeItemPayload = envelope?.[envelopeItems][0][envelopeItemPayload] as Event;
-    const profileEnvelopeItemPayload = envelope?.[envelopeItems][1][envelopeItemPayload] as unknown as Profile;
-    const transactionStart = Math.floor(transactionEnvelopeItemPayload.start_timestamp! * SEC_TO_MS);
-    const profileStart = new Date(profileEnvelopeItemPayload.timestamp).getTime();
-    expect(profileStart - transactionStart).toBeLessThan(10);
-  });
-
-  test('profile is only recorded until max duration is reached', () => {
-    const transaction: Transaction = Sentry.startTransaction({
-      name: 'test-name',
-    });
     jest.clearAllMocks();
 
-    jest.advanceTimersByTime(40 * 1e6);
-
-    expect(mockWrapper.NATIVE.stopProfiling.mock.calls.length).toEqual(1);
-
     transaction.finish();
-  });
-
-  test('profile that reached max duration is sent', () => {
-    const transaction: Transaction = Sentry.startTransaction({
-      name: 'test-name',
-    });
-
-    jest.advanceTimersByTime(40 * 1e6);
-
-    transaction.finish();
-
     jest.runAllTimers();
 
     const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
@@ -160,22 +61,154 @@ describe('profiling integration', () => {
     ]);
   });
 
-  test('profile timeout is reset when transaction is finished', () => {
-    const integration = getCurrentHermesProfilingIntegration();
-    const transaction: Transaction = Sentry.startTransaction({
-      name: 'test-name',
+  describe('with profiling enabled', () => {
+    beforeEach(() => {
+      mock = initTestClient();
+      jest.runAllTimers();
+      jest.clearAllMocks();
     });
-    const timeoutAfterProfileStarted = integration._currentProfileTimeout;
 
-    jest.advanceTimersByTime(40 * 1e6);
+    test('should create a new profile and add in to the transaction envelope', () => {
+      const transaction: Transaction = Sentry.startTransaction({
+        name: 'test-name',
+      });
+      transaction.finish();
 
-    transaction.finish();
-    const timeoutAfterProfileFinished = integration._currentProfileTimeout;
+      jest.runAllTimers();
 
-    jest.runAllTimers();
+      const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
+      const transactionEnvelopeItemPayload = envelope?.[envelopeItems][0][envelopeItemPayload] as Event;
+      const profileEnvelopeItem = envelope?.[envelopeItems][1] as [{ type: 'profile' }, Profile];
+      expect(profileEnvelopeItem).toEqual([
+        { type: 'profile' },
+        expect.objectContaining<Partial<Profile>>({
+          event_id: expect.any(String),
+          transaction: expect.objectContaining({
+            name: 'test-name',
+            id: transactionEnvelopeItemPayload.event_id,
+            trace_id: transaction.traceId,
+          }),
+        }),
+      ]);
+    });
 
-    expect(timeoutAfterProfileStarted).toBeDefined();
-    expect(timeoutAfterProfileFinished).toBeUndefined();
+    test('should finish previous profile when a new transaction starts', () => {
+      const transaction1: Transaction = Sentry.startTransaction({
+        name: 'test-name-1',
+      });
+      const transaction2: Transaction = Sentry.startTransaction({
+        name: 'test-name-2',
+      });
+      transaction1.finish();
+      transaction2.finish();
+
+      jest.runAllTimers();
+
+      const envelopeTransaction1: Envelope | undefined = mock.transportSendMock.mock.calls[0][0];
+      const transaction1EnvelopeItemPayload = envelopeTransaction1?.[envelopeItems][0][envelopeItemPayload] as Event;
+      const profile1EnvelopeItem = envelopeTransaction1?.[envelopeItems][1] as [{ type: 'profile' }, Profile] | undefined;
+
+      const envelopeTransaction2: Envelope | undefined = mock.transportSendMock.mock.calls[1][0];
+      const transaction2EnvelopeItemPayload = envelopeTransaction2?.[envelopeItems][0][envelopeItemPayload] as Event;
+      const profile2EnvelopeItem = envelopeTransaction2?.[envelopeItems][1] as [{ type: 'profile' }, Profile] | undefined;
+
+      expect(profile1EnvelopeItem).toEqual([
+        { type: 'profile' },
+        expect.objectContaining<Partial<Profile>>({
+          event_id: expect.any(String),
+          transaction: expect.objectContaining({
+            name: 'test-name-1',
+            id: transaction1EnvelopeItemPayload.event_id,
+            trace_id: transaction1.traceId,
+          }),
+        }),
+      ]);
+      expect(profile2EnvelopeItem).toEqual([
+        { type: 'profile' },
+        expect.objectContaining<Partial<Profile>>({
+          event_id: expect.any(String),
+          transaction: expect.objectContaining({
+            name: 'test-name-2',
+            id: transaction2EnvelopeItemPayload.event_id,
+            trace_id: transaction2.traceId,
+          }),
+        }),
+      ]);
+    });
+
+    test('profile should start at the same time as transaction', () => {
+      const transaction: Transaction = Sentry.startTransaction({
+        name: 'test-name',
+      });
+      transaction.finish();
+
+      jest.runAllTimers();
+
+      const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
+      const transactionEnvelopeItemPayload = envelope?.[envelopeItems][0][envelopeItemPayload] as Event;
+      const profileEnvelopeItemPayload = envelope?.[envelopeItems][1][envelopeItemPayload] as unknown as Profile;
+      const transactionStart = Math.floor(transactionEnvelopeItemPayload.start_timestamp! * SEC_TO_MS);
+      const profileStart = new Date(profileEnvelopeItemPayload.timestamp).getTime();
+      expect(profileStart - transactionStart).toBeLessThan(10);
+    });
+
+    test('profile is only recorded until max duration is reached', () => {
+      const transaction: Transaction = Sentry.startTransaction({
+        name: 'test-name',
+      });
+      jest.clearAllMocks();
+
+      jest.advanceTimersByTime(40 * 1e6);
+
+      expect(mockWrapper.NATIVE.stopProfiling.mock.calls.length).toEqual(1);
+
+      transaction.finish();
+    });
+
+    test('profile that reached max duration is sent', () => {
+      const transaction: Transaction = Sentry.startTransaction({
+        name: 'test-name',
+      });
+
+      jest.advanceTimersByTime(40 * 1e6);
+
+      transaction.finish();
+
+      jest.runAllTimers();
+
+      const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
+      const transactionEnvelopeItemPayload = envelope?.[envelopeItems][0][envelopeItemPayload] as Event;
+      const profileEnvelopeItem = envelope?.[envelopeItems][1] as [{ type: 'profile' }, Profile];
+      expect(profileEnvelopeItem).toEqual([
+        { type: 'profile' },
+        expect.objectContaining<Partial<Profile>>({
+          event_id: expect.any(String),
+          transaction: expect.objectContaining({
+            name: 'test-name',
+            id: transactionEnvelopeItemPayload.event_id,
+            trace_id: transaction.traceId,
+          }),
+        }),
+      ]);
+    });
+
+    test('profile timeout is reset when transaction is finished', () => {
+      const integration = getCurrentHermesProfilingIntegration();
+      const transaction: Transaction = Sentry.startTransaction({
+        name: 'test-name',
+      });
+      const timeoutAfterProfileStarted = integration._currentProfileTimeout;
+
+      jest.advanceTimersByTime(40 * 1e6);
+
+      transaction.finish();
+      const timeoutAfterProfileFinished = integration._currentProfileTimeout;
+
+      jest.runAllTimers();
+
+      expect(timeoutAfterProfileStarted).toBeDefined();
+      expect(timeoutAfterProfileFinished).toBeUndefined();
+    });
   });
 });
 
@@ -190,14 +223,14 @@ function getCurrentHermesProfilingIntegration(): TestHermesIntegration {
   return integration as unknown as TestHermesIntegration;
 }
 
-function initTestClient(): {
+function initTestClient(withProfiling: boolean = true): {
   transportSendMock: jest.Mock<ReturnType<Transport['send']>, Parameters<Transport['send']>>;
 } {
   const transportSendMock = jest.fn<ReturnType<Transport['send']>, Parameters<Transport['send']>>();
   Sentry.init({
     dsn: MOCK_DSN,
     _experiments: {
-      profilesSampleRate: 1,
+      profilesSampleRate: withProfiling ? 1 : 0,
     },
     transport: () => ({
       send: transportSendMock.mockResolvedValue(undefined),
