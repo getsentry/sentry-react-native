@@ -98,7 +98,6 @@ export class HermesProfiling implements Integration {
     const client = this._getCurrentHub && this._getCurrentHub().getClient();
     const options = client && client.getOptions();
 
-    // @ts-ignore not part of the browser options yet
     const profilesSampleRate =
       options && options._experiments && typeof options._experiments.profilesSampleRate === 'number'
         ? options._experiments.profilesSampleRate

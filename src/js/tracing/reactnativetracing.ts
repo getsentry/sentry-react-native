@@ -160,11 +160,7 @@ export class ReactNativeTracing implements Integration {
   /**
    *  Registers routing and request instrumentation.
    */
-  public setupOnce(
-    // @ts-ignore TODO
-    addGlobalEventProcessor: (callback: EventProcessor) => void,
-    getCurrentHub: () => Hub,
-  ): void {
+  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
     const hub = getCurrentHub();
     const client = hub.getClient();
     const clientOptions = client && client.getOptions();
@@ -175,7 +171,6 @@ export class ReactNativeTracing implements Integration {
       traceXHR,
       // eslint-disable-next-line deprecation/deprecation
       tracingOrigins,
-      // @ts-ignore TODO
       shouldCreateSpanForRequest,
       // eslint-disable-next-line deprecation/deprecation
       tracePropagationTargets: thisOptionsTracePropagationTargets,

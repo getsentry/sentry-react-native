@@ -217,7 +217,7 @@ describe('Tests the SDK functionality', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({});
         expect(NATIVE.isNativeAvailable).toBeCalled();
-        // @ts-ignore enableNative not publicly available here.
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
       });
@@ -226,7 +226,7 @@ describe('Tests the SDK functionality', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({ enableNative: true });
         expect(NATIVE.isNativeAvailable).toBeCalled();
-        // @ts-ignore enableNative not publicly available here.
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
       });
@@ -235,7 +235,7 @@ describe('Tests the SDK functionality', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({ enableNative: false });
         expect(NATIVE.isNativeAvailable).not.toBeCalled();
-        // @ts-ignore enableNative not publicly available here.
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
       });
@@ -248,7 +248,7 @@ describe('Tests the SDK functionality', () => {
         });
         expect(usedOptions()?.transport).toEqual(mockTransport);
         expect(NATIVE.isNativeAvailable).toBeCalled();
-        // @ts-ignore enableNative not publicly available here.
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
       });
     });
