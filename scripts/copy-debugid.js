@@ -29,8 +29,23 @@ const to = fs.readFileSync(process.argv[3], 'utf8');
 const fromParsed = JSON.parse(from);
 const toParsed = JSON.parse(to);
 
-toParsed.debugId = fromParsed.debugId;
-toParsed.debug_id = fromParsed.debug_id;
+if (!fromParsed.debugId && !fromParsed.debug_id) {
+  console.error('Packager source map does not have `debugId`.');
+  process.exit(0);
+}
+
+if (toParsed.debugId || toParsed.debug_id) {
+  console.log('Hermes combined source map already has `debugId`.');
+  process.exit(0);
+}
+
+if (fromParsed.debugId) {
+  toParsed.debugId = fromParsed.debugId;
+  toParsed.debug_id = fromParsed.debugId;
+} else if (fromParsed.debug_id) {
+  toParsed.debugId = fromParsed.debug_id;
+  toParsed.debug_id = fromParsed.debug_id;
+}
 
 fs.writeFileSync(process.argv[3], JSON.stringify(toParsed));
 
