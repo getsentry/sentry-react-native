@@ -126,11 +126,11 @@ describe('ReactNativeTracing', () => {
           expect(transaction.op).toBe(UI_LOAD);
 
           expect(
-            // @ts-ignore access private for test
+            // @ts-expect-error access private for test
             transaction._measurements[APP_START_COLD].value,
           ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
           expect(
-            // @ts-ignore access private for test
+            // @ts-expect-error access private for test
             transaction._measurements[APP_START_COLD].unit,
           ).toBe('millisecond');
         }
@@ -163,11 +163,11 @@ describe('ReactNativeTracing', () => {
           expect(transaction.op).toBe(UI_LOAD);
 
           expect(
-            // @ts-ignore access private for test
+            // @ts-expect-error access private for test
             transaction._measurements[APP_START_WARM].value,
           ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
           expect(
-            // @ts-ignore access private for test
+            // @ts-expect-error access private for test
             transaction._measurements[APP_START_WARM].unit,
           ).toBe('millisecond');
         }
@@ -198,12 +198,12 @@ describe('ReactNativeTracing', () => {
 
         if (transaction) {
           expect(
-            // @ts-ignore access private for test
+            // @ts-expect-error access private for test
             transaction._measurements[APP_START_WARM],
           ).toBeUndefined();
 
           expect(
-            // @ts-ignore access private for test
+            // @ts-expect-error access private for test
             transaction._measurements[APP_START_COLD],
           ).toBeUndefined();
         }
@@ -271,7 +271,7 @@ describe('ReactNativeTracing', () => {
         // trigger idle transaction to finish and call before finish callbacks
         jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT);
 
-        // @ts-ignore access private for test
+        // @ts-expect-error access private for test
         expect(routeTransaction._measurements[APP_START_COLD].value).toBe(
           timeOriginMilliseconds - appStartTimeMilliseconds,
         );
@@ -327,7 +327,7 @@ describe('ReactNativeTracing', () => {
         // trigger idle transaction to finish and call before finish callbacks
         jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT);
 
-        // @ts-ignore access private for test
+        // @ts-expect-error access private for test
         expect(routeTransaction._measurements[APP_START_WARM].value).toBe(
           timeOriginMilliseconds - appStartTimeMilliseconds,
         );
@@ -383,7 +383,7 @@ describe('ReactNativeTracing', () => {
         // trigger idle transaction to finish and call before finish callbacks
         jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT);
 
-        // @ts-ignore access private for test
+        // @ts-expect-error access private for test
         expect(routeTransaction._measurements).toMatchObject({});
 
         expect(routeTransaction.op).not.toBe(UI_LOAD);

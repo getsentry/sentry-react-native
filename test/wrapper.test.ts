@@ -41,7 +41,7 @@ jest.mock('react-native', () => {
       return Promise.resolve(true);
     }),
     closeNativeSdk: jest.fn(() => Promise.resolve()),
-    // @ts-ignore for testing.
+    // @ts-expect-error for testing.
     _getLastPayload: () => ({ initPayload }),
     startProfiling: jest.fn(),
     stopProfiling: jest.fn(),
@@ -135,7 +135,7 @@ describe('Tests Native Wrapper', () => {
       });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
-      // @ts-ignore mock value
+      // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeSend');
       expect(NATIVE.enableNative).toBe(true);
@@ -150,7 +150,7 @@ describe('Tests Native Wrapper', () => {
       });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
-      // @ts-ignore mock value
+      // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeBreadcrumb');
       expect(NATIVE.enableNative).toBe(true);
@@ -165,7 +165,7 @@ describe('Tests Native Wrapper', () => {
       });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
-      // @ts-ignore mock value
+      // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeSendTransaction');
       expect(NATIVE.enableNative).toBe(true);
@@ -180,7 +180,7 @@ describe('Tests Native Wrapper', () => {
       });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
-      // @ts-ignore mock value
+      // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('integrations');
       expect(NATIVE.enableNative).toBe(true);
@@ -311,10 +311,10 @@ describe('Tests Native Wrapper', () => {
       try {
         await NATIVE.initNativeSdk({ dsn: 'test-dsn', enableNative: false });
 
-        // @ts-ignore for testing, does not accept an empty class.
+        // @ts-expect-error for testing, does not accept an empty class.
         await NATIVE.sendEnvelope({});
       } catch (error) {
-        // @ts-ignore it is an error but it does not know the type.
+        // @ts-expect-error it is an error but it does not know the type.
         expect(error.message).toMatch('Native is disabled');
       }
       expect(RNSentry.captureEnvelope).not.toBeCalled();
@@ -504,7 +504,7 @@ describe('Tests Native Wrapper', () => {
     test('serializes all user object keys', async () => {
       NATIVE.setUser({
         email: 'hello@sentry.io',
-        // @ts-ignore Intentional incorrect type to simulate using a double as an id (We had a user open an issue because this didn't work before)
+        // @ts-expect-error Intentional incorrect type to simulate using a double as an id (We had a user open an issue because this didn't work before)
         id: 3.14159265359,
         unique: 123,
       });

@@ -102,7 +102,7 @@ describe('Tests ReactNativeClient', () => {
       });
 
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
-      // @ts-ignore: Is Mocked
+      // @ts-expect-error: Is Mocked
       await expect(RN.LogBox.ignoreLogs).toBeCalled();
     });
 

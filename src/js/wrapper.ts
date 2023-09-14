@@ -574,7 +574,7 @@ export const NATIVE: SentryNativeWrapper = {
 
       if (NATIVE.platform === 'android') {
         if ('message' in event) {
-          // @ts-ignore Android still uses the old message object, without this the serialization of events will break.
+          // @ts-expect-error Android still uses the old message object, without this the serialization of events will break.
           event.message = { message: event.message };
         }
       }
