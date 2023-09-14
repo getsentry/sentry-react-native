@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Create profiles for start up transactions ([#3281](https://github.com/getsentry/sentry-react-native/pull/3281))
+
 ### Dependencies
 
 - Bump CLI from v2.20.5 to v2.20.7 ([#3265](https://github.com/getsentry/sentry-react-native/pull/3265), [#3273](https://github.com/getsentry/sentry-react-native/pull/3273))
