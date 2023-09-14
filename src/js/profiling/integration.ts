@@ -1,4 +1,6 @@
-import type { Envelope, Event, EventProcessor, Hub, Integration, Profile, Transaction } from '@sentry/types';
+import type { Hub } from '@sentry/core';
+import { getActiveTransaction } from '@sentry/core';
+import type { Envelope, Event, EventProcessor, Integration, Profile, Transaction } from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 
 import { isHermesEnabled } from '../utils/environment';
@@ -51,21 +53,10 @@ export class HermesProfiling implements Integration {
       return;
     }
 
-    client.on('startTransaction', (transaction: Transaction) => {
-      this._finishCurrentProfile();
+    this._startCurrentProfileForActiveTransaction();
+    client.on('startTransaction', this._startCurrentProfile);
 
-      const shouldStartProfiling = this._shouldStartProfiling(transaction);
-      if (!shouldStartProfiling) {
-        return;
-      }
-
-      this._currentProfileTimeout = setTimeout(this._finishCurrentProfile, MAX_PROFILE_DURATION_MS);
-      this._startNewProfile(transaction);
-    });
-
-    client.on('finishTransaction', () => {
-      this._finishCurrentProfile();
-    });
+    client.on('finishTransaction', this._finishCurrentProfile);
 
     client.on('beforeEnvelope', (envelope: Envelope) => {
       if (!PROFILE_QUEUE.size()) {
@@ -88,6 +79,26 @@ export class HermesProfiling implements Integration {
       addProfilesToEnvelope(envelope, profilesToAddToEnvelope);
     });
   }
+
+  private _startCurrentProfileForActiveTransaction = (): void => {
+    if (this._currentProfile) {
+      return;
+    }
+    const transaction = this._getCurrentHub && getActiveTransaction(this._getCurrentHub());
+    transaction && this._startCurrentProfile(transaction);
+  };
+
+  private _startCurrentProfile = (transaction: Transaction): void => {
+    this._finishCurrentProfile();
+
+    const shouldStartProfiling = this._shouldStartProfiling(transaction);
+    if (!shouldStartProfiling) {
+      return;
+    }
+
+    this._currentProfileTimeout = setTimeout(this._finishCurrentProfile, MAX_PROFILE_DURATION_MS);
+    this._startNewProfile(transaction);
+  };
 
   private _shouldStartProfiling = (transaction: Transaction): boolean => {
     if (!transaction.sampled) {

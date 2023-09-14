@@ -2,6 +2,7 @@ import * as mockWrapper from '../mockWrapper';
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
 
+import { getCurrentHub } from '@sentry/core';
 import type { Envelope, Event, Profile, Transaction, Transport } from '@sentry/types';
 
 import * as Sentry from '../../src/js';
@@ -34,13 +35,16 @@ describe('profiling integration', () => {
   });
 
   test('should start profile if there is a transaction running when integration is created', () => {
+    mock = initTestClient(false);
+    jest.runAllTimers();
+    jest.clearAllMocks();
+
     const transaction: Transaction = Sentry.startTransaction({
       name: 'test-name',
     });
+    getCurrentHub().getScope()?.setSpan(transaction);
 
-    mock = initTestClient();
-    jest.runAllTimers();
-    jest.clearAllMocks();
+    getCurrentHub().getClient()?.addIntegration?.(new HermesProfiling());
 
     transaction.finish();
     jest.runAllTimers();
@@ -106,11 +110,15 @@ describe('profiling integration', () => {
 
       const envelopeTransaction1: Envelope | undefined = mock.transportSendMock.mock.calls[0][0];
       const transaction1EnvelopeItemPayload = envelopeTransaction1?.[envelopeItems][0][envelopeItemPayload] as Event;
-      const profile1EnvelopeItem = envelopeTransaction1?.[envelopeItems][1] as [{ type: 'profile' }, Profile] | undefined;
+      const profile1EnvelopeItem = envelopeTransaction1?.[envelopeItems][1] as
+        | [{ type: 'profile' }, Profile]
+        | undefined;
 
       const envelopeTransaction2: Envelope | undefined = mock.transportSendMock.mock.calls[1][0];
       const transaction2EnvelopeItemPayload = envelopeTransaction2?.[envelopeItems][0][envelopeItemPayload] as Event;
-      const profile2EnvelopeItem = envelopeTransaction2?.[envelopeItems][1] as [{ type: 'profile' }, Profile] | undefined;
+      const profile2EnvelopeItem = envelopeTransaction2?.[envelopeItems][1] as
+        | [{ type: 'profile' }, Profile]
+        | undefined;
 
       expect(profile1EnvelopeItem).toEqual([
         { type: 'profile' },
@@ -230,7 +238,13 @@ function initTestClient(withProfiling: boolean = true): {
   Sentry.init({
     dsn: MOCK_DSN,
     _experiments: {
-      profilesSampleRate: withProfiling ? 1 : 0,
+      profilesSampleRate: 1,
+    },
+    integrations: integrations => {
+      if (!withProfiling) {
+        return integrations.filter(i => i.name !== 'HermesProfiling');
+      }
+      return integrations;
     },
     transport: () => ({
       send: transportSendMock.mockResolvedValue(undefined),
