@@ -1274,20 +1274,20 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@clack/core@0.3.2", "@clack/core@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@clack/core/-/core-0.3.2.tgz#23c6e440ed263c2f012b1cc0806386481e78420b"
-  integrity sha512-FZnsNynwGDIDktx6PEZK1EuCkFpY4ldEX6VYvfl0dqeoLPb9Jpw1xoUXaVcGR8ExmYNm1w2vdGdJkEUYD/2pqg==
+"@clack/core@0.3.3", "@clack/core@^0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@clack/core/-/core-0.3.3.tgz#233ccebf779aa5a66fc68ee48df5e58cd226fd94"
+  integrity sha512-5ZGyb75BUBjlll6eOa1m/IZBxwk91dooBWhPSL67sWcLS0zt9SnswRL0l26TVdBhb0wnWORRxUn//uH6n4z7+A==
   dependencies:
     picocolors "^1.0.0"
     sisteransi "^1.0.5"
 
-"@clack/prompts@0.6.3":
-  version "0.6.3"
-  resolved "https://registry.yarnpkg.com/@clack/prompts/-/prompts-0.6.3.tgz#c6184bb3f8685dfc72207d2ff051f7a6a733fcb3"
-  integrity sha512-AM+kFmAHawpUQv2q9+mcB6jLKxXGjgu/r2EQjEwujgpCdzrST6BJqYw00GRn56/L/Izw5U7ImoLmy00X/r80Pw==
+"@clack/prompts@0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@clack/prompts/-/prompts-0.7.0.tgz#6aaef48ea803d91cce12bc80811cfcb8de2e75ea"
+  integrity sha512-0MhX9/B4iL6Re04jPrttDm+BsP8y6mS7byuv0BvXgdXhbV5PdlsHt55dvNsuBCPZ7xq1oTAOOuotR9NFbQyMSA==
   dependencies:
-    "@clack/core" "^0.3.2"
+    "@clack/core" "^0.3.3"
     picocolors "^1.0.0"
     sisteransi "^1.0.5"
 
@@ -2129,13 +2129,13 @@
     "@sentry/types" "7.69.0"
     tslib "^2.4.1 || ^1.9.3"
 
-"@sentry/wizard@3.9.1":
-  version "3.9.1"
-  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-3.9.1.tgz#9f7a2432eea4c7ebd237d9842ef22c4acbe108b5"
-  integrity sha512-U5WoM40IhFfmzco3HIgA9hj2ybR1sof3xwmsmvUyXEPV3QPYCmVaD5s+GlOs6AaxMSNyTYdBX1LMwxUZyJ8jig==
+"@sentry/wizard@3.13.0":
+  version "3.13.0"
+  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-3.13.0.tgz#72bc8dc577c5aca6b766c139bafb0080d04b37ee"
+  integrity sha512-0aUoLTCAgAxHiO9kU0VG7HvRXOs2gJKKUBND4sdwhiKyZbEUcJ6iio4DVD9IEYWqo/IxrZxK8TmkQzSFcvymTA==
   dependencies:
-    "@clack/core" "0.3.2"
-    "@clack/prompts" "0.6.3"
+    "@clack/core" "0.3.3"
+    "@clack/prompts" "0.7.0"
     "@sentry/cli" "^1.72.0"
     "@sentry/node" "^7.57.0"
     axios "1.3.5"
@@ -2149,6 +2149,7 @@
     read-env "^1.3.0"
     semver "^7.5.3"
     xcode "3.0.1"
+    xml-js "^1.6.11"
     yargs "^16.2.0"
 
 "@sideway/address@^4.1.3":
@@ -7419,6 +7420,11 @@ safe-regex-test@^1.0.0:
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
 
+sax@^1.2.4:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
+  integrity sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==
+
 saxes@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/saxes/-/saxes-6.0.0.tgz#fe5b4a4768df4f14a201b1ba6a65c1f3d9988cc5"
@@ -8504,6 +8510,13 @@ xcode@3.0.1:
   dependencies:
     simple-plist "^1.1.0"
     uuid "^7.0.3"
+
+xml-js@^1.6.11:
+  version "1.6.11"
+  resolved "https://registry.yarnpkg.com/xml-js/-/xml-js-1.6.11.tgz#927d2f6947f7f1c19a316dd8eea3614e8b18f8e9"
+  integrity sha512-7rVi2KMfwfWFl+GpPg6m80IVMWXLRjO+PxTq7V2CDhoGak0wzYzFgUY2m4XJ47OGdXd8eLE8EmwfAmdjw7lC1g==
+  dependencies:
+    sax "^1.2.4"
 
 xml-name-validator@^4.0.0:
   version "4.0.0"
