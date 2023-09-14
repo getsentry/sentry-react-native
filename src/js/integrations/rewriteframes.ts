@@ -4,8 +4,8 @@ import { Platform } from 'react-native';
 
 import { isExpo } from '../utils/environment';
 
-const ANDROID_DEFAULT_BUNDLE_NAME = 'app:///index.android.bundle';
-const IOS_DEFAULT_BUNDLE_NAME = 'app:///main.jsbundle';
+export const ANDROID_DEFAULT_BUNDLE_NAME = 'app:///index.android.bundle';
+export const IOS_DEFAULT_BUNDLE_NAME = 'app:///main.jsbundle';
 
 /**
  * Creates React Native default rewrite frames integration
@@ -16,6 +16,12 @@ const IOS_DEFAULT_BUNDLE_NAME = 'app:///main.jsbundle';
 export function createReactNativeRewriteFrames(): RewriteFrames {
   return new RewriteFrames({
     iteratee: (frame: StackFrame) => {
+      if (frame.platform === 'java' || frame.platform === 'cocoa') {
+        // Because platform is not required in StackFrame type
+        // we assume that if not set it's javascript
+        return frame;
+      }
+
       if (!frame.filename) {
         return frame;
       }

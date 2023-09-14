@@ -147,7 +147,7 @@ export class DebugSymbolicator implements Integration {
         if (newFrame.function) {
           const addressAtPos = newFrame.function.indexOf('(address at');
           if (addressAtPos >= 0) {
-            newFrame.function = newFrame.function.substr(0, addressAtPos).trim();
+            newFrame.function = newFrame.function.substring(0, addressAtPos).trim();
           }
         }
 

@@ -16,12 +16,14 @@ import {
   DebugSymbolicator,
   DeviceContext,
   EventOrigin,
+  HermesProfiling,
   ModulesLoader,
   ReactNativeErrorHandlers,
   ReactNativeInfo,
   Release,
   SdkInfo,
 } from './integrations';
+import { NativeLinkedErrors } from './integrations/nativelinkederrors';
 import { createReactNativeRewriteFrames } from './integrations/rewriteframes';
 import { Screenshot } from './integrations/screenshot';
 import { ViewHierarchy } from './integrations/viewhierarchy';
@@ -37,6 +39,7 @@ import { NATIVE } from './wrapper';
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
   'TryCatch', // We don't need this
+  'LinkedErrors', // We replace this with `NativeLinkedError`
 ];
 const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeCrashHandling: true,
@@ -105,6 +108,7 @@ export function init(passedOptions: ReactNativeOptions): void {
       ),
     ]);
 
+    defaultIntegrations.push(new NativeLinkedErrors());
     defaultIntegrations.push(new EventOrigin());
     defaultIntegrations.push(new SdkInfo());
     defaultIntegrations.push(new ReactNativeInfo());
@@ -129,6 +133,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (options.enableCaptureFailedRequests) {
       defaultIntegrations.push(new HttpClient());
     }
+    if (options._experiments && typeof options._experiments.profilesSampleRate === 'number') {
+      defaultIntegrations.push(new HermesProfiling());
+    }
   }
 
   options.integrations = getIntegrationsToSetup({
@@ -141,6 +148,8 @@ export function init(passedOptions: ReactNativeOptions): void {
 /**
  * Inits the Sentry React Native SDK with automatic instrumentation and wrapped features.
  */
+// Deprecated in https://github.com/DefinitelyTyped/DefinitelyTyped/commit/f1b25591890978a92c610ce575ea2ba2bbde6a89
+// eslint-disable-next-line deprecation/deprecation
 export function wrap<P extends JSX.IntrinsicAttributes>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions

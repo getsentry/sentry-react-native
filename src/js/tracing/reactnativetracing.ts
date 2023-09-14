@@ -160,20 +160,20 @@ export class ReactNativeTracing implements Integration {
   /**
    *  Registers routing and request instrumentation.
    */
-  public setupOnce(
-    // @ts-ignore TODO
-    addGlobalEventProcessor: (callback: EventProcessor) => void,
-    getCurrentHub: () => Hub,
-  ): void {
+  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
+    const hub = getCurrentHub();
+    const client = hub.getClient();
+    const clientOptions = client && client.getOptions();
+
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const {
       traceFetch,
       traceXHR,
       // eslint-disable-next-line deprecation/deprecation
       tracingOrigins,
-      // @ts-ignore TODO
       shouldCreateSpanForRequest,
-      tracePropagationTargets,
+      // eslint-disable-next-line deprecation/deprecation
+      tracePropagationTargets: thisOptionsTracePropagationTargets,
       routingInstrumentation,
       enableAppStartTracking,
       enableNativeFramesTracking,
@@ -181,6 +181,23 @@ export class ReactNativeTracing implements Integration {
     } = this.options;
 
     this._getCurrentHub = getCurrentHub;
+
+    const clientOptionsTracePropagationTargets = clientOptions && clientOptions.tracePropagationTargets;
+    // There are three ways to configure tracePropagationTargets:
+    // 1. via top level client option `tracePropagationTargets`
+    // 2. via ReactNativeTracing option `tracePropagationTargets`
+    // 3. via ReactNativeTracing option `tracingOrigins` (deprecated)
+    //
+    // To avoid confusion, favour top level client option `tracePropagationTargets`, and fallback to
+    // ReactNativeTracing option `tracePropagationTargets` and then `tracingOrigins` (deprecated).
+    //
+    // If both 1 and either one of 2 or 3 are set (from above), we log out a warning.
+    const tracePropagationTargets = clientOptionsTracePropagationTargets || thisOptionsTracePropagationTargets;
+    if (__DEV__ && (thisOptionsTracePropagationTargets || tracingOrigins) && clientOptionsTracePropagationTargets) {
+      logger.warn(
+        '[ReactNativeTracing] The `tracePropagationTargets` option was set in the ReactNativeTracing integration and top level `Sentry.init`. The top level `Sentry.init` value is being used.',
+      );
+    }
 
     if (enableAppStartTracking) {
       void this._instrumentAppStart();

@@ -40,6 +40,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: ruby/setup-ruby@v1
+        if: ${{ matrix.platform == 'ios' }}
+        with:
+          working-directory: sample-new-architecture
+          ruby-version: '3.2.2' # based on what is used in the sample
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+
       - uses: actions/setup-java@v3
         with:
           java-version: '11'

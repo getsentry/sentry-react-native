@@ -24,10 +24,6 @@ const expensiveOperation = () => {
   }
 };
 
-beforeEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('StallTracking', () => {
   const localHub: Hub = mockHub as unknown as Hub;
 

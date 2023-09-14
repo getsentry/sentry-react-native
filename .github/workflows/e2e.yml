@@ -148,7 +148,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.72.0']
+        rn-version: ['0.65.3', '0.72.4']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['dev', 'production']
@@ -177,6 +177,16 @@ jobs:
         run: |
           echo "SENTRY_RELEASE=$SENTRY_RELEASE"
           echo "SENTRY_DIST=$SENTRY_DIST"
+
+      - uses: actions/setup-node@v3
+        if: ${{ matrix.rn-version == '0.65.3' }}
+        with:
+          node-version: 16
+
+      - uses: actions/setup-node@v3
+        if: ${{ matrix.rn-version != '0.65.3' }}
+        with:
+          node-version: 18
 
       - uses: actions/setup-java@v3
         with:
@@ -344,7 +354,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.72.0']
+        rn-version: ['0.65.3', '0.72.4']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -375,6 +385,16 @@ jobs:
       - name: Extract App Package
         working-directory: test/e2e
         run: tar -xvf *.tar
+
+      - uses: actions/setup-node@v3
+        if: ${{ matrix.rn-version == '0.65.3' }}
+        with:
+          node-version: 16
+
+      - uses: actions/setup-node@v3
+        if: ${{ matrix.rn-version != '0.65.3' }}
+        with:
+          node-version: 18
 
       - uses: actions/setup-java@v3
         with:

@@ -64,6 +64,7 @@ gradle.projectsEvaluated {
         def releaseName = null
         def versionCode = null
         def previousCliTask = null
+        def applicationVariant = null
 
         def nameCleanup = "${bundleTask.name}_SentryUploadCleanUp"
         def nameModulesCleanup = "${bundleTask.name}_SentryCollectModulesCleanUp"
@@ -72,6 +73,7 @@ gradle.projectsEvaluated {
           variant = currentVariant[0]
           releaseName = currentVariant[1]
           versionCode = currentVariant[2]
+          applicationVariant = currentVariant[3]
 
           try {
             if (versionCode instanceof String) {
@@ -220,13 +222,10 @@ gradle.projectsEvaluated {
             delete modulesOutput
         }
 
-        def variantTaskName = variant.replaceAll("[\\s\\-()]", "") // variant is dev-release beta-release etc.
-        // task.name could be packageDev-debugRelease but in that case currentVariants == null
-        // because of the regex in `extractCurrentVariants` and this code doesn't run
         def packageTasks = tasks.findAll {
           task -> (
-            "package${variantTaskName}".equalsIgnoreCase(task.name)
-              || "package${variantTaskName}Bundle".equalsIgnoreCase(task.name)
+            "package${applicationVariant}".equalsIgnoreCase(task.name)
+              || "package${applicationVariant}Bundle".equalsIgnoreCase(task.name)
             ) && task.enabled
         }
         packageTasks.each { packageTask ->
@@ -277,7 +276,7 @@ def extractReleasesInfo() {
             if (releases[variantName] == null) {
                 releases[variantName] = [:]
             }
-            releases[variantName][outputName] = [outputName, releaseName, versionCode]
+            releases[variantName][outputName] = [outputName, releaseName, versionCode, variantName]
         }
     }
 

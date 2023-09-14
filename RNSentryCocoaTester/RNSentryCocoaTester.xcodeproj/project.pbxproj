@@ -8,15 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		33F58AD02977037D008F60EA /* RNSentry+initNativeSdk.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33F58ACF2977037D008F60EA /* RNSentry+initNativeSdk.mm */; };
-		B5859A50A3E865EF5E61465A /* libPods-RNSentryTesterTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650CB718ACFBD05609BF2126 /* libPods-RNSentryTesterTests.a */; };
+		B5859A50A3E865EF5E61465A /* libPods-RNSentryCocoaTesterTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1482D5685A340AB93348A43D /* Pods-RNSentryTesterTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryTesterTests.release.xcconfig"; path = "Target Support Files/Pods-RNSentryTesterTests/Pods-RNSentryTesterTests.release.xcconfig"; sourceTree = "<group>"; };
-		3360898D29524164007C7730 /* RNSentryTesterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RNSentryTesterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1482D5685A340AB93348A43D /* Pods-RNSentryCocoaTesterTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.release.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.release.xcconfig"; sourceTree = "<group>"; };
+		3360898D29524164007C7730 /* RNSentryCocoaTesterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RNSentryCocoaTesterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		338739072A7D7D2800950DDD /* RNSentry+initNativeSdk.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RNSentry+initNativeSdk.h"; sourceTree = "<group>"; };
 		33F58ACF2977037D008F60EA /* RNSentry+initNativeSdk.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "RNSentry+initNativeSdk.mm"; sourceTree = "<group>"; };
-		650CB718ACFBD05609BF2126 /* libPods-RNSentryTesterTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RNSentryTesterTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E2321E7CFA55AB617247098E /* Pods-RNSentryTesterTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryTesterTests.debug.xcconfig"; path = "Target Support Files/Pods-RNSentryTesterTests/Pods-RNSentryTesterTests.debug.xcconfig"; sourceTree = "<group>"; };
+		650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RNSentryCocoaTesterTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2321E7CFA55AB617247098E /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.debug.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -24,7 +25,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5859A50A3E865EF5E61465A /* libPods-RNSentryTesterTests.a in Frameworks */,
+				B5859A50A3E865EF5E61465A /* libPods-RNSentryCocoaTesterTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -34,8 +35,8 @@
 		00D0AE33FB669AAC85D66F8D /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				E2321E7CFA55AB617247098E /* Pods-RNSentryTesterTests.debug.xcconfig */,
-				1482D5685A340AB93348A43D /* Pods-RNSentryTesterTests.release.xcconfig */,
+				E2321E7CFA55AB617247098E /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */,
+				1482D5685A340AB93348A43D /* Pods-RNSentryCocoaTesterTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -43,7 +44,7 @@
 		3360896929524163007C7730 = {
 			isa = PBXGroup;
 			children = (
-				3360899029524164007C7730 /* RNSentryTesterTests */,
+				3360899029524164007C7730 /* RNSentryCocoaTesterTests */,
 				3360897329524163007C7730 /* Products */,
 				00D0AE33FB669AAC85D66F8D /* Pods */,
 				E9CBAA4D06145A9DB2C82C1B /* Frameworks */,
@@ -53,23 +54,24 @@
 		3360897329524163007C7730 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				3360898D29524164007C7730 /* RNSentryTesterTests.xctest */,
+				3360898D29524164007C7730 /* RNSentryCocoaTesterTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		3360899029524164007C7730 /* RNSentryTesterTests */ = {
+		3360899029524164007C7730 /* RNSentryCocoaTesterTests */ = {
 			isa = PBXGroup;
 			children = (
 				33F58ACF2977037D008F60EA /* RNSentry+initNativeSdk.mm */,
+				338739072A7D7D2800950DDD /* RNSentry+initNativeSdk.h */,
 			);
-			path = RNSentryTesterTests;
+			path = RNSentryCocoaTesterTests;
 			sourceTree = "<group>";
 		};
 		E9CBAA4D06145A9DB2C82C1B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				650CB718ACFBD05609BF2126 /* libPods-RNSentryTesterTests.a */,
+				650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -77,9 +79,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		3360898C29524164007C7730 /* RNSentryTesterTests */ = {
+		3360898C29524164007C7730 /* RNSentryCocoaTesterTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 336089A429524164007C7730 /* Build configuration list for PBXNativeTarget "RNSentryTesterTests" */;
+			buildConfigurationList = 336089A429524164007C7730 /* Build configuration list for PBXNativeTarget "RNSentryCocoaTesterTests" */;
 			buildPhases = (
 				30F19D4E16BEEFEC68733838 /* [CP] Check Pods Manifest.lock */,
 				3360898929524164007C7730 /* Sources */,
@@ -91,9 +93,9 @@
 			);
 			dependencies = (
 			);
-			name = RNSentryTesterTests;
-			productName = RNSentryTesterTests;
-			productReference = 3360898D29524164007C7730 /* RNSentryTesterTests.xctest */;
+			name = RNSentryCocoaTesterTests;
+			productName = RNSentryCocoaTesterTests;
+			productReference = 3360898D29524164007C7730 /* RNSentryCocoaTesterTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -110,7 +112,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 3360896D29524163007C7730 /* Build configuration list for PBXProject "RNSentryTester" */;
+			buildConfigurationList = 3360896D29524163007C7730 /* Build configuration list for PBXProject "RNSentryCocoaTester" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -123,7 +125,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				3360898C29524164007C7730 /* RNSentryTesterTests */,
+				3360898C29524164007C7730 /* RNSentryCocoaTesterTests */,
 			);
 		};
 /* End PBXProject section */
@@ -144,7 +146,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-RNSentryTesterTests-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-RNSentryCocoaTesterTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -157,15 +159,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-RNSentryTesterTests/Pods-RNSentryTesterTests-resources-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-RNSentryTesterTests/Pods-RNSentryTesterTests-resources-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-RNSentryTesterTests/Pods-RNSentryTesterTests-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		E56C5E3822DFF9C2796CEB4A /* [CP] Embed Pods Frameworks */ = {
@@ -174,15 +176,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-RNSentryTesterTests/Pods-RNSentryTesterTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-RNSentryTesterTests/Pods-RNSentryTesterTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-RNSentryTesterTests/Pods-RNSentryTesterTests-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -249,6 +251,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "\"${PODS_ROOT}/Sentry/Sources/Sentry/include\"";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -301,6 +304,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "\"${PODS_ROOT}/Sentry/Sources/Sentry/include\"";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -311,14 +315,57 @@
 		};
 		336089A529524164007C7730 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E2321E7CFA55AB617247098E /* Pods-RNSentryTesterTests.debug.xcconfig */;
+			baseConfigurationReference = E2321E7CFA55AB617247098E /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_ROOT}/Headers/Public\"",
+					"\"${PODS_ROOT}/Headers/Public/DoubleConversion\"",
+					"\"${PODS_ROOT}/Headers/Public/FBLazyVector\"",
+					"\"${PODS_ROOT}/Headers/Public/OCMock\"",
+					"\"${PODS_ROOT}/Headers/Public/RCT-Folly\"",
+					"\"${PODS_ROOT}/Headers/Public/RCTRequired\"",
+					"\"${PODS_ROOT}/Headers/Public/RCTTypeSafety\"",
+					"\"${PODS_ROOT}/Headers/Public/RNSentry\"",
+					"\"${PODS_ROOT}/Headers/Public/React-Codegen\"",
+					"\"${PODS_ROOT}/Headers/Public/React-Core\"",
+					"\"${PODS_ROOT}/Headers/Public/React-NativeModulesApple\"",
+					"\"${PODS_ROOT}/Headers/Public/React-RCTAnimation\"",
+					"\"${PODS_ROOT}/Headers/Public/React-RCTAppDelegate\"",
+					"\"${PODS_ROOT}/Headers/Public/React-RCTBlob\"",
+					"\"${PODS_ROOT}/Headers/Public/React-RCTText\"",
+					"\"${PODS_ROOT}/Headers/Public/React-callinvoker\"",
+					"\"${PODS_ROOT}/Headers/Public/React-cxxreact\"",
+					"\"${PODS_ROOT}/Headers/Public/React-debug\"",
+					"\"${PODS_ROOT}/Headers/Public/React-hermes\"",
+					"\"${PODS_ROOT}/Headers/Public/React-jsi\"",
+					"\"${PODS_ROOT}/Headers/Public/React-jsiexecutor\"",
+					"\"${PODS_ROOT}/Headers/Public/React-jsinspector\"",
+					"\"${PODS_ROOT}/Headers/Public/React-logger\"",
+					"\"${PODS_ROOT}/Headers/Public/React-perflogger\"",
+					"\"${PODS_ROOT}/Headers/Public/React-runtimeexecutor\"",
+					"\"${PODS_ROOT}/Headers/Public/React-runtimescheduler\"",
+					"\"${PODS_ROOT}/Headers/Public/React-utils\"",
+					"\"${PODS_ROOT}/Headers/Public/ReactCommon\"",
+					"\"${PODS_ROOT}/Headers/Public/Sentry\"",
+					"\"${PODS_ROOT}/Headers/Public/SocketRocket\"",
+					"\"${PODS_ROOT}/Headers/Public/Yoga\"",
+					"\"${PODS_ROOT}/Headers/Public/fmt\"",
+					"\"${PODS_ROOT}/Headers/Public/glog\"",
+					"\"${PODS_ROOT}/Headers/Public/hermes-engine\"",
+					"\"${PODS_ROOT}/Headers/Public/libevent\"",
+					"\"$(PODS_ROOT)/DoubleConversion\"",
+					"\"$(PODS_ROOT)/boost\"",
+					"\"$(PODS_ROOT)/Headers/Private/React-Core\"",
+					"\"$(PODS_TARGET_SRCROOT)/include/\"",
+					"\"${PODS_ROOT}/Sentry/Sources/Sentry/include\"",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.sentry.RNSentryTesterTests;
+				PRODUCT_BUNDLE_IDENTIFIER = io.sentry.RNSentryCocoaTesterTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -330,14 +377,57 @@
 		};
 		336089A629524164007C7730 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1482D5685A340AB93348A43D /* Pods-RNSentryTesterTests.release.xcconfig */;
+			baseConfigurationReference = 1482D5685A340AB93348A43D /* Pods-RNSentryCocoaTesterTests.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_ROOT}/Headers/Public\"",
+					"\"${PODS_ROOT}/Headers/Public/DoubleConversion\"",
+					"\"${PODS_ROOT}/Headers/Public/FBLazyVector\"",
+					"\"${PODS_ROOT}/Headers/Public/OCMock\"",
+					"\"${PODS_ROOT}/Headers/Public/RCT-Folly\"",
+					"\"${PODS_ROOT}/Headers/Public/RCTRequired\"",
+					"\"${PODS_ROOT}/Headers/Public/RCTTypeSafety\"",
+					"\"${PODS_ROOT}/Headers/Public/RNSentry\"",
+					"\"${PODS_ROOT}/Headers/Public/React-Codegen\"",
+					"\"${PODS_ROOT}/Headers/Public/React-Core\"",
+					"\"${PODS_ROOT}/Headers/Public/React-NativeModulesApple\"",
+					"\"${PODS_ROOT}/Headers/Public/React-RCTAnimation\"",
+					"\"${PODS_ROOT}/Headers/Public/React-RCTAppDelegate\"",
+					"\"${PODS_ROOT}/Headers/Public/React-RCTBlob\"",
+					"\"${PODS_ROOT}/Headers/Public/React-RCTText\"",
+					"\"${PODS_ROOT}/Headers/Public/React-callinvoker\"",
+					"\"${PODS_ROOT}/Headers/Public/React-cxxreact\"",
+					"\"${PODS_ROOT}/Headers/Public/React-debug\"",
+					"\"${PODS_ROOT}/Headers/Public/React-hermes\"",
+					"\"${PODS_ROOT}/Headers/Public/React-jsi\"",
+					"\"${PODS_ROOT}/Headers/Public/React-jsiexecutor\"",
+					"\"${PODS_ROOT}/Headers/Public/React-jsinspector\"",
+					"\"${PODS_ROOT}/Headers/Public/React-logger\"",
+					"\"${PODS_ROOT}/Headers/Public/React-perflogger\"",
+					"\"${PODS_ROOT}/Headers/Public/React-runtimeexecutor\"",
+					"\"${PODS_ROOT}/Headers/Public/React-runtimescheduler\"",
+					"\"${PODS_ROOT}/Headers/Public/React-utils\"",
+					"\"${PODS_ROOT}/Headers/Public/ReactCommon\"",
+					"\"${PODS_ROOT}/Headers/Public/Sentry\"",
+					"\"${PODS_ROOT}/Headers/Public/SocketRocket\"",
+					"\"${PODS_ROOT}/Headers/Public/Yoga\"",
+					"\"${PODS_ROOT}/Headers/Public/fmt\"",
+					"\"${PODS_ROOT}/Headers/Public/glog\"",
+					"\"${PODS_ROOT}/Headers/Public/hermes-engine\"",
+					"\"${PODS_ROOT}/Headers/Public/libevent\"",
+					"\"$(PODS_ROOT)/DoubleConversion\"",
+					"\"$(PODS_ROOT)/boost\"",
+					"\"$(PODS_ROOT)/Headers/Private/React-Core\"",
+					"\"$(PODS_TARGET_SRCROOT)/include/\"",
+					"\"${PODS_ROOT}/Sentry/Sources/Sentry/include\"",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.sentry.RNSentryTesterTests;
+				PRODUCT_BUNDLE_IDENTIFIER = io.sentry.RNSentryCocoaTesterTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -350,7 +440,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		3360896D29524163007C7730 /* Build configuration list for PBXProject "RNSentryTester" */ = {
+		3360896D29524163007C7730 /* Build configuration list for PBXProject "RNSentryCocoaTester" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3360899F29524164007C7730 /* Debug */,
@@ -359,7 +449,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		336089A429524164007C7730 /* Build configuration list for PBXNativeTarget "RNSentryTesterTests" */ = {
+		336089A429524164007C7730 /* Build configuration list for PBXNativeTarget "RNSentryCocoaTesterTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				336089A529524164007C7730 /* Debug */,

@@ -82,11 +82,11 @@ const usedOptions = (): ClientOptions<BaseTransportOptions> | undefined => {
   return mockedInitAndBind.mock.calls[0]?.[1];
 };
 
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('Tests the SDK functionality', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('init', () => {
     describe('enableAutoPerformanceTracing', () => {
       const usedOptions = (): Integration[] => {
@@ -163,7 +163,6 @@ describe('Tests the SDK functionality', () => {
         if (mockClient) {
           const flushResult = await flush();
 
-          // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(mockClient.flush).toBeCalled();
           expect(flushResult).toBe(true);
         }
@@ -178,10 +177,8 @@ describe('Tests the SDK functionality', () => {
 
           const flushResult = await flush();
 
-          // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(mockClient.flush).toBeCalled();
           expect(flushResult).toBe(false);
-          // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(logger.error).toBeCalledWith('Failed to flush the event queue.');
         }
       });
@@ -219,9 +216,8 @@ describe('Tests the SDK functionality', () => {
       it('fetchTransport set and enableNative set to false', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({});
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.isNativeAvailable).toBeCalled();
-        // @ts-ignore enableNative not publicly available here.
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
       });
@@ -229,9 +225,8 @@ describe('Tests the SDK functionality', () => {
       it('fetchTransport set and passed enableNative ignored when true', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({ enableNative: true });
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.isNativeAvailable).toBeCalled();
-        // @ts-ignore enableNative not publicly available here.
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
       });
@@ -239,9 +234,8 @@ describe('Tests the SDK functionality', () => {
       it('fetchTransport set and isNativeAvailable not called when passed enableNative set to false', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({ enableNative: false });
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.isNativeAvailable).not.toBeCalled();
-        // @ts-ignore enableNative not publicly available here.
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
       });
@@ -253,9 +247,8 @@ describe('Tests the SDK functionality', () => {
           transport: mockTransport,
         });
         expect(usedOptions()?.transport).toEqual(mockTransport);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.isNativeAvailable).toBeCalled();
-        // @ts-ignore enableNative not publicly available here.
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
       });
     });
@@ -284,7 +277,6 @@ describe('Tests the SDK functionality', () => {
       (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
       init({ enableNative: false });
       expect(usedOptions()?.transport).toEqual(makeFetchTransport);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(NATIVE.isNativeAvailable).not.toBeCalled();
     });
 
@@ -292,7 +284,6 @@ describe('Tests the SDK functionality', () => {
       (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
       init({ enableNative: true });
       expect(usedOptions()?.transport).toEqual(makeNativeTransport);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(NATIVE.isNativeAvailable).toBeCalled();
     });
   });
@@ -477,6 +468,30 @@ describe('Tests the SDK functionality', () => {
       const actualIntegrations = actualOptions.integrations;
 
       expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'ViewHierarchy' })]));
+    });
+
+    it('no profiling integration by default', () => {
+      init({});
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+      expect(actualIntegrations).toEqual(
+        expect.not.arrayContaining([expect.objectContaining({ name: 'HermesProfiling' })]),
+      );
+    });
+
+    it('adds profiling integration', () => {
+      init({
+        _experiments: {
+          profilesSampleRate: 0.7,
+        },
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+      expect(actualIntegrations).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'HermesProfiling' })]),
+      );
     });
 
     it('no default integrations', () => {

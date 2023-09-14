@@ -54,6 +54,7 @@ const config = {
   resolver: {
     blacklistRE: blacklist([
       new RegExp(`${parentDir}/node_modules/react-native/.*`),
+      new RegExp(`.*\\android\\.*`), // Required for Windows in order to run the Sample.
     ]),
     extraNodeModules: new Proxy(
       {
