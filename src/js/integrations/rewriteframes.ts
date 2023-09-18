@@ -36,10 +36,12 @@ export function createReactNativeRewriteFrames(): RewriteFrames {
         return frame;
       }
       // Is React Native frame
-      if (isHermesEnabled() && frame.colno !== undefined) {
+
+      // Check Hermes Bytecode Frame and convert to 1-based column
+      if (isHermesEnabled() && frame.lineno === 1 && frame.colno !== undefined) {
+        // hermes bytecode columns are 0-based, while v8 and jsc are 1-based
+        // Hermes frames without debug info have always line = 1 and col points to a bytecode pos
         // https://github.com/facebook/react/issues/21792#issuecomment-873171991
-        // hermes columns are 0-based, while v8 and jsc are 1-based
-        // TODO: This seems to be needed only for Hermes bytecode without debug information
         frame.colno += 1;
       }
 
