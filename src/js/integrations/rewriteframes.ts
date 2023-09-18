@@ -2,7 +2,7 @@ import { RewriteFrames } from '@sentry/integrations';
 import type { StackFrame } from '@sentry/types';
 import { Platform } from 'react-native';
 
-import { isExpo } from '../utils/environment';
+import { isExpo, isHermesEnabled } from '../utils/environment';
 
 export const ANDROID_DEFAULT_BUNDLE_NAME = 'app:///index.android.bundle';
 export const IOS_DEFAULT_BUNDLE_NAME = 'app:///main.jsbundle';
@@ -34,6 +34,15 @@ export function createReactNativeRewriteFrames(): RewriteFrames {
 
       if (frame.filename === '[native code]' || frame.filename === 'native') {
         return frame;
+      }
+      // Is React Native frame
+
+      // Check Hermes Bytecode Frame and convert to 1-based column
+      if (isHermesEnabled() && frame.lineno === 1 && frame.colno !== undefined) {
+        // hermes bytecode columns are 0-based, while v8 and jsc are 1-based
+        // Hermes frames without debug info have always line = 1 and col points to a bytecode pos
+        // https://github.com/facebook/react/issues/21792#issuecomment-873171991
+        frame.colno += 1;
       }
 
       // Expo adds hash to the end of bundle names
