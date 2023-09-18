@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Features
+
+- Add Hermes Debug Info flag to React Native Context ([#3290](https://github.com/getsentry/sentry-react-native/pull/3290))
+  - This flag equals `true` when Hermes Bundle contains Debug Info (Hermes Source Map was not emitted)
+
 ### Fixes
 
 - Create profiles for start up transactions ([#3281](https://github.com/getsentry/sentry-react-native/pull/3281))

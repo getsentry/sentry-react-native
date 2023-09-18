@@ -18,6 +18,7 @@ export interface ReactNativeContext extends Context {
   hermes_version?: string;
   react_native_version: string;
   component_stack?: string;
+  hermes_debug_info?: boolean;
 }
 
 /** Loads React Native context at runtime */
@@ -50,7 +51,18 @@ export class ReactNativeInfo implements Integration {
         reactNativeContext.js_engine = 'hermes';
         const hermesVersion = getHermesVersion();
         if (hermesVersion) {
-          reactNativeContext.hermes_version = getHermesVersion();
+          reactNativeContext.hermes_version = hermesVersion;
+        }
+
+        // Check if Hermes Bundle has debug info
+        for(const value of event.exception?.values || event.threads?.values || []) {
+          for (const frame of value.stacktrace?.frames || []) {
+            // platform === undefined we assume it's javascript (only native frames use the platform attribute)
+            if (frame.platform === undefined && frame.lineno === 1) {
+              reactNativeContext.hermes_debug_info = true;
+              break;
+            }
+          }
         }
       } else if (reactNativeError?.jsEngine) {
         reactNativeContext.js_engine = reactNativeError.jsEngine;
