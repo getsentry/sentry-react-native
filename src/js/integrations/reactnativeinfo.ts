@@ -55,7 +55,7 @@ export class ReactNativeInfo implements Integration {
         }
 
         // Check if Hermes Bundle has debug info
-        for(const value of event.exception?.values || event.threads?.values || []) {
+        for (const value of event.exception?.values || event.threads?.values || []) {
           for (const frame of value.stacktrace?.frames || []) {
             // platform === undefined we assume it's javascript (only native frames use the platform attribute)
             if (frame.platform === undefined && frame.lineno === 1) {

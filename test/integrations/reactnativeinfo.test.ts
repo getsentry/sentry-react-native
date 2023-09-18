@@ -205,7 +205,6 @@ describe('React Native Info', () => {
     expect(actualEvent?.contexts?.react_native_context?.hermes_debug_info).toEqual(true);
   });
 
-
   it('does not add hermes_debug_info to react_native_context (no hermes bytecode frames)', async () => {
     mockedIsHermesEnabled = jest.fn().mockReturnValue(true);
 
