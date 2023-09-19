@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import type { MixedOutput, Module } from 'metro';
 import type { SerializerConfigT } from 'metro-config';
 import * as baseJSBundle from 'metro/src/DeltaBundler/Serializers/baseJSBundle';
@@ -5,7 +6,6 @@ import * as sourceMapString from 'metro/src/DeltaBundler/Serializers/sourceMapSt
 import * as bundleToString from 'metro/src/lib/bundleToString';
 import CountingSet from 'metro/src/lib/CountingSet';
 import * as countLines from 'metro/src/lib/countLines';
-import { v4 as uuidv4 } from 'uuid';
 
 type SourceMap = Record<string, unknown>;
 
@@ -14,35 +14,97 @@ type ExpectedSerializedConfigThisContext = Partial<SerializerConfigT>
 type MetroSerializer = (...args: Parameters<NonNullable<SerializerConfigT['customSerializer']>>)
   => string | { code: string, map: string } | Promise<string | { code: string, map: string }>;
 
-const getDebugIdSnippet = (debugId: string): string => {
+type MetroSerializerOptions = Parameters<MetroSerializer>[3];
+
+const DEBUG_ID_MODULE_PATH = '__debugid__';
+const PRELUDE_MODULE_PATH = '__prelude__';
+const SOURCE_MAP_COMMENT = '//# sourceMappingURL=';
+const DEBUG_ID_COMMENT = '//# debugId=';
+
+const createDebugIdSnippet = (debugId: string): string => {
   return `var _sentryDebugIds={},_sentryDebugIdIdentifier="";try{var e=Error().stack;e&&(_sentryDebugIds[e]="${debugId}",_sentryDebugIdIdentifier="sentry-dbid-${debugId}")}catch(r){}`;
 }
 
-const debugId = uuidv4();
-const debugIdCode = getDebugIdSnippet(debugId);
-const debugIdModule: Module<{
+const createDebugIdModule = (debugId: string): Module<{
   type: string;
   data: {
     code: string;
     lineCount: number;
     map: [];
   };
-}> = {
-  dependencies: new Map(),
-  getSource: () => Buffer.from(debugIdCode),
-  inverseDependencies: new CountingSet(),
-  path: '__debugid__',
-  output: [
-    {
-      type: 'js/script/virtual',
-      data: {
-        code: debugIdCode,
-        lineCount: countLines(debugIdCode),
-        map: [],
+}> => {
+  const debugIdCode = createDebugIdSnippet(debugId);
+
+  return {
+    dependencies: new Map(),
+    getSource: () => Buffer.from(debugIdCode),
+    inverseDependencies: new CountingSet(),
+    path: DEBUG_ID_MODULE_PATH,
+    output: [
+      {
+        type: 'js/script/virtual',
+        data: {
+          code: debugIdCode,
+          lineCount: countLines(debugIdCode),
+          map: [],
+        },
       },
-    },
-  ],
+    ],
+  };
 };
+
+/**
+ * Deterministically hashes a string and turns the hash into a uuid.
+ * https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/58271f1af2ade6b3e64d393d70376ae53bc5bd2f/packages/bundler-plugin-core/src/utils.ts#L174
+ */
+export function stringToUUID(str: string): string {
+  const md5sum = crypto.createHash('md5');
+  md5sum.update(str);
+  const md5Hash = md5sum.digest('hex');
+
+  // Position 16 is fixed to either 8, 9, a, or b in the uuid v4 spec (10xx in binary)
+  // RFC 4122 section 4.4
+  const v4variant = ['8', '9', 'a', 'b'][md5Hash.substring(16, 17).charCodeAt(0) % 4] as string;
+
+  return (
+    `${md5Hash.substring(0, 8)
+    }-${
+    md5Hash.substring(8, 12)
+    }-4${
+    md5Hash.substring(13, 16)
+    }-${
+    v4variant
+    }${md5Hash.substring(17, 20)
+    }-${
+    md5Hash.substring(20)}`
+  ).toLowerCase();
+}
+
+const calculateDebugId = (modules: readonly Module<MixedOutput>[], serializerOptions: MetroSerializerOptions): string => {
+  const createModuleId = serializerOptions.createModuleId;
+  const sortedModules = [...modules].sort((a, b) => createModuleId(a.path) - createModuleId(b.path));
+
+  const hash = crypto.createHash('md5');
+  for (const module of sortedModules) {
+    for (const output of module.output) {
+      if (!output.type.startsWith('js/script')) {
+        continue;
+      }
+
+      const code = output.data.code;
+      if (typeof code === 'string' && code.length > 0) {
+        hash
+          .update('\0', 'utf8')
+          .update(code, 'utf8');
+      }
+    }
+  }
+
+  const debugId = stringToUUID(hash.digest('hex'));
+  // eslint-disable-next-line no-console
+  console.log('info ' + `Bundle Debug ID: ${debugId}`);
+  return debugId;
+}
 
 export const createDefaultMetroSerializer = (
   serializerConfig: Partial<SerializerConfigT>,
@@ -79,41 +141,42 @@ export const createDefaultMetroSerializer = (
   }
 };
 
-const PRELUDE_MODULE_PATH = '__prelude__';
-const SOURCE_MAP_COMMENT = '//# sourceMappingURL=';
-const DEBUG_ID_COMMENT = '//# debugId=';
-
 export const createSentryMetroSerializer = (
   customSerializer?: MetroSerializer,
-): MetroSerializer => {
-  return async function (
-    this: ExpectedSerializedConfigThisContext,
-    entryPoint,
-    preModules,
-    graph,
-    options) {
-    // eslint-disable-next-line no-console
-    console.log('createSentryMetroSerializer', this);
+  ): MetroSerializer => {
+    return async function (
+      this: ExpectedSerializedConfigThisContext,
+      entryPoint,
+      preModules,
+      graph,
+      options) {
+    // TODO: Exclude Debug ID Module for Hermes builds with SDK capable reading Hermes Bytecode Hash
     const serializer = customSerializer || createDefaultMetroSerializer(this);
-    // TODO:
-    // 1. Deterministically order all the modules (besides assets) preModules and graph dependencies
-    // 2. Generate Debug ID using https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/36bf09880f983d562d9179cbbeac40f7083be0ff/packages/bundler-plugin-core/src/utils.ts#L174
-    // 3. Only when hermes disabled
+    const debugId = calculateDebugId([...preModules, ...graph.dependencies.values()], options);
 
-    // TODO: Only add debug id if it's not already present
-    const modifiedPreModules: Module<MixedOutput>[] = [...preModules];
-    if (modifiedPreModules[0].path === PRELUDE_MODULE_PATH) {
-      // prelude module must be first as it measures the bundle startup time
-      modifiedPreModules.unshift(preModules[0]);
-      modifiedPreModules[1] = debugIdModule;
+    // Add debug id module to the preModules
+    let modifiedPreModules: readonly Module<MixedOutput>[];
+    const containsDebugIdModule = preModules.some((module) => module.path === DEBUG_ID_MODULE_PATH);
+    if (!containsDebugIdModule) {
+      const debugIdModule = createDebugIdModule(debugId);
+      const tmpPreModules = [...preModules];
+      if (tmpPreModules[0].path === PRELUDE_MODULE_PATH) {
+        // prelude module must be first as it measures the bundle startup time
+        tmpPreModules.unshift(preModules[0]);
+        tmpPreModules[1] = debugIdModule;
+      } else {
+        tmpPreModules.unshift(debugIdModule);
+      }
+      modifiedPreModules = tmpPreModules;
     } else {
-      modifiedPreModules.unshift(debugIdModule);
+      modifiedPreModules = preModules;
     }
 
     let bundleCode: string = '';
     let bundleMapString: string = '{}';
 
-    const serializerResult = serializer(entryPoint, preModules, graph, options);
+    // Run wrapped serializer
+    const serializerResult = serializer(entryPoint, modifiedPreModules, graph, options);
     if (typeof serializerResult === 'string') {
       bundleCode = serializerResult;
     } else if ('map' in serializerResult) {
