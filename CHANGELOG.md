@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 5.9.2
+
+### Fixes
+
+- Create profiles for start up transactions ([#3281](https://github.com/getsentry/sentry-react-native/pull/3281))
+- Fix Hermes Bytecode Symbolication one line off ([#3283](https://github.com/getsentry/sentry-react-native/pull/3283))
 
 ### Dependencies
 

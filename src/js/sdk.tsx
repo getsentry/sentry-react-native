@@ -121,6 +121,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (options.enableNative) {
       defaultIntegrations.push(new DeviceContext());
     }
+    if (options._experiments && typeof options._experiments.profilesSampleRate === 'number') {
+      defaultIntegrations.push(new HermesProfiling());
+    }
     if (hasTracingEnabled(options) && options.enableAutoPerformanceTracing) {
       defaultIntegrations.push(new ReactNativeTracing());
     }
@@ -132,9 +135,6 @@ export function init(passedOptions: ReactNativeOptions): void {
     }
     if (options.enableCaptureFailedRequests) {
       defaultIntegrations.push(new HttpClient());
-    }
-    if (options._experiments && typeof options._experiments.profilesSampleRate === 'number') {
-      defaultIntegrations.push(new HermesProfiling());
     }
   }
 
