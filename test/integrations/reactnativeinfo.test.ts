@@ -49,6 +49,7 @@ describe('React Native Info', () => {
           turbo_module: false,
           fabric: false,
           js_engine: 'hermes',
+          hermes_debug_info: true,
           react_native_version: '1000.0.0-test',
           expo: false,
         },
@@ -149,7 +150,7 @@ describe('React Native Info', () => {
     });
   });
 
-  it('add hermes_debug_info to react_native_context based on exception frames', async () => {
+  it('add hermes_debug_info to react_native_context based on exception frames (hermes bytecode frames present -> no debug info)', async () => {
     mockedIsHermesEnabled = jest.fn().mockReturnValue(true);
 
     const mockedEvent: Event = {
@@ -174,10 +175,10 @@ describe('React Native Info', () => {
     const actualEvent = await executeIntegrationFor(mockedEvent, {});
 
     expectMocksToBeCalledOnce();
-    expect(actualEvent?.contexts?.react_native_context?.hermes_debug_info).toEqual(true);
+    expect(actualEvent?.contexts?.react_native_context?.hermes_debug_info).toEqual(false);
   });
 
-  it('add hermes_debug_info to react_native_context based on threads frames', async () => {
+  it('does not hermes_debug_info to react_native_context based on threads frames (hermes bytecode frames present -> no debug info)', async () => {
     mockedIsHermesEnabled = jest.fn().mockReturnValue(true);
 
     const mockedEvent: Event = {
@@ -202,10 +203,10 @@ describe('React Native Info', () => {
     const actualEvent = await executeIntegrationFor(mockedEvent, {});
 
     expectMocksToBeCalledOnce();
-    expect(actualEvent?.contexts?.react_native_context?.hermes_debug_info).toEqual(true);
+    expect(actualEvent?.contexts?.react_native_context?.hermes_debug_info).toEqual(false);
   });
 
-  it('does not add hermes_debug_info to react_native_context (no hermes bytecode frames)', async () => {
+  it('adds hermes_debug_info to react_native_context (no hermes bytecode frames found -> debug info present)', async () => {
     mockedIsHermesEnabled = jest.fn().mockReturnValue(true);
 
     const mockedEvent: Event = {
@@ -230,7 +231,7 @@ describe('React Native Info', () => {
     const actualEvent = await executeIntegrationFor(mockedEvent, {});
 
     expectMocksToBeCalledOnce();
-    expect(actualEvent?.contexts?.react_native_context?.hermes_debug_info).toEqual(undefined);
+    expect(actualEvent?.contexts?.react_native_context?.hermes_debug_info).toEqual(true);
   });
 });
 
