@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import type { MixedOutput, Module } from 'metro';
+import type { MixedOutput, Module, ReadOnlyGraph, SerializerOptions } from 'metro';
 import type { SerializerConfigT } from 'metro-config';
 import * as baseJSBundle from 'metro/src/DeltaBundler/Serializers/baseJSBundle';
 import * as sourceMapString from 'metro/src/DeltaBundler/Serializers/sourceMapString';
@@ -11,11 +11,23 @@ type SourceMap = Record<string, unknown>;
 
 type ExpectedSerializedConfigThisContext = Partial<SerializerConfigT>
 
-type MetroSerializer = (...args: Parameters<NonNullable<SerializerConfigT['customSerializer']>>)
-  => string | { code: string, map: string } | Promise<string | { code: string, map: string }>;
+type MetroSerializer = (
+  entryPoint: string,
+  preModules: ReadonlyArray<Module>,
+  graph: ReadOnlyGraph,
+  options: SerializerOptions & { sentryBundleCallback: (bundle: Bundle) => Bundle },
+) => string | { code: string, map: string } | Promise<string | { code: string, map: string }>;
 
-type MetroSerializerOptions = Parameters<MetroSerializer>[3];
+type MetroModuleId = number;
+type MetroModuleCode = string;
 
+type Bundle = {
+  modules: [MetroModuleId, MetroModuleCode][],
+  post: string,
+  pre: string,
+};
+
+const DEBUG_ID_PLACE_HOLDER = '__debug_id_place_holder__';
 const DEBUG_ID_MODULE_PATH = '__debugid__';
 const PRELUDE_MODULE_PATH = '__prelude__';
 const SOURCE_MAP_COMMENT = '//# sourceMappingURL=';
@@ -57,7 +69,7 @@ const createDebugIdModule = (debugId: string): Module<{
  * Deterministically hashes a string and turns the hash into a uuid.
  * https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/58271f1af2ade6b3e64d393d70376ae53bc5bd2f/packages/bundler-plugin-core/src/utils.ts#L174
  */
-export function stringToUUID(str: string): string {
+function stringToUUID(str: string): string {
   const md5sum = crypto.createHash('md5');
   md5sum.update(str);
   const md5Hash = md5sum.digest('hex');
@@ -80,25 +92,13 @@ export function stringToUUID(str: string): string {
   ).toLowerCase();
 }
 
-const calculateDebugId = (modules: readonly Module<MixedOutput>[], serializerOptions: MetroSerializerOptions): string => {
-  const createModuleId = serializerOptions.createModuleId;
-  const sortedModules = [...modules].sort((a, b) => createModuleId(a.path) - createModuleId(b.path));
-
+const calculateDebugId = (bundle: Bundle): string => {
   const hash = crypto.createHash('md5');
-  for (const module of sortedModules) {
-    for (const output of module.output) {
-      if (!output.type.startsWith('js/script')) {
-        continue;
-      }
-
-      const code = output.data.code;
-      if (typeof code === 'string' && code.length > 0) {
-        hash
-          .update('\0', 'utf8')
-          .update(code, 'utf8');
-      }
-    }
+  hash.update(bundle.pre);
+  for (const [, code] of bundle.modules) {
+    hash.update(code);
   }
+  hash.update(bundle.post);
 
   const debugId = stringToUUID(hash.digest('hex'));
   // eslint-disable-next-line no-console
@@ -106,24 +106,44 @@ const calculateDebugId = (modules: readonly Module<MixedOutput>[], serializerOpt
   return debugId;
 }
 
-export const createDefaultMetroSerializer = (
+const injectDebugId = (code: string, debugId: string): string =>
+  code.replace(new RegExp(DEBUG_ID_PLACE_HOLDER, 'g'), debugId);
+
+/**
+ * This function is expected to be called after serializer creates the final bundle object
+ * and before the source maps are generated.
+ *
+ * It injects a debug ID into the bundle and returns the modified bundle.
+ *
+ * Access it via `options.sentryBundleCallback` in your custom serializer.
+ */
+const sentryBundleCallback = (bundle: Bundle): Bundle => {
+  const debugId = calculateDebugId(bundle);
+  bundle.pre = injectDebugId(bundle.pre, debugId);
+  return bundle;
+};
+
+/**
+ * Creates the default Metro plain bundle serializer.
+ * This is used when the user does not provide a custom serializer.
+ */
+const createDefaultMetroSerializer = (
   serializerConfig: Partial<SerializerConfigT>,
 ): MetroSerializer => {
   return (entryPoint, preModules, graph, options) => {
     const createModuleId = options.createModuleId;
-    const getSortedModules = (): Module<MixedOutput>[] => {
-      const modules = [...graph.dependencies.values()];
-      // Assign IDs to modules in a consistent order
-      for (const module of modules) {
-        createModuleId(module.path);
-      }
-      // Sort by IDs
-      return modules.sort(
-        (a, b) => createModuleId(a.path) - createModuleId(b.path),
-      );
-    };
+    for (const module of graph.dependencies.values()) {
+      options.createModuleId(module.path);
+    }
+    const modules = [...graph.dependencies.values()].sort(
+      (a, b) => createModuleId(a.path) - createModuleId(b.path),
+    );
 
-    const { code } = bundleToString(baseJSBundle(entryPoint, preModules, graph, options));
+    let bundle = baseJSBundle(entryPoint, preModules, graph, options);
+    if (options.sentryBundleCallback) {
+      bundle = options.sentryBundleCallback(bundle);
+    }
+    const { code } = bundleToString(bundle);
     if (serializerConfig.processModuleFilter === undefined) {
       // processModuleFilter is undefined when processing build request from the dev server
       return code;
@@ -131,7 +151,7 @@ export const createDefaultMetroSerializer = (
 
     // Always generate source maps, can't use Sentry without source maps
     const map = sourceMapString(
-      [...preModules, ...getSortedModules()],
+      [...preModules, ...modules],
       {
         processModuleFilter: serializerConfig.processModuleFilter,
         shouldAddToIgnoreList: options.shouldAddToIgnoreList,
@@ -141,24 +161,49 @@ export const createDefaultMetroSerializer = (
   }
 };
 
+/**
+ * Looks for a particular string pattern (`sdbid-[debug ID]`) in the bundle
+ * source and extracts the bundle's debug ID from it.
+ *
+ * The string pattern is injected via the debug ID injection snipped.
+ */
+function determineDebugIdFromBundleSource(code: string): string | undefined {
+  const match = code.match(
+    /sentry-dbid-([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12})/
+  );
+
+  if (match) {
+    return match[1];
+  } else {
+    return undefined;
+  }
+}
+
+/**
+ * Creates a Metro serializer that adds Debug ID module to the plain bundle.
+ * The Debug ID module is a virtual module that provides a debug ID in runtime.
+ *
+ * RAM Bundles do not support custom serializers.
+ */
 export const createSentryMetroSerializer = (
   customSerializer?: MetroSerializer,
-  ): MetroSerializer => {
-    return async function (
-      this: ExpectedSerializedConfigThisContext,
-      entryPoint,
-      preModules,
-      graph,
-      options) {
-    // TODO: Exclude Debug ID Module for Hermes builds with SDK capable reading Hermes Bytecode Hash
+): MetroSerializer => {
+  return async function (
+    this: ExpectedSerializedConfigThisContext,
+    entryPoint,
+    preModules,
+    graph,
+    options,
+  ) {
+    let currentDebugIdModule: Module<MixedOutput> | undefined;
     const serializer = customSerializer || createDefaultMetroSerializer(this);
-    const debugId = calculateDebugId([...preModules, ...graph.dependencies.values()], options);
+    options.sentryBundleCallback = sentryBundleCallback;
 
     // Add debug id module to the preModules
     let modifiedPreModules: readonly Module<MixedOutput>[];
     const containsDebugIdModule = preModules.some((module) => module.path === DEBUG_ID_MODULE_PATH);
     if (!containsDebugIdModule) {
-      const debugIdModule = createDebugIdModule(debugId);
+      const debugIdModule = createDebugIdModule(DEBUG_ID_PLACE_HOLDER);
       const tmpPreModules = [...preModules];
       if (tmpPreModules[0].path === PRELUDE_MODULE_PATH) {
         // prelude module must be first as it measures the bundle startup time
@@ -193,6 +238,11 @@ export const createSentryMetroSerializer = (
     }
 
     // Add debug id comment to the bundle
+    const debugId = determineDebugIdFromBundleSource(bundleCode);
+    if (!debugId) {
+      throw new Error('Debug ID was not found in the bundle. Call `options.sentryBundleCallback` if you are using a custom serializer.');
+    }
+    currentDebugIdModule?.output[0].data.code.replace(DEBUG_ID_PLACE_HOLDER, debugId);
     const debugIdComment = `${DEBUG_ID_COMMENT}${debugId}`;
     const indexOfSourceMapComment =
       bundleCode.lastIndexOf(SOURCE_MAP_COMMENT);

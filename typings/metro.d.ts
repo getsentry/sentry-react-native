@@ -1,27 +1,25 @@
 declare module 'metro/src/DeltaBundler/Serializers/baseJSBundle' {
-  type Bundle = {
-    modules: ModuleMap,
-    post: string,
-    pre: string,
-  };
-
   const baseJSBundle: (
     entryPoint: string,
     preModules: ReadonlyArray<Module>,
     graph: ReadOnlyGraph,
     options: SerializerOptions,
-  ) => Bundle;
+  ) => {
+    modules: [number, string][],
+    post: string,
+    pre: string,
+  };
   export = baseJSBundle;
 };
 
 declare module 'metro/src/lib/bundleToString' {
-  type Bundle = {
-    modules: ModuleMap,
-    post: string,
-    pre: string,
-  };
-
-  const baseJSBundle: (bundle: Bundle) => {
+  const baseJSBundle: (
+    bundle: {
+      modules: [number, string][],
+      post: string,
+      pre: string,
+    },
+  ) => {
     code: string,
     metadata: BundleMetadata,
   };
