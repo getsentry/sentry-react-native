@@ -159,7 +159,7 @@ gradle.projectsEvaluated {
 
               enabled true
           }
-
+          cliTask.onlyIf { !System.getenv("DISABLE_UPLOAD_SOURCEMAP_SENTRY") }
           modulesTask = tasks.create(nameModulesTask, Exec) {
               description = "collect javascript modules from bundle source map"
               group = 'sentry.io'
