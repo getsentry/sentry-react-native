@@ -15,3 +15,6 @@
 !scripts/collect-modules.sh
 !scripts/copy-debugid.js
 !scripts/hasSourceMapDebugId.js
+!scripts/hasSourceMapDebugId.js
+!scripts/sentry-xcode.sh
+!scripts/sentry-xcode-debug-files.sh
