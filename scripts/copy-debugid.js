@@ -7,19 +7,19 @@ const packagerSourceMapPath = process.argv[2];
 const hermesSourceMapPath = process.argv[3];
 
 if (!packagerSourceMapPath) {
-  console.error('Please provide packager source map path (A path to copy `debugId` from).');
+  console.log('Please provide packager source map path (A path to copy `debugId` from).');
   process.exit(0);
 }
 if (!hermesSourceMapPath) {
-  console.error('Please provide Hermes source map path. ((A path to copy `debugId` to))');
+  console.log('Please provide Hermes source map path. ((A path to copy `debugId` to))');
   process.exit(0);
 }
 if (!fs.existsSync(packagerSourceMapPath)) {
-  console.error('Packager source map path (A path to copy `debugId` from).');
+  console.log('Packager source map path (A path to copy `debugId` from).');
   process.exit(0);
 }
 if (!fs.existsSync(hermesSourceMapPath)) {
-  console.error('Hermes source map not found. ((A path to copy `debugId` to))');
+  console.log('Hermes source map not found. ((A path to copy `debugId` to))');
   process.exit(0);
 }
 
@@ -30,7 +30,7 @@ const fromParsed = JSON.parse(from);
 const toParsed = JSON.parse(to);
 
 if (!fromParsed.debugId && !fromParsed.debug_id) {
-  console.error('Packager source map does not have `debugId`.');
+  console.log('Packager source map does not have `debugId`.');
   process.exit(0);
 }
 

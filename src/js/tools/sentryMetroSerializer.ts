@@ -166,6 +166,8 @@ const createDefaultMetroSerializer = (
  * source and extracts the bundle's debug ID from it.
  *
  * The string pattern is injected via the debug ID injection snipped.
+ *
+ * https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/40f918458ed449d8b3eabaf64d13c08218213f65/packages/bundler-plugin-core/src/debug-id-upload.ts#L293-L294
  */
 function determineDebugIdFromBundleSource(code: string): string | undefined {
   const match = code.match(
