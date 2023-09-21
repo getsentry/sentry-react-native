@@ -69,6 +69,7 @@ import {
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD,
 } from '../../src/js/tracing';
+import { APP_START_WARM as APP_SPAN_START_WARM } from '../../src/js/tracing/ops';
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
 import { NATIVE } from '../../src/js/wrapper';
@@ -206,6 +207,42 @@ describe('ReactNativeTracing', () => {
             // @ts-expect-error access private for test
             transaction._measurements[APP_START_COLD],
           ).toBeUndefined();
+        }
+      });
+
+      it('Does not add app start span if more than 60s', async () => {
+        const integration = new ReactNativeTracing();
+
+        const timeOriginMilliseconds = Date.now();
+        const appStartTimeMilliseconds = timeOriginMilliseconds - 65000;
+        const mockAppStartResponse: NativeAppStartResponse = {
+          isColdStart: false,
+          appStartTime: appStartTimeMilliseconds,
+          didFetchAppStart: false,
+        };
+
+        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
+        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
+
+        const mockHub = getMockHub();
+        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+
+        await jest.advanceTimersByTimeAsync(500);
+
+        const transaction = mockHub.getScope()?.getTransaction();
+
+        expect(transaction).toBeDefined();
+
+        if (transaction) {
+          expect(
+            // @ts-expect-error access private for test
+            transaction.spanRecorder
+          ).toBeDefined();
+
+          expect(
+            // @ts-expect-error access private for test
+            transaction.spanRecorder.spans.some( span => span.op == APP_SPAN_START_WARM)
+          ).toBe(false);
         }
       });
 
