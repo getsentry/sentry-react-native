@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- App start time span no longer created if too long ([#3299](https://github.com/getsentry/sentry-react-native/pull/3299))
+
 ### Features
 
 - Add Hermes Debug Info flag to React Native Context ([#3290](https://github.com/getsentry/sentry-react-native/pull/3290))
