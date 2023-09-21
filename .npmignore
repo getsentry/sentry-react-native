@@ -13,3 +13,5 @@
 !/android/**/*
 !src/js/NativeRNSentry.ts
 !scripts/collect-modules.sh
+!scripts/copy-debugid.js
+!scripts/hasSourceMapDebugId.js
