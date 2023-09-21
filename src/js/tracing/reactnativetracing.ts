@@ -396,7 +396,7 @@ export class ReactNativeTracing implements Integration {
 
     const measurement = appStart.isColdStart ? APP_START_COLD : APP_START_WARM;
     transaction.setMeasurement(measurement, appStartDurationMilliseconds, 'millisecond');
-    }
+  }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */
   private _onRouteWillChange(context: TransactionContext): TransactionType | undefined {
@@ -407,27 +407,27 @@ export class ReactNativeTracing implements Integration {
    * Creates a breadcrumb and sets the current route as a tag.
    */
   private _onConfirmRoute(context: TransactionContext): void {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      this._currentRoute = context.data?.route?.name;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    this._currentRoute = context.data?.route?.name;
 
-      this._getCurrentHub?.().configureScope(scope => {
-        if (context.data) {
-          const contextData = context.data as RouteChangeContextData;
+    this._getCurrentHub?.().configureScope(scope => {
+      if (context.data) {
+        const contextData = context.data as RouteChangeContextData;
 
-          scope.addBreadcrumb({
-            category: 'navigation',
-            type: 'navigation',
-            // We assume that context.name is the name of the route.
-            message: `Navigation to ${context.name}`,
-            data: {
-              from: contextData.previousRoute?.name,
-              to: contextData.route.name,
-            },
-          });
-        }
+        scope.addBreadcrumb({
+          category: 'navigation',
+          type: 'navigation',
+          // We assume that context.name is the name of the route.
+          message: `Navigation to ${context.name}`,
+          data: {
+            from: contextData.previousRoute?.name,
+            to: contextData.route.name,
+          },
+        });
+      }
 
-        scope.setTag('routing.route.name', context.name);
-      });
+      scope.setTag('routing.route.name', context.name);
+    });
   }
 
   /** Create routing idle transaction. */

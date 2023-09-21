@@ -236,12 +236,12 @@ describe('ReactNativeTracing', () => {
         if (transaction) {
           expect(
             // @ts-expect-error access private for test
-            transaction.spanRecorder
+            transaction.spanRecorder,
           ).toBeDefined();
 
           expect(
             // @ts-expect-error access private for test
-            transaction.spanRecorder.spans.some( span => span.op == APP_SPAN_START_WARM)
+            transaction.spanRecorder.spans.some(span => span.op == APP_SPAN_START_WARM),
           ).toBe(false);
         }
       });
