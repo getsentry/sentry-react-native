@@ -7,12 +7,15 @@ set -x -e
 # WITH_ENVIRONMENT is executed by React Native
 
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
-[ -z "$EXTRA_PACKAGER_ARGS" ] && export EXTRA_PACKAGER_ARGS="--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map"
+[ -z "$SOURCEMAP_FILE" ] && export SOURCEMAP_FILE="$DERIVED_FILE_DIR/main.jsbundle.map"
 [ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_EXECUTABLE="../node_modules/@sentry/cli/bin/sentry-cli"
 
 REACT_NATIVE_XCODE=$1
 
-BUNDLE_REACT_NATIVE="\"$SENTRY_CLI_EXECUTABLE\" react-native xcode $SENTRY_CLI_EXTRA_ARGS $SENTRY_CLI_RN_XCODE_EXTRA_ARGS \"$REACT_NATIVE_XCODE\""
+[[ "$AUTO_RELEASE" != true ]] && [[ -z "$BUNDLE_COMMAND" || "$BUNDLE_COMMAND" != "ram-bundle" ]] && NO_AUTO_RELEASE="--no-auto-release"
+ARGS="$NO_AUTO_RELEASE $SENTRY_CLI_EXTRA_ARGS $SENTRY_CLI_RN_XCODE_EXTRA_ARGS"
+
+BUNDLE_REACT_NATIVE="\"$SENTRY_CLI_EXECUTABLE\" react-native xcode $ARGS \"$REACT_NATIVE_XCODE\""
 
 /bin/sh -c "$BUNDLE_REACT_NATIVE"
 
