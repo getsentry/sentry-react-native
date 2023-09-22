@@ -9,22 +9,22 @@ import * as countLines from 'metro/src/lib/countLines';
 
 type SourceMap = Record<string, unknown>;
 
-type ExpectedSerializedConfigThisContext = Partial<SerializerConfigT>
+type ExpectedSerializedConfigThisContext = Partial<SerializerConfigT>;
 
 type MetroSerializer = (
   entryPoint: string,
   preModules: ReadonlyArray<Module>,
   graph: ReadOnlyGraph,
   options: SerializerOptions & { sentryBundleCallback: (bundle: Bundle) => Bundle },
-) => string | { code: string, map: string } | Promise<string | { code: string, map: string }>;
+) => string | { code: string; map: string } | Promise<string | { code: string; map: string }>;
 
 type MetroModuleId = number;
 type MetroModuleCode = string;
 
 type Bundle = {
-  modules: [MetroModuleId, MetroModuleCode][],
-  post: string,
-  pre: string,
+  modules: [MetroModuleId, MetroModuleCode][];
+  post: string;
+  pre: string;
 };
 
 const DEBUG_ID_PLACE_HOLDER = '__debug_id_place_holder__';
@@ -35,9 +35,11 @@ const DEBUG_ID_COMMENT = '//# debugId=';
 
 const createDebugIdSnippet = (debugId: string): string => {
   return `var _sentryDebugIds={},_sentryDebugIdIdentifier="";try{var e=Error().stack;e&&(_sentryDebugIds[e]="${debugId}",_sentryDebugIdIdentifier="sentry-dbid-${debugId}")}catch(r){}`;
-}
+};
 
-const createDebugIdModule = (debugId: string): Module<{
+const createDebugIdModule = (
+  debugId: string,
+): Module<{
   type: string;
   data: {
     code: string;
@@ -78,18 +80,10 @@ function stringToUUID(str: string): string {
   // RFC 4122 section 4.4
   const v4variant = ['8', '9', 'a', 'b'][md5Hash.substring(16, 17).charCodeAt(0) % 4] as string;
 
-  return (
-    `${md5Hash.substring(0, 8)
-    }-${
-    md5Hash.substring(8, 12)
-    }-4${
-    md5Hash.substring(13, 16)
-    }-${
-    v4variant
-    }${md5Hash.substring(17, 20)
-    }-${
-    md5Hash.substring(20)}`
-  ).toLowerCase();
+  return `${md5Hash.substring(0, 8)}-${md5Hash.substring(8, 12)}-4${md5Hash.substring(
+    13,
+    16,
+  )}-${v4variant}${md5Hash.substring(17, 20)}-${md5Hash.substring(20)}`.toLowerCase();
 }
 
 const calculateDebugId = (bundle: Bundle): string => {
@@ -104,7 +98,7 @@ const calculateDebugId = (bundle: Bundle): string => {
   // eslint-disable-next-line no-console
   console.log('info ' + `Bundle Debug ID: ${debugId}`);
   return debugId;
-}
+};
 
 const injectDebugId = (code: string, debugId: string): string =>
   code.replace(new RegExp(DEBUG_ID_PLACE_HOLDER, 'g'), debugId);
@@ -127,17 +121,13 @@ const sentryBundleCallback = (bundle: Bundle): Bundle => {
  * Creates the default Metro plain bundle serializer.
  * This is used when the user does not provide a custom serializer.
  */
-const createDefaultMetroSerializer = (
-  serializerConfig: Partial<SerializerConfigT>,
-): MetroSerializer => {
+const createDefaultMetroSerializer = (serializerConfig: Partial<SerializerConfigT>): MetroSerializer => {
   return (entryPoint, preModules, graph, options) => {
     const createModuleId = options.createModuleId;
     for (const module of graph.dependencies.values()) {
       options.createModuleId(module.path);
     }
-    const modules = [...graph.dependencies.values()].sort(
-      (a, b) => createModuleId(a.path) - createModuleId(b.path),
-    );
+    const modules = [...graph.dependencies.values()].sort((a, b) => createModuleId(a.path) - createModuleId(b.path));
 
     let bundle = baseJSBundle(entryPoint, preModules, graph, options);
     if (options.sentryBundleCallback) {
@@ -150,15 +140,12 @@ const createDefaultMetroSerializer = (
     }
 
     // Always generate source maps, can't use Sentry without source maps
-    const map = sourceMapString(
-      [...preModules, ...modules],
-      {
-        processModuleFilter: serializerConfig.processModuleFilter,
-        shouldAddToIgnoreList: options.shouldAddToIgnoreList,
-      },
-    );
+    const map = sourceMapString([...preModules, ...modules], {
+      processModuleFilter: serializerConfig.processModuleFilter,
+      shouldAddToIgnoreList: options.shouldAddToIgnoreList,
+    });
     return { code, map };
-  }
+  };
 };
 
 /**
@@ -171,7 +158,7 @@ const createDefaultMetroSerializer = (
  */
 function determineDebugIdFromBundleSource(code: string): string | undefined {
   const match = code.match(
-    /sentry-dbid-([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12})/
+    /sentry-dbid-([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12})/,
   );
 
   if (match) {
@@ -187,23 +174,15 @@ function determineDebugIdFromBundleSource(code: string): string | undefined {
  *
  * RAM Bundles do not support custom serializers.
  */
-export const createSentryMetroSerializer = (
-  customSerializer?: MetroSerializer,
-): MetroSerializer => {
-  return async function (
-    this: ExpectedSerializedConfigThisContext,
-    entryPoint,
-    preModules,
-    graph,
-    options,
-  ) {
+export const createSentryMetroSerializer = (customSerializer?: MetroSerializer): MetroSerializer => {
+  return async function (this: ExpectedSerializedConfigThisContext, entryPoint, preModules, graph, options) {
     let currentDebugIdModule: Module<MixedOutput> | undefined;
     const serializer = customSerializer || createDefaultMetroSerializer(this);
     options.sentryBundleCallback = sentryBundleCallback;
 
     // Add debug id module to the preModules
     let modifiedPreModules: readonly Module<MixedOutput>[];
-    const containsDebugIdModule = preModules.some((module) => module.path === DEBUG_ID_MODULE_PATH);
+    const containsDebugIdModule = preModules.some(module => module.path === DEBUG_ID_MODULE_PATH);
     if (!containsDebugIdModule) {
       const debugIdModule = createDebugIdModule(DEBUG_ID_PLACE_HOLDER);
       const tmpPreModules = [...preModules];
@@ -242,20 +221,21 @@ export const createSentryMetroSerializer = (
     // Add debug id comment to the bundle
     const debugId = determineDebugIdFromBundleSource(bundleCode);
     if (!debugId) {
-      throw new Error('Debug ID was not found in the bundle. Call `options.sentryBundleCallback` if you are using a custom serializer.');
+      throw new Error(
+        'Debug ID was not found in the bundle. Call `options.sentryBundleCallback` if you are using a custom serializer.',
+      );
     }
     currentDebugIdModule?.output[0].data.code.replace(DEBUG_ID_PLACE_HOLDER, debugId);
     const debugIdComment = `${DEBUG_ID_COMMENT}${debugId}`;
-    const indexOfSourceMapComment =
-      bundleCode.lastIndexOf(SOURCE_MAP_COMMENT);
+    const indexOfSourceMapComment = bundleCode.lastIndexOf(SOURCE_MAP_COMMENT);
     const bundleCodeWithDebugId =
       indexOfSourceMapComment === -1
         ? // If source map comment is missing lets just add the debug id comment
-        `${bundleCode}\n${debugIdComment}`
+          `${bundleCode}\n${debugIdComment}`
         : // If source map comment is present lets add the debug id comment before it
-        `${bundleCode.substring(0, indexOfSourceMapComment) +
-        debugIdComment
-        }\n${bundleCode.substring(indexOfSourceMapComment)}`;
+          `${bundleCode.substring(0, indexOfSourceMapComment) + debugIdComment}\n${bundleCode.substring(
+            indexOfSourceMapComment,
+          )}`;
 
     if (this.processModuleFilter === undefined) {
       // processModuleFilter is undefined when processing build request from the dev server
