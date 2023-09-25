@@ -24,7 +24,9 @@
     "build:tools": "tsc -p tsconfig.build.tools.json",
     "downlevel": "downlevel-dts dist ts3.8/dist --to=3.8",
     "clean": "rimraf dist coverage",
-    "test": "jest",
+    "test": "yarn test:sdk && yarn test:tools",
+    "test:sdk": "jest",
+    "test:tools": "jest --config jest.config.tools.js",
     "fix": "yarn fix:eslint && yarn fix:prettier",
     "fix:eslint": "eslint --config .eslintrc.js --fix .",
     "fix:prettier": "prettier --write \"{src,test,scripts}/**/**.ts\"",
@@ -97,33 +99,6 @@
       "packageImportPath": "import io.sentry.react.RNSentryPackage;"
     },
     "ios": {}
-  },
-  "jest": {
-    "collectCoverage": true,
-    "preset": "react-native",
-    "setupFilesAfterEnv": [
-      "<rootDir>/test/mockConsole.ts"
-    ],
-    "globals": {
-      "__DEV__": true,
-      "ts-jest": {
-        "tsConfig": "./tsconfig.json",
-        "diagnostics": false
-      }
-    },
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "testPathIgnorePatterns": [
-      "<rootDir>/test/e2e/",
-      "<rootDir>/test/react-native/versions"
-    ],
-    "testEnvironment": "node",
-    "testMatch": [
-      "**/*.test.(ts|tsx)"
-    ]
   },
   "codegenConfig": {
     "name": "RNSentrySpec",

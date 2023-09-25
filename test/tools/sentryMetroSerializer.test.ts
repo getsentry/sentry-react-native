@@ -1,0 +1,140 @@
+import * as fs from 'fs';
+import type { MixedOutput , Module } from 'metro';
+import CountingSet from 'metro/src/lib/CountingSet';
+import * as countLines from 'metro/src/lib/countLines';
+
+import type { MetroSerializer, VirtualJSOutput } from '../../src/js/tools/sentryMetroSerializer';
+import { createSentryMetroSerializer } from '../../src/js/tools/sentryMetroSerializer';
+
+describe('Sentry Metro Serializer', () => {
+
+  test('generates bundle and source map with deterministic uuidv5 debug id', async () => {
+    const serializer = createSentryMetroSerializer();
+
+    const bundle = await serializer(...mockMinSerializerArgs());
+    if (typeof bundle === 'string') {
+      fail('Expected bundle to be an object with a "code" property');
+    }
+
+    expect(bundle.code)
+      .toEqual('var _sentryDebugIds={},_sentryDebugIdIdentifier="";try{var e=Error().stack;e&&(_sentryDebugIds[e]="4a945039-d159-4021-938a-83830ce8127c",_sentryDebugIdIdentifier="sentry-dbid-4a945039-d159-4021-938a-83830ce8127c")}catch(r){}\n//# debugId=4a945039-d159-4021-938a-83830ce8127c');
+    expect(bundle.map)
+      .toEqual('{"debug_id":"4a945039-d159-4021-938a-83830ce8127c","debugId":"4a945039-d159-4021-938a-83830ce8127c"}');
+  });
+
+  test('generated debug id is uuid v4 format', async () => {
+    const serializer = createSentryMetroSerializer();
+    const bundle = await serializer(...mockMinSerializerArgs());
+    const debugId = determineDebugIdFromBundleSource(typeof bundle === 'string' ? bundle : bundle.code);
+    expect(debugId).toEqual('4a945039-d159-4021-938a-83830ce8127c');
+  });
+
+  test('adds debug id snipped after prelude module and before ', async () => {
+    const serializer = createSentryMetroSerializer();
+
+    const bundle = await serializer(...mockWithPreludAndDepsSerializerArgs());
+    if (typeof bundle === 'string') {
+      fail('Expected bundle to be an object with a "code" property');
+    }
+
+    expect(bundle.code).toEqual(fs.readFileSync(`${__dirname}/fixtures/bundleWithPrelude.js.fixture`, 'utf8'));
+    expect(bundle.map).toEqual(fs.readFileSync(`${__dirname}/fixtures/bundleWithPrelude.js.fixture.map`, 'utf8'));
+  });
+});
+
+function mockMinSerializerArgs(): Parameters<MetroSerializer> {
+  let modulesCounter = 0;
+  return [
+    'index.js',
+    [],
+    {
+      entryPoints: new Set(),
+      dependencies: new Map(),
+      transformOptions: {
+        hot: false,
+        dev: false,
+        minify: false,
+        type: 'script',
+        unstable_transformProfile: 'hermes-stable',
+      }
+    },
+    {
+      asyncRequireModulePath: 'asyncRequire',
+      createModuleId: (_filePath: string): number => modulesCounter++,
+      dev: false,
+      getRunModuleStatement: (_moduleId: string | number): string => '',
+      includeAsyncPaths: false,
+      modulesOnly: false,
+      processModuleFilter: (_module: Module<MixedOutput>) => true,
+      projectRoot: '/project/root',
+      runBeforeMainModule: [],
+      runModule: false,
+      serverRoot: '/server/root',
+      shouldAddToIgnoreList: (_module: Module<MixedOutput>) => false,
+    },
+  ];
+}
+
+function mockWithPreludAndDepsSerializerArgs(): Parameters<MetroSerializer> {
+  const mockPreludeCode = '__mock_prelude__';
+  const indexJsCode = '__mock_index_js__';
+  const args = mockMinSerializerArgs();
+  args[1] = [
+    {
+      dependencies: new Map(),
+      getSource: () => Buffer.from(mockPreludeCode),
+      inverseDependencies: new CountingSet(),
+      path: '__prelude__',
+      output: [
+        <VirtualJSOutput> {
+          type: 'js/script/virtual',
+          data: {
+            code: mockPreludeCode,
+            lineCount: countLines(indexJsCode),
+            map: [],
+          },
+        },
+      ],
+    },
+  ];
+
+  // @ts-expect-error - This is a mock
+  args[2].dependencies = <Parameters<MetroSerializer>[2]['dependencies']>new Map([
+    [
+      'index.js',
+      <Module<VirtualJSOutput>> {
+        dependencies: new Map(),
+        getSource: () => Buffer.from(indexJsCode),
+        inverseDependencies: new CountingSet(),
+        path: 'index.js',
+        output: [
+          {
+            type: 'js/script/virtual',
+            data: {
+              code: indexJsCode,
+              lineCount: countLines(indexJsCode),
+              map: [],
+            },
+          },
+        ],
+      },
+    ]
+  ]);
+
+  return args;
+}
+
+/**
+ * This function is on purpose not shared with the actual implementation.
+ */
+function determineDebugIdFromBundleSource(code: string): string | undefined {
+  const match = code.match(
+    /sentry-dbid-([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12})/,
+  );
+
+  if (match) {
+    return match[1];
+  } else {
+    return undefined;
+  }
+}

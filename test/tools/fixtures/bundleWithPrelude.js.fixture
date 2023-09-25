@@ -1,0 +1,4 @@
+__mock_prelude__
+var _sentryDebugIds={},_sentryDebugIdIdentifier="";try{var e=Error().stack;e&&(_sentryDebugIds[e]="dd782ff1-06cb-4d23-8de6-d6bc3f36ea8d",_sentryDebugIdIdentifier="sentry-dbid-dd782ff1-06cb-4d23-8de6-d6bc3f36ea8d")}catch(r){}
+__mock_index_js__
+//# debugId=dd782ff1-06cb-4d23-8de6-d6bc3f36ea8d
