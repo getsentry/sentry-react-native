@@ -47,7 +47,7 @@ export interface BaseReactNativeOptions {
   /** Enable NDK on Android
    *
    * @default true
-  */
+   */
   enableNdk?: boolean;
 
   /** When enabled, all the threads are automatically attached to all logged events on Android */
