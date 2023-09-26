@@ -13,6 +13,7 @@ set -x -e
 
 REACT_NATIVE_XCODE=$1
 
+AUTO_RELEASE=true # TMP: Until sentry-cli upgrade
 [[ "$AUTO_RELEASE" != true ]] && [[ -z "$BUNDLE_COMMAND" || "$BUNDLE_COMMAND" != "ram-bundle" ]] && NO_AUTO_RELEASE="--no-auto-release"
 ARGS="$NO_AUTO_RELEASE $SENTRY_CLI_EXTRA_ARGS $SENTRY_CLI_RN_XCODE_EXTRA_ARGS"
 
