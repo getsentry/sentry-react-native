@@ -18,7 +18,7 @@ const configFilePath = args.path;
 
 const importSerializer =
   "const {createSentryMetroSerializer} = require('node_modules/@sentry/react-native/dist/js/tools/sentryMetroSerializer');";
-const serializerValue = '  serializer: createSentryMetroSerializer(),';
+const serializerValue = 'serializer: createSentryMetroSerializer()';
 const enterSerializerBefore = '};';
 
 let config = fs.readFileSync(configFilePath, 'utf8').split('\n');
@@ -26,8 +26,10 @@ let config = fs.readFileSync(configFilePath, 'utf8').split('\n');
 const isPatched = config.includes(line => line.includes(importSerializer));
 if (!isPatched) {
   config = [importSerializer, ...config];
-  const index = config.findIndex(line => line.includes(enterSerializerBefore));
-  config.splice(index, 0, serializerValue);
+  const lineIndex = config.findIndex(line => line.includes(enterSerializerBefore));
+  const lineParsed = config[lineIndex].split(enterSerializerBefore);
+  lineParsed.push(serializerValue, enterSerializerBefore);
+  config[lineIndex] = lineParsed.join('');
   fs.writeFileSync(configFilePath, config.join('\n'), 'utf8');
   logger.info('Patched Metro config successfully!');
 } else {
