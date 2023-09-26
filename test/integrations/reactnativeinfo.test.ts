@@ -49,6 +49,7 @@ describe('React Native Info', () => {
           turbo_module: false,
           fabric: false,
           js_engine: 'hermes',
+          hermes_debug_info: true,
           react_native_version: '1000.0.0-test',
           expo: false,
         },
@@ -147,6 +148,90 @@ describe('React Native Info', () => {
     expect(actualEvent?.contexts?.react_native_context).toEqual({
       test: 'context',
     });
+  });
+
+  it('add hermes_debug_info to react_native_context based on exception frames (hermes bytecode frames present -> no debug info)', async () => {
+    mockedIsHermesEnabled = jest.fn().mockReturnValue(true);
+
+    const mockedEvent: Event = {
+      exception: {
+        values: [
+          {
+            stacktrace: {
+              frames: [
+                {
+                  platform: 'java',
+                  lineno: 2,
+                },
+                {
+                  lineno: 1,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    };
+    const actualEvent = await executeIntegrationFor(mockedEvent, {});
+
+    expectMocksToBeCalledOnce();
+    expect(actualEvent?.contexts?.react_native_context?.hermes_debug_info).toEqual(false);
+  });
+
+  it('does not hermes_debug_info to react_native_context based on threads frames (hermes bytecode frames present -> no debug info)', async () => {
+    mockedIsHermesEnabled = jest.fn().mockReturnValue(true);
+
+    const mockedEvent: Event = {
+      threads: {
+        values: [
+          {
+            stacktrace: {
+              frames: [
+                {
+                  platform: 'java',
+                  lineno: 2,
+                },
+                {
+                  lineno: 1,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    };
+    const actualEvent = await executeIntegrationFor(mockedEvent, {});
+
+    expectMocksToBeCalledOnce();
+    expect(actualEvent?.contexts?.react_native_context?.hermes_debug_info).toEqual(false);
+  });
+
+  it('adds hermes_debug_info to react_native_context (no hermes bytecode frames found -> debug info present)', async () => {
+    mockedIsHermesEnabled = jest.fn().mockReturnValue(true);
+
+    const mockedEvent: Event = {
+      threads: {
+        values: [
+          {
+            stacktrace: {
+              frames: [
+                {
+                  platform: 'java',
+                  lineno: 2,
+                },
+                {
+                  lineno: 2,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    };
+    const actualEvent = await executeIntegrationFor(mockedEvent, {});
+
+    expectMocksToBeCalledOnce();
+    expect(actualEvent?.contexts?.react_native_context?.hermes_debug_info).toEqual(true);
   });
 });
 
