@@ -17,7 +17,7 @@ logger.info('Patching Metro config: ', args.path);
 const configFilePath = args.path;
 
 const importSerializer =
-  "const {createSentryMetroSerializer} = require('node_modules/@sentry/react-native/dist/js/tools/sentryMetroSerializer');";
+  "const {createSentryMetroSerializer} = require('@sentry/react-native/dist/js/tools/sentryMetroSerializer');";
 const serializerValue = 'serializer: createSentryMetroSerializer()';
 const enterSerializerBefore = '};';
 
