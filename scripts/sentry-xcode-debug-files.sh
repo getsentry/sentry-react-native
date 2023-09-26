@@ -1,3 +1,4 @@
+#!/bin/bash
 # Upload Debug Symbols to Sentry Xcode Build Phase
 # PWD=ios
 

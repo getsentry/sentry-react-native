@@ -1,3 +1,4 @@
+#!/bin/bash
 # Sentry Bundle React Native code and images
 # PWD=ios
 

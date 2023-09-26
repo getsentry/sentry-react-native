@@ -108,7 +108,7 @@ gradle.projectsEvaluated {
                   : "$sentryPackage/scripts/copy-debugid.js"
               def hasSourceMapDebugIdScript = config.hasSourceMapDebugIdScript
                   ? file(config.hasSourceMapDebugIdScript).getAbsolutePath()
-                  : "$sentryPackage/scripts/hasSourceMapDebugId.js"
+                  : "$sentryPackage/scripts/has-sourcemap-debugid.js"
 
               doFirst {
                   // Copy Debug ID from packager source map to Hermes composed source map

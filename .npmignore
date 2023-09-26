@@ -14,7 +14,6 @@
 !src/js/NativeRNSentry.ts
 !scripts/collect-modules.sh
 !scripts/copy-debugid.js
-!scripts/hasSourceMapDebugId.js
-!scripts/hasSourceMapDebugId.js
+!scripts/has-sourcemap-debugid.js
 !scripts/sentry-xcode.sh
 !scripts/sentry-xcode-debug-files.sh

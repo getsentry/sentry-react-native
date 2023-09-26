@@ -75,7 +75,7 @@ project.ext.sentryCli = [
     ],
     skipCollectModules: false,
     copyDebugIdScript: "../../../scripts/copy-debugid.js",
-    hasSourceMapDebugIdScript: "../../../scripts/hasSourceMapDebugId.js",
+    hasSourceMapDebugIdScript: "../../../scripts/has-sourcemap-debugid.js",
 ]
 
 apply from: "../../../sentry.gradle"
