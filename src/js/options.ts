@@ -44,6 +44,12 @@ export interface BaseReactNativeOptions {
   /** Enable scope sync from Java to NDK on Android */
   enableNdkScopeSync?: boolean;
 
+  /** Enable NDK on Android
+   *
+   * @default true
+  */
+  enableNdk?: boolean;
+
   /** When enabled, all the threads are automatically attached to all logged events on Android */
   attachThreads?: boolean;
 
