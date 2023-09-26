@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import type { MixedOutput , Module } from 'metro';
+import type { MixedOutput, Module } from 'metro';
 import CountingSet from 'metro/src/lib/CountingSet';
 import * as countLines from 'metro/src/lib/countLines';
 
@@ -7,7 +7,6 @@ import type { MetroSerializer, VirtualJSOutput } from '../../src/js/tools/sentry
 import { createSentryMetroSerializer } from '../../src/js/tools/sentryMetroSerializer';
 
 describe('Sentry Metro Serializer', () => {
-
   test('generates bundle and source map with deterministic uuidv5 debug id', async () => {
     const serializer = createSentryMetroSerializer();
 
@@ -16,17 +15,19 @@ describe('Sentry Metro Serializer', () => {
       fail('Expected bundle to be an object with a "code" property');
     }
 
-    expect(bundle.code)
-      .toEqual('var _sentryDebugIds={},_sentryDebugIdIdentifier="";try{var e=Error().stack;e&&(_sentryDebugIds[e]="4a945039-d159-4021-938a-83830ce8127c",_sentryDebugIdIdentifier="sentry-dbid-4a945039-d159-4021-938a-83830ce8127c")}catch(r){}\n//# debugId=4a945039-d159-4021-938a-83830ce8127c');
-    expect(bundle.map)
-      .toEqual('{"debug_id":"4a945039-d159-4021-938a-83830ce8127c","debugId":"4a945039-d159-4021-938a-83830ce8127c"}');
+    expect(bundle.code).toEqual(
+      'var _sentryDebugIds={},_sentryDebugIdIdentifier="";void 0===_sentryDebugIds&&(_sentryDebugIds={});try{var stack=(new Error).stack;stack&&(_sentryDebugIds[stack]="901c00b1-71e1-40fc-b787-3fe0a7e23a92",_sentryDebugIdIdentifier="sentry-dbid-901c00b1-71e1-40fc-b787-3fe0a7e23a92")}catch(e){}\n//# debugId=901c00b1-71e1-40fc-b787-3fe0a7e23a92',
+    );
+    expect(bundle.map).toEqual(
+      '{"debug_id":"901c00b1-71e1-40fc-b787-3fe0a7e23a92","debugId":"901c00b1-71e1-40fc-b787-3fe0a7e23a92"}',
+    );
   });
 
   test('generated debug id is uuid v4 format', async () => {
     const serializer = createSentryMetroSerializer();
     const bundle = await serializer(...mockMinSerializerArgs());
     const debugId = determineDebugIdFromBundleSource(typeof bundle === 'string' ? bundle : bundle.code);
-    expect(debugId).toEqual('4a945039-d159-4021-938a-83830ce8127c');
+    expect(debugId).toEqual('901c00b1-71e1-40fc-b787-3fe0a7e23a92');
   });
 
   test('adds debug id snipped after prelude module and before ', async () => {
@@ -56,7 +57,7 @@ function mockMinSerializerArgs(): Parameters<MetroSerializer> {
         minify: false,
         type: 'script',
         unstable_transformProfile: 'hermes-stable',
-      }
+      },
     },
     {
       asyncRequireModulePath: 'asyncRequire',
@@ -86,7 +87,7 @@ function mockWithPreludAndDepsSerializerArgs(): Parameters<MetroSerializer> {
       inverseDependencies: new CountingSet(),
       path: '__prelude__',
       output: [
-        <VirtualJSOutput> {
+        <VirtualJSOutput>{
           type: 'js/script/virtual',
           data: {
             code: mockPreludeCode,
@@ -102,7 +103,7 @@ function mockWithPreludAndDepsSerializerArgs(): Parameters<MetroSerializer> {
   args[2].dependencies = <Parameters<MetroSerializer>[2]['dependencies']>new Map([
     [
       'index.js',
-      <Module<VirtualJSOutput>> {
+      <Module<VirtualJSOutput>>{
         dependencies: new Map(),
         getSource: () => Buffer.from(indexJsCode),
         inverseDependencies: new CountingSet(),
@@ -118,7 +119,7 @@ function mockWithPreludAndDepsSerializerArgs(): Parameters<MetroSerializer> {
           },
         ],
       },
-    ]
+    ],
   ]);
 
   return args;

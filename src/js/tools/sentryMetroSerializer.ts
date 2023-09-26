@@ -42,12 +42,10 @@ const SOURCE_MAP_COMMENT = '//# sourceMappingURL=';
 const DEBUG_ID_COMMENT = '//# debugId=';
 
 const createDebugIdSnippet = (debugId: string): string => {
-  return `var _sentryDebugIds={},_sentryDebugIdIdentifier="";try{var e=Error().stack;e&&(_sentryDebugIds[e]="${debugId}",_sentryDebugIdIdentifier="sentry-dbid-${debugId}")}catch(r){}`;
+  return `var _sentryDebugIds={},_sentryDebugIdIdentifier="";void 0===_sentryDebugIds&&(_sentryDebugIds={});try{var stack=(new Error).stack;stack&&(_sentryDebugIds[stack]="${debugId}",_sentryDebugIdIdentifier="sentry-dbid-${debugId}")}catch(e){}`;
 };
 
-const createDebugIdModule = (
-  debugId: string,
-): Module<VirtualJSOutput> => {
+const createDebugIdModule = (debugId: string): Module<VirtualJSOutput> => {
   const debugIdCode = createDebugIdSnippet(debugId);
 
   return {
