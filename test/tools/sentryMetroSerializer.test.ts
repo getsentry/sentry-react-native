@@ -2,11 +2,20 @@ import * as fs from 'fs';
 import type { MixedOutput, Module } from 'metro';
 import CountingSet from 'metro/src/lib/CountingSet';
 import * as countLines from 'metro/src/lib/countLines';
+import { minify } from 'uglify-js';
 
-import type { MetroSerializer, VirtualJSOutput } from '../../src/js/tools/sentryMetroSerializer';
 import { createSentryMetroSerializer } from '../../src/js/tools/sentryMetroSerializer';
+import { type MetroSerializer, type VirtualJSOutput,createDebugIdSnippet } from '../../src/js/tools/utils';
 
 describe('Sentry Metro Serializer', () => {
+
+  test('debug id minified code snippet is the same as in the original implementation', () => {
+    const original = fs.readFileSync(`${__dirname}/../../scripts/sentry-debugid-injection-snippet.js`, 'utf8');
+    const minified = minify(original).code;
+    const snippet = createDebugIdSnippet('__SENTRY_DEBUG_ID__');
+    expect(minified).toEqual(snippet);
+  });
+
   test('generates bundle and source map with deterministic uuidv5 debug id', async () => {
     const serializer = createSentryMetroSerializer();
 
@@ -19,7 +28,7 @@ describe('Sentry Metro Serializer', () => {
       'var _sentryDebugIds={},_sentryDebugIdIdentifier="";void 0===_sentryDebugIds&&(_sentryDebugIds={});try{var stack=(new Error).stack;stack&&(_sentryDebugIds[stack]="901c00b1-71e1-40fc-b787-3fe0a7e23a92",_sentryDebugIdIdentifier="sentry-dbid-901c00b1-71e1-40fc-b787-3fe0a7e23a92")}catch(e){}\n//# debugId=901c00b1-71e1-40fc-b787-3fe0a7e23a92',
     );
     expect(bundle.map).toEqual(
-      '{"debug_id":"901c00b1-71e1-40fc-b787-3fe0a7e23a92","debugId":"901c00b1-71e1-40fc-b787-3fe0a7e23a92"}',
+      '{"version":3,"sources":["__debugid__"],"sourcesContent":["var _sentryDebugIds={},_sentryDebugIdIdentifier=\\"\\";void 0===_sentryDebugIds&&(_sentryDebugIds={});try{var stack=(new Error).stack;stack&&(_sentryDebugIds[stack]=\\"901c00b1-71e1-40fc-b787-3fe0a7e23a92\\",_sentryDebugIdIdentifier=\\"sentry-dbid-901c00b1-71e1-40fc-b787-3fe0a7e23a92\\")}catch(e){}"],"names":[],"mappings":"","debug_id":"901c00b1-71e1-40fc-b787-3fe0a7e23a92","debugId":"901c00b1-71e1-40fc-b787-3fe0a7e23a92"}',
     );
   });
 
@@ -33,7 +42,7 @@ describe('Sentry Metro Serializer', () => {
   test('adds debug id snipped after prelude module and before ', async () => {
     const serializer = createSentryMetroSerializer();
 
-    const bundle = await serializer(...mockWithPreludAndDepsSerializerArgs());
+    const bundle = await serializer(...mockWithPreludeAndDepsSerializerArgs());
     if (typeof bundle === 'string') {
       fail('Expected bundle to be an object with a "code" property');
     }
@@ -76,7 +85,7 @@ function mockMinSerializerArgs(): Parameters<MetroSerializer> {
   ];
 }
 
-function mockWithPreludAndDepsSerializerArgs(): Parameters<MetroSerializer> {
+function mockWithPreludeAndDepsSerializerArgs(): Parameters<MetroSerializer> {
   const mockPreludeCode = '__mock_prelude__';
   const indexJsCode = '__mock_index_js__';
   const args = mockMinSerializerArgs();
@@ -132,10 +141,5 @@ function determineDebugIdFromBundleSource(code: string): string | undefined {
   const match = code.match(
     /sentry-dbid-([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12})/,
   );
-
-  if (match) {
-    return match[1];
-  } else {
-    return undefined;
-  }
+  return match?.[1];
 }
