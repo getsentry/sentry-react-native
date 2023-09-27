@@ -6,6 +6,7 @@
 
 - Add Hermes Debug Info flag to React Native Context ([#3290](https://github.com/getsentry/sentry-react-native/pull/3290))
   - This flag equals `true` when Hermes Bundle contains Debug Info (Hermes Source Map was not emitted)
+- Add `enableNdk` property to ReactNativeOptions for Android. ([#3304](https://github.com/getsentry/sentry-react-native/pull/3304))
 
 ## 5.9.2
 
