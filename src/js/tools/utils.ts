@@ -1,8 +1,10 @@
 import * as crypto from 'crypto';
 import type { Module, ReadOnlyGraph, SerializerOptions } from 'metro';
 
+// Variant of MixedOutput
+// https://github.com/facebook/metro/blob/9b85f83c9cc837d8cd897aa7723be7da5b296067/packages/metro/src/DeltaBundler/types.flow.js#L21
 export type VirtualJSOutput = {
-  type: string;
+  type: 'js/script/virtual';
   data: {
     code: string;
     lineCount: number;
