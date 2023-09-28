@@ -17,7 +17,7 @@ let sourceMap;
 try {
   sourceMap = JSON.parse(fs.readFileSync(sourceMapPath, 'utf8'));
 } catch (e) {
-  console.log(`${sourceMapPath} is not valid JSON`, e);
+  console.log(`Sourcemap at ${sourceMapPath} was unable to be read.`, e);
   process.exist(1);
 }
 

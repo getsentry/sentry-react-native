@@ -20,8 +20,8 @@ const DEBUG_ID_COMMENT = '//# debugId=';
  * RAM Bundles do not support custom serializers.
  */
 export const createSentryMetroSerializer = (customSerializer?: MetroSerializer): MetroSerializer => {
+  const serializer = customSerializer || createDefaultMetroSerializer();
   return async function (entryPoint, preModules, graph, options) {
-    const serializer = customSerializer || createDefaultMetroSerializer();
     if (graph.transformOptions.hot) {
       return serializer(entryPoint, preModules, graph, options);
     }
@@ -105,25 +105,20 @@ function addDebugIdModule(preModules: readonly Module<MixedOutput>[], debugIdMod
 }
 
 async function extractSerializerResult(serializerResult: MetroSerializerOutput): Promise<SerializedBundle> {
-  let code: string;
-  let map: string = '{}';
-
   if (typeof serializerResult === 'string') {
-    code = serializerResult;
-  } else if ('map' in serializerResult) {
-    code = serializerResult.code;
-    map = serializerResult.map;
-  } else {
-    const awaitedResult = await serializerResult;
-    if (typeof awaitedResult === 'string') {
-      code = awaitedResult;
-    } else {
-      code = awaitedResult.code;
-      map = awaitedResult.map;
-    }
+    return { code: serializerResult, map: '{}' };
+   }
+  
+  if ('map' in serializerResult) {
+    return { code: serializerResult.code, map: serializerResult.map };
   }
-
-  return { code, map };
+  
+  const awaitedResult = await serializerResult;
+  if (typeof awaitedResult === 'string') {
+    return { code: awaitedResult, map: '{}' };
+  }
+  
+  return { code: awaitedResult.code, map: awaitedResult.map };
 }
 
 function createDebugIdModule(debugId: string): Module<VirtualJSOutput> & { setSource: (code: string) => void } {
