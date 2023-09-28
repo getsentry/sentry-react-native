@@ -35,7 +35,7 @@ Sentry.init({
     console.log('Event beforeSend:', event.event_id);
     return event;
   },
-  beforeSendTransaction(event, hint) {
+  beforeSendTransaction(event) {
     console.log('Transaction beforeSend:', event.event_id);
     return event;
   },
