@@ -43,7 +43,7 @@ export interface ReactNativeTracingOptions extends RequestInstrumentationOptions
    * If you never want to mark a transaction set it to 0.
    * Time is in ms.
    *
-   * Default: 600t
+   * Default: 600000
    */
   finalTimeoutMs: number;
 
