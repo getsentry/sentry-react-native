@@ -8,6 +8,10 @@
   - This flag equals `true` when Hermes Bundle contains Debug Info (Hermes Source Map was not emitted)
 - Add `enableNdk` property to ReactNativeOptions for Android. ([#3304](https://github.com/getsentry/sentry-react-native/pull/3304))
 
+### Fixes
+
+- Cancel auto instrumentation transaction when app goes to background ([#3306])(https://github.com/getsentry/sentry-react-native/pull/3306)
+
 ## 5.9.2
 
 ### Fixes

@@ -35,6 +35,10 @@ Sentry.init({
     console.log('Event beforeSend:', event.event_id);
     return event;
   },
+  beforeSendTransaction(event, hint) {
+    console.log('Transaction beforeSend:', event.event_id);
+    return event;
+  },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
   onReady: ({ didCallNativeInit }) => {
     console.log('onReady called with didCallNativeInit:', didCallNativeInit);
