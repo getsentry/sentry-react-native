@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Cancel auto instrumentation transaction when app goes to background ([#3306])(https://github.com/getsentry/sentry-react-native/pull/3306)
+- Cancel auto instrumentation transaction when app goes to background ([#3307])(https://github.com/getsentry/sentry-react-native/pull/3307)
 
 ## 5.9.2
 
