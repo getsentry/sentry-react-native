@@ -54,7 +54,7 @@ Sentry.config(
 ```
 
 ---
-**I have following issue:**
+**I have the following issue:**
 
 [Description]
 
