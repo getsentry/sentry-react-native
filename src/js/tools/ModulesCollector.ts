@@ -104,7 +104,7 @@ export default class ModulesCollector {
 
     logger.info('Reading source map from', sourceMapPath);
     logger.info('Saving modules to', outputModulesPath);
-    logger.info('Resolving modules from paths', modulesPaths);
+    logger.info('Resolving modules from paths', modulesPaths.join(', '));
 
     if (!existsSync(sourceMapPath)) {
       logger.error(`Source map file does not exist at ${sourceMapPath}`);
