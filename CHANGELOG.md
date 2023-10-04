@@ -6,6 +6,7 @@
 
 - Add Hermes Debug Info flag to React Native Context ([#3290](https://github.com/getsentry/sentry-react-native/pull/3290))
   - This flag equals `true` when Hermes Bundle contains Debug Info (Hermes Source Map was not emitted)
+- Add `buildFeatures.buildConfig=true` to support AGP 8 ([#3298](https://github.com/getsentry/sentry-react-native/pull/3298))
 
 ## 5.9.2
 
