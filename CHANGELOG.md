@@ -36,19 +36,19 @@
   How to use in Android project? It works by default. For Sentry Android Gradle Plugin add the following to your `android/app/build.gradle`.
 
   ```gradle
-    apply from: "../../../sentry.gradle"
+  apply from: "../../../sentry.gradle"
 
-    sentry {
-        autoUploadProguardMapping = shouldSentryAutoUpload()
-        uploadNativeSymbols = shouldSentryAutoUpload()
-    }
+  sentry {
+      autoUploadProguardMapping = shouldSentryAutoUpload()
+      uploadNativeSymbols = shouldSentryAutoUpload()
+  }
   ```
 
   How to use in Xcode? Make sure you are using `scripts/sentry-xcode.sh` and `scripts/sentry-xcode-debug-files.sh` in your
   build phases. And add the following to your `ios/.xcode.env.local` file.
 
   ```bash
-    export SENTRY_DISABLE_AUTO_UPLOAD=true
+  export SENTRY_DISABLE_AUTO_UPLOAD=true
   ```
 
 ### Fixes
