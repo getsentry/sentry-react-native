@@ -21,7 +21,7 @@ const reactNativeGradleRex = /^android {/m;
 
 const buildGradle = fs.readFileSync(args['app-build-gradle'], 'utf8');
 
-const isPatched = buildGradle.match(sentryGradlePatch.trim());
+const isPatched = buildGradle.includes(sentryGradlePatch.trim());
 if (!isPatched) {
   const patched = buildGradle.replace(reactNativeGradleRex, m => sentryGradlePatch + m);
 
