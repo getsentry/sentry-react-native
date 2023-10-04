@@ -15,7 +15,7 @@ if (!args['app-build-gradle']) {
 logger.info('Patching app/build.gradle', args['app-build-gradle']);
 
 const sentryGradlePatch = `
-apply from: new File(["node", "--print", "require.resolve('@sentry/react-native')"].execute(null, rootDir).text.trim(), "sentry.gradle");
+apply from: new File(["node", "--print", "require.resolve('@sentry/react-native/package.json')"].execute().text.trim(), "../sentry.gradle")
 `;
 const reactNativeGradleRex = /^android {/m;
 
