@@ -28,6 +28,29 @@ jest.mock('../../src/js/tracing/utils', () => {
   };
 });
 
+type MockAppState = {
+  setState: (state: AppStateStatus) => void;
+  listener: (newState: AppStateStatus) => void;
+  removeSubscription: jest.Func;
+};
+const mockedAppState: AppState & MockAppState = {
+  removeSubscription: jest.fn(),
+  listener: jest.fn(),
+  isAvailable: true,
+  currentState: 'active',
+  addEventListener: (_, listener) => {
+    mockedAppState.listener = listener;
+    return {
+      remove: mockedAppState.removeSubscription,
+    };
+  },
+  setState: (state: AppStateStatus) => {
+    mockedAppState.currentState = state;
+    mockedAppState.listener(state);
+  },
+};
+jest.mock('react-native/Libraries/AppState/AppState', () => mockedAppState);
+
 const getMockScope = () => {
   let scopeTransaction: Transaction | undefined;
   let scopeUser: User | undefined;
@@ -62,6 +85,7 @@ const getMockHub = () => {
 
 import type { BrowserClientOptions } from '@sentry/browser/types/client';
 import type { Scope } from '@sentry/types';
+import type { AppState, AppStateStatus } from 'react-native';
 
 import { APP_START_COLD, APP_START_WARM } from '../../src/js/measurements';
 import {
@@ -101,16 +125,7 @@ describe('ReactNativeTracing', () => {
           enableNativeFramesTracking: false,
         });
 
-        const timeOriginMilliseconds = Date.now();
-        const appStartTimeMilliseconds = timeOriginMilliseconds - 100;
-        const mockAppStartResponse: NativeAppStartResponse = {
-          isColdStart: true,
-          appStartTime: appStartTimeMilliseconds,
-          didFetchAppStart: false,
-        };
-
-        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
-        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
+        const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStartResponse({ cold: true });
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
@@ -140,16 +155,7 @@ describe('ReactNativeTracing', () => {
       it('Starts route transaction (warm)', async () => {
         const integration = new ReactNativeTracing();
 
-        const timeOriginMilliseconds = Date.now();
-        const appStartTimeMilliseconds = timeOriginMilliseconds - 100;
-        const mockAppStartResponse: NativeAppStartResponse = {
-          isColdStart: false,
-          appStartTime: appStartTimeMilliseconds,
-          didFetchAppStart: false,
-        };
-
-        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
-        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
+        const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStartResponse({ cold: false });
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
@@ -172,6 +178,24 @@ describe('ReactNativeTracing', () => {
             transaction._measurements[APP_START_WARM].unit,
           ).toBe('millisecond');
         }
+      });
+
+      it('Cancels route transaction when app goes to background', async () => {
+        const integration = new ReactNativeTracing();
+
+        mockAppStartResponse({ cold: false });
+
+        const mockHub = getMockHub();
+        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+
+        await jest.advanceTimersByTimeAsync(500);
+        const transaction = mockHub.getScope()?.getTransaction();
+
+        mockedAppState.setState('background');
+        jest.runAllTimers();
+
+        expect(transaction?.status).toBe('cancelled');
+        expect(mockedAppState.removeSubscription).toBeCalledTimes(1);
       });
 
       it('Does not add app start measurement if more than 60s', async () => {
@@ -249,16 +273,7 @@ describe('ReactNativeTracing', () => {
       it('Does not create app start transaction if didFetchAppStart == true', async () => {
         const integration = new ReactNativeTracing();
 
-        const timeOriginMilliseconds = Date.now();
-        const appStartTimeMilliseconds = timeOriginMilliseconds - 100;
-        const mockAppStartResponse: NativeAppStartResponse = {
-          isColdStart: true,
-          appStartTime: appStartTimeMilliseconds,
-          didFetchAppStart: true,
-        };
-
-        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
-        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
+        mockAppStartResponse({ cold: false, didFetchAppStart: true });
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
@@ -272,22 +287,38 @@ describe('ReactNativeTracing', () => {
     });
 
     describe('With routing instrumentation', () => {
+      it('Cancels route transaction when app goes to background', async () => {
+        const routingInstrumentation = new RoutingInstrumentation();
+        const integration = new ReactNativeTracing({
+          routingInstrumentation,
+        });
+
+        mockAppStartResponse({ cold: true });
+
+        const mockHub = getMockHub();
+        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+        // wait for internal promises to resolve, fetch app start data from mocked native
+        await Promise.resolve();
+
+        const routeTransaction = routingInstrumentation.onRouteWillChange({
+          name: 'test',
+        }) as IdleTransaction;
+
+        mockedAppState.setState('background');
+
+        jest.runAllTimers();
+
+        expect(routeTransaction.status).toBe('cancelled');
+        expect(mockedAppState.removeSubscription).toBeCalledTimes(1);
+      });
+
       it('Adds measurements and child span onto existing routing transaction and sets the op (cold)', async () => {
         const routingInstrumentation = new RoutingInstrumentation();
         const integration = new ReactNativeTracing({
           routingInstrumentation,
         });
 
-        const timeOriginMilliseconds = Date.now();
-        const appStartTimeMilliseconds = timeOriginMilliseconds - 100;
-        const mockAppStartResponse: NativeAppStartResponse = {
-          isColdStart: true,
-          appStartTime: appStartTimeMilliseconds,
-          didFetchAppStart: false,
-        };
-
-        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
-        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
+        const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStartResponse({ cold: true });
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
@@ -334,16 +365,7 @@ describe('ReactNativeTracing', () => {
           routingInstrumentation,
         });
 
-        const timeOriginMilliseconds = Date.now();
-        const appStartTimeMilliseconds = timeOriginMilliseconds - 100;
-        const mockAppStartResponse: NativeAppStartResponse = {
-          isColdStart: false,
-          appStartTime: appStartTimeMilliseconds,
-          didFetchAppStart: false,
-        };
-
-        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
-        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
+        const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStartResponse({ cold: false });
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
@@ -390,16 +412,7 @@ describe('ReactNativeTracing', () => {
           routingInstrumentation,
         });
 
-        const timeOriginMilliseconds = Date.now();
-        const appStartTimeMilliseconds = timeOriginMilliseconds - 100;
-        const mockAppStartResponse: NativeAppStartResponse = {
-          isColdStart: false,
-          appStartTime: appStartTimeMilliseconds,
-          didFetchAppStart: true,
-        };
-
-        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
-        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
+        const [, appStartTimeMilliseconds] = mockAppStartResponse({ cold: false, didFetchAppStart: true });
 
         const mockHub = getMockHub();
         integration.setupOnce(addGlobalEventProcessor, () => mockHub);
@@ -678,6 +691,24 @@ describe('ReactNativeTracing', () => {
         expect(actualTransactionContext?.sampled).toEqual(false);
       });
 
+      test('does cancel UI event transaction when app goes to background', () => {
+        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+
+        const actualTransaction = mockedScope.getTransaction() as Transaction | undefined;
+
+        mockedAppState.setState('background');
+        jest.runAllTimers();
+
+        const actualTransactionContext = actualTransaction?.toContext();
+        expect(actualTransactionContext).toEqual(
+          expect.objectContaining({
+            endTimestamp: expect.any(Number),
+            status: 'cancelled',
+          }),
+        );
+        expect(mockedAppState.removeSubscription).toBeCalledTimes(1);
+      });
+
       test('do not overwrite existing status of UI event transactions', () => {
         tracing.startUserInteractionTransaction(mockedUserInteractionId);
 
@@ -829,3 +860,18 @@ describe('ReactNativeTracing', () => {
     });
   });
 });
+
+function mockAppStartResponse({ cold, didFetchAppStart }: { cold: boolean; didFetchAppStart?: boolean }) {
+  const timeOriginMilliseconds = Date.now();
+  const appStartTimeMilliseconds = timeOriginMilliseconds - 100;
+  const mockAppStartResponse: NativeAppStartResponse = {
+    isColdStart: cold,
+    appStartTime: appStartTimeMilliseconds,
+    didFetchAppStart: didFetchAppStart ?? false,
+  };
+
+  mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
+  mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
+
+  return [timeOriginMilliseconds, appStartTimeMilliseconds];
+}
