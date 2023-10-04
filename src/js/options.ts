@@ -41,7 +41,15 @@ export interface BaseReactNativeOptions {
   /** The interval to end a session if the App goes to the background. */
   sessionTrackingIntervalMillis?: number;
 
-  /** Enable scope sync from Java to NDK on Android */
+  /** Enable NDK on Android
+   *
+   * @default true
+   */
+  enableNdk?: boolean;
+
+  /** Enable scope sync from Java to NDK on Android
+   * Only has an effect if `enableNdk` is `true`.
+   */
   enableNdkScopeSync?: boolean;
 
   /** When enabled, all the threads are automatically attached to all logged events on Android */

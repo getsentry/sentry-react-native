@@ -4,9 +4,23 @@
 
 ### Features
 
+- Add `buildFeatures.buildConfig=true` to support AGP 8 ([#3298](https://github.com/getsentry/sentry-react-native/pull/3298))
+
+### Fixes
+
+- Change log output to show what paths are considered when collecting modules ([#3316](https://github.com/getsentry/sentry-react-native/pull/3316))
+
+## 5.10.0
+
+### Features
+
 - Add Hermes Debug Info flag to React Native Context ([#3290](https://github.com/getsentry/sentry-react-native/pull/3290))
   - This flag equals `true` when Hermes Bundle contains Debug Info (Hermes Source Map was not emitted)
-- Add `buildFeatures.buildConfig=true` to support AGP 8 ([#3298](https://github.com/getsentry/sentry-react-native/pull/3298))
+- Add `enableNdk` property to ReactNativeOptions for Android. ([#3304](https://github.com/getsentry/sentry-react-native/pull/3304))
+
+### Fixes
+
+- Cancel auto instrumentation transaction when app goes to background ([#3307])(https://github.com/getsentry/sentry-react-native/pull/3307)
 
 ## 5.9.2
 

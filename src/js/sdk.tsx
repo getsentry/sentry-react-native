@@ -55,6 +55,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   maxQueueSize: DEFAULT_BUFFER_SIZE,
   attachStacktrace: true,
   enableCaptureFailedRequests: false,
+  enableNdk: true,
 };
 
 /**
