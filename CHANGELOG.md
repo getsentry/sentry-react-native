@@ -36,6 +36,12 @@
 
 - Change log output to show what paths are considered when collecting modules ([#3316](https://github.com/getsentry/sentry-react-native/pull/3316))
 
+### Dependencies
+
+- Bump CLI from v2.20.7 to v2.21.2 ([#3301](https://github.com/getsentry/sentry-react-native/pull/3301))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2212)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.20.7...2.21.2)
+
 ## 5.10.0
 
 ### Features
