@@ -32,28 +32,22 @@ declare module 'metro/src/DeltaBundler/Serializers/baseJSBundle' {
     graph: ReadOnlyGraph,
     options: SerializerOptions,
   ) => {
-    modules: [number, string][],
-    post: string,
-    pre: string,
+    modules: [number, string][];
+    post: string;
+    pre: string;
   };
   export = baseJSBundle;
-};
+}
 
 declare module 'metro/src/lib/bundleToString' {
   // https://github.com/facebook/metro/blob/9b85f83c9cc837d8cd897aa7723be7da5b296067/packages/metro/src/lib/bundleToString.js#L22
-  const baseJSBundle: (
-    bundle: {
-      modules: [number, string][],
-      post: string,
-      pre: string,
-    },
-  ) => {
-    code: string,
-    metadata: BundleMetadata,
+  const baseJSBundle: (bundle: { modules: [number, string][]; post: string; pre: string }) => {
+    code: string;
+    metadata: BundleMetadata;
   };
 
   export = baseJSBundle;
-};
+}
 
 declare module 'metro/src/lib/countLines' {
   // https://github.com/facebook/metro/blob/9b85f83c9cc837d8cd897aa7723be7da5b296067/packages/metro/src/lib/countLines.js#L16
@@ -65,10 +59,13 @@ declare module 'metro/src/DeltaBundler/Serializers/sourceMapString' {
   import type { MixedOutput, Module } from 'metro';
 
   // https://github.com/facebook/metro/blob/9b85f83c9cc837d8cd897aa7723be7da5b296067/packages/metro/src/DeltaBundler/Serializers/sourceMapString.js#L19
-  const sourceMapString: (bundle: Module<MixedOutput>[], options: {
-    excludeSource?: boolean,
-    processModuleFilter?: (module: Module<MixedOutput>) => boolean,
-    shouldAddToIgnoreList?: (module: Module<MixedOutput>) => boolean,
-  }) => string;
+  const sourceMapString: (
+    bundle: Module<MixedOutput>[],
+    options: {
+      excludeSource?: boolean;
+      processModuleFilter?: (module: Module<MixedOutput>) => boolean;
+      shouldAddToIgnoreList?: (module: Module<MixedOutput>) => boolean;
+    },
+  ) => string;
   export = sourceMapString;
 }

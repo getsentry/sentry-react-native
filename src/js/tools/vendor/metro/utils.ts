@@ -40,16 +40,15 @@ import type { MetroSerializer } from '../../utils';
 export const getSortedModules = (
   graph: ReadOnlyGraph,
   {
-    createModuleId
+    createModuleId,
   }: {
-    createModuleId: (file: string) => number,
+    createModuleId: (file: string) => number;
   },
 ): readonly Module[] => {
   const modules = [...graph.dependencies.values()];
   // Sort by IDs
   return modules.sort(
-    (a: Module<MixedOutput>, b: Module<MixedOutput>) =>
-      createModuleId(a.path) - createModuleId(b.path),
+    (a: Module<MixedOutput>, b: Module<MixedOutput>) => createModuleId(a.path) - createModuleId(b.path),
   );
 };
 
