@@ -126,6 +126,7 @@ async function extractSerializerResult(serializerResult: MetroSerializerOutput):
   if (typeof awaitedResult === 'string') {
     return { code: awaitedResult, map: '{}' };
   }
+
   return { code: awaitedResult.code, map: awaitedResult.map };
 }
 
