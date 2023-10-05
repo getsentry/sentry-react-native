@@ -263,6 +263,7 @@ jobs:
         run: |
           patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn.patch
           ../../../rn.patch.app.js --app .
+          ../../../rn.patch.metro.config.js --path metro.config.js
 
       - name: Patch Android App RN
         if: ${{ matrix.platform == 'android' }}

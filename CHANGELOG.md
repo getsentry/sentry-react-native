@@ -5,6 +5,32 @@
 ### Features
 
 - Add `buildFeatures.buildConfig=true` to support AGP 8 ([#3298](https://github.com/getsentry/sentry-react-native/pull/3298))
+- Add Debug ID support ([#3164](https://github.com/getsentry/sentry-react-native/pull/3164))
+
+  This is optional to use Debug IDs. Your current setup will keep working as is.
+
+  Add Sentry Metro Serializer to `metro.config.js` to generate Debug ID for the application bundle and source map.
+
+  ```javascript
+    const {createSentryMetroSerializer} = require('@sentry/react-native/dist/js/tools/sentryMetroSerializer');
+    const config = {serializer: createSentryMetroSerializer()};
+  ```
+
+  On iOS update `Bundle React Native Code and Images` and `Upload Debug Symbols to Sentry` build phases.
+
+  ```bash
+    set -e
+    WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
+    REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"
+
+    /bin/sh -c "$WITH_ENVIRONMENT \"/bin/sh ../scripts/sentry-xcode.sh $REACT_NATIVE_XCODE\""
+  ```
+
+  ```bash
+    /bin/sh ../../scripts/sentry-xcode-debug-files.sh
+  ```
+
+  More information about the new setup [can be found here](https://docs.sentry.io/platforms/react-native/manual-setup/manual-setup/).
 
 ### Fixes
 
