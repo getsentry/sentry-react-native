@@ -19,14 +19,12 @@ export type Bundle = {
 };
 
 export type SentryMetroSerializerOptionsExtras = {
-  sentryBundleCallback?: (bundle: Bundle) => Bundle,
-}
+  sentryBundleCallback?: (bundle: Bundle) => Bundle;
+};
 
 export type SerializedBundle = { code: string; map: string };
 
-export type MetroSerializerOutput = string
-  | SerializedBundle
-  | Promise<string | SerializedBundle>
+export type MetroSerializerOutput = string | SerializedBundle | Promise<string | SerializedBundle>;
 
 export type MetroSerializer = (
   entryPoint: string,
@@ -40,7 +38,7 @@ export type MetroSerializer = (
  */
 export function createDebugIdSnippet(debugId: string): string {
   return `var _sentryDebugIds={},_sentryDebugIdIdentifier="";void 0===_sentryDebugIds&&(_sentryDebugIds={});try{var stack=(new Error).stack;stack&&(_sentryDebugIds[stack]="${debugId}",_sentryDebugIdIdentifier="sentry-dbid-${debugId}")}catch(e){}`;
-};
+}
 
 /**
  * Deterministically hashes a string and turns the hash into a uuid.

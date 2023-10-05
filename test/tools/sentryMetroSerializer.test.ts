@@ -5,10 +5,9 @@ import * as countLines from 'metro/src/lib/countLines';
 import { minify } from 'uglify-js';
 
 import { createSentryMetroSerializer } from '../../src/js/tools/sentryMetroSerializer';
-import { type MetroSerializer, type VirtualJSOutput,createDebugIdSnippet } from '../../src/js/tools/utils';
+import { type MetroSerializer, type VirtualJSOutput, createDebugIdSnippet } from '../../src/js/tools/utils';
 
 describe('Sentry Metro Serializer', () => {
-
   test('debug id minified code snippet is the same as in the original implementation', () => {
     const original = fs.readFileSync(`${__dirname}/../../scripts/sentry-debugid-injection-snippet.js`, 'utf8');
     const minified = minify(original).code;

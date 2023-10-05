@@ -2,8 +2,10 @@ import * as crypto from 'crypto';
 import type { MixedOutput, Module } from 'metro';
 import CountingSet from 'metro/src/lib/CountingSet';
 import * as countLines from 'metro/src/lib/countLines';
+
+import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
+import { createDebugIdSnippet, determineDebugIdFromBundleSource, stringToUUID } from './utils';
 import { createDefaultMetroSerializer } from './vendor/metro/utils';
-import { Bundle, MetroSerializer, determineDebugIdFromBundleSource, stringToUUID, VirtualJSOutput, MetroSerializerOutput, SerializedBundle, createDebugIdSnippet } from './utils';
 
 type SourceMap = Record<string, unknown>;
 
@@ -29,7 +31,7 @@ export const createSentryMetroSerializer = (customSerializer?: MetroSerializer):
     const debugIdModuleExists = preModules.findIndex(module => module.path === DEBUG_ID_MODULE_PATH) != -1;
     if (debugIdModuleExists) {
       // eslint-disable-next-line no-console
-      console.warn(`Debug ID module found. Skipping Sentry Debug ID module...`);
+      console.warn('Debug ID module found. Skipping Sentry Debug ID module...');
       return serializer(entryPoint, preModules, graph, options);
     }
 
@@ -90,11 +92,18 @@ function createSentryBundleCallback(debugIdModule: Module<VirtualJSOutput> & { s
     bundle.pre = injectDebugId(bundle.pre, debugId);
     return bundle;
   };
-};
+}
 
-function addDebugIdModule(preModules: readonly Module<MixedOutput>[], debugIdModule: Module<VirtualJSOutput>): readonly Module<MixedOutput>[] {
+function addDebugIdModule(
+  preModules: readonly Module<MixedOutput>[],
+  debugIdModule: Module<VirtualJSOutput>,
+): readonly Module<MixedOutput>[] {
   const modifiedPreModules = [...preModules];
-  if (modifiedPreModules.length > 0 && modifiedPreModules[0] !== undefined && modifiedPreModules[0].path === PRELUDE_MODULE_PATH) {
+  if (
+    modifiedPreModules.length > 0 &&
+    modifiedPreModules[0] !== undefined &&
+    modifiedPreModules[0].path === PRELUDE_MODULE_PATH
+  ) {
     // prelude module must be first as it measures the bundle startup time
     modifiedPreModules.unshift(preModules[0]);
     modifiedPreModules[1] = debugIdModule;
@@ -107,17 +116,16 @@ function addDebugIdModule(preModules: readonly Module<MixedOutput>[], debugIdMod
 async function extractSerializerResult(serializerResult: MetroSerializerOutput): Promise<SerializedBundle> {
   if (typeof serializerResult === 'string') {
     return { code: serializerResult, map: '{}' };
-   }
-  
+  }
+
   if ('map' in serializerResult) {
     return { code: serializerResult.code, map: serializerResult.map };
   }
-  
+
   const awaitedResult = await serializerResult;
   if (typeof awaitedResult === 'string') {
     return { code: awaitedResult, map: '{}' };
   }
-  
   return { code: awaitedResult.code, map: awaitedResult.map };
 }
 
@@ -143,7 +151,7 @@ function createDebugIdModule(debugId: string): Module<VirtualJSOutput> & { setSo
       },
     ],
   };
-};
+}
 
 function calculateDebugId(bundle: Bundle): string {
   const hash = crypto.createHash('md5');
@@ -155,7 +163,7 @@ function calculateDebugId(bundle: Bundle): string {
 
   const debugId = stringToUUID(hash.digest('hex'));
   return debugId;
-};
+}
 
 function injectDebugId(code: string, debugId: string): string {
   return code.replace(new RegExp(DEBUG_ID_PLACE_HOLDER, 'g'), debugId);
