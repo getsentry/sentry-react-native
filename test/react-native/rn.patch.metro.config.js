@@ -18,7 +18,7 @@ const configFilePath = args.path;
 
 const importSerializer =
   "const {createSentryMetroSerializer} = require('@sentry/react-native/dist/js/tools/sentryMetroSerializer');";
-const serializerValue = 'serializer: createSentryMetroSerializer()';
+const serializerValue = 'serializer: { customSerializer: createSentryMetroSerializer(), },';
 const enterSerializerBefore = '};';
 
 let config = fs.readFileSync(configFilePath, 'utf8').split('\n');
