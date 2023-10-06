@@ -16,9 +16,14 @@ REACT_NATIVE_XCODE=$1
 [[ "$AUTO_RELEASE" != true ]] && [[ -z "$BUNDLE_COMMAND" || "$BUNDLE_COMMAND" != "ram-bundle" ]] && NO_AUTO_RELEASE="--no-auto-release"
 ARGS="$NO_AUTO_RELEASE $SENTRY_CLI_EXTRA_ARGS $SENTRY_CLI_RN_XCODE_EXTRA_ARGS"
 
-BUNDLE_REACT_NATIVE="\"$SENTRY_CLI_EXECUTABLE\" react-native xcode $ARGS \"$REACT_NATIVE_XCODE\""
+REACT_NATIVE_XCODE_WITH_SENTRY="\"$SENTRY_CLI_EXECUTABLE\" react-native xcode $ARGS \"$REACT_NATIVE_XCODE\""
 
-/bin/sh -c "$BUNDLE_REACT_NATIVE"
+if [ "$SENTRY_DISABLE_AUTO_UPLOAD" != true ]; then
+  /bin/sh -c "$REACT_NATIVE_XCODE_WITH_SENTRY"
+else
+  echo "SENTRY_DISABLE_AUTO_UPLOAD=true, skipping sourcemaps upload"
+  /bin/sh -c "$REACT_NATIVE_XCODE"
+fi
 
 [ -z "$SENTRY_COLLECT_MODULES" ] && SENTRY_COLLECT_MODULES="../../scripts/collect-modules.sh"
 
