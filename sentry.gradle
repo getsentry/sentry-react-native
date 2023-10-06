@@ -100,7 +100,7 @@ gradle.projectsEvaluated {
           try { tasks.named(nameCliTask); return } catch (Exception e) {}
 
           /** Upload source map file to the sentry server via CLI call. */
-          def cliTask = tasks.create(nameCliTask, Exec) {
+          def cliTask = tasks.create(nameCliTask) {
               onlyIf { shouldSentryAutoUpload() }
               description = "upload debug symbols to sentry"
               group = 'sentry.io'
