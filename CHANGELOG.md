@@ -54,6 +54,7 @@
 ### Fixes
 
 - Change log output to show what paths are considered when collecting modules ([#3316](https://github.com/getsentry/sentry-react-native/pull/3316))
+- Should not take screenshot when SDK is disabled ([#3328](https://github.com/getsentry/sentry-react-native/pull/3328))
 
 ### Dependencies
 
