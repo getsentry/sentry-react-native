@@ -65,24 +65,25 @@ export function init(passedOptions: ReactNativeOptions): void {
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
   makeMain(reactNativeHub);
 
-  const maxQueueSize = passedOptions.maxQueueSize
+  const maxQueueSize =
+    passedOptions.maxQueueSize ??
     // eslint-disable-next-line deprecation/deprecation
-    ?? passedOptions.transportOptions?.bufferSize
-    ?? DEFAULT_OPTIONS.maxQueueSize;
+    passedOptions.transportOptions?.bufferSize ??
+    DEFAULT_OPTIONS.maxQueueSize;
 
-  const enableNative = passedOptions.enableNative === undefined || passedOptions.enableNative
-    ? NATIVE.isNativeAvailable()
-    : false;
+  const enableNative =
+    passedOptions.enableNative === undefined || passedOptions.enableNative ? NATIVE.isNativeAvailable() : false;
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
     enableNative,
     // If custom transport factory fails the SDK won't initialize
-    transport: passedOptions.transport
-      || makeNativeTransportFactory({
+    transport:
+      passedOptions.transport ||
+      makeNativeTransportFactory({
         enableNative,
-      })
-      || makeFetchTransport,
+      }) ||
+      makeFetchTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(passedOptions.transportOptions ?? {}),
@@ -91,7 +92,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     maxQueueSize,
     integrations: [],
     stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser),
-    beforeBreadcrumb: safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' }),
+    beforeBreadcrumb: safeFactory(passedOptions.beforeBreadcrumb, {
+      loggerMessage: 'The beforeBreadcrumb threw an error',
+    }),
     initialScope: safeFactory(passedOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
     tracesSampler: safeTracesSampler(passedOptions.tracesSampler),
   };
@@ -99,15 +102,15 @@ export function init(passedOptions: ReactNativeOptions): void {
   const defaultIntegrations: Integration[] = passedOptions.defaultIntegrations || [];
   if (passedOptions.defaultIntegrations === undefined) {
     defaultIntegrations.push(new ModulesLoader());
-    defaultIntegrations.push(new ReactNativeErrorHandlers({
-      patchGlobalPromise: options.patchGlobalPromise,
-    }));
+    defaultIntegrations.push(
+      new ReactNativeErrorHandlers({
+        patchGlobalPromise: options.patchGlobalPromise,
+      }),
+    );
     defaultIntegrations.push(new Release());
-    defaultIntegrations.push(...[
-      ...reactDefaultIntegrations.filter(
-        (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
-      ),
-    ]);
+    defaultIntegrations.push(
+      ...[...reactDefaultIntegrations.filter(i => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name))],
+    );
 
     defaultIntegrations.push(new NativeLinkedErrors());
     defaultIntegrations.push(new EventOrigin());
@@ -128,7 +131,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (hasTracingEnabled(options) && options.enableAutoPerformanceTracing) {
       defaultIntegrations.push(new ReactNativeTracing());
     }
-    if (options.attachScreenshot) {
+    if (options.attachScreenshot && options.enabled) {
       defaultIntegrations.push(new Screenshot());
     }
     if (options.attachViewHierarchy) {
@@ -153,7 +156,7 @@ export function init(passedOptions: ReactNativeOptions): void {
 // eslint-disable-next-line deprecation/deprecation
 export function wrap<P extends JSX.IntrinsicAttributes>(
   RootComponent: React.ComponentType<P>,
-  options?: ReactNativeWrapperOptions
+  options?: ReactNativeWrapperOptions,
 ): React.ComponentType<P> {
   const tracingIntegration = getCurrentHub().getIntegration(ReactNativeTracing);
   if (tracingIntegration) {
@@ -165,7 +168,7 @@ export function wrap<P extends JSX.IntrinsicAttributes>(
     name: RootComponent.displayName ?? 'Root',
   };
 
-  const RootApp: React.FC<P> = (appProps) => {
+  const RootApp: React.FC<P> = appProps => {
     return (
       <TouchEventBoundary {...(options?.touchEventBoundaryProps ?? {})}>
         <ReactNativeProfiler {...profilerProps}>
@@ -221,7 +224,7 @@ export async function flush(): Promise<boolean> {
       return result;
     }
     // eslint-disable-next-line no-empty
-  } catch (_) { }
+  } catch (_) {}
 
   logger.error('Failed to flush the event queue.');
 
