@@ -136,8 +136,19 @@ export class ReactNativeTracing implements Integration {
   private _awaitingAppStartData?: NativeAppStartResponse;
   private _appStartFinishTimestamp?: number;
   private _currentRoute?: string;
+  private _hasSetTracePropagationTargets: boolean;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
+    this._hasSetTracePropagationTargets = false;
+
+    if (__DEV__) {
+      this._hasSetTracePropagationTargets = !!(
+        options &&
+        // eslint-disable-next-line deprecation/deprecation
+        (options.tracePropagationTargets || options.tracingOrigins)
+      );
+    }
+
     this.options = {
       ...defaultReactNativeTracingOptions,
       ...options,
@@ -193,7 +204,7 @@ export class ReactNativeTracing implements Integration {
     //
     // If both 1 and either one of 2 or 3 are set (from above), we log out a warning.
     const tracePropagationTargets = clientOptionsTracePropagationTargets || thisOptionsTracePropagationTargets;
-    if (__DEV__ && (thisOptionsTracePropagationTargets || tracingOrigins) && clientOptionsTracePropagationTargets) {
+    if (__DEV__ && this._hasSetTracePropagationTargets && clientOptionsTracePropagationTargets) {
       logger.warn(
         '[ReactNativeTracing] The `tracePropagationTargets` option was set in the ReactNativeTracing integration and top level `Sentry.init`. The top level `Sentry.init` value is being used.',
       );
