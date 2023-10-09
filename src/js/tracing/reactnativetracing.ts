@@ -95,6 +95,8 @@ export interface ReactNativeTracingOptions extends RequestInstrumentationOptions
   enableUserInteractionTracing: boolean;
 }
 
+const DEFAULT_TRACE_PROPAGATION_TARGETS = ['localhost', /^\/(?!\/)/];
+
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   ...defaultRequestInstrumentationOptions,
   idleTimeout: 1000,
@@ -137,17 +139,19 @@ export class ReactNativeTracing implements Integration {
   private _appStartFinishTimestamp?: number;
   private _currentRoute?: string;
   private _hasSetTracePropagationTargets: boolean;
+  private _hasSetTracingOrigins: boolean;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
-    this._hasSetTracePropagationTargets = false;
-
-    if (__DEV__) {
-      this._hasSetTracePropagationTargets = !!(
-        options &&
-        // eslint-disable-next-line deprecation/deprecation
-        (options.tracePropagationTargets || options.tracingOrigins)
-      );
-    }
+    this._hasSetTracePropagationTargets = !!(
+      options &&
+      // eslint-disable-next-line deprecation/deprecation
+      options.tracePropagationTargets
+    );
+    this._hasSetTracingOrigins = !!(
+      options &&
+      // eslint-disable-next-line deprecation/deprecation
+      options.tracingOrigins
+    );
 
     this.options = {
       ...defaultReactNativeTracingOptions,
@@ -203,8 +207,16 @@ export class ReactNativeTracing implements Integration {
     // ReactNativeTracing option `tracePropagationTargets` and then `tracingOrigins` (deprecated).
     //
     // If both 1 and either one of 2 or 3 are set (from above), we log out a warning.
-    const tracePropagationTargets = clientOptionsTracePropagationTargets || thisOptionsTracePropagationTargets;
-    if (__DEV__ && this._hasSetTracePropagationTargets && clientOptionsTracePropagationTargets) {
+    const tracePropagationTargets =
+      clientOptionsTracePropagationTargets ||
+      (this._hasSetTracePropagationTargets && thisOptionsTracePropagationTargets) ||
+      (this._hasSetTracingOrigins && tracingOrigins) ||
+      DEFAULT_TRACE_PROPAGATION_TARGETS;
+    if (
+      __DEV__ &&
+      (this._hasSetTracePropagationTargets || this._hasSetTracingOrigins) &&
+      clientOptionsTracePropagationTargets
+    ) {
       logger.warn(
         '[ReactNativeTracing] The `tracePropagationTargets` option was set in the ReactNativeTracing integration and top level `Sentry.init`. The top level `Sentry.init` value is being used.',
       );
@@ -246,7 +258,6 @@ export class ReactNativeTracing implements Integration {
     instrumentOutgoingRequests({
       traceFetch,
       traceXHR,
-      tracingOrigins,
       shouldCreateSpanForRequest,
       tracePropagationTargets,
     });
@@ -340,6 +351,17 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
+   * Returns the App Start Duration in Milliseconds. Also returns undefined if not able do
+   * define the duration.
+   */
+  private _getAppStartDurationMilliseconds(appStart: NativeAppStartResponse): number | undefined {
+    if (!this._appStartFinishTimestamp) {
+      return undefined;
+    }
+    return this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
+  }
+
+  /**
    * Instruments the app start measurements on the first route transaction.
    * Starts a route transaction if there isn't routing instrumentation.
    */
@@ -361,12 +383,9 @@ export class ReactNativeTracing implements Integration {
     if (this.options.routingInstrumentation) {
       this._awaitingAppStartData = appStart;
     } else {
-      const appStartTimeSeconds = appStart.appStartTime / 1000;
-
       const idleTransaction = this._createRouteTransaction({
         name: 'App Start',
         op: UI_LOAD,
-        startTimestamp: appStartTimeSeconds,
       });
 
       if (idleTransaction) {
@@ -379,12 +398,22 @@ export class ReactNativeTracing implements Integration {
    * Adds app start measurements and starts a child span on a transaction.
    */
   private _addAppStartData(transaction: IdleTransaction, appStart: NativeAppStartResponse): void {
-    if (!this._appStartFinishTimestamp) {
+    const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStart);
+    if (!appStartDurationMilliseconds) {
       logger.warn('App start was never finished.');
       return;
     }
 
+    // we filter out app start more than 60s.
+    // this could be due to many different reasons.
+    // we've seen app starts with hours, days and even months.
+    if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
+      return;
+    }
+
     const appStartTimeSeconds = appStart.appStartTime / 1000;
+
+    transaction.startTimestamp = appStartTimeSeconds;
 
     const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
     transaction.startChild({
@@ -393,15 +422,6 @@ export class ReactNativeTracing implements Integration {
       startTimestamp: appStartTimeSeconds,
       endTimestamp: this._appStartFinishTimestamp,
     });
-
-    const appStartDurationMilliseconds = this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
-
-    // we filter out app start more than 60s.
-    // this could be due to many different reasons.
-    // we've seen app starts with hours, days and even months.
-    if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
-      return;
-    }
 
     const measurement = appStart.isColdStart ? APP_START_COLD : APP_START_WARM;
     transaction.setMeasurement(measurement, appStartDurationMilliseconds, 'millisecond');
@@ -473,9 +493,7 @@ export class ReactNativeTracing implements Integration {
 
     idleTransaction.registerBeforeFinishCallback(transaction => {
       if (this.options.enableAppStartTracking && this._awaitingAppStartData) {
-        transaction.startTimestamp = this._awaitingAppStartData.appStartTime / 1000;
-        transaction.op = 'ui.load';
-
+        transaction.op = UI_LOAD;
         this._addAppStartData(transaction, this._awaitingAppStartData);
 
         this._awaitingAppStartData = undefined;

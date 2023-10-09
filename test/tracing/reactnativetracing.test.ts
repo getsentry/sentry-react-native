@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SpanStatusType, User } from '@sentry/browser';
-import { BrowserClient } from '@sentry/browser';
+import * as SentryBrowser from '@sentry/browser';
 import type { IdleTransaction } from '@sentry/core';
 import { addGlobalEventProcessor, Hub, Transaction } from '@sentry/core';
 
 import type { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
 import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
+
+const BrowserClient = SentryBrowser.BrowserClient;
 
 jest.mock('../../src/js/wrapper', () => {
   return {
@@ -72,7 +74,17 @@ const getMockScope = () => {
 };
 
 const getMockHub = () => {
-  const mockHub = new Hub(new BrowserClient({ tracesSampleRate: 1 } as BrowserClientOptions));
+  const mockHub = new Hub(
+    new BrowserClient({
+      tracesSampleRate: 1,
+      integrations: [],
+      transport: () => ({
+        send: jest.fn(),
+        flush: jest.fn(),
+      }),
+      stackParser: () => [],
+    }),
+  );
   const mockScope = getMockScope();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -83,7 +95,6 @@ const getMockHub = () => {
   return mockHub;
 };
 
-import type { BrowserClientOptions } from '@sentry/browser/types/client';
 import type { Scope } from '@sentry/types';
 import type { AppState, AppStateStatus } from 'react-native';
 
@@ -93,6 +104,7 @@ import {
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD,
 } from '../../src/js/tracing';
+import { APP_START_WARM as APP_SPAN_START_WARM } from '../../src/js/tracing/ops';
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
 import { NATIVE } from '../../src/js/wrapper';
@@ -115,6 +127,148 @@ describe('ReactNativeTracing', () => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
     jest.clearAllMocks();
+  });
+
+  describe('trace propagation targets', () => {
+    it('uses tracingOrigins', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({}),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({
+        tracingOrigins: ['test1', 'test2'],
+      });
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['test1', 'test2'],
+        }),
+      );
+    });
+
+    it('uses tracePropagationTargets', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({}),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({
+        tracePropagationTargets: ['test1', 'test2'],
+      });
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['test1', 'test2'],
+        }),
+      );
+    });
+
+    it('uses tracePropagationTargets from client options', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({
+            tracePropagationTargets: ['test1', 'test2'],
+          }),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({});
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['test1', 'test2'],
+        }),
+      );
+    });
+
+    it('uses defaults', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({}),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({});
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['localhost', /^\/(?!\/)/],
+        }),
+      );
+    });
+
+    it('client tracePropagationTargets takes priority over integration options', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({
+            tracePropagationTargets: ['test1', 'test2'],
+          }),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({
+        tracePropagationTargets: ['test3', 'test4'],
+        tracingOrigins: ['test5', 'test6'],
+      });
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['test1', 'test2'],
+        }),
+      );
+    });
+
+    it('integration tracePropagationTargets takes priority over tracingOrigins', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({}),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({
+        tracePropagationTargets: ['test3', 'test4'],
+        tracingOrigins: ['test5', 'test6'],
+      });
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['test3', 'test4'],
+        }),
+      );
+    });
   });
 
   describe('App Start', () => {
@@ -230,6 +384,43 @@ describe('ReactNativeTracing', () => {
             // @ts-expect-error access private for test
             transaction._measurements[APP_START_COLD],
           ).toBeUndefined();
+        }
+      });
+
+      it('Does not add app start span if more than 60s', async () => {
+        const integration = new ReactNativeTracing();
+
+        const timeOriginMilliseconds = Date.now();
+        const appStartTimeMilliseconds = timeOriginMilliseconds - 65000;
+        const mockAppStartResponse: NativeAppStartResponse = {
+          isColdStart: false,
+          appStartTime: appStartTimeMilliseconds,
+          didFetchAppStart: false,
+        };
+
+        mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
+        mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
+
+        const mockHub = getMockHub();
+        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+
+        await jest.advanceTimersByTimeAsync(500);
+
+        const transaction = mockHub.getScope()?.getTransaction();
+
+        expect(transaction).toBeDefined();
+
+        if (transaction) {
+          expect(
+            // @ts-expect-error access private for test
+            transaction.spanRecorder,
+          ).toBeDefined();
+
+          expect(
+            // @ts-expect-error access private for test
+            transaction.spanRecorder.spans.some(span => span.op == APP_SPAN_START_WARM),
+          ).toBe(false);
+          expect(transaction.startTimestamp).toBeGreaterThanOrEqual(timeOriginMilliseconds / 1000);
         }
       });
 
