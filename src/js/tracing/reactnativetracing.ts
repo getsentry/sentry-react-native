@@ -361,7 +361,6 @@ export class ReactNativeTracing implements Integration {
     if (this.options.routingInstrumentation) {
       this._awaitingAppStartData = appStart;
     } else {
-
       const idleTransaction = this._createRouteTransaction({
         name: 'App Start',
         op: UI_LOAD,
@@ -376,10 +375,7 @@ export class ReactNativeTracing implements Integration {
   /**
    * Adds app start measurements and starts a child span on a transaction.
    */
-  private _addAppStartData(
-    transaction: IdleTransaction,
-    appStart: NativeAppStartResponse
-  ): void {
+  private _addAppStartData(transaction: IdleTransaction, appStart: NativeAppStartResponse): void {
     const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStart);
     if (!appStartDurationMilliseconds) {
       logger.warn('App start was never finished.');
@@ -392,7 +388,6 @@ export class ReactNativeTracing implements Integration {
     if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
       return;
     }
-
 
     const appStartTimeSeconds = appStart.appStartTime / 1000;
 
