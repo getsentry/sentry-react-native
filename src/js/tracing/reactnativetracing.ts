@@ -4,7 +4,7 @@ import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from
 import type { Hub, IdleTransaction, Transaction } from '@sentry/core';
 import { getActiveTransaction, getCurrentHub, startIdleTransaction } from '@sentry/core';
 import type { EventProcessor, Integration, Transaction as TransactionType, TransactionContext } from '@sentry/types';
-import { logger, timestampInSeconds } from '@sentry/utils';
+import { logger } from '@sentry/utils';
 
 import { APP_START_COLD, APP_START_WARM } from '../measurements';
 import type { NativeAppStartResponse } from '../NativeRNSentry';
@@ -361,20 +361,14 @@ export class ReactNativeTracing implements Integration {
     if (this.options.routingInstrumentation) {
       this._awaitingAppStartData = appStart;
     } else {
-      const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStart);
-      const appStartTimeSeconds =
-        appStartDurationMilliseconds && appStartDurationMilliseconds < ReactNativeTracing._maxAppStart
-          ? appStart.appStartTime / 1000
-          : timestampInSeconds();
 
       const idleTransaction = this._createRouteTransaction({
         name: 'App Start',
         op: UI_LOAD,
-        startTimestamp: appStartTimeSeconds,
       });
 
       if (idleTransaction) {
-        this._addAppStartData(idleTransaction, appStart, appStartDurationMilliseconds);
+        this._addAppStartData(idleTransaction, appStart);
       }
     }
   }
@@ -384,9 +378,9 @@ export class ReactNativeTracing implements Integration {
    */
   private _addAppStartData(
     transaction: IdleTransaction,
-    appStart: NativeAppStartResponse,
-    appStartDurationMilliseconds: number | undefined,
+    appStart: NativeAppStartResponse
   ): void {
+    const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStart);
     if (!appStartDurationMilliseconds) {
       logger.warn('App start was never finished.');
       return;
@@ -399,7 +393,10 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
+
     const appStartTimeSeconds = appStart.appStartTime / 1000;
+
+    transaction.startTimestamp = appStartTimeSeconds;
 
     const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
     transaction.startChild({
@@ -479,14 +476,8 @@ export class ReactNativeTracing implements Integration {
 
     idleTransaction.registerBeforeFinishCallback(transaction => {
       if (this.options.enableAppStartTracking && this._awaitingAppStartData) {
-        const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(this._awaitingAppStartData);
-
-        if (appStartDurationMilliseconds && appStartDurationMilliseconds < ReactNativeTracing._maxAppStart) {
-          transaction.startTimestamp = this._awaitingAppStartData.appStartTime / 1000;
-        }
-
         transaction.op = UI_LOAD;
-        this._addAppStartData(transaction, this._awaitingAppStartData, appStartDurationMilliseconds);
+        this._addAppStartData(transaction, this._awaitingAppStartData);
 
         this._awaitingAppStartData = undefined;
       }

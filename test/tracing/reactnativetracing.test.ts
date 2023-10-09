@@ -267,6 +267,9 @@ describe('ReactNativeTracing', () => {
             // @ts-expect-error access private for test
             transaction.spanRecorder.spans.some(span => span.op == APP_SPAN_START_WARM),
           ).toBe(false);
+          expect(
+            transaction.startTimestamp
+          ).toBeGreaterThanOrEqual(timeOriginMilliseconds/1000);
         }
       });
 
