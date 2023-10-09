@@ -2,10 +2,6 @@
 
 ## Unreleased
 
-### Fixes
-
-- App start time span no longer created if too long ([#3299](https://github.com/getsentry/sentry-react-native/pull/3299))
-
 ### Features
 
 - Add `buildFeatures.buildConfig=true` to support AGP 8 ([#3298](https://github.com/getsentry/sentry-react-native/pull/3298))
@@ -57,6 +53,7 @@
 
 ### Fixes
 
+- App start time span no longer created if too long ([#3299](https://github.com/getsentry/sentry-react-native/pull/3299))
 - Change log output to show what paths are considered when collecting modules ([#3316](https://github.com/getsentry/sentry-react-native/pull/3316))
 
 ### Dependencies
