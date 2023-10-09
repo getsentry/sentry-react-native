@@ -209,6 +209,56 @@ describe('ReactNativeTracing', () => {
         }),
       );
     });
+
+    it('client tracePropagationTargets takes priority over integration options', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({
+            tracePropagationTargets: ['test1', 'test2'],
+          }),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({
+        tracePropagationTargets: ['test3', 'test4'],
+        tracingOrigins: ['test5', 'test6'],
+      });
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['test1', 'test2'],
+        }),
+      );
+    });
+
+    it('integration tracePropagationTargets takes priority over tracingOrigins', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({}),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({
+        tracePropagationTargets: ['test3', 'test4'],
+        tracingOrigins: ['test5', 'test6'],
+      });
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['test3', 'test4'],
+        }),
+      );
+    });
   });
 
   describe('App Start', () => {
