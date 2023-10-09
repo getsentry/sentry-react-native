@@ -57,6 +57,7 @@
 - Change log output to show what paths are considered when collecting modules ([#3316](https://github.com/getsentry/sentry-react-native/pull/3316))
 - `Sentry.wrap` doesn't enforce any keys on the wrapped component props ([#3332](https://github.com/getsentry/sentry-react-native/pull/3332))
 - Ignore defaults when warning about duplicate definition of trace propagation targets ([#3327](https://github.com/getsentry/sentry-react-native/pull/3327))
+- Screenshots are not taken when the SDK is disabled ([#3333](https://github.com/getsentry/sentry-react-native/pull/3333))
 - Use deprecated `ReactNativeTracingOptions.tracingOrigins` if set in the options ([#3331](https://github.com/getsentry/sentry-react-native/pull/3331))
 
 ### Dependencies
