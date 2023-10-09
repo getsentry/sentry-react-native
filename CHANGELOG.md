@@ -55,6 +55,8 @@
 
 - Change log output to show what paths are considered when collecting modules ([#3316](https://github.com/getsentry/sentry-react-native/pull/3316))
 - `Sentry.wrap` doesn't enforce any keys on the wrapped component props ([#3332](https://github.com/getsentry/sentry-react-native/pull/3332))
+- Ignore defaults when warning about duplicate definition of trace propagation targets ([#3327](https://github.com/getsentry/sentry-react-native/pull/3327))
+- Use deprecated `ReactNativeTracingOptions.tracingOrigins` if set in the options ([#3331](https://github.com/getsentry/sentry-react-native/pull/3331))
 
 ### Dependencies
 
@@ -64,6 +66,9 @@
 - Bump Android SDK from v6.29.0 to v6.30.0 ([#3309](https://github.com/getsentry/sentry-react-native/pull/3309))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6300)
   - [diff](https://github.com/getsentry/sentry-java/compare/6.29.0...6.30.0)
+- Bump JavaScript SDK from v7.69.0 to v7.73.0 ([#3297](https://github.com/getsentry/sentry-react-native/pull/3297))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7730)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.69.0...7.73.0)
 
 ## 5.10.0
 
