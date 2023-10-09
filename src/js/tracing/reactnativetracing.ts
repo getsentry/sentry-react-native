@@ -4,7 +4,7 @@ import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from
 import type { Hub, IdleTransaction, Transaction } from '@sentry/core';
 import { getActiveTransaction, getCurrentHub, startIdleTransaction } from '@sentry/core';
 import type { EventProcessor, Integration, Transaction as TransactionType, TransactionContext } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import { logger, timestampInSeconds } from '@sentry/utils';
 
 import { APP_START_COLD, APP_START_WARM } from '../measurements';
 import type { NativeAppStartResponse } from '../NativeRNSentry';
@@ -331,6 +331,17 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
+   * Returns the App Start Duration in Milliseconds. Also returns undefined if not able do
+   * define the duration.
+   */
+  private _getAppStartDurationMilliseconds(appStart: NativeAppStartResponse): number | undefined {
+    if (!this._appStartFinishTimestamp) {
+      return undefined;
+    }
+    return this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
+  }
+
+  /**
    * Instruments the app start measurements on the first route transaction.
    * Starts a route transaction if there isn't routing instrumentation.
    */
@@ -352,7 +363,11 @@ export class ReactNativeTracing implements Integration {
     if (this.options.routingInstrumentation) {
       this._awaitingAppStartData = appStart;
     } else {
-      const appStartTimeSeconds = appStart.appStartTime / 1000;
+
+      const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStart);
+      const appStartTimeSeconds = appStartDurationMilliseconds && appStartDurationMilliseconds < ReactNativeTracing._maxAppStart
+        ? appStart.appStartTime / 1000
+        : timestampInSeconds();
 
       const idleTransaction = this._createRouteTransaction({
         name: 'App Start',
@@ -361,7 +376,7 @@ export class ReactNativeTracing implements Integration {
       });
 
       if (idleTransaction) {
-        this._addAppStartData(idleTransaction, appStart);
+        this._addAppStartData(idleTransaction, appStart, appStartDurationMilliseconds);
       }
     }
   }
@@ -369,20 +384,18 @@ export class ReactNativeTracing implements Integration {
   /**
    * Adds app start measurements and starts a child span on a transaction.
    */
-  private _addAppStartData(transaction: IdleTransaction, appStart: NativeAppStartResponse): void {
-    if (!this._appStartFinishTimestamp) {
+  private _addAppStartData(transaction: IdleTransaction, appStart: NativeAppStartResponse, appStartDurationMilliseconds: number | undefined): void {
+    if (!appStartDurationMilliseconds) {
       logger.warn('App start was never finished.');
       return;
     }
 
-    const appStartDurationMilliseconds = this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
-
     // we filter out app start more than 60s.
     // this could be due to many different reasons.
     // we've seen app starts with hours, days and even months.
-    if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
-      return;
-    }
+     if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
+       return;
+     }
 
     const appStartTimeSeconds = appStart.appStartTime / 1000;
 
@@ -466,10 +479,14 @@ export class ReactNativeTracing implements Integration {
 
     idleTransaction.registerBeforeFinishCallback(transaction => {
       if (this.options.enableAppStartTracking && this._awaitingAppStartData) {
-        transaction.startTimestamp = this._awaitingAppStartData.appStartTime / 1000;
-        transaction.op = 'ui.load';
+        const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(this._awaitingAppStartData);
 
-        this._addAppStartData(transaction, this._awaitingAppStartData);
+        if (appStartDurationMilliseconds && appStartDurationMilliseconds < ReactNativeTracing._maxAppStart) {
+          transaction.startTimestamp = this._awaitingAppStartData.appStartTime / 1000;
+        }
+
+        transaction.op = UI_LOAD;
+        this._addAppStartData(transaction, this._awaitingAppStartData, appStartDurationMilliseconds);
 
         this._awaitingAppStartData = undefined;
       }
