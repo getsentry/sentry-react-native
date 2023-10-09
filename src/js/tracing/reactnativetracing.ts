@@ -361,11 +361,11 @@ export class ReactNativeTracing implements Integration {
     if (this.options.routingInstrumentation) {
       this._awaitingAppStartData = appStart;
     } else {
-
       const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStart);
-      const appStartTimeSeconds = appStartDurationMilliseconds && appStartDurationMilliseconds < ReactNativeTracing._maxAppStart
-        ? appStart.appStartTime / 1000
-        : timestampInSeconds();
+      const appStartTimeSeconds =
+        appStartDurationMilliseconds && appStartDurationMilliseconds < ReactNativeTracing._maxAppStart
+          ? appStart.appStartTime / 1000
+          : timestampInSeconds();
 
       const idleTransaction = this._createRouteTransaction({
         name: 'App Start',
@@ -382,7 +382,11 @@ export class ReactNativeTracing implements Integration {
   /**
    * Adds app start measurements and starts a child span on a transaction.
    */
-  private _addAppStartData(transaction: IdleTransaction, appStart: NativeAppStartResponse, appStartDurationMilliseconds: number | undefined): void {
+  private _addAppStartData(
+    transaction: IdleTransaction,
+    appStart: NativeAppStartResponse,
+    appStartDurationMilliseconds: number | undefined,
+  ): void {
     if (!appStartDurationMilliseconds) {
       logger.warn('App start was never finished.');
       return;
@@ -391,9 +395,9 @@ export class ReactNativeTracing implements Integration {
     // we filter out app start more than 60s.
     // this could be due to many different reasons.
     // we've seen app starts with hours, days and even months.
-     if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
-       return;
-     }
+    if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
+      return;
+    }
 
     const appStartTimeSeconds = appStart.appStartTime / 1000;
 
