@@ -15,14 +15,13 @@ if (!args['app-build-gradle']) {
 logger.info('Patching app/build.gradle', args['app-build-gradle']);
 
 const sentryGradlePatch = `
-apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
-
+apply from: new File(["node", "--print", "require.resolve('@sentry/react-native/package.json')"].execute().text.trim(), "../sentry.gradle")
 `;
 const reactNativeGradleRex = /^android {/m;
 
 const buildGradle = fs.readFileSync(args['app-build-gradle'], 'utf8');
 
-const isPatched = buildGradle.match(sentryGradlePatch.trim());
+const isPatched = buildGradle.includes(sentryGradlePatch.trim());
 if (!isPatched) {
   const patched = buildGradle.replace(reactNativeGradleRex, m => sentryGradlePatch + m);
 

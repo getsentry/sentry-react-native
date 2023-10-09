@@ -185,6 +185,9 @@ public class RNSentryModuleImpl {
             if (rnOptions.hasKey("maxQueueSize")) {
                 options.setMaxQueueSize(rnOptions.getInt("maxQueueSize"));
             }
+            if (rnOptions.hasKey("enableNdk")) {
+                options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
+            }
 
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException

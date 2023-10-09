@@ -2,6 +2,9 @@ const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 const path = require('path');
 const blacklist = require('metro-config/src/defaults/exclusionList');
 
+const {
+  createSentryMetroSerializer,
+} = require('../dist/js/tools/sentryMetroSerializer');
 const parentDir = path.resolve(__dirname, '..');
 
 /**
@@ -20,7 +23,7 @@ const config = {
   resolver: {
     blacklistRE: blacklist([
       new RegExp(`${parentDir}/node_modules/react-native/.*`),
-      new RegExp(`.*\\android\\.*`), // Required for Windows in order to run the Sample.
+      new RegExp('.*\\android\\.*'), // Required for Windows in order to run the Sample.
     ]),
     extraNodeModules: new Proxy(
       {
@@ -41,6 +44,10 @@ const config = {
       },
     ),
   },
+  serializer: {
+    customSerializer: createSentryMetroSerializer(),
+  },
 };
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+const m = mergeConfig(getDefaultConfig(__dirname), config);
+module.exports = m;

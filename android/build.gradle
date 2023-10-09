@@ -19,6 +19,13 @@ android {
         namespace = "io.sentry.react"
     }
 
+    def agpVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+    if (agpVersion.tokenize('.')[0].toInteger() >= 8) {
+        buildFeatures {
+            buildConfig = true
+        }
+    }
+
     defaultConfig {
         minSdkVersion safeExtGet('minSdkVersion', 21)
         targetSdkVersion safeExtGet('targetSdkVersion', 31)
@@ -47,5 +54,5 @@ android {
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
-    api 'io.sentry:sentry-android:6.29.0'
+    api 'io.sentry:sentry-android:6.30.0'
 }

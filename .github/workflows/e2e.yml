@@ -263,20 +263,20 @@ jobs:
         run: |
           patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn.patch
           ../../../rn.patch.app.js --app .
+          ../../../rn.patch.metro.config.js --path metro.config.js
 
       - name: Patch Android App RN
         if: ${{ matrix.platform == 'android' }}
-        working-directory: test/react-native
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: |
-          ./rn.patch.app.build.gradle.js \
-            --app-build-gradle 'versions/${{ matrix.rn-version }}/RnDiffApp/android/app/build.gradle'
+          ../../../rn.patch.app.build.gradle.js --app-build-gradle android/app/build.gradle
 
       - name: Patch iOS App RN
         if: ${{ matrix.platform == 'ios' }}
-        working-directory: test/react-native
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: |
-          ./rn.patch.xcode.js \
-            --project 'versions/${{ matrix.rn-version }}/RnDiffApp/ios/RnDiffApp.xcodeproj/project.pbxproj' \
+          ../../../rn.patch.xcode.js \
+            --project ios/RnDiffApp.xcodeproj/project.pbxproj \
             --rn-version '${{ matrix.rn-version }}'
 
       - name: Build Android App

@@ -13,7 +13,7 @@ import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
 import { APP_START_COLD as APP_START_COLD_OP, APP_START_WARM as APP_START_WARM_OP, UI_LOAD } from './ops';
 import { StallTrackingInstrumentation } from './stalltracking';
-import { onlySampleIfChildSpans } from './transaction';
+import { cancelInBackground, onlySampleIfChildSpans } from './transaction';
 import type { BeforeNavigate, RouteChangeContextData } from './types';
 import { adjustTransactionDuration, getTimeOriginMilliseconds, isNearToNow } from './utils';
 
@@ -306,8 +306,6 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
-    const { idleTimeoutMs, finalTimeoutMs } = this.options;
-
     if (this._inflightInteractionTransaction) {
       this._inflightInteractionTransaction.cancelIdleTimeout(undefined, { restartOnChildSpanChange: false });
       this._inflightInteractionTransaction = undefined;
@@ -319,7 +317,7 @@ export class ReactNativeTracing implements Integration {
       op,
       trimEnd: true,
     };
-    this._inflightInteractionTransaction = startIdleTransaction(hub, context, idleTimeoutMs, finalTimeoutMs, true);
+    this._inflightInteractionTransaction = this._startIdleTransaction(context);
     this._inflightInteractionTransaction.registerBeforeFinishCallback((transaction: IdleTransaction) => {
       this._inflightInteractionTransaction = undefined;
       this.onTransactionFinish(transaction);
@@ -458,16 +456,14 @@ export class ReactNativeTracing implements Integration {
       this._inflightInteractionTransaction.finish();
     }
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { idleTimeoutMs, finalTimeoutMs } = this.options;
+    const { finalTimeoutMs } = this.options;
 
     const expandedContext = {
       ...context,
       trimEnd: true,
     };
 
-    const hub = this._getCurrentHub();
-    const idleTransaction = startIdleTransaction(hub as Hub, expandedContext, idleTimeoutMs, finalTimeoutMs, true);
+    const idleTransaction = this._startIdleTransaction(expandedContext);
 
     this.onTransactionStart(idleTransaction);
 
@@ -514,5 +510,16 @@ export class ReactNativeTracing implements Integration {
     }
 
     return idleTransaction;
+  }
+
+  /**
+   * Start app state aware idle transaction on the scope.
+   */
+  private _startIdleTransaction(context: TransactionContext): IdleTransaction {
+    const { idleTimeoutMs, finalTimeoutMs } = this.options;
+    const hub = this._getCurrentHub?.() || getCurrentHub();
+    const tx = startIdleTransaction(hub, context, idleTimeoutMs, finalTimeoutMs, true);
+    cancelInBackground(tx);
+    return tx;
   }
 }

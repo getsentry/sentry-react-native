@@ -8,8 +8,77 @@
 
 ### Features
 
+- Add `buildFeatures.buildConfig=true` to support AGP 8 ([#3298](https://github.com/getsentry/sentry-react-native/pull/3298))
+- Add Debug ID support ([#3164](https://github.com/getsentry/sentry-react-native/pull/3164))
+
+  This is optional to use Debug IDs. Your current setup will keep working as is.
+
+  Add Sentry Metro Serializer to `metro.config.js` to generate Debug ID for the application bundle and source map.
+
+  ```javascript
+    const {createSentryMetroSerializer} = require('@sentry/react-native/dist/js/tools/sentryMetroSerializer');
+    const config = {serializer: createSentryMetroSerializer()};
+  ```
+
+  On iOS update `Bundle React Native Code and Images` and `Upload Debug Symbols to Sentry` build phases.
+
+  ```bash
+    set -e
+    WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
+    REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"
+
+    /bin/sh -c "$WITH_ENVIRONMENT \"/bin/sh ../scripts/sentry-xcode.sh $REACT_NATIVE_XCODE\""
+  ```
+
+  ```bash
+    /bin/sh ../../scripts/sentry-xcode-debug-files.sh
+  ```
+
+  More information about the new setup [can be found here](https://docs.sentry.io/platforms/react-native/manual-setup/manual-setup/).
+- Add `SENTRY_DISABLE_AUTO_UPLOAD` flag ([#3323](https://github.com/getsentry/sentry-react-native/pull/3323))
+
+  How to use in Android project? It works by default, just set `export SENTRY_DISABLE_AUTO_UPLOAD=true` in your build environment. For Sentry Android Gradle Plugin add the following to your `android/app/build.gradle`.
+
+  ```gradle
+  apply from: "../../../sentry.gradle"
+
+  sentry {
+      autoUploadProguardMapping = shouldSentryAutoUpload()
+      uploadNativeSymbols = shouldSentryAutoUpload()
+  }
+  ```
+
+  How to use in Xcode? Make sure you are using `scripts/sentry-xcode.sh` and `scripts/sentry-xcode-debug-files.sh` in your
+  build phases. And add the following to your `ios/.xcode.env.local` file.
+
+  ```bash
+  export SENTRY_DISABLE_AUTO_UPLOAD=true
+  ```
+
+### Fixes
+
+- Change log output to show what paths are considered when collecting modules ([#3316](https://github.com/getsentry/sentry-react-native/pull/3316))
+
+### Dependencies
+
+- Bump CLI from v2.20.7 to v2.21.2 ([#3301](https://github.com/getsentry/sentry-react-native/pull/3301))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2212)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.20.7...2.21.2)
+- Bump Android SDK from v6.29.0 to v6.30.0 ([#3309](https://github.com/getsentry/sentry-react-native/pull/3309))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6300)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.29.0...6.30.0)
+
+## 5.10.0
+
+### Features
+
 - Add Hermes Debug Info flag to React Native Context ([#3290](https://github.com/getsentry/sentry-react-native/pull/3290))
   - This flag equals `true` when Hermes Bundle contains Debug Info (Hermes Source Map was not emitted)
+- Add `enableNdk` property to ReactNativeOptions for Android. ([#3304](https://github.com/getsentry/sentry-react-native/pull/3304))
+
+### Fixes
+
+- Cancel auto instrumentation transaction when app goes to background ([#3307])(https://github.com/getsentry/sentry-react-native/pull/3307)
 
 ## 5.9.2
 
