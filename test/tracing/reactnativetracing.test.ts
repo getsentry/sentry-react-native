@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SpanStatusType, User } from '@sentry/browser';
-import { BrowserClient } from '@sentry/browser';
+import * as SentryBrowser from '@sentry/browser';
 import type { IdleTransaction } from '@sentry/core';
 import { addGlobalEventProcessor, Hub, Transaction } from '@sentry/core';
 
 import type { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
 import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
+
+const BrowserClient = SentryBrowser.BrowserClient;
 
 jest.mock('../../src/js/wrapper', () => {
   return {
@@ -115,6 +117,148 @@ describe('ReactNativeTracing', () => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
     jest.clearAllMocks();
+  });
+
+  describe('trace propagation targets', () => {
+    it('uses tracingOrigins', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({}),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({
+        tracingOrigins: ['test1', 'test2'],
+      });
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['test1', 'test2'],
+        }),
+      );
+    });
+
+    it('uses tracePropagationTargets', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({}),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({
+        tracePropagationTargets: ['test1', 'test2'],
+      });
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['test1', 'test2'],
+        }),
+      );
+    });
+
+    it('uses tracePropagationTargets from client options', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({
+            tracePropagationTargets: ['test1', 'test2'],
+          }),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({});
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['test1', 'test2'],
+        }),
+      );
+    });
+
+    it('uses defaults', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({}),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({});
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['localhost', /^\/(?!\/)/],
+        }),
+      );
+    });
+
+    it('client tracePropagationTargets takes priority over integration options', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({
+            tracePropagationTargets: ['test1', 'test2'],
+          }),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({
+        tracePropagationTargets: ['test3', 'test4'],
+        tracingOrigins: ['test5', 'test6'],
+      });
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['test1', 'test2'],
+        }),
+      );
+    });
+
+    it('integration tracePropagationTargets takes priority over tracingOrigins', () => {
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      const mockedHub = {
+        getClient: () => ({
+          getOptions: () => ({}),
+        }),
+      };
+
+      const integration = new ReactNativeTracing({
+        tracePropagationTargets: ['test3', 'test4'],
+        tracingOrigins: ['test5', 'test6'],
+      });
+      integration.setupOnce(
+        () => {},
+        () => mockedHub as unknown as Hub,
+      );
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.objectContaining({
+          tracePropagationTargets: ['test3', 'test4'],
+        }),
+      );
+    });
   });
 
   describe('App Start', () => {
