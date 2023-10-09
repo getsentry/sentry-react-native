@@ -95,6 +95,8 @@ export interface ReactNativeTracingOptions extends RequestInstrumentationOptions
   enableUserInteractionTracing: boolean;
 }
 
+const DEFAULT_TRACE_PROPAGATION_TARGETS = ['localhost', /^\/(?!\/)/];
+
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   ...defaultRequestInstrumentationOptions,
   idleTimeout: 1000,
@@ -137,17 +139,19 @@ export class ReactNativeTracing implements Integration {
   private _appStartFinishTimestamp?: number;
   private _currentRoute?: string;
   private _hasSetTracePropagationTargets: boolean;
+  private _hasSetTracingOrigins: boolean;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
-    this._hasSetTracePropagationTargets = false;
-
-    if (__DEV__) {
-      this._hasSetTracePropagationTargets = !!(
-        options &&
-        // eslint-disable-next-line deprecation/deprecation
-        (options.tracePropagationTargets || options.tracingOrigins)
-      );
-    }
+    this._hasSetTracePropagationTargets = !!(
+      options &&
+      // eslint-disable-next-line deprecation/deprecation
+      options.tracePropagationTargets
+    );
+    this._hasSetTracingOrigins = !!(
+      options &&
+      // eslint-disable-next-line deprecation/deprecation
+      options.tracingOrigins
+    );
 
     this.options = {
       ...defaultReactNativeTracingOptions,
@@ -203,8 +207,16 @@ export class ReactNativeTracing implements Integration {
     // ReactNativeTracing option `tracePropagationTargets` and then `tracingOrigins` (deprecated).
     //
     // If both 1 and either one of 2 or 3 are set (from above), we log out a warning.
-    const tracePropagationTargets = clientOptionsTracePropagationTargets || thisOptionsTracePropagationTargets;
-    if (__DEV__ && this._hasSetTracePropagationTargets && clientOptionsTracePropagationTargets) {
+    const tracePropagationTargets =
+      clientOptionsTracePropagationTargets ||
+      (this._hasSetTracePropagationTargets && thisOptionsTracePropagationTargets) ||
+      (this._hasSetTracingOrigins && tracingOrigins) ||
+      DEFAULT_TRACE_PROPAGATION_TARGETS;
+    if (
+      __DEV__ &&
+      (this._hasSetTracePropagationTargets || this._hasSetTracingOrigins) &&
+      clientOptionsTracePropagationTargets
+    ) {
       logger.warn(
         '[ReactNativeTracing] The `tracePropagationTargets` option was set in the ReactNativeTracing integration and top level `Sentry.init`. The top level `Sentry.init` value is being used.',
       );
@@ -246,7 +258,6 @@ export class ReactNativeTracing implements Integration {
     instrumentOutgoingRequests({
       traceFetch,
       traceXHR,
-      tracingOrigins,
       shouldCreateSpanForRequest,
       tracePropagationTargets,
     });
