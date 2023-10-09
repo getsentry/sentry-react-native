@@ -74,7 +74,17 @@ const getMockScope = () => {
 };
 
 const getMockHub = () => {
-  const mockHub = new Hub(new BrowserClient({ tracesSampleRate: 1 } as BrowserClientOptions));
+  const mockHub = new Hub(
+    new BrowserClient({
+      tracesSampleRate: 1,
+      integrations: [],
+      transport: () => ({
+        send: jest.fn(),
+        flush: jest.fn(),
+      }),
+      stackParser: () => [],
+    }),
+  );
   const mockScope = getMockScope();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,7 +95,6 @@ const getMockHub = () => {
   return mockHub;
 };
 
-import type { BrowserClientOptions } from '@sentry/browser/types/client';
 import type { Scope } from '@sentry/types';
 import type { AppState, AppStateStatus } from 'react-native';
 
