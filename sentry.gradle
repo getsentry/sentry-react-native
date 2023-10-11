@@ -128,8 +128,9 @@ gradle.projectsEvaluated {
 
                   // Add release and dist for backward compatibility if no Debug ID detected in output soruce map
                   def process = ["node", hasSourceMapDebugIdScript, sourcemapOutput].execute(null, new File("$reactRoot"))
+                  def exitValue = process.waitFor()
                   project.logger.lifecycle("Check generated source map for Debug ID: ${process.text}")
-                  def notIncludeRelease = "$bundleCommand" == "bundle" && process.exitValue() == 0
+                  def notIncludeRelease = "$bundleCommand" == "bundle" && exitValue == 0
                   def not = notIncludeRelease ? 'not ' : ''
                   project.logger.lifecycle("Sentry Source Maps upload will ${not}include the release name and dist.")
                   extraArgs.addAll(notIncludeRelease ? [] : [
