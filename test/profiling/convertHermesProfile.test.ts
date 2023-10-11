@@ -1,7 +1,8 @@
-import type { ThreadCpuProfile, ThreadCpuSample } from '@sentry/types';
+import type { ThreadCpuSample } from '@sentry/types';
 
 import { convertToSentryProfile, mapSamples } from '../../src/js/profiling/convertHermesProfile';
 import type * as Hermes from '../../src/js/profiling/hermes';
+import type { RawThreadCpuProfile } from '../../src/js/profiling/types';
 
 describe('convert hermes profile to sentry profile', () => {
   it('simple test profile', async () => {
@@ -79,7 +80,7 @@ describe('convert hermes profile to sentry profile', () => {
         },
       },
     };
-    const expectedSentryProfile: ThreadCpuProfile = {
+    const expectedSentryProfile: RawThreadCpuProfile = {
       frames: [
         {
           colno: undefined,
@@ -135,6 +136,7 @@ describe('convert hermes profile to sentry profile', () => {
           priority: 1,
         },
       },
+      active_thread_id: '14509472',
     };
     expect(convertToSentryProfile(hermesProfile)).toStrictEqual(expectedSentryProfile);
   });
