@@ -36,7 +36,7 @@ export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThread
 
   const { samples, hermesStacks, jsThreads } = mapSamples(hermesProfile.samples);
 
-  const { frames, hermesStackFrameIdToSentryFrameIdMap } = mapFrames(hermesProfile.stackFrames);
+  const { frames, hermesStackFrameIdToSentryFrameIdMap, resources } = mapFrames(hermesProfile.stackFrames);
 
   const { stacks, hermesStackToSentryStackMap } = mapStacks(
     hermesStacks,
@@ -63,6 +63,7 @@ export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThread
   }
 
   return {
+    resources,
     samples,
     frames,
     stacks,
@@ -124,6 +125,7 @@ export function mapSamples(
 function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFrame>): {
   frames: ThreadCpuFrame[];
   hermesStackFrameIdToSentryFrameIdMap: Map<Hermes.StackFrameId, FrameId>;
+  resources: string[];
 } {
   const frames: ThreadCpuFrame[] = [];
   const hermesStackFrameIdToSentryFrameIdMap = new Map<Hermes.StackFrameId, FrameId>();
@@ -147,6 +149,7 @@ function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFr
   return {
     frames,
     hermesStackFrameIdToSentryFrameIdMap,
+    resources: DEFAULT_BUNDLE_NAME ? [DEFAULT_BUNDLE_NAME] : [],
   };
 }
 
