@@ -181,7 +181,6 @@ const debugIdStackParserCache = new WeakMap<StackParser, Map<string, StackFrame[
  */
 export function applyDebugMetadata(resource_paths: ReadonlyArray<string>): DebugImage[] {
   const debugIdMap = GLOBAL_OBJ._sentryDebugIds;
-
   if (!debugIdMap) {
     return [];
   }
