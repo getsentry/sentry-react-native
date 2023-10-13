@@ -32,8 +32,8 @@ export interface Sample {
 
 export interface StackFrame {
   // Hermes Bytecode
-  funcVirtAddr?: string,
-  offset?: string,
+  funcVirtAddr?: string;
+  offset?: string;
 
   // JavaScript
   line?: string;
@@ -93,7 +93,8 @@ export function parseHermesJSStackFrame(frame: StackFrame): ParsedHermesStackFra
   // JavaScript
   const indexOfLeftParenthesis = frame.name.indexOf('(');
   return {
-    function: (indexOfLeftParenthesis !== -1 && (frame.name.substring(0, indexOfLeftParenthesis) || ANONYMOUS_FUNCTION_NAME)) ||
+    function:
+      (indexOfLeftParenthesis !== -1 && (frame.name.substring(0, indexOfLeftParenthesis) || ANONYMOUS_FUNCTION_NAME)) ||
       frame.name,
     file: DEFAULT_BUNDLE_NAME,
     lineno: frame.line !== undefined ? Number(frame.line) : undefined,
