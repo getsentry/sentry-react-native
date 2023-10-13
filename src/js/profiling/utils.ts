@@ -185,18 +185,18 @@ export function getDebugMetadata(): DebugImage[] {
     return [];
   }
 
-  const debugIds = Object.values(debugIdMap);
-  if (!debugIds.length) {
+  const debugIdsKeys = Object.keys(debugIdMap);
+  if (!debugIdsKeys.length) {
     return [];
   }
 
-  if (debugIds.length > 1) {
+  if (debugIdsKeys.length > 1) {
     logger.warn('[Profiling] Multiple debug images found, but only one one bundle is supported. Using the first one...');
   }
 
   return [{
     code_file: DEFAULT_BUNDLE_NAME,
-    debug_id: debugIds[0],
+    debug_id: debugIdMap[debugIdsKeys[0]],
     type: 'sourcemap',
   }];
 }

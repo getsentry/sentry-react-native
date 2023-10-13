@@ -60,7 +60,7 @@ export interface ParsedHermesStackFrame {
   colno?: number;
 }
 
-const DEFAULT_BUNDLE_NAME = Platform.OS === 'android'
+export const DEFAULT_BUNDLE_NAME = Platform.OS === 'android'
   ? ANDROID_DEFAULT_BUNDLE_NAME
   : Platform.OS === 'ios'
     ? IOS_DEFAULT_BUNDLE_NAME
