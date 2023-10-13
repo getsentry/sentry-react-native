@@ -137,7 +137,7 @@ function createProfilePayload(
   const profile: Profile = {
     event_id: profile_id,
     timestamp: new Date(start_timestamp).toISOString(),
-    platform: 'node',
+    platform: 'javascript',
     version: '1',
     release: release,
     environment: environment,
