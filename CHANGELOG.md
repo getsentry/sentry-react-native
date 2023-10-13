@@ -3,7 +3,12 @@
 ## Unreleased
 
 ### Features
+
 - Current screen is now repoted on the error's app context ([#3339](https://github.com/getsentry/sentry-react-native/pull/3339))
+
+### Fixes
+
+- Add actual `activeThreadId` to Profiles ([#3338](https://github.com/getsentry/sentry-react-native/pull/3338))
 
 ## 5.11.1
 

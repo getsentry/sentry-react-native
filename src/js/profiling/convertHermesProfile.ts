@@ -8,6 +8,7 @@ import { parseHermesStackFrameFunctionName } from './hermes';
 import { MAX_PROFILE_DURATION_MS } from './integration';
 import type { RawThreadCpuProfile } from './types';
 
+const PLACEHOLDER_THREAD_ID_STRING = '0';
 const MS_TO_NS = 1e6;
 const MAX_PROFILE_DURATION_NS = MAX_PROFILE_DURATION_MS * MS_TO_NS;
 const ANONYMOUS_FUNCTION_NAME = 'anonymous';
@@ -61,12 +62,14 @@ export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThread
       priority: JS_THREAD_PRIORITY,
     };
   }
+  const active_thread_id = Object.keys(thread_metadata)[0] || PLACEHOLDER_THREAD_ID_STRING;
 
   return {
     samples,
     frames,
     stacks,
     thread_metadata,
+    active_thread_id,
   };
 }
 

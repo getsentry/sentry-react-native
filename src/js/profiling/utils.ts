@@ -3,8 +3,6 @@ import { forEachEnvelopeItem, logger } from '@sentry/utils';
 
 import type { RawThreadCpuProfile } from './types';
 
-const ACTIVE_THREAD_ID_STRING = '0';
-
 /**
  *
  */
@@ -163,7 +161,7 @@ function createProfilePayload(
       name: transaction,
       id: event_id,
       trace_id: trace_id || '',
-      active_thread_id: ACTIVE_THREAD_ID_STRING,
+      active_thread_id: cpuProfile.active_thread_id,
     },
   };
 
