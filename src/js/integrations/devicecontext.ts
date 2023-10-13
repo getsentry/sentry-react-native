@@ -54,6 +54,10 @@ export class DeviceContext implements Integration {
         };
       }
       if (nativeContexts) {
+        const routingName = event.tags?.['routing.route.name'];
+        if (routingName) {
+          nativeContexts.app['view_names'] = [routingName];
+        }
         event.contexts = { ...nativeContexts, ...event.contexts };
       }
 
