@@ -136,15 +136,7 @@ function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFr
       continue;
     }
     hermesStackFrameIdToSentryFrameIdMap.set(Number(key), frames.length);
-    const hermesFrame = hermesStackFrames[key];
-
-    const functionName = parseHermesStackFrameFunctionName(hermesFrame.name);
-    frames.push({
-      function: functionName || ANONYMOUS_FUNCTION_NAME,
-      file: hermesFrame.category == 'JavaScript' ? DEFAULT_BUNDLE_NAME : undefined,
-      lineno: hermesFrame.line !== undefined ? Number(hermesFrame.line) : undefined,
-      colno: hermesFrame.column !== undefined ? Number(hermesFrame.column) : undefined,
-    });
+    frames.push(parseHermesJSStackFrame(hermesStackFrames[key]));
   }
 
   return {
