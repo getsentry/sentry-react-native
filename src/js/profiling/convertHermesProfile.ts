@@ -1,21 +1,16 @@
 import type { FrameId, StackId, ThreadCpuFrame, ThreadCpuSample, ThreadCpuStack, ThreadId } from '@sentry/types';
 import { logger } from '@sentry/utils';
-import { Platform } from 'react-native';
 
-import { ANDROID_DEFAULT_BUNDLE_NAME, IOS_DEFAULT_BUNDLE_NAME } from '../integrations/rewriteframes';
 import type * as Hermes from './hermes';
-import { parseHermesStackFrameFunctionName } from './hermes';
+import { parseHermesJSStackFrame } from './hermes';
 import { MAX_PROFILE_DURATION_MS } from './integration';
 import type { RawThreadCpuProfile } from './types';
 
 const MS_TO_NS = 1e6;
 const MAX_PROFILE_DURATION_NS = MAX_PROFILE_DURATION_MS * MS_TO_NS;
-const ANONYMOUS_FUNCTION_NAME = 'anonymous';
 const UNKNOWN_STACK_ID = -1;
 const JS_THREAD_NAME = 'JavaScriptThread';
 const JS_THREAD_PRIORITY = 1;
-const DEFAULT_BUNDLE_NAME =
-  Platform.OS === 'android' ? ANDROID_DEFAULT_BUNDLE_NAME : Platform.OS === 'ios' ? IOS_DEFAULT_BUNDLE_NAME : undefined;
 
 /**
  * Converts a Hermes profile to a Sentry profile.
@@ -36,7 +31,7 @@ export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThread
 
   const { samples, hermesStacks, jsThreads } = mapSamples(hermesProfile.samples);
 
-  const { frames, hermesStackFrameIdToSentryFrameIdMap, resources } = mapFrames(hermesProfile.stackFrames);
+  const { frames, hermesStackFrameIdToSentryFrameIdMap } = mapFrames(hermesProfile.stackFrames);
 
   const { stacks, hermesStackToSentryStackMap } = mapStacks(
     hermesStacks,
@@ -63,7 +58,6 @@ export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThread
   }
 
   return {
-    resources,
     samples,
     frames,
     stacks,
@@ -125,7 +119,6 @@ export function mapSamples(
 function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFrame>): {
   frames: ThreadCpuFrame[];
   hermesStackFrameIdToSentryFrameIdMap: Map<Hermes.StackFrameId, FrameId>;
-  resources: string[];
 } {
   const frames: ThreadCpuFrame[] = [];
   const hermesStackFrameIdToSentryFrameIdMap = new Map<Hermes.StackFrameId, FrameId>();
@@ -149,7 +142,6 @@ function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFr
   return {
     frames,
     hermesStackFrameIdToSentryFrameIdMap,
-    resources: DEFAULT_BUNDLE_NAME ? [DEFAULT_BUNDLE_NAME] : [],
   };
 }
 

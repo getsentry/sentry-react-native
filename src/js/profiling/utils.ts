@@ -136,6 +136,8 @@ function createProfilePayload(
     }
   }
 
+  const bundleFilename = getBundleFilename();
+
   const profile: Profile = {
     event_id: profile_id,
     timestamp: new Date(start_timestamp).toISOString(),
@@ -167,7 +169,7 @@ function createProfilePayload(
       active_thread_id: ACTIVE_THREAD_ID_STRING,
     },
     debug_meta: {
-      images: applyDebugMetadata(cpuProfile.resources),
+      images: bundleFilename ? applyDebugMetadata([bundleFilename]) : [],
     },
   };
 
@@ -244,6 +246,55 @@ export function applyDebugMetadata(resource_paths: ReadonlyArray<string>): Debug
   }
 
   return images;
+}
+
+let bundleFilenameCached: string | null | undefined;
+/**
+ * This function assumes that the SDK is in the same bundle as the app code.
+ * @returns the bundle filename from an artificially created error
+ */
+function getBundleFilename(): string | null {
+  if (typeof bundleFilenameCached !== 'undefined') {
+    return bundleFilenameCached;
+  }
+
+  const hub = getCurrentHub();
+  if (!hub) {
+    bundleFilenameCached = null;
+    return null;
+  }
+  const client = hub.getClient();
+  if (!client) {
+    bundleFilenameCached = null;
+    return null;
+  }
+  const options = client.getOptions();
+  if (!options) {
+    bundleFilenameCached = null;
+    return null;
+  }
+  const stackParser = options.stackParser;
+  if (!stackParser) {
+    bundleFilenameCached = null;
+    return null;
+  }
+
+  const error = new Error();
+  if (!error.stack) {
+    bundleFilenameCached = null;
+    return null;
+  }
+
+  const stack = stackParser(error.stack);
+  for (const frame of stack) {
+    if (frame.filename) {
+      bundleFilenameCached = frame.filename;
+      return bundleFilenameCached;
+    }
+  }
+
+  bundleFilenameCached = null;
+  return null;
 }
 
 /**
