@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Features
+- Current screen is now repoted on the error's app context ([#3339](https://github.com/getsentry/sentry-react-native/pull/3339))
+
 ## 5.11.1
 
 ### Fixes
