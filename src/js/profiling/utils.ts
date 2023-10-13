@@ -191,14 +191,18 @@ export function getDebugMetadata(): DebugImage[] {
   }
 
   if (debugIdsKeys.length > 1) {
-    logger.warn('[Profiling] Multiple debug images found, but only one one bundle is supported. Using the first one...');
+    logger.warn(
+      '[Profiling] Multiple debug images found, but only one one bundle is supported. Using the first one...',
+    );
   }
 
-  return [{
-    code_file: DEFAULT_BUNDLE_NAME,
-    debug_id: debugIdMap[debugIdsKeys[0]],
-    type: 'sourcemap',
-  }];
+  return [
+    {
+      code_file: DEFAULT_BUNDLE_NAME,
+      debug_id: debugIdMap[debugIdsKeys[0]],
+      type: 'sourcemap',
+    },
+  ];
 }
 
 /**
