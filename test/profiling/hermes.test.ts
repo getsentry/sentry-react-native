@@ -1,4 +1,4 @@
-import type { ParsedHermesStackFrame} from '../../src/js/profiling/hermes';
+import type { ParsedHermesStackFrame } from '../../src/js/profiling/hermes';
 import { parseHermesJSStackFrame } from '../../src/js/profiling/hermes';
 
 describe('hermes', () => {
@@ -10,8 +10,8 @@ describe('hermes', () => {
           line: '1610',
           column: '33',
           category: 'JavaScript',
-        })
-      ).toEqual(<ParsedHermesStackFrame> {
+        }),
+      ).toEqual(<ParsedHermesStackFrame>{
         function: 'fooA',
         file: 'app:///main.jsbundle',
         lineno: 1610,
@@ -23,10 +23,12 @@ describe('hermes', () => {
         parseHermesJSStackFrame({
           name: '[root]',
           category: 'root',
-        })
-      ).toEqual(expect.objectContaining(<ParsedHermesStackFrame> {
-        function: '[root]',
-      }));
+        }),
+      ).toEqual(
+        expect.objectContaining(<ParsedHermesStackFrame>{
+          function: '[root]',
+        }),
+      );
     });
     test('parse only file name', () => {
       expect(
@@ -35,8 +37,8 @@ describe('hermes', () => {
           line: '1610',
           column: '33',
           category: 'JavaScript',
-        })
-      ).toEqual(<ParsedHermesStackFrame> {
+        }),
+      ).toEqual(<ParsedHermesStackFrame>{
         function: 'anonymous',
         file: 'app:///main.jsbundle',
         lineno: 1610,
@@ -48,11 +50,13 @@ describe('hermes', () => {
         parseHermesJSStackFrame({
           name: 'fooA',
           category: 'JavaScript',
-        })
-      ).toEqual(expect.objectContaining(<ParsedHermesStackFrame> {
-        function: 'fooA',
-        file: 'app:///main.jsbundle',
-      }));
+        }),
+      ).toEqual(
+        expect.objectContaining(<ParsedHermesStackFrame>{
+          function: 'fooA',
+          file: 'app:///main.jsbundle',
+        }),
+      );
     });
   });
 });
