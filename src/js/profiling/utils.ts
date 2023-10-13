@@ -1,7 +1,7 @@
-import { getCurrentHub } from '@sentry/core';
-import type { DebugImage, Envelope, Event, Profile, StackFrame, StackParser } from '@sentry/types';
+import type { DebugImage, Envelope, Event, Profile } from '@sentry/types';
 import { forEachEnvelopeItem, GLOBAL_OBJ, logger } from '@sentry/utils';
 
+import { DEFAULT_BUNDLE_NAME } from './hermes';
 import type { RawThreadCpuProfile } from './types';
 
 const ACTIVE_THREAD_ID_STRING = '0';
@@ -136,8 +136,6 @@ function createProfilePayload(
     }
   }
 
-  const bundleFilename = getBundleFilename();
-
   const profile: Profile = {
     event_id: profile_id,
     timestamp: new Date(start_timestamp).toISOString(),
@@ -169,132 +167,40 @@ function createProfilePayload(
       active_thread_id: ACTIVE_THREAD_ID_STRING,
     },
     debug_meta: {
-      images: bundleFilename ? applyDebugMetadata([bundleFilename]) : [],
+      images: getDebugMetadata(),
     },
   };
 
   return profile;
 }
 
-const debugIdStackParserCache = new WeakMap<StackParser, Map<string, StackFrame[]>>();
 /**
- * Applies debug meta data to an event from a list of paths to resources (sourcemaps)
- * https://github.com/getsentry/sentry-javascript/blob/ec9eebc5a09a0ce2e51cd4080e729a48c8b2fe97/packages/browser/src/profiling/utils.ts#L328
+ * Returns debug meta images of the loaded bundle.
  */
-export function applyDebugMetadata(resource_paths: ReadonlyArray<string>): DebugImage[] {
+export function getDebugMetadata(): DebugImage[] {
+  if (!DEFAULT_BUNDLE_NAME) {
+    return [];
+  }
+
   const debugIdMap = GLOBAL_OBJ._sentryDebugIds;
   if (!debugIdMap) {
     return [];
   }
 
-  const hub = getCurrentHub();
-  if (!hub) {
-    return [];
-  }
-  const client = hub.getClient();
-  if (!client) {
-    return [];
-  }
-  const options = client.getOptions();
-  if (!options) {
-    return [];
-  }
-  const stackParser = options.stackParser;
-  if (!stackParser) {
+  const debugIds = Object.values(debugIdMap);
+  if (!debugIds.length) {
     return [];
   }
 
-  let debugIdStackFramesCache: Map<string, StackFrame[]>;
-  const cachedDebugIdStackFrameCache = debugIdStackParserCache.get(stackParser);
-  if (cachedDebugIdStackFrameCache) {
-    debugIdStackFramesCache = cachedDebugIdStackFrameCache;
-  } else {
-    debugIdStackFramesCache = new Map<string, StackFrame[]>();
-    debugIdStackParserCache.set(stackParser, debugIdStackFramesCache);
+  if (debugIds.length > 1) {
+    logger.warn('[Profiling] Multiple debug images found, but only one one bundle is supported. Using the first one...');
   }
 
-  // Build a map of filename -> debug_id
-  const filenameDebugIdMap = Object.keys(debugIdMap).reduce<Record<string, string>>((acc, debugIdStackTrace) => {
-    let parsedStack: StackFrame[];
-    const cachedParsedStack = debugIdStackFramesCache.get(debugIdStackTrace);
-    if (cachedParsedStack) {
-      parsedStack = cachedParsedStack;
-    } else {
-      parsedStack = stackParser(debugIdStackTrace);
-      debugIdStackFramesCache.set(debugIdStackTrace, parsedStack);
-    }
-
-    for (let i = parsedStack.length - 1; i >= 0; i--) {
-      const stackFrame = parsedStack[i];
-      if (stackFrame.filename) {
-        acc[stackFrame.filename] = debugIdMap[debugIdStackTrace];
-        break;
-      }
-    }
-    return acc;
-  }, {});
-
-  const images: DebugImage[] = [];
-  for (const path of resource_paths) {
-    if (path && filenameDebugIdMap[path]) {
-      images.push({
-        type: 'sourcemap',
-        code_file: path,
-        debug_id: filenameDebugIdMap[path] as string,
-      });
-    }
-  }
-
-  return images;
-}
-
-let bundleFilenameCached: string | null | undefined;
-/**
- * This function assumes that the SDK is in the same bundle as the app code.
- * @returns the bundle filename from an artificially created error
- */
-function getBundleFilename(): string | null {
-  if (typeof bundleFilenameCached !== 'undefined') {
-    return bundleFilenameCached;
-  }
-
-  const hub = getCurrentHub();
-  if (!hub) {
-    bundleFilenameCached = null;
-    return null;
-  }
-  const client = hub.getClient();
-  if (!client) {
-    bundleFilenameCached = null;
-    return null;
-  }
-  const options = client.getOptions();
-  if (!options) {
-    bundleFilenameCached = null;
-    return null;
-  }
-  const stackParser = options.stackParser;
-  if (!stackParser) {
-    bundleFilenameCached = null;
-    return null;
-  }
-
-  const error = new Error();
-  if (!error.stack) {
-    bundleFilenameCached = null;
-    return null;
-  }
-
-  const stack = stackParser(error.stack);
-  for (const frame of stack) {
-    if (frame.filename) {
-      bundleFilenameCached = frame.filename;
-      return bundleFilenameCached;
-    }
-  }
-
-  bundleFilenameCached = null;
-  return null;
+  return [{
+    code_file: DEFAULT_BUNDLE_NAME,
+    debug_id: debugIds[0],
+    type: 'sourcemap',
+  }];
 }
 
 /**
