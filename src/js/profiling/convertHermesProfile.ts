@@ -6,6 +6,7 @@ import { parseHermesJSStackFrame } from './hermes';
 import { MAX_PROFILE_DURATION_MS } from './integration';
 import type { RawThreadCpuProfile } from './types';
 
+const PLACEHOLDER_THREAD_ID_STRING = '0';
 const MS_TO_NS = 1e6;
 const MAX_PROFILE_DURATION_NS = MAX_PROFILE_DURATION_MS * MS_TO_NS;
 const UNKNOWN_STACK_ID = -1;
@@ -56,12 +57,14 @@ export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThread
       priority: JS_THREAD_PRIORITY,
     };
   }
+  const active_thread_id = Object.keys(thread_metadata)[0] || PLACEHOLDER_THREAD_ID_STRING;
 
   return {
     samples,
     frames,
     stacks,
     thread_metadata,
+    active_thread_id,
   };
 }
 
@@ -128,15 +131,7 @@ function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFr
       continue;
     }
     hermesStackFrameIdToSentryFrameIdMap.set(Number(key), frames.length);
-    const hermesFrame = hermesStackFrames[key];
-
-    const functionName = parseHermesStackFrameFunctionName(hermesFrame.name);
-    frames.push({
-      function: functionName || ANONYMOUS_FUNCTION_NAME,
-      file: hermesFrame.category == 'JavaScript' ? DEFAULT_BUNDLE_NAME : undefined,
-      lineno: hermesFrame.line !== undefined ? Number(hermesFrame.line) : undefined,
-      colno: hermesFrame.column !== undefined ? Number(hermesFrame.column) : undefined,
-    });
+    frames.push(parseHermesJSStackFrame(hermesStackFrames[key]));
   }
 
   return {

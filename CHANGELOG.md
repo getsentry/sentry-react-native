@@ -8,6 +8,13 @@
 
 ### Fixes
 
+- Add actual `activeThreadId` to Profiles ([#3338](https://github.com/getsentry/sentry-react-native/pull/3338))
+- Parse Hermes Profiling Bytecode Frames ([#3342](https://github.com/getsentry/sentry-react-native/pull/3342))
+
+## 5.11.1
+
+### Fixes
+
 - Waif for `has-sourcemap-debugid` process to exit ([#3336](https://github.com/getsentry/sentry-react-native/pull/3336))
 
 ## 5.11.0
