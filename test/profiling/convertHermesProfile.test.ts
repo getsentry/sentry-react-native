@@ -84,6 +84,7 @@ describe('convert hermes profile to sentry profile', () => {
       frames: [
         {
           function: '[root]',
+          in_app: false,
         },
         {
           colno: 33,

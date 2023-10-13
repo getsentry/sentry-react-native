@@ -58,6 +58,7 @@ export interface ParsedHermesStackFrame {
   file?: string;
   lineno?: number;
   colno?: number;
+  in_app?: boolean;
 }
 
 export const DEFAULT_BUNDLE_NAME =
@@ -71,6 +72,9 @@ const ANONYMOUS_FUNCTION_NAME = 'anonymous';
 export function parseHermesJSStackFrame(frame: StackFrame): ParsedHermesStackFrame {
   if (frame.category !== 'JavaScript') {
     // Native
+    if (frame.name === '[root]') {
+      return { function: frame.name, in_app: false };
+    }
     return { function: frame.name };
   }
 
