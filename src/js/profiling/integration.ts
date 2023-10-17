@@ -254,8 +254,7 @@ export function stopProfiling(): Partial<Profile> | null {
   const mergedProfile = mergeProfiles(
     profileEvent,
     // TODO: remove when JS types are updated with macho debug image
-    // result.nativeProfile as unknown as Profile,
-    {},
+    result.nativeProfile as unknown as Profile,
   );
 
   return mergedProfile;
@@ -275,6 +274,7 @@ function mergeProfiles(main: Partial<Profile>, add: Partial<Profile>): Partial<P
     runtime: main.runtime || add.runtime,
     timestamp: main.timestamp || add.timestamp,
     version: main.version || add.version,
+    transaction: main.transaction || add.transaction,
     profile:
       main.profile && add.profile ? mergeThreadCpuProfile(main.profile, add.profile) : main.profile || add.profile,
   };
@@ -291,38 +291,29 @@ function mergeProfiles(main: Partial<Profile>, add: Partial<Profile>): Partial<P
     };
   }
 
-  const transactions: (Required<Profile>['transaction'] | Required<Profile>['transactions'][0])[] = [];
-  if (main.transaction) {
-    transactions.push(main.transaction);
-  }
-  if (add.transaction) {
-    transactions.push(add.transaction);
-  }
-  if (main.transactions) {
-    transactions.push(...main.transactions);
-  }
-  if (add.transactions) {
-    transactions.push(...add.transactions);
-  }
-
-  if (transactions.length === 1) {
-    merged.transaction = transactions[0];
+  if (main.transactions || add.transactions) {
+    merged.transactions = [...(main.transactions || []), ...(add.transactions || [])];
   }
 
   return dropUndefinedKeys(merged);
 }
 
 function mergeThreadCpuProfile(main: ThreadCpuProfile, add: ThreadCpuProfile): ThreadCpuProfile {
-  main.samples = [...main.samples, ...add.samples];
   // assumes thread ids are unique
   main.thread_metadata = { ...main.thread_metadata, ...add.thread_metadata };
   // assumes queue ids are unique
   main.queue_metadata = { ...main.queue_metadata, ...add.queue_metadata };
 
-  // recalculate frames using offset
+  // recalculate frames and stacks using offset
   const framesOffset = main.frames.length;
+  const stacksOffset = main.stacks.length;
+
   main.frames = [...main.frames, ...add.frames];
   main.stacks = [...main.stacks, ...add.stacks.map(stack => stack.map(frameId => frameId + framesOffset))];
+  main.samples = [...main.samples, ...add.samples.map(sample => ({
+    ...sample,
+    stack_id: stacksOffset + sample.stack_id,
+  }))];
 
   return main;
 }
