@@ -24,6 +24,7 @@ import type {
 } from './NativeRNSentry';
 import type { ReactNativeClientOptions } from './options';
 import type * as Hermes from './profiling/hermes';
+import type { NativeProfile } from './profiling/nativeTypes';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
 import { utf8ToBytes } from './vendor';
@@ -82,7 +83,7 @@ interface SentryNativeWrapper {
   fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
 
   startProfiling(): boolean;
-  stopProfiling(): Hermes.Profile | null;
+  stopProfiling(): { profile: Hermes.Profile; nativeProfile: NativeProfile } | null;
 
   fetchNativePackageName(): Promise<string | null>;
 
@@ -517,7 +518,7 @@ export const NATIVE: SentryNativeWrapper = {
     return !!started;
   },
 
-  stopProfiling(): Hermes.Profile | null {
+  stopProfiling(): { profile: Hermes.Profile; nativeProfile: NativeProfile } | null {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -525,14 +526,17 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const { profile, error } = RNSentry.stopProfiling();
-    if (!profile || error) {
+    const { profile, nativeProfile, error } = RNSentry.stopProfiling();
+    if (!profile || !nativeProfile || error) {
       logger.error('[NATIVE] Stop Profiling Failed', error);
       return null;
     }
 
     try {
-      return JSON.parse(profile) as Hermes.Profile;
+      return {
+        profile: JSON.parse(profile) as Hermes.Profile,
+        nativeProfile,
+      };
     } catch (e) {
       logger.error('[NATIVE] Failed to parse Hermes Profile JSON', e);
       return null;
