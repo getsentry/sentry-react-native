@@ -1,4 +1,4 @@
-export interface NativeProfile {
+export interface NativeProfileEvent {
   profile_id: string;
   profile: {
     samples: {
@@ -9,7 +9,7 @@ export interface NativeProfile {
     }[];
     stacks: number[][];
     frames: {
-      function: string;
+      function?: string;
       instruction_addr?: string;
     }[];
     thread_metadata: Record<

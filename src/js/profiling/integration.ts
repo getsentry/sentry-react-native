@@ -10,16 +10,18 @@ import type {
   ThreadCpuProfile,
   Transaction,
 } from '@sentry/types';
-import { dropUndefinedKeys, logger, uuid4 } from '@sentry/utils';
+import { logger, uuid4 } from '@sentry/utils';
 
 import { isHermesEnabled } from '../utils/environment';
 import { NATIVE } from '../wrapper';
 import { PROFILE_QUEUE } from './cache';
 import { convertToSentryProfile } from './convertHermesProfile';
+import type { NativeProfileEvent } from './nativeTypes';
+import type { CombinedProfileEvent, HermesProfileEvent } from './types';
 import {
   addProfilesToEnvelope,
-  createProfilingEvent,
-  enrichProfileWithEventContext,
+  createHermesProfilingEvent,
+  enrichCombinedProfileWithEventContext,
   findProfiledTransactionsFromEnvelope,
 } from './utils';
 
@@ -179,10 +181,9 @@ export class HermesProfiling implements Integration {
       return;
     }
 
-    profile.event_id = this._currentProfile.profile_id;
+    PROFILE_QUEUE.add(this._currentProfile.profile_id, profile);
 
-    PROFILE_QUEUE.add(profile.event_id, profile);
-    logger.log('[Profiling] finished profiling: ', profile.event_id);
+    logger.log('[Profiling] finished profiling: ', this._currentProfile.profile_id);
     this._currentProfile = undefined;
   };
 
@@ -207,10 +208,10 @@ export class HermesProfiling implements Integration {
       return null;
     }
 
-    const profileWithEvent = enrichProfileWithEventContext(profile, profiledTransaction);
+    const profileWithEvent = enrichCombinedProfileWithEventContext(profile_id, profile, profiledTransaction);
     logger.log(`[Profiling] Created profile ${profile_id} for transaction ${profiledTransaction.event_id}`);
-    // TODO: Fix profiles so Partial<Profile> is not needed or validate full profile
-    return profileWithEvent as unknown as Profile;
+
+    return profileWithEvent;
   };
 
   private _clearCurrentProfileTimeout = (): void => {
@@ -233,87 +234,76 @@ export function startProfiling(): number | null {
 }
 
 /**
- * Stops Profilers and returns merged profile.
+ * Stops Profilers and returns collected combined profile.
  */
-export function stopProfiling(): Partial<Profile> | null {
-  const result = NATIVE.stopProfiling();
-  if (!result) {
+export function stopProfiling(): CombinedProfileEvent | null {
+  const collectedProfiles = NATIVE.stopProfiling();
+  if (!collectedProfiles) {
     return null;
   }
 
-  const hermesProfile = convertToSentryProfile(result.profile);
+  const hermesProfile = convertToSentryProfile(collectedProfiles.hermesProfile);
   if (!hermesProfile) {
     return null;
   }
 
-  const profileEvent = createProfilingEvent(hermesProfile);
-  if (!profileEvent) {
+  const hermesProfileEvent = createHermesProfilingEvent(hermesProfile);
+  if (!hermesProfileEvent) {
     return null;
   }
 
-  const mergedProfile = mergeProfiles(
-    profileEvent,
-    // TODO: remove when JS types are updated with macho debug image
-    result.nativeProfile as unknown as Profile,
-  );
+  if (!collectedProfiles.nativeProfile) {
+    return hermesProfileEvent;
+  }
 
-  return mergedProfile;
+  return addNativeProfileToHermesProfile(hermesProfileEvent, collectedProfiles.nativeProfile);
 }
 
-type ProfileWithValueOrUndefined = {
-  [P in keyof Profile]: Profile[P] | undefined;
-};
-function mergeProfiles(main: Partial<Profile>, add: Partial<Profile>): Partial<Profile> | null {
-  const merged: ProfileWithValueOrUndefined = {
-    device: main.device || add.device,
-    environment: main.environment || add.environment,
-    event_id: main.event_id || add.event_id,
-    os: main.os || add.os,
-    platform: main.platform || add.platform,
-    release: main.release || add.release,
-    runtime: main.runtime || add.runtime,
-    timestamp: main.timestamp || add.timestamp,
-    version: main.version || add.version,
-    transaction: main.transaction || add.transaction,
-    profile:
-      main.profile && add.profile ? mergeThreadCpuProfile(main.profile, add.profile) : main.profile || add.profile,
+/**
+ *
+ */
+export function addNativeProfileToHermesProfile(
+  hermes: HermesProfileEvent,
+  native: NativeProfileEvent,
+): CombinedProfileEvent {
+  return {
+    ...hermes,
+    profile: addNativeThreadCpuProfileToHermes(hermes.profile, native.profile),
+    debug_meta: {
+      images: native.debug_meta.images,
+    },
+    measurements: native.measurements,
   };
-
-  if (add.debug_meta) {
-    merged.debug_meta = main.debug_meta || { images: [] };
-    merged.debug_meta.images = [...add.debug_meta.images, ...merged.debug_meta.images];
-  }
-
-  if (add.measurements) {
-    merged.measurements = {
-      ...add.measurements,
-      ...main.measurements,
-    };
-  }
-
-  if (main.transactions || add.transactions) {
-    merged.transactions = [...(main.transactions || []), ...(add.transactions || [])];
-  }
-
-  return dropUndefinedKeys(merged);
 }
 
-function mergeThreadCpuProfile(main: ThreadCpuProfile, add: ThreadCpuProfile): ThreadCpuProfile {
+/**
+ *
+ */
+export function addNativeThreadCpuProfileToHermes(
+  hermes: ThreadCpuProfile,
+  native: ThreadCpuProfile,
+): CombinedProfileEvent['profile'] {
   // assumes thread ids are unique
-  main.thread_metadata = { ...main.thread_metadata, ...add.thread_metadata };
+  hermes.thread_metadata = { ...hermes.thread_metadata, ...native.thread_metadata };
   // assumes queue ids are unique
-  main.queue_metadata = { ...main.queue_metadata, ...add.queue_metadata };
+  hermes.queue_metadata = { ...hermes.queue_metadata, ...native.queue_metadata };
 
   // recalculate frames and stacks using offset
-  const framesOffset = main.frames.length;
-  const stacksOffset = main.stacks.length;
+  const framesOffset = hermes.frames.length;
+  const stacksOffset = hermes.stacks.length;
 
-  main.frames = [...main.frames, ...add.frames];
-  main.stacks = [...main.stacks, ...add.stacks.map(stack => stack.map(frameId => frameId + framesOffset))];
-  main.samples = [...main.samples, ...add.samples.map(sample => ({
-    ...sample,
-    stack_id: stacksOffset + sample.stack_id,
-  }))];
+  hermes.frames = [...(hermes.frames || []), ...(native.frames || [])];
+  hermes.stacks = [
+    ...(hermes.stacks || []),
+    ...(native.stacks || []).map(stack => stack.map(frameId => frameId + framesOffset)),
+  ];
+  hermes.samples = [
+    ...(hermes.samples || []),
+    ...(native.samples || []).map(sample => ({
+      ...sample,
+      stack_id: stacksOffset + sample.stack_id,
+    })),
+  ];
 
-  return main;
+  return hermes;
 }

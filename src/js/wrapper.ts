@@ -24,7 +24,7 @@ import type {
 } from './NativeRNSentry';
 import type { ReactNativeClientOptions } from './options';
 import type * as Hermes from './profiling/hermes';
-import type { NativeProfile } from './profiling/nativeTypes';
+import type { NativeProfileEvent } from './profiling/nativeTypes';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
 import { utf8ToBytes } from './vendor';
@@ -83,7 +83,7 @@ interface SentryNativeWrapper {
   fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
 
   startProfiling(): boolean;
-  stopProfiling(): { profile: Hermes.Profile; nativeProfile: NativeProfile } | null;
+  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile?: NativeProfileEvent } | null;
 
   fetchNativePackageName(): Promise<string | null>;
 
@@ -518,7 +518,7 @@ export const NATIVE: SentryNativeWrapper = {
     return !!started;
   },
 
-  stopProfiling(): { profile: Hermes.Profile; nativeProfile: NativeProfile } | null {
+  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile: NativeProfileEvent } | null {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -534,7 +534,7 @@ export const NATIVE: SentryNativeWrapper = {
 
     try {
       return {
-        profile: JSON.parse(profile) as Hermes.Profile,
+        hermesProfile: JSON.parse(profile) as Hermes.Profile,
         nativeProfile,
       };
     } catch (e) {

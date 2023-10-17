@@ -2,7 +2,7 @@
 import type { Envelope, Event, Profile, ThreadCpuProfile } from '@sentry/types';
 import { forEachEnvelopeItem, logger } from '@sentry/utils';
 
-import type { RawThreadCpuProfile } from './types';
+import type { CombinedProfileEvent, HermesProfileEvent, RawThreadCpuProfile } from './types';
 
 /**
  *
@@ -53,7 +53,11 @@ export function findProfiledTransactionsFromEnvelope(envelope: Envelope): Event[
  * @param event
  * @returns {Profile | null}
  */
-export function enrichProfileWithEventContext(profile: Partial<Profile>, event: Event): Partial<Profile> | null {
+export function enrichCombinedProfileWithEventContext(
+  profile_id: string,
+  profile: CombinedProfileEvent,
+  event: Event,
+): Profile | null {
   if (!profile.profile || !isValidProfile(profile.profile)) {
     return null;
   }
@@ -69,10 +73,9 @@ export function enrichProfileWithEventContext(profile: Partial<Profile>, event: 
     }
   }
 
-  delete profile.transactions;
-
   return {
     ...profile,
+    event_id: profile_id,
     runtime: {
       name: 'hermes',
       version: '', // TODO: get hermes version
@@ -102,19 +105,14 @@ export function enrichProfileWithEventContext(profile: Partial<Profile>, event: 
 }
 
 /**
- * Creates a profiling envelope item, if the profile does not pass validation, returns null.
- * @param event
- * @returns {Profile}
+ * Creates profiling event compatible carrier Object from raw Hermes profile.
  */
-export function createProfilingEvent(profile: RawThreadCpuProfile): Partial<Profile> {
+export function createHermesProfilingEvent(profile: RawThreadCpuProfile): HermesProfileEvent {
   return {
     platform: 'javascript',
     version: '1',
     profile,
     transaction: {
-      name: 'Unknown',
-      id: '',
-      trace_id: '',
       active_thread_id: profile.active_thread_id,
     },
   };
