@@ -11,6 +11,7 @@ import type {
   Transaction,
 } from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
+import { Platform } from 'react-native';
 
 import { isHermesEnabled } from '../utils/environment';
 import { NATIVE } from '../wrapper';
@@ -292,7 +293,15 @@ export function addNativeThreadCpuProfileToHermes(
   const framesOffset = hermes.frames.length;
   const stacksOffset = hermes.stacks.length;
 
-  hermes.frames = [...(hermes.frames || []), ...(native.frames || [])];
+  if (native.frames) {
+    for (const frame of native.frames) {
+      hermes.frames.push({
+        function: frame.function,
+        instruction_addr: frame.instruction_addr,
+        platform: Platform.OS === 'ios' ? 'cocoa' : undefined,
+      });
+    }
+  }
   hermes.stacks = [
     ...(hermes.stacks || []),
     ...(native.stacks || []).map(stack => stack.map(frameId => frameId + framesOffset)),
