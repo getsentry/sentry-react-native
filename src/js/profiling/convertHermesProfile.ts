@@ -203,9 +203,7 @@ export function parseHermesJSStackFrame(frame: Hermes.StackFrame): ThreadCpuFram
   // JavaScript
   const indexOfLeftParenthesis = frame.name.indexOf('(');
   return {
-    function:
-      indexOfLeftParenthesis !== -1 && frame.name.substring(0, indexOfLeftParenthesis) ||
-      frame.name,
+    function: indexOfLeftParenthesis !== -1 ? frame.name.substring(0, indexOfLeftParenthesis) || undefined : frame.name,
     abs_path: DEFAULT_BUNDLE_NAME,
     lineno: frame.line !== undefined ? Number(frame.line) : undefined,
     colno: frame.column !== undefined ? Number(frame.column) : undefined,
