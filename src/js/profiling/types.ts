@@ -1,8 +1,4 @@
-import type { ThreadCpuFrame as SentryThreadCpuFrame, ThreadCpuProfile } from '@sentry/types';
-
-export interface ThreadCpuFrame extends SentryThreadCpuFrame {
-  in_app?: boolean;
-}
+import type { ThreadCpuFrame, ThreadCpuProfile } from '@sentry/types';
 
 export interface RawThreadCpuProfile extends ThreadCpuProfile {
   frames: ThreadCpuFrame[];
