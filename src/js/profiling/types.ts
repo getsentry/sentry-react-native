@@ -1,10 +1,6 @@
-import type { Profile, ThreadCpuFrame as SentryThreadCpuFrame, ThreadCpuProfile } from '@sentry/types';
+import type { Profile, ThreadCpuFrame, ThreadCpuProfile } from '@sentry/types';
 
 import type { NativeProfileEvent } from './nativeTypes';
-
-export interface ThreadCpuFrame extends SentryThreadCpuFrame {
-  in_app?: boolean;
-}
 
 export interface RawThreadCpuProfile extends ThreadCpuProfile {
   frames: ThreadCpuFrame[];
