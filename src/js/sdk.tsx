@@ -56,6 +56,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   attachStacktrace: true,
   enableCaptureFailedRequests: false,
   enableNdk: true,
+  environment: __DEV__ ? 'development' : 'production',
 };
 
 /**
