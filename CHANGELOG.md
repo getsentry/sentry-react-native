@@ -2,9 +2,14 @@
 
 ## Unreleased
 
+### Features
+
+- Send debug information with Profiles for symbolicated stack traces ([#3338](https://github.com/getsentry/sentry-react-native/pull/3338))
+
 ### Fixes
 
 - Add actual `activeThreadId` to Profiles ([#3338](https://github.com/getsentry/sentry-react-native/pull/3338))
+- Parse Hermes Profiling Bytecode Frames ([#3342](https://github.com/getsentry/sentry-react-native/pull/3342))
 
 ## 5.11.1
 

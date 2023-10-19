@@ -1,7 +1,8 @@
 /* eslint-disable complexity */
-import type { Envelope, Event, Profile, ThreadCpuProfile } from '@sentry/types';
-import { forEachEnvelopeItem, logger } from '@sentry/utils';
+import type { DebugImage, Envelope, Event, Profile, ThreadCpuProfile } from '@sentry/types';
+import { forEachEnvelopeItem, GLOBAL_OBJ, logger } from '@sentry/utils';
 
+import { DEFAULT_BUNDLE_NAME } from './hermes';
 import type { CombinedProfileEvent, HermesProfileEvent, RawThreadCpuProfile } from './types';
 
 /**
@@ -101,6 +102,9 @@ export function enrichCombinedProfileWithEventContext(
       trace_id,
       active_thread_id: (profile.transaction && profile.transaction.active_thread_id) || '',
     },
+    debug_meta: {
+      images: getDebugMetadata(),
+    },
   };
 }
 
@@ -116,6 +120,39 @@ export function createHermesProfilingEvent(profile: RawThreadCpuProfile): Hermes
       active_thread_id: profile.active_thread_id,
     },
   };
+}
+
+/**
+ * Returns debug meta images of the loaded bundle.
+ */
+export function getDebugMetadata(): DebugImage[] {
+  if (!DEFAULT_BUNDLE_NAME) {
+    return [];
+  }
+
+  const debugIdMap = GLOBAL_OBJ._sentryDebugIds;
+  if (!debugIdMap) {
+    return [];
+  }
+
+  const debugIdsKeys = Object.keys(debugIdMap);
+  if (!debugIdsKeys.length) {
+    return [];
+  }
+
+  if (debugIdsKeys.length > 1) {
+    logger.warn(
+      '[Profiling] Multiple debug images found, but only one one bundle is supported. Using the first one...',
+    );
+  }
+
+  return [
+    {
+      code_file: DEFAULT_BUNDLE_NAME,
+      debug_id: debugIdMap[debugIdsKeys[0]],
+      type: 'sourcemap',
+    },
+  ];
 }
 
 /**
