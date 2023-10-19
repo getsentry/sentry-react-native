@@ -3,8 +3,6 @@ import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 import type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 
-import type { NativeProfileEvent } from './profiling/nativeTypes';
-
 // There has to be only one interface and it has to be named `Spec`
 // Only extra allowed definitions are types (probably codegen bug)
 export interface Spec extends TurboModule {
@@ -34,7 +32,7 @@ export interface Spec extends TurboModule {
   fetchModules(): Promise<string | undefined | null>;
   fetchViewHierarchy(): Promise<number[] | undefined | null>;
   startProfiling(): { started?: boolean; error?: string };
-  stopProfiling(): { profile?: string; nativeProfile: NativeProfileEvent; error?: string };
+  stopProfiling(): { profile?: string; nativeProfile: UnsafeObject; error?: string };
   fetchNativePackageName(): Promise<string | undefined | null>;
   fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | undefined | null>;
 }
