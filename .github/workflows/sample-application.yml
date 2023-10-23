@@ -52,6 +52,9 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
 
+      - if: ${{ matrix.platform == 'ios' }}
+        run: ./scripts/ci-select-xcode.sh
+
       - name: Install Global Dependencies
         run: brew install xcbeautify
 

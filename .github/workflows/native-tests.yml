@@ -19,6 +19,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
+      - run: ./scripts/ci-select-xcode.sh
 
       - name: NPM cache
         uses: actions/cache@v3
