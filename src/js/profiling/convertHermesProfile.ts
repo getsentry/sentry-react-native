@@ -1,10 +1,10 @@
-import type { FrameId, StackId, ThreadCpuFrame, ThreadCpuSample, ThreadCpuStack, ThreadId } from '@sentry/types';
+import type { FrameId, StackId, ThreadCpuSample, ThreadCpuStack, ThreadId } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import type * as Hermes from './hermes';
 import { DEFAULT_BUNDLE_NAME } from './hermes';
 import { MAX_PROFILE_DURATION_MS } from './integration';
-import type { RawThreadCpuProfile } from './types';
+import type { RawThreadCpuProfile, ThreadCpuFrame } from './types';
 
 const PLACEHOLDER_THREAD_ID_STRING = '0';
 const MS_TO_NS = 1e6;
