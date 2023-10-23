@@ -1,22 +1,17 @@
 import type { FrameId, StackId, ThreadCpuFrame, ThreadCpuSample, ThreadCpuStack, ThreadId } from '@sentry/types';
 import { logger } from '@sentry/utils';
-import { Platform } from 'react-native';
 
-import { ANDROID_DEFAULT_BUNDLE_NAME, IOS_DEFAULT_BUNDLE_NAME } from '../integrations/rewriteframes';
 import type * as Hermes from './hermes';
-import { parseHermesStackFrameFunctionName } from './hermes';
+import { parseHermesJSStackFrame } from './hermes';
 import { MAX_PROFILE_DURATION_MS } from './integration';
 import type { RawThreadCpuProfile } from './types';
 
 const PLACEHOLDER_THREAD_ID_STRING = '0';
 const MS_TO_NS = 1e6;
 const MAX_PROFILE_DURATION_NS = MAX_PROFILE_DURATION_MS * MS_TO_NS;
-const ANONYMOUS_FUNCTION_NAME = 'anonymous';
 const UNKNOWN_STACK_ID = -1;
 const JS_THREAD_NAME = 'JavaScriptThread';
 const JS_THREAD_PRIORITY = 1;
-const DEFAULT_BUNDLE_NAME =
-  Platform.OS === 'android' ? ANDROID_DEFAULT_BUNDLE_NAME : Platform.OS === 'ios' ? IOS_DEFAULT_BUNDLE_NAME : undefined;
 
 /**
  * Converts a Hermes profile to a Sentry profile.
@@ -136,15 +131,7 @@ function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFr
       continue;
     }
     hermesStackFrameIdToSentryFrameIdMap.set(Number(key), frames.length);
-    const hermesFrame = hermesStackFrames[key];
-
-    const functionName = parseHermesStackFrameFunctionName(hermesFrame.name);
-    frames.push({
-      function: functionName || ANONYMOUS_FUNCTION_NAME,
-      file: hermesFrame.category == 'JavaScript' ? DEFAULT_BUNDLE_NAME : undefined,
-      lineno: hermesFrame.line !== undefined ? Number(hermesFrame.line) : undefined,
-      colno: hermesFrame.column !== undefined ? Number(hermesFrame.column) : undefined,
-    });
+    frames.push(parseHermesJSStackFrame(hermesStackFrames[key]));
   }
 
   return {
