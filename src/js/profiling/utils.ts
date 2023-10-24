@@ -103,7 +103,10 @@ export function enrichCombinedProfileWithEventContext(
       active_thread_id: (profile.transaction && profile.transaction.active_thread_id) || '',
     },
     debug_meta: {
-      images: getDebugMetadata(),
+      images: [
+        ...getDebugMetadata(),
+        ...(profile.debug_meta && profile.debug_meta.images || []),
+      ],
     },
   };
 }
