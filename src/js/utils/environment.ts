@@ -35,3 +35,8 @@ export function getHermesVersion(): string | undefined {
     RN_GLOBAL_OBJ.HermesInternal.getRuntimeProperties()['OSS Release Version']
   );
 }
+
+/** Returns default environment based on __DEV__ */
+export function getDefaultEnvironment(): 'development' | 'production' {
+  return __DEV__ ? 'development' : 'production';
+}

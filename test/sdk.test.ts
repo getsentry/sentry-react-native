@@ -184,6 +184,36 @@ describe('Tests the SDK functionality', () => {
       });
     });
 
+    describe('environment', () => {
+      it('detect development environment', () => {
+        init({
+          enableNative: true,
+        });
+        expect(usedOptions()?.environment).toBe('development');
+      });
+
+      it('uses custom environment', () => {
+        init({
+          environment: 'custom',
+        });
+        expect(usedOptions()?.environment).toBe('custom');
+      });
+
+      it('it keeps empty string environment', () => {
+        init({
+          environment: '',
+        });
+        expect(usedOptions()?.environment).toBe('');
+      });
+
+      it('it keeps undefined environment', () => {
+        init({
+          environment: undefined,
+        });
+        expect(usedOptions()?.environment).toBe(undefined);
+      });
+    });
+
     describe('transport options buffer size', () => {
       it('uses default transport options buffer size', () => {
         init({

@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import type { Scope } from '@sentry/core';
 import { getIntegrationsToSetup, hasTracingEnabled, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
 import { HttpClient } from '@sentry/integrations';
@@ -33,6 +34,7 @@ import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
+import { getDefaultEnvironment } from './utils/environment';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { NATIVE } from './wrapper';
 
@@ -56,7 +58,6 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   attachStacktrace: true,
   enableCaptureFailedRequests: false,
   enableNdk: true,
-  environment: __DEV__ ? 'development' : 'production',
 };
 
 /**
@@ -96,6 +97,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     initialScope: safeFactory(passedOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
     tracesSampler: safeTracesSampler(passedOptions.tracesSampler),
   };
+  if (!('environment' in options)) {
+    options.environment = getDefaultEnvironment();
+  }
 
   const defaultIntegrations: Integration[] = passedOptions.defaultIntegrations || [];
   if (passedOptions.defaultIntegrations === undefined) {
