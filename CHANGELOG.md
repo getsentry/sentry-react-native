@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Send Source Maps Debug ID for symbolicated Profiles ([#3343](https://github.com/getsentry/sentry-react-native/pull/3343))
+
 ### Fixes
 
 - Add actual `activeThreadId` to Profiles ([#3338](https://github.com/getsentry/sentry-react-native/pull/3338))
