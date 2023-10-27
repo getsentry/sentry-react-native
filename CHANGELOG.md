@@ -4,7 +4,7 @@
 
 ### Features
 
-- Send debug information with Profiles for symbolicated stack traces ([#3338](https://github.com/getsentry/sentry-react-native/pull/3338))
+- Send Source Maps Debug ID for symbolicated Profiles ([#3343](https://github.com/getsentry/sentry-react-native/pull/3343))
 
 ### Fixes
 
