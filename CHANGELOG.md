@@ -5,6 +5,7 @@
 ### Features
 
 - Send Source Maps Debug ID for symbolicated Profiles ([#3343](https://github.com/getsentry/sentry-react-native/pull/3343))
+- Add iOS profiles to React Native Profiling ([#3349](https://github.com/getsentry/sentry-react-native/pull/3349))
 
 ### Fixes
 
