@@ -1,12 +1,14 @@
 import * as mockWrapper from '../mockWrapper';
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
+jest.mock('../../src/js/profiling/debugid');
 
 import { getCurrentHub } from '@sentry/core';
 import type { Envelope, Event, Profile, ThreadCpuProfile, Transaction, Transport } from '@sentry/types';
 
 import * as Sentry from '../../src/js';
 import { HermesProfiling } from '../../src/js/integrations';
+import { getDebugMetadata } from '../../src/js/profiling/debugid';
 import { isHermesEnabled } from '../../src/js/utils/environment';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { MOCK_DSN } from '../mockDsn';
@@ -26,6 +28,13 @@ describe('profiling integration', () => {
     mockWrapper.NATIVE.stopProfiling.mockReturnValue({
       hermesProfile: createMockMinimalValidHermesProfile(),
     });
+    (getDebugMetadata as jest.Mock).mockReturnValue([
+      {
+        code_file: 'test.app.map',
+        debug_id: '123',
+        type: 'sourcemap',
+      },
+    ]);
     jest.useFakeTimers();
   });
 
@@ -82,6 +91,22 @@ describe('profiling integration', () => {
         // Expect merged profile
         expect(getProfileFromEnvelope(envelope)).toEqual(
           expect.objectContaining(<Partial<Profile>>{
+            debug_meta: {
+              images: [
+                {
+                  code_file: 'test.app.map',
+                  debug_id: '123',
+                  type: 'sourcemap',
+                },
+                {
+                  type: 'macho',
+                  code_file: 'test.app',
+                  debug_id: '123',
+                  image_addr: '0x0000000000000002',
+                  image_size: 100,
+                },
+              ],
+            },
             profile: expect.objectContaining(<Partial<ThreadCpuProfile>>{
               frames: [
                 {
