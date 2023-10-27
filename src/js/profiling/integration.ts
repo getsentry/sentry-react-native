@@ -1,7 +1,15 @@
 /* eslint-disable complexity */
 import type { Hub } from '@sentry/core';
 import { getActiveTransaction } from '@sentry/core';
-import type { Envelope, Event, EventProcessor, Integration, Transaction } from '@sentry/types';
+import type {
+  Envelope,
+  Event,
+  EventProcessor,
+  Integration,
+  Profile,
+  ThreadCpuProfile,
+  Transaction,
+} from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 import { Platform } from 'react-native';
 
@@ -10,7 +18,7 @@ import { NATIVE } from '../wrapper';
 import { PROFILE_QUEUE } from './cache';
 import { convertToSentryProfile } from './convertHermesProfile';
 import type { NativeProfileEvent } from './nativeTypes';
-import type { CombinedProfileEvent, HermesProfileEvent, Profile, ThreadCpuProfile } from './types';
+import type { CombinedProfileEvent, HermesProfileEvent } from './types';
 import {
   addProfilesToEnvelope,
   createHermesProfilingEvent,

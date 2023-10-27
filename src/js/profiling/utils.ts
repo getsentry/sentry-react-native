@@ -1,9 +1,9 @@
 /* eslint-disable complexity */
-import type { DebugImage, Envelope, Event } from '@sentry/types';
+import type { DebugImage, Envelope, Event, Profile, ThreadCpuProfile } from '@sentry/types';
 import { forEachEnvelopeItem, GLOBAL_OBJ, logger } from '@sentry/utils';
 
 import { DEFAULT_BUNDLE_NAME } from './hermes';
-import type { CombinedProfileEvent, HermesProfileEvent, Profile, RawThreadCpuProfile, ThreadCpuProfile } from './types';
+import type { CombinedProfileEvent, HermesProfileEvent, RawThreadCpuProfile } from './types';
 
 /**
  *
