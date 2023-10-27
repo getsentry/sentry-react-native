@@ -7,6 +7,12 @@
 - Add actual `activeThreadId` to Profiles ([#3338](https://github.com/getsentry/sentry-react-native/pull/3338))
 - Parse Hermes Profiling Bytecode Frames ([#3342](https://github.com/getsentry/sentry-react-native/pull/3342))
 
+### Dependencies
+
+- Bump JavaScript SDK from v7.73.0 to v7.75.1 ([#3344](https://github.com/getsentry/sentry-react-native/pull/3344))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7751)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.73.0...7.75.1)
+
 ## 5.11.1
 
 ### Fixes
