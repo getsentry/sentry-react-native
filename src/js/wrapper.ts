@@ -527,9 +527,12 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     const { profile, nativeProfile, error } = RNSentry.stopProfiling();
-    if (!profile || !nativeProfile || error) {
+    if (!profile || error) {
       logger.error('[NATIVE] Stop Profiling Failed', error);
       return null;
+    }
+    if (Platform.OS === 'ios' && !nativeProfile) {
+      logger.warn('[NATIVE] Stop Profiling Failed: No Native Profile');
     }
 
     try {

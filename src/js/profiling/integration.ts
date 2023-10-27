@@ -261,7 +261,7 @@ export function stopProfiling(): CombinedProfileEvent | null {
 }
 
 /**
- *
+ * Merges Hermes and Native profile events into one.
  */
 export function addNativeProfileToHermesProfile(
   hermes: HermesProfileEvent,
@@ -269,7 +269,7 @@ export function addNativeProfileToHermesProfile(
 ): CombinedProfileEvent {
   return {
     ...hermes,
-    profile: addNativeThreadCpuProfileToHermes(hermes.profile, native.profile),
+    profile: addNativeThreadCpuProfileToHermes(hermes.profile, native.profile, hermes.transaction.active_thread_id),
     debug_meta: {
       images: native.debug_meta.images,
     },
@@ -278,16 +278,17 @@ export function addNativeProfileToHermesProfile(
 }
 
 /**
- *
+ * Merges Hermes And Native profiles into one.
  */
 export function addNativeThreadCpuProfileToHermes(
   hermes: ThreadCpuProfile,
   native: ThreadCpuProfile,
+  hermes_active_thread_id: string | undefined,
 ): CombinedProfileEvent['profile'] {
   // assumes thread ids are unique
-  hermes.thread_metadata = { ...hermes.thread_metadata, ...native.thread_metadata };
+  hermes.thread_metadata = { ...native.thread_metadata, ...hermes.thread_metadata };
   // assumes queue ids are unique
-  hermes.queue_metadata = { ...hermes.queue_metadata, ...native.queue_metadata };
+  hermes.queue_metadata = { ...native.queue_metadata, ...hermes.queue_metadata };
 
   // recalculate frames and stacks using offset
   const framesOffset = hermes.frames.length;
@@ -308,10 +309,12 @@ export function addNativeThreadCpuProfileToHermes(
   ];
   hermes.samples = [
     ...(hermes.samples || []),
-    ...(native.samples || []).map(sample => ({
-      ...sample,
-      stack_id: stacksOffset + sample.stack_id,
-    })),
+    ...(native.samples || [])
+      .filter(sample => sample.thread_id !== hermes_active_thread_id)
+      .map(sample => ({
+        ...sample,
+        stack_id: stacksOffset + sample.stack_id,
+      })),
   ];
 
   return hermes;
