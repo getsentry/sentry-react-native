@@ -1,5 +1,6 @@
-import type { ParsedHermesStackFrame } from '../../src/js/profiling/hermes';
-import { parseHermesJSStackFrame } from '../../src/js/profiling/hermes';
+import type { ThreadCpuFrame } from '@sentry/types';
+
+import { parseHermesJSStackFrame } from '../../src/js/profiling/convertHermesProfile';
 
 describe('hermes', () => {
   describe('parseHermesStackFrameName', () => {
@@ -11,9 +12,9 @@ describe('hermes', () => {
           column: '33',
           category: 'JavaScript',
         }),
-      ).toEqual(<ParsedHermesStackFrame>{
+      ).toEqual(<ThreadCpuFrame>{
         function: 'fooA',
-        file: 'app:///main.jsbundle',
+        abs_path: 'app:///main.jsbundle',
         lineno: 1610,
         colno: 33,
       });
@@ -25,7 +26,7 @@ describe('hermes', () => {
           category: 'root',
         }),
       ).toEqual(
-        expect.objectContaining(<ParsedHermesStackFrame>{
+        expect.objectContaining(<ThreadCpuFrame>{
           function: '[root]',
         }),
       );
@@ -38,9 +39,8 @@ describe('hermes', () => {
           column: '33',
           category: 'JavaScript',
         }),
-      ).toEqual(<ParsedHermesStackFrame>{
-        function: 'anonymous',
-        file: 'app:///main.jsbundle',
+      ).toEqual(<ThreadCpuFrame>{
+        abs_path: 'app:///main.jsbundle',
         lineno: 1610,
         colno: 33,
       });
@@ -52,9 +52,9 @@ describe('hermes', () => {
           category: 'JavaScript',
         }),
       ).toEqual(
-        expect.objectContaining(<ParsedHermesStackFrame>{
+        expect.objectContaining(<ThreadCpuFrame>{
           function: 'fooA',
-          file: 'app:///main.jsbundle',
+          abs_path: 'app:///main.jsbundle',
         }),
       );
     });

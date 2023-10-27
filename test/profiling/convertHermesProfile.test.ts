@@ -84,23 +84,24 @@ describe('convert hermes profile to sentry profile', () => {
       frames: [
         {
           function: '[root]',
+          in_app: false,
         },
         {
           colno: 33,
-          file: 'app:///main.jsbundle',
+          abs_path: 'app:///main.jsbundle',
           function: 'fooA',
           lineno: 1610,
         },
         {
           colno: 21,
-          file: 'app:///main.jsbundle',
+          abs_path: 'app:///main.jsbundle',
           function: 'fooB',
           lineno: 1616,
         },
         {
           colno: 18,
-          file: 'app:///main.jsbundle',
-          function: 'anonymous',
+          abs_path: 'app:///main.jsbundle',
+          function: undefined,
           lineno: 1627,
         },
       ],

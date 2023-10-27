@@ -1,7 +1,8 @@
-import type { Envelope, Event, Profile } from '@sentry/types';
-import { forEachEnvelopeItem, logger } from '@sentry/utils';
+import type { DebugImage, Envelope, Event, Profile } from '@sentry/types';
+import { forEachEnvelopeItem, GLOBAL_OBJ, logger } from '@sentry/utils';
 
 import { getDefaultEnvironment } from '../utils/environment';
+import { DEFAULT_BUNDLE_NAME } from './hermes';
 import type { RawThreadCpuProfile } from './types';
 
 /**
@@ -137,7 +138,7 @@ function createProfilePayload(
   const profile: Profile = {
     event_id: profile_id,
     timestamp: new Date(start_timestamp).toISOString(),
-    platform: 'node',
+    platform: 'javascript',
     version: '1',
     release: release,
     environment: environment,
@@ -164,9 +165,45 @@ function createProfilePayload(
       trace_id: trace_id || '',
       active_thread_id: cpuProfile.active_thread_id,
     },
+    debug_meta: {
+      images: getDebugMetadata(),
+    },
   };
 
   return profile;
+}
+
+/**
+ * Returns debug meta images of the loaded bundle.
+ */
+export function getDebugMetadata(): DebugImage[] {
+  if (!DEFAULT_BUNDLE_NAME) {
+    return [];
+  }
+
+  const debugIdMap = GLOBAL_OBJ._sentryDebugIds;
+  if (!debugIdMap) {
+    return [];
+  }
+
+  const debugIdsKeys = Object.keys(debugIdMap);
+  if (!debugIdsKeys.length) {
+    return [];
+  }
+
+  if (debugIdsKeys.length > 1) {
+    logger.warn(
+      '[Profiling] Multiple debug images found, but only one one bundle is supported. Using the first one...',
+    );
+  }
+
+  return [
+    {
+      code_file: DEFAULT_BUNDLE_NAME,
+      debug_id: debugIdMap[debugIdsKeys[0]],
+      type: 'sourcemap',
+    },
+  ];
 }
 
 /**
