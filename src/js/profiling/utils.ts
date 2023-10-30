@@ -1,6 +1,7 @@
 import type { DebugImage, Envelope, Event, Profile } from '@sentry/types';
 import { forEachEnvelopeItem, GLOBAL_OBJ, logger } from '@sentry/utils';
 
+import { getDefaultEnvironment } from '../utils/environment';
 import { DEFAULT_BUNDLE_NAME } from './hermes';
 import type { RawThreadCpuProfile } from './types';
 
@@ -65,7 +66,7 @@ export function createProfilingEvent(profile: RawThreadCpuProfile, event: Event)
 
   return createProfilePayload(profile, {
     release: event.release || '',
-    environment: event.environment || '',
+    environment: event.environment || getDefaultEnvironment(),
     event_id: event.event_id || '',
     transaction: event.transaction || '',
     start_timestamp: event.start_timestamp ? event.start_timestamp * 1000 : Date.now(),
