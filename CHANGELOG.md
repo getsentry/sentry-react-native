@@ -2,10 +2,27 @@
 
 ## Unreleased
 
+### Features
+
+- Automatically detect environment if not set ([#3362](https://github.com/getsentry/sentry-react-native/pull/3362))
+- Send Source Maps Debug ID for symbolicated Profiles ([#3343](https://github.com/getsentry/sentry-react-native/pull/3343))
+
 ### Fixes
 
 - Add actual `activeThreadId` to Profiles ([#3338](https://github.com/getsentry/sentry-react-native/pull/3338))
 - Parse Hermes Profiling Bytecode Frames ([#3342](https://github.com/getsentry/sentry-react-native/pull/3342))
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.73.0 to v7.76.0 ([#3344](https://github.com/getsentry/sentry-react-native/pull/3344), [#3365](https://github.com/getsentry/sentry-react-native/pull/3365))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7760)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.73.0...7.76.0)
+- Bump Cocoa SDK from v8.13.0 to v8.14.2 ([#3340](https://github.com/getsentry/sentry-react-native/pull/3340))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8142)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.13.0...8.14.2)
+- Bump Android SDK from v6.30.0 to v6.32.0 ([#3341](https://github.com/getsentry/sentry-react-native/pull/3341))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6320)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.30.0...6.32.0)
 
 ## 5.11.1
 
