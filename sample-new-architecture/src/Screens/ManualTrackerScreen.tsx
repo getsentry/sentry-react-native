@@ -32,7 +32,7 @@ const TrackerScreen = () => {
         name: 'Fetch Covid19 data from API',
         op: 'http',
       },
-      async (span: Span) => {
+      async (span: Span | undefined) => {
         const response = await fetch('https://api.covid19api.com/summary', {
           method: 'GET',
           headers: {
@@ -44,7 +44,7 @@ const TrackerScreen = () => {
           response.json(),
         );
         setCases(json.Global);
-        span.setData('json', json);
+        span?.setData('json', json);
       },
     );
   };
