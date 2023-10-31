@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.12.0
 
 ### Features
 
