@@ -5,6 +5,7 @@
 ### Features
 
 - Current screen is now repoted on the error's app context ([#3339](https://github.com/getsentry/sentry-react-native/pull/3339))
+<<<<<<< HEAD
 - Export New JS Performance API ([#3371](https://github.com/getsentry/sentry-react-native/pull/3371))
 
   ```js
@@ -22,6 +23,8 @@
 
 - Automatically detect environment if not set ([#3362](https://github.com/getsentry/sentry-react-native/pull/3362))
 - Send Source Maps Debug ID for symbolicated Profiles ([#3343](https://github.com/getsentry/sentry-react-native/pull/3343))
+=======
+>>>>>>> 1dadea0d633184add2ca21f513792ec3932afe53
 
 ### Fixes
 
