@@ -37,7 +37,7 @@ jobs:
             name: Android
             appPlain: test/perf/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 16
@@ -161,7 +161,7 @@ jobs:
           - rn-version: '0.65.3'
             rn-architecture: 'new'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Sentry Release
         run: |
@@ -370,7 +370,7 @@ jobs:
       PLATFORM: ${{ matrix.platform }}
       DEVICE: ${{ matrix.device }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Global Tools
         run: brew install xcbeautify
