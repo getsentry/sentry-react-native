@@ -49,7 +49,6 @@ export class DeviceContext implements Integration {
       if (AppState.currentState !== 'unknown') {
         nativeContexts = nativeContexts || {};
         nativeContexts.app = {
-          ...event.contexts?.app,
           ...nativeContexts.app,
           in_foreground: AppState.currentState === 'active',
         };
