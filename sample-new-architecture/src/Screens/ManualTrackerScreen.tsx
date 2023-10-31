@@ -33,17 +33,16 @@ const TrackerScreen = () => {
         op: 'http',
       },
       async (span: Span) => {
-        const response = await fetch(
-          'https://api.covid19api.com/summary',
-          {
-            method: 'GET',
-            headers: {
-              Accept: 'application/json',
-              'Content-Type': 'application/json',
-            },
+        const response = await fetch('https://api.covid19api.com/summary', {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
           },
+        });
+        const json = await Sentry.startSpan({ name: 'Parse JSON' }, () =>
+          response.json(),
         );
-        const json = await Sentry.startSpan({ name: 'Parse JSON' },() => response.json());
         setCases(json.Global);
         span.setData('json', json);
       },
