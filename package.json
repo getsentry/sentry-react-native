@@ -58,18 +58,18 @@
     "react-native": ">=0.65.0"
   },
   "dependencies": {
-    "@sentry/browser": "7.75.1",
+    "@sentry/browser": "7.76.0",
     "@sentry/cli": "2.21.2",
-    "@sentry/core": "7.75.1",
-    "@sentry/hub": "7.75.1",
-    "@sentry/integrations": "7.75.1",
-    "@sentry/react": "7.75.1",
-    "@sentry/types": "7.75.1",
-    "@sentry/utils": "7.75.1"
+    "@sentry/core": "7.76.0",
+    "@sentry/hub": "7.76.0",
+    "@sentry/integrations": "7.76.0",
+    "@sentry/react": "7.76.0",
+    "@sentry/types": "7.76.0",
+    "@sentry/utils": "7.76.0"
   },
   "devDependencies": {
-    "@sentry-internal/eslint-config-sdk": "7.75.1",
-    "@sentry-internal/eslint-plugin-sdk": "7.75.1",
+    "@sentry-internal/eslint-config-sdk": "7.76.0",
+    "@sentry-internal/eslint-plugin-sdk": "7.76.0",
     "@sentry/typescript": "^5.20.1",
     "@sentry/wizard": "3.16.1",
     "@types/jest": "^29.5.3",
