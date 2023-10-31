@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
-import { Transaction } from '@sentry/types';
+import { Span } from '@sentry/core';
 
 /**
  * An example of how to add a Sentry Transaction to a React component manually.
@@ -24,52 +24,40 @@ const TrackerScreen = () => {
     TotalRecovered: number;
   } | null>(null);
 
-  const transaction = React.useRef<Transaction | null>(null);
-
-  React.useEffect(() => {
-    // Initialize the transaction for the screen.
-    transaction.current = Sentry.startTransaction({
-      name: 'Manual Tracker',
-      op: 'navigation',
-    });
-
-    return () => {
-      // Finishing the transaction triggers sending the data to Sentry.
-      transaction.current?.finish();
-      transaction.current = null;
-      Sentry.configureScope(scope => {
-        scope.setSpan(undefined);
-      });
-    };
-  }, []);
-
-  const loadData = () => {
+  const loadData = async () => {
     setCases(null);
 
-    // Create a child span for the API call.
-    const span = transaction.current?.startChild({
-      op: 'http',
-      description: 'Fetch Covid19 data from API',
-    });
-
-    fetch('https://api.covid19api.com/summary', {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+    await Sentry.startSpan(
+      {
+        name: 'Fetch Covid19 data from API',
+        op: 'http',
       },
-    })
-      .then(response => response.json())
-      .then(json => {
+      async (span: Span | undefined) => {
+        const response = await fetch('https://api.covid19api.com/summary', {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+        const json = await Sentry.startSpan({ name: 'Parse JSON' }, () =>
+          response.json(),
+        );
         setCases(json.Global);
-
         span?.setData('json', json);
-        span?.finish();
-      });
+      },
+    );
   };
 
   React.useEffect(() => {
-    loadData();
+    Sentry.getActiveSpan()?.finish();
+    Sentry.startSpan(
+      {
+        name: 'Manual Tracker',
+        op: 'navigation',
+      },
+      loadData,
+    );
   }, []);
 
   return (

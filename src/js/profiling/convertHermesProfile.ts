@@ -1,21 +1,17 @@
 import type { FrameId, StackId, ThreadCpuFrame, ThreadCpuSample, ThreadCpuStack, ThreadId } from '@sentry/types';
 import { logger } from '@sentry/utils';
-import { Platform } from 'react-native';
 
-import { ANDROID_DEFAULT_BUNDLE_NAME, IOS_DEFAULT_BUNDLE_NAME } from '../integrations/rewriteframes';
 import type * as Hermes from './hermes';
-import { parseHermesStackFrameFunctionName } from './hermes';
+import { DEFAULT_BUNDLE_NAME } from './hermes';
 import { MAX_PROFILE_DURATION_MS } from './integration';
 import type { RawThreadCpuProfile } from './types';
 
+const PLACEHOLDER_THREAD_ID_STRING = '0';
 const MS_TO_NS = 1e6;
 const MAX_PROFILE_DURATION_NS = MAX_PROFILE_DURATION_MS * MS_TO_NS;
-const ANONYMOUS_FUNCTION_NAME = 'anonymous';
 const UNKNOWN_STACK_ID = -1;
 const JS_THREAD_NAME = 'JavaScriptThread';
 const JS_THREAD_PRIORITY = 1;
-const DEFAULT_BUNDLE_NAME =
-  Platform.OS === 'android' ? ANDROID_DEFAULT_BUNDLE_NAME : Platform.OS === 'ios' ? IOS_DEFAULT_BUNDLE_NAME : undefined;
 
 /**
  * Converts a Hermes profile to a Sentry profile.
@@ -61,12 +57,14 @@ export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThread
       priority: JS_THREAD_PRIORITY,
     };
   }
+  const active_thread_id = Object.keys(thread_metadata)[0] || PLACEHOLDER_THREAD_ID_STRING;
 
   return {
     samples,
     frames,
     stacks,
     thread_metadata,
+    active_thread_id,
   };
 }
 
@@ -133,15 +131,7 @@ function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFr
       continue;
     }
     hermesStackFrameIdToSentryFrameIdMap.set(Number(key), frames.length);
-    const hermesFrame = hermesStackFrames[key];
-
-    const functionName = parseHermesStackFrameFunctionName(hermesFrame.name);
-    frames.push({
-      function: functionName || ANONYMOUS_FUNCTION_NAME,
-      file: hermesFrame.category == 'JavaScript' ? DEFAULT_BUNDLE_NAME : undefined,
-      lineno: hermesFrame.line !== undefined ? Number(hermesFrame.line) : undefined,
-      colno: hermesFrame.column !== undefined ? Number(hermesFrame.column) : undefined,
-    });
+    frames.push(parseHermesJSStackFrame(hermesStackFrames[key]));
   }
 
   return {
@@ -181,5 +171,41 @@ function mapStacks(
   return {
     stacks,
     hermesStackToSentryStackMap,
+  };
+}
+
+/**
+ * Parses Hermes StackFrame to Sentry StackFrame.
+ * For native frames only function name is returned, for Hermes bytecode the line and column are calculated.
+ */
+export function parseHermesJSStackFrame(frame: Hermes.StackFrame): ThreadCpuFrame {
+  if (frame.category !== 'JavaScript') {
+    // Native
+    if (frame.name === '[root]') {
+      return { function: frame.name, in_app: false };
+    }
+    return { function: frame.name };
+  }
+
+  if (frame.funcVirtAddr !== undefined && frame.offset !== undefined) {
+    // Hermes Bytecode
+    return {
+      function: frame.name,
+      abs_path: DEFAULT_BUNDLE_NAME,
+      // https://github.com/krystofwoldrich/metro/blob/417e6f276ff9422af6039fc4d1bce41fcf7d9f46/packages/metro-symbolicate/src/Symbolication.js#L298-L301
+      // Hermes lineno is hardcoded 1, currently only one bundle symbolication is supported by metro-symbolicate and thus by us.
+      lineno: 1,
+      // Hermes colno is 0-based, while Sentry is 1-based
+      colno: Number(frame.funcVirtAddr) + Number(frame.offset) + 1,
+    };
+  }
+
+  // JavaScript
+  const indexOfLeftParenthesis = frame.name.indexOf('(');
+  return {
+    function: indexOfLeftParenthesis !== -1 ? frame.name.substring(0, indexOfLeftParenthesis) || undefined : frame.name,
+    abs_path: DEFAULT_BUNDLE_NAME,
+    lineno: frame.line !== undefined ? Number(frame.line) : undefined,
+    colno: frame.column !== undefined ? Number(frame.column) : undefined,
   };
 }
