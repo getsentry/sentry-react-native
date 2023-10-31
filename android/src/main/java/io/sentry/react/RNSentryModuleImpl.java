@@ -1,5 +1,6 @@
 package io.sentry.react;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.sentry.android.core.internal.util.ScreenshotUtils.takeScreenshot;
 
 import android.app.Activity;
@@ -55,6 +56,7 @@ import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
+import io.sentry.android.core.AndroidProfiler;
 import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.BuildConfig;
@@ -65,6 +67,7 @@ import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
+import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
@@ -96,6 +99,8 @@ public class RNSentryModuleImpl {
     private static final int SLOW_FRAME_THRESHOLD = 16;
 
     private static final int SCREENSHOT_TIMEOUT_SECONDS = 2;
+
+    private AndroidProfiler profiler = null;
 
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
         packageInfo = getPackageInfo(reactApplicationContext);
@@ -620,8 +625,55 @@ public class RNSentryModuleImpl {
 
     public WritableMap startProfiling() {
         final WritableMap result = new WritableNativeMap();
+        final SentryOptions options = Sentry.getCurrentHub().getOptions();
+        if (!(options instanceof SentryAndroidOptions)) {
+            result.putBoolean("started", false);
+            result.putString("error", "Sentry Options are not instance of SentryAndroidOptions. Can't start profiler.");
+            return result;
+        }
+        if (profiler == null) {
+            // TODO: Add resonable RN default
+            final String tracesFilesDirPath = options.getProfilingTracesDirPath();
+            if (!options.isProfilingEnabled()) {
+                options.getLogger().log(SentryLevel.INFO, "Profiling is disabled in options.");
+                result.putBoolean("started", false);
+                return result;
+            }
+            if (tracesFilesDirPath == null) {
+                options
+                        .getLogger()
+                        .log(
+                                SentryLevel.WARNING,
+                                "Disabling profiling because no profiling traces dir path is defined in options.");
+                result.putBoolean("started", false);
+                return result;
+            }
+            // TODO: Add RN default
+            final int intervalHz = ((SentryAndroidOptions) options).getProfilingTracesHz();
+            if (intervalHz <= 0) {
+                options
+                        .getLogger()
+                        .log(
+                                SentryLevel.WARNING,
+                                "Disabling profiling because trace rate is set to %d",
+                                intervalHz);
+                result.putBoolean("started", false);
+                return result;
+            }
+            final SentryFrameMetricsCollector frameMetricsCollector =
+                    new SentryFrameMetricsCollector(reactApplicationContext, options, buildInfo);
+            profiler = new AndroidProfiler(
+                    tracesFilesDirPath,
+                    (int) SECONDS.toMicros(1) / intervalHz,
+                    frameMetricsCollector,
+                    (SentryAndroidOptions) options,
+                    buildInfo
+            );
+        }
+
         try {
             HermesSamplingProfiler.enable();
+
             result.putBoolean("started", true);
         } catch (Throwable e) {
             result.putBoolean("started", false);
