@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Export New JS Performance API ([#3371](https://github.com/getsentry/sentry-react-native/pull/3371))
+
+  ```js
+  // Start a span that tracks the duration of expensiveFunction
+  const result = Sentry.startSpan({ name: 'important function' }, () => {
+    return expensiveFunction();
+  });
+  ```
+
+  Read more at https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7690
+
 ## 5.12.0
 
 ### Features
