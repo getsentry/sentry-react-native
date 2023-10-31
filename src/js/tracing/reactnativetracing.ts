@@ -454,7 +454,10 @@ export class ReactNativeTracing implements Integration {
           },
         });
       }
-
+      scope.setContext('app', { view_names: [context.name] });
+      /**
+       * @deprecated tag routing.route.name will be removed in the future.
+       */
       scope.setTag('routing.route.name', context.name);
     });
   }

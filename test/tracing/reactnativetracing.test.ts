@@ -66,6 +66,9 @@ const getMockScope = () => {
     setTag(_tag: any) {
       // Placeholder
     },
+    setContext(_context: any) {
+      // Placeholder
+    },
     addBreadcrumb(_breadcrumb: any) {
       // Placeholder
     },
@@ -678,7 +681,7 @@ describe('ReactNativeTracing', () => {
 
   describe('Routing Instrumentation', () => {
     describe('_onConfirmRoute', () => {
-      it('Sets tag and adds breadcrumb', () => {
+      it('Sets context,tag and adds breadcrumb', () => {
         const routing = new RoutingInstrumentation();
         const integration = new ReactNativeTracing({
           routingInstrumentation: routing,
@@ -687,6 +690,7 @@ describe('ReactNativeTracing', () => {
         const mockScope = {
           addBreadcrumb: jest.fn(),
           setTag: jest.fn(),
+          setContext: jest.fn(),
 
           // Not relevant to test
           setSpan: () => {},
@@ -724,6 +728,10 @@ describe('ReactNativeTracing', () => {
         };
         routing.onRouteWillChange(routeContext);
 
+        expect(mockScope.setContext).toBeCalledWith('app', { view_names: [routeContext.name] });
+        /**
+         * @deprecated tag routing.route.name will be removed in the future.
+         */
         expect(mockScope.setTag).toBeCalledWith('routing.route.name', routeContext.name);
         expect(mockScope.addBreadcrumb).toBeCalledWith({
           type: 'navigation',

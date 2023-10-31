@@ -43,6 +43,47 @@ describe('Device Context Integration', () => {
     ).expectEvent.toStrictEqualMockEvent();
   });
 
+  it('do not overwrite event app context', async () => {
+    (
+      await executeIntegrationWith({
+        nativeContexts: { app: { view_names: ['native view'] } },
+        mockEvent: { contexts: { app: { view_names: ['Home'] } } },
+      })
+    ).expectEvent.toStrictEqualMockEvent();
+  });
+
+  it('merge event context app', async () => {
+    const { processedEvent } = await executeIntegrationWith({
+      nativeContexts: { contexts: { app: { native: 'value' } } },
+      mockEvent: { contexts: { app: { event_app: 'value' } } },
+    });
+    expect(processedEvent).toStrictEqual({
+      contexts: {
+        app: {
+          event_app: 'value',
+          native: 'value',
+        },
+      },
+    });
+  });
+
+  it('merge event context app even when event app doesnt exist', async () => {
+    const { processedEvent } = await executeIntegrationWith({
+      nativeContexts: { contexts: { app: { native: 'value' } } },
+      mockEvent: { contexts: { keyContext: { key: 'value' } } },
+    });
+    expect(processedEvent).toStrictEqual({
+      contexts: {
+        keyContext: {
+          key: 'value',
+        },
+        app: {
+          native: 'value',
+        },
+      },
+    });
+  });
+
   it('merge event and native contexts', async () => {
     const { processedEvent } = await executeIntegrationWith({
       nativeContexts: { contexts: { duplicate: { context: 'native-value' }, native: { context: 'value' } } },

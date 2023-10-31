@@ -49,16 +49,16 @@ export class DeviceContext implements Integration {
       if (AppState.currentState !== 'unknown') {
         nativeContexts = nativeContexts || {};
         nativeContexts.app = {
+          ...event.contexts?.app,
           ...nativeContexts.app,
           in_foreground: AppState.currentState === 'active',
         };
       }
       if (nativeContexts) {
-        const routingName = event.tags?.['routing.route.name'];
-        if (routingName) {
-          nativeContexts.app['view_names'] = [routingName];
-        }
         event.contexts = { ...nativeContexts, ...event.contexts };
+        if (nativeContexts.app) {
+          event.contexts.app = { ...nativeContexts.app, ...event.contexts.app };
+        }
       }
 
       const nativeTags = native.tags;
