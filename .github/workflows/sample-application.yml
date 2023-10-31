@@ -38,7 +38,7 @@ jobs:
             runtime: 'latest'
             device: 'iPhone 14'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' }}
