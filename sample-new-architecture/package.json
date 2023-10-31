@@ -15,13 +15,13 @@
     "clean-ios": "cd ios; rm -rf Podfile.lock Pods build; cd .."
   },
   "dependencies": {
-    "@react-navigation/native": "^6.1.7",
-    "@react-navigation/stack": "^6.3.17",
+    "@react-navigation/native": "^6.1.9",
+    "@react-navigation/stack": "^6.3.20",
     "react": "18.2.0",
-    "react-native": "0.72.4",
-    "react-native-gesture-handler": "^2.12.0",
-    "react-native-safe-area-context": "^4.6.3",
-    "react-native-screens": "^3.22.0",
+    "react-native": "0.73.0-rc.3",
+    "react-native-gesture-handler": "^2.13.4",
+    "react-native-safe-area-context": "^4.7.4",
+    "react-native-screens": "^3.27.0",
     "react-redux": "^8.1.1",
     "redux": "^4.2.1"
   },
@@ -29,9 +29,10 @@
     "@babel/core": "^7.22.5",
     "@babel/preset-env": "^7.22.5",
     "@babel/runtime": "^7.22.5",
-    "@react-native/eslint-config": "^0.72.2",
-    "@react-native/metro-config": "^0.72.6",
-    "@tsconfig/react-native": "^3.0.2",
+    "@react-native/babel-preset": "^0.73.18",
+    "@react-native/eslint-config": "^0.73.1",
+    "@react-native/metro-config": "^0.73.1",
+    "@react-native/typescript-config": "^0.73.1",
     "@types/react": "^18.2.13",
     "@types/react-test-renderer": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^5.37.0",
@@ -41,11 +42,13 @@
     "eslint": "^8.19.0",
     "eslint-plugin-ft-flow": "^2.0.3",
     "eslint-plugin-jest": "^27.2.1",
-    "jest": "^29.2.1",
-    "metro-react-native-babel-preset": "^0.76.7",
-    "prettier": "^2.4.1",
+    "jest": "^29.6.3",
+    "prettier": "2.8.8",
     "react-test-renderer": "18.2.0",
-    "typescript": "4.8.4"
+    "typescript": "5.0.4"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "codegenConfig": {
     "name": "AppSpecs",
