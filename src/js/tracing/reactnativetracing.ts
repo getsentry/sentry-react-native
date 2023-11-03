@@ -3,7 +3,7 @@ import type { RequestInstrumentationOptions } from '@sentry/browser';
 import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from '@sentry/browser';
 import type { Hub, IdleTransaction, Transaction } from '@sentry/core';
 import { getActiveTransaction, getCurrentHub, startIdleTransaction } from '@sentry/core';
-import type { EventProcessor, Integration, Transaction as TransactionType, TransactionContext } from '@sentry/types';
+import type { Event, EventProcessor, Integration, Transaction as TransactionType, TransactionContext } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { APP_START_COLD, APP_START_WARM } from '../measurements';
@@ -140,6 +140,7 @@ export class ReactNativeTracing implements Integration {
   private _currentRoute?: string;
   private _hasSetTracePropagationTargets: boolean;
   private _hasSetTracingOrigins: boolean;
+  private _currentViewName: string | undefined;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this._hasSetTracePropagationTargets = !!(
@@ -255,6 +256,9 @@ export class ReactNativeTracing implements Integration {
       logger.log('[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.');
     }
 
+    this._getCurrentViewEventProcessor = this._getCurrentViewEventProcessor.bind(this);
+    addGlobalEventProcessor(async (event: Event) => this._getCurrentViewEventProcessor(event));
+
     instrumentOutgoingRequests({
       traceFetch,
       traceXHR,
@@ -349,6 +353,17 @@ export class ReactNativeTracing implements Integration {
     logger.log(`[ReactNativeTracing] User Interaction Tracing Created ${op} transaction ${name}.`);
     return this._inflightInteractionTransaction;
   }
+
+  /**
+   *  Sets the current view name into the app context.
+   *  @param event Le event.
+   */
+  private _getCurrentViewEventProcessor(event: Event): Event {
+    if (event.contexts && this._currentViewName) {
+      event.contexts.app = { ...{ view_names: [this._currentViewName] }, ...event.contexts.app};
+    }
+    return event
+};
 
   /**
    * Returns the App Start Duration in Milliseconds. Also returns undefined if not able do
@@ -454,7 +469,8 @@ export class ReactNativeTracing implements Integration {
           },
         });
       }
-      scope.setContext('app', { view_names: [context.name] });
+
+      this._currentViewName = context.name;
       /**
        * @deprecated tag routing.route.name will be removed in the future.
        */
