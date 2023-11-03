@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@b173b6ec0100793626c2d9e6b90435061f4fc3e5 # pin@0.11.0
+        uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
         with:
           access_token: ${{ github.token }}
 
@@ -37,8 +37,8 @@ jobs:
             name: Android
             appPlain: test/perf/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 16
       - uses: actions/setup-java@v3
@@ -61,7 +61,7 @@ jobs:
         run: yarn build
       - name: Package SDK
         run: yalc publish
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 16
       - uses: actions/cache@v3
@@ -161,7 +161,7 @@ jobs:
           - rn-version: '0.65.3'
             rn-architecture: 'new'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Sentry Release
         run: |
@@ -178,12 +178,12 @@ jobs:
           echo "SENTRY_RELEASE=$SENTRY_RELEASE"
           echo "SENTRY_DIST=$SENTRY_DIST"
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         if: ${{ matrix.rn-version == '0.65.3' }}
         with:
           node-version: 16
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         if: ${{ matrix.rn-version != '0.65.3' }}
         with:
           node-version: 18
@@ -370,7 +370,7 @@ jobs:
       PLATFORM: ${{ matrix.platform }}
       DEVICE: ${{ matrix.device }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Global Tools
         run: brew install xcbeautify
@@ -386,12 +386,12 @@ jobs:
         working-directory: test/e2e
         run: tar -xvf *.tar
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         if: ${{ matrix.rn-version == '0.65.3' }}
         with:
           node-version: 16
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         if: ${{ matrix.rn-version != '0.65.3' }}
         with:
           node-version: 18
@@ -437,7 +437,7 @@ jobs:
 
         # Wait until the Appium server starts.
       - name: Check Appium Server
-        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # pin@v2
+        uses: nick-fields/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # pin@v2
         with:
           timeout_seconds: 60
           max_attempts: 10

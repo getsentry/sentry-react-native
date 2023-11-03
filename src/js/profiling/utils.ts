@@ -2,6 +2,7 @@
 import type { Envelope, Event, Profile, ThreadCpuProfile } from '@sentry/types';
 import { forEachEnvelopeItem, logger } from '@sentry/utils';
 
+import { getDefaultEnvironment } from '../utils/environment';
 import { getDebugMetadata } from './debugid';
 import type { CombinedProfileEvent, HermesProfileEvent, RawThreadCpuProfile } from './types';
 
@@ -83,7 +84,7 @@ export function enrichCombinedProfileWithEventContext(
     },
     timestamp: event.start_timestamp ? new Date(event.start_timestamp * 1000).toISOString() : new Date().toISOString(),
     release: event.release || '',
-    environment: event.environment || '',
+    environment: event.environment || getDefaultEnvironment(),
     os: {
       name: (event.contexts && event.contexts.os && event.contexts.os.name) || '',
       version: (event.contexts && event.contexts.os && event.contexts.os.version) || '',
