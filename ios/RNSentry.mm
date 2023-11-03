@@ -605,20 +605,26 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
 #if SENTRY_PROFILING_ENABLED
     try {
         facebook::hermes::HermesRuntime::enableSamplingProfiler();
-        nativeProfileTraceId = [[SentryId alloc] init];
-        nativeProfileStartTime = [PrivateSentrySDKOnly startProfilerForTrace: nativeProfileTraceId];
+        if (nativeProfileTraceId == nil && nativeProfileStartTime == 0) {
+            nativeProfileTraceId = [[SentryId alloc] init];
+            nativeProfileStartTime = [PrivateSentrySDKOnly startProfilerForTrace: nativeProfileTraceId];
+        } else {
+            NSLog(@"Can't start native profiling. Currently existing trace: %@", nativeProfileTraceId);
+        }
         return @{ @"started": @YES };
     } catch (const std::exception& ex) {
         if (nativeProfileTraceId != nil) {
             [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
             nativeProfileTraceId = nil;
         }
+        nativeProfileStartTime = 0;
         return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
     } catch (...) {
         if (nativeProfileTraceId != nil) {
             [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
             nativeProfileTraceId = nil;
         }
+        nativeProfileStartTime = 0;
         return @{ @"error": @"Failed to start profiling" };
     }
 #else
@@ -634,10 +640,10 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
         if (nativeProfileTraceId != nil && nativeProfileStartTime != 0) {
             uint64_t nativeProfileStopTime = [[[SentryDependencyContainer sharedInstance] dateProvider] systemTime];
             nativeProfile = [PrivateSentrySDKOnly collectProfileBetween:nativeProfileStartTime and:nativeProfileStopTime forTrace:nativeProfileTraceId];
-
-            nativeProfileTraceId = nil;
-            nativeProfileStartTime = 0;
         }
+        // Cleanup native profiles
+        nativeProfileTraceId = nil;
+        nativeProfileStartTime = 0;
 
         facebook::hermes::HermesRuntime::disableSamplingProfiler();
         std::stringstream ss;
