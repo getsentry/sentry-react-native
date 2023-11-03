@@ -3,7 +3,13 @@ import type { RequestInstrumentationOptions } from '@sentry/browser';
 import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from '@sentry/browser';
 import type { Hub, IdleTransaction, Transaction } from '@sentry/core';
 import { getActiveTransaction, getCurrentHub, startIdleTransaction } from '@sentry/core';
-import type { Event, EventProcessor, Integration, Transaction as TransactionType, TransactionContext } from '@sentry/types';
+import type {
+  Event,
+  EventProcessor,
+  Integration,
+  Transaction as TransactionType,
+  TransactionContext,
+} from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { APP_START_COLD, APP_START_WARM } from '../measurements';
@@ -360,10 +366,10 @@ export class ReactNativeTracing implements Integration {
    */
   private _getCurrentViewEventProcessor(event: Event): Event {
     if (event.contexts && this._currentViewName) {
-      event.contexts.app = { ...{ view_names: [this._currentViewName] }, ...event.contexts.app};
+      event.contexts.app = { ...{ view_names: [this._currentViewName] }, ...event.contexts.app };
     }
-    return event
-};
+    return event;
+  }
 
   /**
    * Returns the App Start Duration in Milliseconds. Also returns undefined if not able do

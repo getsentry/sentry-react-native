@@ -440,8 +440,8 @@ describe('ReactNativeTracing', () => {
         const transaction = mockHub.getScope()?.getTransaction();
 
         expect(transaction).toBeUndefined();
+      });
     });
-  });
 
     describe('With routing instrumentation', () => {
       it('Cancels route transaction when app goes to background', async () => {
@@ -804,7 +804,7 @@ describe('ReactNativeTracing', () => {
         });
       });
     });
-});
+  });
   describe('Handling deprecated options', () => {
     test('finalTimeoutMs overrides maxTransactionDuration', () => {
       const tracing = new ReactNativeTracing({
