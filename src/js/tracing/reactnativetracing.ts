@@ -262,8 +262,7 @@ export class ReactNativeTracing implements Integration {
       logger.log('[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.');
     }
 
-    this._getCurrentViewEventProcessor = this._getCurrentViewEventProcessor.bind(this);
-    addGlobalEventProcessor(async (event: Event) => this._getCurrentViewEventProcessor(event));
+    addGlobalEventProcessor(this._getCurrentViewEventProcessor.bind(this));
 
     instrumentOutgoingRequests({
       traceFetch,
@@ -366,7 +365,7 @@ export class ReactNativeTracing implements Integration {
    */
   private _getCurrentViewEventProcessor(event: Event): Event {
     if (event.contexts && this._currentViewName) {
-      event.contexts.app = { ...{ view_names: [this._currentViewName] }, ...event.contexts.app };
+      event.contexts.app = { view_names: [this._currentViewName], ...event.contexts.app };
     }
     return event;
   }
