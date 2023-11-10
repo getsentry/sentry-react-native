@@ -15,6 +15,10 @@
 
   Read more at https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7690
 
+### Fixes
+
+- Remove `platform: node` from Debug Builds Events ([#3377](https://github.com/getsentry/sentry-react-native/pull/3377))
+
 ## 5.12.0
 
 ### Features
