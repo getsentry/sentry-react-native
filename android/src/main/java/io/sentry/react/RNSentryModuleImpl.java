@@ -2,6 +2,8 @@ package io.sentry.react;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.sentry.android.core.internal.util.ScreenshotUtils.takeScreenshot;
+import static io.sentry.vendor.Base64.NO_PADDING;
+import static io.sentry.vendor.Base64.NO_WRAP;
 
 import android.app.Activity;
 import android.content.Context;
@@ -30,28 +32,31 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import io.sentry.Breadcrumb;
 import io.sentry.DateUtils;
 import io.sentry.HubAdapter;
 import io.sentry.ILogger;
+import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
 import io.sentry.Integration;
 import io.sentry.Scope;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
 import io.sentry.SentryEvent;
+import io.sentry.SentryExecutorService;
 import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
@@ -74,6 +79,7 @@ import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
 import io.sentry.util.JsonSerializationUtils;
+import io.sentry.vendor.Base64;
 
 public class RNSentryModuleImpl {
 
@@ -100,7 +106,17 @@ public class RNSentryModuleImpl {
 
     private static final int SCREENSHOT_TIMEOUT_SECONDS = 2;
 
-    private AndroidProfiler profiler = null;
+    /**
+     * Profiling traces rate. 101 hz means 101 traces in 1 second. Defaults to 101 to avoid possible
+     * lockstep sampling. More on
+     * https://stackoverflow.com/questions/45470758/what-is-lockstep-sampling
+     */
+    private int profilingTracesHz = 101;
+
+    private AndroidProfiler androidProfiler = null;
+
+    private String cacheDirPath = null;
+    private ISentryExecutorService executorService = null;
 
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
         packageInfo = getPackageInfo(reactApplicationContext);
@@ -405,7 +421,7 @@ public class RNSentryModuleImpl {
         }
 
         try {
-            doneSignal.await(SCREENSHOT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            doneSignal.await(SCREENSHOT_TIMEOUT_SECONDS, SECONDS);
         } catch (InterruptedException e) {
             logger.log(SentryLevel.ERROR, "Screenshot process was interrupted.");
             return null;
@@ -623,56 +639,42 @@ public class RNSentryModuleImpl {
         }
     }
 
+    private String getProfilingTracesDirPath() {
+        if (cacheDirPath == null) {
+            cacheDirPath = new File(getReactApplicationContext().getCacheDir(), "sentry/react").getAbsolutePath();
+        }
+        File profilingTraceDir = new File(cacheDirPath, "profiling_trace");
+        profilingTraceDir.mkdirs();
+        return profilingTraceDir.getAbsolutePath();
+    }
+
+    private void initializeAndroidProfiler() {
+        if (executorService == null) {
+            executorService = new SentryExecutorService();
+        }
+        final String tracesFilesDirPath = getProfilingTracesDirPath();
+
+        final SentryFrameMetricsCollector frameMetricsCollector =
+                new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo);
+        androidProfiler = new AndroidProfiler(
+                tracesFilesDirPath,
+                (int) SECONDS.toMicros(1) / profilingTracesHz,
+                frameMetricsCollector,
+                executorService,
+                logger,
+                buildInfo
+        );
+    }
+
     public WritableMap startProfiling() {
         final WritableMap result = new WritableNativeMap();
-        final SentryOptions options = Sentry.getCurrentHub().getOptions();
-        if (!(options instanceof SentryAndroidOptions)) {
-            result.putBoolean("started", false);
-            result.putString("error", "Sentry Options are not instance of SentryAndroidOptions. Can't start profiler.");
-            return result;
-        }
-        if (profiler == null) {
-            // TODO: Add resonable RN default
-            final String tracesFilesDirPath = options.getProfilingTracesDirPath();
-            if (!options.isProfilingEnabled()) {
-                options.getLogger().log(SentryLevel.INFO, "Profiling is disabled in options.");
-                result.putBoolean("started", false);
-                return result;
-            }
-            if (tracesFilesDirPath == null) {
-                options
-                        .getLogger()
-                        .log(
-                                SentryLevel.WARNING,
-                                "Disabling profiling because no profiling traces dir path is defined in options.");
-                result.putBoolean("started", false);
-                return result;
-            }
-            // TODO: Add RN default
-            final int intervalHz = ((SentryAndroidOptions) options).getProfilingTracesHz();
-            if (intervalHz <= 0) {
-                options
-                        .getLogger()
-                        .log(
-                                SentryLevel.WARNING,
-                                "Disabling profiling because trace rate is set to %d",
-                                intervalHz);
-                result.putBoolean("started", false);
-                return result;
-            }
-            final SentryFrameMetricsCollector frameMetricsCollector =
-                    new SentryFrameMetricsCollector(reactApplicationContext, options, buildInfo);
-            profiler = new AndroidProfiler(
-                    tracesFilesDirPath,
-                    (int) SECONDS.toMicros(1) / intervalHz,
-                    frameMetricsCollector,
-                    (SentryAndroidOptions) options,
-                    buildInfo
-            );
+        if (androidProfiler == null) {
+            initializeAndroidProfiler();
         }
 
         try {
             HermesSamplingProfiler.enable();
+            androidProfiler.start();
 
             result.putBoolean("started", true);
         } catch (Throwable e) {
@@ -687,27 +689,21 @@ public class RNSentryModuleImpl {
         final WritableMap result = new WritableNativeMap();
         File output = null;
         try {
+            AndroidProfiler.ProfileEndData end = androidProfiler.endAndCollect(false, null);
             HermesSamplingProfiler.disable();
 
             output = File.createTempFile(
                 "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
-
             if (isDebug) {
                 logger.log(SentryLevel.INFO, "Profile saved to: " + output.getAbsolutePath());
             }
 
-            try (final BufferedReader br = new BufferedReader(new FileReader(output));) {
-                HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
+            HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
+            result.putString("profile", readStringFromFile(output));
 
-                final StringBuilder text = new StringBuilder();
-                String line;
-                while ((line = br.readLine()) != null) {
-                    text.append(line);
-                    text.append('\n');
-                }
-
-                result.putString("profile", text.toString());
-            }
+            byte[] androidProfileBytes = readBytesFromFile(end.traceFile.getPath());
+            String base64AndroidProfile = Base64.encodeToString(androidProfileBytes, NO_WRAP | NO_PADDING);
+            result.putString("androidProfile", base64AndroidProfile);
         } catch (Throwable e) {
             result.putString("error", e.toString());
         } finally {
@@ -723,6 +719,60 @@ public class RNSentryModuleImpl {
             }
         }
         return result;
+    }
+
+    private byte[] readBytesFromFile(String pathname) throws Exception {
+        try {
+            File file = new File(pathname);
+
+            if (!file.isFile()) {
+                throw new Exception(
+                        String.format(
+                                "Reading the item %s failed, because the file located at the path is not a file.",
+                                pathname));
+            }
+
+            if (!file.canRead()) {
+                throw new Exception(
+                        String.format("Reading the item %s failed, because can't read the file.", pathname));
+            }
+
+//            if (file.length() > maxFileLength) {
+//                throw new Exception(
+//                        String.format(
+//                                "Dropping item, because its size located at '%s' with %d bytes is bigger "
+//                                        + "than the maximum allowed size of %d bytes.",
+//                                pathname, file.length(), maxFileLength));
+//            }
+
+            try (FileInputStream fileInputStream = new FileInputStream(pathname);
+                 BufferedInputStream inputStream = new BufferedInputStream(fileInputStream);
+                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                byte[] bytes = new byte[1024];
+                int length;
+                int offset = 0;
+                while ((length = inputStream.read(bytes)) != -1) {
+                    outputStream.write(bytes, offset, length);
+                }
+                return outputStream.toByteArray();
+            }
+        } catch (IOException | SecurityException exception) {
+            throw new Exception(
+                    String.format("Reading the item %s failed.\n%s", pathname, exception.getMessage()));
+        }
+    }
+
+    private String readStringFromFile(File path) throws IOException {
+        try (final BufferedReader br = new BufferedReader(new FileReader(path));) {
+
+            final StringBuilder text = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                text.append(line);
+                text.append('\n');
+            }
+            return text.toString();
+        }
     }
 
     public void fetchNativeDeviceContexts(Promise promise) {
