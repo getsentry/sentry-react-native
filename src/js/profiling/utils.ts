@@ -4,7 +4,7 @@ import { forEachEnvelopeItem, logger } from '@sentry/utils';
 
 import { getDefaultEnvironment } from '../utils/environment';
 import { getDebugMetadata } from './debugid';
-import type { CombinedProfileEvent, HermesProfileEvent, RawThreadCpuProfile } from './types';
+import type { AndroidCombinedProfileEvent, CombinedProfileEvent, HermesProfileEvent, RawThreadCpuProfile } from './types';
 
 /**
  *
@@ -57,9 +57,13 @@ export function findProfiledTransactionsFromEnvelope(envelope: Envelope): Event[
  */
 export function enrichCombinedProfileWithEventContext(
   profile_id: string,
-  profile: CombinedProfileEvent,
+  profile: CombinedProfileEvent | AndroidCombinedProfileEvent,
   event: Event,
 ): Profile | null {
+  if ('jsProfile' in profile) {
+    return enrichAndroidProfileWithEventContext(profile_id, profile, event);
+  }
+
   if (!profile.profile || !isValidProfile(profile.profile)) {
     return null;
   }
@@ -107,6 +111,18 @@ export function enrichCombinedProfileWithEventContext(
       images: [...getDebugMetadata(), ...((profile.debug_meta && profile.debug_meta.images) || [])],
     },
   };
+}
+
+/**
+ * Creates Android profiling envelope item.
+ */
+export function enrichAndroidProfileWithEventContext(
+  _profile_id: string,
+  _profile: AndroidCombinedProfileEvent,
+  _event: Event,
+): Profile | null {
+  // TODO: Create Android Profile structure
+  return null;
 }
 
 /**

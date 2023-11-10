@@ -83,7 +83,7 @@ interface SentryNativeWrapper {
   fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
 
   startProfiling(): boolean;
-  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile?: NativeProfileEvent } | null;
+  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile?: NativeProfileEvent, androidProfile?: string } | null;
 
   fetchNativePackageName(): Promise<string | null>;
 
@@ -518,7 +518,11 @@ export const NATIVE: SentryNativeWrapper = {
     return !!started;
   },
 
-  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile: NativeProfileEvent } | null {
+  stopProfiling(): {
+    hermesProfile: Hermes.Profile;
+    nativeProfile?: NativeProfileEvent;
+    androidProfile?: string;
+  } | null {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -526,7 +530,7 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const { profile, nativeProfile, error } = RNSentry.stopProfiling();
+    const { profile, nativeProfile, androidProfile, error } = RNSentry.stopProfiling();
     if (!profile || error) {
       logger.error('[NATIVE] Stop Profiling Failed', error);
       return null;
@@ -534,11 +538,15 @@ export const NATIVE: SentryNativeWrapper = {
     if (Platform.OS === 'ios' && !nativeProfile) {
       logger.warn('[NATIVE] Stop Profiling Failed: No Native Profile');
     }
+    if (Platform.OS === 'android' && typeof androidProfile !== 'string') {
+      logger.warn('[NATIVE] Stop Profiling Failed: No Android Profile');
+    }
 
     try {
       return {
         hermesProfile: JSON.parse(profile) as Hermes.Profile,
         nativeProfile: nativeProfile as NativeProfileEvent,
+        androidProfile,
       };
     } catch (e) {
       logger.error('[NATIVE] Failed to parse Hermes Profile JSON', e);

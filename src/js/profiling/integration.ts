@@ -18,7 +18,7 @@ import { NATIVE } from '../wrapper';
 import { PROFILE_QUEUE } from './cache';
 import { convertToSentryProfile } from './convertHermesProfile';
 import type { NativeProfileEvent } from './nativeTypes';
-import type { CombinedProfileEvent, HermesProfileEvent } from './types';
+import type { AndroidCombinedProfileEvent, CombinedProfileEvent, HermesProfileEvent } from './types';
 import {
   addProfilesToEnvelope,
   createHermesProfilingEvent,
@@ -237,7 +237,7 @@ export function startProfiling(): number | null {
 /**
  * Stops Profilers and returns collected combined profile.
  */
-export function stopProfiling(): CombinedProfileEvent | null {
+export function stopProfiling(): CombinedProfileEvent | AndroidCombinedProfileEvent | null {
   const collectedProfiles = NATIVE.stopProfiling();
   if (!collectedProfiles) {
     return null;
@@ -253,11 +253,24 @@ export function stopProfiling(): CombinedProfileEvent | null {
     return null;
   }
 
-  if (!collectedProfiles.nativeProfile) {
+  if (!collectedProfiles.nativeProfile || !collectedProfiles.androidProfile) {
     return hermesProfileEvent;
   }
 
+  if (collectedProfiles.androidProfile) {
+    return createAndroidWithHermesProfile(hermesProfileEvent, collectedProfiles.androidProfile);
+  }
   return addNativeProfileToHermesProfile(hermesProfileEvent, collectedProfiles.nativeProfile);
+}
+
+/**
+ * Creates Android profile event with attached javascript profile.
+ */
+export function createAndroidWithHermesProfile(
+  _hermes: HermesProfileEvent,
+  _android: string,
+): AndroidCombinedProfileEvent {
+  return {} as unknown as AndroidCombinedProfileEvent;
 }
 
 /**

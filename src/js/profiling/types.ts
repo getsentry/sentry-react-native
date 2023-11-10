@@ -20,3 +20,19 @@ export type HermesProfileEvent = {
 export type ProfileEvent = Profile;
 
 export type CombinedProfileEvent = HermesProfileEvent & Partial<NativeProfileEvent>;
+
+/*
+* Android profile with javascript without transaction metadata
+*/
+export type AndroidCombinedProfileEvent = {
+  platform: 'android';
+  sampledProfile: string;
+  jsProfile: RawThreadCpuProfile;
+};
+
+/*
+* Complete Android profile with javascript and transaction metadata
+*/
+export type AndroidProfileEvent = {
+  // TODO: Create Android Profile structure
+}
