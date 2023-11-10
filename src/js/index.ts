@@ -28,6 +28,10 @@ export {
   setTags,
   setUser,
   startTransaction,
+  startInactiveSpan,
+  startSpan,
+  startSpanManual,
+  getActiveSpan,
 } from '@sentry/core';
 
 import { _addTracingExtensions } from './measurements';
