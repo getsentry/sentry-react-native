@@ -4,6 +4,7 @@
 
 ### Features
 
+- Current screen is now repoted on the error's app context ([#3339](https://github.com/getsentry/sentry-react-native/pull/3339))
 - Export New JS Performance API ([#3371](https://github.com/getsentry/sentry-react-native/pull/3371))
 
   ```js
