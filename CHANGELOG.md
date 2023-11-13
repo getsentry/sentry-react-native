@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.13.0
 
 ### Fixes
 
@@ -11,7 +11,6 @@
 
 ### Features
 
-- Current screen is now repoted on the error's app context ([#3339](https://github.com/getsentry/sentry-react-native/pull/3339))
 - Export New JS Performance API ([#3371](https://github.com/getsentry/sentry-react-native/pull/3371))
 
   ```js
@@ -22,6 +21,8 @@
   ```
 
   Read more at https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7690
+
+- Report current screen in `contexts.app.view_names` ([#3339](https://github.com/getsentry/sentry-react-native/pull/3339))
 
 ### Fixes
 
@@ -39,7 +40,7 @@
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2213)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.21.2...2.21.3)
 - Bump JavaScript SDK from v7.76.0 to v7.80.0 ([#3372](https://github.com/getsentry/sentry-react-native/pull/3372))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/7.80.0-alpha.0 develop/CHANGELOG.md#7800)
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7800)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.76.0...7.80.0)
 
 ## 5.12.0
