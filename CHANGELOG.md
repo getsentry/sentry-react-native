@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Fix SIGSEV, SIGABRT and SIGBUS crashes happening after/around the August Google Play System update, see [#2955](https://github.com/getsentry/sentry-java/issues/2955) for more details
+
+### Dependencies
+
+- Bump Android SDK from v6.33.1 to v6.33.2-beta.1 ([#3385](https://github.com/getsentry/sentry-react-native/pull/3385))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/6.33.2-beta.1/CHANGELOG.md#6332-beta1)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.33.1...6.33.2-beta.1)
+
 ## 5.13.0
 
 ### Features
