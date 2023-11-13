@@ -2084,10 +2084,10 @@
   dependencies:
     "@sentry/types" "7.76.0"
 
-"@sentry/wizard@3.16.1":
-  version "3.16.1"
-  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-3.16.1.tgz#af08e72aaaf783ba608c43a4d8d6eef5e58abdb1"
-  integrity sha512-BaBVHFFEpecOyLDVKx6wgalYdA7FC2oyRgQ9KIZzoMr9+Phfq0aLPQG5g2A9RefBX6jbISGGcYVIUuiwAEQAmQ==
+"@sentry/wizard@3.16.3":
+  version "3.16.3"
+  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-3.16.3.tgz#73469136408ad8b33d5761a8a0f74693e8b9cc34"
+  integrity sha512-HKSDMosay1GSWGAHdMOn2zvmSW4/G5JRjzYnri82vg2jv/DAXoC5t1vgtLmaWkc/nMmV4x9oBiB5jFLnOpMmyQ==
   dependencies:
     "@clack/core" "0.3.3"
     "@clack/prompts" "0.7.0"
