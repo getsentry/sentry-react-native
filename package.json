@@ -59,7 +59,7 @@
   },
   "dependencies": {
     "@sentry/browser": "7.76.0",
-    "@sentry/cli": "2.21.2",
+    "@sentry/cli": "2.21.3",
     "@sentry/core": "7.76.0",
     "@sentry/hub": "7.76.0",
     "@sentry/integrations": "7.76.0",
