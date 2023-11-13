@@ -140,7 +140,7 @@ jobs:
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
 
   react-native-build:
-    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
+    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}}
     runs-on: macos-latest
     env:
       RN_SENTRY_POD_NAME: RNSentry
@@ -164,16 +164,11 @@ jobs:
           # exlude old rn version for use frameworks builds (to minimalize the matrix)
           - rn-version: '0.65.3'
             platform: 'ios'
-            ios-use-frameworks: 'no'
-          - rn-version: '0.65.3'
-            platform: 'ios'
             ios-use-frameworks: 'static'
           - rn-version: '0.65.3'
             platform: 'ios'
             ios-use-frameworks: 'dynamic'
           # use frameworks is ios only feature
-          - platform: 'android'
-            ios-use-frameworks: 'no'
           - platform: 'android'
             ios-use-frameworks: 'static'
           - platform: 'android'
