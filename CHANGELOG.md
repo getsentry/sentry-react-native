@@ -19,6 +19,12 @@
 
 - Remove `platform: node` from Debug Builds Events ([#3377](https://github.com/getsentry/sentry-react-native/pull/3377))
 
+### Dependencies
+
+- Bump Android SDK from v6.32.0 to v6.33.1 ([#3374](https://github.com/getsentry/sentry-react-native/pull/3374))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6331)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.32.0...6.33.1)
+
 ## 5.12.0
 
 ### Features
