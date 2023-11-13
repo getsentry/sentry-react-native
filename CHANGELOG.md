@@ -1,6 +1,6 @@
 # Changelog
 
-## 5.13.0
+## Unreleased
 
 ### Fixes
 
@@ -8,6 +8,8 @@
   - Fix provided by Native SDK bump in Android SDK v6.33.2-beta.1 ([#3385](https://github.com/getsentry/sentry-react-native/pull/3385))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6332-beta1)
   - [diff](https://github.com/getsentry/sentry-java/compare/6.33.1...6.33.2-beta.1)
+
+## 5.13.0
 
 ### Features
 
