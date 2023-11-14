@@ -1,6 +1,6 @@
 import { WarningAggregator } from 'expo/config-plugins';
 
-import { modifyExistingXcodeBuildScript } from '../withSentryIOS';
+import { modifyExistingXcodeBuildScript } from '../../plugin/src/withSentryIOS';
 
 jest.mock('@expo/config-plugins', () => {
   const plugins = jest.requireActual('expo/config-plugins');
@@ -35,7 +35,7 @@ const buildScriptWeDontExpect = {
 };
 
 describe('Configures iOS native project correctly', () => {
-  let consoleWarnMock;
+  let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]], any>;
 
   beforeEach(() => {
     consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();

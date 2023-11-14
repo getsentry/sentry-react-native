@@ -1,6 +1,6 @@
 import { WarningAggregator } from 'expo/config-plugins';
 
-import { modifyAppBuildGradle } from '../withSentryAndroid';
+import { modifyAppBuildGradle } from '../../plugin/src/withSentryAndroid';
 
 jest.mock('@expo/config-plugins', () => {
   const plugins = jest.requireActual('expo/config-plugins');
