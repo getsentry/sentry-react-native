@@ -1,43 +1,35 @@
-import {
-  ConfigPlugin,
-  WarningAggregator,
-  withAppBuildGradle,
-  withDangerousMod,
-} from 'expo/config-plugins';
+import type { ConfigPlugin } from 'expo/config-plugins';
+import { WarningAggregator, withAppBuildGradle, withDangerousMod } from 'expo/config-plugins';
 import * as path from 'path';
 
 import { writeSentryPropertiesTo } from './withSentryIOS';
 
 export const withSentryAndroid: ConfigPlugin<string> = (config, sentryProperties: string) => {
-  config = withAppBuildGradle(config, (config) => {
+  const cfg = withAppBuildGradle(config, config => {
     if (config.modResults.language === 'groovy') {
       config.modResults.contents = modifyAppBuildGradle(config.modResults.contents);
     } else {
-      throw new Error(
-        'Cannot configure Sentry in the app gradle because the build.gradle is not groovy'
-      );
+      throw new Error('Cannot configure Sentry in the app gradle because the build.gradle is not groovy');
     }
     return config;
   });
-  return withDangerousMod(config, [
+  return withDangerousMod(cfg, [
     'android',
-    (config) => {
-      writeSentryPropertiesTo(
-        path.resolve(config.modRequest.projectRoot, 'android'),
-        sentryProperties
-      );
+    config => {
+      writeSentryPropertiesTo(path.resolve(config.modRequest.projectRoot, 'android'), sentryProperties);
       return config;
     },
   ]);
 };
 
-const resolveSentryReactNativePackageJsonPath = `["node", "--print", "require.resolve('@sentry/react-native/package.json')"].execute().text.trim()`;
+const resolveSentryReactNativePackageJsonPath =
+  '["node", "--print", "require.resolve(\'@sentry/react-native/package.json\')"].execute().text.trim()';
 
 /**
  * Writes to projectDirectory/android/app/build.gradle,
  * adding the relevant @sentry/react-native script.
  */
-export function modifyAppBuildGradle(buildGradle: string) {
+export function modifyAppBuildGradle(buildGradle: string): string {
   if (buildGradle.includes('/sentry.gradle"')) {
     return buildGradle;
   }
@@ -49,7 +41,7 @@ export function modifyAppBuildGradle(buildGradle: string) {
   if (!buildGradle.match(pattern)) {
     WarningAggregator.addWarningAndroid(
       'sentry-expo',
-      'Could not find react.gradle script in android/app/build.gradle. Please open a bug report at https://github.com/expo/sentry-expo.'
+      'Could not find react.gradle script in android/app/build.gradle. Please open a bug report at https://github.com/expo/sentry-expo.',
     );
   }
 
@@ -57,9 +49,6 @@ export function modifyAppBuildGradle(buildGradle: string) {
     ? `project.ext.sentryCli=[collectModulesScript: new File(${resolveSentryReactNativePackageJsonPath}, "../dist/js/tools/collectModules.js")]`
     : '';
   const applyFrom = `apply from: new File(${resolveSentryReactNativePackageJsonPath}, "../sentry.gradle")`;
-  
-  return buildGradle.replace(
-    pattern,
-    match => sentryOptions + '\n\n' + applyFrom + '\n\n' + match
-  );
+
+  return buildGradle.replace(pattern, match => `${sentryOptions}\n\n${applyFrom}\n\n${match}`);
 }

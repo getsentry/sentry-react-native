@@ -42,34 +42,35 @@ describe('Configures iOS native project correctly', () => {
   });
 
   afterEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     consoleWarnMock.mockRestore();
   });
 
-  it(`Doesn't modify build script if Sentry's already configured`, () => {
+  it("Doesn't modify build script if Sentry's already configured", () => {
     const script = Object.assign({}, buildScriptWithSentry);
     modifyExistingXcodeBuildScript(script);
     expect(script).toStrictEqual(buildScriptWithSentry);
   });
 
-  it(`Add Sentry configuration to 'Bundle React Native Code' build script`, () => {
+  it("Add Sentry configuration to 'Bundle React Native Code' build script", () => {
     const script = Object.assign({}, buildScriptWithoutSentry);
     modifyExistingXcodeBuildScript(script);
     expect(script).toStrictEqual(buildScriptWithSentry);
   });
 
-  it(`Monorepo: doesn't modify build script if Sentry's already configured`, () => {
+  it("Monorepo: doesn't modify build script if Sentry's already configured", () => {
     const script = Object.assign({}, monorepoBuildScriptWithSentry);
     modifyExistingXcodeBuildScript(script);
     expect(script).toStrictEqual(monorepoBuildScriptWithSentry);
   });
 
-  it(`Monorepo: add Sentry configuration to 'Bundle React Native Code' build script`, () => {
+  it("Monorepo: add Sentry configuration to 'Bundle React Native Code' build script", () => {
     const script = Object.assign({}, monorepoBuildScriptWithoutSentry);
     modifyExistingXcodeBuildScript(script);
     expect(script).toStrictEqual(monorepoBuildScriptWithSentry);
   });
 
-  it(`Warns to file a bug report if build script isn't what we expect to find`, () => {
+  it("Warns to file a bug report if build script isn't what we expect to find", () => {
     modifyExistingXcodeBuildScript(buildScriptWeDontExpect);
     expect(WarningAggregator.addWarningIOS).toHaveBeenCalled();
   });

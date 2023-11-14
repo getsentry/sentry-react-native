@@ -6,18 +6,14 @@
     "src/js/*.tsx",
     "test/**/*.ts",
     "test/**/*.tsx",
-    "typings/*.d.ts"
+    "typings/*.d.ts",
+    "plugin/**/*.ts"
   ],
-  "exclude": [
-    "dist"
-  ],
+  "exclude": ["dist"],
   "allowSyntheticDefaultImports": true,
   "compilerOptions": {
     "rootDir": ".",
     "jsx": "react-native",
-    "types": [
-      "jest",
-      "react-native"
-    ]
+    "types": ["jest", "react-native"]
   }
 }

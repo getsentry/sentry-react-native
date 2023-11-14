@@ -38,23 +38,23 @@ const buildGradleWithOutReactGradleScript = `
 `;
 
 describe('Configures Android native project correctly', () => {
-  it(`Non monorepo: Doesn't modify app/build.gradle if Sentry's already configured`, () => {
+  it("Non monorepo: Doesn't modify app/build.gradle if Sentry's already configured", () => {
     expect(modifyAppBuildGradle(buildGradleWithSentry)).toMatch(buildGradleWithSentry);
   });
 
-  it(`Non monorepo: Adds sentry.gradle script if not present already`, () => {
+  it('Non monorepo: Adds sentry.gradle script if not present already', () => {
     expect(modifyAppBuildGradle(buildGradleWithOutSentry)).toMatch(buildGradleWithSentry);
   });
 
-  it(`Monorepo: Doesn't modify app/build.gradle if Sentry's already configured`, () => {
+  it("Monorepo: Doesn't modify app/build.gradle if Sentry's already configured", () => {
     expect(modifyAppBuildGradle(monoRepoBuildGradleWithSentry)).toMatch(monoRepoBuildGradleWithSentry);
   });
 
-  it(`Monorepo: Adds sentry.gradle script if not present already`, () => {
+  it('Monorepo: Adds sentry.gradle script if not present already', () => {
     expect(modifyAppBuildGradle(monoRepoBuildGradleWithOutSentry)).toMatch(monoRepoBuildGradleWithSentry);
   });
 
-  it(`Warns to file a bug report if no react.gradle is found`, () => {
+  it('Warns to file a bug report if no react.gradle is found', () => {
     modifyAppBuildGradle(buildGradleWithOutReactGradleScript);
     expect(WarningAggregator.addWarningAndroid).toHaveBeenCalled();
   });
