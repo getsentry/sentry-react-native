@@ -701,9 +701,13 @@ public class RNSentryModuleImpl {
             HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
             result.putString("profile", readStringFromFile(output));
 
+            WritableMap androidProfile = new WritableNativeMap();
             byte[] androidProfileBytes = readBytesFromFile(end.traceFile.getPath());
             String base64AndroidProfile = Base64.encodeToString(androidProfileBytes, NO_WRAP | NO_PADDING);
-            result.putString("androidProfile", base64AndroidProfile);
+
+            androidProfile.putString("sampled_profile", base64AndroidProfile);
+            androidProfile.putInt("android_api_level", buildInfo.getSdkInfoVersion());
+            result.putMap("androidProfile", androidProfile);
         } catch (Throwable e) {
             result.putString("error", e.toString());
         } finally {

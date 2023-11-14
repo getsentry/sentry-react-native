@@ -32,7 +32,12 @@ export interface Spec extends TurboModule {
   fetchModules(): Promise<string | undefined | null>;
   fetchViewHierarchy(): Promise<number[] | undefined | null>;
   startProfiling(): { started?: boolean; error?: string };
-  stopProfiling(): { profile?: string; nativeProfile?: UnsafeObject; androidProfile?: string; error?: string };
+  stopProfiling(): {
+    profile?: string;
+    nativeProfile?: UnsafeObject;
+    androidProfile?: UnsafeObject;
+    error?: string;
+  };
   fetchNativePackageName(): Promise<string | undefined | null>;
   fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | undefined | null>;
 }

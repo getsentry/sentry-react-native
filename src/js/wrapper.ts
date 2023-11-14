@@ -24,7 +24,7 @@ import type {
 } from './NativeRNSentry';
 import type { ReactNativeClientOptions } from './options';
 import type * as Hermes from './profiling/hermes';
-import type { NativeProfileEvent } from './profiling/nativeTypes';
+import type { NativeAndroidProfileEvent, NativeProfileEvent } from './profiling/nativeTypes';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
 import { utf8ToBytes } from './vendor';
@@ -83,7 +83,11 @@ interface SentryNativeWrapper {
   fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
 
   startProfiling(): boolean;
-  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile?: NativeProfileEvent, androidProfile?: string } | null;
+  stopProfiling(): {
+    hermesProfile: Hermes.Profile;
+    nativeProfile?: NativeProfileEvent;
+    androidProfile?: NativeAndroidProfileEvent;
+  } | null;
 
   fetchNativePackageName(): Promise<string | null>;
 
@@ -521,7 +525,7 @@ export const NATIVE: SentryNativeWrapper = {
   stopProfiling(): {
     hermesProfile: Hermes.Profile;
     nativeProfile?: NativeProfileEvent;
-    androidProfile?: string;
+    androidProfile?: NativeAndroidProfileEvent;
   } | null {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
@@ -538,7 +542,7 @@ export const NATIVE: SentryNativeWrapper = {
     if (Platform.OS === 'ios' && !nativeProfile) {
       logger.warn('[NATIVE] Stop Profiling Failed: No Native Profile');
     }
-    if (Platform.OS === 'android' && typeof androidProfile !== 'string') {
+    if (Platform.OS === 'android' && !androidProfile) {
       logger.warn('[NATIVE] Stop Profiling Failed: No Android Profile');
     }
 
@@ -546,7 +550,7 @@ export const NATIVE: SentryNativeWrapper = {
       return {
         hermesProfile: JSON.parse(profile) as Hermes.Profile,
         nativeProfile: nativeProfile as NativeProfileEvent,
-        androidProfile,
+        androidProfile: androidProfile as NativeAndroidProfileEvent,
       };
     } catch (e) {
       logger.error('[NATIVE] Failed to parse Hermes Profile JSON', e);

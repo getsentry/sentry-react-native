@@ -49,3 +49,8 @@ export interface NativeProfileEvent {
     }[];
   };
 }
+
+export interface NativeAndroidProfileEvent {
+  sampled_profile: string;
+  android_api_level: number;
+}
