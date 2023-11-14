@@ -24,5 +24,6 @@
     "editor.formatOnSave": false
   },
   "react-native-tools.projectRoot": "./sample-new-architecture",
-  "dart.flutterAdbConnectOnChromeOs": false
+  "dart.flutterAdbConnectOnChromeOs": false,
+  "cmake.configureOnOpen": false
 }
