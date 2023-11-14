@@ -1,9 +1,9 @@
-import { WarningAggregator } from '@expo/config-plugins';
+import { WarningAggregator } from 'expo/config-plugins';
 
 import { modifyAppBuildGradle } from '../withSentryAndroid';
 
 jest.mock('@expo/config-plugins', () => {
-  const plugins = jest.requireActual('@expo/config-plugins');
+  const plugins = jest.requireActual('expo/config-plugins');
   return {
     ...plugins,
     WarningAggregator: { addWarningAndroid: jest.fn() },
@@ -47,15 +47,11 @@ describe('Configures Android native project correctly', () => {
   });
 
   it(`Monorepo: Doesn't modify app/build.gradle if Sentry's already configured`, () => {
-    expect(modifyAppBuildGradle(monoRepoBuildGradleWithSentry)).toMatch(
-      monoRepoBuildGradleWithSentry
-    );
+    expect(modifyAppBuildGradle(monoRepoBuildGradleWithSentry)).toMatch(monoRepoBuildGradleWithSentry);
   });
 
   it(`Monorepo: Adds sentry.gradle script if not present already`, () => {
-    expect(modifyAppBuildGradle(monoRepoBuildGradleWithOutSentry)).toMatch(
-      monoRepoBuildGradleWithSentry
-    );
+    expect(modifyAppBuildGradle(monoRepoBuildGradleWithOutSentry)).toMatch(monoRepoBuildGradleWithSentry);
   });
 
   it(`Warns to file a bug report if no react.gradle is found`, () => {

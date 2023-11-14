@@ -1,9 +1,9 @@
-import { WarningAggregator } from '@expo/config-plugins';
+import { WarningAggregator } from 'expo/config-plugins';
 
 import { modifyExistingXcodeBuildScript } from '../withSentryIOS';
 
 jest.mock('@expo/config-plugins', () => {
-  const plugins = jest.requireActual('@expo/config-plugins');
+  const plugins = jest.requireActual('expo/config-plugins');
   return {
     ...plugins,
     WarningAggregator: { addWarningIOS: jest.fn(), addWarningAndroid: jest.fn() },
@@ -11,13 +11,12 @@ jest.mock('@expo/config-plugins', () => {
 });
 
 const buildScriptWithoutSentry = {
-  shellScript:
-    '"export NODE_BINARY=node\\n../node_modules/react-native/scripts/react-native-xcode.sh"',
+  shellScript: '"export NODE_BINARY=node\\n../node_modules/react-native/scripts/react-native-xcode.sh"',
 };
 
 const buildScriptWithSentry = {
   shellScript:
-    '"export SENTRY_PROPERTIES=sentry.properties\\nexport EXTRA_PACKAGER_ARGS=\\"--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map\\"\\nexport NODE_BINARY=node\\n`node --print \\"require.resolve(\'@sentry/cli/package.json\').slice(0, -13) + \'/bin/sentry-cli\'\\"` react-native xcode --force-foreground ../node_modules/react-native/scripts/react-native-xcode.sh\\n\\n`node --print \\\"require.resolve(\'@sentry/react-native/package.json\').slice(0, -13) + \'/scripts/collect-modules.sh\'\\\"`"',
+    '"export SENTRY_PROPERTIES=sentry.properties\\nexport EXTRA_PACKAGER_ARGS=\\"--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map\\"\\nexport NODE_BINARY=node\\n`node --print \\"require.resolve(\'@sentry/cli/package.json\').slice(0, -13) + \'/bin/sentry-cli\'\\"` react-native xcode --force-foreground ../node_modules/react-native/scripts/react-native-xcode.sh\\n\\n`node --print \\"require.resolve(\'@sentry/react-native/package.json\').slice(0, -13) + \'/scripts/collect-modules.sh\'\\"`"',
 };
 
 const monorepoBuildScriptWithoutSentry = {
@@ -27,7 +26,7 @@ const monorepoBuildScriptWithoutSentry = {
 
 const monorepoBuildScriptWithSentry = {
   shellScript:
-    '"export SENTRY_PROPERTIES=sentry.properties\\nexport EXTRA_PACKAGER_ARGS=\\"--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map\\"\\nexport NODE_BINARY=node\\n`node --print \\"require.resolve(\'@sentry/cli/package.json\').slice(0, -13) + \'/bin/sentry-cli\'\\"` react-native xcode --force-foreground `node --print \\"require.resolve(\'react-native/package.json\').slice(0, -13) + \'/scripts/react-native-xcode.sh\'\\"`\\n\\n`node --print \\\"require.resolve(\'@sentry/react-native/package.json\').slice(0, -13) + \'/scripts/collect-modules.sh\'\\\"`"',
+    "\"export SENTRY_PROPERTIES=sentry.properties\\nexport EXTRA_PACKAGER_ARGS=\\\"--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map\\\"\\nexport NODE_BINARY=node\\n`node --print \\\"require.resolve('@sentry/cli/package.json').slice(0, -13) + '/bin/sentry-cli'\\\"` react-native xcode --force-foreground `node --print \\\"require.resolve('react-native/package.json').slice(0, -13) + '/scripts/react-native-xcode.sh'\\\"`\\n\\n`node --print \\\"require.resolve('@sentry/react-native/package.json').slice(0, -13) + '/scripts/collect-modules.sh'\\\"`\"",
 };
 
 const buildScriptWeDontExpect = {
