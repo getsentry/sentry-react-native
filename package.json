@@ -18,12 +18,14 @@
   },
   "main": "dist/js/index.js",
   "scripts": {
-    "build": "yarn build:sdk && yarn downlevel && yarn build:tools",
+    "build": "yarn build:sdk && yarn downlevel && yarn build:tools && yarn build:plugin",
     "build:sdk": "tsc -p tsconfig.build.json",
     "build:sdk:watch": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
     "build:tools": "tsc -p tsconfig.build.tools.json",
+    "build:plugin": "EXPO_NONINTERACTIVE=true expo-module build plugin",
     "downlevel": "downlevel-dts dist ts3.8/dist --to=3.8",
-    "clean": "rimraf dist coverage",
+    "clean": "rimraf dist coverage && yarn clean:plugin",
+    "clean:plugin": "expo-module clean plugin",
     "test": "yarn test:sdk && yarn test:tools",
     "test:sdk": "jest",
     "test:tools": "jest --config jest.config.tools.js",
@@ -36,7 +38,8 @@
     "test:watch": "jest --watch",
     "run-ios": "cd sample-new-architecture && yarn react-native run-ios",
     "run-android": "cd sample-new-architecture && yarn react-native run-android",
-    "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/hub @sentry/integrations @sentry/react @sentry/types @sentry/utils"
+    "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/hub @sentry/integrations @sentry/react @sentry/types @sentry/utils",
+    "expo-module": "expo-module"
   },
   "keywords": [
     "react-native",
@@ -55,7 +58,8 @@
   ],
   "peerDependencies": {
     "react": ">=17.0.0",
-    "react-native": ">=0.65.0"
+    "react-native": ">=0.65.0",
+    "expo": ">=47.0.0"
   },
   "dependencies": {
     "@sentry/browser": "7.80.0",
@@ -81,6 +85,8 @@
     "eslint": "^7.6.0",
     "eslint-plugin-react": "^7.20.6",
     "eslint-plugin-react-native": "^3.8.1",
+    "expo": "^47.0.0",
+    "expo-module-scripts": "^3.1.0",
     "jest": "^29.6.2",
     "jest-environment-jsdom": "^29.6.2",
     "metro": "0.76",
@@ -108,6 +114,11 @@
     "jsSrcsDir": "src",
     "android": {
       "javaPackageName": "io.sentry.react"
+    }
+  },
+  "peerDependenciesMeta": {
+    "expo": {
+      "optional": true
     }
   }
 }
