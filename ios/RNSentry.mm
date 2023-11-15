@@ -9,7 +9,7 @@
 
 #if __has_include(<hermes/hermes.h>)
 #define SENTRY_PROFILING_ENABLED 1
-#define SENTRY_TARGET_PROFILING_SUPPORTED 1
+#import <Sentry/SentryProfilingConditionals.h>
 #else
 #define SENTRY_PROFILING_ENABLED 0
 #define SENTRY_TARGET_PROFILING_SUPPORTED 0
@@ -606,22 +606,28 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
     try {
         facebook::hermes::HermesRuntime::enableSamplingProfiler();
         if (nativeProfileTraceId == nil && nativeProfileStartTime == 0) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
             nativeProfileTraceId = [[SentryId alloc] init];
             nativeProfileStartTime = [PrivateSentrySDKOnly startProfilerForTrace: nativeProfileTraceId];
+#endif
         } else {
-            NSLog(@"Can't start native profiling. Currently existing trace: %@", nativeProfileTraceId);
+            NSLog(@"Native profiling already in progress. Currently existing trace: %@", nativeProfileTraceId);
         }
         return @{ @"started": @YES };
     } catch (const std::exception& ex) {
         if (nativeProfileTraceId != nil) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
             [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
+#endif
             nativeProfileTraceId = nil;
         }
         nativeProfileStartTime = 0;
         return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
     } catch (...) {
         if (nativeProfileTraceId != nil) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
             [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
+#endif
             nativeProfileTraceId = nil;
         }
         nativeProfileStartTime = 0;
@@ -638,8 +644,10 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
     try {
         NSDictionary<NSString *, id> * nativeProfile = nil;
         if (nativeProfileTraceId != nil && nativeProfileStartTime != 0) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
             uint64_t nativeProfileStopTime = [[[SentryDependencyContainer sharedInstance] dateProvider] systemTime];
             nativeProfile = [PrivateSentrySDKOnly collectProfileBetween:nativeProfileStartTime and:nativeProfileStopTime forTrace:nativeProfileTraceId];
+#endif
         }
         // Cleanup native profiles
         nativeProfileTraceId = nil;
@@ -663,21 +671,33 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
         }
 #endif
 
+        if (data == nil) {
+          return @{ @"error": @"Failed to retrieve Hermes profile." };
+        }
+
+        if (nativeProfile == nil) {
+          return @{ @"profile": data };
+        }
+
         return @{
           @"profile": data,
           @"nativeProfile": nativeProfile,
         };
     } catch (const std::exception& ex) {
         if (nativeProfileTraceId != nil) {
-            [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
-            nativeProfileTraceId = nil;
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+          [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
+#endif
+          nativeProfileTraceId = nil;
         }
         nativeProfileStartTime = 0;
         return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
     } catch (...) {
         if (nativeProfileTraceId != nil) {
-            [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
-            nativeProfileTraceId = nil;
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+          [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
+#endif
+          nativeProfileTraceId = nil;
         }
         nativeProfileStartTime = 0;
         return @{ @"error": @"Failed to stop profiling" };

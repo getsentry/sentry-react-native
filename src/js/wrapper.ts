@@ -549,8 +549,8 @@ export const NATIVE: SentryNativeWrapper = {
     try {
       return {
         hermesProfile: JSON.parse(profile) as Hermes.Profile,
-        nativeProfile: nativeProfile as NativeProfileEvent,
-        androidProfile: androidProfile as NativeAndroidProfileEvent,
+        nativeProfile: nativeProfile as NativeProfileEvent | undefined,
+        androidProfile: androidProfile as NativeAndroidProfileEvent | undefined,
       };
     } catch (e) {
       logger.error('[NATIVE] Failed to parse Hermes Profile JSON', e);

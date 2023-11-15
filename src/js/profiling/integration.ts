@@ -222,8 +222,7 @@ export function startProfiling(): number | null {
     return null;
   }
 
-  const profileStartTimestampNs = Date.now() * MS_TO_NS;
-  return profileStartTimestampNs;
+  return Date.now() * MS_TO_NS;
 }
 
 /**

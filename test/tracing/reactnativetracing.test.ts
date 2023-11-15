@@ -66,6 +66,9 @@ const getMockScope = () => {
     setTag(_tag: any) {
       // Placeholder
     },
+    setContext(_context: any) {
+      // Placeholder
+    },
     addBreadcrumb(_breadcrumb: any) {
       // Placeholder
     },
@@ -95,7 +98,7 @@ const getMockHub = () => {
   return mockHub;
 };
 
-import type { Scope } from '@sentry/types';
+import type { Event, Scope } from '@sentry/types';
 import type { AppState, AppStateStatus } from 'react-native';
 
 import { APP_START_COLD, APP_START_WARM } from '../../src/js/measurements';
@@ -678,15 +681,16 @@ describe('ReactNativeTracing', () => {
 
   describe('Routing Instrumentation', () => {
     describe('_onConfirmRoute', () => {
-      it('Sets tag and adds breadcrumb', () => {
+      it('Sets app context, tag and adds breadcrumb', () => {
         const routing = new RoutingInstrumentation();
         const integration = new ReactNativeTracing({
           routingInstrumentation: routing,
         });
-
+        let mockEvent: Event | null = { contexts: {} };
         const mockScope = {
           addBreadcrumb: jest.fn(),
           setTag: jest.fn(),
+          setContext: jest.fn(),
 
           // Not relevant to test
           setSpan: () => {},
@@ -724,6 +728,20 @@ describe('ReactNativeTracing', () => {
         };
         routing.onRouteWillChange(routeContext);
 
+        mockEvent = integration['_getCurrentViewEventProcessor'](mockEvent);
+
+        if (!mockEvent) {
+          throw new Error('mockEvent was not defined');
+        }
+        expect(mockEvent.contexts?.app).toBeDefined();
+        // Only required to mark app as defined.
+        if (mockEvent.contexts?.app) {
+          expect(mockEvent.contexts.app['view_names']).toEqual([routeContext.name]);
+        }
+
+        /**
+         * @deprecated tag routing.route.name will be removed in the future.
+         */
         expect(mockScope.setTag).toBeCalledWith('routing.route.name', routeContext.name);
         expect(mockScope.addBreadcrumb).toBeCalledWith({
           type: 'navigation',
@@ -733,6 +751,56 @@ describe('ReactNativeTracing', () => {
             from: routeContext.data.previousRoute.name,
             to: routeContext.data.route.name,
           },
+        });
+      });
+
+      describe('View Names event processor', () => {
+        it('Do not overwrite event app context', () => {
+          const routing = new RoutingInstrumentation();
+          const integration = new ReactNativeTracing({
+            routingInstrumentation: routing,
+          });
+
+          const expectedRouteName = 'Route';
+          const event: Event = { contexts: { app: { appKey: 'value' } } };
+          const expectedEvent: Event = { contexts: { app: { appKey: 'value', view_names: [expectedRouteName] } } };
+
+          // @ts-expect-error only for testing.
+          integration._currentViewName = expectedRouteName;
+          const processedEvent = integration['_getCurrentViewEventProcessor'](event);
+
+          expect(processedEvent).toEqual(expectedEvent);
+        });
+
+        it('Do not add view_names if context is undefined', () => {
+          const routing = new RoutingInstrumentation();
+          const integration = new ReactNativeTracing({
+            routingInstrumentation: routing,
+          });
+
+          const expectedRouteName = 'Route';
+          const event: Event = { release: 'value' };
+          const expectedEvent: Event = { release: 'value' };
+
+          // @ts-expect-error only for testing.
+          integration._currentViewName = expectedRouteName;
+          const processedEvent = integration['_getCurrentViewEventProcessor'](event);
+
+          expect(processedEvent).toEqual(expectedEvent);
+        });
+
+        it('ignore view_names if undefined', () => {
+          const routing = new RoutingInstrumentation();
+          const integration = new ReactNativeTracing({
+            routingInstrumentation: routing,
+          });
+
+          const event: Event = { contexts: { app: { key: 'value ' } } };
+          const expectedEvent: Event = { contexts: { app: { key: 'value ' } } };
+
+          const processedEvent = integration['_getCurrentViewEventProcessor'](event);
+
+          expect(processedEvent).toEqual(expectedEvent);
         });
       });
     });
