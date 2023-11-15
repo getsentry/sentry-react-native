@@ -518,7 +518,7 @@ export const NATIVE: SentryNativeWrapper = {
     return !!started;
   },
 
-  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile: NativeProfileEvent } | null {
+  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile?: NativeProfileEvent } | null {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -538,7 +538,7 @@ export const NATIVE: SentryNativeWrapper = {
     try {
       return {
         hermesProfile: JSON.parse(profile) as Hermes.Profile,
-        nativeProfile: nativeProfile as NativeProfileEvent,
+        nativeProfile: nativeProfile as NativeProfileEvent | undefined,
       };
     } catch (e) {
       logger.error('[NATIVE] Failed to parse Hermes Profile JSON', e);
