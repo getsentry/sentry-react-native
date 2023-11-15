@@ -609,7 +609,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
             nativeProfileTraceId = [[SentryId alloc] init];
             nativeProfileStartTime = [PrivateSentrySDKOnly startProfilerForTrace: nativeProfileTraceId];
         } else {
-            NSLog(@"Can't start native profiling. Currently existing trace: %@", nativeProfileTraceId);
+            NSLog(@"Native profiling already in progress. Currently existing trace: %@", nativeProfileTraceId);
         }
         return @{ @"started": @YES };
     } catch (const std::exception& ex) {
