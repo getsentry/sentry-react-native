@@ -160,8 +160,8 @@ export function enrichAndroidProfileWithEventContext(
     transaction_name: event.transaction || '',
     trace_id: (event.contexts && event.contexts.trace && event.contexts.trace.trace_id) || '',
 
-    transaction_metadata: {},
-    transaction_tags: {},
+    version_name: event.release || '',
+    version_code: event.dist || '',
   };
 }
 

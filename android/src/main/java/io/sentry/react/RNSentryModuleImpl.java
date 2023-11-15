@@ -36,6 +36,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,6 +81,7 @@ import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
 import io.sentry.util.JsonSerializationUtils;
 import io.sentry.vendor.Base64;
+import io.sentry.util.FileUtils;
 
 public class RNSentryModuleImpl {
 
@@ -654,12 +656,10 @@ public class RNSentryModuleImpl {
         }
         final String tracesFilesDirPath = getProfilingTracesDirPath();
 
-        final SentryFrameMetricsCollector frameMetricsCollector =
-                new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo);
         androidProfiler = new AndroidProfiler(
                 tracesFilesDirPath,
                 (int) SECONDS.toMicros(1) / profilingTracesHz,
-                frameMetricsCollector,
+                new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo),
                 executorService,
                 logger,
                 buildInfo
@@ -702,7 +702,7 @@ public class RNSentryModuleImpl {
             result.putString("profile", readStringFromFile(output));
 
             WritableMap androidProfile = new WritableNativeMap();
-            byte[] androidProfileBytes = readBytesFromFile(end.traceFile.getPath());
+            byte[] androidProfileBytes = FileUtils.readBytesFromFile(end.traceFile.getPath(), 12);
             String base64AndroidProfile = Base64.encodeToString(androidProfileBytes, NO_WRAP | NO_PADDING);
 
             androidProfile.putString("sampled_profile", base64AndroidProfile);
@@ -723,47 +723,6 @@ public class RNSentryModuleImpl {
             }
         }
         return result;
-    }
-
-    private byte[] readBytesFromFile(String pathname) throws Exception {
-        try {
-            File file = new File(pathname);
-
-            if (!file.isFile()) {
-                throw new Exception(
-                        String.format(
-                                "Reading the item %s failed, because the file located at the path is not a file.",
-                                pathname));
-            }
-
-            if (!file.canRead()) {
-                throw new Exception(
-                        String.format("Reading the item %s failed, because can't read the file.", pathname));
-            }
-
-//            if (file.length() > maxFileLength) {
-//                throw new Exception(
-//                        String.format(
-//                                "Dropping item, because its size located at '%s' with %d bytes is bigger "
-//                                        + "than the maximum allowed size of %d bytes.",
-//                                pathname, file.length(), maxFileLength));
-//            }
-
-            try (FileInputStream fileInputStream = new FileInputStream(pathname);
-                 BufferedInputStream inputStream = new BufferedInputStream(fileInputStream);
-                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                byte[] bytes = new byte[1024];
-                int length;
-                int offset = 0;
-                while ((length = inputStream.read(bytes)) != -1) {
-                    outputStream.write(bytes, offset, length);
-                }
-                return outputStream.toByteArray();
-            }
-        } catch (IOException | SecurityException exception) {
-            throw new Exception(
-                    String.format("Reading the item %s failed.\n%s", pathname, exception.getMessage()));
-        }
     }
 
     private String readStringFromFile(File path) throws IOException {

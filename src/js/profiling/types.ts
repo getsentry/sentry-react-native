@@ -59,6 +59,9 @@ export type AndroidProfileEvent = {
   release: string;
   dist: string;
 
+  version_code: string;
+  version_name: string;
+
   transaction_id: string;
   transaction_name: string;
   trace_id: string;
@@ -76,8 +79,8 @@ export type AndroidProfileEvent = {
     }
   >;
 
-  transaction_metadata: Record<string, string>;
-  transaction_tags: Record<string, string>;
+  transaction_metadata?: Record<string, string>;
+  transaction_tags?: Record<string, string>;
 };
 
 export type ProfileEvent = Profile | AndroidProfileEvent;
