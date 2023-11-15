@@ -9,7 +9,7 @@
 
 #if __has_include(<hermes/hermes.h>)
 #define SENTRY_PROFILING_ENABLED 1
-#define SENTRY_TARGET_PROFILING_SUPPORTED 1
+#import <Sentry/SentryProfilingConditionals.h>
 #else
 #define SENTRY_PROFILING_ENABLED 0
 #define SENTRY_TARGET_PROFILING_SUPPORTED 0
