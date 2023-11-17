@@ -1,14 +1,34 @@
+/* eslint-disable complexity */
 import type { Hub } from '@sentry/core';
 import { getActiveTransaction } from '@sentry/core';
-import type { Envelope, Event, EventProcessor, Integration, Profile, Transaction } from '@sentry/types';
+import type {
+  Envelope,
+  Event,
+  EventProcessor,
+  Integration,
+  Profile,
+  ThreadCpuProfile,
+  Transaction,
+} from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
+import { Platform } from 'react-native';
 
 import { isHermesEnabled } from '../utils/environment';
+import { NATIVE } from '../wrapper';
 import { PROFILE_QUEUE } from './cache';
-import { startProfiling, stopProfiling } from './hermes';
-import { addProfilesToEnvelope, createProfilingEvent, findProfiledTransactionsFromEnvelope } from './utils';
+import { convertToSentryProfile } from './convertHermesProfile';
+import type { NativeProfileEvent } from './nativeTypes';
+import type { CombinedProfileEvent, HermesProfileEvent } from './types';
+import {
+  addProfilesToEnvelope,
+  createHermesProfilingEvent,
+  enrichCombinedProfileWithEventContext,
+  findProfiledTransactionsFromEnvelope,
+} from './utils';
 
 export const MAX_PROFILE_DURATION_MS = 30 * 1e3;
+
+const MS_TO_NS: number = 1e6;
 
 /**
  * Profiling integration creates a profile for each transaction and adds it to the event envelope.
@@ -162,8 +182,8 @@ export class HermesProfiling implements Integration {
       return;
     }
 
-    profile.profile_id = this._currentProfile.profile_id;
-    PROFILE_QUEUE.add(profile.profile_id, profile);
+    PROFILE_QUEUE.add(this._currentProfile.profile_id, profile);
+
     logger.log('[Profiling] finished profiling: ', this._currentProfile.profile_id);
     this._currentProfile = undefined;
   };
@@ -181,21 +201,120 @@ export class HermesProfiling implements Integration {
       delete profiledTransaction.contexts.profile;
     }
 
-    const cpuProfile = PROFILE_QUEUE.get(profile_id);
+    const profile = PROFILE_QUEUE.get(profile_id);
     PROFILE_QUEUE.delete(profile_id);
 
-    if (!cpuProfile) {
+    if (!profile) {
       logger.log(`[Profiling] cannot find profile ${profile_id} for transaction ${profiledTransaction.event_id}`);
       return null;
     }
 
-    const profile = createProfilingEvent(cpuProfile, profiledTransaction);
+    const profileWithEvent = enrichCombinedProfileWithEventContext(profile_id, profile, profiledTransaction);
     logger.log(`[Profiling] Created profile ${profile_id} for transaction ${profiledTransaction.event_id}`);
-    return profile;
+
+    return profileWithEvent;
   };
 
   private _clearCurrentProfileTimeout = (): void => {
     this._currentProfileTimeout !== undefined && clearTimeout(this._currentProfileTimeout);
     this._currentProfileTimeout = undefined;
   };
+}
+
+/**
+ * Starts Profilers and returns the timestamp when profiling started in nanoseconds.
+ */
+export function startProfiling(): number | null {
+  const started = NATIVE.startProfiling();
+  if (!started) {
+    return null;
+  }
+
+  return Date.now() * MS_TO_NS;
+}
+
+/**
+ * Stops Profilers and returns collected combined profile.
+ */
+export function stopProfiling(): CombinedProfileEvent | null {
+  const collectedProfiles = NATIVE.stopProfiling();
+  if (!collectedProfiles) {
+    return null;
+  }
+
+  const hermesProfile = convertToSentryProfile(collectedProfiles.hermesProfile);
+  if (!hermesProfile) {
+    return null;
+  }
+
+  const hermesProfileEvent = createHermesProfilingEvent(hermesProfile);
+  if (!hermesProfileEvent) {
+    return null;
+  }
+
+  if (!collectedProfiles.nativeProfile) {
+    return hermesProfileEvent;
+  }
+
+  return addNativeProfileToHermesProfile(hermesProfileEvent, collectedProfiles.nativeProfile);
+}
+
+/**
+ * Merges Hermes and Native profile events into one.
+ */
+export function addNativeProfileToHermesProfile(
+  hermes: HermesProfileEvent,
+  native: NativeProfileEvent,
+): CombinedProfileEvent {
+  return {
+    ...hermes,
+    profile: addNativeThreadCpuProfileToHermes(hermes.profile, native.profile, hermes.transaction.active_thread_id),
+    debug_meta: {
+      images: native.debug_meta.images,
+    },
+    measurements: native.measurements,
+  };
+}
+
+/**
+ * Merges Hermes And Native profiles into one.
+ */
+export function addNativeThreadCpuProfileToHermes(
+  hermes: ThreadCpuProfile,
+  native: ThreadCpuProfile,
+  hermes_active_thread_id: string | undefined,
+): CombinedProfileEvent['profile'] {
+  // assumes thread ids are unique
+  hermes.thread_metadata = { ...native.thread_metadata, ...hermes.thread_metadata };
+  // assumes queue ids are unique
+  hermes.queue_metadata = { ...native.queue_metadata, ...hermes.queue_metadata };
+
+  // recalculate frames and stacks using offset
+  const framesOffset = hermes.frames.length;
+  const stacksOffset = hermes.stacks.length;
+
+  if (native.frames) {
+    for (const frame of native.frames) {
+      hermes.frames.push({
+        function: frame.function,
+        instruction_addr: frame.instruction_addr,
+        platform: Platform.OS === 'ios' ? 'cocoa' : undefined,
+      });
+    }
+  }
+  hermes.stacks = [
+    ...(hermes.stacks || []),
+    ...(native.stacks || []).map(stack => stack.map(frameId => frameId + framesOffset)),
+  ];
+  hermes.samples = [
+    ...(hermes.samples || []),
+    ...(native.samples || [])
+      .filter(sample => sample.thread_id !== hermes_active_thread_id)
+      .map(sample => ({
+        ...sample,
+        stack_id: stacksOffset + sample.stack_id,
+      })),
+  ];
+
+  return hermes;
 }

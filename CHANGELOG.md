@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add iOS profiles to React Native Profiling ([#3349](https://github.com/getsentry/sentry-react-native/pull/3349))
+
 ## 5.13.0
 
 ### Features
