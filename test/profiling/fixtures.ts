@@ -154,5 +154,6 @@ export function createMockMinimalValidAndroidProfile(): NativeAndroidProfileEven
   return {
     android_api_level: 56,
     sampled_profile: 'YW5kcm9pZCB0cmFjZSBlbmNvZGVkIGluIGJhc2UgNjQ=', // base64 encoded 'android trace encoded in base 64'
+    build_id: 'mocked-build-id',
   };
 }

@@ -240,6 +240,7 @@ describe('profiling integration', () => {
         expect(getProfileFromEnvelope(envelope)).toEqual(
           expect.objectContaining(<Partial<AndroidProfileEvent>>{
             platform: 'android',
+            build_id: 'mocked-build-id',
             debug_meta: {
               images: [
                 {

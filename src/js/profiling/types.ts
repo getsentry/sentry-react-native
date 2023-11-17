@@ -22,6 +22,10 @@ export type HermesProfileEvent = {
  */
 export type AndroidCombinedProfileEvent = {
   platform: 'android';
+  /**
+   * Proguard debug meta image uuid
+   */
+  build_id: string | undefined;
   sampled_profile: string;
   js_profile: ThreadCpuProfile;
   android_api_level: number;

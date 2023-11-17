@@ -12,6 +12,7 @@ describe('merge Hermes and Android profiles - createAndroidWithHermesProfile', (
       ),
     ).toEqual(<AndroidCombinedProfileEvent>{
       platform: 'android',
+      build_id: 'mocked-build-id',
       sampled_profile: 'YW5kcm9pZCB0cmFjZSBlbmNvZGVkIGluIGJhc2UgNjQ=', // base64 encoded 'android trace encoded in base 64'
       js_profile: {
         frames: [

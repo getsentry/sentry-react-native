@@ -44,6 +44,7 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
 import io.sentry.Breadcrumb;
@@ -74,11 +75,13 @@ import io.sentry.android.core.SentryAndroid;
 import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
+import io.sentry.internal.debugmeta.ResourcesDebugMetaLoader;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
+import io.sentry.util.DebugMetaPropertiesApplier;
 import io.sentry.util.JsonSerializationUtils;
 import io.sentry.vendor.Base64;
 import io.sentry.util.FileUtils;
@@ -117,6 +120,8 @@ public class RNSentryModuleImpl {
 
     private AndroidProfiler androidProfiler = null;
 
+    private boolean isProguardDebugMetaLoaded = false;
+    private @Nullable String proguardUuid = null;
     private String cacheDirPath = null;
     private ISentryExecutorService executorService = null;
 
@@ -707,6 +712,7 @@ public class RNSentryModuleImpl {
 
             androidProfile.putString("sampled_profile", base64AndroidProfile);
             androidProfile.putInt("android_api_level", buildInfo.getSdkInfoVersion());
+            androidProfile.putString("build_id", getProguardUuid());
             result.putMap("androidProfile", androidProfile);
         } catch (Throwable e) {
             result.putString("error", e.toString());
@@ -723,6 +729,19 @@ public class RNSentryModuleImpl {
             }
         }
         return result;
+    }
+
+    private @Nullable String getProguardUuid() {
+        if (isProguardDebugMetaLoaded) {
+            return proguardUuid;
+        }
+        isProguardDebugMetaLoaded = true;
+        final @Nullable Properties debugMeta = (new ResourcesDebugMetaLoader(logger)).loadDebugMeta();
+        if (debugMeta != null) {
+            proguardUuid = DebugMetaPropertiesApplier.getProguardUuid(debugMeta);
+            return proguardUuid;
+        }
+        return null;
     }
 
     private String readStringFromFile(File path) throws IOException {

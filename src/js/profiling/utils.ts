@@ -133,7 +133,7 @@ export function enrichAndroidProfileWithEventContext(
     debug_meta: {
       images: getDebugMetadata(),
     },
-    build_id: '',
+    build_id: profile.build_id || '',
 
     device_cpu_frequencies: [],
     device_is_emulator: (event.contexts && event.contexts.device && event.contexts.device.simulator) || false,
