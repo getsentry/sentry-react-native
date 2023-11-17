@@ -1,4 +1,4 @@
-import type { MeasurementUnit, Profile, ThreadCpuFrame, ThreadCpuProfile } from '@sentry/types';
+import type { DebugImage, MeasurementUnit, Profile, ThreadCpuFrame, ThreadCpuProfile } from '@sentry/types';
 
 import type { NativeProfileEvent } from './nativeTypes';
 
@@ -34,9 +34,18 @@ export type AndroidCombinedProfileEvent = {
  */
 export type AndroidProfileEvent = {
   sampled_profile: string;
+  /**
+   * Currently used only for JS
+   */
+  debug_meta?: {
+    images: DebugImage[];
+  };
   js_profile: ThreadCpuProfile;
 
   android_api_level: number;
+  /**
+   * Proguard debug meta image uuid
+   */
   build_id: string;
 
   device_cpu_frequencies: number[];

@@ -130,6 +130,9 @@ export function enrichAndroidProfileWithEventContext(
 ): AndroidProfileEvent | null {
   return {
     ...profile,
+    debug_meta: {
+      images: getDebugMetadata(),
+    },
     build_id: '',
 
     device_cpu_frequencies: [],
