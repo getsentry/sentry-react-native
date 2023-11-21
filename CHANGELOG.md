@@ -6,6 +6,12 @@
 
 - Add iOS profiles to React Native Profiling ([#3349](https://github.com/getsentry/sentry-react-native/pull/3349))
 
+### Dependencies
+
+- Bump Android SDK from v6.33.1 to v6.34.0 ([#3408](https://github.com/getsentry/sentry-react-native/pull/3408))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6340)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.33.1...6.34.0)
+
 ## 5.13.0
 
 ### Features
