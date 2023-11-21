@@ -6,6 +6,11 @@
 
 - Add iOS profiles to React Native Profiling ([#3349](https://github.com/getsentry/sentry-react-native/pull/3349))
 
+### Fixes
+
+- Conditionally use Set or CountingSet in Sentry Metro plugin ([#3409](https://github.com/getsentry/sentry-react-native/pull/3409))
+  - This makes sentryMetroSerializer compatible with Metro 0.66.2 and newer
+
 ## 5.13.0
 
 ### Features
