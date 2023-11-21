@@ -1,5 +1,6 @@
 import * as crypto from 'crypto';
 import type { Module, ReadOnlyGraph, SerializerOptions } from 'metro';
+import type CountingSet from 'metro/src/lib/CountingSet';
 
 // Variant of MixedOutput
 // https://github.com/facebook/metro/blob/9b85f83c9cc837d8cd897aa7723be7da5b296067/packages/metro/src/DeltaBundler/types.flow.js#L21
@@ -74,3 +75,22 @@ export function determineDebugIdFromBundleSource(code: string): string | undefin
   );
   return match ? match[1] : undefined;
 }
+
+/**
+ * CountingSet was added in Metro 0.71.0 before that NodeJS Set was used.
+ */
+function resolveSetCreator(): () => CountingSet<string> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { default: MetroSet } = require('metro/src/lib/CountingSet');
+    return () => new MetroSet();
+  } catch (e) {
+    if (e instanceof Error && 'code' in e && e.code === 'MODULE_NOT_FOUND') {
+      return () => new Set() as unknown as CountingSet<string>;
+    } else {
+      throw e;
+    }
+  }
+}
+
+export const createSet = resolveSetCreator();
