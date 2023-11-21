@@ -228,6 +228,10 @@ jobs:
         working-directory: test/e2e
         run: yarn build
 
+      # This prevents modules resolution from outside of the RN Test App projects
+      - name: Clean SDK node_modules
+        run: rm -rf node_modules
+
       - name: Package SDK
         run: yalc publish
 
