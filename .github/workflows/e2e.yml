@@ -140,7 +140,7 @@ jobs:
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
 
   react-native-build:
-    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
+    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}}
     runs-on: macos-latest
     env:
       RN_SENTRY_POD_NAME: RNSentry
@@ -152,14 +152,27 @@ jobs:
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['dev', 'production']
+        ios-use-frameworks: ['no', 'static', 'dynamic']
         include:
           - platform: ios
             runtime: 'latest'
             device: 'iPhone 14'
-        # exclude all rn versions lower than 0.70.0 for new architecture
         exclude:
+          # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
             rn-architecture: 'new'
+          # exlude old rn version for use frameworks builds (to minimalize the matrix)
+          - rn-version: '0.65.3'
+            platform: 'ios'
+            ios-use-frameworks: 'static'
+          - rn-version: '0.65.3'
+            platform: 'ios'
+            ios-use-frameworks: 'dynamic'
+          # use frameworks is ios only feature
+          - platform: 'android'
+            ios-use-frameworks: 'static'
+          - platform: 'android'
+            ios-use-frameworks: 'dynamic'
     steps:
       - uses: actions/checkout@v4
 
@@ -251,10 +264,13 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
+          [[ "${{ matrix.ios-use-frameworks }}" == "static" ]] && USE_FRAMEWORKS=static
+          [[ "${{ matrix.ios-use-frameworks }}" == "dynamic" ]] && USE_FRAMEWORKS=dynamic
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
           echo "ENABLE_PROD=$ENABLE_PROD"
           echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
+          echo "USE_FRAMEWORKS=$USE_FRAMEWORKS"
           PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH pod install
           cat Podfile.lock | grep $RN_SENTRY_POD_NAME
 
