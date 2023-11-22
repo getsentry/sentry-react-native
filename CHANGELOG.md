@@ -8,6 +8,8 @@
 
 ### Fixes
 
+- Conditionally use Set or CountingSet in Sentry Metro plugin ([#3409](https://github.com/getsentry/sentry-react-native/pull/3409))
+  - This makes sentryMetroSerializer compatible with Metro 0.66.2 and newer
 - Fix SIGSEV, SIGABRT and SIGBUS crashes happening after/around the August Google Play System update, see [#2955](https://github.com/getsentry/sentry-java/issues/2955) for more details
 
 ### Dependencies
