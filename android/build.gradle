@@ -54,5 +54,5 @@ android {
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
-    api 'io.sentry:sentry-android:6.33.1'
+    api 'io.sentry:sentry-android:6.34.0'
 }
