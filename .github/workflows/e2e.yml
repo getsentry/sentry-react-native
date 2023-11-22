@@ -140,7 +140,7 @@ jobs:
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
 
   react-native-build:
-    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}}
+    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}}
     runs-on: macos-latest
     env:
       RN_SENTRY_POD_NAME: RNSentry
@@ -153,11 +153,15 @@ jobs:
         platform: ['android', 'ios']
         build-type: ['dev', 'production']
         ios-use-frameworks: ['no', 'static', 'dynamic']
+        engine: ['hermes', 'jsc']
         include:
           - platform: ios
             runtime: 'latest'
             device: 'iPhone 14'
         exclude:
+          # exclude JSC for new RN versions (keeping the matrix manageable)
+          - rn-version: '0.72.4'
+            engine: 'jsc'
           # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
             rn-architecture: 'new'
@@ -264,6 +268,7 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
+          ../../../../rn.patch.podfile.js --pod-file Podfile --engine ${{ matrix.engine }}
           [[ "${{ matrix.ios-use-frameworks }}" == "static" ]] && USE_FRAMEWORKS=static
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic" ]] && USE_FRAMEWORKS=dynamic
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
@@ -285,6 +290,7 @@ jobs:
         if: ${{ matrix.platform == 'android' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: |
+          ../../../rn.patch.gradle.properties.js --gradle-properties android/gradle.properties --engine ${{ matrix.engine }}
           ../../../rn.patch.app.build.gradle.js --app-build-gradle android/app/build.gradle
 
       - name: Patch iOS App RN
