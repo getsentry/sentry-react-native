@@ -77,7 +77,9 @@ export function determineDebugIdFromBundleSource(code: string): string | undefin
 }
 
 /**
- * CountingSet was added in Metro 0.71.0 before that NodeJS Set was used.
+ * CountingSet was added in Metro 0.72.0 before that NodeJS Set was used.
+ *
+ * https://github.com/facebook/metro/blob/fc29a1177f883144674cf85a813b58567f69d545/packages/metro/src/lib/CountingSet.js
  */
 function resolveSetCreator(): () => CountingSet<string> {
   try {
