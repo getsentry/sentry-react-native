@@ -7,7 +7,7 @@
 #import "RCTConvert.h"
 #endif
 
-#if __has_include(<hermes/hermes.h>)
+#if __has_include(<hermes/hermes.h>) && SENTRY_PROFILING_SUPPORTED
 #define SENTRY_PROFILING_ENABLED 1
 #import <Sentry/SentryProfilingConditionals.h>
 #else
@@ -655,6 +655,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
 
         facebook::hermes::HermesRuntime::disableSamplingProfiler();
         std::stringstream ss;
+        // Before RN 0.69 Hermes used llvh::raw_ostream (profiling is supported for 0.69 and newer)
         facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
 
         std::string s = ss.str();

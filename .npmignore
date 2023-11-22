@@ -17,3 +17,4 @@
 !scripts/has-sourcemap-debugid.js
 !scripts/sentry-xcode.sh
 !scripts/sentry-xcode-debug-files.sh
+!scripts/sentry_utils.rb
