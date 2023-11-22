@@ -147,9 +147,14 @@ const HomeScreen = (props: Props) => {
               scope.addAttachment({
                 data: 'Attachment content',
                 filename: 'attachment.txt',
+                contentType: 'text/plain',
               });
               if (data) {
-                scope.addAttachment({ data, filename: 'logo.png' });
+                scope.addAttachment({
+                  data,
+                  filename: 'logo.png',
+                  contentType: 'image/png',
+                });
               }
               console.log('Sentry attachment added.');
             });

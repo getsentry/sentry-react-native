@@ -1,18 +1,20 @@
 import * as mockWrapper from '../mockWrapper';
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
+jest.mock('../../src/js/profiling/debugid');
 
 import { getCurrentHub } from '@sentry/core';
-import type { Envelope, Event, Profile, Transaction, Transport } from '@sentry/types';
+import type { Envelope, Event, Profile, ThreadCpuProfile, Transaction, Transport } from '@sentry/types';
 
 import * as Sentry from '../../src/js';
 import { HermesProfiling } from '../../src/js/integrations';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
-import type * as Hermes from '../../src/js/profiling/hermes';
+import { getDebugMetadata } from '../../src/js/profiling/debugid';
 import { getDefaultEnvironment, isHermesEnabled } from '../../src/js/utils/environment';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { MOCK_DSN } from '../mockDsn';
 import { envelopeItemPayload, envelopeItems } from '../testutils';
+import { createMockMinimalValidAppleProfile, createMockMinimalValidHermesProfile } from './fixtures';
 
 const SEC_TO_MS = 1e6;
 
@@ -24,7 +26,16 @@ describe('profiling integration', () => {
   beforeEach(() => {
     (isHermesEnabled as jest.Mock).mockReturnValue(true);
     mockWrapper.NATIVE.startProfiling.mockReturnValue(true);
-    mockWrapper.NATIVE.stopProfiling.mockReturnValue(createMockMinimalValidHermesProfile());
+    mockWrapper.NATIVE.stopProfiling.mockReturnValue({
+      hermesProfile: createMockMinimalValidHermesProfile(),
+    });
+    (getDebugMetadata as jest.Mock).mockReturnValue([
+      {
+        code_file: 'test.app.map',
+        debug_id: '123',
+        type: 'sourcemap',
+      },
+    ]);
     jest.useFakeTimers();
   });
 
@@ -50,20 +61,7 @@ describe('profiling integration', () => {
     transaction.finish();
     jest.runAllTimers();
 
-    const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
-    const transactionEnvelopeItemPayload = envelope?.[envelopeItems][0][envelopeItemPayload] as Event;
-    const profileEnvelopeItem = envelope?.[envelopeItems][1] as [{ type: 'profile' }, Profile];
-    expect(profileEnvelopeItem).toEqual([
-      { type: 'profile' },
-      expect.objectContaining<Partial<Profile>>({
-        event_id: expect.any(String),
-        transaction: expect.objectContaining({
-          name: 'test-name',
-          id: transactionEnvelopeItemPayload.event_id,
-          trace_id: transaction.traceId,
-        }),
-      }),
-    ]);
+    expectEnveloperToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', transaction.traceId);
   });
 
   describe('environment', () => {
@@ -163,6 +161,64 @@ describe('profiling integration', () => {
       jest.clearAllMocks();
     });
 
+    describe('with native profiling', () => {
+      beforeEach(() => {
+        mockWrapper.NATIVE.stopProfiling.mockReturnValue({
+          hermesProfile: createMockMinimalValidHermesProfile(),
+          nativeProfile: createMockMinimalValidAppleProfile(),
+        });
+      });
+
+      test('should create a new mixed profile and add it to the transaction envelope', () => {
+        const transaction: Transaction = Sentry.startTransaction({
+          name: 'test-name',
+        });
+        transaction.finish();
+
+        jest.runAllTimers();
+
+        const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
+        expectEnveloperToContainProfile(envelope, 'test-name', transaction.traceId);
+        // Expect merged profile
+        expect(getProfileFromEnvelope(envelope)).toEqual(
+          expect.objectContaining(<Partial<Profile>>{
+            debug_meta: {
+              images: [
+                {
+                  code_file: 'test.app.map',
+                  debug_id: '123',
+                  type: 'sourcemap',
+                },
+                {
+                  type: 'macho',
+                  code_file: 'test.app',
+                  debug_id: '123',
+                  image_addr: '0x0000000000000002',
+                  image_size: 100,
+                },
+              ],
+            },
+            profile: expect.objectContaining(<Partial<ThreadCpuProfile>>{
+              frames: [
+                {
+                  function: '[root]',
+                  in_app: false,
+                },
+                {
+                  instruction_addr: '0x0000000000000003',
+                  platform: 'cocoa',
+                },
+                {
+                  instruction_addr: '0x0000000000000004',
+                  platform: 'cocoa',
+                },
+              ],
+            }),
+          }),
+        );
+      });
+    });
+
     test('should create a new profile and add in to the transaction envelope', () => {
       const transaction: Transaction = Sentry.startTransaction({
         name: 'test-name',
@@ -171,20 +227,7 @@ describe('profiling integration', () => {
 
       jest.runAllTimers();
 
-      const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
-      const transactionEnvelopeItemPayload = envelope?.[envelopeItems][0][envelopeItemPayload] as Event;
-      const profileEnvelopeItem = envelope?.[envelopeItems][1] as [{ type: 'profile' }, Profile];
-      expect(profileEnvelopeItem).toEqual([
-        { type: 'profile' },
-        expect.objectContaining<Partial<Profile>>({
-          event_id: expect.any(String),
-          transaction: expect.objectContaining({
-            name: 'test-name',
-            id: transactionEnvelopeItemPayload.event_id,
-            trace_id: transaction.traceId,
-          }),
-        }),
-      ]);
+      expectEnveloperToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', transaction.traceId);
     });
 
     test('should finish previous profile when a new transaction starts', () => {
@@ -199,40 +242,8 @@ describe('profiling integration', () => {
 
       jest.runAllTimers();
 
-      const envelopeTransaction1: Envelope | undefined = mock.transportSendMock.mock.calls[0][0];
-      const transaction1EnvelopeItemPayload = envelopeTransaction1?.[envelopeItems][0][envelopeItemPayload] as Event;
-      const profile1EnvelopeItem = envelopeTransaction1?.[envelopeItems][1] as
-        | [{ type: 'profile' }, Profile]
-        | undefined;
-
-      const envelopeTransaction2: Envelope | undefined = mock.transportSendMock.mock.calls[1][0];
-      const transaction2EnvelopeItemPayload = envelopeTransaction2?.[envelopeItems][0][envelopeItemPayload] as Event;
-      const profile2EnvelopeItem = envelopeTransaction2?.[envelopeItems][1] as
-        | [{ type: 'profile' }, Profile]
-        | undefined;
-
-      expect(profile1EnvelopeItem).toEqual([
-        { type: 'profile' },
-        expect.objectContaining<Partial<Profile>>({
-          event_id: expect.any(String),
-          transaction: expect.objectContaining({
-            name: 'test-name-1',
-            id: transaction1EnvelopeItemPayload.event_id,
-            trace_id: transaction1.traceId,
-          }),
-        }),
-      ]);
-      expect(profile2EnvelopeItem).toEqual([
-        { type: 'profile' },
-        expect.objectContaining<Partial<Profile>>({
-          event_id: expect.any(String),
-          transaction: expect.objectContaining({
-            name: 'test-name-2',
-            id: transaction2EnvelopeItemPayload.event_id,
-            trace_id: transaction2.traceId,
-          }),
-        }),
-      ]);
+      expectEnveloperToContainProfile(mock.transportSendMock.mock.calls[0][0], 'test-name-1', transaction1.traceId);
+      expectEnveloperToContainProfile(mock.transportSendMock.mock.calls[1][0], 'test-name-2', transaction2.traceId);
     });
 
     test('profile should start at the same time as transaction', () => {
@@ -275,20 +286,7 @@ describe('profiling integration', () => {
 
       jest.runAllTimers();
 
-      const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
-      const transactionEnvelopeItemPayload = envelope?.[envelopeItems][0][envelopeItemPayload] as Event;
-      const profileEnvelopeItem = envelope?.[envelopeItems][1] as [{ type: 'profile' }, Profile];
-      expect(profileEnvelopeItem).toEqual([
-        { type: 'profile' },
-        expect.objectContaining<Partial<Profile>>({
-          event_id: expect.any(String),
-          transaction: expect.objectContaining({
-            name: 'test-name',
-            id: transactionEnvelopeItemPayload.event_id,
-            trace_id: transaction.traceId,
-          }),
-        }),
-      ]);
+      expectEnveloperToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', transaction.traceId);
     });
 
     test('profile timeout is reset when transaction is finished', () => {
@@ -367,38 +365,26 @@ function initTestClient(
   };
 }
 
-/**
- * Creates a mock Hermes profile that is valid enough to be added to an envelope.
- * Min 2 samples are required by Sentry to be valid.
- */
-function createMockMinimalValidHermesProfile(): Hermes.Profile {
-  return {
-    samples: [
-      {
-        cpu: '-1',
-        name: '',
-        ts: '10',
-        pid: 54822,
-        tid: '14509472',
-        weight: '1',
-        sf: 1,
-      },
-      {
-        cpu: '-1',
-        name: '',
-        ts: '20',
-        pid: 54822,
-        tid: '14509472',
-        weight: '1',
-        sf: 1,
-      },
-    ],
-    stackFrames: {
-      1: {
-        name: '[root]',
-        category: 'root',
-      },
-    },
-    traceEvents: [],
-  };
+function expectEnveloperToContainProfile(
+  envelope: Envelope | undefined,
+  name: string | undefined,
+  traceId: string | undefined,
+): void {
+  const transactionEnvelopeItemPayload = envelope?.[envelopeItems][0][envelopeItemPayload] as Event;
+  const profileEnvelopeItem = envelope?.[envelopeItems][1] as [{ type: 'profile' }, Profile];
+  expect(profileEnvelopeItem).toEqual([
+    { type: 'profile' },
+    expect.objectContaining<Partial<Profile>>({
+      event_id: expect.any(String),
+      transaction: expect.objectContaining({
+        name,
+        id: transactionEnvelopeItemPayload.event_id,
+        trace_id: traceId,
+      }),
+    }),
+  ]);
+}
+
+function getProfileFromEnvelope(envelope: Envelope | undefined): Profile | undefined {
+  return envelope?.[envelopeItems]?.[1]?.[1] as unknown as Profile;
 }

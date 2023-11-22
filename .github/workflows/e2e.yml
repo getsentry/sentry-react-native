@@ -279,6 +279,11 @@ jobs:
             --project ios/RnDiffApp.xcodeproj/project.pbxproj \
             --rn-version '${{ matrix.rn-version }}'
 
+      # This prevents modules resolution from outside of the RN Test App projects
+      # during the native app build
+      - name: Clean SDK node_modules
+        run: rm -rf node_modules
+
       - name: Build Android App
         if: ${{ matrix.platform == 'android' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/android

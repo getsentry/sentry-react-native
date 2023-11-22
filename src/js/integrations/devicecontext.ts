@@ -55,6 +55,9 @@ export class DeviceContext implements Integration {
       }
       if (nativeContexts) {
         event.contexts = { ...nativeContexts, ...event.contexts };
+        if (nativeContexts.app) {
+          event.contexts.app = { ...nativeContexts.app, ...event.contexts.app };
+        }
       }
 
       const nativeTags = native.tags;
