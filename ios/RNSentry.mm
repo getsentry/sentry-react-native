@@ -22,7 +22,6 @@
 #import <Sentry/SentryBinaryImageCache.h>
 #import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentryFormatter.h>
-#import <Sentry/SentryCurrentDateProvider.h>
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
