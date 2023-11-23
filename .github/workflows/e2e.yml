@@ -191,7 +191,7 @@ jobs:
 
       - name: Sentry Dist
         run: |
-          SENTRY_DIST_CANDIDATE=${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-${GITHUB_SHA:0:8}
+          SENTRY_DIST_CANDIDATE=${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-${GITHUB_SHA:0:8}
           echo "SENTRY_DIST=$SENTRY_DIST_CANDIDATE" >> $GITHUB_ENV
 
       - name: Sentry Envs
@@ -359,7 +359,7 @@ jobs:
         if: matrix.platform == 'android' && matrix.build-type == 'production'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: apk.tar
           retention-days: 1
 
@@ -367,7 +367,7 @@ jobs:
         if: matrix.platform == 'ios' && matrix.build-type == 'production'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: app.tar
           retention-days: 1
 
@@ -375,11 +375,11 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}
+          name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}
           path: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios/*.log
 
   react-native-test:
-    name: Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
+    name: Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     needs: react-native-build
     runs-on: macos-latest
     strategy:
@@ -389,14 +389,21 @@ jobs:
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
+        ios-use-frameworks: ['no'] # test only no framworks
+        engine: ['hermes', 'jsc']
         include:
           - platform: ios
             runtime: 'latest'
             device: 'iPhone 14'
-        # exclude all rn versions lower than 0.70.0 for new architecture
         exclude:
+          # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
             rn-architecture: 'new'
+          # e2e test only the default combinations
+          - rn-version: '0.65.3'
+            engine: 'hermes'
+          - rn-version: '0.72.4'
+            engine: 'jsc'
     env:
       PLATFORM: ${{ matrix.platform }}
       DEVICE: ${{ matrix.device }}
@@ -410,7 +417,7 @@ jobs:
         if: matrix.build-type == 'production'
         uses: actions/download-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: test/e2e
 
       - name: Extract App Package
@@ -510,7 +517,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-logs
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
           path: |
             test/e2e/*.log
             test/e2e/*.png
