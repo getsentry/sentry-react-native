@@ -140,7 +140,7 @@ jobs:
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
 
   react-native-build:
-    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
+    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     runs-on: macos-latest
     env:
       RN_SENTRY_POD_NAME: RNSentry
@@ -152,14 +152,35 @@ jobs:
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['dev', 'production']
+        ios-use-frameworks: ['no', 'static', 'dynamic']
+        engine: ['hermes', 'jsc']
         include:
           - platform: ios
             runtime: 'latest'
             device: 'iPhone 14'
-        # exclude all rn versions lower than 0.70.0 for new architecture
         exclude:
+          # exclude JSC for new RN versions (keeping the matrix manageable)
+          - rn-version: '0.72.4'
+            engine: 'jsc'
+          # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
             rn-architecture: 'new'
+          # exlude old rn version for use frameworks builds (to minimalize the matrix)
+          - rn-version: '0.65.3'
+            platform: 'ios'
+            ios-use-frameworks: 'static'
+          - rn-version: '0.65.3'
+            platform: 'ios'
+            ios-use-frameworks: 'dynamic'
+          # use frameworks is ios only feature
+          - platform: 'android'
+            ios-use-frameworks: 'static'
+          - platform: 'android'
+            ios-use-frameworks: 'dynamic'
+          # exclude new rn architecture and dynamic frameworks
+          - rn-architecture: 'new'
+            ios-use-frameworks: 'dynamic'
+
     steps:
       - uses: actions/checkout@v4
 
@@ -170,7 +191,7 @@ jobs:
 
       - name: Sentry Dist
         run: |
-          SENTRY_DIST_CANDIDATE=${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-${GITHUB_SHA:0:8}
+          SENTRY_DIST_CANDIDATE=${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-${GITHUB_SHA:0:8}
           echo "SENTRY_DIST=$SENTRY_DIST_CANDIDATE" >> $GITHUB_ENV
 
       - name: Sentry Envs
@@ -251,10 +272,14 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
+          ../../../../rn.patch.podfile.js --pod-file Podfile --engine ${{ matrix.engine }}
+          [[ "${{ matrix.ios-use-frameworks }}" == "static" ]] && export USE_FRAMEWORKS=static && export NO_FLIPPER=1
+          [[ "${{ matrix.ios-use-frameworks }}" == "dynamic" ]] && export USE_FRAMEWORKS=dynamic && export NO_FLIPPER=1
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
           echo "ENABLE_PROD=$ENABLE_PROD"
           echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
+          echo "USE_FRAMEWORKS=$USE_FRAMEWORKS"
           PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH pod install
           cat Podfile.lock | grep $RN_SENTRY_POD_NAME
 
@@ -269,6 +294,7 @@ jobs:
         if: ${{ matrix.platform == 'android' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: |
+          ../../../rn.patch.gradle.properties.js --gradle-properties android/gradle.properties --engine ${{ matrix.engine }}
           ../../../rn.patch.app.build.gradle.js --app-build-gradle android/app/build.gradle
 
       - name: Patch iOS App RN
@@ -333,7 +359,7 @@ jobs:
         if: matrix.platform == 'android' && matrix.build-type == 'production'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: apk.tar
           retention-days: 1
 
@@ -341,7 +367,7 @@ jobs:
         if: matrix.platform == 'ios' && matrix.build-type == 'production'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: app.tar
           retention-days: 1
 
@@ -349,11 +375,11 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}
+          name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}
           path: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios/*.log
 
   react-native-test:
-    name: Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
+    name: Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     needs: react-native-build
     runs-on: macos-latest
     strategy:
@@ -363,14 +389,21 @@ jobs:
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
+        ios-use-frameworks: ['no'] # test only no framworks
+        engine: ['hermes', 'jsc']
         include:
           - platform: ios
             runtime: 'latest'
             device: 'iPhone 14'
-        # exclude all rn versions lower than 0.70.0 for new architecture
         exclude:
+          # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
             rn-architecture: 'new'
+          # e2e test only the default combinations
+          - rn-version: '0.65.3'
+            engine: 'hermes'
+          - rn-version: '0.72.4'
+            engine: 'jsc'
     env:
       PLATFORM: ${{ matrix.platform }}
       DEVICE: ${{ matrix.device }}
@@ -384,7 +417,7 @@ jobs:
         if: matrix.build-type == 'production'
         uses: actions/download-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: test/e2e
 
       - name: Extract App Package
@@ -484,7 +517,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-logs
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
           path: |
             test/e2e/*.log
             test/e2e/*.png
