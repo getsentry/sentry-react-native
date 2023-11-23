@@ -5,6 +5,7 @@
 ### Fixes
 
 - Add hermes to Pod dependencies to fix profiling with `use_frameworks` ([#3416](https://github.com/getsentry/sentry-react-native/pull/3416))
+- Define SentryCurrentDateProvider in RNSentry ([#3418](https://github.com/getsentry/sentry-react-native/pull/3418))
 
 ## 5.14.0
 
