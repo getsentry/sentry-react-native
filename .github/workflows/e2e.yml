@@ -177,12 +177,7 @@ jobs:
             ios-use-frameworks: 'static'
           - platform: 'android'
             ios-use-frameworks: 'dynamic'
-          # use frameworks is only supported for production builds (Flipper is not supported)
-          # to be removed when Flipper is removed from the official template
-          - build-type: 'dev'
-            ios-use-frameworks: 'static'
-          - build-type: 'dev'
-            ios-use-frameworks: 'dynamic'
+
     steps:
       - uses: actions/checkout@v4
 
@@ -275,8 +270,8 @@ jobs:
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
           ../../../../rn.patch.podfile.js --pod-file Podfile --engine ${{ matrix.engine }}
-          [[ "${{ matrix.ios-use-frameworks }}" == "static" ]] && export USE_FRAMEWORKS=static
-          [[ "${{ matrix.ios-use-frameworks }}" == "dynamic" ]] && export USE_FRAMEWORKS=dynamic
+          [[ "${{ matrix.ios-use-frameworks }}" == "static" ]] && export USE_FRAMEWORKS=static && export NO_FLIPPER=1
+          [[ "${{ matrix.ios-use-frameworks }}" == "dynamic" ]] && export USE_FRAMEWORKS=dynamic && export NO_FLIPPER=1
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
           echo "ENABLE_PROD=$ENABLE_PROD"
