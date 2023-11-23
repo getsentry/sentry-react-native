@@ -177,6 +177,12 @@ jobs:
             ios-use-frameworks: 'static'
           - platform: 'android'
             ios-use-frameworks: 'dynamic'
+          # use frameworks is only supported for production builds (Flipper is not supported)
+          # to be removed when Flipper is removed from the official template
+          - build-type: 'dev'
+            ios-use-frameworks: 'static'
+          - build-type: 'dev'
+            ios-use-frameworks: 'dynamic'
     steps:
       - uses: actions/checkout@v4
 
