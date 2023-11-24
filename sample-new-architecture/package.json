@@ -8,11 +8,15 @@
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "pod-install": "cd ios; RCT_NEW_ARCH_ENABLED=1 bundle exec pod install; cd ..",
-    "pod-install-production": "cd ios; PRODUCTION=1 RCT_NEW_ARCH_ENABLED=1 bundle exec pod install; cd ..",
-    "pod-install-legacy": "cd ios; bundle exec pod install; cd ..",
-    "pod-install-legacy-production": "cd ios; PRODUCTION=1 bundle exec pod install; cd ..",
-    "clean-ios": "cd ios; rm -rf Podfile.lock Pods build; cd .."
+    "pod-install": "cd ios; RCT_NEW_ARCH_ENABLED=1 bundle exec pod install",
+    "pod-install-prod": "cd ios; PRODUCTION=1 RCT_NEW_ARCH_ENABLED=1 bundle exec pod install",
+    "pod-install-legacy": "cd ios; bundle exec pod install",
+    "pod-install-legacy-prod": "cd ios; PRODUCTION=1 bundle exec pod install",
+    "pod-install-jsc": "cd ios; USE_HERMES=0 RCT_NEW_ARCH_ENABLED=1 bundle exec pod install",
+    "pod-install-jsc-prod": "cd ios; USE_HERMES=0 PRODUCTION=1 RCT_NEW_ARCH_ENABLED=1 bundle exec pod install",
+    "pod-install-jsc-legacy": "cd ios; USE_HERMES=0 bundle exec pod install",
+    "pod-install-jsc-legacy-prod": "cd ios; USE_HERMES=0 PRODUCTION=1 bundle exec pod install",
+    "clean-ios": "cd ios; rimraf Podfile.lock Pods build"
   },
   "dependencies": {
     "@react-navigation/native": "^6.1.7",
@@ -45,6 +49,7 @@
     "metro-react-native-babel-preset": "^0.76.7",
     "prettier": "^2.4.1",
     "react-test-renderer": "18.2.0",
+    "rimraf": "^5.0.5",
     "typescript": "4.8.4"
   },
   "codegenConfig": {
