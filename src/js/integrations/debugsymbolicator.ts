@@ -44,27 +44,36 @@ export class DebugSymbolicator implements Integration {
    * @inheritDoc
    */
   public setupOnce(): void {
-    addGlobalEventProcessor(async (event: Event, hint?: EventHint) => {
+    addGlobalEventProcessor(async (event: Event, hint: EventHint) => {
       const self = getCurrentHub().getIntegration(DebugSymbolicator);
 
-      if (!self || hint === undefined || hint.originalException === undefined) {
+      if (!self) {
         return event;
       }
 
-      const reactError = hint.originalException as ReactNativeError;
+      if (event.exception
+        && hint.originalException
+        && typeof hint.originalException === 'object'
+        && 'stack' in hint.originalException
+        && typeof hint.originalException.stack === 'string') {
+        // originalException is ErrorLike object
+        const symbolicatedFrames = await this._symbolicate(hint.originalException.stack);
+        symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
+      } else if (hint.syntheticException
+        && typeof hint.syntheticException === 'object'
+        && 'stack' in hint.syntheticException
+        && typeof hint.syntheticException.stack === 'string') {
+        // syntheticException is Error object
+        const symbolicatedFrames = await this._symbolicate(hint.syntheticException.stack);
 
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
-
-      let stack;
-      try {
-        stack = parseErrorStack(reactError);
-      } catch (e) {
-        // In RN 0.64 `parseErrorStack` now only takes a string
-        stack = parseErrorStack(reactError.stack);
+        if (event.exception) {
+          symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
+        } else if (event.threads) {
+          // RN JS doesn't have threads
+          // syntheticException is used for Sentry.captureMessage() threads
+          symbolicatedFrames && this._replaceThreadFramesInEvent(event, symbolicatedFrames);
+        }
       }
-
-      await self._symbolicate(event, stack);
 
       return event;
     });
@@ -74,36 +83,38 @@ export class DebugSymbolicator implements Integration {
    * Symbolicates the stack on the device talking to local dev server.
    * Mutates the passed event.
    */
-  private async _symbolicate(event: Event, stack: string | undefined): Promise<void> {
+  private async _symbolicate(rawStack: string): Promise<StackFrame[] | null> {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
+    const parsedStack = parseErrorStack(rawStack);
+
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
-      const prettyStack = await symbolicateStackTrace(stack);
+      const prettyStack = await symbolicateStackTrace(parsedStack);
 
-      if (prettyStack) {
-        let newStack = prettyStack;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (prettyStack.stack) {
-          // This has been changed in an react-native version so stack is contained in here
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          newStack = prettyStack.stack;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const stackWithoutInternalCallsites = newStack.filter(
-          (frame: { file?: string }) =>
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null,
-        );
-
-        const symbolicatedFrames = await this._convertReactNativeFramesToSentryFrames(stackWithoutInternalCallsites);
-        this._replaceFramesInEvent(event, symbolicatedFrames);
-      } else {
-        logger.error('The stack is null');
+      if (!prettyStack) {
+        logger.error('React Native DevServer could not symbolicate the stack trace.');
+        return null;
       }
+
+      // This has been changed in an react-native version so stack is contained in here
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const newStack = prettyStack.stack || prettyStack;
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const stackWithoutInternalCallsites = newStack.filter(
+        (frame: { file?: string }) =>
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null,
+      );
+
+      return await this._convertReactNativeFramesToSentryFrames(stackWithoutInternalCallsites);
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`Unable to symbolicate stack trace: ${error.message}`);
       }
+      return null;
     }
   }
 
@@ -135,17 +146,6 @@ export class DebugSymbolicator implements Integration {
           in_app: inApp,
         };
 
-        // The upstream `react-native@0.61` delegates parsing of stacks to `stacktrace-parser`, which is buggy and
-        // leaves a trailing `(address at` in the function name.
-        // `react-native@0.62` seems to have custom logic to parse hermes frames specially.
-        // Anyway, all we do here is throw away the bogus suffix.
-        if (newFrame.function) {
-          const addressAtPos = newFrame.function.indexOf('(address at');
-          if (addressAtPos >= 0) {
-            newFrame.function = newFrame.function.substring(0, addressAtPos).trim();
-          }
-        }
-
         if (inApp) {
           await this._addSourceContext(newFrame, getDevServer);
         }
@@ -160,7 +160,7 @@ export class DebugSymbolicator implements Integration {
    * @param event Event
    * @param frames StackFrame[]
    */
-  private _replaceFramesInEvent(event: Event, frames: StackFrame[]): void {
+  private _replaceExceptionFramesInEvent(event: Event, frames: StackFrame[]): void {
     if (
       event.exception &&
       event.exception.values &&
@@ -168,6 +168,22 @@ export class DebugSymbolicator implements Integration {
       event.exception.values[0].stacktrace
     ) {
       event.exception.values[0].stacktrace.frames = frames.reverse();
+    }
+  }
+
+  /**
+   * Replaces the frames in the thread of a message.
+   * @param event Event
+   * @param frames StackFrame[]
+   */
+  private _replaceThreadFramesInEvent(event: Event, frames: StackFrame[]): void {
+    if (
+      event.threads &&
+      event.threads.values &&
+      event.threads.values[0] &&
+      event.threads.values[0].stacktrace
+    ) {
+      event.threads.values[0].stacktrace.frames = frames.reverse();
     }
   }
 
