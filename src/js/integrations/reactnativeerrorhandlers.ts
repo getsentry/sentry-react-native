@@ -128,9 +128,10 @@ export class ReactNativeErrorHandlers implements Integration {
           promiseRejectionTrackingOptions.onUnhandled(id, error);
         }
 
-        getCurrentHub().captureException(error, {
+        getCurrentHub().captureException({}, {
           data: { id },
-          originalException: error,
+          originalException: {},
+          syntheticException: new Error(),
         });
       },
       onHandled: (id: string) => {
