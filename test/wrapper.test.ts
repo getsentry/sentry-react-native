@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
 import { createEnvelope, logger } from '@sentry/utils';
 import * as RN from 'react-native';
@@ -8,58 +7,55 @@ import type { ReactNativeOptions } from '../src/js/options';
 import { fromByteArray, utf8ToBytes } from '../src/js/vendor';
 import { NATIVE } from '../src/js/wrapper';
 
-jest.mock(
-  'react-native',
-  () => {
-    let initPayload: ReactNativeOptions | null = null;
+jest.mock('react-native', () => {
+  let initPayload: ReactNativeOptions | null = null;
 
-    const RNSentry: Spec = {
-      addBreadcrumb: jest.fn(),
-      captureEnvelope: jest.fn(),
-      clearBreadcrumbs: jest.fn(),
-      crash: jest.fn(),
-      fetchNativeDeviceContexts: jest.fn(() =>
-        Promise.resolve({
-          someContext: {
-            someValue: 0,
-          },
-        }),
-      ),
-      fetchNativeRelease: jest.fn(() =>
-        Promise.resolve({
-          build: '1.0.0.1',
-          id: 'test-mock',
-          version: '1.0.0',
-        }),
-      ),
-      setContext: jest.fn(),
-      setExtra: jest.fn(),
-      setTag: jest.fn(),
-      setUser: jest.fn(() => {
-        return;
+  const RNSentry: Spec = {
+    addBreadcrumb: jest.fn(),
+    captureEnvelope: jest.fn(),
+    clearBreadcrumbs: jest.fn(),
+    crash: jest.fn(),
+    fetchNativeDeviceContexts: jest.fn(() =>
+      Promise.resolve({
+        someContext: {
+          someValue: 0,
+        },
       }),
-      initNativeSdk: jest.fn(options => {
-        initPayload = options;
-
-        return Promise.resolve(true);
+    ),
+    fetchNativeRelease: jest.fn(() =>
+      Promise.resolve({
+        build: '1.0.0.1',
+        id: 'test-mock',
+        version: '1.0.0',
       }),
-      closeNativeSdk: jest.fn(() => Promise.resolve()),
-      // @ts-ignore for testing.
-      _getLastPayload: () => ({ initPayload }),
-    };
+    ),
+    setContext: jest.fn(),
+    setExtra: jest.fn(),
+    setTag: jest.fn(),
+    setUser: jest.fn(() => {
+      return;
+    }),
+    initNativeSdk: jest.fn(options => {
+      initPayload = options;
 
-    return {
-      NativeModules: {
-        RNSentry,
-      },
-      Platform: {
-        OS: 'ios',
-      },
-    };
-  },
-  /* virtual allows us to mock modules that aren't in package.json */
-  { virtual: true },
-);
+      return Promise.resolve(true);
+    }),
+    closeNativeSdk: jest.fn(() => Promise.resolve()),
+    // @ts-expect-error for testing.
+    _getLastPayload: () => ({ initPayload }),
+    startProfiling: jest.fn(),
+    stopProfiling: jest.fn(),
+  };
+
+  return {
+    NativeModules: {
+      RNSentry,
+    },
+    Platform: {
+      OS: 'ios',
+    },
+  };
+});
 
 const RNSentry = RN.NativeModules.RNSentry as Spec;
 
@@ -88,16 +84,16 @@ const callAllScopeMethods = () => {
   NATIVE.setExtra('key', 'value');
 };
 
-beforeEach(() => {
-  NATIVE.platform = 'ios';
-  NATIVE.enableNative = true;
-});
-
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('Tests Native Wrapper', () => {
+  beforeEach(() => {
+    NATIVE.platform = 'ios';
+    NATIVE.enableNative = true;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('startWithOptions', () => {
     test('calls native module', async () => {
       await NATIVE.initNativeSdk({ dsn: 'test', enableNative: true });
@@ -130,7 +126,68 @@ describe('Tests Native Wrapper', () => {
       expect(logger.warn).toHaveBeenLastCalledWith('Note: Native Sentry SDK is disabled.');
     });
 
+    test('filter beforeSend when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeSend: jest.fn(),
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeSend');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter beforeBreadcrumb when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeBreadcrumb: jest.fn(),
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeBreadcrumb');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter beforeSendTransaction when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeSendTransaction: jest.fn(),
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeSendTransaction');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter integrations when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        integrations: [],
+      });
+
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('integrations');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
     test('does not initialize with autoInitializeNativeSdk: false', async () => {
+      NATIVE.enableNative = false;
       logger.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
@@ -258,10 +315,10 @@ describe('Tests Native Wrapper', () => {
       try {
         await NATIVE.initNativeSdk({ dsn: 'test-dsn', enableNative: false });
 
-        // @ts-ignore for testing, does not accept an empty class.
+        // @ts-expect-error for testing, does not accept an empty class.
         await NATIVE.sendEnvelope({});
       } catch (error) {
-        // @ts-ignore it is an error but it does not know the type.
+        // @ts-expect-error it is an error but it does not know the type.
         expect(error.message).toMatch('Native is disabled');
       }
       expect(RNSentry.captureEnvelope).not.toBeCalled();
@@ -291,7 +348,7 @@ describe('Tests Native Wrapper', () => {
         { store: false },
       );
     });
-    test('Clears breadcrumbs on Android if mechanism.handled is true', async () => {
+    test('Keeps breadcrumbs on Android if mechanism.handled is true', async () => {
       NATIVE.platform = 'android';
 
       const event: Event = {
@@ -320,17 +377,15 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(
-          utf8ToBytes(
-            '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":104}\n' +
-              '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[]}\n',
-          ),
+        utf8ToBytes(
+          '{"event_id":"event0","sent_at":"123"}\n' +
+            '{"type":"event","content_type":"application/json","length":104}\n' +
+            '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[]}\n',
         ),
         { store: false },
       );
     });
-    test('Clears breadcrumbs on Android if there is no exception', async () => {
+    test('Keeps breadcrumbs on Android if there is no exception', async () => {
       NATIVE.platform = 'android';
 
       const event: Event = {
@@ -349,17 +404,15 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(
-          utf8ToBytes(
-            '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":38}\n' +
-              '{"event_id":"event0","breadcrumbs":[]}\n',
-          ),
+        utf8ToBytes(
+          '{"event_id":"event0","sent_at":"123"}\n' +
+            '{"type":"event","content_type":"application/json","length":38}\n' +
+            '{"event_id":"event0","breadcrumbs":[]}\n',
         ),
         { store: false },
       );
     });
-    test('Does not clear breadcrumbs on Android if mechanism.handled is false', async () => {
+    test('Keeps breadcrumbs on Android if mechanism.handled is false', async () => {
       NATIVE.platform = 'android';
 
       const event: Event = {
@@ -422,12 +475,16 @@ describe('Tests Native Wrapper', () => {
 
       expect(RNSentry.fetchNativeDeviceContexts).toBeCalled();
     });
-    test('returns empty object on android', async () => {
+    test('returns context object from native module on android', async () => {
       NATIVE.platform = 'android';
 
-      await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject({});
+      await expect(NATIVE.fetchNativeDeviceContexts()).resolves.toMatchObject({
+        someContext: {
+          someValue: 0,
+        },
+      });
 
-      expect(RNSentry.fetchNativeDeviceContexts).not.toBeCalled();
+      expect(RNSentry.fetchNativeDeviceContexts).toBeCalled();
     });
   });
 
@@ -455,7 +512,7 @@ describe('Tests Native Wrapper', () => {
     test('serializes all user object keys', async () => {
       NATIVE.setUser({
         email: 'hello@sentry.io',
-        // @ts-ignore Intentional incorrect type to simulate using a double as an id (We had a user open an issue because this didn't work before)
+        // @ts-expect-error Intentional incorrect type to simulate using a double as an id (We had a user open an issue because this didn't work before)
         id: 3.14159265359,
         unique: 123,
       });
@@ -499,11 +556,57 @@ describe('Tests Native Wrapper', () => {
   });
 
   describe('closeNativeSdk', () => {
+    NATIVE.enableNative = true;
     test('closeNativeSdk calls native bridge', async () => {
       await NATIVE.closeNativeSdk();
 
       expect(RNSentry.closeNativeSdk).toBeCalled();
       expect(NATIVE.enableNative).toBe(false);
+    });
+  });
+
+  describe('profiling', () => {
+    test('start profiling returns true', () => {
+      (RNSentry.startProfiling as jest.MockedFunction<typeof RNSentry.startProfiling>).mockReturnValue({
+        started: true,
+      });
+      expect(NATIVE.startProfiling()).toBe(true);
+    });
+    test('failed start profiling returns false', () => {
+      (RNSentry.startProfiling as jest.MockedFunction<typeof RNSentry.startProfiling>).mockReturnValue({
+        error: 'error',
+      });
+      expect(NATIVE.startProfiling()).toBe(false);
+    });
+    test('stop profiling returns hermes profile', () => {
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        profile: '{ "valid": "hermes" }',
+      });
+      expect(NATIVE.stopProfiling()).toEqual({
+        hermesProfile: { valid: 'hermes' },
+      });
+    });
+    test('stop profiling returns hermes and native profiles', () => {
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        profile: '{ "valid": "hermes" }',
+        nativeProfile: { valid: 'native' },
+      });
+      expect(NATIVE.stopProfiling()).toEqual({
+        hermesProfile: { valid: 'hermes' },
+        nativeProfile: { valid: 'native' },
+      });
+    });
+    test('failed stop profiling returns null', () => {
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        error: 'error',
+      });
+      expect(NATIVE.stopProfiling()).toBe(null);
+    });
+    test('stop profiling returns null on invalid json profile', () => {
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        profile: 'invalid',
+      });
+      expect(NATIVE.stopProfiling()).toBe(null);
     });
   });
 });

@@ -1,3 +1,4 @@
+#import <dlfcn.h>
 #import "RNSentry.h"
 
 #if __has_include(<React/RCTConvert.h>)
@@ -6,10 +7,26 @@
 #import "RCTConvert.h"
 #endif
 
+#if __has_include(<hermes/hermes.h>) && SENTRY_PROFILING_SUPPORTED
+#define SENTRY_PROFILING_ENABLED 1
+#import <Sentry/SentryProfilingConditionals.h>
+#else
+#define SENTRY_PROFILING_ENABLED 0
+#define SENTRY_TARGET_PROFILING_SUPPORTED 0
+#endif
+
 #import <Sentry/Sentry.h>
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
+#import <Sentry/SentryBinaryImageCache.h>
+#import <Sentry/SentryDependencyContainer.h>
+#import <Sentry/SentryFormatter.h>
+
+// This guard prevents importing Hermes in JSC apps
+#if SENTRY_PROFILING_ENABLED
+#import <hermes/hermes.h>
+#endif
 
 // Thanks to this guard, we won't import this header when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED
@@ -184,48 +201,128 @@ RCT_EXPORT_METHOD(fetchModules:(RCTPromiseResolveBlock)resolve
     resolve(modulesString);
 }
 
+RCT_EXPORT_METHOD(fetchNativePackageName:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSString *packageName = [[NSBundle mainBundle] executablePath];
+    resolve(packageName);
+}
+
+- (NSDictionary*) fetchNativeStackFramesBy: (NSArray<NSNumber*>*)instructionsAddr
+                               symbolicate: (SymbolicateCallbackType) symbolicate
+{
+  BOOL shouldSymbolicateLocally = [SentrySDK.options debug];
+  NSString *appPackageName = [[NSBundle mainBundle] executablePath];
+
+  NSMutableSet<NSString *> * _Nonnull imagesAddrToRetrieveDebugMetaImages = [[NSMutableSet alloc] init];
+  NSMutableArray<NSDictionary<NSString *, id> *> * _Nonnull serializedFrames = [[NSMutableArray alloc] init];
+
+  for (NSNumber *addr in instructionsAddr) {
+    SentryBinaryImageInfo * _Nullable image = [[[SentryDependencyContainer sharedInstance] binaryImageCache] imageByAddress:[addr unsignedLongLongValue]];
+    if (image != nil) {
+      NSString * imageAddr = sentry_formatHexAddressUInt64([image address]);
+      [imagesAddrToRetrieveDebugMetaImages addObject: imageAddr];
+
+      NSDictionary<NSString *, id> * _Nonnull nativeFrame = @{
+        @"platform": @"cocoa",
+        @"instruction_addr": sentry_formatHexAddress(addr),
+        @"package": [image name],
+        @"image_addr": imageAddr,
+        @"in_app": [NSNumber numberWithBool:[appPackageName isEqualToString:[image name]]],
+      };
+
+      if (shouldSymbolicateLocally) {
+        Dl_info symbolsBuffer;
+        bool symbols_succeed = false;
+        symbols_succeed = symbolicate((void *) [addr unsignedLongLongValue], &symbolsBuffer) != 0;
+        if (symbols_succeed) {
+          NSMutableDictionary<NSString *, id> * _Nonnull symbolicated = nativeFrame.mutableCopy;
+          symbolicated[@"symbol_addr"] = sentry_formatHexAddressUInt64((uintptr_t)symbolsBuffer.dli_saddr);
+          symbolicated[@"function"] = [NSString stringWithCString:symbolsBuffer.dli_sname encoding:NSUTF8StringEncoding];
+
+          nativeFrame = symbolicated;
+        }
+      }
+
+      [serializedFrames addObject:nativeFrame];
+    } else {
+      [serializedFrames addObject: @{
+        @"platform": @"cocoa",
+        @"instruction_addr": sentry_formatHexAddress(addr),
+      }];
+    }
+  }
+
+  if (shouldSymbolicateLocally) {
+    return @{
+      @"frames": serializedFrames,
+    };
+  } else {
+    NSMutableArray<NSDictionary<NSString *, id> *> * _Nonnull serializedDebugMetaImages = [[NSMutableArray alloc] init];
+
+    NSArray<SentryDebugMeta *> *debugMetaImages = [[[SentryDependencyContainer sharedInstance] debugImageProvider] getDebugImagesForAddresses:imagesAddrToRetrieveDebugMetaImages isCrash:false];
+
+    for (SentryDebugMeta *debugImage in debugMetaImages) {
+      [serializedDebugMetaImages addObject:[debugImage serialize]];
+    }
+
+    return @{
+      @"frames": serializedFrames,
+      @"debugMetaImages": serializedDebugMetaImages,
+    };
+  }
+}
+
+RCT_EXPORT_METHOD(fetchNativeStackFramesBy:(NSArray *)instructionsAddr
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+  resolve([self fetchNativeStackFramesBy:instructionsAddr
+                             symbolicate:dladdr]);
+}
+
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSLog(@"Bridge call to: deviceContexts");
-    __block NSMutableDictionary<NSString *, id> *contexts;
+    __block NSMutableDictionary<NSString *, id> *serializedScope;
     // Temp work around until sorted out this API in sentry-cocoa.
     // TODO: If the callback isnt' executed the promise wouldn't be resolved.
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        NSDictionary<NSString *, id>  *serializedScope = [scope serialize];
-        contexts = [serializedScope mutableCopy];
+        serializedScope = [[scope serialize] mutableCopy];
 
-        NSDictionary<NSString *, id>  *user = [contexts valueForKey:@"user"];
+        NSDictionary<NSString *, id>  *user = [serializedScope valueForKey:@"user"];
         if (user == nil) {
-            [contexts
+            [serializedScope
                 setValue:@{ @"id": PrivateSentrySDKOnly.installationID }
                 forKey:@"user"];
         }
 
         if (PrivateSentrySDKOnly.options.debug) {
-            NSData *data = [NSJSONSerialization dataWithJSONObject:contexts options:0 error:nil];
+            NSData *data = [NSJSONSerialization dataWithJSONObject:serializedScope options:0 error:nil];
             NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
             NSLog(@"Contexts: %@", debugContext);
         }
     }];
 
     NSDictionary<NSString *, id> *extraContext = [PrivateSentrySDKOnly getExtraContext];
-    NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *context = [contexts[@"context"] mutableCopy];
+    NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *contexts = [serializedScope[@"context"] mutableCopy];
 
     if (extraContext && [extraContext[@"device"] isKindOfClass:[NSDictionary class]]) {
-      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *deviceContext = [contexts[@"context"][@"device"] mutableCopy];
+      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *deviceContext = [contexts[@"device"] mutableCopy];
       [deviceContext addEntriesFromDictionary:extraContext[@"device"]];
-      [context setValue:deviceContext forKey:@"device"];
+      [contexts setValue:deviceContext forKey:@"device"];
     }
 
     if (extraContext && [extraContext[@"app"] isKindOfClass:[NSDictionary class]]) {
-      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *appContext = [contexts[@"context"][@"app"] mutableCopy];
+      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *appContext = [contexts[@"app"] mutableCopy];
       [appContext addEntriesFromDictionary:extraContext[@"app"]];
-      [context setValue:appContext forKey:@"app"];
+      [contexts setValue:appContext forKey:@"app"];
     }
 
-    [contexts setValue:context forKey:@"context"];
-    resolve(contexts);
+    [serializedScope setValue:contexts forKey:@"contexts"];
+    [serializedScope removeObjectForKey:@"context"];
+    resolve(serializedScope);
 }
 
 RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
@@ -492,6 +589,118 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // If you're starting the Cocoa SDK manually,
     // you can set the 'enableAutoPerformanceTracing: true' option and
     // the 'tracesSampleRate' or 'tracesSampler' option.
+}
+
+static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";
+static SentryId* nativeProfileTraceId = nil;
+static uint64_t nativeProfileStartTime = 0;
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
+{
+#if SENTRY_PROFILING_ENABLED
+    try {
+        facebook::hermes::HermesRuntime::enableSamplingProfiler();
+        if (nativeProfileTraceId == nil && nativeProfileStartTime == 0) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+            nativeProfileTraceId = [[SentryId alloc] init];
+            nativeProfileStartTime = [PrivateSentrySDKOnly startProfilerForTrace: nativeProfileTraceId];
+#endif
+        } else {
+            NSLog(@"Native profiling already in progress. Currently existing trace: %@", nativeProfileTraceId);
+        }
+        return @{ @"started": @YES };
+    } catch (const std::exception& ex) {
+        if (nativeProfileTraceId != nil) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+            [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
+#endif
+            nativeProfileTraceId = nil;
+        }
+        nativeProfileStartTime = 0;
+        return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
+    } catch (...) {
+        if (nativeProfileTraceId != nil) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+            [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
+#endif
+            nativeProfileTraceId = nil;
+        }
+        nativeProfileStartTime = 0;
+        return @{ @"error": @"Failed to start profiling" };
+    }
+#else
+    return @{ @"error": enabledProfilingMessage };
+#endif
+}
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
+{
+#if SENTRY_PROFILING_ENABLED
+    try {
+        NSDictionary<NSString *, id> * nativeProfile = nil;
+        if (nativeProfileTraceId != nil && nativeProfileStartTime != 0) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+            uint64_t nativeProfileStopTime = [[[SentryDependencyContainer sharedInstance] dateProvider] systemTime];
+            nativeProfile = [PrivateSentrySDKOnly collectProfileBetween:nativeProfileStartTime and:nativeProfileStopTime forTrace:nativeProfileTraceId];
+#endif
+        }
+        // Cleanup native profiles
+        nativeProfileTraceId = nil;
+        nativeProfileStartTime = 0;
+
+        facebook::hermes::HermesRuntime::disableSamplingProfiler();
+        std::stringstream ss;
+        // Before RN 0.69 Hermes used llvh::raw_ostream (profiling is supported for 0.69 and newer)
+        facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
+
+        std::string s = ss.str();
+        NSString *data = [NSString stringWithCString:s.c_str() encoding:[NSString defaultCStringEncoding]];
+
+#if SENTRY_PROFILING_DEBUG_ENABLED
+        NSString *rawProfileFileName = @"hermes.profile";
+        NSError *error = nil;
+        NSString *rawProfileFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:rawProfileFileName];
+        if (![data writeToFile:rawProfileFilePath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
+            NSLog(@"Error writing Raw Hermes Profile to %@: %@", rawProfileFilePath, error);
+        } else {
+            NSLog(@"Raw Hermes Profile saved to %@", rawProfileFilePath);
+        }
+#endif
+
+        if (data == nil) {
+          return @{ @"error": @"Failed to retrieve Hermes profile." };
+        }
+
+        if (nativeProfile == nil) {
+          return @{ @"profile": data };
+        }
+
+        return @{
+          @"profile": data,
+          @"nativeProfile": nativeProfile,
+        };
+    } catch (const std::exception& ex) {
+        if (nativeProfileTraceId != nil) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+          [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
+#endif
+          nativeProfileTraceId = nil;
+        }
+        nativeProfileStartTime = 0;
+        return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
+    } catch (...) {
+        if (nativeProfileTraceId != nil) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+          [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
+#endif
+          nativeProfileTraceId = nil;
+        }
+        nativeProfileStartTime = 0;
+        return @{ @"error": @"Failed to stop profiling" };
+    }
+#else
+    return @{ @"error": enabledProfilingMessage };
+#endif
 }
 
 // Thanks to this guard, we won't compile this code when we build for the old architecture.

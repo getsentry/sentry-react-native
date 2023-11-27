@@ -2,11 +2,14 @@
 
 const fs = require('fs');
 const path = require('path');
-const { argv } = require('process');
+const { argv, env } = require('process');
 
 const parseArgs = require('minimist');
 const { logger } = require('@sentry/utils');
 logger.enable();
+
+const SENTRY_RELEASE = env.SENTRY_RELEASE;
+const SENTRY_DIST = env.SENTRY_DIST;
 
 const args = parseArgs(argv.slice(2));
 if (!args.app) {
@@ -20,6 +23,8 @@ import * as Sentry from '@sentry/react-native';
 import { EndToEndTestsScreen } from 'sentry-react-native-e2e-tests';
 
 Sentry.init({
+  release: '${SENTRY_RELEASE}',
+  dist: '${SENTRY_DIST}',
   dsn: 'https://d870ad989e7046a8b9715a57f59b23b5@o447951.ingest.sentry.io/5428561',
 });
 `;

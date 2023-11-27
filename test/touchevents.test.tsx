@@ -60,7 +60,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
       },
     };
 
-    // @ts-ignore Calling private member
+    // @ts-expect-error Calling private member
     boundary._onTouchStart(event);
 
     expect(addBreadcrumb).not.toBeCalled();
@@ -97,7 +97,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
       },
     };
 
-    // @ts-ignore Calling private member
+    // @ts-expect-error Calling private member
     boundary._onTouchStart(event);
 
     expect(addBreadcrumb).toBeCalledWith({
@@ -156,7 +156,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
       },
     };
 
-    // @ts-ignore Calling private member
+    // @ts-expect-error Calling private member
     boundary._onTouchStart(event);
 
     expect(addBreadcrumb).toBeCalledWith({
@@ -206,7 +206,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
       },
     };
 
-    // @ts-ignore Calling private member
+    // @ts-expect-error Calling private member
     boundary._onTouchStart(event);
 
     expect(addBreadcrumb).toBeCalledWith({

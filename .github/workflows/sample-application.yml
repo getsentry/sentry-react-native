@@ -1,0 +1,126 @@
+name: Sample Application
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  RN_SENTRY_POD_NAME: RNSentry
+
+jobs:
+  cancel-previous-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
+        with:
+          access_token: ${{ github.token }}
+
+  build:
+    name: Build ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
+    # Android emulator said to perform best with macos HAXM
+    runs-on: macos-latest
+    strategy:
+      # we want that the matrix keeps running, default is to cancel them if it fails.
+      fail-fast: false
+      matrix:
+        rn-architecture: ['legacy', 'new']
+        platform: ['android', 'ios']
+        build-type: ['dev', 'production']
+        include:
+          - platform: ios
+            runtime: 'latest'
+            device: 'iPhone 14'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        if: ${{ matrix.platform == 'ios' }}
+        with:
+          working-directory: sample-new-architecture
+          ruby-version: '3.2.2' # based on what is used in the sample
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Install Global Dependencies
+        run: brew install xcbeautify
+
+      - name: NPM cache
+        uses: actions/cache@v3
+        id: deps-cache
+        with:
+          path: |
+            node_modules
+            sample-new-architecture/node_modules
+          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock', 'sample-new-architecture/yarn.lock') }}
+
+      - name: Install SDK Dependencies
+        if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Install Sample Dependencies
+        if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
+        working-directory: sample-new-architecture
+        run: yarn install
+
+      - name: Install App Pods
+        if: ${{ matrix.platform == 'ios' }}
+        working-directory: sample-new-architecture/ios
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
+          [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
+          echo "ENABLE_PROD=$ENABLE_PROD"
+          echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
+          PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH pod install
+          cat Podfile.lock | grep $RN_SENTRY_POD_NAME
+
+      - name: Build Android App
+        if: ${{ matrix.platform == 'android' }}
+        working-directory: sample-new-architecture/android
+        run: |
+          if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
+            perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+            echo 'New Architecture enabled'
+          fi
+          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          echo "Building $CONFIG"
+          ./gradlew ":app:assemble$CONFIG" -PreactNativeArchitectures=x86
+
+      - name: Build iOS App
+        if: ${{ matrix.platform == 'ios' }}
+        working-directory: sample-new-architecture/ios
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          echo "Building $CONFIG"
+          mkdir -p "DerivedData"
+          derivedData="$(cd "DerivedData" ; pwd -P)"
+          set -o pipefail && xcodebuild \
+            -workspace sampleNewArchitecture.xcworkspace \
+            -configuration "$CONFIG" \
+            -scheme sampleNewArchitecture \
+            -destination 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}' \
+            ONLY_ACTIVE_ARCH=yes \
+            -derivedDataPath "$derivedData" \
+            build \
+            | tee xcodebuild.log \
+            | xcbeautify --quieter --is-ci --disable-colored-output
+
+      - name: Upload logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-sample-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-logs
+          path: sample-new-architecture/ios/*.log

@@ -66,8 +66,6 @@ export class DebugSymbolicator implements Integration {
 
       await self._symbolicate(event, stack);
 
-      event.platform = 'node'; // Setting platform node makes sure we do not show source maps errors
-
       return event;
     });
   }
@@ -120,8 +118,6 @@ export class DebugSymbolicator implements Integration {
     } catch (_oO) {
       // We can't load devserver URL
     }
-    // Below you will find lines marked with :HACK to prevent showing errors in the sentry ui
-    // But since this is a debug only feature: This is Fine (TM)
     return Promise.all(
       frames.map(async (frame: ReactNativeFrame): Promise<StackFrame> => {
         let inApp = !!frame.column && !!frame.lineNumber;
@@ -132,12 +128,11 @@ export class DebugSymbolicator implements Integration {
           !frame.file.includes('native code');
 
         const newFrame: StackFrame = {
+          lineno: frame.lineNumber,
           colno: frame.column,
           filename: frame.file,
           function: frame.methodName,
           in_app: inApp,
-          lineno: inApp ? frame.lineNumber : undefined, // :HACK
-          platform: inApp ? 'javascript' : 'node', // :HACK
         };
 
         // The upstream `react-native@0.61` delegates parsing of stacks to `stacktrace-parser`, which is buggy and
@@ -147,7 +142,7 @@ export class DebugSymbolicator implements Integration {
         if (newFrame.function) {
           const addressAtPos = newFrame.function.indexOf('(address at');
           if (addressAtPos >= 0) {
-            newFrame.function = newFrame.function.substr(0, addressAtPos).trim();
+            newFrame.function = newFrame.function.substring(0, addressAtPos).trim();
           }
         }
 

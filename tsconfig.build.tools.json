@@ -1,7 +1,7 @@
 {
   "extends": "./node_modules/@sentry/typescript/tsconfig.json",
   "include": [
-    "src/js/tools/*.ts"
+    "src/js/tools/**/*.ts"
   ],
   "exclude": [
     "node_modules"

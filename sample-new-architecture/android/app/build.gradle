@@ -2,20 +2,46 @@ apply plugin: "com.android.application"
 apply plugin: "com.facebook.react"
 apply plugin: "io.sentry.android.gradle"
 
-import com.android.build.OutputFile
+project.ext.sentryCli = [
+    collectModulesScript: "../../../dist/js/tools/collectModules.js",
+    modulesPaths: [
+      "node_modules",
+      "../..",
+    ],
+    skipCollectModules: false,
+    copyDebugIdScript: "../../../scripts/copy-debugid.js",
+    hasSourceMapDebugIdScript: "../../../scripts/has-sourcemap-debugid.js",
+]
+
+apply from: "../../../sentry.gradle"
 
 sentry {
+    // Whether the plugin should attempt to auto-upload the mapping file to Sentry or not.
+    // If disabled the plugin will run a dry-run and just generate a UUID.
+    // The mapping file has to be uploaded manually via sentry-cli in this case.
+    // Default is enabled.
+    autoUploadProguardMapping = shouldSentryAutoUpload()
+
     // Disables or enables the automatic configuration of Native Symbols
     // for Sentry. This executes sentry-cli automatically so
     // you don't need to do it manually.
     // Default is disabled.
-    uploadNativeSymbols = true
+    uploadNativeSymbols = shouldSentryAutoUpload()
 
     // Does or doesn't include the source code of native code for Sentry.
     // This executes sentry-cli with the --include-sources param. automatically so
     // you don't need to do it manually.
     // Default is disabled.
     includeNativeSources = true
+
+    // `@sentry/react-native` ships with compatible `sentry-android`
+    // This option would install the latest version that ships with the SDK or SAGP (Sentry Android Gradle Plugin)
+    // which might be incompatible with the React Native SDK
+    // Enable auto-installation of Sentry components (sentry-android SDK and okhttp, timber and fragment integrations).
+    // Default is enabled.
+    autoInstallation {
+      enabled = false
+    }
 }
 
 react {
@@ -24,8 +50,8 @@ react {
     // root = file("../")
     //   The folder where the react-native NPM package is. Default is ../node_modules/react-native
     // reactNativeDir = file("../node_modules/react-native")
-    //   The folder where the react-native Codegen package is. Default is ../node_modules/react-native-codegen
-    // codegenDir = file("../node_modules/react-native-codegen")
+    //   The folder where the react-native Codegen package is. Default is ../node_modules/@react-native/codegen
+    // codegenDir = file("../node_modules/@react-native/codegen")
     //   The cli.js file which is the React Native CLI entrypoint. Default is ../node_modules/react-native/cli.js
     // cliFile = file("../node_modules/react-native/cli.js")
     /* Variants */
@@ -60,25 +86,6 @@ react {
     // hermesFlags = ["-O", "-output-source-map"]
 }
 
-project.ext.sentryCli = [
-    collectModulesScript: "../../../dist/js/tools/collectModules.js",
-    modulesPaths: [
-      "node_modules",
-      "../..",
-    ],
-    skipCollectModules: false,
-]
-
-apply from: "../../../sentry.gradle"
-
-/**
- * Set this to true to create four separate APKs instead of one,
- * one for each native architecture. This is useful if you don't
- * use App Bundles (https://developer.android.com/guide/app-bundle/)
- * and want to have separate APKs to upload to the Play Store.
- */
-def enableSeparateBuildPerCPUArchitecture = false
-
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
@@ -97,14 +104,6 @@ def enableProguardInReleaseBuilds = true
  */
 def jscFlavor = 'org.webkit:android-jsc:+'
 
-/**
- * Architectures to build native code for.
- */
-def reactNativeArchitectures() {
-    def value = project.getProperties().get("reactNativeArchitectures")
-    return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
-}
-
 android {
     ndkVersion rootProject.ext.ndkVersion
 
@@ -119,14 +118,6 @@ android {
         versionName "1.0"
     }
 
-    splits {
-        abi {
-            reset()
-            enable enableSeparateBuildPerCPUArchitecture
-            universalApk false  // If true, also generate a universal APK
-            include (*reactNativeArchitectures())
-        }
-    }
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -147,31 +138,11 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
-
-    // applicationVariants are e.g. debug, release
-    applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            // For each separate APK per architecture, set a unique version code as described here:
-            // https://developer.android.com/studio/build/configure-apk-splits.html
-            // Example: versionCode 1 will generate 1001 for armeabi-v7a, 1002 for x86, etc.
-            def versionCodes = ["armeabi-v7a": 1, "x86": 2, "arm64-v8a": 3, "x86_64": 4]
-            def abi = output.getFilter(OutputFile.ABI)
-            if (abi != null) {  // null for the universal-debug, universal-release variants
-                output.versionCodeOverride =
-                        defaultConfig.versionCode * 1000 + versionCodes.get(abi)
-            }
-
-        }
-    }
-
-
 }
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-
-    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {

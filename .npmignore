@@ -13,3 +13,8 @@
 !/android/**/*
 !src/js/NativeRNSentry.ts
 !scripts/collect-modules.sh
+!scripts/copy-debugid.js
+!scripts/has-sourcemap-debugid.js
+!scripts/sentry-xcode.sh
+!scripts/sentry-xcode-debug-files.sh
+!scripts/sentry_utils.rb

@@ -1,7 +1,14 @@
 import type { Exception } from '@sentry/browser';
 import { defaultStackParser, eventFromException } from '@sentry/browser';
+import type { Event } from '@sentry/types';
+import { Platform } from 'react-native';
 
 import { createReactNativeRewriteFrames } from '../../src/js/integrations/rewriteframes';
+import { isExpo, isHermesEnabled } from '../../src/js/utils/environment';
+import { mockFunction } from '../testutils';
+
+jest.mock('../../src/js/utils/environment');
+jest.mock('react-native', () => ({ Platform: { OS: 'ios' } }));
 
 describe('RewriteFrames', () => {
   const HINT = {};
@@ -19,6 +26,84 @@ describe('RewriteFrames', () => {
     const exception = event.exception?.values?.[0];
     return exception;
   };
+
+  beforeEach(() => {
+    mockFunction(isExpo).mockReturnValue(false);
+    mockFunction(isHermesEnabled).mockReturnValue(false);
+    jest.resetAllMocks();
+  });
+
+  it('should not change cocoa frames', async () => {
+    const EXPECTED_SENTRY_COCOA_EXCEPTION = {
+      type: 'Error',
+      value: 'Objective-c error message.',
+      stacktrace: {
+        frames: [
+          {
+            platform: 'cocoa',
+            package: 'CoreFoundation',
+            function: '__exceptionPreprocess',
+            instruction_addr: '0000000180437330',
+          },
+          {
+            platform: 'cocoa',
+            package: 'libobjc.A.dylib',
+            function: 'objc_exception_throw',
+            instruction_addr: '0000000180051274',
+          },
+          {
+            platform: 'cocoa',
+            package: 'RNTester',
+            function: '-[RCTSampleTurboModule getObjectThrows:]',
+            instruction_addr: '0000000103535900',
+          },
+        ],
+      },
+    };
+
+    const SENTRY_COCOA_EXCEPTION_EVENT: Event = {
+      exception: {
+        values: [JSON.parse(JSON.stringify(EXPECTED_SENTRY_COCOA_EXCEPTION))],
+      },
+    };
+
+    const event = createReactNativeRewriteFrames().process(SENTRY_COCOA_EXCEPTION_EVENT);
+    expect(event.exception?.values?.[0]).toEqual(EXPECTED_SENTRY_COCOA_EXCEPTION);
+  });
+
+  it('should not change jvm frames', async () => {
+    const EXPECTED_SENTRY_JVM_EXCEPTION = {
+      type: 'java.lang.RuntimeException',
+      value: 'Java error message.',
+      stacktrace: {
+        frames: [
+          {
+            platform: 'java',
+            module: 'com.example.modules.Crash',
+            filename: 'Crash.kt',
+            lineno: 10,
+            function: 'getDataCrash',
+          },
+          {
+            platform: 'java',
+            module: 'com.facebook.jni.NativeRunnable',
+            filename: 'NativeRunnable.java',
+            lineno: 2,
+            function: 'run',
+          },
+        ],
+      },
+    };
+
+    const SENTRY_JVM_EXCEPTION_EVENT: Event = {
+      exception: {
+        values: [JSON.parse(JSON.stringify(EXPECTED_SENTRY_JVM_EXCEPTION))],
+      },
+    };
+
+    const event = createReactNativeRewriteFrames().process(SENTRY_JVM_EXCEPTION_EVENT);
+    expect(event.exception?.values?.[0]).toEqual(EXPECTED_SENTRY_JVM_EXCEPTION);
+  });
 
   it('should parse exceptions for react-native-v8', async () => {
     const REACT_NATIVE_V8_EXCEPTION = {
@@ -98,7 +183,10 @@ describe('RewriteFrames', () => {
     });
   });
 
-  it('should parse exceptions for react-native Expo bundles', async () => {
+  it('should parse exceptions for react-native Expo bundles on ios', async () => {
+    mockFunction(isExpo).mockReturnValue(true);
+    Platform.OS = 'ios';
+
     const REACT_NATIVE_EXPO_EXCEPTION = {
       message: 'Test Error Expo',
       name: 'Error',
@@ -121,28 +209,86 @@ describe('RewriteFrames', () => {
         frames: [
           { filename: '[native code]', function: 'forEach', in_app: true },
           {
-            filename: 'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
+            filename: 'app:///main.jsbundle',
             function: 'p',
             lineno: 96,
             colno: 385,
             in_app: true,
           },
           {
-            filename: 'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
+            filename: 'app:///main.jsbundle',
             function: 'onResponderRelease',
             lineno: 221,
             colno: 5666,
             in_app: true,
           },
           {
-            filename: 'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
+            filename: 'app:///main.jsbundle',
             function: 'value',
             lineno: 221,
             colno: 7656,
             in_app: true,
           },
           {
-            filename: 'app:///bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3',
+            filename: 'app:///main.jsbundle',
+            function: 'onPress',
+            lineno: 595,
+            colno: 658,
+            in_app: true,
+          },
+        ],
+      },
+    });
+  });
+
+  it('should parse exceptions for react-native Expo bundles on android', async () => {
+    mockFunction(isExpo).mockReturnValue(true);
+    Platform.OS = 'android';
+
+    const REACT_NATIVE_EXPO_EXCEPTION = {
+      message: 'Test Error Expo',
+      name: 'Error',
+      stack: `onPress@/data/user/0/com.sentrytest/files/.expo-internal/bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3:595:658
+          value@/data/user/0/com.sentrytest/files/.expo-internal/bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3:221:7656
+          onResponderRelease@/data/user/0/com.sentrytest/files/.expo-internal/bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3:221:5666
+          p@/data/user/0/com.sentrytest/files/.expo-internal/bundle-613EDD44F3305B9D75D4679663900F2BCDDDC326F247CA3202A3A4219FD412D3:96:385
+          forEach@[native code]`,
+    };
+    const exception = await exceptionFromError(REACT_NATIVE_EXPO_EXCEPTION);
+
+    expect(exception).toEqual({
+      value: 'Test Error Expo',
+      type: 'Error',
+      mechanism: {
+        handled: true,
+        type: 'generic',
+      },
+      stacktrace: {
+        frames: [
+          { filename: '[native code]', function: 'forEach', in_app: true },
+          {
+            filename: 'app:///index.android.bundle',
+            function: 'p',
+            lineno: 96,
+            colno: 385,
+            in_app: true,
+          },
+          {
+            filename: 'app:///index.android.bundle',
+            function: 'onResponderRelease',
+            lineno: 221,
+            colno: 5666,
+            in_app: true,
+          },
+          {
+            filename: 'app:///index.android.bundle',
+            function: 'value',
+            lineno: 221,
+            colno: 7656,
+            in_app: true,
+          },
+          {
+            filename: 'app:///index.android.bundle',
             function: 'onPress',
             lineno: 595,
             colno: 658,
@@ -523,6 +669,8 @@ describe('RewriteFrames', () => {
   });
 
   it('should parse React Native errors on Android Hermes', async () => {
+    mockFunction(isHermesEnabled).mockReturnValue(true);
+
     const ANDROID_REACT_NATIVE_HERMES = {
       message: 'Error: lets throw!',
       name: 'Error',
@@ -569,28 +717,28 @@ describe('RewriteFrames', () => {
             filename: 'app:///index.android.bundle',
             function: 'value',
             lineno: 1,
-            colno: 31561,
+            colno: 31562,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'value',
             lineno: 1,
-            colno: 32776,
+            colno: 32777,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'anonymous',
             lineno: 1,
-            colno: 31603,
+            colno: 31604,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'value',
             lineno: 1,
-            colno: 33176,
+            colno: 33177,
             in_app: true,
           },
           {
@@ -602,42 +750,42 @@ describe('RewriteFrames', () => {
             filename: 'app:///index.android.bundle',
             function: 'receiveTouches',
             lineno: 1,
-            colno: 122512,
+            colno: 122513,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'Ue',
             lineno: 1,
-            colno: 77571,
+            colno: 77572,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'Ne',
             lineno: 1,
-            colno: 77238,
+            colno: 77239,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: '_e',
             lineno: 1,
-            colno: 127755,
+            colno: 127756,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'anonymous',
             lineno: 1,
-            colno: 77747,
+            colno: 77748,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'z',
             lineno: 1,
-            colno: 74642,
+            colno: 74643,
             in_app: true,
           },
           {
@@ -649,21 +797,21 @@ describe('RewriteFrames', () => {
             filename: 'app:///index.android.bundle',
             function: 'A',
             lineno: 1,
-            colno: 74709,
+            colno: 74710,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'N',
             lineno: 1,
-            colno: 74267,
+            colno: 74268,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'C',
             lineno: 1,
-            colno: 74126,
+            colno: 74127,
             in_app: true,
           },
           { filename: 'native', function: 'apply', in_app: true },
@@ -671,7 +819,7 @@ describe('RewriteFrames', () => {
             filename: 'app:///index.android.bundle',
             function: 'k',
             lineno: 1,
-            colno: 74094,
+            colno: 74095,
             in_app: true,
           },
           { filename: 'native', function: 'apply', in_app: true },
@@ -679,7 +827,7 @@ describe('RewriteFrames', () => {
             filename: 'app:///index.android.bundle',
             function: 'b',
             lineno: 1,
-            colno: 74037,
+            colno: 74038,
             in_app: true,
           },
           { filename: 'native', function: 'apply', in_app: true },
@@ -690,21 +838,21 @@ describe('RewriteFrames', () => {
             filename: 'app:///index.android.bundle',
             function: '_performSideEffectsForTransition',
             lineno: 1,
-            colno: 230843,
+            colno: 230844,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'anonymous',
             lineno: 1,
-            colno: 224280,
+            colno: 224281,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'onPress',
             lineno: 1,
-            colno: 452701,
+            colno: 452702,
             in_app: true,
           },
         ],

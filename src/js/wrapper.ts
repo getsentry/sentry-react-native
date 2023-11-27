@@ -19,9 +19,12 @@ import type {
   NativeFramesResponse,
   NativeReleaseResponse,
   NativeScreenshot,
+  NativeStackFrames,
   Spec,
 } from './NativeRNSentry';
 import type { ReactNativeClientOptions } from './options';
+import type * as Hermes from './profiling/hermes';
+import type { NativeProfileEvent } from './profiling/nativeTypes';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
 import { fromByteArray, utf8ToBytes } from './vendor';
@@ -49,7 +52,6 @@ interface SentryNativeWrapper {
   _processLevel(level: SeverityLevel): SeverityLevel;
   _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
   _isModuleLoaded(module: Spec | undefined): module is Spec;
-  _getBreadcrumbs(event: Event): Breadcrumb[] | undefined;
 
   isNativeAvailable(): boolean;
 
@@ -60,7 +62,7 @@ interface SentryNativeWrapper {
   captureScreenshot(): Promise<Screenshot[] | null>;
 
   fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
-  fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse>;
+  fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse | null>;
   fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
   fetchNativeFrames(): PromiseLike<NativeFramesResponse | null>;
   fetchNativeSdkInfo(): PromiseLike<Package | null>;
@@ -79,6 +81,16 @@ interface SentryNativeWrapper {
 
   fetchModules(): Promise<Record<string, string> | null>;
   fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
+
+  startProfiling(): boolean;
+  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile?: NativeProfileEvent } | null;
+
+  fetchNativePackageName(): Promise<string | null>;
+
+  /**
+   * Fetches native stack frames and debug images for the instructions addresses.
+   */
+  fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | null>;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -188,6 +200,7 @@ export const NATIVE: SentryNativeWrapper = {
           'Note: Native Sentry SDK was not initialized automatically, you will need to initialize it manually. If you wish to disable the native SDK and get rid of this warning, pass enableNative: false',
         );
       }
+      this.enableNative = true;
       return false;
     }
 
@@ -195,6 +208,7 @@ export const NATIVE: SentryNativeWrapper = {
       logger.warn(
         'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.',
       );
+      this.enableNative = false;
       return false;
     }
 
@@ -204,11 +218,12 @@ export const NATIVE: SentryNativeWrapper = {
 
     // filter out all the options that would crash native.
     /* eslint-disable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
-    const { beforeSend, beforeBreadcrumb, integrations, ...filteredOptions } = options;
+    const { beforeSend, beforeBreadcrumb, beforeSendTransaction, integrations, ...filteredOptions } = options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 
     this.nativeIsReady = nativeIsReady;
+    this.enableNative = true;
 
     return nativeIsReady;
   },
@@ -229,7 +244,6 @@ export const NATIVE: SentryNativeWrapper = {
 
   /**
    * Fetches the Sdk info for the native sdk.
-   * NOTE: Only available on iOS.
    */
   async fetchNativeSdkInfo(): Promise<Package | null> {
     if (!this.enableNative) {
@@ -239,27 +253,18 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    if (this.platform !== 'ios') {
-      return null;
-    }
-
     return RNSentry.fetchNativeSdkInfo();
   },
 
   /**
    * Fetches the device contexts. Not used on Android.
    */
-  async fetchNativeDeviceContexts(): Promise<NativeDeviceContextsResponse> {
+  async fetchNativeDeviceContexts(): Promise<NativeDeviceContextsResponse | null> {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
     if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
-    }
-
-    if (this.platform !== 'ios') {
-      // Only ios uses deviceContexts, return an empty object.
-      return {};
     }
 
     return RNSentry.fetchNativeDeviceContexts();
@@ -461,7 +466,7 @@ export const NATIVE: SentryNativeWrapper = {
   },
 
   isNativeAvailable(): boolean {
-    return this.enableNative && this._isModuleLoaded(RNSentry);
+    return this._isModuleLoaded(RNSentry);
   },
 
   async captureScreenshot(): Promise<Screenshot[] | null> {
@@ -503,6 +508,74 @@ export const NATIVE: SentryNativeWrapper = {
     return raw ? new Uint8Array(raw) : null;
   },
 
+  startProfiling(): boolean {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    const { started, error } = RNSentry.startProfiling();
+    if (started) {
+      logger.log('[NATIVE] Start Profiling');
+    } else {
+      logger.error('[NATIVE] Start Profiling Failed', error);
+    }
+
+    return !!started;
+  },
+
+  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile?: NativeProfileEvent } | null {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    const { profile, nativeProfile, error } = RNSentry.stopProfiling();
+    if (!profile || error) {
+      logger.error('[NATIVE] Stop Profiling Failed', error);
+      return null;
+    }
+    if (Platform.OS === 'ios' && !nativeProfile) {
+      logger.warn('[NATIVE] Stop Profiling Failed: No Native Profile');
+    }
+
+    try {
+      return {
+        hermesProfile: JSON.parse(profile) as Hermes.Profile,
+        nativeProfile: nativeProfile as NativeProfileEvent | undefined,
+      };
+    } catch (e) {
+      logger.error('[NATIVE] Failed to parse Hermes Profile JSON', e);
+      return null;
+    }
+  },
+
+  async fetchNativePackageName(): Promise<string | null> {
+    if (!this.enableNative) {
+      return null;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return null;
+    }
+
+    return (await RNSentry.fetchNativePackageName()) || null;
+  },
+
+  async fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | null> {
+    if (!this.enableNative) {
+      return null;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return null;
+    }
+
+    return (await RNSentry.fetchNativeStackFramesBy(instructionsAddr)) || null;
+  },
+
   /**
    * Gets the event from envelopeItem and applies the level filter to the selected event.
    * @param data An envelope item containing the event.
@@ -516,10 +589,9 @@ export const NATIVE: SentryNativeWrapper = {
 
       if (NATIVE.platform === 'android') {
         if ('message' in event) {
-          // @ts-ignore Android still uses the old message object, without this the serialization of events will break.
+          // @ts-expect-error Android still uses the old message object, without this the serialization of events will break.
           event.message = { message: event.message };
         }
-        event.breadcrumbs = this._getBreadcrumbs(event);
       }
 
       return [itemHeader, event];
@@ -586,27 +658,6 @@ export const NATIVE: SentryNativeWrapper = {
   _DisabledNativeError: new SentryError('Native is disabled'),
 
   _NativeClientError: new SentryError("Native Client is not available, can't start on native."),
-
-  /**
-   * Get breadcrumbs (removes breadcrumbs from handled exceptions on Android)
-   *
-   * We do this to avoid duplicate breadcrumbs on Android as sentry-android applies the breadcrumbs
-   * from the native scope onto every envelope sent through it. This scope will contain the breadcrumbs
-   * sent through the scope sync feature. This causes duplicate breadcrumbs.
-   * We then remove the breadcrumbs in all cases but if it is handled == false,
-   * this is a signal that the app would crash and android would lose the breadcrumbs by the time the app is restarted to read
-   * the envelope.
-   */
-  _getBreadcrumbs(event: Event): Breadcrumb[] | undefined {
-    let breadcrumbs: Breadcrumb[] | undefined = event.breadcrumbs;
-
-    const hardCrashed = isHardCrash(event);
-    if (NATIVE.platform === 'android' && event.breadcrumbs && !hardCrashed) {
-      breadcrumbs = [];
-    }
-
-    return breadcrumbs;
-  },
 
   enableNative: true,
   nativeIsReady: false,

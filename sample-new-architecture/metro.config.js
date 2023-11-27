@@ -1,16 +1,19 @@
-/**
- * Metro configuration for React Native
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
+const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 const path = require('path');
 const blacklist = require('metro-config/src/defaults/exclusionList');
 
+const {
+  createSentryMetroSerializer,
+} = require('../dist/js/tools/sentryMetroSerializer');
 const parentDir = path.resolve(__dirname, '..');
 
-module.exports = {
+/**
+ * Metro configuration
+ * https://facebook.github.io/metro/docs/configuration
+ *
+ * @type {import('metro-config').MetroConfig}
+ */
+const config = {
   projectRoot: __dirname,
   watchFolders: [
     path.resolve(__dirname, 'node_modules'),
@@ -20,6 +23,7 @@ module.exports = {
   resolver: {
     blacklistRE: blacklist([
       new RegExp(`${parentDir}/node_modules/react-native/.*`),
+      new RegExp('.*\\android\\.*'), // Required for Windows in order to run the Sample.
     ]),
     extraNodeModules: new Proxy(
       {
@@ -40,12 +44,10 @@ module.exports = {
       },
     ),
   },
-  transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: true,
-      },
-    }),
+  serializer: {
+    customSerializer: createSentryMetroSerializer(),
   },
 };
+
+const m = mergeConfig(getDefaultConfig(__dirname), config);
+module.exports = m;

@@ -1,6 +1,7 @@
-import type { IdleTransaction } from '@sentry/core';
-import type { BeforeFinishCallback } from '@sentry/core/types/tracing/idletransaction';
+import { type BeforeFinishCallback, type IdleTransaction } from '@sentry/core';
 import { logger } from '@sentry/utils';
+import type { AppStateStatus } from 'react-native';
+import { AppState } from 'react-native';
 
 /**
  * Idle Transaction callback to only sample transactions with child spans.
@@ -15,4 +16,21 @@ export const onlySampleIfChildSpans: BeforeFinishCallback = (transaction: IdleTr
     logger.log(`Not sampling as ${transaction.op} transaction has no child spans.`);
     transaction.sampled = false;
   }
+};
+
+/**
+ * Hooks on AppState change to cancel the transaction if the app goes background.
+ */
+export const cancelInBackground = (transaction: IdleTransaction): void => {
+  const subscription = AppState.addEventListener('change', (newState: AppStateStatus) => {
+    if (newState === 'background') {
+      logger.debug(`Setting ${transaction.op} transaction to cancelled because the app is in the background.`);
+      transaction.setStatus('cancelled');
+      transaction.finish();
+    }
+  });
+  transaction.registerBeforeFinishCallback(() => {
+    logger.debug(`Removing AppState listener for ${transaction.op} transaction.`);
+    subscription.remove();
+  });
 };

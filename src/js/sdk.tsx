@@ -1,5 +1,6 @@
+/* eslint-disable complexity */
 import type { Scope } from '@sentry/core';
-import { getIntegrationsToSetup, hasTracingEnabled , Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
+import { getIntegrationsToSetup, hasTracingEnabled, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
 import { HttpClient } from '@sentry/integrations';
 import {
   defaultIntegrations as reactDefaultIntegrations,
@@ -16,12 +17,14 @@ import {
   DebugSymbolicator,
   DeviceContext,
   EventOrigin,
+  HermesProfiling,
   ModulesLoader,
   ReactNativeErrorHandlers,
   ReactNativeInfo,
   Release,
   SdkInfo,
 } from './integrations';
+import { NativeLinkedErrors } from './integrations/nativelinkederrors';
 import { createReactNativeRewriteFrames } from './integrations/rewriteframes';
 import { Screenshot } from './integrations/screenshot';
 import { ViewHierarchy } from './integrations/viewhierarchy';
@@ -31,14 +34,16 @@ import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
+import { getDefaultEnvironment } from './utils/environment';
 import { safeFactory, safeTracesSampler } from './utils/safe';
+import { NATIVE } from './wrapper';
 
 const IGNORED_DEFAULT_INTEGRATIONS = [
   'GlobalHandlers', // We will use the react-native internal handlers
   'TryCatch', // We don't need this
+  'LinkedErrors', // We replace this with `NativeLinkedError`
 ];
 const DEFAULT_OPTIONS: ReactNativeOptions = {
-  enableNative: true,
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
@@ -52,6 +57,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   maxQueueSize: DEFAULT_BUFFER_SIZE,
   attachStacktrace: true,
   enableCaptureFailedRequests: false,
+  enableNdk: true,
 };
 
 /**
@@ -65,15 +71,18 @@ export function init(passedOptions: ReactNativeOptions): void {
     // eslint-disable-next-line deprecation/deprecation
     ?? passedOptions.transportOptions?.bufferSize
     ?? DEFAULT_OPTIONS.maxQueueSize;
+
+  const enableNative = passedOptions.enableNative === undefined || passedOptions.enableNative
+    ? NATIVE.isNativeAvailable()
+    : false;
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
+    enableNative,
     // If custom transport factory fails the SDK won't initialize
     transport: passedOptions.transport
       || makeNativeTransportFactory({
-        enableNative: passedOptions.enableNative !== undefined
-          ? passedOptions.enableNative
-          : DEFAULT_OPTIONS.enableNative
+        enableNative,
       })
       || makeFetchTransport,
     transportOptions: {
@@ -88,6 +97,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     initialScope: safeFactory(passedOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
     tracesSampler: safeTracesSampler(passedOptions.tracesSampler),
   };
+  if (!('environment' in options)) {
+    options.environment = getDefaultEnvironment();
+  }
 
   const defaultIntegrations: Integration[] = passedOptions.defaultIntegrations || [];
   if (passedOptions.defaultIntegrations === undefined) {
@@ -102,6 +114,7 @@ export function init(passedOptions: ReactNativeOptions): void {
       ),
     ]);
 
+    defaultIntegrations.push(new NativeLinkedErrors());
     defaultIntegrations.push(new EventOrigin());
     defaultIntegrations.push(new SdkInfo());
     defaultIntegrations.push(new ReactNativeInfo());
@@ -113,6 +126,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     defaultIntegrations.push(createReactNativeRewriteFrames());
     if (options.enableNative) {
       defaultIntegrations.push(new DeviceContext());
+    }
+    if (options._experiments && typeof options._experiments.profilesSampleRate === 'number') {
+      defaultIntegrations.push(new HermesProfiling());
     }
     if (hasTracingEnabled(options) && options.enableAutoPerformanceTracing) {
       defaultIntegrations.push(new ReactNativeTracing());
@@ -138,7 +154,7 @@ export function init(passedOptions: ReactNativeOptions): void {
 /**
  * Inits the Sentry React Native SDK with automatic instrumentation and wrapped features.
  */
-export function wrap<P extends JSX.IntrinsicAttributes>(
+export function wrap<P extends Record<string, unknown>>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {

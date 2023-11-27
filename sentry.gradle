@@ -3,6 +3,10 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
+project.ext.shouldSentryAutoUpload = { ->
+  return System.getenv('SENTRY_DISABLE_AUTO_UPLOAD') != 'true'
+}
+
 def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
 
 gradle.projectsEvaluated {
@@ -39,6 +43,8 @@ gradle.projectsEvaluated {
         def shouldCleanUp
         def sourcemapOutput
         def bundleOutput
+        def packagerSourcemapOutput
+        def bundleCommand
         def props = bundleTask.getProperties()
         def reactRoot = props.get("workingDir")
         if (reactRoot == null) {
@@ -47,7 +53,7 @@ gradle.projectsEvaluated {
         def modulesOutput = "$reactRoot/android/app/src/main/assets/modules.json"
         def modulesTask = null
 
-        (shouldCleanUp, bundleOutput, sourcemapOutput) = forceSourceMapOutputFromBundleTask(bundleTask)
+        (shouldCleanUp, bundleOutput, sourcemapOutput, packagerSourcemapOutput, bundleCommand) = forceSourceMapOutputFromBundleTask(bundleTask)
 
         // Lets leave this here if we need to debug
         // println bundleTask.properties
@@ -63,6 +69,7 @@ gradle.projectsEvaluated {
         def releaseName = null
         def versionCode = null
         def previousCliTask = null
+        def applicationVariant = null
 
         def nameCleanup = "${bundleTask.name}_SentryUploadCleanUp"
         def nameModulesCleanup = "${bundleTask.name}_SentryCollectModulesCleanUp"
@@ -71,6 +78,7 @@ gradle.projectsEvaluated {
           variant = currentVariant[0]
           releaseName = currentVariant[1]
           versionCode = currentVariant[2]
+          applicationVariant = currentVariant[3]
 
           try {
             if (versionCode instanceof String) {
@@ -92,70 +100,108 @@ gradle.projectsEvaluated {
           try { tasks.named(nameCliTask); return } catch (Exception e) {}
 
           /** Upload source map file to the sentry server via CLI call. */
-          def cliTask = tasks.create(nameCliTask, Exec) {
+          def cliTask = tasks.create(nameCliTask) {
+              onlyIf { shouldSentryAutoUpload() }
               description = "upload debug symbols to sentry"
               group = 'sentry.io'
 
-              workingDir reactRoot
+              def extraArgs = []
 
-              def propertiesFile = config.sentryProperties
-                      ? config.sentryProperties
-                      : "$reactRoot/android/sentry.properties"
+              def sentryPackage = resolveSentryReactNativeSDKPath(reactRoot)
+              def copyDebugIdScript = config.copyDebugIdScript
+                  ? file(config.copyDebugIdScript).getAbsolutePath()
+                  : "$sentryPackage/scripts/copy-debugid.js"
+              def hasSourceMapDebugIdScript = config.hasSourceMapDebugIdScript
+                  ? file(config.hasSourceMapDebugIdScript).getAbsolutePath()
+                  : "$sentryPackage/scripts/has-sourcemap-debugid.js"
 
-              if (config.flavorAware) {
-                  propertiesFile = "$reactRoot/android/sentry-${variant}.properties"
-                  project.logger.info("For $variant using: $propertiesFile")
-              } else {
-                  environment("SENTRY_PROPERTIES", propertiesFile)
+              doFirst {
+                  // Copy Debug ID from packager source map to Hermes composed source map
+                  exec {
+                      def args = ["node",
+                          copyDebugIdScript,
+                          packagerSourcemapOutput,
+                          sourcemapOutput]
+                      def osCompatibilityCopyCommand = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c'] : []
+                      commandLine(*osCompatibilityCopyCommand, *args)
+                  }
+
+                  // Add release and dist for backward compatibility if no Debug ID detected in output soruce map
+                  def process = ["node", hasSourceMapDebugIdScript, sourcemapOutput].execute(null, new File("$reactRoot"))
+                  def exitValue = process.waitFor()
+                  project.logger.lifecycle("Check generated source map for Debug ID: ${process.text}")
+                  def notIncludeRelease = "$bundleCommand" == "bundle" && exitValue == 0
+                  def not = notIncludeRelease ? 'not ' : ''
+                  project.logger.lifecycle("Sentry Source Maps upload will ${not}include the release name and dist.")
+                  extraArgs.addAll(notIncludeRelease ? [] : [
+                      "--release", releaseName,
+                      "--dist", versionCode
+                  ])
               }
 
-              Properties sentryProps = new Properties()
-              try {
-                  sentryProps.load(new FileInputStream(propertiesFile))
-              } catch (FileNotFoundException e) {
-                  project.logger.info("file not found '$propertiesFile' for '$variant'")
+              doLast {
+                  exec {
+                      workingDir reactRoot
+
+                      def propertiesFile = config.sentryProperties
+                        ? config.sentryProperties
+                        : "$reactRoot/android/sentry.properties"
+
+                      if (config.flavorAware) {
+                          propertiesFile = "$reactRoot/android/sentry-${variant}.properties"
+                          project.logger.info("For $variant using: $propertiesFile")
+                      } else {
+                          environment("SENTRY_PROPERTIES", propertiesFile)
+                      }
+
+                      Properties sentryProps = new Properties()
+                      try {
+                          sentryProps.load(new FileInputStream(propertiesFile))
+                      } catch (FileNotFoundException e) {
+                          project.logger.info("file not found '$propertiesFile' for '$variant'")
+                      }
+
+                      def resolvedCliPackage = null
+                      try {
+                          resolvedCliPackage = new File(["node", "--print", "require.resolve('@sentry/cli/package.json')"].execute(null, rootDir).text.trim()).getParentFile();
+                      } catch (Throwable ignored) {}
+                      def cliPackage = resolvedCliPackage != null && resolvedCliPackage.exists() ? resolvedCliPackage.getAbsolutePath() : "$reactRoot/node_modules/@sentry/cli"
+                      def cliExecutable = sentryProps.get("cli.executable", "$cliPackage/bin/sentry-cli")
+
+                      // fix path separator for Windows
+                      if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                          cliExecutable = cliExecutable.replaceAll("/", "\\\\")
+                      }
+
+                      //
+                      // based on:
+                      //   https://github.com/getsentry/sentry-cli/blob/master/src/commands/react_native_gradle.rs
+                      //
+                      def args = [cliExecutable]
+
+                      args.addAll(!config.logLevel ? [] : [
+                          "--log-level", config.logLevel      // control verbosity of the output
+                      ])
+                      args.addAll(!config.flavorAware ? [] : [
+                          "--url", sentryProps.get("defaults.url"),
+                          "--auth-token", sentryProps.get("auth.token")
+                      ])
+                      args.addAll(["react-native", "gradle",
+                          "--bundle", bundleOutput,           // The path to a bundle that should be uploaded.
+                          "--sourcemap", sourcemapOutput      // The path to a sourcemap that should be uploaded.
+                      ])
+                      args.addAll(!config.flavorAware ? [] : [
+                          "--org", sentryProps.get("defaults.org"),
+                          "--project", sentryProps.get("defaults.project")
+                      ])
+
+                      args.addAll(extraArgs)
+
+                      project.logger.lifecycle("Sentry-CLI arguments: ${args}")
+                      def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
+                      commandLine(*osCompatibility, *args)
+                  }
               }
-
-              def resolvedCliPackage = null
-              try {
-                  resolvedCliPackage = new File(["node", "--print", "require.resolve('@sentry/cli/package.json')"].execute(null, rootDir).text.trim()).getParentFile();
-              } catch (Throwable ignored) {}
-              def cliPackage = resolvedCliPackage != null && resolvedCliPackage.exists() ? resolvedCliPackage.getAbsolutePath() : "$reactRoot/node_modules/@sentry/cli"
-              def cliExecutable = sentryProps.get("cli.executable", "$cliPackage/bin/sentry-cli")
-
-              // fix path separator for Windows
-              if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                  cliExecutable = cliExecutable.replaceAll("/", "\\\\")
-              }
-
-              //
-              // based on:
-              //   https://github.com/getsentry/sentry-cli/blob/master/src/commands/react_native_gradle.rs
-              //
-              def args = [cliExecutable]
-
-              args.addAll(!config.logLevel ? [] : [
-                      "--log-level", config.logLevel      // control verbosity of the output
-              ])
-              args.addAll(!config.flavorAware ? [] : [
-                      "--url", sentryProps.get("defaults.url"),
-                      "--auth-token", sentryProps.get("auth.token")
-              ])
-              args.addAll(["react-native", "gradle",
-                           "--bundle", bundleOutput,           // The path to a bundle that should be uploaded.
-                           "--sourcemap", sourcemapOutput,     // The path to a sourcemap that should be uploaded.
-                           "--release", releaseName,            // The name of the release to publish.
-                           "--dist", versionCode
-              ])
-              args.addAll(!config.flavorAware ? [] : [
-                      "--org", sentryProps.get("defaults.org"),
-                      "--project", sentryProps.get("defaults.project")
-              ])
-
-              project.logger.info("Sentry-CLI arguments: ${args}")
-
-              def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
-              commandLine(*osCompatibility, *args)
 
               enabled true
           }
@@ -166,9 +212,11 @@ gradle.projectsEvaluated {
 
               workingDir reactRoot
 
+              def sentryPackage = resolveSentryReactNativeSDKPath(reactRoot)
+
               def collectModulesScript = config.collectModulesScript
                   ? file(config.collectModulesScript).getAbsolutePath()
-                  : "$reactRoot/node_modules/@sentry/react-native/dist/js/tools/collectModules.js"
+                  : "$sentryPackage/dist/js/tools/collectModules.js"
               def modulesPaths = config.modulesPaths
                   ? config.modulesPaths.join(',')
                   : "$reactRoot/node_modules"
@@ -211,13 +259,10 @@ gradle.projectsEvaluated {
             delete modulesOutput
         }
 
-        def variantTaskName = variant.replaceAll("[\\s\\-()]", "") // variant is dev-release beta-release etc.
-        // task.name could be packageDev-debugRelease but in that case currentVariants == null
-        // because of the regex in `extractCurrentVariants` and this code doesn't run
         def packageTasks = tasks.findAll {
           task -> (
-            "package${variantTaskName}".equalsIgnoreCase(task.name)
-              || "package${variantTaskName}Bundle".equalsIgnoreCase(task.name)
+            "package${applicationVariant}".equalsIgnoreCase(task.name)
+              || "package${applicationVariant}Bundle".equalsIgnoreCase(task.name)
             ) && task.enabled
         }
         packageTasks.each { packageTask ->
@@ -243,6 +288,15 @@ gradle.projectsEvaluated {
     }
 }
 
+def resolveSentryReactNativeSDKPath(reactRoot) {
+    def resolvedSentryPath = null
+    try {
+        resolvedSentryPath = new File(["node", "--print", "require.resolve('@sentry/react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile();
+    } catch (Throwable ignored) {} // if the resolve fails we fallback to the default path
+    def sentryPackage = resolvedSentryPath != null && resolvedSentryPath.exists() ? resolvedSentryPath.getAbsolutePath() : "$reactRoot/node_modules/@sentry/react-native"
+    return sentryPackage
+}
+
 /** Compose lookup map of build variants - to - outputs. */
 def extractReleasesInfo() {
     def releases = [:]
@@ -259,7 +313,7 @@ def extractReleasesInfo() {
             if (releases[variantName] == null) {
                 releases[variantName] = [:]
             }
-            releases[variantName][outputName] = [outputName, releaseName, versionCode]
+            releases[variantName][outputName] = [outputName, releaseName, versionCode, variantName]
         }
     }
 
@@ -270,6 +324,8 @@ def extractReleasesInfo() {
 static extractBundleTaskArgumentsLegacy(cmdArgs, Project project) {
     def bundleOutput = null
     def sourcemapOutput = null
+    def packagerSourcemapOutput = null
+    // packagerBundleOutput doesn't exist, because packager output is overwritten by Hermes
 
     cmdArgs.eachWithIndex { String arg, int i ->
         if (arg == "--bundle-output") {
@@ -277,6 +333,7 @@ static extractBundleTaskArgumentsLegacy(cmdArgs, Project project) {
             project.logger.info("--bundle-output: `${bundleOutput}`")
         } else if (arg == "--sourcemap-output") {
             sourcemapOutput = cmdArgs[i + 1]
+            packagerSourcemapOutput = sourcemapOutput
             project.logger.info("--sourcemap-output param: `${sourcemapOutput}`")
         }
     }
@@ -308,7 +365,11 @@ static extractBundleTaskArgumentsLegacy(cmdArgs, Project project) {
         }
     }
 
-    return [bundleOutput, sourcemapOutput]
+    // get the current bundle command, if not peresent use default plain "bundle"
+    // we use this later to decide how to upload source maps
+    def bundleCommand = project.ext.react.get("bundleCommand", "bundle")
+
+    return [bundleOutput, sourcemapOutput, packagerSourcemapOutput, bundleCommand]
 }
 
 /** Extract bundle and sourcemap paths from bundle task props.
@@ -323,12 +384,15 @@ static extractBundleTaskArgumentsRN71AndAbove(bundleTask, logger) {
         return [null, null]
     }
 
+    def bundleCommand = props.bundleCommand.get()
     def bundleFile = new File(props.jsBundleDir.get().asFile.absolutePath, bundleAssetName)
     def outputSourceMap = new File(props.jsSourceMapsDir.get().asFile.absolutePath, "${bundleAssetName}.map")
+    def packagerOutputSourceMap = new File(props.jsIntermediateSourceMapsDir.get().asFile.absolutePath, "${bundleAssetName}.packager.map")
 
     logger.info("bundleFile: `${bundleFile}`")
     logger.info("outputSourceMap: `${outputSourceMap}`")
-    return [bundleFile, outputSourceMap]
+    logger.info("packagerOutputSourceMap: `${packagerOutputSourceMap}`")
+    return [bundleFile, outputSourceMap, packagerOutputSourceMap, bundleCommand]
 }
 
 /** Force Bundle task to produce sourcemap files if they are not pre-configured by user yet. */
@@ -339,10 +403,12 @@ def forceSourceMapOutputFromBundleTask(bundleTask) {
     def shouldCleanUp = false
     def bundleOutput = null
     def sourcemapOutput = null
+    def packagerSourcemapOutput = null
+    def bundleCommand = null
 
-    (bundleOutput, sourcemapOutput) = extractBundleTaskArgumentsRN71AndAbove(bundleTask, logger)
+    (bundleOutput, sourcemapOutput, packagerSourcemapOutput, bundleCommand) = extractBundleTaskArgumentsRN71AndAbove(bundleTask, logger)
     if (bundleOutput == null) {
-        (bundleOutput, sourcemapOutput) = extractBundleTaskArgumentsLegacy(cmdArgs, project)
+        (bundleOutput, sourcemapOutput, packagerSourcemapOutput, bundleCommand) = extractBundleTaskArgumentsLegacy(cmdArgs, project)
     }
 
     if (sourcemapOutput == null) {
@@ -361,7 +427,7 @@ def forceSourceMapOutputFromBundleTask(bundleTask) {
         project.logger.info("Info: used pre-configured source map files: ${sourcemapOutput}")
     }
 
-    return [shouldCleanUp, bundleOutput, sourcemapOutput]
+    return [shouldCleanUp, bundleOutput, sourcemapOutput, packagerSourcemapOutput, bundleCommand]
 }
 
 /** compose array with one item - current build flavor name */

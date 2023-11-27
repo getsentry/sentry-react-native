@@ -17,111 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@b173b6ec0100793626c2d9e6b90435061f4fc3e5 # pin@0.11.0
+        uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
         with:
           access_token: ${{ github.token }}
-
-  sample:
-    # Android emulator said to perform best with macos HAXM
-    runs-on: macos-latest
-    strategy:
-      # we want that the matrix keeps running, default is to cancel them if it fails.
-      fail-fast: false
-      matrix:
-        platform: ['ios', 'android']
-        include:
-          - platform: ios
-            runtime: 'latest'
-            device: 'iPhone 14'
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'adopt'
-
-      - name: Install Global Dependencies
-        run: brew install xcbeautify
-
-      - name: NPM cache
-        uses: actions/cache@v3
-        id: deps-cache
-        with:
-          path: |
-            node_modules
-            sample/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
-
-      - name: iOS cache
-        if: ${{ matrix.platform == 'ios' }}
-        uses: actions/cache@v3
-        with:
-          path: |
-            sample/ios/Pods
-            sample/ios/DerivedData
-          # Note: we cannot use sample/ios/Podfile.lock because it's not source controlled.
-          key: ${{ github.workflow }}-${{ github.job }}-ios${{ matrix.runtime }}-${{ hashFiles('yarn.lock', 'sample/yarn.lock') }}
-
-      - name: Install Dependencies
-        if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
-        run: yarn install
-
-      - name: Build SDK
-        run: yarn build
-
-      - name: Install Sample Dependencies
-        if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
-        working-directory: ./sample
-        run: yarn install
-
-      - run: pod install
-        if: ${{ matrix.platform == 'ios' }}
-        env:
-          PRODUCTION: 1
-        working-directory: ./sample/ios
-
-      - name: Build ${{ matrix.platform }} sample app
-        if: ${{ env.SENTRY_AUTH_TOKEN != null }}
-        id: build
-        working-directory: ./sample/${{ matrix.platform }}
-        run: |
-          if [[ "${{ matrix.platform }}" == "android" ]]; then
-            ./gradlew :app:assembleRelease -PreactNativeArchitectures=x86
-          else
-            mkdir -p DerivedData
-            defaults write com.apple.dt.Xcode ShowBuildOperationDuration YES
-            buildArgs=(
-              '-destination' 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}'
-              'ONLY_ACTIVE_ARCH=yes'
-              '-derivedDataPath' $(cd "DerivedData" ; pwd -P)
-            )
-            echo "buildArgs = ${buildArgs[@]}"
-            set -o pipefail && xcodebuild \
-              -workspace sample.xcworkspace \
-              -configuration Release \
-              -scheme sample \
-              "${buildArgs[@]}" \
-              build \
-              | tee sample-xcodebuild.log \
-              | xcbeautify --quieter --is-ci --disable-colored-output
-            set -o pipefail && xcodebuild \
-              -project ../node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
-              -scheme WebDriverAgentRunner \
-              GCC_TREAT_WARNINGS_AS_ERRORS=0 \
-              COMPILER_INDEX_STORE_ENABLE=NO \
-              "${buildArgs[@]}" \
-              build \
-              | tee webdriveragent-xcodebuild.log \
-              | xcbeautify --quieter --is-ci --disable-colored-output
-          fi
-
-      - name: Upload logs
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.platform }}-logs
-          path: ./sample/ios/*.log
 
   metrics:
     runs-on: macos-latest
@@ -139,8 +37,8 @@ jobs:
             name: Android
             appPlain: test/perf/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 16
       - uses: actions/setup-java@v3
@@ -163,7 +61,7 @@ jobs:
         run: yarn build
       - name: Package SDK
         run: yalc publish
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 16
       - uses: actions/cache@v3
@@ -242,7 +140,7 @@ jobs:
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
 
   react-native-build:
-    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
+    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     runs-on: macos-latest
     env:
       RN_SENTRY_POD_NAME: RNSentry
@@ -250,20 +148,66 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.71.3']
+        rn-version: ['0.65.3', '0.72.4']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['dev', 'production']
+        ios-use-frameworks: ['no', 'static', 'dynamic']
+        engine: ['hermes', 'jsc']
         include:
           - platform: ios
             runtime: 'latest'
             device: 'iPhone 14'
-        # exclude all rn versions lower than 0.70.0 for new architecture
         exclude:
+          # exclude JSC for new RN versions (keeping the matrix manageable)
+          - rn-version: '0.72.4'
+            engine: 'jsc'
+          # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
             rn-architecture: 'new'
+          # exlude old rn version for use frameworks builds (to minimalize the matrix)
+          - rn-version: '0.65.3'
+            platform: 'ios'
+            ios-use-frameworks: 'static'
+          - rn-version: '0.65.3'
+            platform: 'ios'
+            ios-use-frameworks: 'dynamic'
+          # use frameworks is ios only feature
+          - platform: 'android'
+            ios-use-frameworks: 'static'
+          - platform: 'android'
+            ios-use-frameworks: 'dynamic'
+          # exclude new rn architecture and dynamic frameworks
+          - rn-architecture: 'new'
+            ios-use-frameworks: 'dynamic'
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Sentry Release
+        run: |
+          SENTRY_RELEASE_CANDIDATE=$(echo 'e2e/${{ github.ref }}' | perl -pe 's/\//-/g')
+          echo "SENTRY_RELEASE=$SENTRY_RELEASE_CANDIDATE" >> $GITHUB_ENV
+
+      - name: Sentry Dist
+        run: |
+          SENTRY_DIST_CANDIDATE=${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-${GITHUB_SHA:0:8}
+          echo "SENTRY_DIST=$SENTRY_DIST_CANDIDATE" >> $GITHUB_ENV
+
+      - name: Sentry Envs
+        run: |
+          echo "SENTRY_RELEASE=$SENTRY_RELEASE"
+          echo "SENTRY_DIST=$SENTRY_DIST"
+
+      - uses: actions/setup-node@v4
+        if: ${{ matrix.rn-version == '0.65.3' }}
+        with:
+          node-version: 16
+
+      - uses: actions/setup-node@v4
+        if: ${{ matrix.rn-version != '0.65.3' }}
+        with:
+          node-version: 18
 
       - uses: actions/setup-java@v3
         with:
@@ -328,10 +272,14 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
+          ../../../../rn.patch.podfile.js --pod-file Podfile --engine ${{ matrix.engine }}
+          [[ "${{ matrix.ios-use-frameworks }}" == "static" ]] && export USE_FRAMEWORKS=static && export NO_FLIPPER=1
+          [[ "${{ matrix.ios-use-frameworks }}" == "dynamic" ]] && export USE_FRAMEWORKS=dynamic && export NO_FLIPPER=1
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
           echo "ENABLE_PROD=$ENABLE_PROD"
           echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
+          echo "USE_FRAMEWORKS=$USE_FRAMEWORKS"
           PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH pod install
           cat Podfile.lock | grep $RN_SENTRY_POD_NAME
 
@@ -340,21 +288,27 @@ jobs:
         run: |
           patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn.patch
           ../../../rn.patch.app.js --app .
+          ../../../rn.patch.metro.config.js --path metro.config.js
 
       - name: Patch Android App RN
         if: ${{ matrix.platform == 'android' }}
-        working-directory: test/react-native
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: |
-          ./rn.patch.app.build.gradle.js \
-            --app-build-gradle 'versions/${{ matrix.rn-version }}/RnDiffApp/android/app/build.gradle'
+          ../../../rn.patch.gradle.properties.js --gradle-properties android/gradle.properties --engine ${{ matrix.engine }}
+          ../../../rn.patch.app.build.gradle.js --app-build-gradle android/app/build.gradle
 
       - name: Patch iOS App RN
         if: ${{ matrix.platform == 'ios' }}
-        working-directory: test/react-native
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: |
-          ./rn.patch.xcode.js \
-            --project 'versions/${{ matrix.rn-version }}/RnDiffApp/ios/RnDiffApp.xcodeproj/project.pbxproj' \
+          ../../../rn.patch.xcode.js \
+            --project ios/RnDiffApp.xcodeproj/project.pbxproj \
             --rn-version '${{ matrix.rn-version }}'
+
+      # This prevents modules resolution from outside of the RN Test App projects
+      # during the native app build
+      - name: Clean SDK node_modules
+        run: rm -rf node_modules
 
       - name: Build Android App
         if: ${{ matrix.platform == 'android' }}
@@ -405,7 +359,7 @@ jobs:
         if: matrix.platform == 'android' && matrix.build-type == 'production'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: apk.tar
           retention-days: 1
 
@@ -413,7 +367,7 @@ jobs:
         if: matrix.platform == 'ios' && matrix.build-type == 'production'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: app.tar
           retention-days: 1
 
@@ -421,33 +375,40 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}
+          name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}
           path: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios/*.log
 
   react-native-test:
-    name: Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
+    name: Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     needs: react-native-build
     runs-on: macos-latest
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.71.3']
+        rn-version: ['0.65.3', '0.72.4']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
+        ios-use-frameworks: ['no'] # test only no framworks
+        engine: ['hermes', 'jsc']
         include:
           - platform: ios
             runtime: 'latest'
             device: 'iPhone 14'
-        # exclude all rn versions lower than 0.70.0 for new architecture
         exclude:
+          # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
             rn-architecture: 'new'
+          # e2e test only the default combinations
+          - rn-version: '0.65.3'
+            engine: 'hermes'
+          - rn-version: '0.72.4'
+            engine: 'jsc'
     env:
       PLATFORM: ${{ matrix.platform }}
       DEVICE: ${{ matrix.device }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Global Tools
         run: brew install xcbeautify
@@ -456,12 +417,22 @@ jobs:
         if: matrix.build-type == 'production'
         uses: actions/download-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: test/e2e
 
       - name: Extract App Package
         working-directory: test/e2e
         run: tar -xvf *.tar
+
+      - uses: actions/setup-node@v4
+        if: ${{ matrix.rn-version == '0.65.3' }}
+        with:
+          node-version: 16
+
+      - uses: actions/setup-node@v4
+        if: ${{ matrix.rn-version != '0.65.3' }}
+        with:
+          node-version: 18
 
       - uses: actions/setup-java@v3
         with:
@@ -504,7 +475,7 @@ jobs:
 
         # Wait until the Appium server starts.
       - name: Check Appium Server
-        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # pin@v2
+        uses: nick-fields/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # pin@v2
         with:
           timeout_seconds: 60
           max_attempts: 10
@@ -546,7 +517,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-logs
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
           path: |
             test/e2e/*.log
             test/e2e/*.png

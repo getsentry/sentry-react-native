@@ -38,7 +38,7 @@ describe('Tests the Release integration', () => {
 
     let eventProcessor: EventProcessor = () => null;
 
-    // @ts-ignore Mock
+    // @ts-expect-error Mock
     addGlobalEventProcessor.mockImplementation(e => (eventProcessor = e));
     releaseIntegration.setupOnce();
 
@@ -46,7 +46,7 @@ describe('Tests the Release integration', () => {
 
     const client = getCurrentHub().getClient();
 
-    // @ts-ignore Mock
+    // @ts-expect-error Mock
     client.getOptions.mockImplementation(() => ({}));
 
     const event = await eventProcessor({}, {});
@@ -60,13 +60,13 @@ describe('Tests the Release integration', () => {
 
     let eventProcessor: EventProcessor = () => null;
 
-    // @ts-ignore Mock
+    // @ts-expect-error Mock
     addGlobalEventProcessor.mockImplementation(e => (eventProcessor = e));
     releaseIntegration.setupOnce();
 
     const client = getCurrentHub().getClient();
 
-    // @ts-ignore Mock
+    // @ts-expect-error Mock
     client.getOptions.mockImplementation(() => ({
       dist: 'options_dist',
     }));
@@ -82,13 +82,13 @@ describe('Tests the Release integration', () => {
 
     let eventProcessor: EventProcessor = () => null;
 
-    // @ts-ignore Mock
+    // @ts-expect-error Mock
     addGlobalEventProcessor.mockImplementation(e => (eventProcessor = e));
     releaseIntegration.setupOnce();
 
     const client = getCurrentHub().getClient();
 
-    // @ts-ignore Mock
+    // @ts-expect-error Mock
     client.getOptions.mockImplementation(() => ({
       release: 'options_release',
     }));
@@ -104,7 +104,7 @@ describe('Tests the Release integration', () => {
 
     let eventProcessor: EventProcessor = () => null;
 
-    // @ts-ignore Mock
+    // @ts-expect-error Mock
     addGlobalEventProcessor.mockImplementation(e => (eventProcessor = e));
     releaseIntegration.setupOnce();
 
@@ -112,7 +112,7 @@ describe('Tests the Release integration', () => {
 
     const client = getCurrentHub().getClient();
 
-    // @ts-ignore Mock
+    // @ts-expect-error Mock
     client.getOptions.mockImplementation(() => ({
       dist: 'options_dist',
       release: 'options_release',
@@ -129,7 +129,7 @@ describe('Tests the Release integration', () => {
 
     let eventProcessor: EventProcessor = () => null;
 
-    // @ts-ignore Mock
+    // @ts-expect-error Mock
     addGlobalEventProcessor.mockImplementation(e => (eventProcessor = e));
     releaseIntegration.setupOnce();
 
@@ -137,7 +137,7 @@ describe('Tests the Release integration', () => {
 
     const client = getCurrentHub().getClient();
 
-    // @ts-ignore Mock
+    // @ts-expect-error Mock
     client.getOptions.mockImplementation(() => ({
       dist: 'options_dist',
       release: 'options_release',

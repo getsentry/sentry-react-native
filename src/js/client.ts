@@ -16,7 +16,6 @@ import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 import { Alert } from 'react-native';
 
 import { createIntegration } from './integrations/factory';
-import { Screenshot } from './integrations/screenshot';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import type { ReactNativeClientOptions } from './options';
 import { ReactNativeTracing } from './tracing';
@@ -52,9 +51,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @inheritDoc
    */
   public eventFromException(exception: unknown, hint: EventHint = {}): PromiseLike<Event> {
-    return Screenshot.attachScreenshotToEventHint(hint, this._options).then(hintWithScreenshot =>
-      eventFromException(this._options.stackParser, exception, hintWithScreenshot, this._options.attachStacktrace),
-    );
+    return eventFromException(this._options.stackParser, exception, hint, this._options.attachStacktrace);
   }
 
   /**
@@ -138,6 +135,8 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
     let shouldClearOutcomesBuffer = true;
     if (this._transport && this._dsn) {
+      this.emit('beforeEnvelope', envelope);
+
       this._transport.send(envelope).then(null, reason => {
         if (reason instanceof SentryError) {
           // SentryError is thrown by SyncPromise

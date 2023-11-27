@@ -45,16 +45,19 @@ export class DeviceContext implements Integration {
         event.user = nativeUser;
       }
 
-      let nativeContext = native.context;
+      let nativeContexts = native.contexts;
       if (AppState.currentState !== 'unknown') {
-        nativeContext = nativeContext || {};
-        nativeContext.app = {
-          ...nativeContext.app,
+        nativeContexts = nativeContexts || {};
+        nativeContexts.app = {
+          ...nativeContexts.app,
           in_foreground: AppState.currentState === 'active',
         };
       }
-      if (nativeContext) {
-        event.contexts = { ...nativeContext, ...event.contexts };
+      if (nativeContexts) {
+        event.contexts = { ...nativeContexts, ...event.contexts };
+        if (nativeContexts.app) {
+          event.contexts.app = { ...nativeContexts.app, ...event.contexts.app };
+        }
       }
 
       const nativeTags = native.tags;

@@ -25,39 +25,26 @@ let bundleScript;
 let bundleScriptRegex;
 let bundlePatchRegex;
 const symbolsScript = `
-export SENTRY_PROPERTIES=sentry.properties
-../node_modules/@sentry/cli/bin/sentry-cli debug-files upload --force-foreground "$DWARF_DSYM_FOLDER_PATH"
+/bin/sh ../node_modules/@sentry/react-native/scripts/sentry-xcode-debug-files.sh
 `;
 const symbolsPatchRegex = /sentry-cli\s+(upload-dsym|debug-files upload)/;
 if (semver.satisfies(args['rn-version'], `< ${newBundleScriptRNVersion}`)) {
   logger.info('Applying old bundle script patch');
   bundleScript = `
-export SENTRY_PROPERTIES=sentry.properties
-export EXTRA_PACKAGER_ARGS="--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map"
-set -e
-
 export NODE_BINARY=node
-../node_modules/@sentry/cli/bin/sentry-cli react-native xcode --force-foreground ../node_modules/react-native/scripts/react-native-xcode.sh
-
-/bin/sh ../node_modules/@sentry/react-native/scripts/collect-modules.sh
+export SENTRY_CLI_EXTRA_ARGS="--force-foreground"
+../node_modules/@sentry/react-native/scripts/sentry-xcode.sh ../node_modules/react-native/scripts/react-native-xcode.sh
 `;
   bundleScriptRegex = /(packager|scripts)\/react-native-xcode\.sh\b/;
   bundlePatchRegex = /sentry-cli\s+react-native[\s-]xcode/;
-
-
 } else if (semver.satisfies(args['rn-version'], `>= ${newBundleScriptRNVersion}`)) {
   logger.info('Applying new bundle script patch');
   bundleScript = `
-export SENTRY_PROPERTIES=sentry.properties
-export EXTRA_PACKAGER_ARGS="--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map"
-set -e
-
+export SENTRY_CLI_EXTRA_ARGS="--force-foreground"
 WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
 REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"
 
-/bin/sh -c "$WITH_ENVIRONMENT \\"../node_modules/@sentry/cli/bin/sentry-cli react-native xcode $REACT_NATIVE_XCODE\\""
-
-/bin/sh ../node_modules/@sentry/react-native/scripts/collect-modules.sh
+/bin/sh -c "$WITH_ENVIRONMENT \\"/bin/sh ../node_modules/@sentry/react-native/scripts/sentry-xcode.sh $REACT_NATIVE_XCODE\\""
 `;
   bundleScriptRegex = /\/scripts\/react-native-xcode\.sh/i;
   bundlePatchRegex = /sentry-cli\s+react-native\s+xcode/i;
