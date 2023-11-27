@@ -32,3 +32,15 @@ SentrySDK (Private)
                                        symbolicate: (SymbolicateCallbackType) symbolicate;
 
 @end
+
+@interface SentryCurrentDateProvider : NSObject
+
+- (NSDate *)date;
+
+- (dispatch_time_t)dispatchTimeNow;
+
+- (NSInteger)timezoneOffset;
+
+- (uint64_t)systemTime;
+
+@end
