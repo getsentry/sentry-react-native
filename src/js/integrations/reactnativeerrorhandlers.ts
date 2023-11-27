@@ -101,11 +101,7 @@ export class ReactNativeErrorHandlers implements Integration {
    * Attach the unhandled rejection handler
    */
   private _attachUnhandledRejectionHandler(): void {
-    const tracking: {
-      disable: () => void;
-      enable: (arg: unknown) => void;
-      // eslint-disable-next-line import/no-extraneous-dependencies,@typescript-eslint/no-var-requires
-    } = require('promise/setimmediate/rejection-tracking');
+    const tracking = this._loadRejectionTracking();
 
     const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
       onUnhandled: (id, rejection = {}) => {
@@ -252,5 +248,16 @@ export class ReactNativeErrorHandlers implements Integration {
         }
       });
     }
+  }
+
+  /**
+   * Loads and returns rejection tracking module
+   */
+  private _loadRejectionTracking(): {
+    disable: () => void;
+    enable: (arg: unknown) => void;
+  } {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
+    return require('promise/setimmediate/rejection-tracking');
   }
 }
