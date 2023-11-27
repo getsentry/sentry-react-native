@@ -47,7 +47,7 @@ function encodeChunk(uint8: Uint8Array | number[], start: number, end: number): 
 }
 
 /**
- *
+ * Converts a Uint8Array or Array of bytes into a string representation of base64.
  */
 export function fromByteArray(uint8: Uint8Array | number[]): string {
   let tmp;
