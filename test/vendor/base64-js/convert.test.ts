@@ -1,5 +1,3 @@
-// Adapted from https://github.dev/beatgammit/base64-js/blob/88957c9943c7e2a0f03cdf73e71d579e433627d3/test/convert.js#L15
-
 // The MIT License (MIT)
 
 // Copyright (c) 2014 Jameson Little
@@ -21,6 +19,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+
+// Adapted from https://github.dev/beatgammit/base64-js/blob/88957c9943c7e2a0f03cdf73e71d579e433627d3/test/convert.js#L15
 
 import { fromByteArray } from '../../../src/js/vendor';
 
