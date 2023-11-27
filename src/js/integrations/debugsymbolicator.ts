@@ -51,18 +51,22 @@ export class DebugSymbolicator implements Integration {
         return event;
       }
 
-      if (event.exception
-        && hint.originalException
-        && typeof hint.originalException === 'object'
-        && 'stack' in hint.originalException
-        && typeof hint.originalException.stack === 'string') {
+      if (
+        event.exception &&
+        hint.originalException &&
+        typeof hint.originalException === 'object' &&
+        'stack' in hint.originalException &&
+        typeof hint.originalException.stack === 'string'
+      ) {
         // originalException is ErrorLike object
         const symbolicatedFrames = await this._symbolicate(hint.originalException.stack);
         symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
-      } else if (hint.syntheticException
-        && typeof hint.syntheticException === 'object'
-        && 'stack' in hint.syntheticException
-        && typeof hint.syntheticException.stack === 'string') {
+      } else if (
+        hint.syntheticException &&
+        typeof hint.syntheticException === 'object' &&
+        'stack' in hint.syntheticException &&
+        typeof hint.syntheticException.stack === 'string'
+      ) {
         // syntheticException is Error object
         const symbolicatedFrames = await this._symbolicate(hint.syntheticException.stack);
 
@@ -177,12 +181,7 @@ export class DebugSymbolicator implements Integration {
    * @param frames StackFrame[]
    */
   private _replaceThreadFramesInEvent(event: Event, frames: StackFrame[]): void {
-    if (
-      event.threads &&
-      event.threads.values &&
-      event.threads.values[0] &&
-      event.threads.values[0].stacktrace
-    ) {
+    if (event.threads && event.threads.values && event.threads.values[0] && event.threads.values[0].stacktrace) {
       event.threads.values[0].stacktrace.frames = frames.reverse();
     }
   }
