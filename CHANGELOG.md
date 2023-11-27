@@ -5,6 +5,7 @@
 ### Fixes
 
 - Symbolicate message and non-Error stacktraces locally in debug mode ([#3420](https://github.com/getsentry/sentry-react-native/pull/3420))
+- Remove Sentry SDK frames from rejected promise SyntheticError stack ([#3423](https://github.com/getsentry/sentry-react-native/pull/3423))
 
 ## 5.14.1
 

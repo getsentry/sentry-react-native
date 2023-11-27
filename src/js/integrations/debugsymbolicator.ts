@@ -2,6 +2,8 @@ import { addGlobalEventProcessor, getCurrentHub } from '@sentry/core';
 import type { Event, EventHint, Integration, StackFrame } from '@sentry/types';
 import { addContextToFrame, logger } from '@sentry/utils';
 
+import { getFramesToPop } from '../utils/error';
+
 const INTERNAL_CALLSITES_REGEX = new RegExp(['ReactNativeRenderer-dev\\.js$', 'MessageQueue\\.js$'].join('|'));
 
 interface GetDevServer {
@@ -59,7 +61,10 @@ export class DebugSymbolicator implements Integration {
         typeof hint.originalException.stack === 'string'
       ) {
         // originalException is ErrorLike object
-        const symbolicatedFrames = await this._symbolicate(hint.originalException.stack);
+        const symbolicatedFrames = await this._symbolicate(
+          hint.originalException.stack,
+          getFramesToPop(hint.originalException as Error),
+        );
         symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
       } else if (
         hint.syntheticException &&
@@ -68,7 +73,10 @@ export class DebugSymbolicator implements Integration {
         typeof hint.syntheticException.stack === 'string'
       ) {
         // syntheticException is Error object
-        const symbolicatedFrames = await this._symbolicate(hint.syntheticException.stack);
+        const symbolicatedFrames = await this._symbolicate(
+          hint.syntheticException.stack,
+          getFramesToPop(hint.syntheticException),
+        );
 
         if (event.exception) {
           symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
@@ -87,7 +95,7 @@ export class DebugSymbolicator implements Integration {
    * Symbolicates the stack on the device talking to local dev server.
    * Mutates the passed event.
    */
-  private async _symbolicate(rawStack: string): Promise<StackFrame[] | null> {
+  private async _symbolicate(rawStack: string, skipFirstFrames: number = 0): Promise<StackFrame[] | null> {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
     const parsedStack = parseErrorStack(rawStack);
@@ -106,8 +114,15 @@ export class DebugSymbolicator implements Integration {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const newStack = prettyStack.stack || prettyStack;
 
+      // https://github.com/getsentry/sentry-javascript/blob/739d904342aaf9327312f409952f14ceff4ae1ab/packages/utils/src/stacktrace.ts#L23
+      // Match SentryParser which counts lines of stack (-1 for first line with the Error message)
+      const skipFirstAdjustedToSentryStackParser = Math.max(skipFirstFrames - 1, 0);
+      const stackWithoutPoppedFrames = skipFirstAdjustedToSentryStackParser
+        ? (newStack as Array<unknown>).slice(skipFirstAdjustedToSentryStackParser)
+        : newStack;
+
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const stackWithoutInternalCallsites = newStack.filter(
+      const stackWithoutInternalCallsites = stackWithoutPoppedFrames.filter(
         (frame: { file?: string }) =>
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null,
