@@ -24,3 +24,10 @@ export function createSyntheticError(framesToPop: number = 0): ExtendedError {
 export function getFramesToPop(error: ExtendedError): number {
   return error.framesToPop !== undefined ? error.framesToPop : 0;
 }
+
+/**
+ * Check if `wat` is an object with string stack property.
+ */
+export function isErrorLike(wat: unknown): wat is { stack: string } {
+  return wat !== null && typeof wat === 'object' && 'stack' in wat && typeof wat.stack === 'string';
+}

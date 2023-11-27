@@ -1,7 +1,7 @@
 import type { Event, EventHint, EventProcessor, Hub, Integration, StackFrame as SentryStackFrame } from '@sentry/types';
 import { addContextToFrame, logger } from '@sentry/utils';
 
-import { getFramesToPop } from '../utils/error';
+import { getFramesToPop, isErrorLike } from '../utils/error';
 import type * as ReactNative from '../vendor/react-native';
 
 const INTERNAL_CALLSITES_REGEX = new RegExp(['ReactNativeRenderer-dev\\.js$', 'MessageQueue\\.js$'].join('|'));
@@ -38,25 +38,14 @@ export class DebugSymbolicator implements Integration {
         return event;
       }
 
-      if (
-        event.exception &&
-        hint.originalException &&
-        typeof hint.originalException === 'object' &&
-        'stack' in hint.originalException &&
-        typeof hint.originalException.stack === 'string'
-      ) {
+      if (event.exception && isErrorLike(hint.originalException)) {
         // originalException is ErrorLike object
         const symbolicatedFrames = await this._symbolicate(
           hint.originalException.stack,
           getFramesToPop(hint.originalException as Error),
         );
         symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
-      } else if (
-        hint.syntheticException &&
-        typeof hint.syntheticException === 'object' &&
-        'stack' in hint.syntheticException &&
-        typeof hint.syntheticException.stack === 'string'
-      ) {
+      } else if (hint.syntheticException && isErrorLike(hint.syntheticException)) {
         // syntheticException is Error object
         const symbolicatedFrames = await this._symbolicate(
           hint.syntheticException.stack,

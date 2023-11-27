@@ -152,6 +152,33 @@ describe('ReactNativeErrorHandlers', () => {
       expect(mockEnable).toHaveBeenCalledTimes(1);
       expect((actualSyntheticError as ExtendedError).framesToPop).toBe(3);
     });
+
+    test('error like unhandled rejected promise is captured without synthetical error', async () => {
+      mockHubCaptureException.mockClear();
+      const integration = new ReactNativeErrorHandlers();
+      const mockDisable = jest.fn();
+      const mockEnable = jest.fn<void, [MockTrackingOptions]>();
+      (integration as unknown as MockedReactNativeErrorHandlers)._loadRejectionTracking = jest.fn(() => ({
+        disable: mockDisable,
+        enable: mockEnable,
+      }));
+      integration.setupOnce();
+
+      const [actualTrackingOptions] = mockEnable.mock.calls[0] || [];
+      actualTrackingOptions?.onUnhandled?.(1, new Error('Test Error'));
+      const actualSyntheticError = mockHubCaptureException.mock.calls[0][1].syntheticException;
+
+      expect(mockDisable).not.toHaveBeenCalled();
+      expect(mockEnable).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allRejections: true,
+          onUnhandled: expect.any(Function),
+          onHandled: expect.any(Function),
+        }),
+      );
+      expect(mockEnable).toHaveBeenCalledTimes(1);
+      expect(actualSyntheticError).toBeUndefined();
+    });
   });
 });
 
