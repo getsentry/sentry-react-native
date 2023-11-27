@@ -377,10 +377,12 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        utf8ToBytes(
-          '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":104}\n' +
-            '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[]}\n',
+        fromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":124}\n' +
+              '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
+          ),
         ),
         { store: false },
       );
@@ -404,10 +406,12 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        utf8ToBytes(
-          '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":38}\n' +
-            '{"event_id":"event0","breadcrumbs":[]}\n',
+        fromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":58}\n' +
+              '{"event_id":"event0","breadcrumbs":[{"message":"crumb!"}]}\n',
+          ),
         ),
         { store: false },
       );
