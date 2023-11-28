@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add `@sentry/react-native/expo` Expo config plugin ([#3429](https://github.com/getsentry/sentry-react-native/pull/3429))
+  - Example of use in `app.config.js`.
+
+  ```js
+  const { withSentry } = require('@sentry/react-native/expo');
+
+  const config = {...};
+
+  module.exports = withSentry(config, {
+    url: 'https://www.sentry.io/',
+    authToken: 'example-token', // Or use SENTRY_AUTH_TOKEN env
+    project: 'project-slug',
+    organization: 'org-slug',
+  });
+  ```
+
 ## 5.14.1
 
 ### Fixes

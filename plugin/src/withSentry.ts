@@ -14,7 +14,7 @@ interface PluginProps {
   url?: string;
 }
 
-const withSentry: ConfigPlugin<PluginProps | void> = (config, props) => {
+const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
   const sentryProperties = getSentryProperties(props);
   let cfg = config;
   if (sentryProperties !== null) {
@@ -67,4 +67,8 @@ ${
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-export default createRunOncePlugin(withSentry, pkg.name, pkg.version);
+const withSentry = createRunOncePlugin(withSentryPlugin, pkg.name, pkg.version);
+
+export {
+  withSentry,
+};
