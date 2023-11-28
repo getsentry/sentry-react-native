@@ -15,8 +15,18 @@
   module.exports = withSentry(config, {
     url: 'https://www.sentry.io/',
     authToken: 'example-token', // Or use SENTRY_AUTH_TOKEN env
-    project: 'project-slug',
-    organization: 'org-slug',
+    project: 'project-slug', // Or use SENTRY_PROJECT env
+    organization: 'org-slug', // Or use SENTRY_ORG env
+  });
+  ```
+
+  - And `Sentry.init` in `App.js`
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    dsn: '__DSN__',
   });
   ```
 
