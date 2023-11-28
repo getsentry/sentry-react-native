@@ -30,6 +30,11 @@
   });
   ```
 
+### Fixes
+
+- Transform shipped JSX for both react-native and web ([#3428](https://github.com/getsentry/sentry-react-native/pull/3428))
+  - Removes builds errors when using react-native-web with Webpack
+
 ## 5.14.1
 
 ### Fixes
