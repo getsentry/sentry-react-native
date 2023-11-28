@@ -202,7 +202,7 @@ jobs:
       - uses: actions/setup-node@v4
         if: ${{ matrix.rn-version == '0.65.3' }}
         with:
-          node-version: 18
+          node-version: 16
 
       - uses: actions/setup-node@v4
         if: ${{ matrix.rn-version != '0.65.3' }}
