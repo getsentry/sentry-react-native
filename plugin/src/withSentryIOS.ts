@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import type { ConfigPlugin, XcodeProject } from 'expo/config-plugins';
 import { WarningAggregator, withDangerousMod, withXcodeProject } from 'expo/config-plugins';
-import * as fs from 'fs';
 import * as path from 'path';
+
+import { writeSentryPropertiesTo } from './utils';
 
 const SENTRY_CLI = "`node --print \"require.resolve('@sentry/cli/package.json').slice(0, -13) + '/bin/sentry-cli'\"`";
 
@@ -66,12 +67,4 @@ export function modifyExistingXcodeBuildScript(script: any): void {
   )}\n\n\`node --print "require.resolve('@sentry/react-native/package.json').slice(0, -13) + '/scripts/collect-modules.sh'"\``;
 
   script.shellScript = JSON.stringify(code);
-}
-
-export function writeSentryPropertiesTo(filepath: string, sentryProperties: string): void {
-  if (!fs.existsSync(filepath)) {
-    throw new Error(`Directory '${filepath}' does not exist.`);
-  }
-
-  fs.writeFileSync(path.resolve(filepath, 'sentry.properties'), sentryProperties);
 }
