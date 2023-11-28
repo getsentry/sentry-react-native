@@ -13,7 +13,7 @@ project.ext.sentryCli = [
     hasSourceMapDebugIdScript: "../../../scripts/has-sourcemap-debugid.js",
 ]
 
-apply from: "../../../sentry.gradle"
+apply from: "../../../../sentry.gradle"
 
 sentry {
     // Whether the plugin should attempt to auto-upload the mapping file to Sentry or not.
