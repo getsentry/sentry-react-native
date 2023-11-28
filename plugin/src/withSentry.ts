@@ -1,14 +1,9 @@
 import type { ConfigPlugin } from 'expo/config-plugins';
 import { createRunOncePlugin, WarningAggregator } from 'expo/config-plugins';
 
+import { SDK_PACKAGE_NAME, sdkPackage } from './utils';
 import { withSentryAndroid } from './withSentryAndroid';
 import { withSentryIOS } from './withSentryIOS';
-
-const sdkPackage: {
-  name: string;
-  version: string;
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-} = require('../../package.json');
 
 interface PluginProps {
   organization?: string;
@@ -25,7 +20,7 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
       cfg = withSentryAndroid(cfg, sentryProperties);
     } catch (e) {
       WarningAggregator.addWarningAndroid(
-        'sentry-expo',
+        SDK_PACKAGE_NAME,
         `There was a problem configuring sentry-expo in your native Android project: ${e}`,
       );
     }
@@ -33,7 +28,7 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
       cfg = withSentryIOS(cfg, sentryProperties);
     } catch (e) {
       WarningAggregator.addWarningIOS(
-        'sentry-expo',
+        SDK_PACKAGE_NAME,
         `There was a problem configuring sentry-expo in your native iOS project: ${e}`,
       );
     }
@@ -54,8 +49,8 @@ export function getSentryProperties(props: PluginProps | void): string | null {
     const warningMessage = `Missing Sentry configuration properties: ${missingProperties.join(
       ', ',
     )} in config plugin. Builds will fall back to environment variables. See: https://docs.sentry.io/platforms/react-native/manual-setup/.`;
-    WarningAggregator.addWarningAndroid('sentry-expo', warningMessage);
-    WarningAggregator.addWarningIOS('sentry-expo', warningMessage);
+    WarningAggregator.addWarningAndroid(SDK_PACKAGE_NAME, warningMessage);
+    WarningAggregator.addWarningIOS(SDK_PACKAGE_NAME, warningMessage);
   }
 
   return `defaults.url=${url}

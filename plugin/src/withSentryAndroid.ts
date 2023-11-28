@@ -2,7 +2,7 @@ import type { ConfigPlugin } from 'expo/config-plugins';
 import { WarningAggregator, withAppBuildGradle, withDangerousMod } from 'expo/config-plugins';
 import * as path from 'path';
 
-import { writeSentryPropertiesTo } from './utils';
+import { SDK_PACKAGE_NAME, writeSentryPropertiesTo } from './utils';
 
 export const withSentryAndroid: ConfigPlugin<string> = (config, sentryProperties: string) => {
   const cfg = withAppBuildGradle(config, config => {
@@ -23,7 +23,7 @@ export const withSentryAndroid: ConfigPlugin<string> = (config, sentryProperties
 };
 
 const resolveSentryReactNativePackageJsonPath =
-  '["node", "--print", "require.resolve(\'@sentry/react-native/package.json\')"].execute().text.trim()';
+  '["node", "--print", "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\'))"].execute().text.trim()';
 
 /**
  * Writes to projectDirectory/android/app/build.gradle,
@@ -40,7 +40,7 @@ export function modifyAppBuildGradle(buildGradle: string): string {
 
   if (!buildGradle.match(pattern)) {
     WarningAggregator.addWarningAndroid(
-      'sentry-expo',
+      SDK_PACKAGE_NAME,
       'Could not find `^android {` in `android/app/build.gradle`. Please open a bug report at https://github.com/getsentry/sentry-react-native.',
     );
     return buildGradle;

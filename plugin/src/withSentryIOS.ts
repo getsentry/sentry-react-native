@@ -3,9 +3,12 @@ import type { ConfigPlugin, XcodeProject } from 'expo/config-plugins';
 import { WarningAggregator, withDangerousMod, withXcodeProject } from 'expo/config-plugins';
 import * as path from 'path';
 
-import { writeSentryPropertiesTo } from './utils';
+import { SDK_PACKAGE_NAME, writeSentryPropertiesTo } from './utils';
 
-const SENTRY_CLI = "`node --print \"require.resolve('@sentry/cli/package.json').slice(0, -13) + '/bin/sentry-cli'\"`";
+type BuildPhase = { shellScript: string };
+
+const SENTRY_REACT_NATIVE_XCODE_PATH = '`"$NODE_BINARY" --print "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\')) + \'/scripts/sentry-xcode.sh\'"`';
+const SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH = '`${NODE_BINARY:-node} --print "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\')) + \'/scripts/sentry-xcode-debug-files.sh\'"`';
 
 export const withSentryIOS: ConfigPlugin<string> = (config, sentryProperties: string) => {
   const cfg = withXcodeProject(config, config => {
@@ -16,14 +19,16 @@ export const withSentryIOS: ConfigPlugin<string> = (config, sentryProperties: st
       'PBXShellScriptBuildPhase',
     );
     if (!sentryBuildPhase) {
-      xcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
-        shellPath: '/bin/sh',
-        shellScript: `
-export SENTRY_PROPERTIES=sentry.properties
-[[ $SENTRY_INCLUDE_NATIVE_SOURCES == "true" ]] && INCLUDE_SOURCES_FLAG="--include-sources" || INCLUDE_SOURCES_FLAG=""
-${SENTRY_CLI} debug-files upload --force-foreground "$INCLUDE_SOURCES_FLAG" "$DWARF_DSYM_FOLDER_PATH"
-          `,
-      });
+      xcodeProject.addBuildPhase(
+        [],
+        'PBXShellScriptBuildPhase',
+        'Upload Debug Symbols to Sentry',
+        null,
+        {
+          shellPath: '/bin/sh',
+          shellScript: `/bin/sh ${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}`,
+        },
+      );
     }
 
     const bundleReactNativePhase = xcodeProject.pbxItemByComment(
@@ -44,27 +49,28 @@ ${SENTRY_CLI} debug-files upload --force-foreground "$INCLUDE_SOURCES_FLAG" "$DW
   ]);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function modifyExistingXcodeBuildScript(script: any): void {
+export function modifyExistingXcodeBuildScript(script: BuildPhase): void {
   if (
     !script.shellScript.match(/(packager|scripts)\/react-native-xcode\.sh\b/) ||
-    script.shellScript.match(/bin\/sentry-cli.*react-native[\s-]xcode/)
+    script.shellScript.includes('sentry-xcode.sh')
   ) {
     WarningAggregator.addWarningIOS(
-      'sentry-expo',
+      SDK_PACKAGE_NAME,
       "Unable to modify build script 'Bundle React Native code and images'. Please open a bug report at https://github.com/expo/sentry-expo.",
     );
     return;
   }
-  let code = JSON.parse(script.shellScript);
-  code = `${
-    'export SENTRY_PROPERTIES=sentry.properties\n' +
-    'export EXTRA_PACKAGER_ARGS="--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map"\n'
-  }${code.replace(
-    /^.*?(packager|scripts)\/react-native-xcode\.sh\s*(\\'\\\\")?/m,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (match: any) => `${SENTRY_CLI} react-native xcode --force-foreground ${match}`,
-  )}\n\n\`node --print "require.resolve('@sentry/react-native/package.json').slice(0, -13) + '/scripts/collect-modules.sh'"\``;
 
-  script.shellScript = JSON.stringify(code);
+  const code = JSON.parse(script.shellScript);
+  script.shellScript = JSON.stringify(addSentryWithBundledScriptsToBundleShellScript(code));
+}
+
+export function addSentryWithBundledScriptsToBundleShellScript(
+  script: string,
+): string {
+  return script.replace(
+    /^.*?(packager|scripts)\/react-native-xcode\.sh\s*(\\'\\\\")?/m,
+    // eslint-disable-next-line no-useless-escape
+    (match: string) => `/bin/sh ${SENTRY_REACT_NATIVE_XCODE_PATH} ${match}`,
+  );
 }
