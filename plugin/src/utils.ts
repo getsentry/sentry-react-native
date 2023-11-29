@@ -17,7 +17,4 @@ const sdkPackage: {
 
 const SDK_PACKAGE_NAME = sdkPackage.name;
 
-export {
-  sdkPackage,
-  SDK_PACKAGE_NAME,
-};
+export { sdkPackage, SDK_PACKAGE_NAME };

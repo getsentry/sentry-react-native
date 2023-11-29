@@ -7,8 +7,10 @@ import { SDK_PACKAGE_NAME, writeSentryPropertiesTo } from './utils';
 
 type BuildPhase = { shellScript: string };
 
-const SENTRY_REACT_NATIVE_XCODE_PATH = '`"$NODE_BINARY" --print "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\')) + \'/scripts/sentry-xcode.sh\'"`';
-const SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH = '`${NODE_BINARY:-node} --print "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\')) + \'/scripts/sentry-xcode-debug-files.sh\'"`';
+const SENTRY_REACT_NATIVE_XCODE_PATH =
+  "`\"$NODE_BINARY\" --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'\"`";
+const SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH =
+  "`${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 
 export const withSentryIOS: ConfigPlugin<string> = (config, sentryProperties: string) => {
   const cfg = withXcodeProject(config, config => {
@@ -19,16 +21,10 @@ export const withSentryIOS: ConfigPlugin<string> = (config, sentryProperties: st
       'PBXShellScriptBuildPhase',
     );
     if (!sentryBuildPhase) {
-      xcodeProject.addBuildPhase(
-        [],
-        'PBXShellScriptBuildPhase',
-        'Upload Debug Symbols to Sentry',
-        null,
-        {
-          shellPath: '/bin/sh',
-          shellScript: `/bin/sh ${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}`,
-        },
-      );
+      xcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
+        shellPath: '/bin/sh',
+        shellScript: `/bin/sh ${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}`,
+      });
     }
 
     const bundleReactNativePhase = xcodeProject.pbxItemByComment(
@@ -65,9 +61,7 @@ export function modifyExistingXcodeBuildScript(script: BuildPhase): void {
   script.shellScript = JSON.stringify(addSentryWithBundledScriptsToBundleShellScript(code));
 }
 
-export function addSentryWithBundledScriptsToBundleShellScript(
-  script: string,
-): string {
+export function addSentryWithBundledScriptsToBundleShellScript(script: string): string {
   return script.replace(
     /^.*?(packager|scripts)\/react-native-xcode\.sh\s*(\\'\\\\")?/m,
     // eslint-disable-next-line no-useless-escape
