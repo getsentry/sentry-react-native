@@ -396,12 +396,12 @@ RCT_EXPORT_METHOD(fetchNativeRelease:(RCTPromiseResolveBlock)resolve
               });
 }
 
-RCT_EXPORT_METHOD(captureEnvelope:(NSString * _Nonnull)bytes
+RCT_EXPORT_METHOD(captureEnvelope:(NSString * _Nonnull)rawBytes
                   options: (NSDictionary * _Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    NSData *data = [[NSData alloc] initWithBase64EncodedString:bytes options:0];
+    NSData *data = [[NSData alloc] initWithBase64EncodedString:rawBytes options:0];
 
     SentryEnvelope *envelope = [PrivateSentrySDKOnly envelopeWithData:data];
     if (envelope == nil) {

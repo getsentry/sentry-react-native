@@ -42,14 +42,13 @@ function encodeChunk(uint8: Uint8Array | number[], start: number, end: number): 
     tmp = ((uint8[i] << 16) & 0xff0000) + ((uint8[i + 1] << 8) & 0xff00) + (uint8[i + 2] & 0xff);
     output.push(tripletToBase64(tmp));
   }
-  // console.log('encodeChunk', output.length, uint8.length, start, end);
   return output.join('');
 }
 
 /**
  * Converts a Uint8Array or Array of bytes into a string representation of base64.
  */
-export function fromByteArray(uint8: Uint8Array | number[]): string {
+export function base64StringFromByteArray(uint8: Uint8Array | number[]): string {
   let tmp;
   const len = uint8.length;
   const extraBytes = len % 3; // if we have 1 byte left, pad 2 bytes

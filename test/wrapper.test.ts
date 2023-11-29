@@ -4,7 +4,7 @@ import * as RN from 'react-native';
 
 import type { Spec } from '../src/js/NativeRNSentry';
 import type { ReactNativeOptions } from '../src/js/options';
-import { fromByteArray, utf8ToBytes } from '../src/js/vendor';
+import { base64StringFromByteArray, utf8ToBytes } from '../src/js/vendor';
 import { NATIVE } from '../src/js/wrapper';
 
 jest.mock('react-native', () => {
@@ -269,7 +269,7 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(
+        base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
               '{"type":"event","content_type":"application/json","length":87}\n' +
@@ -301,7 +301,7 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(
+        base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
               '{"type":"event","content_type":"application/json","length":93}\n' +
@@ -338,7 +338,7 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(
+        base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
               '{"type":"event","content_type":"application/json","length":50}\n' +
@@ -377,7 +377,7 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(
+        base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
               '{"type":"event","content_type":"application/json","length":124}\n' +
@@ -406,7 +406,7 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(
+        base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
               '{"type":"event","content_type":"application/json","length":58}\n' +
@@ -445,7 +445,7 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        fromByteArray(
+        base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
               '{"type":"event","content_type":"application/json","length":125}\n' +

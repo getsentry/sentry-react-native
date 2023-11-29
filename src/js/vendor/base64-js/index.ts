@@ -1,1 +1,1 @@
-export { fromByteArray } from './fromByteArray';
+export { base64StringFromByteArray } from './fromByteArray';

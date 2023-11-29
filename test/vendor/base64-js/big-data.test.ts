@@ -22,7 +22,7 @@
 
 // Adapted from https://github.dev/beatgammit/base64-js/blob/88957c9943c7e2a0f03cdf73e71d579e433627d3/test/big-data.js#L4
 
-import { fromByteArray } from '../../../src/js/vendor';
+import { base64StringFromByteArray } from '../../../src/js/vendor';
 
 describe('base64-js', () => {
   test('convert big data to base64', () => {
@@ -31,7 +31,7 @@ describe('base64-js', () => {
     for (let i = 0, length = big.length; i < length; ++i) {
       big[i] = i % 256;
     }
-    const b64str = fromByteArray(big);
+    const b64str = base64StringFromByteArray(big);
     const arr = Uint8Array.from(Buffer.from(b64str, 'base64'));
     expect(arr).toEqual(big);
   });

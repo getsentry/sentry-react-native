@@ -22,14 +22,14 @@
 
 // Adapted from https://github.dev/beatgammit/base64-js/blob/88957c9943c7e2a0f03cdf73e71d579e433627d3/test/convert.js#L15
 
-import { fromByteArray } from '../../../src/js/vendor';
+import { base64StringFromByteArray } from '../../../src/js/vendor';
 
 describe('base64-js', () => {
   const checks = ['a', 'aa', 'aaa', 'hi', 'hi!', 'hi!!', 'sup', 'sup?', 'sup?!'];
 
   test('convert to base64 and back', () => {
     for (const check of checks) {
-      const b64Str = fromByteArray(
+      const b64Str = base64StringFromByteArray(
         map(check, function (char: string) {
           return char.charCodeAt(0);
         }),
@@ -53,7 +53,7 @@ describe('base64-js', () => {
     for (const check of data) {
       const bytes = check[0];
       const expected = check[1];
-      const actual = fromByteArray(bytes);
+      const actual = base64StringFromByteArray(bytes);
       expect(actual).toEqual(expected);
     }
   });

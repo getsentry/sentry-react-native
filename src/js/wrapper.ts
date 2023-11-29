@@ -27,7 +27,7 @@ import type * as Hermes from './profiling/hermes';
 import type { NativeProfileEvent } from './profiling/nativeTypes';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
-import { fromByteArray, utf8ToBytes } from './vendor';
+import { base64StringFromByteArray, utf8ToBytes } from './vendor';
 
 const RNSentry: Spec | undefined = isTurboModuleEnabled()
   ? TurboModuleRegistry.get<Spec>('RNSentry')
@@ -173,7 +173,7 @@ export const NATIVE: SentryNativeWrapper = {
       envelopeBytes = newBytes;
     }
 
-    await RNSentry.captureEnvelope(fromByteArray(envelopeBytes), { store: hardCrashed });
+    await RNSentry.captureEnvelope(base64StringFromByteArray(envelopeBytes), { store: hardCrashed });
   },
 
   /**
