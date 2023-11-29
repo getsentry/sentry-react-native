@@ -64,6 +64,9 @@ ${
 `;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 const withSentry = createRunOncePlugin(withSentryPlugin, sdkPackage.name, sdkPackage.version);
 
-export { withSentry };
+export {
+  withSentry,
+};
