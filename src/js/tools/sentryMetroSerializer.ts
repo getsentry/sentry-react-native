@@ -1,10 +1,9 @@
 import * as crypto from 'crypto';
 import type { MixedOutput, Module } from 'metro';
-import CountingSet from 'metro/src/lib/CountingSet';
 import * as countLines from 'metro/src/lib/countLines';
 
 import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
-import { createDebugIdSnippet, determineDebugIdFromBundleSource, stringToUUID } from './utils';
+import { createDebugIdSnippet, createSet, determineDebugIdFromBundleSource, stringToUUID } from './utils';
 import { createDefaultMetroSerializer } from './vendor/metro/utils';
 
 type SourceMap = Record<string, unknown>;
@@ -139,7 +138,7 @@ function createDebugIdModule(debugId: string): Module<VirtualJSOutput> & { setSo
     },
     dependencies: new Map(),
     getSource: () => Buffer.from(debugIdCode),
-    inverseDependencies: new CountingSet(),
+    inverseDependencies: createSet(),
     path: DEBUG_ID_MODULE_PATH,
     output: [
       {
