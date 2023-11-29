@@ -25,7 +25,7 @@ export type AndroidCombinedProfileEvent = {
   /**
    * Proguard debug meta image uuid
    */
-  build_id: string | undefined;
+  build_id?: string | undefined;
   sampled_profile: string;
   js_profile: ThreadCpuProfile;
   android_api_level: number;
