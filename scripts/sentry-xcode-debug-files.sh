@@ -6,7 +6,7 @@
 set -x -e
 
 LOCAL_NODE_BINARY=${NODE_BINARY:-node}
-SENTRY_CLI_PACKAGE_PATH=$("$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/cli/package.json'))")
+SENTRY_CLI_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/cli/package.json'))")
 
 # load envs if loader file exists (since rn 0.68)
 WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"

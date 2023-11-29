@@ -8,8 +8,8 @@ set -x -e
 # WITH_ENVIRONMENT is executed by React Native
 
 LOCAL_NODE_BINARY=${NODE_BINARY:-node}
-SENTRY_RN_PACKAGE_PATH=$("$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json'))")
-SENTRY_CLI_PACKAGE_PATH=$("$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/cli/package.json'))")
+SENTRY_RN_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json'))")
+SENTRY_CLI_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/cli/package.json'))")
 
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
 [ -z "$SOURCEMAP_FILE" ] && export SOURCEMAP_FILE="$DERIVED_FILE_DIR/main.jsbundle.map"
