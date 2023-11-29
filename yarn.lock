@@ -1956,6 +1956,11 @@
     "@sentry/types" "7.81.1"
     "@sentry/utils" "7.81.1"
 
+"@sentry-internal/typescript@7.80.0":
+  version "7.80.0"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/typescript/-/typescript-7.80.0.tgz#30cae7c5bd8049f1a4083de351f396091d749e60"
+  integrity sha512-CXXh8vm4a0ZJhlMv4YcapeDmJh1pGtlO7wsdmur4Pu2YF+32z8lDxE5sKrItSdgu7RX5eR7aGQGiJI+YKZgsDQ==
+
 "@sentry-internal/typescript@7.81.1":
   version "7.81.1"
   resolved "https://registry.yarnpkg.com/@sentry-internal/typescript/-/typescript-7.81.1.tgz#135fe95602eeae338f8decc57cd8ab4deae6e251"
