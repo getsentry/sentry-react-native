@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@sentry/react-native": ["../../"]
+    }
+  },
+  "extends": "expo/tsconfig.base"
+}

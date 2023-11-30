@@ -13,7 +13,7 @@
   "allowSyntheticDefaultImports": true,
   "compilerOptions": {
     "rootDir": ".",
-    "jsx": "react-native",
+    "jsx": "react",
     "types": ["jest", "react-native"]
   }
 }
