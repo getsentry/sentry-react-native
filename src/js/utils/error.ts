@@ -28,6 +28,11 @@ export function getFramesToPop(error: ExtendedError): number {
 /**
  * Check if `potentialError` is an object with string stack property.
  */
-export function isErrorLike(potentialError : unknown): potentialError is { stack: string } {
-  return potentialError !== null && typeof potentialError === 'object' && 'stack' in potentialError && typeof potentialError .stack === 'string';
+export function isErrorLike(potentialError: unknown): potentialError is { stack: string } {
+  return (
+    potentialError !== null &&
+    typeof potentialError === 'object' &&
+    'stack' in potentialError &&
+    typeof potentialError.stack === 'string'
+  );
 }
