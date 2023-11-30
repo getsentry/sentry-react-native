@@ -4,8 +4,8 @@ const blacklist = require('metro-config/src/defaults/exclusionList');
 
 const {
   createSentryMetroSerializer,
-} = require('../dist/js/tools/sentryMetroSerializer');
-const parentDir = path.resolve(__dirname, '..');
+} = require('../../dist/js/tools/sentryMetroSerializer');
+const parentDir = path.resolve(__dirname, '../..');
 
 /**
  * Metro configuration
