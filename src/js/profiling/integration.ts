@@ -16,6 +16,7 @@ import { Platform } from 'react-native';
 import { isHermesEnabled } from '../utils/environment';
 import { NATIVE } from '../wrapper';
 import { PROFILE_QUEUE } from './cache';
+import { MAX_PROFILE_DURATION_MS } from './constants';
 import { convertToSentryProfile } from './convertHermesProfile';
 import type { NativeProfileEvent } from './nativeTypes';
 import type { CombinedProfileEvent, HermesProfileEvent } from './types';
@@ -25,8 +26,6 @@ import {
   enrichCombinedProfileWithEventContext,
   findProfiledTransactionsFromEnvelope,
 } from './utils';
-
-export const MAX_PROFILE_DURATION_MS = 30 * 1e3;
 
 const MS_TO_NS: number = 1e6;
 
