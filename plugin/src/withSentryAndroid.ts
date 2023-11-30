@@ -30,7 +30,7 @@ const resolveSentryReactNativePackageJsonPath =
  * adding the relevant @sentry/react-native script.
  */
 export function modifyAppBuildGradle(buildGradle: string): string {
-  if (buildGradle.includes('/sentry.gradle"')) {
+  if (buildGradle.includes('sentry.gradle')) {
     return buildGradle;
   }
 
@@ -46,10 +46,7 @@ export function modifyAppBuildGradle(buildGradle: string): string {
     return buildGradle;
   }
 
-  const sentryOptions = !buildGradle.includes('project.ext.sentryCli')
-    ? `project.ext.sentryCli=[collectModulesScript: new File(${resolveSentryReactNativePackageJsonPath}, "../dist/js/tools/collectModules.js")]`
-    : '';
-  const applyFrom = `apply from: new File(${resolveSentryReactNativePackageJsonPath}, "../sentry.gradle")`;
+  const applyFrom = `apply from: new File(${resolveSentryReactNativePackageJsonPath}, "sentry.gradle")`;
 
-  return buildGradle.replace(pattern, match => `${sentryOptions}\n\n${applyFrom}\n\n${match}`);
+  return buildGradle.replace(pattern, match => `${applyFrom}\n\n${match}`);
 }

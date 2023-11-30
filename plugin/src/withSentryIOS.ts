@@ -48,7 +48,8 @@ export const withSentryIOS: ConfigPlugin<string> = (config, sentryProperties: st
 export function modifyExistingXcodeBuildScript(script: BuildPhase): void {
   if (
     !script.shellScript.match(/(packager|scripts)\/react-native-xcode\.sh\b/) ||
-    script.shellScript.includes('sentry-xcode.sh')
+    script.shellScript.includes('sentry-xcode.sh') ||
+    script.shellScript.includes('@sentry')
   ) {
     WarningAggregator.addWarningIOS(
       SDK_PACKAGE_NAME,

@@ -11,7 +11,7 @@ jest.mock('@expo/config-plugins', () => {
 });
 
 const buildGradleWithSentry = `
-apply from: new File(["node", "--print", "require.resolve('@sentry/react-native/package.json')"].execute().text.trim(), "../sentry.gradle")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
 
 android {
 }
@@ -23,7 +23,7 @@ android {
 `;
 
 const monoRepoBuildGradleWithSentry = `
-apply from: new File(["node", "--print", "require.resolve('@sentry/react-native/package.json')"].execute().text.trim(), "../sentry.gradle")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
 
 android {
 }
@@ -39,19 +39,19 @@ const buildGradleWithOutReactGradleScript = `
 
 describe('Configures Android native project correctly', () => {
   it("Non monorepo: Doesn't modify app/build.gradle if Sentry's already configured", () => {
-    expect(modifyAppBuildGradle(buildGradleWithSentry)).toMatch(buildGradleWithSentry);
+    expect(modifyAppBuildGradle(buildGradleWithSentry)).toStrictEqual(buildGradleWithSentry);
   });
 
   it('Non monorepo: Adds sentry.gradle script if not present already', () => {
-    expect(modifyAppBuildGradle(buildGradleWithOutSentry)).toMatch(buildGradleWithSentry);
+    expect(modifyAppBuildGradle(buildGradleWithOutSentry)).toStrictEqual(buildGradleWithSentry);
   });
 
   it("Monorepo: Doesn't modify app/build.gradle if Sentry's already configured", () => {
-    expect(modifyAppBuildGradle(monoRepoBuildGradleWithSentry)).toMatch(monoRepoBuildGradleWithSentry);
+    expect(modifyAppBuildGradle(monoRepoBuildGradleWithSentry)).toStrictEqual(monoRepoBuildGradleWithSentry);
   });
 
   it('Monorepo: Adds sentry.gradle script if not present already', () => {
-    expect(modifyAppBuildGradle(monoRepoBuildGradleWithOutSentry)).toMatch(monoRepoBuildGradleWithSentry);
+    expect(modifyAppBuildGradle(monoRepoBuildGradleWithOutSentry)).toStrictEqual(monoRepoBuildGradleWithSentry);
   });
 
   it('Warns to file a bug report if no react.gradle is found', () => {
