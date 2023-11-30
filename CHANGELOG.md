@@ -2,10 +2,33 @@
 
 ## Unreleased
 
-### Fixes
+### Features
 
-- Transform shipped JSX for both react-native and web ([#3428](https://github.com/getsentry/sentry-react-native/pull/3428))
-  - Removes builds errors when using react-native-web with Webpack
+- Add `@sentry/react-native/expo` Expo config plugin ([#3429](https://github.com/getsentry/sentry-react-native/pull/3429))
+  - Example of use in `app.config.js`.
+
+  ```js
+  const { withSentry } = require('@sentry/react-native/expo');
+
+  const config = {...};
+
+  module.exports = withSentry(config, {
+    url: 'https://www.sentry.io/',
+    authToken: 'example-token', // Or use SENTRY_AUTH_TOKEN env
+    project: 'project-slug', // Or use SENTRY_PROJECT env
+    organization: 'org-slug', // Or use SENTRY_ORG env
+  });
+  ```
+
+  - And `Sentry.init` in `App.js`
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    dsn: '__DSN__',
+  });
+  ```
 
 ## 5.14.1
 

@@ -11,7 +11,6 @@ import {
 import type { Integration, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
-import { Platform } from 'react-native';
 
 import { ReactNativeClient } from './client';
 import {
@@ -105,11 +104,9 @@ export function init(passedOptions: ReactNativeOptions): void {
   const defaultIntegrations: Integration[] = passedOptions.defaultIntegrations || [];
   if (passedOptions.defaultIntegrations === undefined) {
     defaultIntegrations.push(new ModulesLoader());
-    if (Platform.OS !== 'web') {
-      defaultIntegrations.push(new ReactNativeErrorHandlers({
-        patchGlobalPromise: options.patchGlobalPromise,
-      }));
-    }
+    defaultIntegrations.push(new ReactNativeErrorHandlers({
+      patchGlobalPromise: options.patchGlobalPromise,
+    }));
     defaultIntegrations.push(new Release());
     defaultIntegrations.push(...[
       ...reactDefaultIntegrations.filter(

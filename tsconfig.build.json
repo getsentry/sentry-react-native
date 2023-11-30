@@ -14,7 +14,7 @@
     "lib": [
       "es7"
     ],
-    "jsx": "react",
+    "jsx": "react-native",
     "types": [
       "react-native"
     ],
