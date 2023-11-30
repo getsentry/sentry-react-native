@@ -6,7 +6,6 @@
 set -x -e
 
 LOCAL_NODE_BINARY=${NODE_BINARY:-node}
-SENTRY_CLI_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/cli/package.json'))")
 
 # load envs if loader file exists (since rn 0.68)
 WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
@@ -15,6 +14,8 @@ if [ -f "$WITH_ENVIRONMENT" ]; then
 fi
 
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
+
+[ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/cli/package.json'))")
 [ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_EXECUTABLE="${SENTRY_CLI_PACKAGE_PATH}/bin/sentry-cli"
 
 [[ $SENTRY_INCLUDE_NATIVE_SOURCES == "true" ]] && INCLUDE_SOURCES_FLAG="--include-sources" || INCLUDE_SOURCES_FLAG=""
