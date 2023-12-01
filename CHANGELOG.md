@@ -9,6 +9,12 @@
 - Symbolicate message and non-Error stacktraces locally in debug mode ([#3420](https://github.com/getsentry/sentry-react-native/pull/3420))
 - Remove Sentry SDK frames from rejected promise SyntheticError stack ([#3423](https://github.com/getsentry/sentry-react-native/pull/3423))
 
+### Dependencies
+
+- Bump Cocoa SDK from v8.15.2 to v8.17.1 ([#3412](https://github.com/getsentry/sentry-react-native/pull/3412))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8171)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.15.2...8.17.1)
+
 ## 5.14.1
 
 ### Fixes
