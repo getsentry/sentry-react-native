@@ -6,6 +6,7 @@
 
 - Encode envelopes using Base64, fix array length limit when transferring over Bridge. ([#2852](https://github.com/getsentry/sentry-react-native/pull/2852))
   - This fix requires a rebuild of the native app
+- Symbolicate message and non-Error stacktraces locally in debug mode ([#3420](https://github.com/getsentry/sentry-react-native/pull/3420))
 
 ## 5.14.1
 
