@@ -3,6 +3,7 @@ import type { EventHint, Integration, SeverityLevel } from '@sentry/types';
 import { addExceptionMechanism, logger } from '@sentry/utils';
 
 import type { ReactNativeClient } from '../client';
+import { createSyntheticError, isErrorLike } from '../utils/error';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
 /** ReactNativeErrorHandlers Options */
@@ -100,11 +101,7 @@ export class ReactNativeErrorHandlers implements Integration {
    * Attach the unhandled rejection handler
    */
   private _attachUnhandledRejectionHandler(): void {
-    const tracking: {
-      disable: () => void;
-      enable: (arg: unknown) => void;
-      // eslint-disable-next-line import/no-extraneous-dependencies,@typescript-eslint/no-var-requires
-    } = require('promise/setimmediate/rejection-tracking');
+    const tracking = this._loadRejectionTracking();
 
     const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
       onUnhandled: (id, rejection = {}) => {
@@ -123,7 +120,7 @@ export class ReactNativeErrorHandlers implements Integration {
 
     tracking.enable({
       allRejections: true,
-      onUnhandled: (id: string, error: Error) => {
+      onUnhandled: (id: string, error: unknown) => {
         if (__DEV__) {
           promiseRejectionTrackingOptions.onUnhandled(id, error);
         }
@@ -131,6 +128,7 @@ export class ReactNativeErrorHandlers implements Integration {
         getCurrentHub().captureException(error, {
           data: { id },
           originalException: error,
+          syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
         });
       },
       onHandled: (id: string) => {
@@ -250,5 +248,16 @@ export class ReactNativeErrorHandlers implements Integration {
         }
       });
     }
+  }
+
+  /**
+   * Loads and returns rejection tracking module
+   */
+  private _loadRejectionTracking(): {
+    disable: () => void;
+    enable: (arg: unknown) => void;
+  } {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
+    return require('promise/setimmediate/rejection-tracking');
   }
 }

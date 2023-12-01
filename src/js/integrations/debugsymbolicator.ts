@@ -1,6 +1,7 @@
 import type { Event, EventHint, EventProcessor, Hub, Integration, StackFrame as SentryStackFrame } from '@sentry/types';
 import { addContextToFrame, logger } from '@sentry/utils';
 
+import { getFramesToPop, isErrorLike } from '../utils/error';
 import type * as ReactNative from '../vendor/react-native';
 
 const INTERNAL_CALLSITES_REGEX = new RegExp(['ReactNativeRenderer-dev\\.js$', 'MessageQueue\\.js$'].join('|'));
@@ -37,24 +38,19 @@ export class DebugSymbolicator implements Integration {
         return event;
       }
 
-      if (
-        event.exception &&
-        hint.originalException &&
-        typeof hint.originalException === 'object' &&
-        'stack' in hint.originalException &&
-        typeof hint.originalException.stack === 'string'
-      ) {
+      if (event.exception && isErrorLike(hint.originalException)) {
         // originalException is ErrorLike object
-        const symbolicatedFrames = await this._symbolicate(hint.originalException.stack);
+        const symbolicatedFrames = await this._symbolicate(
+          hint.originalException.stack,
+          getFramesToPop(hint.originalException as Error),
+        );
         symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
-      } else if (
-        hint.syntheticException &&
-        typeof hint.syntheticException === 'object' &&
-        'stack' in hint.syntheticException &&
-        typeof hint.syntheticException.stack === 'string'
-      ) {
+      } else if (hint.syntheticException && isErrorLike(hint.syntheticException)) {
         // syntheticException is Error object
-        const symbolicatedFrames = await this._symbolicate(hint.syntheticException.stack);
+        const symbolicatedFrames = await this._symbolicate(
+          hint.syntheticException.stack,
+          getFramesToPop(hint.syntheticException),
+        );
 
         if (event.exception) {
           symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
@@ -73,7 +69,7 @@ export class DebugSymbolicator implements Integration {
    * Symbolicates the stack on the device talking to local dev server.
    * Mutates the passed event.
    */
-  private async _symbolicate(rawStack: string): Promise<SentryStackFrame[] | null> {
+  private async _symbolicate(rawStack: string, skipFirstFrames: number = 0): Promise<SentryStackFrame[] | null> {
     const parsedStack = this._parseErrorStack(rawStack);
 
     try {
@@ -86,7 +82,14 @@ export class DebugSymbolicator implements Integration {
       // This has been changed in an react-native version so stack is contained in here
       const newStack = prettyStack.stack || prettyStack;
 
-      const stackWithoutInternalCallsites = newStack.filter(
+      // https://github.com/getsentry/sentry-javascript/blob/739d904342aaf9327312f409952f14ceff4ae1ab/packages/utils/src/stacktrace.ts#L23
+      // Match SentryParser which counts lines of stack (-1 for first line with the Error message)
+      const skipFirstAdjustedToSentryStackParser = Math.max(skipFirstFrames - 1, 0);
+      const stackWithoutPoppedFrames = skipFirstAdjustedToSentryStackParser
+        ? newStack.slice(skipFirstAdjustedToSentryStackParser)
+        : newStack;
+
+      const stackWithoutInternalCallsites = stackWithoutPoppedFrames.filter(
         (frame: { file?: string }) => frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null,
       );
 

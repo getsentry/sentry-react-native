@@ -247,6 +247,98 @@ describe('Debug Symbolicator Integration', () => {
         },
       });
     });
+
+    it('skips first frame (callee) for exception', async () => {
+      const symbolicatedEvent = await executeIntegrationFor(
+        {
+          exception: {
+            values: [
+              {
+                type: 'Error',
+                value: 'Error: test',
+                stacktrace: {
+                  frames: mockSentryParsedFrames,
+                },
+              },
+            ],
+          },
+        },
+        {
+          originalException: {
+            stack: mockRawStack,
+            framesToPop: 2,
+            // The current behavior matches https://github.com/getsentry/sentry-javascript/blob/739d904342aaf9327312f409952f14ceff4ae1ab/packages/utils/src/stacktrace.ts#L23
+            // 2 for first line with the Error message
+          },
+        },
+      );
+
+      expect(symbolicatedEvent).toStrictEqual(<Event>{
+        exception: {
+          values: [
+            {
+              type: 'Error',
+              value: 'Error: test',
+              stacktrace: {
+                frames: [
+                  {
+                    function: 'bar',
+                    filename: '/User/project/node_modules/bar/bar.js',
+                    lineno: 2,
+                    colno: 2,
+                    in_app: false,
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      });
+    });
+
+    it('skips first frame (callee) for message', async () => {
+      const symbolicatedEvent = await executeIntegrationFor(
+        {
+          threads: {
+            values: [
+              {
+                stacktrace: {
+                  frames: mockSentryParsedFrames,
+                },
+              },
+            ],
+          },
+        },
+        {
+          syntheticException: {
+            stack: mockRawStack,
+            framesToPop: 2,
+            // The current behavior matches https://github.com/getsentry/sentry-javascript/blob/739d904342aaf9327312f409952f14ceff4ae1ab/packages/utils/src/stacktrace.ts#L23
+            // 2 for first line with the Error message
+          } as unknown as Error,
+        },
+      );
+
+      expect(symbolicatedEvent).toStrictEqual(<Event>{
+        threads: {
+          values: [
+            {
+              stacktrace: {
+                frames: [
+                  {
+                    function: 'bar',
+                    filename: '/User/project/node_modules/bar/bar.js',
+                    lineno: 2,
+                    colno: 2,
+                    in_app: false,
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      });
+    });
   });
 
   function executeIntegrationFor(mockedEvent: Event, hint: EventHint): Promise<Event | null> {
