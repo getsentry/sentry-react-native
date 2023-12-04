@@ -7,9 +7,13 @@ set -x -e
 
 # WITH_ENVIRONMENT is executed by React Native
 
+LOCAL_NODE_BINARY=${NODE_BINARY:-node}
+
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
 [ -z "$SOURCEMAP_FILE" ] && export SOURCEMAP_FILE="$DERIVED_FILE_DIR/main.jsbundle.map"
-[ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_EXECUTABLE="../node_modules/@sentry/cli/bin/sentry-cli"
+
+[ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/cli/package.json'))")
+[ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_EXECUTABLE="${SENTRY_CLI_PACKAGE_PATH}/bin/sentry-cli"
 
 REACT_NATIVE_XCODE=$1
 
@@ -25,7 +29,8 @@ else
   /bin/sh -c "$REACT_NATIVE_XCODE"
 fi
 
-[ -z "$SENTRY_COLLECT_MODULES" ] && SENTRY_COLLECT_MODULES="../../scripts/collect-modules.sh"
+[ -z "$SENTRY_COLLECT_MODULES" ] && SENTRY_RN_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json'))")
+[ -z "$SENTRY_COLLECT_MODULES" ] && SENTRY_COLLECT_MODULES="${SENTRY_RN_PACKAGE_PATH}/scripts/collect-modules.sh"
 
 if [ -f "$SENTRY_COLLECT_MODULES" ]; then
   /bin/sh "$SENTRY_COLLECT_MODULES"

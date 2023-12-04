@@ -11,22 +11,31 @@ jest.mock('@expo/config-plugins', () => {
 });
 
 const buildScriptWithoutSentry = {
-  shellScript: '"export NODE_BINARY=node\\n../node_modules/react-native/scripts/react-native-xcode.sh"',
+  shellScript: JSON.stringify(`"
+export NODE_BINARY=node
+../node_modules/react-native/scripts/react-native-xcode.sh
+"`),
 };
 
 const buildScriptWithSentry = {
-  shellScript:
-    '"export SENTRY_PROPERTIES=sentry.properties\\nexport EXTRA_PACKAGER_ARGS=\\"--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map\\"\\nexport NODE_BINARY=node\\n`node --print \\"require.resolve(\'@sentry/cli/package.json\').slice(0, -13) + \'/bin/sentry-cli\'\\"` react-native xcode --force-foreground ../node_modules/react-native/scripts/react-native-xcode.sh\\n\\n`node --print \\"require.resolve(\'@sentry/react-native/package.json\').slice(0, -13) + \'/scripts/collect-modules.sh\'\\"`"',
+  shellScript: JSON.stringify(`"
+export NODE_BINARY=node
+/bin/sh \`"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"\` ../node_modules/react-native/scripts/react-native-xcode.sh
+"`),
 };
 
 const monorepoBuildScriptWithoutSentry = {
-  shellScript:
-    '"export NODE_BINARY=node\\n`node --print \\"require.resolve(\'react-native/package.json\').slice(0, -13) + \'/scripts/react-native-xcode.sh\'\\"`"',
+  shellScript: JSON.stringify(`"
+export NODE_BINARY=node
+\`node --print "require.resolve('react-native/package.json').slice(0, -13) + '/scripts/react-native-xcode.sh'"\`
+"`),
 };
 
 const monorepoBuildScriptWithSentry = {
-  shellScript:
-    "\"export SENTRY_PROPERTIES=sentry.properties\\nexport EXTRA_PACKAGER_ARGS=\\\"--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map\\\"\\nexport NODE_BINARY=node\\n`node --print \\\"require.resolve('@sentry/cli/package.json').slice(0, -13) + '/bin/sentry-cli'\\\"` react-native xcode --force-foreground `node --print \\\"require.resolve('react-native/package.json').slice(0, -13) + '/scripts/react-native-xcode.sh'\\\"`\\n\\n`node --print \\\"require.resolve('@sentry/react-native/package.json').slice(0, -13) + '/scripts/collect-modules.sh'\\\"`\"",
+  shellScript: JSON.stringify(`"
+export NODE_BINARY=node
+/bin/sh \`"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"\` \`node --print "require.resolve('react-native/package.json').slice(0, -13) + '/scripts/react-native-xcode.sh'"\`
+"`),
 };
 
 const buildScriptWeDontExpect = {
@@ -49,25 +58,25 @@ describe('Configures iOS native project correctly', () => {
   it("Doesn't modify build script if Sentry's already configured", () => {
     const script = Object.assign({}, buildScriptWithSentry);
     modifyExistingXcodeBuildScript(script);
-    expect(script).toStrictEqual(buildScriptWithSentry);
+    expect(JSON.parse(script.shellScript)).toStrictEqual(JSON.parse(buildScriptWithSentry.shellScript));
   });
 
   it("Add Sentry configuration to 'Bundle React Native Code' build script", () => {
     const script = Object.assign({}, buildScriptWithoutSentry);
     modifyExistingXcodeBuildScript(script);
-    expect(script).toStrictEqual(buildScriptWithSentry);
+    expect(JSON.parse(script.shellScript)).toStrictEqual(JSON.parse(buildScriptWithSentry.shellScript));
   });
 
   it("Monorepo: doesn't modify build script if Sentry's already configured", () => {
     const script = Object.assign({}, monorepoBuildScriptWithSentry);
     modifyExistingXcodeBuildScript(script);
-    expect(script).toStrictEqual(monorepoBuildScriptWithSentry);
+    expect(JSON.parse(script.shellScript)).toStrictEqual(JSON.parse(monorepoBuildScriptWithSentry.shellScript));
   });
 
   it("Monorepo: add Sentry configuration to 'Bundle React Native Code' build script", () => {
     const script = Object.assign({}, monorepoBuildScriptWithoutSentry);
     modifyExistingXcodeBuildScript(script);
-    expect(script).toStrictEqual(monorepoBuildScriptWithSentry);
+    expect(JSON.parse(script.shellScript)).toStrictEqual(JSON.parse(monorepoBuildScriptWithSentry.shellScript));
   });
 
   it("Warns to file a bug report if build script isn't what we expect to find", () => {

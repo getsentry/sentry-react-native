@@ -2,7 +2,7 @@ import type { ConfigPlugin } from 'expo/config-plugins';
 import { WarningAggregator, withAppBuildGradle, withDangerousMod } from 'expo/config-plugins';
 import * as path from 'path';
 
-import { writeSentryPropertiesTo } from './withSentryIOS';
+import { SDK_PACKAGE_NAME, writeSentryPropertiesTo } from './utils';
 
 export const withSentryAndroid: ConfigPlugin<string> = (config, sentryProperties: string) => {
   const cfg = withAppBuildGradle(config, config => {
@@ -23,14 +23,14 @@ export const withSentryAndroid: ConfigPlugin<string> = (config, sentryProperties
 };
 
 const resolveSentryReactNativePackageJsonPath =
-  '["node", "--print", "require.resolve(\'@sentry/react-native/package.json\')"].execute().text.trim()';
+  '["node", "--print", "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\'))"].execute().text.trim()';
 
 /**
  * Writes to projectDirectory/android/app/build.gradle,
  * adding the relevant @sentry/react-native script.
  */
 export function modifyAppBuildGradle(buildGradle: string): string {
-  if (buildGradle.includes('/sentry.gradle"')) {
+  if (buildGradle.includes('sentry.gradle')) {
     return buildGradle;
   }
 
@@ -40,15 +40,13 @@ export function modifyAppBuildGradle(buildGradle: string): string {
 
   if (!buildGradle.match(pattern)) {
     WarningAggregator.addWarningAndroid(
-      'sentry-expo',
-      'Could not find react.gradle script in android/app/build.gradle. Please open a bug report at https://github.com/expo/sentry-expo.',
+      SDK_PACKAGE_NAME,
+      'Could not find `^android {` in `android/app/build.gradle`. Please open a bug report at https://github.com/getsentry/sentry-react-native.',
     );
+    return buildGradle;
   }
 
-  const sentryOptions = !buildGradle.includes('project.ext.sentryCli')
-    ? `project.ext.sentryCli=[collectModulesScript: new File(${resolveSentryReactNativePackageJsonPath}, "../dist/js/tools/collectModules.js")]`
-    : '';
-  const applyFrom = `apply from: new File(${resolveSentryReactNativePackageJsonPath}, "../sentry.gradle")`;
+  const applyFrom = `apply from: new File(${resolveSentryReactNativePackageJsonPath}, "sentry.gradle")`;
 
-  return buildGradle.replace(pattern, match => `${sentryOptions}\n\n${applyFrom}\n\n${match}`);
+  return buildGradle.replace(pattern, match => `${applyFrom}\n\n${match}`);
 }
