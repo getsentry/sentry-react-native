@@ -19,6 +19,10 @@
 !scripts/sentry-xcode-debug-files.sh
 !scripts/sentry_utils.rb
 
+# Metro
+!/metro.js
+!/metro.d.ts
+
 # Expo
 !/expo.js
 !/expo.d.ts

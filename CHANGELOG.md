@@ -4,6 +4,12 @@
 
 ### Features
 
+- New simplified Sentry Metro Serializer export ([#3450](https://github.com/getsentry/sentry-react-native/pull/3450))
+
+  ```js
+  const { createSentryMetroSerializer } = require('@sentry/react-native/metro');
+  ```
+
 - Add `@sentry/react-native/expo` Expo config plugin ([#3429](https://github.com/getsentry/sentry-react-native/pull/3429))
   - Example of use in `app.config.js`.
 
@@ -37,6 +43,16 @@
 
 - Transform shipped JSX for both react-native and web ([#3428](https://github.com/getsentry/sentry-react-native/pull/3428))
   - Removes builds errors when using react-native-web with Webpack
+- Encode envelopes using Base64, fix array length limit when transferring over Bridge. ([#2852](https://github.com/getsentry/sentry-react-native/pull/2852))
+  - This fix requires a rebuild of the native app
+- Symbolicate message and non-Error stacktraces locally in debug mode ([#3420](https://github.com/getsentry/sentry-react-native/pull/3420))
+- Remove Sentry SDK frames from rejected promise SyntheticError stack ([#3423](https://github.com/getsentry/sentry-react-native/pull/3423))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.15.2 to v8.17.1 ([#3412](https://github.com/getsentry/sentry-react-native/pull/3412))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8171)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.15.2...8.17.1)
 
 ## 5.14.1
 

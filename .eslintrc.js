@@ -16,6 +16,7 @@ module.exports = {
     'test/react-native/versions/**/*',
     'coverage/**/*',
     'test/typescript/**/*',
+    'metro.d.ts',
     'samples/**/*',
     'plugin/build/**/*',
     'expo.d.ts',

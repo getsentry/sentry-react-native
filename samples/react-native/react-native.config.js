@@ -6,7 +6,7 @@ const path = require('path');
 module.exports = {
   dependencies: {
     RNSentry: {
-      root: path.resolve(__dirname, '..'),
+      root: path.resolve(__dirname, '../../'),
     },
   },
 };
