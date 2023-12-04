@@ -125,6 +125,9 @@ public class RNSentryModuleImpl {
     private String cacheDirPath = null;
     private ISentryExecutorService executorService = null;
 
+    /** Max trace file size in bytes. */
+    private long maxTraceFileSize = 5 * 1024 * 1024;
+
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
         packageInfo = getPackageInfo(reactApplicationContext);
         this.reactApplicationContext = reactApplicationContext;
@@ -707,7 +710,7 @@ public class RNSentryModuleImpl {
             result.putString("profile", readStringFromFile(output));
 
             WritableMap androidProfile = new WritableNativeMap();
-            byte[] androidProfileBytes = FileUtils.readBytesFromFile(end.traceFile.getPath(), 12);
+            byte[] androidProfileBytes = FileUtils.readBytesFromFile(end.traceFile.getPath(), maxTraceFileSize);
             String base64AndroidProfile = Base64.encodeToString(androidProfileBytes, NO_WRAP | NO_PADDING);
 
             androidProfile.putString("sampled_profile", base64AndroidProfile);
