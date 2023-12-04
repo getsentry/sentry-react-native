@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Features
+
+- New simplified Sentry Metro Serializer export ([#3450](https://github.com/getsentry/sentry-react-native/pull/3450))
+
+  ```js
+  const { createSentryMetroSerializer } = require('@sentry/react-native/metro');
+  ```
+
 ### Fixes
 
 - Encode envelopes using Base64, fix array length limit when transferring over Bridge. ([#2852](https://github.com/getsentry/sentry-react-native/pull/2852))

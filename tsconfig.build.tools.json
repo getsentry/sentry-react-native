@@ -4,6 +4,9 @@
   "exclude": ["node_modules"],
   "compilerOptions": {
     "baseUrl": ".",
+    "paths": {
+      "metro": ["node_modules/metro/src/index"]
+    },
     "outDir": "dist",
     "rootDir": "src",
     "lib": ["es7"],
