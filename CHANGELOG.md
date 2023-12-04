@@ -30,6 +30,9 @@
   });
   ```
 
+- Update `sentry-xcode.sh` scripts with Node modules resolution ([#3450](https://github.com/getsentry/sentry-react-native/pull/3450))
+  - RN SDK and Sentry CLI are dynamically resolved if override is not supplied
+
 ### Fixes
 
 - Transform shipped JSX for both react-native and web ([#3428](https://github.com/getsentry/sentry-react-native/pull/3428))
