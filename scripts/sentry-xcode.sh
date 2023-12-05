@@ -25,7 +25,7 @@ else
   /bin/sh -c "$REACT_NATIVE_XCODE"
 fi
 
-[ -z "$SENTRY_COLLECT_MODULES" ] && SENTRY_COLLECT_MODULES="../../scripts/collect-modules.sh"
+[ -z "$SENTRY_COLLECT_MODULES" ] && SENTRY_COLLECT_MODULES="../node_modules/@sentry/react-native/scripts/collect-modules.sh"
 
 if [ -f "$SENTRY_COLLECT_MODULES" ]; then
   /bin/sh "$SENTRY_COLLECT_MODULES"
