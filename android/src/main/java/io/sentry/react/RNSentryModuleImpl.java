@@ -74,8 +74,8 @@ import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
+import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
-import io.sentry.internal.debugmeta.ResourcesDebugMetaLoader;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
@@ -736,7 +736,7 @@ public class RNSentryModuleImpl {
             return proguardUuid;
         }
         isProguardDebugMetaLoaded = true;
-        final @Nullable Properties debugMeta = (new ResourcesDebugMetaLoader(logger)).loadDebugMeta();
+        final @Nullable Properties debugMeta = (new AssetsDebugMetaLoader(this.getReactApplicationContext(), logger)).loadDebugMeta();
         if (debugMeta != null) {
             proguardUuid = DebugMetaPropertiesApplier.getProguardUuid(debugMeta);
             return proguardUuid;
