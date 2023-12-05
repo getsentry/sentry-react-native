@@ -4,12 +4,6 @@
 
 ### Features
 
-- New simplified Sentry Metro Serializer export ([#3450](https://github.com/getsentry/sentry-react-native/pull/3450))
-
-  ```js
-  const { createSentryMetroSerializer } = require('@sentry/react-native/metro');
-  ```
-
 - Add `@sentry/react-native/expo` Expo config plugin ([#3429](https://github.com/getsentry/sentry-react-native/pull/3429))
   - Example of use in `app.config.js`.
 
@@ -43,11 +37,24 @@
 
 - Transform shipped JSX for both react-native and web ([#3428](https://github.com/getsentry/sentry-react-native/pull/3428))
   - Removes builds errors when using react-native-web with Webpack
+
+## 5.15.0
+
+### Features
+
+- New simplified Sentry Metro Serializer export ([#3450](https://github.com/getsentry/sentry-react-native/pull/3450))
+
+  ```js
+  const { createSentryMetroSerializer } = require('@sentry/react-native/metro');
+  ```
+
+### Fixes
+
 - Encode envelopes using Base64, fix array length limit when transferring over Bridge. ([#2852](https://github.com/getsentry/sentry-react-native/pull/2852))
   - This fix requires a rebuild of the native app
 - Symbolicate message and non-Error stacktraces locally in debug mode ([#3420](https://github.com/getsentry/sentry-react-native/pull/3420))
 - Remove Sentry SDK frames from rejected promise SyntheticError stack ([#3423](https://github.com/getsentry/sentry-react-native/pull/3423))
-- Fix path to Collect Modules JavaScript ([#3451](https://github.com/getsentry/sentry-react-native/pull/3451))
+- Fix path from Xcode scripts to Collect Modules ([#3451](https://github.com/getsentry/sentry-react-native/pull/3451))
 
 ### Dependencies
 
