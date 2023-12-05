@@ -16,11 +16,11 @@ jobs:
         include:
           - platform: android
             command: |
-              cd sample-new-architecture/android
+              cd samples/react-native/android
               ./gradlew generateCodegenArtifactsFromSchema
           - platform: ios
             command: |
-              cd sample-new-architecture/ios
+              cd samples/react-native/ios
               node ../node_modules/react-native/scripts/generate-codegen-artifacts.js \
                 --path .. \
                 --outputPath codegen
@@ -32,12 +32,12 @@ jobs:
       - uses: actions/cache@v3
         id: cache
         with:
-          path: sample-new-architecture/node_modules
+          path: samples/react-native/node_modules
           key: ${{ runner.os }}-${{ github.sha }}
       - name: Install Dependencies
         if: steps.cache.outputs['cache-hit'] != 'true'
         run: |
-          cd sample-new-architecture
+          cd samples/react-native
           yarn install
       - name: Codegen
         run: ${{ matrix.command }}

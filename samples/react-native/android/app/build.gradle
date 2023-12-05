@@ -3,17 +3,17 @@ apply plugin: "com.facebook.react"
 apply plugin: "io.sentry.android.gradle"
 
 project.ext.sentryCli = [
-    collectModulesScript: "../../../dist/js/tools/collectModules.js",
+    collectModulesScript: "../../../../dist/js/tools/collectModules.js",
     modulesPaths: [
       "node_modules",
-      "../..",
+      "../../..",
     ],
     skipCollectModules: false,
-    copyDebugIdScript: "../../../scripts/copy-debugid.js",
-    hasSourceMapDebugIdScript: "../../../scripts/has-sourcemap-debugid.js",
+    copyDebugIdScript: "../../../../scripts/copy-debugid.js",
+    hasSourceMapDebugIdScript: "../../../../scripts/has-sourcemap-debugid.js",
 ]
 
-apply from: "../../../sentry.gradle"
+apply from: "../../../../sentry.gradle"
 
 sentry {
     // Whether the plugin should attempt to auto-upload the mapping file to Sentry or not.

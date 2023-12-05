@@ -370,11 +370,8 @@ public class RNSentryModuleImpl {
         }
     }
 
-    public void captureEnvelope(ReadableArray rawBytes, ReadableMap options, Promise promise) {
-        byte[] bytes = new byte[rawBytes.size()];
-        for (int i = 0; i < rawBytes.size(); i++) {
-            bytes[i] = (byte) rawBytes.getInt(i);
-        }
+    public void captureEnvelope(String rawBytes, ReadableMap options, Promise promise) {
+        byte[] bytes = Base64.decode(rawBytes, Base64.DEFAULT);
 
         try {
             InternalSentrySdk.captureEnvelope(bytes);

@@ -54,7 +54,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void captureEnvelope(ReadableArray rawBytes, ReadableMap options, Promise promise) {
+    public void captureEnvelope(String rawBytes, ReadableMap options, Promise promise) {
         this.impl.captureEnvelope(rawBytes, options, promise);
     }
 
