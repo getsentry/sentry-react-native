@@ -5,7 +5,11 @@
 ### Features
 
 - Add `@sentry/react-native/expo` Expo config plugin ([#3429](https://github.com/getsentry/sentry-react-native/pull/3429))
-  - Example of use in `app.config.js`.
+
+  This Release introduces the first alpha version of our new SDK for Expo.
+  At this time, the SDK is considered experimental and things might break and change in future versions.
+
+  The core of the SDK is Expo plugin which you can easily add to your App config:
 
   ```js
   const { withSentry } = require('@sentry/react-native/expo');
