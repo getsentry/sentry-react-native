@@ -47,6 +47,7 @@
   - This fix requires a rebuild of the native app
 - Symbolicate message and non-Error stacktraces locally in debug mode ([#3420](https://github.com/getsentry/sentry-react-native/pull/3420))
 - Remove Sentry SDK frames from rejected promise SyntheticError stack ([#3423](https://github.com/getsentry/sentry-react-native/pull/3423))
+- Fix path to Collect Modules JavaScript ([#3451](https://github.com/getsentry/sentry-react-native/pull/3451))
 
 ### Dependencies
 
