@@ -29,7 +29,7 @@ if [[ -n "$NODE_BINARY" ]]; then
 fi
 
 thisFilePath=$(dirname $0)
-collectModulesScript="$thisFilePath/../../dist/js/tools/collectModules.js"
+collectModulesScript="$thisFilePath/../dist/js/tools/collectModules.js"
 
 destination="$CONFIGURATION_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
 modulesOutput="$destination/modules.json"
