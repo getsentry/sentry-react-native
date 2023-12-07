@@ -1,5 +1,7 @@
+import { withExpoSerializers } from '@expo/metro-config/build/serializer/withExpoSerializers';
 import * as crypto from 'crypto';
-import type { MixedOutput, Module } from 'metro';
+import type { MetroConfig, MixedOutput, Module } from 'metro';
+import { mergeConfig } from 'metro';
 import * as countLines from 'metro/src/lib/countLines';
 
 import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
@@ -13,6 +15,22 @@ const DEBUG_ID_MODULE_PATH = '__debugid__';
 const PRELUDE_MODULE_PATH = '__prelude__';
 const SOURCE_MAP_COMMENT = '//# sourceMappingURL=';
 const DEBUG_ID_COMMENT = '//# debugId=';
+
+/**
+ * This function will overwrite any existing custom serializer with default Expo and Sentry serializers.
+ *
+ * To use custom serializers, use `createSentryMetroSerializer(customSerializer)` instead.
+ */
+export function withSentryExpoSerializers(config: MetroConfig): MetroConfig {
+  const sentryConfig = {
+    serializer: {
+      customSerializer: createSentryMetroSerializer(),
+    },
+  } as MetroConfig;
+
+  const finalConfig = mergeConfig(config, sentryConfig);
+  return withExpoSerializers(finalConfig);
+}
 
 /**
  * Creates a Metro serializer that adds Debug ID module to the plain bundle.
