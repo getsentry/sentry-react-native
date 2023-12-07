@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Features
+
+- Add `withSentryExpoSerializers` for easy configurable `metro.config.js` ([#3454](https://github.com/getsentry/sentry-react-native/pull/3454))
+
+  ```js
+  const { getDefaultConfig } = require('expo/metro-config');
+  const { withSentryExpoSerializers } = require("@sentry/react-native/metro");
+
+  const config = getDefaultConfig(__dirname);
+  module.exports = withSentryExpoSerializers(config);
+  ```
+
+  Note that this will remove any existing `customSerializer`. Guide for advanced setups [can be found here](https://docs.sentry.io/platforms/react-native/manual-setup/metro).
+
 ### Fixes
 
 - Expo SDK minimum version is 49 ([#3453](https://github.com/getsentry/sentry-react-native/pull/3453))

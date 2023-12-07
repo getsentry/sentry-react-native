@@ -72,6 +72,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.23.5",
+    "@expo/metro-config": "^0.10.7",
     "@sentry-internal/eslint-config-sdk": "7.81.1",
     "@sentry-internal/eslint-plugin-sdk": "7.81.1",
     "@sentry-internal/typescript": "7.80.0",
