@@ -40,7 +40,9 @@ function loadExpoSerializersModule(): {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     return require('@expo/metro-config/build/serializer/withExpoSerializers');
   } catch (e) {
-    throw new Error('Unable to load `withExpoSerializers` from `@expo/metro-config`. Make sure you have Expo installed.');
+    throw new Error(
+      'Unable to load `withExpoSerializers` from `@expo/metro-config`. Make sure you have Expo installed.',
+    );
   }
 }
 
