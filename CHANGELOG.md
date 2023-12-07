@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Expo SDK minimum version is 49 ([#3453](https://github.com/getsentry/sentry-react-native/pull/3453))
+
 ## 5.16.0-alpha.1
 
 ### Features
