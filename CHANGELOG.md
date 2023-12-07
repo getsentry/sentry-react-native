@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Sentry CLI upgrade resolves Xcode Could timeout during source maps upload [#3390](https://github.com/getsentry/sentry-react-native/pull/3390)
+
 ### Dependencies
 
 - Bump CLI from v2.21.3 to v2.23.0 ([#3390](https://github.com/getsentry/sentry-react-native/pull/3390))
