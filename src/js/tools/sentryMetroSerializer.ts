@@ -1,4 +1,3 @@
-import { withExpoSerializers } from '@expo/metro-config/build/serializer/withExpoSerializers';
 import * as crypto from 'crypto';
 import type { MetroConfig, MixedOutput, Module } from 'metro';
 import { mergeConfig } from 'metro';
@@ -22,6 +21,8 @@ const DEBUG_ID_COMMENT = '//# debugId=';
  * To use custom serializers, use `createSentryMetroSerializer(customSerializer)` instead.
  */
 export function withSentryExpoSerializers(config: MetroConfig): MetroConfig {
+  const { withExpoSerializers } = loadExpoSerializersModule();
+
   const sentryConfig = {
     serializer: {
       customSerializer: createSentryMetroSerializer(),
@@ -30,6 +31,17 @@ export function withSentryExpoSerializers(config: MetroConfig): MetroConfig {
 
   const finalConfig = mergeConfig(config, sentryConfig);
   return withExpoSerializers(finalConfig);
+}
+
+function loadExpoSerializersModule(): {
+  withExpoSerializers: (config: MetroConfig) => MetroConfig;
+} {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    return require('@expo/metro-config/build/serializer/withExpoSerializers');
+  } catch (e) {
+    throw new Error('Unable to load `withExpoSerializers` from `@expo/metro-config`. Make sure you have Expo installed.');
+  }
 }
 
 /**
