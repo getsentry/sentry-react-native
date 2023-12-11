@@ -2,6 +2,7 @@
 const path = require('path');
 
 const { getDefaultConfig } = require('expo/metro-config');
+const { withSentryExpoSerializers } = require('../../metro');
 
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
@@ -40,4 +41,4 @@ config.resolver.extraNodeModules = new Proxy(
   },
 );
 
-module.exports = config;
+module.exports = withSentryExpoSerializers(config);
