@@ -3,8 +3,19 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@sentry/react-native": ["../../"]
+      "@sentry/react-native": [
+        "../../"
+      ],
+      "@/*": [
+        "./*"
+      ]
     }
   },
-  "extends": "expo/tsconfig.base"
+  "extends": "expo/tsconfig.base",
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
 }
