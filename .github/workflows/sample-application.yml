@@ -43,7 +43,7 @@ jobs:
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' }}
         with:
-          working-directory: sample-new-architecture
+          working-directory: samples/react-native
           ruby-version: '3.2.2' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
 
@@ -61,8 +61,8 @@ jobs:
         with:
           path: |
             node_modules
-            sample-new-architecture/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock', 'sample-new-architecture/yarn.lock') }}
+            samples/react-native/node_modules
+          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock', 'samples/react-native/yarn.lock') }}
 
       - name: Install SDK Dependencies
         if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
@@ -73,12 +73,12 @@ jobs:
 
       - name: Install Sample Dependencies
         if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
-        working-directory: sample-new-architecture
+        working-directory: samples/react-native
         run: yarn install
 
       - name: Install App Pods
         if: ${{ matrix.platform == 'ios' }}
-        working-directory: sample-new-architecture/ios
+        working-directory: samples/react-native/ios
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
@@ -89,7 +89,7 @@ jobs:
 
       - name: Build Android App
         if: ${{ matrix.platform == 'android' }}
-        working-directory: sample-new-architecture/android
+        working-directory: samples/react-native/android
         run: |
           if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
             perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
@@ -101,7 +101,7 @@ jobs:
 
       - name: Build iOS App
         if: ${{ matrix.platform == 'ios' }}
-        working-directory: sample-new-architecture/ios
+        working-directory: samples/react-native/ios
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"
@@ -123,4 +123,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: build-sample-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-logs
-          path: sample-new-architecture/ios/*.log
+          path: samples/react-native/ios/*.log

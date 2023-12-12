@@ -42,7 +42,7 @@ target 'sampleNewArchitecture' do
   end
 
   if !ENV['TEST']
-    pod 'RNSentry', :path => '../..'
+    pod 'RNSentry', :path => '../../..'
   end
 
   target 'sampleNewArchitectureTests' do

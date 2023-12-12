@@ -1,5 +1,5 @@
 {
-  "name": "sample-new-architecture",
+  "name": "sentry-react-native-bare-sample",
   "version": "0.0.1",
   "private": true,
   "scripts": {

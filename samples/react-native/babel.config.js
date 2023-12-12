@@ -5,7 +5,7 @@ module.exports = {
       'module-resolver',
       {
         alias: {
-          '@sentry/react-native': '../dist/js',
+          '@sentry/react-native': '../../dist/js',
         },
       },
     ],

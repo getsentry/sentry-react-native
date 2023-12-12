@@ -1,5 +1,41 @@
 # Changelog
 
+## 5.15.1
+
+### Fixes
+
+- Sentry CLI upgrade resolves Xcode Could timeout during source maps upload [#3390](https://github.com/getsentry/sentry-react-native/pull/3390)
+
+### Dependencies
+
+- Bump CLI from v2.21.3 to v2.23.0 ([#3390](https://github.com/getsentry/sentry-react-native/pull/3390))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2230)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.21.3...2.23.0)
+
+## 5.15.0
+
+### Features
+
+- New simplified Sentry Metro Serializer export ([#3450](https://github.com/getsentry/sentry-react-native/pull/3450))
+
+  ```js
+  const { createSentryMetroSerializer } = require('@sentry/react-native/metro');
+  ```
+
+### Fixes
+
+- Encode envelopes using Base64, fix array length limit when transferring over Bridge. ([#2852](https://github.com/getsentry/sentry-react-native/pull/2852))
+  - This fix requires a rebuild of the native app
+- Symbolicate message and non-Error stacktraces locally in debug mode ([#3420](https://github.com/getsentry/sentry-react-native/pull/3420))
+- Remove Sentry SDK frames from rejected promise SyntheticError stack ([#3423](https://github.com/getsentry/sentry-react-native/pull/3423))
+- Fix path from Xcode scripts to Collect Modules ([#3451](https://github.com/getsentry/sentry-react-native/pull/3451))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.15.2 to v8.17.1 ([#3412](https://github.com/getsentry/sentry-react-native/pull/3412))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8171)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.15.2...8.17.1)
+
 ## 5.14.1
 
 ### Fixes
