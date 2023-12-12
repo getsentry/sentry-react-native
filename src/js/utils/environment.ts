@@ -1,6 +1,5 @@
-import { version as RNV } from 'react-native/Libraries/Core/ReactNativeVersion';
-
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
+import { ReactNativeLibraries } from './rnlibraries';
 
 /** Checks if the React Native Hermes engine is running */
 export function isHermesEnabled(): boolean {
@@ -18,7 +17,11 @@ export function isFabricEnabled(): boolean {
 }
 
 /** Returns React Native Version as semver string */
-export function getReactNativeVersion(): string {
+export function getReactNativeVersion(): string | undefined {
+  if (!ReactNativeLibraries.ReactNativeVersion) {
+    return undefined;
+  }
+  const RNV = ReactNativeLibraries.ReactNativeVersion.version;
   return `${RNV.major}.${RNV.minor}.${RNV.patch}${RNV.prerelease != null ? `-${RNV.prerelease}` : ''}`;
 }
 

@@ -1,7 +1,7 @@
 import type { Transaction as TransactionType, TransactionContext } from '@sentry/types';
 import { logger } from '@sentry/utils';
-import type { EmitterSubscription } from 'react-native/Libraries/vendor/emitter/EventEmitter';
 
+import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
 import type { BeforeNavigate, RouteChangeContextData } from './types';
