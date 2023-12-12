@@ -1,4 +1,3 @@
-
 export const APP_START_WARM = 'app_start_warm';
 export const APP_START_COLD = 'app_start_cold';
 
