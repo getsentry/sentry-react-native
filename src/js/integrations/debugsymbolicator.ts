@@ -1,7 +1,9 @@
 import type { Event, EventHint, EventProcessor, Hub, Integration, StackFrame as SentryStackFrame } from '@sentry/types';
 import { addContextToFrame, logger } from '@sentry/utils';
+import { Platform } from 'react-native';
 
 import { getFramesToPop, isErrorLike } from '../utils/error';
+import { ReactNativeLibraries } from '../utils/rnlibraries';
 import type * as ReactNative from '../vendor/react-native';
 
 const INTERNAL_CALLSITES_REGEX = new RegExp(['ReactNativeRenderer-dev\\.js$', 'MessageQueue\\.js$'].join('|'));
@@ -70,9 +72,9 @@ export class DebugSymbolicator implements Integration {
    * Mutates the passed event.
    */
   private async _symbolicate(rawStack: string, skipFirstFrames: number = 0): Promise<SentryStackFrame[] | null> {
-    const parsedStack = this._parseErrorStack(rawStack);
-
     try {
+      const parsedStack = this._parseErrorStack(rawStack);
+
       const prettyStack = await this._symbolicateStackTrace(parsedStack);
       if (!prettyStack) {
         logger.error('React Native DevServer could not symbolicate the stack trace.');
@@ -213,9 +215,10 @@ export class DebugSymbolicator implements Integration {
    * Loads and calls RN Core Devtools parseErrorStack function.
    */
   private _parseErrorStack(errorStack: string): Array<ReactNative.StackFrame> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
-    return parseErrorStack(errorStack);
+    if (!ReactNativeLibraries.Devtools) {
+      throw new Error('React Native Devtools not available.');
+    }
+    return ReactNativeLibraries.Devtools.parseErrorStack(errorStack);
   }
 
   /**
@@ -225,9 +228,10 @@ export class DebugSymbolicator implements Integration {
     stack: Array<ReactNative.StackFrame>,
     extraData?: Record<string, unknown>,
   ): Promise<ReactNative.SymbolicatedStackTrace> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
-    return symbolicateStackTrace(stack, extraData);
+    if (!ReactNativeLibraries.Devtools) {
+      throw new Error('React Native Devtools not available.');
+    }
+    return ReactNativeLibraries.Devtools.symbolicateStackTrace(stack, extraData);
   }
 
   /**
@@ -235,9 +239,7 @@ export class DebugSymbolicator implements Integration {
    */
   private _getDevServer(): ReactNative.DevServerInfo | undefined {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const getDevServer = require('react-native/Libraries/Core/Devtools/getDevServer');
-      return getDevServer();
+      return ReactNativeLibraries.Devtools?.getDevServer();
     } catch (_oO) {
       // We can't load devserver URL
     }

@@ -2,10 +2,12 @@
 const path = require('path');
 
 const { getDefaultConfig } = require('expo/metro-config');
-const { withSentryExpoSerializers } = require('../../metro');
 
 /** @type {import('expo/metro-config').MetroConfig} */
-const config = getDefaultConfig(__dirname);
+const config = getDefaultConfig(__dirname, {
+  // [Web-only]: Enables CSS support in Metro.
+  isCSSEnabled: true,
+});
 
 config.watchFolders.push(path.resolve(__dirname, '../../node_modules/@sentry'));
 config.watchFolders.push(path.resolve(__dirname, '../../node_modules/@sentry-internal'));
@@ -25,11 +27,11 @@ if (config.resolver.blacklistRE) {
 config.resolver.extraNodeModules = new Proxy(
   {
     /*
-      As the parent dir node_modules is blacklisted as you can see above. So it won't be able
-      to find react-native to build the code from the parent folder,
-      so we'll have to redirect it to use the react-native inside sample's node_modules.
-    */
-    'react-native': path.resolve(__dirname, 'node_modules/react-native'),
+    As the parent dir node_modules is blacklisted as you can see above. So it won't be able
+    to find react-native to build the code from the parent folder,
+    so we'll have to redirect it to use the react-native inside sample's node_modules.
+  */
+    'react-native': path.resolve(__dirname, 'node_modules/react-native-web'),
   },
   {
     get: (target, name) => {
@@ -41,4 +43,4 @@ config.resolver.extraNodeModules = new Proxy(
   },
 );
 
-module.exports = withSentryExpoSerializers(config);
+module.exports = config;
