@@ -107,6 +107,11 @@ jobs:
         with:
           name: ts3.8
           path: ts3.8
+      - name: Archive Expo Plugin
+        uses: actions/upload-artifact@v3
+        with:
+          name: expo-plugin
+          path: plugin/build
       - name: Pack
         run: yarn pack
       - name: Archive Artifacts
@@ -154,6 +159,37 @@ jobs:
       - name: Type Check
         working-directory: test/typescript/ts3.8
         run: yarn type-check
+
+  job_circular_dep_check:
+    name: Circular Dependency Check
+    runs-on: ubuntu-latest
+    needs: [job_build]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ github.sha }}
+      - name: Install Dependencies
+        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
+        run: yarn install
+      - name: Download dist
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist
+      - name: Download Expo Plugin
+        uses: actions/download-artifact@v3
+        with:
+          name: expo-plugin
+          path: plugin/build
+      - name: Run madge
+        run: yarn circularDepCheck
 
   job_bundle:
     name: Bundle
