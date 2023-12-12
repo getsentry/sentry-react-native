@@ -1,6 +1,5 @@
 import type { Event, EventHint, EventProcessor, Hub, Integration, StackFrame as SentryStackFrame } from '@sentry/types';
 import { addContextToFrame, logger } from '@sentry/utils';
-import { Platform } from 'react-native';
 
 import { getFramesToPop, isErrorLike } from '../utils/error';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
