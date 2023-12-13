@@ -19,7 +19,7 @@ import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
-import { getDefaultEnvironment } from './utils/environment';
+import { getDefaultEnvironment, isExpoGo } from './utils/environment';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { NATIVE } from './wrapper';
 
@@ -91,6 +91,11 @@ export function init(passedOptions: ReactNativeOptions): void {
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
+
+  if (isExpoGo()) {
+    logger.info('Offline caching, native errors features are not available in Expo Go.');
+    logger.info('Use EAS Build / Native Release Build to test these features.');
+  }
 }
 
 /**
