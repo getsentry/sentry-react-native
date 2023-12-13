@@ -32,6 +32,17 @@ export function isExpo(): boolean {
   return RN_GLOBAL_OBJ.expo != null;
 }
 
+/** Check if JS runs in Expo Go */
+export function isExpoGo(): boolean {
+  return (
+    (RN_GLOBAL_OBJ.expo &&
+      RN_GLOBAL_OBJ.expo.modules &&
+      RN_GLOBAL_OBJ.expo.modules.ExponentConstants &&
+      RN_GLOBAL_OBJ.expo.modules.ExponentConstants.appOwnership === 'expo') ||
+    false
+  );
+}
+
 /** Checks if the current platform is not web */
 export function notWeb(): boolean {
   return Platform.OS !== 'web';
