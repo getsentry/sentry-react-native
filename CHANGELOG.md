@@ -6,6 +6,9 @@
 
 - Add `withSentryExpoSerializers` for easy configurable `metro.config.js` ([#3454](https://github.com/getsentry/sentry-react-native/pull/3454))
 
+  This Serializer doesn't support EAS Updates (and expo export) commands yet. Debug IDs needed for source maps resolution in Sentry
+  are generated only during native builds.
+
   ```js
   const { getDefaultConfig } = require('expo/metro-config');
   const { withSentryExpoSerializers } = require("@sentry/react-native/metro");
@@ -19,6 +22,7 @@
 ### Fixes
 
 - Expo SDK minimum version is 49 ([#3453](https://github.com/getsentry/sentry-react-native/pull/3453))
+- Remove RN Internal imports for RN Web builds ([#3462](https://github.com/getsentry/sentry-react-native/pull/3462))
 - Remove circular dependencies inside of the SDK ([#3464](https://github.com/getsentry/sentry-react-native/pull/3464))
 
 ## 5.16.0-alpha.1

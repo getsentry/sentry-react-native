@@ -16,7 +16,7 @@ export interface ReactNativeContext extends Context {
   fabric: boolean;
   expo: boolean;
   hermes_version?: string;
-  react_native_version: string;
+  react_native_version?: string;
   component_stack?: string;
   hermes_debug_info?: boolean;
 }
