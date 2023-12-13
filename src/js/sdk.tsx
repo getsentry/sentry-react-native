@@ -13,6 +13,7 @@ import * as React from 'react';
 import { ReactNativeClient } from './client';
 import { getDefaultIntegrations } from './integrations/default';
 import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
+import { shouldEnableNativeNagger } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
@@ -58,6 +59,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
     enableNative,
+    enableNativeNagger: shouldEnableNativeNagger(passedOptions.enableNativeNagger),
     // If custom transport factory fails the SDK won't initialize
     transport: passedOptions.transport
       || makeNativeTransportFactory({

@@ -43,7 +43,7 @@ export interface ExpoDevice {
 
 export interface ExpoGlobalObject {
   modules?: {
-    ExponentConstants?: ExpoConstants
+    ExponentConstants?: ExpoConstants;
     ExpoDevice?: ExpoDevice;
   };
 }
