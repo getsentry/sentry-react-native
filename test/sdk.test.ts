@@ -31,7 +31,6 @@ jest.mock('@sentry/react', () => {
         configureScope: mockedGetCurrentHubConfigureScope,
       };
     }),
-    defaultIntegrations: [{ name: 'MockedDefaultReactIntegration', setupOnce: jest.fn() }],
   };
 });
 
@@ -511,6 +510,8 @@ describe('Tests the SDK functionality', () => {
     });
 
     it('adds profiling integration', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
+
       init({
         _experiments: {
           profilesSampleRate: 0.7,
@@ -618,7 +619,13 @@ describe('Tests the SDK functionality', () => {
       const actualIntegrations = actualOptions.integrations;
 
       expect(actualIntegrations).toEqual(
-        expect.arrayContaining([expect.objectContaining({ name: 'MockedDefaultReactIntegration' })]),
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'InboundFilters' }),
+          expect.objectContaining({ name: 'FunctionToString' }),
+          expect.objectContaining({ name: 'Breadcrumbs' }),
+          expect.objectContaining({ name: 'Dedupe' }),
+          expect.objectContaining({ name: 'HttpContext' }),
+        ]),
       );
     });
   });
