@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Resolve Default Integrations based on current platform ([#3465](https://github.com/getsentry/sentry-react-native/pull/3465))
+  - Native Integrations are only added if Native Module is available
+  - Web Integrations only for React Native Web builds
+
 ## 5.16.0-alpha.2
 
 ### Features
@@ -18,10 +24,6 @@
   ```
 
   Note that this will remove any existing `customSerializer`. Guide for advanced setups [can be found here](https://docs.sentry.io/platforms/react-native/manual-setup/metro).
-
-- Resolve Default Integrations based on current platform ([#3465](https://github.com/getsentry/sentry-react-native/pull/3465))
-  - Native Integrations are only added if Native Module is available
-  - Web Integrations only for React Native Web builds
 
 ### Fixes
 
