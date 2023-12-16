@@ -60,7 +60,7 @@ function loadExpoMetroConfigModule(): {
     return require('expo/metro-config');
   } catch (e) {
     throw new Error(
-      'Unable to load `withExpoSerializers` from `@expo/metro-config`. Make sure you have Expo installed.',
+      'Unable to load `expo/metro-config`. Make sure you have Expo installed.',
     );
   }
 }
