@@ -57,7 +57,7 @@ function loadExpoMetroConfigModule(): {
 } {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return require('@expo/metro-config');
+    return require('expo/metro-config');
   } catch (e) {
     throw new Error(
       'Unable to load `withExpoSerializers` from `@expo/metro-config`. Make sure you have Expo installed.',
