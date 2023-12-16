@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- New Sentry Metro configuration function `withSentry` ([#3478](https://github.com/getsentry/sentry-react-native/pull/3478))
+  - Ensures all Sentry configuration is added to your Metro config.
+  - Replaces `createSentryMetroSerializer`
+
+  ```javascript
+  const { getDefaultConfig } = require('@react-native/metro-config');
+  const { withSentry } = require('@sentry/react-native/metro');
+
+  const config = getDefaultConfig(__dirname);
+  module.exports = withSentry(config);
+  ```
+
 ## 5.15.1
 
 ### Fixes
