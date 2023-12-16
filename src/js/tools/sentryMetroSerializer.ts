@@ -56,9 +56,8 @@ function loadExpoMetroConfigModule(): {
   ) => MetroConfig;
 } {
   try {
-    // TODO: switch this back!
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return require('/Users/quin/Documents/expo/packages/@expo/metro-config/build/ExpoMetroConfig');
+    return require('@expo/metro-config');
   } catch (e) {
     throw new Error(
       'Unable to load `withExpoSerializers` from `@expo/metro-config`. Make sure you have Expo installed.',
