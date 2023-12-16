@@ -22,6 +22,7 @@
     "build:sdk": "tsc -p tsconfig.build.json",
     "build:sdk:watch": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
     "build:tools": "tsc -p tsconfig.build.tools.json",
+    "build:tools:watch": "tsc -p tsconfig.build.tools.json -w --preserveWatchOutput",
     "build:plugin": "EXPO_NONINTERACTIVE=true expo-module build plugin",
     "downlevel": "downlevel-dts dist ts3.8/dist --to=3.8",
     "clean": "rimraf dist coverage && yarn clean:plugin",

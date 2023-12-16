@@ -1,6 +1,5 @@
 import * as crypto from 'crypto';
-import type { MetroConfig, MixedOutput, Module } from 'metro';
-import { mergeConfig } from 'metro';
+import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import * as countLines from 'metro/src/lib/countLines';
 
 import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
@@ -16,29 +15,50 @@ const SOURCE_MAP_COMMENT = '//# sourceMappingURL=';
 const DEBUG_ID_COMMENT = '//# debugId=';
 
 /**
- * This function will overwrite any existing custom serializer with default Expo and Sentry serializers.
+ * This config will overwrite any existing custom serializer with default Expo and Sentry serializers.
  *
  * To use custom serializers, use `createSentryMetroSerializer(customSerializer)` instead.
  */
-export function withSentryExpoSerializers(config: MetroConfig): MetroConfig {
-  const { withExpoSerializers } = loadExpoSerializersModule();
-
-  const sentryConfig = {
-    serializer: {
-      customSerializer: createSentryMetroSerializer(),
-    },
-  } as MetroConfig;
-
-  const finalConfig = mergeConfig(config, sentryConfig);
-  return withExpoSerializers(finalConfig);
+export function getSentryExpoConfig(projectRoot: string): MetroConfig {
+  const { getDefaultConfig } = loadExpoMetroConfigModule();
+  return getDefaultConfig(projectRoot, {unstable_beforeAssetSerializationPlugins: [unstable_beforeAssetSerializationPlugin]});
 }
 
-function loadExpoSerializersModule(): {
-  withExpoSerializers: (config: MetroConfig) => MetroConfig;
+function unstable_beforeAssetSerializationPlugin({graph, premodules, debugId}: {
+  graph: ReadOnlyGraph<MixedOutput>;
+  premodules: Module[];
+  debugId?: string;
+}) : Module[] {
+  if (graph.transformOptions.hot || !debugId) {
+    return premodules;
+  }
+
+  const debugIdModuleExists = premodules.findIndex(module => module.path === DEBUG_ID_MODULE_PATH) != -1;
+  if (debugIdModuleExists) {
+    // eslint-disable-next-line no-console
+    console.warn('Debug ID module found. Skipping Sentry Debug ID module...');
+    return premodules;
+  }
+
+  const debugIdModule = createDebugIdModule(debugId);
+  return [...addDebugIdModule(premodules, debugIdModule)];
+}
+
+function loadExpoMetroConfigModule(): {
+  getDefaultConfig: (
+    projectRoot: string,
+    options: {
+      unstable_beforeAssetSerializationPlugins?: ((serializationInput: {
+        graph: ReadOnlyGraph<MixedOutput>;
+        premodules: Module[];
+        debugId?: string;
+    }) => Module[])[];}
+  ) => MetroConfig;
 } {
   try {
+    // TODO: switch this back!
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return require('@expo/metro-config/build/serializer/withExpoSerializers');
+    return require('/Users/quin/Documents/expo/packages/@expo/metro-config/build/ExpoMetroConfig');
   } catch (e) {
     throw new Error(
       'Unable to load `withExpoSerializers` from `@expo/metro-config`. Make sure you have Expo installed.',
