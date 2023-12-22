@@ -5,7 +5,7 @@
 ### Fixes
 
 - Stop sending navigation route params for auto-generated transactions, as they may contain PII or other sensitive data ([#3487](https://github.com/getsentry/sentry-react-native/pull/3487))
-  - Further details and other strategies to mitigate this issue can be found on our (trouble shooting guide page)[https://docs.sentry.io/platforms/react-native/troubleshooting/#routing-transaction-data-contains-sensitive-information]
+  - Further details and other strategies to mitigate this issue can be found on our [trouble shooting guide page](https://docs.sentry.io/platforms/react-native/troubleshooting/#routing-transaction-data-contains-sensitive-information)
 
 ## 5.15.1
 
