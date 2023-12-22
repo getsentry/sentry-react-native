@@ -35,8 +35,13 @@ Sentry.init({
     console.log('Event beforeSend:', event.event_id);
     return event;
   },
-  beforeSendTransaction(event) {
+  beforeSendTransaction: (event) => {
     console.log('Transaction beforeSend:', event.event_id);
+
+    // delete event.contexts?.trace?.data?.route?.params;
+    // delete event.contexts?.trace?.data?.previousRoute?.params;
+
+    console.log("trace:", JSON.stringify(event.contexts?.trace, null, 2));
     return event;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
@@ -56,6 +61,9 @@ Sentry.init({
             context.sampled = false;
           }
 
+          // delete context.data.route.params
+          // delete context.data.previousRoute?.params
+          // console.log(JSON.stringify(context, null, '  '));
           return context;
         },
       }),
