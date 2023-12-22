@@ -11,7 +11,6 @@
 ### Fixes
 
 - Sentry CLI upgrade resolves Xcode Could timeout during source maps upload [#3390](https://github.com/getsentry/sentry-react-native/pull/3390)
-- Fix leaking route params, as they may contain PII data ([#3487](https://github.com/getsentry/sentry-react-native/pull/3487))
 
 ### Dependencies
 
