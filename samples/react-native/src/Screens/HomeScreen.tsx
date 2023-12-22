@@ -193,7 +193,7 @@ const HomeScreen = (props: Props) => {
         <Button
           title="Gestures Tracing Example"
           onPress={() => {
-            props.navigation.navigate('Gestures');
+            props.navigation.navigate('Gestures', { username: 'username', password: 'password' });
           }}
         />
         <Button title="Performance Timing" onPress={onPressPerformanceTiming} />

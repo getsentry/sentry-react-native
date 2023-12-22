@@ -37,6 +37,7 @@ Sentry.init({
   },
   beforeSendTransaction(event) {
     console.log('Transaction beforeSend:', event.event_id);
+    console.log('trace context', JSON.stringify(event.contexts?.trace, null, 2));
     return event;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
