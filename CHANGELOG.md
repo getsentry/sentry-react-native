@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Fix leaking route params, as they may contain PII data ([#3487](https://github.com/getsentry/sentry-react-native/pull/3487))
+
 ## 5.15.1
 
 ### Fixes
