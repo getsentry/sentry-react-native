@@ -22,7 +22,7 @@ if [ "$SENTRY_DISABLE_AUTO_UPLOAD" != true ]; then
   /bin/sh -c "$REACT_NATIVE_XCODE_WITH_SENTRY"
 else
   echo "SENTRY_DISABLE_AUTO_UPLOAD=true, skipping sourcemaps upload"
-  /bin/sh -c "$REACT_NATIVE_XCODE"
+  /bin/sh -c "$NODE_BINARY $REACT_NATIVE_XCODE_WITH_SENTRY"
 fi
 
 [ -z "$SENTRY_COLLECT_MODULES" ] && SENTRY_COLLECT_MODULES="../node_modules/@sentry/react-native/scripts/collect-modules.sh"
