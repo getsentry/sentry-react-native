@@ -123,7 +123,7 @@ describe('ReactNavigationInstrumentation', () => {
           route: {
             name: route.name,
             key: route.key,
-            params: route.params,
+            params: {}, // expect the data to be stripped
             hasBeenSeen: false,
           },
           previousRoute: {
