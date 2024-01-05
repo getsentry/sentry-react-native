@@ -25,7 +25,7 @@ import { EndToEndTestsScreen } from 'sentry-react-native-e2e-tests';
 Sentry.init({
   release: '${SENTRY_RELEASE}',
   dist: '${SENTRY_DIST}',
-  dsn: 'https://d870ad989e7046a8b9715a57f59b23b5@o447951.ingest.sentry.io/5428561',
+  dsn: 'https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561',
 });
 `;
 const e2eComponentPatch = '<EndToEndTestsScreen />';
