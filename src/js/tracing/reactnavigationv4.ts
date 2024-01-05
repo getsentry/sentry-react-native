@@ -264,14 +264,16 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
       route: {
         name: route.routeName, // Include name here too for use in `beforeNavigate`
         key: route.key,
-        params: route.params ?? {},
+        // TODO: filter PII params instead of dropping them all
+        params: {},
         hasBeenSeen: this._recentRouteKeys.includes(route.key),
       },
       previousRoute: previousRoute
         ? {
             name: previousRoute.routeName,
             key: previousRoute.key,
-            params: previousRoute.params ?? {},
+            // TODO: filter PII params instead of dropping them all
+            params: {},
           }
         : null,
     };

@@ -196,14 +196,16 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             route: {
               name: route.name,
               key: route.key,
-              params: route.params ?? {},
+              // TODO: filter PII params instead of dropping them all
+              params: {},
               hasBeenSeen: routeHasBeenSeen,
             },
             previousRoute: previousRoute
               ? {
                   name: previousRoute.name,
                   key: previousRoute.key,
-                  params: previousRoute.params ?? {},
+                  // TODO: filter PII params instead of dropping them all
+                  params: {},
                 }
               : null,
           };
