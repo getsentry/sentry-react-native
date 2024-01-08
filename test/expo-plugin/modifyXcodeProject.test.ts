@@ -2,13 +2,7 @@ import { WarningAggregator } from 'expo/config-plugins';
 
 import { modifyExistingXcodeBuildScript } from '../../plugin/src/withSentryIOS';
 
-jest.mock('@expo/config-plugins', () => {
-  const plugins = jest.requireActual('expo/config-plugins');
-  return {
-    ...plugins,
-    WarningAggregator: { addWarningIOS: jest.fn(), addWarningAndroid: jest.fn() },
-  };
-});
+jest.mock('expo/config-plugins');
 
 const buildScriptWithoutSentry = {
   shellScript: JSON.stringify(`"
@@ -80,6 +74,7 @@ describe('Configures iOS native project correctly', () => {
   });
 
   it("Warns to file a bug report if build script isn't what we expect to find", () => {
+    (WarningAggregator.addWarningAndroid as jest.Mock).mockImplementationOnce(jest.fn());
     modifyExistingXcodeBuildScript(buildScriptWeDontExpect);
     expect(WarningAggregator.addWarningIOS).toHaveBeenCalled();
   });

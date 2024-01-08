@@ -2,13 +2,7 @@ import { WarningAggregator } from 'expo/config-plugins';
 
 import { modifyAppBuildGradle } from '../../plugin/src/withSentryAndroid';
 
-jest.mock('@expo/config-plugins', () => {
-  const plugins = jest.requireActual('expo/config-plugins');
-  return {
-    ...plugins,
-    WarningAggregator: { addWarningAndroid: jest.fn() },
-  };
-});
+jest.mock('expo/config-plugins');
 
 const buildGradleWithSentry = `
 apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
@@ -55,6 +49,7 @@ describe('Configures Android native project correctly', () => {
   });
 
   it('Warns to file a bug report if no react.gradle is found', () => {
+    (WarningAggregator.addWarningAndroid as jest.Mock).mockImplementationOnce(jest.fn());
     modifyAppBuildGradle(buildGradleWithOutReactGradleScript);
     expect(WarningAggregator.addWarningAndroid).toHaveBeenCalled();
   });
