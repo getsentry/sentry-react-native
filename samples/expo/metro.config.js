@@ -1,10 +1,10 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
 const path = require('path');
 
-const { getDefaultConfig } = require('expo/metro-config');
+const { getSentryExpoConfig } = require('../../metro');
 
 /** @type {import('expo/metro-config').MetroConfig} */
-const config = getDefaultConfig(__dirname, {
+const config = getSentryExpoConfig(__dirname, {
   // [Web-only]: Enables CSS support in Metro.
   isCSSEnabled: true,
 });
@@ -14,6 +14,7 @@ config.watchFolders.push(path.resolve(__dirname, '../../node_modules/@sentry-int
 config.watchFolders.push(path.resolve(__dirname, '../../node_modules/tslib'));
 config.watchFolders.push(path.resolve(__dirname, '../../node_modules/hoist-non-react-statics'));
 config.watchFolders.push(path.resolve(__dirname, '../../node_modules/localforage'));
+config.watchFolders.push(path.resolve(__dirname, '../../node_modules/@react-native/js-polyfills'));
 config.watchFolders.push(`${__dirname}/../../dist`);
 
 const exclusionList = [new RegExp(`${__dirname}/../../node_modules/react-native/.*`)];

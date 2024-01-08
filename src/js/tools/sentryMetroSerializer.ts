@@ -4,6 +4,7 @@ import * as countLines from 'metro/src/lib/countLines';
 
 import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
 import { createDebugIdSnippet, createSet, determineDebugIdFromBundleSource, stringToUUID } from './utils';
+import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 import { createDefaultMetroSerializer } from './vendor/metro/utils';
 
 type SourceMap = Record<string, unknown>;
@@ -17,15 +18,18 @@ const DEBUG_ID_COMMENT = '//# debugId=';
 /**
  * This function returns Default Expo configuration with Sentry plugins.
  */
-export function getSentryExpoConfig(projectRoot: string): MetroConfig {
+export function getSentryExpoConfig(projectRoot: string, options: DefaultConfigOptions): MetroConfig {
   const { getDefaultConfig } = loadExpoMetroConfigModule();
   return getDefaultConfig(projectRoot, {
-    unstable_beforeAssetSerializationPlugins: [unstable_beforeAssetSerializationPlugin],
+    ...options,
+    unstable_beforeAssetSerializationPlugins: [
+      ...(options.unstable_beforeAssetSerializationPlugins || []),
+      unstable_beforeAssetSerializationPlugin,
+    ],
   });
 }
 
 function unstable_beforeAssetSerializationPlugin({
-  graph,
   premodules,
   debugId,
 }: {
@@ -33,7 +37,7 @@ function unstable_beforeAssetSerializationPlugin({
   premodules: Module[];
   debugId?: string;
 }): Module[] {
-  if (graph.transformOptions.hot || !debugId) {
+  if (!debugId) {
     return premodules;
   }
 
