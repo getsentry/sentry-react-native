@@ -21,14 +21,20 @@ const DEBUG_ID_COMMENT = '//# debugId=';
  */
 export function getSentryExpoConfig(projectRoot: string): MetroConfig {
   const { getDefaultConfig } = loadExpoMetroConfigModule();
-  return getDefaultConfig(projectRoot, {unstable_beforeAssetSerializationPlugins: [unstable_beforeAssetSerializationPlugin]});
+  return getDefaultConfig(projectRoot, {
+    unstable_beforeAssetSerializationPlugins: [unstable_beforeAssetSerializationPlugin],
+  });
 }
 
-function unstable_beforeAssetSerializationPlugin({graph, premodules, debugId}: {
+function unstable_beforeAssetSerializationPlugin({
+  graph,
+  premodules,
+  debugId,
+}: {
   graph: ReadOnlyGraph<MixedOutput>;
   premodules: Module[];
   debugId?: string;
-}) : Module[] {
+}): Module[] {
   if (graph.transformOptions.hot || !debugId) {
     return premodules;
   }
@@ -52,16 +58,15 @@ function loadExpoMetroConfigModule(): {
         graph: ReadOnlyGraph<MixedOutput>;
         premodules: Module[];
         debugId?: string;
-    }) => Module[])[];}
+      }) => Module[])[];
+    },
   ) => MetroConfig;
 } {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     return require('expo/metro-config');
   } catch (e) {
-    throw new Error(
-      'Unable to load `expo/metro-config`. Make sure you have Expo installed.',
-    );
+    throw new Error('Unable to load `expo/metro-config`. Make sure you have Expo installed.');
   }
 }
 
