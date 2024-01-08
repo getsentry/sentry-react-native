@@ -5,7 +5,7 @@ import { version as RNV } from 'react-native/Libraries/Core/ReactNativeVersion';
 import type * as ReactNative from '../vendor/react-native';
 import type { ReactNativeLibrariesInterface } from './rnlibrariesinterface';
 
-export const ReactNativeLibraries: ReactNativeLibrariesInterface = {
+export const ReactNativeLibraries: Required<ReactNativeLibrariesInterface> = {
   Devtools: {
     parseErrorStack: (errorStack: string): Array<ReactNative.StackFrame> => {
       const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
@@ -23,6 +23,7 @@ export const ReactNativeLibraries: ReactNativeLibrariesInterface = {
       return getDevServer();
     },
   },
+  Promise: require('react-native/Libraries/Promise'),
   Utilities: {
     polyfillGlobal: <T>(name: string, getValue: () => T): void => {
       const { polyfillGlobal } = require('react-native/Libraries/Utilities/PolyfillFunctions');

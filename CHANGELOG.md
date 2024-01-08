@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased
+## 5.15.2
+
+### Fixes
+
+- Stop sending navigation route params for auto-generated transactions, as they may contain PII or other sensitive data ([#3487](https://github.com/getsentry/sentry-react-native/pull/3487))
+  - Further details and other strategies to mitigate this issue can be found on our [trouble shooting guide page](https://docs.sentry.io/platforms/react-native/troubleshooting/#routing-transaction-data-contains-sensitive-information)
+
+## 5.16.0-alpha.2
 
 ### Features
 
@@ -23,6 +30,20 @@
 
 - Expo SDK minimum version is 49 ([#3453](https://github.com/getsentry/sentry-react-native/pull/3453))
 - Remove RN Internal imports for RN Web builds ([#3462](https://github.com/getsentry/sentry-react-native/pull/3462))
+- Remove circular dependencies inside of the SDK ([#3464](https://github.com/getsentry/sentry-react-native/pull/3464))
+- Includes fixes from version 5.15.1
+
+## 5.15.1
+
+### Fixes
+
+- Sentry CLI upgrade resolves Xcode Could timeout during source maps upload [#3390](https://github.com/getsentry/sentry-react-native/pull/3390)
+
+### Dependencies
+
+- Bump CLI from v2.21.3 to v2.23.0 ([#3390](https://github.com/getsentry/sentry-react-native/pull/3390))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2230)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.21.3...2.23.0)
 
 ## 5.16.0-alpha.1
 
