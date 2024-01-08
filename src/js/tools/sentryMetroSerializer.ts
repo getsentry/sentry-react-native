@@ -15,9 +15,7 @@ const SOURCE_MAP_COMMENT = '//# sourceMappingURL=';
 const DEBUG_ID_COMMENT = '//# debugId=';
 
 /**
- * This config will overwrite any existing custom serializer with default Expo and Sentry serializers.
- *
- * To use custom serializers, use `createSentryMetroSerializer(customSerializer)` instead.
+ * This function returns Default Expo configuration with Sentry plugins.
  */
 export function getSentryExpoConfig(projectRoot: string): MetroConfig {
   const { getDefaultConfig } = loadExpoMetroConfigModule();
