@@ -28,7 +28,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 18
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: "adopt"
       - uses: actions/cache@v3
         id: cache
         with:
