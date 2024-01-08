@@ -3,6 +3,7 @@
     "name": "sentry-react-native-expo-sample",
     "slug": "sentry-react-native-expo-sample",
     "jsEngine": "hermes",
+    "scheme": "sentry-expo-sample",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -27,10 +28,13 @@
       "package": "io.sentry.expo.sample"
     },
     "web": {
+      "bundler": "metro",
+      "output": "static",
       "favicon": "./assets/favicon.png"
     },
     "experiments": {
-      "tsconfigPaths": true
+      "tsconfigPaths": true,
+      "typedRoutes": true
     },
     "plugins": [
       [
@@ -41,7 +45,8 @@
           "organization": "sentry-sdks"
         }
       ],
-      "./withSampleSentry.js"
+      "./withSampleSentry.js",
+      "expo-router"
     ]
   }
 }

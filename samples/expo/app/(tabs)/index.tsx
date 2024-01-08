@@ -1,11 +1,11 @@
-import { StatusBar } from 'expo-status-bar';
+import { Button, StyleSheet } from 'react-native';
 import Constants from 'expo-constants';
-import { Button, StyleSheet, Text, View } from 'react-native';
 import * as Sentry from '@sentry/react-native';
+
+import { Text, View } from '@/components/Themed';
+import { SENTRY_INTERNAL_DSN } from '@/utils/dsn';
 import { HttpClient } from '@sentry/integrations';
-import { SENTRY_INTERNAL_DSN } from './src/dsn';
-import { setScopeProperties } from './src/setScopeProperties';
-import React from 'react';
+import { setScopeProperties } from '@/utils/setScopeProperties';
 
 const isRunningInExpoGo = Constants.appOwnership === 'expo'
 
@@ -64,7 +64,7 @@ Sentry.init({
   },
 });
 
-function App() {
+export default function TabOneScreen() {
   return (
     <View style={styles.container}>
       <Text>Welcome to Sentry Expo Sample App!</Text>
@@ -123,18 +123,23 @@ function App() {
           console.log('Sentry.close() completed.');
         }}
       />
-      <StatusBar style="auto" />
     </View>
   );
 }
 
-export default Sentry.wrap(App);
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  separator: {
+    marginVertical: 30,
+    height: 1,
+    width: '80%',
   },
 });
