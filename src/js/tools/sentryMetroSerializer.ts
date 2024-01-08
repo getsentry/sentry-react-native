@@ -44,7 +44,7 @@ function unstable_beforeAssetSerializationPlugin({
   const debugIdModuleExists = premodules.findIndex(module => module.path === DEBUG_ID_MODULE_PATH) != -1;
   if (debugIdModuleExists) {
     // eslint-disable-next-line no-console
-    console.warn('Debug ID module found. Skipping Sentry Debug ID module...');
+    console.warn('\n\nDebug ID module found. Skipping Sentry Debug ID module...\n\n');
     return premodules;
   }
 
