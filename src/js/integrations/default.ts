@@ -6,10 +6,11 @@ import type { Integration } from '@sentry/types';
 import type { ReactNativeClientOptions } from '../options';
 import { HermesProfiling } from '../profiling/integration';
 import { ReactNativeTracing } from '../tracing';
-import { notWeb } from '../utils/environment';
+import { isExpoGo, notWeb } from '../utils/environment';
 import { DebugSymbolicator } from './debugsymbolicator';
 import { DeviceContext } from './devicecontext';
 import { EventOrigin } from './eventorigin';
+import { ExpoContext } from './expocontext';
 import { ModulesLoader } from './modulesloader';
 import { NativeLinkedErrors } from './nativelinkederrors';
 import { ReactNativeErrorHandlers } from './reactnativeerrorhandlers';
@@ -81,6 +82,10 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   }
   if (options.enableCaptureFailedRequests) {
     integrations.push(new HttpClient());
+  }
+
+  if (isExpoGo()) {
+    integrations.push(new ExpoContext());
   }
 
   return integrations;

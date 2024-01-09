@@ -30,6 +30,8 @@ This release is compatible with `expo@50.0.0-preview.6` and newer.
 - Resolve Default Integrations based on current platform ([#3465](https://github.com/getsentry/sentry-react-native/pull/3465))
   - Native Integrations are only added if Native Module is available
   - Web Integrations only for React Native Web builds
+- Remove Native Modules warning from platform where the absence is expected ([#3466](https://github.com/getsentry/sentry-react-native/pull/3466))
+- Add Expo Context information using Expo Native Modules ([#3466](https://github.com/getsentry/sentry-react-native/pull/3466))
 
 ### Fixes
 

@@ -13,12 +13,13 @@ import * as React from 'react';
 import { ReactNativeClient } from './client';
 import { getDefaultIntegrations } from './integrations/default';
 import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
+import { shouldEnableNativeNagger } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
-import { getDefaultEnvironment } from './utils/environment';
+import { getDefaultEnvironment, isExpoGo } from './utils/environment';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { NATIVE } from './wrapper';
 
@@ -58,6 +59,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
     enableNative,
+    enableNativeNagger: shouldEnableNativeNagger(passedOptions.enableNativeNagger),
     // If custom transport factory fails the SDK won't initialize
     transport: passedOptions.transport
       || makeNativeTransportFactory({
@@ -89,6 +91,11 @@ export function init(passedOptions: ReactNativeOptions): void {
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
+
+  if (isExpoGo()) {
+    logger.info('Offline caching, native errors features are not available in Expo Go.');
+    logger.info('Use EAS Build / Native Release Build to test these features.');
+  }
 }
 
 /**
