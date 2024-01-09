@@ -24,7 +24,7 @@ This release is compatible with `expo@50.0.0-preview.6` and newer.
   node node_modules/@sentry/react-native/scripts/expo-upload-sourcemaps.js dist
   ```
 
-- Sentry CLI binary path in `scripts/expo-upload-sourcemaps.js` is resolved dynamically ([#3506](https://github.com/getsentry/sentry-react-native/pull/3506))
+- Sentry CLI binary path in `scripts/expo-upload-sourcemaps.js` is resolved dynamically ([#3507](https://github.com/getsentry/sentry-react-native/pull/3507))
   - Or can be overwritten by `SENTRY_CLI_EXECUTABLE` env
 
 ### Fixes
