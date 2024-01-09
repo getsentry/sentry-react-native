@@ -42,6 +42,9 @@
     "run-android": "cd samples/react-native && yarn react-native run-android",
     "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/hub @sentry/integrations @sentry/react @sentry/types @sentry/utils"
   },
+  "bin": {
+    "sentry-expo-upload-sourcemaps": "scripts/expo-upload-sourcemaps.js"
+  },
   "keywords": [
     "react-native",
     "sentry",
