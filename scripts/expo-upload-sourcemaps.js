@@ -1,7 +1,7 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { stderr } = require('process');
+const process = require('process');
 
 const SENTRY_PROJECT = 'SENTRY_PROJECT';
 // The sentry org is inferred from the auth token
@@ -113,7 +113,7 @@ if (!sentryProject) {
   }
   if (!pluginConfig.project) {
     console.error(
-      "Could not resolve sentry project, set it in the environment variable SENTRY_PROJECT or in the '@sentry/react-native' plugin properties in your expo config.",
+      `Could not resolve sentry project, set it in the environment variable ${SENTRY_PROJECT} or in the '@sentry/react-native' plugin properties in your expo config.`,
     );
     process.exit(1);
   }

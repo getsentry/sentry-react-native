@@ -45,7 +45,7 @@ module.exports = {
       // Scripts
       files: ['scripts/*'],
       parserOptions: {
-        ecmaVersion: 2015,
+        ecmaVersion: 2018,
       },
       rules: {
         'no-console': 'off',
