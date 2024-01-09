@@ -15,12 +15,13 @@ export interface ExpoConstants {
    * Version of the Expo Go app
    */
   expoVersion?: string | null;
-  expoConfig?: null | {
+  manifest?: null | {
     [key: string]: unknown;
     /**
      * Expo SDK version should match `expo` version from the app `package.json`.
+     * Example "exposdk:50.0.0"
      */
-    sdkVersion?: string;
+    runtimeVersion?: string;
   };
 }
 
@@ -36,6 +37,7 @@ export interface ExpoDevice {
   isDevice?: boolean;
   manufacturer?: string;
   modelName?: string;
+  osName?: string;
   osBuildId?: string;
   osVersion?: string;
   totalMemory?: number;
