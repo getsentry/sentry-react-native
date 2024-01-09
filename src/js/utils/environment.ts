@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { ReactNativeLibraries } from './rnlibraries';
 
@@ -28,6 +30,11 @@ export function getReactNativeVersion(): string | undefined {
 /** Checks if Expo is present in the runtime */
 export function isExpo(): boolean {
   return RN_GLOBAL_OBJ.expo != null;
+}
+
+/** Checks if the current platform is not web */
+export function notWeb(): boolean {
+  return Platform.OS !== 'web';
 }
 
 /** Returns Hermes Version if hermes is present in the runtime */

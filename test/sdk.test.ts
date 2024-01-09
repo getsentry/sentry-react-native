@@ -31,7 +31,6 @@ jest.mock('@sentry/react', () => {
         configureScope: mockedGetCurrentHubConfigureScope,
       };
     }),
-    defaultIntegrations: [{ name: 'MockedDefaultReactIntegration', setupOnce: jest.fn() }],
   };
 });
 
@@ -64,6 +63,7 @@ jest.mock('../src/js/client', () => {
 });
 
 jest.mock('../src/js/wrapper');
+jest.mock('../src/js/utils/environment');
 
 jest.spyOn(logger, 'error');
 
@@ -75,6 +75,7 @@ import type { ReactNativeClientOptions } from '../src/js/options';
 import { configureScope, flush, init, withScope } from '../src/js/sdk';
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
+import { getDefaultEnvironment, notWeb } from '../src/js/utils/environment';
 import { firstArg, secondArg } from './testutils';
 
 const mockedInitAndBind = initAndBind as jest.MockedFunction<typeof initAndBind>;
@@ -83,6 +84,11 @@ const usedOptions = (): ClientOptions<BaseTransportOptions> | undefined => {
 };
 
 describe('Tests the SDK functionality', () => {
+  beforeEach(() => {
+    (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
+    (notWeb as jest.Mock).mockImplementation(() => true);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -186,6 +192,7 @@ describe('Tests the SDK functionality', () => {
 
     describe('environment', () => {
       it('detect development environment', () => {
+        (getDefaultEnvironment as jest.Mock).mockImplementation(() => 'development');
         init({
           enableNative: true,
         });
@@ -618,7 +625,73 @@ describe('Tests the SDK functionality', () => {
       const actualIntegrations = actualOptions.integrations;
 
       expect(actualIntegrations).toEqual(
-        expect.arrayContaining([expect.objectContaining({ name: 'MockedDefaultReactIntegration' })]),
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'InboundFilters' }),
+          expect.objectContaining({ name: 'FunctionToString' }),
+          expect.objectContaining({ name: 'Breadcrumbs' }),
+          expect.objectContaining({ name: 'Dedupe' }),
+          expect.objectContaining({ name: 'HttpContext' }),
+        ]),
+      );
+    });
+
+    it('adds all platform default integrations', () => {
+      init({});
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'Release' }),
+          expect.objectContaining({ name: 'EventOrigin' }),
+          expect.objectContaining({ name: 'SdkInfo' }),
+          expect.objectContaining({ name: 'ReactNativeInfo' }),
+        ]),
+      );
+    });
+
+    it('adds web platform specific default integrations', () => {
+      (notWeb as jest.Mock).mockImplementation(() => false);
+      init({});
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'TryCatch' }),
+          expect.objectContaining({ name: 'GlobalHandlers' }),
+          expect.objectContaining({ name: 'LinkedErrors' }),
+        ]),
+      );
+    });
+
+    it('does not add native integrations if native disabled', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+      init({
+        attachScreenshot: true,
+        attachViewHierarchy: true,
+        _experiments: {
+          profilesSampleRate: 0.7,
+        },
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(
+        expect.not.arrayContaining([expect.objectContaining({ name: 'DeviceContext' })]),
+      );
+      expect(actualIntegrations).toEqual(
+        expect.not.arrayContaining([expect.objectContaining({ name: 'ModulesLoader' })]),
+      );
+      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'Screenshot' })]));
+      expect(actualIntegrations).toEqual(
+        expect.not.arrayContaining([expect.objectContaining({ name: 'ViewHierarchy' })]),
+      );
+      expect(actualIntegrations).toEqual(
+        expect.not.arrayContaining([expect.objectContaining({ name: 'HermesProfiling' })]),
       );
     });
   });

@@ -13,6 +13,10 @@ This release is compatible with `expo@50.0.0-preview.6` and newer.
   const config = getSentryExpoConfig(config);
   ```
 
+- Resolve Default Integrations based on current platform ([#3465](https://github.com/getsentry/sentry-react-native/pull/3465))
+  - Native Integrations are only added if Native Module is available
+  - Web Integrations only for React Native Web builds
+
 - Includes fixes from version 5.15.2
 
 ## 5.15.2

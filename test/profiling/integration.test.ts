@@ -10,7 +10,7 @@ import * as Sentry from '../../src/js';
 import { HermesProfiling } from '../../src/js/integrations';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { getDebugMetadata } from '../../src/js/profiling/debugid';
-import { getDefaultEnvironment, isHermesEnabled } from '../../src/js/utils/environment';
+import { getDefaultEnvironment, isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { MOCK_DSN } from '../mockDsn';
 import { envelopeItemPayload, envelopeItems } from '../testutils';
@@ -24,6 +24,7 @@ describe('profiling integration', () => {
   };
 
   beforeEach(() => {
+    (notWeb as jest.Mock).mockReturnValue(true);
     (isHermesEnabled as jest.Mock).mockReturnValue(true);
     mockWrapper.NATIVE.startProfiling.mockReturnValue(true);
     mockWrapper.NATIVE.stopProfiling.mockReturnValue({
