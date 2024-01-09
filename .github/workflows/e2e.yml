@@ -223,7 +223,10 @@ jobs:
       - name: Setup Global Tools
         run: |
           yarn global add yalc semver
-          brew install xcbeautify
+
+      - name: Setup Global Xcode Tools
+        if: ${{ matrix.platform == 'ios' }}
+        run: brew install xcbeautify
 
       - name: NPM cache SDK
         uses: actions/cache@v3
@@ -435,7 +438,8 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Setup Global Tools
+      - name: Setup Global Xcode Tools
+        if: ${{ matrix.platform == 'ios' }}
         run: brew install xcbeautify
 
       - name: Download App Package
