@@ -22,7 +22,7 @@ jobs:
           access_token: ${{ github.token }}
 
   metrics:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
@@ -31,9 +31,11 @@ jobs:
         platform: ["ios", "android"]
         include:
           - platform: ios
+            runs-on: macos-latest
             name: iOS
             appPlain: test/perf/test-app-plain.ipa
           - platform: android
+            runs-on: ubuntu-latest
             name: Android
             appPlain: test/perf/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
@@ -141,7 +143,7 @@ jobs:
 
   react-native-build:
     name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
-    runs-on: macos-latest
+    runs-on: ${{ matrix.runs-on }}
     env:
       RN_SENTRY_POD_NAME: RNSentry
       RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
@@ -156,8 +158,11 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
+            runs-on: macos-latest
             runtime: 'latest'
             device: 'iPhone 14'
+          - platform: android
+            runs-on: ubuntu-latest
         exclude:
           # exclude JSC for new RN versions (keeping the matrix manageable)
           - rn-version: '0.72.4'
@@ -387,7 +392,7 @@ jobs:
   react-native-test:
     name: Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     needs: react-native-build
-    runs-on: macos-latest
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
@@ -399,8 +404,11 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
+            runs-on: macos-latest
             runtime: 'latest'
             device: 'iPhone 14'
+          - platform: android
+            runs-on: ubuntu-latest
         exclude:
           # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
@@ -415,6 +423,17 @@ jobs:
       DEVICE: ${{ matrix.device }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup KVM
+        shell: bash
+        run: |
+          # check if virtualization is supported...
+          sudo apt install -y --no-install-recommends cpu-checker coreutils && echo "CPUs=$(nproc --all)" && kvm-ok
+          # allow access to KVM to run the emulator
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
       - name: Setup Global Tools
         run: brew install xcbeautify
