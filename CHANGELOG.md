@@ -372,8 +372,7 @@ This has been fixed in [version `5.9.1`](https://github.com/getsentry/sentry-rea
 
 - Add support for React Native mixed stacktraces ([#3201](https://github.com/getsentry/sentry-react-native/pull/3201))
 
-  In the current `react-native@nightly` (`SENTRY_AUTH_TOKEN=[super-secret-token] node node_modules/@sentry/react-native/scripts/expo-upload-sourcemaps.js dist
--nightly-20230809-cb60e5c67`) JS errors from native modules can
+  In the current `react-native@nightly` (`0.73.0-nightly-20230809-cb60e5c67`) JS errors from native modules can
   contain native JVM or Objective-C exception stack trace. Both JS and native stack trace
   are processed by default no configuration needed.
 
