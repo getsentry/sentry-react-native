@@ -27,6 +27,10 @@ This release is compatible with `expo@50.0.0-preview.6` and newer.
 - Sentry CLI binary path in `scripts/expo-upload-sourcemaps.js` is resolved dynamically ([#3507](https://github.com/getsentry/sentry-react-native/pull/3507))
   - Or can be overwritten by `SENTRY_CLI_EXECUTABLE` env
 
+- Resolve Default Integrations based on current platform ([#3465](https://github.com/getsentry/sentry-react-native/pull/3465))
+  - Native Integrations are only added if Native Module is available
+  - Web Integrations only for React Native Web builds
+
 ### Fixes
 
 - Includes fixes from version 5.15.2
