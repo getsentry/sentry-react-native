@@ -6,8 +6,7 @@ const { stderr } = require('process');
 const SENTRY_PROJECT = 'SENTRY_PROJECT';
 // The sentry org is inferred from the auth token
 const SENTRY_AUTH_TOKEN = 'SENTRY_AUTH_TOKEN';
-
-const SENTRY_CLI = 'node_modules/@sentry/cli/bin/sentry-cli';
+const SENTRY_CLI_EXECUTABLE = 'SENTRY_CLI_EXECUTABLE';
 
 function getEnvVar(varname) {
   return process.env[varname];
@@ -103,6 +102,7 @@ function groupAssets(assetPaths) {
 
 let sentryProject = getEnvVar(SENTRY_PROJECT);
 let authToken = getEnvVar(SENTRY_AUTH_TOKEN);
+const sentryCliBin = getEnvVar(SENTRY_CLI_EXECUTABLE) || require.resolve('@sentry/cli/bin/sentry-cli');
 
 if (!sentryProject) {
   console.log(`🐕 Fetching ${SENTRY_PROJECT} from expo config...`);
@@ -147,7 +147,7 @@ for (const [assetGroupName, assets] of Object.entries(groupedAssets)) {
   }
   console.log(`⬆️ Uploading ${assetGroupName} bundle and sourcemap...`);
   const isHermes = assets.find(asset => asset.endsWith('.hbc'));
-  execSync(`${SENTRY_CLI} sourcemaps upload ${isHermes ? '--debug-id-reference' : ''} ${assets.join(' ')}`, {
+  execSync(`${sentryCliBin} sourcemaps upload ${isHermes ? '--debug-id-reference' : ''} ${assets.join(' ')}`, {
     env: {
       ...process.env,
       [SENTRY_PROJECT]: sentryProject,
