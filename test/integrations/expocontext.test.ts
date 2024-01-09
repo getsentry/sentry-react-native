@@ -33,10 +33,38 @@ describe('Expo Context Integration', () => {
   });
 
   it('adds expo device context', async () => {
+    (getExpoDevice as jest.Mock).mockReturnValue({
+      deviceName: 'test device name',
+      isDevice: true,
+      modelName: 'test model name',
+      manufacturer: 'test manufacturer',
+      totalMemory: 1000,
+    });
+    const actualEvent = await executeIntegrationFor({});
 
+    expect(actualEvent.contexts?.device).toStrictEqual({
+      name: 'test device name',
+      simulator: false,
+      model: 'test model name',
+      manufacturer: 'test manufacturer',
+      memory_size: 1000,
+    });
   });
 
-  it('adds expo os context', async () => { });
+  it('adds expo os context', async () => {
+    (getExpoDevice as jest.Mock).mockReturnValue({
+      osName: 'test os name',
+      osBuildId: 'test os build id',
+      osVersion: 'test os version',
+    });
+    const actualEvent = await executeIntegrationFor({});
+
+    expect(actualEvent.contexts?.os).toStrictEqual({
+      name: 'test os name',
+      build: 'test os build id',
+      version: 'test os version',
+    });
+  });
 
   function executeIntegrationFor(mockedEvent: Event): Promise<Event | null> {
     return new Promise((resolve, reject) => {

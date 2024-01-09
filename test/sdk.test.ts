@@ -75,7 +75,7 @@ import type { ReactNativeClientOptions } from '../src/js/options';
 import { configureScope, flush, init, withScope } from '../src/js/sdk';
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
-import { getDefaultEnvironment, notWeb } from '../src/js/utils/environment';
+import { getDefaultEnvironment, isExpoGo, notWeb } from '../src/js/utils/environment';
 import { firstArg, secondArg } from './testutils';
 
 const mockedInitAndBind = initAndBind as jest.MockedFunction<typeof initAndBind>;
@@ -694,6 +694,16 @@ describe('Tests the SDK functionality', () => {
         expect.not.arrayContaining([expect.objectContaining({ name: 'HermesProfiling' })]),
       );
     });
+  });
+
+  it('adds expo context integration if expo go is detected', () => {
+    (isExpoGo as jest.Mock).mockImplementation(() => true);
+    init({});
+
+    const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+    const actualIntegrations = actualOptions.integrations;
+
+    expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'ExpoContext' })]));
   });
 });
 
