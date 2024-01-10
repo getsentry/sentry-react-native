@@ -410,6 +410,10 @@ jobs:
             engine: 'hermes'
           - rn-version: '0.72.4'
             engine: 'jsc'
+          # E2E timeout due to a race condition https://github.com/facebook/react-native/issues/42123#issuecomment-1881203719
+          - rn-version: '0.73.2'
+            platform: 'ios'
+            rn-architecture: 'new'
     env:
       PLATFORM: ${{ matrix.platform }}
       DEVICE: ${{ matrix.device }}
