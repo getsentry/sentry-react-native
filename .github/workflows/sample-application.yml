@@ -54,6 +54,9 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
 
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@v2
+
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
         run: brew install xcbeautify
