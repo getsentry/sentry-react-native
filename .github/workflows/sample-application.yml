@@ -65,7 +65,7 @@ jobs:
           path: |
             node_modules
             samples/react-native/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock', 'samples/react-native/yarn.lock') }}
+          key: ${{ github.workflow }}-${{ github.job }}-${{ runner.os }}-npm-${{ hashFiles('yarn.lock', 'samples/react-native/yarn.lock') }}
 
       - name: Install SDK Dependencies
         if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
