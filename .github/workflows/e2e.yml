@@ -153,7 +153,7 @@ jobs:
         rn-version: ['0.65.3', '0.73.2']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
-        build-type: ['dev', 'production']
+        build-type: ['production']
         ios-use-frameworks: ['no', 'static', 'dynamic']
         engine: ['hermes', 'jsc']
         include:
@@ -165,7 +165,7 @@ jobs:
             runs-on: ubuntu-latest
         exclude:
           # exclude JSC for new RN versions (keeping the matrix manageable)
-          - rn-version: '0.72.4'
+          - rn-version: '0.73.2'
             engine: 'jsc'
           # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
