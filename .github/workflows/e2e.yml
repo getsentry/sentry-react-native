@@ -419,7 +419,7 @@ jobs:
           # e2e test only the default combinations
           - rn-version: '0.65.3'
             engine: 'hermes'
-          - rn-version: '0.72.4'
+          - rn-version: '0.73.2'
             engine: 'jsc'
     env:
       PLATFORM: ${{ matrix.platform }}
