@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.16.0-alpha.3
 
 This release is compatible with `expo@50.0.0-preview.6` and newer.
 
