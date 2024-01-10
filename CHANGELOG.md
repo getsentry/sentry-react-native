@@ -4,6 +4,7 @@
 
 ### Fixes
 
+- Make `getSentryExpoConfig` options parameter optional ([#3514](https://github.com/getsentry/sentry-react-native/pull/3514))
 - Use `@sentry/react-native/expo` as plugin name in `expo-upload-sourcemaps.js` ([#3515](https://github.com/getsentry/sentry-react-native/pull/3515))
 
 ## 5.16.0-alpha.3
@@ -18,7 +19,7 @@ This release is compatible with `expo@50.0.0-preview.6` and newer.
 
   ```js
   const { getSentryExpoConfig } = require("@sentry/react-native/metro");
-  const config = getSentryExpoConfig(config);
+  const config = getSentryExpoConfig(config, {});
   ```
 
 - Add `npx sentry-expo-upload-sourcemaps` for simple EAS Update (expo export) source maps upload to Sentry ([#3491](https://github.com/getsentry/sentry-react-native/pull/3491), [#3510](https://github.com/getsentry/sentry-react-native/pull/3510))
