@@ -18,7 +18,7 @@ const DEBUG_ID_COMMENT = '//# debugId=';
 /**
  * This function returns Default Expo configuration with Sentry plugins.
  */
-export function getSentryExpoConfig(projectRoot: string, options: DefaultConfigOptions): MetroConfig {
+export function getSentryExpoConfig(projectRoot: string, options: DefaultConfigOptions = {}): MetroConfig {
   const { getDefaultConfig } = loadExpoMetroConfigModule();
   return getDefaultConfig(projectRoot, {
     ...options,
