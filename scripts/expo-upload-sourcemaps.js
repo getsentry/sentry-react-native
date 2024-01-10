@@ -27,7 +27,7 @@ function getSentryPluginPropertiesFromExpoConfig() {
         return false;
       }
       const [pluginName] = plugin;
-      return pluginName === '@sentry/react-native';
+      return pluginName === '@sentry/react-native/expo';
     });
 
     if (!sentryPlugin) {

@@ -5,6 +5,7 @@
 ### Fixes
 
 - Make `getSentryExpoConfig` options parameter optional ([#3514](https://github.com/getsentry/sentry-react-native/pull/3514))
+- Use `@sentry/react-native/expo` as plugin name in `expo-upload-sourcemaps.js` ([#3515](https://github.com/getsentry/sentry-react-native/pull/3515))
 
 ## 5.16.0-alpha.3
 
