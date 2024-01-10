@@ -62,6 +62,17 @@ jobs:
       - name: Gradle cache
         uses: gradle/gradle-build-action@v2
 
+      - name: Setup KVM
+        shell: bash
+        run: |
+          # check if virtualization is supported...
+          sudo apt install -y --no-install-recommends cpu-checker coreutils && echo "CPUs=$(nproc --all)" && kvm-ok
+          # allow access to KVM to run the emulator
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - name: AVD cache
         uses: actions/cache@v3
         id: avd-cache
@@ -69,47 +80,48 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-21
+          key: avd-aosp-atd-30
 
       - name: Create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@d94c3fbe4fe6a29e4a5ba47c12fb47677c73656b #pin@v2.28.0
         with:
-          api-level: 21
+          api-level: 30
+          force-avd-creation: false
+          disable-animations: true
+          disable-spellchecker: true
+          target: 'aosp_atd'
+          channel: canary # Necessary for ATDs
           emulator-options: >
-            -accel on
             -no-window
+            -no-snapshot-save
             -gpu swiftshader_indirect
             -noaudio
             -no-boot-anim
             -camera-back none
             -camera-front none
             -timezone US/Pacific
-          force-avd-creation: false
-          disable-animations: true
-          arch: x86_64
-          profile: Nexus 6
           script: echo "Generated AVD snapshot for caching."
 
       - name: Run connected tests
         uses: reactivecircus/android-emulator-runner@d94c3fbe4fe6a29e4a5ba47c12fb47677c73656b #pin@v2.28.0
         with:
           working-directory: RNSentryAndroidTester
-          api-level: 21
+          api-level: 30
+          force-avd-creation: false
+          disable-animations: true
+          disable-spellchecker: true
+          target: 'aosp_atd'
+          channel: canary # Necessary for ATDs
           emulator-options: >
-            -no-snapshot-save
-            -accel on
             -no-window
+            -no-snapshot-save
             -gpu swiftshader_indirect
             -noaudio
             -no-boot-anim
             -camera-back none
             -camera-front none
             -timezone US/Pacific
-          force-avd-creation: false
-          disable-animations: true
-          arch: x86_64
-          profile: Nexus 6
           script: |
             ./gradlew uninstallDebug uninstallDebugAndroidTest
             ./gradlew connectedCheck
