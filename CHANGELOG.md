@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Use direct reference to node ([#3493](https://github.com/getsentry/sentry-react-native/pull/3493))
+
 ## 5.15.2
 
 ### Fixes
