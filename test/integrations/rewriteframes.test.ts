@@ -863,14 +863,14 @@ describe('RewriteFrames', () => {
   it('InternalBytecode should be flaged as not InApp', async () => {
     mockFunction(isHermesEnabled).mockReturnValue(true);
 
-    const ANDROID_REACT_NATIVE_HERMES = {
+    const IOS_REACT_NATIVE_HERMES = {
       message: 'Error: lets throw!',
       name: 'Error',
       stack:
         'at anonymous (/Users/username/react-native/sdks/hermes/build_iphonesimulator/lib/InternalBytecode/InternalBytecode.js:139:27)',
     };
 
-    const exception = await exceptionFromError(ANDROID_REACT_NATIVE_HERMES);
+    const exception = await exceptionFromError(IOS_REACT_NATIVE_HERMES);
 
     expect(exception).toEqual({
       value: 'Error: lets throw!',
