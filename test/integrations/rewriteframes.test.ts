@@ -867,7 +867,7 @@ describe('RewriteFrames', () => {
       message: 'Error: lets throw!',
       name: 'Error',
       stack:
-        'at anonymous (/Users/username/react-native/sdks/hermes/build_iphonesimulator/lib/InternalBytecode/InternalBytecode.js:139:27)'
+        'at anonymous (/Users/username/react-native/sdks/hermes/build_iphonesimulator/lib/InternalBytecode/InternalBytecode.js:139:27)',
     };
 
     const exception = await exceptionFromError(ANDROID_REACT_NATIVE_HERMES);
