@@ -28,7 +28,7 @@ const symbolsScript = `
 /bin/sh ../node_modules/@sentry/react-native/scripts/sentry-xcode-debug-files.sh
 `;
 const symbolsPatchRegex = /sentry-cli\s+(upload-dsym|debug-files upload)/;
-if (semver.satisfies(args['rn-version'], `< ${newBundleScriptRNVersion}`)) {
+if (semver.satisfies(args['rn-version'], `< ${newBundleScriptRNVersion}`, { includePrerelease: true })) {
   logger.info('Applying old bundle script patch');
   bundleScript = `
 export NODE_BINARY=node
@@ -37,7 +37,7 @@ export SENTRY_CLI_EXTRA_ARGS="--force-foreground"
 `;
   bundleScriptRegex = /(packager|scripts)\/react-native-xcode\.sh\b/;
   bundlePatchRegex = /sentry-cli\s+react-native[\s-]xcode/;
-} else if (semver.satisfies(args['rn-version'], `>= ${newBundleScriptRNVersion}`)) {
+} else if (semver.satisfies(args['rn-version'], `>= ${newBundleScriptRNVersion}`, { includePrerelease: true })) {
   logger.info('Applying new bundle script patch');
   bundleScript = `
 export SENTRY_CLI_EXTRA_ARGS="--force-foreground"
