@@ -2,8 +2,8 @@ import type { Carrier, Transaction } from '@sentry/core';
 import { getCurrentHub, getMainCarrier } from '@sentry/core';
 import type { Hub } from '@sentry/types';
 
-import type { StartTransactionFunction } from '../src/js/measurements';
-import { _addTracingExtensions } from '../src/js/measurements';
+import type { StartTransactionFunction } from '../../src/js/tracing/addTracingExtensions';
+import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 
 describe('Tracing extensions', () => {
   let hub: Hub;

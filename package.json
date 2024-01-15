@@ -2,7 +2,7 @@
   "name": "@sentry/react-native",
   "homepage": "https://github.com/getsentry/sentry-react-native",
   "repository": "https://github.com/getsentry/sentry-react-native",
-  "version": "5.15.2",
+  "version": "5.16.0-alpha.4",
   "description": "Official Sentry SDK for react-native",
   "typings": "dist/js/index.d.ts",
   "types": "dist/js/index.d.ts",
@@ -18,25 +18,32 @@
   },
   "main": "dist/js/index.js",
   "scripts": {
-    "build": "yarn build:sdk && yarn downlevel && yarn build:tools",
+    "build": "yarn build:sdk && yarn downlevel && yarn build:tools && yarn build:plugin",
     "build:sdk": "tsc -p tsconfig.build.json",
     "build:sdk:watch": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
     "build:tools": "tsc -p tsconfig.build.tools.json",
+    "build:tools:watch": "tsc -p tsconfig.build.tools.json -w --preserveWatchOutput",
+    "build:plugin": "EXPO_NONINTERACTIVE=true expo-module build plugin",
     "downlevel": "downlevel-dts dist ts3.8/dist --to=3.8",
-    "clean": "rimraf dist coverage",
+    "clean": "rimraf dist coverage && yarn clean:plugin",
+    "clean:plugin": "expo-module clean plugin",
+    "circularDepCheck": "madge --circular dist/js/index.js && madge --circular metro.js && madge --circular expo.js",
     "test": "yarn test:sdk && yarn test:tools",
     "test:sdk": "jest",
     "test:tools": "jest --config jest.config.tools.js",
     "fix": "yarn fix:eslint && yarn fix:prettier",
     "fix:eslint": "eslint --config .eslintrc.js --fix .",
-    "fix:prettier": "prettier --write \"{src,test,scripts}/**/**.ts\"",
+    "fix:prettier": "prettier --write \"{src,test,scripts,plugin/src}/**/**.ts\"",
     "lint": "yarn lint:eslint && yarn lint:prettier",
     "lint:eslint": "eslint --config .eslintrc.js .",
-    "lint:prettier": "prettier --check \"{src,test,scripts}/**/**.ts\"",
+    "lint:prettier": "prettier --check \"{src,test,scripts,plugin/src}/**/**.ts\"",
     "test:watch": "jest --watch",
     "run-ios": "cd samples/react-native && yarn react-native run-ios",
     "run-android": "cd samples/react-native && yarn react-native run-android",
     "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/hub @sentry/integrations @sentry/react @sentry/types @sentry/utils"
+  },
+  "bin": {
+    "sentry-expo-upload-sourcemaps": "scripts/expo-upload-sourcemaps.js"
   },
   "keywords": [
     "react-native",
@@ -54,6 +61,7 @@
     "When bumping make sure to update the version of react, i.e:  https://github.com/facebook/react-native/blob/v0.56.0/package.json"
   ],
   "peerDependencies": {
+    "expo": ">=49.0.0",
     "react": ">=17.0.0",
     "react-native": ">=0.65.0"
   },
@@ -68,6 +76,8 @@
     "@sentry/utils": "7.81.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.23.5",
+    "@expo/metro-config": "0.16.0",
     "@sentry-internal/eslint-config-sdk": "7.81.1",
     "@sentry-internal/eslint-plugin-sdk": "7.81.1",
     "@sentry-internal/typescript": "7.80.0",
@@ -82,12 +92,15 @@
     "eslint": "^7.6.0",
     "eslint-plugin-react": "^7.20.6",
     "eslint-plugin-react-native": "^3.8.1",
+    "expo": "50.0.0-preview.8",
+    "expo-module-scripts": "^3.1.0",
     "jest": "^29.6.2",
     "jest-environment-jsdom": "^29.6.2",
+    "madge": "^6.1.0",
     "metro": "0.76",
     "prettier": "^2.0.5",
     "react": "18.2.0",
-    "react-native": "0.72.4",
+    "react-native": "0.73.2",
     "replace-in-file": "^7.0.1",
     "rimraf": "^4.1.1",
     "ts-jest": "^29.1.1",
@@ -109,6 +122,11 @@
     "jsSrcsDir": "src",
     "android": {
       "javaPackageName": "io.sentry.react"
+    }
+  },
+  "peerDependenciesMeta": {
+    "expo": {
+      "optional": true
     }
   }
 }

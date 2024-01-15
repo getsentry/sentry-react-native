@@ -18,7 +18,14 @@
 !scripts/sentry-xcode.sh
 !scripts/sentry-xcode-debug-files.sh
 !scripts/sentry_utils.rb
+!scripts/expo-upload-sourcemaps.js
 
 # Metro
 !/metro.js
 !/metro.d.ts
+
+# Expo
+!/expo.js
+!/expo.d.ts
+!/app.plugin.js
+!/plugin/build/**/*

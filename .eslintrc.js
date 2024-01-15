@@ -12,7 +12,15 @@ module.exports = {
   settings: {
     version: 'detect', // React version. "detect" automatically picks the version you have installed.
   },
-  ignorePatterns: ['test/react-native/versions/**/*', 'coverage/**/*', 'test/typescript/**/*', 'metro.d.ts'],
+  ignorePatterns: [
+    'test/react-native/versions/**/*',
+    'coverage/**/*',
+    'test/typescript/**/*',
+    'metro.d.ts',
+    'samples/**/*',
+    'plugin/build/**/*',
+    'expo.d.ts',
+  ],
   overrides: [
     {
       // Typescript Files
@@ -37,7 +45,7 @@ module.exports = {
       // Scripts
       files: ['scripts/*'],
       parserOptions: {
-        ecmaVersion: 2015,
+        ecmaVersion: 2018,
       },
       rules: {
         'no-console': 'off',
