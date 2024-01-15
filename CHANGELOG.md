@@ -64,6 +64,7 @@ see [the Expo guide](https://docs.sentry.io/platforms/react-native/manual-setup/
 - Add Expo Context information using Expo Native Modules ([#3466](https://github.com/getsentry/sentry-react-native/pull/3466))
 - Errors from InternalBytecode.js are no longer marked as in_app ([#3518](https://github.com/getsentry/sentry-react-native/pull/3518))
 - Fix system node can't be overwritten in `sentry-xcode-debug-files.sh` ([#3523](https://github.com/getsentry/sentry-react-native/pull/3523))
+- Fix `WITH_ENVIRONMENT` overwrite in `sentry-xcode-debug-files.sh` ([#3525](https://github.com/getsentry/sentry-react-native/pull/3525))
 
 ## 5.16.0-alpha.4
 
