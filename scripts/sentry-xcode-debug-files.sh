@@ -5,15 +5,11 @@
 # print commands before executing them and stop on first error
 set -x -e
 
-# load envs if loader file exists (since rn 0.68)
-nodePath="node"
-if [[ -n "$NODE_BINARY" ]]; then
-  nodePath="$NODE_BINARY"
-fi
-[ -z "$WITH_ENVIRONMENT" ] && REACT_NATIVE_PACKAGE_PATH=$("$nodePath" --print "require.resolve('react-native/package.json')")
-[ -z "$WITH_ENVIRONMENT" ] && WITH_ENVIRONMENT="${REACT_NATIVE_PACKAGE_PATH}/scripts/xcode/with-environment.sh"
+[ -z "$WITH_ENVIRONMENT" ] && WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
+
 if [ -f "$WITH_ENVIRONMENT" ]; then
-    . "$WITH_ENVIRONMENT"
+  # load envs if loader file exists (since rn 0.68)
+  . "$WITH_ENVIRONMENT"
 fi
 
 LOCAL_NODE_BINARY=${NODE_BINARY:-node}
