@@ -26,17 +26,19 @@ const TrackerScreen = () => {
   const loadData = () => {
     setCases(null);
 
-    fetch('https://api.covid19api.com/summary', {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(response => response.json())
-      .then(json => {
-        setCases(json.Global);
-      });
+    for (let i = 0; i < 4; i++) {
+      fetch('https://api.covid19api.com/summary', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(response => response.json())
+        .then(json => {
+          setCases(json.Global);
+        });
+    }
   };
 
   React.useEffect(() => {

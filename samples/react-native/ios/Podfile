@@ -41,6 +41,8 @@ target 'sampleNewArchitecture' do
     pod 'AppTurboModules', :path => "./../tm"
   end
 
+  pod 'Sentry/HybridSDK', :git => 'https://github.com/getsentry/sentry-cocoa.git', :branch => 'poc/network-tracker-finished-spans'
+
   if !ENV['TEST']
     pod 'RNSentry', :path => '../../..'
   end

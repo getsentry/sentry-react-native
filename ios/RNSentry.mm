@@ -71,13 +71,14 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     NSError *error = nil;
     SentryOptions* sentryOptions = [self createOptionsWithDictionary:options error:&error];
     if (error != nil) {
-        reject(@"SentryReactNative", error.localizedDescription, error);
-        return;
+      reject(@"SentryReactNative", error.localizedDescription, error);
+      return;
     }
-
+    
     NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
     [PrivateSentrySDKOnly setSdkName: nativeSdkName andVersionString: sdkVersion];
-
+    
+    sentryOptions.tracesSampleRate = @1.0;
     [SentrySDK startWithOptions:sentryOptions];
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
@@ -97,6 +98,8 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 
     resolve(@YES);
 }
+
+
 
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                          error: (NSError *_Nonnull *_Nonnull) errorPointer
@@ -590,6 +593,17 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // you can set the 'enableAutoPerformanceTracing: true' option and
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSArray *, fetchFinishedNativeSpans)
+{
+  NSArray<id<SentrySpan>>* finished = PrivateSentrySDKOnly.finishedNetworkSpans;
+  NSMutableArray* serialized = [NSMutableArray new];
+  for (id<SentrySpan> span in finished) {
+    [serialized addObject:[span serialize]];
+  }
+  return serialized;
+}
+
 
 static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";
 static SentryId* nativeProfileTraceId = nil;

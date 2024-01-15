@@ -7,6 +7,7 @@ import type {
   Event,
   EventProcessor,
   Integration,
+  Span,
   Transaction as TransactionType,
   TransactionContext,
 } from '@sentry/types';
@@ -15,6 +16,7 @@ import { logger } from '@sentry/utils';
 import { APP_START_COLD, APP_START_WARM } from '../measurements';
 import type { NativeAppStartResponse } from '../NativeRNSentry';
 import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
+import type { NativeSpan } from '../wrapper';
 import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
 import { APP_START_COLD as APP_START_COLD_OP, APP_START_WARM as APP_START_WARM_OP, UI_LOAD } from './ops';
@@ -289,6 +291,21 @@ export class ReactNativeTracing implements Integration {
   public onTransactionFinish(transaction: Transaction, endTimestamp?: number): void {
     this.nativeFramesInstrumentation?.onTransactionFinish(transaction);
     this.stallTrackingInstrumentation?.onTransactionFinish(transaction, endTimestamp);
+    const finishedNativeSpans: Array<NativeSpan> = NATIVE.fetchFinishedNativeSpans();
+    const nativeSpans = finishedNativeSpans
+      .filter(span =>
+        span.start_timestamp > transaction.startTimestamp &&
+        span.start_timestamp < (endTimestamp || Date.now() / 1000))
+      .map(span => <Span>{
+        name: span.description,
+        spanId: span.span_id,
+        traceId: transaction.traceId,
+        startTimestamp: span.start_timestamp,
+        endTimestamp: span.timestamp,
+        op: span.op,
+        origin: span.origin,
+      });
+    nativeSpans.forEach(span => transaction.startChild(span));
   }
 
   /**

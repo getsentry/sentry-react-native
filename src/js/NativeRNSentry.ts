@@ -35,6 +35,7 @@ export interface Spec extends TurboModule {
   stopProfiling(): { profile?: string; nativeProfile?: UnsafeObject; error?: string };
   fetchNativePackageName(): Promise<string | undefined | null>;
   fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | undefined | null>;
+  fetchFinishedNativeSpans(): Array<UnsafeObject>;
 }
 
 export type NativeStackFrame = {

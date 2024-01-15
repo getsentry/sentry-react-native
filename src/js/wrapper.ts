@@ -39,6 +39,15 @@ export interface Screenshot {
   filename: string;
 }
 
+export interface NativeSpan {
+  start_timestamp: number;
+  timestamp: number;
+  description: string;
+  op: string;
+  span_id: string;
+  origin: string;
+}
+
 interface SentryNativeWrapper {
   enableNative: boolean;
   nativeIsReady: boolean;
@@ -91,6 +100,7 @@ interface SentryNativeWrapper {
    * Fetches native stack frames and debug images for the instructions addresses.
    */
   fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | null>;
+  fetchFinishedNativeSpans(): Array<NativeSpan>;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -307,6 +317,17 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     RNSentry.crash();
+  },
+
+  fetchFinishedNativeSpans(): Array<NativeSpan> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    return RNSentry.fetchFinishedNativeSpans() as Array<NativeSpan>;
   },
 
   /**
