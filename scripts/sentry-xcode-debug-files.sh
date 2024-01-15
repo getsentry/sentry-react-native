@@ -5,13 +5,13 @@
 # print commands before executing them and stop on first error
 set -x -e
 
-LOCAL_NODE_BINARY=${NODE_BINARY:-node}
-
 # load envs if loader file exists (since rn 0.68)
 WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
 if [ -f "$WITH_ENVIRONMENT" ]; then
     . "$WITH_ENVIRONMENT"
 fi
+
+LOCAL_NODE_BINARY=${NODE_BINARY:-node}
 
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
 
