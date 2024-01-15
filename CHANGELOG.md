@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.16.0
 
 This release ships with a beta version of our new built-in Expo SDK 50 support,
 which replaces the deprecated `sentry-expo` package. To learn more,
