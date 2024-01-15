@@ -376,7 +376,7 @@ jobs:
 
       - name: Upload App APK
         if: matrix.platform == 'android' && matrix.build-type == 'production'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: apk.tar
@@ -384,7 +384,7 @@ jobs:
 
       - name: Upload App APP
         if: matrix.platform == 'ios' && matrix.build-type == 'production'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: app.tar
@@ -392,7 +392,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}
           path: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios/*.log
@@ -562,7 +562,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
           path: |

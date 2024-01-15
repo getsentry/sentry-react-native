@@ -98,24 +98,24 @@ jobs:
       - name: Build
         run: yarn build
       - name: Archive dist
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist
       - name: Archive ts3.8
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ts3.8
           path: ts3.8
       - name: Archive Expo Plugin
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: expo-plugin
           path: plugin/build
       - name: Pack
         run: yarn pack
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.sha }}
           path: |
