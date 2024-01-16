@@ -16,6 +16,10 @@ module.exports = {
     'test/react-native/versions/**/*',
     'coverage/**/*',
     'test/typescript/**/*',
+    'metro.d.ts',
+    'samples/**/*',
+    'plugin/build/**/*',
+    'expo.d.ts',
   ],
   overrides: [
     {
@@ -24,10 +28,7 @@ module.exports = {
       extends: ['plugin:react/recommended'],
       plugins: ['react', 'react-native'],
       rules: {
-        '@typescript-eslint/typedef': [
-          'error',
-          { arrowParameter: false, variableDeclarationIgnoreFunction: true },
-        ],
+        '@typescript-eslint/typedef': ['error', { arrowParameter: false, variableDeclarationIgnoreFunction: true }],
       },
     },
     {
@@ -37,13 +38,14 @@ module.exports = {
         '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/no-empty-function': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/unbound-method': 'off',
       },
     },
     {
       // Scripts
       files: ['scripts/*'],
       parserOptions: {
-        ecmaVersion: 2015,
+        ecmaVersion: 2018,
       },
       rules: {
         'no-console': 'off',
@@ -55,7 +57,7 @@ module.exports = {
       parserOptions: {
         ecmaVersion: 2017,
       },
-    }
+    },
   ],
   rules: {
     // Bundle size isn't too much of an issue for React Native.
@@ -63,5 +65,6 @@ module.exports = {
     '@sentry-internal/sdk/no-optional-chaining': 'off',
     '@sentry-internal/sdk/no-nullish-coalescing': 'off',
     '@sentry-internal/sdk/no-unsupported-es6-methods': 'off',
+    '@sentry-internal/sdk/no-class-field-initializers': 'off',
   },
 };

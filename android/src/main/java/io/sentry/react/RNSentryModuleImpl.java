@@ -71,6 +71,7 @@ import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
 import io.sentry.util.JsonSerializationUtils;
+import io.sentry.vendor.Base64;
 
 public class RNSentryModuleImpl {
 
@@ -184,6 +185,9 @@ public class RNSentryModuleImpl {
             }
             if (rnOptions.hasKey("maxQueueSize")) {
                 options.setMaxQueueSize(rnOptions.getInt("maxQueueSize"));
+            }
+            if (rnOptions.hasKey("enableNdk")) {
+                options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
             }
 
             options.setBeforeSend((event, hint) -> {
@@ -336,11 +340,8 @@ public class RNSentryModuleImpl {
         }
     }
 
-    public void captureEnvelope(ReadableArray rawBytes, ReadableMap options, Promise promise) {
-        byte[] bytes = new byte[rawBytes.size()];
-        for (int i = 0; i < rawBytes.size(); i++) {
-            bytes[i] = (byte) rawBytes.getInt(i);
-        }
+    public void captureEnvelope(String rawBytes, ReadableMap options, Promise promise) {
+        byte[] bytes = Base64.decode(rawBytes, Base64.DEFAULT);
 
         try {
             InternalSentrySdk.captureEnvelope(bytes);
@@ -702,6 +703,10 @@ public class RNSentryModuleImpl {
             sdkInfo.putString("version", sdkVersion.getVersion());
             promise.resolve(sdkInfo);
         }
+    }
+
+    public void fetchNativePackageName(Promise promise) {
+        promise.resolve(packageInfo.packageName);
     }
 
     private void setEventOriginTag(SentryEvent event) {

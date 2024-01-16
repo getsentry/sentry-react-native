@@ -1,8 +1,8 @@
+#import "RNSentry+initNativeSdk.h"
+#import <OCMock/OCMock.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
-#import <Sentry/SentryOptions.h>
-#import <Sentry/SentryEvent.h>
-#import "RNSentry.h"
+#import <RNSentry/RNSentry.h>
 
 @interface RNSentryInitNativeSdkTests : XCTestCase
 
@@ -166,6 +166,126 @@
   
   XCTAssertEqual(testEvent.tags[@"event.origin"], @"ios");
   XCTAssertEqual(testEvent.tags[@"event.environment"], @"native");
+}
+
+void (^expectRejecterNotCalled)(NSString*, NSString*, NSError*) = ^(NSString *code, NSString *message, NSError *error) {
+  @throw [NSException exceptionWithName:@"Promise Rejector should not be called." reason:nil userInfo:nil];
+};
+
+uint64_t MOCKED_SYMBOL_ADDRESS = 123;
+char const* MOCKED_SYMBOL_NAME = "symbolicatedname";
+
+int sucessfulSymbolicate(const void *, Dl_info *info){
+  info->dli_saddr = (void *) MOCKED_SYMBOL_ADDRESS;
+  info->dli_sname = MOCKED_SYMBOL_NAME;
+  return 1;
+}
+
+- (void)prepareNativeFrameMocksWithLocalSymbolication: (BOOL) debug
+{
+  SentryOptions* sentryOptions = [[SentryOptions alloc] init];
+  sentryOptions.debug = debug; //no local symbolication
+  
+  id sentrySDKMock = OCMClassMock([SentrySDK class]);
+  OCMStub([(SentrySDK*) sentrySDKMock options]).andReturn(sentryOptions);
+
+  id sentryDependencyContainerMock = OCMClassMock([SentryDependencyContainer class]);
+  OCMStub(ClassMethod([sentryDependencyContainerMock sharedInstance])).andReturn(sentryDependencyContainerMock);
+  
+  id sentryBinaryImageInfoMockOne = OCMClassMock([SentryBinaryImageInfo class]);
+  OCMStub([(SentryBinaryImageInfo*) sentryBinaryImageInfoMockOne address]).andReturn([@112233 unsignedLongLongValue]);
+  OCMStub([sentryBinaryImageInfoMockOne name]).andReturn(@"testnameone");
+  
+  id sentryBinaryImageInfoMockTwo = OCMClassMock([SentryBinaryImageInfo class]);
+  OCMStub([(SentryBinaryImageInfo*) sentryBinaryImageInfoMockTwo address]).andReturn([@112233 unsignedLongLongValue]);
+  OCMStub([sentryBinaryImageInfoMockTwo name]).andReturn(@"testnametwo");
+  
+  id sentryBinaryImageCacheMock = OCMClassMock([SentryBinaryImageCache class]);
+  OCMStub([(SentryDependencyContainer*) sentryDependencyContainerMock binaryImageCache]).andReturn(sentryBinaryImageCacheMock);
+  OCMStub([sentryBinaryImageCacheMock imageByAddress:[@123 unsignedLongLongValue]]).andReturn(sentryBinaryImageInfoMockOne);
+  OCMStub([sentryBinaryImageCacheMock imageByAddress:[@456 unsignedLongLongValue]]).andReturn(sentryBinaryImageInfoMockTwo);
+  
+  NSDictionary* serializedDebugImage = @{
+    @"uuid": @"mockuuid",
+    @"debug_id": @"mockdebugid",
+    @"type": @"macho",
+    @"image_addr": @"0x000000000001b669",
+  };
+  id sentryDebugImageMock = OCMClassMock([SentryDebugMeta class]);
+  OCMStub([sentryDebugImageMock serialize]).andReturn(serializedDebugImage);
+
+  id sentryDebugImageProviderMock = OCMClassMock([SentryDebugImageProvider class]);
+  OCMStub([sentryDebugImageProviderMock getDebugImagesForAddresses:[NSSet setWithObject:@"0x000000000001b669"] isCrash:false]).andReturn(@[sentryDebugImageMock]);
+
+  OCMStub([sentryDependencyContainerMock debugImageProvider]).andReturn(sentryDebugImageProviderMock);
+}
+
+- (void)testFetchNativeStackFramesByInstructionsServerSymbolication
+{
+  [self prepareNativeFrameMocksWithLocalSymbolication:NO];
+  RNSentry* rnSentry = [[RNSentry alloc] init];
+  NSDictionary* actual = [rnSentry fetchNativeStackFramesBy: @[@123, @456]
+                                                symbolicate: sucessfulSymbolicate];
+
+  NSDictionary* expected = @{
+    @"debugMetaImages": @[
+      @{
+        @"uuid": @"mockuuid",
+        @"debug_id": @"mockdebugid",
+        @"type": @"macho",
+        @"image_addr": @"0x000000000001b669",
+      },
+    ],
+    @"frames": @[
+      @{
+        @"package": @"testnameone",
+        @"in_app": @NO,
+        @"platform": @"cocoa",
+        @"instruction_addr": @"0x000000000000007b", //123
+        @"image_addr": @"0x000000000001b669", //112233
+      },
+      @{
+        @"package": @"testnametwo",
+        @"in_app": @NO,
+        @"platform": @"cocoa",
+        @"instruction_addr": @"0x00000000000001c8", //456
+        @"image_addr": @"0x000000000001b669", //445566
+      },
+    ],
+  };
+  XCTAssertTrue([actual isEqualToDictionary:expected]);
+}
+
+- (void)testFetchNativeStackFramesByInstructionsOnDeviceSymbolication
+{
+  [self prepareNativeFrameMocksWithLocalSymbolication:YES];
+  RNSentry* rnSentry = [[RNSentry alloc] init];
+  NSDictionary* actual = [rnSentry fetchNativeStackFramesBy: @[@123, @456]
+                                                symbolicate: sucessfulSymbolicate];
+  
+  NSDictionary* expected = @{
+    @"frames": @[
+      @{
+        @"function": @"symbolicatedname",
+        @"package": @"testnameone",
+        @"in_app": @NO,
+        @"platform": @"cocoa",
+        @"symbol_addr": @"0x000000000000007b", //123
+        @"instruction_addr": @"0x000000000000007b", //123
+        @"image_addr": @"0x000000000001b669", //112233
+      },
+      @{
+        @"function": @"symbolicatedname",
+        @"package": @"testnametwo",
+        @"in_app": @NO,
+        @"platform": @"cocoa",
+        @"symbol_addr": @"0x000000000000007b", //123
+        @"instruction_addr": @"0x00000000000001c8", //456
+        @"image_addr": @"0x000000000001b669", //445566
+      },
+    ],
+  };
+  XCTAssertTrue([actual isEqualToDictionary:expected]);
 }
 
 @end

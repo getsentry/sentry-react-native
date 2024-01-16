@@ -3,7 +3,13 @@ import type { RequestInstrumentationOptions } from '@sentry/browser';
 import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from '@sentry/browser';
 import type { Hub, IdleTransaction, Transaction } from '@sentry/core';
 import { getActiveTransaction, getCurrentHub, startIdleTransaction } from '@sentry/core';
-import type { EventProcessor, Integration, Transaction as TransactionType, TransactionContext } from '@sentry/types';
+import type {
+  Event,
+  EventProcessor,
+  Integration,
+  Transaction as TransactionType,
+  TransactionContext,
+} from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { APP_START_COLD, APP_START_WARM } from '../measurements';
@@ -13,7 +19,7 @@ import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
 import { APP_START_COLD as APP_START_COLD_OP, APP_START_WARM as APP_START_WARM_OP, UI_LOAD } from './ops';
 import { StallTrackingInstrumentation } from './stalltracking';
-import { onlySampleIfChildSpans } from './transaction';
+import { cancelInBackground, onlySampleIfChildSpans } from './transaction';
 import type { BeforeNavigate, RouteChangeContextData } from './types';
 import { adjustTransactionDuration, getTimeOriginMilliseconds, isNearToNow } from './utils';
 
@@ -95,6 +101,8 @@ export interface ReactNativeTracingOptions extends RequestInstrumentationOptions
   enableUserInteractionTracing: boolean;
 }
 
+const DEFAULT_TRACE_PROPAGATION_TARGETS = ['localhost', /^\/(?!\/)/];
+
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   ...defaultRequestInstrumentationOptions,
   idleTimeout: 1000,
@@ -136,8 +144,22 @@ export class ReactNativeTracing implements Integration {
   private _awaitingAppStartData?: NativeAppStartResponse;
   private _appStartFinishTimestamp?: number;
   private _currentRoute?: string;
+  private _hasSetTracePropagationTargets: boolean;
+  private _hasSetTracingOrigins: boolean;
+  private _currentViewName: string | undefined;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
+    this._hasSetTracePropagationTargets = !!(
+      options &&
+      // eslint-disable-next-line deprecation/deprecation
+      options.tracePropagationTargets
+    );
+    this._hasSetTracingOrigins = !!(
+      options &&
+      // eslint-disable-next-line deprecation/deprecation
+      options.tracingOrigins
+    );
+
     this.options = {
       ...defaultReactNativeTracingOptions,
       ...options,
@@ -160,20 +182,20 @@ export class ReactNativeTracing implements Integration {
   /**
    *  Registers routing and request instrumentation.
    */
-  public setupOnce(
-    // @ts-ignore TODO
-    addGlobalEventProcessor: (callback: EventProcessor) => void,
-    getCurrentHub: () => Hub,
-  ): void {
+  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
+    const hub = getCurrentHub();
+    const client = hub.getClient();
+    const clientOptions = client && client.getOptions();
+
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const {
       traceFetch,
       traceXHR,
       // eslint-disable-next-line deprecation/deprecation
       tracingOrigins,
-      // @ts-ignore TODO
       shouldCreateSpanForRequest,
-      tracePropagationTargets,
+      // eslint-disable-next-line deprecation/deprecation
+      tracePropagationTargets: thisOptionsTracePropagationTargets,
       routingInstrumentation,
       enableAppStartTracking,
       enableNativeFramesTracking,
@@ -181,6 +203,31 @@ export class ReactNativeTracing implements Integration {
     } = this.options;
 
     this._getCurrentHub = getCurrentHub;
+
+    const clientOptionsTracePropagationTargets = clientOptions && clientOptions.tracePropagationTargets;
+    // There are three ways to configure tracePropagationTargets:
+    // 1. via top level client option `tracePropagationTargets`
+    // 2. via ReactNativeTracing option `tracePropagationTargets`
+    // 3. via ReactNativeTracing option `tracingOrigins` (deprecated)
+    //
+    // To avoid confusion, favour top level client option `tracePropagationTargets`, and fallback to
+    // ReactNativeTracing option `tracePropagationTargets` and then `tracingOrigins` (deprecated).
+    //
+    // If both 1 and either one of 2 or 3 are set (from above), we log out a warning.
+    const tracePropagationTargets =
+      clientOptionsTracePropagationTargets ||
+      (this._hasSetTracePropagationTargets && thisOptionsTracePropagationTargets) ||
+      (this._hasSetTracingOrigins && tracingOrigins) ||
+      DEFAULT_TRACE_PROPAGATION_TARGETS;
+    if (
+      __DEV__ &&
+      (this._hasSetTracePropagationTargets || this._hasSetTracingOrigins) &&
+      clientOptionsTracePropagationTargets
+    ) {
+      logger.warn(
+        '[ReactNativeTracing] The `tracePropagationTargets` option was set in the ReactNativeTracing integration and top level `Sentry.init`. The top level `Sentry.init` value is being used.',
+      );
+    }
 
     if (enableAppStartTracking) {
       void this._instrumentAppStart();
@@ -215,10 +262,11 @@ export class ReactNativeTracing implements Integration {
       logger.log('[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.');
     }
 
+    addGlobalEventProcessor(this._getCurrentViewEventProcessor.bind(this));
+
     instrumentOutgoingRequests({
       traceFetch,
       traceXHR,
-      tracingOrigins,
       shouldCreateSpanForRequest,
       tracePropagationTargets,
     });
@@ -289,8 +337,6 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
-    const { idleTimeoutMs, finalTimeoutMs } = this.options;
-
     if (this._inflightInteractionTransaction) {
       this._inflightInteractionTransaction.cancelIdleTimeout(undefined, { restartOnChildSpanChange: false });
       this._inflightInteractionTransaction = undefined;
@@ -302,7 +348,7 @@ export class ReactNativeTracing implements Integration {
       op,
       trimEnd: true,
     };
-    this._inflightInteractionTransaction = startIdleTransaction(hub, context, idleTimeoutMs, finalTimeoutMs, true);
+    this._inflightInteractionTransaction = this._startIdleTransaction(context);
     this._inflightInteractionTransaction.registerBeforeFinishCallback((transaction: IdleTransaction) => {
       this._inflightInteractionTransaction = undefined;
       this.onTransactionFinish(transaction);
@@ -311,6 +357,28 @@ export class ReactNativeTracing implements Integration {
     this.onTransactionStart(this._inflightInteractionTransaction);
     logger.log(`[ReactNativeTracing] User Interaction Tracing Created ${op} transaction ${name}.`);
     return this._inflightInteractionTransaction;
+  }
+
+  /**
+   *  Sets the current view name into the app context.
+   *  @param event Le event.
+   */
+  private _getCurrentViewEventProcessor(event: Event): Event {
+    if (event.contexts && this._currentViewName) {
+      event.contexts.app = { view_names: [this._currentViewName], ...event.contexts.app };
+    }
+    return event;
+  }
+
+  /**
+   * Returns the App Start Duration in Milliseconds. Also returns undefined if not able do
+   * define the duration.
+   */
+  private _getAppStartDurationMilliseconds(appStart: NativeAppStartResponse): number | undefined {
+    if (!this._appStartFinishTimestamp) {
+      return undefined;
+    }
+    return this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
   }
 
   /**
@@ -335,12 +403,9 @@ export class ReactNativeTracing implements Integration {
     if (this.options.routingInstrumentation) {
       this._awaitingAppStartData = appStart;
     } else {
-      const appStartTimeSeconds = appStart.appStartTime / 1000;
-
       const idleTransaction = this._createRouteTransaction({
         name: 'App Start',
         op: UI_LOAD,
-        startTimestamp: appStartTimeSeconds,
       });
 
       if (idleTransaction) {
@@ -353,12 +418,22 @@ export class ReactNativeTracing implements Integration {
    * Adds app start measurements and starts a child span on a transaction.
    */
   private _addAppStartData(transaction: IdleTransaction, appStart: NativeAppStartResponse): void {
-    if (!this._appStartFinishTimestamp) {
+    const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStart);
+    if (!appStartDurationMilliseconds) {
       logger.warn('App start was never finished.');
       return;
     }
 
+    // we filter out app start more than 60s.
+    // this could be due to many different reasons.
+    // we've seen app starts with hours, days and even months.
+    if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
+      return;
+    }
+
     const appStartTimeSeconds = appStart.appStartTime / 1000;
+
+    transaction.startTimestamp = appStartTimeSeconds;
 
     const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
     transaction.startChild({
@@ -367,15 +442,6 @@ export class ReactNativeTracing implements Integration {
       startTimestamp: appStartTimeSeconds,
       endTimestamp: this._appStartFinishTimestamp,
     });
-
-    const appStartDurationMilliseconds = this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
-
-    // we filter out app start more than 60s.
-    // this could be due to many different reasons.
-    // we've seen app starts with hours, days and even months.
-    if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
-      return;
-    }
 
     const measurement = appStart.isColdStart ? APP_START_COLD : APP_START_WARM;
     transaction.setMeasurement(measurement, appStartDurationMilliseconds, 'millisecond');
@@ -409,6 +475,10 @@ export class ReactNativeTracing implements Integration {
         });
       }
 
+      this._currentViewName = context.name;
+      /**
+       * @deprecated tag routing.route.name will be removed in the future.
+       */
       scope.setTag('routing.route.name', context.name);
     });
   }
@@ -428,16 +498,14 @@ export class ReactNativeTracing implements Integration {
       this._inflightInteractionTransaction.finish();
     }
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { idleTimeoutMs, finalTimeoutMs } = this.options;
+    const { finalTimeoutMs } = this.options;
 
     const expandedContext = {
       ...context,
       trimEnd: true,
     };
 
-    const hub = this._getCurrentHub();
-    const idleTransaction = startIdleTransaction(hub as Hub, expandedContext, idleTimeoutMs, finalTimeoutMs, true);
+    const idleTransaction = this._startIdleTransaction(expandedContext);
 
     this.onTransactionStart(idleTransaction);
 
@@ -449,9 +517,7 @@ export class ReactNativeTracing implements Integration {
 
     idleTransaction.registerBeforeFinishCallback(transaction => {
       if (this.options.enableAppStartTracking && this._awaitingAppStartData) {
-        transaction.startTimestamp = this._awaitingAppStartData.appStartTime / 1000;
-        transaction.op = 'ui.load';
-
+        transaction.op = UI_LOAD;
         this._addAppStartData(transaction, this._awaitingAppStartData);
 
         this._awaitingAppStartData = undefined;
@@ -480,5 +546,16 @@ export class ReactNativeTracing implements Integration {
     }
 
     return idleTransaction;
+  }
+
+  /**
+   * Start app state aware idle transaction on the scope.
+   */
+  private _startIdleTransaction(context: TransactionContext): IdleTransaction {
+    const { idleTimeoutMs, finalTimeoutMs } = this.options;
+    const hub = this._getCurrentHub?.() || getCurrentHub();
+    const tx = startIdleTransaction(hub, context, idleTimeoutMs, finalTimeoutMs, true);
+    cancelInBackground(tx);
+    return tx;
   }
 }

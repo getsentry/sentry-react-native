@@ -1,9 +1,10 @@
 import type { Exception } from '@sentry/browser';
 import { defaultStackParser, eventFromException } from '@sentry/browser';
+import type { Event } from '@sentry/types';
 import { Platform } from 'react-native';
 
 import { createReactNativeRewriteFrames } from '../../src/js/integrations/rewriteframes';
-import { isExpo } from '../../src/js/utils/environment';
+import { isExpo, isHermesEnabled } from '../../src/js/utils/environment';
 import { mockFunction } from '../testutils';
 
 jest.mock('../../src/js/utils/environment');
@@ -28,7 +29,80 @@ describe('RewriteFrames', () => {
 
   beforeEach(() => {
     mockFunction(isExpo).mockReturnValue(false);
+    mockFunction(isHermesEnabled).mockReturnValue(false);
     jest.resetAllMocks();
+  });
+
+  it('should not change cocoa frames', async () => {
+    const EXPECTED_SENTRY_COCOA_EXCEPTION = {
+      type: 'Error',
+      value: 'Objective-c error message.',
+      stacktrace: {
+        frames: [
+          {
+            platform: 'cocoa',
+            package: 'CoreFoundation',
+            function: '__exceptionPreprocess',
+            instruction_addr: '0000000180437330',
+          },
+          {
+            platform: 'cocoa',
+            package: 'libobjc.A.dylib',
+            function: 'objc_exception_throw',
+            instruction_addr: '0000000180051274',
+          },
+          {
+            platform: 'cocoa',
+            package: 'RNTester',
+            function: '-[RCTSampleTurboModule getObjectThrows:]',
+            instruction_addr: '0000000103535900',
+          },
+        ],
+      },
+    };
+
+    const SENTRY_COCOA_EXCEPTION_EVENT: Event = {
+      exception: {
+        values: [JSON.parse(JSON.stringify(EXPECTED_SENTRY_COCOA_EXCEPTION))],
+      },
+    };
+
+    const event = createReactNativeRewriteFrames().process(SENTRY_COCOA_EXCEPTION_EVENT);
+    expect(event.exception?.values?.[0]).toEqual(EXPECTED_SENTRY_COCOA_EXCEPTION);
+  });
+
+  it('should not change jvm frames', async () => {
+    const EXPECTED_SENTRY_JVM_EXCEPTION = {
+      type: 'java.lang.RuntimeException',
+      value: 'Java error message.',
+      stacktrace: {
+        frames: [
+          {
+            platform: 'java',
+            module: 'com.example.modules.Crash',
+            filename: 'Crash.kt',
+            lineno: 10,
+            function: 'getDataCrash',
+          },
+          {
+            platform: 'java',
+            module: 'com.facebook.jni.NativeRunnable',
+            filename: 'NativeRunnable.java',
+            lineno: 2,
+            function: 'run',
+          },
+        ],
+      },
+    };
+
+    const SENTRY_JVM_EXCEPTION_EVENT: Event = {
+      exception: {
+        values: [JSON.parse(JSON.stringify(EXPECTED_SENTRY_JVM_EXCEPTION))],
+      },
+    };
+
+    const event = createReactNativeRewriteFrames().process(SENTRY_JVM_EXCEPTION_EVENT);
+    expect(event.exception?.values?.[0]).toEqual(EXPECTED_SENTRY_JVM_EXCEPTION);
   });
 
   it('should parse exceptions for react-native-v8', async () => {
@@ -595,6 +669,8 @@ describe('RewriteFrames', () => {
   });
 
   it('should parse React Native errors on Android Hermes', async () => {
+    mockFunction(isHermesEnabled).mockReturnValue(true);
+
     const ANDROID_REACT_NATIVE_HERMES = {
       message: 'Error: lets throw!',
       name: 'Error',
@@ -641,28 +717,28 @@ describe('RewriteFrames', () => {
             filename: 'app:///index.android.bundle',
             function: 'value',
             lineno: 1,
-            colno: 31561,
+            colno: 31562,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'value',
             lineno: 1,
-            colno: 32776,
+            colno: 32777,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'anonymous',
             lineno: 1,
-            colno: 31603,
+            colno: 31604,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'value',
             lineno: 1,
-            colno: 33176,
+            colno: 33177,
             in_app: true,
           },
           {
@@ -674,42 +750,42 @@ describe('RewriteFrames', () => {
             filename: 'app:///index.android.bundle',
             function: 'receiveTouches',
             lineno: 1,
-            colno: 122512,
+            colno: 122513,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'Ue',
             lineno: 1,
-            colno: 77571,
+            colno: 77572,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'Ne',
             lineno: 1,
-            colno: 77238,
+            colno: 77239,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: '_e',
             lineno: 1,
-            colno: 127755,
+            colno: 127756,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'anonymous',
             lineno: 1,
-            colno: 77747,
+            colno: 77748,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'z',
             lineno: 1,
-            colno: 74642,
+            colno: 74643,
             in_app: true,
           },
           {
@@ -721,21 +797,21 @@ describe('RewriteFrames', () => {
             filename: 'app:///index.android.bundle',
             function: 'A',
             lineno: 1,
-            colno: 74709,
+            colno: 74710,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'N',
             lineno: 1,
-            colno: 74267,
+            colno: 74268,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'C',
             lineno: 1,
-            colno: 74126,
+            colno: 74127,
             in_app: true,
           },
           { filename: 'native', function: 'apply', in_app: true },
@@ -743,7 +819,7 @@ describe('RewriteFrames', () => {
             filename: 'app:///index.android.bundle',
             function: 'k',
             lineno: 1,
-            colno: 74094,
+            colno: 74095,
             in_app: true,
           },
           { filename: 'native', function: 'apply', in_app: true },
@@ -751,7 +827,7 @@ describe('RewriteFrames', () => {
             filename: 'app:///index.android.bundle',
             function: 'b',
             lineno: 1,
-            colno: 74037,
+            colno: 74038,
             in_app: true,
           },
           { filename: 'native', function: 'apply', in_app: true },
@@ -762,22 +838,55 @@ describe('RewriteFrames', () => {
             filename: 'app:///index.android.bundle',
             function: '_performSideEffectsForTransition',
             lineno: 1,
-            colno: 230843,
+            colno: 230844,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'anonymous',
             lineno: 1,
-            colno: 224280,
+            colno: 224281,
             in_app: true,
           },
           {
             filename: 'app:///index.android.bundle',
             function: 'onPress',
             lineno: 1,
-            colno: 452701,
+            colno: 452702,
             in_app: true,
+          },
+        ],
+      },
+    });
+  });
+
+  it('InternalBytecode should be flaged as not InApp', async () => {
+    mockFunction(isHermesEnabled).mockReturnValue(true);
+
+    const IOS_REACT_NATIVE_HERMES = {
+      message: 'Error: lets throw!',
+      name: 'Error',
+      stack:
+        'at anonymous (/Users/username/react-native/sdks/hermes/build_iphonesimulator/lib/InternalBytecode/InternalBytecode.js:139:27)',
+    };
+
+    const exception = await exceptionFromError(IOS_REACT_NATIVE_HERMES);
+
+    expect(exception).toEqual({
+      value: 'Error: lets throw!',
+      type: 'Error',
+      mechanism: {
+        handled: true,
+        type: 'generic',
+      },
+      stacktrace: {
+        frames: [
+          {
+            filename: 'app:///InternalBytecode.js',
+            function: 'anonymous',
+            lineno: 139,
+            colno: 27,
+            in_app: false,
           },
         ],
       },

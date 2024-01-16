@@ -6,6 +6,8 @@ const mockBrowserClient: BrowserClient = new BrowserClient({
   transport: jest.fn(),
 });
 
+let mockHubCaptureException: jest.Mock<void, [unknown, { syntheticException: Error }]>;
+
 jest.mock('@sentry/core', () => {
   const core = jest.requireActual('@sentry/core');
 
@@ -23,7 +25,10 @@ jest.mock('@sentry/core', () => {
     getClient: () => client,
     getScope: () => scope,
     captureEvent: jest.fn(),
+    captureException: jest.fn(),
   };
+
+  mockHubCaptureException = hub.captureException;
 
   return {
     ...core,
@@ -45,19 +50,35 @@ jest.mock('@sentry/utils', () => {
 });
 
 import { getCurrentHub } from '@sentry/core';
-import type { Event, EventHint, SeverityLevel } from '@sentry/types';
+import type { Event, EventHint, ExtendedError, Integration, SeverityLevel } from '@sentry/types';
 
 import { ReactNativeErrorHandlers } from '../../src/js/integrations/reactnativeerrorhandlers';
 
-beforeEach(() => {
-  ErrorUtils.getGlobalHandler = () => jest.fn();
-});
+interface MockTrackingOptions {
+  allRejections: boolean;
+  onUnhandled: jest.Mock<void, [number, unknown]>;
+  onHandled: jest.Mock<void, [number]>;
+}
 
-afterEach(() => {
-  jest.clearAllMocks();
-});
+interface MockedReactNativeErrorHandlers extends Integration {
+  _loadRejectionTracking: jest.Mock<
+    {
+      disable: jest.Mock<void, []>;
+      enable: jest.Mock<void, [MockTrackingOptions]>;
+    },
+    []
+  >;
+}
 
 describe('ReactNativeErrorHandlers', () => {
+  beforeEach(() => {
+    ErrorUtils.getGlobalHandler = () => jest.fn();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('onError', () => {
     let errorHandlerCallback: (error: Error, isFatal: boolean) => Promise<void>;
 
@@ -103,11 +124,66 @@ describe('ReactNativeErrorHandlers', () => {
       expect(hint).toEqual(expect.objectContaining({ originalException: new Error('Test Error') }));
     });
   });
+
+  describe('onUnhandledRejection', () => {
+    test('unhandled rejected promise is captured with synthetical error', async () => {
+      mockHubCaptureException.mockClear();
+      const integration = new ReactNativeErrorHandlers();
+      const mockDisable = jest.fn();
+      const mockEnable = jest.fn<void, [MockTrackingOptions]>();
+      (integration as unknown as MockedReactNativeErrorHandlers)._loadRejectionTracking = jest.fn(() => ({
+        disable: mockDisable,
+        enable: mockEnable,
+      }));
+      integration.setupOnce();
+
+      const [actualTrackingOptions] = mockEnable.mock.calls[0] || [];
+      actualTrackingOptions?.onUnhandled?.(1, 'Test Error');
+      const actualSyntheticError = mockHubCaptureException.mock.calls[0][1].syntheticException;
+
+      expect(mockDisable).not.toHaveBeenCalled();
+      expect(mockEnable).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allRejections: true,
+          onUnhandled: expect.any(Function),
+          onHandled: expect.any(Function),
+        }),
+      );
+      expect(mockEnable).toHaveBeenCalledTimes(1);
+      expect((actualSyntheticError as ExtendedError).framesToPop).toBe(3);
+    });
+
+    test('error like unhandled rejected promise is captured without synthetical error', async () => {
+      mockHubCaptureException.mockClear();
+      const integration = new ReactNativeErrorHandlers();
+      const mockDisable = jest.fn();
+      const mockEnable = jest.fn<void, [MockTrackingOptions]>();
+      (integration as unknown as MockedReactNativeErrorHandlers)._loadRejectionTracking = jest.fn(() => ({
+        disable: mockDisable,
+        enable: mockEnable,
+      }));
+      integration.setupOnce();
+
+      const [actualTrackingOptions] = mockEnable.mock.calls[0] || [];
+      actualTrackingOptions?.onUnhandled?.(1, new Error('Test Error'));
+      const actualSyntheticError = mockHubCaptureException.mock.calls[0][1].syntheticException;
+
+      expect(mockDisable).not.toHaveBeenCalled();
+      expect(mockEnable).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allRejections: true,
+          onUnhandled: expect.any(Function),
+          onHandled: expect.any(Function),
+        }),
+      );
+      expect(mockEnable).toHaveBeenCalledTimes(1);
+      expect(actualSyntheticError).toBeUndefined();
+    });
+  });
 });
 
 function getActualCaptureEventArgs() {
   const hub = getCurrentHub();
-  // eslint-disable-next-line @typescript-eslint/unbound-method
   const mockCall = (hub.captureEvent as jest.MockedFunction<typeof hub.captureEvent>).mock.calls[0];
 
   return mockCall;

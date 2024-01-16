@@ -17,12 +17,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@b173b6ec0100793626c2d9e6b90435061f4fc3e5 # pin@0.11.0
+        uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
         with:
           access_token: ${{ github.token }}
 
   metrics:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
@@ -31,20 +31,24 @@ jobs:
         platform: ["ios", "android"]
         include:
           - platform: ios
+            runs-on: macos-latest
             name: iOS
             appPlain: test/perf/test-app-plain.ipa
           - platform: android
+            runs-on: ubuntu-latest
             name: Android
             appPlain: test/perf/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 18
       - uses: actions/setup-java@v3
         with:
-          java-version: "11"
+          java-version: '17'
           distribution: "adopt"
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@v2
       - name: Install Global Dependencies
         run: yarn global add react-native-cli @sentry/cli yalc
       - uses: actions/cache@v3
@@ -61,9 +65,9 @@ jobs:
         run: yarn build
       - name: Package SDK
         run: yalc publish
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 18
       - uses: actions/cache@v3
         id: app-plain-cache
         with:
@@ -140,28 +144,52 @@ jobs:
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
 
   react-native-build:
-    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
-    runs-on: macos-latest
+    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
+    runs-on: ${{ matrix.runs-on }}
     env:
       RN_SENTRY_POD_NAME: RNSentry
       RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.72.0']
+        rn-version: ['0.65.3', '0.73.2']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
-        build-type: ['dev', 'production']
+        build-type: ['production']
+        ios-use-frameworks: ['no', 'static', 'dynamic']
+        engine: ['hermes', 'jsc']
         include:
           - platform: ios
+            runs-on: macos-latest
             runtime: 'latest'
             device: 'iPhone 14'
-        # exclude all rn versions lower than 0.70.0 for new architecture
+          - platform: android
+            runs-on: ubuntu-latest
         exclude:
+          # exclude JSC for new RN versions (keeping the matrix manageable)
+          - rn-version: '0.73.2'
+            engine: 'jsc'
+          # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
             rn-architecture: 'new'
+          # exlude old rn version for use frameworks builds (to minimalize the matrix)
+          - rn-version: '0.65.3'
+            platform: 'ios'
+            ios-use-frameworks: 'static'
+          - rn-version: '0.65.3'
+            platform: 'ios'
+            ios-use-frameworks: 'dynamic'
+          # use frameworks is ios only feature
+          - platform: 'android'
+            ios-use-frameworks: 'static'
+          - platform: 'android'
+            ios-use-frameworks: 'dynamic'
+          # exclude new rn architecture and dynamic frameworks
+          - rn-architecture: 'new'
+            ios-use-frameworks: 'dynamic'
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Sentry Release
         run: |
@@ -170,7 +198,7 @@ jobs:
 
       - name: Sentry Dist
         run: |
-          SENTRY_DIST_CANDIDATE=${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-${GITHUB_SHA:0:8}
+          SENTRY_DIST_CANDIDATE=${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-${GITHUB_SHA:0:8}
           echo "SENTRY_DIST=$SENTRY_DIST_CANDIDATE" >> $GITHUB_ENV
 
       - name: Sentry Envs
@@ -178,25 +206,32 @@ jobs:
           echo "SENTRY_RELEASE=$SENTRY_RELEASE"
           echo "SENTRY_DIST=$SENTRY_DIST"
 
-      - uses: actions/setup-node@v3
-        if: ${{ matrix.rn-version == '0.65.3' }}
-        with:
-          node-version: 16
-
-      - uses: actions/setup-node@v3
-        if: ${{ matrix.rn-version != '0.65.3' }}
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - uses: actions/setup-java@v3
+        if: ${{ matrix.rn-version == '0.65.3' }}
         with:
           java-version: '11'
           distribution: 'adopt'
 
+      - uses: actions/setup-java@v3
+        if: ${{ matrix.rn-version != '0.65.3' }}
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@v2
+
       - name: Setup Global Tools
         run: |
           yarn global add yalc semver
-          brew install xcbeautify
+
+      - name: Setup Global Xcode Tools
+        if: ${{ matrix.platform == 'ios' }}
+        run: brew install xcbeautify
 
       - name: NPM cache SDK
         uses: actions/cache@v3
@@ -231,6 +266,11 @@ jobs:
       - name: Package SDK
         run: yalc publish
 
+      - uses: actions/setup-node@v4
+        if: ${{ matrix.rn-version == '0.65.3' }}
+        with:
+          node-version: 16
+
       - name: Download Plain RN ${{ matrix.rn-version }} App
         working-directory: test/react-native/versions
         run: git clone $RN_DIFF_REPOSITORY --branch release/${{ matrix.rn-version }} --single-branch ${{ matrix.rn-version }}
@@ -251,10 +291,14 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
+          ../../../../rn.patch.podfile.js --pod-file Podfile --engine ${{ matrix.engine }}
+          [[ "${{ matrix.ios-use-frameworks }}" == "static" ]] && export USE_FRAMEWORKS=static && export NO_FLIPPER=1
+          [[ "${{ matrix.ios-use-frameworks }}" == "dynamic" ]] && export USE_FRAMEWORKS=dynamic && export NO_FLIPPER=1
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
           echo "ENABLE_PROD=$ENABLE_PROD"
           echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
+          echo "USE_FRAMEWORKS=$USE_FRAMEWORKS"
           PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH pod install
           cat Podfile.lock | grep $RN_SENTRY_POD_NAME
 
@@ -263,21 +307,27 @@ jobs:
         run: |
           patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn.patch
           ../../../rn.patch.app.js --app .
+          ../../../rn.patch.metro.config.js --path metro.config.js
 
       - name: Patch Android App RN
         if: ${{ matrix.platform == 'android' }}
-        working-directory: test/react-native
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: |
-          ./rn.patch.app.build.gradle.js \
-            --app-build-gradle 'versions/${{ matrix.rn-version }}/RnDiffApp/android/app/build.gradle'
+          ../../../rn.patch.gradle.properties.js --gradle-properties android/gradle.properties --engine ${{ matrix.engine }}
+          ../../../rn.patch.app.build.gradle.js --app-build-gradle android/app/build.gradle
 
       - name: Patch iOS App RN
         if: ${{ matrix.platform == 'ios' }}
-        working-directory: test/react-native
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: |
-          ./rn.patch.xcode.js \
-            --project 'versions/${{ matrix.rn-version }}/RnDiffApp/ios/RnDiffApp.xcodeproj/project.pbxproj' \
+          ../../../rn.patch.xcode.js \
+            --project ios/RnDiffApp.xcodeproj/project.pbxproj \
             --rn-version '${{ matrix.rn-version }}'
+
+      # This prevents modules resolution from outside of the RN Test App projects
+      # during the native app build
+      - name: Clean SDK node_modules
+        run: rm -rf node_modules
 
       - name: Build Android App
         if: ${{ matrix.platform == 'android' }}
@@ -328,7 +378,7 @@ jobs:
         if: matrix.platform == 'android' && matrix.build-type == 'production'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: apk.tar
           retention-days: 1
 
@@ -336,7 +386,7 @@ jobs:
         if: matrix.platform == 'ios' && matrix.build-type == 'production'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: app.tar
           retention-days: 1
 
@@ -344,62 +394,92 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}
+          name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}
           path: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios/*.log
 
   react-native-test:
-    name: Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
+    name: Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     needs: react-native-build
-    runs-on: macos-latest
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.72.0']
+        rn-version: ['0.65.3', '0.73.2']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
+        ios-use-frameworks: ['no'] # test only no framworks
+        engine: ['hermes', 'jsc']
         include:
           - platform: ios
+            runs-on: macos-latest
             runtime: 'latest'
             device: 'iPhone 14'
-        # exclude all rn versions lower than 0.70.0 for new architecture
+          - platform: android
+            runs-on: ubuntu-latest
         exclude:
+          # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
+            rn-architecture: 'new'
+          # e2e test only the default combinations
+          - rn-version: '0.65.3'
+            engine: 'hermes'
+          - rn-version: '0.73.2'
+            engine: 'jsc'
+          # E2E timeout due to a race condition https://github.com/facebook/react-native/issues/42123#issuecomment-1881203719
+          - rn-version: '0.73.2'
+            platform: 'ios'
             rn-architecture: 'new'
     env:
       PLATFORM: ${{ matrix.platform }}
       DEVICE: ${{ matrix.device }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup Global Tools
+      - name: Setup Global Xcode Tools
+        if: ${{ matrix.platform == 'ios' }}
         run: brew install xcbeautify
 
       - name: Download App Package
         if: matrix.build-type == 'production'
         uses: actions/download-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: test/e2e
 
       - name: Extract App Package
         working-directory: test/e2e
         run: tar -xvf *.tar
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         if: ${{ matrix.rn-version == '0.65.3' }}
         with:
-          node-version: 16
+          node-version: 18
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         if: ${{ matrix.rn-version != '0.65.3' }}
         with:
           node-version: 18
 
       - uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'adopt'
+
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@v2
+
+      - name: Setup KVM
+        if: ${{ matrix.platform == 'android' }}
+        shell: bash
+        run: |
+          # check if virtualization is supported...
+          sudo apt install -y --no-install-recommends cpu-checker coreutils && echo "CPUs=$(nproc --all)" && kvm-ok
+          # allow access to KVM to run the emulator
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
       - name: NPM cache E2E Tests Library
         uses: actions/cache@v3
@@ -437,7 +517,7 @@ jobs:
 
         # Wait until the Appium server starts.
       - name: Check Appium Server
-        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # pin@v2
+        uses: nick-fields/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # pin@v2
         with:
           timeout_seconds: 60
           max_attempts: 10
@@ -450,10 +530,15 @@ jobs:
         uses: reactivecircus/android-emulator-runner@50986b1464923454c95e261820bc626f38490ec0 # pin@v2
         with:
           working-directory: test/e2e
-          api-level: 29
+          api-level: 30
+          force-avd-creation: false
+          disable-animations: true
+          disable-spellchecker: true
+          target: 'aosp_atd'
+          channel: canary # Necessary for ATDs
           emulator-options: >
-            -accel on
-            -no-snapshot
+            -no-window
+            -no-snapshot-save
             -gpu swiftshader_indirect
             -noaudio
             -no-boot-anim
@@ -479,7 +564,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-logs
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
           path: |
             test/e2e/*.log
             test/e2e/*.png

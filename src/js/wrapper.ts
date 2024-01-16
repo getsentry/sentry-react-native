@@ -19,13 +19,15 @@ import type {
   NativeFramesResponse,
   NativeReleaseResponse,
   NativeScreenshot,
+  NativeStackFrames,
   Spec,
 } from './NativeRNSentry';
 import type { ReactNativeClientOptions } from './options';
 import type * as Hermes from './profiling/hermes';
+import type { NativeProfileEvent } from './profiling/nativeTypes';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
-import { utf8ToBytes } from './vendor';
+import { base64StringFromByteArray, utf8ToBytes } from './vendor';
 
 const RNSentry: Spec | undefined = isTurboModuleEnabled()
   ? TurboModuleRegistry.get<Spec>('RNSentry')
@@ -81,8 +83,17 @@ interface SentryNativeWrapper {
   fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
 
   startProfiling(): boolean;
-  stopProfiling(): Hermes.Profile | null;
+  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile?: NativeProfileEvent } | null;
+
+  fetchNativePackageName(): Promise<string | null>;
+
+  /**
+   * Fetches native stack frames and debug images for the instructions addresses.
+   */
+  fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | null>;
 }
+
+const EOL = utf8ToBytes('\n');
 
 /**
  * Our internal interface for calling native functions
@@ -116,27 +127,27 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const [EOL] = utf8ToBytes('\n');
-
     const [envelopeHeader, envelopeItems] = envelope;
 
     const headerString = JSON.stringify(envelopeHeader);
-    let envelopeBytes: number[] = utf8ToBytes(headerString);
-    envelopeBytes.push(EOL);
+    const headerBytes = utf8ToBytes(headerString);
+    let envelopeBytes: Uint8Array = new Uint8Array(headerBytes.length + EOL.length);
+    envelopeBytes.set(headerBytes);
+    envelopeBytes.set(EOL, headerBytes.length);
 
     let hardCrashed: boolean = false;
     for (const rawItem of envelopeItems) {
       const [itemHeader, itemPayload] = this._processItem(rawItem);
 
       let bytesContentType: string;
-      let bytesPayload: number[] = [];
+      let bytesPayload: number[] | Uint8Array | undefined;
       if (typeof itemPayload === 'string') {
         bytesContentType = 'text/plain';
         bytesPayload = utf8ToBytes(itemPayload);
       } else if (itemPayload instanceof Uint8Array) {
         bytesContentType =
           typeof itemHeader.content_type === 'string' ? itemHeader.content_type : 'application/octet-stream';
-        bytesPayload = [...itemPayload];
+        bytesPayload = itemPayload;
       } else {
         bytesContentType = 'application/json';
         bytesPayload = utf8ToBytes(JSON.stringify(itemPayload));
@@ -150,13 +161,19 @@ export const NATIVE: SentryNativeWrapper = {
       (itemHeader as BaseEnvelopeItemHeaders).length = bytesPayload.length;
       const serializedItemHeader = JSON.stringify(itemHeader);
 
-      envelopeBytes.push(...utf8ToBytes(serializedItemHeader));
-      envelopeBytes.push(EOL);
-      envelopeBytes = envelopeBytes.concat(bytesPayload);
-      envelopeBytes.push(EOL);
+      const bytesItemHeader = utf8ToBytes(serializedItemHeader);
+      const newBytes = new Uint8Array(
+        envelopeBytes.length + bytesItemHeader.length + EOL.length + bytesPayload.length + EOL.length,
+      );
+      newBytes.set(envelopeBytes);
+      newBytes.set(bytesItemHeader, envelopeBytes.length);
+      newBytes.set(EOL, envelopeBytes.length + bytesItemHeader.length);
+      newBytes.set(bytesPayload, envelopeBytes.length + bytesItemHeader.length + EOL.length);
+      newBytes.set(EOL, envelopeBytes.length + bytesItemHeader.length + EOL.length + bytesPayload.length);
+      envelopeBytes = newBytes;
     }
 
-    await RNSentry.captureEnvelope(envelopeBytes, { store: hardCrashed });
+    await RNSentry.captureEnvelope(base64StringFromByteArray(envelopeBytes), { store: hardCrashed });
   },
 
   /**
@@ -449,7 +466,7 @@ export const NATIVE: SentryNativeWrapper = {
   },
 
   isNativeAvailable(): boolean {
-    return this.enableNative && this._isModuleLoaded(RNSentry);
+    return this._isModuleLoaded(RNSentry);
   },
 
   async captureScreenshot(): Promise<Screenshot[] | null> {
@@ -509,7 +526,7 @@ export const NATIVE: SentryNativeWrapper = {
     return !!started;
   },
 
-  stopProfiling(): Hermes.Profile | null {
+  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile?: NativeProfileEvent } | null {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -517,18 +534,46 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const { profile, error } = RNSentry.stopProfiling();
+    const { profile, nativeProfile, error } = RNSentry.stopProfiling();
     if (!profile || error) {
       logger.error('[NATIVE] Stop Profiling Failed', error);
       return null;
     }
+    if (Platform.OS === 'ios' && !nativeProfile) {
+      logger.warn('[NATIVE] Stop Profiling Failed: No Native Profile');
+    }
 
     try {
-      return JSON.parse(profile) as Hermes.Profile;
+      return {
+        hermesProfile: JSON.parse(profile) as Hermes.Profile,
+        nativeProfile: nativeProfile as NativeProfileEvent | undefined,
+      };
     } catch (e) {
       logger.error('[NATIVE] Failed to parse Hermes Profile JSON', e);
       return null;
     }
+  },
+
+  async fetchNativePackageName(): Promise<string | null> {
+    if (!this.enableNative) {
+      return null;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return null;
+    }
+
+    return (await RNSentry.fetchNativePackageName()) || null;
+  },
+
+  async fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | null> {
+    if (!this.enableNative) {
+      return null;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return null;
+    }
+
+    return (await RNSentry.fetchNativeStackFramesBy(instructionsAddr)) || null;
   },
 
   /**
@@ -544,7 +589,7 @@ export const NATIVE: SentryNativeWrapper = {
 
       if (NATIVE.platform === 'android') {
         if ('message' in event) {
-          // @ts-ignore Android still uses the old message object, without this the serialization of events will break.
+          // @ts-expect-error Android still uses the old message object, without this the serialization of events will break.
           event.message = { message: event.message };
         }
       }

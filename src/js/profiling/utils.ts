@@ -1,14 +1,15 @@
-import type { Envelope, Event, Profile } from '@sentry/types';
+/* eslint-disable complexity */
+import type { Envelope, Event, Profile, ThreadCpuProfile } from '@sentry/types';
 import { forEachEnvelopeItem, logger } from '@sentry/utils';
 
-import type { RawThreadCpuProfile } from './types';
-
-const ACTIVE_THREAD_ID_STRING = '0';
+import { getDefaultEnvironment } from '../utils/environment';
+import { getDebugMetadata } from './debugid';
+import type { CombinedProfileEvent, HermesProfileEvent, RawThreadCpuProfile } from './types';
 
 /**
  *
  */
-export function isValidProfile(profile: RawThreadCpuProfile): profile is RawThreadCpuProfile & { profile_id: string } {
+export function isValidProfile(profile: ThreadCpuProfile): profile is RawThreadCpuProfile & { profile_id: string } {
   if (profile.samples.length <= 1) {
     if (__DEV__) {
       // Log a warning if the profile has less than 2 samples so users can know why
@@ -18,11 +19,6 @@ export function isValidProfile(profile: RawThreadCpuProfile): profile is RawThre
     }
     return false;
   }
-
-  if (!profile.profile_id) {
-    return false;
-  }
-
   return true;
 }
 
@@ -59,73 +55,17 @@ export function findProfiledTransactionsFromEnvelope(envelope: Envelope): Event[
  * @param event
  * @returns {Profile | null}
  */
-export function createProfilingEvent(profile: RawThreadCpuProfile, event: Event): Profile | null {
-  if (!isValidProfile(profile)) {
+export function enrichCombinedProfileWithEventContext(
+  profile_id: string,
+  profile: CombinedProfileEvent,
+  event: Event,
+): Profile | null {
+  if (!profile.profile || !isValidProfile(profile.profile)) {
     return null;
   }
 
-  return createProfilePayload(profile, {
-    release: event.release || '',
-    environment: event.environment || '',
-    event_id: event.event_id || '',
-    transaction: event.transaction || '',
-    start_timestamp: event.start_timestamp ? event.start_timestamp * 1000 : Date.now(),
-    trace_id: (event?.contexts?.trace?.trace_id as string) ?? '',
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    profile_id: profile.profile_id,
-    os_platform: event.contexts?.os?.name || '',
-    os_version: event.contexts?.os?.version || '',
-    os_build: event.contexts?.os?.build || '',
-    device_locale: (event.contexts?.device?.locale as string) || '',
-    device_model: event.contexts?.device?.model || '',
-    device_manufacturer: event.contexts?.device?.manufacturer || '',
-    device_architecture: event.contexts?.device?.arch || '',
-    device_is_emulator: event.contexts?.device?.simulator || false,
-  });
-}
+  const trace_id = (event.contexts && event.contexts.trace && event.contexts.trace.trace_id) || '';
 
-/**
- * Create a profile
- * @param profile
- * @param options
- * @returns
- */
-function createProfilePayload(
-  cpuProfile: RawThreadCpuProfile,
-  {
-    release,
-    environment,
-    event_id,
-    transaction,
-    start_timestamp,
-    trace_id,
-    profile_id,
-    os_platform,
-    os_version,
-    os_build,
-    device_locale,
-    device_model,
-    device_manufacturer,
-    device_architecture,
-    device_is_emulator,
-  }: {
-    release: string;
-    environment: string;
-    event_id: string;
-    transaction: string;
-    start_timestamp: number;
-    trace_id: string | undefined;
-    profile_id: string;
-    os_platform: string;
-    os_version: string;
-    os_build?: string;
-    device_locale: string;
-    device_model: string;
-    device_manufacturer: string;
-    device_architecture: string;
-    device_is_emulator: boolean;
-  },
-): Profile {
   // Log a warning if the profile has an invalid traceId (should be uuidv4).
   // All profiles and transactions are rejected if this is the case and we want to
   // warn users that this is happening if they enable debug flag
@@ -135,39 +75,52 @@ function createProfilePayload(
     }
   }
 
-  const profile: Profile = {
+  return {
+    ...profile,
     event_id: profile_id,
-    timestamp: new Date(start_timestamp).toISOString(),
-    platform: 'node',
-    version: '1',
-    release: release,
-    environment: environment,
     runtime: {
       name: 'hermes',
       version: '', // TODO: get hermes version
     },
+    timestamp: event.start_timestamp ? new Date(event.start_timestamp * 1000).toISOString() : new Date().toISOString(),
+    release: event.release || '',
+    environment: event.environment || getDefaultEnvironment(),
     os: {
-      name: os_platform,
-      version: os_version,
-      build_number: os_build,
+      name: (event.contexts && event.contexts.os && event.contexts.os.name) || '',
+      version: (event.contexts && event.contexts.os && event.contexts.os.version) || '',
+      build_number: (event.contexts && event.contexts.os && event.contexts.os.build) || '',
     },
     device: {
-      locale: device_locale,
-      model: device_model,
-      manufacturer: device_manufacturer,
-      architecture: device_architecture,
-      is_emulator: device_is_emulator,
+      locale: (event.contexts && event.contexts.device && (event.contexts.device.locale as string)) || '',
+      model: (event.contexts && event.contexts.device && event.contexts.device.model) || '',
+      manufacturer: (event.contexts && event.contexts.device && event.contexts.device.manufacturer) || '',
+      architecture: (event.contexts && event.contexts.device && event.contexts.device.arch) || '',
+      is_emulator: (event.contexts && event.contexts.device && event.contexts.device.simulator) || false,
     },
-    profile: cpuProfile,
     transaction: {
-      name: transaction,
-      id: event_id,
-      trace_id: trace_id || '',
-      active_thread_id: ACTIVE_THREAD_ID_STRING,
+      name: event.transaction || '',
+      id: event.event_id || '',
+      trace_id,
+      active_thread_id: (profile.transaction && profile.transaction.active_thread_id) || '',
+    },
+    debug_meta: {
+      images: [...getDebugMetadata(), ...((profile.debug_meta && profile.debug_meta.images) || [])],
     },
   };
+}
 
-  return profile;
+/**
+ * Creates profiling event compatible carrier Object from raw Hermes profile.
+ */
+export function createHermesProfilingEvent(profile: RawThreadCpuProfile): HermesProfileEvent {
+  return {
+    platform: 'javascript',
+    version: '1',
+    profile,
+    transaction: {
+      active_thread_id: profile.active_thread_id,
+    },
+  };
 }
 
 /**

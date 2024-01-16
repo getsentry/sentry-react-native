@@ -1,8 +1,7 @@
+/* eslint-disable complexity */
 import type { Scope } from '@sentry/core';
-import { getIntegrationsToSetup, hasTracingEnabled, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
-import { HttpClient } from '@sentry/integrations';
+import { getIntegrationsToSetup, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
 import {
-  defaultIntegrations as reactDefaultIntegrations,
   defaultStackParser,
   getCurrentHub,
   makeFetchTransport,
@@ -12,33 +11,18 @@ import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
 import { ReactNativeClient } from './client';
-import {
-  DebugSymbolicator,
-  DeviceContext,
-  EventOrigin,
-  HermesProfiling,
-  ModulesLoader,
-  ReactNativeErrorHandlers,
-  ReactNativeInfo,
-  Release,
-  SdkInfo,
-} from './integrations';
-import { createReactNativeRewriteFrames } from './integrations/rewriteframes';
-import { Screenshot } from './integrations/screenshot';
-import { ViewHierarchy } from './integrations/viewhierarchy';
+import { getDefaultIntegrations } from './integrations/default';
 import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
+import { shouldEnableNativeNagger } from './options';
 import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
+import { getDefaultEnvironment, isExpoGo } from './utils/environment';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { NATIVE } from './wrapper';
 
-const IGNORED_DEFAULT_INTEGRATIONS = [
-  'GlobalHandlers', // We will use the react-native internal handlers
-  'TryCatch', // We don't need this
-];
 const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
@@ -53,6 +37,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   maxQueueSize: DEFAULT_BUFFER_SIZE,
   attachStacktrace: true,
   enableCaptureFailedRequests: false,
+  enableNdk: true,
 };
 
 /**
@@ -74,6 +59,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
     enableNative,
+    enableNativeNagger: shouldEnableNativeNagger(passedOptions.enableNativeNagger),
     // If custom transport factory fails the SDK won't initialize
     transport: passedOptions.transport
       || makeNativeTransportFactory({
@@ -92,62 +78,30 @@ export function init(passedOptions: ReactNativeOptions): void {
     initialScope: safeFactory(passedOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
     tracesSampler: safeTracesSampler(passedOptions.tracesSampler),
   };
-
-  const defaultIntegrations: Integration[] = passedOptions.defaultIntegrations || [];
-  if (passedOptions.defaultIntegrations === undefined) {
-    defaultIntegrations.push(new ModulesLoader());
-    defaultIntegrations.push(new ReactNativeErrorHandlers({
-      patchGlobalPromise: options.patchGlobalPromise,
-    }));
-    defaultIntegrations.push(new Release());
-    defaultIntegrations.push(...[
-      ...reactDefaultIntegrations.filter(
-        (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
-      ),
-    ]);
-
-    defaultIntegrations.push(new EventOrigin());
-    defaultIntegrations.push(new SdkInfo());
-    defaultIntegrations.push(new ReactNativeInfo());
-
-    if (__DEV__) {
-      defaultIntegrations.push(new DebugSymbolicator());
-    }
-
-    defaultIntegrations.push(createReactNativeRewriteFrames());
-    if (options.enableNative) {
-      defaultIntegrations.push(new DeviceContext());
-    }
-    if (hasTracingEnabled(options) && options.enableAutoPerformanceTracing) {
-      defaultIntegrations.push(new ReactNativeTracing());
-    }
-    if (options.attachScreenshot) {
-      defaultIntegrations.push(new Screenshot());
-    }
-    if (options.attachViewHierarchy) {
-      defaultIntegrations.push(new ViewHierarchy());
-    }
-    if (options.enableCaptureFailedRequests) {
-      defaultIntegrations.push(new HttpClient());
-    }
-    if (options._experiments && typeof options._experiments.profilesSampleRate === 'number') {
-      defaultIntegrations.push(new HermesProfiling());
-    }
+  if (!('environment' in options)) {
+    options.environment = getDefaultEnvironment();
   }
+
+  const defaultIntegrations: false | Integration[] = passedOptions.defaultIntegrations === undefined
+    ? getDefaultIntegrations(options)
+    : passedOptions.defaultIntegrations;
 
   options.integrations = getIntegrationsToSetup({
     integrations: safeFactory(passedOptions.integrations, { loggerMessage: 'The integrations threw an error' }),
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
+
+  if (isExpoGo()) {
+    logger.info('Offline caching, native errors features are not available in Expo Go.');
+    logger.info('Use EAS Build / Native Release Build to test these features.');
+  }
 }
 
 /**
  * Inits the Sentry React Native SDK with automatic instrumentation and wrapped features.
  */
-// Deprecated in https://github.com/DefinitelyTyped/DefinitelyTyped/commit/f1b25591890978a92c610ce575ea2ba2bbde6a89
-// eslint-disable-next-line deprecation/deprecation
-export function wrap<P extends JSX.IntrinsicAttributes>(
+export function wrap<P extends Record<string, unknown>>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {

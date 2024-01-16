@@ -2,7 +2,7 @@
 dist
 
 # Ignore standalone apps
-sample-new-architecture
+samples/react-native
 test/perf/TestApp*
 
 # Ignore dangerfile

@@ -54,7 +54,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void captureEnvelope(ReadableArray rawBytes, ReadableMap options, Promise promise) {
+    public void captureEnvelope(String rawBytes, ReadableMap options, Promise promise) {
         this.impl.captureEnvelope(rawBytes, options, promise);
     }
 
@@ -131,5 +131,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     @ReactMethod(isBlockingSynchronousMethod = true)
     public WritableMap stopProfiling() {
         return this.impl.stopProfiling();
+    }
+
+    @ReactMethod
+    public void fetchNativePackageName(Promise promise) {
+        this.impl.fetchNativePackageName(promise);
+    }
+
+    @ReactMethod
+    public void fetchNativeStackFramesBy(ReadableArray instructionsAddr, Promise promise) {
+        // Not used on Android
     }
 }

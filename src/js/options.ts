@@ -1,9 +1,10 @@
 import type { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
 import type { ProfilerProps } from '@sentry/react/types/profiler';
-import type { ClientOptions, Options } from '@sentry/types';
-import type { CaptureContext } from '@sentry/types/types/scope';
+import type { CaptureContext, ClientOptions, Options } from '@sentry/types';
+import { Platform } from 'react-native';
 
 import type { TouchEventBoundaryProps } from './touchevents';
+import { getExpoConstants } from './utils/expomodules';
 
 export interface BaseReactNativeOptions {
   /**
@@ -42,7 +43,15 @@ export interface BaseReactNativeOptions {
   /** The interval to end a session if the App goes to the background. */
   sessionTrackingIntervalMillis?: number;
 
-  /** Enable scope sync from Java to NDK on Android */
+  /** Enable NDK on Android
+   *
+   * @default true
+   */
+  enableNdk?: boolean;
+
+  /** Enable scope sync from Java to NDK on Android
+   * Only has an effect if `enableNdk` is `true`.
+   */
   enableNdkScopeSync?: boolean;
 
   /** When enabled, all the threads are automatically attached to all logged events on Android */
@@ -174,4 +183,29 @@ export interface ReactNativeWrapperOptions {
 
   /** Props for the root touch event boundary */
   touchEventBoundaryProps?: TouchEventBoundaryProps;
+}
+
+/**
+ * If the user has not explicitly set `enableNativeNagger`
+ * the function enables native nagging based on the current
+ * environment.
+ */
+export function shouldEnableNativeNagger(userOptions: unknown): boolean {
+  if (typeof userOptions === 'boolean') {
+    // User can override the default behavior
+    return userOptions;
+  }
+
+  if (Platform.OS === 'web' || Platform.OS === 'windows') {
+    // We don't want to nag on known platforms that don't support native
+    return false;
+  }
+
+  const expoConstants = getExpoConstants();
+  if (expoConstants && expoConstants.appOwnership === 'expo') {
+    // If the app is running in Expo Go, we don't want to nag
+    return false;
+  }
+
+  return true;
 }

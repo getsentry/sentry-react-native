@@ -1,20 +1,22 @@
 {
-  "extends": "./node_modules/@sentry/typescript/tsconfig.json",
+  "extends": "./node_modules/@sentry-internal/typescript/tsconfig.json",
   "include": [
     "src/js/*.ts",
-    "typings/*.d.ts"
+    "src/js/**/*.web.ts",
+    "typings/react-native.d.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ],
+  "exclude": ["node_modules"],
   "compilerOptions": {
     "baseUrl": ".",
+    "paths": {
+      "metro": ["node_modules/metro/src/index"]
+    },
     "outDir": "dist",
     "rootDir": "src",
     "lib": [
       "es7"
     ],
-    "jsx": "react-native",
+    "jsx": "react",
     "types": [
       "react-native"
     ],
@@ -22,6 +24,6 @@
     "module": "es6",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    "strictBindCallApply": true,
+    "strictBindCallApply": true
   }
 }

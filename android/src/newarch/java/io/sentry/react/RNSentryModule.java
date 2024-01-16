@@ -55,7 +55,7 @@ public class RNSentryModule extends NativeRNSentrySpec {
     }
 
     @Override
-    public void captureEnvelope(ReadableArray rawBytes, ReadableMap options, Promise promise) {
+    public void captureEnvelope(String rawBytes, ReadableMap options, Promise promise) {
         this.impl.captureEnvelope(rawBytes, options, promise);
     }
 
@@ -132,5 +132,15 @@ public class RNSentryModule extends NativeRNSentrySpec {
     @Override
     public WritableMap stopProfiling() {
         return this.impl.stopProfiling();
+    }
+
+    @Override
+    public void fetchNativePackageName(Promise promise) {
+        this.impl.fetchNativePackageName(promise);
+    }
+
+    @Override
+    public void fetchNativeStackFramesBy(ReadableArray instructionsAddr, Promise promise) {
+        // Not used on Android
     }
 }

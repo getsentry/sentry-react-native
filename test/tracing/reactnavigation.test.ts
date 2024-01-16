@@ -31,13 +31,13 @@ const getMockTransaction = () => {
   return transaction;
 };
 
-afterEach(() => {
-  RN_GLOBAL_OBJ.__sentry_rn_v5_registered = false;
-
-  jest.resetAllMocks();
-});
-
 describe('ReactNavigationInstrumentation', () => {
+  afterEach(() => {
+    RN_GLOBAL_OBJ.__sentry_rn_v5_registered = false;
+
+    jest.resetAllMocks();
+  });
+
   test('transaction set on initialize', () => {
     const instrumentation = new ReactNavigationInstrumentation();
 
@@ -123,7 +123,7 @@ describe('ReactNavigationInstrumentation', () => {
           route: {
             name: route.name,
             key: route.key,
-            params: route.params,
+            params: {}, // expect the data to be stripped
             hasBeenSeen: false,
           },
           previousRoute: {
@@ -276,9 +276,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(1, '__unsafe_action__', expect.any(Function));
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(2, 'state', expect.any(Function));
     });
 
@@ -289,9 +287,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(1, '__unsafe_action__', expect.any(Function));
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(2, 'state', expect.any(Function));
     });
 
@@ -306,9 +302,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).not.toHaveBeenCalled();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).not.toHaveBeenCalled();
     });
 

@@ -1,67 +1,61 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
 import { createEnvelope, logger } from '@sentry/utils';
 import * as RN from 'react-native';
 
 import type { Spec } from '../src/js/NativeRNSentry';
 import type { ReactNativeOptions } from '../src/js/options';
-import { utf8ToBytes } from '../src/js/vendor';
+import { base64StringFromByteArray, utf8ToBytes } from '../src/js/vendor';
 import { NATIVE } from '../src/js/wrapper';
 
-jest.mock(
-  'react-native',
-  () => {
-    let initPayload: ReactNativeOptions | null = null;
+jest.mock('react-native', () => {
+  let initPayload: ReactNativeOptions | null = null;
 
-    const RNSentry: Spec = {
-      addBreadcrumb: jest.fn(),
-      captureEnvelope: jest.fn(),
-      clearBreadcrumbs: jest.fn(),
-      crash: jest.fn(),
-      fetchNativeDeviceContexts: jest.fn(() =>
-        Promise.resolve({
-          someContext: {
-            someValue: 0,
-          },
-        }),
-      ),
-      fetchNativeRelease: jest.fn(() =>
-        Promise.resolve({
-          build: '1.0.0.1',
-          id: 'test-mock',
-          version: '1.0.0',
-        }),
-      ),
-      setContext: jest.fn(),
-      setExtra: jest.fn(),
-      setTag: jest.fn(),
-      setUser: jest.fn(() => {
-        return;
+  const RNSentry: Spec = {
+    addBreadcrumb: jest.fn(),
+    captureEnvelope: jest.fn(),
+    clearBreadcrumbs: jest.fn(),
+    crash: jest.fn(),
+    fetchNativeDeviceContexts: jest.fn(() =>
+      Promise.resolve({
+        someContext: {
+          someValue: 0,
+        },
       }),
-      initNativeSdk: jest.fn(options => {
-        initPayload = options;
-
-        return Promise.resolve(true);
+    ),
+    fetchNativeRelease: jest.fn(() =>
+      Promise.resolve({
+        build: '1.0.0.1',
+        id: 'test-mock',
+        version: '1.0.0',
       }),
-      closeNativeSdk: jest.fn(() => Promise.resolve()),
-      // @ts-ignore for testing.
-      _getLastPayload: () => ({ initPayload }),
-      startProfiling: jest.fn(),
-      stopProfiling: jest.fn(),
-    };
+    ),
+    setContext: jest.fn(),
+    setExtra: jest.fn(),
+    setTag: jest.fn(),
+    setUser: jest.fn(() => {
+      return;
+    }),
+    initNativeSdk: jest.fn(options => {
+      initPayload = options;
 
-    return {
-      NativeModules: {
-        RNSentry,
-      },
-      Platform: {
-        OS: 'ios',
-      },
-    };
-  },
-  /* virtual allows us to mock modules that aren't in package.json */
-  { virtual: true },
-);
+      return Promise.resolve(true);
+    }),
+    closeNativeSdk: jest.fn(() => Promise.resolve()),
+    // @ts-expect-error for testing.
+    _getLastPayload: () => ({ initPayload }),
+    startProfiling: jest.fn(),
+    stopProfiling: jest.fn(),
+  };
+
+  return {
+    NativeModules: {
+      RNSentry,
+    },
+    Platform: {
+      OS: 'ios',
+    },
+  };
+});
 
 const RNSentry = RN.NativeModules.RNSentry as Spec;
 
@@ -90,16 +84,16 @@ const callAllScopeMethods = () => {
   NATIVE.setExtra('key', 'value');
 };
 
-beforeEach(() => {
-  NATIVE.platform = 'ios';
-  NATIVE.enableNative = true;
-});
-
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('Tests Native Wrapper', () => {
+  beforeEach(() => {
+    NATIVE.platform = 'ios';
+    NATIVE.enableNative = true;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('startWithOptions', () => {
     test('calls native module', async () => {
       await NATIVE.initNativeSdk({ dsn: 'test', enableNative: true });
@@ -141,7 +135,7 @@ describe('Tests Native Wrapper', () => {
       });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
-      // @ts-ignore mock value
+      // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeSend');
       expect(NATIVE.enableNative).toBe(true);
@@ -156,7 +150,7 @@ describe('Tests Native Wrapper', () => {
       });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
-      // @ts-ignore mock value
+      // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeBreadcrumb');
       expect(NATIVE.enableNative).toBe(true);
@@ -171,7 +165,7 @@ describe('Tests Native Wrapper', () => {
       });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
-      // @ts-ignore mock value
+      // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeSendTransaction');
       expect(NATIVE.enableNative).toBe(true);
@@ -186,7 +180,7 @@ describe('Tests Native Wrapper', () => {
       });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
-      // @ts-ignore mock value
+      // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('integrations');
       expect(NATIVE.enableNative).toBe(true);
@@ -275,10 +269,12 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        utf8ToBytes(
-          '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":87}\n' +
-            '{"event_id":"event0","message":"test","sdk":{"name":"test-sdk-name","version":"2.1.3"}}\n',
+        base64StringFromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":87}\n' +
+              '{"event_id":"event0","message":"test","sdk":{"name":"test-sdk-name","version":"2.1.3"}}\n',
+          ),
         ),
         { store: false },
       );
@@ -305,10 +301,12 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        utf8ToBytes(
-          '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":93}\n' +
-            '{"event_id":"event0","sdk":{"name":"test-sdk-name","version":"2.1.3"},"instance":{"value":0}}\n',
+        base64StringFromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":93}\n' +
+              '{"event_id":"event0","sdk":{"name":"test-sdk-name","version":"2.1.3"},"instance":{"value":0}}\n',
+          ),
         ),
         { store: false },
       );
@@ -317,10 +315,10 @@ describe('Tests Native Wrapper', () => {
       try {
         await NATIVE.initNativeSdk({ dsn: 'test-dsn', enableNative: false });
 
-        // @ts-ignore for testing, does not accept an empty class.
+        // @ts-expect-error for testing, does not accept an empty class.
         await NATIVE.sendEnvelope({});
       } catch (error) {
-        // @ts-ignore it is an error but it does not know the type.
+        // @ts-expect-error it is an error but it does not know the type.
         expect(error.message).toMatch('Native is disabled');
       }
       expect(RNSentry.captureEnvelope).not.toBeCalled();
@@ -340,10 +338,12 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        utf8ToBytes(
-          '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":50}\n' +
-            '{"event_id":"event0","message":{"message":"test"}}\n',
+        base64StringFromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":50}\n' +
+              '{"event_id":"event0","message":{"message":"test"}}\n',
+          ),
         ),
         { store: false },
       );
@@ -377,10 +377,12 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        utf8ToBytes(
-          '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":124}\n' +
-            '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
+        base64StringFromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":124}\n' +
+              '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
+          ),
         ),
         { store: false },
       );
@@ -404,10 +406,12 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        utf8ToBytes(
-          '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":58}\n' +
-            '{"event_id":"event0","breadcrumbs":[{"message":"crumb!"}]}\n',
+        base64StringFromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":58}\n' +
+              '{"event_id":"event0","breadcrumbs":[{"message":"crumb!"}]}\n',
+          ),
         ),
         { store: false },
       );
@@ -441,10 +445,12 @@ describe('Tests Native Wrapper', () => {
       await NATIVE.sendEnvelope(env);
 
       expect(RNSentry.captureEnvelope).toBeCalledWith(
-        utf8ToBytes(
-          '{"event_id":"event0","sent_at":"123"}\n' +
-            '{"type":"event","content_type":"application/json","length":125}\n' +
-            '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":false,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
+        base64StringFromByteArray(
+          utf8ToBytes(
+            '{"event_id":"event0","sent_at":"123"}\n' +
+              '{"type":"event","content_type":"application/json","length":125}\n' +
+              '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":false,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
+          ),
         ),
         { store: true },
       );
@@ -510,7 +516,7 @@ describe('Tests Native Wrapper', () => {
     test('serializes all user object keys', async () => {
       NATIVE.setUser({
         email: 'hello@sentry.io',
-        // @ts-ignore Intentional incorrect type to simulate using a double as an id (We had a user open an issue because this didn't work before)
+        // @ts-expect-error Intentional incorrect type to simulate using a double as an id (We had a user open an issue because this didn't work before)
         id: 3.14159265359,
         unique: 123,
       });
@@ -576,11 +582,23 @@ describe('Tests Native Wrapper', () => {
       });
       expect(NATIVE.startProfiling()).toBe(false);
     });
-    test('stop profiling returns profile', () => {
+    test('stop profiling returns hermes profile', () => {
       (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
-        profile: '{ "valid": "json" }',
+        profile: '{ "valid": "hermes" }',
       });
-      expect(NATIVE.stopProfiling()).toEqual({ valid: 'json' });
+      expect(NATIVE.stopProfiling()).toEqual({
+        hermesProfile: { valid: 'hermes' },
+      });
+    });
+    test('stop profiling returns hermes and native profiles', () => {
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        profile: '{ "valid": "hermes" }',
+        nativeProfile: { valid: 'native' },
+      });
+      expect(NATIVE.stopProfiling()).toEqual({
+        hermesProfile: { valid: 'hermes' },
+        nativeProfile: { valid: 'native' },
+      });
     });
     test('failed stop profiling returns null', () => {
       (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({

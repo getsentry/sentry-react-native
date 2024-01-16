@@ -31,7 +31,6 @@ jest.mock('@sentry/react', () => {
         configureScope: mockedGetCurrentHubConfigureScope,
       };
     }),
-    defaultIntegrations: [{ name: 'MockedDefaultReactIntegration', setupOnce: jest.fn() }],
   };
 });
 
@@ -64,6 +63,7 @@ jest.mock('../src/js/client', () => {
 });
 
 jest.mock('../src/js/wrapper');
+jest.mock('../src/js/utils/environment');
 
 jest.spyOn(logger, 'error');
 
@@ -75,6 +75,7 @@ import type { ReactNativeClientOptions } from '../src/js/options';
 import { configureScope, flush, init, withScope } from '../src/js/sdk';
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
+import { getDefaultEnvironment, isExpoGo, notWeb } from '../src/js/utils/environment';
 import { firstArg, secondArg } from './testutils';
 
 const mockedInitAndBind = initAndBind as jest.MockedFunction<typeof initAndBind>;
@@ -82,11 +83,16 @@ const usedOptions = (): ClientOptions<BaseTransportOptions> | undefined => {
   return mockedInitAndBind.mock.calls[0]?.[1];
 };
 
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('Tests the SDK functionality', () => {
+  beforeEach(() => {
+    (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
+    (notWeb as jest.Mock).mockImplementation(() => true);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('init', () => {
     describe('enableAutoPerformanceTracing', () => {
       const usedOptions = (): Integration[] => {
@@ -163,7 +169,6 @@ describe('Tests the SDK functionality', () => {
         if (mockClient) {
           const flushResult = await flush();
 
-          // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(mockClient.flush).toBeCalled();
           expect(flushResult).toBe(true);
         }
@@ -178,12 +183,41 @@ describe('Tests the SDK functionality', () => {
 
           const flushResult = await flush();
 
-          // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(mockClient.flush).toBeCalled();
           expect(flushResult).toBe(false);
-          // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(logger.error).toBeCalledWith('Failed to flush the event queue.');
         }
+      });
+    });
+
+    describe('environment', () => {
+      it('detect development environment', () => {
+        (getDefaultEnvironment as jest.Mock).mockImplementation(() => 'development');
+        init({
+          enableNative: true,
+        });
+        expect(usedOptions()?.environment).toBe('development');
+      });
+
+      it('uses custom environment', () => {
+        init({
+          environment: 'custom',
+        });
+        expect(usedOptions()?.environment).toBe('custom');
+      });
+
+      it('it keeps empty string environment', () => {
+        init({
+          environment: '',
+        });
+        expect(usedOptions()?.environment).toBe('');
+      });
+
+      it('it keeps undefined environment', () => {
+        init({
+          environment: undefined,
+        });
+        expect(usedOptions()?.environment).toBe(undefined);
       });
     });
 
@@ -219,9 +253,8 @@ describe('Tests the SDK functionality', () => {
       it('fetchTransport set and enableNative set to false', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({});
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.isNativeAvailable).toBeCalled();
-        // @ts-ignore enableNative not publicly available here.
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
       });
@@ -229,9 +262,8 @@ describe('Tests the SDK functionality', () => {
       it('fetchTransport set and passed enableNative ignored when true', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({ enableNative: true });
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.isNativeAvailable).toBeCalled();
-        // @ts-ignore enableNative not publicly available here.
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
       });
@@ -239,9 +271,8 @@ describe('Tests the SDK functionality', () => {
       it('fetchTransport set and isNativeAvailable not called when passed enableNative set to false', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({ enableNative: false });
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.isNativeAvailable).not.toBeCalled();
-        // @ts-ignore enableNative not publicly available here.
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
       });
@@ -253,9 +284,8 @@ describe('Tests the SDK functionality', () => {
           transport: mockTransport,
         });
         expect(usedOptions()?.transport).toEqual(mockTransport);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(NATIVE.isNativeAvailable).toBeCalled();
-        // @ts-ignore enableNative not publicly available here.
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
       });
     });
@@ -284,7 +314,6 @@ describe('Tests the SDK functionality', () => {
       (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
       init({ enableNative: false });
       expect(usedOptions()?.transport).toEqual(makeFetchTransport);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(NATIVE.isNativeAvailable).not.toBeCalled();
     });
 
@@ -292,7 +321,6 @@ describe('Tests the SDK functionality', () => {
       (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
       init({ enableNative: true });
       expect(usedOptions()?.transport).toEqual(makeNativeTransport);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(NATIVE.isNativeAvailable).toBeCalled();
     });
   });
@@ -597,9 +625,85 @@ describe('Tests the SDK functionality', () => {
       const actualIntegrations = actualOptions.integrations;
 
       expect(actualIntegrations).toEqual(
-        expect.arrayContaining([expect.objectContaining({ name: 'MockedDefaultReactIntegration' })]),
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'InboundFilters' }),
+          expect.objectContaining({ name: 'FunctionToString' }),
+          expect.objectContaining({ name: 'Breadcrumbs' }),
+          expect.objectContaining({ name: 'Dedupe' }),
+          expect.objectContaining({ name: 'HttpContext' }),
+        ]),
       );
     });
+
+    it('adds all platform default integrations', () => {
+      init({});
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'Release' }),
+          expect.objectContaining({ name: 'EventOrigin' }),
+          expect.objectContaining({ name: 'SdkInfo' }),
+          expect.objectContaining({ name: 'ReactNativeInfo' }),
+        ]),
+      );
+    });
+
+    it('adds web platform specific default integrations', () => {
+      (notWeb as jest.Mock).mockImplementation(() => false);
+      init({});
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'TryCatch' }),
+          expect.objectContaining({ name: 'GlobalHandlers' }),
+          expect.objectContaining({ name: 'LinkedErrors' }),
+        ]),
+      );
+    });
+
+    it('does not add native integrations if native disabled', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+      init({
+        attachScreenshot: true,
+        attachViewHierarchy: true,
+        _experiments: {
+          profilesSampleRate: 0.7,
+        },
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+
+      expect(actualIntegrations).toEqual(
+        expect.not.arrayContaining([expect.objectContaining({ name: 'DeviceContext' })]),
+      );
+      expect(actualIntegrations).toEqual(
+        expect.not.arrayContaining([expect.objectContaining({ name: 'ModulesLoader' })]),
+      );
+      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'Screenshot' })]));
+      expect(actualIntegrations).toEqual(
+        expect.not.arrayContaining([expect.objectContaining({ name: 'ViewHierarchy' })]),
+      );
+      expect(actualIntegrations).toEqual(
+        expect.not.arrayContaining([expect.objectContaining({ name: 'HermesProfiling' })]),
+      );
+    });
+  });
+
+  it('adds expo context integration if expo go is detected', () => {
+    (isExpoGo as jest.Mock).mockImplementation(() => true);
+    init({});
+
+    const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+    const actualIntegrations = actualOptions.integrations;
+
+    expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'ExpoContext' })]));
   });
 });
 

@@ -1,23 +1,11 @@
-import { addGlobalEventProcessor, getCurrentHub } from '@sentry/core';
-import type { Event, EventHint, Integration, StackFrame } from '@sentry/types';
+import type { Event, EventHint, EventProcessor, Hub, Integration, StackFrame as SentryStackFrame } from '@sentry/types';
 import { addContextToFrame, logger } from '@sentry/utils';
 
+import { getFramesToPop, isErrorLike } from '../utils/error';
+import { ReactNativeLibraries } from '../utils/rnlibraries';
+import type * as ReactNative from '../vendor/react-native';
+
 const INTERNAL_CALLSITES_REGEX = new RegExp(['ReactNativeRenderer-dev\\.js$', 'MessageQueue\\.js$'].join('|'));
-
-interface GetDevServer {
-  (): { url: string };
-}
-
-/**
- * React Native Stack Frame
- */
-interface ReactNativeFrame {
-  // arguments: []
-  column: number;
-  file: string;
-  lineNumber: number;
-  methodName: string;
-}
 
 /**
  * React Native Error
@@ -43,30 +31,36 @@ export class DebugSymbolicator implements Integration {
   /**
    * @inheritDoc
    */
-  public setupOnce(): void {
-    addGlobalEventProcessor(async (event: Event, hint?: EventHint) => {
+  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
+    addGlobalEventProcessor(async (event: Event, hint: EventHint) => {
       const self = getCurrentHub().getIntegration(DebugSymbolicator);
 
-      if (!self || hint === undefined || hint.originalException === undefined) {
+      if (!self) {
         return event;
       }
 
-      const reactError = hint.originalException as ReactNativeError;
+      if (event.exception && isErrorLike(hint.originalException)) {
+        // originalException is ErrorLike object
+        const symbolicatedFrames = await this._symbolicate(
+          hint.originalException.stack,
+          getFramesToPop(hint.originalException as Error),
+        );
+        symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
+      } else if (hint.syntheticException && isErrorLike(hint.syntheticException)) {
+        // syntheticException is Error object
+        const symbolicatedFrames = await this._symbolicate(
+          hint.syntheticException.stack,
+          getFramesToPop(hint.syntheticException),
+        );
 
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
-
-      let stack;
-      try {
-        stack = parseErrorStack(reactError);
-      } catch (e) {
-        // In RN 0.64 `parseErrorStack` now only takes a string
-        stack = parseErrorStack(reactError.stack);
+        if (event.exception) {
+          symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
+        } else if (event.threads) {
+          // RN JS doesn't have threads
+          // syntheticException is used for Sentry.captureMessage() threads
+          symbolicatedFrames && this._replaceThreadFramesInEvent(event, symbolicatedFrames);
+        }
       }
-
-      await self._symbolicate(event, stack);
-
-      event.platform = 'node'; // Setting platform node makes sure we do not show source maps errors
 
       return event;
     });
@@ -76,36 +70,36 @@ export class DebugSymbolicator implements Integration {
    * Symbolicates the stack on the device talking to local dev server.
    * Mutates the passed event.
    */
-  private async _symbolicate(event: Event, stack: string | undefined): Promise<void> {
+  private async _symbolicate(rawStack: string, skipFirstFrames: number = 0): Promise<SentryStackFrame[] | null> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
-      const prettyStack = await symbolicateStackTrace(stack);
+      const parsedStack = this._parseErrorStack(rawStack);
 
-      if (prettyStack) {
-        let newStack = prettyStack;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (prettyStack.stack) {
-          // This has been changed in an react-native version so stack is contained in here
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          newStack = prettyStack.stack;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const stackWithoutInternalCallsites = newStack.filter(
-          (frame: { file?: string }) =>
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null,
-        );
-
-        const symbolicatedFrames = await this._convertReactNativeFramesToSentryFrames(stackWithoutInternalCallsites);
-        this._replaceFramesInEvent(event, symbolicatedFrames);
-      } else {
-        logger.error('The stack is null');
+      const prettyStack = await this._symbolicateStackTrace(parsedStack);
+      if (!prettyStack) {
+        logger.error('React Native DevServer could not symbolicate the stack trace.');
+        return null;
       }
+
+      // This has been changed in an react-native version so stack is contained in here
+      const newStack = prettyStack.stack || prettyStack;
+
+      // https://github.com/getsentry/sentry-javascript/blob/739d904342aaf9327312f409952f14ceff4ae1ab/packages/utils/src/stacktrace.ts#L23
+      // Match SentryParser which counts lines of stack (-1 for first line with the Error message)
+      const skipFirstAdjustedToSentryStackParser = Math.max(skipFirstFrames - 1, 0);
+      const stackWithoutPoppedFrames = skipFirstAdjustedToSentryStackParser
+        ? newStack.slice(skipFirstAdjustedToSentryStackParser)
+        : newStack;
+
+      const stackWithoutInternalCallsites = stackWithoutPoppedFrames.filter(
+        (frame: { file?: string }) => frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null,
+      );
+
+      return await this._convertReactNativeFramesToSentryFrames(stackWithoutInternalCallsites);
     } catch (error) {
       if (error instanceof Error) {
         logger.warn(`Unable to symbolicate stack trace: ${error.message}`);
       }
+      return null;
     }
   }
 
@@ -113,17 +107,9 @@ export class DebugSymbolicator implements Integration {
    * Converts ReactNativeFrames to frames in the Sentry format
    * @param frames ReactNativeFrame[]
    */
-  private async _convertReactNativeFramesToSentryFrames(frames: ReactNativeFrame[]): Promise<StackFrame[]> {
-    let getDevServer: GetDevServer;
-    try {
-      getDevServer = require('react-native/Libraries/Core/Devtools/getDevServer');
-    } catch (_oO) {
-      // We can't load devserver URL
-    }
-    // Below you will find lines marked with :HACK to prevent showing errors in the sentry ui
-    // But since this is a debug only feature: This is Fine (TM)
+  private async _convertReactNativeFramesToSentryFrames(frames: ReactNative.StackFrame[]): Promise<SentryStackFrame[]> {
     return Promise.all(
-      frames.map(async (frame: ReactNativeFrame): Promise<StackFrame> => {
+      frames.map(async (frame: ReactNative.StackFrame): Promise<SentryStackFrame> => {
         let inApp = !!frame.column && !!frame.lineNumber;
         inApp =
           inApp &&
@@ -131,28 +117,16 @@ export class DebugSymbolicator implements Integration {
           !frame.file.includes('node_modules') &&
           !frame.file.includes('native code');
 
-        const newFrame: StackFrame = {
+        const newFrame: SentryStackFrame = {
+          lineno: frame.lineNumber,
           colno: frame.column,
           filename: frame.file,
           function: frame.methodName,
           in_app: inApp,
-          lineno: inApp ? frame.lineNumber : undefined, // :HACK
-          platform: inApp ? 'javascript' : 'node', // :HACK
         };
 
-        // The upstream `react-native@0.61` delegates parsing of stacks to `stacktrace-parser`, which is buggy and
-        // leaves a trailing `(address at` in the function name.
-        // `react-native@0.62` seems to have custom logic to parse hermes frames specially.
-        // Anyway, all we do here is throw away the bogus suffix.
-        if (newFrame.function) {
-          const addressAtPos = newFrame.function.indexOf('(address at');
-          if (addressAtPos >= 0) {
-            newFrame.function = newFrame.function.substr(0, addressAtPos).trim();
-          }
-        }
-
         if (inApp) {
-          await this._addSourceContext(newFrame, getDevServer);
+          await this._addSourceContext(newFrame);
         }
 
         return newFrame;
@@ -165,7 +139,7 @@ export class DebugSymbolicator implements Integration {
    * @param event Event
    * @param frames StackFrame[]
    */
-  private _replaceFramesInEvent(event: Event, frames: StackFrame[]): void {
+  private _replaceExceptionFramesInEvent(event: Event, frames: SentryStackFrame[]): void {
     if (
       event.exception &&
       event.exception.values &&
@@ -177,35 +151,97 @@ export class DebugSymbolicator implements Integration {
   }
 
   /**
+   * Replaces the frames in the thread of a message.
+   * @param event Event
+   * @param frames StackFrame[]
+   */
+  private _replaceThreadFramesInEvent(event: Event, frames: SentryStackFrame[]): void {
+    if (event.threads && event.threads.values && event.threads.values[0] && event.threads.values[0].stacktrace) {
+      event.threads.values[0].stacktrace.frames = frames.reverse();
+    }
+  }
+
+  /**
    * This tries to add source context for in_app Frames
    *
    * @param frame StackFrame
    * @param getDevServer function from RN to get DevServer URL
    */
-  private async _addSourceContext(frame: StackFrame, getDevServer?: GetDevServer): Promise<void> {
-    let response;
+  private async _addSourceContext(frame: SentryStackFrame): Promise<void> {
+    let sourceContext: string | null = null;
 
     const segments = frame.filename?.split('/') ?? [];
 
-    if (getDevServer) {
-      for (const idx in segments) {
-        if (Object.prototype.hasOwnProperty.call(segments, idx)) {
-          response = await fetch(`${getDevServer().url}${segments.slice(-idx).join('/')}`, {
-            method: 'GET',
-          });
+    const serverUrl = this._getDevServer()?.url;
+    if (!serverUrl) {
+      return;
+    }
 
-          if (response.ok) {
-            break;
-          }
-        }
+    for (const idx in segments) {
+      if (!Object.prototype.hasOwnProperty.call(segments, idx)) {
+        continue;
+      }
+
+      sourceContext = await this._fetchSourceContext(serverUrl, segments, -idx);
+      if (sourceContext) {
+        break;
       }
     }
 
-    if (response && response.ok) {
-      const content = await response.text();
-      const lines = content.split('\n');
-
-      addContextToFrame(lines, frame);
+    if (!sourceContext) {
+      return;
     }
+
+    const lines = sourceContext.split('\n');
+    addContextToFrame(lines, frame);
+  }
+
+  /**
+   * Get source context for segment
+   */
+  private async _fetchSourceContext(url: string, segments: Array<string>, start: number): Promise<string | null> {
+    const response = await fetch(`${url}${segments.slice(start).join('/')}`, {
+      method: 'GET',
+    });
+
+    if (response.ok) {
+      return response.text();
+    }
+    return null;
+  }
+
+  /**
+   * Loads and calls RN Core Devtools parseErrorStack function.
+   */
+  private _parseErrorStack(errorStack: string): Array<ReactNative.StackFrame> {
+    if (!ReactNativeLibraries.Devtools) {
+      throw new Error('React Native Devtools not available.');
+    }
+    return ReactNativeLibraries.Devtools.parseErrorStack(errorStack);
+  }
+
+  /**
+   * Loads and calls RN Core Devtools symbolicateStackTrace function.
+   */
+  private _symbolicateStackTrace(
+    stack: Array<ReactNative.StackFrame>,
+    extraData?: Record<string, unknown>,
+  ): Promise<ReactNative.SymbolicatedStackTrace> {
+    if (!ReactNativeLibraries.Devtools) {
+      throw new Error('React Native Devtools not available.');
+    }
+    return ReactNativeLibraries.Devtools.symbolicateStackTrace(stack, extraData);
+  }
+
+  /**
+   * Loads and returns the RN DevServer URL.
+   */
+  private _getDevServer(): ReactNative.DevServerInfo | undefined {
+    try {
+      return ReactNativeLibraries.Devtools?.getDevServer();
+    } catch (_oO) {
+      // We can't load devserver URL
+    }
+    return undefined;
   }
 }

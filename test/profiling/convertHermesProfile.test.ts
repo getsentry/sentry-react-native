@@ -1,7 +1,8 @@
-import type { ThreadCpuProfile, ThreadCpuSample } from '@sentry/types';
+import type { ThreadCpuSample } from '@sentry/types';
 
 import { convertToSentryProfile, mapSamples } from '../../src/js/profiling/convertHermesProfile';
 import type * as Hermes from '../../src/js/profiling/hermes';
+import type { RawThreadCpuProfile } from '../../src/js/profiling/types';
 
 describe('convert hermes profile to sentry profile', () => {
   it('simple test profile', async () => {
@@ -55,7 +56,7 @@ describe('convert hermes profile to sentry profile', () => {
           column: '33',
           funcLine: '1605',
           funcColumn: '14',
-          name: 'fooA(/absolute/path/app:///main.jsbundle:1610:33)',
+          name: 'fooA(app:///main.jsbundle:1610:33)',
           category: 'JavaScript',
           parent: 1,
         },
@@ -64,7 +65,7 @@ describe('convert hermes profile to sentry profile', () => {
           column: '21',
           funcLine: '1614',
           funcColumn: '14',
-          name: 'fooB(/absolute/path/app:///main.jsbundle:1616:21)',
+          name: 'fooB(http://localhost:8081/index.bundle//&platform=ios&dev=true&minify=false&modulesOnly=false&runModule=true&app=org.reactjs.native.example.sampleNewArchitecture:193430:4)',
           category: 'JavaScript',
           parent: 1,
         },
@@ -73,36 +74,34 @@ describe('convert hermes profile to sentry profile', () => {
           column: '18',
           funcLine: '1623',
           funcColumn: '16',
-          name: '(/absolute/path/app:///main.jsbundle:1627:18)',
+          name: '(/Users/distiller/react-native/packages/react-native/sdks/hermes/build_iphonesimulator/lib/InternalBytecode/InternalBytecode.js:139:27)',
           category: 'JavaScript',
           parent: 2,
         },
       },
     };
-    const expectedSentryProfile: ThreadCpuProfile = {
+    const expectedSentryProfile: RawThreadCpuProfile = {
       frames: [
         {
-          colno: undefined,
-          file: undefined,
           function: '[root]',
-          lineno: undefined,
+          in_app: false,
         },
         {
           colno: 33,
-          file: 'app:///main.jsbundle',
+          abs_path: 'app:///main.jsbundle',
           function: 'fooA',
           lineno: 1610,
         },
         {
           colno: 21,
-          file: 'app:///main.jsbundle',
+          abs_path: 'app:///main.jsbundle',
           function: 'fooB',
           lineno: 1616,
         },
         {
           colno: 18,
-          file: 'app:///main.jsbundle',
-          function: 'anonymous',
+          abs_path: 'app:///main.jsbundle',
+          function: undefined,
           lineno: 1627,
         },
       ],
@@ -135,6 +134,7 @@ describe('convert hermes profile to sentry profile', () => {
           priority: 1,
         },
       },
+      active_thread_id: '14509472',
     };
     expect(convertToSentryProfile(hermesProfile)).toStrictEqual(expectedSentryProfile);
   });

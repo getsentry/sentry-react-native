@@ -40,6 +40,9 @@ const getMockScope = () => {
     setTag(_tag: unknown) {
       // Placeholder
     },
+    setContext(_context: unknown) {
+      // Placeholder
+    },
     addBreadcrumb(_breadcrumb: unknown) {
       // Placeholder
     },

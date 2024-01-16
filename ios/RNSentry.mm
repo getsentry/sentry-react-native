@@ -1,3 +1,4 @@
+#import <dlfcn.h>
 #import "RNSentry.h"
 
 #if __has_include(<React/RCTConvert.h>)
@@ -6,16 +7,21 @@
 #import "RCTConvert.h"
 #endif
 
+#if __has_include(<hermes/hermes.h>) && SENTRY_PROFILING_SUPPORTED
+#define SENTRY_PROFILING_ENABLED 1
+#import <Sentry/SentryProfilingConditionals.h>
+#else
+#define SENTRY_PROFILING_ENABLED 0
+#define SENTRY_TARGET_PROFILING_SUPPORTED 0
+#endif
+
 #import <Sentry/Sentry.h>
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
-
-#if __has_include(<hermes/hermes.h>)
-#define SENTRY_PROFILING_ENABLED 1
-#else
-#define SENTRY_PROFILING_ENABLED 0
-#endif
+#import <Sentry/SentryBinaryImageCache.h>
+#import <Sentry/SentryDependencyContainer.h>
+#import <Sentry/SentryFormatter.h>
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
@@ -195,6 +201,86 @@ RCT_EXPORT_METHOD(fetchModules:(RCTPromiseResolveBlock)resolve
     resolve(modulesString);
 }
 
+RCT_EXPORT_METHOD(fetchNativePackageName:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSString *packageName = [[NSBundle mainBundle] executablePath];
+    resolve(packageName);
+}
+
+- (NSDictionary*) fetchNativeStackFramesBy: (NSArray<NSNumber*>*)instructionsAddr
+                               symbolicate: (SymbolicateCallbackType) symbolicate
+{
+  BOOL shouldSymbolicateLocally = [SentrySDK.options debug];
+  NSString *appPackageName = [[NSBundle mainBundle] executablePath];
+
+  NSMutableSet<NSString *> * _Nonnull imagesAddrToRetrieveDebugMetaImages = [[NSMutableSet alloc] init];
+  NSMutableArray<NSDictionary<NSString *, id> *> * _Nonnull serializedFrames = [[NSMutableArray alloc] init];
+
+  for (NSNumber *addr in instructionsAddr) {
+    SentryBinaryImageInfo * _Nullable image = [[[SentryDependencyContainer sharedInstance] binaryImageCache] imageByAddress:[addr unsignedLongLongValue]];
+    if (image != nil) {
+      NSString * imageAddr = sentry_formatHexAddressUInt64([image address]);
+      [imagesAddrToRetrieveDebugMetaImages addObject: imageAddr];
+
+      NSDictionary<NSString *, id> * _Nonnull nativeFrame = @{
+        @"platform": @"cocoa",
+        @"instruction_addr": sentry_formatHexAddress(addr),
+        @"package": [image name],
+        @"image_addr": imageAddr,
+        @"in_app": [NSNumber numberWithBool:[appPackageName isEqualToString:[image name]]],
+      };
+
+      if (shouldSymbolicateLocally) {
+        Dl_info symbolsBuffer;
+        bool symbols_succeed = false;
+        symbols_succeed = symbolicate((void *) [addr unsignedLongLongValue], &symbolsBuffer) != 0;
+        if (symbols_succeed) {
+          NSMutableDictionary<NSString *, id> * _Nonnull symbolicated = nativeFrame.mutableCopy;
+          symbolicated[@"symbol_addr"] = sentry_formatHexAddressUInt64((uintptr_t)symbolsBuffer.dli_saddr);
+          symbolicated[@"function"] = [NSString stringWithCString:symbolsBuffer.dli_sname encoding:NSUTF8StringEncoding];
+
+          nativeFrame = symbolicated;
+        }
+      }
+
+      [serializedFrames addObject:nativeFrame];
+    } else {
+      [serializedFrames addObject: @{
+        @"platform": @"cocoa",
+        @"instruction_addr": sentry_formatHexAddress(addr),
+      }];
+    }
+  }
+
+  if (shouldSymbolicateLocally) {
+    return @{
+      @"frames": serializedFrames,
+    };
+  } else {
+    NSMutableArray<NSDictionary<NSString *, id> *> * _Nonnull serializedDebugMetaImages = [[NSMutableArray alloc] init];
+
+    NSArray<SentryDebugMeta *> *debugMetaImages = [[[SentryDependencyContainer sharedInstance] debugImageProvider] getDebugImagesForAddresses:imagesAddrToRetrieveDebugMetaImages isCrash:false];
+
+    for (SentryDebugMeta *debugImage in debugMetaImages) {
+      [serializedDebugMetaImages addObject:[debugImage serialize]];
+    }
+
+    return @{
+      @"frames": serializedFrames,
+      @"debugMetaImages": serializedDebugMetaImages,
+    };
+  }
+}
+
+RCT_EXPORT_METHOD(fetchNativeStackFramesBy:(NSArray *)instructionsAddr
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+  resolve([self fetchNativeStackFramesBy:instructionsAddr
+                             symbolicate:dladdr]);
+}
+
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -310,16 +396,12 @@ RCT_EXPORT_METHOD(fetchNativeRelease:(RCTPromiseResolveBlock)resolve
               });
 }
 
-RCT_EXPORT_METHOD(captureEnvelope:(NSArray * _Nonnull)bytes
+RCT_EXPORT_METHOD(captureEnvelope:(NSString * _Nonnull)rawBytes
                   options: (NSDictionary * _Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    NSMutableData *data = [[NSMutableData alloc] initWithCapacity: [bytes count]];
-    for(NSNumber *number in bytes) {
-        char byte = [number charValue];
-        [data appendBytes: &byte length: 1];
-    }
+    NSData *data = [[NSData alloc] initWithBase64EncodedString:rawBytes options:0];
 
     SentryEnvelope *envelope = [PrivateSentrySDKOnly envelopeWithData:data];
     if (envelope == nil) {
@@ -510,16 +592,40 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
 }
 
 static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";
+static SentryId* nativeProfileTraceId = nil;
+static uint64_t nativeProfileStartTime = 0;
 
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
 {
 #if SENTRY_PROFILING_ENABLED
     try {
         facebook::hermes::HermesRuntime::enableSamplingProfiler();
+        if (nativeProfileTraceId == nil && nativeProfileStartTime == 0) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+            nativeProfileTraceId = [[SentryId alloc] init];
+            nativeProfileStartTime = [PrivateSentrySDKOnly startProfilerForTrace: nativeProfileTraceId];
+#endif
+        } else {
+            NSLog(@"Native profiling already in progress. Currently existing trace: %@", nativeProfileTraceId);
+        }
         return @{ @"started": @YES };
     } catch (const std::exception& ex) {
+        if (nativeProfileTraceId != nil) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+            [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
+#endif
+            nativeProfileTraceId = nil;
+        }
+        nativeProfileStartTime = 0;
         return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
     } catch (...) {
+        if (nativeProfileTraceId != nil) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+            [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
+#endif
+            nativeProfileTraceId = nil;
+        }
+        nativeProfileStartTime = 0;
         return @{ @"error": @"Failed to start profiling" };
     }
 #else
@@ -531,8 +637,20 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
 {
 #if SENTRY_PROFILING_ENABLED
     try {
+        NSDictionary<NSString *, id> * nativeProfile = nil;
+        if (nativeProfileTraceId != nil && nativeProfileStartTime != 0) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+            uint64_t nativeProfileStopTime = [[[SentryDependencyContainer sharedInstance] dateProvider] systemTime];
+            nativeProfile = [PrivateSentrySDKOnly collectProfileBetween:nativeProfileStartTime and:nativeProfileStopTime forTrace:nativeProfileTraceId];
+#endif
+        }
+        // Cleanup native profiles
+        nativeProfileTraceId = nil;
+        nativeProfileStartTime = 0;
+
         facebook::hermes::HermesRuntime::disableSamplingProfiler();
         std::stringstream ss;
+        // Before RN 0.69 Hermes used llvh::raw_ostream (profiling is supported for 0.69 and newer)
         facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
 
         std::string s = ss.str();
@@ -549,10 +667,35 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
         }
 #endif
 
-        return @{ @"profile": data };
+        if (data == nil) {
+          return @{ @"error": @"Failed to retrieve Hermes profile." };
+        }
+
+        if (nativeProfile == nil) {
+          return @{ @"profile": data };
+        }
+
+        return @{
+          @"profile": data,
+          @"nativeProfile": nativeProfile,
+        };
     } catch (const std::exception& ex) {
+        if (nativeProfileTraceId != nil) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+          [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
+#endif
+          nativeProfileTraceId = nil;
+        }
+        nativeProfileStartTime = 0;
         return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
     } catch (...) {
+        if (nativeProfileTraceId != nil) {
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+          [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
+#endif
+          nativeProfileTraceId = nil;
+        }
+        nativeProfileStartTime = 0;
         return @{ @"error": @"Failed to stop profiling" };
     }
 #else
