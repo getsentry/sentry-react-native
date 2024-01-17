@@ -20,7 +20,7 @@ import { UserFeedbackModal } from '../components/UserFeedbackModal';
 import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
 
-const { AssetsModule, CppModule } = NativeModules;
+const { AssetsModule, CppModule, CrashModule } = NativeModules;
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -120,12 +120,26 @@ const HomeScreen = (props: Props) => {
           }}
         />
         {Platform.OS === 'android' && (
-          <Button
-            title="Crash in Android Cpp"
-            onPress={() => {
-              CppModule?.crashCpp();
-            }}
-          />
+          <>
+            <Button
+              title="Crash in Android Cpp"
+              onPress={() => {
+                CppModule?.crashCpp();
+              }}
+            />
+            <Button
+              title="JVM Crash or Undefined"
+              onPress={() => {
+                CrashModule.crashOrUndefined();
+              }}
+            />
+            <Button
+              title="JVM Crash or Number"
+              onPress={() => {
+                CrashModule.crashOrNumber();
+              }}
+            />
+          </>
         )}
         <Spacer />
         <Sentry.ErrorBoundary fallback={errorBoundaryFallback}>

@@ -43,8 +43,9 @@ sentry {
     includeSourceContext = true
 
     // Includes additional source directories into the source bundle.
-    // These directories are resolved relative to the project directory.
-    additionalSourceDirsForSourceContext = ["src/main/java"]
+    // These directories are resolved relative to the project directory
+    // which is /android/app in this sample application.
+    // additionalSourceDirsForSourceContext = ["src/main/java"]
 
     // `@sentry/react-native` ships with compatible `sentry-android`
     // This option would install the latest version that ships with the SDK or SAGP (Sentry Android Gradle Plugin)
