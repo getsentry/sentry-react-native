@@ -24,8 +24,7 @@ jobs:
 
   build:
     name: Build ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
-    # Android emulator said to perform best with macos HAXM
-    runs-on: macos-latest
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
@@ -35,8 +34,11 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
+            runs-on: macos-latest
             runtime: 'latest'
             device: 'iPhone 14'
+          - platform: android
+            runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -49,10 +51,14 @@ jobs:
 
       - uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'adopt'
 
-      - name: Install Global Dependencies
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@v2
+
+      - name: Setup Global Xcode Tools
+        if: ${{ matrix.platform == 'ios' }}
         run: brew install xcbeautify
 
       - name: NPM cache
@@ -62,7 +68,7 @@ jobs:
           path: |
             node_modules
             samples/react-native/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock', 'samples/react-native/yarn.lock') }}
+          key: ${{ github.workflow }}-${{ github.job }}-${{ runner.os }}-npm-${{ hashFiles('yarn.lock', 'samples/react-native/yarn.lock') }}
 
       - name: Install SDK Dependencies
         if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
