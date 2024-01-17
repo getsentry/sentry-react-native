@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add experimental visionOS support
+
 ## 5.15.1
 
 ### Fixes
