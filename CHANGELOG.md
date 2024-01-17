@@ -4,7 +4,9 @@
 
 ### Features
 
-- Add experimental visionOS support
+- Add experimental visionOS support ([#3467](https://github.com/getsentry/sentry-react-native/pull/3467))
+  - To set up [`react-native-visionos`](https://github.com/callstack/react-native-visionos) with the Sentry React Native SDK follow [the standard `iOS` guides](https://docs.sentry.io/platforms/react-native/manual-setup/manual-setup/#ios).
+  - Xcode project is located in `visionos` folder instead of `ios`.
 
 ## 5.15.1
 
