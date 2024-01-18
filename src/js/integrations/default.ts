@@ -78,8 +78,8 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
 
   const hasTracingEnabled =
     options.enableTracing ||
-    typeof options.tracesSampleRate !== 'undefined' ||
-    typeof options.tracesSampler !== 'undefined';
+    typeof options.tracesSampleRate === 'number' ||
+    typeof options.tracesSampler === 'function';
   if (hasTracingEnabled && options.enableAutoPerformanceTracing) {
     integrations.push(new ReactNativeTracing());
   }
