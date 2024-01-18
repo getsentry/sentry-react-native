@@ -1,5 +1,5 @@
 import { defaultStackParser } from '@sentry/browser';
-import type { DebugImage, Event, EventHint, ExtendedError, Hub } from '@sentry/types';
+import type { Client, DebugImage, Event, EventHint, ExtendedError } from '@sentry/types';
 
 import { NativeLinkedErrors } from '../../src/js/integrations/nativelinkederrors';
 import type { NativeStackFrames } from '../../src/js/NativeRNSentry';
@@ -338,29 +338,16 @@ describe('NativeLinkedErrors', () => {
   });
 });
 
-function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Promise<Event | null> {
+async function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Promise<Event | null> {
+  const mockedClient = {
+    getOptions: () => ({
+      stackParser: defaultStackParser,
+    }),
+  } as unknown as Client;
+
   const integration = new NativeLinkedErrors();
-  return new Promise((resolve, reject) => {
-    integration.setupOnce(
-      async eventProcessor => {
-        try {
-          const processedEvent = await eventProcessor(mockedEvent, mockedHint);
-          resolve(processedEvent);
-        } catch (e) {
-          reject(e);
-        }
-      },
-      () =>
-        ({
-          getClient: () => ({
-            getOptions: () => ({
-              stackParser: defaultStackParser,
-            }),
-          }),
-          getIntegration: () => integration,
-        } as unknown as Hub),
-    );
-  });
+  await integration.preprocessEvent(mockedEvent, mockedHint, mockedClient);
+  return mockedEvent;
 }
 
 function createNewError(from: { message: string; name?: string; stack?: string; cause?: unknown }): ExtendedError {

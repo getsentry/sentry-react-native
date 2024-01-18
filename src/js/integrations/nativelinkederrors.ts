@@ -4,8 +4,10 @@ import type {
   DebugImage,
   Event,
   EventHint,
+  EventProcessor,
   Exception,
   ExtendedError,
+  Hub,
   Integration,
   StackFrame,
   StackParser,
@@ -52,7 +54,9 @@ export class NativeLinkedErrors implements Integration {
   /**
    * @inheritDoc
    */
-  public setupOnce(): void { /* noop */}
+  public setupOnce(_addGlobalEventProcessor: (callback: EventProcessor) => void, _getCurrentHub: () => Hub): void {
+    /* noop */
+  }
 
   /**
    * @inheritDoc
@@ -63,7 +67,7 @@ export class NativeLinkedErrors implements Integration {
     }
 
     await this._handler(client.getOptions().stackParser, this._key, this._limit, event, hint);
-  };
+  }
 
   /**
    * Enriches passed event with linked exceptions and native debug meta images.
