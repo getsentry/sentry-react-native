@@ -1,12 +1,11 @@
 import { exceptionFromError } from '@sentry/browser';
 import type {
+  Client,
   DebugImage,
   Event,
   EventHint,
-  EventProcessor,
   Exception,
   ExtendedError,
-  Hub,
   Integration,
   StackFrame,
   StackParser,
@@ -53,20 +52,18 @@ export class NativeLinkedErrors implements Integration {
   /**
    * @inheritDoc
    */
-  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
-    const client = getCurrentHub().getClient();
-    if (!client) {
-      return;
+  public setupOnce(): void { /* noop */}
+
+  /**
+   * @inheritDoc
+   */
+  public async preprocessEvent(event: Event, hint: EventHint | undefined, client: Client): Promise<void> {
+    if (this._nativePackage === null) {
+      this._nativePackage = await this._fetchNativePackage();
     }
 
-    addGlobalEventProcessor(async (event: Event, hint?: EventHint) => {
-      if (this._nativePackage === null) {
-        this._nativePackage = await this._fetchNativePackage();
-      }
-      const self = getCurrentHub().getIntegration(NativeLinkedErrors);
-      return self ? this._handler(client.getOptions().stackParser, self._key, self._limit, event, hint) : event;
-    });
-  }
+    await this._handler(client.getOptions().stackParser, this._key, this._limit, event, hint);
+  };
 
   /**
    * Enriches passed event with linked exceptions and native debug meta images.
@@ -77,9 +74,9 @@ export class NativeLinkedErrors implements Integration {
     limit: number,
     event: Event,
     hint?: EventHint,
-  ): Promise<Event | null> {
+  ): Promise<void> {
     if (!event.exception || !event.exception.values || !hint || !isInstanceOf(hint.originalException, Error)) {
-      return event;
+      return;
     }
     const { exceptions: linkedErrors, debugImages } = await this._walkErrorTree(
       parser,
@@ -93,7 +90,7 @@ export class NativeLinkedErrors implements Integration {
     event.debug_meta.images = event.debug_meta.images || [];
     event.debug_meta.images.push(...(debugImages || []));
 
-    return event;
+    return;
   }
 
   /**
