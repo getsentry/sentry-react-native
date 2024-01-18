@@ -114,6 +114,12 @@ const HomeScreen = (props: Props) => {
           }}
         />
         <Button
+          title="console.warn()"
+          onPress={() => {
+            console.warn('This is a warning.');
+          }}
+        />
+        <Button
           title="Crash in Cpp"
           onPress={() => {
             NativeSampleModule?.crash();

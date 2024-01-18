@@ -4,16 +4,17 @@
 
 ### Features
 
-- New Sentry Metro configuration function `withSentry` ([#3478](https://github.com/getsentry/sentry-react-native/pull/3478))
+- New Sentry Metro configuration function `withSentryConfig` ([#3478](https://github.com/getsentry/sentry-react-native/pull/3478))
   - Ensures all Sentry configuration is added to your Metro config.
   - Includes `createSentryMetroSerializer`
+  - Collapses Sentry SDK frames in development logs
 
   ```javascript
   const { getDefaultConfig } = require('@react-native/metro-config');
-  const { withSentry } = require('@sentry/react-native/metro');
+  const { withSentryConfig } = require('@sentry/react-native/metro');
 
   const config = getDefaultConfig(__dirname);
-  module.exports = withSentry(config);
+  module.exports = withSentryConfig(config);
   ```
 
 - Add experimental visionOS support ([#3467](https://github.com/getsentry/sentry-react-native/pull/3467))
