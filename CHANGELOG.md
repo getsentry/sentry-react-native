@@ -5,9 +5,9 @@
 ### Features
 
 - New Sentry Metro configuration function `withSentryConfig` ([#3478](https://github.com/getsentry/sentry-react-native/pull/3478))
-  - Ensures all Sentry configuration is added to your Metro config.
+  - Ensures all Sentry configuration is added to your Metro config
   - Includes `createSentryMetroSerializer`
-  - Collapses Sentry SDK frames in development logs
+  - Collapses Sentry internal frames from the stack trace view in LogBox
 
   ```javascript
   const { getDefaultConfig } = require('@react-native/metro-config');

@@ -80,7 +80,10 @@ type MetroCustomizeFrameReturnValue =
   | ReturnType<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>
   | undefined;
 
-function withSentryFramesCollapsed(config: MetroConfig): MetroConfig {
+/**
+ * Collapses Sentry internal frames from the stack trace view in LogBox.
+ */
+export function withSentryFramesCollapsed(config: MetroConfig): MetroConfig {
   const originalCustomizeFrame = config.symbolicator?.customizeFrame;
   const collapseSentryInternalFrames = (frame: MetroFrame): boolean =>
     typeof frame.file === 'string' &&
