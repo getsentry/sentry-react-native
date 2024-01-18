@@ -115,6 +115,12 @@ describe('Tests the SDK functionality', () => {
         return new ReactNativeTracing({ routingInstrumentation: nav });
       };
 
+      it('Auto Performance is disabled by default', () => {
+        init({});
+
+        expect(autoPerformanceIsEnabled()).toBe(false);
+      });
+
       it('Auto Performance is enabled when tracing is enabled (tracesSampler)', () => {
         init({
           tracesSampler: () => true,

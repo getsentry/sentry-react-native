@@ -12,6 +12,7 @@
 
 - Fix `WITH_ENVIRONMENT` overwrite in `sentry-xcode-debug-files.sh` ([#3525](https://github.com/getsentry/sentry-react-native/pull/3525))
 - Sentry CLI 2.25.1 fixes background debug files uploads during Xcode builds ([#3486](https://github.com/getsentry/sentry-react-native/pull/3486))
+- Performance Tracing should be disabled by default ([#3533](https://github.com/getsentry/sentry-react-native/pull/3533))
 
 ### Dependencies
 
