@@ -121,6 +121,22 @@ describe('Tests the SDK functionality', () => {
         expect(autoPerformanceIsEnabled()).toBe(false);
       });
 
+      it('Auto Performance is disabled when tracesSampleRate is set to undefined', () => {
+        init({
+          tracesSampleRate: undefined,
+        });
+
+        expect(autoPerformanceIsEnabled()).toBe(false);
+      });
+
+      it('Auto Performance is disabled when tracesSampler is set to undefined', () => {
+        init({
+          tracesSampler: undefined,
+        });
+
+        expect(autoPerformanceIsEnabled()).toBe(false);
+      });
+
       it('Auto Performance is enabled when tracing is enabled (tracesSampler)', () => {
         init({
           tracesSampler: () => true,

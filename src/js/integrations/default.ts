@@ -1,4 +1,3 @@
-import { hasTracingEnabled } from '@sentry/core';
 import { HttpClient } from '@sentry/integrations';
 import { Integrations as BrowserReactIntegrations } from '@sentry/react';
 import type { Integration } from '@sentry/types';
@@ -77,7 +76,11 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     }
   }
 
-  if (hasTracingEnabled(options) && options.enableAutoPerformanceTracing) {
+  const hasTracingEnabled =
+    options.enableTracing ||
+    typeof options.tracesSampleRate !== 'undefined' ||
+    typeof options.tracesSampler !== 'undefined';
+  if (hasTracingEnabled && options.enableAutoPerformanceTracing) {
     integrations.push(new ReactNativeTracing());
   }
   if (options.enableCaptureFailedRequests) {
