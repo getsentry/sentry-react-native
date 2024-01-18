@@ -11,6 +11,13 @@
 ### Fixed
 
 - Fix `WITH_ENVIRONMENT` overwrite in `sentry-xcode-debug-files.sh` ([#3525](https://github.com/getsentry/sentry-react-native/pull/3525))
+- Sentry CLI 2.25.1 fixes background debug files uploads during Xcode builds ([#3486](https://github.com/getsentry/sentry-react-native/pull/3486))
+
+### Dependencies
+
+- Bump CLI from v2.23.0 to v2.25.2 ([#3486](https://github.com/getsentry/sentry-react-native/pull/3486))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2252)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.23.0...2.25.2)
 
 ## 5.16.0
 
