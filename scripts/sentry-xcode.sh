@@ -23,10 +23,10 @@ ARGS="$NO_AUTO_RELEASE $SENTRY_CLI_EXTRA_ARGS $SENTRY_CLI_RN_XCODE_EXTRA_ARGS"
 REACT_NATIVE_XCODE_WITH_SENTRY="\"$SENTRY_CLI_EXECUTABLE\" react-native xcode $ARGS \"$REACT_NATIVE_XCODE\""
 
 if [ "$SENTRY_DISABLE_AUTO_UPLOAD" != true ]; then
-  /bin/sh -c "\"$NODE_BINARY\" $REACT_NATIVE_XCODE_WITH_SENTRY"
+  /bin/sh -c "\"$LOCAL_NODE_BINARY\" $REACT_NATIVE_XCODE_WITH_SENTRY"
 else
   echo "SENTRY_DISABLE_AUTO_UPLOAD=true, skipping sourcemaps upload"
-  /bin/sh -c "$NODE_BINARY $REACT_NATIVE_XCODE_WITH_SENTRY"
+  /bin/sh -c "$\"$LOCAL_NODE_BINARY\" $REACT_NATIVE_XCODE_WITH_SENTRY"
 fi
 
 [ -z "$SENTRY_COLLECT_MODULES" ] && SENTRY_RN_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json'))")
