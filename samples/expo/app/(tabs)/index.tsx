@@ -110,6 +110,12 @@ export default function TabOneScreen() {
         }}
       />
       <Button
+        title="console.warn()"
+        onPress={() => {
+          console.warn('This is a warning.');
+        }}
+      />
+      <Button
         title="Flush"
         onPress={async () => {
           await Sentry.flush();

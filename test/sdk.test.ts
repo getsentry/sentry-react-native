@@ -115,6 +115,28 @@ describe('Tests the SDK functionality', () => {
         return new ReactNativeTracing({ routingInstrumentation: nav });
       };
 
+      it('Auto Performance is disabled by default', () => {
+        init({});
+
+        expect(autoPerformanceIsEnabled()).toBe(false);
+      });
+
+      it('Auto Performance is disabled when tracesSampleRate is set to undefined', () => {
+        init({
+          tracesSampleRate: undefined,
+        });
+
+        expect(autoPerformanceIsEnabled()).toBe(false);
+      });
+
+      it('Auto Performance is disabled when tracesSampler is set to undefined', () => {
+        init({
+          tracesSampler: undefined,
+        });
+
+        expect(autoPerformanceIsEnabled()).toBe(false);
+      });
+
       it('Auto Performance is enabled when tracing is enabled (tracesSampler)', () => {
         init({
           tracesSampler: () => true,

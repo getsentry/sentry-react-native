@@ -52,6 +52,25 @@ public class SamplePackage implements ReactPackage {
             }
         });
 
+        modules.add(new ReactContextBaseJavaModule() {
+            @Override public String getName() {
+                return "CrashModule";
+            }
+
+            @ReactMethod public void crashOrUndefined() {
+              this.crashNow();
+            }
+
+            @ReactMethod public int crashOrNumber() {
+              this.crashNow();
+              return 42;
+            }
+
+            private void crashNow() {
+                throw new RuntimeException("CrashModule.crashNow()");
+            }
+        });
+
         return modules;
     }
 
