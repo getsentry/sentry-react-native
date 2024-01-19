@@ -5,14 +5,19 @@
 # print commands before executing them and stop on first error
 set -x -e
 
-# load envs if loader file exists (since rn 0.68)
-WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
+[ -z "$WITH_ENVIRONMENT" ] && WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
+
 if [ -f "$WITH_ENVIRONMENT" ]; then
-    . "$WITH_ENVIRONMENT"
+  # load envs if loader file exists (since rn 0.68)
+  . "$WITH_ENVIRONMENT"
 fi
 
+LOCAL_NODE_BINARY=${NODE_BINARY:-node}
+
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
-[ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_EXECUTABLE="../node_modules/@sentry/cli/bin/sentry-cli"
+
+[ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/cli/package.json'))")
+[ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_EXECUTABLE="${SENTRY_CLI_PACKAGE_PATH}/bin/sentry-cli"
 
 [[ $SENTRY_INCLUDE_NATIVE_SOURCES == "true" ]] && INCLUDE_SOURCES_FLAG="--include-sources" || INCLUDE_SOURCES_FLAG=""
 
