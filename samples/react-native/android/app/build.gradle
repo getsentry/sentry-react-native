@@ -35,6 +35,18 @@ sentry {
     // Default is disabled.
     includeNativeSources = true
 
+    // Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
+    // This enables source context, allowing you to see your source
+    // code as part of your stack traces in Sentry.
+    //
+    // Default is disabled.
+    includeSourceContext = true
+
+    // Includes additional source directories into the source bundle.
+    // These directories are resolved relative to the project directory
+    // which is /android/app in this sample application.
+    // additionalSourceDirsForSourceContext = ["src/main/java"]
+
     // `@sentry/react-native` ships with compatible `sentry-android`
     // This option would install the latest version that ships with the SDK or SAGP (Sentry Android Gradle Plugin)
     // which might be incompatible with the React Native SDK
