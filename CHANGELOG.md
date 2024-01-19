@@ -5,7 +5,6 @@
 ### Fixes
 
 - Use direct reference to node ([#3493](https://github.com/getsentry/sentry-react-native/pull/3493))
-=======
 ### Features
 
 - Add experimental visionOS support ([#3467](https://github.com/getsentry/sentry-react-native/pull/3467))
