@@ -4,6 +4,19 @@
 
 ### Features
 
+- New Sentry Metro configuration function `withSentryConfig` ([#3478](https://github.com/getsentry/sentry-react-native/pull/3478))
+  - Ensures all Sentry configuration is added to your Metro config
+  - Includes `createSentryMetroSerializer`
+  - Collapses Sentry internal frames from the stack trace view in LogBox
+
+  ```javascript
+  const { getDefaultConfig } = require('@react-native/metro-config');
+  const { withSentryConfig } = require('@sentry/react-native/metro');
+
+  const config = getDefaultConfig(__dirname);
+  module.exports = withSentryConfig(config);
+  ```
+
 - Add experimental visionOS support ([#3467](https://github.com/getsentry/sentry-react-native/pull/3467))
   - To set up [`react-native-visionos`](https://github.com/callstack/react-native-visionos) with the Sentry React Native SDK follow [the standard `iOS` guides](https://docs.sentry.io/platforms/react-native/manual-setup/manual-setup/#ios).
   - Xcode project is located in `visionos` folder instead of `ios`.
