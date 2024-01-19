@@ -1,4 +1,3 @@
-import { hasTracingEnabled } from '@sentry/core';
 import { HttpClient } from '@sentry/integrations';
 import { Integrations as BrowserReactIntegrations } from '@sentry/react';
 import type { Integration } from '@sentry/types';
@@ -77,7 +76,14 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     }
   }
 
-  if (hasTracingEnabled(options) && options.enableAutoPerformanceTracing) {
+  // hasTracingEnabled from `@sentry/core` only check if tracesSampler or tracesSampleRate keys are present
+  // that's different from prev imp here and might lead misconfiguration
+  // `tracesSampleRate: undefined` should not enable tracing
+  const hasTracingEnabled =
+    options.enableTracing ||
+    typeof options.tracesSampleRate === 'number' ||
+    typeof options.tracesSampler === 'function';
+  if (hasTracingEnabled && options.enableAutoPerformanceTracing) {
     integrations.push(new ReactNativeTracing());
   }
   if (options.enableCaptureFailedRequests) {

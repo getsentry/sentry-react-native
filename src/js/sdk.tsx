@@ -76,8 +76,11 @@ export function init(passedOptions: ReactNativeOptions): void {
     stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser),
     beforeBreadcrumb: safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' }),
     initialScope: safeFactory(passedOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
-    tracesSampler: safeTracesSampler(passedOptions.tracesSampler),
   };
+  if ('tracesSampler' in options) {
+    options.tracesSampler = safeTracesSampler(options.tracesSampler);
+  }
+
   if (!('environment' in options)) {
     options.environment = getDefaultEnvironment();
   }

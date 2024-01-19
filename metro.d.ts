@@ -1,1 +1,1 @@
-export * from './dist/js/tools/sentryMetroSerializer';
+export * from './dist/js/tools/metroconfig';

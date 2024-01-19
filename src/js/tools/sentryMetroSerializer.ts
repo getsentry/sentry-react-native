@@ -1,10 +1,9 @@
 import * as crypto from 'crypto';
-import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
+import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import * as countLines from 'metro/src/lib/countLines';
 
 import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
 import { createDebugIdSnippet, createSet, determineDebugIdFromBundleSource, stringToUUID } from './utils';
-import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 import { createDefaultMetroSerializer } from './vendor/metro/utils';
 
 type SourceMap = Record<string, unknown>;
@@ -16,20 +15,9 @@ const SOURCE_MAP_COMMENT = '//# sourceMappingURL=';
 const DEBUG_ID_COMMENT = '//# debugId=';
 
 /**
- * This function returns Default Expo configuration with Sentry plugins.
+ * Adds Sentry Debug ID polyfill module to the bundle.
  */
-export function getSentryExpoConfig(projectRoot: string, options: DefaultConfigOptions = {}): MetroConfig {
-  const { getDefaultConfig } = loadExpoMetroConfigModule();
-  return getDefaultConfig(projectRoot, {
-    ...options,
-    unstable_beforeAssetSerializationPlugins: [
-      ...(options.unstable_beforeAssetSerializationPlugins || []),
-      unstable_beforeAssetSerializationPlugin,
-    ],
-  });
-}
-
-function unstable_beforeAssetSerializationPlugin({
+export function unstable_beforeAssetSerializationPlugin({
   premodules,
   debugId,
 }: {
@@ -50,26 +38,6 @@ function unstable_beforeAssetSerializationPlugin({
 
   const debugIdModule = createDebugIdModule(debugId);
   return [...addDebugIdModule(premodules, debugIdModule)];
-}
-
-function loadExpoMetroConfigModule(): {
-  getDefaultConfig: (
-    projectRoot: string,
-    options: {
-      unstable_beforeAssetSerializationPlugins?: ((serializationInput: {
-        graph: ReadOnlyGraph<MixedOutput>;
-        premodules: Module[];
-        debugId?: string;
-      }) => Module[])[];
-    },
-  ) => MetroConfig;
-} {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return require('expo/metro-config');
-  } catch (e) {
-    throw new Error('Unable to load `expo/metro-config`. Make sure you have Expo installed.');
-  }
 }
 
 /**
