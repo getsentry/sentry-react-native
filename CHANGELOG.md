@@ -2,9 +2,6 @@
 
 ## Unreleased
 
-### Fixes
-
-- Use direct reference to node ([#3493](https://github.com/getsentry/sentry-react-native/pull/3493))
 ### Features
 
 - Add experimental visionOS support ([#3467](https://github.com/getsentry/sentry-react-native/pull/3467))
@@ -15,6 +12,7 @@
 
 - Fix `WITH_ENVIRONMENT` overwrite in `sentry-xcode-debug-files.sh` ([#3525](https://github.com/getsentry/sentry-react-native/pull/3525))
 - Sentry CLI 2.25.1 fixes background debug files uploads during Xcode builds ([#3486](https://github.com/getsentry/sentry-react-native/pull/3486))
+- Use `$NODE_BINARY` to execute Sentry CLI in Xcode scripts ([#3493](https://github.com/getsentry/sentry-react-native/pull/3493))
 
 ### Dependencies
 
