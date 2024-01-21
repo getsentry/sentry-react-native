@@ -2,42 +2,66 @@ import * as mockWrapper from '../mockWrapper';
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
 
-import { addGlobalEventProcessor, defaultStackParser, getCurrentHub } from '@sentry/browser';
+import { defaultStackParser } from '@sentry/browser';
 import type { Integration } from '@sentry/types';
 
 import { ReactNativeClient } from '../../src/js/client';
 import { getDefaultIntegrations } from '../../src/js/integrations/default';
+import type { ReactNativeClientOptions } from '../../src/js/options';
 import { isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { MOCK_DSN } from '../mockDsn';
 
 describe('Integration execution order', () => {
+  describe('mobile hermes', () => {
+    beforeEach(() => {
+      (notWeb as jest.Mock).mockReturnValue(true);
+      (isHermesEnabled as jest.Mock).mockReturnValue(true);
+    });
 
-  beforeEach(() => {
-    (notWeb as jest.Mock).mockReturnValue(true);
-    (isHermesEnabled as jest.Mock).mockReturnValue(true);
-    jest.useFakeTimers();
+    it('NativeLinkedErrors is before RewriteFrames', async () => {
+      // NativeLinkedErrors has to process event before RewriteFrames
+      // otherwise the linked errors stack trace frames won't be rewritten
+
+      const client = createTestClient();
+      const { integrations } = client.getOptions();
+
+      const nativeLinkedErrors = spyOnIntegrationById('NativeLinkedErrors', integrations);
+      const rewriteFrames = spyOnIntegrationById('RewriteFrames', integrations);
+
+      client.setupIntegrations();
+
+      client.captureException(new Error('test'));
+      jest.runAllTimers();
+
+      expect(nativeLinkedErrors.preprocessEvent).toHaveBeenCalledBefore(rewriteFrames.processEvent!);
+    });
+
+    it('NativeLinkedErrors is before DebugSymbolicator', () => {});
   });
 
-  afterEach(async () => {
-    jest.runAllTimers();
-    jest.useRealTimers();
-    // RN_GLOBAL_OBJ.__SENTRY__.globalEventProcessors = []; // resets integrations
-  });
+  describe('web', () => {
+    beforeEach(() => {
+      (notWeb as jest.Mock).mockReturnValue(false);
+      (isHermesEnabled as jest.Mock).mockReturnValue(false);
+    });
 
-  it('NativeLinkedErrors is before RewriteFrames', async () => {
-    const client = createTestClient();
-    const { integrations } = client.getOptions();
+    it('LinkedErrors is before RewriteFrames', async () => {
+      // LinkedErrors has to process event before RewriteFrames
+      // otherwise the linked errors stack trace frames won't be rewritten
 
-    const nativeLinkedErrors = spyOnIntegrationById('NativeLinkedErrors', integrations);
-    const rewriteFrames = spyOnIntegrationById('RewriteFrames', integrations);
+      const client = createTestClient();
+      const { integrations } = client.getOptions();
 
-    client.setupIntegrations();
-    runSetupOnceIntegrationsForClient(client);
+      const linkedErrors = spyOnIntegrationById('LinkedErrors', integrations);
+      const rewriteFrames = spyOnIntegrationById('RewriteFrames', integrations);
 
-    client.captureException(new Error('test'));
-    jest.runAllTimers();
+      client.setupIntegrations();
 
-    expect(nativeLinkedErrors.preprocessEvent).toHaveBeenCalledBefore(rewriteFrames.processEvent);
+      client.captureException(new Error('test'));
+      jest.runAllTimers();
+
+      expect(linkedErrors.preprocessEvent).toHaveBeenCalledBefore(rewriteFrames.processEvent!);
+    });
   });
 });
 
@@ -49,7 +73,7 @@ interface IntegrationSpy {
 }
 
 function spyOnIntegrationById(id: string, integrations: Integration[]): IntegrationSpy {
-  const candidate = integrations?.find((integration) => integration.name === id);
+  const candidate = integrations?.find(integration => integration.name === id);
   if (!candidate) {
     throw new Error(`Integration ${id} not found`);
   }
@@ -61,30 +85,16 @@ function spyOnIntegrationById(id: string, integrations: Integration[]): Integrat
 }
 
 function createTestClient(): ReactNativeClient {
-  return new ReactNativeClient({
+  const clientOptions: ReactNativeClientOptions = {
     dsn: MOCK_DSN,
     transport: () => ({
       send: jest.fn().mockResolvedValue(undefined),
       flush: jest.fn().mockResolvedValue(true),
     }),
-    integrations: getDefaultIntegrations({
-      integrations: [],
-      transport: () => ({
-        send: jest.fn().mockResolvedValue(undefined),
-        flush: jest.fn().mockResolvedValue(true),
-      }),
-      stackParser: defaultStackParser,
-    }),
     stackParser: defaultStackParser,
-  });
-}
+    integrations: [],
+  };
+  clientOptions.integrations = getDefaultIntegrations(clientOptions);
 
-function runSetupOnceIntegrationsForClient(client: ReactNativeClient): void {
-  // In production integrations are setup only once, but in the tests we want them to setup on every init
-  const integrations = client.getOptions().integrations;
-  if (integrations) {
-    for (const integration of integrations) {
-      integration.setupOnce(addGlobalEventProcessor, getCurrentHub);
-    }
-  }
+  return new ReactNativeClient(clientOptions);
 }
