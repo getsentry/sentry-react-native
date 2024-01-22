@@ -12,7 +12,7 @@ if [ -f "$WITH_ENVIRONMENT" ]; then
   . "$WITH_ENVIRONMENT"
 fi
 
-[ -e $NODE_BINARY ] && LOCAL_NODE_BINARY="$NODE_BINARY" || LOCAL_NODE_BINARY="node"
+LOCAL_NODE_BINARY=${NODE_BINARY:-node}
 
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
 

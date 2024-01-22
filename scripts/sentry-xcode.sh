@@ -7,7 +7,7 @@ set -x -e
 
 # WITH_ENVIRONMENT is executed by React Native
 
-[ -e $NODE_BINARY ] && LOCAL_NODE_BINARY="$NODE_BINARY" || LOCAL_NODE_BINARY="node"
+LOCAL_NODE_BINARY=${NODE_BINARY:-node}
 
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
 [ -z "$SOURCEMAP_FILE" ] && export SOURCEMAP_FILE="$DERIVED_FILE_DIR/main.jsbundle.map"
