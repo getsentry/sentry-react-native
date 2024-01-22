@@ -21,7 +21,7 @@
   - To set up [`react-native-visionos`](https://github.com/callstack/react-native-visionos) with the Sentry React Native SDK follow [the standard `iOS` guides](https://docs.sentry.io/platforms/react-native/manual-setup/manual-setup/#ios).
   - Xcode project is located in `visionos` folder instead of `ios`.
 
-### Fixed
+### Fixes
 
 - Fix `WITH_ENVIRONMENT` overwrite in `sentry-xcode-debug-files.sh` ([#3525](https://github.com/getsentry/sentry-react-native/pull/3525))
 - Sentry CLI 2.25.1 fixes background debug files uploads during Xcode builds ([#3486](https://github.com/getsentry/sentry-react-native/pull/3486))
