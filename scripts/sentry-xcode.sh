@@ -17,7 +17,7 @@ LOCAL_NODE_BINARY=${NODE_BINARY:-node}
 
 REACT_NATIVE_XCODE=$1
 
-[[ "$AUTO_RELEASE" != true ]] && [[ -z "$BUNDLE_COMMAND" || "$BUNDLE_COMMAND" != "ram-bundle" ]] && NO_AUTO_RELEASE="--no-auto-release"
+[[ "$AUTO_RELEASE" == false ]] && [[ -z "$BUNDLE_COMMAND" || "$BUNDLE_COMMAND" != "ram-bundle" ]] && NO_AUTO_RELEASE="--no-auto-release"
 ARGS="$NO_AUTO_RELEASE $SENTRY_CLI_EXTRA_ARGS $SENTRY_CLI_RN_XCODE_EXTRA_ARGS"
 
 REACT_NATIVE_XCODE_WITH_SENTRY="\"$SENTRY_CLI_EXECUTABLE\" react-native xcode $ARGS \"$REACT_NATIVE_XCODE\""
