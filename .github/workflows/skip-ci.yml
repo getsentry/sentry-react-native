@@ -5,14 +5,17 @@ jobs:
   check-ci:
     runs-on: ubuntu-latest
     outputs:
-      skip_ci: ${{ steps.check-diff.outputs.skip_ci }}
+      skip_ci:
+        description:
+          Value yes if the current PR only contains changes to files not related to code, otherwise, not defined.
+        value: ${{ steps.check_diff.outputs.skip_ci }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Check diff from Pull Request
-        id: check-diff
+        id: check_diff
         run: |
           skipList=(".github/codeowners" ".prettierignore")
           # Ignores changelog.md, readme.md,...
@@ -25,5 +28,5 @@ jobs:
               exit 0
             fi
           done
-          echo "skip_ci=true" >> $GITHUB_OUTPUT
+          echo "skip_ci=yes" >> $GITHUB_OUTPUT
           echo "no source code files commited, skipping CI."
