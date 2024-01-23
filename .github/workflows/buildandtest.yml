@@ -11,7 +11,7 @@ jobs:
   job_test:
     name: Test
     runs-on: ubuntu-latest
-    needs: [Skip CI]
+    needs: [check-ci]
     if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
@@ -32,7 +32,7 @@ jobs:
   job_lint:
     name: Lint
     runs-on: ubuntu-latest
-    needs: [Skip CI]
+    needs: [check-ci]
     if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
@@ -50,7 +50,7 @@ jobs:
   job_lint_sample_new_arch:
     name: Lint Sample
     runs-on: ubuntu-latest
-    needs: [Skip CI]
+    needs: [check-ci]
     if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
@@ -70,7 +70,7 @@ jobs:
   job_check_integrity:
     name: Check package integrity
     runs-on: ubuntu-latest
-    needs: [Skip CI]
+    needs: [check-ci]
     if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
@@ -90,7 +90,7 @@ jobs:
   job_build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [Skip CI]
+    needs: [check-ci]
     if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
@@ -134,7 +134,7 @@ jobs:
   job_type_check:
     name: Type Check Typescript 3.8
     runs-on: ubuntu-latest
-    needs: [job_build, Skip CI]
+    needs: [job_build, check-ci]
     if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
@@ -174,7 +174,7 @@ jobs:
   job_circular_dep_check:
     name: Circular Dependency Check
     runs-on: ubuntu-latest
-    needs: [job_build, Skip CI]
+    needs: [job_build, check-ci]
     if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
@@ -206,7 +206,7 @@ jobs:
   job_bundle:
     name: Bundle
     runs-on: ubuntu-latest
-    needs: [job_test, job_build, Skip CI]
+    needs: [job_test, job_build, check-ci]
     if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
