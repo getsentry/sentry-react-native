@@ -1,6 +1,8 @@
 import type { Context, Event, EventHint, EventProcessor, Integration } from '@sentry/types';
 
 import {
+  getExpoGoVersion,
+  getExpoSdkVersion,
   getHermesVersion,
   getReactNativeVersion,
   isExpo,
@@ -16,9 +18,11 @@ export interface ReactNativeContext extends Context {
   fabric: boolean;
   expo: boolean;
   hermes_version?: string;
-  react_native_version: string;
+  react_native_version?: string;
   component_stack?: string;
   hermes_debug_info?: boolean;
+  expo_go_version?: string;
+  expo_sdk_version?: string;
 }
 
 /** Loads React Native context at runtime */
@@ -67,6 +71,16 @@ export class ReactNativeInfo implements Integration {
 
       if (reactNativeError?.componentStack) {
         reactNativeContext.component_stack = reactNativeError.componentStack;
+      }
+
+      const expoGoVersion = getExpoGoVersion();
+      if (expoGoVersion) {
+        reactNativeContext.expo_go_version = expoGoVersion;
+      }
+
+      const expoSdkVersion = getExpoSdkVersion();
+      if (expoSdkVersion) {
+        reactNativeContext.expo_sdk_version = expoSdkVersion;
       }
 
       event.contexts = {

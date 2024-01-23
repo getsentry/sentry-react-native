@@ -4,6 +4,7 @@ import { addExceptionMechanism, logger } from '@sentry/utils';
 
 import type { ReactNativeClient } from '../client';
 import { createSyntheticError, isErrorLike } from '../utils/error';
+import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
 /** ReactNativeErrorHandlers Options */
@@ -74,17 +75,20 @@ export class ReactNativeErrorHandlers implements Integration {
    * - The package resolution fix no longer works with 0.67 on iOS Hermes.
    */
   private _polyfillPromise(): void {
-    /* eslint-disable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
-    const { polyfillGlobal } = require('react-native/Libraries/Utilities/PolyfillFunctions');
+    if (!ReactNativeLibraries.Utilities) {
+      logger.warn('Could not polyfill Promise. React Native Libraries Utilities not found.');
+      return;
+    }
 
     const Promise = this._getPromisePolyfill();
 
     // As of RN 0.67 only done and finally are used
+    // eslint-disable-next-line import/no-extraneous-dependencies
     require('promise/setimmediate/done');
+    // eslint-disable-next-line import/no-extraneous-dependencies
     require('promise/setimmediate/finally');
 
-    polyfillGlobal('Promise', () => Promise);
-    /* eslint-enable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
+    ReactNativeLibraries.Utilities.polyfillGlobal('Promise', () => Promise);
   }
 
   /**
@@ -146,8 +150,7 @@ export class ReactNativeErrorHandlers implements Integration {
       // or dependency that uses a different version.
       // We have to check if the React Native Promise and the `promise` package Promise are using the same reference.
       // If they are not, likely there are multiple versions of the `promise` package installed.
-      // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
-      const ReactNativePromise = require('react-native/Libraries/Promise');
+      const ReactNativePromise = ReactNativeLibraries.Promise;
       // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
       const PromisePackagePromise = require('promise/setimmediate/es6-extensions');
       const UsedPromisePolyfill = this._getPromisePolyfill();
