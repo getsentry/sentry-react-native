@@ -1,7 +1,4 @@
 name: Skip CI
-on:
-  pull_request:
-
 jobs:
   check-ci:
     runs-on: ubuntu-latest
