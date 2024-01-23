@@ -5,17 +5,21 @@ on:
 jobs:
   check-ci:
     runs-on: ubuntu-latest
+    outputs:
+      skip_ci: ${{ steps.check-diff.outputs.skip_ci }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Check diff from Pull Request
+        id: check-diff
         run: |
           skipList=(".github/codeowners")
           # Ignores changelog.md, readme.md,...
           fileChangesArray=($(git diff --name-only  origin/${{ github.base_ref }}..origin/${{ github.head_ref }} | grep -v '\.md$'))
           echo ${fileChangesArray}
+          git diff --name-only  origin/${{ github.base_ref }}..origin/${{ github.head_ref }}
           for item in "${fileChangesArray[@]}"
           do
             if [[ ! " ${skipList[@]} " =~ " ${item} " ]]; then
@@ -23,6 +27,6 @@ jobs:
               exit 0
             fi
           done
-          echo "{skip_ci}=true" >> $GITHUB_ENV
+          echo "skip_ci=true" >> $GITHUB_OUTPUT
       - name: test
         run: echo ${{ env.skip_ci }}
