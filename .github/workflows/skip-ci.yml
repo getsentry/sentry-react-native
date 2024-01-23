@@ -4,7 +4,7 @@ on: [push, pull_request]
 jobs:
   check-ci:
     runs-on: ubuntu-latest
-    step:
+    steps:
       - name: Check diff from
         run: |
           skipList=(".github/codeowners")
