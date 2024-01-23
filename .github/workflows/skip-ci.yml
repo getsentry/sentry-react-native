@@ -1,5 +1,6 @@
 name: Skip CI
-on: [push, pull_request]
+on:
+  pull_request:
 
 jobs:
   check-ci:
@@ -18,8 +19,8 @@ jobs:
           for item in "${fileChangesArray[@]}"
           do
             if [[ ! " ${my_array[@]} " =~ " ${item} " ]]; then
-              echo "{skip_ci}=true >> $GITHUB_ENV"
-              exit 1
+              echo "{skip_ci}=false >> $GITHUB_ENV"
+              exit 0
             fi
           done
-          echo "{skip_ci}=false >> $GITHUB_ENV"
+          echo "{skip_ci}=true >> $GITHUB_ENV"
