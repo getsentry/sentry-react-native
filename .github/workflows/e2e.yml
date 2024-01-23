@@ -15,6 +15,7 @@ env:
 jobs:
   cancel-previous-workflow:
     runs-on: ubuntu-latest
+    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
@@ -23,12 +24,13 @@ jobs:
 
   metrics:
     runs-on: ${{ matrix.runs-on }}
+    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
       matrix:
         rn-architecture: ['legacy', 'new']
-        platform: ["ios", "android"]
+        platform: ['ios', 'android']
         include:
           - platform: ios
             runs-on: macos-latest
@@ -46,7 +48,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           java-version: '17'
-          distribution: "adopt"
+          distribution: 'adopt'
       - name: Gradle cache
         uses: gradle/gradle-build-action@v2
       - name: Install Global Dependencies
@@ -57,7 +59,8 @@ jobs:
           path: |
             node_modules
             test/perf/TestAppSentry/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'test/perf/TestAppSentry/yarn.lock') }}
+          key:
+            ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'test/perf/TestAppSentry/yarn.lock') }}
       - name: Install Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
@@ -75,7 +78,9 @@ jobs:
           # if the whole plain app folder is hashed the cache is never hit as there are files generated in the folder
           # the cache key is calculated both at cache retrieval and save time
           # hashFiles fails when there are rn android new arch generated files in the folder (exact reason unknown)
-          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('test/perf/TestAppPlain/yarn.lock') }}
+          key:
+            ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{
+            hashFiles('test/perf/TestAppPlain/yarn.lock') }}
       - name: Build app plain
         if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
         working-directory: ./test/perf/TestAppPlain
@@ -144,7 +149,10 @@ jobs:
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
 
   react-native-build:
-    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
+    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
+    name:
+      Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{
+      matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     runs-on: ${{ matrix.runs-on }}
     env:
       RN_SENTRY_POD_NAME: RNSentry
@@ -273,7 +281,9 @@ jobs:
 
       - name: Download Plain RN ${{ matrix.rn-version }} App
         working-directory: test/react-native/versions
-        run: git clone $RN_DIFF_REPOSITORY --branch release/${{ matrix.rn-version }} --single-branch ${{ matrix.rn-version }}
+        run:
+          git clone $RN_DIFF_REPOSITORY --branch release/${{ matrix.rn-version }} --single-branch ${{ matrix.rn-version
+          }}
 
       - name: Add SDK to App
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
@@ -378,7 +388,9 @@ jobs:
         if: matrix.platform == 'android' && matrix.build-type == 'production'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
+          name:
+            ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{
+            matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: apk.tar
           retention-days: 1
 
@@ -386,7 +398,9 @@ jobs:
         if: matrix.platform == 'ios' && matrix.build-type == 'production'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
+          name:
+            ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{
+            matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: app.tar
           retention-days: 1
 
@@ -394,11 +408,16 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}
+          name:
+            rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{
+            matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}
           path: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios/*.log
 
   react-native-test:
-    name: Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
+    name:
+      Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{
+      matrix.build-type }} ${{ matrix.ios-use-frameworks }}
+    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
     needs: react-native-build
     runs-on: ${{ matrix.runs-on }}
     strategy:
@@ -444,7 +463,9 @@ jobs:
         if: matrix.build-type == 'production'
         uses: actions/download-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
+          name:
+            ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{
+            matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: test/e2e
 
       - name: Extract App Package
@@ -537,14 +558,8 @@ jobs:
           target: 'aosp_atd'
           channel: canary # Necessary for ATDs
           emulator-options: >
-            -no-window
-            -no-snapshot-save
-            -gpu swiftshader_indirect
-            -noaudio
-            -no-boot-anim
-            -camera-back none
-            -camera-front none
-            -timezone US/Pacific
+            -no-window -no-snapshot-save -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+            -camera-front none -timezone US/Pacific
           script: |
             # Collect logs
             adb logcat '*:D' 2>&1 >adb.log &
@@ -564,7 +579,9 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
+          name:
+            ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{
+            matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
           path: |
             test/e2e/*.log
             test/e2e/*.png

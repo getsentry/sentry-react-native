@@ -7,6 +7,7 @@ on:
 
 jobs:
   cancel-previous-workflow:
+    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
     runs-on: ubuntu-latest
     steps:
       - name: Cancel Previous Runs
@@ -15,6 +16,7 @@ jobs:
           access_token: ${{ github.token }}
 
   test-ios:
+    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
     name: ios
     runs-on: macos-latest
     steps:
@@ -51,6 +53,7 @@ jobs:
   test-android:
     name: android
     runs-on: ubuntu-latest
+    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -93,14 +96,8 @@ jobs:
           target: 'aosp_atd'
           channel: canary # Necessary for ATDs
           emulator-options: >
-            -no-window
-            -no-snapshot-save
-            -gpu swiftshader_indirect
-            -noaudio
-            -no-boot-anim
-            -camera-back none
-            -camera-front none
-            -timezone US/Pacific
+            -no-window -no-snapshot-save -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+            -camera-front none -timezone US/Pacific
           script: echo "Generated AVD snapshot for caching."
 
       - name: Run connected tests
@@ -114,14 +111,8 @@ jobs:
           target: 'aosp_atd'
           channel: canary # Necessary for ATDs
           emulator-options: >
-            -no-window
-            -no-snapshot-save
-            -gpu swiftshader_indirect
-            -noaudio
-            -no-boot-anim
-            -camera-back none
-            -camera-front none
-            -timezone US/Pacific
+            -no-window -no-snapshot-save -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+            -camera-front none -timezone US/Pacific
           script: |
             ./gradlew uninstallDebug uninstallDebugAndroidTest
             ./gradlew connectedCheck

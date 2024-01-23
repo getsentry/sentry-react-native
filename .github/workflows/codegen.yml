@@ -10,9 +10,10 @@ on:
 jobs:
   codegen:
     runs-on: ubuntu-latest
+    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
     strategy:
       matrix:
-        platform: ["android", "ios"]
+        platform: ['android', 'ios']
         include:
           - platform: android
             command: |
@@ -32,7 +33,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           java-version: '17'
-          distribution: "adopt"
+          distribution: 'adopt'
       - name: Gradle cache
         uses: gradle/gradle-build-action@v2
       - uses: actions/cache@v3

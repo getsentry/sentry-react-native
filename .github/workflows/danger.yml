@@ -6,4 +6,5 @@ on:
 
 jobs:
   danger:
+    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
     uses: getsentry/github-workflows/.github/workflows/danger.yml@v2

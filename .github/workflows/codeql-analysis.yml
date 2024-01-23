@@ -24,6 +24,7 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
+    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
 
     strategy:
       fail-fast: false

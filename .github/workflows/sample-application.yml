@@ -16,6 +16,7 @@ env:
 jobs:
   cancel-previous-workflow:
     runs-on: ubuntu-latest
+    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
@@ -24,6 +25,7 @@ jobs:
 
   build:
     name: Build ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
+    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
     runs-on: ${{ matrix.runs-on }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
@@ -68,7 +70,9 @@ jobs:
           path: |
             node_modules
             samples/react-native/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-${{ runner.os }}-npm-${{ hashFiles('yarn.lock', 'samples/react-native/yarn.lock') }}
+          key:
+            ${{ github.workflow }}-${{ github.job }}-${{ runner.os }}-npm-${{ hashFiles('yarn.lock',
+            'samples/react-native/yarn.lock') }}
 
       - name: Install SDK Dependencies
         if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
