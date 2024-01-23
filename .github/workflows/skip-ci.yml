@@ -16,7 +16,7 @@ jobs:
         run: |
           skipList=(".github/codeowners")
           # Ignores changelog.md, readme.md,...
-          fileChangesArray=($(git diff --name-only  origin/${{ github.base_ref }}..origin/${{ github.head_ref }} | grep -v '\.md$'))
+          fileChangesArray=($(git diff --name-only  origin/${{ github.base_ref }}..origin/${{ github.head_ref }} | grep -v '\.md$' | grep -v '\.yml$'))
           printf '%s\n' "${fileChangesArray[@]}"
           for item in "${fileChangesArray[@]}"
           do
