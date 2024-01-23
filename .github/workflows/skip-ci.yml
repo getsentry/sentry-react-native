@@ -29,3 +29,11 @@ jobs:
           done
           echo "skip_ci=yes" >> $GITHUB_OUTPUT
           echo "no source code files commited, skipping CI."
+  testLucas:
+    runs-on: ubuntu-latest
+    needs: check-ci
+    steps:
+      - name: TestLucas
+        run: |
+          echo "test ${{ needs.check-ci.outputs.skip_ci }}"
+          echo "test ${{ needs.check-ci.outputs.skip_ci }}"
