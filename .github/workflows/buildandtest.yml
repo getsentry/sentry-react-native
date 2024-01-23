@@ -9,7 +9,7 @@ on:
 
 jobs:
   check-ci:
-    uses: ./.github/workflows/skip-ci.yml@${{ github.ref }}
+    uses: ./.github/workflows/skip-ci.yml
   job_test:
     name: Test
     runs-on: ubuntu-latest
