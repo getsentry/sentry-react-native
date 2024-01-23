@@ -6,11 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check diff from
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
         run: |
           skipList=(".github/codeowners")
           # Ignores changelog.md, readme.md,...
-          fileChangesArray=($(git diff --name-only  origin/${{ github.base_ref }}..origin/${{ github.head_ref }} | grep -v '\.md$'))
-          echo git diff --name-only HEAD~ HEAD
+          fileChangesArray=($(git diff --name-only  origin/${{ github.base_ref }}..${{ github.head_ref }} | grep -v '\.md$'))
+          echo ${fileChangesArray}
           for item in "${fileChangesArray[@]}"
           do
             if [[ ! " ${my_array[@]} " =~ " ${item} " ]]; then
