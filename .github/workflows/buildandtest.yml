@@ -11,7 +11,8 @@ jobs:
   job_test:
     name: Test
     runs-on: ubuntu-latest
-    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
+    needs: [Skip CI]
+    if: ${{ !env.skip_ci)) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

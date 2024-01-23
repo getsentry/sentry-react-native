@@ -1,0 +1,20 @@
+name: Skip CI
+on: [push, pull_request]
+
+jobs:
+  runs-on: ubuntu-latest
+  step:
+    - name: Check diff from
+      run: |
+        skipList=(".github/codeowners")
+        # Ignores changelog.md, readme.md,...
+        fileChangesArray=($(git diff --name-only  ${{ github.base_ref }} ${{ github.head_ref }} --diff-filter=d | grep -v '\.md$'))
+        echo git diff --name-only HEAD~ HEAD
+        for item in "${fileChangesArray[@]}"
+        do
+          if [[ ! " ${my_array[@]} " =~ " ${item} " ]]; then
+            echo "{skip_ci}=true >> $GITHUB_ENV"
+            exit 1
+          fi
+        done
+        echo "{skip_ci}=false >> $GITHUB_ENV"
