@@ -6,7 +6,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       skip_ci:
-        description: Value yes if the current PR only contains changes to files not related to code, otherwise, not defined.
+        description:
+          "Value yes if the current PR only contains changes to files not related to code, otherwise, not defined."
         value: ${{ steps.check_diff.outputs.skip_ci }}
     steps:
       - uses: actions/checkout@v4
