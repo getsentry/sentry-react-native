@@ -6,8 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       skip_ci:
-        description: "Value yes if the current PR only contains changes to files not related to code, otherwise, not defined."
-        value: ${{ steps.check_diff.outputs.skip_ci }}
+        ${{ steps.check_diff.outputs.skip_ci }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,6 +23,7 @@ jobs:
           do
             if [[ ! " ${skipList[@]} " =~ " ${item} " ]]; then
               #found an item that doesn't belong to the skip list.
+              echo "skip_ci=no" >> $GITHUB_OUTPUT
               exit 0
             fi
           done
