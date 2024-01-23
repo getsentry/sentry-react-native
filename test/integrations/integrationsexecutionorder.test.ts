@@ -35,8 +35,6 @@ describe('Integration execution order', () => {
 
       expect(nativeLinkedErrors.preprocessEvent).toHaveBeenCalledBefore(rewriteFrames.processEvent!);
     });
-
-    it('NativeLinkedErrors is before DebugSymbolicator', () => {});
   });
 
   describe('web', () => {
