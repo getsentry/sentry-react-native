@@ -5,10 +5,11 @@ jobs:
   check-ci:
     runs-on: ubuntu-latest
     steps:
-      - name: Check diff from
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Check diff from
         run: |
           skipList=(".github/codeowners")
           # Ignores changelog.md, readme.md,...
