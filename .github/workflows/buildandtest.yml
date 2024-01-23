@@ -17,7 +17,6 @@ jobs:
       - name: TestLucas
         run: |
           echo "test ${{ needs.diff_check.outputs.skip_ci }}"
-          echo "test ${{ needs.diff_check.diff_check.outputs.skip_ci }}"
   job_test:
     name: Test
     runs-on: ubuntu-latest

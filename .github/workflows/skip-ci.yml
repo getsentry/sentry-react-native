@@ -1,6 +1,11 @@
 name: Skip CI
 on:
   workflow_call:
+    outputs:
+      skip_ci:
+        description: "Value yes if the current PR only contains changes to files not related to code, otherwise, not defined."
+        value: ${{ jobs.check-ci.outputs.skip_ci }}
+
 jobs:
   check-ci:
     runs-on: ubuntu-latest
@@ -23,17 +28,8 @@ jobs:
           do
             if [[ ! " ${skipList[@]} " =~ " ${item} " ]]; then
               #found an item that doesn't belong to the skip list.
-              echo "skip_ci=no" >> $GITHUB_OUTPUT
               exit 0
             fi
           done
-          echo "skip_ci=yes" >> $GITHUB_OUTPUT
+          echo "skip_ci=true" >> $GITHUB_OUTPUT
           echo "no source code files commited, skipping CI."
-  testLucas:
-    runs-on: ubuntu-latest
-    needs: check-ci
-    steps:
-      - name: TestLucas
-        run: |
-          echo "test ${{ needs.check-ci.outputs.skip_ci }}"
-          echo "test ${{ needs.check-ci.outputs.skip_ci }}"
