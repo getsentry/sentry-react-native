@@ -8,9 +8,13 @@ on:
   pull_request:
 
 jobs:
+  check-ci:
+    uses: ./.github/workflows/skip-ci.yml
+
   codegen:
     runs-on: ubuntu-latest
-    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
+    needs: [check-ci]
+    if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     strategy:
       matrix:
         platform: ['android', 'ios']

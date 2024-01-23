@@ -13,9 +13,13 @@ env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
 jobs:
+  check-ci:
+    uses: ./.github/workflows/skip-ci.yml
+
   cancel-previous-workflow:
     runs-on: ubuntu-latest
-    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
+    needs: [check-ci]
+    if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
@@ -24,7 +28,8 @@ jobs:
 
   metrics:
     runs-on: ${{ matrix.runs-on }}
-    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
+    needs: [check-ci]
+    if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
@@ -149,11 +154,12 @@ jobs:
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
 
   react-native-build:
-    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
     name:
       Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{
       matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     runs-on: ${{ matrix.runs-on }}
+    needs: [check-ci]
+    if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     env:
       RN_SENTRY_POD_NAME: RNSentry
       RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
@@ -417,8 +423,9 @@ jobs:
     name:
       Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{
       matrix.build-type }} ${{ matrix.ios-use-frameworks }}
-    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
-    needs: react-native-build
+    needs: [react-native-build, check-ci]
+    if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
+
     runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false # keeps matrix running if one fails

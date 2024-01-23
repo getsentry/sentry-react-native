@@ -14,9 +14,13 @@ env:
   RN_SENTRY_POD_NAME: RNSentry
 
 jobs:
+  check-ci:
+    uses: ./.github/workflows/skip-ci.yml
+
   cancel-previous-workflow:
     runs-on: ubuntu-latest
-    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
+    needs: [check-ci]
+    if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
@@ -25,8 +29,9 @@ jobs:
 
   build:
     name: Build ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
-    if: ${{ !contains(git diff --name-only HEAD~ HEAD, $(cat .github/.ci_ignore_files)) }}
     runs-on: ${{ matrix.runs-on }}
+    needs: [check-ci]
+    if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
