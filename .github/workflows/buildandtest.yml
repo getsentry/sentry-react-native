@@ -15,8 +15,11 @@ jobs:
     needs: [check-ci]
     steps:
       - name: TestLucas
-        run: echo "test ${{ needs.check-ci.outputs.skip_ci }}"
-
+        run: |
+          echo "test ${{ needs.check-ci.outputs.skip_ci }}"
+          echo "test ${{ needs.check-ci.check-ci.outputs.skip_ci }}"
+          echo "test ${{ jobs.check-ci.outputs.skip_ci }}"
+          echo "test ${{ needs.check-ci.check-ci.outputs.skip_ci }}"
   job_test:
     name: Test
     runs-on: ubuntu-latest
