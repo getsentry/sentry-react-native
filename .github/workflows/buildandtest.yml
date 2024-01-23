@@ -10,6 +10,12 @@ on:
 jobs:
   check-ci:
     uses: ./.github/workflows/skip-ci.yml
+  testLucas:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: [check-ci]
+    run: echo "test ${{ needs.check-ci.outputs.skip_ci }}"
+
   job_test:
     name: Test
     runs-on: ubuntu-latest

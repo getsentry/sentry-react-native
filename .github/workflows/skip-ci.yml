@@ -26,5 +26,4 @@ jobs:
             fi
           done
           echo "skip_ci=true" >> $GITHUB_OUTPUT
-      - name: test
-        run: echo ${{ env.skip_ci }}
+          echo "no source code files commited, skipping CI."
