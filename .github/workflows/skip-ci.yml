@@ -10,7 +10,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check diff from
+      - name: Check diff from Pull Request
         run: |
           skipList=(".github/codeowners")
           # Ignores changelog.md, readme.md,...
@@ -18,8 +18,8 @@ jobs:
           echo ${fileChangesArray}
           for item in "${fileChangesArray[@]}"
           do
-            if [[ ! " ${my_array[@]} " =~ " ${item} " ]]; then
-              echo "{skip_ci}=false >> $GITHUB_ENV"
+            if [[ ! " ${skipList[@]} " =~ " ${item} " ]]; then
+              #found an item that doesn't belong to the skip list.
               exit 0
             fi
           done
