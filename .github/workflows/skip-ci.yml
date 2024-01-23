@@ -9,6 +9,7 @@ on:
 jobs:
   check-ci:
     runs-on: ubuntu-latest
+    continue-on-error: true
     outputs:
       skip_ci:
         ${{ steps.check_diff.outputs.skip_ci }}
