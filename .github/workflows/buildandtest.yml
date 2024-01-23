@@ -14,8 +14,8 @@ jobs:
     needs: [check-ci]
   testLucas:
     steps:
-      name: TestLucas
-      run: echo "test ${{ needs.check-ci.outputs.skip_ci }}"
+      - name: TestLucas
+        run: echo "test ${{ needs.check-ci.outputs.skip_ci }}"
 
   job_test:
     name: Test
