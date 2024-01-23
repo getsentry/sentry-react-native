@@ -1,4 +1,6 @@
 name: Skip CI
+on:
+  workflow_call:
 jobs:
   check-ci:
     runs-on: ubuntu-latest
