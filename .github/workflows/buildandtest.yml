@@ -18,8 +18,6 @@ jobs:
         run: |
           echo "test ${{ needs.check-ci.outputs.skip_ci }}"
           echo "test ${{ needs.check-ci.check-ci.outputs.skip_ci }}"
-          echo "test ${{ jobs.check-ci.outputs.skip_ci }}"
-          echo "test ${{ needs.check-ci.check-ci.outputs.skip_ci }}"
   job_test:
     name: Test
     runs-on: ubuntu-latest
