@@ -12,7 +12,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     needs: [Skip CI]
-    if: ${{ env.skip_ci == 'true' }}
+    if: ${{ env.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,7 +33,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     needs: [Skip CI]
-    if: ${{ env.skip_ci == 'true' }}
+    if: ${{ env.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v3
@@ -51,7 +51,7 @@ jobs:
     name: Lint Sample
     runs-on: ubuntu-latest
     needs: [Skip CI]
-    if: ${{ env.skip_ci == 'true' }}
+    if: ${{ env.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v3
@@ -71,7 +71,7 @@ jobs:
     name: Check package integrity
     runs-on: ubuntu-latest
     needs: [Skip CI]
-    if: ${{ env.skip_ci == 'true' }}
+    if: ${{ env.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v3
@@ -91,7 +91,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: [Skip CI]
-    if: ${{ env.skip_ci == 'true' }}
+    if: ${{ env.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -135,7 +135,7 @@ jobs:
     name: Type Check Typescript 3.8
     runs-on: ubuntu-latest
     needs: [job_build, Skip CI]
-    if: ${{ env.skip_ci == 'true' }}
+    if: ${{ env.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -175,7 +175,7 @@ jobs:
     name: Circular Dependency Check
     runs-on: ubuntu-latest
     needs: [job_build, Skip CI]
-    if: ${{ env.skip_ci == 'true' }}
+    if: ${{ env.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -206,7 +206,7 @@ jobs:
   job_bundle:
     name: Bundle
     runs-on: ubuntu-latest
-    if: ${{ env.skip_ci == 'true' }}
+    if: ${{ env.skip_ci != 'true' }}
     needs: [job_test, job_build, Skip CI]
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.

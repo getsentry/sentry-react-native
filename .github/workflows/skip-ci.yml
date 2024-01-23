@@ -24,3 +24,5 @@ jobs:
             fi
           done
           echo "{skip_ci}=true >> $GITHUB_ENV"
+      - name: test
+        run: echo ${{ env.skip_ci }}
