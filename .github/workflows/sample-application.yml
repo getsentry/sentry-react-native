@@ -44,6 +44,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: |
+            yarn.lock
+            samples/react-native/yarn.lock
+
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' }}
         with:
@@ -63,28 +71,15 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         run: brew install xcbeautify
 
-      - name: NPM cache
-        uses: actions/cache@v3
-        id: deps-cache
-        with:
-          path: |
-            node_modules
-            samples/react-native/node_modules
-          key:
-            ${{ github.workflow }}-${{ github.job }}-${{ runner.os }}-npm-${{ hashFiles('yarn.lock',
-            'samples/react-native/yarn.lock') }}
-
       - name: Install SDK Dependencies
-        if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Build SDK
         run: yarn build
 
       - name: Install Sample Dependencies
-        if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
         working-directory: samples/react-native
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Install App Pods
         if: ${{ matrix.platform == 'ios' }}
