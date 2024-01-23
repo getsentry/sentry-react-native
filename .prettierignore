@@ -1,3 +1,4 @@
 /test/react-native/versions
 CHANGELOG.md
 .github/workflows/*.yml
+*.md
