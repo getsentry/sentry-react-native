@@ -61,28 +61,22 @@ export class NativeLinkedErrors implements Integration {
   /**
    * @inheritDoc
    */
-  public async preprocessEvent(event: Event, hint: EventHint | undefined, client: Client): Promise<void> {
+  public preprocessEvent(event: Event, hint: EventHint | undefined, client: Client): void {
     if (this._nativePackage === null) {
-      this._nativePackage = await this._fetchNativePackage();
+      this._nativePackage = this._fetchNativePackage();
     }
 
-    await this._handler(client.getOptions().stackParser, this._key, this._limit, event, hint);
+    this._handler(client.getOptions().stackParser, this._key, this._limit, event, hint);
   }
 
   /**
    * Enriches passed event with linked exceptions and native debug meta images.
    */
-  private async _handler(
-    parser: StackParser,
-    key: string,
-    limit: number,
-    event: Event,
-    hint?: EventHint,
-  ): Promise<void> {
+  private _handler(parser: StackParser, key: string, limit: number, event: Event, hint?: EventHint): void {
     if (!event.exception || !event.exception.values || !hint || !isInstanceOf(hint.originalException, Error)) {
       return;
     }
-    const { exceptions: linkedErrors, debugImages } = await this._walkErrorTree(
+    const { exceptions: linkedErrors, debugImages } = this._walkErrorTree(
       parser,
       limit,
       hint.originalException as ExtendedError,
@@ -93,25 +87,23 @@ export class NativeLinkedErrors implements Integration {
     event.debug_meta = event.debug_meta || {};
     event.debug_meta.images = event.debug_meta.images || [];
     event.debug_meta.images.push(...(debugImages || []));
-
-    return;
   }
 
   /**
    * Walks linked errors and created Sentry exceptions chain.
    * Collects debug images from native errors stack frames.
    */
-  private async _walkErrorTree(
+  private _walkErrorTree(
     parser: StackParser,
     limit: number,
     error: ExtendedError,
     key: string,
     exceptions: Exception[] = [],
     debugImages: DebugImage[] = [],
-  ): Promise<{
+  ): {
     exceptions: Exception[];
     debugImages?: DebugImage[];
-  }> {
+  } {
     const linkedError = error[key];
     if (!linkedError || exceptions.length + 1 >= limit) {
       return {
@@ -127,7 +119,7 @@ export class NativeLinkedErrors implements Integration {
       exception = this._exceptionFromJavaStackElements(linkedError);
     } else if ('stackReturnAddresses' in linkedError) {
       // isObjCException
-      const { appleException, appleDebugImages } = await this._exceptionFromAppleStackReturnAddresses(linkedError);
+      const { appleException, appleDebugImages } = this._exceptionFromAppleStackReturnAddresses(linkedError);
       exception = appleException;
       exceptionDebugImages = appleDebugImages;
     } else if (isInstanceOf(linkedError, Error)) {
@@ -194,15 +186,15 @@ export class NativeLinkedErrors implements Integration {
   /**
    * Converts StackAddresses to a SentryException with DebugMetaImages
    */
-  private async _exceptionFromAppleStackReturnAddresses(objCException: {
+  private _exceptionFromAppleStackReturnAddresses(objCException: {
     name: string;
     message: string;
     stackReturnAddresses: number[];
-  }): Promise<{
+  }): {
     appleException: Exception;
     appleDebugImages: DebugImage[];
-  }> {
-    const nativeStackFrames = await this._fetchNativeStackFrames(objCException.stackReturnAddresses);
+  } {
+    const nativeStackFrames = this._fetchNativeStackFrames(objCException.stackReturnAddresses);
 
     return {
       appleException: {
@@ -219,14 +211,14 @@ export class NativeLinkedErrors implements Integration {
   /**
    * Fetches the native package/image name from the native layer
    */
-  private _fetchNativePackage(): Promise<string | null> {
+  private _fetchNativePackage(): string | null {
     return NATIVE.fetchNativePackageName();
   }
 
   /**
    * Fetches native debug image information on iOS
    */
-  private _fetchNativeStackFrames(instructionsAddr: number[]): Promise<NativeStackFrames | null> {
+  private _fetchNativeStackFrames(instructionsAddr: number[]): NativeStackFrames | null {
     return NATIVE.fetchNativeStackFramesBy(instructionsAddr);
   }
 }

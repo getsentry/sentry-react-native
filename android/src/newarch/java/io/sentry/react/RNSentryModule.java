@@ -135,12 +135,13 @@ public class RNSentryModule extends NativeRNSentrySpec {
     }
 
     @Override
-    public void fetchNativePackageName(Promise promise) {
-        this.impl.fetchNativePackageName(promise);
+    public String fetchNativePackageName() {
+        return this.impl.fetchNativePackageName();
     }
 
     @Override
-    public void fetchNativeStackFramesBy(ReadableArray instructionsAddr, Promise promise) {
+    public WritableMap fetchNativeStackFramesBy(ReadableArray instructionsAddr) {
         // Not used on Android
+        return null;
     }
 }
