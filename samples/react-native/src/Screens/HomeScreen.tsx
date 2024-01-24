@@ -80,7 +80,9 @@ const HomeScreen = (props: Props) => {
           title="Capture exception with cause"
           onPress={() => {
             const error = new Error('Captured exception');
-            (error as { cause?: unknown }).cause = new Error('Cause of captured exception')
+            (error as { cause?: unknown }).cause = new Error(
+              'Cause of captured exception',
+            );
             Sentry.captureException(error);
           }}
         />
@@ -138,7 +140,9 @@ const HomeScreen = (props: Props) => {
           title="Catch Turbo Crash or String"
           onPress={() => {
             if (!NativePlatformSampleModule) {
-              throw new Error("NativePlatformSampleModule is not available. Build the application with the New Architecture enabled.");
+              throw new Error(
+                'NativePlatformSampleModule is not available. Build the application with the New Architecture enabled.',
+              );
             }
             try {
               NativePlatformSampleModule?.crashOrString();
