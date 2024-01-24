@@ -81,6 +81,14 @@ export default function TabOneScreen() {
         }}
       />
       <Button
+        title="Capture exception with cause"
+        onPress={() => {
+          const error = new Error('Captured exception')
+          error.cause = new Error('Cause of captured exception')
+          Sentry.captureException(error);
+        }}
+      />
+      <Button
         title="Uncaught Thrown Error"
         onPress={() => {
           throw new Error('Uncaught Thrown Error');

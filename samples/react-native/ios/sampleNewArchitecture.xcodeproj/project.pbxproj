@@ -12,6 +12,7 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		338BBBC82B614FA10035844C /* NativePlatformSampleModule.mm in Sources */ = {isa = PBXBuildFile; fileRef = 338BBBC62B614FA10035844C /* NativePlatformSampleModule.mm */; };
 		33E2D62A29A7719600B5042B /* RCTAssetsModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 33E2D62829A7719600B5042B /* RCTAssetsModule.m */; };
 		7699B88040F8A987B510C191 /* libPods-sampleNewArchitecture-sampleNewArchitectureTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-sampleNewArchitecture-sampleNewArchitectureTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
@@ -38,6 +39,8 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = sampleNewArchitecture/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = sampleNewArchitecture/main.m; sourceTree = "<group>"; };
 		19F6CBCC0A4E27FBF8BF4A61 /* libPods-sampleNewArchitecture-sampleNewArchitectureTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-sampleNewArchitecture-sampleNewArchitectureTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		338BBBC62B614FA10035844C /* NativePlatformSampleModule.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = NativePlatformSampleModule.mm; path = sampleNewArchitecture/NativePlatformSampleModule.mm; sourceTree = "<group>"; };
+		338BBBC72B614FA10035844C /* NativePlatformSampleModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NativePlatformSampleModule.h; path = sampleNewArchitecture/NativePlatformSampleModule.h; sourceTree = "<group>"; };
 		33E2D62829A7719600B5042B /* RCTAssetsModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RCTAssetsModule.m; path = sampleNewArchitecture/RCTAssetsModule.m; sourceTree = "<group>"; };
 		33E2D62929A7719600B5042B /* RCTAssetsModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RCTAssetsModule.h; path = sampleNewArchitecture/RCTAssetsModule.h; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-sampleNewArchitecture.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sampleNewArchitecture.debug.xcconfig"; path = "Target Support Files/Pods-sampleNewArchitecture/Pods-sampleNewArchitecture.debug.xcconfig"; sourceTree = "<group>"; };
@@ -89,6 +92,8 @@
 		13B07FAE1A68108700A75B9A /* sampleNewArchitecture */ = {
 			isa = PBXGroup;
 			children = (
+				338BBBC72B614FA10035844C /* NativePlatformSampleModule.h */,
+				338BBBC62B614FA10035844C /* NativePlatformSampleModule.mm */,
 				33E2D62929A7719600B5042B /* RCTAssetsModule.h */,
 				33E2D62829A7719600B5042B /* RCTAssetsModule.m */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
@@ -416,6 +421,7 @@
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				338BBBC82B614FA10035844C /* NativePlatformSampleModule.mm in Sources */,
 				33E2D62A29A7719600B5042B /* RCTAssetsModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -604,6 +610,7 @@
 					"-DFOLLY_NO_CONFIG",
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
+					" ",
 				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -679,6 +686,7 @@
 					"-DFOLLY_NO_CONFIG",
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
+					" ",
 				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
