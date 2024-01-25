@@ -1,3 +1,6 @@
+import { preserveXMLHttpRequest } from './utils/xhr';
+preserveXMLHttpRequest();
+
 export type {
   Breadcrumb,
   Request,
