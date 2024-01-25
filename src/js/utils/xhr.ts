@@ -15,16 +15,16 @@ let originalXhrSend: XMLHttpRequest['send'] | null = null;
 
 /**
  * Saves original XHR methods so that they can be used later
-*/
-export function preserveXMLHttpRequest(): void {
-  if (!RN_GLOBAL_OBJ.XMLHttpRequest || !RN_GLOBAL_OBJ.XMLHttpRequest.prototype) {
+ */
+export function preserveXMLHttpRequest(customGlobal: { XMLHttpRequest?: typeof XMLHttpRequest } = RN_GLOBAL_OBJ): void {
+  if (!customGlobal.XMLHttpRequest || !customGlobal.XMLHttpRequest.prototype) {
     return;
   }
 
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  originalXhrOpen = RN_GLOBAL_OBJ.XMLHttpRequest.prototype.open;
+  originalXhrOpen = customGlobal.XMLHttpRequest.prototype.open;
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  originalXhrSend = RN_GLOBAL_OBJ.XMLHttpRequest.prototype.send;
+  originalXhrSend = customGlobal.XMLHttpRequest.prototype.send;
 }
 
 /**
@@ -33,8 +33,14 @@ export function preserveXMLHttpRequest(): void {
  * This request won't be captured by the HttpClient Errors integration
  * and won't be added to breadcrumbs and won't be traced.
  */
-export function createStealthXhr(): XMLHttpRequest {
-  const xhr = new XMLHttpRequest();
+export function createStealthXhr(
+  customGlobal: { XMLHttpRequest?: typeof XMLHttpRequest } = RN_GLOBAL_OBJ,
+): XMLHttpRequest {
+  if (!customGlobal.XMLHttpRequest) {
+    throw new Error('XMLHttpRequest is not available');
+  }
+
+  const xhr = new customGlobal.XMLHttpRequest();
   if (originalXhrOpen) {
     xhr.open = originalXhrOpen.bind(xhr);
   }
@@ -42,4 +48,4 @@ export function createStealthXhr(): XMLHttpRequest {
     xhr.send = originalXhrSend.bind(xhr);
   }
   return xhr;
-};
+}

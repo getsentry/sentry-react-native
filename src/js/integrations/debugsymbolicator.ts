@@ -201,7 +201,7 @@ export class DebugSymbolicator implements Integration {
    * Get source context for segment
    */
   private async _fetchSourceContext(url: string, segments: Array<string>, start: number): Promise<string | null> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const fullUrl = `${url}${segments.slice(start).join('/')}`;
 
       const xhr = createStealthXhr();
