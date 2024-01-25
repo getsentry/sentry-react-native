@@ -34,38 +34,36 @@ export function Spotlight({
       }
     },
   };
-};
+}
 
 function setup(client: Client, sidecarUrl: string): void {
   sendEnvelopesToSidecar(client, sidecarUrl);
-};
+}
 
 function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
-  // Ensure, integrations are initialized even if no DSN was set
-  // client.setupIntegrations(true);
-
   if (!client.on) {
     return;
   }
 
-  client.on('beforeEnvelope', (envelope: Envelope) => {
+  client.on('beforeEnvelope', (originalEnvelope: Envelope) => {
     // TODO: This is a workaround for spotlight/sidecar not supporting images
-    const envelopeItems= [...envelope[1]].filter(item =>
-      typeof item[0].content_type !== 'string' ||
-      !item[0].content_type.startsWith('image'));
+    const spotlightEnvelope: Envelope = [...originalEnvelope];
+    const envelopeItems = [...originalEnvelope[1]].filter(
+      item => typeof item[0].content_type !== 'string' || !item[0].content_type.startsWith('image'),
+    );
 
-    envelope[1] = envelopeItems as Envelope[1];
+    spotlightEnvelope[1] = envelopeItems as Envelope[1];
 
     fetch(sidecarUrl, {
       method: 'POST',
-      body: serializeEnvelope(envelope, makeUtf8TextEncoder()),
+      body: serializeEnvelope(spotlightEnvelope, makeUtf8TextEncoder()),
       headers: {
         'Content-Type': 'application/x-sentry-envelope',
       },
       mode: 'cors',
     }).catch(err => {
       logger.error(
-        '[Spotlight] Sentry SDK can\'t connect to Sidecar is it running? See: https://spotlightjs.com/sidecar/npx/',
+        "[Spotlight] Sentry SDK can't connect to Sidecar is it running? See: https://spotlightjs.com/sidecar/npx/",
         err,
       );
     });
