@@ -34,6 +34,8 @@
 - Performance Tracing should be disabled by default ([#3533](https://github.com/getsentry/sentry-react-native/pull/3533))
 - Use `$NODE_BINARY` to execute Sentry CLI in Xcode scripts ([#3493](https://github.com/getsentry/sentry-react-native/pull/3493))
 - Return auto Release and Dist to source maps auto upload ([#3540](https://github.com/getsentry/sentry-react-native/pull/3540))
+- Linked errors processed before other integrations ([#3535](https://github.com/getsentry/sentry-react-native/pull/3535))
+  - This ensure their frames are correctly symbolicated
 
 ### Dependencies
 
