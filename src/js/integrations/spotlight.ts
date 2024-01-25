@@ -63,7 +63,7 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
       mode: 'cors',
     }).catch(err => {
       logger.error(
-        "[Spotlight] Sentry SDK can't connect to Sidecar is it running? See: https://spotlightjs.com/sidecar/npx/",
+        "[Spotlight] Sentry SDK can't connect to Spotlight is it running? See https://spotlightjs.com to download it.",
         err,
       );
     });
