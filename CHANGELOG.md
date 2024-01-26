@@ -4,7 +4,7 @@
 
 ### Features
 
-- Add [`@spotlightjs/spotlight`](https://spotlightjs.com/) support ([#3559](https://github.com/getsentry/sentry-react-native/pull/3559))
+- Add [`@spotlightjs/spotlight`](https://spotlightjs.com/) support ([#3550](https://github.com/getsentry/sentry-react-native/pull/3550))
 
   Download the `Spotlight` desktop application and add the integration to your `Sentry.init`.
 
