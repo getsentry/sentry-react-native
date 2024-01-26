@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Features
+
+- Add [`@spotlightjs/spotlight`](https://spotlightjs.com/) support ([#3559](https://github.com/getsentry/sentry-react-native/pull/3559))
+
+  Download the `Spotlight` desktop application and add the integration to your `Sentry.init`.
+
+  ```javascript
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    dsn: '___DSN___',
+    integrations: __DEV__ ? [Sentry.Integrations.Spotlight()] : [],
+  });
+  ```
+
 ### Fixes
 
 - Prevent pod install crash when visionos is not present ([#3548](https://github.com/getsentry/sentry-react-native/pull/3548))
