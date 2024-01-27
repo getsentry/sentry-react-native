@@ -159,6 +159,27 @@ export interface BaseReactNativeOptions {
    * @default false
    */
   enableCaptureFailedRequests?: boolean;
+
+  /**
+   * This option will enable forwarding captured Sentry events to Spotlight.
+   *
+   * More details: https://spotlightjs.com/
+   *
+   * IMPORTANT: Only set this option to `true` while developing, not in production!
+   */
+  enableSpotlight?: boolean;
+
+  /**
+   * This option changes the default Spotlight Sidecar URL.
+   *
+   * By default, the SDK expects the Sidecar to be running
+   * on the same host as React Native Metro Dev Server.
+   *
+   * More details: https://spotlightjs.com/
+   *
+   * @default "http://localhost:8969/stream"
+   */
+  spotlightSidecarUrl?: string;
 }
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {
