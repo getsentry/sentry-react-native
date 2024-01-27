@@ -13,7 +13,7 @@
 
   Sentry.init({
     dsn: '___DSN___',
-    integrations: __DEV__ ? [Sentry.Integrations.Spotlight()] : [],
+    enableSpotlight: __DEV__,
   });
   ```
 

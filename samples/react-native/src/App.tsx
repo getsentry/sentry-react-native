@@ -69,7 +69,6 @@ Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
-      Sentry.Integrations.Spotlight(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
@@ -94,6 +93,7 @@ Sentry.init({
   _experiments: {
     profilesSampleRate: 0,
   },
+  enableSpotlight: true,
 });
 
 const Stack = createStackNavigator();

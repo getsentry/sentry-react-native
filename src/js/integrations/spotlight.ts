@@ -15,7 +15,9 @@ type SpotlightReactNativeIntegrationOptions = {
 };
 
 /**
+ * Use this integration to send errors and transactions to Spotlight.
  *
+ * Learn more about spotlight at https://spotlightjs.com
  */
 export function Spotlight({
   sidecarUrl = getDefaultSidecarUrl(),
