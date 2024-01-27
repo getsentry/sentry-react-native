@@ -201,11 +201,10 @@ RCT_EXPORT_METHOD(fetchModules:(RCTPromiseResolveBlock)resolve
     resolve(modulesString);
 }
 
-RCT_EXPORT_METHOD(fetchNativePackageName:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, fetchNativePackageName)
 {
     NSString *packageName = [[NSBundle mainBundle] executablePath];
-    resolve(packageName);
+    return packageName;
 }
 
 - (NSDictionary*) fetchNativeStackFramesBy: (NSArray<NSNumber*>*)instructionsAddr
@@ -273,12 +272,10 @@ RCT_EXPORT_METHOD(fetchNativePackageName:(RCTPromiseResolveBlock)resolve
   }
 }
 
-RCT_EXPORT_METHOD(fetchNativeStackFramesBy:(NSArray *)instructionsAddr
-                  resolve:(RCTPromiseResolveBlock)resolve
-                  reject:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, fetchNativeStackFramesBy:(NSArray *)instructionsAddr)
 {
-  resolve([self fetchNativeStackFramesBy:instructionsAddr
-                             symbolicate:dladdr]);
+  return [self fetchNativeStackFramesBy:instructionsAddr
+                             symbolicate:dladdr];
 }
 
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve

@@ -34,8 +34,8 @@ export interface Spec extends TurboModule {
   fetchViewHierarchy(): Promise<number[] | undefined | null>;
   startProfiling(): { started?: boolean; error?: string };
   stopProfiling(): { profile?: string; nativeProfile?: UnsafeObject; error?: string };
-  fetchNativePackageName(): Promise<string | undefined | null>;
-  fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | undefined | null>;
+  fetchNativePackageName(): string | undefined | null;
+  fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | undefined | null;
 }
 
 export type NativeStackFrame = {
