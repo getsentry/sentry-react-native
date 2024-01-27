@@ -1,9 +1,26 @@
+import type { HttpRequestEventMap } from '@mswjs/interceptors';
+import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest';
 import type { Envelope, Hub } from '@sentry/types';
-import fetchMock from 'jest-fetch-mock';
+import { XMLHttpRequest } from 'xmlhttprequest';
 
 import { Spotlight } from '../../src/js/integrations/spotlight';
+import { preserveXMLHttpRequest } from '../../src/js/utils/xhr';
+
+globalThis.XMLHttpRequest = XMLHttpRequest;
+const requestListener = jest.fn<void, HttpRequestEventMap['request']>();
+const interceptor = new XMLHttpRequestInterceptor();
+interceptor.on('request', requestListener);
 
 describe('spotlight', () => {
+  beforeAll(async () => {
+    interceptor.apply();
+    preserveXMLHttpRequest();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('should not change the original envelope', () => {
     const mockHub = createMockHub();
 
@@ -24,8 +41,7 @@ describe('spotlight', () => {
     expect(originalEnvelopeReference).toEqual(createMockEnvelope());
   });
 
-  it('should remove image attachments from spotlight envelope', () => {
-    fetchMock.mockOnce();
+  it('should remove image attachments from spotlight envelope', async () => {
     const mockHub = createMockHub();
 
     const spotlight = Spotlight();
@@ -40,8 +56,9 @@ describe('spotlight', () => {
 
     spotlightBeforeEnvelope?.(createMockEnvelope());
 
+    const [{ request }] = requestListener.mock.calls[0];
     expect(spotlightBeforeEnvelope).toBeDefined();
-    expect(fetchMock.mock.lastCall?.[1]?.body?.toString().includes('image/png')).toBe(false);
+    expect((await request.text()).includes('image/png')).toBe(false);
   });
 });
 

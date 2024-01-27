@@ -21,6 +21,7 @@
 
 - Prevent pod install crash when visionos is not present ([#3548](https://github.com/getsentry/sentry-react-native/pull/3548))
 - Remove 404 Http Client Errors reports for Metro Dev Server Requests ([#3553](https://github.com/getsentry/sentry-react-native/pull/3553))
+- Stop tracing Spotlight Sidecar network request in JS ([#3559](https://github.com/getsentry/sentry-react-native/pull/3559))
 
 ## 5.17.0
 
