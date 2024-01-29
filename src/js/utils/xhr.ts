@@ -1,5 +1,12 @@
 import { RN_GLOBAL_OBJ } from './worldwide';
 
+const __sentry_original__ = '__sentry_original__';
+
+type XMLHttpRequestWithSentryOriginal = XMLHttpRequest & {
+  open: typeof XMLHttpRequest.prototype.open & { [__sentry_original__]?: typeof XMLHttpRequest.prototype.open };
+  send: typeof XMLHttpRequest.prototype.send & { [__sentry_original__]?: typeof XMLHttpRequest.prototype.send };
+};
+
 /**
  * The DONE ready state for XmlHttpRequest
  *
@@ -9,23 +16,6 @@ import { RN_GLOBAL_OBJ } from './worldwide';
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/readyState}
  */
 export const XHR_READYSTATE_DONE = 4;
-
-let originalXhrOpen: XMLHttpRequest['open'] | null = null;
-let originalXhrSend: XMLHttpRequest['send'] | null = null;
-
-/**
- * Saves original XHR methods so that they can be used later
- */
-export function preserveXMLHttpRequest(customGlobal: { XMLHttpRequest?: typeof XMLHttpRequest } = RN_GLOBAL_OBJ): void {
-  if (!customGlobal.XMLHttpRequest || !customGlobal.XMLHttpRequest.prototype) {
-    return;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  originalXhrOpen = customGlobal.XMLHttpRequest.prototype.open;
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  originalXhrSend = customGlobal.XMLHttpRequest.prototype.send;
-}
 
 /**
  * Creates a new XMLHttpRequest object which is not instrumented by the SDK.
@@ -40,12 +30,12 @@ export function createStealthXhr(
     throw new Error('XMLHttpRequest is not available');
   }
 
-  const xhr = new customGlobal.XMLHttpRequest();
-  if (originalXhrOpen) {
-    xhr.open = originalXhrOpen.bind(xhr);
+  const xhr: XMLHttpRequestWithSentryOriginal = new customGlobal.XMLHttpRequest();
+  if (xhr.open.__sentry_original__) {
+    xhr.open = xhr.open.__sentry_original__;
   }
-  if (originalXhrSend) {
-    xhr.send = originalXhrSend.bind(xhr);
+  if (xhr.send.__sentry_original__) {
+    xhr.send = xhr.send.__sentry_original__;
   }
   return xhr;
 }
