@@ -4,7 +4,6 @@ import type { Envelope, Hub } from '@sentry/types';
 import { XMLHttpRequest } from 'xmlhttprequest';
 
 import { Spotlight } from '../../src/js/integrations/spotlight';
-import { preserveXMLHttpRequest } from '../../src/js/utils/xhr';
 
 globalThis.XMLHttpRequest = XMLHttpRequest;
 const requestListener = jest.fn<void, HttpRequestEventMap['request']>();
@@ -14,7 +13,6 @@ interceptor.on('request', requestListener);
 describe('spotlight', () => {
   beforeAll(async () => {
     interceptor.apply();
-    preserveXMLHttpRequest();
   });
 
   afterEach(() => {
