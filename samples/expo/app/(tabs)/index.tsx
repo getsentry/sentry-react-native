@@ -62,6 +62,7 @@ Sentry.init({
   _experiments: {
     profilesSampleRate: 0,
   },
+  enableSpotlight: true,
 });
 
 export default function TabOneScreen() {

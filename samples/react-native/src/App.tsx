@@ -93,6 +93,7 @@ Sentry.init({
   _experiments: {
     profilesSampleRate: 0,
   },
+  enableSpotlight: true,
 });
 
 const Stack = createStackNavigator();

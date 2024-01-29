@@ -553,6 +553,24 @@ describe('Tests the SDK functionality', () => {
       );
     });
 
+    it('no spotlight integration by default', () => {
+      init({});
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'Spotlight' })]));
+    });
+
+    it('adds spotlight integration', () => {
+      init({
+        enableSpotlight: true,
+      });
+
+      const actualOptions = mockedInitAndBind.mock.calls[0][secondArg] as ReactNativeClientOptions;
+      const actualIntegrations = actualOptions.integrations;
+      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Spotlight' })]));
+    });
+
     it('no default integrations', () => {
       init({
         defaultIntegrations: false,
