@@ -1,4 +1,4 @@
-import { createStealthXhr, preserveXMLHttpRequest } from '../../src/js/utils/xhr';
+import { createStealthXhr } from '../../src/js/utils/xhr';
 
 describe('xhr', () => {
   it('creates xhr and calls monkey patched methods if original was not preserved', () => {
@@ -15,16 +15,10 @@ describe('xhr', () => {
   });
 
   it('monkey patched xhr is not called when original is preserved', () => {
-    const xhrOpenMonkeyPatch = jest.fn();
-    const xhrSendMonkeyPatch = jest.fn();
-
     const XMLHttpRequestMock = getXhrMock();
     const globalMock = createGlobalMock(XMLHttpRequestMock);
 
-    preserveXMLHttpRequest(globalMock);
-
-    XMLHttpRequestMock.prototype.open = xhrOpenMonkeyPatch;
-    XMLHttpRequestMock.prototype.send = xhrSendMonkeyPatch;
+    const { xhrOpenMonkeyPatch, xhrSendMonkeyPatch } = mockSentryPatchWithOriginal(globalMock);
 
     const xhr = createStealthXhr(globalMock);
 
@@ -45,8 +39,38 @@ function createGlobalMock(xhr: unknown) {
 }
 
 function getXhrMock() {
-  return class XhrMock {
-    open = jest.fn();
-    send = jest.fn();
+  function XhrMock() {}
+
+  XhrMock.prototype.open = jest.fn();
+  XhrMock.prototype.send = jest.fn();
+
+  return XhrMock;
+}
+
+type WithSentryOriginal<T> = T & { __sentry_original__?: T };
+
+function mockSentryPatchWithOriginal(globalMock: { XMLHttpRequest: typeof XMLHttpRequest }): {
+  xhrOpenMonkeyPatch: jest.Mock;
+  xhrSendMonkeyPatch: jest.Mock;
+} {
+  const originalOpen = globalMock.XMLHttpRequest.prototype.open;
+  const originalSend = globalMock.XMLHttpRequest.prototype.send;
+
+  const xhrOpenMonkeyPatch = jest.fn();
+  const xhrSendMonkeyPatch = jest.fn();
+
+  globalMock.XMLHttpRequest.prototype.open = xhrOpenMonkeyPatch;
+  globalMock.XMLHttpRequest.prototype.send = xhrSendMonkeyPatch;
+
+  (
+    globalMock.XMLHttpRequest.prototype.open as WithSentryOriginal<typeof XMLHttpRequest.prototype.open>
+  ).__sentry_original__ = originalOpen;
+  (
+    globalMock.XMLHttpRequest.prototype.send as WithSentryOriginal<typeof XMLHttpRequest.prototype.send>
+  ).__sentry_original__ = originalSend;
+
+  return {
+    xhrOpenMonkeyPatch,
+    xhrSendMonkeyPatch,
   };
 }
