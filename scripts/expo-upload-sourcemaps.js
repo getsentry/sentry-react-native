@@ -107,7 +107,7 @@ let authToken = getEnvVar(SENTRY_AUTH_TOKEN);
 const sentryCliBin = getEnvVar(SENTRY_CLI_EXECUTABLE) || require.resolve('@sentry/cli/bin/sentry-cli');
 
 if (!sentryOrg || !sentryProject) {
-  console.log(`🐕 Fetching from expo config...`);
+  console.log('🐕 Fetching from expo config...');
   const pluginConfig = getSentryPluginPropertiesFromExpoConfig();
   if (!pluginConfig) {
     console.error("Could not fetch '@sentry/react-native' plugin properties from expo config.");
