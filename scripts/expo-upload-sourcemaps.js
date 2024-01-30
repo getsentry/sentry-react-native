@@ -168,7 +168,7 @@ if (numAssetsUploaded === totalAssets) {
   console.log('✅ Uploaded bundles and sourcemaps to Sentry successfully.');
 } else {
   console.warn(
-    `⚠️  Uploaded ${numAssetsUploaded} of ${totalAssets} assets. ${
+    `⚠️  Uploaded ${numAssetsUploaded} of ${totalAssets} bundles and sourcemaps. ${
       numAssetsUploaded === 0 ? 'Ensure you are running `expo export` with the `--dump-sourcemap` flag.' : ''
     }`,
   );
