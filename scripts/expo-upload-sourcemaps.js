@@ -101,6 +101,15 @@ function groupAssets(assetPaths) {
   return groups;
 }
 
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+const projectRoot = '.'; // Assume script is run from the project root
+try {
+  require('@expo/env').load(projectRoot);
+} catch (error) {
+  console.warn('⚠️ Failed to load environment variables from @expo/env.');
+  console.warn(error);
+}
+
 let sentryProject = getEnvVar(SENTRY_PROJECT);
 let authToken = getEnvVar(SENTRY_AUTH_TOKEN);
 const sentryCliBin = getEnvVar(SENTRY_CLI_EXECUTABLE) || require.resolve('@sentry/cli/bin/sentry-cli');
