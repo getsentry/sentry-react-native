@@ -11,7 +11,7 @@ import { HermesProfiling } from '../../src/js/integrations';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { getDebugMetadata } from '../../src/js/profiling/debugid';
 import type { AndroidProfileEvent } from '../../src/js/profiling/types';
-import { getDefaultEnvironment, isHermesEnabled } from '../../src/js/utils/environment';
+import { getDefaultEnvironment, isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { MOCK_DSN } from '../mockDsn';
 import { envelopeItemPayload, envelopeItems } from '../testutils';
@@ -29,6 +29,7 @@ describe('profiling integration', () => {
   };
 
   beforeEach(() => {
+    (notWeb as jest.Mock).mockReturnValue(true);
     (isHermesEnabled as jest.Mock).mockReturnValue(true);
     mockWrapper.NATIVE.startProfiling.mockReturnValue(true);
     mockWrapper.NATIVE.stopProfiling.mockReturnValue({
@@ -378,6 +379,7 @@ function initTestClient(
   const transportSendMock = jest.fn<ReturnType<Transport['send']>, Parameters<Transport['send']>>();
   const options: Sentry.ReactNativeOptions = {
     dsn: MOCK_DSN,
+    enableTracing: true,
     _experiments: {
       profilesSampleRate: 1,
     },

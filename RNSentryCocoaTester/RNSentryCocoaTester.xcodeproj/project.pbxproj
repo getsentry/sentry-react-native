@@ -86,7 +86,6 @@
 				30F19D4E16BEEFEC68733838 /* [CP] Check Pods Manifest.lock */,
 				3360898929524164007C7730 /* Sources */,
 				BB7D14838753E6599863899B /* Frameworks */,
-				E56C5E3822DFF9C2796CEB4A /* [CP] Embed Pods Frameworks */,
 				CC7959F3721CB3AD7CB6A047 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
@@ -168,23 +167,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		E56C5E3822DFF9C2796CEB4A /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

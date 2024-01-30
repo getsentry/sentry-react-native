@@ -1,4 +1,5 @@
 apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "io.sentry.android.gradle"
 
@@ -33,6 +34,18 @@ sentry {
     // you don't need to do it manually.
     // Default is disabled.
     includeNativeSources = true
+
+    // Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
+    // This enables source context, allowing you to see your source
+    // code as part of your stack traces in Sentry.
+    //
+    // Default is disabled.
+    includeSourceContext = true
+
+    // Includes additional source directories into the source bundle.
+    // These directories are resolved relative to the project directory
+    // which is /android/app in this sample application.
+    // additionalSourceDirsForSourceContext = ["src/main/java"]
 
     // `@sentry/react-native` ships with compatible `sentry-android`
     // This option would install the latest version that ships with the SDK or SAGP (Sentry Android Gradle Plugin)
@@ -107,6 +120,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 android {
     ndkVersion rootProject.ext.ndkVersion
 
+    buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     namespace "com.samplenewarchitecture"
@@ -144,12 +158,7 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-
-    debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
-    debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
-        exclude group:'com.squareup.okhttp3', module:'okhttp'
-    }
-    debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}")
+    implementation("com.facebook.react:flipper-integration")
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

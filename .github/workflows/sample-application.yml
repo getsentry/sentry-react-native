@@ -24,8 +24,7 @@ jobs:
 
   build:
     name: Build ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
-    # Android emulator said to perform best with macos HAXM
-    runs-on: macos-latest
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
@@ -35,10 +34,21 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
+            runs-on: macos-latest
             runtime: 'latest'
             device: 'iPhone 14'
+          - platform: android
+            runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: |
+            yarn.lock
+            samples/react-native/yarn.lock
 
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' }}
@@ -49,32 +59,25 @@ jobs:
 
       - uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'adopt'
 
-      - name: Install Global Dependencies
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@v2
+
+      - name: Setup Global Xcode Tools
+        if: ${{ matrix.platform == 'ios' }}
         run: brew install xcbeautify
 
-      - name: NPM cache
-        uses: actions/cache@v3
-        id: deps-cache
-        with:
-          path: |
-            node_modules
-            samples/react-native/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock', 'samples/react-native/yarn.lock') }}
-
       - name: Install SDK Dependencies
-        if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Build SDK
         run: yarn build
 
       - name: Install Sample Dependencies
-        if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
         working-directory: samples/react-native
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Install App Pods
         if: ${{ matrix.platform == 'ios' }}

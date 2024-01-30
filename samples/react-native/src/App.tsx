@@ -91,8 +91,9 @@ Sentry.init({
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
   _experiments: {
-    profilesSampleRate: 1,
+    profilesSampleRate: 0,
   },
+  enableSpotlight: true,
 });
 
 const Stack = createStackNavigator();

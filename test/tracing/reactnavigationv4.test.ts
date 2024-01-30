@@ -119,7 +119,7 @@ describe('ReactNavigationV4Instrumentation', () => {
       route: {
         name: firstRoute.routeName,
         key: firstRoute.key,
-        params: firstRoute.params,
+        params: {}, // expect the data to be stripped
         hasBeenSeen: false,
       },
       previousRoute: null,
@@ -169,15 +169,13 @@ describe('ReactNavigationV4Instrumentation', () => {
         route: {
           name: action.routeName,
           key: action.key,
-          params: action.params,
+          params: {}, // expect the data to be stripped
           hasBeenSeen: false,
         },
         previousRoute: {
           name: 'Initial Route',
           key: 'route0',
-          params: {
-            hello: true,
-          },
+          params: {}, // expect the data to be stripped
         },
       },
     });
@@ -230,15 +228,13 @@ describe('ReactNavigationV4Instrumentation', () => {
         route: {
           name: action.routeName,
           key: action.key,
-          params: action.params,
+          params: {}, // expect the data to be stripped
           hasBeenSeen: false,
         },
         previousRoute: {
           name: 'Initial Route',
           key: 'route0',
-          params: {
-            hello: true,
-          },
+          params: {}, // expect the data to be stripped
         },
       },
       sampled: false,

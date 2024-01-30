@@ -57,6 +57,10 @@ export function createReactNativeRewriteFrames(): RewriteFrames {
       }
 
       const appPrefix = 'app://';
+      // https://github.com/getsentry/sentry-react-native/issues/3348
+      if (frame.filename === '/InternalBytecode.js') {
+        frame.in_app = false;
+      }
       // We always want to have a triple slash
       frame.filename =
         frame.filename.indexOf('/') === 0 ? `${appPrefix}${frame.filename}` : `${appPrefix}/${frame.filename}`;

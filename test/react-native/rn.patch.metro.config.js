@@ -16,19 +16,32 @@ logger.info('Patching Metro config: ', args.path);
 
 const configFilePath = args.path;
 
-const importSerializer = "const {createSentryMetroSerializer} = require('@sentry/react-native/metro');";
-const serializerValue = 'serializer: { customSerializer: createSentryMetroSerializer(), },';
-const enterSerializerBefore = '};';
+const importSerializer = "const { withSentryConfig } = require('@sentry/react-native/metro');";
 
 let config = fs.readFileSync(configFilePath, 'utf8').split('\n');
 
-const isPatched = config.includes(line => line.includes(importSerializer));
+const isPatched = config.includes(importSerializer);
 if (!isPatched) {
   config = [importSerializer, ...config];
-  const lineIndex = config.findIndex(line => line.includes(enterSerializerBefore));
-  const lineParsed = config[lineIndex].split(enterSerializerBefore);
-  lineParsed.push(serializerValue, enterSerializerBefore);
-  config[lineIndex] = lineParsed.join('');
+  const moduleExportsLineIndex = config.findIndex(line => line.includes('module.exports ='));
+  const endOfModuleExportsIndex = config.findIndex(line => line === '};');
+
+  const lineParsed = config[moduleExportsLineIndex].split('=');
+  if (lineParsed.length !== 2) {
+    throw new Error('Failed to parse module.exports line');
+  }
+  const endsWithSemicolon = lineParsed[1].endsWith(';');
+  if (endsWithSemicolon) {
+    lineParsed[1] = lineParsed[1].slice(0, -1);
+  }
+
+  lineParsed[1] = `= withSentryConfig(${lineParsed[1]}${endsWithSemicolon ? ');' : ''}`;
+  config[moduleExportsLineIndex] = lineParsed.join('');
+
+  if (endOfModuleExportsIndex !== -1) {
+    config[endOfModuleExportsIndex] = '});';
+  }
+
   fs.writeFileSync(configFilePath, config.join('\n'), 'utf8');
   logger.info('Patched Metro config successfully!');
 } else {

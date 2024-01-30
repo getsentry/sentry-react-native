@@ -133,13 +133,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         return this.impl.stopProfiling();
     }
 
-    @ReactMethod
-    public void fetchNativePackageName(Promise promise) {
-        this.impl.fetchNativePackageName(promise);
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String fetchNativePackageName() {
+        return this.impl.fetchNativePackageName();
     }
 
-    @ReactMethod
-    public void fetchNativeStackFramesBy(ReadableArray instructionsAddr, Promise promise) {
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public WritableMap fetchNativeStackFramesBy(ReadableArray instructionsAddr) {
         // Not used on Android
+        return null;
     }
 }

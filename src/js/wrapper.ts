@@ -89,12 +89,12 @@ interface SentryNativeWrapper {
     androidProfile?: NativeAndroidProfileEvent;
   } | null;
 
-  fetchNativePackageName(): Promise<string | null>;
+  fetchNativePackageName(): string | null;
 
   /**
    * Fetches native stack frames and debug images for the instructions addresses.
    */
-  fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | null>;
+  fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | null;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -566,7 +566,7 @@ export const NATIVE: SentryNativeWrapper = {
     }
   },
 
-  async fetchNativePackageName(): Promise<string | null> {
+  fetchNativePackageName(): string | null {
     if (!this.enableNative) {
       return null;
     }
@@ -574,10 +574,10 @@ export const NATIVE: SentryNativeWrapper = {
       return null;
     }
 
-    return (await RNSentry.fetchNativePackageName()) || null;
+    return RNSentry.fetchNativePackageName() || null;
   },
 
-  async fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | null> {
+  fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | null {
     if (!this.enableNative) {
       return null;
     }
@@ -585,7 +585,7 @@ export const NATIVE: SentryNativeWrapper = {
       return null;
     }
 
-    return (await RNSentry.fetchNativeStackFramesBy(instructionsAddr)) || null;
+    return RNSentry.fetchNativeStackFramesBy(instructionsAddr) || null;
   },
 
   /**

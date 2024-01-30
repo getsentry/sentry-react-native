@@ -1,5 +1,5 @@
 import { defaultStackParser } from '@sentry/browser';
-import type { DebugImage, Event, EventHint, ExtendedError, Hub } from '@sentry/types';
+import type { Client, DebugImage, Event, EventHint, ExtendedError } from '@sentry/types';
 
 import { NativeLinkedErrors } from '../../src/js/integrations/nativelinkederrors';
 import type { NativeStackFrames } from '../../src/js/NativeRNSentry';
@@ -7,9 +7,9 @@ import { NATIVE } from '../../src/js/wrapper';
 
 jest.mock('../../src/js/wrapper');
 
-(NATIVE.fetchNativePackageName as jest.Mock).mockImplementation(() => Promise.resolve<string>('mock.native.bundle.id'));
+(NATIVE.fetchNativePackageName as jest.Mock).mockImplementation(() => 'mock.native.bundle.id');
 
-(NATIVE.fetchNativeStackFramesBy as jest.Mock).mockImplementation(() => Promise.resolve<null>(null));
+(NATIVE.fetchNativeStackFramesBy as jest.Mock).mockImplementation(() => null);
 
 describe('NativeLinkedErrors', () => {
   beforeEach(() => {
@@ -181,43 +181,44 @@ describe('NativeLinkedErrors', () => {
   });
 
   it('adds ios objective-c cause from the original error to the event', async () => {
-    (NATIVE.fetchNativeStackFramesBy as jest.Mock).mockImplementation(() =>
-      Promise.resolve<NativeStackFrames>({
-        frames: [
-          // Locally symbolicated frame
-          {
-            platform: 'cocoa',
-            package: 'CoreFoundation',
-            function: '__exceptionPreprocess',
-            symbol_addr: '0x0000000180437330',
-            instruction_addr: '0x0000000180437330',
-            image_addr: '0x7fffe668e000',
-          },
-          {
-            platform: 'cocoa',
-            function: 'objc_exception_throw',
-            instruction_addr: '0x0000000180051274',
-            image_addr: '0x7fffe668e000',
-          },
-          {
-            platform: 'cocoa',
-            package: 'mock.native.bundle.id',
-            instruction_addr: '0x0000000103535900',
-            image_addr: '0x7fffe668e000',
-            in_app: true,
-          },
-        ],
-        debugMetaImages: [
-          {
-            type: 'macho',
-            debug_id: '84a04d24-0e60-3810-a8c0-90a65e2df61a',
-            code_file: '/usr/lib/libDiagnosticMessagesClient.dylib',
-            image_addr: '0x7fffe668e000',
-            image_size: 8192,
-            image_vmaddr: '0x40000',
-          },
-        ],
-      }),
+    (NATIVE.fetchNativeStackFramesBy as jest.Mock).mockImplementation(
+      () =>
+        <NativeStackFrames>{
+          frames: [
+            // Locally symbolicated frame
+            {
+              platform: 'cocoa',
+              package: 'CoreFoundation',
+              function: '__exceptionPreprocess',
+              symbol_addr: '0x0000000180437330',
+              instruction_addr: '0x0000000180437330',
+              image_addr: '0x7fffe668e000',
+            },
+            {
+              platform: 'cocoa',
+              function: 'objc_exception_throw',
+              instruction_addr: '0x0000000180051274',
+              image_addr: '0x7fffe668e000',
+            },
+            {
+              platform: 'cocoa',
+              package: 'mock.native.bundle.id',
+              instruction_addr: '0x0000000103535900',
+              image_addr: '0x7fffe668e000',
+              in_app: true,
+            },
+          ],
+          debugMetaImages: [
+            {
+              type: 'macho',
+              debug_id: '84a04d24-0e60-3810-a8c0-90a65e2df61a',
+              code_file: '/usr/lib/libDiagnosticMessagesClient.dylib',
+              image_addr: '0x7fffe668e000',
+              image_size: 8192,
+              image_vmaddr: '0x40000',
+            },
+          ],
+        },
     );
 
     const actualEvent = await executeIntegrationFor(
@@ -338,29 +339,16 @@ describe('NativeLinkedErrors', () => {
   });
 });
 
-function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Promise<Event | null> {
+function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Event | null {
+  const mockedClient = {
+    getOptions: () => ({
+      stackParser: defaultStackParser,
+    }),
+  } as unknown as Client;
+
   const integration = new NativeLinkedErrors();
-  return new Promise((resolve, reject) => {
-    integration.setupOnce(
-      async eventProcessor => {
-        try {
-          const processedEvent = await eventProcessor(mockedEvent, mockedHint);
-          resolve(processedEvent);
-        } catch (e) {
-          reject(e);
-        }
-      },
-      () =>
-        ({
-          getClient: () => ({
-            getOptions: () => ({
-              stackParser: defaultStackParser,
-            }),
-          }),
-          getIntegration: () => integration,
-        } as unknown as Hub),
-    );
-  });
+  integration.preprocessEvent(mockedEvent, mockedHint, mockedClient);
+  return mockedEvent;
 }
 
 function createNewError(from: { message: string; name?: string; stack?: string; cause?: unknown }): ExtendedError {

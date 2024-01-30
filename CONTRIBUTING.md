@@ -168,3 +168,30 @@ dependencies {
 +    api 'io.sentry:sentry-android:6.7.7-my-local-version'
 }
 ```
+
+## Develop with sentry-android-gradle-plugin
+
+Here are steps on how to debug the gradle builds process with `sentry-android-gradle-plugin`. We assume that you have `sentry-android-gradle-plugin` setup, Android SDK installed, correct JAVA version etc.
+
+1. Add the following code to `samples/react-native/android/settings.gradle`, this ensure the plugin builds at the beginning of the application build:
+
+```groovy
+includeBuild('../../../../sentry-android-gradle-plugin/plugin-build') {
+  dependencySubstitution {
+    substitute(module 'io.sentry:sentry-android-gradle-plugin') using project(':')
+  }
+}
+```
+
+`../../../../sentry-android-gradle-plugin/plugin-build` this example works if `sentry-react-native` and `sentry-android-gradle-plugin` are sibling directories.
+
+2. Open `samples/react-native/android` in Android Studio.
+3. Add `Remote JVM Debug` configuration (keep all defaults).
+4. Run build command with `-Dorg.gradle.debug=true` and `--no-daemon`, example:
+
+```groovy
+./gradlew assembleRelease -Dorg.gradle.debug=true --no-daemon
+```
+
+5. The build command will wait for the debugger connection, go to the Android Studio and select the newly created `Remote JVM Debug` configuration and click `Debug`.
+6. The build process will stop on active breakpoint.

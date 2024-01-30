@@ -2,7 +2,7 @@ const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 const path = require('path');
 const blacklist = require('metro-config/src/defaults/exclusionList');
 
-const { createSentryMetroSerializer } = require('../../metro');
+const { withSentryConfig } = require('../../metro');
 const parentDir = path.resolve(__dirname, '../..');
 
 /**
@@ -42,10 +42,7 @@ const config = {
       },
     ),
   },
-  serializer: {
-    customSerializer: createSentryMetroSerializer(),
-  },
 };
 
 const m = mergeConfig(getDefaultConfig(__dirname), config);
-module.exports = m;
+module.exports = withSentryConfig(m);
