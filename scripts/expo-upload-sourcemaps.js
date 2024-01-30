@@ -106,7 +106,7 @@ const projectRoot = '.'; // Assume script is run from the project root
 try {
   require('@expo/env').load(projectRoot);
 } catch (error) {
-  console.warn('⚠️ Failed to load environment variables from @expo/env.');
+  console.warn('⚠️ Failed to load environment variables using @expo/env.');
   console.warn(error);
 }
 
