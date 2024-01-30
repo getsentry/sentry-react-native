@@ -17,6 +17,8 @@
   });
   ```
 
+- Only upload Expo artifact if source map exists ([#3568](https://github.com/getsentry/sentry-react-native/pull/3568))
+
 ### Fixes
 
 - Prevent pod install crash when visionos is not present ([#3548](https://github.com/getsentry/sentry-react-native/pull/3548))
