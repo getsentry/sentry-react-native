@@ -101,7 +101,6 @@ function groupAssets(assetPaths) {
   return groups;
 }
 
-process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 const projectRoot = '.'; // Assume script is run from the project root
 try {
   require('@expo/env').load(projectRoot);
