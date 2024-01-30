@@ -137,6 +137,8 @@ if (!outputDir) {
 const files = getAssetPathsSync(outputDir);
 const groupedAssets = groupAssets(files);
 
+const totalAssets = Object.keys(groupedAssets).length;
+let numAssetsUploaded = 0;
 for (const [assetGroupName, assets] of Object.entries(groupedAssets)) {
   const sourceMapPath = assets.find(asset => asset.endsWith('.map'));
   if (sourceMapPath) {
@@ -145,8 +147,12 @@ for (const [assetGroupName, assets] of Object.entries(groupedAssets)) {
       sourceMap.debug_id = sourceMap.debugId;
     }
     writeJSONFile(sourceMapPath, sourceMap);
+    console.log(`⬆️ Uploading ${assetGroupName} bundle and sourcemap...`);
+  } else {
+    console.log(`❓ Sourcemap for ${assetGroupName} not found, skipping...`);
+    continue;
   }
-  console.log(`⬆️ Uploading ${assetGroupName} bundle and sourcemap...`);
+
   const isHermes = assets.find(asset => asset.endsWith('.hbc'));
   execSync(`${sentryCliBin} sourcemaps upload ${isHermes ? '--debug-id-reference' : ''} ${assets.join(' ')}`, {
     env: {
@@ -155,6 +161,15 @@ for (const [assetGroupName, assets] of Object.entries(groupedAssets)) {
     },
     stdio: 'inherit',
   });
+  numAssetsUploaded++;
 }
 
-console.log('✅ Uploaded bundles and sourcemaps to Sentry successfully.');
+if (numAssetsUploaded === totalAssets) {
+  console.log('✅ Uploaded bundles and sourcemaps to Sentry successfully.');
+} else {
+  console.warn(
+    `⚠️  Uploaded ${numAssetsUploaded} of ${totalAssets} assets. ${
+      numAssetsUploaded === 0 ? 'Ensure you are running `expo export` with the `--dump-sourcemap` flag.' : ''
+    }`,
+  );
+}
