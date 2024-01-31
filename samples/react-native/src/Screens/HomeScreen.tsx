@@ -19,8 +19,12 @@ import { CommonActions } from '@react-navigation/native';
 import { UserFeedbackModal } from '../components/UserFeedbackModal';
 import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
+import { Axios } from './Axios';
+import { AxiosError, AxiosResponse } from 'axios';
 
 const { AssetsModule, CppModule, CrashModule } = NativeModules;
+
+
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -66,6 +70,25 @@ const HomeScreen = (props: Props) => {
         <Button
           title="Capture message"
           onPress={() => {
+            const defHttp = new Axios({
+              baseURL: 'https://art.drblack-system.com/wp-json/',
+              timeout: 1000 * 60 * 5,
+              interceptors: {
+                // 请求拦截器
+                requestInterceptors: (config) => config,
+                // 响应拦截器
+                responseInterceptors: (result: AxiosResponse) => {
+                  // by adding following three lines, i can solve this issue, but the solution is wired, hope sentry can solve the problem
+                  //try {
+                  //	result.data = JSON.parse(result.data.trim());
+                  //} catch (e) {}
+                  return result;
+                },
+              },
+              validateStatus: function (status) {
+                return status < 500;
+              },
+            });
             Sentry.captureMessage('Captured message');
           }}
         />
