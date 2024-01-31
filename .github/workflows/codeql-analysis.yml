@@ -22,7 +22,6 @@ on:
       - '.github/pull_request_template.md'
       - '.github/ISSUE_TEMPLATE/BUG_REPORT.md'
       - '.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md'
-      - '.github/workflows/**.yml' #for testing
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [main]
@@ -34,7 +33,6 @@ on:
       - '.github/pull_request_template.md'
       - '.github/ISSUE_TEMPLATE/BUG_REPORT.md'
       - '.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md'
-      - '.github/workflows/**.yml' #for testing
   schedule:
     - cron: '27 16 * * 5'
 
