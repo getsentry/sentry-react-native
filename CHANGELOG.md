@@ -22,6 +22,7 @@
 ### Fixes
 
 - Prevent pod install crash when visionos is not present ([#3548](https://github.com/getsentry/sentry-react-native/pull/3548))
+- Fetch Organization slug from `@sentry/react-native/expo` config when uploading artifacts ([#3557](https://github.com/getsentry/sentry-react-native/pull/3557))
 
 ## 5.17.0
 
