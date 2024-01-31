@@ -27,6 +27,12 @@
 - Remove 404 Http Client Errors reports for Metro Dev Server Requests ([#3553](https://github.com/getsentry/sentry-react-native/pull/3553))
 - Stop tracing Spotlight Sidecar network request in JS ([#3559](https://github.com/getsentry/sentry-react-native/pull/3559))
 
+### Dependencies
+
+- Bump JavaScript SDK from v7.81.1 to v7.99.0 ([#3426](https://github.com/getsentry/sentry-react-native/pull/3426))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7990)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.81.1...7.99.0)
+
 ## 5.17.0
 
 ### Features
