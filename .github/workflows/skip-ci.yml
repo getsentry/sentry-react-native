@@ -11,3 +11,10 @@ on:
       - '.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md'
       - '.github/workflows/**.yml' #for testing
 
+jobs:
+  do-nothing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Do Nothing
+        run: exit 0
+
