@@ -1,5 +1,5 @@
 import { RewriteFrames } from '@sentry/integrations';
-import type { StackFrame } from '@sentry/types';
+import type { Integration, StackFrame } from '@sentry/types';
 import { Platform } from 'react-native';
 
 import { isExpo, isHermesEnabled } from '../utils/environment';
@@ -13,7 +13,7 @@ export const IOS_DEFAULT_BUNDLE_NAME = 'app:///main.jsbundle';
  * and removes file://, 'address at' prefixes, CodePush postfix,
  * and Expo bundle postfix.
  */
-export function createReactNativeRewriteFrames(): RewriteFrames {
+export function createReactNativeRewriteFrames(): Integration {
   return new RewriteFrames({
     iteratee: (frame: StackFrame) => {
       if (frame.platform === 'java' || frame.platform === 'cocoa') {
