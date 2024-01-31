@@ -4,6 +4,7 @@
 
 ### Features
 
+- Add Android profiles to React Native Profiling ([#3397](https://github.com/getsentry/sentry-react-native/pull/3397))
 - Add [`@spotlightjs/spotlight`](https://spotlightjs.com/) support ([#3550](https://github.com/getsentry/sentry-react-native/pull/3550))
 
   Download the `Spotlight` desktop application and add the integration to your `Sentry.init`.
@@ -290,7 +291,6 @@ This release is compatible with `expo@50.0.0-preview.6` and newer.
 ### Features
 
 - Add iOS profiles to React Native Profiling ([#3349](https://github.com/getsentry/sentry-react-native/pull/3349))
-- Add Android profiles to React Native Profiling ([#3397](https://github.com/getsentry/sentry-react-native/pull/3397))
 
 ### Fixes
 
