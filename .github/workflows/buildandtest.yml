@@ -5,9 +5,9 @@ on:
     branches:
       - main
       - release/**
-    uses: ./.github/workflows/skip-ci.yml
+    uses: ./.github/workflows/skip-ci.yml2
   pull_request:
-    uses: ./.github/workflows/skip-ci.yml
+    uses: ./.github/workflows/skip-ci.yml2
 
 jobs:
   job_test:
