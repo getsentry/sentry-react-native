@@ -3,9 +3,16 @@ name: Native Tests
 on:
   push:
     branches: [main]
-    uses: ./.github/workflows/skip-ci.yml
+    paths-ignore:
+      - '.prettierignore'
+      - 'CHANGELOG.md'
+      - 'README.md'
+      - '.github/CODEOWNERS'
+      - '.github/pull_request_template.md'
+      - '.github/ISSUE_TEMPLATE/BUG_REPORT.md'
+      - '.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md'
+      - '.github/workflows/**.yml' #for testing
   pull_request:
-    uses: ./.github/workflows/skip-ci.yml
 
 jobs:
   cancel-previous-workflow:
