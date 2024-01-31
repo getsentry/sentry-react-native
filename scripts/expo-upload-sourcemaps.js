@@ -4,8 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const process = require('process');
 
+const SENTRY_ORG = 'SENTRY_ORG';
 const SENTRY_PROJECT = 'SENTRY_PROJECT';
-// The sentry org is inferred from the auth token
 const SENTRY_AUTH_TOKEN = 'SENTRY_AUTH_TOKEN';
 const SENTRY_CLI_EXECUTABLE = 'SENTRY_CLI_EXECUTABLE';
 
@@ -109,25 +109,42 @@ try {
   console.warn(error);
 }
 
+let sentryOrg = getEnvVar(SENTRY_ORG);
 let sentryProject = getEnvVar(SENTRY_PROJECT);
 let authToken = getEnvVar(SENTRY_AUTH_TOKEN);
 const sentryCliBin = getEnvVar(SENTRY_CLI_EXECUTABLE) || require.resolve('@sentry/cli/bin/sentry-cli');
 
-if (!sentryProject) {
-  console.log(`🐕 Fetching ${SENTRY_PROJECT} from expo config...`);
+if (!sentryOrg || !sentryProject) {
+  console.log('🐕 Fetching from expo config...');
   const pluginConfig = getSentryPluginPropertiesFromExpoConfig();
   if (!pluginConfig) {
     console.error("Could not fetch '@sentry/react-native' plugin properties from expo config.");
     process.exit(1);
   }
-  if (!pluginConfig.project) {
-    console.error(
-      `Could not resolve sentry project, set it in the environment variable ${SENTRY_PROJECT} or in the '@sentry/react-native' plugin properties in your expo config.`,
-    );
-    process.exit(1);
+
+  if (!sentryOrg) {
+    if (!pluginConfig.organization) {
+      console.error(
+        `Could not resolve sentry org, set it in the environment variable ${SENTRY_ORG} or in the '@sentry/react-native' plugin properties in your expo config.`,
+      );
+      process.exit(1);
+    }
+
+    sentryOrg = pluginConfig.organization;
+    console.log(`${SENTRY_ORG} resolved to ${sentryOrg} from expo config.`);
   }
-  sentryProject = pluginConfig.project;
-  console.log(`${SENTRY_PROJECT} resolved to ${sentryProject} from expo config.`);
+
+  if (!sentryProject) {
+    if (!pluginConfig.project) {
+      console.error(
+        `Could not resolve sentry project, set it in the environment variable ${SENTRY_PROJECT} or in the '@sentry/react-native' plugin properties in your expo config.`,
+      );
+      process.exit(1);
+    }
+
+    sentryProject = pluginConfig.project;
+    console.log(`${SENTRY_PROJECT} resolved to ${sentryProject} from expo config.`);
+  }
 }
 
 if (!authToken) {
@@ -166,6 +183,7 @@ for (const [assetGroupName, assets] of Object.entries(groupedAssets)) {
     env: {
       ...process.env,
       [SENTRY_PROJECT]: sentryProject,
+      [SENTRY_ORG]: sentryOrg,
     },
     stdio: 'inherit',
   });
