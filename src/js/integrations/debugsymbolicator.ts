@@ -205,6 +205,11 @@ export class DebugSymbolicator implements Integration {
       const fullUrl = `${url}${segments.slice(start).join('/')}`;
 
       const xhr = createStealthXhr();
+      if (!xhr) {
+        resolve(null);
+        return;
+      }
+
       xhr.open('GET', fullUrl, true);
       xhr.send();
 

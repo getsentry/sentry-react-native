@@ -7,11 +7,11 @@ describe('xhr', () => {
 
     const xhr = createStealthXhr(globalMock);
 
-    xhr.open('GET', 'https://example.com');
-    xhr.send();
+    xhr!.open('GET', 'https://example.com');
+    xhr!.send();
 
-    expect(xhr.open).toHaveBeenCalledWith('GET', 'https://example.com');
-    expect(xhr.send).toHaveBeenCalled();
+    expect(xhr!.open).toHaveBeenCalledWith('GET', 'https://example.com');
+    expect(xhr!.send).toHaveBeenCalled();
   });
 
   it('monkey patched xhr is not called when original is preserved', () => {
@@ -22,13 +22,13 @@ describe('xhr', () => {
 
     const xhr = createStealthXhr(globalMock);
 
-    xhr.open('GET', 'https://example.com');
-    xhr.send();
+    xhr!.open('GET', 'https://example.com');
+    xhr!.send();
 
     expect(xhrOpenMonkeyPatch).not.toHaveBeenCalled();
     expect(xhrSendMonkeyPatch).not.toHaveBeenCalled();
-    expect(xhr.open).toHaveBeenCalledWith('GET', 'https://example.com');
-    expect(xhr.send).toHaveBeenCalled();
+    expect(xhr!.open).toHaveBeenCalledWith('GET', 'https://example.com');
+    expect(xhr!.send).toHaveBeenCalled();
   });
 });
 
