@@ -26,6 +26,15 @@ on:
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [main]
+    paths-ignore:
+      - '.prettierignore'
+      - 'CHANGELOG.md'
+      - 'README.md'
+      - '.github/CODEOWNERS'
+      - '.github/pull_request_template.md'
+      - '.github/ISSUE_TEMPLATE/BUG_REPORT.md'
+      - '.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md'
+      - '.github/workflows/**.yml' #for testing
   schedule:
     - cron: '27 16 * * 5'
 
