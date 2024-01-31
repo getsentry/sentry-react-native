@@ -25,9 +25,9 @@ export const XHR_READYSTATE_DONE = 4;
  */
 export function createStealthXhr(
   customGlobal: { XMLHttpRequest?: typeof XMLHttpRequest } = RN_GLOBAL_OBJ,
-): XMLHttpRequest {
+): XMLHttpRequest | null {
   if (!customGlobal.XMLHttpRequest) {
-    throw new Error('XMLHttpRequest is not available');
+    return null;
   }
 
   const xhr: XMLHttpRequestWithSentryOriginal = new customGlobal.XMLHttpRequest();
