@@ -3,6 +3,7 @@ import { addContextToFrame, logger } from '@sentry/utils';
 
 import { getFramesToPop, isErrorLike } from '../utils/error';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
+import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 import type * as ReactNative from '../vendor/react-native';
 
 const INTERNAL_CALLSITES_REGEX = new RegExp(['ReactNativeRenderer-dev\\.js$', 'MessageQueue\\.js$'].join('|'));
@@ -200,14 +201,30 @@ export class DebugSymbolicator implements Integration {
    * Get source context for segment
    */
   private async _fetchSourceContext(url: string, segments: Array<string>, start: number): Promise<string | null> {
-    const response = await fetch(`${url}${segments.slice(start).join('/')}`, {
-      method: 'GET',
-    });
+    return new Promise(resolve => {
+      const fullUrl = `${url}${segments.slice(start).join('/')}`;
 
-    if (response.ok) {
-      return response.text();
-    }
-    return null;
+      const xhr = createStealthXhr();
+      if (!xhr) {
+        resolve(null);
+        return;
+      }
+
+      xhr.open('GET', fullUrl, true);
+      xhr.send();
+
+      xhr.onreadystatechange = (): void => {
+        if (xhr.readyState === XHR_READYSTATE_DONE) {
+          if (xhr.status !== 200) {
+            resolve(null);
+          }
+          resolve(xhr.responseText);
+        }
+      };
+      xhr.onerror = (): void => {
+        resolve(null);
+      };
+    });
   }
 
   /**

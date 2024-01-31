@@ -16,6 +16,7 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   nativeFabricUIManager: unknown;
   ErrorUtils?: ErrorUtils;
   expo?: ExpoGlobalObject;
+  XMLHttpRequest?: typeof XMLHttpRequest;
 }
 
 /** Get's the global object for the current JavaScript runtime */
