@@ -13,6 +13,14 @@ on:
       - '.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md'
       - '.github/workflows/**.yml' #for testing
   pull_request:
+      - '.prettierignore'
+      - 'CHANGELOG.md'
+      - 'README.md'
+      - '.github/CODEOWNERS'
+      - '.github/pull_request_template.md'
+      - '.github/ISSUE_TEMPLATE/BUG_REPORT.md'
+      - '.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md'
+      - '.github/workflows/**.yml' #for testing
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
