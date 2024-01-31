@@ -14,22 +14,18 @@ name: 'CodeQL'
 on:
   push:
     branches: [main]
+    uses: ./.github/workflows/skip-ci.yml
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [main]
+    uses: ./.github/workflows/skip-ci.yml
   schedule:
     - cron: '27 16 * * 5'
 
 jobs:
-  check-ci:
-    uses: ./.github/workflows/skip-ci.yml
-
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
-    needs: [check-ci]
-    if: ${{ needs.check-ci.outputs.skip_ci != 'true' }}
-
     strategy:
       fail-fast: false
       matrix:
