@@ -18,6 +18,7 @@
   ```
 
 - Only upload Expo artifact if source map exists ([#3568](https://github.com/getsentry/sentry-react-native/pull/3568))
+- Read `.env` file in `sentry-expo-upload-sourcemaps` ([#3571](https://github.com/getsentry/sentry-react-native/pull/3571))
 
 ### Fixes
 

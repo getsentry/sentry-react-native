@@ -101,6 +101,15 @@ function groupAssets(assetPaths) {
   return groups;
 }
 
+process.env.NODE_ENV = process.env.NODE_ENV || 'development'; // Ensures precedence .env.development > .env (the same as @expo/cli)
+const projectRoot = '.'; // Assume script is run from the project root
+try {
+  require('@expo/env').load(projectRoot);
+} catch (error) {
+  console.warn('⚠️ Failed to load environment variables using @expo/env.');
+  console.warn(error);
+}
+
 let sentryOrg = getEnvVar(SENTRY_ORG);
 let sentryProject = getEnvVar(SENTRY_PROJECT);
 let authToken = getEnvVar(SENTRY_AUTH_TOKEN);
