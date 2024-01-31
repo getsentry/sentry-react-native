@@ -58,6 +58,11 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
     spotlightEnvelope[1] = envelopeItems as Envelope[1];
 
     const xhr = createStealthXhr();
+    if (!xhr) {
+      logger.error('[Spotlight] Sentry SDK can not create XHR object');
+      return;
+    }
+
     xhr.open('POST', sidecarUrl, true);
     xhr.setRequestHeader('Content-Type', 'application/x-sentry-envelope');
 
