@@ -3,6 +3,7 @@ import { logger, serializeEnvelope } from '@sentry/utils';
 
 import { makeUtf8TextEncoder } from '../transports/TextEncoder';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
+import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 
 type SpotlightReactNativeIntegrationOptions = {
   /**
@@ -56,19 +57,31 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
 
     spotlightEnvelope[1] = envelopeItems as Envelope[1];
 
-    fetch(sidecarUrl, {
-      method: 'POST',
-      body: serializeEnvelope(spotlightEnvelope, makeUtf8TextEncoder()),
-      headers: {
-        'Content-Type': 'application/x-sentry-envelope',
-      },
-      mode: 'cors',
-    }).catch(err => {
-      logger.error(
-        "[Spotlight] Sentry SDK can't connect to Spotlight is it running? See https://spotlightjs.com to download it.",
-        err,
-      );
-    });
+    const xhr = createStealthXhr();
+    if (!xhr) {
+      logger.error('[Spotlight] Sentry SDK can not create XHR object');
+      return;
+    }
+
+    xhr.open('POST', sidecarUrl, true);
+    xhr.setRequestHeader('Content-Type', 'application/x-sentry-envelope');
+
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === XHR_READYSTATE_DONE) {
+        const status = xhr.status;
+        if (status === 0 || (status >= 200 && status < 400)) {
+          // The request has been completed successfully
+        } else {
+          // Handle the error
+          logger.error(
+            "[Spotlight] Sentry SDK can't connect to Spotlight is it running? See https://spotlightjs.com to download it.",
+            new Error(xhr.statusText),
+          );
+        }
+      }
+    };
+
+    xhr.send(serializeEnvelope(spotlightEnvelope, makeUtf8TextEncoder()));
   });
 }
 
