@@ -8,9 +8,6 @@ on:
     uses: ./.github/workflows/skip-ci.yml
 
 jobs:
-  check-ci:
-    uses: ./.github/workflows/skip-ci.yml
-
   cancel-previous-workflow:
     runs-on: ubuntu-latest
     steps:
@@ -98,8 +95,14 @@ jobs:
           target: 'aosp_atd'
           channel: canary # Necessary for ATDs
           emulator-options: >
-            -no-window -no-snapshot-save -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-            -camera-front none -timezone US/Pacific
+            -no-window
+            -no-snapshot-save
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+            -camera-front none
+            -timezone US/Pacific
           script: echo "Generated AVD snapshot for caching."
 
       - name: Run connected tests
@@ -113,8 +116,14 @@ jobs:
           target: 'aosp_atd'
           channel: canary # Necessary for ATDs
           emulator-options: >
-            -no-window -no-snapshot-save -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-            -camera-front none -timezone US/Pacific
+            -no-window
+            -no-snapshot-save
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+            -camera-front none
+            -timezone US/Pacific
           script: |
             ./gradlew uninstallDebug uninstallDebugAndroidTest
             ./gradlew connectedCheck

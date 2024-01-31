@@ -10,14 +10,11 @@ on:
     uses: ./.github/workflows/skip-ci.yml
 
 jobs:
-  check-ci:
-    uses: ./.github/workflows/skip-ci.yml
-
   codegen:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: ['android', 'ios']
+        platform: ["android", "ios"]
         include:
           - platform: android
             command: |
@@ -37,7 +34,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           java-version: '17'
-          distribution: 'adopt'
+          distribution: "adopt"
       - name: Gradle cache
         uses: gradle/gradle-build-action@v2
       - uses: actions/cache@v3

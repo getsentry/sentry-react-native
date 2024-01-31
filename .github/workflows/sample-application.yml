@@ -16,9 +16,6 @@ env:
   RN_SENTRY_POD_NAME: RNSentry
 
 jobs:
-  check-ci:
-    uses: ./.github/workflows/skip-ci.yml
-
   cancel-previous-workflow:
     runs-on: ubuntu-latest
     steps:
