@@ -22,6 +22,7 @@ on:
       - '.github/pull_request_template.md'
       - '.github/ISSUE_TEMPLATE/BUG_REPORT.md'
       - '.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md'
+
 jobs:
   job_test:
     name: Test
