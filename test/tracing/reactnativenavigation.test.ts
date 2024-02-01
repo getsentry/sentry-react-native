@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { spanToJSON } from '@sentry/core';
-import type { Transaction, TransactionContext } from '@sentry/types';
+import type { SpanJSON, Transaction, TransactionContext } from '@sentry/types';
 import type { EmitterSubscription } from 'react-native';
 
 import type {
@@ -86,7 +86,7 @@ describe('React Native Navigation Instrumentation', () => {
   test('Correctly instruments a route change', () => {
     mockEventsRegistry.onCommand('root', {});
 
-    expect(mockTransaction.name).toBe('Route Change');
+    expect(spanToJSON(mockTransaction).description).toBe('Route Change');
 
     const mockEvent: ComponentWillAppearEvent = {
       componentId: '0',
@@ -98,7 +98,7 @@ describe('React Native Navigation Instrumentation', () => {
 
     expect(spanToJSON(mockTransaction)).toEqual(
       expect.objectContaining(<Partial<Transaction>>{
-        name: 'Test',
+        description: 'Test',
         tags: {
           'routing.instrumentation': 'react-native-navigation',
           'routing.route.name': 'Test',
@@ -113,10 +113,10 @@ describe('React Native Navigation Instrumentation', () => {
             hasBeenSeen: false,
           },
           previousRoute: null,
+          'sentry.op': 'navigation',
+          'sentry.origin': 'manual',
+          'sentry.source': 'component',
         },
-        metadata: expect.objectContaining({
-          source: 'component',
-        }),
       }),
     );
   });
@@ -147,10 +147,8 @@ describe('React Native Navigation Instrumentation', () => {
     mockEventsRegistry.onComponentWillAppear(mockEvent);
 
     expect(spanToJSON(mockTransaction)).toEqual(
-      expect.objectContaining(<Partial<Transaction>>{
-        name: 'New Name',
-        description: 'Description',
-        sampled: false,
+      expect.objectContaining(<Partial<SpanJSON>>{
+        description: 'New Name',
         tags: {
           'routing.instrumentation': 'react-native-navigation',
           'routing.route.name': 'Test',
@@ -165,10 +163,10 @@ describe('React Native Navigation Instrumentation', () => {
             hasBeenSeen: false,
           },
           previousRoute: null,
+          'sentry.op': 'navigation',
+          'sentry.origin': 'manual',
+          'sentry.source': 'custom',
         },
-        metadata: expect.objectContaining({
-          source: 'custom',
-        }),
       }),
     );
   });
@@ -234,8 +232,8 @@ describe('React Native Navigation Instrumentation', () => {
       });
 
       expect(spanToJSON(mockTransaction)).toEqual(
-        expect.objectContaining(<Partial<TransactionContext>>{
-          name: 'TestScreenName',
+        expect.objectContaining(<Partial<SpanJSON>>{
+          description: 'TestScreenName',
           tags: {
             'routing.instrumentation': 'react-native-navigation',
             'routing.route.name': 'TestScreenName',
@@ -250,6 +248,9 @@ describe('React Native Navigation Instrumentation', () => {
               hasBeenSeen: false,
             },
             previousRoute: null,
+            'sentry.op': 'navigation',
+            'sentry.origin': 'manual',
+            'sentry.source': 'component',
           },
         }),
       );
@@ -323,14 +324,14 @@ describe('React Native Navigation Instrumentation', () => {
       expect(confirmedContext).toEqual(
         expect.objectContaining(<Partial<TransactionContext>>{
           name: 'Test 2',
-          data: {
+          data: expect.objectContaining({
             route: expect.objectContaining({
               name: 'Test 2',
             }),
             previousRoute: expect.objectContaining({
               name: 'Test 1',
             }),
-          },
+          }),
         }),
       );
     });

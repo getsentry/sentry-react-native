@@ -44,7 +44,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     super(options);
 
     this._outcomesBuffer = [];
-    void this._initNativeSdk();
+    this._initNativeSdk();
   }
 
   /**
@@ -159,20 +159,23 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   /**
    * Starts native client with dsn and options
    */
-  private async _initNativeSdk(): Promise<void> {
-    let didCallNativeInit = false;
-
-    try {
-      didCallNativeInit = await NATIVE.initNativeSdk(this._options);
-    } catch (_) {
-      this._showCannotConnectDialog();
-    } finally {
-      try {
+  private _initNativeSdk(): void {
+    NATIVE.initNativeSdk(this._options)
+      .then(
+        (result: boolean) => {
+          return result;
+        },
+        () => {
+          this._showCannotConnectDialog();
+          return false;
+        },
+      )
+      .then((didCallNativeInit: boolean) => {
         this._options.onReady?.({ didCallNativeInit });
-      } catch (error) {
+      })
+      .then(undefined, error => {
         logger.error('The OnReady callback threw an error: ', error);
-      }
-    }
+      });
   }
 
   /**
