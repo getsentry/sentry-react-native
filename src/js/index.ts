@@ -12,12 +12,14 @@ export type {
 } from '@sentry/types';
 
 export {
+  // eslint-disable-next-line deprecation/deprecation
   addGlobalEventProcessor,
   addBreadcrumb,
   captureException,
   captureEvent,
   captureMessage,
   getHubFromCarrier,
+  // eslint-disable-next-line deprecation/deprecation
   getCurrentHub,
   Hub,
   Scope,
@@ -27,6 +29,7 @@ export {
   setTag,
   setTags,
   setUser,
+  // eslint-disable-next-line deprecation/deprecation
   startTransaction,
   startInactiveSpan,
   startSpan,
@@ -38,6 +41,7 @@ import { _addTracingExtensions } from './tracing/addTracingExtensions';
 _addTracingExtensions();
 
 export {
+  // eslint-disable-next-line deprecation/deprecation
   Integrations as BrowserIntegrations,
   ErrorBoundary,
   withErrorBoundary,
@@ -47,6 +51,7 @@ export {
   withProfiler,
 } from '@sentry/react';
 
+// eslint-disable-next-line deprecation/deprecation
 export { lastEventId } from '@sentry/browser';
 
 import * as Integrations from './integrations';
