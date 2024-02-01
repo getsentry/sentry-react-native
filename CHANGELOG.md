@@ -26,6 +26,7 @@
 - Fetch Organization slug from `@sentry/react-native/expo` config when uploading artifacts ([#3557](https://github.com/getsentry/sentry-react-native/pull/3557))
 - Remove 404 Http Client Errors reports for Metro Dev Server Requests ([#3553](https://github.com/getsentry/sentry-react-native/pull/3553))
 - Stop tracing Spotlight Sidecar network request in JS ([#3559](https://github.com/getsentry/sentry-react-native/pull/3559))
+- Upload Debug Symbols Build Phase continues execution when `node` not found in `WITH_ENVIRONMENT` ([#3573](https://github.com/getsentry/sentry-react-native/pull/3573))
 
 ## 5.17.0
 
