@@ -32,40 +32,40 @@ export class DebugSymbolicator implements Integration {
 
   /**
    * @inheritDoc
+   * @deprecated
    */
-  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
-    addGlobalEventProcessor(async (event: Event, hint: EventHint) => {
-      const self = getCurrentHub().getIntegration(DebugSymbolicator);
+  public setupOnce(_addGlobalEventProcessor: (callback: EventProcessor) => void, _getCurrentHub: () => Hub): void {
+    // nothing to do here
+  }
 
-      if (!self) {
-        return event;
-      }
+  /**
+   * @inheritdoc
+   */
+  public async processEvent(event: Event, hint: EventHint): Promise<Event> {
+    if (event.exception && isErrorLike(hint.originalException)) {
+      // originalException is ErrorLike object
+      const symbolicatedFrames = await this._symbolicate(
+        hint.originalException.stack,
+        getFramesToPop(hint.originalException as Error),
+      );
+      symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
+    } else if (hint.syntheticException && isErrorLike(hint.syntheticException)) {
+      // syntheticException is Error object
+      const symbolicatedFrames = await this._symbolicate(
+        hint.syntheticException.stack,
+        getFramesToPop(hint.syntheticException),
+      );
 
-      if (event.exception && isErrorLike(hint.originalException)) {
-        // originalException is ErrorLike object
-        const symbolicatedFrames = await this._symbolicate(
-          hint.originalException.stack,
-          getFramesToPop(hint.originalException as Error),
-        );
+      if (event.exception) {
         symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
-      } else if (hint.syntheticException && isErrorLike(hint.syntheticException)) {
-        // syntheticException is Error object
-        const symbolicatedFrames = await this._symbolicate(
-          hint.syntheticException.stack,
-          getFramesToPop(hint.syntheticException),
-        );
-
-        if (event.exception) {
-          symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
-        } else if (event.threads) {
-          // RN JS doesn't have threads
-          // syntheticException is used for Sentry.captureMessage() threads
-          symbolicatedFrames && this._replaceThreadFramesInEvent(event, symbolicatedFrames);
-        }
+      } else if (event.threads) {
+        // RN JS doesn't have threads
+        // syntheticException is used for Sentry.captureMessage() threads
+        symbolicatedFrames && this._replaceThreadFramesInEvent(event, symbolicatedFrames);
       }
+    }
 
-      return event;
-    });
+    return event;
   }
 
   /**
