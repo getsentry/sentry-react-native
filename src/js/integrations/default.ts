@@ -1,5 +1,12 @@
-import { HttpClient } from '@sentry/integrations';
-import { Integrations as BrowserReactIntegrations } from '@sentry/react';
+import {
+  breadcrumbsIntegration,
+  browserApiErrorsIntegration,
+  dedupeIntegration,
+  functionToStringIntegration,
+  globalHandlersIntegration as browserGlobalHandlersIntegration,
+  httpContextIntegration, inboundFiltersIntegration,
+  linkedErrorsIntegration as browserLinkedErrorsIntegration,
+} from '@sentry/react';
 import type { Integration } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../options';
@@ -39,17 +46,17 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     );
     integrations.push(new NativeLinkedErrors());
   } else {
-    integrations.push(new BrowserReactIntegrations.TryCatch());
-    integrations.push(new BrowserReactIntegrations.GlobalHandlers());
-    integrations.push(new BrowserReactIntegrations.LinkedErrors());
+    integrations.push(browserApiErrorsIntegration());
+    integrations.push(browserGlobalHandlersIntegration());
+    integrations.push(browserLinkedErrorsIntegration());
   }
 
   // @sentry/react default integrations
-  integrations.push(new BrowserReactIntegrations.InboundFilters());
-  integrations.push(new BrowserReactIntegrations.FunctionToString());
-  integrations.push(new BrowserReactIntegrations.Breadcrumbs());
-  integrations.push(new BrowserReactIntegrations.Dedupe());
-  integrations.push(new BrowserReactIntegrations.HttpContext());
+  integrations.push(inboundFiltersIntegration());
+  integrations.push(functionToStringIntegration());
+  integrations.push(breadcrumbsIntegration());
+  integrations.push(dedupeIntegration());
+  integrations.push(httpContextIntegration());
   // end @sentry/react-native default integrations
 
   integrations.push(new Release());
@@ -88,7 +95,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(new ReactNativeTracing());
   }
   if (options.enableCaptureFailedRequests) {
-    integrations.push(new HttpClient());
+    integrations.push(httpContextIntegration());
   }
 
   if (isExpoGo()) {
