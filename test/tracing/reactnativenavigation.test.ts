@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
+import { spanToJSON } from '@sentry/core';
 import type { Transaction, TransactionContext } from '@sentry/types';
 import type { EmitterSubscription } from 'react-native';
 
@@ -95,7 +96,7 @@ describe('React Native Navigation Instrumentation', () => {
     };
     mockEventsRegistry.onComponentWillAppear(mockEvent);
 
-    expect(mockTransaction).toEqual(
+    expect(spanToJSON(mockTransaction)).toEqual(
       expect.objectContaining(<Partial<Transaction>>{
         name: 'Test',
         tags: {
@@ -145,7 +146,7 @@ describe('React Native Navigation Instrumentation', () => {
     };
     mockEventsRegistry.onComponentWillAppear(mockEvent);
 
-    expect(mockTransaction).toEqual(
+    expect(spanToJSON(mockTransaction)).toEqual(
       expect.objectContaining(<Partial<Transaction>>{
         name: 'New Name',
         description: 'Description',
@@ -232,7 +233,7 @@ describe('React Native Navigation Instrumentation', () => {
         passProps: {},
       });
 
-      expect(mockTransaction.toContext()).toEqual(
+      expect(spanToJSON(mockTransaction)).toEqual(
         expect.objectContaining(<Partial<TransactionContext>>{
           name: 'TestScreenName',
           tags: {
