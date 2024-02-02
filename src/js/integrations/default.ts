@@ -5,7 +5,8 @@ import {
   dedupeIntegration,
   functionToStringIntegration,
   globalHandlersIntegration as browserGlobalHandlersIntegration,
-  httpContextIntegration, inboundFiltersIntegration,
+  httpContextIntegration,
+  inboundFiltersIntegration,
   linkedErrorsIntegration as browserLinkedErrorsIntegration,
 } from '@sentry/react';
 import type { Integration } from '@sentry/types';

@@ -24,7 +24,11 @@ export class Release implements Integration {
   /**
    * @inheritDoc
    */
-  public async processEvent(event: Event, _: EventHint, client: Client<ClientOptions<BaseTransportOptions>>): Promise<Event> {
+  public async processEvent(
+    event: Event,
+    _: EventHint,
+    client: Client<ClientOptions<BaseTransportOptions>>,
+  ): Promise<Event> {
     const options = client.getOptions();
 
     /*

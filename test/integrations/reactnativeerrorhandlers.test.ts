@@ -9,7 +9,6 @@ const mockBrowserClient: BrowserClient = new BrowserClient({
   transport: jest.fn(),
 });
 
-
 let mockHubCaptureException: jest.Mock<void, [unknown, { syntheticException: Error }]>;
 
 jest.mock('@sentry/core', () => {
@@ -27,7 +26,6 @@ jest.mock('@sentry/core', () => {
       mockBrowserClient.eventFromException(_exception, _hint),
     captureEvent: mockHubCaptureException,
   };
-
 
   return {
     ...core,
