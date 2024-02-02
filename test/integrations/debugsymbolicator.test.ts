@@ -1,4 +1,4 @@
-import type { Event, EventHint, Hub, Integration, StackFrame } from '@sentry/types';
+import type { Client, Event, EventHint, Integration, StackFrame } from '@sentry/types';
 
 import { DebugSymbolicator } from '../../src/js/integrations/debugsymbolicator';
 import type * as ReactNative from '../../src/js/vendor/react-native';
@@ -15,10 +15,6 @@ interface MockDebugSymbolicator extends Integration {
 
 describe('Debug Symbolicator Integration', () => {
   let integration: MockDebugSymbolicator;
-  const mockGetCurrentHub = () =>
-    ({
-      getIntegration: () => integration,
-    } as unknown as Hub);
 
   beforeEach(() => {
     integration = new DebugSymbolicator() as unknown as MockDebugSymbolicator;
@@ -341,20 +337,12 @@ describe('Debug Symbolicator Integration', () => {
     });
   });
 
-  function executeIntegrationFor(mockedEvent: Event, hint: EventHint): Promise<Event | null> {
-    return new Promise((resolve, reject) => {
-      if (!integration) {
-        throw new Error('Setup integration before executing the test.');
-      }
+  async function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Promise<Event | null> {
+    if (!integration) {
+      throw new Error('Setup integration before executing the test.');
+    }
 
-      integration.setupOnce(async eventProcessor => {
-        try {
-          const processedEvent = await eventProcessor(mockedEvent, hint);
-          resolve(processedEvent);
-        } catch (e) {
-          reject(e);
-        }
-      }, mockGetCurrentHub);
-    });
+    const actualEvent = await integration.processEvent!(mockedEvent, mockedHint, {} as Client);
+    return actualEvent;
   }
 });
