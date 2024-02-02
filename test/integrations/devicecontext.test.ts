@@ -253,15 +253,6 @@ describe('Device Context Integration', () => {
   }
 
   function executeIntegrationFor(mockedEvent: Event): Promise<Event | null> {
-    return new Promise((resolve, reject) => {
-      integration.setupOnce(async eventProcessor => {
-        try {
-          const processedEvent = await eventProcessor(mockedEvent, {});
-          resolve(processedEvent);
-        } catch (e) {
-          reject(e);
-        }
-      }, mockGetCurrentHub);
-    });
+    return integration.processEvent(mockedEvent);
   }
 });
