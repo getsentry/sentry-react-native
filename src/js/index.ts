@@ -71,6 +71,7 @@ export {
   close,
   captureUserFeedback,
   withScope,
+  // eslint-disable-next-line deprecation/deprecation
   configureScope,
 } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
