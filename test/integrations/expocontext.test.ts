@@ -109,5 +109,4 @@ describe('Expo Context Integration', () => {
   function executeIntegrationFor(mockedEvent: Event): Event {
     return integration.processEvent(mockedEvent);
   }
-
 });

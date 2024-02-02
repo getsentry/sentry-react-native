@@ -1,7 +1,10 @@
 /* eslint-disable complexity */
 import type { Hub } from '@sentry/core';
-import { getActiveTransaction } from '@sentry/core';
+import { getActiveTransaction, spanIsSampled } from '@sentry/core';
 import type {
+  BaseTransportOptions,
+  Client,
+  ClientOptions,
   Envelope,
   Event,
   EventProcessor,
@@ -46,6 +49,7 @@ export class HermesProfiling implements Integration {
   public name: string = HermesProfiling.id;
 
   private _getCurrentHub?: () => Hub;
+  private _client?: Client;
 
   private _currentProfile:
     | {
@@ -58,19 +62,25 @@ export class HermesProfiling implements Integration {
 
   /**
    * @inheritDoc
+   * @deprecated
    */
   public setupOnce(_: (e: EventProcessor) => void, getCurrentHub: () => Hub): void {
+    this._getCurrentHub = getCurrentHub;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public setup(client: Client<ClientOptions<BaseTransportOptions>>): void {
     if (!isHermesEnabled()) {
       logger.log('[Profiling] Hermes is not enabled, not adding profiling integration.');
       return;
     }
 
-    this._getCurrentHub = getCurrentHub;
-    const client = getCurrentHub().getClient();
-
     if (!client || typeof client.on !== 'function') {
       return;
     }
+    this._client = client;
 
     this._startCurrentProfileForActiveTransaction();
     client.on('startTransaction', this._startCurrentProfile);
@@ -103,6 +113,7 @@ export class HermesProfiling implements Integration {
     if (this._currentProfile) {
       return;
     }
+    // eslint-disable-next-line deprecation/deprecation
     const transaction = this._getCurrentHub && getActiveTransaction(this._getCurrentHub());
     transaction && this._startCurrentProfile(transaction);
   };
@@ -120,13 +131,12 @@ export class HermesProfiling implements Integration {
   };
 
   private _shouldStartProfiling = (transaction: Transaction): boolean => {
-    if (!transaction.sampled) {
+    if (!spanIsSampled(transaction)) {
       logger.log('[Profiling] Transaction is not sampled, skipping profiling');
       return false;
     }
 
-    const client = this._getCurrentHub && this._getCurrentHub().getClient();
-    const options = client && client.getOptions();
+    const options = this._client && this._client.getOptions();
 
     const profilesSampleRate =
       options && options._experiments && typeof options._experiments.profilesSampleRate === 'number'
@@ -159,8 +169,10 @@ export class HermesProfiling implements Integration {
       profile_id: uuid4(),
       startTimestampNs: profileStartTimestampNs,
     };
+    // eslint-disable-next-line deprecation/deprecation
     transaction.setContext('profile', { profile_id: this._currentProfile.profile_id });
     // @ts-expect-error profile_id is not part of the metadata type
+    // eslint-disable-next-line deprecation/deprecation
     transaction.setMetadata({ profile_id: this._currentProfile.profile_id });
     logger.log('[Profiling] started profiling: ', this._currentProfile.profile_id);
   };

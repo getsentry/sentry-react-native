@@ -25,9 +25,7 @@ describe('spotlight', () => {
     const spotlight = Spotlight();
     spotlight.setup?.(mockClient as unknown as Client);
 
-    const spotlightBeforeEnvelope = mockClient.on.mock.calls[0]?.[1] as
-      | ((envelope: Envelope) => void)
-      | undefined;
+    const spotlightBeforeEnvelope = mockClient.on.mock.calls[0]?.[1] as ((envelope: Envelope) => void) | undefined;
 
     const originalEnvelopeReference = createMockEnvelope();
     spotlightBeforeEnvelope?.(originalEnvelopeReference);
@@ -42,9 +40,7 @@ describe('spotlight', () => {
     const spotlight = Spotlight();
     spotlight.setup?.(mockClient as unknown as Client);
 
-    const spotlightBeforeEnvelope = mockClient.on.mock.calls[0]?.[1] as
-      | ((envelope: Envelope) => void)
-      | undefined;
+    const spotlightBeforeEnvelope = mockClient.on.mock.calls[0]?.[1] as ((envelope: Envelope) => void) | undefined;
 
     spotlightBeforeEnvelope?.(createMockEnvelope());
 

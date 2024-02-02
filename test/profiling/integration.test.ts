@@ -354,14 +354,6 @@ function initTestClient(
   }
   Sentry.init(options);
 
-  // In production integrations are setup only once, but in the tests we want them to setup on every init
-  const integrations = Sentry.getCurrentHub().getClient()?.getOptions().integrations;
-  if (integrations) {
-    for (const integration of integrations) {
-      integration.setupOnce(Sentry.addGlobalEventProcessor, Sentry.getCurrentHub);
-    }
-  }
-
   return {
     transportSendMock,
   };
