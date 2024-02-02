@@ -1,8 +1,7 @@
-import { getCurrentHub } from '@sentry/core';
+import { captureException, getClient, getCurrentScope } from '@sentry/core';
 import type { EventHint, Integration, SeverityLevel } from '@sentry/types';
 import { addExceptionMechanism, logger } from '@sentry/utils';
 
-import type { ReactNativeClient } from '../client';
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
@@ -129,7 +128,7 @@ export class ReactNativeErrorHandlers implements Integration {
           promiseRejectionTrackingOptions.onUnhandled(id, error);
         }
 
-        getCurrentHub().captureException(error, {
+        captureException(error, {
           data: { id },
           originalException: error,
           syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
@@ -208,9 +207,7 @@ export class ReactNativeErrorHandlers implements Integration {
           handlingFatal = true;
         }
 
-        const currentHub = getCurrentHub();
-        const client = currentHub.getClient<ReactNativeClient>();
-        const scope = currentHub.getScope();
+        const client = getClient();
 
         if (!client) {
           logger.error('Sentry client is missing, the error event might be lost.', error);
@@ -221,11 +218,9 @@ export class ReactNativeErrorHandlers implements Integration {
           return;
         }
 
-        const options = client.getOptions();
-
         const hint: EventHint = {
           originalException: error,
-          attachments: scope?.getAttachments(),
+          attachments: getCurrentScope().getScopeData().attachments,
         };
         const event = await client.eventFromException(error, hint);
 
@@ -238,10 +233,10 @@ export class ReactNativeErrorHandlers implements Integration {
           });
         }
 
-        currentHub.captureEvent(event, hint);
+        client.captureEvent(event, hint);
 
         if (!__DEV__) {
-          void client.flush(options.shutdownTimeout || 2000).then(
+          void client.flush(client.getOptions().shutdownTimeout || 2000).then(
             () => {
               defaultHandler(error, isFatal);
             },
