@@ -16,28 +16,29 @@ export class ExpoContext implements Integration {
 
   /**
    * @inheritDoc
+   * @deprecated
    */
-  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
-    addGlobalEventProcessor(async (event: Event) => {
-      const self = getCurrentHub().getIntegration(ExpoContext);
-      if (!self) {
-        return event;
-      }
+  public setupOnce(_addGlobalEventProcessor: (callback: EventProcessor) => void, _getCurrentHub: () => Hub): void {
+    // nothing to do here
+  }
 
-      const expoDeviceContext = getExpoDeviceContext();
-      if (expoDeviceContext) {
-        event.contexts = event.contexts || {};
-        event.contexts.device = { ...expoDeviceContext, ...event.contexts.device };
-      }
+  /**
+   * @inheritDoc
+   */
+  public processEvent(event: Event): Event {
+    const expoDeviceContext = getExpoDeviceContext();
+    if (expoDeviceContext) {
+      event.contexts = event.contexts || {};
+      event.contexts.device = { ...expoDeviceContext, ...event.contexts.device };
+    }
 
-      const expoOsContext = getExpoOsContext();
-      if (expoOsContext) {
-        event.contexts = event.contexts || {};
-        event.contexts.os = { ...expoOsContext, ...event.contexts.os };
-      }
+    const expoOsContext = getExpoOsContext();
+    if (expoOsContext) {
+      event.contexts = event.contexts || {};
+      event.contexts.os = { ...expoOsContext, ...event.contexts.os };
+    }
 
-      return event;
-    });
+    return event;
   }
 }
 

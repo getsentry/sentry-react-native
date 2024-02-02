@@ -1,4 +1,3 @@
-import type { Hub } from '@sentry/core';
 import type { Event } from '@sentry/types';
 
 import { ExpoContext } from '../../src/js/integrations/expocontext';
@@ -8,11 +7,6 @@ jest.mock('../../src/js/utils/expomodules');
 
 describe('Expo Context Integration', () => {
   let integration: ExpoContext;
-
-  const mockGetCurrentHub = () =>
-    ({
-      getIntegration: () => integration,
-    } as unknown as Hub);
 
   beforeEach(() => {
     integration = new ExpoContext();
@@ -112,16 +106,8 @@ describe('Expo Context Integration', () => {
     });
   });
 
-  function executeIntegrationFor(mockedEvent: Event): Promise<Event | null> {
-    return new Promise((resolve, reject) => {
-      integration.setupOnce(async eventProcessor => {
-        try {
-          const processedEvent = await eventProcessor(mockedEvent, {});
-          resolve(processedEvent);
-        } catch (e) {
-          reject(e);
-        }
-      }, mockGetCurrentHub);
-    });
+  function executeIntegrationFor(mockedEvent: Event): Event {
+    return integration.processEvent(mockedEvent);
   }
+
 });
