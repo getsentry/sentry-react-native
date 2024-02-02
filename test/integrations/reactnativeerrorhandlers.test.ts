@@ -1,4 +1,7 @@
 import { BrowserClient, defaultIntegrations, defaultStackParser } from '@sentry/browser';
+import type { Event, EventHint, ExtendedError, Integration, SeverityLevel } from '@sentry/types';
+
+import { ReactNativeErrorHandlers } from '../../src/js/integrations/reactnativeerrorhandlers';
 
 const mockBrowserClient: BrowserClient = new BrowserClient({
   stackParser: defaultStackParser,
@@ -6,34 +9,32 @@ const mockBrowserClient: BrowserClient = new BrowserClient({
   transport: jest.fn(),
 });
 
+
 let mockHubCaptureException: jest.Mock<void, [unknown, { syntheticException: Error }]>;
 
 jest.mock('@sentry/core', () => {
   const core = jest.requireActual('@sentry/core');
 
   const scope = {
-    getAttachments: jest.fn(),
+    getScopeData: jest.fn().mockReturnValue({ attachments: [] }),
   };
+
+  mockHubCaptureException = jest.fn();
 
   const client = {
     getOptions: () => ({}),
     eventFromException: (_exception: any, _hint?: EventHint): PromiseLike<Event> =>
       mockBrowserClient.eventFromException(_exception, _hint),
+    captureEvent: mockHubCaptureException,
   };
 
-  const hub = {
-    getClient: () => client,
-    getScope: () => scope,
-    captureEvent: jest.fn(),
-    captureException: jest.fn(),
-  };
-
-  mockHubCaptureException = hub.captureException;
 
   return {
     ...core,
     addGlobalEventProcessor: jest.fn(),
-    getCurrentHub: () => hub,
+    getClient: () => client,
+    getCurrentScope: () => scope,
+    captureException: mockHubCaptureException,
   };
 });
 
@@ -48,11 +49,6 @@ jest.mock('@sentry/utils', () => {
     },
   };
 });
-
-import { getCurrentHub } from '@sentry/core';
-import type { Event, EventHint, ExtendedError, Integration, SeverityLevel } from '@sentry/types';
-
-import { ReactNativeErrorHandlers } from '../../src/js/integrations/reactnativeerrorhandlers';
 
 interface MockTrackingOptions {
   allRejections: boolean;
@@ -183,8 +179,5 @@ describe('ReactNativeErrorHandlers', () => {
 });
 
 function getActualCaptureEventArgs() {
-  const hub = getCurrentHub();
-  const mockCall = (hub.captureEvent as jest.MockedFunction<typeof hub.captureEvent>).mock.calls[0];
-
-  return mockCall;
+  return mockHubCaptureException.mock.calls[0];
 }
