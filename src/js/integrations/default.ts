@@ -1,3 +1,4 @@
+import { httpClientIntegration } from '@sentry/integrations';
 import {
   breadcrumbsIntegration,
   browserApiErrorsIntegration,
@@ -95,7 +96,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(new ReactNativeTracing());
   }
   if (options.enableCaptureFailedRequests) {
-    integrations.push(httpContextIntegration());
+    integrations.push(httpClientIntegration());
   }
 
   if (isExpoGo()) {
