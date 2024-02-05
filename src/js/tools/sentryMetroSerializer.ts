@@ -192,5 +192,6 @@ function calculateDebugId(bundle: Bundle): string {
 }
 
 function injectDebugId(code: string, debugId: string): string {
+  // eslint-disable-next-line @sentry-internal/sdk/no-regexp-constructor
   return code.replace(new RegExp(DEBUG_ID_PLACE_HOLDER, 'g'), debugId);
 }

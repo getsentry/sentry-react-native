@@ -13,6 +13,9 @@ This release contains upgrade of `sentry-android` dependency to major version 7.
 - Bump Android SDK from v6.34.0 to v7.3.0 ([#3434](https://github.com/getsentry/sentry-react-native/pull/3434))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#730)
   - [diff](https://github.com/getsentry/sentry-java/compare/6.34.0...7.3.0)
+- Bump JavaScript SDK from v7.81.1 to v7.99.0 ([#3426](https://github.com/getsentry/sentry-react-native/pull/3426))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7990)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.81.1...7.99.0)
 
 ## 5.18.0
 

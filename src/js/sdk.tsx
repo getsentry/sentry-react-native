@@ -216,15 +216,16 @@ export function captureUserFeedback(feedback: UserFeedback): void {
  *
  * @param callback that will be enclosed into push/popScope.
  */
-export function withScope(callback: (scope: Scope) => void): ReturnType<Hub['withScope']> {
-  const safeCallback = (scope: Scope): void => {
+export function withScope<T>(callback: (scope: Scope) => T): T | undefined {
+  const safeCallback = (scope: Scope): T | undefined => {
     try {
-      callback(scope);
+      return callback(scope);
     } catch (e) {
       logger.error('Error while running withScope callback', e);
+      return undefined;
     }
   };
-  getCurrentHub().withScope(safeCallback);
+  return getCurrentHub().withScope(safeCallback);
 }
 
 /**

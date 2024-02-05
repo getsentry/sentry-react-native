@@ -1,3 +1,4 @@
+/* eslint-disable deprecation/deprecation */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Transaction } from '@sentry/core';
 import type { TransactionContext } from '@sentry/types';
@@ -68,6 +69,8 @@ describe('ReactNavigationInstrumentation', () => {
         hasBeenSeen: false,
       },
       previousRoute: null,
+      'sentry.op': 'navigation',
+      'sentry.origin': 'manual',
     });
     expect(mockTransaction.metadata.source).toBe('component');
   });
@@ -131,6 +134,8 @@ describe('ReactNavigationInstrumentation', () => {
             key: dummyRoute.key,
             params: {},
           },
+          'sentry.op': 'navigation',
+          'sentry.origin': 'manual',
         });
         expect(mockTransaction.metadata.source).toBe('component');
 
@@ -152,7 +157,6 @@ describe('ReactNavigationInstrumentation', () => {
       tracingListener as any,
       context => {
         context.sampled = false;
-        context.description = 'Description';
         context.name = 'New Name';
 
         return context;
@@ -182,7 +186,7 @@ describe('ReactNavigationInstrumentation', () => {
 
         expect(mockTransaction.sampled).toBe(false);
         expect(mockTransaction.name).toBe('New Name');
-        expect(mockTransaction.description).toBe('Description');
+        expect(mockTransaction.description).toBe('New Name');
         expect(mockTransaction.metadata.source).toBe('custom');
         resolve();
       }, 50);
