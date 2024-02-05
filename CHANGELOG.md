@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+This release contains upgrade of `sentry-android` dependency to major version 7. There are no breaking changes in the JS API. If you are using the Android API please check [the migration guide](https://docs.sentry.io/platforms/android/migration/#migrating-from-iosentrysentry-android-6x-to-iosentrysentry-android-700).
+
+### Fixes
+
+- Upload Debug Symbols Build Phase continues when `node` not found in `WITH_ENVIRONMENT` ([#3573](https://github.com/getsentry/sentry-react-native/pull/3573))
+
+### Dependencies
+
+- Bump Android SDK from v6.34.0 to v7.3.0 ([#3434](https://github.com/getsentry/sentry-react-native/pull/3434))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#730)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.34.0...7.3.0)
+- Bump JavaScript SDK from v7.81.1 to v7.99.0 ([#3426](https://github.com/getsentry/sentry-react-native/pull/3426))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7990)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.81.1...7.99.0)
+
+## 5.18.0
+
 ### Features
 
 - Add [`@spotlightjs/spotlight`](https://spotlightjs.com/) support ([#3550](https://github.com/getsentry/sentry-react-native/pull/3550))
@@ -26,12 +43,6 @@
 - Fetch Organization slug from `@sentry/react-native/expo` config when uploading artifacts ([#3557](https://github.com/getsentry/sentry-react-native/pull/3557))
 - Remove 404 Http Client Errors reports for Metro Dev Server Requests ([#3553](https://github.com/getsentry/sentry-react-native/pull/3553))
 - Stop tracing Spotlight Sidecar network request in JS ([#3559](https://github.com/getsentry/sentry-react-native/pull/3559))
-
-### Dependencies
-
-- Bump JavaScript SDK from v7.81.1 to v7.99.0 ([#3426](https://github.com/getsentry/sentry-react-native/pull/3426))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7990)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.81.1...7.99.0)
 
 ## 5.17.0
 
