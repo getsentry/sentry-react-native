@@ -230,7 +230,9 @@ export class ReactNativeTracing implements Integration {
     }
 
     if (enableAppStartTracking) {
-      void this._instrumentAppStart();
+      this._instrumentAppStart().then(undefined, (reason: unknown) => {
+        logger.error(`[ReactNativeTracing] Error while instrumenting app start:`, reason);
+      });
     }
 
     if (enableNativeFramesTracking) {

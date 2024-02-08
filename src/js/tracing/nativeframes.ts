@@ -64,7 +64,9 @@ export class NativeFramesInstrumentation {
    * To be called when a transaction is finished
    */
   public onTransactionFinish(transaction: Transaction): void {
-    void this._fetchFramesForTransaction(transaction);
+    this._fetchFramesForTransaction(transaction).then(undefined, (reason: unknown) => {
+      logger.error(`[ReactNativeTracing] Error while fetching native frames:`, reason);
+    });
   }
 
   /**

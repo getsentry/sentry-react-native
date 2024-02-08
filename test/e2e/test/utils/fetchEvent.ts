@@ -1,5 +1,5 @@
 import type { Event } from '@sentry/types';
-import fetch from 'node-fetch';
+import fetch, { Request } from 'node-fetch';
 
 const domain = 'sentry.io';
 const eventEndpoint = '/api/0/projects/sentry-sdks/sentry-react-native/events/';
@@ -18,9 +18,9 @@ const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
   const url = `https://${domain}${eventEndpoint}${eventId}/`;
 
   expect(process.env.SENTRY_AUTH_TOKEN).toBeDefined();
-  expect(process.env.SENTRY_AUTH_TOKEN.length).toBeGreaterThan(0);
+  expect(process.env.SENTRY_AUTH_TOKEN?.length).toBeGreaterThan(0);
 
-  const request = new fetch.Request(url, {
+  const request = new Request(url, {
     headers: {
       Authorization: `Bearer ${process.env.SENTRY_AUTH_TOKEN}`,
       'Content-Type': 'application/json',
@@ -51,10 +51,10 @@ const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
       }
     });
 
-  const json: ApiEvent = await fetch(request)
+  const json: ApiEvent = (await fetch(request)
     // tslint:disable-next-line: no-unsafe-any
     .then(res => res.json())
-    .then(retryer);
+    .then(retryer)) as ApiEvent;
 
   return json;
 };

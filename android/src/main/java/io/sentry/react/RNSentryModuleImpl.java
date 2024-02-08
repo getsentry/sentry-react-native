@@ -18,7 +18,6 @@ import com.facebook.hermes.instrumentation.HermesSamplingProfiler;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.UiThreadUtil;
@@ -36,7 +35,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,9 +50,9 @@ import io.sentry.DateUtils;
 import io.sentry.HubAdapter;
 import io.sentry.ILogger;
 import io.sentry.ISentryExecutorService;
+import io.sentry.IScope;
 import io.sentry.ISerializer;
 import io.sentry.Integration;
-import io.sentry.Scope;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
 import io.sentry.SentryEvent;
@@ -65,7 +63,6 @@ import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AndroidProfiler;
 import io.sentry.android.core.AnrIntegration;
-import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.BuildConfig;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.CurrentActivityHolder;
@@ -76,6 +73,7 @@ import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
+import io.sentry.android.core.performance.AppStartMetrics;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
@@ -291,15 +289,12 @@ public class RNSentryModuleImpl {
     }
 
     public void fetchNativeAppStart(Promise promise) {
-        final AppStartState appStartInstance = AppStartState.getInstance();
-        final SentryDate appStartTime = appStartInstance.getAppStartTime();
-        final Boolean isColdStart = appStartInstance.isColdStart();
+        final AppStartMetrics appStartInstance = AppStartMetrics.getInstance();
+        final SentryDate appStartTime = appStartInstance.getAppStartTimeSpan().getStartTimestamp();
+        final boolean isColdStart = appStartInstance.getAppStartType() == AppStartMetrics.AppStartType.COLD;
 
         if (appStartTime == null) {
             logger.log(SentryLevel.WARNING, "App start won't be sent due to missing appStartTime.");
-            promise.resolve(null);
-        } else if (isColdStart == null) {
-            logger.log(SentryLevel.WARNING, "App start won't be sent due to missing isColdStart.");
             promise.resolve(null);
         } else {
             final double appStartTimestampMs = DateUtils.nanosToMillis(appStartTime.nanoTimestamp());
@@ -770,7 +765,7 @@ public class RNSentryModuleImpl {
             return;
         }
 
-        final @Nullable Scope currentScope = InternalSentrySdk.getCurrentScope();
+        final @Nullable IScope currentScope = InternalSentrySdk.getCurrentScope();
         final @NotNull Map<String, Object> serialized = InternalSentrySdk.serializeScope(
                 context,
                 (SentryAndroidOptions) options,
