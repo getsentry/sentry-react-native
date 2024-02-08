@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
+import { timestampInSeconds } from '@sentry/utils';
 
 /**
  * An example of how to add a Sentry Transaction to a React component manually.
@@ -40,6 +41,7 @@ const TrackerScreen = () => {
   };
 
   React.useEffect(() => {
+    console.log('transitionEnd TrackerScreen mounted', timestampInSeconds() * 1000);
     loadData();
   }, []);
 

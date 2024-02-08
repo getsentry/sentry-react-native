@@ -122,6 +122,7 @@ public class RNSentryModuleImpl {
             options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
             options.setNativeSdkName(NATIVE_SDK_NAME);
             options.setSdkVersion(sdkVersion);
+            options.setEnableTracing(true);
 
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);

@@ -33,6 +33,62 @@
 #import "RNSentrySpec.h"
 #endif
 
+#import <objc/runtime.h>
+#import "RNSScreen.h"
+#import <Sentry/SentryFramesTracker.h>
+#import <Sentry/SentrySwizzle.h>
+
+@interface MyFramesTrackerListener : NSObject <SentryFramesTrackerListener>
+
+- (instancetype)initWithSentryFramesTracker:(SentryFramesTracker *)framesTracker;
+
+@property (strong, nonatomic) SentryFramesTracker *framesTracker;
+
+@end
+
+// this could be "OneTimeListener" but that might be resouce hungry
+@implementation MyFramesTrackerListener
+
+- (instancetype)initWithSentryFramesTracker:(SentryFramesTracker *)framesTracker {
+    self = [super init];
+    if (self) {
+        _framesTracker = framesTracker;
+    }
+    return self;
+}
+
+- (void)framesTrackerHasNewFrame {
+    // RN uses older sentry cocoa newer version get NSData as param
+    NSLog(@"New frame received now");
+    NSDate *finishTime = [SentryDependencyContainer.sharedInstance.dateProvider date];
+    NSTimeInterval timeInterval = [finishTime timeIntervalSince1970]; // Seconds since the Unix epoch
+    long long milliseconds = (long long)(timeInterval * 1000.0); // Convert to milliseconds
+    NSLog(@"Frame rendered timestamp %lld", milliseconds);
+    [_framesTracker removeListener:self];
+}
+
+@end
+
+MyFramesTrackerListener* newListener = nil;
+
+@implementation RNSScreen (SwizzlingRNSScreen)
+
++ (void)load {
+  SEL selector = NSSelectorFromString(@"viewDidAppear:");
+  SentrySwizzleInstanceMethod(RNSScreen.class, selector, SentrySWReturnType(void),
+      SentrySWArguments(BOOL animated), SentrySWReplacement({
+        // Add your custom behavior here
+        NSLog(@"viewDidAppear: swizzled specifically for RNSScreen.");
+
+        // Start next frame tracking and save in in RNSentry instance and wait until JS retrieves the information
+        [[[SentryDependencyContainer sharedInstance] framesTracker] addListener:newListener];
+        SentrySWCallOriginal(animated);
+      }),
+      SentrySwizzleModeOncePerClass, (void *)selector);
+}
+
+@end
+
 @interface SentryTraceContext : NSObject
 - (nullable instancetype)initWithDict:(NSDictionary<NSString *, id> *)dictionary;
 @end
@@ -68,6 +124,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    newListener = [[MyFramesTrackerListener alloc] initWithSentryFramesTracker:[[SentryDependencyContainer sharedInstance] framesTracker]];
     NSError *error = nil;
     SentryOptions* sentryOptions = [self createOptionsWithDictionary:options error:&error];
     if (error != nil) {

@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   NavigationContainer,
   NavigationContainerRef,
 } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
@@ -20,6 +20,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { StyleSheet } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
+import { timestampInSeconds } from '@sentry/utils';
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
@@ -96,10 +97,84 @@ Sentry.init({
   enableSpotlight: true,
 });
 
-const Stack = createStackNavigator();
+// function simulateHeavySyncCalculation() {
+//   let result = 0;
+//   for (let i = 0; i < 1e7; i++) { // Adjusted for quicker demonstration
+//     result += Math.sqrt(i) * Math.sin(i);
+//   }
+//   return result;
+// }
+
+// function performCalculationAsync() {
+//   return new Promise((resolve) => {
+//     setTimeout(() => {
+//       const result = simulateHeavySyncCalculation();
+//       resolve(result);
+//     }, 0); // Keep this to ensure the function is asynchronous
+//   });
+// }
+
+// // Function to delay execution for a given number of milliseconds
+// function delay(ms) {
+//   return new Promise(resolve => setTimeout(resolve, ms));
+// }
+
+// async function runCalculationsAsync(times) {
+//   for (let i = 0; i < times; i++) {
+//     // Generate a random delay between 0.5 and 2 seconds
+//     const randomDelay = Math.random() * (2000 - 500) + 500;
+
+//     // Wait for the random delay before starting the next calculation
+//     await delay(randomDelay);
+
+//     // Then perform the calculation
+//     const result = await performCalculationAsync();
+//     console.log(`Calculation ${i + 1} completed with result: ${result}, after delay: ${randomDelay}ms`);
+//   }
+// }
+
+// // Run the heavy calculation 50 times with random delays between each
+// runCalculationsAsync(5000);
+
+
+const Stack = createNativeStackNavigator();
 
 const App = () => {
   const navigation = React.useRef<NavigationContainerRef<{}>>(null);
+
+  useEffect(() => {
+    navigation.current?.addListener('state', (e) => {
+      console.log('state', e);
+      // function simulateHeavySyncCalculation() {
+      //   let result = 0;
+      //   for (let i = 0; i < 1e7; i++) { // Reduced the workload for quicker demonstration
+      //     result += Math.sqrt(i) * Math.sin(i);
+      //   }
+      //   return result;
+      // }
+
+      // function performCalculationAsync() {
+      //   return new Promise((resolve) => {
+      //     setTimeout(() => {
+      //       const result = simulateHeavySyncCalculation();
+      //       resolve(result);
+      //     }, 0); // Timeout set to 0 to defer execution
+      //   });
+      // }
+
+      // async function runCalculationsAsync(times: number) {
+      //   for (let i = 0; i < times; i++) {
+      //     performCalculationAsync().then((result) => {
+      //       console.log(`Calculation ${i + 1} completed with result: ${result}`);
+      //     });
+      //   }
+      // }
+
+      // // Run the heavy calculation 50 times asynchronously
+      // runCalculationsAsync(7);
+
+    });
+  }, [navigation]);
 
   return (
     <GestureHandlerRootView style={styles.wrapper}>
@@ -112,11 +187,25 @@ const App = () => {
             );
           }}>
           <Stack.Navigator>
-            <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="Tracker" component={TrackerScreen} />
+            <Stack.Screen name="Home" component={HomeScreen} listeners={{
+              transitionEnd: (e) => {
+                console.log('transitionEnd', timestampInSeconds() * 1000, e);
+              }
+            }}
+            />
+            <Stack.Screen name="Tracker" component={TrackerScreen} listeners={{
+              transitionEnd: (e) => {
+                console.log('transitionEnd', timestampInSeconds() * 1000, e);
+              }
+            }} />
             <Stack.Screen
               name="ManualTracker"
               component={ManualTrackerScreen}
+              listeners={{
+                transitionEnd: (e) => {
+                  console.log('transitionEnd', e);
+                },
+              }}
             />
             <Stack.Screen
               name="PerformanceTiming"
