@@ -3,6 +3,7 @@ package io.sentry.react;
 import static io.sentry.android.core.internal.util.ScreenshotUtils.takeScreenshot;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -10,6 +11,8 @@ import android.content.res.AssetManager;
 import android.util.SparseIntArray;
 
 import androidx.core.app.FrameMetricsAggregator;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 
 import com.facebook.hermes.instrumentation.HermesSamplingProfiler;
 import com.facebook.react.bridge.Arguments;
@@ -111,7 +114,20 @@ public class RNSentryModuleImpl {
     }
 
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
-        SentryAndroid.init(this.getReactApplicationContext(), options -> {
+        final Application application = SentryReact.getInstance().getApplication();
+
+
+        final SentryReactFragmentLifecycleTracer fragmentLifecycleTracer = new SentryReactFragmentLifecycleTracer(buildInfo);
+
+        final @Nullable FragmentActivity fragmentActivity = (FragmentActivity) getCurrentActivity();
+        if (fragmentActivity != null) {
+            final @Nullable FragmentManager supportFragmentManager = fragmentActivity.getSupportFragmentManager();
+            if (supportFragmentManager != null) {
+                supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleTracer, true);
+            }
+        }
+
+        SentryAndroid.init(application != null ? application : this.getReactApplicationContext(), options -> {
             @Nullable SdkVersion sdkVersion = options.getSdkVersion();
             if (sdkVersion == null) {
                 sdkVersion = new SdkVersion(ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
@@ -123,6 +139,8 @@ public class RNSentryModuleImpl {
             options.setNativeSdkName(NATIVE_SDK_NAME);
             options.setSdkVersion(sdkVersion);
             options.setEnableTracing(true);
+
+
 
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
@@ -225,6 +243,9 @@ public class RNSentryModuleImpl {
                 currentActivityHolder.setActivity(currentActivity);
             }
         });
+
+        final Activity currentActivity = getCurrentActivity();
+
 
         promise.resolve(true);
     }

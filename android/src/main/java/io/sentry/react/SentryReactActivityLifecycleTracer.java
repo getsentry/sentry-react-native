@@ -1,16 +1,17 @@
 package io.sentry.react;
+
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 
-public final class ReactSentryActivityLifecycleTracer {
+public final class SentryReactActivityLifecycleTracer {
     private static ActivityLifecycleCallbacks callbacks = new ActivityLifecycleCallbacks();
 
-    public ReactSentryActivityLifecycleTracer(Application application) {
+    public SentryReactActivityLifecycleTracer(Application application) {
         application.registerActivityLifecycleCallbacks(callbacks);
     }
 
-    private static final class ActivityLifecycleCallbacks implements android.app.Application.ActivityLifecycleCallbacks {
+    private static final class ActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
         public void onActivityCreated(Activity activity, Bundle bundle) {
         }
 

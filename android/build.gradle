@@ -43,6 +43,7 @@ android {
 
     sourceSets {
         main {
+            java.srcDirs += ['src/sentry-react-native-screens-noop']
             if (isNewArchitectureEnabled()) {
                 java.srcDirs += ['src/newarch']
             } else {
@@ -55,4 +56,11 @@ android {
 dependencies {
     implementation 'com.facebook.react:react-native:+'
     api 'io.sentry:sentry-android:7.3.0'
+    // implementation 'io.sentry:sentry-android-fragment:7.3.0'
+
+    // if (findProject(':react-native-screens') != null) {
+    //     implementation project(':react-native-screens')
+    // } else {
+        //implementation project(':sentry-react-native-screens-noop')
+    // }
 }
