@@ -1,10 +1,17 @@
 /* eslint-disable complexity */
-import type { Envelope, Event, Profile, ThreadCpuProfile } from '@sentry/types';
+import type { Envelope, Event, ThreadCpuProfile } from '@sentry/types';
 import { forEachEnvelopeItem, logger } from '@sentry/utils';
 
 import { getDefaultEnvironment } from '../utils/environment';
 import { getDebugMetadata } from './debugid';
-import type { CombinedProfileEvent, HermesProfileEvent, RawThreadCpuProfile } from './types';
+import type {
+  AndroidCombinedProfileEvent,
+  AndroidProfileEvent,
+  CombinedProfileEvent,
+  HermesProfileEvent,
+  ProfileEvent,
+  RawThreadCpuProfile,
+} from './types';
 
 /**
  *
@@ -53,13 +60,17 @@ export function findProfiledTransactionsFromEnvelope(envelope: Envelope): Event[
 /**
  * Creates a profiling envelope item, if the profile does not pass validation, returns null.
  * @param event
- * @returns {Profile | null}
+ * @returns {ProfileEvent | null}
  */
 export function enrichCombinedProfileWithEventContext(
   profile_id: string,
-  profile: CombinedProfileEvent,
+  profile: CombinedProfileEvent | AndroidCombinedProfileEvent,
   event: Event,
-): Profile | null {
+): ProfileEvent | null {
+  if ('js_profile' in profile) {
+    return enrichAndroidProfileWithEventContext(profile_id, profile, event);
+  }
+
   if (!profile.profile || !isValidProfile(profile.profile)) {
     return null;
   }
@@ -110,6 +121,54 @@ export function enrichCombinedProfileWithEventContext(
 }
 
 /**
+ * Creates Android profiling envelope item.
+ */
+export function enrichAndroidProfileWithEventContext(
+  profile_id: string,
+  profile: AndroidCombinedProfileEvent,
+  event: Event,
+): AndroidProfileEvent | null {
+  return {
+    ...profile,
+    debug_meta: {
+      images: getDebugMetadata(),
+    },
+    build_id: profile.build_id || '',
+
+    device_cpu_frequencies: [],
+    device_is_emulator: (event.contexts && event.contexts.device && event.contexts.device.simulator) || false,
+    device_locale: (event.contexts && event.contexts.device && (event.contexts.device.locale as string)) || '',
+    device_manufacturer: (event.contexts && event.contexts.device && event.contexts.device.manufacturer) || '',
+    device_model: (event.contexts && event.contexts.device && event.contexts.device.model) || '',
+    device_os_name: (event.contexts && event.contexts.os && event.contexts.os.name) || '',
+    device_os_version: (event.contexts && event.contexts.os && event.contexts.os.version) || '',
+
+    device_physical_memory_bytes:
+      (event.contexts &&
+        event.contexts.device &&
+        event.contexts.device.memory_size &&
+        Number(event.contexts.device.memory_size).toString(10)) ||
+      '',
+
+    environment: event.environment || getDefaultEnvironment(),
+
+    profile_id,
+
+    timestamp: event.start_timestamp ? new Date(event.start_timestamp * 1000).toISOString() : new Date().toISOString(),
+
+    release: event.release || '',
+    dist: event.dist || '',
+
+    transaction_id: event.event_id || '',
+    transaction_name: event.transaction || '',
+    trace_id: (event.contexts && event.contexts.trace && event.contexts.trace.trace_id) || '',
+
+    version_name: event.release || '',
+    version_code: event.dist || '',
+  };
+}
+
+/**
  * Creates profiling event compatible carrier Object from raw Hermes profile.
  */
 export function createHermesProfilingEvent(profile: RawThreadCpuProfile): HermesProfileEvent {
@@ -127,7 +186,7 @@ export function createHermesProfilingEvent(profile: RawThreadCpuProfile): Hermes
  * Adds items to envelope if they are not already present - mutates the envelope.
  * @param envelope
  */
-export function addProfilesToEnvelope(envelope: Envelope, profiles: Profile[]): Envelope {
+export function addProfilesToEnvelope(envelope: Envelope, profiles: ProfileEvent[]): Envelope {
   if (!profiles.length) {
     return envelope;
   }

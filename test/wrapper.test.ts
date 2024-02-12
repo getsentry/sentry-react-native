@@ -600,6 +600,16 @@ describe('Tests Native Wrapper', () => {
         nativeProfile: { valid: 'native' },
       });
     });
+    test('stop profiling returns hermes and android profiles', () => {
+      (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
+        profile: '{ "valid": "hermes" }',
+        androidProfile: { valid: 'android' },
+      });
+      expect(NATIVE.stopProfiling()).toEqual({
+        hermesProfile: { valid: 'hermes' },
+        androidProfile: { valid: 'android' },
+      });
+    });
     test('failed stop profiling returns null', () => {
       (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({
         error: 'error',
