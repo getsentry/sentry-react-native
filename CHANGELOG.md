@@ -7,6 +7,24 @@ This release contains upgrade of `sentry-android` dependency to major version 7.
 ### Features
 
 - Add Android profiles to React Native Profiling ([#3397](https://github.com/getsentry/sentry-react-native/pull/3397))
+- Add `Sentry.metrics` ([#3590](https://github.com/getsentry/sentry-react-native/pull/3590))
+
+  To learn more, see the [Set Up Metrics](https://docs.sentry.io/platforms/react-native/metrics/) guide.
+
+  ```javascript
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    dsn: '___DSN___',
+    integrations: [
+      Sentry.metrics.metricsAggregatorIntegration(),
+    ],
+  });
+
+  Sentry.metrics.increment("button_click", 1, {
+    tags: { system: "iOS", app_version: "1.0.0" },
+  });
+  ```
 
 ### Fixes
 

@@ -45,6 +45,8 @@ export {
   getClient,
   setCurrentClient,
   addEventProcessor,
+
+  metrics,
 } from '@sentry/core';
 
 import { _addTracingExtensions } from './tracing/addTracingExtensions';
