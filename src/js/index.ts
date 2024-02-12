@@ -28,10 +28,23 @@ export {
   setTags,
   setUser,
   startTransaction,
+
+  // v8 spans
   startInactiveSpan,
   startSpan,
   startSpanManual,
   getActiveSpan,
+  spanToJSON,
+  spanIsSampled,
+  setMeasurement,
+
+  // v8 scopes
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  getClient,
+  setCurrentClient,
+  addEventProcessor,
 } from '@sentry/core';
 
 import { _addTracingExtensions } from './tracing/addTracingExtensions';
