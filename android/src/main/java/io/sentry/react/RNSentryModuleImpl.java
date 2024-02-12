@@ -740,9 +740,12 @@ public class RNSentryModuleImpl {
         for (Properties debugMeta : debugMetaList) {
             proguardUuid = DebugMetaPropertiesApplier.getProguardUuid(debugMeta);
             if (proguardUuid != null) {
-              return proguardUuid;
+                logger.log(SentryLevel.INFO, "Proguard uuid found: " + proguardUuid);
+                return proguardUuid;
             }
         }
+
+        logger.log(SentryLevel.WARNING, "No proguard uuid found in debug meta properties file!");
         return null;
     }
 
