@@ -731,10 +731,17 @@ public class RNSentryModuleImpl {
             return proguardUuid;
         }
         isProguardDebugMetaLoaded = true;
-        final @Nullable Properties debugMeta = (new AssetsDebugMetaLoader(this.getReactApplicationContext(), logger)).loadDebugMeta();
-        if (debugMeta != null) {
+        final @Nullable List<Properties> debugMetaList = (new AssetsDebugMetaLoader(this.getReactApplicationContext(),
+            logger)).loadDebugMeta();
+        if (debugMetaList == null) {
+            return null;
+        }
+
+        for (Properties debugMeta : debugMetaList) {
             proguardUuid = DebugMetaPropertiesApplier.getProguardUuid(debugMeta);
-            return proguardUuid;
+            if (proguardUuid != null) {
+              return proguardUuid;
+            }
         }
         return null;
     }

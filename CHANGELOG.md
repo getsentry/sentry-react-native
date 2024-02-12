@@ -11,6 +11,7 @@ This release contains upgrade of `sentry-android` dependency to major version 7.
 ### Fixes
 
 - Upload Debug Symbols Build Phase continues when `node` not found in `WITH_ENVIRONMENT` ([#3573](https://github.com/getsentry/sentry-react-native/pull/3573))
+- Fix `proguardUuid` loading on Android ([#3591](https://github.com/getsentry/sentry-react-native/pull/3591))
 
 ### Dependencies
 
