@@ -39,7 +39,7 @@ const HomeScreen = (props: Props) => {
         'home_mount_time',
         timestampInSeconds() - componentMountStartTimestamp,
         {
-          unit: "seconds",
+          unit: 'seconds',
         },
       );
     }

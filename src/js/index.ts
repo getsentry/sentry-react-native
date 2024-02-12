@@ -45,7 +45,6 @@ export {
   getClient,
   setCurrentClient,
   addEventProcessor,
-
   metrics,
 } from '@sentry/core';
 

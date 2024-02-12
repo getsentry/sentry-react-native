@@ -40,11 +40,9 @@ const TrackerScreen = () => {
   };
 
   const onRefreshButtonPress = () => {
-    Sentry.metrics.increment(
-      'tracker_screen.refresh_button_press',
-      1,
-      { tags: { graph: 'none', public_data: true } },
-    );
+    Sentry.metrics.increment('tracker_screen.refresh_button_press', 1, {
+      tags: { graph: 'none', public_data: true },
+    });
     loadData();
   };
 
@@ -80,7 +78,11 @@ const TrackerScreen = () => {
           <ActivityIndicator size="small" color="#F6F6F8" />
         )}
       </View>
-      <Button sentry-label="refresh" title="Refresh" onPress={onRefreshButtonPress} />
+      <Button
+        sentry-label="refresh"
+        title="Refresh"
+        onPress={onRefreshButtonPress}
+      />
     </View>
   );
 };
