@@ -69,6 +69,7 @@ Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
+      Sentry.metrics.metricsAggregatorIntegration(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
