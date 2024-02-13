@@ -287,6 +287,17 @@ jobs:
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: yarn add ../../../../e2e
 
+      - uses: ruby/setup-ruby@v1
+        if: ${{ matrix.platform == 'ios' }}
+        with:
+          working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
+          ruby-version: '3.3.0' # based on what is used in the sample
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 1 # cache the installed gems
+      - run: gem install cocoapods -v 1.15.2 # fixes Hermes pod install https://github.com/CocoaPods/CocoaPods/issues/12226#issuecomment-1930604302
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
+        if: ${{ matrix.platform == 'ios' }}
+
       - name: Install App Pods
         if: ${{ matrix.platform == 'ios' }}
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
@@ -296,10 +307,11 @@ jobs:
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic" ]] && export USE_FRAMEWORKS=dynamic && export NO_FLIPPER=1
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
+          [[ "${{ matrix.rn-version }}" == "0.65.3" ]] && POD_INSTALL_COMMNAND="pod install" || POD_INSTALL_COMMNAND="bundle exec pod install"
           echo "ENABLE_PROD=$ENABLE_PROD"
           echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
           echo "USE_FRAMEWORKS=$USE_FRAMEWORKS"
-          PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH pod install
+          PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH $POD_INSTALL_COMMNAND
           cat Podfile.lock | grep $RN_SENTRY_POD_NAME
 
       - name: Patch App RN
