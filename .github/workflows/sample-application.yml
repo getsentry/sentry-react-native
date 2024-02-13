@@ -55,7 +55,8 @@ jobs:
         with:
           working-directory: samples/react-native
           ruby-version: '3.3.0' # based on what is used in the sample
-          bundler-cache: false # runs 'bundle install' and caches installed gems automatically
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 1 # cache the installed gems
 
       - uses: actions/setup-java@v3
         with:
