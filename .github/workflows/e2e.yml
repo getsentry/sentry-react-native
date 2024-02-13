@@ -225,6 +225,16 @@ jobs:
       - name: Gradle cache
         uses: gradle/gradle-build-action@v2
 
+      - uses: ruby/setup-ruby@v1
+        if: ${{ matrix.platform == 'ios' && matrix.rn-version != '0.65.3' }}
+        with:
+          working-directory: samples/react-native
+          ruby-version: '3.3.0' # based on what is used in the sample
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 1 # cache the installed gems
+      - run: gem install cocoapods -v 1.15.2 # fixes Hermes pod install https://github.com/CocoaPods/CocoaPods/issues/12226#issuecomment-1930604302
+        if: ${{ matrix.platform == 'ios' && matrix.rn-version != '0.65.3' }}
+
       - name: Setup Global Tools
         run: |
           yarn global add yalc semver
