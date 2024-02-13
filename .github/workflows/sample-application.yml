@@ -57,10 +57,6 @@ jobs:
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
 
-      - uses: maxim-lobanov/setup-cocoapods@8e97e1e98e6ccf42564fdf5622c8feec74199377 # v1.4.0
-        with:
-          podfile-path: myApp/Podfile.lock
-
       - uses: actions/setup-java@v3
         with:
           java-version: '17'
