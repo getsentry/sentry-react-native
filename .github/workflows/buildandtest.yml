@@ -27,7 +27,6 @@ jobs:
   job_test:
     name: Test
     runs-on: ubuntu-latest
-    if: ${{ always() }} // required job to be able to merge PRs
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -99,7 +98,6 @@ jobs:
   job_build:
     name: Build
     runs-on: ubuntu-latest
-    if: ${{ always() }} // required job to be able to merge PRs
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
