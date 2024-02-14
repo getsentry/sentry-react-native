@@ -1,4 +1,3 @@
-// TEST
 /* eslint-disable complexity */
 import type { Scope } from '@sentry/core';
 import { getIntegrationsToSetup, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
