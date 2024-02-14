@@ -21,6 +21,11 @@ jobs:
       - name: Check diff from Pull Request
         id: check_diff
         run: |
+          if [ -z "${{ github.base_ref }}" ] || [ -z "${{ github.head_ref }}" ]; then
+            echo "This action is intended to be run on pull requests only."
+            exit 0
+          fi
+
           skipList=(".github/CODEOWNERS" ".prettierignore")
           # Ignores changelog.md, readme.md,...
           fileChangesArray=($(git diff --name-only  origin/${{ github.base_ref }}..origin/${{ github.head_ref }} | grep -v '\.md$'))
