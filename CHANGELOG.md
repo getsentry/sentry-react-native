@@ -1,6 +1,73 @@
 # Changelog
 
-## Unreleased
+## 5.19.0
+
+This release contains upgrade of `sentry-android` dependency to major version 7. There are no breaking changes in the JS API. If you are using the Android API please check [the migration guide](https://docs.sentry.io/platforms/android/migration/#migrating-from-iosentrysentry-android-6x-to-iosentrysentry-android-700).
+
+### Features
+
+- Add Android profiles to React Native Profiling ([#3397](https://github.com/getsentry/sentry-react-native/pull/3397))
+- Add `Sentry.metrics` ([#3590](https://github.com/getsentry/sentry-react-native/pull/3590))
+
+  To learn more, see the [Set Up Metrics](https://docs.sentry.io/platforms/react-native/metrics/) guide.
+
+  ```javascript
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    dsn: '___DSN___',
+    integrations: [
+      Sentry.metrics.metricsAggregatorIntegration(),
+    ],
+  });
+
+  Sentry.metrics.increment("button_click", 1, {
+    tags: { system: "iOS", app_version: "1.0.0" },
+  });
+  ```
+
+### Fixes
+
+- Upload Debug Symbols Build Phase continues when `node` not found in `WITH_ENVIRONMENT` ([#3573](https://github.com/getsentry/sentry-react-native/pull/3573))
+- Fix `proguardUuid` loading on Android ([#3591](https://github.com/getsentry/sentry-react-native/pull/3591))
+
+### Dependencies
+
+- Bump Android SDK from v6.34.0 to v7.3.0 ([#3434](https://github.com/getsentry/sentry-react-native/pull/3434))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#730)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.34.0...7.3.0)
+- Bump JavaScript SDK from v7.81.1 to v7.100.1 ([#3426](https://github.com/getsentry/sentry-react-native/pull/3426), [#3589](https://github.com/getsentry/sentry-react-native/pull/3589))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7990)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.81.1...7.100.1)
+
+## 5.18.0
+
+### Features
+
+- Add [`@spotlightjs/spotlight`](https://spotlightjs.com/) support ([#3550](https://github.com/getsentry/sentry-react-native/pull/3550))
+
+  Download the `Spotlight` desktop application and add the integration to your `Sentry.init`.
+
+  ```javascript
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    dsn: '___DSN___',
+    enableSpotlight: __DEV__,
+  });
+  ```
+
+- Only upload Expo artifact if source map exists ([#3568](https://github.com/getsentry/sentry-react-native/pull/3568))
+- Read `.env` file in `sentry-expo-upload-sourcemaps` ([#3571](https://github.com/getsentry/sentry-react-native/pull/3571))
+
+### Fixes
+
+- Prevent pod install crash when visionos is not present ([#3548](https://github.com/getsentry/sentry-react-native/pull/3548))
+- Fetch Organization slug from `@sentry/react-native/expo` config when uploading artifacts ([#3557](https://github.com/getsentry/sentry-react-native/pull/3557))
+- Remove 404 Http Client Errors reports for Metro Dev Server Requests ([#3553](https://github.com/getsentry/sentry-react-native/pull/3553))
+- Stop tracing Spotlight Sidecar network request in JS ([#3559](https://github.com/getsentry/sentry-react-native/pull/3559))
+
+## 5.17.0
 
 ### Features
 
@@ -28,6 +95,8 @@
 - Performance Tracing should be disabled by default ([#3533](https://github.com/getsentry/sentry-react-native/pull/3533))
 - Use `$NODE_BINARY` to execute Sentry CLI in Xcode scripts ([#3493](https://github.com/getsentry/sentry-react-native/pull/3493))
 - Return auto Release and Dist to source maps auto upload ([#3540](https://github.com/getsentry/sentry-react-native/pull/3540))
+- Linked errors processed before other integrations ([#3535](https://github.com/getsentry/sentry-react-native/pull/3535))
+  - This ensure their frames are correctly symbolicated
 
 ### Dependencies
 

@@ -47,6 +47,9 @@ const getMockScope = () => {
       // Placeholder
     },
     getUser: () => scopeUser,
+    captureEvent(_event: unknown) {
+      // Placeholder
+    },
   };
 };
 

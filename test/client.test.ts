@@ -163,6 +163,19 @@ describe('Tests ReactNativeClient', () => {
       );
     });
 
+    test('catches errors from onReady callback', () => {
+      new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          enableNative: true,
+          onReady: () => {
+            throw new Error('This error should be caught by the SDK');
+          },
+          transport: () => new NativeTransport(),
+        }),
+      );
+    });
+
     test('calls onReady callback with false if Native SDK was not initialized', done => {
       new ReactNativeClient(
         mockedOptions({

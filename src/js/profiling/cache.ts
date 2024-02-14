@@ -1,5 +1,5 @@
 import { makeFifoCache } from '@sentry/utils';
 
-import type { CombinedProfileEvent } from './types';
+import type { AndroidCombinedProfileEvent, CombinedProfileEvent } from './types';
 
-export const PROFILE_QUEUE = makeFifoCache<string, CombinedProfileEvent>(20);
+export const PROFILE_QUEUE = makeFifoCache<string, CombinedProfileEvent | AndroidCombinedProfileEvent>(20);

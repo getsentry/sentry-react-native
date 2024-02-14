@@ -1,6 +1,6 @@
 import type { Exception } from '@sentry/browser';
 import { defaultStackParser, eventFromException } from '@sentry/browser';
-import type { Event } from '@sentry/types';
+import type { Client, Event, EventHint } from '@sentry/types';
 import { Platform } from 'react-native';
 
 import { createReactNativeRewriteFrames } from '../../src/js/integrations/rewriteframes';
@@ -22,9 +22,13 @@ describe('RewriteFrames', () => {
     const error = new Error(options.message);
     error.stack = options.stack;
     const event = await eventFromException(defaultStackParser, error, HINT, ATTACH_STACKTRACE);
-    createReactNativeRewriteFrames().process(event);
+    createReactNativeRewriteFrames().processEvent?.(event, {} as EventHint, {} as Client);
     const exception = event.exception?.values?.[0];
     return exception;
+  };
+
+  const processEvent = (event: Event): Event | undefined | null | PromiseLike<Event | null> => {
+    return createReactNativeRewriteFrames().processEvent?.(event, {} as EventHint, {} as Client);
   };
 
   beforeEach(() => {
@@ -67,7 +71,7 @@ describe('RewriteFrames', () => {
       },
     };
 
-    const event = createReactNativeRewriteFrames().process(SENTRY_COCOA_EXCEPTION_EVENT);
+    const event = processEvent(SENTRY_COCOA_EXCEPTION_EVENT) as Event;
     expect(event.exception?.values?.[0]).toEqual(EXPECTED_SENTRY_COCOA_EXCEPTION);
   });
 
@@ -101,7 +105,7 @@ describe('RewriteFrames', () => {
       },
     };
 
-    const event = createReactNativeRewriteFrames().process(SENTRY_JVM_EXCEPTION_EVENT);
+    const event = processEvent(SENTRY_JVM_EXCEPTION_EVENT) as Event;
     expect(event.exception?.values?.[0]).toEqual(EXPECTED_SENTRY_JVM_EXCEPTION);
   });
 

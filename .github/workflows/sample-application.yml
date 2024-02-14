@@ -70,8 +70,9 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         with:
           working-directory: samples/react-native
-          ruby-version: '3.2.2' # based on what is used in the sample
+          ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 1 # cache the installed gems
 
       - uses: actions/setup-java@v3
         with:
@@ -103,7 +104,7 @@ jobs:
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
           echo "ENABLE_PROD=$ENABLE_PROD"
           echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
-          PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH pod install
+          PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH bundle exec pod install
           cat Podfile.lock | grep $RN_SENTRY_POD_NAME
 
       - name: Build Android App
