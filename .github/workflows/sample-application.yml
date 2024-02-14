@@ -3,23 +3,7 @@ name: Sample Application
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - '.prettierignore'
-      - 'CHANGELOG.md'
-      - 'README.md'
-      - '.github/CODEOWNERS'
-      - '.github/pull_request_template.md'
-      - '.github/ISSUE_TEMPLATE/BUG_REPORT.md'
-      - '.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md'
   pull_request:
-    paths-ignore:
-      - '.prettierignore'
-      - 'CHANGELOG.md'
-      - 'README.md'
-      - '.github/CODEOWNERS'
-      - '.github/pull_request_template.md'
-      - '.github/ISSUE_TEMPLATE/BUG_REPORT.md'
-      - '.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -30,8 +14,13 @@ env:
   RN_SENTRY_POD_NAME: RNSentry
 
 jobs:
+  diff_check:
+    uses: ./.github/workflows/skip-ci.yml
+
   cancel-previous-workflow:
     runs-on: ubuntu-latest
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
@@ -41,6 +30,8 @@ jobs:
   build:
     name: Build ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
     runs-on: ${{ matrix.runs-on }}
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
