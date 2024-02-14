@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.19.0
 
 This release contains upgrade of `sentry-android` dependency to major version 7. There are no breaking changes in the JS API. If you are using the Android API please check [the migration guide](https://docs.sentry.io/platforms/android/migration/#migrating-from-iosentrysentry-android-6x-to-iosentrysentry-android-700).
 
