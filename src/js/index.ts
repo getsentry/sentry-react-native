@@ -31,10 +31,24 @@ export {
   setUser,
   // eslint-disable-next-line deprecation/deprecation
   startTransaction,
+
+  // v8 spans
   startInactiveSpan,
   startSpan,
   startSpanManual,
   getActiveSpan,
+  spanToJSON,
+  spanIsSampled,
+  setMeasurement,
+
+  // v8 scopes
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  getClient,
+  setCurrentClient,
+  addEventProcessor,
+  metrics,
 } from '@sentry/core';
 
 import { _addTracingExtensions } from './tracing/addTracingExtensions';

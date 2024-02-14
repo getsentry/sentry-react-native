@@ -49,3 +49,12 @@ export interface NativeProfileEvent {
     }[];
   };
 }
+
+export interface NativeAndroidProfileEvent {
+  sampled_profile: string;
+  android_api_level: number;
+  /**
+   * Proguard mapping file hash
+   */
+  build_id?: string;
+}

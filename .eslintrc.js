@@ -67,5 +67,6 @@ module.exports = {
     '@sentry-internal/sdk/no-nullish-coalescing': 'off',
     '@sentry-internal/sdk/no-unsupported-es6-methods': 'off',
     '@sentry-internal/sdk/no-class-field-initializers': 'off',
+    'deprecation/deprecation': 'off',
   },
 };

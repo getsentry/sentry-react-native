@@ -1,18 +1,7 @@
 /* eslint-disable complexity */
 import type { Hub } from '@sentry/core';
-import { getActiveTransaction, spanIsSampled } from '@sentry/core';
-import type {
-  BaseTransportOptions,
-  Client,
-  ClientOptions,
-  Envelope,
-  Event,
-  EventProcessor,
-  Integration,
-  Profile,
-  ThreadCpuProfile,
-  Transaction,
-} from '@sentry/types';
+import { getActiveTransaction } from '@sentry/core';
+import type { Envelope, Event, EventProcessor, Integration, ThreadCpuProfile, Transaction } from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 import { Platform } from 'react-native';
 
@@ -21,8 +10,8 @@ import { NATIVE } from '../wrapper';
 import { PROFILE_QUEUE } from './cache';
 import { MAX_PROFILE_DURATION_MS } from './constants';
 import { convertToSentryProfile } from './convertHermesProfile';
-import type { NativeProfileEvent } from './nativeTypes';
-import type { CombinedProfileEvent, HermesProfileEvent } from './types';
+import type { NativeAndroidProfileEvent, NativeProfileEvent } from './nativeTypes';
+import type { AndroidCombinedProfileEvent, CombinedProfileEvent, HermesProfileEvent, ProfileEvent } from './types';
 import {
   addProfilesToEnvelope,
   createHermesProfilingEvent,
@@ -98,7 +87,7 @@ export class HermesProfiling implements Integration {
         return;
       }
 
-      const profilesToAddToEnvelope: Profile[] = [];
+      const profilesToAddToEnvelope: ProfileEvent[] = [];
       for (const profiledTransaction of profiledTransactions) {
         const profile = this._createProfileEventFor(profiledTransaction);
         if (profile) {
@@ -186,7 +175,7 @@ export class HermesProfiling implements Integration {
       return;
     }
 
-    const profile = stopProfiling();
+    const profile = stopProfiling(this._currentProfile.startTimestampNs);
     if (!profile) {
       logger.warn('[Profiling] Stop failed. Cleaning up...');
       this._currentProfile = undefined;
@@ -199,7 +188,7 @@ export class HermesProfiling implements Integration {
     this._currentProfile = undefined;
   };
 
-  private _createProfileEventFor = (profiledTransaction: Event): Profile | null => {
+  private _createProfileEventFor = (profiledTransaction: Event): ProfileEvent | null => {
     const profile_id = profiledTransaction?.contexts?.['profile']?.['profile_id'];
 
     if (typeof profile_id !== 'string') {
@@ -247,11 +236,14 @@ export function startProfiling(): number | null {
 /**
  * Stops Profilers and returns collected combined profile.
  */
-export function stopProfiling(): CombinedProfileEvent | null {
+export function stopProfiling(
+  profileStartTimestampNs: number,
+): CombinedProfileEvent | AndroidCombinedProfileEvent | null {
   const collectedProfiles = NATIVE.stopProfiling();
   if (!collectedProfiles) {
     return null;
   }
+  const profileEndTimestampNs = Date.now() * MS_TO_NS;
 
   const hermesProfile = convertToSentryProfile(collectedProfiles.hermesProfile);
   if (!hermesProfile) {
@@ -263,11 +255,31 @@ export function stopProfiling(): CombinedProfileEvent | null {
     return null;
   }
 
-  if (!collectedProfiles.nativeProfile) {
-    return hermesProfileEvent;
+  if (collectedProfiles.androidProfile) {
+    const durationNs = profileEndTimestampNs - profileStartTimestampNs;
+    return createAndroidWithHermesProfile(hermesProfileEvent, collectedProfiles.androidProfile, durationNs);
+  } else if (collectedProfiles.nativeProfile) {
+    return addNativeProfileToHermesProfile(hermesProfileEvent, collectedProfiles.nativeProfile);
   }
 
-  return addNativeProfileToHermesProfile(hermesProfileEvent, collectedProfiles.nativeProfile);
+  return hermesProfileEvent;
+}
+
+/**
+ * Creates Android profile event with attached javascript profile.
+ */
+export function createAndroidWithHermesProfile(
+  hermes: HermesProfileEvent,
+  nativeAndroid: NativeAndroidProfileEvent,
+  durationNs: number,
+): AndroidCombinedProfileEvent {
+  return {
+    ...nativeAndroid,
+    platform: 'android',
+    js_profile: hermes.profile,
+    duration_ns: durationNs.toString(10),
+    active_thread_id: hermes.transaction.active_thread_id,
+  };
 }
 
 /**
