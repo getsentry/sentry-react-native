@@ -8,6 +8,7 @@ import {
   ButtonProps,
   StyleSheet,
   NativeModules,
+  NativeEventEmitter,
   Platform,
 } from 'react-native';
 
@@ -25,6 +26,9 @@ const { AssetsModule, CppModule, CrashModule } = NativeModules;
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
 }
+
+const eventEmitter = new NativeEventEmitter(AssetsModule);
+eventEmitter.addListener('span', (e) => { console.log('span event', e); });
 
 const ErrorsScreen = (_props: Props) => {
   const [componentMountStartTimestamp] = React.useState<number>(() => {
