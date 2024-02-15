@@ -14,8 +14,13 @@ env:
   RN_SENTRY_POD_NAME: RNSentry
 
 jobs:
+  diff_check:
+    uses: ./.github/workflows/skip-ci.yml
+
   cancel-previous-workflow:
     runs-on: ubuntu-latest
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
@@ -25,6 +30,8 @@ jobs:
   build:
     name: Build ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }}
     runs-on: ${{ matrix.runs-on }}
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
@@ -54,8 +61,9 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         with:
           working-directory: samples/react-native
-          ruby-version: '3.2.2' # based on what is used in the sample
+          ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 1 # cache the installed gems
 
       - uses: actions/setup-java@v3
         with:
@@ -87,7 +95,7 @@ jobs:
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
           echo "ENABLE_PROD=$ENABLE_PROD"
           echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
-          PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH pod install
+          PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH bundle exec pod install
           cat Podfile.lock | grep $RN_SENTRY_POD_NAME
 
       - name: Build Android App

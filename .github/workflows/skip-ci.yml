@@ -1,0 +1,41 @@
+name: Skip CI
+on:
+  workflow_call:
+    outputs:
+      skip_ci:
+        description: "Value yes if the current PR only contains changes to files not related to code, otherwise, not defined."
+        value: ${{ jobs.diff_check.outputs.skip_ci }}
+
+jobs:
+  diff_check:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    outputs:
+      skip_ci:
+        ${{ steps.check_diff.outputs.skip_ci }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check diff from Pull Request
+        id: check_diff
+        run: |
+          if [ -z "${{ github.base_ref }}" ] || [ -z "${{ github.head_ref }}" ]; then
+            echo "This action is intended to be run on pull requests only."
+            exit 0
+          fi
+
+          skipList=(".github/CODEOWNERS" ".prettierignore")
+          # Ignores changelog.md, readme.md,...
+          fileChangesArray=($(git diff --name-only  origin/${{ github.base_ref }}..origin/${{ github.head_ref }} | grep -v '\.md$'))
+          printf '%s\n' "${fileChangesArray[@]}"
+          for item in "${fileChangesArray[@]}"
+          do
+            if [[ ! " ${skipList[@]} " =~ " ${item} " ]]; then
+              #found an item that doesn't belong to the skip list.
+              exit 0
+            fi
+          done
+          echo "skip_ci=true" >> $GITHUB_OUTPUT
+          echo "no source code files commited, skipping CI."

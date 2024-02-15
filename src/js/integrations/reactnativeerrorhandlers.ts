@@ -241,9 +241,17 @@ export class ReactNativeErrorHandlers implements Integration {
         currentHub.captureEvent(event, hint);
 
         if (!__DEV__) {
-          void client.flush(options.shutdownTimeout || 2000).then(() => {
-            defaultHandler(error, isFatal);
-          });
+          void client.flush(options.shutdownTimeout || 2000).then(
+            () => {
+              defaultHandler(error, isFatal);
+            },
+            (reason: unknown) => {
+              logger.error(
+                '[ReactNativeErrorHandlers] Error while flushing the event cache after uncaught error.',
+                reason,
+              );
+            },
+          );
         } else {
           // If in dev, we call the default handler anyway and hope the error will be sent
           // Just for a better dev experience

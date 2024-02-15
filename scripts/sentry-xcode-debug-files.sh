@@ -2,8 +2,8 @@
 # Upload Debug Symbols to Sentry Xcode Build Phase
 # PWD=ios
 
-# print commands before executing them and stop on first error
-set -x -e
+# print commands before executing them
+set -x
 
 [ -z "$WITH_ENVIRONMENT" ] && WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
 
@@ -11,6 +11,9 @@ if [ -f "$WITH_ENVIRONMENT" ]; then
   # load envs if loader file exists (since rn 0.68)
   . "$WITH_ENVIRONMENT"
 fi
+
+# stop on first error (we can't use -e before as any failed command in WITH_ENVIRONMENT would stop the debug files upload)
+set -e
 
 LOCAL_NODE_BINARY=${NODE_BINARY:-node}
 

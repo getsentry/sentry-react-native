@@ -1,5 +1,5 @@
 import type * as Hermes from '../../src/js/profiling/hermes';
-import type { NativeProfileEvent } from '../../src/js/profiling/nativeTypes';
+import type { NativeAndroidProfileEvent, NativeProfileEvent } from '../../src/js/profiling/nativeTypes';
 import type { HermesProfileEvent } from '../../src/js/profiling/types';
 
 /**
@@ -147,5 +147,13 @@ export function createMockMinimalValidAppleProfile(): NativeProfileEvent {
     transaction: {
       active_thread_id: '456',
     },
+  };
+}
+
+export function createMockMinimalValidAndroidProfile(): NativeAndroidProfileEvent {
+  return {
+    android_api_level: 56,
+    sampled_profile: 'YW5kcm9pZCB0cmFjZSBlbmNvZGVkIGluIGJhc2UgNjQ=', // base64 encoded 'android trace encoded in base 64'
+    build_id: 'mocked-build-id',
   };
 }

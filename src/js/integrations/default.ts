@@ -18,6 +18,7 @@ import { Release } from './release';
 import { createReactNativeRewriteFrames } from './rewriteframes';
 import { Screenshot } from './screenshot';
 import { SdkInfo } from './sdkinfo';
+import { Spotlight } from './spotlight';
 import { ViewHierarchy } from './viewhierarchy';
 
 /**
@@ -92,6 +93,14 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
 
   if (isExpoGo()) {
     integrations.push(new ExpoContext());
+  }
+
+  if (options.enableSpotlight) {
+    integrations.push(
+      Spotlight({
+        sidecarUrl: options.spotlightSidecarUrl,
+      }),
+    );
   }
 
   return integrations;
