@@ -29,9 +29,14 @@ import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
 import { base64StringFromByteArray, utf8ToBytes } from './vendor';
 
-const RNSentry: Spec | undefined = isTurboModuleEnabled()
-  ? TurboModuleRegistry.get<Spec>('RNSentry')
-  : NativeModules.RNSentry;
+/**
+ * Returns the RNSentry module. Dynamically resolves if NativeModule or TurboModule is used.
+ */
+export function getRNSentryModule(): Spec | undefined {
+  return isTurboModuleEnabled() ? TurboModuleRegistry.get<Spec>('RNSentry') : NativeModules.RNSentry;
+}
+
+const RNSentry: Spec | undefined = getRNSentryModule();
 
 export interface Screenshot {
   data: Uint8Array;

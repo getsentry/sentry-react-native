@@ -103,7 +103,7 @@ Sentry.init({
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const TabOneStack = () => {
+const TabOneStack = Sentry.withProfiler(() => {
   return (
     <GestureHandlerRootView style={styles.wrapper}>
       <Provider store={store}>
@@ -117,9 +117,9 @@ const TabOneStack = () => {
       </Provider>
     </GestureHandlerRootView>
   );
-};
+}, { name: 'ErrorsTab' });
 
-const TabTwoStack = () => {
+const TabTwoStack = Sentry.withProfiler(() => {
   return (
     <GestureHandlerRootView style={styles.wrapper}>
       <Provider store={store}>
@@ -141,7 +141,7 @@ const TabTwoStack = () => {
       </Provider>
     </GestureHandlerRootView>
   );
-};
+}, { name: 'PerformanceTab' });
 
 function BottomTabs() {
   const navigation = React.useRef<NavigationContainerRef<{}>>(null);

@@ -1,7 +1,10 @@
 /* eslint-disable max-lines */
-import type { Transaction as TransactionType, TransactionContext } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import { setMeasurement, spanToJSON, startInactiveSpan } from '@sentry/core';
+import type { Span, Transaction as TransactionType, TransactionContext } from '@sentry/types';
+import { logger, timestampInSeconds } from '@sentry/utils';
 
+import type { NewFrameEvent} from '../utils/sentryeventemitter';
+import { type SentryEventEmitter,createSentryEventEmitter,NewFrameEventName } from '../utils/sentryeventemitter';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
@@ -49,11 +52,15 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
   public readonly name: string = ReactNavigationInstrumentation.instrumentationName;
 
   private _navigationContainer: NavigationContainer | null = null;
+  private _eventEmitter: SentryEventEmitter;
 
   private readonly _maxRecentRouteLen: number = 200;
 
   private _latestRoute?: NavigationRoute;
   private _latestTransaction?: TransactionType;
+  private _latestTtidSpan?: Span;
+  private _navigationProcessingSpan?: Span;
+
   private _initialStateHandled: boolean = false;
   private _stateChangeTimeout?: number | undefined;
   private _recentRouteKeys: string[] = [];
@@ -63,6 +70,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
   public constructor(options: Partial<ReactNavigationOptions> = {}) {
     super();
 
+    this._eventEmitter = createSentryEventEmitter();
     this._options = {
       ...defaultOptions,
       ...options,
@@ -158,9 +166,39 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       this._clearStateChangeTimeout();
     }
 
+    // TODO: Create carriage object to invalidate the transaction and it's spans at once.
     this._latestTransaction = this.onRouteWillChange(
       getBlankTransactionContext(ReactNavigationInstrumentation.instrumentationName),
     );
+
+    this._navigationProcessingSpan = startInactiveSpan({
+      op: 'navigation.processing',
+      name: 'Navigation processing',
+      startTimestamp: this._latestTransaction?.startTimestamp,
+    });
+    this._latestTtidSpan = startInactiveSpan({
+      op: 'ui.load.initial_display',
+      name: 'Time to initial display',
+      startTimestamp: this._latestTransaction?.startTimestamp,
+    });
+    this._eventEmitter.once(NewFrameEventName, ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
+      if (!this._latestTtidSpan) {
+        logger.warn('[ReactNavigationInstrumentation] Native Screen was rendered after navigation timeout, _latestTtidSpan is undefined.');
+        return;
+      }
+
+      this._latestTtidSpan.end(newFrameTimestampInSeconds);
+      const ttidSpan = spanToJSON(this._latestTtidSpan);
+      this._latestTtidSpan = undefined;
+
+      const ttidSpanEnd = ttidSpan.timestamp;
+      const ttidSpanStart = ttidSpan.start_timestamp;
+      if (!ttidSpanEnd || !ttidSpanStart) {
+        return;
+      }
+
+      setMeasurement('time_to_initial_display', (ttidSpanEnd - ttidSpanStart) * 1000, 'millisecond');
+    });
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
@@ -172,6 +210,8 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
    * To be called AFTER the state has been changed to populate the transaction with the current route.
    */
   private _onStateChange(): void {
+    const stateChangedTimestamp = timestampInSeconds();
+
     // Use the getCurrentRoute method to be accurate.
     const previousRoute = this._latestRoute;
 
@@ -188,6 +228,10 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
     if (route) {
       if (this._latestTransaction) {
         if (!previousRoute || previousRoute.key !== route.key) {
+          this._latestTtidSpan?.updateName(`${route.name} initial display`);
+          this._navigationProcessingSpan?.updateName(`Processing navigation to ${route.name}`);
+          this._navigationProcessingSpan?.end(stateChangedTimestamp);
+
           const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
           const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
 
@@ -285,6 +329,9 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       this._latestTransaction.sampled = false;
       this._latestTransaction.finish();
       this._latestTransaction = undefined;
+    }
+    if (this._latestTtidSpan) {
+      this._latestTtidSpan = undefined;
     }
   }
 
