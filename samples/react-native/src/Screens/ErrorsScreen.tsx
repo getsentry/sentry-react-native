@@ -18,6 +18,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { UserFeedbackModal } from '../components/UserFeedbackModal';
 import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
+import NativePlatformSampleModule from '../../tm/NativePlatformSampleModule';
 import { timestampInSeconds } from '@sentry/utils';
 
 const { AssetsModule, CppModule, CrashModule } = NativeModules;
@@ -78,6 +79,16 @@ const ErrorsScreen = (_props: Props) => {
           }}
         />
         <Button
+          title="Capture exception with cause"
+          onPress={() => {
+            const error = new Error('Captured exception');
+            (error as { cause?: unknown }).cause = new Error(
+              'Cause of captured exception',
+            );
+            Sentry.captureException(error);
+          }}
+        />
+        <Button
           title="Uncaught Thrown Error"
           onPress={() => {
             throw new Error('Uncaught Thrown Error');
@@ -125,6 +136,21 @@ const ErrorsScreen = (_props: Props) => {
           title="Crash in Cpp"
           onPress={() => {
             NativeSampleModule?.crash();
+          }}
+        />
+        <Button
+          title="Catch Turbo Crash or String"
+          onPress={() => {
+            if (!NativePlatformSampleModule) {
+              throw new Error(
+                'NativePlatformSampleModule is not available. Build the application with the New Architecture enabled.',
+              );
+            }
+            try {
+              NativePlatformSampleModule?.crashOrString();
+            } catch (e) {
+              Sentry.captureException(e);
+            }
           }}
         />
         {Platform.OS === 'android' && (
