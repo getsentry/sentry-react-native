@@ -1,15 +1,17 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   NavigationContainer,
   NavigationContainerRef,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
 
 import { SENTRY_INTERNAL_DSN } from './dsn';
-import HomeScreen from './Screens/HomeScreen';
+import ErrorsScreen from './Screens/ErrorsScreen';
+import PerformanceScreen from './Screens/PerformanceScreen';
 import TrackerScreen from './Screens/TrackerScreen';
 import ManualTrackerScreen from './Screens/ManualTrackerScreen';
 import PerformanceTimingScreen from './Screens/PerformanceTimingScreen';
@@ -20,7 +22,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { StyleSheet } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
-import { timestampInSeconds } from '@sentry/utils';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
@@ -98,128 +100,96 @@ Sentry.init({
   enableSpotlight: true,
 });
 
-// function simulateHeavySyncCalculation() {
-//   let result = 0;
-//   for (let i = 0; i < 1e7; i++) { // Adjusted for quicker demonstration
-//     result += Math.sqrt(i) * Math.sin(i);
-//   }
-//   return result;
-// }
-
-// function performCalculationAsync() {
-//   return new Promise((resolve) => {
-//     setTimeout(() => {
-//       const result = simulateHeavySyncCalculation();
-//       resolve(result);
-//     }, 0); // Keep this to ensure the function is asynchronous
-//   });
-// }
-
-// // Function to delay execution for a given number of milliseconds
-// function delay(ms) {
-//   return new Promise(resolve => setTimeout(resolve, ms));
-// }
-
-// async function runCalculationsAsync(times) {
-//   for (let i = 0; i < times; i++) {
-//     // Generate a random delay between 0.5 and 2 seconds
-//     const randomDelay = Math.random() * (2000 - 500) + 500;
-
-//     // Wait for the random delay before starting the next calculation
-//     await delay(randomDelay);
-
-//     // Then perform the calculation
-//     const result = await performCalculationAsync();
-//     console.log(`Calculation ${i + 1} completed with result: ${result}, after delay: ${randomDelay}ms`);
-//   }
-// }
-
-// // Run the heavy calculation 50 times with random delays between each
-// runCalculationsAsync(5000);
-
-
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
 
-const App = () => {
-  const navigation = React.useRef<NavigationContainerRef<{}>>(null);
-
-  useEffect(() => {
-    navigation.current?.addListener('state', (e) => {
-      console.log('state', e);
-      // function simulateHeavySyncCalculation() {
-      //   let result = 0;
-      //   for (let i = 0; i < 1e7; i++) { // Reduced the workload for quicker demonstration
-      //     result += Math.sqrt(i) * Math.sin(i);
-      //   }
-      //   return result;
-      // }
-
-      // function performCalculationAsync() {
-      //   return new Promise((resolve) => {
-      //     setTimeout(() => {
-      //       const result = simulateHeavySyncCalculation();
-      //       resolve(result);
-      //     }, 0); // Timeout set to 0 to defer execution
-      //   });
-      // }
-
-      // async function runCalculationsAsync(times: number) {
-      //   for (let i = 0; i < times; i++) {
-      //     performCalculationAsync().then((result) => {
-      //       console.log(`Calculation ${i + 1} completed with result: ${result}`);
-      //     });
-      //   }
-      // }
-
-      // // Run the heavy calculation 50 times asynchronously
-      // runCalculationsAsync(7);
-
-    });
-  }, [navigation]);
-
+const TabOneStack = () => {
   return (
     <GestureHandlerRootView style={styles.wrapper}>
       <Provider store={store}>
-        <NavigationContainer
-          ref={navigation}
-          onReady={() => {
-            reactNavigationInstrumentation.registerNavigationContainer(
-              navigation,
-            );
-          }}>
-          <Stack.Navigator>
-            <Stack.Screen name="Home" component={HomeScreen} listeners={{
-              transitionEnd: (e) => {
-                console.log('transitionEnd', timestampInSeconds() * 1000, e);
-              }
-            }}
-            />
-            <Stack.Screen name="Tracker" component={TrackerScreen} listeners={{
-              transitionEnd: (e) => {
-                console.log('transitionEnd', timestampInSeconds() * 1000, e);
-              }
-            }} />
-            <Stack.Screen
-              name="ManualTracker"
-              component={ManualTrackerScreen}
-              listeners={{
-                transitionEnd: (e) => {
-                  console.log('transitionEnd', e);
-                },
-              }}
-            />
-            <Stack.Screen
-              name="PerformanceTiming"
-              component={PerformanceTimingScreen}
-            />
-            <Stack.Screen name="Redux" component={ReduxScreen} />
-            <Stack.Screen name="Gestures" component={GesturesTracingScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="ErrorsScreen"
+            component={ErrorsScreen}
+            options={{ title: 'Errors' }}
+          />
+        </Stack.Navigator>
       </Provider>
     </GestureHandlerRootView>
   );
 };
+
+const TabTwoStack = () => {
+  return (
+    <GestureHandlerRootView style={styles.wrapper}>
+      <Provider store={store}>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="PerformanceScreen"
+            component={PerformanceScreen}
+            options={{ title: 'Performance' }}
+          />
+          <Stack.Screen name="Tracker" component={TrackerScreen} />
+          <Stack.Screen name="ManualTracker" component={ManualTrackerScreen} />
+          <Stack.Screen
+            name="PerformanceTiming"
+            component={PerformanceTimingScreen}
+          />
+          <Stack.Screen name="Redux" component={ReduxScreen} />
+          <Stack.Screen name="Gestures" component={GesturesTracingScreen} />
+        </Stack.Navigator>
+      </Provider>
+    </GestureHandlerRootView>
+  );
+};
+
+function BottomTabs() {
+  const navigation = React.useRef<NavigationContainerRef<{}>>(null);
+
+  return (
+    <NavigationContainer
+      ref={navigation}
+      onReady={() => {
+        reactNavigationInstrumentation.registerNavigationContainer(navigation);
+      }}>
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}
+        detachInactiveScreens={false} // workaround for https://github.com/react-navigation/react-navigation/issues/11384
+      >
+        <Tab.Screen
+          name="ErrorsTab"
+          component={TabOneStack}
+          options={{
+            tabBarLabel: 'Errors',
+            tabBarIcon: ({ focused, color, size }) => (
+              <Ionicons
+                name={focused ? 'bug' : 'bug-outline'}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="PerformanceTab"
+          component={TabTwoStack}
+          options={{
+            tabBarLabel: 'Performance',
+            tabBarIcon: ({ focused, color, size }) => (
+              <Ionicons
+                name={focused ? 'speedometer' : 'speedometer-outline'}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
+      </Tab.Navigator>
+    </NavigationContainer>
+  );
+}
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -227,4 +197,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Sentry.wrap(App);
+export default Sentry.wrap(BottomTabs);
