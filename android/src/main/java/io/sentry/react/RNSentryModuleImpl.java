@@ -28,15 +28,14 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -144,10 +143,12 @@ public class RNSentryModuleImpl {
     }
 
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
-        final Application application = SentryReact.getInstance().getApplication();
+        DeviceEventManagerModule.RCTDeviceEventEmitter eventEmitter = getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
+        eventEmitter.emit("test", Arguments.createMap());
+        final Application application = RNSentryReact.getInstance().getApplication();
 
 
-        final SentryReactFragmentLifecycleTracer fragmentLifecycleTracer = new SentryReactFragmentLifecycleTracer(buildInfo);
+        final RNSentryReactFragmentLifecycleTracer fragmentLifecycleTracer = new RNSentryReactFragmentLifecycleTracer(buildInfo);
 
         final @Nullable FragmentActivity fragmentActivity = (FragmentActivity) getCurrentActivity();
         if (fragmentActivity != null) {
@@ -802,7 +803,7 @@ public class RNSentryModuleImpl {
                 context,
                 (SentryAndroidOptions) options,
                 currentScope);
-        final @Nullable Object deviceContext = MapConverter.convertToWritable(serialized);
+        final @Nullable Object deviceContext = RNSentryMapConverter.convertToWritable(serialized);
         promise.resolve(deviceContext);
     }
 

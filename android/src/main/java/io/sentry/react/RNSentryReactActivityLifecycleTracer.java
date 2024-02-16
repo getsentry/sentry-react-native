@@ -4,10 +4,10 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 
-public final class SentryReactActivityLifecycleTracer {
+public final class RNSentryReactActivityLifecycleTracer {
     private static ActivityLifecycleCallbacks callbacks = new ActivityLifecycleCallbacks();
 
-    public SentryReactActivityLifecycleTracer(Application application) {
+    public RNSentryReactActivityLifecycleTracer(Application application) {
         application.registerActivityLifecycleCallbacks(callbacks);
     }
 

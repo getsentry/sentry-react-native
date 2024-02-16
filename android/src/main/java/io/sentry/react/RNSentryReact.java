@@ -4,25 +4,25 @@ import android.app.Application;
 
 import androidx.annotation.Nullable;
 
-public final class SentryReact {
-    private static SentryReact instance;
+public final class RNSentryReact {
+    private static RNSentryReact instance;
 
     private @Nullable Application application;
-    private @Nullable SentryReactActivityLifecycleTracer activityLifecycleTracer;
+    private @Nullable RNSentryReactActivityLifecycleTracer activityLifecycleTracer;
 
-    private SentryReact() {}
+    private RNSentryReact() {}
 
-    public static synchronized SentryReact getInstance() {
+    public static synchronized RNSentryReact getInstance() {
         if (instance == null) {
-            instance = new SentryReact();
+            instance = new RNSentryReact();
         }
         return instance;
     }
 
     public static void init(Application application) {
-        SentryReact sentryReact = SentryReact.getInstance();
+        RNSentryReact sentryReact = RNSentryReact.getInstance();
         sentryReact.setApplication(application);
-        sentryReact.activityLifecycleTracer = new SentryReactActivityLifecycleTracer(application);
+        sentryReact.activityLifecycleTracer = new RNSentryReactActivityLifecycleTracer(application);
     }
 
     private void setApplication(@Nullable Application application) {
@@ -33,7 +33,7 @@ public final class SentryReact {
         return this.application;
     }
 
-    public @Nullable SentryReactActivityLifecycleTracer getActivityLifecycleTracer() {
+    public @Nullable RNSentryReactActivityLifecycleTracer getActivityLifecycleTracer() {
         return this.activityLifecycleTracer;
     }
 }

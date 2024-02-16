@@ -18,17 +18,16 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
 
 import io.sentry.ILogger;
-import io.sentry.SentryLevel;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.internal.util.FirstDrawDoneListener;
 
-public class SentryReactFragmentLifecycleTracer extends FragmentLifecycleCallbacks {
+public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallbacks {
 
     private BuildInfoProvider buildInfoProvider;
     private static final ILogger logger = new AndroidLogger("SentryReactFragmentLifecycleTracer");
 
-    public SentryReactFragmentLifecycleTracer(
+    public RNSentryReactFragmentLifecycleTracer(
             BuildInfoProvider buildInfoProvider
     ) {
         this.buildInfoProvider = buildInfoProvider;
