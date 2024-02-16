@@ -70,11 +70,13 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
   public constructor(options: Partial<ReactNavigationOptions> = {}) {
     super();
 
-    this._eventEmitter = createSentryEventEmitter();
     this._options = {
       ...defaultOptions,
       ...options,
     };
+
+    this._eventEmitter = createSentryEventEmitter();
+    this._eventEmitter.initAsync(NewFrameEventName);
   }
 
   /**
@@ -181,24 +183,6 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       name: 'Time to initial display',
       startTimestamp: this._latestTransaction?.startTimestamp,
     });
-    this._eventEmitter.once(NewFrameEventName, ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
-      if (!this._latestTtidSpan) {
-        logger.warn('[ReactNavigationInstrumentation] Native Screen was rendered after navigation timeout, _latestTtidSpan is undefined.');
-        return;
-      }
-
-      this._latestTtidSpan.end(newFrameTimestampInSeconds);
-      const ttidSpan = spanToJSON(this._latestTtidSpan);
-      this._latestTtidSpan = undefined;
-
-      const ttidSpanEnd = ttidSpan.timestamp;
-      const ttidSpanStart = ttidSpan.start_timestamp;
-      if (!ttidSpanEnd || !ttidSpanStart) {
-        return;
-      }
-
-      setMeasurement('time_to_initial_display', (ttidSpanEnd - ttidSpanStart) * 1000, 'millisecond');
-    });
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
@@ -228,6 +212,25 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
     if (route) {
       if (this._latestTransaction) {
         if (!previousRoute || previousRoute.key !== route.key) {
+          this._eventEmitter.once(NewFrameEventName, ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
+            if (!this._latestTtidSpan) {
+              logger.warn('[ReactNavigationInstrumentation] Native Screen was rendered after navigation timeout, _latestTtidSpan is undefined.');
+              return;
+            }
+
+            this._latestTtidSpan.end(newFrameTimestampInSeconds);
+            const ttidSpan = spanToJSON(this._latestTtidSpan);
+            this._latestTtidSpan = undefined;
+
+            const ttidSpanEnd = ttidSpan.timestamp;
+            const ttidSpanStart = ttidSpan.start_timestamp;
+            if (!ttidSpanEnd || !ttidSpanStart) {
+              return;
+            }
+
+            setMeasurement('time_to_initial_display', (ttidSpanEnd - ttidSpanStart) * 1000, 'millisecond');
+          });
+
           this._latestTtidSpan?.updateName(`${route.name} initial display`);
           this._navigationProcessingSpan?.updateName(`Processing navigation to ${route.name}`);
           this._navigationProcessingSpan?.end(stateChangedTimestamp);
