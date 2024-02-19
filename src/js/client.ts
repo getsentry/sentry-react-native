@@ -134,7 +134,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     }
 
     let shouldClearOutcomesBuffer = true;
-    if (this._transport && this._dsn) {
+    if (this._isEnabled() && this._transport && this._dsn) {
       this.emit('beforeEnvelope', envelope);
 
       this._transport.send(envelope).then(null, reason => {
