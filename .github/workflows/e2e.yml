@@ -38,7 +38,7 @@ jobs:
         platform: ["ios", "android"]
         include:
           - platform: ios
-            runs-on: macos-latest
+            runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
             name: iOS
             appPlain: test/perf/test-app-plain.ipa
           - platform: android
@@ -169,7 +169,7 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
-            runs-on: macos-latest
+            runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
             runtime: 'latest'
             device: 'iPhone 14'
           - platform: android
@@ -437,7 +437,7 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
-            runs-on: macos-latest
+            runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
             runtime: 'latest'
             device: 'iPhone 14'
           - platform: android
