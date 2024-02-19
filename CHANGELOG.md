@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Option `enabled: false` ensures no events are sent ([#3606](https://github.com/getsentry/sentry-react-native/pull/3606))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.17.1 to v8.20.0 ([#3476](https://github.com/getsentry/sentry-react-native/pull/3476))
