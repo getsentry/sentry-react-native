@@ -3,8 +3,8 @@ import { setMeasurement, spanToJSON, startInactiveSpan } from '@sentry/core';
 import type { Span, Transaction as TransactionType, TransactionContext } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
-import type { NewFrameEvent} from '../utils/sentryeventemitter';
-import { type SentryEventEmitter,createSentryEventEmitter,NewFrameEventName } from '../utils/sentryeventemitter';
+import type { NewFrameEvent } from '../utils/sentryeventemitter';
+import { type SentryEventEmitter, createSentryEventEmitter, NewFrameEventName } from '../utils/sentryeventemitter';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
@@ -214,7 +214,9 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
         if (!previousRoute || previousRoute.key !== route.key) {
           this._eventEmitter.once(NewFrameEventName, ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
             if (!this._latestTtidSpan) {
-              logger.warn('[ReactNavigationInstrumentation] Native Screen was rendered after navigation timeout, _latestTtidSpan is undefined.');
+              logger.warn(
+                '[ReactNavigationInstrumentation] Native Screen was rendered after navigation timeout, _latestTtidSpan is undefined.',
+              );
               return;
             }
 

@@ -1,10 +1,10 @@
 import { logger } from '@sentry/utils';
-import type { EmitterSubscription} from 'react-native';
+import type { EmitterSubscription } from 'react-native';
 import { NativeEventEmitter } from 'react-native';
 
 import { getRNSentryModule } from '../wrapper';
 
-export const NewFrameEventName = 'rn_sentry_new_frame'
+export const NewFrameEventName = 'rn_sentry_new_frame';
 export type NewFrameEventName = typeof NewFrameEventName;
 export type NewFrameEvent = { newFrameTimestampInSeconds: number };
 
@@ -16,18 +16,9 @@ export interface SentryEventEmitter {
    */
   initAsync: (eventType: NewFrameEventName) => void;
   closeAllAsync: () => void;
-  addListener: (
-    eventType: NewFrameEventName,
-    listener: (event: NewFrameEvent) => void,
-  ) => void;
-  removeListener: (
-    eventType: NewFrameEventName,
-    listener: (event: NewFrameEvent) => void,
-  ) => void;
-  once: (
-    eventType: NewFrameEventName,
-    listener: (event: NewFrameEvent) => void,
-  ) => void;
+  addListener: (eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void) => void;
+  removeListener: (eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void) => void;
+  once: (eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void) => void;
 }
 
 /**
@@ -38,8 +29,7 @@ export function createSentryEventEmitter(): SentryEventEmitter {
   const listenersMap = new Map<NewFrameEventName, Map<(event: NewFrameEvent) => void, true>>();
   const nativeEventEmitter = new NativeEventEmitter(getRNSentryModule());
 
-
-  const addListener = function(eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void): void {
+  const addListener = function (eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void): void {
     const map = listenersMap.get(eventType);
     if (!map) {
       logger.warn(`EventEmitter was not initialized for event type: ${eventType}`);
@@ -48,7 +38,7 @@ export function createSentryEventEmitter(): SentryEventEmitter {
     listenersMap.get(eventType)?.set(listener, true);
   };
 
-  const removeListener = function(eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void): void {
+  const removeListener = function (eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void): void {
     listenersMap.get(eventType)?.delete(listener);
   };
 
@@ -69,7 +59,7 @@ export function createSentryEventEmitter(): SentryEventEmitter {
       listenersMap.set(eventType, new Map());
     },
     closeAllAsync() {
-      openNativeListeners.forEach((subscription) => {
+      openNativeListeners.forEach(subscription => {
         subscription.remove();
       });
       openNativeListeners.clear();
@@ -78,7 +68,7 @@ export function createSentryEventEmitter(): SentryEventEmitter {
     addListener,
     removeListener,
     once(eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void) {
-      addListener(eventType, (event) => {
+      addListener(eventType, event => {
         listener(event);
         removeListener(eventType, listener);
       });
