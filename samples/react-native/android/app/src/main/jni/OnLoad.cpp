@@ -27,6 +27,7 @@
 //    }
 // }
 
+#include <AppSpecs.h>
 #include <DefaultComponentsRegistry.h>
 #include <DefaultTurboModuleManagerDelegate.h>
 #include <fbjni/fbjni.h>
@@ -72,6 +73,11 @@ std::shared_ptr<TurboModule> javaModuleProvider(
   //    return module;
   // }
   // return rncore_ModuleProvider(moduleName, params);
+
+  auto module = AppSpecs_ModuleProvider(name, params);
+  if (module != nullptr) {
+    return module;
+  }
 
   // By default we just use the module providers autolinked by RN CLI
   return rncli_ModuleProvider(name, params);
