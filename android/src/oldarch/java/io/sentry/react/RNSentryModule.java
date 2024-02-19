@@ -24,6 +24,16 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void addListener(String eventType) {
+        this.impl.addListener(eventType);
+    }
+
+    @ReactMethod
+    public void removeListeners(double id) {
+        this.impl.removeListeners(id);
+    }
+
+    @ReactMethod
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         this.impl.initNativeSdk(rnOptions, promise);
     }

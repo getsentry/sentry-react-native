@@ -6,7 +6,6 @@ import static io.sentry.vendor.Base64.NO_PADDING;
 import static io.sentry.vendor.Base64.NO_WRAP;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -57,6 +56,7 @@ import io.sentry.ISerializer;
 import io.sentry.Integration;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
+import io.sentry.SentryDateProvider;
 import io.sentry.SentryEvent;
 import io.sentry.SentryExecutorService;
 import io.sentry.SentryLevel;
@@ -71,6 +71,7 @@ import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.InternalSentrySdk;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
+import io.sentry.android.core.SentryAndroidDateProvider;
 import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
@@ -125,12 +126,23 @@ public class RNSentryModuleImpl {
     private String cacheDirPath = null;
     private ISentryExecutorService executorService = null;
 
+    private final @NotNull Runnable emitNewFrameEvent;
+
     /** Max trace file size in bytes. */
     private long maxTraceFileSize = 5 * 1024 * 1024;
 
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
         packageInfo = getPackageInfo(reactApplicationContext);
         this.reactApplicationContext = reactApplicationContext;
+        final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
+        this.emitNewFrameEvent = () -> {
+          final SentryDate endDate = dateProvider.now();
+          WritableMap event = Arguments.createMap();
+          event.putDouble("newFrameTimestampInSeconds", endDate.nanoTimestamp() / 1e9);
+          reactApplicationContext
+              .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+              .emit("rn_sentry_new_frame", event);
+        };
     }
 
     private ReactApplicationContext getReactApplicationContext() {
@@ -142,13 +154,9 @@ public class RNSentryModuleImpl {
         return this.reactApplicationContext.getCurrentActivity();
     }
 
-    public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
-        DeviceEventManagerModule.RCTDeviceEventEmitter eventEmitter = getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-        eventEmitter.emit("test", Arguments.createMap());
-        final Application application = RNSentryReact.getInstance().getApplication();
-
-
-        final RNSentryReactFragmentLifecycleTracer fragmentLifecycleTracer = new RNSentryReactFragmentLifecycleTracer(buildInfo);
+    private void initFragmentInitialFrameTracking() {
+        final RNSentryReactFragmentLifecycleTracer fragmentLifecycleTracer =
+                new RNSentryReactFragmentLifecycleTracer(buildInfo, this.emitNewFrameEvent);
 
         final @Nullable FragmentActivity fragmentActivity = (FragmentActivity) getCurrentActivity();
         if (fragmentActivity != null) {
@@ -157,8 +165,12 @@ public class RNSentryModuleImpl {
                 supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleTracer, true);
             }
         }
+    }
 
-        SentryAndroid.init(application != null ? application : this.getReactApplicationContext(), options -> {
+    public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
+        this.initFragmentInitialFrameTracking();
+
+        SentryAndroid.init(this.getReactApplicationContext(), options -> {
             @Nullable SdkVersion sdkVersion = options.getSdkVersion();
             if (sdkVersion == null) {
                 sdkVersion = new SdkVersion(ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
@@ -283,6 +295,18 @@ public class RNSentryModuleImpl {
 
     public void crash() {
         throw new RuntimeException("TEST - Sentry Client Crash (only works in release mode)");
+    }
+
+    public void addListener(String _eventType) {
+      // Is must be defined otherwise the generated interface from TS won't be
+      // fulfilled
+      logger.log(SentryLevel.ERROR, "addListener of NativeEventEmitter can't be used on Android!");
+    }
+
+    public void removeListeners(double _id) {
+      // Is must be defined otherwise the generated interface from TS won't be
+      // fulfilled
+      logger.log(SentryLevel.ERROR, "removeListeners of NativeEventEmitter can't be used on Android!");
     }
 
     public void fetchModules(Promise promise) {

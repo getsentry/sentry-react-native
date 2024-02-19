@@ -24,13 +24,17 @@ import io.sentry.android.core.internal.util.FirstDrawDoneListener;
 
 public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallbacks {
 
-    private BuildInfoProvider buildInfoProvider;
+    private @NotNull final BuildInfoProvider buildInfoProvider;
+    private @NotNull final Runnable emitNewFrameEvent;
+
     private static final ILogger logger = new AndroidLogger("SentryReactFragmentLifecycleTracer");
 
     public RNSentryReactFragmentLifecycleTracer(
-            BuildInfoProvider buildInfoProvider
+            @NotNull BuildInfoProvider buildInfoProvider,
+            @NotNull Runnable emitNewFrameEvent
     ) {
         this.buildInfoProvider = buildInfoProvider;
+        this.emitNewFrameEvent = emitNewFrameEvent;
     }
 
     @Override
@@ -50,14 +54,14 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
             return;
         }
 
+        final @NotNull Runnable emitNewFrameEvent = this.emitNewFrameEvent;
         eventDispatcher.addListener(new EventDispatcherListener() {
             @Override
             public void onEventDispatch(Event event) {
                 if (event instanceof ScreenAppearEvent) {
                     eventDispatcher.removeListener(this);
-                    FirstDrawDoneListener.registerForNextDraw(
-                        v, () -> {
-                        }, buildInfoProvider);
+                    FirstDrawDoneListener
+                            .registerForNextDraw(v, emitNewFrameEvent, buildInfoProvider);
                 }
             }
         });

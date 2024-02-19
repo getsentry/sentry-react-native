@@ -2,7 +2,6 @@ package io.sentry.react;
 
 import androidx.annotation.NonNull;
 
-import com.facebook.react.bridge.JavaScriptExecutorFactory;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
@@ -22,6 +21,16 @@ public class RNSentryModule extends NativeRNSentrySpec {
     @NonNull
     public String getName() {
         return RNSentryModuleImpl.NAME;
+    }
+
+    @Override
+    public void addListener(String eventType) {
+        this.impl.addListener(eventType);
+    }
+
+    @Override
+    public void removeListeners(double id) {
+        this.impl.removeListeners(id);
     }
 
     @Override
