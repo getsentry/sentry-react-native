@@ -68,10 +68,11 @@ export function createSentryEventEmitter(): SentryEventEmitter {
     addListener,
     removeListener,
     once(eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void) {
-      addListener(eventType, event => {
+      const tmpListener = (event: NewFrameEvent): void => {
         listener(event);
-        removeListener(eventType, listener);
-      });
+        removeListener(eventType, tmpListener);
+      };
+      addListener(eventType, tmpListener);
     },
   };
 }
