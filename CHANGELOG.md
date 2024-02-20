@@ -5,6 +5,7 @@
 ### Fixes
 
 - Option `enabled: false` ensures no events are sent ([#3606](https://github.com/getsentry/sentry-react-native/pull/3606))
+- `TurboModuleRegistry` should not be imported in web applications ([#3609](https://github.com/getsentry/sentry-react-native/pull/3609))
 
 ### Dependencies
 
