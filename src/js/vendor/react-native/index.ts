@@ -60,4 +60,4 @@ export type DevServerInfo = {
 export type TurboModuleRegistry = {
   get<T extends TurboModule>(name: string): T | null;
   getEnforcing<T extends TurboModule>(name: string): T;
-}
+};
