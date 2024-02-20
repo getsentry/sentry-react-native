@@ -220,8 +220,12 @@ export class DebugSymbolicator implements Integration {
             resolve(null);
           }
           const response = xhr.responseText;
-          if (typeof response !== 'string' ||
-              response.startsWith('{')) {
+          if (
+            typeof response !== 'string' ||
+            // Expo Dev Server responses with status 200 and config JSON
+            // when web support not enabled and requested file not found
+            response.startsWith('{')
+          ) {
             resolve(null);
           }
 
