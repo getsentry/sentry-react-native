@@ -156,7 +156,7 @@ public class RNSentryModuleImpl {
 
     private void initFragmentInitialFrameTracking() {
         final RNSentryReactFragmentLifecycleTracer fragmentLifecycleTracer =
-                new RNSentryReactFragmentLifecycleTracer(buildInfo, this.emitNewFrameEvent);
+                new RNSentryReactFragmentLifecycleTracer(buildInfo, emitNewFrameEvent, logger);
 
         final @Nullable FragmentActivity fragmentActivity = (FragmentActivity) getCurrentActivity();
         if (fragmentActivity != null) {
