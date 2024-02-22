@@ -4,7 +4,7 @@
 
 ### Features
 
-- Add concrete error messages for RN bundle build phase patch ([#3622](https://github.com/getsentry/sentry-react-native/pull/3622))
+- Add concrete error messages for RN bundle build phase patch ([#3626](https://github.com/getsentry/sentry-react-native/pull/3626))
 
 ### Fixes
 
