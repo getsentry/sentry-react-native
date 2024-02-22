@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add concrete error messages for RN bundle build phase patch ([#3622](https://github.com/getsentry/sentry-react-native/pull/3622))
+
 ### Fixes
 
 - Option `enabled: false` ensures no events are sent ([#3606](https://github.com/getsentry/sentry-react-native/pull/3606))
