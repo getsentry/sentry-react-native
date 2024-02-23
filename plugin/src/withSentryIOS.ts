@@ -46,14 +46,29 @@ export const withSentryIOS: ConfigPlugin<string> = (config, sentryProperties: st
 };
 
 export function modifyExistingXcodeBuildScript(script: BuildPhase): void {
-  if (
-    !script.shellScript.match(/(packager|scripts)\/react-native-xcode\.sh\b/) ||
-    script.shellScript.includes('sentry-xcode.sh') ||
-    script.shellScript.includes('@sentry')
-  ) {
+  if (!script.shellScript.match(/(packager|scripts)\/react-native-xcode\.sh\b/)) {
     WarningAggregator.addWarningIOS(
       SDK_PACKAGE_NAME,
-      "Unable to modify build script 'Bundle React Native code and images'. Please open a bug report at https://github.com/expo/sentry-expo.",
+      `'react-native-xcode.sh' not found in 'Bundle React Native code and images'.
+Please open a bug report at https://github.com/getsentry/sentry-react-native`,
+    );
+    return;
+  }
+
+  if (script.shellScript.includes('sentry-xcode.sh')) {
+    WarningAggregator.addWarningIOS(
+      SDK_PACKAGE_NAME,
+      "The latest 'sentry-xcode.sh' script already exists in 'Bundle React Native code and images'.",
+    );
+    return;
+  }
+
+  if (script.shellScript.includes('@sentry')) {
+    WarningAggregator.addWarningIOS(
+      SDK_PACKAGE_NAME,
+      `Outdated or custom Sentry script found in 'Bundle React Native code and images'.
+Regenerate the native project to use the latest script.
+Run npx expo prebuild --clean`,
     );
     return;
   }
