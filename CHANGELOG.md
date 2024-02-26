@@ -14,6 +14,7 @@
   - You should not set the auth token in the plugin config except for local testing. Instead, use the `SENTRY_AUTH_TOKEN` env variable, as pointed out in our [docs](https://docs.sentry.io/platforms/react-native/manual-setup/expo/).
   - In addition to showing a warning, we are now actively removing an `authToken` from the plugin config if it was set.
   - If you had set the auth token in the plugin config previously, **and** built and published an app with that config, you should [rotate your token](https://docs.sentry.io/product/accounts/auth-tokens/).
+- Ignore JSON response when retrieving source context from local Expo Dev Server ([#3611](https://github.com/getsentry/sentry-react-native/pull/3611))
 
 ### Dependencies
 
