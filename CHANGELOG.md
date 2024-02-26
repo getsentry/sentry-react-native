@@ -2,9 +2,20 @@
 
 ## Unreleased
 
+### Features
+
+- Add concrete error messages for RN bundle build phase patch ([#3626](https://github.com/getsentry/sentry-react-native/pull/3626))
+
 ### Fixes
 
 - Option `enabled: false` ensures no events are sent ([#3606](https://github.com/getsentry/sentry-react-native/pull/3606))
+- Don't add Expo Plugin option `authToken` to application bundle ([#3630](https://github.com/getsentry/sentry-react-native/pull/3630))
+  - Expo plugin configurations are generelly stored in plain text, and are also automatically added to built app bundles, and are therefore considered insecure.
+  - You should not set the auth token in the plugin config except for local testing. Instead, use the `SENTRY_AUTH_TOKEN` env variable, as pointed out in our [docs](https://docs.sentry.io/platforms/react-native/manual-setup/expo/).
+  - In addition to showing a warning, we are now actively removing an `authToken` from the plugin config if it was set.
+  - If you had set the auth token in the plugin config previously, **and** built and published an app with that config, you should [rotate your token](https://docs.sentry.io/product/accounts/auth-tokens/).
+- Ignore JSON response when retrieving source context from local Expo Dev Server ([#3611](https://github.com/getsentry/sentry-react-native/pull/3611))
+- Reduce waning messages spam when a property in Expo plugin configuration is missing ([#3631](https://github.com/getsentry/sentry-react-native/pull/3631))
 - `TurboModuleRegistry` should not be imported in web applications ([#3609](https://github.com/getsentry/sentry-react-native/pull/3609))
 
 ### Dependencies
