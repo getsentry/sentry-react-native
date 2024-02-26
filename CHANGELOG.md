@@ -10,6 +10,10 @@
 
 - Option `enabled: false` ensures no events are sent ([#3606](https://github.com/getsentry/sentry-react-native/pull/3606))
 - Remove Expo Plugin `authToken` option from application bundle ([#3630](https://github.com/getsentry/sentry-react-native/pull/3630))
+  - Expo Configuration is saved in plain text and is not secure.
+    Please, rotate your token if you published an app with
+    the auth token in the plugin config. Use `SENTRY_AUTH_TOKEN` env.
+    Read more in the [docs](https://docs.sentry.io/platforms/react-native/manual-setup/expo/).
 
 ### Dependencies
 
