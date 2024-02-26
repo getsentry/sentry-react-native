@@ -9,6 +9,7 @@
 ### Fixes
 
 - Option `enabled: false` ensures no events are sent ([#3606](https://github.com/getsentry/sentry-react-native/pull/3606))
+- Remove Expo Plugin `authToken` option from application bundle ([#3630](https://github.com/getsentry/sentry-react-native/pull/3630))
 
 ### Dependencies
 
