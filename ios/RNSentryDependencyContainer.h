@@ -9,5 +9,7 @@ SENTRY_NO_INIT
 
 @property (nonatomic, strong) RNSentryFramesTrackerListener *framesTrackerListener;
 
+- (void)initializeFramesTrackerListenerWith:(RNSentryEmitNewFrameEvent) eventEmitter;
+
 @end
 

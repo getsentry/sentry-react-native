@@ -43,6 +43,7 @@ export interface Spec extends TurboModule {
   };
   fetchNativePackageName(): string | undefined | null;
   fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | undefined | null;
+  initNativeReactNavigationNewFrameTracking(): Promise<void>;
 }
 
 export type NativeStackFrame = {

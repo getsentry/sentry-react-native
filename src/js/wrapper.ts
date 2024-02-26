@@ -100,6 +100,7 @@ interface SentryNativeWrapper {
    * Fetches native stack frames and debug images for the instructions addresses.
    */
   fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | null;
+  initNativeReactNavigationNewFrameTracking(): Promise<void>;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -591,6 +592,17 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.fetchNativeStackFramesBy(instructionsAddr) || null;
+  },
+
+  async initNativeReactNavigationNewFrameTracking(): Promise<void> {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return;
+    }
+
+    return RNSentry.initNativeReactNavigationNewFrameTracking();
   },
 
   /**

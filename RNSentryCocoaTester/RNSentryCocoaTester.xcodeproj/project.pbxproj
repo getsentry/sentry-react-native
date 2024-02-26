@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		33AFDFED2B8D14B300AAB120 /* RNSentryFramesTrackerListener.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListener.m */; };
+		33AFDFF12B8D15E500AAB120 /* RNSentryDependencyContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainer.m */; };
 		33F58AD02977037D008F60EA /* RNSentry+initNativeSdk.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33F58ACF2977037D008F60EA /* RNSentry+initNativeSdk.mm */; };
 		B5859A50A3E865EF5E61465A /* libPods-RNSentryCocoaTesterTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */; };
 /* End PBXBuildFile section */
@@ -15,6 +17,10 @@
 		1482D5685A340AB93348A43D /* Pods-RNSentryCocoaTesterTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.release.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.release.xcconfig"; sourceTree = "<group>"; };
 		3360898D29524164007C7730 /* RNSentryCocoaTesterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RNSentryCocoaTesterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		338739072A7D7D2800950DDD /* RNSentry+initNativeSdk.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RNSentry+initNativeSdk.h"; sourceTree = "<group>"; };
+		33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListener.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryFramesTrackerListener.m; sourceTree = "<group>"; };
+		33AFDFEE2B8D14C200AAB120 /* RNSentryFramesTrackerListener.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSentryFramesTrackerListener.h; sourceTree = "<group>"; };
+		33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryDependencyContainer.m; sourceTree = "<group>"; };
+		33AFDFF22B8D15F600AAB120 /* RNSentryDependencyContainer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSentryDependencyContainer.h; sourceTree = "<group>"; };
 		33F58ACF2977037D008F60EA /* RNSentry+initNativeSdk.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "RNSentry+initNativeSdk.mm"; sourceTree = "<group>"; };
 		650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RNSentryCocoaTesterTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2321E7CFA55AB617247098E /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.debug.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -64,6 +70,10 @@
 			children = (
 				33F58ACF2977037D008F60EA /* RNSentry+initNativeSdk.mm */,
 				338739072A7D7D2800950DDD /* RNSentry+initNativeSdk.h */,
+				33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListener.m */,
+				33AFDFEE2B8D14C200AAB120 /* RNSentryFramesTrackerListener.h */,
+				33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainer.m */,
+				33AFDFF22B8D15F600AAB120 /* RNSentryDependencyContainer.h */,
 			);
 			path = RNSentryCocoaTesterTests;
 			sourceTree = "<group>";
@@ -176,7 +186,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				33AFDFF12B8D15E500AAB120 /* RNSentryDependencyContainer.m in Sources */,
 				33F58AD02977037D008F60EA /* RNSentry+initNativeSdk.mm in Sources */,
+				33AFDFED2B8D14B300AAB120 /* RNSentryFramesTrackerListener.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

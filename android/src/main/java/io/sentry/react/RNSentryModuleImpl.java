@@ -167,9 +167,11 @@ public class RNSentryModuleImpl {
         }
     }
 
-    public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
+    public void initNativeReactNavigationNewFrameTracking(Promise promise) {
         this.initFragmentInitialFrameTracking();
+    }
 
+    public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         SentryAndroid.init(this.getReactApplicationContext(), options -> {
             @Nullable SdkVersion sdkVersion = options.getSdkVersion();
             if (sdkVersion == null) {

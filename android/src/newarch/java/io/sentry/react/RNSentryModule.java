@@ -34,6 +34,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
     }
 
     @Override
+    public void initNativeReactNavigationNewFrameTracking(Promise promise) {
+        this.impl.initNativeReactNavigationNewFrameTracking(promise);
+    }
+
+    @Override
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         this.impl.initNativeSdk(rnOptions, promise);
     }

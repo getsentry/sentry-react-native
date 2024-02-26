@@ -22,6 +22,7 @@
 #import <Sentry/SentryBinaryImageCache.h>
 #import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentryFormatter.h>
+#import <Sentry/SentryLog.h>
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
@@ -69,8 +70,6 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
                   resolve:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self initFramesTracking];
-
     NSError *error = nil;
     SentryOptions* sentryOptions = [self createOptionsWithDictionary:options error:&error];
     if (error != nil) {
@@ -185,16 +184,21 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
   event.tags = newTags;
 }
 
+RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking:(RCTPromiseResolveBlock)resolve
+                                                   rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self initFramesTracking];
+    resolve(nil);
+}
+
 - (void)initFramesTracking {
   RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
-    NSLog(@"Received new frame at %@, emitting native event...", newFrameTimestampInSeconds);
+    SENTRY_LOG_DEBUG(@"Received new frame at %@, emitting native event...", newFrameTimestampInSeconds);
     if (self->hasListeners) {
       [self sendEventWithName:RNSentryNewFrameEvent body:@{ @"newFrameTimestampInSeconds": newFrameTimestampInSeconds }];
     }
   };
-  [RNSentryDependencyContainer sharedInstance].framesTrackerListener = [[RNSentryFramesTrackerListener alloc]
-                                                                        initWithSentryFramesTracker:[[SentryDependencyContainer sharedInstance] framesTracker]
-                                                                        andEventEmitter: emitNewFrameEvent];
+  [[RNSentryDependencyContainer sharedInstance] initializeFramesTrackerListenerWith: emitNewFrameEvent];
 }
 
 // Will be called when this module's first listener is added.

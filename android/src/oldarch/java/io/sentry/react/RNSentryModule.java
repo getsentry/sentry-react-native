@@ -34,6 +34,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void initNativeReactNavigationNewFrameTracking(Promise promise) {
+        this.impl.initNativeReactNavigationNewFrameTracking(promise);
+    }
+
+    @ReactMethod
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         this.impl.initNativeSdk(rnOptions, promise);
     }

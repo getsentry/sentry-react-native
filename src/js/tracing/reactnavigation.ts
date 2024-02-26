@@ -6,6 +6,7 @@ import { logger, timestampInSeconds } from '@sentry/utils';
 import type { NewFrameEvent } from '../utils/sentryeventemitter';
 import { type SentryEventEmitter, createSentryEventEmitter, NewFrameEventName } from '../utils/sentryeventemitter';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
+import { NATIVE } from '../wrapper';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
 import type { BeforeNavigate, ReactNavigationTransactionContext, RouteChangeContextData } from './types';
@@ -77,6 +78,9 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
 
     this._eventEmitter = createSentryEventEmitter();
     this._eventEmitter.initAsync(NewFrameEventName);
+    NATIVE.initNativeReactNavigationNewFrameTracking().catch((reason: unknown) => {
+      logger.error(`[ReactNavigationInstrumentation] Failed to initialize native new frame tracking: ${reason}`);
+    });
   }
 
   /**

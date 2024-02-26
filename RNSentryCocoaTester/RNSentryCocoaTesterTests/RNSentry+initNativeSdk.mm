@@ -191,7 +191,7 @@ int sucessfulSymbolicate(const void *, Dl_info *info){
 
   id sentryDependencyContainerMock = OCMClassMock([SentryDependencyContainer class]);
   OCMStub(ClassMethod([sentryDependencyContainerMock sharedInstance])).andReturn(sentryDependencyContainerMock);
-  
+
   id sentryBinaryImageInfoMockOne = OCMClassMock([SentryBinaryImageInfo class]);
   OCMStub([(SentryBinaryImageInfo*) sentryBinaryImageInfoMockOne address]).andReturn([@112233 unsignedLongLongValue]);
   OCMStub([sentryBinaryImageInfoMockOne name]).andReturn(@"testnameone");
