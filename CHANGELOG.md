@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add concrete error messages for RN bundle build phase patch ([#3626](https://github.com/getsentry/sentry-react-native/pull/3626))
+
+### Fixes
+
+- Option `enabled: false` ensures no events are sent ([#3606](https://github.com/getsentry/sentry-react-native/pull/3606))
+- Ignore JSON response when retrieving source context from local Expo Dev Server ([#3611](https://github.com/getsentry/sentry-react-native/pull/3611))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.17.1 to v8.20.0 ([#3476](https://github.com/getsentry/sentry-react-native/pull/3476))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8200)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.17.1...8.20.0)
+
 ## 5.19.1
 
 ### Fixes
