@@ -2,10 +2,6 @@
 
 ## Unreleased
 
-### Features
-
-- Add concrete error messages for RN bundle build phase patch ([#3626](https://github.com/getsentry/sentry-react-native/pull/3626))
-
 ### Fixes
 
 - Option `enabled: false` ensures no events are sent ([#3606](https://github.com/getsentry/sentry-react-native/pull/3606))
@@ -27,6 +23,7 @@
   - In addition to showing a warning, we are now actively removing an `authToken` from the plugin config if it was set.
   - If you had set the auth token in the plugin config previously, **and** built and published an app with that config, you should [rotate your token](https://docs.sentry.io/product/accounts/auth-tokens/).
 - Reduce waning messages spam when a property in Expo plugin configuration is missing ([#3631](https://github.com/getsentry/sentry-react-native/pull/3631))
+- Add concrete error messages for RN bundle build phase patch ([#3626](https://github.com/getsentry/sentry-react-native/pull/3626))
 
 ## 5.19.0
 
