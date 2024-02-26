@@ -219,7 +219,17 @@ export class DebugSymbolicator implements Integration {
           if (xhr.status !== 200) {
             resolve(null);
           }
-          resolve(xhr.responseText);
+          const response = xhr.responseText;
+          if (
+            typeof response !== 'string' ||
+            // Expo Dev Server responses with status 200 and config JSON
+            // when web support not enabled and requested file not found
+            response.startsWith('{')
+          ) {
+            resolve(null);
+          }
+
+          resolve(response);
         }
       };
       xhr.onerror = (): void => {
