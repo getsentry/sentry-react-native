@@ -69,7 +69,7 @@ NATIVE.fetchModules.mockResolvedValue(null);
 NATIVE.fetchViewHierarchy.mockResolvedValue(null);
 NATIVE.startProfiling.mockReturnValue(false);
 NATIVE.stopProfiling.mockReturnValue(null);
-NATIVE.fetchNativePackageName.mockResolvedValue('mock-native-package-name');
-NATIVE.fetchNativeStackFramesBy.mockResolvedValue(null);
+NATIVE.fetchNativePackageName.mockReturnValue('mock-native-package-name');
+NATIVE.fetchNativeStackFramesBy.mockReturnValue(null);
 
 export { NATIVE };

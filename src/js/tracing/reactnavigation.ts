@@ -220,6 +220,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
               return;
             }
 
+            this._latestTtidSpan.setStatus('ok');
             this._latestTtidSpan.end(newFrameTimestampInSeconds);
             const ttidSpan = spanToJSON(this._latestTtidSpan);
             this._latestTtidSpan = undefined;
@@ -235,6 +236,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
 
           this._latestTtidSpan?.updateName(`${route.name} initial display`);
           this._navigationProcessingSpan?.updateName(`Processing navigation to ${route.name}`);
+          this._navigationProcessingSpan?.setStatus('ok');
           this._navigationProcessingSpan?.end(stateChangedTimestamp);
 
           const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;

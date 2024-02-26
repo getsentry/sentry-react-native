@@ -437,6 +437,11 @@ export class ReactNativeTracing implements Integration {
 
     transaction.startTimestamp = appStartTimeSeconds;
 
+    const maybeTtidSpan = transaction.spanRecorder?.spans.find(span => span.op === 'ui.load.initial_display');
+    if (maybeTtidSpan) {
+      maybeTtidSpan.startTimestamp = appStartTimeSeconds;
+    }
+
     const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
     transaction.startChild({
       description: appStart.isColdStart ? 'Cold App Start' : 'Warm App Start',

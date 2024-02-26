@@ -27,6 +27,12 @@ export interface SentryEventEmitter {
 export function createSentryEventEmitter(): SentryEventEmitter {
   const openNativeListeners = new Set<EmitterSubscription>();
   const listenersMap = new Map<NewFrameEventName, Map<(event: NewFrameEvent) => void, true>>();
+
+  const sentryNativeModule = getRNSentryModule();
+  if (!sentryNativeModule) {
+    return createNoopSentryEventEmitter();
+  }
+
   const nativeEventEmitter = new NativeEventEmitter(getRNSentryModule());
 
   const addListener = function (eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void): void {
@@ -73,6 +79,26 @@ export function createSentryEventEmitter(): SentryEventEmitter {
         removeListener(eventType, tmpListener);
       };
       addListener(eventType, tmpListener);
+    },
+  };
+}
+
+function createNoopSentryEventEmitter(): SentryEventEmitter {
+  return {
+    initAsync: () => {
+      logger.warn('Noop SentryEventEmitter: initAsync');
+    },
+    closeAllAsync: () => {
+      logger.warn('Noop SentryEventEmitter: closeAllAsync');
+    },
+    addListener: () => {
+      logger.warn('Noop SentryEventEmitter: addListener');
+    },
+    removeListener: () => {
+      logger.warn('Noop SentryEventEmitter: removeListener');
+    },
+    once: () => {
+      logger.warn('Noop SentryEventEmitter: once');
     },
   };
 }
