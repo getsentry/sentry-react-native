@@ -1,7 +1,5 @@
 // MIT License
 
-import type { TurboModule } from 'react-native';
-
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -55,6 +53,11 @@ export type DevServerInfo = {
   fullBundleUrl?: string;
   bundleLoadedFromServer: boolean;
 };
+
+// Adapted from https://github.com/facebook/react-native/blob/main/packages/react-native/Libraries/TurboModule/RCTExport.d.ts#L10
+type TurboModule = {
+  getConstants?(): object;
+}
 
 // Adapted from https://github.com/facebook/react-native/blob/d09c02f9e2d468e4d0bde51890e312ae7003a3e6/packages/react-native/Libraries/TurboModule/TurboModuleRegistry.d.ts#L12
 export type TurboModuleRegistry = {
