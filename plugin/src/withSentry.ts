@@ -14,6 +14,12 @@ interface PluginProps {
 
 const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
   const sentryProperties = getSentryProperties(props);
+
+  if (props && props.authToken) {
+    // If not removed, the plugin config with the authToken will be written to the application package
+    delete props.authToken;
+  }
+
   let cfg = config;
   if (sentryProperties !== null) {
     try {
@@ -33,12 +39,14 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
       );
     }
   }
+
   return cfg;
 };
 
-const missingAuthTokenMessage = '# auth.token is configured through SENTRY_AUTH_TOKEN environment variable';
 const missingProjectMessage = '# no project found, falling back to SENTRY_PROJECT environment variable';
 const missingOrgMessage = '# no org found, falling back to SENTRY_ORG environment variable';
+const existingAuthTokenMessage = `# DO NOT COMMIT the auth token, use SENTRY_AUTH_TOKEN instead, see https://docs.sentry.io/platforms/react-native/manual-setup/`;
+const missingAuthTokenMessage = `# Using SENTRY_AUTH_TOKEN environment variable`;
 
 export function getSentryProperties(props: PluginProps | void): string | null {
   const { organization, project, authToken, url = 'https://sentry.io/' } = props ?? {};
@@ -56,12 +64,7 @@ export function getSentryProperties(props: PluginProps | void): string | null {
   return `defaults.url=${url}
 ${organization ? `defaults.org=${organization}` : missingOrgMessage}
 ${project ? `defaults.project=${project}` : missingProjectMessage}
-${
-  authToken
-    ? `# Configure this value through \`SENTRY_AUTH_TOKEN\` environment variable instead. See: https://docs.sentry.io/platforms/react-native/manual-setup/\nauth.token=${authToken}`
-    : missingAuthTokenMessage
-}
-`;
+${authToken ? `${existingAuthTokenMessage}\nauth.token=${authToken}` : missingAuthTokenMessage}`;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
