@@ -1,7 +1,7 @@
 import type { ConfigPlugin } from 'expo/config-plugins';
-import { createRunOncePlugin, WarningAggregator } from 'expo/config-plugins';
+import { createRunOncePlugin } from 'expo/config-plugins';
 
-import { SDK_PACKAGE_NAME, sdkPackage } from './utils';
+import { bold, sdkPackage, warnOnce } from './utils';
 import { withSentryAndroid } from './withSentryAndroid';
 import { withSentryIOS } from './withSentryIOS';
 
@@ -25,18 +25,12 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
     try {
       cfg = withSentryAndroid(cfg, sentryProperties);
     } catch (e) {
-      WarningAggregator.addWarningAndroid(
-        SDK_PACKAGE_NAME,
-        `There was a problem configuring sentry-expo in your native Android project: ${e}`,
-      );
+      warnOnce(`There was a problem with configuring your native Android project: ${e}`);
     }
     try {
       cfg = withSentryIOS(cfg, sentryProperties);
     } catch (e) {
-      WarningAggregator.addWarningIOS(
-        SDK_PACKAGE_NAME,
-        `There was a problem configuring sentry-expo in your native iOS project: ${e}`,
-      );
+      warnOnce(`There was a problem with configuring your native iOS project: ${e}`);
     }
   }
 
@@ -54,11 +48,17 @@ export function getSentryProperties(props: PluginProps | void): string | null {
   const missingProperties = ['organization', 'project'].filter(each => !props?.hasOwnProperty(each));
 
   if (missingProperties.length) {
-    const warningMessage = `Missing Sentry configuration properties: ${missingProperties.join(
-      ', ',
-    )} in config plugin. Builds will fall back to environment variables. See: https://docs.sentry.io/platforms/react-native/manual-setup/.`;
-    WarningAggregator.addWarningAndroid(SDK_PACKAGE_NAME, warningMessage);
-    WarningAggregator.addWarningIOS(SDK_PACKAGE_NAME, warningMessage);
+    const missingPropertiesString = bold(missingProperties.join(', '));
+    const warningMessage = `Missing config for ${missingPropertiesString}. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/`;
+    warnOnce(warningMessage);
+  }
+
+  if (authToken) {
+    warnOnce(
+      `Detected unsecure use of 'authToken' in Sentry plugin configuration. To avoid exposing the token use ${bold(
+        'SENTRY_AUTH_TOKEN',
+      )} environment variable instead. https://docs.sentry.io/platforms/react-native/manual-setup/`,
+    );
   }
 
   return `defaults.url=${url}
