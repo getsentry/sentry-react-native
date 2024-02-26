@@ -238,6 +238,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
           this._navigationProcessingSpan?.updateName(`Processing navigation to ${route.name}`);
           this._navigationProcessingSpan?.setStatus('ok');
           this._navigationProcessingSpan?.end(stateChangedTimestamp);
+          this._navigationProcessingSpan = undefined;
 
           const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
           const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
