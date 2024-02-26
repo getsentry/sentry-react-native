@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import type { ConfigPlugin, XcodeProject } from 'expo/config-plugins';
-import { WarningAggregator, withDangerousMod, withXcodeProject } from 'expo/config-plugins';
+import { withDangerousMod, withXcodeProject } from 'expo/config-plugins';
 import * as path from 'path';
 
-import { SDK_PACKAGE_NAME, writeSentryPropertiesTo } from './utils';
+import { warnOnce, writeSentryPropertiesTo } from './utils';
 
 type BuildPhase = { shellScript: string };
 
@@ -47,8 +47,7 @@ export const withSentryIOS: ConfigPlugin<string> = (config, sentryProperties: st
 
 export function modifyExistingXcodeBuildScript(script: BuildPhase): void {
   if (!script.shellScript.match(/(packager|scripts)\/react-native-xcode\.sh\b/)) {
-    WarningAggregator.addWarningIOS(
-      SDK_PACKAGE_NAME,
+    warnOnce(
       `'react-native-xcode.sh' not found in 'Bundle React Native code and images'.
 Please open a bug report at https://github.com/getsentry/sentry-react-native`,
     );
@@ -56,16 +55,12 @@ Please open a bug report at https://github.com/getsentry/sentry-react-native`,
   }
 
   if (script.shellScript.includes('sentry-xcode.sh')) {
-    WarningAggregator.addWarningIOS(
-      SDK_PACKAGE_NAME,
-      "The latest 'sentry-xcode.sh' script already exists in 'Bundle React Native code and images'.",
-    );
+    warnOnce("The latest 'sentry-xcode.sh' script already exists in 'Bundle React Native code and images'.");
     return;
   }
 
   if (script.shellScript.includes('@sentry')) {
-    WarningAggregator.addWarningIOS(
-      SDK_PACKAGE_NAME,
+    warnOnce(
       `Outdated or custom Sentry script found in 'Bundle React Native code and images'.
 Regenerate the native project to use the latest script.
 Run npx expo prebuild --clean`,
