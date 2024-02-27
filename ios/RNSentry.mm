@@ -38,6 +38,10 @@
 #import "RNSentryDependencyContainer.h"
 #import "RNSentryFramesTrackerListener.h"
 
+@interface SentryTraceContext : NSObject
+- (nullable instancetype)initWithDict:(NSDictionary<NSString *, id> *)dictionary;
+@end
+
 @interface SentrySDK (RNSentry)
 
 + (void)captureEnvelope:(SentryEnvelope *)envelope;
