@@ -3,8 +3,6 @@
  */
 import { logger } from '@sentry/utils';
 
-import { NATIVE } from '../src/js/wrapper';
-
 interface MockedClient {
   flush: jest.Mock;
 }
@@ -15,12 +13,17 @@ let mockedGetCurrentHubConfigureScope: jest.Mock;
 jest.mock('@sentry/react', () => {
   const actualModule = jest.requireActual('@sentry/react');
 
+  const mockClient: MockedClient = {
+    flush: jest.fn(() => Promise.resolve(true)),
+  };
+
   return {
     ...actualModule,
     getCurrentHub: jest.fn(() => {
       mockedGetCurrentHubWithScope = jest.fn();
       mockedGetCurrentHubConfigureScope = jest.fn();
       return {
+        getClient: jest.fn(() => mockClient),
         setTag: jest.fn(),
         withScope: mockedGetCurrentHubWithScope,
         configureScope: mockedGetCurrentHubConfigureScope,
@@ -31,13 +34,9 @@ jest.mock('@sentry/react', () => {
 
 jest.mock('@sentry/core', () => {
   const originalCore = jest.requireActual('@sentry/core');
-  const mockClient: MockedClient = {
-    flush: jest.fn(() => Promise.resolve(true)),
-  };
   return {
     ...originalCore,
     initAndBind: jest.fn(),
-    getClient: jest.fn(() => mockClient),
   };
 });
 
@@ -61,13 +60,14 @@ jest.mock('../src/js/client', () => {
   };
 });
 
-jest.mock('../src/js/wrapper');
+import * as mockedWrapper from './mockWrapper';
+jest.mock('../src/js/wrapper', () => mockedWrapper);
 jest.mock('../src/js/utils/environment');
 
 jest.spyOn(logger, 'error');
 
-import { getClient, initAndBind } from '@sentry/core';
-import { makeFetchTransport } from '@sentry/react';
+import { initAndBind } from '@sentry/core';
+import { getCurrentHub, makeFetchTransport } from '@sentry/react';
 import type { BaseTransportOptions, ClientOptions, Integration, Scope } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../src/js/options';
@@ -75,6 +75,7 @@ import { configureScope, flush, init, withScope } from '../src/js/sdk';
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
 import { getDefaultEnvironment, isExpoGo, notWeb } from '../src/js/utils/environment';
+import { NATIVE } from './mockWrapper';
 import { firstArg, secondArg } from './testutils';
 
 const mockedInitAndBind = initAndBind as jest.MockedFunction<typeof initAndBind>;
@@ -747,7 +748,7 @@ describe('Tests the SDK functionality', () => {
 });
 
 function getMockClient(): MockedClient {
-  const mockClient = getClient() as unknown as MockedClient;
+  const mockClient = getCurrentHub().getClient() as unknown as MockedClient;
   return mockClient;
 }
 
