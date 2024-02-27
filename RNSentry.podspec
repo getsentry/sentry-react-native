@@ -36,7 +36,7 @@ Pod::Spec.new do |s|
   s.dependency 'Sentry/HybridSDK', '8.20.0'
 
   s.source_files = 'ios/**/*.{h,m,mm}'
-  s.public_header_files = 'ios/*.h'
+  s.public_header_files = 'ios/RNSentry.h'
 
   s.compiler_flags = other_cflags
   # This guard prevent to install the dependencies when we run `pod install` in the old architecture.

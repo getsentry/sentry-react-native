@@ -2,7 +2,7 @@
 #import <OCMock/OCMock.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
-#import <RNSentry/RNSentryDependencyContainer.h>
+#import "RNSentryDependencyContainer.h"
 
 @interface RNSentryDependencyContainerTests : XCTestCase
 

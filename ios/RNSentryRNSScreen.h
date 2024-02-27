@@ -1,3 +1,4 @@
+#import <Foundation/Foundation.h>
 
 @interface RNSentryRNSScreen : NSObject
 

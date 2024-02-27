@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 #import <RNSentry/RNSentry.h>
-#import <Sentry/SentryFramesTracker.h>
+#import "SentryFramesTracker.h"
 
 @interface
 SentrySDK (PrivateTests)

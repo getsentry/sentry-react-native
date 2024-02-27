@@ -1,4 +1,4 @@
-#import "RNSentry+initNativeSdk.h"
+#import "RNSentryTests.h"
 #import <OCMock/OCMock.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
