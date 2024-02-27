@@ -30,10 +30,9 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
     private @NotNull final ILogger logger;
 
     public RNSentryReactFragmentLifecycleTracer(
-            @NotNull BuildInfoProvider buildInfoProvider,
-            @NotNull Runnable emitNewFrameEvent,
-            @NotNull ILogger logger
-            ) {
+        @NotNull BuildInfoProvider buildInfoProvider,
+        @NotNull Runnable emitNewFrameEvent,
+        @NotNull ILogger logger) {
         this.buildInfoProvider = buildInfoProvider;
         this.emitNewFrameEvent = emitNewFrameEvent;
         this.logger = logger;
@@ -41,10 +40,10 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
 
     @Override
     public void onFragmentViewCreated(
-            @NotNull FragmentManager fm,
-            @NotNull Fragment f,
-            @NotNull View v,
-            @Nullable Bundle savedInstanceState) {
+        @NotNull FragmentManager fm,
+        @NotNull Fragment f,
+        @NotNull View v,
+        @Nullable Bundle savedInstanceState) {
         if (!("com.swmansion.rnscreens.ScreenStackFragment".equals(f.getClass().getCanonicalName()))) {
             logger.log(SentryLevel.DEBUG, "Fragment is not a ScreenStackFragment, won't listen for the first draw.");
             return;
@@ -73,7 +72,7 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
             return;
         }
 
-        EventDispatcher eventDispatcher = getEventDispatcherForReactTag(screen, screenId);
+        final @Nullable EventDispatcher eventDispatcher = getEventDispatcherForReactTag(screen, screenId);
         if (eventDispatcher == null) {
             logger.log(SentryLevel.WARNING, "Screen has no event dispatcher, won't listen for the first draw.");
             return;
@@ -92,8 +91,7 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
         });
     }
 
-    @androidx.annotation.Nullable
-    private static EventDispatcher getEventDispatcherForReactTag(@NonNull View screen, int screenId) {
+    private static @Nullable EventDispatcher getEventDispatcherForReactTag(@NonNull View screen, int screenId) {
         return UIManagerHelper.getEventDispatcherForReactTag(
                 UIManagerHelper.getReactContext(screen),
                 screenId);

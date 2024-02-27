@@ -132,26 +132,30 @@ public class RNSentryModuleImpl {
     private long maxTraceFileSize = 5 * 1024 * 1024;
 
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
-        packageInfo = getPackageInfo(reactApplicationContext);
-        this.reactApplicationContext = reactApplicationContext;
-        final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
-        this.emitNewFrameEvent = () -> {
-          final SentryDate endDate = dateProvider.now();
-          WritableMap event = Arguments.createMap();
-          event.putDouble("newFrameTimestampInSeconds", endDate.nanoTimestamp() / 1e9);
-          reactApplicationContext
-              .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-              .emit("rn_sentry_new_frame", event);
-        };
+      packageInfo = getPackageInfo(reactApplicationContext);
+      this.reactApplicationContext = reactApplicationContext;
+      this.emitNewFrameEvent = createEmitNewFrameEvent();
     }
 
     private ReactApplicationContext getReactApplicationContext() {
-        return this.reactApplicationContext;
+      return this.reactApplicationContext;
     }
 
-    private @Nullable
-    Activity getCurrentActivity() {
-        return this.reactApplicationContext.getCurrentActivity();
+    private @Nullable Activity getCurrentActivity() {
+      return this.reactApplicationContext.getCurrentActivity();
+    }
+
+    private @NotNull Runnable createEmitNewFrameEvent() {
+        final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
+
+        return () -> {
+          final SentryDate endDate = dateProvider.now();
+          WritableMap event = Arguments.createMap();
+          event.putDouble("newFrameTimestampInSeconds", endDate.nanoTimestamp() / 1e9);
+          getReactApplicationContext()
+              .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+              .emit("rn_sentry_new_frame", event);
+        };
     }
 
     private void initFragmentInitialFrameTracking() {
@@ -182,10 +186,7 @@ public class RNSentryModuleImpl {
 
             options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
             options.setNativeSdkName(NATIVE_SDK_NAME);
-            options.setSdkVersion(sdkVersion);
-            options.setEnableTracing(true);
-
-
+          options.setSdkVersion(sdkVersion);
 
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
@@ -289,9 +290,6 @@ public class RNSentryModuleImpl {
             }
         });
 
-        final Activity currentActivity = getCurrentActivity();
-
-
         promise.resolve(true);
     }
 
@@ -300,14 +298,12 @@ public class RNSentryModuleImpl {
     }
 
     public void addListener(String _eventType) {
-      // Is must be defined otherwise the generated interface from TS won't be
-      // fulfilled
+      // Is must be defined otherwise the generated interface from TS won't be fulfilled
       logger.log(SentryLevel.ERROR, "addListener of NativeEventEmitter can't be used on Android!");
     }
 
     public void removeListeners(double _id) {
-      // Is must be defined otherwise the generated interface from TS won't be
-      // fulfilled
+      // Is must be defined otherwise the generated interface from TS won't be fulfilled
       logger.log(SentryLevel.ERROR, "removeListeners of NativeEventEmitter can't be used on Android!");
     }
 
