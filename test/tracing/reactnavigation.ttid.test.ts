@@ -22,218 +22,287 @@ describe('React Navigation - TTID', () => {
   let mockedNavigation: ReturnType<typeof createMockNavigationAndAttachTo>;
   const mockedAppStartTimeSeconds: number = timestampInSeconds();
 
-  beforeEach(() => {
-    jest.useFakeTimers();
-    (notWeb as jest.Mock).mockReturnValue(true);
-    (isHermesEnabled as jest.Mock).mockReturnValue(true);
+  describe('ttid enabled', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      (notWeb as jest.Mock).mockReturnValue(true);
+      (isHermesEnabled as jest.Mock).mockReturnValue(true);
 
-    mockWrapper.NATIVE.fetchNativeAppStart.mockResolvedValue({
-      appStartTime: mockedAppStartTimeSeconds * 1000,
-      didFetchAppStart: false,
-      isColdStart: true,
+      mockWrapper.NATIVE.fetchNativeAppStart.mockResolvedValue({
+        appStartTime: mockedAppStartTimeSeconds * 1000,
+        didFetchAppStart: false,
+        isColdStart: true,
+      });
+
+      mockedEventEmitter = mockedSentryEventEmitter.createMockedSentryEventEmitter();
+      (createSentryEventEmitter as jest.Mock).mockReturnValue(mockedEventEmitter);
+
+      const sut = createTestedInstrumentation();
+      transportSendMock = initSentry(sut).transportSendMock;
+
+      mockedNavigation = createMockNavigationAndAttachTo(sut);
     });
 
-    mockedEventEmitter = mockedSentryEventEmitter.createMockedSentryEventEmitter();
-    (createSentryEventEmitter as jest.Mock).mockReturnValue(mockedEventEmitter);
+    afterEach(() => {
+      jest.useRealTimers();
+    });
 
-    const sut = createTestedInstrumentation();
-    transportSendMock = initSentry(sut).transportSendMock;
+    test('should add ttid span', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
 
-    mockedNavigation = createMockNavigationAndAttachTo(sut);
-  });
+      mockedNavigation.navigateToNewScreen();
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush ttid transaction
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
-  test('should add ttid span', () => {
-    jest.runOnlyPendingTimers(); // Flush app start transaction
-
-    mockedNavigation.navigateToNewScreen();
-    mockedEventEmitter.emitNewFrameEvent();
-    jest.runOnlyPendingTimers(); // Flush ttid transaction
-
-    const transaction = getTransaction(transportSendMock);
-    expect(transaction).toEqual(
-      expect.objectContaining<TransactionEvent>({
-        type: 'transaction',
-        spans: expect.arrayContaining([
-          expect.objectContaining<Partial<SpanJSON>>({
-            data: {
-              'sentry.op': 'ui.load.initial_display',
-              'sentry.origin': 'manual',
-            },
-            description: 'New Screen initial display',
-            op: 'ui.load.initial_display',
-            origin: 'manual',
-            status: 'ok',
-            start_timestamp: transaction.start_timestamp,
-            timestamp: expect.any(Number),
-          }),
-        ]),
-      }),
-    );
-  });
-
-  test('should add ttid measurement', () => {
-    jest.runOnlyPendingTimers(); // Flush app start transaction
-
-    mockedNavigation.navigateToNewScreen();
-    mockedEventEmitter.emitNewFrameEvent();
-    jest.runOnlyPendingTimers(); // Flush ttid transaction
-
-    const transaction = getTransaction(transportSendMock);
-    expect(transaction).toEqual(
-      expect.objectContaining<TransactionEvent>({
-        type: 'transaction',
-        measurements: expect.objectContaining<Required<TransactionEvent>['measurements']>({
-          time_to_initial_display: {
-            value: expect.any(Number),
-            unit: 'millisecond',
-          },
+      const transaction = getTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          spans: expect.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              data: {
+                'sentry.op': 'ui.load.initial_display',
+                'sentry.origin': 'manual',
+              },
+              description: 'New Screen initial display',
+              op: 'ui.load.initial_display',
+              origin: 'manual',
+              status: 'ok',
+              start_timestamp: transaction.start_timestamp,
+              timestamp: expect.any(Number),
+            }),
+          ]),
         }),
-      }),
-    );
-  });
+      );
+    });
 
-  test('should add processing navigation span', () => {
-    jest.runOnlyPendingTimers(); // Flush app start transaction
+    test('should add ttid measurement', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
 
-    mockedNavigation.navigateToNewScreen();
-    mockedEventEmitter.emitNewFrameEvent();
-    jest.runOnlyPendingTimers(); // Flush ttid transaction
+      mockedNavigation.navigateToNewScreen();
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush ttid transaction
 
-    const transaction = getTransaction(transportSendMock);
-    expect(transaction).toEqual(
-      expect.objectContaining<TransactionEvent>({
-        type: 'transaction',
-        spans: expect.arrayContaining([
-          expect.objectContaining<Partial<SpanJSON>>({
-            data: {
-              'sentry.op': 'navigation.processing',
-              'sentry.origin': 'manual',
+      const transaction = getTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          measurements: expect.objectContaining<Required<TransactionEvent>['measurements']>({
+            time_to_initial_display: {
+              value: expect.any(Number),
+              unit: 'millisecond',
             },
-            description: 'Processing navigation to New Screen',
-            op: 'navigation.processing',
-            origin: 'manual',
-            status: 'ok',
-            start_timestamp: transaction.start_timestamp,
-            timestamp: expect.any(Number),
           }),
-        ]),
-      }),
-    );
-  });
-
-  test('should add processing navigation span for application start up', () => {
-    mockedNavigation.finishAppStartNavigation();
-    mockedEventEmitter.emitNewFrameEvent();
-    jest.runOnlyPendingTimers(); // Flush ttid transaction
-
-    const transaction = getTransaction(transportSendMock);
-    expect(transaction).toEqual(
-      expect.objectContaining<TransactionEvent>({
-        type: 'transaction',
-        spans: expect.arrayContaining([
-          expect.objectContaining<Partial<SpanJSON>>({
-            data: {
-              'sentry.op': 'navigation.processing',
-              'sentry.origin': 'manual',
-            },
-            description: 'Processing navigation to Initial Screen',
-            op: 'navigation.processing',
-            origin: 'manual',
-            status: 'ok',
-            start_timestamp: expect.any(Number),
-            timestamp: expect.any(Number),
-          }),
-        ]),
-      }),
-    );
-  });
-
-  test('should add ttid span for application start up', () => {
-    mockedNavigation.finishAppStartNavigation();
-    mockedEventEmitter.emitNewFrameEvent();
-    jest.runOnlyPendingTimers(); // Flush ttid transaction
-
-    const transaction = getTransaction(transportSendMock);
-    expect(transaction).toEqual(
-      expect.objectContaining<TransactionEvent>({
-        type: 'transaction',
-        spans: expect.arrayContaining([
-          expect.objectContaining<Partial<SpanJSON>>({
-            description: 'Cold App Start',
-          }),
-          expect.objectContaining<Partial<SpanJSON>>({
-            data: {
-              'sentry.op': 'ui.load.initial_display',
-              'sentry.origin': 'manual',
-            },
-            description: 'Initial Screen initial display',
-            op: 'ui.load.initial_display',
-            origin: 'manual',
-            status: 'ok',
-            start_timestamp: mockedAppStartTimeSeconds,
-            timestamp: expect.any(Number),
-          }),
-        ]),
-      }),
-    );
-  });
-
-  test('should add ttid measurement for application start up', () => {
-    mockedNavigation.finishAppStartNavigation();
-    mockedEventEmitter.emitNewFrameEvent();
-    jest.runOnlyPendingTimers(); // Flush ttid transaction
-
-    const transaction = getTransaction(transportSendMock);
-    expect(transaction).toEqual(
-      expect.objectContaining<TransactionEvent>({
-        type: 'transaction',
-        spans: expect.arrayContaining([
-          expect.objectContaining<Partial<SpanJSON>>({
-            description: 'Cold App Start',
-          }),
-        ]),
-        measurements: expect.objectContaining<Required<TransactionEvent>['measurements']>({
-          time_to_initial_display: {
-            value: expect.any(Number),
-            unit: 'millisecond',
-          },
         }),
-      }),
-    );
-  });
+      );
+    });
 
-  test('idle transaction should cancel the ttid span if new frame not received', () => {
-    mockedNavigation.navigateToNewScreen();
-    jest.runOnlyPendingTimers(); // Flush ttid transaction
+    test('should add processing navigation span', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
 
-    const transaction = getTransaction(transportSendMock);
-    expect(transaction).toEqual(
-      expect.objectContaining<TransactionEvent>({
-        type: 'transaction',
-        spans: expect.arrayContaining([
-          expect.objectContaining<Partial<SpanJSON>>({
-            data: {
-              'sentry.op': 'ui.load.initial_display',
-              'sentry.origin': 'manual',
+      mockedNavigation.navigateToNewScreen();
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush ttid transaction
+
+      const transaction = getTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          spans: expect.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              data: {
+                'sentry.op': 'navigation.processing',
+                'sentry.origin': 'manual',
+              },
+              description: 'Processing navigation to New Screen',
+              op: 'navigation.processing',
+              origin: 'manual',
+              status: 'ok',
+              start_timestamp: transaction.start_timestamp,
+              timestamp: expect.any(Number),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    test('should add processing navigation span for application start up', () => {
+      mockedNavigation.finishAppStartNavigation();
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush ttid transaction
+
+      const transaction = getTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          spans: expect.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              data: {
+                'sentry.op': 'navigation.processing',
+                'sentry.origin': 'manual',
+              },
+              description: 'Processing navigation to Initial Screen',
+              op: 'navigation.processing',
+              origin: 'manual',
+              status: 'ok',
+              start_timestamp: expect.any(Number),
+              timestamp: expect.any(Number),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    test('should add ttid span for application start up', () => {
+      mockedNavigation.finishAppStartNavigation();
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush ttid transaction
+
+      const transaction = getTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          spans: expect.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              description: 'Cold App Start',
+            }),
+            expect.objectContaining<Partial<SpanJSON>>({
+              data: {
+                'sentry.op': 'ui.load.initial_display',
+                'sentry.origin': 'manual',
+              },
+              description: 'Initial Screen initial display',
+              op: 'ui.load.initial_display',
+              origin: 'manual',
+              status: 'ok',
+              start_timestamp: mockedAppStartTimeSeconds,
+              timestamp: expect.any(Number),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    test('should add ttid measurement for application start up', () => {
+      mockedNavigation.finishAppStartNavigation();
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush ttid transaction
+
+      const transaction = getTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          spans: expect.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              description: 'Cold App Start',
+            }),
+          ]),
+          measurements: expect.objectContaining<Required<TransactionEvent>['measurements']>({
+            time_to_initial_display: {
+              value: expect.any(Number),
+              unit: 'millisecond',
             },
-            description: 'New Screen initial display',
-            op: 'ui.load.initial_display',
-            origin: 'manual',
-            status: 'cancelled',
-            start_timestamp: transaction.start_timestamp,
-            timestamp: expect.any(Number),
           }),
-        ]),
-      }),
-    );
+        }),
+      );
+    });
+
+    test('idle transaction should cancel the ttid span if new frame not received', () => {
+      mockedNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers(); // Flush ttid transaction
+
+      const transaction = getTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          spans: expect.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              data: {
+                'sentry.op': 'ui.load.initial_display',
+                'sentry.origin': 'manual',
+              },
+              description: 'New Screen initial display',
+              op: 'ui.load.initial_display',
+              origin: 'manual',
+              status: 'cancelled',
+              start_timestamp: transaction.start_timestamp,
+              timestamp: expect.any(Number),
+            }),
+          ]),
+        }),
+      );
+    });
   });
 
-  function createTestedInstrumentation() {
-    const sut = new ReactNavigationInstrumentation();
+  describe('ttid disabled', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      (notWeb as jest.Mock).mockReturnValue(true);
+      (isHermesEnabled as jest.Mock).mockReturnValue(true);
+
+      const sut = createTestedInstrumentation(false);
+      transportSendMock = initSentry(sut).transportSendMock;
+
+      mockedNavigation = createMockNavigationAndAttachTo(sut);
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    test('should not add ttid span', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+      mockedNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers(); // Flush navigation transaction
+
+      const transaction = getTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          spans: expect.not.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              op: 'ui.load.initial_display',
+            }),
+          ]),
+        }),
+      );
+    });
+
+    test('should not add ttid measurement', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+      mockedNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers(); // Flush navigation transaction
+
+      const transaction = getTransaction(transportSendMock);
+      expect(transaction.measurements).toBeOneOf([
+        undefined,
+        expect.not.objectContaining<Required<TransactionEvent>['measurements']>({
+          time_to_initial_display: expect.any(Object),
+        }),
+      ]);
+    });
+
+    test('should not add processing navigation span', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+      mockedNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers(); // Flush navigation transaction
+
+      const transaction = getTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          spans: expect.not.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              op: 'navigation.processing',
+            }),
+          ]),
+        }),
+      );
+    });
+  });
+
+  function createTestedInstrumentation(enableTimeToInitialDisplay = true) {
+    const sut = new ReactNavigationInstrumentation({ enableTimeToInitialDisplay });
     return sut;
   }
 

@@ -30,13 +30,22 @@ interface ReactNavigationOptions {
    * before the transaction is discarded.
    * Time is in ms.
    *
-   * Default: 1000
+   * @default 1000
    */
   routeChangeTimeoutMs: number;
+
+  /**
+   * Time to initial display measures the time it takes from
+   * navigation dispatch to the render of the first frame of the new screen.
+   *
+   * @default true
+   */
+  enableTimeToInitialDisplay: boolean;
 }
 
 const defaultOptions: ReactNavigationOptions = {
   routeChangeTimeoutMs: 1000,
+  enableTimeToInitialDisplay: true,
 };
 
 /**
@@ -53,7 +62,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
   public readonly name: string = ReactNavigationInstrumentation.instrumentationName;
 
   private _navigationContainer: NavigationContainer | null = null;
-  private _eventEmitter: SentryEventEmitter;
+  private _newScreenFrameEventEmitter: SentryEventEmitter | null = null;
 
   private readonly _maxRecentRouteLen: number = 200;
 
@@ -76,11 +85,13 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       ...options,
     };
 
-    this._eventEmitter = createSentryEventEmitter();
-    this._eventEmitter.initAsync(NewFrameEventName);
-    NATIVE.initNativeReactNavigationNewFrameTracking().catch((reason: unknown) => {
-      logger.error(`[ReactNavigationInstrumentation] Failed to initialize native new frame tracking: ${reason}`);
-    });
+    if (this._options.enableTimeToInitialDisplay) {
+      this._newScreenFrameEventEmitter = createSentryEventEmitter();
+      this._newScreenFrameEventEmitter.initAsync(NewFrameEventName);
+      NATIVE.initNativeReactNavigationNewFrameTracking().catch((reason: unknown) => {
+        logger.error(`[ReactNavigationInstrumentation] Failed to initialize native new frame tracking: ${reason}`);
+      });
+    }
   }
 
   /**
@@ -172,21 +183,22 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       this._clearStateChangeTimeout();
     }
 
-    // TODO: Create carriage object to invalidate the transaction and it's spans at once.
     this._latestTransaction = this.onRouteWillChange(
       getBlankTransactionContext(ReactNavigationInstrumentation.instrumentationName),
     );
 
-    this._navigationProcessingSpan = startInactiveSpan({
-      op: 'navigation.processing',
-      name: 'Navigation processing',
-      startTimestamp: this._latestTransaction?.startTimestamp,
-    });
-    this._latestTtidSpan = startInactiveSpan({
-      op: 'ui.load.initial_display',
-      name: 'Time to initial display',
-      startTimestamp: this._latestTransaction?.startTimestamp,
-    });
+    if (this._options.enableTimeToInitialDisplay) {
+      this._navigationProcessingSpan = startInactiveSpan({
+        op: 'navigation.processing',
+        name: 'Navigation processing',
+        startTimestamp: this._latestTransaction?.startTimestamp,
+      });
+      this._latestTtidSpan = startInactiveSpan({
+        op: 'ui.load.initial_display',
+        name: 'Time to initial display',
+        startTimestamp: this._latestTransaction?.startTimestamp,
+      });
+    }
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
@@ -216,7 +228,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
     if (route) {
       if (this._latestTransaction) {
         if (!previousRoute || previousRoute.key !== route.key) {
-          this._eventEmitter.once(NewFrameEventName, ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
+          this._newScreenFrameEventEmitter?.once(NewFrameEventName, ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
             if (!this._latestTtidSpan) {
               logger.warn(
                 '[ReactNavigationInstrumentation] Native Screen was rendered after navigation timeout, _latestTtidSpan is undefined.',
