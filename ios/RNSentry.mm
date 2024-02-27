@@ -192,7 +192,14 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking:(RCTPromiseResolveBlock)resolve
                                                    rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [RNSentryRNSScreen swizzleViewDidAppear];
+    if ([[NSThread currentThread] isMainThread]) {
+        [RNSentryRNSScreen swizzleViewDidAppear];
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [RNSentryRNSScreen swizzleViewDidAppear];
+        });
+    }
+
     [self initFramesTracking];
     resolve(nil);
 }
