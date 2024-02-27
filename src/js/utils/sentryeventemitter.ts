@@ -22,7 +22,7 @@ export interface SentryEventEmitter {
 }
 
 /**
- * TODO:
+ * Creates emitter that allows to listen to native RNSentry events
  */
 export function createSentryEventEmitter(): SentryEventEmitter {
   const openNativeListeners = new Set<EmitterSubscription>();
