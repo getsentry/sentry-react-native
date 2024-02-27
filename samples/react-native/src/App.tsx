@@ -103,45 +103,54 @@ Sentry.init({
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const TabOneStack = Sentry.withProfiler(() => {
-  return (
-    <GestureHandlerRootView style={styles.wrapper}>
-      <Provider store={store}>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="ErrorsScreen"
-            component={ErrorsScreen}
-            options={{ title: 'Errors' }}
-          />
-        </Stack.Navigator>
-      </Provider>
-    </GestureHandlerRootView>
-  );
-}, { name: 'ErrorsTab' });
+const TabOneStack = Sentry.withProfiler(
+  () => {
+    return (
+      <GestureHandlerRootView style={styles.wrapper}>
+        <Provider store={store}>
+          <Stack.Navigator>
+            <Stack.Screen
+              name="ErrorsScreen"
+              component={ErrorsScreen}
+              options={{ title: 'Errors' }}
+            />
+          </Stack.Navigator>
+        </Provider>
+      </GestureHandlerRootView>
+    );
+  },
+  { name: 'ErrorsTab' },
+);
 
-const TabTwoStack = Sentry.withProfiler(() => {
-  return (
-    <GestureHandlerRootView style={styles.wrapper}>
-      <Provider store={store}>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="PerformanceScreen"
-            component={PerformanceScreen}
-            options={{ title: 'Performance' }}
-          />
-          <Stack.Screen name="Tracker" component={TrackerScreen} />
-          <Stack.Screen name="ManualTracker" component={ManualTrackerScreen} />
-          <Stack.Screen
-            name="PerformanceTiming"
-            component={PerformanceTimingScreen}
-          />
-          <Stack.Screen name="Redux" component={ReduxScreen} />
-          <Stack.Screen name="Gestures" component={GesturesTracingScreen} />
-        </Stack.Navigator>
-      </Provider>
-    </GestureHandlerRootView>
-  );
-}, { name: 'PerformanceTab' });
+const TabTwoStack = Sentry.withProfiler(
+  () => {
+    return (
+      <GestureHandlerRootView style={styles.wrapper}>
+        <Provider store={store}>
+          <Stack.Navigator>
+            <Stack.Screen
+              name="PerformanceScreen"
+              component={PerformanceScreen}
+              options={{ title: 'Performance' }}
+            />
+            <Stack.Screen name="Tracker" component={TrackerScreen} />
+            <Stack.Screen
+              name="ManualTracker"
+              component={ManualTrackerScreen}
+            />
+            <Stack.Screen
+              name="PerformanceTiming"
+              component={PerformanceTimingScreen}
+            />
+            <Stack.Screen name="Redux" component={ReduxScreen} />
+            <Stack.Screen name="Gestures" component={GesturesTracingScreen} />
+          </Stack.Navigator>
+        </Provider>
+      </GestureHandlerRootView>
+    );
+  },
+  { name: 'PerformanceTab' },
+);
 
 function BottomTabs() {
   const navigation = React.useRef<NavigationContainerRef<{}>>(null);
