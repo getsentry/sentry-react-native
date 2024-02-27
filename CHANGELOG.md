@@ -8,6 +8,7 @@
 
 ### Fixes
 
+- CaptureMessage stack-trace is now symbolicated ([#3635](https://github.com/getsentry/sentry-react-native/pull/3635))
 - Option `enabled: false` ensures no events are sent ([#3606](https://github.com/getsentry/sentry-react-native/pull/3606))
 - Don't add Expo Plugin option `authToken` to application bundle ([#3630](https://github.com/getsentry/sentry-react-native/pull/3630))
   - Expo plugin configurations are generelly stored in plain text, and are also automatically added to built app bundles, and are therefore considered insecure.
