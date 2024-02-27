@@ -37,6 +37,7 @@
 #import "RNSentryEvents.h"
 #import "RNSentryDependencyContainer.h"
 #import "RNSentryFramesTrackerListener.h"
+#import "RNSentryRNSScreen.h"
 
 @interface SentryTraceContext : NSObject
 - (nullable instancetype)initWithDict:(NSDictionary<NSString *, id> *)dictionary;
@@ -191,6 +192,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking:(RCTPromiseResolveBlock)resolve
                                                    rejecter:(RCTPromiseRejectBlock)reject)
 {
+    [RNSentryRNSScreen swizzleViewDidAppear];
     [self initFramesTracking];
     resolve(nil);
 }

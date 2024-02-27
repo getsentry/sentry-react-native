@@ -1,18 +1,21 @@
-// This guard prevents importing RNScreens if not installed
-#if __has_include(<RNScreens/RNSScreen.h>)
-#import <RNScreens/RNSScreen.h>
-
 #import <Sentry/SentryFramesTracker.h>
 #import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentrySwizzle.h>
 
+#import "RNSentryRNSScreen.h"
 #import "RNSentryDependencyContainer.h"
 
-@implementation RNSScreen (SwizzlingRNSScreen)
+@implementation RNSentryRNSScreen
 
-+ (void)load {
++ (void)swizzleViewDidAppear {
+  Class rnsscreenclass = NSClassFromString(@"RNSScreen");
+  if (rnsscreenclass == nil)
+  {
+    return;
+  }
+
   SEL selector = NSSelectorFromString(@"viewDidAppear:");
-  SentrySwizzleInstanceMethod(RNSScreen.class, selector, SentrySWReturnType(void),
+  SentrySwizzleInstanceMethod(rnsscreenclass, selector, SentrySWReturnType(void),
       SentrySWArguments(BOOL animated), SentrySWReplacement({
           [[[RNSentryDependencyContainer sharedInstance] framesTrackerListener] startListening];
           SentrySWCallOriginal(animated);
@@ -21,4 +24,3 @@
 }
 
 @end
-#endif
