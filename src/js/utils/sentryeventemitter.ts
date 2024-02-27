@@ -1,5 +1,5 @@
 import { logger } from '@sentry/utils';
-import type { EmitterSubscription } from 'react-native';
+import type { EmitterSubscription, NativeModule } from 'react-native';
 import { NativeEventEmitter } from 'react-native';
 
 import { getRNSentryModule } from '../wrapper';
@@ -24,16 +24,19 @@ export interface SentryEventEmitter {
 /**
  * Creates emitter that allows to listen to native RNSentry events
  */
-export function createSentryEventEmitter(): SentryEventEmitter {
-  const openNativeListeners = new Set<EmitterSubscription>();
-  const listenersMap = new Map<NewFrameEventName, Map<(event: NewFrameEvent) => void, true>>();
-
-  const sentryNativeModule = getRNSentryModule();
+export function createSentryEventEmitter(
+  sentryNativeModule: NativeModule | undefined = getRNSentryModule(),
+  createNativeEventEmitter: (nativeModule: NativeModule | undefined) => NativeEventEmitter = nativeModule =>
+    new NativeEventEmitter(nativeModule),
+): SentryEventEmitter {
   if (!sentryNativeModule) {
     return createNoopSentryEventEmitter();
   }
 
-  const nativeEventEmitter = new NativeEventEmitter(getRNSentryModule());
+  const openNativeListeners = new Map<NewFrameEventName, EmitterSubscription>();
+  const listenersMap = new Map<NewFrameEventName, Map<(event: NewFrameEvent) => void, true>>();
+
+  const nativeEventEmitter = createNativeEventEmitter(getRNSentryModule());
 
   const addListener = function (eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void): void {
     const map = listenersMap.get(eventType);
@@ -50,6 +53,10 @@ export function createSentryEventEmitter(): SentryEventEmitter {
 
   return {
     initAsync(eventType: NewFrameEventName) {
+      if (openNativeListeners.has(eventType)) {
+        return;
+      }
+
       const nativeListener = nativeEventEmitter.addListener(eventType, (event: NewFrameEvent) => {
         const listeners = listenersMap.get(eventType);
         if (!listeners) {
@@ -60,7 +67,7 @@ export function createSentryEventEmitter(): SentryEventEmitter {
           listener(event);
         });
       });
-      openNativeListeners.add(nativeListener);
+      openNativeListeners.set(eventType, nativeListener);
 
       listenersMap.set(eventType, new Map());
     },
