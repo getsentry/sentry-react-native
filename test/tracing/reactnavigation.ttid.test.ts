@@ -37,7 +37,7 @@ describe('React Navigation - TTID', () => {
       mockedEventEmitter = mockedSentryEventEmitter.createMockedSentryEventEmitter();
       (createSentryEventEmitter as jest.Mock).mockReturnValue(mockedEventEmitter);
 
-      const sut = createTestedInstrumentation();
+      const sut = createTestedInstrumentation({ enableTimeToInitialDisplay: true });
       transportSendMock = initSentry(sut).transportSendMock;
 
       mockedNavigation = createMockNavigationAndAttachTo(sut);
@@ -239,18 +239,23 @@ describe('React Navigation - TTID', () => {
       jest.useFakeTimers();
       (notWeb as jest.Mock).mockReturnValue(true);
       (isHermesEnabled as jest.Mock).mockReturnValue(true);
-
-      const sut = createTestedInstrumentation(false);
-      transportSendMock = initSentry(sut).transportSendMock;
-
-      mockedNavigation = createMockNavigationAndAttachTo(sut);
     });
 
     afterEach(() => {
       jest.useRealTimers();
     });
 
-    test('should not add ttid span', () => {
+    it.each([
+      undefined,
+      {},
+      { enableTimeToInitialDisplay: undefined },
+      { enableTimeToInitialDisplay: false },
+    ])('should not add ttid span with options %s', (options) => {
+      const sut = createTestedInstrumentation(options);
+      transportSendMock = initSentry(sut).transportSendMock;
+
+      mockedNavigation = createMockNavigationAndAttachTo(sut);
+
       jest.runOnlyPendingTimers(); // Flush app start transaction
       mockedNavigation.navigateToNewScreen();
       jest.runOnlyPendingTimers(); // Flush navigation transaction
@@ -301,8 +306,8 @@ describe('React Navigation - TTID', () => {
     });
   });
 
-  function createTestedInstrumentation(enableTimeToInitialDisplay = true) {
-    const sut = new ReactNavigationInstrumentation({ enableTimeToInitialDisplay });
+  function createTestedInstrumentation(options?: { enableTimeToInitialDisplay?: boolean }) {
+    const sut = new ReactNavigationInstrumentation(options);
     return sut;
   }
 

@@ -38,14 +38,14 @@ interface ReactNavigationOptions {
    * Time to initial display measures the time it takes from
    * navigation dispatch to the render of the first frame of the new screen.
    *
-   * @default true
+   * @default false
    */
   enableTimeToInitialDisplay: boolean;
 }
 
 const defaultOptions: ReactNavigationOptions = {
   routeChangeTimeoutMs: 1000,
-  enableTimeToInitialDisplay: true,
+  enableTimeToInitialDisplay: false,
 };
 
 /**
