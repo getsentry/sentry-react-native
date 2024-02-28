@@ -1,4 +1,4 @@
-#import "RNSentryFramesTrackerListener.h"
+#import "RNSentryFramesTrackerListenerTests.h"
 #import <OCMock/OCMock.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>

@@ -1,4 +1,4 @@
-#import "RNSentryDependencyContainer.h"
+#import "RNSentryDependencyContainerTests.h"
 #import <OCMock/OCMock.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
