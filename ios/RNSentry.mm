@@ -22,7 +22,6 @@
 #import <Sentry/SentryBinaryImageCache.h>
 #import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentryFormatter.h>
-#import <Sentry/SentryLog.h>
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
@@ -206,7 +205,6 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking:(RCTPromiseResolveBl
 
 - (void)initFramesTracking {
   RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
-    SENTRY_LOG_DEBUG(@"Received new frame at %@, emitting native event...", newFrameTimestampInSeconds);
     if (self->hasListeners) {
       [self sendEventWithName:RNSentryNewFrameEvent body:@{ @"newFrameTimestampInSeconds": newFrameTimestampInSeconds }];
     }
