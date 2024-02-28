@@ -245,33 +245,31 @@ describe('React Navigation - TTID', () => {
       jest.useRealTimers();
     });
 
-    it.each([
-      undefined,
-      {},
-      { enableTimeToInitialDisplay: undefined },
-      { enableTimeToInitialDisplay: false },
-    ])('should not add ttid span with options %s', (options) => {
-      const sut = createTestedInstrumentation(options);
-      transportSendMock = initSentry(sut).transportSendMock;
+    it.each([undefined, {}, { enableTimeToInitialDisplay: undefined }, { enableTimeToInitialDisplay: false }])(
+      'should not add ttid span with options %s',
+      options => {
+        const sut = createTestedInstrumentation(options);
+        transportSendMock = initSentry(sut).transportSendMock;
 
-      mockedNavigation = createMockNavigationAndAttachTo(sut);
+        mockedNavigation = createMockNavigationAndAttachTo(sut);
 
-      jest.runOnlyPendingTimers(); // Flush app start transaction
-      mockedNavigation.navigateToNewScreen();
-      jest.runOnlyPendingTimers(); // Flush navigation transaction
+        jest.runOnlyPendingTimers(); // Flush app start transaction
+        mockedNavigation.navigateToNewScreen();
+        jest.runOnlyPendingTimers(); // Flush navigation transaction
 
-      const transaction = getTransaction(transportSendMock);
-      expect(transaction).toEqual(
-        expect.objectContaining<TransactionEvent>({
-          type: 'transaction',
-          spans: expect.not.arrayContaining([
-            expect.objectContaining<Partial<SpanJSON>>({
-              op: 'ui.load.initial_display',
-            }),
-          ]),
-        }),
-      );
-    });
+        const transaction = getTransaction(transportSendMock);
+        expect(transaction).toEqual(
+          expect.objectContaining<TransactionEvent>({
+            type: 'transaction',
+            spans: expect.not.arrayContaining([
+              expect.objectContaining<Partial<SpanJSON>>({
+                op: 'ui.load.initial_display',
+              }),
+            ]),
+          }),
+        );
+      },
+    );
 
     test('should not add ttid measurement', () => {
       jest.runOnlyPendingTimers(); // Flush app start transaction
