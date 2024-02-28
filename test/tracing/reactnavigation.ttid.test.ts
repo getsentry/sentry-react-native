@@ -207,6 +207,17 @@ describe('React Navigation - TTID', () => {
       );
     });
 
+    test('ttid span duration and measurement should equal for application start up', () => {
+      mockedNavigation.finishAppStartNavigation();
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush ttid transaction
+
+      const transaction = getTransaction(transportSendMock);
+      expect(getTTIDSpanDurationMs(transaction)).toBeDefined();
+      expect(transaction.measurements?.time_to_initial_display?.value).toBeDefined();
+      expect(getTTIDSpanDurationMs(transaction)).toEqual(transaction.measurements?.time_to_initial_display?.value);
+    });
+
     test('idle transaction should cancel the ttid span if new frame not received', () => {
       mockedNavigation.navigateToNewScreen();
       jest.runOnlyPendingTimers(); // Flush ttid transaction
@@ -303,6 +314,20 @@ describe('React Navigation - TTID', () => {
       );
     });
   });
+
+  function getTTIDSpanDurationMs(transaction: TransactionEvent): number | undefined {
+    const ttidSpan = transaction.spans?.find(span => span.op === 'ui.load.initial_display');
+    if (!ttidSpan) {
+      return undefined;
+    }
+
+    const spanJSON = ttidSpan as unknown as SpanJSON; // the JS SDK typings are not correct
+    if (!spanJSON.timestamp || !spanJSON.start_timestamp) {
+      return undefined;
+    }
+
+    return (spanJSON.timestamp - spanJSON.start_timestamp) * 1000;
+  }
 
   function createTestedInstrumentation(options?: { enableTimeToInitialDisplay?: boolean }) {
     const sut = new ReactNavigationInstrumentation(options);

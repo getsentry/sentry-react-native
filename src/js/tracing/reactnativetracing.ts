@@ -2,7 +2,7 @@
 import type { RequestInstrumentationOptions } from '@sentry/browser';
 import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from '@sentry/browser';
 import type { Hub, IdleTransaction, Transaction } from '@sentry/core';
-import { getActiveTransaction, getCurrentHub, startIdleTransaction } from '@sentry/core';
+import { getActiveTransaction, getCurrentHub, setMeasurement, startIdleTransaction } from '@sentry/core';
 import type {
   Event,
   EventProcessor,
@@ -440,6 +440,12 @@ export class ReactNativeTracing implements Integration {
     const maybeTtidSpan = transaction.spanRecorder?.spans.find(span => span.op === 'ui.load.initial_display');
     if (maybeTtidSpan) {
       maybeTtidSpan.startTimestamp = appStartTimeSeconds;
+      maybeTtidSpan.endTimestamp &&
+        setMeasurement(
+          'time_to_initial_display',
+          (maybeTtidSpan.endTimestamp - appStartTimeSeconds) * 1000,
+          'millisecond',
+        );
     }
 
     const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
