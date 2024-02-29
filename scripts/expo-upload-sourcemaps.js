@@ -197,7 +197,7 @@ if (numAssetsUploaded === totalAssets) {
 } else {
   console.warn(
     `⚠️  Uploaded ${numAssetsUploaded} of ${totalAssets} bundles and sourcemaps. ${
-      numAssetsUploaded === 0 ? 'Ensure you are running `expo export` with the `--dump-sourcemap` flag.' : ''```
+      numAssetsUploaded === 0 ? 'Ensure you are running `expo export` with the `--dump-sourcemap` flag.' : ''
     }`,
   );
 }
