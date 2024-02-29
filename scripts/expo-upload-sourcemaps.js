@@ -180,7 +180,8 @@ for (const [assetGroupName, assets] of Object.entries(groupedAssets)) {
   }
 
   const isHermes = assets.find(asset => asset.endsWith('.hbc'));
-  execSync(`${sentryCliBin} sourcemaps upload ${isHermes ? '--debug-id-reference' : ''} ${assets.join(' ')}`, {
+  const windowsCallback = process.platform === "win32" ? 'node ' : '';
+  execSync(`${windowsCallback}${sentryCliBin} sourcemaps upload ${isHermes ? '--debug-id-reference' : ''} ${assets.join(' ')}`, {
     env: {
       ...process.env,
       [SENTRY_PROJECT]: sentryProject,
@@ -195,8 +196,7 @@ if (numAssetsUploaded === totalAssets) {
   console.log('✅ Uploaded bundles and sourcemaps to Sentry successfully.');
 } else {
   console.warn(
-    `⚠️  Uploaded ${numAssetsUploaded} of ${totalAssets} bundles and sourcemaps. ${
-      numAssetsUploaded === 0 ? 'Ensure you are running `expo export` with the `--dump-sourcemap` flag.' : ''
+    `⚠️  Uploaded ${numAssetsUploaded} of ${totalAssets} bundles and sourcemaps. ${numAssetsUploaded === 0 ? 'Ensure you are running `expo export` with the `--dump-sourcemap` flag.' : ''
     }`,
   );
 }
