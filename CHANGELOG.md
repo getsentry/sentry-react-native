@@ -4,6 +4,7 @@
 
 ### Fixes
 
+- expo-upload-sourcemaps now works on Windows ([#3643](https://github.com/getsentry/sentry-react-native/pull/3643))
 - Option `enabled: false` ensures no events are sent ([#3606](https://github.com/getsentry/sentry-react-native/pull/3606))
 - Ignore JSON response when retrieving source context from local Expo Dev Server ([#3611](https://github.com/getsentry/sentry-react-native/pull/3611))
 
