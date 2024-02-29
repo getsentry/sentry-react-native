@@ -185,7 +185,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     if (__DEV__ && this._options.enableNativeNagger) {
       Alert.alert(
         'Sentry',
-        'Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details.',
+        'Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/ for more details.',
       );
     }
   }
