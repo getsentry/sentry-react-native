@@ -4,6 +4,8 @@
 #import <React/CoreModulesPlugins.h>
 #import <ReactCommon/RCTTurboModuleManager.h>
 
+#import <ReactNativePerformance/ReactNativePerformance.h>
+
 #ifdef RCT_NEW_ARCH_ENABLED
 #import <NativeSampleModule.h>
 #endif
@@ -15,6 +17,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+  [ReactNativePerformance onAppStarted];
   self.moduleName = @"sampleNewArchitecture";
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React

@@ -6,7 +6,10 @@ import { getRNSentryModule } from '../wrapper';
 
 export const NewFrameEventName = 'rn_sentry_new_frame';
 export type NewFrameEventName = typeof NewFrameEventName;
-export type NewFrameEvent = { newFrameTimestampInSeconds: number };
+export type NewFrameEvent = {
+  newFrameTimestampInSeconds: number,
+  newFrameTimestampInMilliseconds: number,
+};
 
 export interface SentryEventEmitter {
   /**

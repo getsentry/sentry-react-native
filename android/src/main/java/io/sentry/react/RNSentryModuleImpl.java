@@ -89,6 +89,14 @@ import io.sentry.util.FileUtils;
 
 public class RNSentryModuleImpl {
 
+  static {
+    System.loadLibrary("native-lib");
+  }
+
+  public native String stringFromJNI();
+
+  public native double jsPerformanceNow();
+
     public static final String NAME = "RNSentry";
 
     private static final String NATIVE_SDK_NAME = "sentry.native.android.react-native";
@@ -150,8 +158,10 @@ public class RNSentryModuleImpl {
 
         return () -> {
           final SentryDate endDate = dateProvider.now();
+
           WritableMap event = Arguments.createMap();
           event.putDouble("newFrameTimestampInSeconds", endDate.nanoTimestamp() / 1e9);
+          event.putDouble("newFrameTimestampInMilliseconds", jsPerformanceNow());
           getReactApplicationContext()
               .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
               .emit("rn_sentry_new_frame", event);

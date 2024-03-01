@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
 import { setMeasurement, spanToJSON, startInactiveSpan } from '@sentry/core';
 import type { Span, Transaction as TransactionType, TransactionContext } from '@sentry/types';
-import { logger, timestampInSeconds } from '@sentry/utils';
+import { GLOBAL_OBJ, logger, timestampInSeconds } from '@sentry/utils';
 
 import type { NewFrameEvent } from '../utils/sentryeventemitter';
 import { type SentryEventEmitter, createSentryEventEmitter, NewFrameEventName } from '../utils/sentryeventemitter';
@@ -228,7 +228,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
     if (route) {
       if (this._latestTransaction) {
         if (!previousRoute || previousRoute.key !== route.key) {
-          this._newScreenFrameEventEmitter?.once(NewFrameEventName, ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
+          this._newScreenFrameEventEmitter?.once(NewFrameEventName, ({ newFrameTimestampInSeconds, newFrameTimestampInMilliseconds }: NewFrameEvent) => {
             if (!this._latestTtidSpan) {
               logger.warn(
                 '[ReactNavigationInstrumentation] Native Screen was rendered after navigation timeout, _latestTtidSpan is undefined.',
@@ -237,7 +237,10 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             }
 
             this._latestTtidSpan.setStatus('ok');
-            this._latestTtidSpan.end(newFrameTimestampInSeconds);
+            const approxStartingTimeOrigin = Date.now() - (GLOBAL_OBJ as typeof GLOBAL_OBJ & { performance: { now: () => number } }).performance.now();
+            const t = (approxStartingTimeOrigin + newFrameTimestampInMilliseconds) / 1_000;
+            // console.log('newFrameTimestampInSeconds', newFrameTimestampInSeconds, (GLOBAL_OBJ as typeof GLOBAL_OBJ & { performance: { now: () => number } }).performance.now());
+            this._latestTtidSpan.end(t);
             const ttidSpan = spanToJSON(this._latestTtidSpan);
             this._latestTtidSpan = undefined;
 
@@ -246,6 +249,13 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             if (!ttidSpanEnd || !ttidSpanStart) {
               return;
             }
+
+            startInactiveSpan({
+              op: 'ui.render.old',
+              name: 'Render',
+              startTimestamp: ttidSpanStart,
+              endTimestamp: newFrameTimestampInSeconds,
+            });
 
             setMeasurement('time_to_initial_display', (ttidSpanEnd - ttidSpanStart) * 1000, 'millisecond');
           });

@@ -9,6 +9,8 @@ import {
 
 import * as Sentry from '@sentry/react-native';
 
+import {PerformanceMeasureView} from '@shopify/react-native-performance';
+
 /**
  * An example of how to add a Sentry Transaction to a React component manually.
  * So you can control all spans that belong to that one transaction.
@@ -51,39 +53,41 @@ const TrackerScreen = () => {
   }, []);
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>Global COVID19 Cases</Text>
+    <PerformanceMeasureView interactive={true} screenName="TrackerScreen">
+      <View style={styles.screen}>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Global COVID19 Cases</Text>
+        </View>
+        <View style={styles.card}>
+          {cases ? (
+            <>
+              <ProfiledStatistic
+                title="Confirmed"
+                count={cases.TotalConfirmed}
+                textColor="#C83852"
+              />
+              <ProfiledStatistic
+                title="Deaths"
+                count={cases.TotalDeaths}
+                textColor="#362D59"
+              />
+              <ProfiledStatistic
+                title="Recovered"
+                count={cases.TotalRecovered}
+                textColor="#69C289"
+              />
+            </>
+          ) : (
+            <ActivityIndicator size="small" color="#F6F6F8" />
+          )}
+        </View>
+        <Button
+          sentry-label="refresh"
+          title="Refresh"
+          onPress={onRefreshButtonPress}
+        />
       </View>
-      <View style={styles.card}>
-        {cases ? (
-          <>
-            <ProfiledStatistic
-              title="Confirmed"
-              count={cases.TotalConfirmed}
-              textColor="#C83852"
-            />
-            <ProfiledStatistic
-              title="Deaths"
-              count={cases.TotalDeaths}
-              textColor="#362D59"
-            />
-            <ProfiledStatistic
-              title="Recovered"
-              count={cases.TotalRecovered}
-              textColor="#69C289"
-            />
-          </>
-        ) : (
-          <ActivityIndicator size="small" color="#F6F6F8" />
-        )}
-      </View>
-      <Button
-        sentry-label="refresh"
-        title="Refresh"
-        onPress={onRefreshButtonPress}
-      />
-    </View>
+    </PerformanceMeasureView>
   );
 };
 

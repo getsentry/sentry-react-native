@@ -12,6 +12,8 @@ import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.flipper.ReactNativeFlipper
 import com.facebook.soloader.SoLoader
 
+import com.shopify.reactnativeperformance.ReactNativePerformance;
+
 class MainApplication() : Application(), ReactApplication {
     override val reactNativeHost: ReactNativeHost =
         object : DefaultReactNativeHost(this) {
@@ -31,6 +33,7 @@ class MainApplication() : Application(), ReactApplication {
         get() = getDefaultReactHost(this.applicationContext, reactNativeHost)
 
     override fun onCreate() {
+        ReactNativePerformance.onAppStarted();
         super.onCreate()
         SoLoader.init(this, false)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {

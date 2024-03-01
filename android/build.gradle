@@ -39,6 +39,12 @@ android {
             targetCompatibility JavaVersion.VERSION_1_8
         }
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+            }
+        }
     }
 
     sourceSets {
@@ -48,6 +54,12 @@ android {
             } else {
                 java.srcDirs += ['src/oldarch']
             }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
         }
     }
 }

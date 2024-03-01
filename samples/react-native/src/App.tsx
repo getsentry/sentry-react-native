@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   NavigationContainer,
   NavigationContainerRef,
@@ -24,9 +24,12 @@ import { StyleSheet } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+import {RenderPassReport, PerformanceProfiler, LogLevel} from '@shopify/react-native-performance';
+
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
+    enableTimeToInitialDisplay: true,
   });
 
 Sentry.init({
@@ -34,7 +37,19 @@ Sentry.init({
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   environment: 'dev',
-  beforeSend: (event: Sentry.Event) => {
+  beforeSend: (event: Sentry.Event, hint) => {
+    if (event.exception?.values?.[1]?.type?.startsWith('React ErrorBoundary')) {
+      event.exception?.values?.forEach(value => {
+        if (value.mechanism) {
+          value.mechanism.handled = true;
+        } else {
+          value.mechanism = {
+            type: 'generic',
+            handled: true,
+          };
+        }
+      });
+    }
     console.log('Event beforeSend:', event.event_id);
     return event;
   },
@@ -61,6 +76,10 @@ Sentry.init({
 
           return context;
         },
+        shouldCreateSpanForRequest: (url: string) => {
+          console.log('SPAN REQUEST URL:', url);
+          return true;
+        }
       }),
       new HttpClient({
         // These options are effective only in JS.
@@ -82,7 +101,7 @@ Sentry.init({
   // This will capture ALL TRACES and likely use up all your quota
   enableTracing: true,
   tracesSampleRate: 1.0,
-  tracePropagationTargets: ['localhost', /^\//, /^https:\/\//, /^http:\/\//],
+  tracePropagationTargets: [/^https:\/\//, 'http', 'https'],
   attachStacktrace: true,
   // Attach screenshots to events.
   attachScreenshot: true,
@@ -101,6 +120,7 @@ Sentry.init({
 });
 
 const Stack = createNativeStackNavigator();
+const Stack2 = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const TabOneStack = Sentry.withProfiler(
@@ -127,26 +147,26 @@ const TabTwoStack = Sentry.withProfiler(
     return (
       <GestureHandlerRootView style={styles.wrapper}>
         <Provider store={store}>
-          <Stack.Navigator>
-            <Stack.Screen
+          <Stack2.Navigator>
+            <Stack2.Screen
               name="PerformanceScreen"
               component={PerformanceScreen}
               options={{ title: 'Performance' }}
             />
-            <Stack.Screen name="Tracker" component={TrackerScreen} />
-            <Stack.Screen
+            <Stack2.Screen name="Tracker" component={TrackerScreen} />
+            <Stack2.Screen
               name="ManualTracker"
               component={ManualTrackerScreen}
             />
-            <Stack.Screen
+            <Stack2.Screen
               name="PerformanceTiming"
               component={PerformanceTimingScreen}
             />
-            <Stack.Screen name="Redux" component={ReduxScreen} />
-            <Stack.Screen name="Gestures" component={GesturesTracingScreen} />
-          </Stack.Navigator>
+            <Stack2.Screen name="Redux" component={ReduxScreen} />
+            <Stack2.Screen name="Gestures" component={GesturesTracingScreen} />
+          </Stack2.Navigator>
         </Provider>
-      </GestureHandlerRootView>
+        </GestureHandlerRootView>
     );
   },
   { name: 'PerformanceTab' },
@@ -155,48 +175,65 @@ const TabTwoStack = Sentry.withProfiler(
 function BottomTabs() {
   const navigation = React.useRef<NavigationContainerRef<{}>>(null);
 
+  const onReportPrepared = useCallback((report: RenderPassReport) => {
+    console.log('RenderPassReport:', report);
+    if (!report.flowStartTimeSinceEpochMillis || !report.timeToRenderMillis) {
+      return;
+    }
+
+    const span = Sentry.startInactiveSpan({
+      op: 'ui.load.renderpass',
+      name: 'RenderPassReport',
+      startTimestamp: report.flowStartTimeSinceEpochMillis/1000,
+    });
+    span.end((report.flowStartTimeSinceEpochMillis + report.timeToRenderMillis)/1000);
+    span.end();
+  }, []);
+
   return (
-    <NavigationContainer
-      ref={navigation}
-      onReady={() => {
-        reactNavigationInstrumentation.registerNavigationContainer(navigation);
-      }}>
-      <Tab.Navigator
-        screenOptions={{
-          headerShown: false,
-        }}
-        detachInactiveScreens={false} // workaround for https://github.com/react-navigation/react-navigation/issues/11384
-      >
-        <Tab.Screen
-          name="ErrorsTab"
-          component={TabOneStack}
-          options={{
-            tabBarLabel: 'Errors',
-            tabBarIcon: ({ focused, color, size }) => (
-              <Ionicons
-                name={focused ? 'bug' : 'bug-outline'}
-                size={size}
-                color={color}
-              />
-            ),
+    <PerformanceProfiler onReportPrepared={onReportPrepared} logLevel={LogLevel.Debug}>
+      <NavigationContainer
+        ref={navigation}
+        onReady={() => {
+          reactNavigationInstrumentation.registerNavigationContainer(navigation);
+        }}>
+        <Tab.Navigator
+          screenOptions={{
+            headerShown: false,
           }}
-        />
-        <Tab.Screen
-          name="PerformanceTab"
-          component={TabTwoStack}
-          options={{
-            tabBarLabel: 'Performance',
-            tabBarIcon: ({ focused, color, size }) => (
-              <Ionicons
-                name={focused ? 'speedometer' : 'speedometer-outline'}
-                size={size}
-                color={color}
-              />
-            ),
-          }}
-        />
-      </Tab.Navigator>
-    </NavigationContainer>
+          detachInactiveScreens={false} // workaround for https://github.com/react-navigation/react-navigation/issues/11384
+        >
+          <Tab.Screen
+            name="ErrorsTab"
+            component={TabOneStack}
+            options={{
+              tabBarLabel: 'Errors',
+              tabBarIcon: ({ focused, color, size }) => (
+                <Ionicons
+                  name={focused ? 'bug' : 'bug-outline'}
+                  size={size}
+                  color={color}
+                />
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="PerformanceTab"
+            component={TabTwoStack}
+            options={{
+              tabBarLabel: 'Performance',
+              tabBarIcon: ({ focused, color, size }) => (
+                <Ionicons
+                  name={focused ? 'speedometer' : 'speedometer-outline'}
+                  size={size}
+                  color={color}
+                />
+              ),
+            }}
+          />
+        </Tab.Navigator>
+      </NavigationContainer>
+      </PerformanceProfiler>
   );
 }
 

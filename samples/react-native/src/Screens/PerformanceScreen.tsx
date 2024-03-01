@@ -12,11 +12,15 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { CommonActions } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 
+import {useStartProfiler, PerformanceMeasureView} from '@shopify/react-native-performance';
+
 interface Props {
   navigation: StackNavigationProp<any, 'PerformanceScreen'>;
 }
 
 const PerformanceScreen = (props: Props) => {
+  const startNavigationTTITimer = useStartProfiler();
+
   const onPressPerformanceTiming = () => {
     // Navigate with a reset action just to test
     props.navigation.dispatch(
@@ -34,12 +38,16 @@ const PerformanceScreen = (props: Props) => {
   };
 
   return (
-    <>
+    <PerformanceMeasureView interactive={true} screenName="PerformanceScreen">
       <StatusBar barStyle="dark-content" />
       <ScrollView style={styles.mainView}>
         <Button
           title="Auto Tracing Example"
-          onPress={() => {
+          onPress={(uiEvent) => {
+            startNavigationTTITimer({
+              source: 'PerformanceScreen',
+              uiEvent,
+            });
             props.navigation.navigate('Tracker');
           }}
         />
@@ -64,7 +72,7 @@ const PerformanceScreen = (props: Props) => {
         />
         <View style={styles.mainViewBottomWhiteSpace} />
       </ScrollView>
-    </>
+    </PerformanceMeasureView>
   );
 };
 

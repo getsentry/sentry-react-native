@@ -22,6 +22,7 @@ import NativePlatformSampleModule from '../../tm/NativePlatformSampleModule';
 import { timestampInSeconds } from '@sentry/utils';
 
 const { AssetsModule, CppModule, CrashModule } = NativeModules;
+import {PerformanceMeasureView} from '@shopify/react-native-performance';
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -63,7 +64,7 @@ const ErrorsScreen = (_props: Props) => {
   }, []);
 
   return (
-    <>
+    <PerformanceMeasureView interactive={true} screenName="ErrorsScreen">
       <StatusBar barStyle="dark-content" />
       <ScrollView style={styles.mainView}>
         <Button
@@ -241,7 +242,7 @@ const ErrorsScreen = (_props: Props) => {
         ) : null}
         <View style={styles.mainViewBottomWhiteSpace} />
       </ScrollView>
-    </>
+    </PerformanceMeasureView>
   );
 };
 
