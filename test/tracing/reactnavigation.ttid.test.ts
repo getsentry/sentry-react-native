@@ -54,7 +54,7 @@ describe('React Navigation - TTID', () => {
       mockedEventEmitter.emitNewFrameEvent();
       jest.runOnlyPendingTimers(); // Flush ttid transaction
 
-      const transaction = getTransaction(transportSendMock);
+      const transaction = getLastTransaction(transportSendMock);
       expect(transaction).toEqual(
         expect.objectContaining<TransactionEvent>({
           type: 'transaction',
@@ -83,7 +83,7 @@ describe('React Navigation - TTID', () => {
       mockedEventEmitter.emitNewFrameEvent();
       jest.runOnlyPendingTimers(); // Flush ttid transaction
 
-      const transaction = getTransaction(transportSendMock);
+      const transaction = getLastTransaction(transportSendMock);
       expect(transaction).toEqual(
         expect.objectContaining<TransactionEvent>({
           type: 'transaction',
@@ -104,7 +104,7 @@ describe('React Navigation - TTID', () => {
       mockedEventEmitter.emitNewFrameEvent();
       jest.runOnlyPendingTimers(); // Flush ttid transaction
 
-      const transaction = getTransaction(transportSendMock);
+      const transaction = getLastTransaction(transportSendMock);
       expect(transaction).toEqual(
         expect.objectContaining<TransactionEvent>({
           type: 'transaction',
@@ -131,7 +131,7 @@ describe('React Navigation - TTID', () => {
       mockedEventEmitter.emitNewFrameEvent();
       jest.runOnlyPendingTimers(); // Flush ttid transaction
 
-      const transaction = getTransaction(transportSendMock);
+      const transaction = getLastTransaction(transportSendMock);
       expect(transaction).toEqual(
         expect.objectContaining<TransactionEvent>({
           type: 'transaction',
@@ -158,7 +158,7 @@ describe('React Navigation - TTID', () => {
       mockedEventEmitter.emitNewFrameEvent();
       jest.runOnlyPendingTimers(); // Flush ttid transaction
 
-      const transaction = getTransaction(transportSendMock);
+      const transaction = getLastTransaction(transportSendMock);
       expect(transaction).toEqual(
         expect.objectContaining<TransactionEvent>({
           type: 'transaction',
@@ -188,7 +188,7 @@ describe('React Navigation - TTID', () => {
       mockedEventEmitter.emitNewFrameEvent();
       jest.runOnlyPendingTimers(); // Flush ttid transaction
 
-      const transaction = getTransaction(transportSendMock);
+      const transaction = getLastTransaction(transportSendMock);
       expect(transaction).toEqual(
         expect.objectContaining<TransactionEvent>({
           type: 'transaction',
@@ -212,7 +212,7 @@ describe('React Navigation - TTID', () => {
       mockedEventEmitter.emitNewFrameEvent();
       jest.runOnlyPendingTimers(); // Flush ttid transaction
 
-      const transaction = getTransaction(transportSendMock);
+      const transaction = getLastTransaction(transportSendMock);
       expect(getTTIDSpanDurationMs(transaction)).toBeDefined();
       expect(transaction.measurements?.time_to_initial_display?.value).toBeDefined();
       expect(getTTIDSpanDurationMs(transaction)).toEqual(transaction.measurements?.time_to_initial_display?.value);
@@ -222,7 +222,7 @@ describe('React Navigation - TTID', () => {
       mockedNavigation.navigateToNewScreen();
       jest.runOnlyPendingTimers(); // Flush ttid transaction
 
-      const transaction = getTransaction(transportSendMock);
+      const transaction = getLastTransaction(transportSendMock);
       expect(transaction).toEqual(
         expect.objectContaining<TransactionEvent>({
           type: 'transaction',
@@ -242,6 +242,61 @@ describe('React Navigation - TTID', () => {
           ]),
         }),
       );
+    });
+
+    test('should not sample empty back navigation transactions with navigation processing', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+
+      mockedNavigation.navigateToNewScreen();
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush transaction
+
+      mockedNavigation.navigateToInitialScreen();
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush transaction
+
+      const transaction = getLastTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          transaction: 'New Screen',
+        }),
+      );
+    });
+
+    test('should not add ttid span and measurement back navigation transactions', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+
+      mockedNavigation.navigateToNewScreen();
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush transaction
+
+      mockedNavigation.navigateToInitialScreen();
+      mockedEventEmitter.emitNewFrameEvent();
+      const artificialSpan = Sentry.startInactiveSpan({
+        name: 'Artificial span to ensure back navigation transaction is not empty',
+      });
+      artificialSpan?.end();
+      jest.runOnlyPendingTimers(); // Flush transaction
+
+      const transaction = getLastTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          transaction: 'Initial Screen',
+          spans: expect.not.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              op: 'ui.load.initial_display',
+            }),
+          ]),
+        }),
+      );
+      expect(transaction.measurements).toBeOneOf([
+        undefined,
+        expect.not.objectContaining<Required<TransactionEvent>['measurements']>({
+          time_to_initial_display: expect.any(Object),
+        }),
+      ]);
     });
   });
 
@@ -268,7 +323,7 @@ describe('React Navigation - TTID', () => {
         mockedNavigation.navigateToNewScreen();
         jest.runOnlyPendingTimers(); // Flush navigation transaction
 
-        const transaction = getTransaction(transportSendMock);
+        const transaction = getLastTransaction(transportSendMock);
         expect(transaction).toEqual(
           expect.objectContaining<TransactionEvent>({
             type: 'transaction',
@@ -287,7 +342,7 @@ describe('React Navigation - TTID', () => {
       mockedNavigation.navigateToNewScreen();
       jest.runOnlyPendingTimers(); // Flush navigation transaction
 
-      const transaction = getTransaction(transportSendMock);
+      const transaction = getLastTransaction(transportSendMock);
       expect(transaction.measurements).toBeOneOf([
         undefined,
         expect.not.objectContaining<Required<TransactionEvent>['measurements']>({
@@ -301,7 +356,7 @@ describe('React Navigation - TTID', () => {
       mockedNavigation.navigateToNewScreen();
       jest.runOnlyPendingTimers(); // Flush navigation transaction
 
-      const transaction = getTransaction(transportSendMock);
+      const transaction = getLastTransaction(transportSendMock);
       expect(transaction).toEqual(
         expect.objectContaining<TransactionEvent>({
           type: 'transaction',
@@ -349,6 +404,18 @@ describe('React Navigation - TTID', () => {
           // this object is not used by the instrumentation
         });
       },
+      navigateToInitialScreen: () => {
+        mockedNavigationContained.listeners['__unsafe_action__']({
+          // this object is not used by the instrumentation
+        });
+        mockedNavigationContained.currentRoute = {
+          key: 'initial_screen',
+          name: 'Initial Screen',
+        };
+        mockedNavigationContained.listeners['state']({
+          // this object is not used by the instrumentation
+        });
+      },
       finishAppStartNavigation: () => {
         mockedNavigationContained.currentRoute = {
           key: 'initial_screen',
@@ -374,7 +441,7 @@ describe('React Navigation - TTID', () => {
     };
   }
 
-  function getTransaction(mockedTransportSend: jest.Mock): TransactionEvent {
+  function getLastTransaction(mockedTransportSend: jest.Mock): TransactionEvent {
     // Until https://github.com/getsentry/sentry-javascript/blob/a7097d9ba2a74b2cb323da0ef22988a383782ffb/packages/types/src/event.ts#L93
     return JSON.parse(JSON.stringify(mockedTransportSend.mock.lastCall[0][1][0][1]));
   }
@@ -406,6 +473,7 @@ function initSentry(sut: ReactNavigationInstrumentation): {
       new Sentry.ReactNativeTracing({
         routingInstrumentation: sut,
         enableStallTracking: false,
+        ignoreEmptyBackNavigationTransactions: true, // default true
       }),
     ],
     transport: () => ({

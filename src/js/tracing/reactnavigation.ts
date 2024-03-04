@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { setMeasurement, spanToJSON, startInactiveSpan } from '@sentry/core';
+import { getActiveSpan, setMeasurement, spanToJSON, startInactiveSpan } from '@sentry/core';
 import type { Span, Transaction as TransactionType, TransactionContext } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
@@ -68,7 +68,6 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
 
   private _latestRoute?: NavigationRoute;
   private _latestTransaction?: TransactionType;
-  private _latestTtidSpan?: Span;
   private _navigationProcessingSpan?: Span;
 
   private _initialStateHandled: boolean = false;
@@ -193,11 +192,6 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
         name: 'Navigation processing',
         startTimestamp: this._latestTransaction?.startTimestamp,
       });
-      this._latestTtidSpan = startInactiveSpan({
-        op: 'ui.load.initial_display',
-        name: 'Time to initial display',
-        startTimestamp: this._latestTransaction?.startTimestamp,
-      });
     }
 
     this._stateChangeTimeout = setTimeout(
@@ -228,36 +222,51 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
     if (route) {
       if (this._latestTransaction) {
         if (!previousRoute || previousRoute.key !== route.key) {
-          this._newScreenFrameEventEmitter?.once(NewFrameEventName, ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
-            if (!this._latestTtidSpan) {
-              logger.warn(
-                '[ReactNavigationInstrumentation] Native Screen was rendered after navigation timeout, _latestTtidSpan is undefined.',
-              );
-              return;
-            }
+          const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
+          const latestTtidSpan =
+            !routeHasBeenSeen &&
+            this._options.enableTimeToInitialDisplay &&
+            startInactiveSpan({
+              op: 'ui.load.initial_display',
+              name: `${route.name} initial display`,
+              startTimestamp: this._latestTransaction?.startTimestamp,
+            });
 
-            this._latestTtidSpan.setStatus('ok');
-            this._latestTtidSpan.end(newFrameTimestampInSeconds);
-            const ttidSpan = spanToJSON(this._latestTtidSpan);
-            this._latestTtidSpan = undefined;
+          !routeHasBeenSeen &&
+            this._newScreenFrameEventEmitter?.once(
+              NewFrameEventName,
+              ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
+                if (!latestTtidSpan) {
+                  return;
+                }
 
-            const ttidSpanEnd = ttidSpan.timestamp;
-            const ttidSpanStart = ttidSpan.start_timestamp;
-            if (!ttidSpanEnd || !ttidSpanStart) {
-              return;
-            }
+                if (spanToJSON(latestTtidSpan).parent_span_id !== getActiveSpan()?.spanContext().spanId) {
+                  logger.warn(
+                    '[ReactNavigationInstrumentation] Currently Active Span changed before the new frame was rendered, _latestTtidSpan is not a child of the currently active span.',
+                  );
+                  return;
+                }
 
-            setMeasurement('time_to_initial_display', (ttidSpanEnd - ttidSpanStart) * 1000, 'millisecond');
-          });
+                latestTtidSpan.setStatus('ok');
+                latestTtidSpan.end(newFrameTimestampInSeconds);
+                const ttidSpan = spanToJSON(latestTtidSpan);
 
-          this._latestTtidSpan?.updateName(`${route.name} initial display`);
+                const ttidSpanEnd = ttidSpan.timestamp;
+                const ttidSpanStart = ttidSpan.start_timestamp;
+                if (!ttidSpanEnd || !ttidSpanStart) {
+                  return;
+                }
+
+                setMeasurement('time_to_initial_display', (ttidSpanEnd - ttidSpanStart) * 1000, 'millisecond');
+              },
+            );
+
           this._navigationProcessingSpan?.updateName(`Processing navigation to ${route.name}`);
           this._navigationProcessingSpan?.setStatus('ok');
           this._navigationProcessingSpan?.end(stateChangedTimestamp);
           this._navigationProcessingSpan = undefined;
 
           const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
-          const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
 
           const data: RouteChangeContextData = {
             ...originalContext.data,
@@ -354,8 +363,8 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       this._latestTransaction.finish();
       this._latestTransaction = undefined;
     }
-    if (this._latestTtidSpan) {
-      this._latestTtidSpan = undefined;
+    if (this._navigationProcessingSpan) {
+      this._navigationProcessingSpan = undefined;
     }
   }
 
