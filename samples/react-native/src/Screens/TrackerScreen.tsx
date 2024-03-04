@@ -78,11 +78,13 @@ const TrackerScreen = () => {
           <ActivityIndicator size="small" color="#F6F6F8" />
         )}
       </View>
-      <Button
-        sentry-label="refresh"
-        title="Refresh"
-        onPress={onRefreshButtonPress}
-      />
+      <Sentry.TimeToDisplay>
+        <Button
+          sentry-label="refresh"
+          title="Refresh"
+          onPress={onRefreshButtonPress}
+        />
+      </Sentry.TimeToDisplay>
     </View>
   );
 };

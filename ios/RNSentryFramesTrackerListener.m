@@ -17,7 +17,7 @@
 {
   [_framesTracker removeListener:self];
   NSNumber *newFrameTimestampInSeconds = [NSNumber numberWithDouble:[newFrameDate timeIntervalSince1970]];
-  
+
   if (_emitNewFrameEvent) {
       _emitNewFrameEvent(newFrameTimestampInSeconds);
   }

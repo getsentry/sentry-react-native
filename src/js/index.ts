@@ -51,6 +51,8 @@ export {
 import { _addTracingExtensions } from './tracing/addTracingExtensions';
 _addTracingExtensions();
 
+export * from './tracing/timetodisplay';
+
 export {
   Integrations as BrowserIntegrations,
   ErrorBoundary,
