@@ -1,5 +1,7 @@
 default_platform(:ios)
 
+xcversion(version: "14")
+
 platform :ios do
   desc "Build Perf-test app without Sentry"
   lane :build_perf_test_app_plain do
