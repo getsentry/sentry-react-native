@@ -78,7 +78,7 @@ const TrackerScreen = () => {
           <ActivityIndicator size="small" color="#F6F6F8" />
         )}
       </View>
-      <Sentry.TimeToDisplay>
+      <Sentry.TimeToDisplay fullDisplay>
         <Button
           sentry-label="refresh"
           title="Refresh"

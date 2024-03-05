@@ -19,6 +19,8 @@ interface RNSentryOnDrawNextFrameEvent {
 interface RNSentryOnDrawReporterProps {
   children?: React.ReactNode;
   onDrawNextFrame: (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }) => void;
+  initialDisplay?: boolean;
+  fullDisplay?: boolean;
 }
 
 /**
@@ -81,7 +83,7 @@ export type OnDrawReporterProps = {
   children?: React.ReactNode;
   name?: string;
   initialDisplay?: boolean;
-  // fullDisplay?: boolean;
+  fullDisplay?: boolean;
 };
 
 /**
@@ -89,15 +91,13 @@ export type OnDrawReporterProps = {
  *
  * The component native implementation wait for the next frame after draw to mark the TTID/TTFD.
  */
-export function TimeToDisplay(props: OnDrawReporterProps = {
-  initialDisplay: true,
-}): React.ReactElement {
+export function TimeToDisplay(props: OnDrawReporterProps): React.ReactElement {
   if (__DEV__ && !nativeComponentMissingLogged && !nativeComponentExists && !notWeb()) {
     nativeComponentMissingLogged = true;
     logger.error('RNSentryOnDrawReporter is not available. Native Sentry modules is not loaded. Update your native build or report an issue at https://github.com/getsentry/sentry-react-native');
   }
 
-  const onDrawNextFrame = (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): void => {
+  const updateTimeToDisplaySpan = (op: string, event: RNSentryOnDrawNextFrameEvent): void => {
     const activeSpan = getActiveSpan();
     if (!activeSpan) {
       return;
@@ -107,46 +107,72 @@ export function TimeToDisplay(props: OnDrawReporterProps = {
       return;
     }
 
-    const existingTtidSpan = activeSpan.spanRecorder?.spans.find((span) => spanToJSON(span).op === 'ui.load.initial_display');
+    const existingSpan = activeSpan.spanRecorder?.spans.find((span) => spanToJSON(span).op === op);
 
-    const ttidSpan = existingTtidSpan || startInactiveSpan({
-      op: 'ui.load.initial_display',
-      name: 'Time To Initial Display',
+    const span = existingSpan || startInactiveSpan({
+      op,
+      name: op === 'ui.load.initial_display' && 'Time To Initial Display'
+        || op === 'ui.load.full_display' && 'Time To Full Display'
+        || props.name
+        || 'Unknown Time To Display',
       startTimestamp: spanToJSON(activeSpan).start_timestamp,
     });
-    if (!ttidSpan) {
+
+    if (!span) {
       return; // performance disabled
     }
 
-    if (spanToJSON(ttidSpan).timestamp) {
-      logger.warn(`${spanToJSON(ttidSpan).description} span end timestamp manually overwritten`);
-      ttidSpan.endTimestamp = event.nativeEvent.newFrameTimestampInSeconds;
+    if (spanToJSON(span).timestamp) {
+      logger.warn(`${spanToJSON(span).description} span end timestamp manually overwritten`);
+      span.endTimestamp = event.newFrameTimestampInSeconds;
     } else {
-      ttidSpan.end(event.nativeEvent.newFrameTimestampInSeconds);
+      span.end(event.newFrameTimestampInSeconds);
+    }
+  };
+
+  const onDrawNextFrame = (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): void => {
+    if (props.fullDisplay) {
+      return updateTimeToDisplaySpan('ui.load.full_display', event.nativeEvent);
+    }
+    if (props.initialDisplay) {
+      return updateTimeToDisplaySpan('ui.load.initial_display', event.nativeEvent);
     }
   }
 
   return (
-    <RNSentryOnDrawReporter onDrawNextFrame={onDrawNextFrame}>
+    <RNSentryOnDrawReporter
+      onDrawNextFrame={onDrawNextFrame}
+      initialDisplay={props.initialDisplay}
+      fullDisplay={props.fullDisplay}>
       {props.children}
-    </RNSentryOnDrawReporter >
+    </RNSentryOnDrawReporter>
   );
 }
 
 /**
- * Starts a new span for the initial display of the application.
+ * Starts a new span for the initial display.
  */
-export function startTimeToDisplaySpans(options: Exclude<StartSpanOptions, 'op'>): {
-  initialDisplaySpan: Span | undefined;
-  fullDisplaySpan: Span | undefined;
-} {
+export function startTimeToInitialDisplaySpan(
+  options: Exclude<StartSpanOptions, 'op'>,
+): Span | undefined {
   const initialDisplaySpan = startInactiveSpan({
     op: 'ui.load.initial_display',
     ...options,
   });
 
-  return {
-    initialDisplaySpan,
-    fullDisplaySpan: undefined,
-  };
+  return initialDisplaySpan;
+}
+
+/**
+ * Starts a new span for the full display.
+ */
+export function startTimeToFullDisplaySpan(
+  options: Exclude<StartSpanOptions, 'op'> & { timeoutMs?: number },
+): Span | undefined {
+  const initialDisplaySpan = startInactiveSpan({
+    op: 'ui.load.full_display',
+    ...options,
+  });
+  // TODO: Add timeout handling
+  return initialDisplaySpan;
 }

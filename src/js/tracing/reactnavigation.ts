@@ -226,6 +226,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
           const latestTtidSpan =
             !routeHasBeenSeen &&
             this._options.enableTimeToInitialDisplay &&
+            // TODO: use startTimeToInitialDisplaySpan function
             startInactiveSpan({
               op: 'ui.load.initial_display',
               name: `${route.name} initial display`,
