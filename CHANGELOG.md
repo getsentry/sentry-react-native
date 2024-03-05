@@ -8,7 +8,6 @@
 - Option `enabled: false` ensures no events are sent ([#3606](https://github.com/getsentry/sentry-react-native/pull/3606))
 - Ignore JSON response when retrieving source context from local Expo Dev Server ([#3611](https://github.com/getsentry/sentry-react-native/pull/3611))
 - Upload native debug files only for non-debug builds ([#3649](https://github.com/getsentry/sentry-react-native/pull/3649))
-- Reduce waning messages spam when a property in Expo plugin configuration is missing ([#3631](https://github.com/getsentry/sentry-react-native/pull/3631))
 - `TurboModuleRegistry` should not be imported in web applications ([#3610](https://github.com/getsentry/sentry-react-native/pull/3610))
 
 ### Dependencies
