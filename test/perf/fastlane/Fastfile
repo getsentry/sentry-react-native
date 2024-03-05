@@ -1,6 +1,9 @@
 default_platform(:ios)
 
-xcversion(version: "14")
+xcodes(
+  version: '14',
+  select_for_current_build_only: true,
+)
 
 platform :ios do
   desc "Build Perf-test app without Sentry"
