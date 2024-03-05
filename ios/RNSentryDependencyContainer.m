@@ -1,26 +1,23 @@
 #import "RNSentryDependencyContainer.h"
 #import <Sentry/SentryDependencyContainer.h>
 
-@implementation RNSentryDependencyContainer
-
-static RNSentryDependencyContainer *instance;
-static NSObject *sentryDependencyContainerLock;
-
-+ (void)initialize
-{
-  if (self == [RNSentryDependencyContainer class]) {
-    sentryDependencyContainerLock = [[NSObject alloc] init];
-    instance = [[RNSentryDependencyContainer alloc] init];
-  }
-}
+@implementation RNSentryDependencyContainer {
+     NSObject *sentryDependencyContainerLock;
+ }
 
 + (instancetype)sharedInstance
 {
-  return instance;
+    static RNSentryDependencyContainer *instance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{ instance = [[self alloc] init]; });
+    return instance;
 }
 
 - (instancetype)init
 {
+    if (self = [super init]) {
+        sentryDependencyContainerLock = [[NSObject alloc] init];
+    }
     return self;
 }
 

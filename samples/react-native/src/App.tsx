@@ -27,6 +27,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
+    enableTimeToInitialDisplay: true,
   });
 
 Sentry.init({
@@ -53,6 +54,7 @@ Sentry.init({
         idleTimeout: 5000,
         routingInstrumentation: reactNavigationInstrumentation,
         enableUserInteractionTracing: true,
+        ignoreEmptyBackNavigationTransactions: true,
         beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
           // Example of not sending a transaction for the screen with the name "Manual Tracker"
           if (context.data.route.name === 'ManualTracker') {
@@ -133,7 +135,7 @@ const TabTwoStack = Sentry.withProfiler(
               component={PerformanceScreen}
               options={{ title: 'Performance' }}
             />
-            <Stack.Screen name="Tracker" component={TrackerScreen} />
+            <Stack.Screen name="Tracker" component={TrackerScreen}/>
             <Stack.Screen
               name="ManualTracker"
               component={ManualTrackerScreen}

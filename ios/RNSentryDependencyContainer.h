@@ -5,7 +5,7 @@
 @interface RNSentryDependencyContainer : NSObject
 SENTRY_NO_INIT
 
-+ (instancetype)sharedInstance;
+@property (class, readonly, strong) RNSentryDependencyContainer* sharedInstance;
 
 @property (nonatomic, strong) RNSentryFramesTrackerListener *framesTrackerListener;
 
