@@ -32,6 +32,8 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    env:
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false

@@ -46,7 +46,7 @@ sentry {
     // code as part of your stack traces in Sentry.
     //
     // Default is disabled.
-    includeSourceContext = true
+    includeSourceContext = shouldSentryAutoUpload()
 
     // Includes additional source directories into the source bundle.
     // These directories are resolved relative to the project directory
