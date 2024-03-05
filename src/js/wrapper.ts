@@ -10,7 +10,7 @@ import type {
   User,
 } from '@sentry/types';
 import { logger, normalize, SentryError } from '@sentry/utils';
-import { NativeModules, Platform, TurboModuleRegistry } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 
 import { isHardCrash } from './misc';
 import type {
@@ -27,10 +27,11 @@ import type * as Hermes from './profiling/hermes';
 import type { NativeAndroidProfileEvent, NativeProfileEvent } from './profiling/nativeTypes';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
+import { ReactNativeLibraries } from './utils/rnlibraries';
 import { base64StringFromByteArray, utf8ToBytes } from './vendor';
 
 const RNSentry: Spec | undefined = isTurboModuleEnabled()
-  ? TurboModuleRegistry.get<Spec>('RNSentry')
+  ? ReactNativeLibraries.TurboModuleRegistry && ReactNativeLibraries.TurboModuleRegistry.get<Spec>('RNSentry')
   : NativeModules.RNSentry;
 
 export interface Screenshot {
