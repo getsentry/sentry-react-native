@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const process = require('process');
 
+const SENTRY_URL = 'SENTRY_URL';
 const SENTRY_ORG = 'SENTRY_ORG';
 const SENTRY_PROJECT = 'SENTRY_PROJECT';
 const SENTRY_AUTH_TOKEN = 'SENTRY_AUTH_TOKEN';
@@ -111,6 +112,7 @@ try {
 }
 
 let sentryOrg = getEnvVar(SENTRY_ORG);
+let sentryUrl = getEnvVar(SENTRY_URL);
 let sentryProject = getEnvVar(SENTRY_PROJECT);
 let authToken = getEnvVar(SENTRY_AUTH_TOKEN);
 const sentryCliBin = getEnvVar(SENTRY_CLI_EXECUTABLE) || require.resolve('@sentry/cli/bin/sentry-cli');
@@ -147,6 +149,13 @@ if (!sentryOrg || !sentryProject) {
     console.log(`${SENTRY_PROJECT} resolved to ${sentryProject} from expo config.`);
   }
 }
+if (pluginConfig.url) {
+  sentryUrl = pluginConfig.url;
+} else {
+  sentryUrl
+}
+console.log(`${SENTRY_PROJECT} resolved to ${sentryProject} from expo config.`);
+
 
 if (!authToken) {
   console.error(`${SENTRY_AUTH_TOKEN} environment variable must be set.`);
@@ -186,6 +195,7 @@ for (const [assetGroupName, assets] of Object.entries(groupedAssets)) {
       ...process.env,
       [SENTRY_PROJECT]: sentryProject,
       [SENTRY_ORG]: sentryOrg,
+      [SENTRY_URL]: sentryUrl
     },
     stdio: 'inherit',
   });
@@ -196,8 +206,7 @@ if (numAssetsUploaded === totalAssets) {
   console.log('✅ Uploaded bundles and sourcemaps to Sentry successfully.');
 } else {
   console.warn(
-    `⚠️  Uploaded ${numAssetsUploaded} of ${totalAssets} bundles and sourcemaps. ${
-      numAssetsUploaded === 0 ? 'Ensure you are running `expo export` with the `--dump-sourcemap` flag.' : ''
+    `⚠️  Uploaded ${numAssetsUploaded} of ${totalAssets} bundles and sourcemaps. ${numAssetsUploaded === 0 ? 'Ensure you are running `expo export` with the `--dump-sourcemap` flag.' : ''
     }`,
   );
 }
