@@ -1,6 +1,6 @@
 // This is non minified version the debug id injection snippet used in the Metro plugin.
-var _sentryDebugIds = {};
-var _sentryDebugIdIdentifier = '';
+var _sentryDebugIds;
+var _sentryDebugIdIdentifier;
 
 if (typeof _sentryDebugIds === 'undefined') {
   _sentryDebugIds = {};

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixes
+
+- Multiple Debug IDs can be loaded into the global polyfill ([#3660](https://github.com/getsentry/sentry-react-native/pull/3660))
+  - This fixes a symbolication issue with Expo on the web with enabled bundle splitting.
+
 ### Dependencies
 
 - Bump CLI from v2.25.2 to v2.29.1 ([#3534](https://github.com/getsentry/sentry-react-native/pull/3534))
