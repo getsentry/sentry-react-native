@@ -172,6 +172,12 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
+            rn-version: '0.73.2'
+            runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
+            runtime: 'latest'
+            device: 'iPhone 14'
+          - platform: ios
+            rn-version: '0.65.3'
             runs-on: macos-latest
             runtime: 'latest'
             device: 'iPhone 14'
@@ -440,6 +446,12 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
+            rn-version: '0.73.2'
+            runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
+            runtime: 'latest'
+            device: 'iPhone 14'
+          - platform: ios
+            rn-version: '0.65.3'
             runs-on: macos-latest
             runtime: 'latest'
             device: 'iPhone 14'
