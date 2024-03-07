@@ -11,6 +11,8 @@
 
 @property (nonatomic, strong) RNSentryFramesTrackerListener* framesListener;
 @property (nonatomic, copy) RCTBubblingEventBlock onDrawNextFrame;
+@property (nonatomic) bool fullDisplay;
+@property (nonatomic) bool initialDisplay;
 @property (nonatomic, weak) RNSentryOnDrawReporter* delegate;
 
 @end
@@ -19,6 +21,8 @@
 
 RCT_EXPORT_MODULE(RNSentryOnDrawReporter)
 RCT_EXPORT_VIEW_PROPERTY(onDrawNextFrame, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(initialDisplay, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(fullDisplay, BOOL)
 
 - (UIView *)view
 {
@@ -34,7 +38,21 @@ RCT_EXPORT_VIEW_PROPERTY(onDrawNextFrame, RCTBubblingEventBlock)
     self = [super init];
     if (self) {
         RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
-            self.onDrawNextFrame(@{ @"newFrameTimestampInSeconds": newFrameTimestampInSeconds });
+          if (self->_fullDisplay) {
+            self.onDrawNextFrame(@{
+              @"newFrameTimestampInSeconds": newFrameTimestampInSeconds,
+              @"type": @"fullDisplay"
+            });
+            return;
+          }
+
+          if (self->_initialDisplay) {
+            self.onDrawNextFrame(@{
+              @"newFrameTimestampInSeconds": newFrameTimestampInSeconds,
+              @"type": @"initialDisplay"
+            });
+            return;
+          }
         };
         _framesListener = [[RNSentryFramesTrackerListener alloc] initWithSentryFramesTracker:[[SentryDependencyContainer sharedInstance] framesTracker]
                                                                              andEventEmitter:emitNewFrameEvent];
@@ -42,9 +60,11 @@ RCT_EXPORT_VIEW_PROPERTY(onDrawNextFrame, RCTBubblingEventBlock)
     return self;
 }
 
-- (void)drawRect:(CGRect)rect {
-    [super drawRect:rect];
+- (void)didSetProps:(NSArray<NSString *> *)changedProps
+{
+  if (_fullDisplay || _initialDisplay) {
     [_framesListener startListening];
+  }
 }
 
 @end

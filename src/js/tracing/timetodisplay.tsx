@@ -14,6 +14,7 @@ let nativeComponentMissingLogged = false;
 
 interface RNSentryOnDrawNextFrameEvent {
   newFrameTimestampInSeconds: number;
+  type: 'initialDisplay' | 'fullDisplay';
 }
 
 interface RNSentryOnDrawReporterProps {
@@ -34,12 +35,18 @@ class RNSentryOnDrawReporterNoop extends React.Component<RNSentryOnDrawReporterP
   }
 }
 
+let RNSentryOnDrawReporter: HostComponent<RNSentryOnDrawReporterProps> | typeof RNSentryOnDrawReporterNoop;
 /**
  * Native component that reports the on draw timestamp.
  */
-const RNSentryOnDrawReporter: HostComponent<RNSentryOnDrawReporterProps> | typeof RNSentryOnDrawReporterNoop = nativeComponentExists
-  ? requireNativeComponent(RNSentryOnDrawReporterClass)
-  : RNSentryOnDrawReporterNoop;
+const getRNSentryOnDrawReporter = (): typeof RNSentryOnDrawReporter => {
+  if (!RNSentryOnDrawReporter) {
+    RNSentryOnDrawReporter = nativeComponentExists
+      ? requireNativeComponent(RNSentryOnDrawReporterClass)
+      : RNSentryOnDrawReporterNoop;
+  }
+  return RNSentryOnDrawReporter;
+}
 
 export const UNKNOWN_COMPONENT = 'unknown';
 
@@ -92,6 +99,8 @@ export type OnDrawReporterProps = {
  * The component native implementation wait for the next frame after draw to mark the TTID/TTFD.
  */
 export function TimeToDisplay(props: OnDrawReporterProps): React.ReactElement {
+  const RNSentryOnDrawReporter = getRNSentryOnDrawReporter();
+
   if (__DEV__ && !nativeComponentMissingLogged && !nativeComponentExists && !notWeb()) {
     nativeComponentMissingLogged = true;
     logger.error('RNSentryOnDrawReporter is not available. Native Sentry modules is not loaded. Update your native build or report an issue at https://github.com/getsentry/sentry-react-native');
@@ -131,21 +140,22 @@ export function TimeToDisplay(props: OnDrawReporterProps): React.ReactElement {
   };
 
   const onDrawNextFrame = (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): void => {
-    if (props.fullDisplay) {
+    if (event.nativeEvent.type === 'fullDisplay') {
       return updateTimeToDisplaySpan('ui.load.full_display', event.nativeEvent);
     }
-    if (props.initialDisplay) {
+    if (event.nativeEvent.type === 'initialDisplay') {
       return updateTimeToDisplaySpan('ui.load.initial_display', event.nativeEvent);
     }
   }
 
   return (
-    <RNSentryOnDrawReporter
-      onDrawNextFrame={onDrawNextFrame}
-      initialDisplay={props.initialDisplay}
-      fullDisplay={props.fullDisplay}>
+    <>
+      <RNSentryOnDrawReporter
+        onDrawNextFrame={onDrawNextFrame}
+        initialDisplay={props.initialDisplay}
+        fullDisplay={props.fullDisplay} />
       {props.children}
-    </RNSentryOnDrawReporter>
+    </>
   );
 }
 
