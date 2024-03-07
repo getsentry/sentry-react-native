@@ -32,6 +32,8 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    env:
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
@@ -41,7 +43,7 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
-            runs-on: macos-latest
+            runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
             runtime: 'latest'
             device: 'iPhone 14'
           - platform: android

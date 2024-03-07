@@ -28,8 +28,12 @@ EXTRA_ARGS="$SENTRY_CLI_EXTRA_ARGS $SENTRY_CLI_DEBUG_FILES_UPLOAD_EXTRA_ARGS $IN
 
 UPLOAD_DEBUG_FILES="\"$SENTRY_CLI_EXECUTABLE\" debug-files upload $EXTRA_ARGS \"$DWARF_DSYM_FOLDER_PATH\""
 
-if [ "$SENTRY_DISABLE_AUTO_UPLOAD" != true ]; then
-  /bin/sh -c "\"$LOCAL_NODE_BINARY\" $UPLOAD_DEBUG_FILES"
-else
+XCODE_BUILD_CONFIGURATION="${CONFIGURATION}"
+
+if [ "$SENTRY_DISABLE_AUTO_UPLOAD" == true ]; then
   echo "SENTRY_DISABLE_AUTO_UPLOAD=true, skipping debug files upload"
+elif echo "$XCODE_BUILD_CONFIGURATION" | grep -iq "debug"; then # case insensitive check for "debug"
+  echo "Skipping debug files upload for *Debug* configuration"
+else
+  /bin/sh -c "\"$LOCAL_NODE_BINARY\" $UPLOAD_DEBUG_FILES"
 fi

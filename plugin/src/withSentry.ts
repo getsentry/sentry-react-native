@@ -1,7 +1,7 @@
 import type { ConfigPlugin } from 'expo/config-plugins';
-import { createRunOncePlugin, WarningAggregator } from 'expo/config-plugins';
+import { createRunOncePlugin } from 'expo/config-plugins';
 
-import { SDK_PACKAGE_NAME, sdkPackage } from './utils';
+import { bold, sdkPackage, warnOnce } from './utils';
 import { withSentryAndroid } from './withSentryAndroid';
 import { withSentryIOS } from './withSentryIOS';
 
@@ -14,31 +14,33 @@ interface PluginProps {
 
 const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
   const sentryProperties = getSentryProperties(props);
+
+  if (props && props.authToken) {
+    // If not removed, the plugin config with the authToken will be written to the application package
+    delete props.authToken;
+  }
+
   let cfg = config;
   if (sentryProperties !== null) {
     try {
       cfg = withSentryAndroid(cfg, sentryProperties);
     } catch (e) {
-      WarningAggregator.addWarningAndroid(
-        SDK_PACKAGE_NAME,
-        `There was a problem configuring sentry-expo in your native Android project: ${e}`,
-      );
+      warnOnce(`There was a problem with configuring your native Android project: ${e}`);
     }
     try {
       cfg = withSentryIOS(cfg, sentryProperties);
     } catch (e) {
-      WarningAggregator.addWarningIOS(
-        SDK_PACKAGE_NAME,
-        `There was a problem configuring sentry-expo in your native iOS project: ${e}`,
-      );
+      warnOnce(`There was a problem with configuring your native iOS project: ${e}`);
     }
   }
+
   return cfg;
 };
 
-const missingAuthTokenMessage = '# auth.token is configured through SENTRY_AUTH_TOKEN environment variable';
 const missingProjectMessage = '# no project found, falling back to SENTRY_PROJECT environment variable';
 const missingOrgMessage = '# no org found, falling back to SENTRY_ORG environment variable';
+const existingAuthTokenMessage = `# DO NOT COMMIT the auth token, use SENTRY_AUTH_TOKEN instead, see https://docs.sentry.io/platforms/react-native/manual-setup/`;
+const missingAuthTokenMessage = `# Using SENTRY_AUTH_TOKEN environment variable`;
 
 export function getSentryProperties(props: PluginProps | void): string | null {
   const { organization, project, authToken, url = 'https://sentry.io/' } = props ?? {};
@@ -46,22 +48,23 @@ export function getSentryProperties(props: PluginProps | void): string | null {
   const missingProperties = ['organization', 'project'].filter(each => !props?.hasOwnProperty(each));
 
   if (missingProperties.length) {
-    const warningMessage = `Missing Sentry configuration properties: ${missingProperties.join(
-      ', ',
-    )} in config plugin. Builds will fall back to environment variables. See: https://docs.sentry.io/platforms/react-native/manual-setup/.`;
-    WarningAggregator.addWarningAndroid(SDK_PACKAGE_NAME, warningMessage);
-    WarningAggregator.addWarningIOS(SDK_PACKAGE_NAME, warningMessage);
+    const missingPropertiesString = bold(missingProperties.join(', '));
+    const warningMessage = `Missing config for ${missingPropertiesString}. Environment variables will be used as a fallback during the build. https://docs.sentry.io/platforms/react-native/manual-setup/`;
+    warnOnce(warningMessage);
+  }
+
+  if (authToken) {
+    warnOnce(
+      `Detected unsecure use of 'authToken' in Sentry plugin configuration. To avoid exposing the token use ${bold(
+        'SENTRY_AUTH_TOKEN',
+      )} environment variable instead. https://docs.sentry.io/platforms/react-native/manual-setup/`,
+    );
   }
 
   return `defaults.url=${url}
 ${organization ? `defaults.org=${organization}` : missingOrgMessage}
 ${project ? `defaults.project=${project}` : missingProjectMessage}
-${
-  authToken
-    ? `# Configure this value through \`SENTRY_AUTH_TOKEN\` environment variable instead. See: https://docs.sentry.io/platforms/react-native/manual-setup/\nauth.token=${authToken}`
-    : missingAuthTokenMessage
-}
-`;
+${authToken ? `${existingAuthTokenMessage}\nauth.token=${authToken}` : missingAuthTokenMessage}`;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
