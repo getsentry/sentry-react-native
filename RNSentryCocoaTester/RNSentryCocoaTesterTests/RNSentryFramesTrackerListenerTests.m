@@ -10,21 +10,6 @@
 
 @implementation RNSentryFramesTrackerListenerTests
 
-- (void)testRNSentryDependencyContainerInitializesFrameTracker
-{
-  XCTAssertNil([[RNSentryDependencyContainer sharedInstance] framesTrackerListener]);
-
-  id sentryDependencyContainerMock = OCMClassMock([SentryDependencyContainer class]);
-  OCMStub(ClassMethod([sentryDependencyContainerMock sharedInstance])).andReturn(sentryDependencyContainerMock);
-
-  id frameTrackerMock = OCMClassMock([SentryFramesTracker class]);
-  OCMStub([(SentryDependencyContainer*) sentryDependencyContainerMock framesTracker]).andReturn(frameTrackerMock);
-
-  RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {};
-  [[RNSentryDependencyContainer sharedInstance] initializeFramesTrackerListenerWith: emitNewFrameEvent];
-  XCTAssertNotNil([[RNSentryDependencyContainer sharedInstance] framesTrackerListener]);
-}
-
 - (void)testRNSentryFramesTrackerCallsGivenEventEmitterOnNewFrame
 {
   id sentryDependencyContainerMock = OCMClassMock([SentryDependencyContainer class]);

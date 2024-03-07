@@ -28,4 +28,5 @@ export interface ReactNativeLibrariesInterface {
   ReactNativeVersion?: {
     version: typeof RNV;
   };
+  TurboModuleRegistry?: ReactNative.TurboModuleRegistry;
 }
