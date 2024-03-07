@@ -135,7 +135,7 @@ const TabTwoStack = Sentry.withProfiler(
               component={PerformanceScreen}
               options={{ title: 'Performance' }}
             />
-            <Stack.Screen name="Tracker" component={TrackerScreen}/>
+            <Stack.Screen name="Tracker" component={TrackerScreen} />
             <Stack.Screen
               name="ManualTracker"
               component={ManualTrackerScreen}
