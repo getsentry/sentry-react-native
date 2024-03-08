@@ -6,6 +6,7 @@ import {
   Text,
   ActivityIndicator,
 } from 'react-native';
+import delay from 'delay';
 
 import * as Sentry from '@sentry/react-native';
 
@@ -17,16 +18,17 @@ import * as Sentry from '@sentry/react-native';
  * to the fetch call and track the time it takes for Promise to resolve.
  */
 const TrackerScreen = () => {
+  const [state, setState] = React.useState<'loading' | 'loaded' | 'error'>('loading');
   const [cases, setCases] = React.useState<{
     TotalConfirmed: number;
     TotalDeaths: number;
     TotalRecovered: number;
   } | null>(null);
 
-  const loadData = () => {
+  const loadData = async () => {
     setCases(null);
 
-    fetch('https://api.covid19api.com/summary', {
+    const maybeData = fetch('https://api.covid19api.com/summary', {
       method: 'GET',
       headers: {
         Accept: 'application/json',
@@ -37,6 +39,15 @@ const TrackerScreen = () => {
       .then(json => {
         setCases(json.Global);
       });
+
+    try {
+      await Promise.allSettled([maybeData, delay(2_000)]);
+      await maybeData;
+      setState('loaded');
+    } catch (e) {
+      Sentry.captureException(e);
+      setState('error');
+    }
   };
 
   const onRefreshButtonPress = () => {
@@ -49,6 +60,14 @@ const TrackerScreen = () => {
   React.useEffect(() => {
     loadData();
   }, []);
+
+  const statusText = state === 'loading' && 'Loading...'
+  || state === 'error' && 'Error'
+  || state === 'loaded' && 'Loaded'
+  || 'Unknown';
+  const shouldRecordFullDisplay = state === 'loaded' || state === 'error';
+  console.log('shouldRecordFullDisplay', shouldRecordFullDisplay);
+  console.log('statusText', statusText);
 
   return (
     <View style={styles.screen}>
@@ -78,12 +97,13 @@ const TrackerScreen = () => {
           <ActivityIndicator size="small" color="#F6F6F8" />
         )}
       </View>
-      <Sentry.TimeToDisplay fullDisplay>
+      <Sentry.TimeToDisplay fullDisplay={shouldRecordFullDisplay}>
         <Button
           sentry-label="refresh"
           title="Refresh"
           onPress={onRefreshButtonPress}
         />
+        <Text>{statusText}</Text>
       </Sentry.TimeToDisplay>
     </View>
   );

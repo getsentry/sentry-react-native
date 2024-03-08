@@ -1,92 +1,15 @@
-import { getActiveSpan, Span as SpanClass, spanToJSON, startInactiveSpan } from '@sentry/core';
+import { getActiveSpan, setMeasurement, Span as SpanClass, spanToJSON, startInactiveSpan } from '@sentry/core';
 import type { Span,StartSpanOptions  } from '@sentry/types';
 import { logger } from '@sentry/utils';
 import React from 'react';
-import type { HostComponent} from 'react-native';
-import { requireNativeComponent,UIManager, View } from 'react-native';
 
 import { notWeb } from '../utils/environment';
+import { getRNSentryOnDrawReporter, nativeComponentExists } from './timetodisplaynative';
+import type {RNSentryOnDrawNextFrameEvent } from './timetodisplaynative.types';
 
-const RNSentryOnDrawReporterClass = 'RNSentryOnDrawReporter';
-
-const nativeComponentExists = UIManager.hasViewManagerConfig(RNSentryOnDrawReporterClass)
 let nativeComponentMissingLogged = false;
 
-interface RNSentryOnDrawNextFrameEvent {
-  newFrameTimestampInSeconds: number;
-  type: 'initialDisplay' | 'fullDisplay';
-}
-
-interface RNSentryOnDrawReporterProps {
-  children?: React.ReactNode;
-  onDrawNextFrame: (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }) => void;
-  initialDisplay?: boolean;
-  fullDisplay?: boolean;
-}
-
-/**
- * This is a fallback component for environments where the native component is not available.
- */
-class RNSentryOnDrawReporterNoop extends React.Component<RNSentryOnDrawReporterProps> {
-  public render(): React.ReactNode {
-    return (
-      <View {...this.props} />
-    );
-  }
-}
-
-let RNSentryOnDrawReporter: HostComponent<RNSentryOnDrawReporterProps> | typeof RNSentryOnDrawReporterNoop;
-/**
- * Native component that reports the on draw timestamp.
- */
-const getRNSentryOnDrawReporter = (): typeof RNSentryOnDrawReporter => {
-  if (!RNSentryOnDrawReporter) {
-    RNSentryOnDrawReporter = nativeComponentExists
-      ? requireNativeComponent(RNSentryOnDrawReporterClass)
-      : RNSentryOnDrawReporterNoop;
-  }
-  return RNSentryOnDrawReporter;
-}
-
-export const UNKNOWN_COMPONENT = 'unknown';
-
-/**
- * Adds wrapper for manual TTID tracing.
- *
- * TTID will be recorded on the draw of the native component.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function withTimeToInitialDisplay<P extends Record<string, any>>(
-  WrappedComponent: React.ComponentType<P>,
-  options?: { name?: string },
-): React.FC<P> {
-  const componentDisplayName =
-    (options && options.name) || WrappedComponent.displayName || WrappedComponent.name || UNKNOWN_COMPONENT;
-
-  const Wrapped: React.FC<P> = (props: P) => (
-    <TimeToDisplay name={componentDisplayName}>
-      <WrappedComponent {...props} />
-    </TimeToDisplay>
-  );
-
-  Wrapped.displayName = `withTimeToInitialDisplay(${componentDisplayName})`;
-
-  // Copy over static methods from Wrapped component to Profiler HOC
-  // See: https://reactjs.org/docs/higher-order-components.html#static-methods-must-be-copied-over
-  // hoistNonReactStatics(Wrapped, WrappedComponent);
-  return Wrapped;
-}
-
-/**
- * Adds wrapper for manual TTFD tracing.
- *
- * TTFD will be recorded on the draw of the native component.
- */
-// export function withTtfdOnDraw(recordNow: boolean = true) {
-
-// }
-
-export type OnDrawReporterProps = {
+export type TimeToDisplayProps = {
   children?: React.ReactNode;
   name?: string;
   initialDisplay?: boolean;
@@ -98,7 +21,7 @@ export type OnDrawReporterProps = {
  *
  * The component native implementation wait for the next frame after draw to mark the TTID/TTFD.
  */
-export function TimeToDisplay(props: OnDrawReporterProps): React.ReactElement {
+export function TimeToDisplay(props: TimeToDisplayProps): React.ReactElement {
   const RNSentryOnDrawReporter = getRNSentryOnDrawReporter();
 
   if (__DEV__ && !nativeComponentMissingLogged && !nativeComponentExists && !notWeb()) {
@@ -106,52 +29,12 @@ export function TimeToDisplay(props: OnDrawReporterProps): React.ReactElement {
     logger.error('RNSentryOnDrawReporter is not available. Native Sentry modules is not loaded. Update your native build or report an issue at https://github.com/getsentry/sentry-react-native');
   }
 
-  const updateTimeToDisplaySpan = (op: string, event: RNSentryOnDrawNextFrameEvent): void => {
-    const activeSpan = getActiveSpan();
-    if (!activeSpan) {
-      return;
-    }
-
-    if (!(activeSpan instanceof SpanClass)) {
-      return;
-    }
-
-    const existingSpan = activeSpan.spanRecorder?.spans.find((span) => spanToJSON(span).op === op);
-
-    const span = existingSpan || startInactiveSpan({
-      op,
-      name: op === 'ui.load.initial_display' && 'Time To Initial Display'
-        || op === 'ui.load.full_display' && 'Time To Full Display'
-        || props.name
-        || 'Unknown Time To Display',
-      startTimestamp: spanToJSON(activeSpan).start_timestamp,
-    });
-
-    if (!span) {
-      return; // performance disabled
-    }
-
-    if (spanToJSON(span).timestamp) {
-      logger.warn(`${spanToJSON(span).description} span end timestamp manually overwritten`);
-      span.endTimestamp = event.newFrameTimestampInSeconds;
-    } else {
-      span.end(event.newFrameTimestampInSeconds);
-    }
-  };
-
-  const onDrawNextFrame = (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): void => {
-    if (event.nativeEvent.type === 'fullDisplay') {
-      return updateTimeToDisplaySpan('ui.load.full_display', event.nativeEvent);
-    }
-    if (event.nativeEvent.type === 'initialDisplay') {
-      return updateTimeToDisplaySpan('ui.load.initial_display', event.nativeEvent);
-    }
-  }
+  const onDraw = (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): void => onDrawNextFrame(props.name || 'Unknown', event);
 
   return (
     <>
       <RNSentryOnDrawReporter
-        onDrawNextFrame={onDrawNextFrame}
+        onDrawNextFrame={onDraw}
         initialDisplay={props.initialDisplay}
         fullDisplay={props.fullDisplay} />
       {props.children}
@@ -159,14 +42,77 @@ export function TimeToDisplay(props: OnDrawReporterProps): React.ReactElement {
   );
 }
 
+function onDrawNextFrame(name: string, event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): void {
+  logger.debug(`[TimeToDisplay] onDrawNextFrame: ${JSON.stringify(event.nativeEvent)}`);
+  if (event.nativeEvent.type === 'fullDisplay') {
+    return updateTimeToDisplaySpan('ui.load.full_display', name, event.nativeEvent);
+  }
+  if (event.nativeEvent.type === 'initialDisplay') {
+    return updateTimeToDisplaySpan('ui.load.initial_display', name, event.nativeEvent);
+  }
+}
+
+function updateTimeToDisplaySpan(op: string, name: string, event: RNSentryOnDrawNextFrameEvent): void {
+  const activeSpan = getActiveSpan();
+  if (!activeSpan) {
+    logger.warn(`[TimeToDisplay] No active span found for ${op}.`);
+    return;
+  }
+
+  if (!(activeSpan instanceof SpanClass)) {
+    logger.warn(`[TimeToDisplay] Active span is not instance of Span class.`);
+    return;
+  }
+
+  const existingSpan = activeSpan.spanRecorder?.spans.find((span) => spanToJSON(span).op === op);
+  if (!existingSpan) {
+    logger.debug(`[TimeToDisplay] No existing span found for ${op}, creating a new one.`);
+  }
+
+  const span = existingSpan || startInactiveSpan({
+    op,
+    name: name
+      || op === 'ui.load.initial_display' && 'Time To Initial Display'
+      || op === 'ui.load.full_display' && 'Time To Full Display'
+      || 'Unknown Time To Display',
+    startTimestamp: spanToJSON(activeSpan).start_timestamp,
+  });
+
+
+  if (!span) {
+    logger.warn(`[TimeToDisplay] No span found or created, possibly performance is disabled.`);
+    return;
+  }
+
+  if (spanToJSON(span).timestamp) {
+    logger.warn(`[TimeToDisplay] ${spanToJSON(span).description} span end timestamp manually overwritten.`);
+    span.endTimestamp = event.newFrameTimestampInSeconds;
+  } else {
+    span.end(event.newFrameTimestampInSeconds);
+  }
+  span.setStatus('ok');
+  logger.debug(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp.`);
+
+  if (op === 'ui.load.full_display') {
+    const spanEnd = spanToJSON(span).timestamp;
+    const spanStart = spanToJSON(span).start_timestamp;
+    if (!spanEnd || !spanStart) {
+      return;
+    }
+
+    setMeasurement('time_to_full_display', (spanEnd - spanStart) * 1000, 'millisecond');
+  }
+}
+
 /**
  * Starts a new span for the initial display.
  */
 export function startTimeToInitialDisplaySpan(
-  options: Exclude<StartSpanOptions, 'op'>,
+  options?: Exclude<StartSpanOptions, 'op' | 'name'> & { name?: string },
 ): Span | undefined {
   const initialDisplaySpan = startInactiveSpan({
     op: 'ui.load.initial_display',
+    name: 'Time To Initial Display',
     ...options,
   });
 
@@ -177,10 +123,11 @@ export function startTimeToInitialDisplaySpan(
  * Starts a new span for the full display.
  */
 export function startTimeToFullDisplaySpan(
-  options: Exclude<StartSpanOptions, 'op'> & { timeoutMs?: number },
+  options?: Exclude<StartSpanOptions, 'op' | 'name'> & { name?: string, timeoutMs?: number },
 ): Span | undefined {
   const initialDisplaySpan = startInactiveSpan({
     op: 'ui.load.full_display',
+    name: 'Time To Full Display',
     ...options,
   });
   // TODO: Add timeout handling
