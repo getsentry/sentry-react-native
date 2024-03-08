@@ -14,7 +14,7 @@
   },
   "typescript.tsdk": "./node_modules/typescript/lib",
   "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit"
+    "source.fixAll": true
   },
   "[json]": {
     "editor.formatOnType": false,
