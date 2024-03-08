@@ -148,10 +148,6 @@ if (!sentryOrg || !sentryProject || !sentryUrl) {
     sentryProject = pluginConfig.project;
     console.log(`${SENTRY_PROJECT} resolved to ${sentryProject} from expo config.`);
   }
-  if (!sentryProject) {
-    sentryUrl = pluginConfig.url;
-
-  }
   if (!sentryUrl) {
     if (!pluginConfig.url) {
       console.error(
