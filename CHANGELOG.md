@@ -168,7 +168,6 @@ see [the Expo guide](https://docs.sentry.io/platforms/react-native/manual-setup/
 
   module.exports = withSentry(config, {
     url: 'https://www.sentry.io/',
-    authToken: 'example-token', // Or use SENTRY_AUTH_TOKEN env
     project: 'project-slug', // Or use SENTRY_PROJECT env
     organization: 'org-slug', // Or use SENTRY_ORG env
   });
