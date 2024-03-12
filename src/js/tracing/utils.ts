@@ -1,4 +1,10 @@
-import { type IdleTransaction, type Span as SpanClass, type Transaction,setMeasurement,spanToJSON } from '@sentry/core';
+import {
+  type IdleTransaction,
+  type Span as SpanClass,
+  type Transaction,
+  setMeasurement,
+  spanToJSON,
+} from '@sentry/core';
 import type { Span, TransactionContext, TransactionSource } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 

@@ -16,7 +16,9 @@ export function createMockedSentryEventEmitter(): MockedSentryEventEmitter {
 
   return {
     emitNewFrameEvent: jest.fn((timestampSeconds?: number) => {
-      emitter.emit('rn_sentry_new_frame', <NewFrameEvent>{ newFrameTimestampInSeconds: timestampSeconds || timestampInSeconds() });
+      emitter.emit('rn_sentry_new_frame', <NewFrameEvent>{
+        newFrameTimestampInSeconds: timestampSeconds || timestampInSeconds(),
+      });
     }),
     once: jest.fn((event: NewFrameEventName, listener: (event: NewFrameEvent) => void) => {
       emitter.once(event, listener);

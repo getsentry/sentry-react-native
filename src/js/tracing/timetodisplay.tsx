@@ -1,7 +1,7 @@
-import { getActiveSpan, setMeasurement, Span as SpanClass, spanToJSON, startInactiveSpan } from '@sentry/core';
+import { getActiveSpan, Span as SpanClass, spanToJSON, startInactiveSpan } from '@sentry/core';
 import type { Span,StartSpanOptions  } from '@sentry/types';
 import { fill, logger } from '@sentry/utils';
-import React from 'react';
+import * as React from 'react';
 
 import { getRNSentryOnDrawReporter, nativeComponentExists } from './timetodisplaynative';
 import type {RNSentryOnDrawNextFrameEvent } from './timetodisplaynative.types';

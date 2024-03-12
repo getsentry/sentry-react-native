@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import type { HostComponent} from 'react-native';
 import { requireNativeComponent, UIManager, View } from 'react-native';
 

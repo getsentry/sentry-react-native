@@ -2,7 +2,7 @@
 import type { RequestInstrumentationOptions } from '@sentry/browser';
 import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from '@sentry/browser';
 import type { Hub, IdleTransaction, Transaction } from '@sentry/core';
-import { getActiveTransaction, getCurrentHub, setMeasurement, startIdleTransaction } from '@sentry/core';
+import { getActiveTransaction, getCurrentHub, startIdleTransaction } from '@sentry/core';
 import type {
   Event,
   EventProcessor,
@@ -21,7 +21,12 @@ import { APP_START_COLD as APP_START_COLD_OP, APP_START_WARM as APP_START_WARM_O
 import { StallTrackingInstrumentation } from './stalltracking';
 import { cancelInBackground, onlySampleIfChildSpans } from './transaction';
 import type { BeforeNavigate, RouteChangeContextData } from './types';
-import { adjustTransactionDuration, getTimeOriginMilliseconds, isNearToNow, setSpanDurationAsMeasurement } from './utils';
+import {
+  adjustTransactionDuration,
+  getTimeOriginMilliseconds,
+  isNearToNow,
+  setSpanDurationAsMeasurement,
+} from './utils';
 
 export interface ReactNativeTracingOptions extends RequestInstrumentationOptions {
   /**
