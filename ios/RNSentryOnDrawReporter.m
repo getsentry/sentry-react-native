@@ -62,7 +62,6 @@ RCT_EXPORT_VIEW_PROPERTY(fullDisplay, BOOL)
 
 - (void)didSetProps:(NSArray<NSString *> *)changedProps
 {
-  // TODO: consecutive calls do not add listerner again
   if (_fullDisplay || _initialDisplay) {
     [_framesListener startListening];
   }

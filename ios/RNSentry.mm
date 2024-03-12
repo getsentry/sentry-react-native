@@ -226,24 +226,6 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking:(RCTPromiseResolveBl
   return @[RNSentryNewFrameEvent];
 }
 
-static RNSentryFramesTrackerListener *framesListener;
-
-RCT_EXPORT_METHOD(emitOnceNewFrameEvent:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-  if (framesListener == nil) {
-    RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
-      if (self->hasListeners) {
-        [self sendEventWithName:RNSentryNewFrameEvent body:@{ @"newFrameTimestampInSeconds": newFrameTimestampInSeconds, @"type": @"from_function" }];
-      }
-    };
-    framesListener = [[RNSentryFramesTrackerListener alloc] initWithSentryFramesTracker:[[SentryDependencyContainer sharedInstance] framesTracker]
-                                                                         andEventEmitter:emitNewFrameEvent];
-  }
-    [framesListener startListening];
-    resolve(nil);
-}
-
 RCT_EXPORT_METHOD(fetchNativeSdkInfo:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
