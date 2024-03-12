@@ -93,7 +93,8 @@ export {
   ReactNativeNavigationInstrumentation,
   RoutingInstrumentation,
   sentryTraceGesture,
-  TimeToDisplay,
+  TimeToInitialDisplay,
+  TimeToFullDisplay,
   startTimeToInitialDisplaySpan,
   startTimeToFullDisplaySpan,
 } from './tracing';

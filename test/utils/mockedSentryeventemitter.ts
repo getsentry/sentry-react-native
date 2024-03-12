@@ -8,15 +8,15 @@ export const NewFrameEventName = 'rn_sentry_new_frame';
 export type NewFrameEventName = typeof NewFrameEventName;
 
 export interface MockedSentryEventEmitter extends MockInterface<SentryEventEmitter> {
-  emitNewFrameEvent: () => void;
+  emitNewFrameEvent: (timestampSeconds?: number) => void;
 }
 
 export function createMockedSentryEventEmitter(): MockedSentryEventEmitter {
   const emitter = new EventEmitter();
 
   return {
-    emitNewFrameEvent: jest.fn(() => {
-      emitter.emit('rn_sentry_new_frame', <NewFrameEvent>{ newFrameTimestampInSeconds: timestampInSeconds() });
+    emitNewFrameEvent: jest.fn((timestampSeconds?: number) => {
+      emitter.emit('rn_sentry_new_frame', <NewFrameEvent>{ newFrameTimestampInSeconds: timestampSeconds || timestampInSeconds() });
     }),
     once: jest.fn((event: NewFrameEventName, listener: (event: NewFrameEvent) => void) => {
       emitter.once(event, listener);

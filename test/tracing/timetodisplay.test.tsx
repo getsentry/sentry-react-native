@@ -8,7 +8,7 @@ import React from "react";
 import TestRenderer from 'react-test-renderer';
 
 import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
-import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToDisplay } from '../../src/js/tracing/timetodisplay';
+import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing/timetodisplay';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { asObjectWithMeasurements, secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
 import { emitNativeFullDisplayEvent, emitNativeInitialDisplayEvent } from './mockedtimetodisplaynative';
@@ -43,7 +43,7 @@ describe('TimeToDisplay', () => {
       },
        (activeSpan: Span | undefined) => {
         const testSpan = startTimeToInitialDisplaySpan();
-        TestRenderer.create(<TimeToDisplay initialDisplay={true} />);
+        TestRenderer.create(<TimeToInitialDisplay record={true} />);
 
         emitNativeInitialDisplayEvent();
 
@@ -68,10 +68,10 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         const testSpan = startTimeToFullDisplaySpan();
 
-        TestRenderer.create(<TimeToDisplay initialDisplay={true} />);
+        TestRenderer.create(<TimeToInitialDisplay record={true} />);
         emitNativeInitialDisplayEvent();
 
-        TestRenderer.create(<TimeToDisplay fullDisplay={true} />);
+        TestRenderer.create(<TimeToFullDisplay record={true} />);
         emitNativeFullDisplayEvent();
 
         activeSpan?.end();
@@ -92,7 +92,7 @@ describe('TimeToDisplay', () => {
       },
       (activeSpan: Span | undefined) => {
         startTimeToFullDisplaySpan();
-        TestRenderer.create(<TimeToDisplay fullDisplay={true} />);
+        TestRenderer.create(<TimeToFullDisplay record={true} />);
 
         emitNativeFullDisplayEvent();
 
@@ -114,7 +114,7 @@ describe('TimeToDisplay', () => {
         startTimestamp: secondAgoTimestampMs(),
       },
       (activeSpan: Span | undefined) => {
-        TestRenderer.create(<TimeToDisplay initialDisplay={true} />);
+        TestRenderer.create(<TimeToInitialDisplay record={true} />);
 
         emitNativeInitialDisplayEvent();
 
@@ -137,10 +137,10 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        TestRenderer.create(<TimeToDisplay initialDisplay={true} />);
+        TestRenderer.create(<TimeToInitialDisplay record={true} />);
         emitNativeInitialDisplayEvent();
 
-        TestRenderer.create(<TimeToDisplay fullDisplay={true} />);
+        TestRenderer.create(<TimeToFullDisplay record={true} />);
         emitNativeFullDisplayEvent();
 
         activeSpan?.end();
@@ -162,10 +162,10 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        TestRenderer.create(<TimeToDisplay initialDisplay={true} />);
+        TestRenderer.create(<TimeToInitialDisplay record={true} />);
         emitNativeInitialDisplayEvent();
 
-        TestRenderer.create(<TimeToDisplay fullDisplay={true} />);
+        TestRenderer.create(<TimeToFullDisplay record={true} />);
         // native event is not emitted
 
         jest.advanceTimersByTime(40_000);
@@ -195,16 +195,16 @@ describe('TimeToDisplay', () => {
         const initialDisplaySpan = startTimeToInitialDisplaySpan();
         const fullDisplaySpan = startTimeToFullDisplaySpan();
 
-        const timeToDisplayComponent = TestRenderer.create(<TimeToDisplay initialDisplay={true} />);
+        const timeToDisplayComponent = TestRenderer.create(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={false}/></>);
         emitNativeInitialDisplayEvent(initialDisplayEndTimestampMs);
 
-        timeToDisplayComponent.update(<TimeToDisplay initialDisplay={true} />);
+        timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={false}/></>);
         emitNativeInitialDisplayEvent(fullDisplayEndTimestampMs + 10);
 
-        timeToDisplayComponent.update(<TimeToDisplay initialDisplay={true} fullDisplay={true} />);
+        timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={true}/></>);
         emitNativeFullDisplayEvent(fullDisplayEndTimestampMs);
 
-        timeToDisplayComponent.update(<TimeToDisplay initialDisplay={true} fullDisplay={true} />);
+        timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={true}/></>);
         emitNativeFullDisplayEvent(fullDisplayEndTimestampMs + 20);
 
         return [initialDisplaySpan, fullDisplaySpan, activeSpan];

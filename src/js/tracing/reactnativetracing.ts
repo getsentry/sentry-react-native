@@ -21,7 +21,7 @@ import { APP_START_COLD as APP_START_COLD_OP, APP_START_WARM as APP_START_WARM_O
 import { StallTrackingInstrumentation } from './stalltracking';
 import { cancelInBackground, onlySampleIfChildSpans } from './transaction';
 import type { BeforeNavigate, RouteChangeContextData } from './types';
-import { adjustTransactionDuration, getTimeOriginMilliseconds, isNearToNow } from './utils';
+import { adjustTransactionDuration, getTimeOriginMilliseconds, isNearToNow, setSpanDurationAsMeasurement } from './utils';
 
 export interface ReactNativeTracingOptions extends RequestInstrumentationOptions {
   /**
@@ -440,12 +440,13 @@ export class ReactNativeTracing implements Integration {
     const maybeTtidSpan = transaction.spanRecorder?.spans.find(span => span.op === 'ui.load.initial_display');
     if (maybeTtidSpan) {
       maybeTtidSpan.startTimestamp = appStartTimeSeconds;
-      maybeTtidSpan.endTimestamp &&
-        setMeasurement(
-          'time_to_initial_display',
-          (maybeTtidSpan.endTimestamp - appStartTimeSeconds) * 1000,
-          'millisecond',
-        );
+      setSpanDurationAsMeasurement('time_to_initial_display', maybeTtidSpan);
+    }
+
+    const maybeTtfdSpan = transaction.spanRecorder?.spans.find(span => span.op === 'ui.load.full_display');
+    if (maybeTtfdSpan) {
+      maybeTtfdSpan.startTimestamp = appStartTimeSeconds;
+      setSpanDurationAsMeasurement('time_to_full_display', maybeTtfdSpan);
     }
 
     const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;

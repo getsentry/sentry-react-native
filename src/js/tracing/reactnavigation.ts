@@ -9,6 +9,7 @@ import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
+import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
 import type { BeforeNavigate, ReactNavigationTransactionContext, RouteChangeContextData } from './types';
 import { customTransactionSource, defaultTransactionSource, getBlankTransactionContext } from './utils';
 
@@ -226,17 +227,30 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
           const latestTtidSpan =
             !routeHasBeenSeen &&
             this._options.enableTimeToInitialDisplay &&
-            // TODO: use startTimeToInitialDisplaySpan function
-            startInactiveSpan({
-              op: 'ui.load.initial_display',
+            startTimeToInitialDisplaySpan({
               name: `${route.name} initial display`,
-              startTimestamp: this._latestTransaction?.startTimestamp,
+              isAutoInstrumented: true,
             });
 
           !routeHasBeenSeen &&
             this._newScreenFrameEventEmitter?.once(
               NewFrameEventName,
               ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
+                const activeSpan = getActiveSpan();
+                if (!activeSpan) {
+                  logger.warn(
+                    '[ReactNavigationInstrumentation] No active span found to attach ui.load.initial_display to.',
+                  );
+                  return;
+                }
+
+                if (manualInitialDisplaySpans.has(activeSpan)) {
+                  logger.warn(
+                    '[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.',
+                  );
+                  return;
+                }
+
                 if (!latestTtidSpan) {
                   return;
                 }

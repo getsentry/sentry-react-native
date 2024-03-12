@@ -1,3 +1,6 @@
+import * as mockedtimetodisplaynative from './tracing/mockedtimetodisplaynative';
+jest.mock('../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
+
 import { defaultStackParser } from '@sentry/browser';
 import type { Envelope, Event, MetricInstance, Outcome, Transport } from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
