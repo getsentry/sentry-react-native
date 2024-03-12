@@ -74,6 +74,7 @@ const TrackerScreen = () => {
 
   return (
     <View style={styles.screen}>
+      <Sentry.TimeToInitialDisplay record />
       <View style={styles.titleContainer}>
         <Text style={styles.title}>Global COVID19 Cases</Text>
       </View>
@@ -100,14 +101,14 @@ const TrackerScreen = () => {
           <ActivityIndicator size="small" color="#F6F6F8" />
         )}
       </View>
-      <Sentry.TimeToDisplay fullDisplay={shouldRecordFullDisplay}>
+      <Sentry.TimeToFullDisplay record={shouldRecordFullDisplay}>
         <Button
           sentry-label="refresh"
           title="Refresh"
           onPress={onRefreshButtonPress}
         />
         <Text>{statusText}</Text>
-      </Sentry.TimeToDisplay>
+      </Sentry.TimeToFullDisplay>
     </View>
   );
 };
