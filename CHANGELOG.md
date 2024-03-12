@@ -4,7 +4,7 @@
 
 ### Features
 
-- Add automatic tracing of time to initial display for `react-navigation` ([#3588](https://github.com/getsentry/sentry-react-native/pull/3588))
+- Automatic tracing of time to initial display for `react-navigation` ([#3588](https://github.com/getsentry/sentry-react-native/pull/3588))
 
   When enabled the instrumentation will create TTID spans and measurements.
   The TTID timestamp represent moment when the `react-navigation` screen
@@ -18,6 +18,25 @@
   Sentry.init({
     integrations: [new Sentry.ReactNativeTracing({routingInstrumentation})],
   });
+  ```
+
+- Tracing of full display using manual API ([#3654](https://github.com/getsentry/sentry-react-native/pull/3654))
+
+  In combination with the `react-navigation` automatic instrumentation you can record when
+  the application screen is fully rendered.
+
+  For more examples and manual time to initial display see [the documentation](https://docs.sentry.io/platforms/react-native/performance/instrumentation/time-to-display).
+
+  ```javascript
+  function Example() {
+    const [loaded] = React.useState(false);
+
+    return <View>
+      <Sentry.TimeToFullDisplay record={loaded}>
+        <Text>Example content</Text>
+      </Sentry.TimeToFullDisplay>
+    </View>;
+  }
   ```
 
 ### Fixes
