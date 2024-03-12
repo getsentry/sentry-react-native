@@ -1,4 +1,3 @@
-
 export interface RNSentryOnDrawNextFrameEvent {
   newFrameTimestampInSeconds: number;
   type: 'initialDisplay' | 'fullDisplay';

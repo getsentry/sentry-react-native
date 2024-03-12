@@ -6,7 +6,9 @@ import type { RNSentryOnDrawReporterProps } from './timetodisplaynative.types';
 
 const RNSentryOnDrawReporterClass = 'RNSentryOnDrawReporter';
 
-export const nativeComponentExists = UIManager.hasViewManagerConfig(RNSentryOnDrawReporterClass)
+export const nativeComponentExists = UIManager.hasViewManagerConfig
+  ? UIManager.hasViewManagerConfig(RNSentryOnDrawReporterClass)
+  : false;
 
 /**
  * This is a fallback component for environments where the native component is not available.

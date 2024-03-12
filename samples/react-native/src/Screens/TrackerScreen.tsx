@@ -18,7 +18,9 @@ import * as Sentry from '@sentry/react-native';
  * to the fetch call and track the time it takes for Promise to resolve.
  */
 const TrackerScreen = () => {
-  const [state, setState] = React.useState<'loading' | 'loaded' | 'error'>('loading');
+  const [state, setState] = React.useState<'loading' | 'loaded' | 'error'>(
+    'loading',
+  );
   const [cases, setCases] = React.useState<{
     TotalConfirmed: number;
     TotalDeaths: number;
@@ -61,10 +63,11 @@ const TrackerScreen = () => {
     loadData();
   }, []);
 
-  const statusText = state === 'loading' && 'Loading...'
-  || state === 'error' && 'Error'
-  || state === 'loaded' && 'Loaded'
-  || 'Unknown';
+  const statusText =
+    (state === 'loading' && 'Loading...') ||
+    (state === 'error' && 'Error') ||
+    (state === 'loaded' && 'Loaded') ||
+    'Unknown';
   const shouldRecordFullDisplay = state === 'loaded' || state === 'error';
   console.log('shouldRecordFullDisplay', shouldRecordFullDisplay);
   console.log('statusText', statusText);

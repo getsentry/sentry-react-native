@@ -51,8 +51,6 @@ export {
 import { _addTracingExtensions } from './tracing/addTracingExtensions';
 _addTracingExtensions();
 
-export * from './tracing/timetodisplay';
-
 export {
   Integrations as BrowserIntegrations,
   ErrorBoundary,
@@ -95,6 +93,10 @@ export {
   ReactNativeNavigationInstrumentation,
   RoutingInstrumentation,
   sentryTraceGesture,
+  TimeToDisplay,
+  startTimeToInitialDisplaySpan,
+  startTimeToFullDisplaySpan,
 } from './tracing';
-export type { ReactNavigationTransactionContext } from './tracing';
+
+export type { ReactNavigationTransactionContext, TimeToDisplayProps } from './tracing';
 export { Integrations, SDK_NAME, SDK_VERSION };

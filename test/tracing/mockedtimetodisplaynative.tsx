@@ -11,8 +11,12 @@ export function setMockedNativeComponentExists(value: boolean): void {
 
 export let mockedOnDrawNextFrame: (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }) => void;
 
-export function emitNativeInitialDisplayEvent(): void {
-  mockedOnDrawNextFrame({ nativeEvent: { type: 'initialDisplay', newFrameTimestampInSeconds: Date.now() / 1_000 } });
+export function emitNativeInitialDisplayEvent(frameTimestampMs?: number): void {
+  mockedOnDrawNextFrame({ nativeEvent: { type: 'initialDisplay', newFrameTimestampInSeconds: (frameTimestampMs || Date.now()) / 1_000 } });
+}
+
+export function emitNativeFullDisplayEvent(frameTimestampMs?: number): void {
+  mockedOnDrawNextFrame({ nativeEvent: { type: 'fullDisplay', newFrameTimestampInSeconds: (frameTimestampMs || Date.now()) / 1_000 } });
 }
 
 function RNSentryOnDrawReporterMock(props: RNSentryOnDrawReporterProps): React.ReactElement {
