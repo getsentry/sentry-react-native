@@ -1,15 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Allow custom `sentryUrl` for Expo updates source maps uploads ([#3664](https://github.com/getsentry/sentry-react-native/pull/3664))
+
 ## 5.19.3
 
 ### Fixes
 
 - Multiple Debug IDs can be loaded into the global polyfill ([#3660](https://github.com/getsentry/sentry-react-native/pull/3660))
   - This fixes a symbolication issue with Expo on the web with enabled bundle splitting.
-
-### Fixes
-
-- Allow custom `sentryUrl` for Expo updates source maps uploads ([#3664](https://github.com/getsentry/sentry-react-native/pull/3664))
 
 ### Dependencies
 
