@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Allow custom `sentryUrl` for Expo updates source maps uploads ([#3664](https://github.com/getsentry/sentry-react-native/pull/3664))
+
 ### Dependencies
 
 - Bump CLI from v2.25.2 to v2.29.1 ([#3534](https://github.com/getsentry/sentry-react-native/pull/3534))
