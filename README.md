@@ -33,7 +33,7 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 - Events with enriched device data
 - RAM bundle support
 - Hermes support
-- Expo support ([sentry-expo](https://github.com/expo/sentry-expo))
+- [Expo support](https://docs.sentry.io/platforms/react-native/manual-setup/expo/)
 - RN New Architecture support
 
 ## Installation and Usage
