@@ -183,6 +183,39 @@ describe('TimeToDisplay', () => {
       .toEqual(asObjectWithMeasurements(activeSpan)._measurements!.time_to_initial_display.value);
   });
 
+  test('full display which ended before initial display is extended to initial display end', () => {
+    const fullDisplayEndTimestampMs = secondInFutureTimestampMs();
+    const initialDisplayEndTimestampMs = secondInFutureTimestampMs() + 500;
+    const [initialDisplaySpan, fullDisplaySpan, activeSpan] = startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTimestamp: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
+        const initialDisplaySpan = startTimeToInitialDisplaySpan();
+        const fullDisplaySpan = startTimeToFullDisplaySpan();
+
+        const timeToDisplayComponent = TestRenderer.create(<><TimeToInitialDisplay record={false} /><TimeToFullDisplay record={true}/></>);
+        emitNativeFullDisplayEvent(fullDisplayEndTimestampMs);
+
+        timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={true}/></>);
+        emitNativeFullDisplayEvent(fullDisplayEndTimestampMs + 10);
+        emitNativeInitialDisplayEvent(initialDisplayEndTimestampMs);
+
+        return [initialDisplaySpan, fullDisplaySpan, activeSpan];
+      },
+    );
+
+    expectFinishedInitialDisplaySpan(initialDisplaySpan, activeSpan);
+    expectFinishedFullDisplaySpan(fullDisplaySpan, activeSpan);
+
+    expectInitialDisplayMeasurementOnSpan(activeSpan);
+    expectFullDisplayMeasurementOnSpan(activeSpan);
+
+    expect(spanToJSON(initialDisplaySpan!).timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
+    expect(spanToJSON(fullDisplaySpan!).timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
+  });
+
   test('consequent renders do not update display end', () => {
     const initialDisplayEndTimestampMs = secondInFutureTimestampMs();
     const fullDisplayEndTimestampMs = secondInFutureTimestampMs() + 500;

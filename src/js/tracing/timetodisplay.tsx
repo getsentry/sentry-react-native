@@ -14,6 +14,11 @@ let nativeComponentMissingLogged = false;
  */
 export const manualInitialDisplaySpans = new WeakMap<Span, true>();
 
+/**
+ * Flag full display called before initial display for an active span.
+ */
+const fullDisplayBeforeInitialDisplay = new WeakMap<Span, true>();
+
 export type TimeToDisplayProps = {
   children?: React.ReactNode;
   spanName?: string;
@@ -214,10 +219,35 @@ function updateInitialDisplaySpan(frameTimestampSeconds: number): void {
   span.setStatus('ok');
   logger.debug(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp.`);
 
+  if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
+    fullDisplayBeforeInitialDisplay.delete(activeSpan);
+    updateFullDisplaySpan(frameTimestampSeconds, span);
+  }
+
   setSpanDurationAsMeasurement('time_to_initial_display', span);
 }
 
-function updateFullDisplaySpan(frameTimestampSeconds: number): void {
+function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDisplaySpan?: Span): void {
+  const activeSpan = getActiveSpan();
+  if (!activeSpan) {
+    logger.warn(`[TimeToDisplay] No active span found to attach ui.load.full_display to.`);
+    return;
+  }
+
+  if (!(activeSpan instanceof SpanClass)) {
+    logger.warn(`[TimeToDisplay] Active span is not instance of Span class.`);
+    return;
+  }
+
+  const existingInitialDisplaySpan = passedInitialDisplaySpan
+    || activeSpan.spanRecorder?.spans.find((span) => spanToJSON(span).op === 'ui.load.initial_display');
+  const initialDisplayEndTimestamp = existingInitialDisplaySpan && spanToJSON(existingInitialDisplaySpan).timestamp;
+  if (!initialDisplayEndTimestamp) {
+    fullDisplayBeforeInitialDisplay.set(activeSpan, true);
+    logger.warn(`[TimeToDisplay] Full display called before initial display for active span.`);
+    return;
+  }
+
   const span = startTimeToFullDisplaySpan();
   if (!span) {
     logger.warn(`[TimeToDisplay] No span found or created, possibly performance is disabled.`);
