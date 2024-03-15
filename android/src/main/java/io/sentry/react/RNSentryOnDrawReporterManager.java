@@ -4,9 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableMap;
@@ -17,6 +14,7 @@ import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -30,21 +28,21 @@ import io.sentry.android.core.internal.util.FirstDrawDoneListener;
 public class RNSentryOnDrawReporterManager extends SimpleViewManager<RNSentryOnDrawReporterManager.RNSentryOnDrawReporterView> {
 
     public static final String REACT_CLASS = "RNSentryOnDrawReporter";
-    ReactApplicationContext mCallerContext;
+    private final @NotNull ReactApplicationContext mCallerContext;
 
     public RNSentryOnDrawReporterManager(ReactApplicationContext reactContext) {
         mCallerContext = reactContext;
     }
 
-    @NonNull
+    @NotNull
     @Override
     public String getName() {
         return REACT_CLASS;
     }
 
-    @NonNull
+    @NotNull
     @Override
-    protected RNSentryOnDrawReporterView createViewInstance(@NonNull ThemedReactContext themedReactContext) {
+    protected RNSentryOnDrawReporterView createViewInstance(@NotNull ThemedReactContext themedReactContext) {
         return new RNSentryOnDrawReporterView(mCallerContext, new BuildInfoProvider(new AndroidLogger()));
     }
 

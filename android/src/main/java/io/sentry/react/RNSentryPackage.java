@@ -3,6 +3,7 @@ package io.sentry.react;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,7 @@ public class RNSentryPackage extends TurboReactPackage {
   @Override
   public List<ViewManager> createViewManagers(
           ReactApplicationContext reactContext) {
-    return List.of(
+    return Arrays.asList(
           new RNSentryOnDrawReporterManager(reactContext)
     );
   }
