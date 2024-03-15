@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const process = require('process');
 
+const SENTRY_URL = 'SENTRY_URL';
 const SENTRY_ORG = 'SENTRY_ORG';
 const SENTRY_PROJECT = 'SENTRY_PROJECT';
 const SENTRY_AUTH_TOKEN = 'SENTRY_AUTH_TOKEN';
@@ -111,11 +112,12 @@ try {
 }
 
 let sentryOrg = getEnvVar(SENTRY_ORG);
+let sentryUrl = getEnvVar(SENTRY_URL);
 let sentryProject = getEnvVar(SENTRY_PROJECT);
 let authToken = getEnvVar(SENTRY_AUTH_TOKEN);
 const sentryCliBin = getEnvVar(SENTRY_CLI_EXECUTABLE) || require.resolve('@sentry/cli/bin/sentry-cli');
 
-if (!sentryOrg || !sentryProject) {
+if (!sentryOrg || !sentryProject || !sentryUrl) {
   console.log('🐕 Fetching from expo config...');
   const pluginConfig = getSentryPluginPropertiesFromExpoConfig();
   if (!pluginConfig) {
@@ -146,6 +148,17 @@ if (!sentryOrg || !sentryProject) {
     sentryProject = pluginConfig.project;
     console.log(`${SENTRY_PROJECT} resolved to ${sentryProject} from expo config.`);
   }
+  if (!sentryUrl) {
+    if (!pluginConfig.url) {
+      console.error(
+        `Could not resolve sentry url, set it in the environment variable ${SENTRY_URL} or in the '@sentry/react-native' plugin properties in your expo config.`,
+      );
+      process.exit(1);
+    }
+
+    sentryUrl = pluginConfig.url;
+    console.log(`${SENTRY_URL} resolved to ${sentryUrl} from expo config.`);
+  } 
 }
 
 if (!authToken) {
@@ -186,6 +199,7 @@ for (const [assetGroupName, assets] of Object.entries(groupedAssets)) {
       ...process.env,
       [SENTRY_PROJECT]: sentryProject,
       [SENTRY_ORG]: sentryOrg,
+      [SENTRY_URL]: sentryUrl
     },
     stdio: 'inherit',
   });
