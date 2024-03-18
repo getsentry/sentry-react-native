@@ -46,7 +46,15 @@
         }
       ],
       "./withSampleSentry.js",
-      "expo-router"
+      [
+        "expo-router",
+        {
+          "asyncRoutes": {
+            "web": true,
+            "default": "development"
+          }
+        }
+      ]
     ]
   }
 }
