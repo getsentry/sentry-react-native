@@ -51,10 +51,10 @@ const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
       }
     });
 
-  const json: ApiEvent = await request()
+  const json: ApiEvent = (await request()
     // tslint:disable-next-line: no-unsafe-any
     .then(res => res.json())
-    .then(retryer) as ApiEvent;
+    .then(retryer)) as ApiEvent;
 
   return json;
 };
