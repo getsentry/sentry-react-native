@@ -42,6 +42,7 @@
 ### Fixes
 
 - Allow custom `sentryUrl` for Expo updates source maps uploads ([#3664](https://github.com/getsentry/sentry-react-native/pull/3664))
+- Missing Mobile Vitals (slow, frozen frames) when ActiveSpan (Transaction) is trimmed at the end ([#3684](https://github.com/getsentry/sentry-react-native/pull/3684))
 
 ## 5.19.3
 
