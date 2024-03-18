@@ -2,8 +2,11 @@ import type { Event, EventHint, EventProcessor, Hub, Integration, StackFrame as 
 import { addContextToFrame, logger } from '@sentry/utils';
 
 import { getFramesToPop, isErrorLike } from '../utils/error';
+import { ReactNativeLibraries } from '../utils/rnlibraries';
+import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 import type * as ReactNative from '../vendor/react-native';
 
+// eslint-disable-next-line @sentry-internal/sdk/no-regexp-constructor
 const INTERNAL_CALLSITES_REGEX = new RegExp(['ReactNativeRenderer-dev\\.js$', 'MessageQueue\\.js$'].join('|'));
 
 /**
@@ -70,9 +73,9 @@ export class DebugSymbolicator implements Integration {
    * Mutates the passed event.
    */
   private async _symbolicate(rawStack: string, skipFirstFrames: number = 0): Promise<SentryStackFrame[] | null> {
-    const parsedStack = this._parseErrorStack(rawStack);
-
     try {
+      const parsedStack = this._parseErrorStack(rawStack);
+
       const prettyStack = await this._symbolicateStackTrace(parsedStack);
       if (!prettyStack) {
         logger.error('React Native DevServer could not symbolicate the stack trace.');
@@ -199,23 +202,50 @@ export class DebugSymbolicator implements Integration {
    * Get source context for segment
    */
   private async _fetchSourceContext(url: string, segments: Array<string>, start: number): Promise<string | null> {
-    const response = await fetch(`${url}${segments.slice(start).join('/')}`, {
-      method: 'GET',
-    });
+    return new Promise(resolve => {
+      const fullUrl = `${url}${segments.slice(start).join('/')}`;
 
-    if (response.ok) {
-      return response.text();
-    }
-    return null;
+      const xhr = createStealthXhr();
+      if (!xhr) {
+        resolve(null);
+        return;
+      }
+
+      xhr.open('GET', fullUrl, true);
+      xhr.send();
+
+      xhr.onreadystatechange = (): void => {
+        if (xhr.readyState === XHR_READYSTATE_DONE) {
+          if (xhr.status !== 200) {
+            resolve(null);
+          }
+          const response = xhr.responseText;
+          if (
+            typeof response !== 'string' ||
+            // Expo Dev Server responses with status 200 and config JSON
+            // when web support not enabled and requested file not found
+            response.startsWith('{')
+          ) {
+            resolve(null);
+          }
+
+          resolve(response);
+        }
+      };
+      xhr.onerror = (): void => {
+        resolve(null);
+      };
+    });
   }
 
   /**
    * Loads and calls RN Core Devtools parseErrorStack function.
    */
   private _parseErrorStack(errorStack: string): Array<ReactNative.StackFrame> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
-    return parseErrorStack(errorStack);
+    if (!ReactNativeLibraries.Devtools) {
+      throw new Error('React Native Devtools not available.');
+    }
+    return ReactNativeLibraries.Devtools.parseErrorStack(errorStack);
   }
 
   /**
@@ -225,9 +255,10 @@ export class DebugSymbolicator implements Integration {
     stack: Array<ReactNative.StackFrame>,
     extraData?: Record<string, unknown>,
   ): Promise<ReactNative.SymbolicatedStackTrace> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
-    return symbolicateStackTrace(stack, extraData);
+    if (!ReactNativeLibraries.Devtools) {
+      throw new Error('React Native Devtools not available.');
+    }
+    return ReactNativeLibraries.Devtools.symbolicateStackTrace(stack, extraData);
   }
 
   /**
@@ -235,9 +266,7 @@ export class DebugSymbolicator implements Integration {
    */
   private _getDevServer(): ReactNative.DevServerInfo | undefined {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const getDevServer = require('react-native/Libraries/Core/Devtools/getDevServer');
-      return getDevServer();
+      return ReactNativeLibraries.Devtools?.getDevServer();
     } catch (_oO) {
       // We can't load devserver URL
     }

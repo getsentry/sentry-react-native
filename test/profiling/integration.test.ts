@@ -10,11 +10,16 @@ import * as Sentry from '../../src/js';
 import { HermesProfiling } from '../../src/js/integrations';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { getDebugMetadata } from '../../src/js/profiling/debugid';
-import { getDefaultEnvironment, isHermesEnabled } from '../../src/js/utils/environment';
+import type { AndroidProfileEvent } from '../../src/js/profiling/types';
+import { getDefaultEnvironment, isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { MOCK_DSN } from '../mockDsn';
 import { envelopeItemPayload, envelopeItems } from '../testutils';
-import { createMockMinimalValidAppleProfile, createMockMinimalValidHermesProfile } from './fixtures';
+import {
+  createMockMinimalValidAndroidProfile,
+  createMockMinimalValidAppleProfile,
+  createMockMinimalValidHermesProfile,
+} from './fixtures';
 
 const SEC_TO_MS = 1e6;
 
@@ -24,6 +29,7 @@ describe('profiling integration', () => {
   };
 
   beforeEach(() => {
+    (notWeb as jest.Mock).mockReturnValue(true);
     (isHermesEnabled as jest.Mock).mockReturnValue(true);
     mockWrapper.NATIVE.startProfiling.mockReturnValue(true);
     mockWrapper.NATIVE.stopProfiling.mockReturnValue({
@@ -61,7 +67,7 @@ describe('profiling integration', () => {
     transaction.finish();
     jest.runAllTimers();
 
-    expectEnveloperToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', transaction.traceId);
+    expectEnvelopeToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', transaction.traceId);
   });
 
   describe('environment', () => {
@@ -162,14 +168,12 @@ describe('profiling integration', () => {
     });
 
     describe('with native profiling', () => {
-      beforeEach(() => {
+      test('should create a new mixed profile and add it to the transaction envelope', () => {
         mockWrapper.NATIVE.stopProfiling.mockReturnValue({
           hermesProfile: createMockMinimalValidHermesProfile(),
           nativeProfile: createMockMinimalValidAppleProfile(),
         });
-      });
 
-      test('should create a new mixed profile and add it to the transaction envelope', () => {
         const transaction: Transaction = Sentry.startTransaction({
           name: 'test-name',
         });
@@ -178,7 +182,7 @@ describe('profiling integration', () => {
         jest.runAllTimers();
 
         const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
-        expectEnveloperToContainProfile(envelope, 'test-name', transaction.traceId);
+        expectEnvelopeToContainProfile(envelope, 'test-name', transaction.traceId);
         // Expect merged profile
         expect(getProfileFromEnvelope(envelope)).toEqual(
           expect.objectContaining(<Partial<Profile>>{
@@ -217,6 +221,48 @@ describe('profiling integration', () => {
           }),
         );
       });
+
+      test('should create new Android mixed profile and add it to the transaction envelope', () => {
+        mockWrapper.NATIVE.stopProfiling.mockReturnValue({
+          hermesProfile: createMockMinimalValidHermesProfile(),
+          androidProfile: createMockMinimalValidAndroidProfile(),
+        });
+
+        const transaction: Transaction = Sentry.startTransaction({
+          name: 'test-name',
+        });
+        transaction.finish();
+
+        jest.runAllTimers();
+
+        const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
+        expectEnvelopeToContainAndroidProfile(envelope, 'test-name', transaction.traceId);
+        // Expect merged profile
+        expect(getProfileFromEnvelope(envelope)).toEqual(
+          expect.objectContaining(<Partial<AndroidProfileEvent>>{
+            platform: 'android',
+            build_id: 'mocked-build-id',
+            debug_meta: {
+              images: [
+                {
+                  code_file: 'test.app.map',
+                  debug_id: '123',
+                  type: 'sourcemap',
+                },
+              ],
+            },
+            sampled_profile: 'YW5kcm9pZCB0cmFjZSBlbmNvZGVkIGluIGJhc2UgNjQ=', // base64 encoded 'android trace encoded in base 64'
+            js_profile: expect.objectContaining(<Partial<ThreadCpuProfile>>{
+              frames: [
+                {
+                  function: '[root]',
+                  in_app: false,
+                },
+              ],
+            }),
+          }),
+        );
+      });
     });
 
     test('should create a new profile and add in to the transaction envelope', () => {
@@ -227,7 +273,7 @@ describe('profiling integration', () => {
 
       jest.runAllTimers();
 
-      expectEnveloperToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', transaction.traceId);
+      expectEnvelopeToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', transaction.traceId);
     });
 
     test('should finish previous profile when a new transaction starts', () => {
@@ -242,8 +288,8 @@ describe('profiling integration', () => {
 
       jest.runAllTimers();
 
-      expectEnveloperToContainProfile(mock.transportSendMock.mock.calls[0][0], 'test-name-1', transaction1.traceId);
-      expectEnveloperToContainProfile(mock.transportSendMock.mock.calls[1][0], 'test-name-2', transaction2.traceId);
+      expectEnvelopeToContainProfile(mock.transportSendMock.mock.calls[0][0], 'test-name-1', transaction1.traceId);
+      expectEnvelopeToContainProfile(mock.transportSendMock.mock.calls[1][0], 'test-name-2', transaction2.traceId);
     });
 
     test('profile should start at the same time as transaction', () => {
@@ -286,7 +332,7 @@ describe('profiling integration', () => {
 
       jest.runAllTimers();
 
-      expectEnveloperToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', transaction.traceId);
+      expectEnvelopeToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', transaction.traceId);
     });
 
     test('profile timeout is reset when transaction is finished', () => {
@@ -333,6 +379,7 @@ function initTestClient(
   const transportSendMock = jest.fn<ReturnType<Transport['send']>, Parameters<Transport['send']>>();
   const options: Sentry.ReactNativeOptions = {
     dsn: MOCK_DSN,
+    enableTracing: true,
     _experiments: {
       profilesSampleRate: 1,
     },
@@ -365,7 +412,7 @@ function initTestClient(
   };
 }
 
-function expectEnveloperToContainProfile(
+function expectEnvelopeToContainProfile(
   envelope: Envelope | undefined,
   name: string | undefined,
   traceId: string | undefined,
@@ -381,6 +428,24 @@ function expectEnveloperToContainProfile(
         id: transactionEnvelopeItemPayload.event_id,
         trace_id: traceId,
       }),
+    }),
+  ]);
+}
+
+function expectEnvelopeToContainAndroidProfile(
+  envelope: Envelope | undefined,
+  name: string | undefined,
+  traceId: string | undefined,
+): void {
+  const transactionEnvelopeItemPayload = envelope?.[envelopeItems][0][envelopeItemPayload] as Event;
+  const profileEnvelopeItem = envelope?.[envelopeItems][1] as [{ type: 'profile' }, Profile];
+  expect(profileEnvelopeItem).toEqual([
+    { type: 'profile' },
+    expect.objectContaining<Partial<AndroidProfileEvent>>({
+      profile_id: expect.any(String),
+      transaction_name: name,
+      transaction_id: transactionEnvelopeItemPayload.event_id,
+      trace_id: traceId,
     }),
   ]);
 }

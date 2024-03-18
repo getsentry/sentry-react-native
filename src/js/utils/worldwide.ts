@@ -2,6 +2,8 @@ import type { InternalGlobal } from '@sentry/utils';
 import { GLOBAL_OBJ } from '@sentry/utils';
 import type { ErrorUtils } from 'react-native/types';
 
+import type { ExpoGlobalObject } from './expoglobalobject';
+
 /** Internal Global object interface with common and Sentry specific properties */
 export interface ReactNativeInternalGlobal extends InternalGlobal {
   __sentry_rn_v4_registered?: boolean;
@@ -13,7 +15,8 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   __turboModuleProxy: unknown;
   nativeFabricUIManager: unknown;
   ErrorUtils?: ErrorUtils;
-  expo: unknown;
+  expo?: ExpoGlobalObject;
+  XMLHttpRequest?: typeof XMLHttpRequest;
 }
 
 /** Get's the global object for the current JavaScript runtime */

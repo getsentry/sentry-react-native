@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import type { MixedOutput, Module } from 'metro';
+import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import * as countLines from 'metro/src/lib/countLines';
 
 import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
@@ -13,6 +13,32 @@ const DEBUG_ID_MODULE_PATH = '__debugid__';
 const PRELUDE_MODULE_PATH = '__prelude__';
 const SOURCE_MAP_COMMENT = '//# sourceMappingURL=';
 const DEBUG_ID_COMMENT = '//# debugId=';
+
+/**
+ * Adds Sentry Debug ID polyfill module to the bundle.
+ */
+export function unstable_beforeAssetSerializationPlugin({
+  premodules,
+  debugId,
+}: {
+  graph: ReadOnlyGraph<MixedOutput>;
+  premodules: Module[];
+  debugId?: string;
+}): Module[] {
+  if (!debugId) {
+    return premodules;
+  }
+
+  const debugIdModuleExists = premodules.findIndex(module => module.path === DEBUG_ID_MODULE_PATH) != -1;
+  if (debugIdModuleExists) {
+    // eslint-disable-next-line no-console
+    console.warn('\n\nDebug ID module found. Skipping Sentry Debug ID module...\n\n');
+    return premodules;
+  }
+
+  const debugIdModule = createDebugIdModule(debugId);
+  return [...addDebugIdModule(premodules, debugIdModule)];
+}
 
 /**
  * Creates a Metro serializer that adds Debug ID module to the plain bundle.
@@ -166,5 +192,6 @@ function calculateDebugId(bundle: Bundle): string {
 }
 
 function injectDebugId(code: string, debugId: string): string {
+  // eslint-disable-next-line @sentry-internal/sdk/no-regexp-constructor
   return code.replace(new RegExp(DEBUG_ID_PLACE_HOLDER, 'g'), debugId);
 }

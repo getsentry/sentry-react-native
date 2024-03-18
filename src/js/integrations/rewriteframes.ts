@@ -1,5 +1,5 @@
 import { RewriteFrames } from '@sentry/integrations';
-import type { StackFrame } from '@sentry/types';
+import type { Integration, StackFrame } from '@sentry/types';
 import { Platform } from 'react-native';
 
 import { isExpo, isHermesEnabled } from '../utils/environment';
@@ -13,7 +13,7 @@ export const IOS_DEFAULT_BUNDLE_NAME = 'app:///main.jsbundle';
  * and removes file://, 'address at' prefixes, CodePush postfix,
  * and Expo bundle postfix.
  */
-export function createReactNativeRewriteFrames(): RewriteFrames {
+export function createReactNativeRewriteFrames(): Integration {
   return new RewriteFrames({
     iteratee: (frame: StackFrame) => {
       if (frame.platform === 'java' || frame.platform === 'cocoa') {
@@ -57,6 +57,10 @@ export function createReactNativeRewriteFrames(): RewriteFrames {
       }
 
       const appPrefix = 'app://';
+      // https://github.com/getsentry/sentry-react-native/issues/3348
+      if (frame.filename === '/InternalBytecode.js') {
+        frame.in_app = false;
+      }
       // We always want to have a triple slash
       frame.filename =
         frame.filename.indexOf('/') === 0 ? `${appPrefix}${frame.filename}` : `${appPrefix}/${frame.filename}`;

@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "sentry-react-native-expo-sample",
+    "slug": "sentry-react-native-expo-sample",
+    "jsEngine": "hermes",
+    "scheme": "sentry-expo-sample",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "io.sentry.expo.sample"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "io.sentry.expo.sample"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "experiments": {
+      "tsconfigPaths": true,
+      "typedRoutes": true
+    },
+    "plugins": [
+      [
+        "../../expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "sentry-react-native",
+          "organization": "sentry-sdks"
+        }
+      ],
+      "./withSampleSentry.js",
+      [
+        "expo-router",
+        {
+          "asyncRoutes": {
+            "web": true,
+            "default": "development"
+          }
+        }
+      ]
+    ]
+  }
+}

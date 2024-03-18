@@ -44,7 +44,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     super(options);
 
     this._outcomesBuffer = [];
-    void this._initNativeSdk();
+    this._initNativeSdk();
   }
 
   /**
@@ -134,7 +134,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     }
 
     let shouldClearOutcomesBuffer = true;
-    if (this._transport && this._dsn) {
+    if (this._isEnabled() && this._transport && this._dsn) {
       this.emit('beforeEnvelope', envelope);
 
       this._transport.send(envelope).then(null, reason => {
@@ -159,20 +159,23 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   /**
    * Starts native client with dsn and options
    */
-  private async _initNativeSdk(): Promise<void> {
-    let didCallNativeInit = false;
-
-    try {
-      didCallNativeInit = await NATIVE.initNativeSdk(this._options);
-    } catch (_) {
-      this._showCannotConnectDialog();
-    } finally {
-      try {
+  private _initNativeSdk(): void {
+    NATIVE.initNativeSdk(this._options)
+      .then(
+        (result: boolean) => {
+          return result;
+        },
+        () => {
+          this._showCannotConnectDialog();
+          return false;
+        },
+      )
+      .then((didCallNativeInit: boolean) => {
         this._options.onReady?.({ didCallNativeInit });
-      } catch (error) {
+      })
+      .then(undefined, error => {
         logger.error('The OnReady callback threw an error: ', error);
-      }
-    }
+      });
   }
 
   /**
@@ -182,7 +185,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     if (__DEV__ && this._options.enableNativeNagger) {
       Alert.alert(
         'Sentry',
-        'Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/#linking for more details.',
+        'Warning, could not connect to Sentry native SDK.\nIf you do not want to use the native component please pass `enableNative: false` in the options.\nVisit: https://docs.sentry.io/platforms/react-native/ for more details.',
       );
     }
   }

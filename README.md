@@ -13,11 +13,11 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 # Sentry SDK for React Native
 
 [![Build & Test](https://github.com/getsentry/sentry-react-native/actions/workflows/buildandtest.yml/badge.svg)](https://github.com/getsentry/sentry-react-native/actions/workflows/buildandtest.yml)
-[![E2E Tests](https://img.shields.io/github/actions/workflow/status/getsentry/sentry-react-native/.github/workflows/e2e.yml?branch=main)](https://github.com/getsentry/sentry-react-native/actions?query=workflow%3A"End-to-End%20Tests")
 [![npm version](https://img.shields.io/npm/v/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
 [![npm dm](https://img.shields.io/npm/dm/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
 [![npm dt](https://img.shields.io/npm/dt/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
 [![Discord Chat](https://img.shields.io/discord/621778831602221064?logo=discord&logoColor=ffffff&color=7389D8)](https://discord.gg/PXa5Apfe7K)
+[![Runs with Expo](https://img.shields.io/badge/Runs%20with%20Expo-4630EB.svg?style=flat-square&logo=EXPO&labelColor=f3f3f3&logoColor=000)](https://expo.dev/)
 
 ## Requirements
 
@@ -33,7 +33,7 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 - Events with enriched device data
 - RAM bundle support
 - Hermes support
-- Expo support ([sentry-expo](https://github.com/expo/sentry-expo))
+- [Expo support](https://docs.sentry.io/platforms/react-native/manual-setup/expo/)
 - RN New Architecture support
 
 ## Installation and Usage

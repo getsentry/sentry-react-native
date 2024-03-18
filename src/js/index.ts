@@ -28,13 +28,27 @@ export {
   setTags,
   setUser,
   startTransaction,
+
+  // v8 spans
   startInactiveSpan,
   startSpan,
   startSpanManual,
   getActiveSpan,
+  spanToJSON,
+  spanIsSampled,
+  setMeasurement,
+
+  // v8 scopes
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  getClient,
+  setCurrentClient,
+  addEventProcessor,
+  metrics,
 } from '@sentry/core';
 
-import { _addTracingExtensions } from './measurements';
+import { _addTracingExtensions } from './tracing/addTracingExtensions';
 _addTracingExtensions();
 
 export {
@@ -79,6 +93,11 @@ export {
   ReactNativeNavigationInstrumentation,
   RoutingInstrumentation,
   sentryTraceGesture,
+  TimeToInitialDisplay,
+  TimeToFullDisplay,
+  startTimeToInitialDisplaySpan,
+  startTimeToFullDisplaySpan,
 } from './tracing';
-export type { ReactNavigationTransactionContext } from './tracing';
+
+export type { ReactNavigationTransactionContext, TimeToDisplayProps } from './tracing';
 export { Integrations, SDK_NAME, SDK_VERSION };

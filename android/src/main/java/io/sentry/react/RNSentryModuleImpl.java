@@ -1,6 +1,9 @@
 package io.sentry.react;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.sentry.android.core.internal.util.ScreenshotUtils.takeScreenshot;
+import static io.sentry.vendor.Base64.NO_PADDING;
+import static io.sentry.vendor.Base64.NO_WRAP;
 
 import android.app.Activity;
 import android.content.Context;
@@ -10,12 +13,13 @@ import android.content.res.AssetManager;
 import android.util.SparseIntArray;
 
 import androidx.core.app.FrameMetricsAggregator;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 
 import com.facebook.hermes.instrumentation.HermesSamplingProfiler;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.UiThreadUtil;
@@ -23,6 +27,7 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,47 +36,56 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import io.sentry.Breadcrumb;
 import io.sentry.DateUtils;
 import io.sentry.HubAdapter;
 import io.sentry.ILogger;
+import io.sentry.ISentryExecutorService;
+import io.sentry.IScope;
 import io.sentry.ISerializer;
 import io.sentry.Integration;
-import io.sentry.Scope;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
+import io.sentry.SentryDateProvider;
 import io.sentry.SentryEvent;
+import io.sentry.SentryExecutorService;
 import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
+import io.sentry.android.core.AndroidProfiler;
 import io.sentry.android.core.AnrIntegration;
-import io.sentry.android.core.AppStartState;
 import io.sentry.android.core.BuildConfig;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.InternalSentrySdk;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
+import io.sentry.android.core.SentryAndroidDateProvider;
 import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
+import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
+import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
+import io.sentry.android.core.performance.AppStartMetrics;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
+import io.sentry.util.DebugMetaPropertiesApplier;
 import io.sentry.util.JsonSerializationUtils;
 import io.sentry.vendor.Base64;
+import io.sentry.util.FileUtils;
 
 public class RNSentryModuleImpl {
 
@@ -98,18 +112,67 @@ public class RNSentryModuleImpl {
 
     private static final int SCREENSHOT_TIMEOUT_SECONDS = 2;
 
+    /**
+     * Profiling traces rate. 101 hz means 101 traces in 1 second. Defaults to 101 to avoid possible
+     * lockstep sampling. More on
+     * https://stackoverflow.com/questions/45470758/what-is-lockstep-sampling
+     */
+    private int profilingTracesHz = 101;
+
+    private AndroidProfiler androidProfiler = null;
+
+    private boolean isProguardDebugMetaLoaded = false;
+    private @Nullable String proguardUuid = null;
+    private String cacheDirPath = null;
+    private ISentryExecutorService executorService = null;
+
+    private final @NotNull Runnable emitNewFrameEvent;
+
+    /** Max trace file size in bytes. */
+    private long maxTraceFileSize = 5 * 1024 * 1024;
+
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
-        packageInfo = getPackageInfo(reactApplicationContext);
-        this.reactApplicationContext = reactApplicationContext;
+      packageInfo = getPackageInfo(reactApplicationContext);
+      this.reactApplicationContext = reactApplicationContext;
+      this.emitNewFrameEvent = createEmitNewFrameEvent();
     }
 
     private ReactApplicationContext getReactApplicationContext() {
-        return this.reactApplicationContext;
+      return this.reactApplicationContext;
     }
 
-    private @Nullable
-    Activity getCurrentActivity() {
-        return this.reactApplicationContext.getCurrentActivity();
+    private @Nullable Activity getCurrentActivity() {
+      return this.reactApplicationContext.getCurrentActivity();
+    }
+
+    private @NotNull Runnable createEmitNewFrameEvent() {
+        final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
+
+        return () -> {
+          final SentryDate endDate = dateProvider.now();
+          WritableMap event = Arguments.createMap();
+          event.putDouble("newFrameTimestampInSeconds", endDate.nanoTimestamp() / 1e9);
+          getReactApplicationContext()
+              .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+              .emit("rn_sentry_new_frame", event);
+        };
+    }
+
+    private void initFragmentInitialFrameTracking() {
+        final RNSentryReactFragmentLifecycleTracer fragmentLifecycleTracer =
+                new RNSentryReactFragmentLifecycleTracer(buildInfo, emitNewFrameEvent, logger);
+
+        final @Nullable FragmentActivity fragmentActivity = (FragmentActivity) getCurrentActivity();
+        if (fragmentActivity != null) {
+            final @Nullable FragmentManager supportFragmentManager = fragmentActivity.getSupportFragmentManager();
+            if (supportFragmentManager != null) {
+                supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleTracer, true);
+            }
+        }
+    }
+
+    public void initNativeReactNavigationNewFrameTracking(Promise promise) {
+        this.initFragmentInitialFrameTracking();
     }
 
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
@@ -123,7 +186,7 @@ public class RNSentryModuleImpl {
 
             options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
             options.setNativeSdkName(NATIVE_SDK_NAME);
-            options.setSdkVersion(sdkVersion);
+          options.setSdkVersion(sdkVersion);
 
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
@@ -234,6 +297,16 @@ public class RNSentryModuleImpl {
         throw new RuntimeException("TEST - Sentry Client Crash (only works in release mode)");
     }
 
+    public void addListener(String _eventType) {
+      // Is must be defined otherwise the generated interface from TS won't be fulfilled
+      logger.log(SentryLevel.ERROR, "addListener of NativeEventEmitter can't be used on Android!");
+    }
+
+    public void removeListeners(double _id) {
+      // Is must be defined otherwise the generated interface from TS won't be fulfilled
+      logger.log(SentryLevel.ERROR, "removeListeners of NativeEventEmitter can't be used on Android!");
+    }
+
     public void fetchModules(Promise promise) {
         final AssetManager assets = this.getReactApplicationContext().getResources().getAssets();
         try (final InputStream stream =
@@ -261,15 +334,12 @@ public class RNSentryModuleImpl {
     }
 
     public void fetchNativeAppStart(Promise promise) {
-        final AppStartState appStartInstance = AppStartState.getInstance();
-        final SentryDate appStartTime = appStartInstance.getAppStartTime();
-        final Boolean isColdStart = appStartInstance.isColdStart();
+        final AppStartMetrics appStartInstance = AppStartMetrics.getInstance();
+        final SentryDate appStartTime = appStartInstance.getAppStartTimeSpan().getStartTimestamp();
+        final boolean isColdStart = appStartInstance.getAppStartType() == AppStartMetrics.AppStartType.COLD;
 
         if (appStartTime == null) {
             logger.log(SentryLevel.WARNING, "App start won't be sent due to missing appStartTime.");
-            promise.resolve(null);
-        } else if (isColdStart == null) {
-            logger.log(SentryLevel.WARNING, "App start won't be sent due to missing isColdStart.");
             promise.resolve(null);
         } else {
             final double appStartTimestampMs = DateUtils.nanosToMillis(appStartTime.nanoTimestamp());
@@ -398,7 +468,7 @@ public class RNSentryModuleImpl {
         }
 
         try {
-            doneSignal.await(SCREENSHOT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            doneSignal.await(SCREENSHOT_TIMEOUT_SECONDS, SECONDS);
         } catch (InterruptedException e) {
             logger.log(SentryLevel.ERROR, "Screenshot process was interrupted.");
             return null;
@@ -616,10 +686,41 @@ public class RNSentryModuleImpl {
         }
     }
 
+    private String getProfilingTracesDirPath() {
+        if (cacheDirPath == null) {
+            cacheDirPath = new File(getReactApplicationContext().getCacheDir(), "sentry/react").getAbsolutePath();
+        }
+        File profilingTraceDir = new File(cacheDirPath, "profiling_trace");
+        profilingTraceDir.mkdirs();
+        return profilingTraceDir.getAbsolutePath();
+    }
+
+    private void initializeAndroidProfiler() {
+        if (executorService == null) {
+            executorService = new SentryExecutorService();
+        }
+        final String tracesFilesDirPath = getProfilingTracesDirPath();
+
+        androidProfiler = new AndroidProfiler(
+                tracesFilesDirPath,
+                (int) SECONDS.toMicros(1) / profilingTracesHz,
+                new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo),
+                executorService,
+                logger,
+                buildInfo
+        );
+    }
+
     public WritableMap startProfiling() {
         final WritableMap result = new WritableNativeMap();
+        if (androidProfiler == null) {
+            initializeAndroidProfiler();
+        }
+
         try {
             HermesSamplingProfiler.enable();
+            androidProfiler.start();
+
             result.putBoolean("started", true);
         } catch (Throwable e) {
             result.putBoolean("started", false);
@@ -633,27 +734,26 @@ public class RNSentryModuleImpl {
         final WritableMap result = new WritableNativeMap();
         File output = null;
         try {
+            AndroidProfiler.ProfileEndData end = androidProfiler.endAndCollect(false, null);
             HermesSamplingProfiler.disable();
 
             output = File.createTempFile(
                 "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
-
             if (isDebug) {
                 logger.log(SentryLevel.INFO, "Profile saved to: " + output.getAbsolutePath());
             }
 
-            try (final BufferedReader br = new BufferedReader(new FileReader(output));) {
-                HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
+            HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
+            result.putString("profile", readStringFromFile(output));
 
-                final StringBuilder text = new StringBuilder();
-                String line;
-                while ((line = br.readLine()) != null) {
-                    text.append(line);
-                    text.append('\n');
-                }
+            WritableMap androidProfile = new WritableNativeMap();
+            byte[] androidProfileBytes = FileUtils.readBytesFromFile(end.traceFile.getPath(), maxTraceFileSize);
+            String base64AndroidProfile = Base64.encodeToString(androidProfileBytes, NO_WRAP | NO_PADDING);
 
-                result.putString("profile", text.toString());
-            }
+            androidProfile.putString("sampled_profile", base64AndroidProfile);
+            androidProfile.putInt("android_api_level", buildInfo.getSdkInfoVersion());
+            androidProfile.putString("build_id", getProguardUuid());
+            result.putMap("androidProfile", androidProfile);
         } catch (Throwable e) {
             result.putString("error", e.toString());
         } finally {
@@ -671,6 +771,42 @@ public class RNSentryModuleImpl {
         return result;
     }
 
+    private @Nullable String getProguardUuid() {
+        if (isProguardDebugMetaLoaded) {
+            return proguardUuid;
+        }
+        isProguardDebugMetaLoaded = true;
+        final @Nullable List<Properties> debugMetaList = (new AssetsDebugMetaLoader(this.getReactApplicationContext(),
+            logger)).loadDebugMeta();
+        if (debugMetaList == null) {
+            return null;
+        }
+
+        for (Properties debugMeta : debugMetaList) {
+            proguardUuid = DebugMetaPropertiesApplier.getProguardUuid(debugMeta);
+            if (proguardUuid != null) {
+                logger.log(SentryLevel.INFO, "Proguard uuid found: " + proguardUuid);
+                return proguardUuid;
+            }
+        }
+
+        logger.log(SentryLevel.WARNING, "No proguard uuid found in debug meta properties file!");
+        return null;
+    }
+
+    private String readStringFromFile(File path) throws IOException {
+        try (final BufferedReader br = new BufferedReader(new FileReader(path));) {
+
+            final StringBuilder text = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                text.append(line);
+                text.append('\n');
+            }
+            return text.toString();
+        }
+    }
+
     public void fetchNativeDeviceContexts(Promise promise) {
         final @NotNull SentryOptions options = HubAdapter.getInstance().getOptions();
         if (!(options instanceof SentryAndroidOptions)) {
@@ -684,12 +820,12 @@ public class RNSentryModuleImpl {
             return;
         }
 
-        final @Nullable Scope currentScope = InternalSentrySdk.getCurrentScope();
+        final @Nullable IScope currentScope = InternalSentrySdk.getCurrentScope();
         final @NotNull Map<String, Object> serialized = InternalSentrySdk.serializeScope(
                 context,
                 (SentryAndroidOptions) options,
                 currentScope);
-        final @Nullable Object deviceContext = MapConverter.convertToWritable(serialized);
+        final @Nullable Object deviceContext = RNSentryMapConverter.convertToWritable(serialized);
         promise.resolve(deviceContext);
     }
 
@@ -705,8 +841,8 @@ public class RNSentryModuleImpl {
         }
     }
 
-    public void fetchNativePackageName(Promise promise) {
-        promise.resolve(packageInfo.packageName);
+    public String fetchNativePackageName() {
+        return packageInfo.packageName;
     }
 
     private void setEventOriginTag(SentryEvent event) {

@@ -28,13 +28,14 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = "11.0"
   s.osx.deployment_target = "10.13"
   s.tvos.deployment_target = "11.0"
+  s.visionos.deployment_target = "1.0" if s.respond_to?(:visionos)
 
   s.preserve_paths = '*.js'
 
   s.dependency 'React-Core'
-  s.dependency 'Sentry/HybridSDK', '8.17.1'
+  s.dependency 'Sentry/HybridSDK', '8.21.0'
 
-  s.source_files = 'ios/**/*.{h,mm}'
+  s.source_files = 'ios/**/*.{h,m,mm}'
   s.public_header_files = 'ios/RNSentry.h'
 
   s.compiler_flags = other_cflags

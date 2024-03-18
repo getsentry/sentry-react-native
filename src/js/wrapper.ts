@@ -10,7 +10,7 @@ import type {
   User,
 } from '@sentry/types';
 import { logger, normalize, SentryError } from '@sentry/utils';
-import { NativeModules, Platform, TurboModuleRegistry } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 
 import { isHardCrash } from './misc';
 import type {
@@ -24,14 +24,22 @@ import type {
 } from './NativeRNSentry';
 import type { ReactNativeClientOptions } from './options';
 import type * as Hermes from './profiling/hermes';
-import type { NativeProfileEvent } from './profiling/nativeTypes';
+import type { NativeAndroidProfileEvent, NativeProfileEvent } from './profiling/nativeTypes';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
+import { ReactNativeLibraries } from './utils/rnlibraries';
 import { base64StringFromByteArray, utf8ToBytes } from './vendor';
 
-const RNSentry: Spec | undefined = isTurboModuleEnabled()
-  ? TurboModuleRegistry.get<Spec>('RNSentry')
-  : NativeModules.RNSentry;
+/**
+ * Returns the RNSentry module. Dynamically resolves if NativeModule or TurboModule is used.
+ */
+export function getRNSentryModule(): Spec | undefined {
+  return isTurboModuleEnabled()
+    ? ReactNativeLibraries.TurboModuleRegistry && ReactNativeLibraries.TurboModuleRegistry.get<Spec>('RNSentry')
+    : NativeModules.RNSentry;
+}
+
+const RNSentry: Spec | undefined = getRNSentryModule();
 
 export interface Screenshot {
   data: Uint8Array;
@@ -83,14 +91,19 @@ interface SentryNativeWrapper {
   fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
 
   startProfiling(): boolean;
-  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile?: NativeProfileEvent } | null;
+  stopProfiling(): {
+    hermesProfile: Hermes.Profile;
+    nativeProfile?: NativeProfileEvent;
+    androidProfile?: NativeAndroidProfileEvent;
+  } | null;
 
-  fetchNativePackageName(): Promise<string | null>;
+  fetchNativePackageName(): string | null;
 
   /**
    * Fetches native stack frames and debug images for the instructions addresses.
    */
-  fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | null>;
+  fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | null;
+  initNativeReactNavigationNewFrameTracking(): Promise<void>;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -526,7 +539,11 @@ export const NATIVE: SentryNativeWrapper = {
     return !!started;
   },
 
-  stopProfiling(): { hermesProfile: Hermes.Profile; nativeProfile?: NativeProfileEvent } | null {
+  stopProfiling(): {
+    hermesProfile: Hermes.Profile;
+    nativeProfile?: NativeProfileEvent;
+    androidProfile?: NativeAndroidProfileEvent;
+  } | null {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -534,7 +551,7 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const { profile, nativeProfile, error } = RNSentry.stopProfiling();
+    const { profile, nativeProfile, androidProfile, error } = RNSentry.stopProfiling();
     if (!profile || error) {
       logger.error('[NATIVE] Stop Profiling Failed', error);
       return null;
@@ -542,11 +559,15 @@ export const NATIVE: SentryNativeWrapper = {
     if (Platform.OS === 'ios' && !nativeProfile) {
       logger.warn('[NATIVE] Stop Profiling Failed: No Native Profile');
     }
+    if (Platform.OS === 'android' && !androidProfile) {
+      logger.warn('[NATIVE] Stop Profiling Failed: No Android Profile');
+    }
 
     try {
       return {
         hermesProfile: JSON.parse(profile) as Hermes.Profile,
         nativeProfile: nativeProfile as NativeProfileEvent | undefined,
+        androidProfile: androidProfile as NativeAndroidProfileEvent | undefined,
       };
     } catch (e) {
       logger.error('[NATIVE] Failed to parse Hermes Profile JSON', e);
@@ -554,7 +575,7 @@ export const NATIVE: SentryNativeWrapper = {
     }
   },
 
-  async fetchNativePackageName(): Promise<string | null> {
+  fetchNativePackageName(): string | null {
     if (!this.enableNative) {
       return null;
     }
@@ -562,10 +583,10 @@ export const NATIVE: SentryNativeWrapper = {
       return null;
     }
 
-    return (await RNSentry.fetchNativePackageName()) || null;
+    return RNSentry.fetchNativePackageName() || null;
   },
 
-  async fetchNativeStackFramesBy(instructionsAddr: number[]): Promise<NativeStackFrames | null> {
+  fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | null {
     if (!this.enableNative) {
       return null;
     }
@@ -573,7 +594,18 @@ export const NATIVE: SentryNativeWrapper = {
       return null;
     }
 
-    return (await RNSentry.fetchNativeStackFramesBy(instructionsAddr)) || null;
+    return RNSentry.fetchNativeStackFramesBy(instructionsAddr) || null;
+  },
+
+  async initNativeReactNavigationNewFrameTracking(): Promise<void> {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return;
+    }
+
+    return RNSentry.initNativeReactNavigationNewFrameTracking();
   },
 
   /**

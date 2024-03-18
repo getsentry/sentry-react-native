@@ -1,5 +1,5 @@
 import { Transaction } from '@sentry/core';
-import type { Session, UserFeedback } from '@sentry/types';
+import type { Measurements, Session, Transport, UserFeedback } from '@sentry/types';
 import { rejectedSyncPromise } from '@sentry/utils';
 
 import { getBlankTransactionContext } from '../src/js/tracing/utils';
@@ -65,4 +65,23 @@ export const getSyncPromiseRejectOnFirstCall = <Y extends any[]>(reason: unknown
       return Promise.resolve();
     }
   });
+};
+
+export const createMockTransport = (): MockInterface<Transport> => {
+  return {
+    send: jest.fn().mockResolvedValue(undefined),
+    flush: jest.fn().mockResolvedValue(true),
+  };
+};
+
+export const secondAgoTimestampMs = (): number => {
+  return new Date(Date.now() - 1000).getTime();
+};
+
+export const secondInFutureTimestampMs = (): number => {
+  return new Date(Date.now() + 1000).getTime();
+};
+
+export const asObjectWithMeasurements = (span: unknown): { _measurements?: Measurements } => {
+  return span as { _measurements?: Measurements };
 };

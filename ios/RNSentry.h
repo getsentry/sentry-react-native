@@ -5,6 +5,7 @@
 #endif
 
 #import <dlfcn.h>
+#import <React/RCTEventEmitter.h>
 
 #import <Sentry/Sentry.h>
 #import <Sentry/SentryOptions.h>
@@ -21,7 +22,7 @@ SentrySDK (Private)
 @property (nonatomic, nullable, readonly, class) SentryOptions *options;
 @end
 
-@interface RNSentry : NSObject <RCTBridgeModule>
+@interface RNSentry : RCTEventEmitter <RCTBridgeModule>
 
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                                   error:(NSError *_Nullable*_Nonnull)errorPointer;

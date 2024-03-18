@@ -17,7 +17,7 @@ const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
   const url = `https://${domain}${eventEndpoint}${eventId}/`;
 
   expect(process.env.SENTRY_AUTH_TOKEN).toBeDefined();
-  expect(process.env.SENTRY_AUTH_TOKEN.length).toBeGreaterThan(0);
+  expect(process.env.SENTRY_AUTH_TOKEN?.length).toBeGreaterThan(0);
 
   const request = () =>
     fetch(url, {
@@ -54,7 +54,7 @@ const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
   const json: ApiEvent = await request()
     // tslint:disable-next-line: no-unsafe-any
     .then(res => res.json())
-    .then(retryer);
+    .then(retryer)) as ApiEvent;
 
   return json;
 };

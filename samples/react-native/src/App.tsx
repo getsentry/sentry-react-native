@@ -3,13 +3,15 @@ import {
   NavigationContainer,
   NavigationContainerRef,
 } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
 
 import { SENTRY_INTERNAL_DSN } from './dsn';
-import HomeScreen from './Screens/HomeScreen';
+import ErrorsScreen from './Screens/ErrorsScreen';
+import PerformanceScreen from './Screens/PerformanceScreen';
 import TrackerScreen from './Screens/TrackerScreen';
 import ManualTrackerScreen from './Screens/ManualTrackerScreen';
 import PerformanceTimingScreen from './Screens/PerformanceTimingScreen';
@@ -20,10 +22,12 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { StyleSheet } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
+    enableTimeToInitialDisplay: true,
   });
 
 Sentry.init({
@@ -50,6 +54,7 @@ Sentry.init({
         idleTimeout: 5000,
         routingInstrumentation: reactNavigationInstrumentation,
         enableUserInteractionTracing: true,
+        ignoreEmptyBackNavigationTransactions: true,
         beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
           // Example of not sending a transaction for the screen with the name "Manual Tracker"
           if (context.data.route.name === 'ManualTracker') {
@@ -69,6 +74,7 @@ Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
+      Sentry.metrics.metricsAggregatorIntegration(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
@@ -91,27 +97,44 @@ Sentry.init({
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
   _experiments: {
-    profilesSampleRate: 0,
+    profilesSampleRate: 1.0,
   },
+  enableSpotlight: true,
 });
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
 
-const App = () => {
-  const navigation = React.useRef<NavigationContainerRef<{}>>(null);
-
-  return (
-    <GestureHandlerRootView style={styles.wrapper}>
-      <Provider store={store}>
-        <NavigationContainer
-          ref={navigation}
-          onReady={() => {
-            reactNavigationInstrumentation.registerNavigationContainer(
-              navigation,
-            );
-          }}>
+const TabOneStack = Sentry.withProfiler(
+  () => {
+    return (
+      <GestureHandlerRootView style={styles.wrapper}>
+        <Provider store={store}>
           <Stack.Navigator>
-            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen
+              name="ErrorsScreen"
+              component={ErrorsScreen}
+              options={{ title: 'Errors' }}
+            />
+          </Stack.Navigator>
+        </Provider>
+      </GestureHandlerRootView>
+    );
+  },
+  { name: 'ErrorsTab' },
+);
+
+const TabTwoStack = Sentry.withProfiler(
+  () => {
+    return (
+      <GestureHandlerRootView style={styles.wrapper}>
+        <Provider store={store}>
+          <Stack.Navigator>
+            <Stack.Screen
+              name="PerformanceScreen"
+              component={PerformanceScreen}
+              options={{ title: 'Performance' }}
+            />
             <Stack.Screen name="Tracker" component={TrackerScreen} />
             <Stack.Screen
               name="ManualTracker"
@@ -124,11 +147,60 @@ const App = () => {
             <Stack.Screen name="Redux" component={ReduxScreen} />
             <Stack.Screen name="Gestures" component={GesturesTracingScreen} />
           </Stack.Navigator>
-        </NavigationContainer>
-      </Provider>
-    </GestureHandlerRootView>
+        </Provider>
+      </GestureHandlerRootView>
+    );
+  },
+  { name: 'PerformanceTab' },
+);
+
+function BottomTabs() {
+  const navigation = React.useRef<NavigationContainerRef<{}>>(null);
+
+  return (
+    <NavigationContainer
+      ref={navigation}
+      onReady={() => {
+        reactNavigationInstrumentation.registerNavigationContainer(navigation);
+      }}>
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}
+        detachInactiveScreens={false} // workaround for https://github.com/react-navigation/react-navigation/issues/11384
+      >
+        <Tab.Screen
+          name="ErrorsTab"
+          component={TabOneStack}
+          options={{
+            tabBarLabel: 'Errors',
+            tabBarIcon: ({ focused, color, size }) => (
+              <Ionicons
+                name={focused ? 'bug' : 'bug-outline'}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="PerformanceTab"
+          component={TabTwoStack}
+          options={{
+            tabBarLabel: 'Performance',
+            tabBarIcon: ({ focused, color, size }) => (
+              <Ionicons
+                name={focused ? 'speedometer' : 'speedometer-outline'}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
+      </Tab.Navigator>
+    </NavigationContainer>
   );
-};
+}
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -136,4 +208,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Sentry.wrap(App);
+export default Sentry.wrap(BottomTabs);

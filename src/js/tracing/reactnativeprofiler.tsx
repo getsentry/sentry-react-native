@@ -3,6 +3,10 @@ import { getCurrentHub, Profiler } from '@sentry/react';
 import { createIntegration } from '../integrations/factory';
 import { ReactNativeTracing } from './reactnativetracing';
 
+const ReactNativeProfilerGlobalState = {
+  appStartReported: false,
+};
+
 /**
  * Custom profiler for the React Native app root.
  */
@@ -14,6 +18,16 @@ export class ReactNativeProfiler extends Profiler {
    */
   public componentDidMount(): void {
     super.componentDidMount();
+    if (!ReactNativeProfilerGlobalState.appStartReported) {
+      this._reportAppStart();
+      ReactNativeProfilerGlobalState.appStartReported = true;
+    }
+  }
+
+  /**
+   * Notifies the Tracing integration that the app start has finished.
+   */
+  private _reportAppStart(): void {
     const hub = getCurrentHub();
     const client = hub.getClient();
 

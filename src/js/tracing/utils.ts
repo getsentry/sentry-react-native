@@ -1,5 +1,11 @@
-import type { IdleTransaction, Span, Transaction } from '@sentry/core';
-import type { TransactionContext, TransactionSource } from '@sentry/types';
+import {
+  type IdleTransaction,
+  type Span as SpanClass,
+  type Transaction,
+  setMeasurement,
+  spanToJSON,
+} from '@sentry/core';
+import type { Span, TransactionContext, TransactionSource } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 
 export const defaultTransactionSource: TransactionSource = 'component';
@@ -55,13 +61,13 @@ export function getTimeOriginMilliseconds(): number {
  */
 export function instrumentChildSpanFinish(
   transaction: Transaction,
-  callback: (span: Span, endTimestamp?: number) => void,
+  callback: (span: SpanClass, endTimestamp?: number) => void,
 ): void {
   if (transaction.spanRecorder) {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const originalAdd = transaction.spanRecorder.add;
 
-    transaction.spanRecorder.add = (span: Span): void => {
+    transaction.spanRecorder.add = (span: SpanClass): void => {
       originalAdd.apply(transaction.spanRecorder, [span]);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -81,4 +87,18 @@ export function instrumentChildSpanFinish(
  */
 export function isNearToNow(timestamp: number): boolean {
   return Math.abs(timestampInSeconds() - timestamp) <= MARGIN_OF_ERROR_SECONDS;
+}
+
+/**
+ * Sets the duration of the span as a measurement.
+ * Uses `setMeasurement` function from @sentry/core.
+ */
+export function setSpanDurationAsMeasurement(name: string, span: Span): void {
+  const spanEnd = spanToJSON(span).timestamp;
+  const spanStart = spanToJSON(span).start_timestamp;
+  if (!spanEnd || !spanStart) {
+    return;
+  }
+
+  setMeasurement(name, (spanEnd - spanStart) * 1000, 'millisecond');
 }

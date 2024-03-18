@@ -1,11 +1,339 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Automatic tracing of time to initial display for `react-navigation` ([#3588](https://github.com/getsentry/sentry-react-native/pull/3588))
+
+  When enabled the instrumentation will create TTID spans and measurements.
+  The TTID timestamp represent moment when the `react-navigation` screen
+  was rendered by the native code.
+
+  ```javascript
+  const routingInstrumentation = new Sentry.ReactNavigationInstrumentation({
+    enableTimeToInitialDisplay: true,
+  });
+
+  Sentry.init({
+    integrations: [new Sentry.ReactNativeTracing({routingInstrumentation})],
+  });
+  ```
+
+- Tracing of full display using manual API ([#3654](https://github.com/getsentry/sentry-react-native/pull/3654))
+
+  In combination with the `react-navigation` automatic instrumentation you can record when
+  the application screen is fully rendered.
+
+  For more examples and manual time to initial display see [the documentation](https://docs.sentry.io/platforms/react-native/performance/instrumentation/time-to-display).
+
+  ```javascript
+  function Example() {
+    const [loaded] = React.useState(false);
+
+    return <View>
+      <Sentry.TimeToFullDisplay record={loaded}>
+        <Text>Example content</Text>
+      </Sentry.TimeToFullDisplay>
+    </View>;
+  }
+  ```
+
+### Fixes
+
+- Allow custom `sentryUrl` for Expo updates source maps uploads ([#3664](https://github.com/getsentry/sentry-react-native/pull/3664))
+
+## 5.19.3
+
+### Fixes
+
+- Multiple Debug IDs can be loaded into the global polyfill ([#3660](https://github.com/getsentry/sentry-react-native/pull/3660))
+  - This fixes a symbolication issue with Expo on the web with enabled bundle splitting.
+
+### Dependencies
+
+- Bump CLI from v2.25.2 to v2.30.0 ([#3534](https://github.com/getsentry/sentry-react-native/pull/3534), [#3666](https://github.com/getsentry/sentry-react-native/pull/3666))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2300)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.25.2...2.30.0)
+- Bump Cocoa SDK from v8.20.0 to v8.21.0 ([#3651](https://github.com/getsentry/sentry-react-native/pull/3651))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8210)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.20.0...8.21.0)
+- Bump Android SDK from v7.3.0 to v7.5.0 ([#3615](https://github.com/getsentry/sentry-react-native/pull/3615))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#750)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.3.0...7.5.0)
+
+## 5.19.2
+
+### Fixes
+
+- expo-upload-sourcemaps now works on Windows ([#3643](https://github.com/getsentry/sentry-react-native/pull/3643))
+- Option `enabled: false` ensures no events are sent ([#3606](https://github.com/getsentry/sentry-react-native/pull/3606))
+- Ignore JSON response when retrieving source context from local Expo Dev Server ([#3611](https://github.com/getsentry/sentry-react-native/pull/3611))
+- Upload native debug files only for non-debug builds ([#3649](https://github.com/getsentry/sentry-react-native/pull/3649))
+- `TurboModuleRegistry` should not be imported in web applications ([#3610](https://github.com/getsentry/sentry-react-native/pull/3610))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.17.1 to v8.20.0 ([#3476](https://github.com/getsentry/sentry-react-native/pull/3476))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8200)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.17.1...8.20.0)
+
+## 5.19.1
+
+### Fixes
+
+- Don't add Expo Plugin option `authToken` to application bundle ([#3630](https://github.com/getsentry/sentry-react-native/pull/3630))
+  - Expo plugin configurations are generelly stored in plain text, and are also automatically added to built app bundles, and are therefore considered insecure.
+  - You should not set the auth token in the plugin config except for local testing. Instead, use the `SENTRY_AUTH_TOKEN` env variable, as pointed out in our [docs](https://docs.sentry.io/platforms/react-native/manual-setup/expo/).
+  - In addition to showing a warning, we are now actively removing an `authToken` from the plugin config if it was set.
+  - If you had set the auth token in the plugin config previously, **and** built and published an app with that config, you should [rotate your token](https://docs.sentry.io/product/accounts/auth-tokens/).
+- Reduce waning messages spam when a property in Expo plugin configuration is missing ([#3631](https://github.com/getsentry/sentry-react-native/pull/3631))
+- Add concrete error messages for RN bundle build phase patch ([#3626](https://github.com/getsentry/sentry-react-native/pull/3626))
+
+## 5.19.0
+
+This release contains upgrade of `sentry-android` dependency to major version 7. There are no breaking changes in the JS API. If you are using the Android API please check [the migration guide](https://docs.sentry.io/platforms/android/migration/#migrating-from-iosentrysentry-android-6x-to-iosentrysentry-android-700).
+
+### Features
+
+- Add Android profiles to React Native Profiling ([#3397](https://github.com/getsentry/sentry-react-native/pull/3397))
+- Add `Sentry.metrics` ([#3590](https://github.com/getsentry/sentry-react-native/pull/3590))
+
+  To learn more, see the [Set Up Metrics](https://docs.sentry.io/platforms/react-native/metrics/) guide.
+
+  ```javascript
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    dsn: '___DSN___',
+    integrations: [
+      Sentry.metrics.metricsAggregatorIntegration(),
+    ],
+  });
+
+  Sentry.metrics.increment("button_click", 1, {
+    tags: { system: "iOS", app_version: "1.0.0" },
+  });
+  ```
+
+### Fixes
+
+- Upload Debug Symbols Build Phase continues when `node` not found in `WITH_ENVIRONMENT` ([#3573](https://github.com/getsentry/sentry-react-native/pull/3573))
+- Fix `proguardUuid` loading on Android ([#3591](https://github.com/getsentry/sentry-react-native/pull/3591))
+
+### Dependencies
+
+- Bump Android SDK from v6.34.0 to v7.3.0 ([#3434](https://github.com/getsentry/sentry-react-native/pull/3434))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#730)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.34.0...7.3.0)
+- Bump JavaScript SDK from v7.81.1 to v7.100.1 ([#3426](https://github.com/getsentry/sentry-react-native/pull/3426), [#3589](https://github.com/getsentry/sentry-react-native/pull/3589))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7990)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.81.1...7.100.1)
+
+## 5.18.0
+
+### Features
+
+- Add [`@spotlightjs/spotlight`](https://spotlightjs.com/) support ([#3550](https://github.com/getsentry/sentry-react-native/pull/3550))
+
+  Download the `Spotlight` desktop application and add the integration to your `Sentry.init`.
+
+  ```javascript
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    dsn: '___DSN___',
+    enableSpotlight: __DEV__,
+  });
+  ```
+
+- Only upload Expo artifact if source map exists ([#3568](https://github.com/getsentry/sentry-react-native/pull/3568))
+- Read `.env` file in `sentry-expo-upload-sourcemaps` ([#3571](https://github.com/getsentry/sentry-react-native/pull/3571))
+
+### Fixes
+
+- Prevent pod install crash when visionos is not present ([#3548](https://github.com/getsentry/sentry-react-native/pull/3548))
+- Fetch Organization slug from `@sentry/react-native/expo` config when uploading artifacts ([#3557](https://github.com/getsentry/sentry-react-native/pull/3557))
+- Remove 404 Http Client Errors reports for Metro Dev Server Requests ([#3553](https://github.com/getsentry/sentry-react-native/pull/3553))
+- Stop tracing Spotlight Sidecar network request in JS ([#3559](https://github.com/getsentry/sentry-react-native/pull/3559))
+
+## 5.17.0
+
+### Features
+
+- New Sentry Metro configuration function `withSentryConfig` ([#3478](https://github.com/getsentry/sentry-react-native/pull/3478))
+  - Ensures all Sentry configuration is added to your Metro config
+  - Includes `createSentryMetroSerializer`
+  - Collapses Sentry internal frames from the stack trace view in LogBox
+
+  ```javascript
+  const { getDefaultConfig } = require('@react-native/metro-config');
+  const { withSentryConfig } = require('@sentry/react-native/metro');
+
+  const config = getDefaultConfig(__dirname);
+  module.exports = withSentryConfig(config);
+  ```
+
+- Add experimental visionOS support ([#3467](https://github.com/getsentry/sentry-react-native/pull/3467))
+  - To set up [`react-native-visionos`](https://github.com/callstack/react-native-visionos) with the Sentry React Native SDK follow [the standard `iOS` guides](https://docs.sentry.io/platforms/react-native/manual-setup/manual-setup/#ios).
+  - Xcode project is located in `visionos` folder instead of `ios`.
+
+### Fixes
+
+- Fix `WITH_ENVIRONMENT` overwrite in `sentry-xcode-debug-files.sh` ([#3525](https://github.com/getsentry/sentry-react-native/pull/3525))
+- Sentry CLI 2.25.1 fixes background debug files uploads during Xcode builds ([#3486](https://github.com/getsentry/sentry-react-native/pull/3486))
+- Performance Tracing should be disabled by default ([#3533](https://github.com/getsentry/sentry-react-native/pull/3533))
+- Use `$NODE_BINARY` to execute Sentry CLI in Xcode scripts ([#3493](https://github.com/getsentry/sentry-react-native/pull/3493))
+- Return auto Release and Dist to source maps auto upload ([#3540](https://github.com/getsentry/sentry-react-native/pull/3540))
+- Linked errors processed before other integrations ([#3535](https://github.com/getsentry/sentry-react-native/pull/3535))
+  - This ensure their frames are correctly symbolicated
+
+### Dependencies
+
+- Bump CLI from v2.23.0 to v2.25.2 ([#3486](https://github.com/getsentry/sentry-react-native/pull/3486))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2252)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.23.0...2.25.2)
+
+## 5.16.0
+
+This release ships with a beta version of our new built-in Expo SDK 50 support,
+which replaces the deprecated `sentry-expo` package. To learn more,
+see [the Expo guide](https://docs.sentry.io/platforms/react-native/manual-setup/expo/).
+
+### Features
+
+- New `@sentry/react-native/expo` Expo config plugin ([#3429](https://github.com/getsentry/sentry-react-native/pull/3429))
+
+  ```js
+  const { withSentry } = require('@sentry/react-native/expo');
+
+  const config = {...};
+
+  module.exports = withSentry(config, {
+    url: 'https://www.sentry.io/',
+    project: 'project-slug', // Or use SENTRY_PROJECT env
+    organization: 'org-slug', // Or use SENTRY_ORG env
+  });
+  ```
+
+  - And `Sentry.init` in `App.js`
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    dsn: '__DSN__',
+  });
+  ```
+
+- New `getSentryExpoConfig` for simple Metro configuration ([#3454](https://github.com/getsentry/sentry-react-native/pull/3454), [#3501](https://github.com/getsentry/sentry-react-native/pull/3501), [#3514](https://github.com/getsentry/sentry-react-native/pull/3514))
+  - This function is a drop in replacement for `getDefaultConfig` from `expo/metro-config`
+
+  ```js
+  // const { getDefaultConfig } = require("expo/metro-config");
+  const { getSentryExpoConfig } = require("@sentry/react-native/metro");
+
+  // const config = getDefaultConfig(__dirname);
+  const config = getSentryExpoConfig(config, {});
+  ```
+
+- New `npx sentry-expo-upload-sourcemaps` for simple EAS Update (`npx expo export`) source maps upload ([#3491](https://github.com/getsentry/sentry-react-native/pull/3491), [#3510](https://github.com/getsentry/sentry-react-native/pull/3510), [#3515](https://github.com/getsentry/sentry-react-native/pull/3515), [#3507](https://github.com/getsentry/sentry-react-native/pull/3507))
+
+  ```bash
+  SENTRY_PROJECT=project-slug \
+  SENTRY_ORG=org-slug \
+  SENTRY_AUTH_TOKEN=super-secret-token \
+  npx sentry-expo-upload-sourcemaps dist
+  ```
+
+### Others
+
+- Update `sentry-xcode.sh` scripts with Node modules resolution ([#3450](https://github.com/getsentry/sentry-react-native/pull/3450))
+  - RN SDK and Sentry CLI are dynamically resolved if override is not supplied
+- Resolve Default Integrations based on current platform ([#3465](https://github.com/getsentry/sentry-react-native/pull/3465))
+  - Native Integrations are only added if Native Module is available
+  - Web Integrations only for React Native Web builds
+- Remove Native Modules warning from platform where the absence is expected ([#3466](https://github.com/getsentry/sentry-react-native/pull/3466))
+- Add Expo Context information using Expo Native Modules ([#3466](https://github.com/getsentry/sentry-react-native/pull/3466))
+- Errors from InternalBytecode.js are no longer marked as in_app ([#3518](https://github.com/getsentry/sentry-react-native/pull/3518))
+- Fix system node can't be overwritten in `sentry-xcode-debug-files.sh` ([#3523](https://github.com/getsentry/sentry-react-native/pull/3523))
+
+## 5.16.0-alpha.4
+
+### Fixes
+
+- Make `getSentryExpoConfig` options parameter optional ([#3514](https://github.com/getsentry/sentry-react-native/pull/3514))
+- Use `@sentry/react-native/expo` as plugin name in `expo-upload-sourcemaps.js` ([#3515](https://github.com/getsentry/sentry-react-native/pull/3515))
+
+## 5.16.0-alpha.3
+
+This release is compatible with `expo@50.0.0-preview.6` and newer.
+
+### Features
+
+- `withSentryExpoSerializers` changes to `getSentryExpoConfig` ([#3501](https://github.com/getsentry/sentry-react-native/pull/3501))
+  - `getSentryExpoConfig` accepts the same parameters as `getDefaultConfig` from `expo/metro-config` and returns Metro configuration
+  - This also works for EAS Updates (and expo export). Debug ID is generated by `expo/metro-config` and used by Sentry.
+
+  ```js
+  const { getSentryExpoConfig } = require("@sentry/react-native/metro");
+  const config = getSentryExpoConfig(config, {});
+  ```
+
+- Add `npx sentry-expo-upload-sourcemaps` for simple EAS Update (expo export) source maps upload to Sentry ([#3491](https://github.com/getsentry/sentry-react-native/pull/3491), [#3510](https://github.com/getsentry/sentry-react-native/pull/3510))
+
+  ```bash
+  SENTRY_PROJECT=project-slug \
+  SENTRY_ORG=org-slug \
+  SENTRY_AUTH_TOKEN=super-secret-token \
+  npx sentry-expo-upload-sourcemaps dist
+  ```
+
+- Sentry CLI binary path in `scripts/expo-upload-sourcemaps.js` is resolved dynamically ([#3507](https://github.com/getsentry/sentry-react-native/pull/3507))
+  - Or can be overwritten by `SENTRY_CLI_EXECUTABLE` env
+
+- Resolve Default Integrations based on current platform ([#3465](https://github.com/getsentry/sentry-react-native/pull/3465))
+  - Native Integrations are only added if Native Module is available
+  - Web Integrations only for React Native Web builds
+- Remove Native Modules warning from platform where the absence is expected ([#3466](https://github.com/getsentry/sentry-react-native/pull/3466))
+- Add Expo Context information using Expo Native Modules ([#3466](https://github.com/getsentry/sentry-react-native/pull/3466))
+
+### Fixes
+
+- Includes fixes from version 5.15.2
+
 ## 5.15.2
 
 ### Fixes
 
 - Stop sending navigation route params for auto-generated transactions, as they may contain PII or other sensitive data ([#3487](https://github.com/getsentry/sentry-react-native/pull/3487))
   - Further details and other strategies to mitigate this issue can be found on our [trouble shooting guide page](https://docs.sentry.io/platforms/react-native/troubleshooting/#routing-transaction-data-contains-sensitive-information)
+
+## 5.16.0-alpha.2
+
+### Features
+
+- Add `withSentryExpoSerializers` for easy configurable `metro.config.js` ([#3454](https://github.com/getsentry/sentry-react-native/pull/3454))
+
+  This Serializer doesn't support EAS Updates (and expo export) commands yet. Debug IDs needed for source maps resolution in Sentry
+  are generated only during native builds.
+
+  ```js
+  const { getDefaultConfig } = require('expo/metro-config');
+  const { withSentryExpoSerializers } = require("@sentry/react-native/metro");
+
+  const config = getDefaultConfig(__dirname);
+  module.exports = withSentryExpoSerializers(config);
+  ```
+
+  Note that this will remove any existing `customSerializer`. Guide for advanced setups [can be found here](https://docs.sentry.io/platforms/react-native/manual-setup/metro).
+
+### Fixes
+
+- Expo SDK minimum version is 49 ([#3453](https://github.com/getsentry/sentry-react-native/pull/3453))
+- Remove RN Internal imports for RN Web builds ([#3462](https://github.com/getsentry/sentry-react-native/pull/3462))
+- Remove circular dependencies inside of the SDK ([#3464](https://github.com/getsentry/sentry-react-native/pull/3464))
+- Includes fixes from version 5.15.1
 
 ## 5.15.1
 
@@ -18,6 +346,48 @@
 - Bump CLI from v2.21.3 to v2.23.0 ([#3390](https://github.com/getsentry/sentry-react-native/pull/3390))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2230)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.21.3...2.23.0)
+
+## 5.16.0-alpha.1
+
+### Features
+
+- Add `@sentry/react-native/expo` Expo config plugin ([#3429](https://github.com/getsentry/sentry-react-native/pull/3429))
+
+  This Release introduces the first alpha version of our new SDK for Expo.
+  At this time, the SDK is considered experimental and things might break and change in future versions.
+
+  The core of the SDK is Expo plugin which you can easily add to your App config:
+
+  ```js
+  const { withSentry } = require('@sentry/react-native/expo');
+
+  const config = {...};
+
+  module.exports = withSentry(config, {
+    url: 'https://www.sentry.io/',
+    authToken: 'example-token', // Or use SENTRY_AUTH_TOKEN env
+    project: 'project-slug', // Or use SENTRY_PROJECT env
+    organization: 'org-slug', // Or use SENTRY_ORG env
+  });
+  ```
+
+  - And `Sentry.init` in `App.js`
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    dsn: '__DSN__',
+  });
+  ```
+
+- Update `sentry-xcode.sh` scripts with Node modules resolution ([#3450](https://github.com/getsentry/sentry-react-native/pull/3450))
+  - RN SDK and Sentry CLI are dynamically resolved if override is not supplied
+
+### Fixes
+
+- Transform shipped JSX for both react-native and web ([#3428](https://github.com/getsentry/sentry-react-native/pull/3428))
+  - Removes builds errors when using react-native-web with Webpack
 
 ## 5.15.0
 

@@ -24,6 +24,21 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void addListener(String eventType) {
+        this.impl.addListener(eventType);
+    }
+
+    @ReactMethod
+    public void removeListeners(double id) {
+        this.impl.removeListeners(id);
+    }
+
+    @ReactMethod
+    public void initNativeReactNavigationNewFrameTracking(Promise promise) {
+        this.impl.initNativeReactNavigationNewFrameTracking(promise);
+    }
+
+    @ReactMethod
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         this.impl.initNativeSdk(rnOptions, promise);
     }
@@ -133,13 +148,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         return this.impl.stopProfiling();
     }
 
-    @ReactMethod
-    public void fetchNativePackageName(Promise promise) {
-        this.impl.fetchNativePackageName(promise);
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String fetchNativePackageName() {
+        return this.impl.fetchNativePackageName();
     }
 
-    @ReactMethod
-    public void fetchNativeStackFramesBy(ReadableArray instructionsAddr, Promise promise) {
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public WritableMap fetchNativeStackFramesBy(ReadableArray instructionsAddr) {
         // Not used on Android
+        return null;
     }
 }

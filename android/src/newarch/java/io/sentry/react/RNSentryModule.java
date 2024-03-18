@@ -2,7 +2,6 @@ package io.sentry.react;
 
 import androidx.annotation.NonNull;
 
-import com.facebook.react.bridge.JavaScriptExecutorFactory;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
@@ -22,6 +21,21 @@ public class RNSentryModule extends NativeRNSentrySpec {
     @NonNull
     public String getName() {
         return RNSentryModuleImpl.NAME;
+    }
+
+    @Override
+    public void addListener(String eventType) {
+        this.impl.addListener(eventType);
+    }
+
+    @Override
+    public void removeListeners(double id) {
+        this.impl.removeListeners(id);
+    }
+
+    @Override
+    public void initNativeReactNavigationNewFrameTracking(Promise promise) {
+        this.impl.initNativeReactNavigationNewFrameTracking(promise);
     }
 
     @Override
@@ -135,12 +149,13 @@ public class RNSentryModule extends NativeRNSentrySpec {
     }
 
     @Override
-    public void fetchNativePackageName(Promise promise) {
-        this.impl.fetchNativePackageName(promise);
+    public String fetchNativePackageName() {
+        return this.impl.fetchNativePackageName();
     }
 
     @Override
-    public void fetchNativeStackFramesBy(ReadableArray instructionsAddr, Promise promise) {
+    public WritableMap fetchNativeStackFramesBy(ReadableArray instructionsAddr) {
         // Not used on Android
+        return null;
     }
 }

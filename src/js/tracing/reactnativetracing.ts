@@ -21,7 +21,12 @@ import { APP_START_COLD as APP_START_COLD_OP, APP_START_WARM as APP_START_WARM_O
 import { StallTrackingInstrumentation } from './stalltracking';
 import { cancelInBackground, onlySampleIfChildSpans } from './transaction';
 import type { BeforeNavigate, RouteChangeContextData } from './types';
-import { adjustTransactionDuration, getTimeOriginMilliseconds, isNearToNow } from './utils';
+import {
+  adjustTransactionDuration,
+  getTimeOriginMilliseconds,
+  isNearToNow,
+  setSpanDurationAsMeasurement,
+} from './utils';
 
 export interface ReactNativeTracingOptions extends RequestInstrumentationOptions {
   /**
@@ -230,7 +235,9 @@ export class ReactNativeTracing implements Integration {
     }
 
     if (enableAppStartTracking) {
-      void this._instrumentAppStart();
+      this._instrumentAppStart().then(undefined, (reason: unknown) => {
+        logger.error(`[ReactNativeTracing] Error while instrumenting app start:`, reason);
+      });
     }
 
     if (enableNativeFramesTracking) {
@@ -435,6 +442,18 @@ export class ReactNativeTracing implements Integration {
 
     transaction.startTimestamp = appStartTimeSeconds;
 
+    const maybeTtidSpan = transaction.spanRecorder?.spans.find(span => span.op === 'ui.load.initial_display');
+    if (maybeTtidSpan) {
+      maybeTtidSpan.startTimestamp = appStartTimeSeconds;
+      setSpanDurationAsMeasurement('time_to_initial_display', maybeTtidSpan);
+    }
+
+    const maybeTtfdSpan = transaction.spanRecorder?.spans.find(span => span.op === 'ui.load.full_display');
+    if (maybeTtfdSpan) {
+      maybeTtfdSpan.startTimestamp = appStartTimeSeconds;
+      setSpanDurationAsMeasurement('time_to_full_display', maybeTtfdSpan);
+    }
+
     const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
     transaction.startChild({
       description: appStart.isColdStart ? 'Cold App Start' : 'Warm App Start',
@@ -534,7 +553,12 @@ export class ReactNativeTracing implements Integration {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           transaction.data?.route?.hasBeenSeen &&
           (!transaction.spanRecorder ||
-            transaction.spanRecorder.spans.filter(span => span.spanId !== transaction.spanId).length === 0)
+            transaction.spanRecorder.spans.filter(
+              span =>
+                span.spanId !== transaction.spanId &&
+                span.op !== 'ui.load.initial_display' &&
+                span.op !== 'navigation.processing',
+            ).length === 0)
         ) {
           logger.log(
             '[ReactNativeTracing] Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.',

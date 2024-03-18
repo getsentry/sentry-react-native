@@ -1,6 +1,6 @@
 import type { Exception } from '@sentry/browser';
 import { defaultStackParser, eventFromException } from '@sentry/browser';
-import type { Event } from '@sentry/types';
+import type { Client, Event, EventHint } from '@sentry/types';
 import { Platform } from 'react-native';
 
 import { createReactNativeRewriteFrames } from '../../src/js/integrations/rewriteframes';
@@ -22,9 +22,13 @@ describe('RewriteFrames', () => {
     const error = new Error(options.message);
     error.stack = options.stack;
     const event = await eventFromException(defaultStackParser, error, HINT, ATTACH_STACKTRACE);
-    createReactNativeRewriteFrames().process(event);
+    createReactNativeRewriteFrames().processEvent?.(event, {} as EventHint, {} as Client);
     const exception = event.exception?.values?.[0];
     return exception;
+  };
+
+  const processEvent = (event: Event): Event | undefined | null | PromiseLike<Event | null> => {
+    return createReactNativeRewriteFrames().processEvent?.(event, {} as EventHint, {} as Client);
   };
 
   beforeEach(() => {
@@ -67,7 +71,7 @@ describe('RewriteFrames', () => {
       },
     };
 
-    const event = createReactNativeRewriteFrames().process(SENTRY_COCOA_EXCEPTION_EVENT);
+    const event = processEvent(SENTRY_COCOA_EXCEPTION_EVENT) as Event;
     expect(event.exception?.values?.[0]).toEqual(EXPECTED_SENTRY_COCOA_EXCEPTION);
   });
 
@@ -101,7 +105,7 @@ describe('RewriteFrames', () => {
       },
     };
 
-    const event = createReactNativeRewriteFrames().process(SENTRY_JVM_EXCEPTION_EVENT);
+    const event = processEvent(SENTRY_JVM_EXCEPTION_EVENT) as Event;
     expect(event.exception?.values?.[0]).toEqual(EXPECTED_SENTRY_JVM_EXCEPTION);
   });
 
@@ -854,6 +858,39 @@ describe('RewriteFrames', () => {
             lineno: 1,
             colno: 452702,
             in_app: true,
+          },
+        ],
+      },
+    });
+  });
+
+  it('InternalBytecode should be flaged as not InApp', async () => {
+    mockFunction(isHermesEnabled).mockReturnValue(true);
+
+    const IOS_REACT_NATIVE_HERMES = {
+      message: 'Error: lets throw!',
+      name: 'Error',
+      stack:
+        'at anonymous (/Users/username/react-native/sdks/hermes/build_iphonesimulator/lib/InternalBytecode/InternalBytecode.js:139:27)',
+    };
+
+    const exception = await exceptionFromError(IOS_REACT_NATIVE_HERMES);
+
+    expect(exception).toEqual({
+      value: 'Error: lets throw!',
+      type: 'Error',
+      mechanism: {
+        handled: true,
+        type: 'generic',
+      },
+      stacktrace: {
+        frames: [
+          {
+            filename: 'app:///InternalBytecode.js',
+            function: 'anonymous',
+            lineno: 139,
+            colno: 27,
+            in_app: false,
           },
         ],
       },
