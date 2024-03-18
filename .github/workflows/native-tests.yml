@@ -71,6 +71,10 @@ jobs:
       - name: Gradle cache
         uses: gradle/gradle-build-action@v2
 
+      - name: Run unit tests
+        working-directory: RNSentryAndroidTester
+        run: ./gradlew testDebugUnitTest
+
       - name: Setup KVM
         shell: bash
         run: |

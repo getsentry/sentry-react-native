@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Features
+
+- Add automatic tracing of time to initial display for `react-navigation` ([#3588](https://github.com/getsentry/sentry-react-native/pull/3588))
+
+  When enabled the instrumentation will create TTID spans and measurements.
+  The TTID timestamp represent moment when the `react-navigation` screen
+  was rendered by the native code.
+
+  ```javascript
+  const routingInstrumentation = new Sentry.ReactNavigationInstrumentation({
+    enableTimeToInitialDisplay: true,
+  });
+
+  Sentry.init({
+    integrations: [new Sentry.ReactNativeTracing({routingInstrumentation})],
+  });
+  ```
+
 ### Fixes
 
 - Allow custom `sentryUrl` for Expo updates source maps uploads ([#3664](https://github.com/getsentry/sentry-react-native/pull/3664))

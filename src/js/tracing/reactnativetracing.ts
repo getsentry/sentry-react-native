@@ -2,7 +2,7 @@
 import type { RequestInstrumentationOptions } from '@sentry/browser';
 import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from '@sentry/browser';
 import type { Hub, IdleTransaction, Transaction } from '@sentry/core';
-import { getActiveTransaction, getCurrentHub, startIdleTransaction } from '@sentry/core';
+import { getActiveTransaction, getCurrentHub, setMeasurement, startIdleTransaction } from '@sentry/core';
 import type {
   Event,
   EventProcessor,
@@ -437,6 +437,17 @@ export class ReactNativeTracing implements Integration {
 
     transaction.startTimestamp = appStartTimeSeconds;
 
+    const maybeTtidSpan = transaction.spanRecorder?.spans.find(span => span.op === 'ui.load.initial_display');
+    if (maybeTtidSpan) {
+      maybeTtidSpan.startTimestamp = appStartTimeSeconds;
+      maybeTtidSpan.endTimestamp &&
+        setMeasurement(
+          'time_to_initial_display',
+          (maybeTtidSpan.endTimestamp - appStartTimeSeconds) * 1000,
+          'millisecond',
+        );
+    }
+
     const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
     transaction.startChild({
       description: appStart.isColdStart ? 'Cold App Start' : 'Warm App Start',
@@ -536,7 +547,12 @@ export class ReactNativeTracing implements Integration {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           transaction.data?.route?.hasBeenSeen &&
           (!transaction.spanRecorder ||
-            transaction.spanRecorder.spans.filter(span => span.spanId !== transaction.spanId).length === 0)
+            transaction.spanRecorder.spans.filter(
+              span =>
+                span.spanId !== transaction.spanId &&
+                span.op !== 'ui.load.initial_display' &&
+                span.op !== 'navigation.processing',
+            ).length === 0)
         ) {
           logger.log(
             '[ReactNativeTracing] Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.',

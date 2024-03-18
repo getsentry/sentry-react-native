@@ -3,7 +3,7 @@ import {
   NavigationContainer,
   NavigationContainerRef,
 } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 // Import the Sentry React Native SDK
@@ -27,6 +27,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
+    enableTimeToInitialDisplay: true,
   });
 
 Sentry.init({
@@ -53,6 +54,7 @@ Sentry.init({
         idleTimeout: 5000,
         routingInstrumentation: reactNavigationInstrumentation,
         enableUserInteractionTracing: true,
+        ignoreEmptyBackNavigationTransactions: true,
         beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
           // Example of not sending a transaction for the screen with the name "Manual Tracker"
           if (context.data.route.name === 'ManualTracker') {
@@ -100,48 +102,57 @@ Sentry.init({
   enableSpotlight: true,
 });
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const TabOneStack = () => {
-  return (
-    <GestureHandlerRootView style={styles.wrapper}>
-      <Provider store={store}>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="ErrorsScreen"
-            component={ErrorsScreen}
-            options={{ title: 'Errors' }}
-          />
-        </Stack.Navigator>
-      </Provider>
-    </GestureHandlerRootView>
-  );
-};
+const TabOneStack = Sentry.withProfiler(
+  () => {
+    return (
+      <GestureHandlerRootView style={styles.wrapper}>
+        <Provider store={store}>
+          <Stack.Navigator>
+            <Stack.Screen
+              name="ErrorsScreen"
+              component={ErrorsScreen}
+              options={{ title: 'Errors' }}
+            />
+          </Stack.Navigator>
+        </Provider>
+      </GestureHandlerRootView>
+    );
+  },
+  { name: 'ErrorsTab' },
+);
 
-const TabTwoStack = () => {
-  return (
-    <GestureHandlerRootView style={styles.wrapper}>
-      <Provider store={store}>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="PerformanceScreen"
-            component={PerformanceScreen}
-            options={{ title: 'Performance' }}
-          />
-          <Stack.Screen name="Tracker" component={TrackerScreen} />
-          <Stack.Screen name="ManualTracker" component={ManualTrackerScreen} />
-          <Stack.Screen
-            name="PerformanceTiming"
-            component={PerformanceTimingScreen}
-          />
-          <Stack.Screen name="Redux" component={ReduxScreen} />
-          <Stack.Screen name="Gestures" component={GesturesTracingScreen} />
-        </Stack.Navigator>
-      </Provider>
-    </GestureHandlerRootView>
-  );
-};
+const TabTwoStack = Sentry.withProfiler(
+  () => {
+    return (
+      <GestureHandlerRootView style={styles.wrapper}>
+        <Provider store={store}>
+          <Stack.Navigator>
+            <Stack.Screen
+              name="PerformanceScreen"
+              component={PerformanceScreen}
+              options={{ title: 'Performance' }}
+            />
+            <Stack.Screen name="Tracker" component={TrackerScreen} />
+            <Stack.Screen
+              name="ManualTracker"
+              component={ManualTrackerScreen}
+            />
+            <Stack.Screen
+              name="PerformanceTiming"
+              component={PerformanceTimingScreen}
+            />
+            <Stack.Screen name="Redux" component={ReduxScreen} />
+            <Stack.Screen name="Gestures" component={GesturesTracingScreen} />
+          </Stack.Navigator>
+        </Provider>
+      </GestureHandlerRootView>
+    );
+  },
+  { name: 'PerformanceTab' },
+);
 
 function BottomTabs() {
   const navigation = React.useRef<NavigationContainerRef<{}>>(null);

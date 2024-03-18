@@ -30,9 +30,16 @@ import { isTurboModuleEnabled } from './utils/environment';
 import { ReactNativeLibraries } from './utils/rnlibraries';
 import { base64StringFromByteArray, utf8ToBytes } from './vendor';
 
-const RNSentry: Spec | undefined = isTurboModuleEnabled()
-  ? ReactNativeLibraries.TurboModuleRegistry && ReactNativeLibraries.TurboModuleRegistry.get<Spec>('RNSentry')
-  : NativeModules.RNSentry;
+/**
+ * Returns the RNSentry module. Dynamically resolves if NativeModule or TurboModule is used.
+ */
+export function getRNSentryModule(): Spec | undefined {
+  return isTurboModuleEnabled()
+    ? ReactNativeLibraries.TurboModuleRegistry && ReactNativeLibraries.TurboModuleRegistry.get<Spec>('RNSentry')
+    : NativeModules.RNSentry;
+}
+
+const RNSentry: Spec | undefined = getRNSentryModule();
 
 export interface Screenshot {
   data: Uint8Array;
@@ -96,6 +103,7 @@ interface SentryNativeWrapper {
    * Fetches native stack frames and debug images for the instructions addresses.
    */
   fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | null;
+  initNativeReactNavigationNewFrameTracking(): Promise<void>;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -587,6 +595,17 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.fetchNativeStackFramesBy(instructionsAddr) || null;
+  },
+
+  async initNativeReactNavigationNewFrameTracking(): Promise<void> {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return;
+    }
+
+    return RNSentry.initNativeReactNavigationNewFrameTracking();
   },
 
   /**

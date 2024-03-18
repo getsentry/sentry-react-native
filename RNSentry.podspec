@@ -35,7 +35,7 @@ Pod::Spec.new do |s|
   s.dependency 'React-Core'
   s.dependency 'Sentry/HybridSDK', '8.21.0'
 
-  s.source_files = 'ios/**/*.{h,mm}'
+  s.source_files = 'ios/**/*.{h,m,mm}'
   s.public_header_files = 'ios/RNSentry.h'
 
   s.compiler_flags = other_cflags

@@ -10,6 +10,7 @@ import {
 
 import { StackNavigationProp } from '@react-navigation/stack';
 import { CommonActions } from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 
 interface Props {
   navigation: StackNavigationProp<any, 'PerformanceScreen'>;
@@ -67,12 +68,14 @@ const PerformanceScreen = (props: Props) => {
   );
 };
 
-const Button = (props: ButtonProps) => (
-  <>
-    <NativeButton {...props} color="#6C5FC7" />
-    <View style={styles.buttonSpacer} />
-  </>
-);
+const Button = (props: ButtonProps) => {
+  return (
+    <Sentry.Profiler name={`Button.${props.title.replace(' ', '_')}`}>
+      <NativeButton {...props} color="#6C5FC7" />
+      <View style={styles.buttonSpacer} />
+    </Sentry.Profiler>
+  );
+};
 
 const styles = StyleSheet.create({
   welcomeTitle: {
@@ -99,4 +102,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PerformanceScreen;
+export default Sentry.withProfiler(PerformanceScreen);

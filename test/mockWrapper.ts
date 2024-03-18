@@ -1,4 +1,4 @@
-import type { NATIVE as ORIGINAL_NATIVE } from '../src/js/wrapper';
+import { type NATIVE as ORIGINAL_NATIVE } from '../src/js/wrapper';
 import type { MockInterface } from './testutils';
 
 type NativeType = typeof ORIGINAL_NATIVE;
@@ -51,6 +51,8 @@ const NATIVE: MockInterface<NativeType> = {
 
   fetchNativePackageName: jest.fn(),
   fetchNativeStackFramesBy: jest.fn(),
+
+  initNativeReactNavigationNewFrameTracking: jest.fn(),
 };
 
 NATIVE.isNativeAvailable.mockReturnValue(true);
@@ -69,7 +71,10 @@ NATIVE.fetchModules.mockResolvedValue(null);
 NATIVE.fetchViewHierarchy.mockResolvedValue(null);
 NATIVE.startProfiling.mockReturnValue(false);
 NATIVE.stopProfiling.mockReturnValue(null);
-NATIVE.fetchNativePackageName.mockResolvedValue('mock-native-package-name');
-NATIVE.fetchNativeStackFramesBy.mockResolvedValue(null);
+NATIVE.fetchNativePackageName.mockReturnValue('mock-native-package-name');
+NATIVE.fetchNativeStackFramesBy.mockReturnValue(null);
+NATIVE.initNativeReactNavigationNewFrameTracking.mockReturnValue(Promise.resolve());
+
+export const getRNSentryModule = jest.fn();
 
 export { NATIVE };
