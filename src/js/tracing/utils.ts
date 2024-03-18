@@ -78,6 +78,15 @@ export function instrumentChildSpanFinish(
 
         callback(span, endTimestamp);
       };
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const originalSpanEnd = span.end;
+
+      span.end = (endTimestamp?: number) => {
+        originalSpanEnd.apply(span, [endTimestamp]);
+
+        callback(span, endTimestamp);
+      };
     };
   }
 }
