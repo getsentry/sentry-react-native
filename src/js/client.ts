@@ -6,10 +6,8 @@ import type {
   Envelope,
   Event,
   EventHint,
-  Exception,
   Outcome,
   SeverityLevel,
-  Thread,
   UserFeedback,
 } from '@sentry/types';
 import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
@@ -58,22 +56,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @inheritDoc
    */
   public eventFromMessage(message: string, level?: SeverityLevel, hint?: EventHint): PromiseLike<Event> {
-    return eventFromMessage(this._options.stackParser, message, level, hint, this._options.attachStacktrace).then(
-      (event: Event) => {
-        // TMP! Remove this function once JS SDK uses threads for messages
-        if (!event.exception?.values || event.exception.values.length <= 0) {
-          return event;
-        }
-        const values = event.exception.values.map(
-          (exception: Exception): Thread => ({
-            stacktrace: exception.stacktrace,
-          }),
-        );
-        (event as { threads?: { values: Thread[] } }).threads = { values };
-        delete event.exception;
-        return event;
-      },
-    );
+    return eventFromMessage(this._options.stackParser, message, level, hint, this._options.attachStacktrace);
   }
 
   /**

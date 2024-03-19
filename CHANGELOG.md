@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- CaptureMessage stack-trace is now symbolicated ([#3635](https://github.com/getsentry/sentry-react-native/pull/3635))
+
 ## 5.20.0
 
 ### Features

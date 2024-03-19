@@ -59,7 +59,6 @@ export class DebugSymbolicator implements Integration {
           symbolicatedFrames && this._replaceExceptionFramesInEvent(event, symbolicatedFrames);
         } else if (event.threads) {
           // RN JS doesn't have threads
-          // syntheticException is used for Sentry.captureMessage() threads
           symbolicatedFrames && this._replaceThreadFramesInEvent(event, symbolicatedFrames);
         }
       }

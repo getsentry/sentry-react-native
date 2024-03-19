@@ -368,11 +368,12 @@ describe('Tests ReactNativeClient', () => {
     const getMessageEventFrom = (func: jest.Mock) =>
       func.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
 
-    test('captureMessage contains stack trace in threads', async () => {
+    test('captureMessage contains stack trace in exception', async () => {
       const mockSyntheticExceptionFromHub = new Error();
       client.captureMessage('test message', 'error', { syntheticException: mockSyntheticExceptionFromHub });
-      expect(getMessageEventFrom(mockTransportSend).threads.values.length).toBeGreaterThan(0);
-      expect(getMessageEventFrom(mockTransportSend).exception).toBeUndefined();
+      expect(getMessageEventFrom(mockTransportSend).exception.values.length).toBeGreaterThan(0);
+      expect(getMessageEventFrom(mockTransportSend).exception).toBeDefined();
+      expect(getMessageEventFrom(mockTransportSend).threads).toBeUndefined();
     });
   });
 
