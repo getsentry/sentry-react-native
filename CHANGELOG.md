@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add `getDefaultConfig` option to `getSentryExpoConfig` ([#3688](https://github.com/getsentry/sentry-react-native/pull/3688))
+
 ## 5.20.0
 
 ### Features
