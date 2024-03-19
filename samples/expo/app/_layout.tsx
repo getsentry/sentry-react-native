@@ -1,13 +1,14 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { SplashScreen, Stack } from 'expo-router';
+import { SplashScreen, Stack, useNavigationContainerRef } from 'expo-router';
 import { useEffect } from 'react';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { HttpClient } from '@sentry/integrations';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
+import { isExpoGo } from '../utils/isExpoGo';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -16,6 +17,10 @@ export {
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+const routingInstrumentation = new Sentry.ReactNavigationInstrumentation({
+  enableTimeToInitialDisplay: !isExpoGo(), // This is not supported in Expo Go.
+});
 
 process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
   // Replace the example DSN below with your own DSN:
@@ -47,6 +52,10 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
         failedRequestTargets: [/.*/],
       }),
       Sentry.metrics.metricsAggregatorIntegration(),
+      new Sentry.ReactNativeTracing({
+        routingInstrumentation,
+        enableNativeFramesTracking: !isExpoGo(), // Only in native builds, not in Expo Go.
+      }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
@@ -74,7 +83,15 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
   enableSpotlight: true,
 });
 
-export default function RootLayout() {
+function RootLayout() {
+  const ref = useNavigationContainerRef();
+
+  useEffect(() => {
+    if (ref) {
+      routingInstrumentation.registerNavigationContainer(ref);
+    }
+  }, [ref]);
+
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
@@ -110,3 +127,5 @@ function RootLayoutNav() {
     </ThemeProvider>
   );
 }
+
+export default Sentry.wrap(RootLayout);
