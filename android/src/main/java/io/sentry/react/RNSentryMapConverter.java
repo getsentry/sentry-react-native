@@ -17,7 +17,7 @@ import io.sentry.ILogger;
 import io.sentry.SentryLevel;
 import io.sentry.android.core.AndroidLogger;
 
-public class MapConverter {
+public class RNSentryMapConverter {
     public static final String NAME = "RNSentry.MapConverter";
 
     private static final ILogger logger = new AndroidLogger(NAME);

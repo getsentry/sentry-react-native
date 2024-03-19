@@ -33,6 +33,11 @@
 #import "RNSentrySpec.h"
 #endif
 
+#import "RNSentryEvents.h"
+#import "RNSentryDependencyContainer.h"
+#import "RNSentryFramesTrackerListener.h"
+#import "RNSentryRNSScreen.h"
+
 @interface SentryTraceContext : NSObject
 - (nullable instancetype)initWithDict:(NSDictionary<NSString *, id> *)dictionary;
 @end
@@ -51,6 +56,7 @@ static NSString* const nativeSdkName = @"sentry.cocoa.react-native";
 
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
+    bool hasListeners;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -180,6 +186,44 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
   }
 
   event.tags = newTags;
+}
+
+RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking:(RCTPromiseResolveBlock)resolve
+                                                   rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if ([[NSThread currentThread] isMainThread]) {
+        [RNSentryRNSScreen swizzleViewDidAppear];
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [RNSentryRNSScreen swizzleViewDidAppear];
+        });
+    }
+
+    [self initFramesTracking];
+    resolve(nil);
+}
+
+- (void)initFramesTracking {
+  RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
+    if (self->hasListeners) {
+      [self sendEventWithName:RNSentryNewFrameEvent body:@{ @"newFrameTimestampInSeconds": newFrameTimestampInSeconds }];
+    }
+  };
+  [[RNSentryDependencyContainer sharedInstance] initializeFramesTrackerListenerWith: emitNewFrameEvent];
+}
+
+// Will be called when this module's first listener is added.
+-(void)startObserving {
+    hasListeners = YES;
+}
+
+// Will be called when this module's last listener is removed, or on dealloc.
+-(void)stopObserving {
+    hasListeners = NO;
+}
+
+- (NSArray<NSString *> *)supportedEvents {
+  return @[RNSentryNewFrameEvent];
 }
 
 RCT_EXPORT_METHOD(fetchNativeSdkInfo:(RCTPromiseResolveBlock)resolve

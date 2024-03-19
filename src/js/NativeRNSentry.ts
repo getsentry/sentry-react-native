@@ -7,6 +7,8 @@ import type { UnsafeObject } from './utils/rnlibrariesinterface';
 // There has to be only one interface and it has to be named `Spec`
 // Only extra allowed definitions are types (probably codegen bug)
 export interface Spec extends TurboModule {
+  addListener: (eventType: string) => void;
+  removeListeners: (id: number) => void;
   addBreadcrumb(breadcrumb: UnsafeObject): void;
   captureEnvelope(
     bytes: string,
@@ -41,6 +43,7 @@ export interface Spec extends TurboModule {
   };
   fetchNativePackageName(): string | undefined | null;
   fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | undefined | null;
+  initNativeReactNavigationNewFrameTracking(): Promise<void>;
 }
 
 export type NativeStackFrame = {

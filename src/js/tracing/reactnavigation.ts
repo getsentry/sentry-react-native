@@ -1,10 +1,15 @@
 /* eslint-disable max-lines */
-import type { Transaction as TransactionType, TransactionContext } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import { getActiveSpan, setMeasurement, spanToJSON, startInactiveSpan } from '@sentry/core';
+import type { Span, Transaction as TransactionType, TransactionContext } from '@sentry/types';
+import { logger, timestampInSeconds } from '@sentry/utils';
 
+import type { NewFrameEvent } from '../utils/sentryeventemitter';
+import { type SentryEventEmitter, createSentryEventEmitter, NewFrameEventName } from '../utils/sentryeventemitter';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
+import { NATIVE } from '../wrapper';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
+import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
 import type { BeforeNavigate, ReactNavigationTransactionContext, RouteChangeContextData } from './types';
 import { customTransactionSource, defaultTransactionSource, getBlankTransactionContext } from './utils';
 
@@ -26,13 +31,22 @@ interface ReactNavigationOptions {
    * before the transaction is discarded.
    * Time is in ms.
    *
-   * Default: 1000
+   * @default 1000
    */
   routeChangeTimeoutMs: number;
+
+  /**
+   * Time to initial display measures the time it takes from
+   * navigation dispatch to the render of the first frame of the new screen.
+   *
+   * @default false
+   */
+  enableTimeToInitialDisplay: boolean;
 }
 
 const defaultOptions: ReactNavigationOptions = {
   routeChangeTimeoutMs: 1000,
+  enableTimeToInitialDisplay: false,
 };
 
 /**
@@ -49,11 +63,14 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
   public readonly name: string = ReactNavigationInstrumentation.instrumentationName;
 
   private _navigationContainer: NavigationContainer | null = null;
+  private _newScreenFrameEventEmitter: SentryEventEmitter | null = null;
 
   private readonly _maxRecentRouteLen: number = 200;
 
   private _latestRoute?: NavigationRoute;
   private _latestTransaction?: TransactionType;
+  private _navigationProcessingSpan?: Span;
+
   private _initialStateHandled: boolean = false;
   private _stateChangeTimeout?: number | undefined;
   private _recentRouteKeys: string[] = [];
@@ -67,6 +84,14 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       ...defaultOptions,
       ...options,
     };
+
+    if (this._options.enableTimeToInitialDisplay) {
+      this._newScreenFrameEventEmitter = createSentryEventEmitter();
+      this._newScreenFrameEventEmitter.initAsync(NewFrameEventName);
+      NATIVE.initNativeReactNavigationNewFrameTracking().catch((reason: unknown) => {
+        logger.error(`[ReactNavigationInstrumentation] Failed to initialize native new frame tracking: ${reason}`);
+      });
+    }
   }
 
   /**
@@ -162,6 +187,14 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       getBlankTransactionContext(ReactNavigationInstrumentation.instrumentationName),
     );
 
+    if (this._options.enableTimeToInitialDisplay) {
+      this._navigationProcessingSpan = startInactiveSpan({
+        op: 'navigation.processing',
+        name: 'Navigation processing',
+        startTimestamp: this._latestTransaction?.startTimestamp,
+      });
+    }
+
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
       this._options.routeChangeTimeoutMs,
@@ -172,6 +205,8 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
    * To be called AFTER the state has been changed to populate the transaction with the current route.
    */
   private _onStateChange(): void {
+    const stateChangedTimestamp = timestampInSeconds();
+
     // Use the getCurrentRoute method to be accurate.
     const previousRoute = this._latestRoute;
 
@@ -188,8 +223,65 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
     if (route) {
       if (this._latestTransaction) {
         if (!previousRoute || previousRoute.key !== route.key) {
-          const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
           const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
+          const latestTtidSpan =
+            !routeHasBeenSeen &&
+            this._options.enableTimeToInitialDisplay &&
+            startTimeToInitialDisplaySpan({
+              name: `${route.name} initial display`,
+              isAutoInstrumented: true,
+            });
+
+          !routeHasBeenSeen &&
+            this._newScreenFrameEventEmitter?.once(
+              NewFrameEventName,
+              ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
+                const activeSpan = getActiveSpan();
+                if (!activeSpan) {
+                  logger.warn(
+                    '[ReactNavigationInstrumentation] No active span found to attach ui.load.initial_display to.',
+                  );
+                  return;
+                }
+
+                if (manualInitialDisplaySpans.has(activeSpan)) {
+                  logger.warn(
+                    '[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.',
+                  );
+                  return;
+                }
+
+                if (!latestTtidSpan) {
+                  return;
+                }
+
+                if (spanToJSON(latestTtidSpan).parent_span_id !== getActiveSpan()?.spanContext().spanId) {
+                  logger.warn(
+                    '[ReactNavigationInstrumentation] Currently Active Span changed before the new frame was rendered, _latestTtidSpan is not a child of the currently active span.',
+                  );
+                  return;
+                }
+
+                latestTtidSpan.setStatus('ok');
+                latestTtidSpan.end(newFrameTimestampInSeconds);
+                const ttidSpan = spanToJSON(latestTtidSpan);
+
+                const ttidSpanEnd = ttidSpan.timestamp;
+                const ttidSpanStart = ttidSpan.start_timestamp;
+                if (!ttidSpanEnd || !ttidSpanStart) {
+                  return;
+                }
+
+                setMeasurement('time_to_initial_display', (ttidSpanEnd - ttidSpanStart) * 1000, 'millisecond');
+              },
+            );
+
+          this._navigationProcessingSpan?.updateName(`Processing navigation to ${route.name}`);
+          this._navigationProcessingSpan?.setStatus('ok');
+          this._navigationProcessingSpan?.end(stateChangedTimestamp);
+          this._navigationProcessingSpan = undefined;
+
+          const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
 
           const data: RouteChangeContextData = {
             ...originalContext.data,
@@ -285,6 +377,9 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       this._latestTransaction.sampled = false;
       this._latestTransaction.finish();
       this._latestTransaction = undefined;
+    }
+    if (this._navigationProcessingSpan) {
+      this._navigationProcessingSpan = undefined;
     }
   }
 

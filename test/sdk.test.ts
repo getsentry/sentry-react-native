@@ -3,8 +3,6 @@
  */
 import { logger } from '@sentry/utils';
 
-import { NATIVE } from '../src/js/wrapper';
-
 interface MockedClient {
   flush: jest.Mock;
 }
@@ -62,7 +60,8 @@ jest.mock('../src/js/client', () => {
   };
 });
 
-jest.mock('../src/js/wrapper');
+import * as mockedWrapper from './mockWrapper';
+jest.mock('../src/js/wrapper', () => mockedWrapper);
 jest.mock('../src/js/utils/environment');
 
 jest.spyOn(logger, 'error');
@@ -76,6 +75,7 @@ import { configureScope, flush, init, withScope } from '../src/js/sdk';
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
 import { getDefaultEnvironment, isExpoGo, notWeb } from '../src/js/utils/environment';
+import { NATIVE } from './mockWrapper';
 import { firstArg, secondArg } from './testutils';
 
 const mockedInitAndBind = initAndBind as jest.MockedFunction<typeof initAndBind>;

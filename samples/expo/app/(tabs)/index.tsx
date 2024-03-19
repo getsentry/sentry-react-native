@@ -90,6 +90,7 @@ export default function TabOneScreen() {
 
   return (
     <View style={styles.container}>
+      <Sentry.TimeToInitialDisplay record />
       <Text>Welcome to Sentry Expo Sample App!</Text>
       <Button
         title="Capture message"

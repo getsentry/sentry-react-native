@@ -13,6 +13,8 @@ import android.content.res.AssetManager;
 import android.util.SparseIntArray;
 
 import androidx.core.app.FrameMetricsAggregator;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 
 import com.facebook.hermes.instrumentation.HermesSamplingProfiler;
 import com.facebook.react.bridge.Arguments;
@@ -25,15 +27,14 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -55,6 +56,7 @@ import io.sentry.ISerializer;
 import io.sentry.Integration;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
+import io.sentry.SentryDateProvider;
 import io.sentry.SentryEvent;
 import io.sentry.SentryExecutorService;
 import io.sentry.SentryLevel;
@@ -69,6 +71,7 @@ import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.InternalSentrySdk;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
+import io.sentry.android.core.SentryAndroidDateProvider;
 import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
@@ -123,21 +126,53 @@ public class RNSentryModuleImpl {
     private String cacheDirPath = null;
     private ISentryExecutorService executorService = null;
 
+    private final @NotNull Runnable emitNewFrameEvent;
+
     /** Max trace file size in bytes. */
     private long maxTraceFileSize = 5 * 1024 * 1024;
 
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
-        packageInfo = getPackageInfo(reactApplicationContext);
-        this.reactApplicationContext = reactApplicationContext;
+      packageInfo = getPackageInfo(reactApplicationContext);
+      this.reactApplicationContext = reactApplicationContext;
+      this.emitNewFrameEvent = createEmitNewFrameEvent();
     }
 
     private ReactApplicationContext getReactApplicationContext() {
-        return this.reactApplicationContext;
+      return this.reactApplicationContext;
     }
 
-    private @Nullable
-    Activity getCurrentActivity() {
-        return this.reactApplicationContext.getCurrentActivity();
+    private @Nullable Activity getCurrentActivity() {
+      return this.reactApplicationContext.getCurrentActivity();
+    }
+
+    private @NotNull Runnable createEmitNewFrameEvent() {
+        final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
+
+        return () -> {
+          final SentryDate endDate = dateProvider.now();
+          WritableMap event = Arguments.createMap();
+          event.putDouble("newFrameTimestampInSeconds", endDate.nanoTimestamp() / 1e9);
+          getReactApplicationContext()
+              .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+              .emit("rn_sentry_new_frame", event);
+        };
+    }
+
+    private void initFragmentInitialFrameTracking() {
+        final RNSentryReactFragmentLifecycleTracer fragmentLifecycleTracer =
+                new RNSentryReactFragmentLifecycleTracer(buildInfo, emitNewFrameEvent, logger);
+
+        final @Nullable FragmentActivity fragmentActivity = (FragmentActivity) getCurrentActivity();
+        if (fragmentActivity != null) {
+            final @Nullable FragmentManager supportFragmentManager = fragmentActivity.getSupportFragmentManager();
+            if (supportFragmentManager != null) {
+                supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleTracer, true);
+            }
+        }
+    }
+
+    public void initNativeReactNavigationNewFrameTracking(Promise promise) {
+        this.initFragmentInitialFrameTracking();
     }
 
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
@@ -151,7 +186,7 @@ public class RNSentryModuleImpl {
 
             options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
             options.setNativeSdkName(NATIVE_SDK_NAME);
-            options.setSdkVersion(sdkVersion);
+          options.setSdkVersion(sdkVersion);
 
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
@@ -260,6 +295,16 @@ public class RNSentryModuleImpl {
 
     public void crash() {
         throw new RuntimeException("TEST - Sentry Client Crash (only works in release mode)");
+    }
+
+    public void addListener(String _eventType) {
+      // Is must be defined otherwise the generated interface from TS won't be fulfilled
+      logger.log(SentryLevel.ERROR, "addListener of NativeEventEmitter can't be used on Android!");
+    }
+
+    public void removeListeners(double _id) {
+      // Is must be defined otherwise the generated interface from TS won't be fulfilled
+      logger.log(SentryLevel.ERROR, "removeListeners of NativeEventEmitter can't be used on Android!");
     }
 
     public void fetchModules(Promise promise) {
@@ -780,7 +825,7 @@ public class RNSentryModuleImpl {
                 context,
                 (SentryAndroidOptions) options,
                 currentScope);
-        final @Nullable Object deviceContext = MapConverter.convertToWritable(serialized);
+        final @Nullable Object deviceContext = RNSentryMapConverter.convertToWritable(serialized);
         promise.resolve(deviceContext);
     }
 
