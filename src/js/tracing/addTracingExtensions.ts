@@ -1,4 +1,4 @@
-import type { Hub, Span, Transaction } from '@sentry/core';
+import type { Hub, Transaction } from '@sentry/core';
 import { addTracingExtensions, getCurrentHub, getMainCarrier } from '@sentry/core';
 import type { CustomSamplingContext, SpanContext, TransactionContext } from '@sentry/types';
 
@@ -54,7 +54,7 @@ const _patchStartTransaction = (originalStartTransaction: StartTransactionFuncti
     const originalStartChild: Transaction['startChild'] = transaction.startChild.bind(transaction);
     transaction.startChild = (
       spanContext?: Pick<SpanContext, Exclude<keyof SpanContext, 'sampled' | 'traceId' | 'parentSpanId'>>,
-    ): Span => {
+    ): ReturnType<Transaction['startChild']> => {
       return originalStartChild({
         ...spanContext,
         // Native SDKs require op to be set

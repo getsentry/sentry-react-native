@@ -1,4 +1,5 @@
 import type { Event, EventHint, EventProcessor, Integration } from '@sentry/types';
+import type { AttachmentType } from '@sentry/types/types/attachment';
 import { logger } from '@sentry/utils';
 
 import { NATIVE } from '../wrapper';
@@ -12,7 +13,7 @@ export class ViewHierarchy implements Integration {
 
   private static _fileName: string = 'view-hierarchy.json';
   private static _contentType: string = 'application/json';
-  private static _attachmentType: string = 'event.view_hierarchy';
+  private static _attachmentType: AttachmentType = 'event.view_hierarchy' as AttachmentType;
 
   /**
    * @inheritDoc
