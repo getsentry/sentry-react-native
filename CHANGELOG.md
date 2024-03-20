@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Change TimeToDisplay unsupported log from error to warning level. ([#3699](https://github.com/getsentry/sentry-react-native/pull/3699))
+
 ## 5.20.0
 
 ### Features
