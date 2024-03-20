@@ -6,6 +6,10 @@
 
 - Add `getDefaultConfig` option to `getSentryExpoConfig` ([#3690](https://github.com/getsentry/sentry-react-native/pull/3690))
 
+### Fixes
+
+- Do not enable NativeFramesTracking when native is not available ([#3700](https://github.com/getsentry/sentry-react-native/pull/3700))
+
 ## 5.20.0
 
 ### Features
