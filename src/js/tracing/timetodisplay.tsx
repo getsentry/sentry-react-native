@@ -61,7 +61,7 @@ function TimeToDisplay(props: {
 
   if (__DEV__ && !nativeComponentMissingLogged && !nativeComponentExists) {
     nativeComponentMissingLogged = true;
-    logger.warn('RNSentryOnDrawReporter is not available on the web, Expo Go and New Architecture. Run native build or report an issue at https://github.com/getsentry/sentry-react-native');
+    logger.log('TimeToInitialDisplay and TimeToFullDisplay are not supported on the web, Expo Go and New Architecture. Run native build or report an issue at https://github.com/getsentry/sentry-react-native');
   }
 
   const onDraw = (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): void => onDrawNextFrame(event);
