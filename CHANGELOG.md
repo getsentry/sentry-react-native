@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.21.0 to v8.22.2 ([#3695](https://github.com/getsentry/sentry-react-native/pull/3695))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8222)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.21.0...8.22.2)
+
 ## 5.20.0
 
 ### Features
