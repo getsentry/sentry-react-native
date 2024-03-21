@@ -6,6 +6,10 @@
 
 - Add `getDefaultConfig` option to `getSentryExpoConfig` ([#3690](https://github.com/getsentry/sentry-react-native/pull/3690))
 
+### Fixes
+
+- Change TimeToDisplay unsupported log from error to warning level. ([#3699](https://github.com/getsentry/sentry-react-native/pull/3699))
+
 ## 5.20.0
 
 ### Features
