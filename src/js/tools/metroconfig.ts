@@ -23,8 +23,11 @@ export function withSentryConfig(config: MetroConfig): MetroConfig {
 /**
  * This function returns Default Expo configuration with Sentry plugins.
  */
-export function getSentryExpoConfig(projectRoot: string, options: DefaultConfigOptions = {}): MetroConfig {
-  const { getDefaultConfig } = loadExpoMetroConfigModule();
+export function getSentryExpoConfig(
+  projectRoot: string,
+  options: DefaultConfigOptions & { getDefaultConfig?: typeof getSentryExpoConfig } = {},
+): MetroConfig {
+  const getDefaultConfig = options.getDefaultConfig || loadExpoMetroConfigModule().getDefaultConfig;
   const config = getDefaultConfig(projectRoot, {
     ...options,
     unstable_beforeAssetSerializationPlugins: [

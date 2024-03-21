@@ -7,7 +7,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "ts:check": "tsc"
+    "ts:check": "tsc",
+    "export": "EXPO_SKIP_DURING_EXPORT='true' expo export --dump-sourcemap --clear"
   },
   "dependencies": {
     "@types/react": "18.2.45",
