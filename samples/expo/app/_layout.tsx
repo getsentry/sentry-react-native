@@ -54,7 +54,6 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
       Sentry.metrics.metricsAggregatorIntegration(),
       new Sentry.ReactNativeTracing({
         routingInstrumentation,
-        enableNativeFramesTracking: !isExpoGo(), // Only in native builds, not in Expo Go.
       }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
