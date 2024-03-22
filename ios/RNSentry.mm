@@ -107,29 +107,48 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                          error: (NSError *_Nonnull *_Nonnull) errorPointer
 {
-    SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
-        // We don't want to send an event after startup that came from a Unhandled JS Exception of react native
-        // Because we sent it already before the app crashed.
-        if (nil != event.exceptions.firstObject.type &&
-            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
-            NSLog(@"Unhandled JS Exception");
-            return nil;
-        }
+  SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
+    // We don't want to send an event after startup that came from a Unhandled JS Exception of react native
+    // Because we sent it already before the app crashed.
+    if (nil != event.exceptions.firstObject.type &&
+        [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
+      NSLog(@"Unhandled JS Exception");
+      return nil;
+    }
 
-        [self setEventOriginTag:event];
+    [self setEventOriginTag:event];
 
-        return event;
-    };
+    return event;
+  };
 
-    NSMutableDictionary * mutableOptions =[options mutableCopy];
-    [mutableOptions setValue:beforeSend forKey:@"beforeSend"];
+  NSMutableDictionary * mutableOptions =[options mutableCopy];
+  [mutableOptions setValue:beforeSend forKey:@"beforeSend"];
 
-    // remove performance traces sample rate and traces sampler since we don't want to synchronize these configurations
-    // to the Native SDKs.
-    // The user could tho initialize the SDK manually and set themselves.
-    [mutableOptions removeObjectForKey:@"tracesSampleRate"];
-    [mutableOptions removeObjectForKey:@"tracesSampler"];
-    [mutableOptions removeObjectForKey:@"enableTracing"];
+  // remove performance traces sample rate and traces sampler since we don't want to synchronize these configurations
+  // to the Native SDKs.
+  // The user could tho initialize the SDK manually and set themselves.
+  [mutableOptions removeObjectForKey:@"tracesSampleRate"];
+  [mutableOptions removeObjectForKey:@"tracesSampler"];
+  [mutableOptions removeObjectForKey:@"enableTracing"];
+
+  if (mutableOptions[@"replaysSessionSampleRate"] != nil) {
+    if ([mutableOptions objectForKey:@"sessionReplayOptions"] && [[mutableOptions objectForKey:@"sessionReplayOptions"] isKindOfClass:[NSDictionary class]]) {
+        NSMutableDictionary *nestedDict = [mutableOptions objectForKey:@"sessionReplayOptions"];
+        [nestedDict setValue:mutableOptions[@"replaysSessionSampleRate"] forKey:@"replaysSessionSampleRate"];
+    } else {
+        NSMutableDictionary *newNestedDict = [NSMutableDictionary dictionaryWithObject:mutableOptions[@"replaysSessionSampleRate"] forKey:@"replaysSessionSampleRate"];
+        [mutableOptions setObject:newNestedDict forKey:@"sessionReplayOptions"];
+    }
+  }
+  if (mutableOptions[@"replaysOnErrorSampleRate"] != nil) {
+    if ([mutableOptions objectForKey:@"sessionReplayOptions"] && [[mutableOptions objectForKey:@"sessionReplayOptions"] isKindOfClass:[NSDictionary class]]) {
+        NSMutableDictionary *nestedDict = [mutableOptions objectForKey:@"sessionReplayOptions"];
+        [nestedDict setValue:mutableOptions[@"replaysOnErrorSampleRate"] forKey:@"replaysSessionSampleRate"];
+    } else {
+        NSMutableDictionary *newNestedDict = [NSMutableDictionary dictionaryWithObject:mutableOptions[@"replaysOnErrorSampleRate"] forKey:@"replaysOnErrorSampleRate"];
+        [mutableOptions setObject:newNestedDict forKey:@"sessionReplayOptions"];
+    }
+  }
 
     SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:errorPointer];
     if (*errorPointer != nil) {

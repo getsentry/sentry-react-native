@@ -180,6 +180,19 @@ export interface BaseReactNativeOptions {
    * @default "http://localhost:8969/stream"
    */
   spotlightSidecarUrl?: string;
+
+  /**
+   * The sample rate for session-long replays.
+   * 1.0 will record all sessions and 0 will record none.
+   */
+  replaysSessionSampleRate?: number;
+
+  /**
+   * The sample rate for sessions that has had an error occur.
+   * This is independent of `sessionSampleRate`.
+   * 1.0 will record all sessions and 0 will record none.
+   */
+  replaysOnErrorSampleRate?: number;
 }
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {

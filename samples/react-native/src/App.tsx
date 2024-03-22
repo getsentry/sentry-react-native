@@ -100,6 +100,7 @@ Sentry.init({
     profilesSampleRate: 1.0,
   },
   enableSpotlight: true,
+  replaysSessionSampleRate: 1.0,
 });
 
 const Stack = createNativeStackNavigator();
