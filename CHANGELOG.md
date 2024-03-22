@@ -8,7 +8,7 @@
 
 ### Fixes
 
-- Do not enable NativeFramesTracking when native is not available ([#3700](https://github.com/getsentry/sentry-react-native/pull/3700))
+- Do not enable NativeFramesTracking when native is not available ([#3705](https://github.com/getsentry/sentry-react-native/pull/3705))
 
 ### Dependencies
 
