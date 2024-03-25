@@ -60,7 +60,7 @@ jobs:
         uses: gradle/gradle-build-action@v3
       - name: Install Global Dependencies
         run: yarn global add react-native-cli @sentry/cli yalc
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: deps-cache
         with:
           path: |
@@ -77,7 +77,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: app-plain-cache
         with:
           path: ${{ matrix.appPlain }}
@@ -252,14 +252,14 @@ jobs:
         run: brew install xcbeautify
 
       - name: NPM cache SDK
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: deps-cache
         with:
           path: node_modules
           key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock') }}
 
       - name: NPM cache E2E Tests Library
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: deps-cache-e2e-library
         with:
           path: test/e2e/node_modules
@@ -516,7 +516,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: NPM cache E2E Tests Library
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: deps-cache-e2e-library
         with:
           path: test/e2e/node_modules

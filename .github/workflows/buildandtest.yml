@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
@@ -39,7 +39,7 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
@@ -57,7 +57,7 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: samples/react-native/node_modules
@@ -77,7 +77,7 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
@@ -100,7 +100,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
@@ -144,7 +144,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: test/typescript/ts3.8/node_modules
@@ -185,7 +185,7 @@ jobs:
         with:
           node-version: 18
       - name: Cache Dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
@@ -223,13 +223,13 @@ jobs:
         with:
           node-version: 18
       - name: Cache Dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ github.sha }}
       - name: Cache Sample Dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache-sample
         with:
           path: samples/react-native/node_modules
