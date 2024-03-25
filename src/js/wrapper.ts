@@ -104,6 +104,8 @@ interface SentryNativeWrapper {
    */
   fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | null;
   initNativeReactNavigationNewFrameTracking(): Promise<void>;
+  captureReplay(): Promise<string | null>;
+  captureReplayOnCrash(): string | null;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -606,6 +608,32 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.initNativeReactNavigationNewFrameTracking();
+  },
+
+  async captureReplay(): Promise<string | null> {
+    if (!this.enableNative) {
+      logger.warn('[NATIVE] `captureReplay` is not available when native is disabled.');
+      return Promise.resolve(null);
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      logger.warn('[NATIVE] `captureReplay` is not available when native is not available.');
+      return Promise.resolve(null);
+    }
+
+    return (await RNSentry.captureReplay()) || null;
+  },
+
+  captureReplayOnCrash(): string | null {
+    if (!this.enableNative) {
+      logger.warn('[NATIVE] `captureReplayOnCrash` is not available when native is disabled.');
+      return null;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      logger.warn('[NATIVE] `captureReplayOnCrash` is not available when native is not available.');
+      return null;
+    }
+
+    return RNSentry.captureReplayOnCrash() || null;
   },
 
   /**

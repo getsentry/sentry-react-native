@@ -3,6 +3,7 @@ import type { EventHint, Integration, SeverityLevel } from '@sentry/types';
 import { addExceptionMechanism, logger } from '@sentry/utils';
 
 import type { ReactNativeClient } from '../client';
+import { addReplayToEvent, captureReplayOnCrash } from '../integrations/mobilereplay';
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
@@ -223,11 +224,14 @@ export class ReactNativeErrorHandlers implements Integration {
 
         const options = client.getOptions();
 
+        const replayId = captureReplayOnCrash();
+
         const hint: EventHint = {
           originalException: error,
           attachments: scope?.getAttachments(),
         };
         const event = await client.eventFromException(error, hint);
+        addReplayToEvent(event, replayId);
 
         if (isFatal) {
           event.level = 'fatal' as SeverityLevel;
