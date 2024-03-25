@@ -23,6 +23,7 @@ import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { StyleSheet } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import PlaygroundScreen from './Screens/PlaygroundScreen';
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
@@ -192,6 +193,20 @@ function BottomTabs() {
             tabBarIcon: ({ focused, color, size }) => (
               <Ionicons
                 name={focused ? 'speedometer' : 'speedometer-outline'}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="PlaygroundTab"
+          component={PlaygroundScreen}
+          options={{
+            tabBarLabel: 'Playground',
+            tabBarIcon: ({ focused, color, size }) => (
+              <Ionicons
+                name={focused ? 'american-football' : 'american-football-outline'}
                 size={size}
                 color={color}
               />
