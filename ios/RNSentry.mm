@@ -15,7 +15,7 @@
 #define SENTRY_TARGET_PROFILING_SUPPORTED 0
 #endif
 
-#import <Sentry/Sentry.h>
+@import Sentry;
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
@@ -112,43 +112,44 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     // Because we sent it already before the app crashed.
     if (nil != event.exceptions.firstObject.type &&
         [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
-      NSLog(@"Unhandled JS Exception");
-      return nil;
+            NSLog(@"Unhandled JS Exception");
+            return nil;
+        }
+
+        [self setEventOriginTag:event];
+
+        return event;
+    };
+
+    NSMutableDictionary * mutableOptions =[options mutableCopy];
+    [mutableOptions setValue:beforeSend forKey:@"beforeSend"];
+
+    // remove performance traces sample rate and traces sampler since we don't want to synchronize these configurations
+    // to the Native SDKs.
+    // The user could tho initialize the SDK manually and set themselves.
+    [mutableOptions removeObjectForKey:@"tracesSampleRate"];
+    [mutableOptions removeObjectForKey:@"tracesSampler"];
+    [mutableOptions removeObjectForKey:@"enableTracing"];
+
+    // TODO: If replays is enabled setup RTC native components for redacting
+    if (mutableOptions[@"replaysSessionSampleRate"] != nil) {
+        if ([mutableOptions objectForKey:@"sessionReplayOptions"] && [[mutableOptions objectForKey:@"sessionReplayOptions"] isKindOfClass:[NSDictionary class]]) {
+            NSMutableDictionary *nestedDict = [mutableOptions objectForKey:@"sessionReplayOptions"];
+            [nestedDict setValue:mutableOptions[@"replaysSessionSampleRate"] forKey:@"replaysSessionSampleRate"];
+        } else {
+            NSMutableDictionary *newNestedDict = [NSMutableDictionary dictionaryWithObject:mutableOptions[@"replaysSessionSampleRate"] forKey:@"replaysSessionSampleRate"];
+            [mutableOptions setObject:newNestedDict forKey:@"sessionReplayOptions"];
+        }
     }
-
-    [self setEventOriginTag:event];
-
-    return event;
-  };
-
-  NSMutableDictionary * mutableOptions =[options mutableCopy];
-  [mutableOptions setValue:beforeSend forKey:@"beforeSend"];
-
-  // remove performance traces sample rate and traces sampler since we don't want to synchronize these configurations
-  // to the Native SDKs.
-  // The user could tho initialize the SDK manually and set themselves.
-  [mutableOptions removeObjectForKey:@"tracesSampleRate"];
-  [mutableOptions removeObjectForKey:@"tracesSampler"];
-  [mutableOptions removeObjectForKey:@"enableTracing"];
-
-  if (mutableOptions[@"replaysSessionSampleRate"] != nil) {
-    if ([mutableOptions objectForKey:@"sessionReplayOptions"] && [[mutableOptions objectForKey:@"sessionReplayOptions"] isKindOfClass:[NSDictionary class]]) {
-        NSMutableDictionary *nestedDict = [mutableOptions objectForKey:@"sessionReplayOptions"];
-        [nestedDict setValue:mutableOptions[@"replaysSessionSampleRate"] forKey:@"replaysSessionSampleRate"];
-    } else {
-        NSMutableDictionary *newNestedDict = [NSMutableDictionary dictionaryWithObject:mutableOptions[@"replaysSessionSampleRate"] forKey:@"replaysSessionSampleRate"];
-        [mutableOptions setObject:newNestedDict forKey:@"sessionReplayOptions"];
+    if (mutableOptions[@"replaysOnErrorSampleRate"] != nil) {
+        if ([mutableOptions objectForKey:@"sessionReplayOptions"] && [[mutableOptions objectForKey:@"sessionReplayOptions"] isKindOfClass:[NSDictionary class]]) {
+            NSMutableDictionary *nestedDict = [mutableOptions objectForKey:@"sessionReplayOptions"];
+            [nestedDict setValue:mutableOptions[@"replaysOnErrorSampleRate"] forKey:@"replaysSessionSampleRate"];
+        } else {
+            NSMutableDictionary *newNestedDict = [NSMutableDictionary dictionaryWithObject:mutableOptions[@"replaysOnErrorSampleRate"] forKey:@"replaysOnErrorSampleRate"];
+            [mutableOptions setObject:newNestedDict forKey:@"sessionReplayOptions"];
+        }
     }
-  }
-  if (mutableOptions[@"replaysOnErrorSampleRate"] != nil) {
-    if ([mutableOptions objectForKey:@"sessionReplayOptions"] && [[mutableOptions objectForKey:@"sessionReplayOptions"] isKindOfClass:[NSDictionary class]]) {
-        NSMutableDictionary *nestedDict = [mutableOptions objectForKey:@"sessionReplayOptions"];
-        [nestedDict setValue:mutableOptions[@"replaysOnErrorSampleRate"] forKey:@"replaysSessionSampleRate"];
-    } else {
-        NSMutableDictionary *newNestedDict = [NSMutableDictionary dictionaryWithObject:mutableOptions[@"replaysOnErrorSampleRate"] forKey:@"replaysOnErrorSampleRate"];
-        [mutableOptions setObject:newNestedDict forKey:@"sessionReplayOptions"];
-    }
-  }
 
     SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:errorPointer];
     if (*errorPointer != nil) {
@@ -649,6 +650,29 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // If you're starting the Cocoa SDK manually,
     // you can set the 'enableAutoPerformanceTracing: true' option and
     // the 'tracesSampleRate' or 'tracesSampler' option.
+}
+
+RCT_EXPORT_METHOD(startReplay:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    // TODO: start replay
+    resolve([self getCurrentReplayIdFromScope]);
+}
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentReplayId)
+{
+  return [self getCurrentReplayIdFromScope];
+}
+
+- (NSString * __nullable) getCurrentReplayIdFromScope {
+  __block NSString * __nullable replayId;
+
+  [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+      //replayId = [scope replayId];
+      replayId = nil;
+  }];
+  
+  return replayId;
 }
 
 static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";

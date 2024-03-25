@@ -104,8 +104,9 @@ interface SentryNativeWrapper {
    */
   fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | null;
   initNativeReactNavigationNewFrameTracking(): Promise<void>;
-  captureReplay(): Promise<string | null>;
-  captureReplayOnCrash(): string | null;
+
+  startReplay(isHardCrash: boolean): Promise<string | null>;
+  getCurrentReplayId(): string | null;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -610,30 +611,30 @@ export const NATIVE: SentryNativeWrapper = {
     return RNSentry.initNativeReactNavigationNewFrameTracking();
   },
 
-  async captureReplay(): Promise<string | null> {
+  async startReplay(isHardCrash: boolean): Promise<string | null> {
     if (!this.enableNative) {
-      logger.warn('[NATIVE] `captureReplay` is not available when native is disabled.');
+      logger.warn(`[NATIVE] \`${this.startReplay.name}\` is not available when native is disabled.`);
       return Promise.resolve(null);
     }
     if (!this._isModuleLoaded(RNSentry)) {
-      logger.warn('[NATIVE] `captureReplay` is not available when native is not available.');
+      logger.warn(`[NATIVE] \`${this.startReplay.name}\` is not available when native is not available.`);
       return Promise.resolve(null);
     }
 
-    return (await RNSentry.captureReplay()) || null;
+    return (await RNSentry.startReplay(isHardCrash)) || null;
   },
 
-  captureReplayOnCrash(): string | null {
+  getCurrentReplayId(): string | null {
     if (!this.enableNative) {
-      logger.warn('[NATIVE] `captureReplayOnCrash` is not available when native is disabled.');
+      logger.warn(`[NATIVE] \`${this.getCurrentReplayId.name}\` is not available when native is disabled.`);
       return null;
     }
     if (!this._isModuleLoaded(RNSentry)) {
-      logger.warn('[NATIVE] `captureReplayOnCrash` is not available when native is not available.');
+      logger.warn(`[NATIVE] \`${this.getCurrentReplayId.name}\` is not available when native is not available.`);
       return null;
     }
 
-    return RNSentry.captureReplayOnCrash() || null;
+    return RNSentry.getCurrentReplayId() || null;
   },
 
   /**
