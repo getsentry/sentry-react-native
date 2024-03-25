@@ -107,12 +107,11 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                          error: (NSError *_Nonnull *_Nonnull) errorPointer
 {
-  SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
-    // We don't want to send an event after startup that came from a Unhandled JS Exception of react native
-    // Because we sent it already before the app crashed.
-    if (nil != event.exceptions.firstObject.type &&
-        [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
-            NSLog(@"Unhandled JS Exception");
+    SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
+        // We don't want to send an event after startup that came from a Unhandled JS Exception of react native
+        // Because we sent it already before the app crashed.
+        if (nil != event.exceptions.firstObject.type &&
+            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
             return nil;
         }
 
@@ -671,7 +670,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentReplayId)
       //replayId = [scope replayId];
       replayId = nil;
   }];
-  
+
   return replayId;
 }
 
