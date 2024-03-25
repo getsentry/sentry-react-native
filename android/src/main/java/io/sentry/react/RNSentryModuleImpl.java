@@ -54,7 +54,6 @@ import io.sentry.ISentryExecutorService;
 import io.sentry.IScope;
 import io.sentry.ISerializer;
 import io.sentry.Integration;
-import io.sentry.Scope;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
@@ -78,14 +77,12 @@ import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
 import io.sentry.android.core.performance.AppStartMetrics;
-import io.sentry.android.replay.ReplayIntegration;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryId;
 import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
-import io.sentry.transport.CurrentDateProvider;
 import io.sentry.util.DebugMetaPropertiesApplier;
 import io.sentry.util.JsonSerializationUtils;
 import io.sentry.vendor.Base64;
@@ -256,14 +253,6 @@ public class RNSentryModuleImpl {
             if (rnOptions.hasKey("enableNdk")) {
                 options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
             }
-            // TODO: Remove for debug only
-            final List<Integration> integrations = options.getIntegrations();
-            for (final Integration integration : integrations) {
-                if (integration instanceof ReplayIntegration) {
-                    integrations.remove(integration);
-                }
-            }
-            options.addIntegration(new ReplayIntegration(this.getReactApplicationContext(), CurrentDateProvider.getInstance()));
             if (rnOptions.hasKey("replaysSessionSampleRate")) {
                 // TODO: Set the Android option when available
             }
@@ -290,7 +279,7 @@ public class RNSentryModuleImpl {
             });
 
             if (rnOptions.hasKey("enableNativeCrashHandling") && !rnOptions.getBoolean("enableNativeCrashHandling")) {
-                // final List<Integration> integrations = options.getIntegrations();
+                final List<Integration> integrations = options.getIntegrations();
                 for (final Integration integration : integrations) {
                     if (integration instanceof UncaughtExceptionHandlerIntegration
                             || integration instanceof AnrIntegration || integration instanceof NdkIntegration) {
@@ -427,27 +416,24 @@ public class RNSentryModuleImpl {
         }
     }
 
-    public void captureReplay(Promise promise) {
+    public void startReplay(boolean isHardCrash, Promise promise) {
         // Buffered mode
         // TODO: Call the correct replay hybrid SDKs API
         //SentryAndroid.startReplay();
         promise.resolve(getCurrentReplayId());
     }
 
-    public @Nullable String captureReplayOnCrash() {
-        // Sync function to block the main loop before the app closes
-        // Save to disk, upload on next app start
-        return getCurrentReplayId();
-    }
-
-    private @Nullable String getCurrentReplayId() {
+    public @Nullable String getCurrentReplayId() {
         final @Nullable IScope scope = InternalSentrySdk.getCurrentScope();
         if (scope == null) {
             return null;
         }
 
         final @Nullable SentryId id = scope.getReplayId();
-        return id == null ? null : id.toString();
+        if (id == null) {
+            return null;
+        }
+        return id.toString();
     }
 
     public void captureEnvelope(String rawBytes, ReadableMap options, Promise promise) {
