@@ -40,7 +40,7 @@ jobs:
           distribution: "adopt"
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: samples/react-native/node_modules
