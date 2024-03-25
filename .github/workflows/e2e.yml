@@ -57,7 +57,7 @@ jobs:
           java-version: '17'
           distribution: "adopt"
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
       - name: Install Global Dependencies
         run: yarn global add react-native-cli @sentry/cli yalc
       - uses: actions/cache@v3
@@ -241,7 +241,7 @@ jobs:
           distribution: 'adopt'
 
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
 
       - name: Setup Global Tools
         run: |
@@ -501,7 +501,7 @@ jobs:
           distribution: 'adopt'
 
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
 
       - name: Setup KVM
         if: ${{ matrix.platform == 'android' }}
