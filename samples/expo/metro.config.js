@@ -1,4 +1,5 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
+const { getDefaultConfig } = require('@expo/metro-config');
 const path = require('path');
 
 const { getSentryExpoConfig } = require('../../metro');
@@ -7,6 +8,7 @@ const { getSentryExpoConfig } = require('../../metro');
 const config = getSentryExpoConfig(__dirname, {
   // [Web-only]: Enables CSS support in Metro.
   isCSSEnabled: true,
+  getDefaultConfig,
 });
 
 config.watchFolders.push(path.resolve(__dirname, '../../node_modules/@sentry'));

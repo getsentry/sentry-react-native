@@ -2,9 +2,23 @@
 
 ## Unreleased
 
+### Features
+
+- Add `getDefaultConfig` option to `getSentryExpoConfig` ([#3690](https://github.com/getsentry/sentry-react-native/pull/3690))
+
 ### Fixes
 
+- Do not enable NativeFramesTracking when native is not available ([#3705](https://github.com/getsentry/sentry-react-native/pull/3705))
 - CaptureMessage stack-trace is now symbolicated ([#3635](https://github.com/getsentry/sentry-react-native/pull/3635))
+
+### Dependencies
+
+- Bump CLI from v2.30.0 to v2.30.2 ([#3678](https://github.com/getsentry/sentry-react-native/pull/3678))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2302)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.0...2.30.2)
+- Bump Android SDK from v7.5.0 to v7.6.0 ([#3675](https://github.com/getsentry/sentry-react-native/pull/3675))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#760)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.5.0...7.6.0)
 
 ## 5.20.0
 

@@ -7,3 +7,6 @@ test/perf/TestApp*
 
 # Ignore dangerfile
 dangerfile.js
+
+# Android Test App includes js in JVM test reports
+RNSentryAndroidTester
