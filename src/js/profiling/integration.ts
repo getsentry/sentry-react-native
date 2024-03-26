@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import type { Hub } from '@sentry/core';
-import { getActiveTransaction } from '@sentry/core';
+import { getActiveTransaction, spanIsSampled } from '@sentry/core';
 import type {
   Client,
   Envelope,
