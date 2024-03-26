@@ -16,6 +16,10 @@ export class Screenshot implements Integration {
    */
   public name: string = Screenshot.id;
 
+  protected shouldAttachScreenshot(_event: Event, _hint: EventHint): boolean {
+    return true;
+  }
+
   /**
    * If enabled attaches a screenshot to the event hint.
    *
@@ -43,7 +47,7 @@ export class Screenshot implements Integration {
   public setupOnce(addGlobalEventProcessor: (e: EventProcessor) => void): void {
     addGlobalEventProcessor(async (event: Event, hint: EventHint) => {
       const hasException = event.exception && event.exception.values && event.exception.values.length > 0;
-      if (!hasException) {
+      if (!hasException || !this.shouldAttachScreenshot(event, hint)) {
         return event;
       }
 
