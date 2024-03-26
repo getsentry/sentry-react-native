@@ -1,7 +1,15 @@
 /* eslint-disable complexity */
 import type { Hub } from '@sentry/core';
 import { getActiveTransaction } from '@sentry/core';
-import type { Envelope, Event, EventProcessor, Integration, ThreadCpuProfile, Transaction } from '@sentry/types';
+import type {
+  Client,
+  Envelope,
+  Event,
+  EventProcessor,
+  Integration,
+  ThreadCpuProfile,
+  Transaction,
+} from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 import { Platform } from 'react-native';
 

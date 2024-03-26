@@ -1,4 +1,3 @@
-import type { Hub } from '@sentry/core';
 import type { Event, SeverityLevel } from '@sentry/types';
 
 import { DeviceContext } from '../../src/js/integrations';
@@ -16,11 +15,6 @@ jest.mock('react-native', () => ({
 
 describe('Device Context Integration', () => {
   let integration: DeviceContext;
-
-  const mockGetCurrentHub = () =>
-    ({
-      getIntegration: () => integration,
-    } as unknown as Hub);
 
   beforeEach(() => {
     integration = new DeviceContext();
