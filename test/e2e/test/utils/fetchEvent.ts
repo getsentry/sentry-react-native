@@ -1,5 +1,4 @@
 import type { Event } from '@sentry/types';
-import fetch, { Request } from 'node-fetch';
 
 const domain = 'sentry.io';
 const eventEndpoint = '/api/0/projects/sentry-sdks/sentry-react-native/events/';
@@ -20,16 +19,17 @@ const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
   expect(process.env.SENTRY_AUTH_TOKEN).toBeDefined();
   expect(process.env.SENTRY_AUTH_TOKEN?.length).toBeGreaterThan(0);
 
-  const request = new Request(url, {
-    headers: {
-      Authorization: `Bearer ${process.env.SENTRY_AUTH_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    method: 'GET',
-  });
+  const request = () =>
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${process.env.SENTRY_AUTH_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'GET',
+    });
 
   let retries = 0;
-  const retryer = (jsonResponse: any) =>
+  const retryer: (json: any) => Promise<ApiEvent> = (jsonResponse: any) =>
     new Promise((resolve, reject) => {
       if (jsonResponse.detail === 'Event not found') {
         if (retries < RETRY_COUNT) {
@@ -38,7 +38,7 @@ const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
             // eslint-disable-next-line no-console
             console.log(`Retrying api request. Retry number: ${retries}`);
             resolve(
-              fetch(request)
+              request()
                 .then(res => res.json())
                 .then(retryer),
             );
@@ -51,7 +51,7 @@ const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
       }
     });
 
-  const json: ApiEvent = (await fetch(request)
+  const json: ApiEvent = (await request()
     // tslint:disable-next-line: no-unsafe-any
     .then(res => res.json())
     .then(retryer)) as ApiEvent;

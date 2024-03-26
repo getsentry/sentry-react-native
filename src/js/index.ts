@@ -99,6 +99,11 @@ export {
   ReactNativeNavigationInstrumentation,
   RoutingInstrumentation,
   sentryTraceGesture,
+  TimeToInitialDisplay,
+  TimeToFullDisplay,
+  startTimeToInitialDisplaySpan,
+  startTimeToFullDisplaySpan,
 } from './tracing';
-export type { ReactNavigationTransactionContext } from './tracing';
+
+export type { ReactNavigationTransactionContext, TimeToDisplayProps } from './tracing';
 export { Integrations, SDK_NAME, SDK_VERSION };

@@ -1,5 +1,8 @@
+import * as mockedtimetodisplaynative from './tracing/mockedtimetodisplaynative';
+jest.mock('../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
+
 import { defaultStackParser } from '@sentry/browser';
-import type { Envelope, Event, Outcome, Transport } from '@sentry/types';
+import type { Envelope, Event, MetricInstance, Outcome, Transport } from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 import * as RN from 'react-native';
 
@@ -11,6 +14,7 @@ import { NativeTransport } from '../src/js/transports/native';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../src/js/version';
 import { NATIVE } from '../src/js/wrapper';
 import {
+  createMockTransport,
   envelopeHeader,
   envelopeItemHeader,
   envelopeItemPayload,
@@ -145,6 +149,83 @@ describe('Tests ReactNativeClient', () => {
       expect(client.getTransport()?.flush).toBe(myFlush);
       expect(client.getTransport()?.send).toBe(mySend);
     });
+  });
+
+  describe('enabled option', () => {
+    test('captureMessage does not call transport when enabled false', () => {
+      const mockTransport = createMockTransport();
+      const client = createDisabledClientWith(mockTransport);
+
+      client.captureMessage('This message will never be sent because the client is disabled.');
+
+      expect(mockTransport.send).not.toBeCalled();
+    });
+
+    test('captureException does not call transport when enabled false', () => {
+      const mockTransport = createMockTransport();
+      const client = createDisabledClientWith(mockTransport);
+
+      client.captureException(new Error('This exception will never be sent because the client is disabled.'));
+
+      expect(mockTransport.send).not.toBeCalled();
+    });
+
+    test('captureEvent does not call transport when enabled false', () => {
+      const mockTransport = createMockTransport();
+      const client = createDisabledClientWith(mockTransport);
+
+      client.captureEvent({
+        message: 'This event will never be sent because the client is disabled.',
+      });
+
+      expect(mockTransport.send).not.toBeCalled();
+    });
+
+    test('captureSession does not call transport when enabled false', () => {
+      const mockTransport = createMockTransport();
+      const client = createDisabledClientWith(mockTransport);
+
+      client.captureSession(getMockSession());
+
+      expect(mockTransport.send).not.toBeCalled();
+    });
+
+    test('captureUserFeedback does not call transport when enabled false', () => {
+      const mockTransport = createMockTransport();
+      const client = createDisabledClientWith(mockTransport);
+
+      client.captureUserFeedback(getMockUserFeedback());
+
+      expect(mockTransport.send).not.toBeCalled();
+    });
+
+    test('captureAggregateMetrics does not call transport when enabled false', () => {
+      const mockTransport = createMockTransport();
+      const client = createDisabledClientWith(mockTransport);
+
+      client.captureAggregateMetrics([
+        {
+          // https://github.com/getsentry/sentry-javascript/blob/a7097d9ba2a74b2cb323da0ef22988a383782ffb/packages/core/test/lib/metrics/aggregator.test.ts#L115
+          metric: { _value: 1 } as unknown as MetricInstance,
+          metricType: 'c',
+          name: 'requests',
+          tags: {},
+          timestamp: expect.any(Number),
+          unit: 'none',
+        },
+      ]);
+
+      expect(mockTransport.send).not.toBeCalled();
+    });
+
+    function createDisabledClientWith(transport: Transport) {
+      return new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        enabled: false,
+        transport: () => transport,
+      });
+    }
   });
 
   describe('onReady', () => {
@@ -287,11 +368,12 @@ describe('Tests ReactNativeClient', () => {
     const getMessageEventFrom = (func: jest.Mock) =>
       func.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
 
-    test('captureMessage contains stack trace in threads', async () => {
+    test('captureMessage contains stack trace in exception', async () => {
       const mockSyntheticExceptionFromHub = new Error();
       client.captureMessage('test message', 'error', { syntheticException: mockSyntheticExceptionFromHub });
-      expect(getMessageEventFrom(mockTransportSend).threads.values.length).toBeGreaterThan(0);
-      expect(getMessageEventFrom(mockTransportSend).exception).toBeUndefined();
+      expect(getMessageEventFrom(mockTransportSend).exception.values.length).toBeGreaterThan(0);
+      expect(getMessageEventFrom(mockTransportSend).exception).toBeDefined();
+      expect(getMessageEventFrom(mockTransportSend).threads).toBeUndefined();
     });
   });
 

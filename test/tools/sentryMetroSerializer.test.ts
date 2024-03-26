@@ -24,10 +24,10 @@ describe('Sentry Metro Serializer', () => {
     }
 
     expect(bundle.code).toEqual(
-      'var _sentryDebugIds={},_sentryDebugIdIdentifier="";void 0===_sentryDebugIds&&(_sentryDebugIds={});try{var stack=(new Error).stack;stack&&(_sentryDebugIds[stack]="901c00b1-71e1-40fc-b787-3fe0a7e23a92",_sentryDebugIdIdentifier="sentry-dbid-901c00b1-71e1-40fc-b787-3fe0a7e23a92")}catch(e){}\n//# debugId=901c00b1-71e1-40fc-b787-3fe0a7e23a92',
+      'var _sentryDebugIds,_sentryDebugIdIdentifier;void 0===_sentryDebugIds&&(_sentryDebugIds={});try{var stack=(new Error).stack;stack&&(_sentryDebugIds[stack]="c9e276ed-1171-4e26-ac5d-0193a85ed160",_sentryDebugIdIdentifier="sentry-dbid-c9e276ed-1171-4e26-ac5d-0193a85ed160")}catch(e){}\n//# debugId=c9e276ed-1171-4e26-ac5d-0193a85ed160',
     );
     expect(bundle.map).toEqual(
-      '{"version":3,"sources":["__debugid__"],"sourcesContent":["var _sentryDebugIds={},_sentryDebugIdIdentifier=\\"\\";void 0===_sentryDebugIds&&(_sentryDebugIds={});try{var stack=(new Error).stack;stack&&(_sentryDebugIds[stack]=\\"901c00b1-71e1-40fc-b787-3fe0a7e23a92\\",_sentryDebugIdIdentifier=\\"sentry-dbid-901c00b1-71e1-40fc-b787-3fe0a7e23a92\\")}catch(e){}"],"names":[],"mappings":"","debug_id":"901c00b1-71e1-40fc-b787-3fe0a7e23a92","debugId":"901c00b1-71e1-40fc-b787-3fe0a7e23a92"}',
+      '{"version":3,"sources":["__debugid__"],"sourcesContent":["var _sentryDebugIds,_sentryDebugIdIdentifier;void 0===_sentryDebugIds&&(_sentryDebugIds={});try{var stack=(new Error).stack;stack&&(_sentryDebugIds[stack]=\\"c9e276ed-1171-4e26-ac5d-0193a85ed160\\",_sentryDebugIdIdentifier=\\"sentry-dbid-c9e276ed-1171-4e26-ac5d-0193a85ed160\\")}catch(e){}"],"names":[],"mappings":"","debug_id":"c9e276ed-1171-4e26-ac5d-0193a85ed160","debugId":"c9e276ed-1171-4e26-ac5d-0193a85ed160"}',
     );
   });
 
@@ -35,7 +35,7 @@ describe('Sentry Metro Serializer', () => {
     const serializer = createSentryMetroSerializer();
     const bundle = await serializer(...mockMinSerializerArgs());
     const debugId = determineDebugIdFromBundleSource(typeof bundle === 'string' ? bundle : bundle.code);
-    expect(debugId).toEqual('901c00b1-71e1-40fc-b787-3fe0a7e23a92');
+    expect(debugId).toEqual('c9e276ed-1171-4e26-ac5d-0193a85ed160');
   });
 
   test('adds debug id snipped after prelude module and before ', async () => {

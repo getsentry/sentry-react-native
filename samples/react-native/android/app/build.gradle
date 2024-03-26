@@ -3,6 +3,12 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "io.sentry.android.gradle"
 
+project.ext.vectoricons = [
+    iconFontNames: [ 'Ionicons.ttf' ] // Specify font files
+]
+
+apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
+
 project.ext.sentryCli = [
     collectModulesScript: "../../../../dist/js/tools/collectModules.js",
     modulesPaths: [
@@ -40,7 +46,7 @@ sentry {
     // code as part of your stack traces in Sentry.
     //
     // Default is disabled.
-    includeSourceContext = true
+    includeSourceContext = shouldSentryAutoUpload()
 
     // Includes additional source directories into the source bundle.
     // These directories are resolved relative to the project directory

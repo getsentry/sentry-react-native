@@ -15,10 +15,10 @@ import * as Sentry from '@sentry/react-native';
 
 import { setScopeProperties } from '../setScopeProperties';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { CommonActions } from '@react-navigation/native';
 import { UserFeedbackModal } from '../components/UserFeedbackModal';
 import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
+import NativePlatformSampleModule from '../../tm/NativePlatformSampleModule';
 import { timestampInSeconds } from '@sentry/utils';
 
 const { AssetsModule, CppModule, CrashModule } = NativeModules;
@@ -27,7 +27,7 @@ interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
 }
 
-const HomeScreen = (props: Props) => {
+const ErrorsScreen = (_props: Props) => {
   const [componentMountStartTimestamp] = React.useState<number>(() => {
     return timestampInSeconds();
   });
@@ -51,22 +51,6 @@ const HomeScreen = (props: Props) => {
   const [showBadCode, setShowBadCode] = React.useState(false);
   const [isFeedbackVisible, setFeedbackVisible] = React.useState(false);
 
-  const onPressPerformanceTiming = () => {
-    // Navigate with a reset action just to test
-    props.navigation.dispatch(
-      CommonActions.reset({
-        index: 1,
-        routes: [
-          { name: 'Home' },
-          {
-            name: 'PerformanceTiming',
-            params: { someParam: 'hello' },
-          },
-        ],
-      }),
-    );
-  };
-
   const errorBoundaryFallback: FallbackRender = ({ eventId }) => (
     <Text>Error boundary caught with event id: {eventId}</Text>
   );
@@ -82,7 +66,6 @@ const HomeScreen = (props: Props) => {
     <>
       <StatusBar barStyle="dark-content" />
       <ScrollView style={styles.mainView}>
-        <Text style={styles.welcomeTitle}>Hey there!</Text>
         <Button
           title="Capture message"
           onPress={() => {
@@ -93,6 +76,16 @@ const HomeScreen = (props: Props) => {
           title="Capture exception"
           onPress={() => {
             Sentry.captureException(new Error('Captured exception'));
+          }}
+        />
+        <Button
+          title="Capture exception with cause"
+          onPress={() => {
+            const error = new Error('Captured exception');
+            (error as { cause?: unknown }).cause = new Error(
+              'Cause of captured exception',
+            );
+            Sentry.captureException(error);
           }}
         />
         <Button
@@ -143,6 +136,21 @@ const HomeScreen = (props: Props) => {
           title="Crash in Cpp"
           onPress={() => {
             NativeSampleModule?.crash();
+          }}
+        />
+        <Button
+          title="Catch Turbo Crash or String"
+          onPress={() => {
+            if (!NativePlatformSampleModule) {
+              throw new Error(
+                'NativePlatformSampleModule is not available. Build the application with the New Architecture enabled.',
+              );
+            }
+            try {
+              NativePlatformSampleModule?.crashOrString();
+            } catch (e) {
+              Sentry.captureException(e);
+            }
           }}
         />
         {Platform.OS === 'android' && (
@@ -219,31 +227,6 @@ const HomeScreen = (props: Props) => {
           }}
         />
         <Button
-          title="Auto Tracing Example"
-          onPress={() => {
-            props.navigation.navigate('Tracker');
-          }}
-        />
-        <Button
-          title="Manual Tracing Example"
-          onPress={() => {
-            props.navigation.navigate('ManualTracker');
-          }}
-        />
-        <Button
-          title="Gestures Tracing Example"
-          onPress={() => {
-            props.navigation.navigate('Gestures');
-          }}
-        />
-        <Button title="Performance Timing" onPress={onPressPerformanceTiming} />
-        <Button
-          title="Redux Example"
-          onPress={() => {
-            props.navigation.navigate('Redux');
-          }}
-        />
-        <Button
           title="Send user feedback"
           onPress={() => {
             setFeedbackVisible(true);
@@ -296,4 +279,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen;
+export default ErrorsScreen;

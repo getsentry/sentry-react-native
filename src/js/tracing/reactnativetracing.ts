@@ -21,7 +21,12 @@ import { APP_START_COLD as APP_START_COLD_OP, APP_START_WARM as APP_START_WARM_O
 import { StallTrackingInstrumentation } from './stalltracking';
 import { cancelInBackground, onlySampleIfChildSpans } from './transaction';
 import type { BeforeNavigate, RouteChangeContextData } from './types';
-import { adjustTransactionDuration, getTimeOriginMilliseconds, isNearToNow } from './utils';
+import {
+  adjustTransactionDuration,
+  getTimeOriginMilliseconds,
+  isNearToNow,
+  setSpanDurationAsMeasurement,
+} from './utils';
 
 export interface ReactNativeTracingOptions extends RequestInstrumentationOptions {
   /**
@@ -182,7 +187,10 @@ export class ReactNativeTracing implements Integration {
   /**
    *  Registers routing and request instrumentation.
    */
-  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
+  public async setupOnce(
+    addGlobalEventProcessor: (callback: EventProcessor) => void,
+    getCurrentHub: () => Hub,
+  ): Promise<void> {
     const hub = getCurrentHub();
     const client = hub.getClient();
     const clientOptions = client && client.getOptions();
@@ -198,7 +206,6 @@ export class ReactNativeTracing implements Integration {
       tracePropagationTargets: thisOptionsTracePropagationTargets,
       routingInstrumentation,
       enableAppStartTracking,
-      enableNativeFramesTracking,
       enableStallTracking,
     } = this.options;
 
@@ -235,20 +242,7 @@ export class ReactNativeTracing implements Integration {
       });
     }
 
-    if (enableNativeFramesTracking) {
-      NATIVE.enableNativeFramesTracking();
-      this.nativeFramesInstrumentation = new NativeFramesInstrumentation(addGlobalEventProcessor, () => {
-        const self = getCurrentHub().getIntegration(ReactNativeTracing);
-
-        if (self) {
-          return !!self.nativeFramesInstrumentation;
-        }
-
-        return false;
-      });
-    } else {
-      NATIVE.disableNativeFramesTracking();
-    }
+    this._enableNativeFramesTracking(addGlobalEventProcessor);
 
     if (enableStallTracking) {
       this.stallTrackingInstrumentation = new StallTrackingInstrumentation();
@@ -362,6 +356,40 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
+   * Enables or disables native frames tracking based on the `enableNativeFramesTracking` option.
+   */
+  private _enableNativeFramesTracking(addGlobalEventProcessor: (callback: EventProcessor) => void): void {
+    if (this.options.enableNativeFramesTracking && !NATIVE.enableNative) {
+      // Do not enable native frames tracking if native is not available.
+      logger.warn(
+        '[ReactNativeTracing] NativeFramesTracking is not available on the Web, Expo Go and other platforms without native modules.',
+      );
+      return;
+    }
+
+    if (!this.options.enableNativeFramesTracking && NATIVE.enableNative) {
+      // Disable native frames tracking when native available and option is false.
+      NATIVE.disableNativeFramesTracking();
+      return;
+    }
+
+    if (!this.options.enableNativeFramesTracking) {
+      return;
+    }
+
+    NATIVE.enableNativeFramesTracking();
+    this.nativeFramesInstrumentation = new NativeFramesInstrumentation(addGlobalEventProcessor, () => {
+      const self = getCurrentHub().getIntegration(ReactNativeTracing);
+
+      if (self) {
+        return !!self.nativeFramesInstrumentation;
+      }
+
+      return false;
+    });
+  }
+
+  /**
    *  Sets the current view name into the app context.
    *  @param event Le event.
    */
@@ -436,6 +464,18 @@ export class ReactNativeTracing implements Integration {
     const appStartTimeSeconds = appStart.appStartTime / 1000;
 
     transaction.startTimestamp = appStartTimeSeconds;
+
+    const maybeTtidSpan = transaction.spanRecorder?.spans.find(span => span.op === 'ui.load.initial_display');
+    if (maybeTtidSpan) {
+      maybeTtidSpan.startTimestamp = appStartTimeSeconds;
+      setSpanDurationAsMeasurement('time_to_initial_display', maybeTtidSpan);
+    }
+
+    const maybeTtfdSpan = transaction.spanRecorder?.spans.find(span => span.op === 'ui.load.full_display');
+    if (maybeTtfdSpan) {
+      maybeTtfdSpan.startTimestamp = appStartTimeSeconds;
+      setSpanDurationAsMeasurement('time_to_full_display', maybeTtfdSpan);
+    }
 
     const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
     transaction.startChild({
@@ -536,7 +576,12 @@ export class ReactNativeTracing implements Integration {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           transaction.data?.route?.hasBeenSeen &&
           (!transaction.spanRecorder ||
-            transaction.spanRecorder.spans.filter(span => span.spanId !== transaction.spanId).length === 0)
+            transaction.spanRecorder.spans.filter(
+              span =>
+                span.spanId !== transaction.spanId &&
+                span.op !== 'ui.load.initial_display' &&
+                span.op !== 'navigation.processing',
+            ).length === 0)
         ) {
           logger.log(
             '[ReactNativeTracing] Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.',

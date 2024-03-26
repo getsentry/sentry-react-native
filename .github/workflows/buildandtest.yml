@@ -8,15 +8,20 @@ on:
   pull_request:
 
 jobs:
+  diff_check:
+    uses: ./.github/workflows/skip-ci.yml
+
   job_test:
     name: Test
     runs-on: ubuntu-latest
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
@@ -30,9 +35,11 @@ jobs:
   job_lint:
     name: Lint
     runs-on: ubuntu-latest
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
@@ -46,9 +53,11 @@ jobs:
   job_lint_sample_new_arch:
     name: Lint Sample
     runs-on: ubuntu-latest
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: samples/react-native/node_modules
@@ -64,9 +73,11 @@ jobs:
   job_check_integrity:
     name: Check package integrity
     runs-on: ubuntu-latest
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
@@ -82,12 +93,14 @@ jobs:
   job_build:
     name: Build
     runs-on: ubuntu-latest
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
@@ -98,24 +111,24 @@ jobs:
       - name: Build
         run: yarn build
       - name: Archive dist
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist
       - name: Archive ts3.8
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ts3.8
           path: ts3.8
       - name: Archive Expo Plugin
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: expo-plugin
           path: plugin/build
       - name: Pack
         run: yarn pack
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.sha }}
           path: |
@@ -124,24 +137,25 @@ jobs:
   job_type_check:
     name: Type Check Typescript 3.8
     runs-on: ubuntu-latest
-    needs: [job_build]
+    needs: [job_build, diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: test/typescript/ts3.8/node_modules
           key: ${{ runner.os }}-${{ github.sha }}-ts3.8
       - name: Download dist
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
       - name: Download ts3.8
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ts3.8
           path: ts3.8
@@ -163,14 +177,15 @@ jobs:
   job_circular_dep_check:
     name: Circular Dependency Check
     runs-on: ubuntu-latest
-    needs: [job_build]
+    needs: [job_build, diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 18
       - name: Cache Dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
@@ -179,12 +194,12 @@ jobs:
         if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Download dist
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
       - name: Download Expo Plugin
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: expo-plugin
           path: plugin/build
@@ -194,7 +209,8 @@ jobs:
   job_bundle:
     name: Bundle
     runs-on: ubuntu-latest
-    needs: [job_test, job_build]
+    needs: [job_test, job_build, diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
@@ -207,13 +223,13 @@ jobs:
         with:
           node-version: 18
       - name: Cache Dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ github.sha }}
       - name: Cache Sample Dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache-sample
         with:
           path: samples/react-native/node_modules

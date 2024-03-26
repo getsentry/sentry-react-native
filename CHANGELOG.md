@@ -1,5 +1,116 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add `getDefaultConfig` option to `getSentryExpoConfig` ([#3690](https://github.com/getsentry/sentry-react-native/pull/3690))
+
+### Fixes
+
+- Do not enable NativeFramesTracking when native is not available ([#3705](https://github.com/getsentry/sentry-react-native/pull/3705))
+- CaptureMessage stack-trace is now symbolicated ([#3635](https://github.com/getsentry/sentry-react-native/pull/3635))
+
+### Dependencies
+
+- Bump CLI from v2.30.0 to v2.30.2 ([#3678](https://github.com/getsentry/sentry-react-native/pull/3678))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2302)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.0...2.30.2)
+- Bump Android SDK from v7.5.0 to v7.6.0 ([#3675](https://github.com/getsentry/sentry-react-native/pull/3675))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#760)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.5.0...7.6.0)
+
+## 5.20.0
+
+### Features
+
+- Automatic tracing of time to initial display for `react-navigation` ([#3588](https://github.com/getsentry/sentry-react-native/pull/3588))
+
+  When enabled the instrumentation will create TTID spans and measurements.
+  The TTID timestamp represent moment when the `react-navigation` screen
+  was rendered by the native code.
+
+  ```javascript
+  const routingInstrumentation = new Sentry.ReactNavigationInstrumentation({
+    enableTimeToInitialDisplay: true,
+  });
+
+  Sentry.init({
+    integrations: [new Sentry.ReactNativeTracing({routingInstrumentation})],
+  });
+  ```
+
+- Tracing of full display using manual API ([#3654](https://github.com/getsentry/sentry-react-native/pull/3654))
+
+  In combination with the `react-navigation` automatic instrumentation you can record when
+  the application screen is fully rendered.
+
+  For more examples and manual time to initial display see [the documentation](https://docs.sentry.io/platforms/react-native/performance/instrumentation/time-to-display).
+
+  ```javascript
+  function Example() {
+    const [loaded] = React.useState(false);
+
+    return <View>
+      <Sentry.TimeToFullDisplay record={loaded}>
+        <Text>Example content</Text>
+      </Sentry.TimeToFullDisplay>
+    </View>;
+  }
+  ```
+
+### Fixes
+
+- Allow custom `sentryUrl` for Expo updates source maps uploads ([#3664](https://github.com/getsentry/sentry-react-native/pull/3664))
+- Missing Mobile Vitals (slow, frozen frames) when ActiveSpan (Transaction) is trimmed at the end ([#3684](https://github.com/getsentry/sentry-react-native/pull/3684))
+
+## 5.19.3
+
+### Fixes
+
+- Multiple Debug IDs can be loaded into the global polyfill ([#3660](https://github.com/getsentry/sentry-react-native/pull/3660))
+  - This fixes a symbolication issue with Expo on the web with enabled bundle splitting.
+
+### Dependencies
+
+- Bump CLI from v2.25.2 to v2.30.0 ([#3534](https://github.com/getsentry/sentry-react-native/pull/3534), [#3666](https://github.com/getsentry/sentry-react-native/pull/3666))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2300)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.25.2...2.30.0)
+- Bump Cocoa SDK from v8.20.0 to v8.21.0 ([#3651](https://github.com/getsentry/sentry-react-native/pull/3651))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8210)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.20.0...8.21.0)
+- Bump Android SDK from v7.3.0 to v7.5.0 ([#3615](https://github.com/getsentry/sentry-react-native/pull/3615))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#750)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.3.0...7.5.0)
+
+## 5.19.2
+
+### Fixes
+
+- expo-upload-sourcemaps now works on Windows ([#3643](https://github.com/getsentry/sentry-react-native/pull/3643))
+- Option `enabled: false` ensures no events are sent ([#3606](https://github.com/getsentry/sentry-react-native/pull/3606))
+- Ignore JSON response when retrieving source context from local Expo Dev Server ([#3611](https://github.com/getsentry/sentry-react-native/pull/3611))
+- Upload native debug files only for non-debug builds ([#3649](https://github.com/getsentry/sentry-react-native/pull/3649))
+- `TurboModuleRegistry` should not be imported in web applications ([#3610](https://github.com/getsentry/sentry-react-native/pull/3610))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.17.1 to v8.20.0 ([#3476](https://github.com/getsentry/sentry-react-native/pull/3476))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8200)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.17.1...8.20.0)
+
+## 5.19.1
+
+### Fixes
+
+- Don't add Expo Plugin option `authToken` to application bundle ([#3630](https://github.com/getsentry/sentry-react-native/pull/3630))
+  - Expo plugin configurations are generelly stored in plain text, and are also automatically added to built app bundles, and are therefore considered insecure.
+  - You should not set the auth token in the plugin config except for local testing. Instead, use the `SENTRY_AUTH_TOKEN` env variable, as pointed out in our [docs](https://docs.sentry.io/platforms/react-native/manual-setup/expo/).
+  - In addition to showing a warning, we are now actively removing an `authToken` from the plugin config if it was set.
+  - If you had set the auth token in the plugin config previously, **and** built and published an app with that config, you should [rotate your token](https://docs.sentry.io/product/accounts/auth-tokens/).
+- Reduce waning messages spam when a property in Expo plugin configuration is missing ([#3631](https://github.com/getsentry/sentry-react-native/pull/3631))
+- Add concrete error messages for RN bundle build phase patch ([#3626](https://github.com/getsentry/sentry-react-native/pull/3626))
+
 ## 5.19.0
 
 This release contains upgrade of `sentry-android` dependency to major version 7. There are no breaking changes in the JS API. If you are using the Android API please check [the migration guide](https://docs.sentry.io/platforms/android/migration/#migrating-from-iosentrysentry-android-6x-to-iosentrysentry-android-700).
@@ -121,7 +232,6 @@ see [the Expo guide](https://docs.sentry.io/platforms/react-native/manual-setup/
 
   module.exports = withSentry(config, {
     url: 'https://www.sentry.io/',
-    authToken: 'example-token', // Or use SENTRY_AUTH_TOKEN env
     project: 'project-slug', // Or use SENTRY_PROJECT env
     organization: 'org-slug', // Or use SENTRY_ORG env
   });

@@ -13,8 +13,13 @@ env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
 jobs:
+  diff_check:
+    uses: ./.github/workflows/skip-ci.yml
+
   cancel-previous-workflow:
     runs-on: ubuntu-latest
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
@@ -23,6 +28,10 @@ jobs:
 
   metrics:
     runs-on: ${{ matrix.runs-on }}
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    env:
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
@@ -43,15 +52,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: "adopt"
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
       - name: Install Global Dependencies
         run: yarn global add react-native-cli @sentry/cli yalc
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: deps-cache
         with:
           path: |
@@ -68,7 +77,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: app-plain-cache
         with:
           path: ${{ matrix.appPlain }}
@@ -146,7 +155,10 @@ jobs:
   react-native-build:
     name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     runs-on: ${{ matrix.runs-on }}
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     env:
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true' # TODO: Remove this when testing against a mocked Sentry server
       RN_SENTRY_POD_NAME: RNSentry
       RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
     strategy:
@@ -160,6 +172,12 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
+            rn-version: '0.73.2'
+            runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
+            runtime: 'latest'
+            device: 'iPhone 14'
+          - platform: ios
+            rn-version: '0.65.3'
             runs-on: macos-latest
             runtime: 'latest'
             device: 'iPhone 14'
@@ -210,20 +228,20 @@ jobs:
         with:
           node-version: 18
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         if: ${{ matrix.rn-version == '0.65.3' }}
         with:
           java-version: '11'
           distribution: 'adopt'
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         if: ${{ matrix.rn-version != '0.65.3' }}
         with:
           java-version: '17'
           distribution: 'adopt'
 
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
 
       - name: Setup Global Tools
         run: |
@@ -234,14 +252,14 @@ jobs:
         run: brew install xcbeautify
 
       - name: NPM cache SDK
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: deps-cache
         with:
           path: node_modules
           key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock') }}
 
       - name: NPM cache E2E Tests Library
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: deps-cache-e2e-library
         with:
           path: test/e2e/node_modules
@@ -388,7 +406,7 @@ jobs:
 
       - name: Upload App APK
         if: matrix.platform == 'android' && matrix.build-type == 'production'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: apk.tar
@@ -396,7 +414,7 @@ jobs:
 
       - name: Upload App APP
         if: matrix.platform == 'ios' && matrix.build-type == 'production'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: app.tar
@@ -404,14 +422,18 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}
           path: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios/*.log
 
   react-native-test:
-    name: Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
-    needs: react-native-build
+    name:
+      Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{
+      matrix.build-type }} ${{ matrix.ios-use-frameworks }}
+    needs: [react-native-build, diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+
     runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false # keeps matrix running if one fails
@@ -424,6 +446,12 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
+            rn-version: '0.73.2'
+            runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
+            runtime: 'latest'
+            device: 'iPhone 14'
+          - platform: ios
+            rn-version: '0.65.3'
             runs-on: macos-latest
             runtime: 'latest'
             device: 'iPhone 14'
@@ -454,7 +482,7 @@ jobs:
 
       - name: Download App Package
         if: matrix.build-type == 'production'
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: test/e2e
@@ -464,22 +492,16 @@ jobs:
         run: tar -xvf *.tar
 
       - uses: actions/setup-node@v4
-        if: ${{ matrix.rn-version == '0.65.3' }}
         with:
-          node-version: 18
+          node-version: 20
 
-      - uses: actions/setup-node@v4
-        if: ${{ matrix.rn-version != '0.65.3' }}
-        with:
-          node-version: 18
-
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'adopt'
 
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
 
       - name: Setup KVM
         if: ${{ matrix.platform == 'android' }}
@@ -494,7 +516,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: NPM cache E2E Tests Library
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: deps-cache-e2e-library
         with:
           path: test/e2e/node_modules
@@ -539,7 +561,7 @@ jobs:
         if: ${{ matrix.platform == 'android' }}
         env:
           APPIUM_APP: ./app-release.apk
-        uses: reactivecircus/android-emulator-runner@50986b1464923454c95e261820bc626f38490ec0 # pin@v2
+        uses: reactivecircus/android-emulator-runner@6b0df4b0efb23bb0ec63d881db79aefbc976e4b2 # pin@v2
         with:
           working-directory: test/e2e
           api-level: 30
@@ -574,7 +596,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
           path: |

@@ -11,24 +11,16 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.flipper.ReactNativeFlipper
 import com.facebook.soloader.SoLoader
-import io.sentry.react.RNSentryPackage
 
-class MainApplication : Application(), ReactApplication {
+class MainApplication() : Application(), ReactApplication {
     override val reactNativeHost: ReactNativeHost =
         object : DefaultReactNativeHost(this) {
-            override fun getPackages(): List<ReactPackage> {
-                val packages: MutableList<ReactPackage> = PackageList(this).packages
-                packages.add(SamplePackage())
-                // Packages that cannot be auto linked yet can be added manually here, for example:
-                // packages.add(new MyReactNativePackage());
-                for (pkg in packages) {
-                    if (pkg is RNSentryPackage) {
-                        return packages
-                    }
+            override fun getPackages(): List<ReactPackage> =
+                PackageList(this).packages.apply {
+                    add(SamplePackage())
+                    add(TurboSamplePackage())
                 }
-                packages.add(RNSentryPackage())
-                return packages
-            }
+
             override fun getJSMainModuleName(): String = "index"
             override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
             override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
