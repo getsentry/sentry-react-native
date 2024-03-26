@@ -2,7 +2,9 @@
 import type { Hub } from '@sentry/core';
 import { getActiveTransaction, spanIsSampled } from '@sentry/core';
 import type {
+  BaseTransportOptions,
   Client,
+  ClientOptions,
   Envelope,
   Event,
   EventProcessor,
