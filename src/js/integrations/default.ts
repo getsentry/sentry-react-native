@@ -16,7 +16,7 @@ import { HermesProfiling } from '../profiling/integration';
 import { ReactNativeTracing } from '../tracing';
 import { isExpoGo, notWeb } from '../utils/environment';
 import { debugSymbolicatorIntegration } from './debugsymbolicator';
-import { DeviceContext } from './devicecontext';
+import { deviceContextIntegration } from './devicecontext';
 import { EventOrigin } from './eventorigin';
 import { ExpoContext } from './expocontext';
 import { ModulesLoader } from './modulesloader';
@@ -73,7 +73,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   integrations.push(createReactNativeRewriteFrames());
 
   if (options.enableNative) {
-    integrations.push(new DeviceContext());
+    integrations.push(deviceContextIntegration());
     integrations.push(new ModulesLoader());
     if (options.attachScreenshot) {
       integrations.push(new Screenshot());

@@ -18,12 +18,10 @@ export type ReactNativeError = Error & {
   componentStack?: string;
 };
 
-const NAME = 'DebugSymbolicator';
-
 /** Tries to symbolicate the JS stack trace on the device. */
 export const debugSymbolicatorIntegration: IntegrationFn = () => {
   return {
-    name: NAME,
+    name: 'DebugSymbolicator',
     setupOnce: () => {
       /* noop */
     },
