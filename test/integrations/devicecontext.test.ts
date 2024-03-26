@@ -226,9 +226,9 @@ async function processEventWith({
     toStrictEqualMockEvent: () => void;
   };
 }> {
-  (
-    NATIVE.fetchNativeDeviceContexts as jest.MockedFunction<typeof NATIVE.fetchNativeDeviceContexts>
-  ).mockImplementation(() => Promise.resolve(nativeContexts as NativeDeviceContextsResponse));
+  (NATIVE.fetchNativeDeviceContexts as jest.MockedFunction<typeof NATIVE.fetchNativeDeviceContexts>).mockImplementation(
+    () => Promise.resolve(nativeContexts as NativeDeviceContextsResponse),
+  );
   const originalNativeContexts = { ...nativeContexts };
   const originalMockEvent = { ...mockEvent };
   const processedEvent = await processEvent(mockEvent ?? {});

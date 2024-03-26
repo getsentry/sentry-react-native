@@ -21,7 +21,7 @@ import { EventOrigin } from './eventorigin';
 import { ExpoContext } from './expocontext';
 import { ModulesLoader } from './modulesloader';
 import { NativeLinkedErrors } from './nativelinkederrors';
-import { ReactNativeErrorHandlers } from './reactnativeerrorhandlers';
+import { reactNativeErrorHandlersIntegration } from './reactnativeerrorhandlers';
 import { ReactNativeInfo } from './reactnativeinfo';
 import { Release } from './release';
 import { createReactNativeRewriteFrames } from './rewriteframes';
@@ -42,7 +42,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
 
   if (notWeb()) {
     integrations.push(
-      new ReactNativeErrorHandlers({
+      reactNativeErrorHandlersIntegration({
         patchGlobalPromise: options.patchGlobalPromise,
       }),
     );

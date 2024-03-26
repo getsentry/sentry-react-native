@@ -1,6 +1,6 @@
 export { debugSymbolicatorIntegration } from './debugsymbolicator';
 export { deviceContextIntegration } from './devicecontext';
-export { ReactNativeErrorHandlers } from './reactnativeerrorhandlers';
+export { reactNativeErrorHandlersIntegration } from './reactnativeerrorhandlers';
 export { Release } from './release';
 export { EventOrigin } from './eventorigin';
 export { SdkInfo } from './sdkinfo';
