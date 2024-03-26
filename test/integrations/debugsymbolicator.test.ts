@@ -1,33 +1,32 @@
-import type { Client, Event, EventHint, Integration, StackFrame } from '@sentry/types';
+jest.mock('../../src/js/integrations/debugsymbolicatorutils');
 
-import { DebugSymbolicator } from '../../src/js/integrations/debugsymbolicator';
+import type { Client, Event, EventHint, StackFrame } from '@sentry/types';
+
+import { debugSymbolicatorIntegration } from '../../src/js/integrations/debugsymbolicator';
+import {
+  fetchSourceContext,
+  getDevServer,
+  parseErrorStack,
+  symbolicateStackTrace,
+} from '../../src/js/integrations/debugsymbolicatorutils';
 import type * as ReactNative from '../../src/js/vendor/react-native';
 
-interface MockDebugSymbolicator extends Integration {
-  _parseErrorStack: jest.Mock<Array<ReactNative.StackFrame>, [string]>;
-  _symbolicateStackTrace: jest.Mock<
-    Promise<ReactNative.SymbolicatedStackTrace>,
-    [Array<ReactNative.StackFrame>, Record<string, unknown> | undefined]
-  >;
-  _getDevServer: jest.Mock<ReactNative.DevServerInfo | undefined>;
-  _fetchSourceContext: jest.Mock<Promise<string | null>, [string, Array<string>, number]>;
+async function processEvent(mockedEvent: Event, mockedHint: EventHint): Promise<Event | null> {
+  return debugSymbolicatorIntegration().processEvent!(mockedEvent, mockedHint, {} as Client);
 }
 
 describe('Debug Symbolicator Integration', () => {
-  let integration: MockDebugSymbolicator;
-
   beforeEach(() => {
-    integration = new DebugSymbolicator() as unknown as MockDebugSymbolicator;
-    integration._parseErrorStack = jest.fn().mockReturnValue([]);
-    integration._symbolicateStackTrace = jest.fn().mockReturnValue(
+    (parseErrorStack as jest.Mock).mockReturnValue([]);
+    (symbolicateStackTrace as jest.Mock).mockReturnValue(
       Promise.resolve(<ReactNative.SymbolicatedStackTrace>{
         stack: [],
       }),
     );
-    integration._getDevServer = jest.fn().mockReturnValue(<ReactNative.DevServerInfo>{
+    (getDevServer as jest.Mock).mockReturnValue(<ReactNative.DevServerInfo>{
       url: 'http://localhost:8081',
     });
-    integration._fetchSourceContext = jest.fn().mockReturnValue(Promise.resolve(null));
+    (fetchSourceContext as jest.Mock).mockReturnValue(Promise.resolve(null));
   });
 
   describe('parse stack', () => {
@@ -56,7 +55,7 @@ describe('Debug Symbolicator Integration', () => {
     ];
 
     beforeEach(() => {
-      integration._parseErrorStack = jest.fn().mockReturnValue(<Array<ReactNative.StackFrame>>[
+      (parseErrorStack as jest.Mock).mockReturnValue(<Array<ReactNative.StackFrame>>[
         {
           file: 'http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false',
           lineNumber: 1,
@@ -71,7 +70,7 @@ describe('Debug Symbolicator Integration', () => {
         },
       ]);
 
-      integration._symbolicateStackTrace = jest.fn().mockReturnValue(
+      (symbolicateStackTrace as jest.Mock).mockReturnValue(
         Promise.resolve(<ReactNative.SymbolicatedStackTrace>{
           stack: [
             {
@@ -92,7 +91,7 @@ describe('Debug Symbolicator Integration', () => {
     });
 
     it('should symbolicate errors stack trace', async () => {
-      const symbolicatedEvent = await executeIntegrationFor(
+      const symbolicatedEvent = await processEvent(
         {
           exception: {
             values: [
@@ -144,7 +143,7 @@ describe('Debug Symbolicator Integration', () => {
     });
 
     it('should symbolicate synthetic error stack trace for exception', async () => {
-      const symbolicatedEvent = await executeIntegrationFor(
+      const symbolicatedEvent = await processEvent(
         {
           exception: {
             values: [
@@ -197,7 +196,7 @@ describe('Debug Symbolicator Integration', () => {
     });
 
     it('should symbolicate synthetic error stack trace for message', async () => {
-      const symbolicatedEvent = await executeIntegrationFor(
+      const symbolicatedEvent = await processEvent(
         {
           threads: {
             values: [
@@ -245,7 +244,7 @@ describe('Debug Symbolicator Integration', () => {
     });
 
     it('skips first frame (callee) for exception', async () => {
-      const symbolicatedEvent = await executeIntegrationFor(
+      const symbolicatedEvent = await processEvent(
         {
           exception: {
             values: [
@@ -293,7 +292,7 @@ describe('Debug Symbolicator Integration', () => {
     });
 
     it('skips first frame (callee) for message', async () => {
-      const symbolicatedEvent = await executeIntegrationFor(
+      const symbolicatedEvent = await processEvent(
         {
           threads: {
             values: [
@@ -336,13 +335,4 @@ describe('Debug Symbolicator Integration', () => {
       });
     });
   });
-
-  async function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Promise<Event | null> {
-    if (!integration) {
-      throw new Error('Setup integration before executing the test.');
-    }
-
-    const actualEvent = await integration.processEvent!(mockedEvent, mockedHint, {} as Client);
-    return actualEvent;
-  }
 });
