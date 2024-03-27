@@ -1,5 +1,5 @@
 import { getCurrentHub } from '@sentry/core';
-import type { EventHint, Integration, SeverityLevel } from '@sentry/types';
+import type { EventHint, Integration } from '@sentry/types';
 import { addExceptionMechanism, logger } from '@sentry/utils';
 
 import type { ReactNativeClient } from '../client';
