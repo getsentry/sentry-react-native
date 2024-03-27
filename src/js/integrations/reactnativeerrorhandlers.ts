@@ -230,11 +230,18 @@ export class ReactNativeErrorHandlers implements Integration {
         const event = await client.eventFromException(error, hint);
 
         if (isFatal) {
-          event.level = 'fatal' as SeverityLevel;
+          event.level = 'fatal';
 
           addExceptionMechanism(event, {
             handled: false,
             type: 'onerror',
+          });
+        } else {
+          event.level = 'error';
+
+          addExceptionMechanism(event, {
+            handled: true,
+            type: 'generic',
           });
         }
 
