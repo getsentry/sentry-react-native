@@ -19,16 +19,16 @@ import { debugSymbolicatorIntegration } from './debugsymbolicator';
 import { deviceContextIntegration } from './devicecontext';
 import { eventOriginIntegration } from './eventorigin';
 import { ExpoContext } from './expocontext';
-import { ModulesLoader } from './modulesloader';
+import { modulesLoaderIntegration } from './modulesloader';
 import { nativeLinkedErrorsIntegration } from './nativelinkederrors';
 import { reactNativeErrorHandlersIntegration } from './reactnativeerrorhandlers';
 import { reactNativeInfoIntegration } from './reactnativeinfo';
 import { nativeReleaseIntegration } from './release';
 import { createReactNativeRewriteFrames } from './rewriteframes';
-import { Screenshot } from './screenshot';
+import { screenshotIntegration } from './screenshot';
 import { sdkInfoIntegration } from './sdkinfo';
 import { Spotlight } from './spotlight';
-import { ViewHierarchy } from './viewhierarchy';
+import { viewHierarchyIntegration } from './viewhierarchy';
 
 /**
  * Returns the default ReactNative integrations based on the current environment.
@@ -74,12 +74,12 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
 
   if (options.enableNative) {
     integrations.push(deviceContextIntegration());
-    integrations.push(new ModulesLoader());
+    integrations.push(modulesLoaderIntegration());
     if (options.attachScreenshot) {
-      integrations.push(new Screenshot());
+      integrations.push(screenshotIntegration());
     }
     if (options.attachViewHierarchy) {
-      integrations.push(new ViewHierarchy());
+      integrations.push(viewHierarchyIntegration());
     }
     if (options._experiments && typeof options._experiments.profilesSampleRate === 'number') {
       integrations.push(new HermesProfiling());
