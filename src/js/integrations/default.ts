@@ -17,7 +17,7 @@ import { ReactNativeTracing } from '../tracing';
 import { isExpoGo, notWeb } from '../utils/environment';
 import { debugSymbolicatorIntegration } from './debugsymbolicator';
 import { deviceContextIntegration } from './devicecontext';
-import { EventOrigin } from './eventorigin';
+import { eventOriginIntegration } from './eventorigin';
 import { ExpoContext } from './expocontext';
 import { ModulesLoader } from './modulesloader';
 import { nativeLinkedErrorsIntegration } from './nativelinkederrors';
@@ -26,7 +26,7 @@ import { ReactNativeInfo } from './reactnativeinfo';
 import { nativeReleaseIntegration } from './release';
 import { createReactNativeRewriteFrames } from './rewriteframes';
 import { Screenshot } from './screenshot';
-import { SdkInfo } from './sdkinfo';
+import { sdkInfoIntegration } from './sdkinfo';
 import { Spotlight } from './spotlight';
 import { ViewHierarchy } from './viewhierarchy';
 
@@ -62,8 +62,8 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   // end @sentry/react-native default integrations
 
   integrations.push(nativeReleaseIntegration());
-  integrations.push(new EventOrigin());
-  integrations.push(new SdkInfo());
+  integrations.push(eventOriginIntegration());
+  integrations.push(sdkInfoIntegration());
   integrations.push(new ReactNativeInfo());
 
   if (__DEV__ && notWeb()) {
