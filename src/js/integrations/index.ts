@@ -5,7 +5,7 @@ export { nativeLinkedErrorsIntegration } from './nativelinkederrors';
 export { nativeReleaseIntegration } from './release';
 export { eventOriginIntegration } from './eventorigin';
 export { sdkInfoIntegration } from './sdkinfo';
-export { ReactNativeInfo } from './reactnativeinfo';
+export { reactNativeInfoIntegration } from './reactnativeinfo';
 export { ModulesLoader } from './modulesloader';
 export { HermesProfiling } from '../profiling/integration';
 export { Spotlight } from './spotlight';

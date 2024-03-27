@@ -22,7 +22,7 @@ import { ExpoContext } from './expocontext';
 import { ModulesLoader } from './modulesloader';
 import { nativeLinkedErrorsIntegration } from './nativelinkederrors';
 import { reactNativeErrorHandlersIntegration } from './reactnativeerrorhandlers';
-import { ReactNativeInfo } from './reactnativeinfo';
+import { reactNativeInfoIntegration } from './reactnativeinfo';
 import { nativeReleaseIntegration } from './release';
 import { createReactNativeRewriteFrames } from './rewriteframes';
 import { Screenshot } from './screenshot';
@@ -64,7 +64,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   integrations.push(nativeReleaseIntegration());
   integrations.push(eventOriginIntegration());
   integrations.push(sdkInfoIntegration());
-  integrations.push(new ReactNativeInfo());
+  integrations.push(reactNativeInfoIntegration());
 
   if (__DEV__ && notWeb()) {
     integrations.push(debugSymbolicatorIntegration());
