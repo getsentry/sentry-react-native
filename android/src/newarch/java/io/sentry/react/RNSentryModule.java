@@ -158,4 +158,14 @@ public class RNSentryModule extends NativeRNSentrySpec {
         // Not used on Android
         return null;
     }
+
+    @Override
+    public void startReplay(boolean isHardCrash, Promise promise) {
+        this.impl.startReplay(isHardCrash, promise);
+    }
+
+    @Override
+    public String getCurrentReplayId() {
+        return this.impl.getCurrentReplayId();
+    }
 }

@@ -58,6 +58,16 @@ export function notWeb(): boolean {
   return Platform.OS !== 'web';
 }
 
+/** Checks if the current platform is supported mobile platform (iOS or Android) */
+export function isMobileOs(): boolean {
+  return Platform.OS === 'ios' || Platform.OS === 'android';
+}
+
+/** Checks if the current platform is not supported mobile platform (iOS or Android) */
+export function notMobileOs(): boolean {
+  return !isMobileOs();
+}
+
 /** Returns Hermes Version if hermes is present in the runtime */
 export function getHermesVersion(): string | undefined {
   return (

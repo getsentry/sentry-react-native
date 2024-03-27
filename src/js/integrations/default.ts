@@ -1,5 +1,5 @@
 import { HttpClient } from '@sentry/integrations';
-import { Integrations as BrowserReactIntegrations } from '@sentry/react';
+import { Integrations as BrowserReactIntegrations , replayIntegration } from '@sentry/react';
 import type { Integration } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../options';
@@ -10,6 +10,7 @@ import { DebugSymbolicator } from './debugsymbolicator';
 import { DeviceContext } from './devicecontext';
 import { EventOrigin } from './eventorigin';
 import { ExpoContext } from './expocontext';
+import { mobileReplayIntegration } from './mobilereplay';
 import { ModulesLoader } from './modulesloader';
 import { NativeLinkedErrors } from './nativelinkederrors';
 import { ReactNativeErrorHandlers } from './reactnativeerrorhandlers';
@@ -101,6 +102,11 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
         sidecarUrl: options.spotlightSidecarUrl,
       }),
     );
+  }
+
+  if (typeof options.replaysOnErrorSampleRate === 'number' ||
+    typeof options.replaysSessionSampleRate === 'number') {
+    integrations.push(notWeb() ? mobileReplayIntegration() : replayIntegration());
   }
 
   return integrations;

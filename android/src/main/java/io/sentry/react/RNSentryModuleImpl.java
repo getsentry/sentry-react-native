@@ -79,6 +79,7 @@ import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
 import io.sentry.android.core.performance.AppStartMetrics;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
+import io.sentry.protocol.SentryId;
 import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
@@ -252,7 +253,12 @@ public class RNSentryModuleImpl {
             if (rnOptions.hasKey("enableNdk")) {
                 options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
             }
-
+            if (rnOptions.hasKey("replaysSessionSampleRate")) {
+                // TODO: Set the Android option when available
+            }
+            if (rnOptions.hasKey("replaysOnErrorSampleRate")) {
+                // TODO: Set the Android option when available
+            }
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException
                 // Since we catch it before that, we don't want to send this one
@@ -408,6 +414,26 @@ public class RNSentryModuleImpl {
                 promise.resolve(null);
             }
         }
+    }
+
+    public void startReplay(boolean isHardCrash, Promise promise) {
+        // Buffered mode
+        // TODO: Call the correct replay hybrid SDKs API
+        //SentryAndroid.startReplay();
+        promise.resolve(getCurrentReplayId());
+    }
+
+    public @Nullable String getCurrentReplayId() {
+        final @Nullable IScope scope = InternalSentrySdk.getCurrentScope();
+        if (scope == null) {
+            return null;
+        }
+
+        final @Nullable SentryId id = scope.getReplayId();
+        if (id == null) {
+            return null;
+        }
+        return id.toString();
     }
 
     public void captureEnvelope(String rawBytes, ReadableMap options, Promise promise) {
