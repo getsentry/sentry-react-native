@@ -187,7 +187,10 @@ export class ReactNativeTracing implements Integration {
   /**
    *  Registers routing and request instrumentation.
    */
-  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
+  public async setupOnce(
+    addGlobalEventProcessor: (callback: EventProcessor) => void,
+    getCurrentHub: () => Hub,
+  ): Promise<void> {
     const hub = getCurrentHub();
     const client = hub.getClient();
     const clientOptions = client && client.getOptions();
@@ -203,7 +206,6 @@ export class ReactNativeTracing implements Integration {
       tracePropagationTargets: thisOptionsTracePropagationTargets,
       routingInstrumentation,
       enableAppStartTracking,
-      enableNativeFramesTracking,
       enableStallTracking,
     } = this.options;
 
@@ -240,20 +242,7 @@ export class ReactNativeTracing implements Integration {
       });
     }
 
-    if (enableNativeFramesTracking) {
-      NATIVE.enableNativeFramesTracking();
-      this.nativeFramesInstrumentation = new NativeFramesInstrumentation(addGlobalEventProcessor, () => {
-        const self = getCurrentHub().getIntegration(ReactNativeTracing);
-
-        if (self) {
-          return !!self.nativeFramesInstrumentation;
-        }
-
-        return false;
-      });
-    } else {
-      NATIVE.disableNativeFramesTracking();
-    }
+    this._enableNativeFramesTracking(addGlobalEventProcessor);
 
     if (enableStallTracking) {
       this.stallTrackingInstrumentation = new StallTrackingInstrumentation();
@@ -364,6 +353,40 @@ export class ReactNativeTracing implements Integration {
     this.onTransactionStart(this._inflightInteractionTransaction);
     logger.log(`[ReactNativeTracing] User Interaction Tracing Created ${op} transaction ${name}.`);
     return this._inflightInteractionTransaction;
+  }
+
+  /**
+   * Enables or disables native frames tracking based on the `enableNativeFramesTracking` option.
+   */
+  private _enableNativeFramesTracking(addGlobalEventProcessor: (callback: EventProcessor) => void): void {
+    if (this.options.enableNativeFramesTracking && !NATIVE.enableNative) {
+      // Do not enable native frames tracking if native is not available.
+      logger.warn(
+        '[ReactNativeTracing] NativeFramesTracking is not available on the Web, Expo Go and other platforms without native modules.',
+      );
+      return;
+    }
+
+    if (!this.options.enableNativeFramesTracking && NATIVE.enableNative) {
+      // Disable native frames tracking when native available and option is false.
+      NATIVE.disableNativeFramesTracking();
+      return;
+    }
+
+    if (!this.options.enableNativeFramesTracking) {
+      return;
+    }
+
+    NATIVE.enableNativeFramesTracking();
+    this.nativeFramesInstrumentation = new NativeFramesInstrumentation(addGlobalEventProcessor, () => {
+      const self = getCurrentHub().getIntegration(ReactNativeTracing);
+
+      if (self) {
+        return !!self.nativeFramesInstrumentation;
+      }
+
+      return false;
+    });
   }
 
   /**
