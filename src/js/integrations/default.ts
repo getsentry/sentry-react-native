@@ -20,7 +20,7 @@ import { deviceContextIntegration } from './devicecontext';
 import { EventOrigin } from './eventorigin';
 import { ExpoContext } from './expocontext';
 import { ModulesLoader } from './modulesloader';
-import { NativeLinkedErrors } from './nativelinkederrors';
+import { nativeLinkedErrorsIntegration } from './nativelinkederrors';
 import { reactNativeErrorHandlersIntegration } from './reactnativeerrorhandlers';
 import { ReactNativeInfo } from './reactnativeinfo';
 import { Release } from './release';
@@ -46,7 +46,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
         patchGlobalPromise: options.patchGlobalPromise,
       }),
     );
-    integrations.push(new NativeLinkedErrors());
+    integrations.push(nativeLinkedErrorsIntegration());
   } else {
     integrations.push(browserApiErrorsIntegration());
     integrations.push(browserGlobalHandlersIntegration());
