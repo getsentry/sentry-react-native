@@ -2,7 +2,7 @@ export { debugSymbolicatorIntegration } from './debugsymbolicator';
 export { deviceContextIntegration } from './devicecontext';
 export { reactNativeErrorHandlersIntegration } from './reactnativeerrorhandlers';
 export { nativeLinkedErrorsIntegration } from './nativelinkederrors';
-export { Release } from './release';
+export { nativeReleaseIntegration } from './release';
 export { EventOrigin } from './eventorigin';
 export { SdkInfo } from './sdkinfo';
 export { ReactNativeInfo } from './reactnativeinfo';

@@ -23,7 +23,7 @@ import { ModulesLoader } from './modulesloader';
 import { nativeLinkedErrorsIntegration } from './nativelinkederrors';
 import { reactNativeErrorHandlersIntegration } from './reactnativeerrorhandlers';
 import { ReactNativeInfo } from './reactnativeinfo';
-import { Release } from './release';
+import { nativeReleaseIntegration } from './release';
 import { createReactNativeRewriteFrames } from './rewriteframes';
 import { Screenshot } from './screenshot';
 import { SdkInfo } from './sdkinfo';
@@ -61,7 +61,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   integrations.push(httpContextIntegration());
   // end @sentry/react-native default integrations
 
-  integrations.push(new Release());
+  integrations.push(nativeReleaseIntegration());
   integrations.push(new EventOrigin());
   integrations.push(new SdkInfo());
   integrations.push(new ReactNativeInfo());
