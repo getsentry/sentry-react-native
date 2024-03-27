@@ -18,7 +18,7 @@ import { isExpoGo, notWeb } from '../utils/environment';
 import { debugSymbolicatorIntegration } from './debugsymbolicator';
 import { deviceContextIntegration } from './devicecontext';
 import { eventOriginIntegration } from './eventorigin';
-import { ExpoContext } from './expocontext';
+import { expoContextIntegration } from './expocontext';
 import { modulesLoaderIntegration } from './modulesloader';
 import { nativeLinkedErrorsIntegration } from './nativelinkederrors';
 import { reactNativeErrorHandlersIntegration } from './reactnativeerrorhandlers';
@@ -101,7 +101,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   }
 
   if (isExpoGo()) {
-    integrations.push(new ExpoContext());
+    integrations.push(expoContextIntegration());
   }
 
   if (options.enableSpotlight) {

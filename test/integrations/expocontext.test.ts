@@ -1,17 +1,11 @@
-import type { Event } from '@sentry/types';
+import type { Client, Event } from '@sentry/types';
 
-import { ExpoContext } from '../../src/js/integrations/expocontext';
+import { expoContextIntegration } from '../../src/js/integrations/expocontext';
 import { getExpoDevice } from '../../src/js/utils/expomodules';
 
 jest.mock('../../src/js/utils/expomodules');
 
 describe('Expo Context Integration', () => {
-  let integration: ExpoContext;
-
-  beforeEach(() => {
-    integration = new ExpoContext();
-  });
-
   it('does not add device context because expo device module is not available', async () => {
     (getExpoDevice as jest.Mock).mockReturnValue(undefined);
     const actualEvent = await executeIntegrationFor({});
@@ -107,6 +101,6 @@ describe('Expo Context Integration', () => {
   });
 
   function executeIntegrationFor(mockedEvent: Event): Event {
-    return integration.processEvent(mockedEvent);
+    return expoContextIntegration().processEvent!(mockedEvent, {}, {} as Client) as Event;
   }
 });

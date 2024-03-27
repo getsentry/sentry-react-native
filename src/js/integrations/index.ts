@@ -10,5 +10,5 @@ export { modulesLoaderIntegration } from './modulesloader';
 export { HermesProfiling } from '../profiling/integration';
 export { screenshotIntegration } from './screenshot';
 export { viewHierarchyIntegration } from './viewhierarchy';
-export { ExpoContext } from './expocontext';
+export { expoContextIntegration } from './expocontext';
 export { Spotlight } from './spotlight';
