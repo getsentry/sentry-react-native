@@ -1,8 +1,8 @@
-import type { Event, EventHint } from '@sentry/types';
+import type { Client, Event, EventHint } from '@sentry/types';
 
 import type { ReactNativeError } from '../../src/js/integrations/debugsymbolicator';
 import type { ReactNativeContext } from '../../src/js/integrations/reactnativeinfo';
-import { ReactNativeInfo } from '../../src/js/integrations/reactnativeinfo';
+import { reactNativeInfoIntegration } from '../../src/js/integrations/reactnativeinfo';
 
 let mockedIsHermesEnabled: jest.Mock<boolean, []>;
 let mockedIsTurboModuleEnabled: jest.Mock<boolean, []>;
@@ -269,16 +269,7 @@ function expectMocksToBeCalledOnce() {
   expect(mockedGetExpoSdkVersion).toBeCalledTimes(1);
 }
 
-function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Promise<Event | null> {
-  const integration = new ReactNativeInfo();
-  return new Promise((resolve, reject) => {
-    integration.setupOnce(async eventProcessor => {
-      try {
-        const processedEvent = await eventProcessor(mockedEvent, mockedHint);
-        resolve(processedEvent);
-      } catch (e) {
-        reject(e);
-      }
-    });
-  });
+function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Event | null | PromiseLike<Event | null> {
+  const integration = reactNativeInfoIntegration();
+  return integration.processEvent!(mockedEvent, mockedHint, {} as Client);
 }

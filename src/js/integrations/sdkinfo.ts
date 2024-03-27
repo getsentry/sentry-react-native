@@ -1,4 +1,4 @@
-import type { EventProcessor, Integration, Package, SdkInfo as SdkInfoType } from '@sentry/types';
+import type { Event, Integration, Package, SdkInfo as SdkInfoType } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { isExpoGo, notWeb } from '../utils/environment';
@@ -19,50 +19,55 @@ export const defaultSdkInfo: DefaultSdkInfo = {
 };
 
 /** Default SdkInfo instrumentation */
-export class SdkInfo implements Integration {
-  /**
-   * @inheritDoc
-   */
-  public static id: string = 'SdkInfo';
+export const sdkInfoIntegration = (): Integration => {
+  const fetchNativeSdkInfo = createCachedFetchNativeSdkInfo();
 
-  /**
-   * @inheritDoc
-   */
-  public name: string = SdkInfo.id;
+  return {
+    name: 'SdkInfo',
+    setupOnce: () => {
+      // noop
+    },
+    processEvent: (event: Event) => processEvent(event, fetchNativeSdkInfo),
+  };
+};
 
-  private _nativeSdkPackage: Package | null = null;
+async function processEvent(event: Event, fetchNativeSdkInfo: () => Promise<Package | null>): Promise<Event> {
+  const nativeSdkPackage = await fetchNativeSdkInfo();
 
-  /**
-   * @inheritDoc
-   */
-  public setupOnce(addGlobalEventProcessor: (e: EventProcessor) => void): void {
-    addGlobalEventProcessor(async event => {
-      // this._nativeSdkInfo should be defined a following time so this call won't always be awaited.
-      if (this._nativeSdkPackage === null) {
-        try {
-          this._nativeSdkPackage = await NATIVE.fetchNativeSdkInfo();
-        } catch (e) {
-          // If this fails, go ahead as usual as we would rather have the event be sent with a package missing.
-          if (notWeb() && !isExpoGo()) {
-            logger.warn(
-              '[SdkInfo] Native SDK Info retrieval failed...something could be wrong with your Sentry installation:',
-            );
-            logger.warn(e);
-          }
-        }
-      }
+  event.platform = event.platform || 'javascript';
+  event.sdk = event.sdk || {};
+  event.sdk.name = event.sdk.name || defaultSdkInfo.name;
+  event.sdk.version = event.sdk.version || defaultSdkInfo.version;
+  event.sdk.packages = [
+    // default packages are added by baseclient and should not be added here
+    ...(event.sdk.packages || []),
+    ...((nativeSdkPackage && [nativeSdkPackage]) || []),
+  ];
 
-      event.platform = event.platform || 'javascript';
-      event.sdk = event.sdk || {};
-      event.sdk.name = event.sdk.name || defaultSdkInfo.name;
-      event.sdk.version = event.sdk.version || defaultSdkInfo.version;
-      event.sdk.packages = [
-        // default packages are added by baseclient and should not be added here
-        ...(event.sdk.packages || []),
-        ...((this._nativeSdkPackage && [this._nativeSdkPackage]) || []),
-      ];
+  return event;
+}
 
-      return event;
-    });
+function createCachedFetchNativeSdkInfo(): () => Promise<Package | null> {
+  if (!notWeb() || isExpoGo()) {
+    return () => {
+      return Promise.resolve(null);
+    };
   }
+
+  return async () => {
+    let isCached: boolean = false;
+    let nativeSdkPackageCache: Package | null = null;
+    if (isCached) {
+      return nativeSdkPackageCache;
+    }
+
+    try {
+      nativeSdkPackageCache = await NATIVE.fetchNativeSdkInfo();
+      isCached = true;
+    } catch (e) {
+      logger.warn('Could not fetch native sdk info.', e);
+    }
+
+    return nativeSdkPackageCache;
+  };
 }

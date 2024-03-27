@@ -1,6 +1,6 @@
 import type { HttpRequestEventMap } from '@mswjs/interceptors';
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest';
-import type { Envelope, Hub } from '@sentry/types';
+import type { Client, Envelope } from '@sentry/types';
 import { XMLHttpRequest } from 'xmlhttprequest';
 
 import { Spotlight } from '../../src/js/integrations/spotlight';
@@ -20,17 +20,12 @@ describe('spotlight', () => {
   });
 
   it('should not change the original envelope', () => {
-    const mockHub = createMockHub();
+    const mockClient = createMockClient();
 
     const spotlight = Spotlight();
-    spotlight.setupOnce(
-      () => {},
-      () => mockHub as unknown as Hub,
-    );
+    spotlight.setup?.(mockClient as unknown as Client);
 
-    const spotlightBeforeEnvelope = mockHub.getClient().on.mock.calls[0]?.[1] as
-      | ((envelope: Envelope) => void)
-      | undefined;
+    const spotlightBeforeEnvelope = mockClient.on.mock.calls[0]?.[1] as ((envelope: Envelope) => void) | undefined;
 
     const originalEnvelopeReference = createMockEnvelope();
     spotlightBeforeEnvelope?.(originalEnvelopeReference);
@@ -40,17 +35,12 @@ describe('spotlight', () => {
   });
 
   it('should remove image attachments from spotlight envelope', async () => {
-    const mockHub = createMockHub();
+    const mockClient = createMockClient();
 
     const spotlight = Spotlight();
-    spotlight.setupOnce(
-      () => {},
-      () => mockHub as unknown as Hub,
-    );
+    spotlight.setup?.(mockClient as unknown as Client);
 
-    const spotlightBeforeEnvelope = mockHub.getClient().on.mock.calls[0]?.[1] as
-      | ((envelope: Envelope) => void)
-      | undefined;
+    const spotlightBeforeEnvelope = mockClient.on.mock.calls[0]?.[1] as ((envelope: Envelope) => void) | undefined;
 
     spotlightBeforeEnvelope?.(createMockEnvelope());
 
@@ -60,14 +50,12 @@ describe('spotlight', () => {
   });
 });
 
-function createMockHub() {
+function createMockClient() {
   const client = {
     on: jest.fn(),
   };
 
-  return {
-    getClient: jest.fn().mockReturnValue(client),
-  };
+  return client;
 }
 
 function createMockEnvelope(): Envelope {

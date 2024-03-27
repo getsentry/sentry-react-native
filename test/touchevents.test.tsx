@@ -5,32 +5,30 @@ import * as core from '@sentry/core';
 import type { SeverityLevel } from '@sentry/types';
 
 import { TouchEventBoundary } from '../src/js/touchevents';
-
-jest.mock('@sentry/core');
-jest.mock('../src/js/tracing', () => ({}));
+import { getDefaultTestClientOptions,TestClient } from './mocks/client';
 
 describe('TouchEventBoundary._onTouchStart', () => {
   let addBreadcrumb: jest.SpyInstance;
+  let addIntegration: jest.SpyInstance;
+  let client: TestClient;
 
   beforeEach(() => {
     jest.resetAllMocks();
     addBreadcrumb = jest.spyOn(core, 'addBreadcrumb');
+
+    client = new TestClient(getDefaultTestClientOptions());
+    core.setCurrentClient(client);
+    client.init();
   });
 
   it('register itself as integration', () => {
-    const mockAddIntegration = jest.fn();
-    (core.getCurrentHub as jest.Mock).mockReturnValue({
-      getClient: jest.fn().mockReturnValue({
-        addIntegration: mockAddIntegration,
-        getIntegration: jest.fn(),
-      }),
-    });
+    addIntegration = jest.spyOn(client, 'addIntegration');
     const { defaultProps } = TouchEventBoundary;
     const boundary = new TouchEventBoundary(defaultProps);
 
     boundary.componentDidMount();
 
-    expect(mockAddIntegration).toBeCalledWith(expect.objectContaining({ name: 'TouchEventBoundary' }));
+    expect(addIntegration).toBeCalledWith(expect.objectContaining({ name: 'TouchEventBoundary' }));
   });
 
   it('tree without displayName or label is not logged', () => {

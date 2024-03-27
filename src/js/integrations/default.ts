@@ -1,25 +1,34 @@
-import { HttpClient } from '@sentry/integrations';
-import { Integrations as BrowserReactIntegrations } from '@sentry/react';
+import { httpClientIntegration } from '@sentry/integrations';
+import {
+  breadcrumbsIntegration,
+  browserApiErrorsIntegration,
+  dedupeIntegration,
+  functionToStringIntegration,
+  globalHandlersIntegration as browserGlobalHandlersIntegration,
+  httpContextIntegration,
+  inboundFiltersIntegration,
+  linkedErrorsIntegration as browserLinkedErrorsIntegration,
+} from '@sentry/react';
 import type { Integration } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../options';
 import { HermesProfiling } from '../profiling/integration';
 import { ReactNativeTracing } from '../tracing';
 import { isExpoGo, notWeb } from '../utils/environment';
-import { DebugSymbolicator } from './debugsymbolicator';
-import { DeviceContext } from './devicecontext';
-import { EventOrigin } from './eventorigin';
-import { ExpoContext } from './expocontext';
-import { ModulesLoader } from './modulesloader';
-import { NativeLinkedErrors } from './nativelinkederrors';
-import { ReactNativeErrorHandlers } from './reactnativeerrorhandlers';
-import { ReactNativeInfo } from './reactnativeinfo';
-import { Release } from './release';
+import { debugSymbolicatorIntegration } from './debugsymbolicator';
+import { deviceContextIntegration } from './devicecontext';
+import { eventOriginIntegration } from './eventorigin';
+import { expoContextIntegration } from './expocontext';
+import { modulesLoaderIntegration } from './modulesloader';
+import { nativeLinkedErrorsIntegration } from './nativelinkederrors';
+import { reactNativeErrorHandlersIntegration } from './reactnativeerrorhandlers';
+import { reactNativeInfoIntegration } from './reactnativeinfo';
+import { nativeReleaseIntegration } from './release';
 import { createReactNativeRewriteFrames } from './rewriteframes';
-import { Screenshot } from './screenshot';
-import { SdkInfo } from './sdkinfo';
+import { screenshotIntegration } from './screenshot';
+import { sdkInfoIntegration } from './sdkinfo';
 import { Spotlight } from './spotlight';
-import { ViewHierarchy } from './viewhierarchy';
+import { viewHierarchyIntegration } from './viewhierarchy';
 
 /**
  * Returns the default ReactNative integrations based on the current environment.
@@ -33,44 +42,44 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
 
   if (notWeb()) {
     integrations.push(
-      new ReactNativeErrorHandlers({
+      reactNativeErrorHandlersIntegration({
         patchGlobalPromise: options.patchGlobalPromise,
       }),
     );
-    integrations.push(new NativeLinkedErrors());
+    integrations.push(nativeLinkedErrorsIntegration());
   } else {
-    integrations.push(new BrowserReactIntegrations.TryCatch());
-    integrations.push(new BrowserReactIntegrations.GlobalHandlers());
-    integrations.push(new BrowserReactIntegrations.LinkedErrors());
+    integrations.push(browserApiErrorsIntegration());
+    integrations.push(browserGlobalHandlersIntegration());
+    integrations.push(browserLinkedErrorsIntegration());
   }
 
   // @sentry/react default integrations
-  integrations.push(new BrowserReactIntegrations.InboundFilters());
-  integrations.push(new BrowserReactIntegrations.FunctionToString());
-  integrations.push(new BrowserReactIntegrations.Breadcrumbs());
-  integrations.push(new BrowserReactIntegrations.Dedupe());
-  integrations.push(new BrowserReactIntegrations.HttpContext());
+  integrations.push(inboundFiltersIntegration());
+  integrations.push(functionToStringIntegration());
+  integrations.push(breadcrumbsIntegration());
+  integrations.push(dedupeIntegration());
+  integrations.push(httpContextIntegration());
   // end @sentry/react-native default integrations
 
-  integrations.push(new Release());
-  integrations.push(new EventOrigin());
-  integrations.push(new SdkInfo());
-  integrations.push(new ReactNativeInfo());
+  integrations.push(nativeReleaseIntegration());
+  integrations.push(eventOriginIntegration());
+  integrations.push(sdkInfoIntegration());
+  integrations.push(reactNativeInfoIntegration());
 
   if (__DEV__ && notWeb()) {
-    integrations.push(new DebugSymbolicator());
+    integrations.push(debugSymbolicatorIntegration());
   }
 
   integrations.push(createReactNativeRewriteFrames());
 
   if (options.enableNative) {
-    integrations.push(new DeviceContext());
-    integrations.push(new ModulesLoader());
+    integrations.push(deviceContextIntegration());
+    integrations.push(modulesLoaderIntegration());
     if (options.attachScreenshot) {
-      integrations.push(new Screenshot());
+      integrations.push(screenshotIntegration());
     }
     if (options.attachViewHierarchy) {
-      integrations.push(new ViewHierarchy());
+      integrations.push(viewHierarchyIntegration());
     }
     if (options._experiments && typeof options._experiments.profilesSampleRate === 'number') {
       integrations.push(new HermesProfiling());
@@ -88,11 +97,11 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(new ReactNativeTracing());
   }
   if (options.enableCaptureFailedRequests) {
-    integrations.push(new HttpClient());
+    integrations.push(httpClientIntegration());
   }
 
   if (isExpoGo()) {
-    integrations.push(new ExpoContext());
+    integrations.push(expoContextIntegration());
   }
 
   if (options.enableSpotlight) {

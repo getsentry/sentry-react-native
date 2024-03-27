@@ -1,44 +1,32 @@
-import type { DeviceContext, Event, EventProcessor, Hub, Integration, OsContext } from '@sentry/types';
+import type { DeviceContext, Event, Integration, OsContext } from '@sentry/types';
 
 import { getExpoDevice } from '../utils/expomodules';
 
 /** Load device context from expo modules. */
-export class ExpoContext implements Integration {
-  /**
-   * @inheritDoc
-   */
-  public static id: string = 'ExpoContext';
+export const expoContextIntegration = (): Integration => {
+  return {
+    name: 'ExpoContext',
+    setupOnce: () => {
+      // noop
+    },
+    processEvent,
+  };
+};
 
-  /**
-   * @inheritDoc
-   */
-  public name: string = ExpoContext.id;
-
-  /**
-   * @inheritDoc
-   */
-  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
-    addGlobalEventProcessor(async (event: Event) => {
-      const self = getCurrentHub().getIntegration(ExpoContext);
-      if (!self) {
-        return event;
-      }
-
-      const expoDeviceContext = getExpoDeviceContext();
-      if (expoDeviceContext) {
-        event.contexts = event.contexts || {};
-        event.contexts.device = { ...expoDeviceContext, ...event.contexts.device };
-      }
-
-      const expoOsContext = getExpoOsContext();
-      if (expoOsContext) {
-        event.contexts = event.contexts || {};
-        event.contexts.os = { ...expoOsContext, ...event.contexts.os };
-      }
-
-      return event;
-    });
+function processEvent(event: Event): Event {
+  const expoDeviceContext = getExpoDeviceContext();
+  if (expoDeviceContext) {
+    event.contexts = event.contexts || {};
+    event.contexts.device = { ...expoDeviceContext, ...event.contexts.device };
   }
+
+  const expoOsContext = getExpoOsContext();
+  if (expoOsContext) {
+    event.contexts = event.contexts || {};
+    event.contexts.os = { ...expoOsContext, ...event.contexts.os };
+  }
+
+  return event;
 }
 
 /**

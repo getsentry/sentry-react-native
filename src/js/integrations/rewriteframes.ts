@@ -1,4 +1,4 @@
-import { RewriteFrames } from '@sentry/integrations';
+import { rewriteFramesIntegration } from '@sentry/integrations';
 import type { Integration, StackFrame } from '@sentry/types';
 import { Platform } from 'react-native';
 
@@ -14,7 +14,7 @@ export const IOS_DEFAULT_BUNDLE_NAME = 'app:///main.jsbundle';
  * and Expo bundle postfix.
  */
 export function createReactNativeRewriteFrames(): Integration {
-  return new RewriteFrames({
+  return rewriteFramesIntegration({
     iteratee: (frame: StackFrame) => {
       if (frame.platform === 'java' || frame.platform === 'cocoa') {
         // Because platform is not required in StackFrame type
