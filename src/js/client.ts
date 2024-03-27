@@ -16,7 +16,7 @@ import { Alert } from 'react-native';
 import { createIntegration } from './integrations/factory';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import type { ReactNativeClientOptions } from './options';
-import { ReactNativeTracing } from './tracing';
+import type { ReactNativeTracing } from './tracing';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';
@@ -90,12 +90,12 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   }
 
   /**
-   * Sets up the integrations
+   * @inheritdoc
    */
-  public setupIntegrations(): void {
-    super.setupIntegrations();
-    const tracing = this.getIntegration(ReactNativeTracing);
-    const routingName = tracing?.options.routingInstrumentation?.name;
+  protected _setupIntegrations(): void {
+    super._setupIntegrations();
+    const tracing = this.getIntegrationByName('ReactNativeTracing') as ReactNativeTracing;
+    const routingName = tracing?.options?.routingInstrumentation?.name;
     if (routingName) {
       this.addIntegration(createIntegration(routingName));
     }

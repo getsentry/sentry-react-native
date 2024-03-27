@@ -67,15 +67,14 @@ const _patchStartTransaction = (originalStartTransaction: StartTransactionFuncti
     if (reactNativeTracing) {
       reactNativeTracing.onTransactionStart(transaction);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      const originalFinish = transaction.finish;
+      const originalFinish = transaction.end.bind(transaction);
 
-      transaction.finish = (endTimestamp: number | undefined) => {
+      transaction.end = (endTimestamp: number | undefined) => {
         if (reactNativeTracing) {
           reactNativeTracing.onTransactionFinish(transaction);
         }
 
-        return originalFinish.apply(transaction, [endTimestamp]);
+        return originalFinish(endTimestamp);
       };
     }
 

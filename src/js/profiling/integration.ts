@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import type { Hub } from '@sentry/core';
-import { getActiveTransaction } from '@sentry/core';
+import { getActiveTransaction, spanIsSampled } from '@sentry/core';
 import type { Envelope, Event, EventProcessor, Integration, ThreadCpuProfile, Transaction } from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 import { Platform } from 'react-native';
@@ -112,7 +112,7 @@ export class HermesProfiling implements Integration {
   };
 
   private _shouldStartProfiling = (transaction: Transaction): boolean => {
-    if (!transaction.sampled) {
+    if (!spanIsSampled(transaction)) {
       logger.log('[Profiling] Transaction is not sampled, skipping profiling');
       return false;
     }

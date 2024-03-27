@@ -1,4 +1,4 @@
-import type { Span, Transaction } from '@sentry/core';
+import { type Span, type Transaction,spanToJSON } from '@sentry/core';
 import type { Event, EventProcessor, Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
@@ -169,6 +169,11 @@ export class NativeFramesInstrumentation {
    * Fetch finish frames for a transaction at the current time. Calls any awaiting listeners.
    */
   private async _fetchFramesForTransaction(transaction: Transaction): Promise<void> {
+    const traceId = spanToJSON(transaction).trace_id;
+    if (!traceId) {
+      return;
+    }
+
     const startFrames = transaction.data.__startFrames as NativeFramesResponse | undefined;
 
     // This timestamp marks when the finish frames were retrieved. It should be pretty close to the transaction finish.
@@ -178,12 +183,12 @@ export class NativeFramesInstrumentation {
       finishFrames = await NATIVE.fetchNativeFrames();
     }
 
-    this._finishFrames.set(transaction.traceId, {
+    this._finishFrames.set(traceId, {
       nativeFrames: finishFrames,
       timestamp,
     });
 
-    this._framesListeners.get(transaction.traceId)?.();
+    this._framesListeners.get(traceId)?.();
 
     setTimeout(() => this._cancelFinishFrames(transaction), 2000);
   }
@@ -192,11 +197,16 @@ export class NativeFramesInstrumentation {
    * On a finish frames failure, we cancel the await.
    */
   private _cancelFinishFrames(transaction: Transaction): void {
-    if (this._finishFrames.has(transaction.traceId)) {
-      this._finishFrames.delete(transaction.traceId);
+    const traceId = spanToJSON(transaction).trace_id;
+    if (!traceId) {
+      return;
+    }
+
+    if (this._finishFrames.has(traceId)) {
+      this._finishFrames.delete(traceId);
 
       logger.log(
-        `[NativeFrames] Native frames timed out for ${transaction.op} transaction ${transaction.name}. Not adding native frames measurements.`,
+        `[NativeFrames] Native frames timed out for ${spanToJSON(transaction).op} transaction ${spanToJSON(transaction).description}. Not adding native frames measurements.`,
       );
     }
   }

@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import type { IdleTransaction, Span, Transaction } from '@sentry/core';
+import { type IdleTransaction, type Span, type Transaction,spanToJSON } from '@sentry/core';
 import type { Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 import type { AppStateStatus } from 'react-native';
@@ -118,8 +118,9 @@ export class StallTrackingInstrumentation {
           originalSpanFinish.apply(span, [endTimestamp]);
 
           // The span should set a timestamp, so this would be defined.
-          if (span.endTimestamp) {
-            this._markSpanFinish(transaction, span.endTimestamp);
+          const finalEndTimestamp = spanToJSON(span).timestamp;
+          if (finalEndTimestamp) {
+            this._markSpanFinish(transaction, finalEndTimestamp);
           }
         };
       };
@@ -144,10 +145,10 @@ export class StallTrackingInstrumentation {
       return;
     }
 
-    const endTimestamp = passedEndTimestamp ?? transaction.endTimestamp;
+    const endTimestamp = passedEndTimestamp ?? spanToJSON(transaction).timestamp;
 
     const spans = transaction.spanRecorder ? transaction.spanRecorder.spans : [];
-    const finishedSpanCount = spans.reduce((count, s) => (s !== transaction && s.endTimestamp ? count + 1 : count), 0);
+    const finishedSpanCount = spans.reduce((count, s) => (s !== transaction && spanToJSON(s).timestamp ? count + 1 : count), 0);
 
     const trimEnd = transaction.toContext().trimEnd;
     const endWillBeTrimmed = trimEnd && finishedSpanCount > 0;
@@ -170,7 +171,7 @@ export class StallTrackingInstrumentation {
 
       // There will be cancelled spans, which means that the end won't be trimmed
       const spansWillBeCancelled = spans.some(
-        s => s !== transaction && s.startTimestamp < endTimestamp && !s.endTimestamp,
+        s => s !== transaction && s.startTimestamp < endTimestamp && !spanToJSON(s).timestamp,
       );
 
       if (endWillBeTrimmed && !spansWillBeCancelled) {

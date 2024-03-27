@@ -1,4 +1,4 @@
-import { type BeforeFinishCallback, type IdleTransaction } from '@sentry/core';
+import { type BeforeFinishCallback, type IdleTransaction,spanToJSON } from '@sentry/core';
 import { logger } from '@sentry/utils';
 import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
@@ -10,10 +10,10 @@ import { AppState } from 'react-native';
 export const onlySampleIfChildSpans: BeforeFinishCallback = (transaction: IdleTransaction): void => {
   const spansCount =
     transaction.spanRecorder &&
-    transaction.spanRecorder.spans.filter(span => span.spanId !== transaction.spanId).length;
+    transaction.spanRecorder.spans.filter(span => spanToJSON(span).span_id !== spanToJSON(transaction).span_id).length;
 
   if (!spansCount || spansCount <= 0) {
-    logger.log(`Not sampling as ${transaction.op} transaction has no child spans.`);
+    logger.log(`Not sampling as ${spanToJSON(transaction).op} transaction has no child spans.`);
     transaction.sampled = false;
   }
 };
@@ -24,13 +24,13 @@ export const onlySampleIfChildSpans: BeforeFinishCallback = (transaction: IdleTr
 export const cancelInBackground = (transaction: IdleTransaction): void => {
   const subscription = AppState.addEventListener('change', (newState: AppStateStatus) => {
     if (newState === 'background') {
-      logger.debug(`Setting ${transaction.op} transaction to cancelled because the app is in the background.`);
+      logger.debug(`Setting ${spanToJSON(transaction).op} transaction to cancelled because the app is in the background.`);
       transaction.setStatus('cancelled');
-      transaction.finish();
+      transaction.end();
     }
   });
   transaction.registerBeforeFinishCallback(() => {
-    logger.debug(`Removing AppState listener for ${transaction.op} transaction.`);
+    logger.debug(`Removing AppState listener for ${spanToJSON(transaction).op} transaction.`);
     subscription.remove();
   });
 };

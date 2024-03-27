@@ -94,7 +94,10 @@ export function instrumentChildSpanFinish(
 /**
  * Determines if the timestamp is now or within the specified margin of error from now.
  */
-export function isNearToNow(timestamp: number): boolean {
+export function isNearToNow(timestamp: number | undefined): boolean {
+  if (!timestamp) {
+    return false;
+  }
   return Math.abs(timestampInSeconds() - timestamp) <= MARGIN_OF_ERROR_SECONDS;
 }
 

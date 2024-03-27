@@ -2,7 +2,7 @@
 import type { RequestInstrumentationOptions } from '@sentry/browser';
 import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from '@sentry/browser';
 import type { Hub, IdleTransaction, Transaction } from '@sentry/core';
-import { getActiveTransaction, getCurrentHub, startIdleTransaction } from '@sentry/core';
+import { getActiveTransaction, getCurrentHub, spanToJSON, startIdleTransaction } from '@sentry/core';
 import type {
   Event,
   EventProcessor,
@@ -272,7 +272,7 @@ export class ReactNativeTracing implements Integration {
    * To be called on a transaction start. Can have async methods
    */
   public onTransactionStart(transaction: Transaction): void {
-    if (isNearToNow(transaction.startTimestamp)) {
+    if (isNearToNow(spanToJSON(transaction).start_timestamp)) {
       // Only if this method is called at or within margin of error to the start timestamp.
       this.nativeFramesInstrumentation?.onTransactionStart(transaction);
       this.stallTrackingInstrumentation?.onTransactionStart(transaction);
@@ -324,11 +324,11 @@ export class ReactNativeTracing implements Integration {
 
     const hub = this._getCurrentHub?.() || getCurrentHub();
     const activeTransaction = getActiveTransaction(hub);
-    const activeTransactionIsNotInteraction =
-      activeTransaction?.spanId !== this._inflightInteractionTransaction?.spanId;
+    const activeTransactionIsNotInteraction = !activeTransaction || !this._inflightInteractionTransaction ||
+      spanToJSON(activeTransaction).span_id !== spanToJSON(this._inflightInteractionTransaction).span_id;
     if (activeTransaction && activeTransactionIsNotInteraction) {
       logger.warn(
-        `[ReactNativeTracing] Did not create ${op} transaction because active transaction ${activeTransaction.name} exists on the scope.`,
+        `[ReactNativeTracing] Did not create ${op} transaction because active transaction ${spanToJSON(activeTransaction).description} exists on the scope.`,
       );
       return;
     }
@@ -534,10 +534,10 @@ export class ReactNativeTracing implements Integration {
 
     if (this._inflightInteractionTransaction) {
       logger.log(
-        `[ReactNativeTracing] Canceling ${this._inflightInteractionTransaction.op} transaction because navigation ${context.op}.`,
+        `[ReactNativeTracing] Canceling ${spanToJSON(this._inflightInteractionTransaction).op} transaction because navigation ${context.op}.`,
       );
       this._inflightInteractionTransaction.setStatus('cancelled');
-      this._inflightInteractionTransaction.finish();
+      this._inflightInteractionTransaction.end();
     }
 
     const { finalTimeoutMs } = this.options;
