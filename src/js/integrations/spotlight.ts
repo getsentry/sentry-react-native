@@ -1,4 +1,4 @@
-import type { Client, Envelope, EventProcessor, Integration } from '@sentry/types';
+import type { BaseTransportOptions, Client, ClientOptions, Envelope, Integration } from '@sentry/types';
 import { logger, serializeEnvelope } from '@sentry/utils';
 
 import { makeUtf8TextEncoder } from '../transports/TextEncoder';
@@ -28,13 +28,12 @@ export function Spotlight({
   return {
     name: 'Spotlight',
 
-    setupOnce(_: (callback: EventProcessor) => void, getCurrentHub) {
-      const client = getCurrentHub().getClient();
-      if (client) {
-        setup(client, sidecarUrl);
-      } else {
-        logger.warn('[Spotlight] Could not initialize Sidecar integration due to missing Client');
-      }
+    setupOnce(): void {
+      // nothing to do here
+    },
+
+    setup(client: Client<ClientOptions<BaseTransportOptions>>): void {
+      setup(client, sidecarUrl);
     },
   };
 }

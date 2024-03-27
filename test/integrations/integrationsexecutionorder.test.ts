@@ -31,7 +31,7 @@ describe('Integration execution order', () => {
       client.setupIntegrations();
 
       client.captureException(new Error('test'));
-      jest.runAllTimers();
+      await client.flush();
 
       expect(nativeLinkedErrors.preprocessEvent).toHaveBeenCalledBefore(rewriteFrames.processEvent!);
     });
@@ -56,7 +56,7 @@ describe('Integration execution order', () => {
       client.setupIntegrations();
 
       client.captureException(new Error('test'));
-      jest.runAllTimers();
+      await client.flush();
 
       expect(linkedErrors.preprocessEvent).toHaveBeenCalledBefore(rewriteFrames.processEvent!);
     });
