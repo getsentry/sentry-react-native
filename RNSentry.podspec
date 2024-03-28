@@ -13,7 +13,7 @@ folly_compiler_flags = folly_flags + ' ' + '-Wno-comma -Wno-shorten-64-to-32'
 is_new_arch_enabled = ENV["RCT_NEW_ARCH_ENABLED"] == "1"
 is_using_hermes = (ENV['USE_HERMES'] == nil && is_hermes_default) || ENV['USE_HERMES'] == '1'
 new_arch_enabled_flag = (is_new_arch_enabled ? folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED" : "")
-sentry_profiling_supported_flag = (is_profiling_supported ? " -DSENTRY_PROFILING_SUPPORTED=1" : "")
+sentry_profiling_supported_flag = (false ? " -DSENTRY_PROFILING_SUPPORTED=1" : "")
 other_cflags = "$(inherited) -fmodules -fcxx-modules " + new_arch_enabled_flag + sentry_profiling_supported_flag
 
 Pod::Spec.new do |s|
