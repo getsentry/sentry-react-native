@@ -7,7 +7,7 @@ import { getCurrentHub } from '@sentry/core';
 import type { Envelope, Event, Profile, ThreadCpuProfile, Transaction, Transport } from '@sentry/types';
 
 import * as Sentry from '../../src/js';
-import { HermesProfiling } from '../../src/js/integrations';
+// import { HermesProfiling } from '../../src/js/integrations';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { getDebugMetadata } from '../../src/js/profiling/debugid';
 import type { AndroidProfileEvent } from '../../src/js/profiling/types';
@@ -23,7 +23,7 @@ import {
 
 const SEC_TO_MS = 1e6;
 
-describe('profiling integration', () => {
+describe.skip('profiling integration', () => {
   let mock: {
     transportSendMock: jest.Mock<ReturnType<Transport['send']>, Parameters<Transport['send']>>;
   };

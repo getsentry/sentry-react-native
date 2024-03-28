@@ -28,7 +28,7 @@ describe('Integration execution order', () => {
       const nativeLinkedErrors = spyOnIntegrationById('NativeLinkedErrors', integrations);
       const rewriteFrames = spyOnIntegrationById('RewriteFrames', integrations);
 
-      client.setupIntegrations();
+      client.init();
 
       client.captureException(new Error('test'));
       await client.flush();
@@ -53,7 +53,7 @@ describe('Integration execution order', () => {
       const linkedErrors = spyOnIntegrationById('LinkedErrors', integrations);
       const rewriteFrames = spyOnIntegrationById('RewriteFrames', integrations);
 
-      client.setupIntegrations();
+      client.init();
 
       client.captureException(new Error('test'));
       await client.flush();
@@ -76,7 +76,7 @@ function spyOnIntegrationById(id: string, integrations: Integration[]): Integrat
     throw new Error(`Integration ${id} not found`);
   }
 
-  jest.spyOn(candidate, 'setupOnce');
+  candidate.setupOnce && jest.spyOn(candidate, 'setupOnce');
   candidate.preprocessEvent && jest.spyOn(candidate, 'preprocessEvent');
   candidate.processEvent && jest.spyOn(candidate, 'processEvent');
   return candidate as IntegrationSpy;

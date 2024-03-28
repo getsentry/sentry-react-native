@@ -6,8 +6,8 @@ import type { GestureResponderEvent} from 'react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { createIntegration } from './integrations/factory';
-import type { ReactNativeTracing } from './tracing';
-import { UI_ACTION_TOUCH } from './tracing/ops';
+// import type { ReactNativeTracing } from './tracing';
+// import { UI_ACTION_TOUCH } from './tracing/ops';
 
 export type TouchEventBoundaryProps = {
   /**
@@ -82,7 +82,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 
   public readonly name: string = 'TouchEventBoundary';
 
-  private _tracingIntegration: ReactNativeTracing | null = null;
+  // private _tracingIntegration: ReactNativeTracing | null = null;
 
   /**
    * Registers the TouchEventBoundary as a Sentry Integration.
@@ -90,9 +90,9 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
   public componentDidMount(): void {
     const client = getClient();
     client?.addIntegration?.(createIntegration(this.name));
-    if (!this._tracingIntegration && client) {
-      this._tracingIntegration = client.getIntegrationByName?.('ReactNativeTracing') as ReactNativeTracing|| null;
-    }
+    // if (!this._tracingIntegration && client) {
+      // this._tracingIntegration = client.getIntegrationByName?.('ReactNativeTracing') as ReactNativeTracing|| null;
+    // }
   }
 
   /**
@@ -235,10 +235,10 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
       this._logTouchEvent(componentTreeNames, finalLabel);
     }
 
-    this._tracingIntegration?.startUserInteractionTransaction({
-      elementId: activeLabel,
-      op: UI_ACTION_TOUCH,
-    });
+    // this._tracingIntegration?.startUserInteractionTransaction({
+    //   elementId: activeLabel,
+    //   op: 'ui.click',
+    // });
   }
 }
 

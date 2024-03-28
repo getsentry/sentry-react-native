@@ -1,11 +1,11 @@
-import type { Event, EventHint, Integration } from '@sentry/types';
+import type { Attachment, Event, EventHint, Integration } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { NATIVE } from '../wrapper';
 
 const filename: string = 'view-hierarchy.json';
 const contentType: string = 'application/json';
-const attachmentType: string = 'event.view_hierarchy';
+const attachmentType: Attachment['attachmentType'] = 'event.view_hierarchy';
 
 /** Adds ViewHierarchy to error events */
 export const viewHierarchyIntegration = (): Integration => {

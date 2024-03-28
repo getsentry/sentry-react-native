@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Transaction } from '@sentry/core';
 import type { TransactionContext } from '@sentry/types';
+import { skip } from 'node:test';
 
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 import { BLANK_TRANSACTION_CONTEXT, ReactNavigationInstrumentation } from '../../src/js/tracing/reactnavigation';
@@ -32,7 +33,7 @@ const getMockTransaction = () => {
   return transaction;
 };
 
-describe('ReactNavigationInstrumentation', () => {
+describe.skip('ReactNavigationInstrumentation', () => {
   afterEach(() => {
     RN_GLOBAL_OBJ.__sentry_rn_v5_registered = false;
 

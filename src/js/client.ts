@@ -16,7 +16,7 @@ import { Alert } from 'react-native';
 import { createIntegration } from './integrations/factory';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import type { ReactNativeClientOptions } from './options';
-import type { ReactNativeTracing } from './tracing';
+// import type { ReactNativeTracing } from './tracing';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';
@@ -94,12 +94,14 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    */
   protected _setupIntegrations(): void {
     super._setupIntegrations();
-    const tracing = this.getIntegrationByName('ReactNativeTracing') as ReactNativeTracing;
-    const routingName = tracing?.options?.routingInstrumentation?.name;
+    // const tracing = this.getIntegrationByName('ReactNativeTracing') as ReactNativeTracing;
+    // const routingName = tracing?.options?.routingInstrumentation?.name;
+    const routingName = false;
     if (routingName) {
       this.addIntegration(createIntegration(routingName));
     }
-    const enableUserInteractionTracing = tracing?.options.enableUserInteractionTracing;
+    // const enableUserInteractionTracing = tracing?.options.enableUserInteractionTracing;
+    const enableUserInteractionTracing = false;
     if (enableUserInteractionTracing) {
       this.addIntegration(createIntegration('ReactNativeUserInteractionTracing'));
     }

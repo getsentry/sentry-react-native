@@ -324,11 +324,15 @@ export class ReactNativeTracing implements Integration {
 
     const hub = this._getCurrentHub?.() || getCurrentHub();
     const activeTransaction = getActiveTransaction(hub);
-    const activeTransactionIsNotInteraction = !activeTransaction || !this._inflightInteractionTransaction ||
+    const activeTransactionIsNotInteraction =
+      !activeTransaction ||
+      !this._inflightInteractionTransaction ||
       spanToJSON(activeTransaction).span_id !== spanToJSON(this._inflightInteractionTransaction).span_id;
     if (activeTransaction && activeTransactionIsNotInteraction) {
       logger.warn(
-        `[ReactNativeTracing] Did not create ${op} transaction because active transaction ${spanToJSON(activeTransaction).description} exists on the scope.`,
+        `[ReactNativeTracing] Did not create ${op} transaction because active transaction ${
+          spanToJSON(activeTransaction).description
+        } exists on the scope.`,
       );
       return;
     }
@@ -534,7 +538,9 @@ export class ReactNativeTracing implements Integration {
 
     if (this._inflightInteractionTransaction) {
       logger.log(
-        `[ReactNativeTracing] Canceling ${spanToJSON(this._inflightInteractionTransaction).op} transaction because navigation ${context.op}.`,
+        `[ReactNativeTracing] Canceling ${
+          spanToJSON(this._inflightInteractionTransaction).op
+        } transaction because navigation ${context.op}.`,
       );
       this._inflightInteractionTransaction.setStatus('cancelled');
       this._inflightInteractionTransaction.end();

@@ -7,7 +7,7 @@ export { eventOriginIntegration } from './eventorigin';
 export { sdkInfoIntegration } from './sdkinfo';
 export { reactNativeInfoIntegration } from './reactnativeinfo';
 export { modulesLoaderIntegration } from './modulesloader';
-export { HermesProfiling } from '../profiling/integration';
+// export { HermesProfiling } from '../profiling/integration';
 export { screenshotIntegration } from './screenshot';
 export { viewHierarchyIntegration } from './viewhierarchy';
 export { expoContextIntegration } from './expocontext';

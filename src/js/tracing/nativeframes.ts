@@ -1,4 +1,4 @@
-import { type Span, type Transaction,spanToJSON } from '@sentry/core';
+import { type Span, type Transaction, spanToJSON } from '@sentry/core';
 import type { Event, EventProcessor, Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
@@ -206,7 +206,9 @@ export class NativeFramesInstrumentation {
       this._finishFrames.delete(traceId);
 
       logger.log(
-        `[NativeFrames] Native frames timed out for ${spanToJSON(transaction).op} transaction ${spanToJSON(transaction).description}. Not adding native frames measurements.`,
+        `[NativeFrames] Native frames timed out for ${spanToJSON(transaction).op} transaction ${
+          spanToJSON(transaction).description
+        }. Not adding native frames measurements.`,
       );
     }
   }

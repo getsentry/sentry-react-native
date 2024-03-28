@@ -1,4 +1,4 @@
-import { type BeforeFinishCallback, type IdleTransaction,spanToJSON } from '@sentry/core';
+import { type BeforeFinishCallback, type IdleTransaction, spanToJSON } from '@sentry/core';
 import { logger } from '@sentry/utils';
 import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
@@ -24,7 +24,9 @@ export const onlySampleIfChildSpans: BeforeFinishCallback = (transaction: IdleTr
 export const cancelInBackground = (transaction: IdleTransaction): void => {
   const subscription = AppState.addEventListener('change', (newState: AppStateStatus) => {
     if (newState === 'background') {
-      logger.debug(`Setting ${spanToJSON(transaction).op} transaction to cancelled because the app is in the background.`);
+      logger.debug(
+        `Setting ${spanToJSON(transaction).op} transaction to cancelled because the app is in the background.`,
+      );
       transaction.setStatus('cancelled');
       transaction.end();
     }

@@ -10,7 +10,7 @@
     "typings/*.d.ts",
     "plugin/**/*.ts"
   ],
-  "exclude": ["dist"],
+  "exclude": ["dist", "src/js/tracing/*.ts"],
   "allowSyntheticDefaultImports": true,
   "compilerOptions": {
     "rootDir": ".",

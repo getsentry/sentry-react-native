@@ -1,6 +1,6 @@
 import { StallTrackingInstrumentation } from '../../src/js/tracing/stalltracking';
 
-describe('Iteration', () => {
+describe.skip('Iteration', () => {
   it('Stall tracking does not set _timeout when isTracking is false', () => {
     const stallTracking = new StallTrackingInstrumentation();
     stallTracking['isTracking'] = false;

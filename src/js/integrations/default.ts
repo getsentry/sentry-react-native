@@ -1,4 +1,4 @@
-import { httpClientIntegration } from '@sentry/integrations';
+import { httpClientIntegration } from '@sentry/browser';
 import {
   breadcrumbsIntegration,
   browserApiErrorsIntegration,
@@ -12,8 +12,8 @@ import {
 import type { Integration } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../options';
-import { HermesProfiling } from '../profiling/integration';
-import { ReactNativeTracing } from '../tracing';
+// import { HermesProfiling } from '../profiling/integration';
+// import { ReactNativeTracing } from '../tracing';
 import { isExpoGo, notWeb } from '../utils/environment';
 import { debugSymbolicatorIntegration } from './debugsymbolicator';
 import { deviceContextIntegration } from './devicecontext';
@@ -82,7 +82,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
       integrations.push(viewHierarchyIntegration());
     }
     if (options._experiments && typeof options._experiments.profilesSampleRate === 'number') {
-      integrations.push(new HermesProfiling());
+      // integrations.push(new HermesProfiling());
     }
   }
 
@@ -94,7 +94,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     typeof options.tracesSampleRate === 'number' ||
     typeof options.tracesSampler === 'function';
   if (hasTracingEnabled && options.enableAutoPerformanceTracing) {
-    integrations.push(new ReactNativeTracing());
+    // integrations.push(new ReactNativeTracing());
   }
   if (options.enableCaptureFailedRequests) {
     integrations.push(httpClientIntegration());

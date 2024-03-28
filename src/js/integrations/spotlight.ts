@@ -1,7 +1,6 @@
 import type { BaseTransportOptions, Client, ClientOptions, Envelope, Integration } from '@sentry/types';
 import { logger, serializeEnvelope } from '@sentry/utils';
 
-import { makeUtf8TextEncoder } from '../transports/TextEncoder';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 
@@ -80,7 +79,7 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
       }
     };
 
-    xhr.send(serializeEnvelope(spotlightEnvelope, makeUtf8TextEncoder()));
+    xhr.send(serializeEnvelope(spotlightEnvelope));
   });
 }
 

@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { type IdleTransaction, type Span, type Transaction,spanToJSON } from '@sentry/core';
+import { type IdleTransaction, type Span, type Transaction, spanToJSON } from '@sentry/core';
 import type { Measurements, MeasurementUnit } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 import type { AppStateStatus } from 'react-native';
@@ -148,7 +148,10 @@ export class StallTrackingInstrumentation {
     const endTimestamp = passedEndTimestamp ?? spanToJSON(transaction).timestamp;
 
     const spans = transaction.spanRecorder ? transaction.spanRecorder.spans : [];
-    const finishedSpanCount = spans.reduce((count, s) => (s !== transaction && spanToJSON(s).timestamp ? count + 1 : count), 0);
+    const finishedSpanCount = spans.reduce(
+      (count, s) => (s !== transaction && spanToJSON(s).timestamp ? count + 1 : count),
+      0,
+    );
 
     const trimEnd = transaction.toContext().trimEnd;
     const endWillBeTrimmed = trimEnd && finishedSpanCount > 0;

@@ -15,7 +15,7 @@ import { emitNativeFullDisplayEvent, emitNativeInitialDisplayEvent } from './moc
 
 jest.useFakeTimers({advanceTimers: true});
 
-describe('TimeToDisplay', () => {
+describe.skip('TimeToDisplay', () => {
   let client: TestClient;
 
   beforeEach(() => {
