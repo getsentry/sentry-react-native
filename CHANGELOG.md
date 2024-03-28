@@ -12,9 +12,9 @@
 
 ### Dependencies
 
-- Bump CLI from v2.30.0 to v2.30.4 ([#3678](https://github.com/getsentry/sentry-react-native/pull/3678), [#3704](https://github.com/getsentry/sentry-react-native/pull/3704))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2304)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.0...2.30.4)
+- Bump CLI from v2.30.0 to v2.31.0 ([#3678](https://github.com/getsentry/sentry-react-native/pull/3678), [#3704](https://github.com/getsentry/sentry-react-native/pull/3704), [#3719](https://github.com/getsentry/sentry-react-native/pull/3719))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2310)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.0...2.31.0)
 - Bump Android SDK from v7.5.0 to v7.6.0 ([#3675](https://github.com/getsentry/sentry-react-native/pull/3675))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#760)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.5.0...7.6.0)
