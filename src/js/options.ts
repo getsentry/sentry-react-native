@@ -1,6 +1,6 @@
 import type { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
 import type { ProfilerProps } from '@sentry/react/types/profiler';
-import type {CaptureContext, ClientOptions, Event, EventHint, Options} from '@sentry/types';
+import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@sentry/types';
 import { Platform } from 'react-native';
 
 import type { TouchEventBoundaryProps } from './touchevents';
