@@ -2,7 +2,7 @@ import { getClient } from '@sentry/core';
 import type { Event, EventHint, EventProcessor, Integration } from '@sentry/types';
 import { resolvedSyncPromise } from '@sentry/utils';
 
-import type {ReactNativeClient} from '../client';
+import type { ReactNativeClient } from '../client';
 import type { Screenshot as ScreenshotAttachment } from '../wrapper';
 import { NATIVE } from '../wrapper';
 
