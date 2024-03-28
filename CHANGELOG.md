@@ -5,6 +5,7 @@
 ### Features
 
 - Add `getDefaultConfig` option to `getSentryExpoConfig` ([#3690](https://github.com/getsentry/sentry-react-native/pull/3690))
+- Add `beforeScreenshoot` option to `ReactNativeOptions` ([#3715](https://github.com/getsentry/sentry-react-native/pull/3715))
 
 ### Fixes
 
