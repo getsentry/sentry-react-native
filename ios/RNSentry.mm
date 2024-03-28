@@ -15,7 +15,7 @@
 #define SENTRY_TARGET_PROFILING_SUPPORTED 0
 #endif
 
-#import <Sentry/Sentry.h>
+@import Sentry;
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
