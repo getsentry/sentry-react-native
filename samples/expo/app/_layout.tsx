@@ -5,7 +5,7 @@ import { SplashScreen, Stack, useNavigationContainerRef } from 'expo-router';
 import { useEffect } from 'react';
 
 import { useColorScheme } from '@/components/useColorScheme';
-import { HttpClient } from '@sentry/integrations';
+import { httpClientIntegration } from '@sentry/react';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
 import { isExpoGo } from '../utils/isExpoGo';
@@ -18,9 +18,9 @@ export {
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-const routingInstrumentation = new Sentry.ReactNavigationInstrumentation({
-  enableTimeToInitialDisplay: !isExpoGo(), // This is not supported in Expo Go.
-});
+// const routingInstrumentation = new Sentry.ReactNavigationInstrumentation({
+//   enableTimeToInitialDisplay: !isExpoGo(), // This is not supported in Expo Go.
+// });
 
 process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
   // Replace the example DSN below with your own DSN:
@@ -41,7 +41,7 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
   },
   integrations(integrations) {
     integrations.push(
-      new HttpClient({
+      httpClientIntegration({
         // These options are effective only in JS.
         // This array can contain tuples of `[begin, end]` (both inclusive),
         // Single status codes, or a combinations of both.
@@ -51,10 +51,9 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
-      Sentry.metrics.metricsAggregatorIntegration(),
-      new Sentry.ReactNativeTracing({
-        routingInstrumentation,
-      }),
+      // new Sentry.ReactNativeTracing({
+      //   routingInstrumentation,
+      // }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
@@ -87,7 +86,7 @@ function RootLayout() {
 
   useEffect(() => {
     if (ref) {
-      routingInstrumentation.registerNavigationContainer(ref);
+      // routingInstrumentation.registerNavigationContainer(ref);
     }
   }, [ref]);
 

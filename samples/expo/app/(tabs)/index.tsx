@@ -17,13 +17,13 @@ export default function TabOneScreen() {
   React.useEffect(() => {
     if (componentMountStartTimestamp) {
       // Distributions help you get the most insights from your data by allowing you to obtain aggregations such as p90, min, max, and avg.
-      Sentry.metrics.distribution(
-        'tab_one_mount_time',
-        timestampInSeconds() - componentMountStartTimestamp,
-        {
-          unit: "seconds",
-        },
-      );
+      // Sentry.metrics.distribution(
+      //   'tab_one_mount_time',
+      //   timestampInSeconds() - componentMountStartTimestamp,
+      //   {
+      //     unit: "seconds",
+      //   },
+      // );
     }
     // We only want this to run once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -31,7 +31,7 @@ export default function TabOneScreen() {
 
   return (
     <View style={styles.container}>
-      <Sentry.TimeToInitialDisplay record />
+      {/* <Sentry.TimeToInitialDisplay record /> */}
       <Text>Welcome to Sentry Expo Sample App!</Text>
       <Button
         title="Capture message"
@@ -42,7 +42,7 @@ export default function TabOneScreen() {
       <Button
         title="Capture exception"
         onPress={() => {
-          Sentry.metrics.increment('tab_one.capture_exception_button_press', 1);
+          // Sentry.metrics.increment('tab_one.capture_exception_button_press', 1);
           Sentry.captureException(new Error('Captured exception'));
         }}
       />
