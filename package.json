@@ -40,7 +40,7 @@
     "test:watch": "jest --watch",
     "run-ios": "cd samples/react-native && yarn react-native run-ios",
     "run-android": "cd samples/react-native && yarn react-native run-android",
-    "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/hub @sentry/integrations @sentry/react @sentry/types @sentry/utils"
+    "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/react @sentry/types @sentry/utils"
   },
   "bin": {
     "sentry-expo-upload-sourcemaps": "scripts/expo-upload-sourcemaps.js"
@@ -69,8 +69,6 @@
     "@sentry/browser": "8.0.0-alpha.7",
     "@sentry/cli": "2.30.2",
     "@sentry/core": "8.0.0-alpha.7",
-    "@sentry/hub": "7.100.1",
-    "@sentry/integrations": "7.100.1",
     "@sentry/react": "8.0.0-alpha.7",
     "@sentry/types": "8.0.0-alpha.7",
     "@sentry/utils": "8.0.0-alpha.7"
