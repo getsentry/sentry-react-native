@@ -74,7 +74,11 @@ export function getDefaultEnvironment(): 'development' | 'production' {
 
 /** Check if SDK runs in Metro Dev Server side */
 export function isRunningInMetroDevServer(): boolean {
-  if (typeof RN_GLOBAL_OBJ.process !== 'undefined' && RN_GLOBAL_OBJ.process.env && RN_GLOBAL_OBJ.process.env.___SENTRY_METRO_DEV_SERVER___ === 'true') {
+  if (
+    typeof RN_GLOBAL_OBJ.process !== 'undefined' &&
+    RN_GLOBAL_OBJ.process.env &&
+    RN_GLOBAL_OBJ.process.env.___SENTRY_METRO_DEV_SERVER___ === 'true'
+  ) {
     return true;
   }
   return false;

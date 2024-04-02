@@ -131,6 +131,6 @@ export function withSentryFramesCollapsed(config: MetroConfig): MetroConfig {
  * This is used to determine if the SDK is running in Node in Metro Dev Server.
  * For example during static routes generation in `expo-router`.
  */
-function setSentryMetroDevServerEnvFlag() {
+function setSentryMetroDevServerEnvFlag(): void {
   env.___SENTRY_METRO_DEV_SERVER___ = 'true';
 }
