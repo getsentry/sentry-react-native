@@ -9,12 +9,13 @@ import {
   startSpanManual,
   startTransaction,
 } from '@sentry/core';
-import type { Measurements, Span } from '@sentry/types';
+import type { Span } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 
 import { ReactNativeTracing } from '../../src/js';
 import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
+import { expectNonZeroStallMeasurements,expectStallMeasurements } from './stalltrackingutils';
 
 jest.useFakeTimers({ advanceTimers: true });
 
@@ -29,7 +30,7 @@ const expensiveOperation = () => {
   }
 };
 
-describe('StallTrackingNew', () => {
+describe('StallTracking', () => {
   let client: TestClient;
 
   beforeEach(() => {
@@ -71,7 +72,7 @@ describe('StallTrackingNew', () => {
 
     await client.flush();
 
-    expectValidNonZeroStallMeasurements(client.event?.measurements);
+    expectNonZeroStallMeasurements(client.event?.measurements);
   });
 
   it('Stall tracking detects multiple JS stalls', async () => {
@@ -88,7 +89,7 @@ describe('StallTrackingNew', () => {
     await client.flush();
 
     const measurements = client.event?.measurements;
-    expectValidNonZeroStallMeasurements(measurements);
+    expectNonZeroStallMeasurements(measurements);
     expect(measurements?.stall_count.value).toBeGreaterThanOrEqual(2);
   });
 
@@ -104,7 +105,7 @@ describe('StallTrackingNew', () => {
 
     jest.runAllTimers(); // If tracking would be running there would always be a new timer creating infinite loop
 
-    expectValidNonZeroStallMeasurements(client.event?.measurements);
+    expectNonZeroStallMeasurements(client.event?.measurements);
   });
 
   it('Stall tracking timeout is stopped after finishing all transactions (multiple)', async () => {
@@ -204,11 +205,6 @@ describe('StallTrackingNew', () => {
     expect(client.event?.measurements).toBeUndefined();
   });
 
-  // it('Stall tracking supports idleTransaction with unfinished spans', async () => {
-  // TODO: This is only possible to test via public API with mocked auto navigation instrumentation
-  // https://github.com/getsentry/sentry-react-native/blob/a5fdf556822f33677ca587bd82dbf54cc4d46e72/src/js/tracing/reactnativetracing.ts#L556
-  // });
-
   it('Stall tracking ignores unfinished spans in normal transactions', async () => {
     startSpan({ name: 'Stall will happen during this span', trimEnd: true }, () => {
       startSpan({ name: 'This child span will finish' }, () => {
@@ -239,7 +235,7 @@ describe('StallTrackingNew', () => {
     await client.flush();
 
     const measurements = client.event?.measurements;
-    expectValidNonZeroStallMeasurements(measurements);
+    expectNonZeroStallMeasurements(measurements);
     expect(measurements?.stall_count.value).toEqual(1);
   });
 
@@ -259,29 +255,3 @@ describe('StallTrackingNew', () => {
     expect(client.eventQueue[0].measurements).toBeUndefined();
   });
 });
-
-function expectStallMeasurements(measurements: Measurements | undefined) {
-  expect(measurements).toBeDefined();
-
-  expect(measurements?.stall_count.value).toBeGreaterThanOrEqual(0);
-  expect(measurements?.stall_count.unit).toBe('none');
-
-  expect(measurements?.stall_longest_time.value).toBeGreaterThanOrEqual(0);
-  expect(measurements?.stall_longest_time.unit).toBe('millisecond');
-
-  expect(measurements?.stall_total_time.value).toBeGreaterThanOrEqual(0);
-  expect(measurements?.stall_total_time.unit).toBe('millisecond');
-}
-
-function expectValidNonZeroStallMeasurements(measurements: Measurements | undefined) {
-  expect(measurements).toBeDefined();
-
-  expect(measurements?.stall_count.value).toBeGreaterThan(0);
-  expect(measurements?.stall_count.unit).toBe('none');
-
-  expect(measurements?.stall_longest_time.value).toBeGreaterThan(0);
-  expect(measurements?.stall_longest_time.unit).toBe('millisecond');
-
-  expect(measurements?.stall_total_time.value).toBeGreaterThan(0);
-  expect(measurements?.stall_total_time.unit).toBe('millisecond');
-}
