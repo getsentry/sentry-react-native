@@ -21,14 +21,14 @@ import { store } from './reduxApp';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { StyleSheet } from 'react-native';
-import { HttpClient } from '@sentry/integrations';
+import { httpClientIntegration } from '@sentry/react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const reactNavigationInstrumentation =
-  new Sentry.ReactNavigationInstrumentation({
-    routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
-    enableTimeToInitialDisplay: true,
-  });
+// const reactNavigationInstrumentation =
+//   new Sentry.ReactNavigationInstrumentation({
+//     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
+//     enableTimeToInitialDisplay: true,
+//   });
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
@@ -49,22 +49,22 @@ Sentry.init({
   },
   integrations(integrations) {
     integrations.push(
-      new Sentry.ReactNativeTracing({
-        // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
-        idleTimeout: 5000,
-        routingInstrumentation: reactNavigationInstrumentation,
-        enableUserInteractionTracing: true,
-        ignoreEmptyBackNavigationTransactions: true,
-        beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
-          // Example of not sending a transaction for the screen with the name "Manual Tracker"
-          if (context.data.route.name === 'ManualTracker') {
-            context.sampled = false;
-          }
+      // new Sentry.ReactNativeTracing({
+      //   // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
+      //   idleTimeout: 5000,
+      //   routingInstrumentation: reactNavigationInstrumentation,
+      //   enableUserInteractionTracing: true,
+      //   ignoreEmptyBackNavigationTransactions: true,
+      //   beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
+      //     // Example of not sending a transaction for the screen with the name "Manual Tracker"
+      //     if (context.data.route.name === 'ManualTracker') {
+      //       context.sampled = false;
+      //     }
 
-          return context;
-        },
-      }),
-      new HttpClient({
+      //     return context;
+      //   },
+      // }),
+      httpClientIntegration({
         // These options are effective only in JS.
         // This array can contain tuples of `[begin, end]` (both inclusive),
         // Single status codes, or a combinations of both.
@@ -74,7 +74,6 @@ Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
-      Sentry.metrics.metricsAggregatorIntegration(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
@@ -161,7 +160,7 @@ function BottomTabs() {
     <NavigationContainer
       ref={navigation}
       onReady={() => {
-        reactNavigationInstrumentation.registerNavigationContainer(navigation);
+        // reactNavigationInstrumentation.registerNavigationContainer(navigation);
       }}>
       <Tab.Navigator
         screenOptions={{
