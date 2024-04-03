@@ -3,7 +3,7 @@ import { utf8ToBytes } from '../vendor';
 
 export const useEncodePolyfill = (): void => {
   if (!RN_GLOBAL_OBJ.__SENTRY__) {
-    return;
+    (RN_GLOBAL_OBJ.__SENTRY__ as Partial<typeof RN_GLOBAL_OBJ['__SENTRY__']>) = {};
   }
 
   RN_GLOBAL_OBJ.__SENTRY__.encodePolyfill = encodePolyfill;
