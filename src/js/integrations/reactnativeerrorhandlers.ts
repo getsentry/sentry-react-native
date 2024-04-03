@@ -1,5 +1,5 @@
 import { getCurrentHub } from '@sentry/core';
-import type { EventHint, Integration, SeverityLevel } from '@sentry/types';
+import type { EventHint, Integration } from '@sentry/types';
 import { addExceptionMechanism, logger } from '@sentry/utils';
 
 import type { ReactNativeClient } from '../client';
@@ -230,11 +230,18 @@ export class ReactNativeErrorHandlers implements Integration {
         const event = await client.eventFromException(error, hint);
 
         if (isFatal) {
-          event.level = 'fatal' as SeverityLevel;
+          event.level = 'fatal';
 
           addExceptionMechanism(event, {
             handled: false,
             type: 'onerror',
+          });
+        } else {
+          event.level = 'error';
+
+          addExceptionMechanism(event, {
+            handled: true,
+            type: 'generic',
           });
         }
 
