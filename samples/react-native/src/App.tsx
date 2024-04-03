@@ -81,8 +81,7 @@ Sentry.init({
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
   sessionTrackingIntervalMillis: 5000,
   // This will capture ALL TRACES and likely use up all your quota
-  enableTracing: true,
-  tracesSampleRate: 1.0,
+  enableTracing: false,
   tracePropagationTargets: ['localhost', /^\//, /^https:\/\//, /^http:\/\//],
   attachStacktrace: true,
   // Attach screenshots to events.
@@ -96,7 +95,7 @@ Sentry.init({
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
   _experiments: {
-    profilesSampleRate: 1.0,
+    profilesSampleRate: 0,
   },
   enableSpotlight: true,
 });

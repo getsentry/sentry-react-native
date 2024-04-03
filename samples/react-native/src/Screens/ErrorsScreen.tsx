@@ -35,13 +35,13 @@ const ErrorsScreen = (_props: Props) => {
   React.useEffect(() => {
     if (componentMountStartTimestamp) {
       // Distributions help you get the most insights from your data by allowing you to obtain aggregations such as p90, min, max, and avg.
-      // Sentry.metrics.distribution(
-      //   'home_mount_time',
-      //   timestampInSeconds() - componentMountStartTimestamp,
-      //   {
-      //     unit: 'seconds',
-      //   },
-      // );
+      Sentry.metrics.distribution(
+        'home_mount_time',
+        timestampInSeconds() - componentMountStartTimestamp,
+        {
+          unit: 'seconds',
+        },
+      );
     }
     // We only want this to run once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
