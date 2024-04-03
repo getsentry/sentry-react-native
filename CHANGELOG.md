@@ -9,6 +9,7 @@
 ### Fixes
 
 - Do not enable NativeFramesTracking when native is not available ([#3705](https://github.com/getsentry/sentry-react-native/pull/3705))
+- Fix missing Stall measurements when using new `.end()` span API ([#3737](https://github.com/getsentry/sentry-react-native/pull/3737))
 
 ### Dependencies
 
