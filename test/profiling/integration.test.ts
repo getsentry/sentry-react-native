@@ -7,7 +7,7 @@ import { getCurrentHub } from '@sentry/core';
 import type { Envelope, Event, Profile, ThreadCpuProfile, Transaction, Transport } from '@sentry/types';
 
 import * as Sentry from '../../src/js';
-// import { HermesProfiling } from '../../src/js/integrations';
+import { HermesProfiling } from '../../src/js/integrations';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { getDebugMetadata } from '../../src/js/profiling/debugid';
 import type { AndroidProfileEvent } from '../../src/js/profiling/types';

@@ -12,8 +12,8 @@ import {
 import type { Integration } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../options';
-// import { HermesProfiling } from '../profiling/integration';
-// import { ReactNativeTracing } from '../tracing';
+import { HermesProfiling } from '../profiling/integration';
+import { ReactNativeTracing } from '../tracing';
 import { isExpoGo, notWeb } from '../utils/environment';
 import { debugSymbolicatorIntegration } from './debugsymbolicator';
 import { deviceContextIntegration } from './devicecontext';

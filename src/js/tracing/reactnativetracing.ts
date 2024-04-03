@@ -187,10 +187,7 @@ export class ReactNativeTracing implements Integration {
   /**
    *  Registers routing and request instrumentation.
    */
-  public async setupOnce(
-    addGlobalEventProcessor: (callback: EventProcessor) => void,
-    getCurrentHub: () => Hub,
-  ): Promise<void> {
+  public async setupOnce(): Promise<void> {
     const hub = getCurrentHub();
     const client = hub.getClient();
     const clientOptions = client && client.getOptions();

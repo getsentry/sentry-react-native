@@ -16,7 +16,7 @@ import { Alert } from 'react-native';
 import { createIntegration } from './integrations/factory';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import type { ReactNativeClientOptions } from './options';
-// import type { ReactNativeTracing } from './tracing';
+import type { ReactNativeTracing } from './tracing';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';
