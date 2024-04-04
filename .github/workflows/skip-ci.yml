@@ -40,7 +40,7 @@ jobs:
           for item in "${fileChangesArray[@]}"
           do
             if [[ ! " ${skipList[@]} " =~ " ${item} " ]]; then
-              #found an item that doesn't belong to the skip list.
+              echo "found '${item}' that doesn't belong to the skip list."
               exit 0
             fi
           done
