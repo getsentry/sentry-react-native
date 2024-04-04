@@ -21,7 +21,7 @@ jobs:
             echo "This action is intended to be run on pull requests only."
             echo "is-pr=false" >> $GITHUB_OUTPUT
           else
-            echo "is-pr=true" >> $GITHUB_OUTPUT
+            echo "is-pr=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Checkout PR Base Branch
