@@ -249,7 +249,7 @@ jobs:
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
-        run: brew install xcbeautify
+        run: which xcbeautify || brew install xcbeautify
 
       - name: NPM cache SDK
         uses: actions/cache@v4
@@ -478,7 +478,7 @@ jobs:
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
-        run: brew install xcbeautify
+        run: which xcbeautify || brew install xcbeautify
 
       - name: Download App Package
         if: matrix.build-type == 'production'
