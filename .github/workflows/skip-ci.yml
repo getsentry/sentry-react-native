@@ -14,9 +14,16 @@ jobs:
       skip_ci:
         ${{ steps.check_diff.outputs.skip_ci }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout PR Base Branch
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.base_ref }}
+
+      - name: Checkout PR Head Branch
+        run: |
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:${{ github.head_ref }}
+          git checkout ${{ github.head_ref }}
 
       - name: Check diff from Pull Request
         id: check_diff
@@ -28,7 +35,7 @@ jobs:
 
           skipList=(".github/CODEOWNERS" ".prettierignore")
           # Ignores changelog.md, readme.md,...
-          fileChangesArray=($(git diff --name-only  origin/${{ github.base_ref }}..origin/${{ github.head_ref }} | grep -v '\.md$' || true))
+          fileChangesArray=($(git diff --name-only ${{ github.base_ref }}...${{ github.head_ref }} | grep -v '\.md$' || true))
           printf '%s\n' "${fileChangesArray[@]}"
           for item in "${fileChangesArray[@]}"
           do
