@@ -34,22 +34,6 @@ export const MARGIN_OF_ERROR_SECONDS = 0.05;
 const timeOriginMilliseconds = Date.now();
 
 /**
- *
- */
-export function adjustTransactionDuration(
-  maxDurationMs: number,
-  transaction: IdleTransaction,
-  endTimestamp: number,
-): void {
-  const diff = endTimestamp - transaction.startTimestamp;
-  const isOutdatedTransaction = endTimestamp && (diff > maxDurationMs || diff < 0);
-  if (isOutdatedTransaction) {
-    transaction.setStatus('deadline_exceeded');
-    transaction.setTag('maxTransactionDurationExceeded', 'true');
-  }
-}
-
-/**
  * Returns the timestamp where the JS global scope was initialized.
  */
 export function getTimeOriginMilliseconds(): number {
