@@ -1,11 +1,14 @@
 /* eslint-disable complexity */
 import type { Hub } from '@sentry/core';
-import { getActiveTransaction, spanIsSampled } from '@sentry/core';
-import type { Envelope, Event, EventProcessor, Integration, ThreadCpuProfile, Transaction } from '@sentry/types';
+import { getActiveSpan, getClient, spanIsSampled } from '@sentry/core';
+import type { Envelope, Event, Integration, Span, ThreadCpuProfile } from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 import { Platform } from 'react-native';
 
 import { isHermesEnabled } from '../utils/environment';
+import {
+  isCurrentlyActiveSpan,
+} from '../utils/span';
 import { NATIVE } from '../wrapper';
 import { PROFILE_QUEUE } from './cache';
 import { MAX_PROFILE_DURATION_MS } from './constants';
@@ -51,23 +54,22 @@ export class HermesProfiling implements Integration {
   /**
    * @inheritDoc
    */
-  public setupOnce(_: (e: EventProcessor) => void, getCurrentHub: () => Hub): void {
+  public setupOnce(): void {
     if (!isHermesEnabled()) {
       logger.log('[Profiling] Hermes is not enabled, not adding profiling integration.');
       return;
     }
 
-    this._getCurrentHub = getCurrentHub;
-    const client = getCurrentHub().getClient();
+    const client = getClient();
 
     if (!client || typeof client.on !== 'function') {
       return;
     }
 
     this._startCurrentProfileForActiveTransaction();
-    client.on('startTransaction', this._startCurrentProfile);
+    client.on('spanStart', this._startCurrentProfile);
 
-    client.on('finishTransaction', this._finishCurrentProfile);
+    client.on('spanEnd', this._finishCurrentProfile);
 
     client.on('beforeEnvelope', (envelope: Envelope) => {
       if (!PROFILE_QUEUE.size()) {
@@ -95,24 +97,28 @@ export class HermesProfiling implements Integration {
     if (this._currentProfile) {
       return;
     }
-    const transaction = this._getCurrentHub && getActiveTransaction(this._getCurrentHub());
-    transaction && this._startCurrentProfile(transaction);
+    const activeSpan = getActiveSpan();
+    activeSpan && this._startCurrentProfile(activeSpan);
   };
 
-  private _startCurrentProfile = (transaction: Transaction): void => {
+  private _startCurrentProfile = (activeSpan: Span): void => {
     this._finishCurrentProfile();
 
-    const shouldStartProfiling = this._shouldStartProfiling(transaction);
+    if (!isCurrentlyActiveSpan(activeSpan)) {
+      return;
+    }
+
+    const shouldStartProfiling = this._shouldStartProfiling(activeSpan);
     if (!shouldStartProfiling) {
       return;
     }
 
     this._currentProfileTimeout = setTimeout(this._finishCurrentProfile, MAX_PROFILE_DURATION_MS);
-    this._startNewProfile(transaction);
+    this._startNewProfile(activeSpan);
   };
 
-  private _shouldStartProfiling = (transaction: Transaction): boolean => {
-    if (!spanIsSampled(transaction)) {
+  private _shouldStartProfiling = (activeSpan: Span): boolean => {
+    if (!spanIsSampled(activeSpan)) {
       logger.log('[Profiling] Transaction is not sampled, skipping profiling');
       return false;
     }
@@ -141,7 +147,7 @@ export class HermesProfiling implements Integration {
   /**
    * Starts a new profile and links it to the transaction.
    */
-  private _startNewProfile = (transaction: Transaction): void => {
+  private _startNewProfile = (activeSpan: Span): void => {
     const profileStartTimestampNs = startProfiling();
     if (!profileStartTimestampNs) {
       return;
@@ -151,9 +157,8 @@ export class HermesProfiling implements Integration {
       profile_id: uuid4(),
       startTimestampNs: profileStartTimestampNs,
     };
-    transaction.setContext('profile', { profile_id: this._currentProfile.profile_id });
-    // @ts-expect-error profile_id is not part of the metadata type
-    transaction.setMetadata({ profile_id: this._currentProfile.profile_id });
+
+    activeSpan.setAttribute('profile_id', this._currentProfile.profile_id);
     logger.log('[Profiling] started profiling: ', this._currentProfile.profile_id);
   };
 
@@ -180,6 +185,7 @@ export class HermesProfiling implements Integration {
   };
 
   private _createProfileEventFor = (profiledTransaction: Event): ProfileEvent | null => {
+    // TODO: Update read of this value based on placemen of setAttribute(key, value)
     const profile_id = profiledTransaction?.contexts?.['profile']?.['profile_id'];
 
     if (typeof profile_id !== 'string') {

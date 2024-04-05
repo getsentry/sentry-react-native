@@ -1,11 +1,10 @@
-import type { Transaction as TransactionType, TransactionContext } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import { type SentrySpan,addBreadcrumb } from '@sentry/core';
 
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
-import type { BeforeNavigate, RouteChangeContextData } from './types';
-import { customTransactionSource, defaultTransactionSource, getBlankTransactionContext } from './utils';
+import type { BeforeNavigate } from './types';
+import { getBlankTransactionContext } from './utils';
 
 interface ReactNativeNavigationOptions {
   /**
@@ -78,7 +77,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
 
   private _prevComponentEvent: ComponentWillAppearEvent | null = null;
 
-  private _latestTransaction?: TransactionType;
+  private _latestTransaction?: SentrySpan;
   private _recentComponentIds: string[] = [];
   private _stateChangeTimeout?: number | undefined;
 
@@ -151,79 +150,43 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
 
     this._clearStateChangeTimeout();
 
-    const originalContext = this._latestTransaction.toContext();
     const routeHasBeenSeen = this._recentComponentIds.includes(event.componentId);
 
-    const data: RouteChangeContextData = {
-      ...originalContext.data,
-      route: {
-        ...event,
-        name: event.componentName,
-        hasBeenSeen: routeHasBeenSeen,
+    this._latestTransaction.updateName(event.componentName);
+    this._latestTransaction.setAttributes({
+      // TODO: Should we include pass props? I don't know exactly what it contains, cant find it in the RNavigation docs
+      'route.name': event.componentName,
+      'route.component_type': event.componentType,
+      'route.has_been_seen': routeHasBeenSeen,
+      'previous_route.name': this._prevComponentEvent?.componentName,
+      'previous_route.component_type': this._prevComponentEvent?.componentType,
+    });
+
+    // TODO: route name tag is replaces by event.contexts.app.view_names
+    // TODO: Should we remove beforeNavigation callback or change it to be compatible with V8?
+
+    // TODO: Remove onConfirmRoute when `context.view_names` are set directly in the navigation instrumentation
+    this._onConfirmRoute?.(event.componentName);
+
+    addBreadcrumb({
+      category: 'navigation',
+      type: 'navigation',
+      message: `Navigation to ${event.componentName}`,
+      data: {
+        from: this._prevComponentEvent?.componentName,
+        to: event.componentName,
       },
-      previousRoute: this._prevComponentEvent
-        ? {
-            ...this._prevComponentEvent,
-            name: this._prevComponentEvent?.componentName,
-          }
-        : null,
-    };
+    });
 
-    const updatedContext = {
-      ...originalContext,
-      name: event.componentName,
-      tags: {
-        ...originalContext.tags,
-        'routing.route.name': event.componentName,
-      },
-      data,
-    };
-
-    const finalContext = this._prepareFinalContext(updatedContext);
-    this._latestTransaction.updateWithContext(finalContext);
-
-    const isCustomName = updatedContext.name !== finalContext.name;
-    this._latestTransaction.setName(
-      finalContext.name,
-      isCustomName ? customTransactionSource : defaultTransactionSource,
-    );
-
-    this._onConfirmRoute?.(finalContext);
     this._prevComponentEvent = event;
-
     this._latestTransaction = undefined;
-  }
-
-  /** Creates final transaction context before confirmation */
-  private _prepareFinalContext(updatedContext: TransactionContext): TransactionContext {
-    let finalContext = this._beforeNavigate?.({ ...updatedContext });
-
-    // This block is to catch users not returning a transaction context
-    if (!finalContext) {
-      logger.error(
-        `[${ReactNativeNavigationInstrumentation.name}] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`,
-      );
-
-      finalContext = {
-        ...updatedContext,
-        sampled: false,
-      };
-    }
-
-    if (finalContext.sampled === false) {
-      logger.log(
-        `[${ReactNativeNavigationInstrumentation.name}] Will not send transaction "${finalContext.name}" due to beforeNavigate.`,
-      );
-    }
-
-    return finalContext;
   }
 
   /** Cancels the latest transaction so it does not get sent to Sentry. */
   private _discardLatestTransaction(): void {
     if (this._latestTransaction) {
-      this._latestTransaction.sampled = false;
-      this._latestTransaction.finish();
+      this._latestTransaction['_sampled'] = false;
+      this._latestTransaction.end();
       this._latestTransaction = undefined;
     }
 

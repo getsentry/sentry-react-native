@@ -2,11 +2,14 @@
 import type { RequestInstrumentationOptions } from '@sentry/browser';
 import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from '@sentry/browser';
 import type { Hub, IdleTransaction, Transaction } from '@sentry/core';
-import { getActiveTransaction, getCurrentHub, spanToJSON, startIdleTransaction } from '@sentry/core';
+import { getActiveTransaction, getCurrentHub, getCurrentScope, spanToJSON, startIdleTransaction } from '@sentry/core';
 import type {
+  Client,
   Event,
   EventProcessor,
   Integration,
+  Span,
+  SpanContext,
   Transaction as TransactionType,
   TransactionContext,
 } from '@sentry/types';
@@ -150,7 +153,6 @@ export class ReactNativeTracing implements Integration {
   private _appStartFinishTimestamp?: number;
   private _currentRoute?: string;
   private _hasSetTracePropagationTargets: boolean;
-  private _hasSetTracingOrigins: boolean;
   private _currentViewName: string | undefined;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
@@ -158,11 +160,6 @@ export class ReactNativeTracing implements Integration {
       options &&
       // eslint-disable-next-line deprecation/deprecation
       options.tracePropagationTargets
-    );
-    this._hasSetTracingOrigins = !!(
-      options &&
-      // eslint-disable-next-line deprecation/deprecation
-      options.tracingOrigins
     );
 
     this.options = {
@@ -187,9 +184,7 @@ export class ReactNativeTracing implements Integration {
   /**
    *  Registers routing and request instrumentation.
    */
-  public async setupOnce(): Promise<void> {
-    const hub = getCurrentHub();
-    const client = hub.getClient();
+  public async setup(client: Client): Promise<void> {
     const clientOptions = client && client.getOptions();
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -197,7 +192,6 @@ export class ReactNativeTracing implements Integration {
       traceFetch,
       traceXHR,
       // eslint-disable-next-line deprecation/deprecation
-      tracingOrigins,
       shouldCreateSpanForRequest,
       // eslint-disable-next-line deprecation/deprecation
       tracePropagationTargets: thisOptionsTracePropagationTargets,
@@ -206,32 +200,11 @@ export class ReactNativeTracing implements Integration {
       enableStallTracking,
     } = this.options;
 
-    this._getCurrentHub = getCurrentHub;
-
     const clientOptionsTracePropagationTargets = clientOptions && clientOptions.tracePropagationTargets;
-    // There are three ways to configure tracePropagationTargets:
-    // 1. via top level client option `tracePropagationTargets`
-    // 2. via ReactNativeTracing option `tracePropagationTargets`
-    // 3. via ReactNativeTracing option `tracingOrigins` (deprecated)
-    //
-    // To avoid confusion, favour top level client option `tracePropagationTargets`, and fallback to
-    // ReactNativeTracing option `tracePropagationTargets` and then `tracingOrigins` (deprecated).
-    //
-    // If both 1 and either one of 2 or 3 are set (from above), we log out a warning.
     const tracePropagationTargets =
       clientOptionsTracePropagationTargets ||
       (this._hasSetTracePropagationTargets && thisOptionsTracePropagationTargets) ||
-      (this._hasSetTracingOrigins && tracingOrigins) ||
       DEFAULT_TRACE_PROPAGATION_TARGETS;
-    if (
-      __DEV__ &&
-      (this._hasSetTracePropagationTargets || this._hasSetTracingOrigins) &&
-      clientOptionsTracePropagationTargets
-    ) {
-      logger.warn(
-        '[ReactNativeTracing] The `tracePropagationTargets` option was set in the ReactNativeTracing integration and top level `Sentry.init`. The top level `Sentry.init` value is being used.',
-      );
-    }
 
     if (enableAppStartTracking) {
       this._instrumentAppStart().then(undefined, (reason: unknown) => {
@@ -496,34 +469,11 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
-   * Creates a breadcrumb and sets the current route as a tag.
+   * Save the current route to set it in context during event processing.
    */
-  private _onConfirmRoute(context: TransactionContext): void {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    this._currentRoute = context.data?.route?.name;
-
-    this._getCurrentHub?.().configureScope(scope => {
-      if (context.data) {
-        const contextData = context.data as RouteChangeContextData;
-
-        scope.addBreadcrumb({
-          category: 'navigation',
-          type: 'navigation',
-          // We assume that context.name is the name of the route.
-          message: `Navigation to ${context.name}`,
-          data: {
-            from: contextData.previousRoute?.name,
-            to: contextData.route.name,
-          },
-        });
-      }
-
-      this._currentViewName = context.name;
-      /**
-       * @deprecated tag routing.route.name will be removed in the future.
-       */
-      scope.setTag('routing.route.name', context.name);
-    });
+  private _onConfirmRoute(currentViewName: string | undefined): void {
+    this._currentViewName = currentViewName;
+    this._currentRoute = currentViewName;
   }
 
   /** Create routing idle transaction. */
