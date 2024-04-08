@@ -4,6 +4,7 @@ import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from
 import type { Hub } from '@sentry/core';
 import {
   getActiveSpan,
+  getCurrentScope,
   getSpanDescendants,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SentryNonRecordingSpan,
@@ -11,21 +12,21 @@ import {
   SPAN_STATUS_OK,
   spanToJSON,
   startIdleSpan,
+  startInactiveSpan,
 } from '@sentry/core';
-import type { Client, Event, Integration, Span, StartSpanOptions, TransactionContext } from '@sentry/types';
+import type { Client, Event, Integration, Span, StartSpanOptions } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { APP_START_COLD, APP_START_WARM } from '../measurements';
 import type { NativeAppStartResponse } from '../NativeRNSentry';
 import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
-import { isSentrySpan } from '../utils/span';
+import { isRootSpan, isSentrySpan } from '../utils/span';
 import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
 import {
   adjustTransactionDuration,
   cancelInBackground,
   ignoreEmptyBackNavigation,
-  isSentryTransaction,
   onlySampleIfChildSpans,
   onThisSpanEnd,
 } from './onSpanEndUtils';
@@ -306,7 +307,7 @@ export class ReactNativeTracing implements Integration {
     }
 
     const name = `${this._currentRoute}.${elementId}`;
-    const context: TransactionContext = {
+    const context = {
       name,
       op,
       trimEnd: true,
@@ -440,13 +441,11 @@ export class ReactNativeTracing implements Integration {
     }
 
     const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
-    span.startChild({
+    startInactiveSpan({
       name: appStart.isColdStart ? 'Cold App Start' : 'Warm App Start',
       op,
-      startTimestamp: appStartTimeSeconds,
-      endTimestamp: this._appStartFinishTimestamp,
-    });
-
+      startTime: appStartTimeSeconds,
+    }).end(this._appStartFinishTimestamp);
     const measurement = appStart.isColdStart ? APP_START_COLD : APP_START_WARM;
     setMeasurement(measurement, appStartDurationMilliseconds, 'millisecond');
   }
@@ -504,7 +503,7 @@ export class ReactNativeTracing implements Integration {
     logger.log(`[ReactNativeTracing] Starting ${op || 'unknown op'} transaction "${name}" on scope`);
 
     onThisSpanEnd(this._client, idleSpan, (span: Span) => {
-      if (!isSentryTransaction(span)) {
+      if (!isRootSpan(span)) {
         logger.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
         return;
       }

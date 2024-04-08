@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from '@sentry/core';
-import type { Span, TransactionContext } from '@sentry/types';
+import type { Span } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { isSentrySpan } from '../utils/span';
@@ -277,7 +277,7 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
   }
 }
 
-const INITIAL_TRANSACTION_CONTEXT_V4: TransactionContext = {
+const INITIAL_TRANSACTION_CONTEXT_V4 = {
   name: 'App Launch',
   op: 'navigation',
   data: {},

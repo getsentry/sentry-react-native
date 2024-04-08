@@ -23,19 +23,20 @@ import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { StyleSheet } from 'react-native';
 import { httpClientIntegration } from '@sentry/react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { ErrorEvent } from '@sentry/types';
 
-// const reactNavigationInstrumentation =
-//   new Sentry.ReactNavigationInstrumentation({
-//     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
-//     enableTimeToInitialDisplay: true,
-//   });
+const reactNavigationInstrumentation =
+  new Sentry.ReactNavigationInstrumentation({
+    routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
+    enableTimeToInitialDisplay: true,
+  });
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   environment: 'dev',
-  beforeSend: (event: Sentry.Event) => {
+  beforeSend: (event: ErrorEvent) => {
     console.log('Event beforeSend:', event.event_id);
     return event;
   },
@@ -49,21 +50,21 @@ Sentry.init({
   },
   integrations(integrations) {
     integrations.push(
-      // new Sentry.ReactNativeTracing({
-      //   // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
-      //   idleTimeout: 5000,
-      //   routingInstrumentation: reactNavigationInstrumentation,
-      //   enableUserInteractionTracing: true,
-      //   ignoreEmptyBackNavigationTransactions: true,
-      //   beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
-      //     // Example of not sending a transaction for the screen with the name "Manual Tracker"
-      //     if (context.data.route.name === 'ManualTracker') {
-      //       context.sampled = false;
-      //     }
+      new Sentry.ReactNativeTracing({
+        // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
+        idleTimeout: 5000,
+        routingInstrumentation: reactNavigationInstrumentation,
+        enableUserInteractionTracing: true,
+        ignoreEmptyBackNavigationTransactions: true,
+        // beforeNavigate: (context: ) => {
+        //   // Example of not sending a transaction for the screen with the name "Manual Tracker"
+        //   // if (context.data.route.name === 'ManualTracker') {
+        //   //   context.sampled = false;
+        //   // }
 
-      //     return context;
-      //   },
-      // }),
+        //   return context;
+        // },
+      }),
       httpClientIntegration({
         // These options are effective only in JS.
         // This array can contain tuples of `[begin, end]` (both inclusive),
@@ -81,7 +82,7 @@ Sentry.init({
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
   sessionTrackingIntervalMillis: 5000,
   // This will capture ALL TRACES and likely use up all your quota
-  enableTracing: false,
+  enableTracing: true,
   tracePropagationTargets: ['localhost', /^\//, /^https:\/\//, /^http:\/\//],
   attachStacktrace: true,
   // Attach screenshots to events.
@@ -159,7 +160,7 @@ function BottomTabs() {
     <NavigationContainer
       ref={navigation}
       onReady={() => {
-        // reactNavigationInstrumentation.registerNavigationContainer(navigation);
+        reactNavigationInstrumentation.registerNavigationContainer(navigation);
       }}>
       <Tab.Navigator
         screenOptions={{

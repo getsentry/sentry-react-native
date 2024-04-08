@@ -19,7 +19,6 @@ import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentatio
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
 import type { BeforeNavigate } from './types';
-import { getBlankTransactionContext } from './utils';
 
 export interface NavigationRoute {
   name: string;
@@ -191,9 +190,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       this._clearStateChangeTimeout();
     }
 
-    this._latestTransaction = this.onRouteWillChange(
-      getBlankTransactionContext(ReactNavigationInstrumentation.instrumentationName),
-    );
+    this._latestTransaction = this.onRouteWillChange({ name: 'Route Change' });
 
     if (this._options.enableTimeToInitialDisplay) {
       this._navigationProcessingSpan = startInactiveSpan({

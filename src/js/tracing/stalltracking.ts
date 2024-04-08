@@ -7,7 +7,6 @@ import { AppState } from 'react-native';
 
 import { STALL_COUNT, STALL_LONGEST_TIME, STALL_TOTAL_TIME } from '../measurements';
 import { isRootSpan } from '../utils/span';
-import { isSentryTransaction } from './onSpanEndUtils';
 
 export interface StallMeasurements extends Measurements {
   [STALL_COUNT]: { value: number; unit: MeasurementUnit };
@@ -142,7 +141,7 @@ export class StallTrackingInstrumentation implements Integration {
 
     // TODO: Transaction will be removed, can we replace trimEnd with lastSpan.end_timestamp === rootSpan.end_timestamp?
     // Is the `spanEnd` event executed after the transaction is trimmed?
-    const trimEnd = (isSentryTransaction(rootSpan) && rootSpan.toContext().trimEnd) || false;
+    const trimEnd = true;
     const endWillBeTrimmed = trimEnd && finishedSpanCount > 0;
 
     /*

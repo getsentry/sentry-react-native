@@ -1,24 +1,24 @@
 import { setMeasurement, spanToJSON } from '@sentry/core';
-import type { Span, TransactionContext, TransactionSource } from '@sentry/types';
+import type { Span, TransactionSource } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 
 export const defaultTransactionSource: TransactionSource = 'component';
 export const customTransactionSource: TransactionSource = 'custom';
 
 // TODO: check were these values should move
-export const getBlankTransactionContext = (_name: string): TransactionContext => {
-  return {
-    name: 'Route Change',
-    op: 'navigation',
-    // tags: {
-    //   'routing.instrumentation': name,
-    // },
-    data: {},
-    metadata: {
-      // source: defaultTransactionSource,
-    },
-  };
-};
+// export const getBlankTransactionContext = (_name: string): TransactionContext => {
+//   return {
+//     name: 'Route Change',
+//     op: 'navigation',
+//     tags: {
+//       'routing.instrumentation': name,
+//     },
+//     data: {},
+//     metadata: {
+//       source: defaultTransactionSource,
+//     },
+//   };
+// };
 
 /**
  * A margin of error of 50ms is allowed for the async native bridge call.

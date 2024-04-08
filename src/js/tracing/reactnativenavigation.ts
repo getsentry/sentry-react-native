@@ -6,7 +6,6 @@ import { isSentrySpan } from '../utils/span';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
 import type { BeforeNavigate } from './types';
-import { getBlankTransactionContext } from './utils';
 
 interface ReactNativeNavigationOptions {
   /**
@@ -125,9 +124,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
       this._discardLatestTransaction();
     }
 
-    this._latestTransaction = this.onRouteWillChange(
-      getBlankTransactionContext(ReactNativeNavigationInstrumentation.name),
-    );
+    this._latestTransaction = this.onRouteWillChange({ name: 'Route Change' });
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),

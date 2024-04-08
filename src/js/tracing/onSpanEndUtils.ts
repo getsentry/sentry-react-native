@@ -1,8 +1,10 @@
-import { getSpanDescendants, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, Transaction } from '@sentry/core';
+import { getSpanDescendants, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON } from '@sentry/core';
 import type { Client, Span } from '@sentry/types';
 import { logger } from '@sentry/utils';
 import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
+
+import { isRootSpan, isSentrySpan } from '../utils/span';
 
 /**
  *
@@ -17,7 +19,7 @@ export function onThisSpanEnd(client: Client, span: Span, callback: (span: Span)
 }
 
 export const adjustTransactionDuration = (client: Client, span: Span, maxDurationMs: number): void => {
-  if (!isSentryTransaction(span)) {
+  if (!isRootSpan(span)) {
     logger.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
     return;
   }
@@ -37,12 +39,13 @@ export const adjustTransactionDuration = (client: Client, span: Span, maxDuratio
     const isOutdatedTransaction = endTimestamp && (diff > maxDurationMs || diff < 0);
     if (isOutdatedTransaction) {
       span.setStatus({ code: SPAN_STATUS_ERROR, message: 'deadline_exceeded' });
-      span.setAttribute('maxTransactionDurationExceeded', 'true'); // TODO: check where was used, might be possible to delete
+      // TODO: check where was used, might be possible to delete
+      span.setAttribute('maxTransactionDurationExceeded', 'true');
     }
   });
 };
 export const ignoreEmptyBackNavigation = (client: Client, span: Span): void => {
-  if (!isSentryTransaction(span)) {
+  if (!isRootSpan(span) || !isSentrySpan(span)) {
     logger.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
     return;
   }
@@ -52,7 +55,7 @@ export const ignoreEmptyBackNavigation = (client: Client, span: Span): void => {
       return;
     }
 
-    if (!span.toContext().attributes?.['route.has_been_seen']) {
+    if (!spanToJSON(span).data?.['route.has_been_seen']) {
       return;
     }
 
@@ -80,7 +83,7 @@ export const ignoreEmptyBackNavigation = (client: Client, span: Span): void => {
  * To avoid side effects of other callbacks this should be hooked as the last callback.
  */
 export const onlySampleIfChildSpans = (client: Client, span: Span): void => {
-  if (!isSentryTransaction(span)) {
+  if (!isRootSpan(span) || !isSentrySpan(span)) {
     logger.warn('Not sampling childless spans only works for Sentry Transactions (Root Spans).');
     return;
   }
@@ -119,10 +122,3 @@ export const cancelInBackground = (client: Client, span: Span): void => {
     }
   });
 };
-
-/**
- * Checks if span is instanceof Sentry's Transaction.
- */
-export function isSentryTransaction(span: Span): span is Transaction {
-  return span instanceof Transaction;
-}

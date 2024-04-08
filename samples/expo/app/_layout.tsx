@@ -18,9 +18,9 @@ export {
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-// const routingInstrumentation = new Sentry.ReactNavigationInstrumentation({
-//   enableTimeToInitialDisplay: !isExpoGo(), // This is not supported in Expo Go.
-// });
+const routingInstrumentation = new Sentry.ReactNavigationInstrumentation({
+  enableTimeToInitialDisplay: !isExpoGo(), // This is not supported in Expo Go.
+});
 
 process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
   // Replace the example DSN below with your own DSN:
@@ -51,9 +51,9 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
-      // new Sentry.ReactNativeTracing({
-      //   routingInstrumentation,
-      // }),
+      new Sentry.ReactNativeTracing({
+        routingInstrumentation,
+      }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
@@ -86,7 +86,7 @@ function RootLayout() {
 
   useEffect(() => {
     if (ref) {
-      // routingInstrumentation.registerNavigationContainer(ref);
+      routingInstrumentation.registerNavigationContainer(ref);
     }
   }, [ref]);
 
