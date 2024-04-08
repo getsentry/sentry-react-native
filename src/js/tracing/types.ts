@@ -1,4 +1,3 @@
-
 export interface ReactNavigationRoute {
   name: string;
   key: string;

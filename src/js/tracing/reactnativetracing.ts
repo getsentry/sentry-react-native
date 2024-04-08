@@ -15,7 +15,7 @@ import {
   startInactiveSpan,
 } from '@sentry/core';
 import type { Client, Event, Integration, Span, StartSpanOptions } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import { logger, uuid4 } from '@sentry/utils';
 
 import { APP_START_COLD, APP_START_WARM } from '../measurements';
 import type { NativeAppStartResponse } from '../NativeRNSentry';
@@ -534,6 +534,8 @@ export class ReactNativeTracing implements Integration {
       return new SentryNonRecordingSpan();
     }
 
+    generateNewTraceOnCurrentScope();
+
     const { idleTimeoutMs, finalTimeoutMs } = this.options;
     const span = startIdleSpan(startSpanOption, {
       finalTimeout: finalTimeoutMs,
@@ -542,4 +544,15 @@ export class ReactNativeTracing implements Integration {
     cancelInBackground(this._client, span);
     return span;
   }
+}
+
+function generateNewTraceOnCurrentScope(): void {
+  const scope = getCurrentScope();
+
+  scope.update({
+    propagationContext: {
+      ...scope.getPropagationContext(),
+      traceId: uuid4(),
+    },
+  });
 }
