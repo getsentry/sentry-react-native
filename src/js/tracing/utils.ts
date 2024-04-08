@@ -1,26 +1,21 @@
-import {
-  type IdleTransaction,
-  type Span as SpanClass,
-  type Transaction,
-  setMeasurement,
-  spanToJSON,
-} from '@sentry/core';
+import { setMeasurement, spanToJSON } from '@sentry/core';
 import type { Span, TransactionContext, TransactionSource } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 
 export const defaultTransactionSource: TransactionSource = 'component';
 export const customTransactionSource: TransactionSource = 'custom';
 
-export const getBlankTransactionContext = (name: string): TransactionContext => {
+// TODO: check were these values should move
+export const getBlankTransactionContext = (_name: string): TransactionContext => {
   return {
     name: 'Route Change',
     op: 'navigation',
-    tags: {
-      'routing.instrumentation': name,
-    },
+    // tags: {
+    //   'routing.instrumentation': name,
+    // },
     data: {},
     metadata: {
-      source: defaultTransactionSource,
+      // source: defaultTransactionSource,
     },
   };
 };
@@ -38,41 +33,6 @@ const timeOriginMilliseconds = Date.now();
  */
 export function getTimeOriginMilliseconds(): number {
   return timeOriginMilliseconds;
-}
-
-/**
- * Calls the callback every time a child span of the transaction is finished.
- */
-export function instrumentChildSpanFinish(
-  transaction: Transaction,
-  callback: (span: SpanClass, endTimestamp?: number) => void,
-): void {
-  if (transaction.spanRecorder) {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const originalAdd = transaction.spanRecorder.add;
-
-    transaction.spanRecorder.add = (span: SpanClass): void => {
-      originalAdd.apply(transaction.spanRecorder, [span]);
-
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      const originalSpanFinish = span.finish;
-
-      span.finish = (endTimestamp?: number) => {
-        originalSpanFinish.apply(span, [endTimestamp]);
-
-        callback(span, endTimestamp);
-      };
-
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      const originalSpanEnd = span.end;
-
-      span.end = (endTimestamp?: number) => {
-        originalSpanEnd.apply(span, [endTimestamp]);
-
-        callback(span, endTimestamp);
-      };
-    };
-  }
 }
 
 /**

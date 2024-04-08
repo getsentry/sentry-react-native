@@ -1,9 +1,9 @@
 import type { Hub } from '@sentry/core';
-import type { SpanContext, Transaction, TransactionContext } from '@sentry/types';
+import type { Span, TransactionContext } from '@sentry/types';
 
 import type { BeforeNavigate } from './types';
 
-export type TransactionCreator = (context: TransactionContext) => Transaction | undefined;
+export type TransactionCreator = (context: TransactionContext) => Span | undefined;
 
 export type OnConfirmRoute = (currentViewName: string | undefined) => void;
 
@@ -32,7 +32,7 @@ export interface RoutingInstrumentationInstance {
    *
    * @param context A `TransactionContext` used to initialize the transaction.
    */
-  onRouteWillChange(context: TransactionContext): Transaction | undefined;
+  onRouteWillChange(context: TransactionContext): Span | undefined;
 }
 
 /**
@@ -61,11 +61,11 @@ export class RoutingInstrumentation implements RoutingInstrumentationInstance {
   }
 
   /** @inheritdoc */
-  public onRouteWillChange(context: TransactionContext): Transaction | undefined {
+  public onRouteWillChange(context: TransactionContext): Span | undefined {
     const transaction = this._tracingListener?.(context);
 
     if (transaction) {
-      this._onConfirmRoute?.(context);
+      this._onConfirmRoute?.(context.name);
     }
 
     return transaction;
@@ -77,7 +77,7 @@ export class RoutingInstrumentation implements RoutingInstrumentationInstance {
  */
 export class InternalRoutingInstrumentation extends RoutingInstrumentation {
   /** @inheritdoc */
-  public onRouteWillChange(context: TransactionContext): Transaction | undefined {
+  public onRouteWillChange(context: TransactionContext): Span | undefined {
     return this._tracingListener?.(context);
   }
 }

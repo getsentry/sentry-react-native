@@ -165,7 +165,7 @@ describe.skip('GestureTracing', () => {
       sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
 
       const mockedTouchInteractionId = { elementId: 'mockedElementId', op: 'mocked.op' };
-      tracing.startUserInteractionTransaction(mockedTouchInteractionId);
+      tracing.startUserInteractionSpan(mockedTouchInteractionId);
       const touchTransaction = mockedScope.getTransaction() as Transaction | undefined;
       touchTransaction?.startChild({ op: 'child.op' }).finish();
       jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);

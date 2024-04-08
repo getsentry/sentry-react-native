@@ -82,7 +82,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
       integrations.push(viewHierarchyIntegration());
     }
     if (options._experiments && typeof options._experiments.profilesSampleRate === 'number') {
-      // integrations.push(new HermesProfiling());
+      integrations.push(new HermesProfiling());
     }
   }
 
@@ -94,7 +94,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     typeof options.tracesSampleRate === 'number' ||
     typeof options.tracesSampler === 'function';
   if (hasTracingEnabled && options.enableAutoPerformanceTracing) {
-    // integrations.push(new ReactNativeTracing());
+    integrations.push(new ReactNativeTracing());
   }
   if (options.enableCaptureFailedRequests) {
     integrations.push(httpClientIntegration());

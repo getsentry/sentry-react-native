@@ -235,7 +235,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
       this._logTouchEvent(componentTreeNames, finalLabel);
     }
 
-    this._tracingIntegration?.startUserInteractionTransaction({
+    this._tracingIntegration?.startUserInteractionSpan({
       elementId: activeLabel,
       op: UI_ACTION_TOUCH,
     });

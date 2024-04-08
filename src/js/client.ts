@@ -94,9 +94,8 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    */
   protected _setupIntegrations(): void {
     super._setupIntegrations();
-    // const tracing = this.getIntegrationByName('ReactNativeTracing') as ReactNativeTracing;
-    // const routingName = tracing?.options?.routingInstrumentation?.name;
-    const routingName = false;
+    const tracing = this.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing');
+    const routingName = tracing?.options?.routingInstrumentation?.name;
     if (routingName) {
       this.addIntegration(createIntegration(routingName));
     }

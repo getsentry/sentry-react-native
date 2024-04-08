@@ -1,12 +1,13 @@
 /* eslint-disable max-lines */
-import type { Transaction, TransactionContext } from '@sentry/types';
+import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from '@sentry/core';
+import type { Span, TransactionContext } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
+import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
-import type { BeforeNavigate, ReactNavigationTransactionContext, RouteChangeContextData } from './types';
-import { customTransactionSource, defaultTransactionSource } from './utils';
+import type { BeforeNavigate } from './types';
 
 export interface NavigationRouteV4 {
   routeName: string;
@@ -67,7 +68,7 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
   private _prevRoute?: NavigationRouteV4;
   private _recentRouteKeys: string[] = [];
 
-  private _latestTransaction?: Transaction;
+  private _latestTransaction?: Span;
   private _initialStateHandled: boolean = false;
   private _stateChangeTimeout?: number | undefined;
 
@@ -199,94 +200,34 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
 
     // If the route is a different key, this is so we ignore actions that pertain to the same screen.
     if (!this._prevRoute || currentRoute.key !== this._prevRoute.key) {
-      const originalContext = this._getTransactionContext(currentRoute, this._prevRoute);
-
-      let mergedContext = originalContext;
       if (updateLatestTransaction && this._latestTransaction) {
-        mergedContext = {
-          ...this._latestTransaction.toContext(),
-          ...originalContext,
-        };
-      }
+        this._latestTransaction.updateName(currentRoute.routeName);
+        this._latestTransaction.setAttributes({
+          [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'view',
+          'routing.instrumentation': ReactNavigationV4Instrumentation.instrumentationName,
+          'route.name': currentRoute.routeName,
+          'route.key': currentRoute.key,
+          // TODO: filter PII params instead of dropping them all
+          // 'route.params': {},
+          'route.has_been_seen': this._recentRouteKeys.includes(currentRoute.key),
+          'previous_route.name': this._prevRoute?.routeName,
+          'previous_route.key': this._prevRoute?.key,
+          // TODO: filter PII params instead of dropping them all
+          // 'previous_route.params': {},
+        });
 
-      const finalContext = this._prepareFinalContext(mergedContext);
+        // TODO: route name tag is replaces by event.contexts.app.view_names
 
-      if (updateLatestTransaction && this._latestTransaction) {
-        // Update the latest transaction instead of calling onRouteWillChange
-        this._latestTransaction.updateWithContext(finalContext);
-        const isCustomName = mergedContext.name !== finalContext.name;
-        this._latestTransaction.setName(
-          finalContext.name,
-          isCustomName ? customTransactionSource : defaultTransactionSource,
-        );
+        // TODO: Should we remove beforeNavigation callback or change it to be compatible with V8?
       } else {
-        this._latestTransaction = this.onRouteWillChange(finalContext);
+        this._latestTransaction = this.onRouteWillChange({ name: currentRoute.routeName });
       }
 
-      this._onConfirmRoute?.(finalContext);
+      this._onConfirmRoute?.(currentRoute.routeName);
 
       this._pushRecentRouteKey(currentRoute.key);
       this._prevRoute = currentRoute;
     }
-  }
-
-  /** Creates final transaction context before confirmation */
-  private _prepareFinalContext(mergedContext: TransactionContext): TransactionContext {
-    let finalContext = this._beforeNavigate?.({ ...mergedContext });
-
-    // This block is to catch users not returning a transaction context
-    if (!finalContext) {
-      logger.error(
-        `[ReactNavigationV4Instrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`,
-      );
-
-      finalContext = {
-        ...mergedContext,
-        sampled: false,
-      };
-    }
-
-    if (finalContext.sampled === false) {
-      this._onBeforeNavigateNotSampled(finalContext.name);
-    }
-
-    return finalContext;
-  }
-
-  /**
-   * Gets the transaction context for a `NavigationRouteV4`
-   */
-  private _getTransactionContext(
-    route: NavigationRouteV4,
-    previousRoute?: NavigationRouteV4,
-  ): ReactNavigationTransactionContext {
-    const data: RouteChangeContextData = {
-      route: {
-        name: route.routeName, // Include name here too for use in `beforeNavigate`
-        key: route.key,
-        // TODO: filter PII params instead of dropping them all
-        params: {},
-        hasBeenSeen: this._recentRouteKeys.includes(route.key),
-      },
-      previousRoute: previousRoute
-        ? {
-            name: previousRoute.routeName,
-            key: previousRoute.key,
-            // TODO: filter PII params instead of dropping them all
-            params: {},
-          }
-        : null,
-    };
-
-    return {
-      name: route.routeName,
-      op: 'navigation',
-      tags: {
-        'routing.instrumentation': ReactNavigationV4Instrumentation.instrumentationName,
-        'routing.route.name': route.routeName,
-      },
-      data,
-    };
   }
 
   /**
@@ -326,8 +267,11 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
   /** Cancels the latest transaction so it does not get sent to Sentry. */
   private _discardLatestTransaction(): void {
     if (this._latestTransaction) {
-      this._latestTransaction.sampled = false;
-      this._latestTransaction.finish();
+      if (isSentrySpan(this._latestTransaction)) {
+        this._latestTransaction['_sampled'] = false;
+      }
+      // TODO: What if it's not SentrySpan?
+      this._latestTransaction.end();
       this._latestTransaction = undefined;
     }
   }
@@ -336,13 +280,8 @@ class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
 const INITIAL_TRANSACTION_CONTEXT_V4: TransactionContext = {
   name: 'App Launch',
   op: 'navigation',
-  tags: {
-    'routing.instrumentation': ReactNavigationV4Instrumentation.instrumentationName,
-  },
   data: {},
-  metadata: {
-    source: 'view',
-  },
+  metadata: {},
 };
 
 export { ReactNavigationV4Instrumentation, INITIAL_TRANSACTION_CONTEXT_V4 };

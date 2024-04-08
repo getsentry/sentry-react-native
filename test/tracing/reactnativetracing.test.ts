@@ -875,7 +875,7 @@ describe.skip('ReactNativeTracing', () => {
       test('User interaction tracing is disabled by default', () => {
         tracing = new ReactNativeTracing();
         tracing.setupOnce(jest.fn(), () => mockedHub);
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
 
         expect(tracing.options.enableUserInteractionTracing).toBeFalsy();
         expect(mockedScope.setSpan).not.toBeCalled();
@@ -893,7 +893,7 @@ describe.skip('ReactNativeTracing', () => {
       });
 
       test('user interaction tracing is enabled and transaction is bound to scope', () => {
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
 
         const actualTransaction = mockFunction(mockedScope.setSpan).mock.calls[0][firstArg];
         const actualTransactionContext = actualTransaction?.toContext();
@@ -907,7 +907,7 @@ describe.skip('ReactNativeTracing', () => {
       });
 
       test('UI event transaction not sampled if no child spans', () => {
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
 
         jest.runAllTimers();
 
@@ -917,7 +917,7 @@ describe.skip('ReactNativeTracing', () => {
       });
 
       test('does cancel UI event transaction when app goes to background', () => {
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
 
         const actualTransaction = mockedScope.getTransaction() as Transaction | undefined;
 
@@ -935,7 +935,7 @@ describe.skip('ReactNativeTracing', () => {
       });
 
       test('do not overwrite existing status of UI event transactions', () => {
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
 
         const actualTransaction = mockedScope.getTransaction() as Transaction | undefined;
         actualTransaction?.setStatus('mocked_status' as SpanStatusType);
@@ -953,11 +953,11 @@ describe.skip('ReactNativeTracing', () => {
 
       test('same UI event and same element does not reschedule idle timeout', () => {
         const timeoutCloseToActualIdleTimeoutMs = 800;
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const actualTransaction = mockedScope.getTransaction() as Transaction | undefined;
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
 
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
 
         expect(actualTransaction?.toContext().endTimestamp).toEqual(expect.any(Number));
@@ -965,12 +965,12 @@ describe.skip('ReactNativeTracing', () => {
 
       test('different UI event and same element finish first and start new transaction', () => {
         const timeoutCloseToActualIdleTimeoutMs = 800;
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const firstTransaction = mockedScope.getTransaction() as Transaction | undefined;
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
         const childFirstTransaction = firstTransaction?.startChild({ op: 'child.op' });
 
-        tracing.startUserInteractionTransaction({ ...mockedUserInteractionId, op: 'different.op' });
+        tracing.startUserInteractionSpan({ ...mockedUserInteractionId, op: 'different.op' });
         const secondTransaction = mockedScope.getTransaction() as Transaction | undefined;
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
         childFirstTransaction?.finish();
@@ -996,12 +996,12 @@ describe.skip('ReactNativeTracing', () => {
 
       test('different UI event and same element finish first transaction with last span', () => {
         const timeoutCloseToActualIdleTimeoutMs = 800;
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const firstTransaction = mockedScope.getTransaction() as Transaction | undefined;
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
         const childFirstTransaction = firstTransaction?.startChild({ op: 'child.op' });
 
-        tracing.startUserInteractionTransaction({ ...mockedUserInteractionId, op: 'different.op' });
+        tracing.startUserInteractionSpan({ ...mockedUserInteractionId, op: 'different.op' });
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
         childFirstTransaction?.finish();
 
@@ -1016,11 +1016,11 @@ describe.skip('ReactNativeTracing', () => {
       });
 
       test('same ui event after UI event transaction finished', () => {
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const firstTransaction = mockedScope.getTransaction() as Transaction | undefined;
         jest.runAllTimers();
 
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const secondTransaction = mockedScope.getTransaction() as Transaction | undefined;
         jest.runAllTimers();
 
@@ -1035,7 +1035,7 @@ describe.skip('ReactNativeTracing', () => {
         const activeTransaction = new Transaction({ name: 'activeTransactionOnScope' }, mockedHub);
         mockedScope.setSpan(activeTransaction);
 
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
 
         expect(mockedScope.setSpan).toBeCalledTimes(1);
         expect(mockedScope.setSpan).toBeCalledWith(activeTransaction);
@@ -1043,7 +1043,7 @@ describe.skip('ReactNativeTracing', () => {
 
       test('UI event transaction is canceled when routing transaction starts', () => {
         const timeoutCloseToActualIdleTimeoutMs = 800;
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const interactionTransaction = mockedScope.getTransaction() as Transaction | undefined;
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
 
@@ -1073,7 +1073,7 @@ describe.skip('ReactNativeTracing', () => {
       test('UI event transaction calls lifecycle callbacks', () => {
         tracing.onTransactionStart = jest.fn(tracing.onTransactionStart.bind(tracing));
         tracing.onTransactionFinish = jest.fn(tracing.onTransactionFinish.bind(tracing));
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const actualTransaction = mockedScope.getTransaction() as Transaction | undefined;
         jest.runAllTimers();
 

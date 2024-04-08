@@ -39,12 +39,12 @@ describe.skip('StallTracking', () => {
     );
     transaction.initSpanRecorder();
 
-    stallTracking.onTransactionStart(transaction);
+    stallTracking._onSpanStart(transaction);
 
     expensiveOperation();
 
     setTimeout(() => {
-      stallTracking.onTransactionFinish(transaction);
+      stallTracking._onSpanEnd(transaction);
       transaction.finish();
 
       const measurements = getLastEvent()?.measurements;
@@ -77,7 +77,7 @@ describe.skip('StallTracking', () => {
     );
     transaction.initSpanRecorder();
 
-    stallTracking.onTransactionStart(transaction);
+    stallTracking._onSpanStart(transaction);
 
     expensiveOperation();
 
@@ -86,7 +86,7 @@ describe.skip('StallTracking', () => {
     }, 200);
 
     setTimeout(() => {
-      stallTracking.onTransactionFinish(transaction);
+      stallTracking._onSpanEnd(transaction);
       transaction.finish();
       const measurements = getLastEvent()?.measurements;
 
@@ -112,9 +112,9 @@ describe.skip('StallTracking', () => {
       localHub,
     );
 
-    stallTracking.onTransactionStart(transaction);
+    stallTracking._onSpanStart(transaction);
 
-    stallTracking.onTransactionFinish(transaction);
+    stallTracking._onSpanEnd(transaction);
     transaction.finish();
 
     const measurements = getLastEvent()?.measurements;
@@ -149,26 +149,26 @@ describe.skip('StallTracking', () => {
       localHub,
     );
 
-    stallTracking.onTransactionStart(transaction0);
-    stallTracking.onTransactionStart(transaction1);
+    stallTracking._onSpanStart(transaction0);
+    stallTracking._onSpanStart(transaction1);
 
-    stallTracking.onTransactionFinish(transaction0);
+    stallTracking._onSpanEnd(transaction0);
     transaction0.finish();
     const measurements0 = getLastEvent()?.measurements;
     expect(measurements0).toBeDefined();
 
     setTimeout(() => {
-      stallTracking.onTransactionFinish(transaction1);
+      stallTracking._onSpanEnd(transaction1);
       transaction1.finish();
       const measurements1 = getLastEvent()?.measurements;
       expect(measurements1).toBeDefined();
     }, 600);
 
     setTimeout(() => {
-      stallTracking.onTransactionStart(transaction2);
+      stallTracking._onSpanStart(transaction2);
 
       setTimeout(() => {
-        stallTracking.onTransactionFinish(transaction2);
+        stallTracking._onSpanEnd(transaction2);
         transaction2.finish();
         const measurements2 = getLastEvent()?.measurements;
         expect(measurements2).not.toBe(null);
@@ -193,9 +193,9 @@ describe.skip('StallTracking', () => {
       localHub,
     );
 
-    stallTracking.onTransactionStart(transaction);
+    stallTracking._onSpanStart(transaction);
 
-    stallTracking.onTransactionFinish(transaction);
+    stallTracking._onSpanEnd(transaction);
     transaction.finish();
     const measurements = getLastEvent()?.measurements;
 
@@ -219,9 +219,9 @@ describe.skip('StallTracking', () => {
       localHub,
     );
 
-    stallTracking.onTransactionStart(transaction);
+    stallTracking._onSpanStart(transaction);
 
-    stallTracking.onTransactionFinish(transaction, Date.now() / 1000);
+    stallTracking._onSpanEnd(transaction, Date.now() / 1000);
     transaction.finish();
     const measurements = getLastEvent()?.measurements;
 
@@ -241,7 +241,7 @@ describe.skip('StallTracking', () => {
     );
     transaction.initSpanRecorder();
 
-    stallTracking.onTransactionStart(transaction);
+    stallTracking._onSpanStart(transaction);
 
     const span = transaction.startChild({
       description: 'Test Span',
@@ -258,7 +258,7 @@ describe.skip('StallTracking', () => {
     setTimeout(() => {
       expect(spanFinishTime).toEqual(expect.any(Number));
 
-      stallTracking.onTransactionFinish(transaction);
+      stallTracking._onSpanEnd(transaction);
       transaction.finish();
       const measurements = getLastEvent()?.measurements;
 
@@ -287,7 +287,7 @@ describe.skip('StallTracking', () => {
     );
     transaction.initSpanRecorder();
 
-    stallTracking.onTransactionStart(transaction);
+    stallTracking._onSpanStart(transaction);
 
     const span = transaction.startChild({
       description: 'Test Span',
@@ -304,7 +304,7 @@ describe.skip('StallTracking', () => {
     setTimeout(() => {
       expect(spanFinishTime).toEqual(expect.any(Number));
 
-      stallTracking.onTransactionFinish(transaction, spanFinishTime);
+      stallTracking._onSpanEnd(transaction, spanFinishTime);
       transaction.finish();
       const measurements = getLastEvent()?.measurements;
 
@@ -326,7 +326,7 @@ describe.skip('StallTracking', () => {
     );
     transaction.initSpanRecorder();
 
-    stallTracking.onTransactionStart(transaction);
+    stallTracking._onSpanStart(transaction);
 
     const span = transaction.startChild({
       description: 'Test Span',
@@ -344,7 +344,7 @@ describe.skip('StallTracking', () => {
       expect(spanFinishTime).toEqual(expect.any(Number));
 
       if (typeof spanFinishTime === 'number') {
-        stallTracking.onTransactionFinish(transaction, spanFinishTime + 0.015);
+        stallTracking._onSpanEnd(transaction, spanFinishTime + 0.015);
         transaction.finish();
         const evt = getLastEvent();
         const measurements = evt?.measurements;
@@ -371,10 +371,10 @@ describe.skip('StallTracking', () => {
     );
     idleTransaction.initSpanRecorder();
 
-    stallTracking.onTransactionStart(idleTransaction);
+    stallTracking._onSpanStart(idleTransaction);
 
     idleTransaction.registerBeforeFinishCallback((_, endTimestamp) => {
-      stallTracking.onTransactionFinish(idleTransaction, endTimestamp);
+      stallTracking._onSpanEnd(idleTransaction, endTimestamp);
     });
 
     // Span is never finished.
@@ -385,7 +385,7 @@ describe.skip('StallTracking', () => {
     await Promise.resolve();
     jest.advanceTimersByTime(100);
 
-    stallTracking.onTransactionFinish(idleTransaction, +0.015);
+    stallTracking._onSpanEnd(idleTransaction, +0.015);
     idleTransaction.finish();
 
     const measurements = getLastEvent()?.measurements;
@@ -413,7 +413,7 @@ describe.skip('StallTracking', () => {
     );
     transaction.initSpanRecorder();
 
-    stallTracking.onTransactionStart(transaction);
+    stallTracking._onSpanStart(transaction);
 
     // Span is never finished.
     transaction.startChild({
@@ -430,7 +430,7 @@ describe.skip('StallTracking', () => {
     }, 100);
 
     setTimeout(() => {
-      stallTracking.onTransactionFinish(transaction);
+      stallTracking._onSpanEnd(transaction);
       transaction.finish();
       const measurements = getLastEvent()?.measurements;
 
@@ -459,7 +459,7 @@ describe.skip('StallTracking', () => {
     );
     transaction.initSpanRecorder();
 
-    stallTracking.onTransactionStart(transaction);
+    stallTracking._onSpanStart(transaction);
 
     // Span will be finished
     const span = transaction.startChild({
@@ -471,7 +471,7 @@ describe.skip('StallTracking', () => {
     }, 200);
 
     setTimeout(() => {
-      stallTracking.onTransactionFinish(transaction);
+      stallTracking._onSpanEnd(transaction);
       transaction.finish();
       const measurements = getLastEvent()?.measurements;
 
@@ -506,23 +506,23 @@ describe.skip('StallTracking', () => {
         localHub,
       );
 
-      stallTracking.onTransactionStart(transaction);
+      stallTracking._onSpanStart(transaction);
 
       return transaction;
     });
 
-    stallTracking.onTransactionFinish(transactions[0]);
+    stallTracking._onSpanEnd(transactions[0]);
     transactions[0].finish();
     const measurements0 = getLastEvent()?.measurements;
     expect(measurements0).toBeUndefined();
 
-    stallTracking.onTransactionFinish(transactions[1]);
+    stallTracking._onSpanEnd(transactions[1]);
     transactions[1].finish();
     const measurements1 = getLastEvent()?.measurements;
     expect(measurements1).toBeDefined();
 
     transactions.slice(2).forEach(transaction => {
-      stallTracking.onTransactionFinish(transaction);
+      stallTracking._onSpanEnd(transaction);
       transaction.finish();
     });
   });

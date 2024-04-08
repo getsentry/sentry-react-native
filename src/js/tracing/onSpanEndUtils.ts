@@ -4,6 +4,18 @@ import { logger } from '@sentry/utils';
 import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
 
+/**
+ *
+ */
+export function onThisSpanEnd(client: Client, span: Span, callback: (span: Span) => void): void {
+  client.on('spanEnd', (endedSpan: Span) => {
+    if (span !== endedSpan) {
+      return;
+    }
+    callback(endedSpan);
+  });
+}
+
 export const adjustTransactionDuration = (client: Client, span: Span, maxDurationMs: number): void => {
   if (!isSentryTransaction(span)) {
     logger.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
@@ -28,7 +40,7 @@ export const adjustTransactionDuration = (client: Client, span: Span, maxDuratio
       span.setAttribute('maxTransactionDurationExceeded', 'true'); // TODO: check where was used, might be possible to delete
     }
   });
-}
+};
 export const ignoreEmptyBackNavigation = (client: Client, span: Span): void => {
   if (!isSentryTransaction(span)) {
     logger.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
@@ -50,7 +62,7 @@ export const ignoreEmptyBackNavigation = (client: Client, span: Span): void => {
         span.spanContext().spanId !== span.spanContext().spanId &&
         spanToJSON(span).op !== 'ui.load.initial_display' &&
         spanToJSON(span).op !== 'navigation.processing',
-    )
+    );
 
     if (filtered.length <= 0) {
       // filter children must include at least one span not created by the navigation automatic instrumentation
@@ -61,7 +73,7 @@ export const ignoreEmptyBackNavigation = (client: Client, span: Span): void => {
       span['_sampled'] = false;
     }
   });
-}
+};
 
 /**
  * Idle Transaction callback to only sample transactions with child spans.
@@ -94,9 +106,7 @@ export const onlySampleIfChildSpans = (client: Client, span: Span): void => {
 export const cancelInBackground = (client: Client, span: Span): void => {
   const subscription = AppState.addEventListener('change', (newState: AppStateStatus) => {
     if (newState === 'background') {
-      logger.debug(
-        `Setting ${spanToJSON(span).op} transaction to cancelled because the app is in the background.`,
-      );
+      logger.debug(`Setting ${spanToJSON(span).op} transaction to cancelled because the app is in the background.`);
       span.setStatus({ code: SPAN_STATUS_OK, message: 'cancelled' });
       span.end();
     }

@@ -1,4 +1,4 @@
-import { getActiveSpan, getRootSpan,SentrySpan } from '@sentry/core';
+import { getActiveSpan, getRootSpan, SentrySpan } from '@sentry/core';
 import type { Span } from '@sentry/types';
 
 /**

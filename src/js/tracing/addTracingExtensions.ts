@@ -1,4 +1,3 @@
-
 /**
  * Adds React Native's extensions. Needs to be called before any transactions are created.
  */
@@ -10,13 +9,11 @@ export function _addTracingExtensions(): void {
   //   carrier.__SENTRY__.extensions = carrier.__SENTRY__.extensions || {};
   //   if (carrier.__SENTRY__.extensions.startTransaction) {
   //     const originalStartTransaction = carrier.__SENTRY__.extensions.startTransaction as StartTransactionFunction;
-
   //     /*
   //       Overwrites the transaction start and finish to start and finish stall tracking.
   //       Preferably instead of overwriting add a callback method for this in the Transaction itself.
   //     */
   //     const _startTransaction = _patchStartTransaction(originalStartTransaction);
-
   //     carrier.__SENTRY__.extensions.startTransaction = _startTransaction;
   //   }
   // }

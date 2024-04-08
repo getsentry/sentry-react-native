@@ -71,7 +71,7 @@ export function sentryTraceGesture<GestureT>(
   (gesture as unknown as Required<BaseGesture>).handlers.onBegin = (event: GestureEvent) => {
     getClient()
       ?.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing')
-      ?.startUserInteractionTransaction({ elementId: label, op: `${UI_ACTION}.${name}` });
+      ?.startUserInteractionSpan({ elementId: label, op: `${UI_ACTION}.${name}` });
 
     addGestureBreadcrumb(`Gesture ${label} begin.`, { event, name });
 

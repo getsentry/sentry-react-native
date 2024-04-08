@@ -6,9 +6,7 @@ import { logger, uuid4 } from '@sentry/utils';
 import { Platform } from 'react-native';
 
 import { isHermesEnabled } from '../utils/environment';
-import {
-  isCurrentlyActiveSpan,
-} from '../utils/span';
+import { isCurrentlyActiveSpan } from '../utils/span';
 import { NATIVE } from '../wrapper';
 import { PROFILE_QUEUE } from './cache';
 import { MAX_PROFILE_DURATION_MS } from './constants';

@@ -1,5 +1,5 @@
 /* eslint-disable complexity */
-import { getClient, getIntegrationsToSetup, initAndBind, setExtra, withScope as coreWithScope } from '@sentry/core';
+import { getClient, getIntegrationsToSetup, initAndBind, withScope as coreWithScope } from '@sentry/core';
 import {
   defaultStackParser,
   makeFetchTransport,
@@ -102,22 +102,22 @@ export function wrap<P extends Record<string, unknown>>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
-  // const tracingIntegration = getClient()?.getIntegrationByName?.('ReactNativeTracing') as ReactNativeTracing | undefined;
-  // if (tracingIntegration) {
-  //   tracingIntegration.useAppStartWithProfiler = true;
-  // }
+  const tracingIntegration = getClient()?.getIntegrationByName?.('ReactNativeTracing') as ReactNativeTracing | undefined;
+  if (tracingIntegration) {
+    tracingIntegration.useAppStartWithProfiler = true;
+  }
 
-  // const profilerProps = {
-  //   ...(options?.profilerProps ?? {}),
-  //   name: RootComponent.displayName ?? 'Root',
-  // };
+  const profilerProps = {
+    ...(options?.profilerProps ?? {}),
+    name: RootComponent.displayName ?? 'Root',
+  };
 
   const RootApp: React.FC<P> = (appProps) => {
     return (
       <TouchEventBoundary {...(options?.touchEventBoundaryProps ?? {})}>
-        {/* <ReactNativeProfiler {...profilerProps}> */}
+        <ReactNativeProfiler {...profilerProps}>
           <RootComponent {...appProps} />
-        {/* </ReactNativeProfiler> */}
+        </ReactNativeProfiler>
       </TouchEventBoundary>
     );
   };

@@ -1,11 +1,10 @@
-import { getRootSpan, spanToJSON } from '@sentry/core';
-import type { BaseTransportOptions, Client, ClientOptions, Event, EventHint, EventProcessor, Integration, Measurements, MeasurementUnit, Span } from '@sentry/types';
+import { spanToJSON } from '@sentry/core';
+import type { Client, Event, Integration, Measurements, MeasurementUnit, Span } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
 import type { NativeFramesResponse } from '../NativeRNSentry';
-import { isCurrentlyActiveSpan, isRootSpan, isSentrySpan } from '../utils/span';
+import { isRootSpan } from '../utils/span';
 import { NATIVE } from '../wrapper';
-import { instrumentChildSpanFinish } from './utils';
 
 export interface FramesMeasurements extends Measurements {
   frames_total: { value: number; unit: MeasurementUnit };
@@ -23,7 +22,6 @@ const MARGIN_OF_ERROR_SECONDS = 0.05;
  * Instrumentation to add native slow/frozen frames measurements onto transactions.
  */
 export class NativeFramesInstrumentation implements Integration {
-
   public name: string = 'NativeFramesInstrumentation';
 
   /** The native frames at the transaction finish time, keyed by traceId. */
@@ -75,7 +73,7 @@ export class NativeFramesInstrumentation implements Integration {
       .then(undefined, error => {
         logger.error(`[ReactNativeTracing] Error while fetching native frames: ${error}`);
       });
-  }
+  };
 
   /**
    * Called on a span finish to fetch native frames to support transactions with trimEnd.
@@ -102,7 +100,7 @@ export class NativeFramesInstrumentation implements Integration {
       .then(undefined, error => {
         logger.error(`[ReactNativeTracing] Error while fetching native frames: ${error}`);
       });
-  }
+  };
 
   /**
    * To be called when a transaction is finished
@@ -111,7 +109,7 @@ export class NativeFramesInstrumentation implements Integration {
     this._fetchFramesForTransaction(span).then(undefined, (reason: unknown) => {
       logger.error(`[ReactNativeTracing] Error while fetching native frames:`, reason);
     });
-    }
+  }
 
   /**
    * Returns the computed frames measurements and awaits for them if they are not ready yet.
@@ -241,7 +239,14 @@ export class NativeFramesInstrumentation implements Integration {
    * Awaits for finish frames if needed.
    */
   private async _processEvent(event: Event): Promise<Event> {
-    if (event.type !== 'transaction' || !event.transaction || !event.contexts || !event.contexts.trace || !event.timestamp || !event.contexts.trace.trace_id) {
+    if (
+      event.type !== 'transaction' ||
+      !event.transaction ||
+      !event.contexts ||
+      !event.contexts.trace ||
+      !event.timestamp ||
+      !event.contexts.trace.trace_id
+    ) {
       return event;
     }
 
@@ -253,11 +258,7 @@ export class NativeFramesInstrumentation implements Integration {
       return event;
     }
 
-    const measurements = await this._getFramesMeasurements(
-      traceId,
-      event.timestamp,
-      startFrames,
-    );
+    const measurements = await this._getFramesMeasurements(traceId, event.timestamp, startFrames);
 
     if (!measurements) {
       logger.log(
@@ -267,9 +268,11 @@ export class NativeFramesInstrumentation implements Integration {
     }
 
     logger.log(
-      `[Measurements] Adding measurements to ${traceOp} transaction ${
-        event.transaction
-      }: ${JSON.stringify(measurements, undefined, 2)}`,
+      `[Measurements] Adding measurements to ${traceOp} transaction ${event.transaction}: ${JSON.stringify(
+        measurements,
+        undefined,
+        2,
+      )}`,
     );
 
     event.measurements = {

@@ -1,6 +1,8 @@
-import { type SentrySpan,addBreadcrumb } from '@sentry/core';
+import { addBreadcrumb } from '@sentry/core';
+import type { Span } from '@sentry/types';
 
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
+import { isSentrySpan } from '../utils/span';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
 import type { BeforeNavigate } from './types';
@@ -77,7 +79,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
 
   private _prevComponentEvent: ComponentWillAppearEvent | null = null;
 
-  private _latestTransaction?: SentrySpan;
+  private _latestTransaction?: Span;
   private _recentComponentIds: string[] = [];
   private _stateChangeTimeout?: number | undefined;
 
@@ -185,7 +187,10 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
   /** Cancels the latest transaction so it does not get sent to Sentry. */
   private _discardLatestTransaction(): void {
     if (this._latestTransaction) {
-      this._latestTransaction['_sampled'] = false;
+      if (isSentrySpan(this._latestTransaction)) {
+        this._latestTransaction['_sampled'] = false;
+      }
+      // TODO: What if it's not SentrySpan?
       this._latestTransaction.end();
       this._latestTransaction = undefined;
     }
