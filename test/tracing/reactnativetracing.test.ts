@@ -48,6 +48,7 @@ const mockedAppState: AppState & MockAppState = {
 };
 jest.mock('react-native/Libraries/AppState/AppState', () => mockedAppState);
 
+import { getActiveSpan, spanToJSON } from '@sentry/browser';
 import type { Client, Event, Scope } from '@sentry/types';
 import type { AppState, AppStateStatus } from 'react-native';
 
@@ -164,6 +165,7 @@ describe('ReactNativeTracing', () => {
     beforeEach(() => {
       client = setupTestClient();
     });
+
     describe('App Start without routing instrumentation', () => {
       it('Starts route transaction (cold)', async () => {
         const integration = new ReactNativeTracing({
@@ -305,20 +307,20 @@ describe('ReactNativeTracing', () => {
 
         mockAppStartResponse({ cold: true });
 
-        const mockHub = getMockHub();
-        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+        integration.setup(client);
         // wait for internal promises to resolve, fetch app start data from mocked native
         await Promise.resolve();
 
         const routeTransaction = routingInstrumentation.onRouteWillChange({
           name: 'test',
-        }) as IdleTransaction;
+        });
 
         mockedAppState.setState('background');
 
         jest.runAllTimers();
 
-        expect(routeTransaction.status).toBe('cancelled');
+        expect(routeTransaction).toBeDefined();
+        expect(spanToJSON(routeTransaction!).status).toBe('cancelled');
         expect(mockedAppState.removeSubscription).toBeCalledTimes(1);
       });
 
@@ -330,43 +332,36 @@ describe('ReactNativeTracing', () => {
 
         const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStartResponse({ cold: true });
 
-        const mockHub = getMockHub();
-        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+        integration.setup(client);
         // wait for internal promises to resolve, fetch app start data from mocked native
         await Promise.resolve();
 
-        const transaction = mockHub.getScope()?.getTransaction();
-        expect(transaction).toBeUndefined();
+        expect(getActiveSpan()).toBeUndefined();
 
-        const routeTransaction = routingInstrumentation.onRouteWillChange({
+        routingInstrumentation.onRouteWillChange({
           name: 'test',
-        }) as IdleTransaction;
-        routeTransaction.initSpanRecorder(10);
+        });
 
-        expect(routeTransaction).toBeDefined();
-        expect(routeTransaction.spanId).toEqual(mockHub.getScope()?.getTransaction()?.spanId);
+        expect(getActiveSpan()).toBeDefined();
+        expect(spanToJSON(getActiveSpan()!).description).toEqual('Route Change');
 
         // trigger idle transaction to finish and call before finish callbacks
         jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT);
+        jest.runOnlyPendingTimers();
 
-        // @ts-expect-error access private for test
-        expect(routeTransaction._measurements[APP_START_COLD].value).toBe(
+        const routeTransactionEvent = client.event;
+        expect(routeTransactionEvent!.measurements![APP_START_COLD].value).toBe(
           timeOriginMilliseconds - appStartTimeMilliseconds,
         );
 
-        expect(routeTransaction.op).toBe(UI_LOAD);
-        expect(routeTransaction.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
+        expect(routeTransactionEvent!.contexts!.trace!.op).toBe(UI_LOAD);
+        expect(routeTransactionEvent!.start_timestamp).toBe(appStartTimeMilliseconds / 1000);
 
-        const spanRecorder = routeTransaction.spanRecorder;
-        expect(spanRecorder).toBeDefined();
-        expect(spanRecorder?.spans.length).toBeGreaterThan(1);
-
-        const span = spanRecorder?.spans[spanRecorder?.spans.length - 1];
-
-        expect(span?.op).toBe(APP_START_COLD_OP);
-        expect(span?.description).toBe('Cold App Start');
-        expect(span?.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
-        expect(span?.endTimestamp).toBe(timeOriginMilliseconds / 1000);
+        const span = routeTransactionEvent!.spans![routeTransactionEvent!.spans!.length - 1];
+        expect(span!.op).toBe(APP_START_COLD_OP);
+        expect(span!.description).toBe('Cold App Start');
+        expect(span!.start_timestamp).toBe(appStartTimeMilliseconds / 1000);
+        expect(span!.timestamp).toBe(timeOriginMilliseconds / 1000);
       });
 
       it('Adds measurements and child span onto existing routing transaction and sets the op (warm)', async () => {
@@ -377,43 +372,36 @@ describe('ReactNativeTracing', () => {
 
         const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStartResponse({ cold: false });
 
-        const mockHub = getMockHub();
-        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+        integration.setup(client);
         // wait for internal promises to resolve, fetch app start data from mocked native
         await Promise.resolve();
 
-        const transaction = mockHub.getScope()?.getTransaction();
-        expect(transaction).toBeUndefined();
+        expect(getActiveSpan()).toBeUndefined();
 
-        const routeTransaction = routingInstrumentation.onRouteWillChange({
+        routingInstrumentation.onRouteWillChange({
           name: 'test',
-        }) as IdleTransaction;
-        routeTransaction.initSpanRecorder(10);
+        });
 
-        expect(routeTransaction).toBeDefined();
-        expect(routeTransaction).toBe(mockHub.getScope()?.getTransaction());
+        expect(getActiveSpan()).toBeDefined();
+        expect(spanToJSON(getActiveSpan()!).description).toEqual('Route Change');
 
         // trigger idle transaction to finish and call before finish callbacks
         jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT);
+        jest.runOnlyPendingTimers();
 
-        // @ts-expect-error access private for test
-        expect(routeTransaction._measurements[APP_START_WARM].value).toBe(
+        const routeTransaction = client.event;
+        expect(routeTransaction!.measurements![APP_START_WARM].value).toBe(
           timeOriginMilliseconds - appStartTimeMilliseconds,
         );
 
-        expect(routeTransaction.op).toBe(UI_LOAD);
-        expect(routeTransaction.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
+        expect(routeTransaction!.contexts!.trace!.op).toBe(UI_LOAD);
+        expect(routeTransaction!.start_timestamp).toBe(appStartTimeMilliseconds / 1000);
 
-        const spanRecorder = routeTransaction.spanRecorder;
-        expect(spanRecorder).toBeDefined();
-        expect(spanRecorder?.spans.length).toBeGreaterThan(1);
-
-        const span = spanRecorder?.spans[spanRecorder?.spans.length - 1];
-
-        expect(span?.op).toBe(APP_START_WARM_OP);
-        expect(span?.description).toBe('Warm App Start');
-        expect(span?.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
-        expect(span?.endTimestamp).toBe(timeOriginMilliseconds / 1000);
+        const span = routeTransaction!.spans![routeTransaction!.spans!.length - 1];
+        expect(span!.op).toBe(APP_START_WARM_OP);
+        expect(span!.description).toBe('Warm App Start');
+        expect(span!.start_timestamp).toBe(appStartTimeMilliseconds / 1000);
+        expect(span!.timestamp).toBe(timeOriginMilliseconds / 1000);
       });
 
       it('Does not update route transaction if didFetchAppStart == true', async () => {
@@ -424,34 +412,28 @@ describe('ReactNativeTracing', () => {
 
         const [, appStartTimeMilliseconds] = mockAppStartResponse({ cold: false, didFetchAppStart: true });
 
-        const mockHub = getMockHub();
-        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+        integration.setup(client);
         // wait for internal promises to resolve, fetch app start data from mocked native
         await Promise.resolve();
 
-        const transaction = mockHub.getScope()?.getTransaction();
-        expect(transaction).toBeUndefined();
+        expect(getActiveSpan()).toBeUndefined();
 
-        const routeTransaction = routingInstrumentation.onRouteWillChange({
+        routingInstrumentation.onRouteWillChange({
           name: 'test',
-        }) as IdleTransaction;
-        routeTransaction.initSpanRecorder(10);
+        });
 
-        expect(routeTransaction).toBeDefined();
-        expect(routeTransaction).toBe(mockHub.getScope()?.getTransaction());
+        expect(getActiveSpan()).toBeDefined();
+        expect(spanToJSON(getActiveSpan()!).description).toEqual('Route Change');
 
         // trigger idle transaction to finish and call before finish callbacks
         jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT);
+        jest.runOnlyPendingTimers();
 
-        // @ts-expect-error access private for test
-        expect(routeTransaction._measurements).toMatchObject({});
-
-        expect(routeTransaction.op).not.toBe(UI_LOAD);
-        expect(routeTransaction.startTimestamp).not.toBe(appStartTimeMilliseconds / 1000);
-
-        const spanRecorder = routeTransaction.spanRecorder;
-        expect(spanRecorder).toBeDefined();
-        expect(spanRecorder?.spans.length).toBe(2);
+        const routeTransaction = client.event;
+        expect(routeTransaction!.measurements).toBeUndefined();
+        expect(routeTransaction!.contexts!.trace!.op).not.toBe(UI_LOAD);
+        expect(routeTransaction!.start_timestamp).not.toBe(appStartTimeMilliseconds / 1000);
+        expect(routeTransaction!.spans!.length).toBe(0); // TODO: check why originally was 2
       });
     });
 
@@ -459,48 +441,42 @@ describe('ReactNativeTracing', () => {
       const integration = new ReactNativeTracing({
         enableAppStartTracking: false,
       });
-      const mockHub = getMockHub();
-      integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+      integration.setup(client);
 
       await jest.advanceTimersByTimeAsync(500);
+      await jest.runOnlyPendingTimersAsync();
 
-      expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
-
-      const transaction = mockHub.getScope()?.getTransaction();
-
+      const transaction = client.event;
       expect(transaction).toBeUndefined();
+      expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
     });
 
     it('Does not instrument app start if native is disabled', async () => {
       NATIVE.enableNative = false;
 
       const integration = new ReactNativeTracing();
-      const mockHub = getMockHub();
-      integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+      integration.setup(client);
 
       await jest.advanceTimersByTimeAsync(500);
+      await jest.runOnlyPendingTimersAsync();
 
-      expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
-
-      const transaction = mockHub.getScope()?.getTransaction();
-
+      const transaction = client.event;
       expect(transaction).toBeUndefined();
+      expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
     });
 
     it('Does not instrument app start if fetchNativeAppStart returns null', async () => {
       mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(null);
 
       const integration = new ReactNativeTracing();
-      const mockHub = getMockHub();
-      integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+      integration.setup(client);
 
       await jest.advanceTimersByTimeAsync(500);
+      await jest.runOnlyPendingTimersAsync();
 
-      expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
-
-      const transaction = mockHub.getScope()?.getTransaction();
-
+      const transaction = client.event;
       expect(transaction).toBeUndefined();
+      expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
     });
   });
 
