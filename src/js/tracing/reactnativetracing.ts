@@ -492,17 +492,11 @@ export class ReactNativeTracing implements Integration {
       name: name || 'Route Change',
       op,
       forceTransaction: true,
+
       // trimEnd: true, // TODO: Verify is end is still trimmed
     };
 
-    const idleSpan = this._startIdleSpan(expandedContext);
-    if (!idleSpan) {
-      return undefined;
-    }
-
-    logger.log(`[ReactNativeTracing] Starting ${op || 'unknown op'} transaction "${name}" on scope`);
-
-    onThisSpanEnd(this._client, idleSpan, (span: Span) => {
+    const addAwaitingAppStartBeforeSpanEnds = (span: Span): void => {
       if (!isRootSpan(span)) {
         logger.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
         return;
@@ -514,7 +508,14 @@ export class ReactNativeTracing implements Integration {
 
         this._awaitingAppStartData = undefined;
       }
-    });
+    };
+
+    const idleSpan = this._startIdleSpan(expandedContext, addAwaitingAppStartBeforeSpanEnds);
+    if (!idleSpan) {
+      return undefined;
+    }
+
+    logger.log(`[ReactNativeTracing] Starting ${op || 'unknown op'} transaction "${name}" on scope`);
 
     adjustTransactionDuration(this._client, idleSpan, finalTimeoutMs);
 
@@ -528,7 +529,7 @@ export class ReactNativeTracing implements Integration {
   /**
    * Start app state aware idle transaction on the scope.
    */
-  private _startIdleSpan(startSpanOption: StartSpanOptions): Span {
+  private _startIdleSpan(startSpanOption: StartSpanOptions, beforeSpanEnd?: (span: Span) => void): Span {
     if (!this._client) {
       logger.warn(`[ReactNativeTracing] Can't create idle span, missing client.`);
       return new SentryNonRecordingSpan();
@@ -540,6 +541,7 @@ export class ReactNativeTracing implements Integration {
     const span = startIdleSpan(startSpanOption, {
       finalTimeout: finalTimeoutMs,
       idleTimeout: idleTimeoutMs,
+      beforeSpanEnd,
     });
     cancelInBackground(this._client, span);
     return span;
