@@ -488,12 +488,12 @@ export class ReactNativeTracing implements Integration {
 
     const { finalTimeoutMs } = this.options;
 
-    const expandedContext = {
+    const expandedContext: StartSpanOptions = {
       name: name || 'Route Change',
       op,
       forceTransaction: true,
       // trimEnd: true, // TODO: Verify is end is still trimmed
-    } satisfies StartSpanOptions;
+    };
 
     const idleSpan = this._startIdleSpan(expandedContext);
     if (!idleSpan) {
