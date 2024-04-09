@@ -110,7 +110,7 @@ export const cancelInBackground = (client: Client, span: Span): void => {
   const subscription = AppState.addEventListener('change', (newState: AppStateStatus) => {
     if (newState === 'background') {
       logger.debug(`Setting ${spanToJSON(span).op} transaction to cancelled because the app is in the background.`);
-      span.setStatus({ code: SPAN_STATUS_OK, message: 'cancelled' });
+      span.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
       span.end();
     }
   });
