@@ -13,8 +13,8 @@ folly_compiler_flags = folly_flags + ' ' + '-Wno-comma -Wno-shorten-64-to-32'
 is_new_arch_enabled = ENV["RCT_NEW_ARCH_ENABLED"] == "1"
 is_using_hermes = (ENV['USE_HERMES'] == nil && is_hermes_default) || ENV['USE_HERMES'] == '1'
 new_arch_enabled_flag = (is_new_arch_enabled ? folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED" : "")
-sentry_profiling_supported_flag = (false ? " -DSENTRY_PROFILING_SUPPORTED=1" : "")
-other_cflags = "$(inherited) -fmodules -fcxx-modules " + new_arch_enabled_flag + sentry_profiling_supported_flag
+sentry_profiling_supported_flag = (is_profiling_supported ? " -DSENTRY_PROFILING_SUPPORTED=1" : "")
+other_cflags = "$(inherited) " + new_arch_enabled_flag + sentry_profiling_supported_flag
 
 Pod::Spec.new do |s|
   s.name           = 'RNSentry'
@@ -41,9 +41,10 @@ Pod::Spec.new do |s|
   s.compiler_flags = other_cflags
   # This guard prevent to install the dependencies when we run `pod install` in the old architecture.
   if is_new_arch_enabled then
-    s.pod_target_xcconfig    = {
+    s.pod_target_xcconfig = {
         "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
-        "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
+        "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
+        "OTHER_CFLAGS" => "-fcxx-modules"
     }
 
     s.dependency "React-Codegen"
@@ -51,6 +52,10 @@ Pod::Spec.new do |s|
     s.dependency "RCTRequired"
     s.dependency "RCTTypeSafety"
     s.dependency "ReactCommon/turbomodule/core"
+  else
+    s.pod_target_xcconfig  = {
+      "OTHER_CFLAGS" => "-fcxx-modules"
+  }
   end
 
   if is_using_hermes then
