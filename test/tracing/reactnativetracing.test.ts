@@ -1,13 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { SpanStatusType, User } from '@sentry/browser';
 import * as SentryBrowser from '@sentry/browser';
-import type { IdleTransaction } from '@sentry/core';
-import { addGlobalEventProcessor, Hub, Transaction } from '@sentry/core';
 
 import type { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
 import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
-
-const BrowserClient = SentryBrowser.BrowserClient;
 
 jest.mock('../../src/js/wrapper', () => {
   return {
@@ -53,57 +48,8 @@ const mockedAppState: AppState & MockAppState = {
 };
 jest.mock('react-native/Libraries/AppState/AppState', () => mockedAppState);
 
-const getMockScope = () => {
-  let scopeTransaction: Transaction | undefined;
-  let scopeUser: User | undefined;
-
-  return {
-    getTransaction: () => scopeTransaction,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setSpan: jest.fn((span: any) => {
-      scopeTransaction = span;
-    }),
-    setTag(_tag: any) {
-      // Placeholder
-    },
-    setContext(_context: any) {
-      // Placeholder
-    },
-    addBreadcrumb(_breadcrumb: any) {
-      // Placeholder
-    },
-    getUser: () => scopeUser,
-    captureEvent(_event: any) {
-      // Placeholder
-    },
-  };
-};
-
-const getMockHub = () => {
-  const mockHub = new Hub(
-    new BrowserClient({
-      tracesSampleRate: 1,
-      integrations: [],
-      transport: () => ({
-        send: jest.fn(),
-        flush: jest.fn(),
-      }),
-      stackParser: () => [],
-    }),
-  );
-  const mockScope = getMockScope();
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mockHub.getScope = () => mockScope as any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mockHub.configureScope = jest.fn(callback => callback(mockScope as any));
-
-  return mockHub;
-};
-
-import type { Event, Scope } from '@sentry/types';
-import type { AppState, AppStateStatus } from 'react-native';
 import type { Client, Event, Scope } from '@sentry/types';
+import type { AppState, AppStateStatus } from 'react-native';
 
 import { APP_START_COLD, APP_START_WARM } from '../../src/js/measurements';
 import {
@@ -111,10 +57,12 @@ import {
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD,
 } from '../../src/js/tracing';
+import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 import { APP_START_WARM as APP_SPAN_START_WARM } from '../../src/js/tracing/ops';
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
 import { NATIVE } from '../../src/js/wrapper';
+import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { firstArg, mockFunction } from '../testutils';
 import type { MockedRoutingInstrumentation } from './mockedrountinginstrumention';
 import {
@@ -124,7 +72,7 @@ import {
 
 const DEFAULT_IDLE_TIMEOUT = 1000;
 
-describe.skip('ReactNativeTracing', () => {
+describe('ReactNativeTracing', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     NATIVE.enableNative = true;
@@ -210,8 +158,13 @@ describe.skip('ReactNativeTracing', () => {
     });
   });
 
-  describe('App Start', () => {
-    describe('Without routing instrumentation', () => {
+  describe('App Start Tracing Instrumentation', () => {
+    let client: TestClient;
+
+    beforeEach(() => {
+      client = setupTestClient();
+    });
+    describe('App Start without routing instrumentation', () => {
       it('Starts route transaction (cold)', async () => {
         const integration = new ReactNativeTracing({
           enableNativeFramesTracking: false,
@@ -219,29 +172,22 @@ describe.skip('ReactNativeTracing', () => {
 
         const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStartResponse({ cold: true });
 
-        const mockHub = getMockHub();
-        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+        integration.setup(client);
         integration.onAppStartFinish(Date.now() / 1000);
 
         await jest.advanceTimersByTimeAsync(500);
+        await jest.runOnlyPendingTimersAsync();
 
-        const transaction = mockHub.getScope()?.getTransaction();
+        const transaction = client.event;
 
         expect(transaction).toBeDefined();
+        expect(transaction?.start_timestamp).toBe(appStartTimeMilliseconds / 1000);
+        expect(transaction?.contexts?.trace?.op).toBe(UI_LOAD);
 
-        if (transaction) {
-          expect(transaction.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
-          expect(transaction.op).toBe(UI_LOAD);
-
-          expect(
-            // @ts-expect-error access private for test
-            transaction._measurements[APP_START_COLD].value,
-          ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
-          expect(
-            // @ts-expect-error access private for test
-            transaction._measurements[APP_START_COLD].unit,
-          ).toBe('millisecond');
-        }
+        expect(transaction?.measurements?.[APP_START_COLD].value).toEqual(
+          timeOriginMilliseconds - appStartTimeMilliseconds,
+        );
+        expect(transaction?.measurements?.[APP_START_COLD].unit).toBe('millisecond');
       });
 
       it('Starts route transaction (warm)', async () => {
@@ -249,27 +195,21 @@ describe.skip('ReactNativeTracing', () => {
 
         const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStartResponse({ cold: false });
 
-        const mockHub = getMockHub();
-        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+        integration.setup(client);
 
         await jest.advanceTimersByTimeAsync(500);
-        const transaction = mockHub.getScope()?.getTransaction();
+        await jest.runOnlyPendingTimersAsync();
+
+        const transaction = client.event;
 
         expect(transaction).toBeDefined();
+        expect(transaction?.start_timestamp).toBe(appStartTimeMilliseconds / 1000);
+        expect(transaction?.contexts?.trace?.op).toBe(UI_LOAD);
 
-        if (transaction) {
-          expect(transaction.startTimestamp).toBe(appStartTimeMilliseconds / 1000);
-          expect(transaction.op).toBe(UI_LOAD);
-
-          expect(
-            // @ts-expect-error access private for test
-            transaction._measurements[APP_START_WARM].value,
-          ).toEqual(timeOriginMilliseconds - appStartTimeMilliseconds);
-          expect(
-            // @ts-expect-error access private for test
-            transaction._measurements[APP_START_WARM].unit,
-          ).toBe('millisecond');
-        }
+        expect(transaction?.measurements?.[APP_START_WARM].value).toEqual(
+          timeOriginMilliseconds - appStartTimeMilliseconds,
+        );
+        expect(transaction?.measurements?.[APP_START_WARM].unit).toBe('millisecond');
       });
 
       it('Cancels route transaction when app goes to background', async () => {
@@ -277,16 +217,15 @@ describe.skip('ReactNativeTracing', () => {
 
         mockAppStartResponse({ cold: false });
 
-        const mockHub = getMockHub();
-        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+        integration.setup(client);
 
         await jest.advanceTimersByTimeAsync(500);
-        const transaction = mockHub.getScope()?.getTransaction();
 
         mockedAppState.setState('background');
         jest.runAllTimers();
 
-        expect(transaction?.status).toBe('cancelled');
+        const transaction = client.event;
+        expect(transaction?.contexts?.trace?.status).toBe('cancelled');
         expect(mockedAppState.removeSubscription).toBeCalledTimes(1);
       });
 
@@ -304,26 +243,16 @@ describe.skip('ReactNativeTracing', () => {
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
         mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
-        const mockHub = getMockHub();
-        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+        integration.setup(client);
 
         await jest.advanceTimersByTimeAsync(500);
+        await jest.runOnlyPendingTimersAsync();
 
-        const transaction = mockHub.getScope()?.getTransaction();
+        const transaction = client.event;
 
         expect(transaction).toBeDefined();
-
-        if (transaction) {
-          expect(
-            // @ts-expect-error access private for test
-            transaction._measurements[APP_START_WARM],
-          ).toBeUndefined();
-
-          expect(
-            // @ts-expect-error access private for test
-            transaction._measurements[APP_START_COLD],
-          ).toBeUndefined();
-        }
+        expect(transaction?.measurements?.[APP_START_WARM]).toBeUndefined();
+        expect(transaction?.measurements?.[APP_START_COLD]).toBeUndefined();
       });
 
       it('Does not add app start span if more than 60s', async () => {
@@ -340,27 +269,16 @@ describe.skip('ReactNativeTracing', () => {
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
         mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
-        const mockHub = getMockHub();
-        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+        integration.setup(client);
 
         await jest.advanceTimersByTimeAsync(500);
+        await jest.runOnlyPendingTimersAsync();
 
-        const transaction = mockHub.getScope()?.getTransaction();
+        const transaction = client.event;
 
         expect(transaction).toBeDefined();
-
-        if (transaction) {
-          expect(
-            // @ts-expect-error access private for test
-            transaction.spanRecorder,
-          ).toBeDefined();
-
-          expect(
-            // @ts-expect-error access private for test
-            transaction.spanRecorder.spans.some(span => span.op == APP_SPAN_START_WARM),
-          ).toBe(false);
-          expect(transaction.startTimestamp).toBeGreaterThanOrEqual(timeOriginMilliseconds / 1000);
-        }
+        expect(transaction?.spans?.some(span => span.op == APP_SPAN_START_WARM)).toBeFalse();
+        expect(transaction?.start_timestamp).toBeGreaterThanOrEqual(timeOriginMilliseconds / 1000);
       });
 
       it('Does not create app start transaction if didFetchAppStart == true', async () => {
@@ -368,13 +286,12 @@ describe.skip('ReactNativeTracing', () => {
 
         mockAppStartResponse({ cold: false, didFetchAppStart: true });
 
-        const mockHub = getMockHub();
-        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+        integration.setup(client);
 
         await jest.advanceTimersByTimeAsync(500);
+        await jest.runOnlyPendingTimersAsync();
 
-        const transaction = mockHub.getScope()?.getTransaction();
-
+        const transaction = client.event;
         expect(transaction).toBeUndefined();
       });
     });
@@ -1018,6 +935,20 @@ describe.skip('ReactNativeTracing', () => {
     });
   });
 });
+
+function setupTestClient(): TestClient {
+  _addTracingExtensions();
+
+  SentryBrowser.getCurrentScope().clear();
+  SentryBrowser.getIsolationScope().clear();
+  SentryBrowser.getGlobalScope().clear();
+
+  const options = getDefaultTestClientOptions({ tracesSampleRate: 1.0 });
+  const client = new TestClient(options);
+  SentryBrowser.setCurrentClient(client);
+  client.init();
+  return client;
+}
 
 function mockAppStartResponse({ cold, didFetchAppStart }: { cold: boolean; didFetchAppStart?: boolean }) {
   const timeOriginMilliseconds = Date.now();
