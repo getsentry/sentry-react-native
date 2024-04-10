@@ -14,7 +14,7 @@ import {
   startIdleSpan,
   startInactiveSpan,
 } from '@sentry/core';
-import type { Client, Event, Integration, PropagationContext, Span, StartSpanOptions } from '@sentry/types';
+import type { Client, Event, Integration, PropagationContext, Scope, Span, StartSpanOptions } from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 
 import { APP_START_COLD, APP_START_WARM } from '../measurements';
@@ -34,6 +34,17 @@ import { APP_START_COLD as APP_START_COLD_OP, APP_START_WARM as APP_START_WARM_O
 import { StallTrackingInstrumentation } from './stalltracking';
 import type { BeforeNavigate } from './types';
 import { getTimeOriginMilliseconds, setSpanDurationAsMeasurement } from './utils';
+
+const SCOPE_SPAN_FIELD = '_sentrySpan';
+
+type ScopeWithMaybeSpan = Scope & {
+  [SCOPE_SPAN_FIELD]?: Span;
+};
+
+function clearActiveSpanFromScope(scope: ScopeWithMaybeSpan): void {
+  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+  delete scope[SCOPE_SPAN_FIELD];
+}
 
 export interface ReactNativeTracingOptions extends RequestInstrumentationOptions {
   /**
@@ -320,11 +331,14 @@ export class ReactNativeTracing implements Integration {
       this._inflightInteractionTransaction = undefined;
     }
 
-    const context = {
+    const scope = getCurrentScope();
+    const context: StartSpanOptions = {
       name,
       op,
-      trimEnd: true,
+      // trimEnd: true, // TODO: check if end still trimmed
+      scope,
     };
+    clearActiveSpanFromScope(scope);
     this._inflightInteractionTransaction = this._startIdleSpan(context);
     onThisSpanEnd(client, this._inflightInteractionTransaction, () => {
       this._inflightInteractionTransaction = undefined;
@@ -505,7 +519,6 @@ export class ReactNativeTracing implements Integration {
       name: name || 'Route Change',
       op,
       forceTransaction: true,
-
       // trimEnd: true, // TODO: Verify is end is still trimmed
     };
 
