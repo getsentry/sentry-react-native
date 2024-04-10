@@ -39,6 +39,7 @@ export class TestClient extends BaseClient<TestClientOptions> {
   public static sendEventCalled?: (event: Event) => void;
 
   public event?: Event;
+  public eventQueue: Array<Event> = [];
   public hint?: EventHint;
   public session?: Session;
 
@@ -74,6 +75,7 @@ export class TestClient extends BaseClient<TestClientOptions> {
 
   public sendEvent(event: Event, hint?: EventHint): void {
     this.event = event;
+    this.eventQueue.push(event);
     this.hint = hint;
 
     // In real life, this will get deleted as part of envelope creation.

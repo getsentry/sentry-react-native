@@ -308,6 +308,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
           // TODO: Remove onConfirmRoute when `context.view_names` are set directly in the navigation instrumentation
           this._onConfirmRoute?.(route.name);
 
+          // TODO: Add test for addBreadcrumb
           addBreadcrumb({
             category: 'navigation',
             type: 'navigation',
