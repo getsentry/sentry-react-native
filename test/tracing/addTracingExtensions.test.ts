@@ -5,7 +5,7 @@ import type { Hub } from '@sentry/types';
 import type { StartTransactionFunction } from '../../src/js/tracing/addTracingExtensions';
 import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 
-describe.skip('Tracing extensions', () => {
+describe('Tracing extensions', () => {
   let hub: Hub;
   let carrier: Carrier;
   let startTransaction: StartTransactionFunction | undefined;

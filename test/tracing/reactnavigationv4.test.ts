@@ -84,7 +84,7 @@ afterEach(() => {
   jest.resetAllMocks();
 });
 
-describe.skip('ReactNavigationV4Instrumentation', () => {
+describe('ReactNavigationV4Instrumentation', () => {
   test('transaction set on initialize', () => {
     const instrumentation = new ReactNavigationV4Instrumentation();
 

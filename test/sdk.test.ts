@@ -57,7 +57,7 @@ describe('Tests the SDK functionality', () => {
         expect(autoPerformanceIsEnabled()).toBe(false);
       });
 
-      it.skip('Auto Performance is enabled when tracing is enabled (tracesSampler)', () => {
+      it('Auto Performance is enabled when tracing is enabled (tracesSampler)', () => {
         init({
           tracesSampler: () => true,
           enableAutoPerformanceTracing: true,
@@ -66,7 +66,7 @@ describe('Tests the SDK functionality', () => {
         expect(autoPerformanceIsEnabled()).toBe(true);
       });
 
-      it.skip('Auto Performance is enabled when tracing is enabled (tracesSampleRate)', () => {
+      it('Auto Performance is enabled when tracing is enabled (tracesSampleRate)', () => {
         init({
           tracesSampleRate: 0.5,
           enableAutoPerformanceTracing: true,
@@ -410,7 +410,7 @@ describe('Tests the SDK functionality', () => {
       );
     });
 
-    it.skip('adds profiling integration', () => {
+    it('adds profiling integration', () => {
       init({
         _experiments: {
           profilesSampleRate: 0.7,

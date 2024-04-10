@@ -2,7 +2,7 @@ import type { AppStateStatus } from 'react-native';
 
 import { StallTrackingInstrumentation } from '../../src/js/tracing/stalltracking';
 
-describe.skip('BackgroundEventListener', () => {
+describe('BackgroundEventListener', () => {
   it('Stall tracking should set _isBackground to false, update _lastIntervalMs, and call _iteration when state is active and _timeout is not null', () => {
     const stallTracking = new StallTrackingInstrumentation();
     const LOOP_TIMEOUT_INTERVAL_MS = 500; // Change this value based on your actual interval value

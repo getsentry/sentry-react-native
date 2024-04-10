@@ -77,7 +77,7 @@ interface MockGesture {
   handlerName: string;
 }
 
-describe.skip('GestureTracing', () => {
+describe('GestureTracing', () => {
   const label = 'testGesture';
 
   describe('gracefully fails on invalid gestures', () => {

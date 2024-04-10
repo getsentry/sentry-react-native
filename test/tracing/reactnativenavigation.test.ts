@@ -61,7 +61,7 @@ const mockNavigationDelegate: NavigationDelegate = {
   },
 };
 
-describe.skip('React Native Navigation Instrumentation', () => {
+describe('React Native Navigation Instrumentation', () => {
   let instrumentation: ReactNativeNavigationInstrumentation;
   let tracingListener: jest.Mock<ReturnType<TransactionCreator>, Parameters<TransactionCreator>>;
   let mockTransaction: Transaction;

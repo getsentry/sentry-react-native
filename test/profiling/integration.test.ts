@@ -23,7 +23,7 @@ import {
 
 const SEC_TO_MS = 1e6;
 
-describe.skip('profiling integration', () => {
+describe('profiling integration', () => {
   let mock: {
     transportSendMock: jest.Mock<ReturnType<Transport['send']>, Parameters<Transport['send']>>;
   };

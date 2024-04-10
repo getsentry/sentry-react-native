@@ -609,7 +609,7 @@ describe('Tests ReactNativeClient', () => {
     }
   });
 
-  describe.skip('register enabled instrumentation as integrations', () => {
+  describe('register enabled instrumentation as integrations', () => {
     test('register routing instrumentation', () => {
       const mockRoutingInstrumentation: RoutingInstrumentationInstance = {
         registerRoutingInstrumentation: jest.fn(),
@@ -632,7 +632,7 @@ describe('Tests ReactNativeClient', () => {
     });
   });
 
-  describe.skip('user interactions tracing as integrations', () => {
+  describe('user interactions tracing as integrations', () => {
     test('register user interactions tracing', () => {
       const client = new ReactNativeClient(
         mockedOptions({

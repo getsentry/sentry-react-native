@@ -24,7 +24,7 @@ const expensiveOperation = () => {
   }
 };
 
-describe.skip('StallTracking', () => {
+describe('StallTracking', () => {
   const localHub: Hub = mockHub as unknown as Hub;
 
   it('Stall tracking detects a JS stall', done => {

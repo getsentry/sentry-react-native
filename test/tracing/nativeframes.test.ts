@@ -15,7 +15,7 @@ jest.mock('../../src/js/wrapper', () => {
   };
 });
 
-describe.skip('NativeFramesInstrumentation', () => {
+describe('NativeFramesInstrumentation', () => {
   it('Sets start frames to trace context on transaction start.', done => {
     const startFrames = {
       totalFrames: 100,

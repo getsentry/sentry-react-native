@@ -23,7 +23,7 @@ import { secondInFutureTimestampMs } from '../testutils';
 import type { MockedSentryEventEmitter } from '../utils/mockedSentryeventemitter';
 import { emitNativeFullDisplayEvent, emitNativeInitialDisplayEvent } from './mockedtimetodisplaynative';
 
-describe.skip('React Navigation - TTID', () => {
+describe('React Navigation - TTID', () => {
   let mockedEventEmitter: MockedSentryEventEmitter;
   let transportSendMock: jest.Mock<ReturnType<Transport['send']>, Parameters<Transport['send']>>;
   let mockedNavigation: ReturnType<typeof createMockNavigationAndAttachTo>;
