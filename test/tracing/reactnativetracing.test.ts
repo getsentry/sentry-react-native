@@ -59,12 +59,12 @@ import {
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD,
 } from '../../src/js/tracing';
-import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 import { APP_START_WARM as APP_SPAN_START_WARM } from '../../src/js/tracing/ops';
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
 import { NATIVE } from '../../src/js/wrapper';
-import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
+import type { TestClient } from '../mocks/client';
+import { setupTestClient } from '../mocks/client';
 import { mockFunction } from '../testutils';
 import type { MockedRoutingInstrumentation } from './mockedrountinginstrumention';
 import { createMockedRoutingInstrumentation } from './mockedrountinginstrumention';
@@ -864,20 +864,6 @@ describe('ReactNativeTracing', () => {
     });
   });
 });
-
-function setupTestClient(): TestClient {
-  _addTracingExtensions();
-
-  SentryBrowser.getCurrentScope().clear();
-  SentryBrowser.getIsolationScope().clear();
-  SentryBrowser.getGlobalScope().clear();
-
-  const options = getDefaultTestClientOptions({ tracesSampleRate: 1.0 });
-  const client = new TestClient(options);
-  SentryBrowser.setCurrentClient(client);
-  client.init();
-  return client;
-}
 
 function mockAppStartResponse({ cold, didFetchAppStart }: { cold: boolean; didFetchAppStart?: boolean }) {
   const timeOriginMilliseconds = Date.now();

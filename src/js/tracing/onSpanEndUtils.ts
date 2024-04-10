@@ -1,4 +1,4 @@
-import { getSpanDescendants, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON } from '@sentry/core';
+import { getSpanDescendants, SPAN_STATUS_ERROR, spanToJSON } from '@sentry/core';
 import type { Client, Span } from '@sentry/types';
 import { logger } from '@sentry/utils';
 import type { AppStateStatus } from 'react-native';
