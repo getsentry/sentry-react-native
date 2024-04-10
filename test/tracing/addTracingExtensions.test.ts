@@ -1,58 +1,80 @@
-import type { Carrier, Transaction } from '@sentry/core';
-import { getCurrentHub, getMainCarrier } from '@sentry/core';
-import type { Hub } from '@sentry/types';
+import { getCurrentScope, spanToJSON, startSpanManual } from '@sentry/core';
+import type { Span } from '@sentry/types';
 
-import type { StartTransactionFunction } from '../../src/js/tracing/addTracingExtensions';
-import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
+import { type TestClient, setupTestClient } from '../mocks/client';
 
 describe('Tracing extensions', () => {
-  let hub: Hub;
-  let carrier: Carrier;
-  let startTransaction: StartTransactionFunction | undefined;
+  let client: TestClient;
 
   beforeEach(() => {
-    _addTracingExtensions();
-    hub = getCurrentHub();
-    carrier = getMainCarrier();
-    startTransaction = carrier.__SENTRY__?.extensions?.startTransaction as StartTransactionFunction | undefined;
+    client = setupTestClient();
   });
 
   test('transaction has default op', async () => {
-    const transaction: Transaction = startTransaction?.apply(hub, [{}]);
+    const transaction = startSpanManual({ name: 'parent' }, (span: Span) => span);
 
-    expect(transaction).toEqual(expect.objectContaining({ op: 'default' }));
+    expect(spanToJSON(transaction!)).toEqual(
+      expect.objectContaining({
+        op: 'default',
+      }),
+    );
   });
 
   test('transaction does not overwrite custom op', async () => {
-    const transaction: Transaction = startTransaction?.apply(hub, [{ op: 'custom' }]);
+    const transaction = startSpanManual({ name: 'parent', op: 'custom' }, (span: Span) => span);
 
-    expect(transaction).toEqual(expect.objectContaining({ op: 'custom' }));
+    expect(spanToJSON(transaction!)).toEqual(
+      expect.objectContaining({
+        op: 'custom',
+      }),
+    );
   });
 
   test('transaction start span creates default op', async () => {
-    const transaction: Transaction = startTransaction?.apply(hub, [{ op: 'custom' }]);
-    const span = transaction?.startChild();
+    // TODO: add event listener to spanStart and add default op if not set
+    startSpanManual({ name: 'parent', scope: getCurrentScope() }, () => {});
+    const span = startSpanManual({ name: 'child', scope: getCurrentScope() }, (span: Span) => span);
 
-    expect(span).toEqual(expect.objectContaining({ op: 'default' }));
+    expect(spanToJSON(span)).toEqual(
+      expect.objectContaining({
+        op: 'default',
+      }),
+    );
   });
 
   test('transaction start span keeps custom op', async () => {
-    const transaction: Transaction = startTransaction?.apply(hub, [{ op: 'custom' }]);
-    const span = transaction?.startChild({ op: 'custom' });
+    startSpanManual({ name: 'parent', op: 'custom', scope: getCurrentScope() }, () => {});
+    const span = startSpanManual({ name: 'child', op: 'custom', scope: getCurrentScope() }, (span: Span) => span);
 
-    expect(span).toEqual(expect.objectContaining({ op: 'custom' }));
+    expect(spanToJSON(span)).toEqual(
+      expect.objectContaining({
+        op: 'custom',
+      }),
+    );
   });
 
   test('transaction start span passes correct values to the child', async () => {
-    const transaction: Transaction = startTransaction?.apply(hub, [{ op: 'custom' }]);
-    const span = transaction?.startChild({ op: 'custom' });
+    const transaction = startSpanManual(
+      { name: 'parent', op: 'custom', scope: getCurrentScope() },
+      (span: Span) => span,
+    );
+    const span = startSpanManual({ name: 'child', scope: getCurrentScope() }, (span: Span) => span);
+    span.end();
+    transaction.end();
 
-    expect(span).toEqual(
+    await client.flush();
+    expect(client.event).toEqual(
       expect.objectContaining({
-        transaction,
-        parentSpanId: transaction.spanId,
-        sampled: transaction.sampled,
-        traceId: transaction.traceId,
+        contexts: expect.objectContaining({
+          trace: expect.objectContaining({
+            trace_id: transaction.spanContext().traceId,
+          }),
+        }),
+      }),
+    );
+    expect(spanToJSON(span)).toEqual(
+      expect.objectContaining({
+        parent_span_id: transaction.spanContext().spanId,
       }),
     );
   });
