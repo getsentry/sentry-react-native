@@ -9,7 +9,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SentryNonRecordingSpan,
   setMeasurement,
-  SPAN_STATUS_OK,
+  SPAN_STATUS_ERROR,
   spanToJSON,
   startIdleSpan,
   startInactiveSpan,
@@ -300,13 +300,26 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
+    const name = `${this._currentRoute}.${elementId}`;
+    if (
+      this._inflightInteractionTransaction &&
+      spanToJSON(this._inflightInteractionTransaction).description === name &&
+      spanToJSON(this._inflightInteractionTransaction).op === op
+    ) {
+      logger.warn(
+        `[ReactNativeTracing] Did not create ${op} transaction because it the same transaction ${
+          spanToJSON(this._inflightInteractionTransaction).description
+        } already exists on the scope.`,
+      );
+      return;
+    }
+
     if (this._inflightInteractionTransaction) {
       // TODO: Check the interaction transactions spec, see if can be implemented differently
       // this._inflightInteractionTransaction.cancelIdleTimeout(undefined, { restartOnChildSpanChange: false });
       this._inflightInteractionTransaction = undefined;
     }
 
-    const name = `${this._currentRoute}.${elementId}`;
     const context = {
       name,
       op,
@@ -482,7 +495,7 @@ export class ReactNativeTracing implements Integration {
           spanToJSON(this._inflightInteractionTransaction).op
         } transaction because of a new navigation root span.`,
       );
-      this._inflightInteractionTransaction.setStatus({ code: SPAN_STATUS_OK, message: 'cancelled' });
+      this._inflightInteractionTransaction.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
       this._inflightInteractionTransaction.end();
     }
 
