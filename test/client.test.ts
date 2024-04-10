@@ -628,7 +628,7 @@ describe('Tests ReactNativeClient', () => {
       );
       client.init();
 
-      expect(client.getIntegrationById('MockRoutingInstrumentation')).toBeTruthy();
+      expect(client.getIntegrationByName('MockRoutingInstrumentation')).toBeTruthy();
     });
   });
 
@@ -646,7 +646,7 @@ describe('Tests ReactNativeClient', () => {
       );
       client.init();
 
-      expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeTruthy();
+      expect(client.getIntegrationByName('ReactNativeUserInteractionTracing')).toBeTruthy();
     });
 
     test('do not register user interactions tracing', () => {
@@ -662,7 +662,7 @@ describe('Tests ReactNativeClient', () => {
       );
       client.init();
 
-      expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeUndefined();
+      expect(client.getIntegrationByName('ReactNativeUserInteractionTracing')).toBeUndefined();
     });
   });
 });
