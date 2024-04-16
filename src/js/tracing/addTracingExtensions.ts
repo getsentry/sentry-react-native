@@ -72,10 +72,21 @@ const _patchStartTransaction = (originalStartTransaction: StartTransactionFuncti
 
       transaction.finish = (endTimestamp: number | undefined) => {
         if (reactNativeTracing) {
-          reactNativeTracing.onTransactionFinish(transaction);
+          reactNativeTracing.onTransactionFinish(transaction, endTimestamp);
         }
 
         return originalFinish.apply(transaction, [endTimestamp]);
+      };
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const originalEnd = transaction.end;
+
+      transaction.end = (endTimestamp: number | undefined) => {
+        if (reactNativeTracing) {
+          reactNativeTracing.onTransactionFinish(transaction, endTimestamp);
+        }
+
+        return originalEnd.apply(transaction, [endTimestamp]);
       };
     }
 

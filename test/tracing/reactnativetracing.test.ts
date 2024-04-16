@@ -127,6 +127,13 @@ describe('ReactNativeTracing', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     NATIVE.enableNative = true;
+    mockedAppState.isAvailable = true;
+    mockedAppState.addEventListener = (_, listener) => {
+      mockedAppState.listener = listener;
+      return {
+        remove: mockedAppState.removeSubscription,
+      };
+    };
   });
 
   afterEach(() => {
@@ -355,6 +362,26 @@ describe('ReactNativeTracing', () => {
 
         expect(transaction?.status).toBe('cancelled');
         expect(mockedAppState.removeSubscription).toBeCalledTimes(1);
+      });
+
+      it('Does not crash when AppState is not available', async () => {
+        mockedAppState.isAvailable = false;
+        mockedAppState.addEventListener = (() => {
+          return undefined;
+        }) as unknown as (typeof mockedAppState)['addEventListener']; // RN Web can return undefined
+        const integration = new ReactNativeTracing();
+
+        mockAppStartResponse({ cold: false });
+
+        const mockHub = getMockHub();
+        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
+
+        await jest.advanceTimersByTimeAsync(500);
+        const transaction = mockHub.getScope()?.getTransaction();
+
+        jest.runAllTimers();
+
+        expect(transaction?.endTimestamp).toBeDefined();
       });
 
       it('Does not add app start measurement if more than 60s', async () => {

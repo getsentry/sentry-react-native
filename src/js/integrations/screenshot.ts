@@ -1,6 +1,8 @@
+import { getClient } from '@sentry/core';
 import type { Event, EventHint, EventProcessor, Integration } from '@sentry/types';
 import { resolvedSyncPromise } from '@sentry/utils';
 
+import type { ReactNativeClient } from '../client';
 import type { Screenshot as ScreenshotAttachment } from '../wrapper';
 import { NATIVE } from '../wrapper';
 
@@ -41,9 +43,11 @@ export class Screenshot implements Integration {
    * @inheritDoc
    */
   public setupOnce(addGlobalEventProcessor: (e: EventProcessor) => void): void {
+    const options = getClient<ReactNativeClient>()?.getOptions();
+
     addGlobalEventProcessor(async (event: Event, hint: EventHint) => {
       const hasException = event.exception && event.exception.values && event.exception.values.length > 0;
-      if (!hasException) {
+      if (!hasException || options?.beforeScreenshot?.(event, hint) === false) {
         return event;
       }
 

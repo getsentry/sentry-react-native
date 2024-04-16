@@ -3497,7 +3497,14 @@
   resolved "https://registry.yarnpkg.com/@react-native/assets-registry/-/assets-registry-0.73.1.tgz#e2a6b73b16c183a270f338dc69c36039b3946e85"
   integrity sha512-2FgAbU7uKM5SbbW9QptPPZx8N9Ke2L7bsHb+EhAanZjFZunA9PaYtyjUQ1s7HD+zDVqOQIvjkpXSv7Kejd2tqg==
 
-"@react-native/babel-plugin-codegen@*", "@react-native/babel-plugin-codegen@0.73.2":
+"@react-native/babel-plugin-codegen@*":
+  version "0.74.75"
+  resolved "https://registry.yarnpkg.com/@react-native/babel-plugin-codegen/-/babel-plugin-codegen-0.74.75.tgz#09234596c096ab0b74a28d1e71f2ec0597bb7bea"
+  integrity sha512-/nB19R22ywXlrP1wTtg4xXUT1ecQbDN1rD14JM0UM5ugBi9MRf/kiDm846P5/qs28fXKRWNKZ3W5SSemFiWZ6w==
+  dependencies:
+    "@react-native/codegen" "0.74.75"
+
+"@react-native/babel-plugin-codegen@0.73.2":
   version "0.73.2"
   resolved "https://registry.yarnpkg.com/@react-native/babel-plugin-codegen/-/babel-plugin-codegen-0.73.2.tgz#447656cde437b71dc3ef0af3f8a5b215653d5d07"
   integrity sha512-PadyFZWVaWXIBP7Q5dgEL7eAd7tnsgsLjoHJB1hIRZZuVUg1Zqe3nULwC7RFAqOtr5Qx7KXChkFFcKQ3WnZzGw==
@@ -3608,6 +3615,19 @@
     "@babel/parser" "^7.20.0"
     flow-parser "^0.206.0"
     glob "^7.1.1"
+    invariant "^2.2.4"
+    jscodeshift "^0.14.0"
+    mkdirp "^0.5.1"
+    nullthrows "^1.1.1"
+
+"@react-native/codegen@0.74.75":
+  version "0.74.75"
+  resolved "https://registry.yarnpkg.com/@react-native/codegen/-/codegen-0.74.75.tgz#5888f9834b3fe2c7ac5aa4a9dd478be0fd62ceb7"
+  integrity sha512-kkX0IA+qbqf4lyCigC8y/rQdk0GbhiCkc4MUBtX9Y5M0+Q6cb28JqWxUQ232YDT2jcwGU8rXp4ghQb9AtAS99g==
+  dependencies:
+    "@babel/parser" "^7.20.0"
+    glob "^7.1.1"
+    hermes-parser "0.19.1"
     invariant "^2.2.4"
     jscodeshift "^0.14.0"
     mkdirp "^0.5.1"
@@ -3775,45 +3795,45 @@
     "@sentry/types" "7.107.0"
     "@sentry/utils" "7.107.0"
 
-"@sentry/cli-darwin@2.30.0":
-  version "2.30.0"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-darwin/-/cli-darwin-2.30.0.tgz#492ecade496a54523ae5400562e3b43e719a3d0f"
-  integrity sha512-JVesQ9PznbHBOOOwuej2X8/onfXdmAEjBH6fTyWxBl6K8mB4KmBX/aHunXWMBX+VR9X32XZghIqj7acwaFUMPA==
+"@sentry/cli-darwin@2.30.4":
+  version "2.30.4"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-darwin/-/cli-darwin-2.30.4.tgz#1726461997cd78f01c5f005528683092419b1b57"
+  integrity sha512-d61JxgtPvUtUZ58T4WgzFDsRODAQbKcRxhK9DY7Y/+q7fH1gWc6J8s8RwxxhYu/N/UuWnAcXNtIH9daUanKTjQ==
 
-"@sentry/cli-linux-arm64@2.30.0":
-  version "2.30.0"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-arm64/-/cli-linux-arm64-2.30.0.tgz#bcbb0d9f91148a27b3c06d70653437b07e7e8aea"
-  integrity sha512-JNXPkkMubKoZVlcFIoClSmTb9C/I6Bz08DuAZm2jnjRaaOMiCBxI/l50H3dmfVZ6apjEguG9JkjFdb0kqKB90w==
+"@sentry/cli-linux-arm64@2.30.4":
+  version "2.30.4"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-arm64/-/cli-linux-arm64-2.30.4.tgz#edbcfde267abad123fe92ebd37151ab3e15dc575"
+  integrity sha512-XxRBiZAj84umr+i4n6zNGkbdJIX76G6SFalv4466XZkbhPuAeSABFQ5PxRVc+j7pLyOBGao4q2yiO8wrBLsJug==
 
-"@sentry/cli-linux-arm@2.30.0":
-  version "2.30.0"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-arm/-/cli-linux-arm-2.30.0.tgz#c98e7d1ecd65ea49df2e036f332a4993115ef23a"
-  integrity sha512-MDB3iS31WKg4krCcLo520yxbUERPeA2DCtk9Qs9vSDbQl6Er64dteHllOdx1SDOyX/7GKcxrQEQ6SMmbnOo6wg==
+"@sentry/cli-linux-arm@2.30.4":
+  version "2.30.4"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-arm/-/cli-linux-arm-2.30.4.tgz#86961eaa16c731dd1ade5dfc728a001b1a6cefb8"
+  integrity sha512-2+L8FVOc8XLD2k4rUklsIG8gCoawOZJv1TdlHcIvsHIt6e55vVil6JDBc7dOD/tzJlJPAs+LMOuHHe8e/F+Y5A==
 
-"@sentry/cli-linux-i686@2.30.0":
-  version "2.30.0"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-i686/-/cli-linux-i686-2.30.0.tgz#30bb4f6d4e3567b3fb0ab074b845b6b5fde791f7"
-  integrity sha512-WhVVziFQw/fO0Cc53pY8goPAzJtIs6ORTR89fVbKwa3ZDNkX++mEOECbP7RkmD87kuRxyKzN543RPV971PcAHw==
+"@sentry/cli-linux-i686@2.30.4":
+  version "2.30.4"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-i686/-/cli-linux-i686-2.30.4.tgz#b35c7bec0d6d7680bd0d53fa42676dc40031bc5a"
+  integrity sha512-ruouCpmxJXumNxvZ4asQzz2gzAKeUhg9dofB9h5PEmemceTLKfOAyfplD5l1iLWL3+JfF88SNeuu2/sWHP7aBg==
 
-"@sentry/cli-linux-x64@2.30.0":
-  version "2.30.0"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-x64/-/cli-linux-x64-2.30.0.tgz#b1a7a550d875b97bf261c58c79d9c081d3e646a9"
-  integrity sha512-QkiVDeSfspotZ0Au5Yauv2DAm/BC1fL9BwPek/WwddM18I2HqnDp6l4TA4bQeEY++o0KEuNF53cPahpepltPjw==
+"@sentry/cli-linux-x64@2.30.4":
+  version "2.30.4"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-x64/-/cli-linux-x64-2.30.4.tgz#77e77abf2b2356eb18ce386db07dbb6d786a566e"
+  integrity sha512-Kcb1Fn5wNSQW5bKkF35MpJSATtvgzGAHDzJkuEXPfF9xQMhOaYPnMN/D0aLYZgTpQawL4CM7dcfLuaafGmiazQ==
 
-"@sentry/cli-win32-i686@2.30.0":
-  version "2.30.0"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-win32-i686/-/cli-win32-i686-2.30.0.tgz#07697fa94d8461f6715150699ffcb48e6eaeb462"
-  integrity sha512-xLY9B1EEGuNYPKpK6M9PMmcu2PzofdvRtbraTcU6Ck2zALS5oXB9kmWc4dDKucZ/uu9JB0m+Lo4ebaNlca45qQ==
+"@sentry/cli-win32-i686@2.30.4":
+  version "2.30.4"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-win32-i686/-/cli-win32-i686-2.30.4.tgz#714ec71dbe1e5ef98af3f5f37bd1adcc5dc9dbd7"
+  integrity sha512-FJ6IS+N7CsacDiHrFbE4Ic9UmumsiaBSD4SiQMIG2wfM7Ig1hc7+F4xoMC3MjivAIM7F94ZdSt0aZDGwE+zYeg==
 
-"@sentry/cli-win32-x64@2.30.0":
-  version "2.30.0"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-win32-x64/-/cli-win32-x64-2.30.0.tgz#1b6670222eedd4ae3c50f40f7180c07df38a304e"
-  integrity sha512-CiXuxnpJI0zho0XE5PVqIS9CwjDEYoMnHQRIr4Jj9OzlGTJ2iSSU6Zp3Ykd7lgo2iK4P6MfxIBm30gFQPnSvVA==
+"@sentry/cli-win32-x64@2.30.4":
+  version "2.30.4"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-win32-x64/-/cli-win32-x64-2.30.4.tgz#00bc0f765bfa0abdf327a9d56e2bb0f2277a9981"
+  integrity sha512-wzvMpj+AVEaLKKLkN1vZxuEwQJa5s8qiasYMBJTXFtD7+LqrONerHCRqk79W+60IBXX7MQSRFF3IsjVJzJGEjA==
 
-"@sentry/cli@2.30.0":
-  version "2.30.0"
-  resolved "https://registry.yarnpkg.com/@sentry/cli/-/cli-2.30.0.tgz#3cbe9ee269779e57e3124834bb0a89112366cd98"
-  integrity sha512-GTO5e98vy2QwEYQvhE/ZtGUiVrUu4XungLioJbazm+ZOen8cyac8YOapZfozN5mtxjWOWMOwhOqoTeCU3Q8YKQ==
+"@sentry/cli@2.30.4":
+  version "2.30.4"
+  resolved "https://registry.yarnpkg.com/@sentry/cli/-/cli-2.30.4.tgz#29b3217165c923a2b64c99d8c1643fcc6d3205df"
+  integrity sha512-5zYdNGK2sNiP0zbnzMWuwm71KlCWLISbiJDyFQk6YYTKLh2RIYBPLF5mNLBxE2Ns4/wuKuBZjqE2ESLS5FzoOw==
   dependencies:
     https-proxy-agent "^5.0.0"
     node-fetch "^2.6.7"
@@ -3821,13 +3841,13 @@
     proxy-from-env "^1.1.0"
     which "^2.0.2"
   optionalDependencies:
-    "@sentry/cli-darwin" "2.30.0"
-    "@sentry/cli-linux-arm" "2.30.0"
-    "@sentry/cli-linux-arm64" "2.30.0"
-    "@sentry/cli-linux-i686" "2.30.0"
-    "@sentry/cli-linux-x64" "2.30.0"
-    "@sentry/cli-win32-i686" "2.30.0"
-    "@sentry/cli-win32-x64" "2.30.0"
+    "@sentry/cli-darwin" "2.30.4"
+    "@sentry/cli-linux-arm" "2.30.4"
+    "@sentry/cli-linux-arm64" "2.30.4"
+    "@sentry/cli-linux-i686" "2.30.4"
+    "@sentry/cli-linux-x64" "2.30.4"
+    "@sentry/cli-win32-i686" "2.30.4"
+    "@sentry/cli-win32-x64" "2.30.4"
 
 "@sentry/cli@^1.72.0":
   version "1.74.6"
@@ -7963,6 +7983,11 @@ hermes-estree@0.18.2:
   resolved "https://registry.yarnpkg.com/hermes-estree/-/hermes-estree-0.18.2.tgz#fd450fa1659cf074ceaa2ddeeb21674f3b2342f3"
   integrity sha512-KoLsoWXJ5o81nit1wSyEZnWUGy9cBna9iYMZBR7skKh7okYAYKqQ9/OczwpMHn/cH0hKDyblulGsJ7FknlfVxQ==
 
+hermes-estree@0.19.1:
+  version "0.19.1"
+  resolved "https://registry.yarnpkg.com/hermes-estree/-/hermes-estree-0.19.1.tgz#d5924f5fac2bf0532547ae9f506d6db8f3c96392"
+  integrity sha512-daLGV3Q2MKk8w4evNMKwS8zBE/rcpA800nu1Q5kM08IKijoSnPe9Uo1iIxzPKRkn95IxxsgBMPeYHt3VG4ej2g==
+
 hermes-parser@0.12.0:
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/hermes-parser/-/hermes-parser-0.12.0.tgz#114dc26697cfb41a6302c215b859b74224383773"
@@ -7983,6 +8008,13 @@ hermes-parser@0.18.2:
   integrity sha512-1eQfvib+VPpgBZ2zYKQhpuOjw1tH+Emuib6QmjkJWJMhyjM8xnXMvA+76o9LhF0zOAJDZgPfQhg43cyXEyl5Ew==
   dependencies:
     hermes-estree "0.18.2"
+
+hermes-parser@0.19.1:
+  version "0.19.1"
+  resolved "https://registry.yarnpkg.com/hermes-parser/-/hermes-parser-0.19.1.tgz#1044348097165b7c93dc198a80b04ed5130d6b1a"
+  integrity sha512-Vp+bXzxYJWrpEuJ/vXxUsLnt0+y4q9zyi4zUlkLqD8FKv4LjIfOvP69R/9Lty3dCyKh0E2BU7Eypqr63/rKT/A==
+  dependencies:
+    hermes-estree "0.19.1"
 
 hermes-profile-transformer@^0.0.6:
   version "0.0.6"
@@ -8254,9 +8286,9 @@ ip-regex@^2.1.0:
   integrity sha512-58yWmlHpp7VYfcdTwMTvwMmqx/Elfxjd9RXTDyMsbL7lLWmhMylLEqiYVLKuLzOZqVgiWXD9MfR62Vv89VRxkw==
 
 ip@^1.1.5:
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/ip/-/ip-1.1.5.tgz#bdded70114290828c0a039e72ef25f5aaec4354a"
-  integrity sha1-vd7XARQpCCjAoDnnLvJfWq7ENUo=
+  version "1.1.9"
+  resolved "https://registry.yarnpkg.com/ip/-/ip-1.1.9.tgz#8dfbcc99a754d07f425310b86a99546b1151e396"
+  integrity sha512-cyRxvOEpNHNtchU3Ln9KC/auJgup87llfQpQ+t5ghoC/UhL16SWzbueiCsdTnWmqAWl7LadfuwhlqmtOaqMHdQ==
 
 ipaddr.js@^1.9.0:
   version "1.9.1"
