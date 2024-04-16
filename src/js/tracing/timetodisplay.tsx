@@ -61,6 +61,7 @@ function TimeToDisplay(props: {
 
   if (__DEV__ && !nativeComponentMissingLogged && !nativeComponentExists) {
     nativeComponentMissingLogged = true;
+    // Using setTimeout with a delay of 0 milliseconds to defer execution and avoid printing the React stack trace.
     setTimeout(() => {
       logger.warn('TimeToInitialDisplay and TimeToFullDisplay are not supported on the web, Expo Go and New Architecture. Run native build or report an issue at https://github.com/getsentry/sentry-react-native');
     }, 0);
