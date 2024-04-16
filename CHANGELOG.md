@@ -13,6 +13,7 @@
 - Do not initialize the SDK during `expo-router` static routes generation ([#3730](https://github.com/getsentry/sentry-react-native/pull/3730))
 - Cancel spans in background doesn't crash in environments without AppState ([#3727](https://github.com/getsentry/sentry-react-native/pull/3727))
 - Fix missing Stall measurements when using new `.end()` span API ([#3737](https://github.com/getsentry/sentry-react-native/pull/3737))
+- Change TimeToDisplay unsupported log from error to warning level. ([#3699](https://github.com/getsentry/sentry-react-native/pull/3699))
 
 ### Dependencies
 
@@ -22,10 +23,6 @@
 - Bump Android SDK from v7.5.0 to v7.6.0 ([#3675](https://github.com/getsentry/sentry-react-native/pull/3675))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#760)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.5.0...7.6.0)
-
-### Fixes
-
-- Change TimeToDisplay unsupported log from error to warning level. ([#3699](https://github.com/getsentry/sentry-react-native/pull/3699))
 
 ## 5.20.0
 
