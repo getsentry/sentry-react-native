@@ -122,6 +122,19 @@ export class StallTrackingInstrumentation {
             this._markSpanFinish(transaction, span.endTimestamp);
           }
         };
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        const originalSpanEnd = span.end;
+
+        span.end = (endTimestamp?: number) => {
+          // We let the span determine its own end timestamp as well in case anything gets changed upstream
+          originalSpanEnd.apply(span, [endTimestamp]);
+
+          // The span should set a timestamp, so this would be defined.
+          if (span.endTimestamp) {
+            this._markSpanFinish(transaction, span.endTimestamp);
+          }
+        };
       };
     }
   }
