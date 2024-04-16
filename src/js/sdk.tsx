@@ -19,7 +19,7 @@ import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { makeUtf8TextEncoder } from './transports/TextEncoder';
-import { getDefaultEnvironment, isExpoGo } from './utils/environment';
+import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer } from './utils/environment';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { NATIVE } from './wrapper';
 
@@ -44,6 +44,10 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
  * Inits the SDK and returns the final options.
  */
 export function init(passedOptions: ReactNativeOptions): void {
+  if (isRunningInMetroDevServer()) {
+    return;
+  }
+
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
   makeMain(reactNativeHub);
 

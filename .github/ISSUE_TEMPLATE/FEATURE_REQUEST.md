@@ -4,4 +4,4 @@ about: New feature for the @sentry/react-native package.
 labels: ["Platform: React-Native", "enhancement"]
 ---
 
-<!-- Please clarify if this feature is for Flutter or just Dart (i.e AngularDart, CLI, Server) -->
+<!-- Please clarify if this feature is for bare React Native, for Expo or for other RN tooling (`rnx-kit`, RePack, ...) -->

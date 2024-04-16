@@ -5,10 +5,13 @@
 ### Features
 
 - Add `getDefaultConfig` option to `getSentryExpoConfig` ([#3690](https://github.com/getsentry/sentry-react-native/pull/3690))
+- Add `beforeScreenshoot` option to `ReactNativeOptions` ([#3715](https://github.com/getsentry/sentry-react-native/pull/3715))
 
 ### Fixes
 
 - Do not enable NativeFramesTracking when native is not available ([#3705](https://github.com/getsentry/sentry-react-native/pull/3705))
+- Do not initialize the SDK during `expo-router` static routes generation ([#3730](https://github.com/getsentry/sentry-react-native/pull/3730))
+- Cancel spans in background doesn't crash in environments without AppState ([#3727](https://github.com/getsentry/sentry-react-native/pull/3727))
 - Fix missing Stall measurements when using new `.end()` span API ([#3737](https://github.com/getsentry/sentry-react-native/pull/3737))
 
 ### Dependencies
