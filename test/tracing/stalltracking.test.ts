@@ -15,7 +15,7 @@ import { timestampInSeconds } from '@sentry/utils';
 import { ReactNativeTracing } from '../../src/js';
 import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
-import { expectNonZeroStallMeasurements,expectStallMeasurements } from './stalltrackingutils';
+import { expectNonZeroStallMeasurements, expectStallMeasurements } from './stalltrackingutils';
 
 jest.useFakeTimers({ advanceTimers: true });
 
