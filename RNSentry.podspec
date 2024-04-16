@@ -43,8 +43,7 @@ Pod::Spec.new do |s|
   if is_new_arch_enabled then
     s.pod_target_xcconfig = {
         "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
-        "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
-        "OTHER_CFLAGS" => "-fcxx-modules"
+        "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
     }
 
     s.dependency "React-Codegen"
@@ -52,10 +51,6 @@ Pod::Spec.new do |s|
     s.dependency "RCTRequired"
     s.dependency "RCTTypeSafety"
     s.dependency "ReactCommon/turbomodule/core"
-  else
-    s.pod_target_xcconfig  = {
-      "OTHER_CFLAGS" => "-fcxx-modules"
-  }
   end
 
   if is_using_hermes then

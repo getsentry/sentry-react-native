@@ -15,13 +15,14 @@
 #define SENTRY_TARGET_PROFILING_SUPPORTED 0
 #endif
 
-@import Sentry;
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
 #import <Sentry/SentryBinaryImageCache.h>
 #import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentryFormatter.h>
+#import <Sentry/SentryAppStartMeasurement.h>
+#import "RNSentryId.h"
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
@@ -643,7 +644,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
         facebook::hermes::HermesRuntime::enableSamplingProfiler();
         if (nativeProfileTraceId == nil && nativeProfileStartTime == 0) {
 #if SENTRY_TARGET_PROFILING_SUPPORTED
-            nativeProfileTraceId = [[SentryId alloc] init];
+            nativeProfileTraceId = [RNSentryId newId];
             nativeProfileStartTime = [PrivateSentrySDKOnly startProfilerForTrace: nativeProfileTraceId];
 #endif
         } else {
@@ -681,7 +682,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
         NSDictionary<NSString *, id> * nativeProfile = nil;
         if (nativeProfileTraceId != nil && nativeProfileStartTime != 0) {
 #if SENTRY_TARGET_PROFILING_SUPPORTED
-            uint64_t nativeProfileStopTime = [[[SentryDependencyContainer sharedInstance] dateProvider] systemTime];
+            uint64_t nativeProfileStopTime = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
             nativeProfile = [PrivateSentrySDKOnly collectProfileBetween:nativeProfileStartTime and:nativeProfileStopTime forTrace:nativeProfileTraceId];
 #endif
         }
