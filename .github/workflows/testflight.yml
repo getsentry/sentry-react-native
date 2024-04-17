@@ -21,7 +21,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          bundler-cache: true
+          working-directory: samples/react-native
+          ruby-version: '3.3.0' # based on what is used in the sample
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 1 # cache the installed gems
       - uses: actions/setup-node@v4
         with:
           node-version: 18
