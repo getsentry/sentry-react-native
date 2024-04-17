@@ -249,7 +249,7 @@ jobs:
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
-        run: brew install xcbeautify
+        run: which xcbeautify || brew install xcbeautify
 
       - name: NPM cache SDK
         uses: actions/cache@v4
@@ -478,7 +478,7 @@ jobs:
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
-        run: brew install xcbeautify
+        run: which xcbeautify || brew install xcbeautify
 
       - name: Download App Package
         if: matrix.build-type == 'production'
@@ -551,7 +551,7 @@ jobs:
 
         # Wait until the Appium server starts.
       - name: Check Appium Server
-        uses: nick-fields/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # pin@v2
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # pin@3.0.0
         with:
           timeout_seconds: 60
           max_attempts: 10

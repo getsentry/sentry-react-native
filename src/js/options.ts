@@ -1,6 +1,6 @@
 import type { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
 import type { ProfilerProps } from '@sentry/react/types/profiler';
-import type { CaptureContext, ClientOptions, Options } from '@sentry/types';
+import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@sentry/types';
 import { Platform } from 'react-native';
 
 import type { TouchEventBoundaryProps } from './touchevents';
@@ -180,6 +180,13 @@ export interface BaseReactNativeOptions {
    * @default "http://localhost:8969/stream"
    */
   spotlightSidecarUrl?: string;
+
+  /**
+   * Sets a callback which is executed before capturing screenshots. Only
+   * relevant if `attachScreenshot` is set to true. When false is returned
+   * from the function, no screenshot will be attached.
+   */
+  beforeScreenshot?: (event: Event, hint: EventHint) => boolean;
 }
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {

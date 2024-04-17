@@ -1,20 +1,25 @@
 # Changelog
 
-## Unreleased
+## 5.21.0
 
 ### Features
 
 - Add `getDefaultConfig` option to `getSentryExpoConfig` ([#3690](https://github.com/getsentry/sentry-react-native/pull/3690))
+- Add `beforeScreenshoot` option to `ReactNativeOptions` ([#3715](https://github.com/getsentry/sentry-react-native/pull/3715))
 
 ### Fixes
 
 - Do not enable NativeFramesTracking when native is not available ([#3705](https://github.com/getsentry/sentry-react-native/pull/3705))
+- Do not initialize the SDK during `expo-router` static routes generation ([#3730](https://github.com/getsentry/sentry-react-native/pull/3730))
+- Cancel spans in background doesn't crash in environments without AppState ([#3727](https://github.com/getsentry/sentry-react-native/pull/3727))
+- Fix missing Stall measurements when using new `.end()` span API ([#3737](https://github.com/getsentry/sentry-react-native/pull/3737))
+- Change TimeToDisplay unsupported log from error to warning level. ([#3699](https://github.com/getsentry/sentry-react-native/pull/3699))
 
 ### Dependencies
 
-- Bump CLI from v2.30.0 to v2.30.2 ([#3678](https://github.com/getsentry/sentry-react-native/pull/3678))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2302)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.0...2.30.2)
+- Bump CLI from v2.30.0 to v2.30.4 ([#3678](https://github.com/getsentry/sentry-react-native/pull/3678), [#3704](https://github.com/getsentry/sentry-react-native/pull/3704))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2304)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.0...2.30.4)
 - Bump Android SDK from v7.5.0 to v7.6.0 ([#3675](https://github.com/getsentry/sentry-react-native/pull/3675))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#760)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.5.0...7.6.0)

@@ -13,6 +13,8 @@ import { resolvedSyncPromise } from '@sentry/utils';
 
 export function getDefaultTestClientOptions(options: Partial<TestClientOptions> = {}): TestClientOptions {
   return {
+    dsn: 'https://1234@some-domain.com/4505526893805568',
+    enabled: true,
     integrations: [],
     sendClientReports: true,
     transport: () =>
@@ -39,6 +41,8 @@ export class TestClient extends BaseClient<TestClientOptions> {
   public static sendEventCalled?: (event: Event) => void;
 
   public event?: Event;
+  public eventQueue: Array<Event> = [];
+  public hint?: EventHint;
   public session?: Session;
 
   public constructor(options: TestClientOptions) {
@@ -73,6 +77,8 @@ export class TestClient extends BaseClient<TestClientOptions> {
 
   public sendEvent(event: Event, hint?: EventHint): void {
     this.event = event;
+    this.eventQueue.push(event);
+    this.hint = hint;
 
     // In real life, this will get deleted as part of envelope creation.
     delete event.sdkProcessingMetadata;

@@ -77,7 +77,7 @@ jobs:
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
-        run: brew install xcbeautify
+        run: which xcbeautify || brew install xcbeautify
 
       - name: Install SDK Dependencies
         run: yarn install --frozen-lockfile
