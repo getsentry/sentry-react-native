@@ -1,11 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.21.0 to v8.22.4 ([#3686](https://github.com/getsentry/sentry-react-native/pull/3694))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8224)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.21.0...8.22.4)
+
 ## 5.21.0
 
 ### Features
 
 - Add `getDefaultConfig` option to `getSentryExpoConfig` ([#3690](https://github.com/getsentry/sentry-react-native/pull/3690))
-- Add `beforeScreenshoot` option to `ReactNativeOptions` ([#3715](https://github.com/getsentry/sentry-react-native/pull/3715))
+- Add `beforeScreenshot` option to `ReactNativeOptions` ([#3715](https://github.com/getsentry/sentry-react-native/pull/3715))
 
 ### Fixes
 
@@ -23,9 +31,6 @@
 - Bump Android SDK from v7.5.0 to v7.6.0 ([#3675](https://github.com/getsentry/sentry-react-native/pull/3675))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#760)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.5.0...7.6.0)
-- Bump Cocoa SDK from v8.21.0 to v8.22.4 ([#3686](https://github.com/getsentry/sentry-react-native/pull/3694))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8224)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.21.0...8.22.4)
 
 ## 5.20.0
 
