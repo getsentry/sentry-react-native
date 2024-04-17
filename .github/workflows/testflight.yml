@@ -47,7 +47,7 @@ jobs:
         # So we need to bump the build number each time
       - name: Set Build Number
         working-directory: samples/react-native
-        run: yarn set-build-number
+        run: yarn set-build-number ${{ github.run_number }}
 
       # - name: Remove preview version suffixes
       #   run: bundle exec fastlane remove_preview_version_suffixes
