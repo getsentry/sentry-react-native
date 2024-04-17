@@ -54,7 +54,7 @@ jobs:
 
       - name: Pod Install
         working-directory: samples/react-native/ios
-        run: NO_FLIPPER=1 PRODUCTION=1 pod install
+        run: NO_FLIPPER=1 PRODUCTION=1 bundle exec pod install
 
       - name: Run Fastlane
         working-directory: samples/react-native
@@ -70,5 +70,5 @@ jobs:
           SENTRY_LOG_LEVEL: DEBUG
           SENTRY_CLI_EXTRA_ARGS: "--force-foreground"
         run: |
-          fastlane ios build_react_native_sample
-          fastlane ios upload_react_native_sample_to_testflight
+          bundle exec fastlane ios build_react_native_sample
+          bundle exec fastlane ios upload_react_native_sample_to_testflight
