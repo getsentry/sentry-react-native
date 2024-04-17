@@ -495,6 +495,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 97JCY7859U;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = sampleNewArchitecture/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -522,6 +523,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 97JCY7859U;
 				INFOPLIST_FILE = sampleNewArchitecture/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -607,7 +609,6 @@
 					"-DFOLLY_NO_CONFIG",
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
-					" ",
 				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -680,7 +681,6 @@
 					"-DFOLLY_NO_CONFIG",
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
-					" ",
 				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
