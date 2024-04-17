@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Features
+
+- Updated metric normalization from `@sentry/core` ([#11519](https://github.com/getsentry/sentry-javascript/pull/11519))
+- Metric rate limiting from `sentry-cocoa` and `sentry-android`
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.21.0 to v8.24.0 ([#3686](https://github.com/getsentry/sentry-react-native/pull/3694), [#3696](https://github.com/getsentry/sentry-react-native/pull/3696))
