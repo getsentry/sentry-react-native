@@ -1,5 +1,4 @@
-package com.samplenewarchitecture;
-import android.content.Context;
+package io.sentry.reactnative.sample;
 
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
