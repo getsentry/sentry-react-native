@@ -57,6 +57,7 @@ jobs:
         run: NO_FLIPPER=1 PRODUCTION=1 pod install
 
       - name: Run Fastlane
+        working-directory: samples/react-native
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
@@ -66,6 +67,8 @@ jobs:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_LOG_LEVEL: DEBUG
+          SENTRY_CLI_EXTRA_ARGS: "--force-foreground"
         run: |
           bundle exec fastlane build_react_native_sample
           bundle exec fastlane upload_react_native_sample_to_testflight
