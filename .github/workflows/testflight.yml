@@ -70,5 +70,5 @@ jobs:
           SENTRY_LOG_LEVEL: DEBUG
           SENTRY_CLI_EXTRA_ARGS: "--force-foreground"
         run: |
-          fastlane build_react_native_sample
-          fastlane upload_react_native_sample_to_testflight
+          fastlane ios build_react_native_sample
+          fastlane ios upload_react_native_sample_to_testflight
