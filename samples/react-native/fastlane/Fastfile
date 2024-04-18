@@ -13,7 +13,7 @@ platform :ios do
     )
 
     build_app(
-      workspace: "samples/react-native/sentryreactnativesample.xcworkspace",
+      workspace: "ios/sentryreactnativesample.xcworkspace",
       scheme: "sentryreactnativesample",
       configuration: "Release",
       include_bitcode: false,
