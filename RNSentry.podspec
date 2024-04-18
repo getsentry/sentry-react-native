@@ -30,6 +30,8 @@ Pod::Spec.new do |s|
   s.tvos.deployment_target = "11.0"
   s.visionos.deployment_target = "1.0" if s.respond_to?(:visionos)
 
+  s.resource_bundles = { "RNSentry" => "ios/PrivacyInfo.xcprivacy" }
+
   s.preserve_paths = '*.js'
 
   s.dependency 'React-Core'
