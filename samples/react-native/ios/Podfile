@@ -21,6 +21,15 @@ linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
   use_frameworks! :linkage => linkage.to_sym
+  pre_install do |installer|
+    installer.pod_targets.each do |pod|
+      if pod.name.eql?('RNReanimated') || pod.name.eql?('RNScreens')
+        def pod.build_type;
+          Pod::BuildType.static_library
+        end
+      end
+    end
+  end
 end
 
 target 'sampleNewArchitecture' do
