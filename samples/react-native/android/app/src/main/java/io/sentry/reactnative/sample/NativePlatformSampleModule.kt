@@ -1,4 +1,4 @@
-package com.samplenewarchitecture
+package io.sentry.reactnative.sample
 
 import com.facebook.fbreact.specs.NativePlatformSampleModuleSpec
 import com.facebook.react.bridge.ReactApplicationContext

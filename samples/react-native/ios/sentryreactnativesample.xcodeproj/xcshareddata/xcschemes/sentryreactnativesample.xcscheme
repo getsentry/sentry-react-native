@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "sampleNewArchitecture.app"
-               BlueprintName = "sampleNewArchitecture"
-               ReferencedContainer = "container:sampleNewArchitecture.xcodeproj">
+               BuildableName = "sentryreactnativesample.app"
+               BlueprintName = "sentryreactnativesample"
+               ReferencedContainer = "container:sentryreactnativesample.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "sampleNewArchitectureTests.xctest"
-               BlueprintName = "sampleNewArchitectureTests"
-               ReferencedContainer = "container:sampleNewArchitecture.xcodeproj">
+               BuildableName = "sentryreactnativesampleTests.xctest"
+               BlueprintName = "sentryreactnativesampleTests"
+               ReferencedContainer = "container:sentryreactnativesample.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "sampleNewArchitecture.app"
-            BlueprintName = "sampleNewArchitecture"
-            ReferencedContainer = "container:sampleNewArchitecture.xcodeproj">
+            BuildableName = "sentryreactnativesample.app"
+            BlueprintName = "sentryreactnativesample"
+            ReferencedContainer = "container:sentryreactnativesample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "sampleNewArchitecture.app"
-            BlueprintName = "sampleNewArchitecture"
-            ReferencedContainer = "container:sampleNewArchitecture.xcodeproj">
+            BuildableName = "sentryreactnativesample.app"
+            BlueprintName = "sentryreactnativesample"
+            ReferencedContainer = "container:sentryreactnativesample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

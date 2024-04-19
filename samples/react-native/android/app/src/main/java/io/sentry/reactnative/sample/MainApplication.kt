@@ -1,4 +1,4 @@
-package com.samplenewarchitecture
+package io.sentry.reactnative.sample
 
 import android.app.Application
 import com.facebook.react.PackageList

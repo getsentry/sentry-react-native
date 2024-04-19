@@ -23,7 +23,7 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'sampleNewArchitecture' do
+target 'sentryreactnativesample' do
   config = use_native_modules!
 
   use_react_native!(
@@ -45,7 +45,7 @@ target 'sampleNewArchitecture' do
     pod 'RNSentry', :path => '../../..'
   end
 
-  target 'sampleNewArchitectureTests' do
+  target 'sentryreactnativesampleTests' do
     inherit! :complete
     # Pods for testing
   end
