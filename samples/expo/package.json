@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-expo-sample",
-  "version": "1.0.0",
+  "version": "5.22.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -8,7 +8,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "ts:check": "tsc",
-    "export": "EXPO_SKIP_DURING_EXPORT='true' expo export --dump-sourcemap --clear"
+    "export": "EXPO_SKIP_DURING_EXPORT='true' expo export --dump-sourcemap --clear",
+    "set-version": "npm version --no-git-tag-version",
+    "postversion": "react-native-version --skip-tag --never-amend"
   },
   "dependencies": {
     "@types/react": "18.2.45",

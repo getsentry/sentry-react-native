@@ -40,7 +40,8 @@
     "test:watch": "jest --watch",
     "run-ios": "cd samples/react-native && yarn react-native run-ios",
     "run-android": "cd samples/react-native && yarn react-native run-android",
-    "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/hub @sentry/integrations @sentry/react @sentry/types @sentry/utils"
+    "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/hub @sentry/integrations @sentry/react @sentry/types @sentry/utils",
+    "set-version-samples": "bash scripts/set-version-samples.sh"
   },
   "bin": {
     "sentry-expo-upload-sourcemaps": "scripts/expo-upload-sourcemaps.js"
@@ -106,6 +107,7 @@
     "prettier": "^2.0.5",
     "react": "18.2.0",
     "react-native": "0.73.2",
+    "react-native-version": "^4.0.0",
     "react-test-renderer": "^18.2.0",
     "replace-in-file": "^7.0.1",
     "rimraf": "^4.1.1",

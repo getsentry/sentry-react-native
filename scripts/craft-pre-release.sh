@@ -8,4 +8,5 @@ NEW_VERSION="${2}"
 # Do not tag and commit changes made by "npm version"
 export npm_config_git_tag_version=false
 npm version "${NEW_VERSION}"
+npm run set-version-samples "${NEW_VERSION}"
 node scripts/version-bump.js
