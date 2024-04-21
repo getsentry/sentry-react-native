@@ -201,9 +201,9 @@ export interface ReactNativeTransportOptions extends BrowserTransportOptions {
  * @see ReactNativeFrontend for more information.
  */
 
-export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseReactNativeOptions {}
+export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseReactNativeOptions { }
 
-export interface ReactNativeClientOptions extends ClientOptions<ReactNativeTransportOptions>, BaseReactNativeOptions {}
+export interface ReactNativeClientOptions extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel'>, BaseReactNativeOptions { }
 
 export interface ReactNativeWrapperOptions {
   /** Props for the root React profiler */
