@@ -33,7 +33,7 @@ Pod::Spec.new do |s|
   s.preserve_paths = '*.js'
 
   s.dependency 'React-Core'
-  s.dependency 'Sentry/HybridSDK', '8.21.0'
+  s.dependency 'Sentry/HybridSDK', '8.24.0'
 
   s.source_files = 'ios/**/*.{h,m,mm}'
   s.public_header_files = 'ios/RNSentry.h'
@@ -41,7 +41,7 @@ Pod::Spec.new do |s|
   s.compiler_flags = other_cflags
   # This guard prevent to install the dependencies when we run `pod install` in the old architecture.
   if is_new_arch_enabled then
-    s.pod_target_xcconfig    = {
+    s.pod_target_xcconfig = {
         "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
         "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
     }

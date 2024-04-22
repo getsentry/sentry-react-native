@@ -73,11 +73,11 @@ jobs:
           distribution: 'adopt'
 
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
-        run: brew install xcbeautify
+        run: which xcbeautify || brew install xcbeautify
 
       - name: Install SDK Dependencies
         run: yarn install --frozen-lockfile
@@ -121,9 +121,9 @@ jobs:
           mkdir -p "DerivedData"
           derivedData="$(cd "DerivedData" ; pwd -P)"
           set -o pipefail && xcodebuild \
-            -workspace sampleNewArchitecture.xcworkspace \
+            -workspace sentryreactnativesample.xcworkspace \
             -configuration "$CONFIG" \
-            -scheme sampleNewArchitecture \
+            -scheme sentryreactnativesample \
             -destination 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}' \
             ONLY_ACTIVE_ARCH=yes \
             -derivedDataPath "$derivedData" \

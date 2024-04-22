@@ -17,6 +17,11 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   ErrorUtils?: ErrorUtils;
   expo?: ExpoGlobalObject;
   XMLHttpRequest?: typeof XMLHttpRequest;
+  process?: {
+    env?: {
+      ___SENTRY_METRO_DEV_SERVER___?: string;
+    };
+  };
 }
 
 /** Get's the global object for the current JavaScript runtime */

@@ -57,10 +57,10 @@ jobs:
           java-version: '17'
           distribution: "adopt"
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
       - name: Install Global Dependencies
         run: yarn global add react-native-cli @sentry/cli yalc
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: deps-cache
         with:
           path: |
@@ -77,7 +77,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: app-plain-cache
         with:
           path: ${{ matrix.appPlain }}
@@ -241,7 +241,7 @@ jobs:
           distribution: 'adopt'
 
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
 
       - name: Setup Global Tools
         run: |
@@ -249,17 +249,17 @@ jobs:
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
-        run: brew install xcbeautify
+        run: which xcbeautify || brew install xcbeautify
 
       - name: NPM cache SDK
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: deps-cache
         with:
           path: node_modules
           key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock') }}
 
       - name: NPM cache E2E Tests Library
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: deps-cache-e2e-library
         with:
           path: test/e2e/node_modules
@@ -478,7 +478,7 @@ jobs:
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
-        run: brew install xcbeautify
+        run: which xcbeautify || brew install xcbeautify
 
       - name: Download App Package
         if: matrix.build-type == 'production'
@@ -501,7 +501,7 @@ jobs:
           distribution: 'adopt'
 
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
 
       - name: Setup KVM
         if: ${{ matrix.platform == 'android' }}
@@ -516,7 +516,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: NPM cache E2E Tests Library
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: deps-cache-e2e-library
         with:
           path: test/e2e/node_modules
@@ -551,7 +551,7 @@ jobs:
 
         # Wait until the Appium server starts.
       - name: Check Appium Server
-        uses: nick-fields/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # pin@v2
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # pin@3.0.0
         with:
           timeout_seconds: 60
           max_attempts: 10

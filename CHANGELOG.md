@@ -1,16 +1,47 @@
 # Changelog
 
-## Unreleased
+## 5.22.0
+
+### Features
+
+- Updated metric normalization from `@sentry/core` ([#11519](https://github.com/getsentry/sentry-javascript/pull/11519))
+- Metric rate limiting from `sentry-cocoa` and `sentry-android`
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.21.0 to v8.24.0 ([#3686](https://github.com/getsentry/sentry-react-native/pull/3694), [#3696](https://github.com/getsentry/sentry-react-native/pull/3696))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8240)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.21.0...8.24.0)
+- Bump Android SDK from v7.6.0 to v7.8.0 ([#3750](https://github.com/getsentry/sentry-react-native/pull/3750))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#780)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.6.0...7.8.0)
+- Bump JavaScript SDK from v7.100.1 to v7.110.1 ([#3601](https://github.com/getsentry/sentry-react-native/pull/3601), [#3758](https://github.com/getsentry/sentry-react-native/pull/3758))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/v7/CHANGELOG.md#71101)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.100.1...7.110.1)
+
+## 5.21.0
 
 ### Features
 
 - Add `getDefaultConfig` option to `getSentryExpoConfig` ([#3690](https://github.com/getsentry/sentry-react-native/pull/3690))
+- Add `beforeScreenshot` option to `ReactNativeOptions` ([#3715](https://github.com/getsentry/sentry-react-native/pull/3715))
+
+### Fixes
+
+- Do not enable NativeFramesTracking when native is not available ([#3705](https://github.com/getsentry/sentry-react-native/pull/3705))
+- Do not initialize the SDK during `expo-router` static routes generation ([#3730](https://github.com/getsentry/sentry-react-native/pull/3730))
+- Cancel spans in background doesn't crash in environments without AppState ([#3727](https://github.com/getsentry/sentry-react-native/pull/3727))
+- Fix missing Stall measurements when using new `.end()` span API ([#3737](https://github.com/getsentry/sentry-react-native/pull/3737))
+- Change TimeToDisplay unsupported log from error to warning level. ([#3699](https://github.com/getsentry/sentry-react-native/pull/3699))
 
 ### Dependencies
 
-- Bump CLI from v2.30.0 to v2.30.2 ([#3678](https://github.com/getsentry/sentry-react-native/pull/3678))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2302)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.0...2.30.2)
+- Bump CLI from v2.30.0 to v2.30.4 ([#3678](https://github.com/getsentry/sentry-react-native/pull/3678), [#3704](https://github.com/getsentry/sentry-react-native/pull/3704))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2304)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.0...2.30.4)
+- Bump Android SDK from v7.5.0 to v7.6.0 ([#3675](https://github.com/getsentry/sentry-react-native/pull/3675))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#760)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.5.0...7.6.0)
 
 ## 5.20.0
 
