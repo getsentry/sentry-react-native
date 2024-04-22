@@ -15,8 +15,9 @@
     "pod-install-legacy-production": "cd ios; PRODUCTION=1 bundle exec pod install; cd ..",
     "clean-ios": "cd ios; rm -rf Podfile.lock Pods build; cd ..",
     "clean-watchman": "watchman watch-del-all",
+    "set-build-number": "npx react-native-version --skip-tag --never-amend --set-build",
     "set-version": "npm version --no-git-tag-version",
-    "postversion": "react-native-version --skip-tag --never-amend"
+    "postversion": "npx react-native-version --skip-tag --never-amend"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.5.12",
