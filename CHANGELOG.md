@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Mobile Session Replay Alpha ([#3714](https://github.com/getsentry/sentry-react-native/pull/3714))
+
+  ```js
+  Sentry.init({
+    replaysSessionSampleRate: 1.0,
+    replaysOnErrorSampleRate: 1.0,
+  });
+  ```
+
+  We are in closed alpha stage, [please let us know on the waitlist if you're interested](https://sentry.io/lp/mobile-replay-beta/).
+
+### Dependencies
+
+- Bump Cocoa SDK to [8.24.1-alpha.0](https://github.com/getsentry/sentry-cocoa/releases/tag/8.24.1-alpha.0)
+- Bump Android SDK to [v7.8.0-alpha.0](https://github.com/getsentry/sentry-java/releases/tag/7.8.0-alpha.0)
+
 ## 5.22.0
 
 ### Features
