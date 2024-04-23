@@ -32,14 +32,19 @@ export const mobileReplayIntegration: IntegrationFn = () => {
     const recordingReplayId = NATIVE.getCurrentReplayId();
     if (recordingReplayId) {
       logger.debug(`[Sentry] ${NAME} assign already recording replay ${recordingReplayId} for event ${event.event_id}.`);
+      addReplayIdToTraceContext(event, recordingReplayId);
+      addReplayIdToTags(event, recordingReplayId);
       return event;
     }
 
     const replayId = await NATIVE.startReplay(isHardCrash(event));
     if (!replayId) {
       logger.debug(`[Sentry] ${NAME} not sampled for event ${event.event_id}.`);
+      return event;
     }
 
+    addReplayIdToTraceContext(event, replayId);
+    addReplayIdToTags(event, replayId);
     return event;
   }
 
@@ -66,6 +71,31 @@ export const mobileReplayIntegration: IntegrationFn = () => {
     processEvent,
   };
 };
+
+function addReplayIdToTraceContext(event: Event, replayId: string): void {
+  if (!event.contexts || !event.contexts.trace) {
+    logger.warn(`[Sentry][${NAME}] Event ${event.event_id} is missing trace context. Won't add replay_id.`);
+    return;
+  }
+
+  if (event.contexts.trace.replay_id) {
+    // No log, as this is expected behavior when replay is already recording
+    return;
+  }
+
+  event.contexts.trace.replay_id = replayId;
+}
+
+function addReplayIdToTags(event: Event, replayId: string): void {
+  event.tags = event.tags || {};
+
+  if (event.tags.replayId) {
+    logger.warn(`[Sentry][${NAME}] Event ${event.event_id} already has replayId tag. Won't overwrite.`);
+    return;
+  }
+
+  event.tags.replayId = replayId;
+}
 
 function mobileReplayIntegrationNoop(): IntegrationFnResult {
   return {
