@@ -130,25 +130,15 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
     [mutableOptions removeObjectForKey:@"enableTracing"];
-
+  
     // TODO: If replays is enabled setup RTC native components for redacting
-    if (mutableOptions[@"replaysSessionSampleRate"] != nil) {
-        if ([mutableOptions objectForKey:@"sessionReplayOptions"] && [[mutableOptions objectForKey:@"sessionReplayOptions"] isKindOfClass:[NSDictionary class]]) {
-            NSMutableDictionary *nestedDict = [mutableOptions objectForKey:@"sessionReplayOptions"];
-            [nestedDict setValue:mutableOptions[@"replaysSessionSampleRate"] forKey:@"replaysSessionSampleRate"];
-        } else {
-            NSMutableDictionary *newNestedDict = [NSMutableDictionary dictionaryWithObject:mutableOptions[@"replaysSessionSampleRate"] forKey:@"replaysSessionSampleRate"];
-            [mutableOptions setObject:newNestedDict forKey:@"sessionReplayOptions"];
+    if (mutableOptions[@"replaysSessionSampleRate"] != nil || mutableOptions[@"replaysOnErrorSampleRate"] != nil) {
+      [mutableOptions setValue:@{
+        @"sessionReplay": @{
+          @"sessionSampleRate": mutableOptions[@"replaysSessionSampleRate"] ?: [NSNull null],
+          @"errorSampleRate": mutableOptions[@"replaysOnErrorSampleRate"] ?: [NSNull null],
         }
-    }
-    if (mutableOptions[@"replaysOnErrorSampleRate"] != nil) {
-        if ([mutableOptions objectForKey:@"sessionReplayOptions"] && [[mutableOptions objectForKey:@"sessionReplayOptions"] isKindOfClass:[NSDictionary class]]) {
-            NSMutableDictionary *nestedDict = [mutableOptions objectForKey:@"sessionReplayOptions"];
-            [nestedDict setValue:mutableOptions[@"replaysOnErrorSampleRate"] forKey:@"replaysSessionSampleRate"];
-        } else {
-            NSMutableDictionary *newNestedDict = [NSMutableDictionary dictionaryWithObject:mutableOptions[@"replaysOnErrorSampleRate"] forKey:@"replaysOnErrorSampleRate"];
-            [mutableOptions setObject:newNestedDict forKey:@"sessionReplayOptions"];
-        }
+      } forKey:@"experimental"];
     }
 
     SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:errorPointer];
@@ -656,24 +646,13 @@ RCT_EXPORT_METHOD(startReplay: (BOOL)isHardCrash
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    // TODO: start replay
-    resolve([self getCurrentReplayIdFromScope]);
+  [PrivateSentrySDKOnly captureReplay];
+  resolve([PrivateSentrySDKOnly getReplayId]);
 }
 
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentReplayId)
 {
-  return [self getCurrentReplayIdFromScope];
-}
-
-- (NSString * __nullable) getCurrentReplayIdFromScope {
-  __block NSString * __nullable replayId;
-
-  [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-      //replayId = [scope replayId];
-      replayId = nil;
-  }];
-
-  return replayId;
+  return [PrivateSentrySDKOnly getReplayId];
 }
 
 static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";
