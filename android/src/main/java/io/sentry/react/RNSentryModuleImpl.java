@@ -61,6 +61,7 @@ import io.sentry.SentryEvent;
 import io.sentry.SentryExecutorService;
 import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
+import io.sentry.SentryReplayOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AndroidProfiler;
@@ -253,11 +254,15 @@ public class RNSentryModuleImpl {
             if (rnOptions.hasKey("enableNdk")) {
                 options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
             }
-            if (rnOptions.hasKey("replaysSessionSampleRate")) {
-                // TODO: Set the Android option when available
-            }
-            if (rnOptions.hasKey("replaysOnErrorSampleRate")) {
-                // TODO: Set the Android option when available
+            if (rnOptions.hasKey("replaysSessionSampleRate") || rnOptions.hasKey("replaysOnErrorSampleRate")) {
+                @Nullable Double replaysSessionSampleRate = rnOptions.hasKey("replaysSessionSampleRate")
+                        ? rnOptions.getDouble("replaysSessionSampleRate") : null;
+                @Nullable Double replaysOnErrorSampleRate = rnOptions.hasKey("replaysOnErrorSampleRate")
+                        ? rnOptions.getDouble("replaysOnErrorSampleRate") : null;
+                options.getExperimental().setSessionReplay(new SentryReplayOptions(
+                        replaysSessionSampleRate,
+                        replaysOnErrorSampleRate
+                ));
             }
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException
@@ -417,9 +422,7 @@ public class RNSentryModuleImpl {
     }
 
     public void startReplay(boolean isHardCrash, Promise promise) {
-        // Buffered mode
-        // TODO: Call the correct replay hybrid SDKs API
-        //SentryAndroid.startReplay();
+        Sentry.getCurrentHub().getOptions().getReplayController().sendReplay(isHardCrash, null, null);
         promise.resolve(getCurrentReplayId());
     }
 
@@ -429,8 +432,8 @@ public class RNSentryModuleImpl {
             return null;
         }
 
-        final @Nullable SentryId id = scope.getReplayId();
-        if (id == null) {
+        final @NotNull SentryId id = scope.getReplayId();
+        if (id == SentryId.EMPTY_ID) {
             return null;
         }
         return id.toString();
