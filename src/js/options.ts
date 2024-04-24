@@ -186,7 +186,7 @@ export interface BaseReactNativeOptions {
    * relevant if `attachScreenshot` is set to true. When false is returned
    * from the function, no screenshot will be attached.
    */
-  beforeScreenshot ?: (event: Event, hint: EventHint) => boolean;
+  beforeScreenshot?: (event: Event, hint: EventHint) => boolean;
 
   /**
    * The sample rate for session-long replays.

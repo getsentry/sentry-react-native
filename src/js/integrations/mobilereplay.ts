@@ -32,7 +32,9 @@ export const mobileReplayIntegration: IntegrationFn = () => {
 
     const recordingReplayId = NATIVE.getCurrentReplayId();
     if (recordingReplayId) {
-      logger.debug(`[Sentry] ${NAME} assign already recording replay ${recordingReplayId} for event ${event.event_id}.`);
+      logger.debug(
+        `[Sentry] ${NAME} assign already recording replay ${recordingReplayId} for event ${event.event_id}.`,
+      );
       return event;
     }
 
@@ -67,7 +69,9 @@ export const mobileReplayIntegration: IntegrationFn = () => {
   // https://github.com/getsentry/sentry-javascript/blob/develop/packages/replay-internal/src/integration.ts#L45
   return {
     name: NAME,
-    setupOnce() { /* Noop */ },
+    setupOnce() {
+      /* Noop */
+    },
     setup,
     processEvent,
   };
@@ -76,6 +80,8 @@ export const mobileReplayIntegration: IntegrationFn = () => {
 function mobileReplayIntegrationNoop(): IntegrationFnResult {
   return {
     name: NAME,
-    setupOnce() { /* Noop */ },
+    setupOnce() {
+      /* Noop */
+    },
   };
 }

@@ -24,49 +24,52 @@ text
 
 const PlaygroundScreen = () => {
   return (
-  <SafeAreaView style={styles.container}>
-    <KeyboardAvoidingView
-      behavior={'padding'}
-      style={styles.container}>
-      <ScrollView>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.container}>
-            <Text>Text:</Text>
-            <Text>{"This is <Text>"}</Text>
-            <View style={styles.space} />
-            <Text>TextInput:</Text>
-            <TextInput
-              editable
-              multiline
-              numberOfLines={5}
-              defaultValue={multilineText}
-              style={styles.textInputStyle}
-            />
-            <View style={styles.space} />
-            <Text>Image:</Text>
-            <Image source={require('../assets/sentry-announcement.png')} style={styles.image} />
-            <View style={styles.space} />
-            <Text>BackgroundImage:</Text>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView behavior={'padding'} style={styles.container}>
+        <ScrollView>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>
-              <ImageBackground source={require('../assets/sentry-announcement.png')} resizeMode="cover" style={styles.image}>
-                <Text>This text should be over the image.</Text>
-              </ImageBackground>
-            </View>
-            <Text>Pressable:</Text>
-            <Pressable
-                onPress={(event) => {
+              <Text>Text:</Text>
+              <Text>{'This is <Text>'}</Text>
+              <View style={styles.space} />
+              <Text>TextInput:</Text>
+              <TextInput
+                editable
+                multiline
+                numberOfLines={5}
+                defaultValue={multilineText}
+                style={styles.textInputStyle}
+              />
+              <View style={styles.space} />
+              <Text>Image:</Text>
+              <Image
+                source={require('../assets/sentry-announcement.png')}
+                style={styles.image}
+              />
+              <View style={styles.space} />
+              <Text>BackgroundImage:</Text>
+              <View style={styles.container}>
+                <ImageBackground
+                  source={require('../assets/sentry-announcement.png')}
+                  resizeMode="cover"
+                  style={styles.image}>
+                  <Text>This text should be over the image.</Text>
+                </ImageBackground>
+              </View>
+              <Text>Pressable:</Text>
+              <Pressable
+                onPress={event => {
                   event.stopPropagation();
                   event.preventDefault();
                   console.log('Pressable pressed');
-                }}
-              >
-              <Text>Press me</Text>
-            </Pressable>
-          </View>
-        </TouchableWithoutFeedback>
-      </ScrollView>
-    </KeyboardAvoidingView>
-  </SafeAreaView>
+                }}>
+                <Text>Press me</Text>
+              </Pressable>
+            </View>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -92,5 +95,5 @@ const styles = StyleSheet.create({
     height: 200,
     borderColor: 'gray',
     borderWidth: 1,
-  }
+  },
 });

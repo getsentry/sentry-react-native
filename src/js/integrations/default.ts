@@ -1,5 +1,5 @@
 import { HttpClient } from '@sentry/integrations';
-import { Integrations as BrowserReactIntegrations , replayIntegration } from '@sentry/react';
+import { Integrations as BrowserReactIntegrations, replayIntegration } from '@sentry/react';
 import type { Integration } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../options';
@@ -104,8 +104,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     );
   }
 
-  if (typeof options.replaysOnErrorSampleRate === 'number' ||
-    typeof options.replaysSessionSampleRate === 'number') {
+  if (typeof options.replaysOnErrorSampleRate === 'number' || typeof options.replaysSessionSampleRate === 'number') {
     integrations.push(notWeb() ? mobileReplayIntegration() : replayIntegration());
   }
 

@@ -207,7 +207,9 @@ function BottomTabs() {
             tabBarLabel: 'Playground',
             tabBarIcon: ({ focused, color, size }) => (
               <Ionicons
-                name={focused ? 'american-football' : 'american-football-outline'}
+                name={
+                  focused ? 'american-football' : 'american-football-outline'
+                }
                 size={size}
                 color={color}
               />
