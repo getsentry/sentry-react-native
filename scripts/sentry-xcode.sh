@@ -10,12 +10,28 @@ set -x -e
 LOCAL_NODE_BINARY=${NODE_BINARY:-node}
 
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
-[ -z "$SOURCEMAP_FILE" ] && export SOURCEMAP_FILE="$DERIVED_FILE_DIR/main.jsbundle.map"
 
 [ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/cli/package.json'))")
 [ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_EXECUTABLE="${SENTRY_CLI_PACKAGE_PATH}/bin/sentry-cli"
 
 REACT_NATIVE_XCODE=$1
+
+if [[ "$EXTRA_PACKAGER_ARGS" == *"--sourcemap-output"* ]]; then
+echo "*****************************************************************************************" >&2
+echo "*****************************************************************************************" >&2
+echo "*****                               WARNING                                         *****" >&2
+echo "*****************************************************************************************" >&2
+echo "*****************************************************************************************" >&2
+echo "" >&2
+echo "Using \$EXTRA_PACKAGER_ARG variable with \`--sourcemap-output\` will cause" >&2
+echo "unpredictable behaviour with Hermes, use \$SOURCEMAP_FILE instead." >&2
+echo "" >&2
+echo "See https://reactnative.dev/docs/0.74/debugging-release-builds#enabling-source-maps" >&2
+echo "" >&2
+echo "*****************************************************************************************" >&2
+else
+  [ -z "$SOURCEMAP_FILE" ] && export SOURCEMAP_FILE="$DERIVED_FILE_DIR/main.jsbundle.map"
+fi
 
 [[ "$AUTO_RELEASE" == false ]] && [[ -z "$BUNDLE_COMMAND" || "$BUNDLE_COMMAND" != "ram-bundle" ]] && NO_AUTO_RELEASE="--no-auto-release"
 ARGS="$NO_AUTO_RELEASE $SENTRY_CLI_EXTRA_ARGS $SENTRY_CLI_RN_XCODE_EXTRA_ARGS"

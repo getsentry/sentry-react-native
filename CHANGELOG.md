@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Warn and do not overwrite when `$EXTRA_PACKAGER_ARGS` with `--sourcemap-output` detected during iOS build ([#3775](https://github.com/getsentry/sentry-react-native/pull/3775))
+  - Only when using `sentry-xcode.sh`, learn how to use it at https://docs.sentry.io/platforms/react-native/manual-setup/manual-setup/#configure-automatic-source-maps-upload
+
 ## 5.22.0
 
 ### Features
