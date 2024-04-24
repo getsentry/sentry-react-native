@@ -7,6 +7,9 @@
 #import "RCTConvert.h"
 #endif
 
+#import <React/RCTTextView.h>
+#import <React/RCTImageView.h>
+
 #if __has_include(<hermes/hermes.h>) && SENTRY_PROFILING_SUPPORTED
 #define SENTRY_PROFILING_ENABLED 1
 #import <Sentry/SentryProfilingConditionals.h>
@@ -139,6 +142,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
           @"errorSampleRate": mutableOptions[@"replaysOnErrorSampleRate"] ?: [NSNull null],
         }
       } forKey:@"experimental"];
+      [self addReplayRNRedactClasses];
     }
 
     SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:errorPointer];
@@ -653,6 +657,11 @@ RCT_EXPORT_METHOD(startReplay: (BOOL)isHardCrash
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentReplayId)
 {
   return [PrivateSentrySDKOnly getReplayId];
+}
+
+- (void) addReplayRNRedactClasses
+{
+  [PrivateSentrySDKOnly addReplayRedactClasses: @[[RCTTextView class], [RCTImageView class]]];
 }
 
 static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";
