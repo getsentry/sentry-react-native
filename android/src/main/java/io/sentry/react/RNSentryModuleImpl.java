@@ -254,15 +254,18 @@ public class RNSentryModuleImpl {
             if (rnOptions.hasKey("enableNdk")) {
                 options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
             }
-            if (rnOptions.hasKey("replaysSessionSampleRate") || rnOptions.hasKey("replaysOnErrorSampleRate")) {
-                @Nullable Double replaysSessionSampleRate = rnOptions.hasKey("replaysSessionSampleRate")
-                        ? rnOptions.getDouble("replaysSessionSampleRate") : null;
-                @Nullable Double replaysOnErrorSampleRate = rnOptions.hasKey("replaysOnErrorSampleRate")
-                        ? rnOptions.getDouble("replaysOnErrorSampleRate") : null;
+            if (rnOptions.hasKey("_experiments")) {
+              @Nullable final ReadableMap rnExperimentsOptions = rnOptions.getMap("_experiments");
+              if (rnExperimentsOptions != null && (rnExperimentsOptions.hasKey("replaysSessionSampleRate") || rnExperimentsOptions.hasKey("replaysOnErrorSampleRate"))) {
+                @Nullable Double replaysSessionSampleRate = rnExperimentsOptions.hasKey("replaysSessionSampleRate")
+                        ? rnExperimentsOptions.getDouble("replaysSessionSampleRate") : null;
+                @Nullable Double replaysOnErrorSampleRate = rnExperimentsOptions.hasKey("replaysOnErrorSampleRate")
+                        ? rnExperimentsOptions.getDouble("replaysOnErrorSampleRate") : null;
                 options.getExperimental().setSessionReplay(new SentryReplayOptions(
                         replaysSessionSampleRate,
                         replaysOnErrorSampleRate
                 ));
+            }
             }
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException

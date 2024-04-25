@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import { HttpClient } from '@sentry/integrations';
 import { Integrations as BrowserReactIntegrations, replayIntegration } from '@sentry/react';
 import type { Integration } from '@sentry/types';
@@ -104,7 +105,10 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     );
   }
 
-  if (typeof options.replaysOnErrorSampleRate === 'number' || typeof options.replaysSessionSampleRate === 'number') {
+  if (
+    (options._experiments && typeof options._experiments.replaysOnErrorSampleRate === 'number') ||
+    (options._experiments && typeof options._experiments.replaysSessionSampleRate === 'number')
+  ) {
     integrations.push(notWeb() ? mobileReplayIntegration() : replayIntegration());
   }
 

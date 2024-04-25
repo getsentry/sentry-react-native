@@ -99,10 +99,10 @@ Sentry.init({
   // dist: `1`,
   _experiments: {
     profilesSampleRate: 1.0,
+    // replaysSessionSampleRate: 1.0,
+    replaysOnErrorSampleRate: 1.0,
   },
   enableSpotlight: true,
-  // replaysSessionSampleRate: 1.0,
-  replaysOnErrorSampleRate: 1.0,
 });
 
 const Stack = createNativeStackNavigator();

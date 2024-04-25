@@ -133,16 +133,19 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
     [mutableOptions removeObjectForKey:@"enableTracing"];
-  
-    // TODO: If replays is enabled setup RTC native components for redacting
-    if (mutableOptions[@"replaysSessionSampleRate"] != nil || mutableOptions[@"replaysOnErrorSampleRate"] != nil) {
-      [mutableOptions setValue:@{
-        @"sessionReplay": @{
-          @"sessionSampleRate": mutableOptions[@"replaysSessionSampleRate"] ?: [NSNull null],
-          @"errorSampleRate": mutableOptions[@"replaysOnErrorSampleRate"] ?: [NSNull null],
-        }
-      } forKey:@"experimental"];
-      [self addReplayRNRedactClasses];
+
+    if ([mutableOptions valueForKey:@"_experiments"] != nil) {
+      NSDictionary *experiments = mutableOptions[@"_experiments"];
+      if (experiments[@"replaysSessionSampleRate"] != nil || experiments[@"replaysOnErrorSampleRate"] != nil) {
+        [mutableOptions setValue:@{
+          @"sessionReplay": @{
+            @"sessionSampleRate": experiments[@"replaysSessionSampleRate"] ?: [NSNull null],
+            @"errorSampleRate": experiments[@"replaysOnErrorSampleRate"] ?: [NSNull null],
+          }
+        } forKey:@"experimental"];
+        [self addReplayRNRedactClasses];
+      }
+      [mutableOptions removeObjectForKey:@"_experiments"];
     }
 
     SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:errorPointer];
