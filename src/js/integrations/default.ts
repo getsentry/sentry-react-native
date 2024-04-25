@@ -1,6 +1,7 @@
 /* eslint-disable complexity */
 import { HttpClient } from '@sentry/integrations';
-import { Integrations as BrowserReactIntegrations, replayIntegration } from '@sentry/react';
+import type { BrowserOptions} from '@sentry/react';
+import { Integrations as BrowserReactIntegrations, replayIntegration as browserReplayIntegration } from '@sentry/react';
 import type { Integration } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../options';
@@ -109,7 +110,11 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     (options._experiments && typeof options._experiments.replaysOnErrorSampleRate === 'number') ||
     (options._experiments && typeof options._experiments.replaysSessionSampleRate === 'number')
   ) {
-    integrations.push(notWeb() ? mobileReplayIntegration() : replayIntegration());
+    integrations.push(notWeb() ? mobileReplayIntegration() : browserReplayIntegration());
+    if (!notWeb()) {
+      (options as BrowserOptions).replaysOnErrorSampleRate = options._experiments.replaysOnErrorSampleRate;
+      (options as BrowserOptions).replaysSessionSampleRate = options._experiments.replaysSessionSampleRate;
+    }
   }
 
   return integrations;
