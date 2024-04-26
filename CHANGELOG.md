@@ -13,7 +13,7 @@
   });
   ```
 
-  We are in closed alpha stage, [please let us know on the waitlist if you're interested](https://sentry.io/lp/mobile-replay-beta/).
+  Access is limited to early access orgs on Sentry. If you're interested, [sign up for the waitlist](https://sentry.io/lp/mobile-replay-beta/)
 
 ### Dependencies
 
