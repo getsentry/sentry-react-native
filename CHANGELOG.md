@@ -6,10 +6,27 @@
 
 - Mobile Session Replay Alpha ([#3714](https://github.com/getsentry/sentry-react-native/pull/3714))
 
+  To enable Replay for React Native on mobile and web add the following options.
+
   ```js
   Sentry.init({
     replaysSessionSampleRate: 1.0,
     replaysOnErrorSampleRate: 1.0,
+  });
+  ```
+
+  To change the default Mobile Replay options add the `mobileReplayIntegration`.
+
+  ```js
+  Sentry.init({
+    replaysSessionSampleRate: 1.0,
+    replaysOnErrorSampleRate: 1.0,
+    integration: [
+      Sentry.mobileReplayIntegration({
+        maskAllText: true,
+        maskAllImages: true,
+      }),
+    ],
   });
   ```
 
