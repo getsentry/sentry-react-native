@@ -1,4 +1,4 @@
-import type { Client, DynamicSamplingContext, Event, IntegrationFn, IntegrationFnResult } from '@sentry/types';
+import type { Client, DynamicSamplingContext, Event, IntegrationFn } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { isHardCrash } from '../misc';
@@ -8,10 +8,27 @@ import { NATIVE } from '../wrapper';
 
 const NAME = 'MobileReplay';
 
+export interface MobileReplayOptions {
+  /**
+   * Mask all text in recordings
+   */
+  maskAllText?: boolean;
+
+  /**
+   * Mask all text in recordings
+   */
+  maskAllImages?: boolean;
+}
+
+const defaultOptions: Required<MobileReplayOptions> = {
+  maskAllText: true,
+  maskAllImages: true,
+};
+
 /**
  * MobileReplay Integration let's you change default options.
  */
-export const mobileReplayIntegration: IntegrationFn = () => {
+export const mobileReplayIntegration = ((options: MobileReplayOptions = defaultOptions) => {
   if (isExpoGo()) {
     logger.warn(`[Sentry] ${NAME} is not supported in Expo Go. Use EAS Build or \`expo prebuild\` to enable it.`);
   }
@@ -22,6 +39,9 @@ export const mobileReplayIntegration: IntegrationFn = () => {
   if (isExpoGo() || notMobileOs()) {
     return mobileReplayIntegrationNoop();
   }
+
+  const initialOptions = { ...defaultOptions, ...options };
+  NATIVE.setReplayOptions(initialOptions);
 
   async function processEvent(event: Event): Promise<Event> {
     const hasException = event.exception && event.exception.values && event.exception.values.length > 0;
@@ -75,13 +95,13 @@ export const mobileReplayIntegration: IntegrationFn = () => {
     setup,
     processEvent,
   };
-};
+}) satisfies IntegrationFn;
 
-function mobileReplayIntegrationNoop(): IntegrationFnResult {
+const mobileReplayIntegrationNoop = (() => {
   return {
     name: NAME,
     setupOnce() {
       /* Noop */
     },
   };
-}
+}) satisfies IntegrationFn;

@@ -64,6 +64,7 @@ export {
 export { lastEventId } from '@sentry/browser';
 
 import * as Integrations from './integrations';
+export { mobileReplayIntegration } from './integrations';
 import { SDK_NAME, SDK_VERSION } from './version';
 export type { ReactNativeOptions } from './options';
 export { ReactNativeClient } from './client';

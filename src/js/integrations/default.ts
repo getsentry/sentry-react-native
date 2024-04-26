@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import { HttpClient } from '@sentry/integrations';
-import type { BrowserOptions} from '@sentry/react';
+import type { BrowserOptions } from '@sentry/react';
 import { Integrations as BrowserReactIntegrations, replayIntegration as browserReplayIntegration } from '@sentry/react';
 import type { Integration } from '@sentry/types';
 

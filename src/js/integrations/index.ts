@@ -8,3 +8,4 @@ export { ReactNativeInfo } from './reactnativeinfo';
 export { ModulesLoader } from './modulesloader';
 export { HermesProfiling } from '../profiling/integration';
 export { Spotlight } from './spotlight';
+export { mobileReplayIntegration } from './mobilereplay';

@@ -61,6 +61,7 @@ static NSString* const nativeSdkName = @"sentry.cocoa.react-native";
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
     bool hasListeners;
+    NSDictionary *_Nullable replayOptions;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -141,6 +142,8 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
           @"sessionReplay": @{
             @"sessionSampleRate": experiments[@"replaysSessionSampleRate"] ?: [NSNull null],
             @"errorSampleRate": experiments[@"replaysOnErrorSampleRate"] ?: [NSNull null],
+            @"redactAllImages": replayOptions[@"maskAllImages"] ?: [NSNull null],
+            @"redactAllText": replayOptions[@"maskAllText"] ?: [NSNull null],
           }
         } forKey:@"experimental"];
         [self addReplayRNRedactClasses];
@@ -662,9 +665,21 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentReplayId)
   return [PrivateSentrySDKOnly getReplayId];
 }
 
+RCT_EXPORT_METHOD(setReplayOptions: (NSDictionary *_Nonnull)options)
+{
+  replayOptions = options;
+}
+
 - (void) addReplayRNRedactClasses
 {
-  [PrivateSentrySDKOnly addReplayRedactClasses: @[[RCTTextView class], [RCTImageView class]]];
+  NSMutableArray *_Nonnull classesToRedact = [[NSMutableArray alloc] init];
+  if ([replayOptions[@"maskAllImages"] boolValue] == YES) {
+    [classesToRedact addObject: [RCTImageView class]];
+  }
+  if ([replayOptions[@"maskAllText"] boolValue] == YES) {
+    [classesToRedact addObject: [RCTTextView class]];
+  }
+  [PrivateSentrySDKOnly addReplayRedactClasses: classesToRedact];
 }
 
 static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";

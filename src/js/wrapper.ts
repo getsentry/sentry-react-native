@@ -107,6 +107,8 @@ interface SentryNativeWrapper {
 
   startReplay(isHardCrash: boolean): Promise<string | null>;
   getCurrentReplayId(): string | null;
+
+  setReplayOptions(options: Record<string, string | boolean>): void;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -635,6 +637,19 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.getCurrentReplayId() || null;
+  },
+
+  setReplayOptions(options: Record<string, string>): void {
+    if (!this.enableNative) {
+      logger.warn(`[NATIVE] \`${this.setReplayOptions.name}\` is not available when native is disabled.`);
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      logger.warn(`[NATIVE] \`${this.setReplayOptions.name}\` is not available when native is not available.`);
+      return;
+    }
+
+    RNSentry.setReplayOptions(options);
   },
 
   /**
