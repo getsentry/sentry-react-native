@@ -61,7 +61,6 @@ static NSString* const nativeSdkName = @"sentry.cocoa.react-native";
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
     bool hasListeners;
-    NSDictionary *_Nullable replayOptions;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -142,11 +141,17 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
           @"sessionReplay": @{
             @"sessionSampleRate": experiments[@"replaysSessionSampleRate"] ?: [NSNull null],
             @"errorSampleRate": experiments[@"replaysOnErrorSampleRate"] ?: [NSNull null],
-            @"redactAllImages": replayOptions[@"maskAllImages"] ?: [NSNull null],
-            @"redactAllText": replayOptions[@"maskAllText"] ?: [NSNull null],
+            @"redactAllImages": mutableOptions[@"mobileReplayOptions"] != nil &&
+              mutableOptions[@"mobileReplayOptions"][@"maskAllImages"] != nil
+                ? mutableOptions[@"mobileReplayOptions"][@"maskAllImages"]
+                : [NSNull null],
+            @"redactAllText": mutableOptions[@"mobileReplayOptions"] != nil &&
+              mutableOptions[@"mobileReplayOptions"][@"maskAllText"] != nil
+                ? mutableOptions[@"mobileReplayOptions"][@"maskAllText"]
+                : [NSNull null],
           }
         } forKey:@"experimental"];
-        [self addReplayRNRedactClasses];
+        [self addReplayRNRedactClasses: mutableOptions[@"mobileReplayOptions"]];
       }
       [mutableOptions removeObjectForKey:@"_experiments"];
     }
@@ -665,12 +670,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentReplayId)
   return [PrivateSentrySDKOnly getReplayId];
 }
 
-RCT_EXPORT_METHOD(setReplayOptions: (NSDictionary *_Nonnull)options)
-{
-  replayOptions = options;
-}
-
-- (void) addReplayRNRedactClasses
+- (void) addReplayRNRedactClasses: (NSDictionary *_Nullable)replayOptions
 {
   NSMutableArray *_Nonnull classesToRedact = [[NSMutableArray alloc] init];
   if ([replayOptions[@"maskAllImages"] boolValue] == YES) {

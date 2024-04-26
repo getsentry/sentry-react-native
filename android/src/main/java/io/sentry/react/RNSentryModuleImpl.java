@@ -133,9 +133,6 @@ public class RNSentryModuleImpl {
     /** Max trace file size in bytes. */
     private long maxTraceFileSize = 5 * 1024 * 1024;
 
-    /** Set from JS before the Android SDK init */
-    private @Nullable ReadableMap replayOptions = null;
-
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
       packageInfo = getPackageInfo(reactApplicationContext);
       this.reactApplicationContext = reactApplicationContext;
@@ -258,22 +255,7 @@ public class RNSentryModuleImpl {
                 options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
             }
             if (rnOptions.hasKey("_experiments")) {
-              @Nullable final ReadableMap rnExperimentsOptions = rnOptions.getMap("_experiments");
-              if (rnExperimentsOptions != null && (rnExperimentsOptions.hasKey("replaysSessionSampleRate") || rnExperimentsOptions.hasKey("replaysOnErrorSampleRate"))) {
-                final @Nullable Double replaysSessionSampleRate = rnExperimentsOptions.hasKey("replaysSessionSampleRate")
-                        ? rnExperimentsOptions.getDouble("replaysSessionSampleRate") : null;
-                final @Nullable Double replaysOnErrorSampleRate = rnExperimentsOptions.hasKey("replaysOnErrorSampleRate")
-                        ? rnExperimentsOptions.getDouble("replaysOnErrorSampleRate") : null;
-                final @NotNull SentryReplayOptions androidReplayOptions = new SentryReplayOptions(
-                        replaysSessionSampleRate,
-                        replaysOnErrorSampleRate
-                );
-                androidReplayOptions.setRedactAllText(replayOptions != null && replayOptions.hasKey("maskAllText")
-                        ? replayOptions.getBoolean("maskAllText") : true);
-                androidReplayOptions.setRedactAllImages(replayOptions != null && replayOptions.hasKey("maskAllImages")
-                        ? replayOptions.getBoolean("maskAllImages") : true);
-                options.getExperimental().setSessionReplay(androidReplayOptions);
-              }
+                options.getExperimental().setSessionReplay(getReplayOptions(rnOptions));
             }
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException
@@ -313,6 +295,37 @@ public class RNSentryModuleImpl {
         });
 
         promise.resolve(true);
+    }
+
+    private SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
+        @NotNull final SentryReplayOptions androidReplayOptions = new SentryReplayOptions();
+
+        @Nullable final ReadableMap rnExperimentsOptions = rnOptions.getMap("_experiments");
+        if (rnExperimentsOptions == null) {
+            return androidReplayOptions;
+        }
+
+        if (!(rnExperimentsOptions.hasKey("replaysSessionSampleRate") || rnExperimentsOptions.hasKey("replaysOnErrorSampleRate"))) {
+            return androidReplayOptions;
+        }
+
+        androidReplayOptions.setErrorSampleRate(rnExperimentsOptions.hasKey("replaysSessionSampleRate")
+                ? rnExperimentsOptions.getDouble("replaysSessionSampleRate") : null);
+        androidReplayOptions.setErrorSampleRate(rnExperimentsOptions.hasKey("replaysOnErrorSampleRate")
+                ? rnExperimentsOptions.getDouble("replaysOnErrorSampleRate") : null);
+
+        if (!rnOptions.hasKey("mobileReplayOptions")) {
+            return androidReplayOptions;
+        }
+        @Nullable final ReadableMap rnMobileReplayOptions = rnOptions.getMap("mobileReplayOptions");
+        if (rnMobileReplayOptions == null) {
+            return androidReplayOptions;
+        }
+
+        androidReplayOptions.setRedactAllText(!rnMobileReplayOptions.hasKey("maskAllText") || rnMobileReplayOptions.getBoolean("maskAllText"));
+        androidReplayOptions.setRedactAllImages(!rnMobileReplayOptions.hasKey("maskAllImages") || rnMobileReplayOptions.getBoolean("maskAllImages"));
+
+        return androidReplayOptions;
     }
 
     public void crash() {
@@ -448,10 +461,6 @@ public class RNSentryModuleImpl {
             return null;
         }
         return id.toString();
-    }
-
-    public void setReplayOptions(@NotNull ReadableMap options) {
-        this.replayOptions = options;
     }
 
     public void captureEnvelope(String rawBytes, ReadableMap options, Promise promise) {

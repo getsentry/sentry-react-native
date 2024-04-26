@@ -12,6 +12,7 @@ import type {
 import { logger, normalize, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
 
+import type { MobileReplayOptions } from './integrations/mobilereplay';
 import { isHardCrash } from './misc';
 import type {
   NativeAppStartResponse,
@@ -47,6 +48,10 @@ export interface Screenshot {
   filename: string;
 }
 
+export type NativeSdkOptions = Partial<ReactNativeClientOptions> & {
+  mobileReplayOptions: MobileReplayOptions | undefined;
+};
+
 interface SentryNativeWrapper {
   enableNative: boolean;
   nativeIsReady: boolean;
@@ -63,7 +68,7 @@ interface SentryNativeWrapper {
 
   isNativeAvailable(): boolean;
 
-  initNativeSdk(options: Partial<ReactNativeClientOptions>): PromiseLike<boolean>;
+  initNativeSdk(options: NativeSdkOptions): PromiseLike<boolean>;
   closeNativeSdk(): PromiseLike<void>;
 
   sendEnvelope(envelope: Envelope): Promise<void>;
@@ -107,8 +112,6 @@ interface SentryNativeWrapper {
 
   startReplay(isHardCrash: boolean): Promise<string | null>;
   getCurrentReplayId(): string | null;
-
-  setReplayOptions(options: Record<string, string | boolean>): void;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -198,8 +201,8 @@ export const NATIVE: SentryNativeWrapper = {
    * Starts native with the provided options.
    * @param options ReactNativeClientOptions
    */
-  async initNativeSdk(originalOptions: Partial<ReactNativeClientOptions>): Promise<boolean> {
-    const options: Partial<ReactNativeClientOptions> = {
+  async initNativeSdk(originalOptions: NativeSdkOptions): Promise<boolean> {
+    const options: NativeSdkOptions = {
       enableNative: true,
       autoInitializeNativeSdk: true,
       ...originalOptions,
@@ -637,19 +640,6 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.getCurrentReplayId() || null;
-  },
-
-  setReplayOptions(options: Record<string, string>): void {
-    if (!this.enableNative) {
-      logger.warn(`[NATIVE] \`${this.setReplayOptions.name}\` is not available when native is disabled.`);
-      return;
-    }
-    if (!this._isModuleLoaded(RNSentry)) {
-      logger.warn(`[NATIVE] \`${this.setReplayOptions.name}\` is not available when native is not available.`);
-      return;
-    }
-
-    RNSentry.setReplayOptions(options);
   },
 
   /**

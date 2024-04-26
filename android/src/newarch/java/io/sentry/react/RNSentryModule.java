@@ -8,8 +8,6 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.WritableMap;
 
-import org.jetbrains.annotations.NotNull;
-
 public class RNSentryModule extends NativeRNSentrySpec {
 
     private final RNSentryModuleImpl impl;
@@ -169,10 +167,5 @@ public class RNSentryModule extends NativeRNSentrySpec {
     @Override
     public String getCurrentReplayId() {
         return this.impl.getCurrentReplayId();
-    }
-
-    @Override
-    public void setReplayOptions(@NotNull ReadableMap options) {
-        this.impl.setReplayOptions(options);
     }
 }

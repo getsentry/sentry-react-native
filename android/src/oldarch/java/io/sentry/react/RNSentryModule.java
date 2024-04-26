@@ -168,9 +168,4 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public String getCurrentReplayId() {
         return this.impl.getCurrentReplayId();
     }
-
-    @ReactMethod
-    public void setReplayOptions(@NotNull ReadableMap options) {
-        this.impl.setReplayOptions(options);
-    }
 }
