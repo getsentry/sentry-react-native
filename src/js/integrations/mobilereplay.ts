@@ -1,4 +1,4 @@
-import type { Client, DynamicSamplingContext, Event, IntegrationFn, IntegrationFnResult } from '@sentry/types';
+import type { Client, DynamicSamplingContext, Event, IntegrationFnResult } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { isHardCrash } from '../misc';
@@ -32,9 +32,7 @@ type MobileReplayIntegration = IntegrationFnResult & {
 /**
  * MobileReplay Integration let's you change default options.
  */
-export const mobileReplayIntegration = ((
-  initOptions: MobileReplayOptions = defaultOptions,
-): MobileReplayIntegration => {
+export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defaultOptions): MobileReplayIntegration => {
   if (isExpoGo()) {
     logger.warn(
       `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} is not supported in Expo Go. Use EAS Build or \`expo prebuild\` to enable it.`,
@@ -103,9 +101,9 @@ export const mobileReplayIntegration = ((
     processEvent,
     options: options,
   };
-}) satisfies IntegrationFn;
+};
 
-const mobileReplayIntegrationNoop = ((): MobileReplayIntegration => {
+const mobileReplayIntegrationNoop = (): MobileReplayIntegration => {
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
     setupOnce() {
@@ -113,4 +111,4 @@ const mobileReplayIntegrationNoop = ((): MobileReplayIntegration => {
     },
     options: defaultOptions,
   };
-}) satisfies IntegrationFn;
+};
