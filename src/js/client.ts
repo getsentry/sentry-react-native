@@ -119,6 +119,14 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    */
   public init(): void {
     super.init();
+    this._initNativeSdk();
+  }
+
+  /**
+   * @inheritdoc
+   */
+  protected _setupIntegrations(): void {
+    super._setupIntegrations();
     const tracing = this.getIntegration(ReactNativeTracing);
     const routingName = tracing?.options.routingInstrumentation?.name;
     if (routingName) {
@@ -128,7 +136,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     if (enableUserInteractionTracing) {
       this.addIntegration(createIntegration('ReactNativeUserInteractionTracing'));
     }
-    this._initNativeSdk();
   }
 
   /**
