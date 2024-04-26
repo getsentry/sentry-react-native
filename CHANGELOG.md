@@ -35,7 +35,7 @@
 ### Dependencies
 
 - Bump Cocoa SDK to [8.25.0-alpha.0](https://github.com/getsentry/sentry-cocoa/releases/tag/8.25.0-alpha.0)
-- Bump Android SDK to [v7.8.0-alpha.0](https://github.com/getsentry/sentry-java/releases/tag/7.8.0-alpha.0)
+- Bump Android SDK to [7.9.0-alpha.1](https://github.com/getsentry/sentry-java/releases/tag/7.9.0-alpha.1)
 
 ## 5.22.0
 
