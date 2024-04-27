@@ -1,3 +1,5 @@
+#if SENTRY_HAS_UIKIT
+
 #import <Sentry/SentryFramesTracker.h>
 #import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentrySwizzle.h>
@@ -24,3 +26,5 @@
 }
 
 @end
+
+#endif

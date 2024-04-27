@@ -1,3 +1,5 @@
+#if SENTRY_HAS_UIKIT
+
 #import <Foundation/Foundation.h>
 #import <React/RCTEventEmitter.h>
 #import <Sentry/SentryFramesTracker.h>
@@ -15,3 +17,5 @@ typedef void (^RNSentryEmitNewFrameEvent)(NSNumber *newFrameTimestampInSeconds);
 @property (strong, nonatomic) RNSentryEmitNewFrameEvent emitNewFrameEvent;
 
 @end
+
+#endif

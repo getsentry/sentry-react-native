@@ -192,6 +192,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking:(RCTPromiseResolveBlock)resolve
                                                    rejecter:(RCTPromiseRejectBlock)reject)
 {
+#if SENTRY_HAS_UIKIT
     if ([[NSThread currentThread] isMainThread]) {
         [RNSentryRNSScreen swizzleViewDidAppear];
     } else {
@@ -201,16 +202,20 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking:(RCTPromiseResolveBl
     }
 
     [self initFramesTracking];
+#endif
     resolve(nil);
 }
 
 - (void)initFramesTracking {
+#if !TARGET_OS_OSX
+
   RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
     if (self->hasListeners) {
       [self sendEventWithName:RNSentryNewFrameEvent body:@{ @"newFrameTimestampInSeconds": newFrameTimestampInSeconds }];
     }
   };
   [[RNSentryDependencyContainer sharedInstance] initializeFramesTrackerListenerWith: emitNewFrameEvent];
+#endif
 }
 
 // Will be called when this module's first listener is added.
@@ -370,7 +375,7 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-
+#if SENTRY_HAS_UIKIT
     SentryAppStartMeasurement *appStartMeasurement = PrivateSentrySDKOnly.appStartMeasurement;
 
     if (appStartMeasurement == nil) {
@@ -389,6 +394,9 @@ RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
     // This is always set to true, as we would only allow an app start fetch to only happen once
     // in the case of a JS bundle reload, we do not want it to be instrumented again.
     didFetchAppStart = true;
+#else
+    resolve(nil);
+#endif
 }
 
 RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
