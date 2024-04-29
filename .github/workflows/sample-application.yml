@@ -58,6 +58,8 @@ jobs:
             ios-use-frameworks: 'dynamic-frameworks'
           - rn-architecture: 'new'
             platform: 'macos'
+          - ios-use-frameworks: 'dynamic-frameworks'
+            platform: 'macos'
     steps:
       - uses: actions/checkout@v4
 
@@ -70,7 +72,7 @@ jobs:
             samples/react-native/yarn.lock
 
       - uses: ruby/setup-ruby@v1
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
         with:
           working-directory: samples/react-native
           ruby-version: '3.3.0' # based on what is used in the sample
