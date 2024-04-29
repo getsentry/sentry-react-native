@@ -128,10 +128,10 @@ jobs:
           mkdir -p "DerivedData"
           derivedData="$(cd "DerivedData" ; pwd -P)"
           set -o pipefail && xcodebuild \
-            -workspace sentryreactnativesample.xcworkspace \
+            -workspace sentry-react-native-sample.xcworkspace \
             -configuration "$CONFIG" \
-            -scheme sentryreactnativesample \
-            -destination 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}' \
+            -scheme sentry-react-native-sample-macOS \
+            -destination 'platform=macOS' \
             ONLY_ACTIVE_ARCH=yes \
             -derivedDataPath "$derivedData" \
             build \
