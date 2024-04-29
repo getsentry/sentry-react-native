@@ -36,8 +36,11 @@
 
 #import "RNSentryEvents.h"
 #import "RNSentryDependencyContainer.h"
-#import "RNSentryFramesTrackerListener.h"
+
+#if SENTRY_HAS_UIKIT
 #import "RNSentryRNSScreen.h"
+#import "RNSentryFramesTrackerListener.h"
+#endif
 
 @interface SentryTraceContext : NSObject
 - (nullable instancetype)initWithDict:(NSDictionary<NSString *, id> *)dictionary;
@@ -207,7 +210,7 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking:(RCTPromiseResolveBl
 }
 
 - (void)initFramesTracking {
-#if !TARGET_OS_OSX
+#if SENTRY_HAS_UIKIT
 
   RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
     if (self->hasListeners) {

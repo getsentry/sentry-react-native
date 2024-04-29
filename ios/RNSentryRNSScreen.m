@@ -1,10 +1,11 @@
+#import "RNSentryRNSScreen.h"
+
 #if SENTRY_HAS_UIKIT
 
 #import <Sentry/SentryFramesTracker.h>
 #import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentrySwizzle.h>
 
-#import "RNSentryRNSScreen.h"
 #import "RNSentryDependencyContainer.h"
 
 @implementation RNSentryRNSScreen
