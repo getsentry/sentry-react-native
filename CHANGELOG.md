@@ -10,8 +10,10 @@
 
   ```js
   Sentry.init({
-    replaysSessionSampleRate: 1.0,
-    replaysOnErrorSampleRate: 1.0,
+    _experiments: {
+      replaysSessionSampleRate: 1.0,
+      replaysOnErrorSampleRate: 1.0,
+    },
   });
   ```
 
@@ -19,8 +21,10 @@
 
   ```js
   Sentry.init({
-    replaysSessionSampleRate: 1.0,
-    replaysOnErrorSampleRate: 1.0,
+    _experiments: {
+      replaysSessionSampleRate: 1.0,
+      replaysOnErrorSampleRate: 1.0,
+    },
     integration: [
       Sentry.mobileReplayIntegration({
         maskAllText: true,
