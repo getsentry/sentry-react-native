@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Remove `tunnel` from SDK Options ([#3771](https://github.com/getsentry/sentry-react-native/pull/3771))
+- Remove `tunnel` from SDK Options ([#3787](https://github.com/getsentry/sentry-react-native/pull/3787))
 
 ## 5.22.0
 
