@@ -40,7 +40,7 @@ jobs:
       matrix:
         rn-architecture: ['legacy', 'new']
         ios-use-frameworks: ['no-frameworks', 'dynamic-frameworks']
-        platform: ['android', 'ios']
+        platform: ['android', 'ios', 'macos']
         build-type: ['dev', 'production']
         include:
           - platform: ios
@@ -54,6 +54,8 @@ jobs:
             ios-use-frameworks: 'dynamic-frameworks'
           - rn-architecture: 'new'
             ios-use-frameworks: 'dynamic-frameworks'
+          - rn-architecture: 'new'
+            platform: 'macos'
     steps:
       - uses: actions/checkout@v4
 
@@ -96,9 +98,12 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Install App Pods
-        if: ${{ matrix.platform == 'ios' }}
-        working-directory: samples/react-native/ios
+        if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
+        working-directory: samples/react-native
         run: |
+          [[ "${{ matrix.platform }}" == "ios" ]] && cd ios
+          [[ "${{ matrix.platform }}" == "macos" ]] && cd macos
+
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic && export NO_FLIPPER=1
@@ -122,6 +127,25 @@ jobs:
       - name: Build iOS App
         if: ${{ matrix.platform == 'ios' }}
         working-directory: samples/react-native/ios
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          echo "Building $CONFIG"
+          mkdir -p "DerivedData"
+          derivedData="$(cd "DerivedData" ; pwd -P)"
+          set -o pipefail && xcodebuild \
+            -workspace sentryreactnativesample.xcworkspace \
+            -configuration "$CONFIG" \
+            -scheme sentryreactnativesample \
+            -destination 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}' \
+            ONLY_ACTIVE_ARCH=yes \
+            -derivedDataPath "$derivedData" \
+            build \
+            | tee xcodebuild.log \
+            | xcbeautify --quieter --is-ci --disable-colored-output
+
+      - name: Build macOS App
+        if: ${{ matrix.platform == 'macos' }}
+        working-directory: samples/react-native/macos
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"
