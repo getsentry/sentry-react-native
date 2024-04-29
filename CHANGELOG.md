@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Remove `tunnel` from SDK Options ([#3771](https://github.com/getsentry/sentry-react-native/pull/3771))
+
 ## 5.22.0
 
 ### Features
