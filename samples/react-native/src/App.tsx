@@ -4,6 +4,8 @@ import {
   NavigationContainerRef,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
+
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 // Import the Sentry React Native SDK
@@ -20,14 +22,16 @@ import { Provider } from 'react-redux';
 import { store } from './reduxApp';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
+const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
-    enableTimeToInitialDisplay: true,
+    enableTimeToInitialDisplay: isMobileOs,
   });
 
 Sentry.init({
@@ -102,7 +106,9 @@ Sentry.init({
   enableSpotlight: true,
 });
 
-const Stack = createNativeStackNavigator();
+const Stack = isMobileOs
+  ? createNativeStackNavigator()
+  : createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const TabOneStack = Sentry.withProfiler(
