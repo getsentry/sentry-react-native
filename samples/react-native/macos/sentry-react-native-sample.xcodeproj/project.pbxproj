@@ -326,6 +326,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "sentry-react-native-sample-iOS/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Sentry RN";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -350,6 +351,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = "sentry-react-native-sample-iOS/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Sentry RN";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
