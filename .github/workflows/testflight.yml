@@ -1,0 +1,79 @@
+name: Upload to Testflight
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    paths:
+      - '.github/workflows/testflight.yml'
+
+jobs:
+  diff_check:
+    uses: ./.github/workflows/skip-ci.yml
+
+  upload_to_testflight:
+    name: Build and Upload React Native Sample to Testflight
+    runs-on: macos-14
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo xcode-select -s /Applications/Xcode_15.3.app/Contents/Developer
+      - uses: ruby/setup-ruby@v1
+        with:
+          working-directory: samples/react-native
+          ruby-version: '3.3.0' # based on what is used in the sample
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 1 # cache the installed gems
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - uses: actions/cache@v4
+        id: deps-cache
+        with:
+          path: |
+            node_modules
+            samples/react-native/node_modules
+          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'samples/react-native/yarn.lock') }}
+      - name: Install Dependencies
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+        run: |
+          yarn install
+          cd samples/react-native && yarn install
+      - name: Build SDK
+        run: yarn build
+
+        # We upload a new version to TestFlight on every commit on main
+        # So we need to bump the build number each time
+      - name: Set Build Number
+        working-directory: samples/react-native
+        run: yarn set-build-number ${{ github.run_number }}
+
+      - name: Pod Install
+        working-directory: samples/react-native/ios
+        run: NO_FLIPPER=1 PRODUCTION=1 bundle exec pod install
+
+      - name: Run Fastlane
+        working-directory: samples/react-native
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+          FASTLANE_KEYCHAIN_PASSWORD: ${{ secrets.FASTLANE_KEYCHAIN_PASSWORD }}
+          MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_LOG_LEVEL: DEBUG
+          SENTRY_CLI_EXTRA_ARGS: "--force-foreground"
+        run: |
+          bundle exec fastlane ios build_react_native_sample
+          bundle exec fastlane ios upload_react_native_sample_to_testflight
+
+      - name: Upload Xcode Archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentry-react-native-sample-xcode-archive-for-testflight
+          path: samples/react-native/sentryreactnativesample.xcarchive
+          retention-days: 1
