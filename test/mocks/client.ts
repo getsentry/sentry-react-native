@@ -13,6 +13,8 @@ import { resolvedSyncPromise } from '@sentry/utils';
 
 export function getDefaultTestClientOptions(options: Partial<TestClientOptions> = {}): TestClientOptions {
   return {
+    dsn: 'https://1234@some-domain.com/4505526893805568',
+    enabled: true,
     integrations: [],
     sendClientReports: true,
     transport: () =>

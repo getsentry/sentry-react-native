@@ -1,4 +1,5 @@
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
+import { env } from 'process';
 
 import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } from './sentryMetroSerializer';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
@@ -12,6 +13,8 @@ export * from './sentryMetroSerializer';
  * Collapses Sentry frames from the stack trace view in LogBox.
  */
 export function withSentryConfig(config: MetroConfig): MetroConfig {
+  setSentryMetroDevServerEnvFlag();
+
   let newConfig = config;
 
   newConfig = withSentryDebugId(newConfig);
@@ -27,6 +30,8 @@ export function getSentryExpoConfig(
   projectRoot: string,
   options: DefaultConfigOptions & { getDefaultConfig?: typeof getSentryExpoConfig } = {},
 ): MetroConfig {
+  setSentryMetroDevServerEnvFlag();
+
   const getDefaultConfig = options.getDefaultConfig || loadExpoMetroConfigModule().getDefaultConfig;
   const config = getDefaultConfig(projectRoot, {
     ...options,
@@ -119,4 +124,13 @@ export function withSentryFramesCollapsed(config: MetroConfig): MetroConfig {
       customizeFrame,
     },
   };
+}
+
+/**
+ * Sets the `___SENTRY_METRO_DEV_SERVER___` environment flag.
+ * This is used to determine if the SDK is running in Node in Metro Dev Server.
+ * For example during static routes generation in `expo-router`.
+ */
+function setSentryMetroDevServerEnvFlag(): void {
+  env.___SENTRY_METRO_DEV_SERVER___ = 'true';
 }

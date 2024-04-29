@@ -14,7 +14,6 @@ import TestRenderer from 'react-test-renderer';
 import * as Sentry from '../../src/js';
 import { ReactNavigationInstrumentation } from '../../src/js';
 import { TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing';
-import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 import { isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { createSentryEventEmitter } from '../../src/js/utils/sentryeventemitter';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
@@ -22,6 +21,7 @@ import { MOCK_DSN } from '../mockDsn';
 import { secondInFutureTimestampMs } from '../testutils';
 import type { MockedSentryEventEmitter } from '../utils/mockedSentryeventemitter';
 import { emitNativeFullDisplayEvent, emitNativeInitialDisplayEvent } from './mockedtimetodisplaynative';
+import { createMockNavigationAndAttachTo } from './reactnavigationutils';
 
 describe('React Navigation - TTID', () => {
   let mockedEventEmitter: MockedSentryEventEmitter;
@@ -514,77 +514,11 @@ describe('React Navigation - TTID', () => {
     return sut;
   }
 
-  function createMockNavigationAndAttachTo(sut: ReactNavigationInstrumentation) {
-    const mockedNavigationContained = mockNavigationContainer();
-    const mockedNavigation = {
-      navigateToNewScreen: () => {
-        mockedNavigationContained.listeners['__unsafe_action__']({
-          // this object is not used by the instrumentation
-        });
-        mockedNavigationContained.currentRoute = {
-          key: 'new_screen',
-          name: 'New Screen',
-        };
-        mockedNavigationContained.listeners['state']({
-          // this object is not used by the instrumentation
-        });
-      },
-      navigateToInitialScreen: () => {
-        mockedNavigationContained.listeners['__unsafe_action__']({
-          // this object is not used by the instrumentation
-        });
-        mockedNavigationContained.currentRoute = {
-          key: 'initial_screen',
-          name: 'Initial Screen',
-        };
-        mockedNavigationContained.listeners['state']({
-          // this object is not used by the instrumentation
-        });
-      },
-      finishAppStartNavigation: () => {
-        mockedNavigationContained.currentRoute = {
-          key: 'initial_screen',
-          name: 'Initial Screen',
-        };
-        mockedNavigationContained.listeners['state']({
-          // this object is not used by the instrumentation
-        });
-      },
-    };
-    sut.registerNavigationContainer(mockRef(mockedNavigationContained));
-
-    return mockedNavigation;
-  }
-
-  function mockNavigationContainer(): MockNavigationContainer {
-    return new MockNavigationContainer();
-  }
-
-  function mockRef<T>(wat: T): { current: T } {
-    return {
-      current: wat,
-    };
-  }
-
   function getLastTransaction(mockedTransportSend: jest.Mock): TransactionEvent {
     // Until https://github.com/getsentry/sentry-javascript/blob/a7097d9ba2a74b2cb323da0ef22988a383782ffb/packages/types/src/event.ts#L93
     return JSON.parse(JSON.stringify(mockedTransportSend.mock.lastCall[0][1][0][1]));
   }
 });
-
-class MockNavigationContainer {
-  currentRoute: NavigationRoute = {
-    key: 'initial_screen',
-    name: 'Initial Screen',
-  };
-  listeners: Record<string, (e: any) => void> = {};
-  addListener: any = jest.fn((eventType: string, listener: (e: any) => void): void => {
-    this.listeners[eventType] = listener;
-  });
-  getCurrentRoute(): NavigationRoute | undefined {
-    return this.currentRoute;
-  }
-}
 
 function initSentry(sut: ReactNavigationInstrumentation): {
   transportSendMock: jest.Mock<ReturnType<Transport['send']>, Parameters<Transport['send']>>;

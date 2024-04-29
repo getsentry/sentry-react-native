@@ -17,7 +17,7 @@ import type { ReactNativeTracing } from './tracing';
 import { ReactNativeProfiler } from './tracing';
 import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
-import { getDefaultEnvironment, isExpoGo } from './utils/environment';
+import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer } from './utils/environment';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { NATIVE } from './wrapper';
 
@@ -39,6 +39,10 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
  * Inits the SDK and returns the final options.
  */
 export function init(passedOptions: ReactNativeOptions): void {
+  if (isRunningInMetroDevServer()) {
+    return;
+  }
+
   useEncodePolyfill();
 
   const maxQueueSize = passedOptions.maxQueueSize

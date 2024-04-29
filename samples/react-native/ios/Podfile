@@ -21,9 +21,20 @@ linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
   use_frameworks! :linkage => linkage.to_sym
+  pre_install do |installer|
+    installer.pod_targets.each do |pod|
+      # RNScreens and RNReanimated don't work when dynamically linked
+      # Fix from https://github.com/software-mansion/react-native-screens/issues/1963#issuecomment-1848246731
+      if pod.name.eql?('RNReanimated') || pod.name.eql?('RNScreens')
+        def pod.build_type;
+          Pod::BuildType.static_library
+        end
+      end
+    end
+  end
 end
 
-target 'sampleNewArchitecture' do
+target 'sentryreactnativesample' do
   config = use_native_modules!
 
   use_react_native!(
@@ -45,7 +56,7 @@ target 'sampleNewArchitecture' do
     pod 'RNSentry', :path => '../../..'
   end
 
-  target 'sampleNewArchitectureTests' do
+  target 'sentryreactnativesampleTests' do
     inherit! :complete
     # Pods for testing
   end
