@@ -7,9 +7,6 @@
 #import "RCTConvert.h"
 #endif
 
-#import <React/RCTTextView.h>
-#import <React/RCTImageView.h>
-
 #if __has_include(<hermes/hermes.h>) && SENTRY_PROFILING_SUPPORTED
 #define SENTRY_PROFILING_ENABLED 1
 #import <Sentry/SentryProfilingConditionals.h>
@@ -674,10 +671,10 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentReplayId)
 {
   NSMutableArray *_Nonnull classesToRedact = [[NSMutableArray alloc] init];
   if ([replayOptions[@"maskAllImages"] boolValue] == YES) {
-    [classesToRedact addObject: [RCTImageView class]];
+    [classesToRedact addObject: NSClassFromString(@"RCTImageView")];
   }
   if ([replayOptions[@"maskAllText"] boolValue] == YES) {
-    [classesToRedact addObject: [RCTTextView class]];
+    [classesToRedact addObject: NSClassFromString(@"RCTTextView")];
   }
   [PrivateSentrySDKOnly addReplayRedactClasses: classesToRedact];
 }
