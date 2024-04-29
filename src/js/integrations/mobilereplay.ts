@@ -30,7 +30,22 @@ type MobileReplayIntegration = IntegrationFnResult & {
 };
 
 /**
- * MobileReplay Integration let's you change default options.
+ * The Mobile Replay Integration, let's you adjust the default mobile replay options.
+ * To be passed to `Sentry.init` with `replaysOnErrorSampleRate` or `replaysSessionSampleRate`.
+ *
+ * ```javascript
+ * Sentry.init({
+ *  _experiments: {
+ *    replaysOnErrorSampleRate: 1.0,
+ *    replaysSessionSampleRate: 1.0,
+ *  },
+ *  integrations: [mobileReplayIntegration({
+ *    // Adjust the default options
+ *  })],
+ * });
+ * ```
+ *
+ * @experimental
  */
 export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defaultOptions): MobileReplayIntegration => {
   if (isExpoGo()) {
