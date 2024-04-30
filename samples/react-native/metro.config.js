@@ -19,6 +19,21 @@ const config = {
     `${parentDir}/node_modules`,
   ],
   resolver: {
+    resolveRequest: (context, moduleName, platform) => {
+      if (moduleName.includes('promise/')) {
+        return context.resolveRequest(
+          {
+            ...context,
+            // Ensures the promise module is resolved from the sample's node_modules.
+            allowHaste: false,
+            disableHierarchicalLookup: true,
+          },
+          moduleName,
+          platform,
+        );
+      }
+      return context.resolveRequest(context, moduleName, platform);
+    },
     blacklistRE: blacklist([
       new RegExp(`${parentDir}/node_modules/react-native/.*`),
       new RegExp('.*\\android\\.*'), // Required for Windows in order to run the Sample.
