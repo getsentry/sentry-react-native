@@ -222,7 +222,7 @@ describe('Tests ReactNativeClient', () => {
           },
           transport: () => new NativeTransport(),
         }),
-      );
+      ).init();
     });
 
     test('catches errors from onReady callback', () => {
@@ -250,7 +250,7 @@ describe('Tests ReactNativeClient', () => {
           },
           transport: () => new NativeTransport(),
         }),
-      );
+      ).init();
     });
 
     test('calls onReady callback with false if Native SDK failed to initialize', done => {
@@ -271,7 +271,7 @@ describe('Tests ReactNativeClient', () => {
           },
           transport: () => new NativeTransport(),
         }),
-      );
+      ).init();
     });
   });
 
