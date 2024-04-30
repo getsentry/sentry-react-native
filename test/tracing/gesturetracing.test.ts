@@ -1,8 +1,5 @@
-import { BrowserClient } from '@sentry/browser';
-import type { BrowserClientOptions } from '@sentry/browser/types/client';
-import { Hub } from '@sentry/core';
-import type { IntegrationIndex } from '@sentry/core/types/integration';
-import type { Breadcrumb, Scope, Transaction, User } from '@sentry/types';
+import { getActiveSpan, spanToJSON, startSpan } from '@sentry/core';
+import type { Breadcrumb } from '@sentry/types';
 
 import { UI_ACTION } from '../../src/js/tracing';
 import {
@@ -11,11 +8,9 @@ import {
   sentryTraceGesture,
 } from '../../src/js/tracing/gesturetracing';
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
+import { type TestClient, setupTestClient } from '../mocks/client';
 import type { MockedRoutingInstrumentation } from './mockedrountinginstrumention';
-import {
-  createMockedRoutingInstrumentation,
-  mockedConfirmedRouteTransactionContext,
-} from './mockedrountinginstrumention';
+import { createMockedRoutingInstrumentation } from './mockedrountinginstrumention';
 
 jest.mock('../../src/js/wrapper', () => {
   return {
@@ -27,47 +22,6 @@ jest.mock('../../src/js/wrapper', () => {
     },
   };
 });
-
-const getMockScope = () => {
-  let scopeTransaction: unknown;
-  let scopeUser: User | undefined;
-
-  return {
-    getTransaction: () => scopeTransaction,
-    setSpan: jest.fn((span: unknown) => {
-      scopeTransaction = span;
-    }),
-    setTag(_tag: unknown) {
-      // Placeholder
-    },
-    setContext(_context: unknown) {
-      // Placeholder
-    },
-    addBreadcrumb(_breadcrumb: unknown) {
-      // Placeholder
-    },
-    getUser: () => scopeUser,
-    captureEvent(_event: unknown) {
-      // Placeholder
-    },
-  };
-};
-
-const mockAddBreadcrumb = jest.fn();
-
-const getMockHub = () => {
-  const mockHub = new Hub(new BrowserClient({ tracesSampleRate: 1 } as BrowserClientOptions));
-  const mockScope = getMockScope();
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mockHub.getScope = () => mockScope as any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mockHub.configureScope = jest.fn(callback => callback(mockScope as any));
-
-  mockHub.addBreadcrumb = mockAddBreadcrumb;
-
-  return mockHub;
-};
 
 interface MockGesture {
   handlers?: {
@@ -93,8 +47,7 @@ describe('GestureTracing', () => {
   });
 
   describe('traces gestures', () => {
-    let mockedScope: Scope;
-    let mockedHub: Hub;
+    let client: TestClient;
     let tracing: ReactNativeTracing;
     let mockedRoutingInstrumentation: MockedRoutingInstrumentation;
     let mockedGesture: MockGesture;
@@ -102,18 +55,14 @@ describe('GestureTracing', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       jest.useFakeTimers();
-      mockedHub = getMockHub();
-      mockedScope = mockedHub.getScope()!;
+      client = setupTestClient();
       mockedRoutingInstrumentation = createMockedRoutingInstrumentation();
       tracing = new ReactNativeTracing({
         routingInstrumentation: mockedRoutingInstrumentation,
         enableUserInteractionTracing: true,
       });
-      tracing.setupOnce(jest.fn(), jest.fn().mockReturnValue(mockedHub));
-      // client.addIntegration uses global getCurrentHub, so we don't use it to keep the mockedHub
-      (mockedHub.getClient() as unknown as { _integrations: IntegrationIndex })._integrations[ReactNativeTracing.name] =
-        tracing;
-      mockedRoutingInstrumentation.registeredOnConfirmRoute!(mockedConfirmedRouteTransactionContext);
+      client.addIntegration(tracing);
+      mockedRoutingInstrumentation.registeredOnConfirmRoute!('mockedScreenName');
       mockedGesture = {
         handlers: {
           onBegin: jest.fn(),
@@ -129,15 +78,15 @@ describe('GestureTracing', () => {
     });
 
     it('gesture creates interaction transaction', () => {
-      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onBegin!();
-      const transaction = mockedScope.getTransaction() as Transaction | undefined;
+      const transaction = getActiveSpan();
       jest.runAllTimers();
 
-      const transactionContext = transaction?.toContext();
-      expect(transactionContext).toEqual(
+      expect(transaction).toBeDefined();
+      expect(spanToJSON(transaction!)).toEqual(
         expect.objectContaining({
-          endTimestamp: expect.any(Number),
+          timestamp: expect.any(Number),
           op: `${UI_ACTION}.mock`,
         }),
       );
@@ -145,15 +94,15 @@ describe('GestureTracing', () => {
 
     it('gesture interaction transaction falls back on invalid handler name', () => {
       mockedGesture.handlerName = 'Invalid';
-      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onBegin!();
-      const transaction = mockedScope.getTransaction() as Transaction | undefined;
+      const transaction = getActiveSpan();
       jest.runAllTimers();
 
-      const transactionContext = transaction?.toContext();
-      expect(transactionContext).toEqual(
+      expect(transaction).toBeDefined();
+      expect(spanToJSON(transaction!)).toEqual(
         expect.objectContaining({
-          endTimestamp: expect.any(Number),
+          timestamp: expect.any(Number),
           op: `${UI_ACTION}.gesture`,
         }),
       );
@@ -162,39 +111,41 @@ describe('GestureTracing', () => {
     it('gesture cancel previous interaction transaction', () => {
       const timeoutCloseToActualIdleTimeoutMs = 800;
 
-      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture);
 
       const mockedTouchInteractionId = { elementId: 'mockedElementId', op: 'mocked.op' };
       tracing.startUserInteractionSpan(mockedTouchInteractionId);
-      const touchTransaction = mockedScope.getTransaction() as Transaction | undefined;
-      touchTransaction?.startChild({ op: 'child.op' }).finish();
+      startChildSpan();
       jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
 
       mockedGesture.handlers?.onBegin?.();
+      startChildSpan();
 
-      const gestureTransaction = mockedScope.getTransaction() as Transaction | undefined;
       jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
       jest.runAllTimers();
 
-      const touchTransactionContext = touchTransaction?.toContext();
-      const gestureTransactionContext = gestureTransaction?.toContext();
-      expect(touchTransactionContext).toEqual(
+      const touchTransactionEvent = client.eventQueue[0];
+      const gestureTransactionEvent = client.eventQueue[1]; // TODO: is undefined
+      expect(touchTransactionEvent).toEqual(
         expect.objectContaining({
-          endTimestamp: expect.any(Number),
-          op: 'mocked.op',
-          sampled: true,
+          timestamp: expect.any(Number),
+          contexts: expect.objectContaining({
+            trace: expect.objectContaining({
+              op: 'mocked.op',
+            }),
+          }),
         }),
       );
-      expect(gestureTransactionContext).toEqual(
+      expect(gestureTransactionEvent).toEqual(
         expect.objectContaining({
-          endTimestamp: expect.any(Number),
+          timestamp: expect.any(Number),
         }),
       );
     });
 
     it('gesture original on begin handler is called', () => {
       const original = mockedGesture.handlers?.onBegin;
-      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onBegin!();
       jest.runAllTimers();
 
@@ -203,7 +154,7 @@ describe('GestureTracing', () => {
 
     it('creates gesture on begin handled if non exists', () => {
       delete mockedGesture.handlers?.onBegin;
-      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onBegin!();
       jest.runAllTimers();
 
@@ -212,7 +163,7 @@ describe('GestureTracing', () => {
 
     it('gesture original on end handler is called', () => {
       const original = mockedGesture.handlers?.onEnd;
-      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onEnd!();
       jest.runAllTimers();
 
@@ -221,7 +172,7 @@ describe('GestureTracing', () => {
 
     it('creates gesture on end handled if non exists', () => {
       delete mockedGesture.handlers?.onEnd;
-      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onEnd!();
       jest.runAllTimers();
 
@@ -230,7 +181,7 @@ describe('GestureTracing', () => {
 
     it('creates gesture on begin handled if non exists', () => {
       delete mockedGesture.handlers?.onBegin;
-      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onBegin!();
       jest.runAllTimers();
 
@@ -238,49 +189,68 @@ describe('GestureTracing', () => {
     });
 
     it('wrapped gesture creates breadcrumb on begin', () => {
-      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onBegin!();
+      startChildSpan();
+
       jest.runAllTimers();
 
-      expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
-      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
-        expect.objectContaining(<Breadcrumb>{
-          category: DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
-          type: DEFAULT_GESTURE_BREADCRUMB_TYPE,
-          level: 'info',
+      expect(client.event).toEqual(
+        expect.objectContaining({
+          breadcrumbs: expect.arrayContaining([
+            expect.objectContaining(<Breadcrumb>{
+              category: DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
+              type: DEFAULT_GESTURE_BREADCRUMB_TYPE,
+              level: 'info',
+            }),
+          ]),
         }),
       );
     });
 
     it('wrapped gesture creates breadcrumb on end', () => {
-      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onEnd!();
+      startChildSpan();
+
       jest.runAllTimers();
 
-      expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
-      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
-        expect.objectContaining(<Breadcrumb>{
-          category: DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
-          type: DEFAULT_GESTURE_BREADCRUMB_TYPE,
-          level: 'info',
+      expect(client.event).toEqual(
+        expect.objectContaining({
+          breadcrumbs: expect.arrayContaining([
+            expect.objectContaining(<Breadcrumb>{
+              category: DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
+              type: DEFAULT_GESTURE_BREADCRUMB_TYPE,
+              level: 'info',
+            }),
+          ]),
         }),
       );
     });
 
     it('wrapped gesture creates breadcrumb only with selected event keys', () => {
-      sentryTraceGesture('mockedGesture', mockedGesture, { getCurrentHub: () => mockedHub });
+      sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onBegin!({ notSelectedKey: 'notSelectedValue', scale: 1 });
+      startChildSpan();
+
       jest.runAllTimers();
 
-      expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
-      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
-        expect.objectContaining(<Breadcrumb>{
-          data: {
-            scale: 1,
-            gesture: 'mock',
-          },
+      expect(client.event).toEqual(
+        expect.objectContaining({
+          breadcrumbs: expect.arrayContaining([
+            expect.objectContaining(<Breadcrumb>{
+              data: {
+                scale: 1,
+                gesture: 'mock',
+              },
+            }),
+          ]),
         }),
       );
     });
   });
 });
+
+function startChildSpan() {
+  startSpan({ name: 'child', op: 'child.op' }, () => {});
+}
