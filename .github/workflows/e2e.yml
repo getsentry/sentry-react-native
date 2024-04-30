@@ -40,15 +40,19 @@ jobs:
         platform: ["ios", "android"]
         include:
           - platform: ios
-            runs-on: macos-latest
+            runs-on: macos-14
             name: iOS
             appPlain: test/perf/test-app-plain.ipa
           - platform: android
-            runs-on: ubuntu-latest
+            runs-on: ubuntu-14
             name: Android
             appPlain: test/perf/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
       - uses: actions/checkout@v4
+
+      - run: sudo xcode-select -s /Applications/Xcode_14.3.1.app/Contents/Developer
+        if: ${{ matrix.platform == 'ios' }}
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18
