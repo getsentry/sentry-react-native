@@ -1,5 +1,5 @@
-import { setMeasurement, spanToJSON } from '@sentry/core';
-import type { Span, TransactionSource } from '@sentry/types';
+import { SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_UNIT, SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_VALUE, setMeasurement, spanToJSON } from '@sentry/core';
+import type { Measurements, MeasurementUnit, Span, TransactionSource } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 
 export const defaultTransactionSource: TransactionSource = 'component';
@@ -57,4 +57,15 @@ export function setSpanDurationAsMeasurement(name: string, span: Span): void {
   }
 
   setMeasurement(name, (spanEnd - spanStart) * 1000, 'millisecond');
+}
+
+
+/**
+ * Sets measurement on the give span.
+ */
+export function setSpanMeasurement(span: Span, key: string, value: number, unit: MeasurementUnit): void {
+  span.addEvent(key, {
+    [SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_VALUE]: value,
+    [SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_UNIT]: unit as string,
+  });
 }

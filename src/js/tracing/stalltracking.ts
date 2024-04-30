@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { getRootSpan, getSpanDescendants, setMeasurement, spanToJSON } from '@sentry/core';
+import { getRootSpan, getSpanDescendants, spanToJSON } from '@sentry/core';
 import type { Client, Integration, Measurements, MeasurementUnit, Span } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 import type { AppStateStatus } from 'react-native';
@@ -7,6 +7,7 @@ import { AppState } from 'react-native';
 
 import { STALL_COUNT, STALL_LONGEST_TIME, STALL_TOTAL_TIME } from '../measurements';
 import { isRootSpan } from '../utils/span';
+import { isNearToNow, setSpanMeasurement } from './utils';
 
 export interface StallMeasurements extends Measurements {
   [STALL_COUNT]: { value: number; unit: MeasurementUnit };
@@ -182,7 +183,7 @@ export class StallTrackingInstrumentation implements Integration {
       if (transactionStats.atTimestamp) {
         statsOnFinish = transactionStats.atTimestamp.stats;
       }
-    } else if (!endTimestamp) {
+    } else if (isNearToNow(endTimestamp)) {
       statsOnFinish = this._getCurrentStats(rootSpan);
     }
 
@@ -191,7 +192,7 @@ export class StallTrackingInstrumentation implements Integration {
 
     if (!statsOnFinish) {
       if (typeof endTimestamp !== 'undefined') {
-        logger.log('[StallTracking] Stall measurements not added due to `endTimestamp` being set.');
+        logger.log('[StallTracking] Stall measurements not added due to `endTimestamp` not being close to now.', 'endTimestamp', endTimestamp, 'now', timestampInSeconds());
       } else if (trimEnd) {
         logger.log(
           '[StallTracking] Stall measurements not added due to `trimEnd` being set but we could not determine the stall measurements at that time.',
@@ -201,19 +202,26 @@ export class StallTrackingInstrumentation implements Integration {
       return;
     }
 
-    setMeasurement(
+    setSpanMeasurement(
+      rootSpan,
       STALL_COUNT,
       statsOnFinish.stall_count.value - transactionStats.atStart.stall_count.value,
       transactionStats.atStart.stall_count.unit,
     );
 
-    setMeasurement(
+    setSpanMeasurement(
+      rootSpan,
       STALL_TOTAL_TIME,
       statsOnFinish.stall_total_time.value - transactionStats.atStart.stall_total_time.value,
       transactionStats.atStart.stall_total_time.unit,
     );
 
-    setMeasurement(STALL_LONGEST_TIME, statsOnFinish.stall_longest_time.value, statsOnFinish.stall_longest_time.unit);
+    setSpanMeasurement(
+      rootSpan,
+      STALL_LONGEST_TIME,
+      statsOnFinish.stall_longest_time.value,
+      statsOnFinish.stall_longest_time.unit,
+    );
   };
 
   /**

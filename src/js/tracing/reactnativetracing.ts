@@ -222,6 +222,7 @@ export class ReactNativeTracing implements Integration {
 
     if (enableStallTracking) {
       this.stallTrackingInstrumentation = new StallTrackingInstrumentation();
+      this.stallTrackingInstrumentation.setup(client);
     }
 
     if (routingInstrumentation) {
