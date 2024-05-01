@@ -200,7 +200,7 @@ export class ReactNativeTracing implements Integration {
   /**
    *  Registers routing and request instrumentation.
    */
-  public async setup(client: Client): Promise<void> {
+  public setup(client: Client): void {
     this._client = client;
     const clientOptions = client && client.getOptions();
 

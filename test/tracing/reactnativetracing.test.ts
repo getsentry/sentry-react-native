@@ -98,6 +98,7 @@ describe('ReactNativeTracing', () => {
       } as Client;
 
       const integration = new ReactNativeTracing({
+        enableStallTracking: false,
         tracePropagationTargets: ['test1', 'test2'],
       });
       integration.setup(client);
@@ -117,7 +118,9 @@ describe('ReactNativeTracing', () => {
         }),
       } as Client;
 
-      const integration = new ReactNativeTracing({});
+      const integration = new ReactNativeTracing({
+        enableStallTracking: false,
+      });
       integration.setup(client);
 
       expect(instrumentOutgoingRequests).toBeCalledWith(
@@ -133,7 +136,9 @@ describe('ReactNativeTracing', () => {
         getOptions: () => ({}),
       } as Client;
 
-      const integration = new ReactNativeTracing({});
+      const integration = new ReactNativeTracing({
+        enableStallTracking: false,
+      });
       integration.setup(client);
 
       expect(instrumentOutgoingRequests).toBeCalledWith(
@@ -152,6 +157,7 @@ describe('ReactNativeTracing', () => {
       } as Client;
 
       const integration = new ReactNativeTracing({
+        enableStallTracking: false,
         tracePropagationTargets: ['test3', 'test4'],
       });
       integration.setup(client);
@@ -241,19 +247,19 @@ describe('ReactNativeTracing', () => {
         mockedAppState.addEventListener = (() => {
           return undefined;
         }) as unknown as (typeof mockedAppState)['addEventListener']; // RN Web can return undefined
-        const integration = new ReactNativeTracing();
+
+        setupTestClient({
+          integrations: [new ReactNativeTracing()],
+        });
 
         mockAppStartResponse({ cold: false });
 
-        const mockHub = getMockHub();
-        integration.setupOnce(addGlobalEventProcessor, () => mockHub);
-
         await jest.advanceTimersByTimeAsync(500);
-        const transaction = mockHub.getScope()?.getTransaction();
+        const transaction = getActiveSpan();
 
         jest.runAllTimers();
 
-        expect(transaction?.endTimestamp).toBeDefined();
+        expect(spanToJSON(transaction!).timestamp).toBeDefined();
       });
 
       it('Does not add app start measurement if more than 60s', async () => {
@@ -432,6 +438,7 @@ describe('ReactNativeTracing', () => {
       it('Does not update route transaction if didFetchAppStart == true', async () => {
         const routingInstrumentation = new RoutingInstrumentation();
         const integration = new ReactNativeTracing({
+          enableStallTracking: false,
           routingInstrumentation,
         });
 
@@ -803,7 +810,7 @@ describe('ReactNativeTracing', () => {
             op: 'different.op',
           }),
         );
-        expect(firstTransactionEvent!.timestamp).toBeGreaterThanOrEqual(spanToJSON(secondTransaction!).timestamp!);
+        expect(firstTransactionEvent!.timestamp).toBeGreaterThanOrEqual(spanToJSON(secondTransaction!).start_timestamp!);
       });
 
       test('different UI event and same element finish first transaction with last span', () => {
