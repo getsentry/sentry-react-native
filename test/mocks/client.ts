@@ -114,15 +114,15 @@ export function init(options: TestClientOptions): void {
   initAndBind(TestClient, options);
 }
 
-export function setupTestClient(): TestClient {
+export function setupTestClient(options: Partial<TestClientOptions> = {}): TestClient {
   _addTracingExtensions();
 
   getCurrentScope().clear();
   getIsolationScope().clear();
   getGlobalScope().clear();
 
-  const options = getDefaultTestClientOptions({ tracesSampleRate: 1.0 });
-  const client = new TestClient(options);
+  const finalOptions = getDefaultTestClientOptions({ tracesSampleRate: 1.0, ...options });
+  const client = new TestClient(finalOptions);
   setCurrentClient(client);
   client.init();
   return client;
