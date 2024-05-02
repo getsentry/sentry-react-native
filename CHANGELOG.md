@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.22.1
 
 ### Dependencies
 
