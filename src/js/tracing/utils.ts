@@ -1,5 +1,5 @@
 import { SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_UNIT, SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_VALUE, setMeasurement, spanToJSON } from '@sentry/core';
-import type { Measurements, MeasurementUnit, Span, TransactionSource } from '@sentry/types';
+import type { MeasurementUnit, Span, TransactionSource } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 
 export const defaultTransactionSource: TransactionSource = 'component';
