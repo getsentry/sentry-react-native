@@ -61,10 +61,10 @@ export const ignoreEmptyBackNavigation = (client: Client, span: Span): void => {
 
     const children = getSpanDescendants(span);
     const filtered = children.filter(
-      span =>
-        span.spanContext().spanId !== span.spanContext().spanId &&
-        spanToJSON(span).op !== 'ui.load.initial_display' &&
-        spanToJSON(span).op !== 'navigation.processing',
+      child =>
+        child.spanContext().spanId !== span.spanContext().spanId &&
+        spanToJSON(child).op !== 'ui.load.initial_display' &&
+        spanToJSON(child).op !== 'navigation.processing',
     );
 
     if (filtered.length <= 0) {
