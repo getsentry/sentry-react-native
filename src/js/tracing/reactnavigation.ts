@@ -18,9 +18,7 @@ import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
-import {
-  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
-} from './semanticAttributes';
+import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
 import type { BeforeNavigate } from './types';
 

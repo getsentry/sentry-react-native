@@ -105,9 +105,9 @@ describe('StallTracking', () => {
 
   it('Stall tracking timeout is stopped after finishing all transactions (multiple)', async () => {
     // new `startSpan` API doesn't allow creation of multiple transactions
-    const t0 = startSpanManual({ name: 'Test Transaction 0', forceTransaction: true }, (span) => span);
-    const t1 = startSpanManual({ name: 'Test Transaction 1', forceTransaction: true }, (span) => span);
-    const t2 = startSpanManual({ name: 'Test Transaction 2', forceTransaction: true }, (span) => span);
+    const t0 = startSpanManual({ name: 'Test Transaction 0', forceTransaction: true }, span => span);
+    const t1 = startSpanManual({ name: 'Test Transaction 1', forceTransaction: true }, span => span);
+    const t2 = startSpanManual({ name: 'Test Transaction 2', forceTransaction: true }, span => span);
 
     t0.end();
     jest.runOnlyPendingTimers();
@@ -139,9 +139,9 @@ describe('StallTracking', () => {
     expectStallMeasurements(client.event?.measurements);
   });
 
-  it("Stall tracking returns null on a custom endTimestamp that is not near now", async () => {
+  it('Stall tracking returns null on a custom endTimestamp that is not near now', async () => {
     startSpanManual({ name: 'Stall will happen during this span' }, (rootSpan: Span | undefined) => {
-      rootSpan!.end(timestampInSeconds()-1);
+      rootSpan!.end(timestampInSeconds() - 1);
     });
 
     await client.flush();
@@ -240,7 +240,7 @@ describe('StallTracking', () => {
     new Array(11)
       .fill(undefined)
       .map((_, i) => {
-        return startSpanManual({ name: `Test Transaction ${i}`, forceTransaction: true }, (span) => span);
+        return startSpanManual({ name: `Test Transaction ${i}`, forceTransaction: true }, span => span);
       })
       .forEach(t => {
         t.end();

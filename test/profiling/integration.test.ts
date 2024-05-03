@@ -62,12 +62,17 @@ describe('profiling integration', () => {
       (span: Span) => {
         addIntegrationAndForceSetupOnce(new HermesProfiling());
         return span;
-    });
+      },
+    );
 
     transaction.end();
     jest.runAllTimers();
 
-    expectEnvelopeToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', spanToJSON(transaction).trace_id);
+    expectEnvelopeToContainProfile(
+      mock.transportSendMock.mock.lastCall?.[0],
+      'test-name',
+      spanToJSON(transaction).trace_id,
+    );
   });
 
   describe('environment', () => {
@@ -99,7 +104,7 @@ describe('profiling integration', () => {
     test('should use default environment for transaction and profile', () => {
       mock = initTestClient();
 
-      Sentry.startSpan({ name: 'test-name' }, () => { });
+      Sentry.startSpan({ name: 'test-name' }, () => {});
 
       jest.runAllTimers();
 
@@ -162,7 +167,7 @@ describe('profiling integration', () => {
           nativeProfile: createMockMinimalValidAppleProfile(),
         });
 
-        const transaction = Sentry.startSpan({ name: 'test-name' }, (span) => span);
+        const transaction = Sentry.startSpan({ name: 'test-name' }, span => span);
 
         jest.runAllTimers();
 
@@ -213,7 +218,7 @@ describe('profiling integration', () => {
           androidProfile: createMockMinimalValidAndroidProfile(),
         });
 
-        const transaction = Sentry.startSpan({ name: 'test-name' }, (span) => span);
+        const transaction = Sentry.startSpan({ name: 'test-name' }, span => span);
 
         jest.runAllTimers();
 
@@ -248,23 +253,35 @@ describe('profiling integration', () => {
     });
 
     test('should create a new profile and add in to the transaction envelope', () => {
-      const transaction = Sentry.startSpan({ name: 'test-name' }, (span) => span);
+      const transaction = Sentry.startSpan({ name: 'test-name' }, span => span);
 
       jest.runAllTimers();
 
-      expectEnvelopeToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', spanToJSON(transaction).trace_id);
+      expectEnvelopeToContainProfile(
+        mock.transportSendMock.mock.lastCall?.[0],
+        'test-name',
+        spanToJSON(transaction).trace_id,
+      );
     });
 
     test('should finish previous profile when a new transaction starts', () => {
-      const transaction1 = Sentry.startSpanManual({ name: 'test-name-1' }, (span) => span);
-      const transaction2 = Sentry.startSpanManual({ name: 'test-name-2' }, (span) => span);
+      const transaction1 = Sentry.startSpanManual({ name: 'test-name-1' }, span => span);
+      const transaction2 = Sentry.startSpanManual({ name: 'test-name-2' }, span => span);
       transaction1.end();
       transaction2.end();
 
       jest.runAllTimers();
 
-      expectEnvelopeToContainProfile(mock.transportSendMock.mock.calls[0][0], 'test-name-1', spanToJSON(transaction1).trace_id);
-      expectEnvelopeToContainProfile(mock.transportSendMock.mock.calls[1][0], 'test-name-2', spanToJSON(transaction2).trace_id);
+      expectEnvelopeToContainProfile(
+        mock.transportSendMock.mock.calls[0][0],
+        'test-name-1',
+        spanToJSON(transaction1).trace_id,
+      );
+      expectEnvelopeToContainProfile(
+        mock.transportSendMock.mock.calls[1][0],
+        'test-name-2',
+        spanToJSON(transaction2).trace_id,
+      );
     });
 
     test('profile should start at the same time as transaction', () => {
@@ -281,7 +298,7 @@ describe('profiling integration', () => {
     });
 
     test('profile is only recorded until max duration is reached', () => {
-      const transaction = Sentry.startSpanManual({ name: 'test-name' }, (span) => span);
+      const transaction = Sentry.startSpanManual({ name: 'test-name' }, span => span);
       jest.clearAllMocks();
 
       jest.advanceTimersByTime(40 * 1e6);
@@ -292,7 +309,7 @@ describe('profiling integration', () => {
     });
 
     test('profile that reached max duration is sent', () => {
-      const transaction = Sentry.startSpanManual({ name: 'test-name' }, (span) => span);
+      const transaction = Sentry.startSpanManual({ name: 'test-name' }, span => span);
 
       jest.advanceTimersByTime(40 * 1e6);
 
@@ -300,12 +317,16 @@ describe('profiling integration', () => {
 
       jest.runAllTimers();
 
-      expectEnvelopeToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', spanToJSON(transaction).trace_id);
+      expectEnvelopeToContainProfile(
+        mock.transportSendMock.mock.lastCall?.[0],
+        'test-name',
+        spanToJSON(transaction).trace_id,
+      );
     });
 
     test('profile timeout is reset when transaction is finished', () => {
       const integration = getCurrentHermesProfilingIntegration();
-      const transaction = Sentry.startSpanManual({ name: 'test-name' }, (span) => span);
+      const transaction = Sentry.startSpanManual({ name: 'test-name' }, span => span);
 
       const timeoutAfterProfileStarted = integration._currentProfileTimeout;
 

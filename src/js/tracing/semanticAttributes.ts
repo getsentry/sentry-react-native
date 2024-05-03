@@ -1,6 +1,5 @@
 // TODO: Export used RN Attributes and re-export JS
 
-
 export {
   SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,

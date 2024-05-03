@@ -3,13 +3,7 @@ jest.mock('../../src/js/tracing/utils', () => ({
   isNearToNow: jest.fn(),
 }));
 
-import {
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
-  setCurrentClient,
-  startSpanManual,
-} from '@sentry/core';
+import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpanManual } from '@sentry/core';
 
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../../src/js';
 import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';

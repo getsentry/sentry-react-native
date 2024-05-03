@@ -1,15 +1,5 @@
-import { getActiveSpan, getRootSpan, SentrySpan, spanToJSON } from '@sentry/core';
+import { getRootSpan, SentrySpan } from '@sentry/core';
 import type { Span } from '@sentry/types';
-
-/**
- *
- */
-export function isCurrentlyActiveSpan(span: Span): boolean {
-  const spanId = spanToJSON(span).span_id;
-  const activeSpan = getActiveSpan();
-  const activeSpanId = activeSpan ? spanToJSON(activeSpan).span_id : undefined;
-  return span === getActiveSpan();
-}
 
 /**
  *

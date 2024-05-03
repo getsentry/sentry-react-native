@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as SentryBrowser from '@sentry/browser';
-import type { Client, Event, Span } from '@sentry/types';
+import type { Event, Span } from '@sentry/types';
 
 import type { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
 import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
@@ -796,7 +796,9 @@ describe('ReactNativeTracing', () => {
             op: 'different.op',
           }),
         );
-        expect(firstTransactionEvent!.timestamp).toBeGreaterThanOrEqual(spanToJSON(secondTransaction!).start_timestamp!);
+        expect(firstTransactionEvent!.timestamp).toBeGreaterThanOrEqual(
+          spanToJSON(secondTransaction!).start_timestamp!,
+        );
       });
 
       test('different UI event and same element finish first transaction with last span', () => {

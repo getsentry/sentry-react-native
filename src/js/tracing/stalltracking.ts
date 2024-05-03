@@ -192,7 +192,13 @@ export class StallTrackingInstrumentation implements Integration {
 
     if (!statsOnFinish) {
       if (typeof endTimestamp !== 'undefined') {
-        logger.log('[StallTracking] Stall measurements not added due to `endTimestamp` not being close to now.', 'endTimestamp', endTimestamp, 'now', timestampInSeconds());
+        logger.log(
+          '[StallTracking] Stall measurements not added due to `endTimestamp` not being close to now.',
+          'endTimestamp',
+          endTimestamp,
+          'now',
+          timestampInSeconds(),
+        );
       } else if (trimEnd) {
         logger.log(
           '[StallTracking] Stall measurements not added due to `trimEnd` being set but we could not determine the stall measurements at that time.',

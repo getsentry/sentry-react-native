@@ -20,6 +20,18 @@ export function createMockNavigationAndAttachTo(sut: ReactNavigationInstrumentat
         // this object is not used by the instrumentation
       });
     },
+    navigateToSecondScreen: () => {
+      mockedNavigationContained.listeners['__unsafe_action__']({
+        // this object is not used by the instrumentation
+      });
+      mockedNavigationContained.currentRoute = {
+        key: 'second_screen',
+        name: 'Second Screen',
+      };
+      mockedNavigationContained.listeners['state']({
+        // this object is not used by the instrumentation
+      });
+    },
     navigateToInitialScreen: () => {
       mockedNavigationContained.listeners['__unsafe_action__']({
         // this object is not used by the instrumentation
