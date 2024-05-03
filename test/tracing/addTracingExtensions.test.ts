@@ -1,13 +1,16 @@
 import { getCurrentScope, spanToJSON, startSpanManual } from '@sentry/core';
 import type { Span } from '@sentry/types';
 
+import { ReactNativeTracing } from '../../src/js';
 import { type TestClient, setupTestClient } from '../mocks/client';
 
 describe('Tracing extensions', () => {
   let client: TestClient;
 
   beforeEach(() => {
-    client = setupTestClient();
+    client = setupTestClient({
+      integrations: [new ReactNativeTracing()],
+    });
   });
 
   test('transaction has default op', async () => {

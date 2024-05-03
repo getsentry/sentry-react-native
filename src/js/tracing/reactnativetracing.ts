@@ -246,6 +246,8 @@ export class ReactNativeTracing implements Integration {
       logger.log('[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.');
     }
 
+    addDefaultOpForSpanFrom(client);
+
     instrumentOutgoingRequests({
       traceFetch,
       traceXHR,
@@ -580,4 +582,12 @@ function generatePropagationContext(): PropagationContext {
     traceId: uuid4(),
     spanId: uuid4().substring(16),
   };
+}
+
+function addDefaultOpForSpanFrom(client: Client): void {
+  client.on('spanStart', (span: Span) => {
+    if (!spanToJSON(span).op) {
+      span.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_OP, 'default');
+    }
+  });
 }
