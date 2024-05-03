@@ -2,6 +2,7 @@
 import {
   addBreadcrumb,
   getActiveSpan,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
   setMeasurement,
   SPAN_STATUS_OK,
   spanToJSON,
@@ -17,6 +18,9 @@ import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
+import {
+  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
+} from './semanticAttributes';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
 import type { BeforeNavigate } from './types';
 
@@ -297,11 +301,13 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             'previous_route.key': previousRoute?.key,
             // TODO: filter PII params instead of dropping them all
             // 'previous_route.params': {},
+            [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
           });
 
           // TODO: route name tag is replaces by event.contexts.app.view_names
 
-          // TODO: Should we remove beforeNavigation callback or change it to be compatible with V8?
+          this._beforeNavigate?.(this._latestTransaction);
           // Clear the timeout so the transaction does not get cancelled.
           this._clearStateChangeTimeout();
 

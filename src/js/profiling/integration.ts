@@ -1,12 +1,11 @@
 /* eslint-disable complexity */
-import type { Hub } from '@sentry/core';
 import { getActiveSpan, getClient, spanIsSampled } from '@sentry/core';
 import type { Envelope, Event, Integration, Span, ThreadCpuProfile } from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 import { Platform } from 'react-native';
 
 import { isHermesEnabled } from '../utils/environment';
-import { isCurrentlyActiveSpan } from '../utils/span';
+import { isCurrentlyActiveSpan, isRootSpan } from '../utils/span';
 import { NATIVE } from '../wrapper';
 import { PROFILE_QUEUE } from './cache';
 import { MAX_PROFILE_DURATION_MS } from './constants';
@@ -38,8 +37,6 @@ export class HermesProfiling implements Integration {
    */
   public name: string = HermesProfiling.id;
 
-  private _getCurrentHub?: () => Hub;
-
   private _currentProfile:
     | {
         profile_id: string;
@@ -49,10 +46,17 @@ export class HermesProfiling implements Integration {
 
   private _currentProfileTimeout: number | undefined;
 
+  private _isReady: boolean = false;
+
   /**
    * @inheritDoc
    */
   public setupOnce(): void {
+    if (this._isReady) {
+      return;
+    }
+    this._isReady = true;
+
     if (!isHermesEnabled()) {
       logger.log('[Profiling] Hermes is not enabled, not adding profiling integration.');
       return;
@@ -102,9 +106,14 @@ export class HermesProfiling implements Integration {
   private _startCurrentProfile = (activeSpan: Span): void => {
     this._finishCurrentProfile();
 
-    if (!isCurrentlyActiveSpan(activeSpan)) {
+    if (!isRootSpan(activeSpan)) {
       return;
     }
+    // in v8 it's not possible to check if a span is active when it's created
+    // as it's not yet bound to the scope
+    // if (!isCurrentlyActiveSpan(activeSpan)) {
+    //   return;
+    // }
 
     const shouldStartProfiling = this._shouldStartProfiling(activeSpan);
     if (!shouldStartProfiling) {
@@ -121,7 +130,7 @@ export class HermesProfiling implements Integration {
       return false;
     }
 
-    const client = this._getCurrentHub && this._getCurrentHub().getClient();
+    const client = getClient();
     const options = client && client.getOptions();
 
     const profilesSampleRate =
@@ -183,8 +192,7 @@ export class HermesProfiling implements Integration {
   };
 
   private _createProfileEventFor = (profiledTransaction: Event): ProfileEvent | null => {
-    // TODO: Update read of this value based on placemen of setAttribute(key, value)
-    const profile_id = profiledTransaction?.contexts?.['profile']?.['profile_id'];
+    const profile_id = profiledTransaction?.contexts?.['trace']?.['data']?.['profile_id'];
 
     if (typeof profile_id !== 'string') {
       logger.log('[Profiling] cannot find profile for a transaction without a profile context');
@@ -192,8 +200,8 @@ export class HermesProfiling implements Integration {
     }
 
     // Remove the profile from the transaction context before sending, relay will take care of the rest.
-    if (profiledTransaction?.contexts?.['.profile']) {
-      delete profiledTransaction.contexts.profile;
+    if (profiledTransaction?.contexts?.['trace']?.['data']?.['profile_id']) {
+      delete profiledTransaction.contexts.trace.data.profile_id;
     }
 
     const profile = PROFILE_QUEUE.get(profile_id);

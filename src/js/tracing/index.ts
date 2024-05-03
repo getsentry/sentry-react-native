@@ -8,7 +8,6 @@ export {
   // eslint-disable-next-line deprecation/deprecation
   ReactNavigationV5Instrumentation,
 } from './reactnavigation';
-export { ReactNavigationV4Instrumentation } from './reactnavigationv4';
 export { ReactNativeNavigationInstrumentation } from './reactnativenavigation';
 
 export type { ReactNavigationCurrentRoute, ReactNavigationRoute, ReactNavigationTransactionContext } from './types';

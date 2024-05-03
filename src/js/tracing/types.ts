@@ -1,3 +1,5 @@
+import type { Span } from '@sentry/types';
+
 export interface ReactNavigationRoute {
   name: string;
   key: string;
@@ -21,8 +23,4 @@ export type RouteChangeContextData = {
   };
 };
 
-export interface ReactNavigationTransactionContext {
-  data: RouteChangeContextData;
-}
-
-export type BeforeNavigate = (context: ReactNavigationTransactionContext) => ReactNavigationTransactionContext;
+export type BeforeNavigate = (context: Span) => void;

@@ -3,6 +3,11 @@ import type { NavigationRoute, ReactNavigationInstrumentation } from '../../src/
 export function createMockNavigationAndAttachTo(sut: ReactNavigationInstrumentation) {
   const mockedNavigationContained = mockNavigationContainer();
   const mockedNavigation = {
+    emitCancelledNavigation: () => {
+      mockedNavigationContained.listeners['__unsafe_action__']({
+        // this object is not used by the instrumentation
+      });
+    },
     navigateToNewScreen: () => {
       mockedNavigationContained.listeners['__unsafe_action__']({
         // this object is not used by the instrumentation
