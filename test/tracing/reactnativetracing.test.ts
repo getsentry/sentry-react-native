@@ -539,7 +539,7 @@ describe('ReactNativeTracing', () => {
     });
 
     describe('_onConfirmRoute', () => {
-      it('Sets app context', () => {
+      it('Sets app context', async () => {
         const routing = new RoutingInstrumentation();
         const integration = new ReactNativeTracing({
           routingInstrumentation: routing,
@@ -548,12 +548,12 @@ describe('ReactNativeTracing', () => {
         client.addIntegration(integration);
 
         routing.onRouteWillChange({ name: 'First Route' });
-        jest.advanceTimersByTime(500);
-        jest.runOnlyPendingTimers();
+        await jest.advanceTimersByTimeAsync(500);
+        await jest.runOnlyPendingTimersAsync();
 
         routing.onRouteWillChange({ name: 'Second Route' });
-        jest.advanceTimersByTime(500);
-        jest.runOnlyPendingTimers();
+        await jest.advanceTimersByTimeAsync(500);
+        await jest.runOnlyPendingTimersAsync();
 
         const transaction = client.event;
         expect(transaction!.contexts!.app).toBeDefined();

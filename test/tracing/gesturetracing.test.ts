@@ -108,7 +108,7 @@ describe('GestureTracing', () => {
       );
     });
 
-    it('gesture cancel previous interaction transaction', () => {
+    it('gesture cancel previous interaction transaction', async () => {
       const timeoutCloseToActualIdleTimeoutMs = 800;
 
       sentryTraceGesture('mockedGesture', mockedGesture);
@@ -116,13 +116,13 @@ describe('GestureTracing', () => {
       const mockedTouchInteractionId = { elementId: 'mockedElementId', op: 'mocked.op' };
       tracing.startUserInteractionSpan(mockedTouchInteractionId);
       startChildSpan();
-      jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
+      await jest.advanceTimersByTimeAsync(timeoutCloseToActualIdleTimeoutMs);
 
       mockedGesture.handlers?.onBegin?.();
       startChildSpan();
 
-      jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
-      jest.runAllTimers();
+      await jest.advanceTimersByTimeAsync(timeoutCloseToActualIdleTimeoutMs);
+      await jest.runAllTimersAsync();
 
       const touchTransactionEvent = client.eventQueue[0];
       const gestureTransactionEvent = client.eventQueue[1]; // TODO: is undefined
@@ -188,12 +188,12 @@ describe('GestureTracing', () => {
       expect(mockedGesture.handlers?.onBegin).toBeDefined();
     });
 
-    it('wrapped gesture creates breadcrumb on begin', () => {
+    it('wrapped gesture creates breadcrumb on begin', async () => {
       sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onBegin!();
       startChildSpan();
 
-      jest.runAllTimers();
+      await jest.runAllTimersAsync();
 
       expect(client.event).toEqual(
         expect.objectContaining({
@@ -208,12 +208,12 @@ describe('GestureTracing', () => {
       );
     });
 
-    it('wrapped gesture creates breadcrumb on end', () => {
+    it('wrapped gesture creates breadcrumb on end', async () => {
       sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onEnd!();
       startChildSpan();
 
-      jest.runAllTimers();
+      await jest.runAllTimersAsync();
 
       expect(client.event).toEqual(
         expect.objectContaining({
@@ -228,12 +228,12 @@ describe('GestureTracing', () => {
       );
     });
 
-    it('wrapped gesture creates breadcrumb only with selected event keys', () => {
+    it('wrapped gesture creates breadcrumb only with selected event keys', async () => {
       sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onBegin!({ notSelectedKey: 'notSelectedValue', scale: 1 });
       startChildSpan();
 
-      jest.runAllTimers();
+      await jest.runAllTimersAsync();
 
       expect(client.event).toEqual(
         expect.objectContaining({

@@ -229,7 +229,7 @@ export class ReactNativeTracing implements Integration {
       });
     }
 
-    this._enableNativeFramesTracking();
+    this._enableNativeFramesTracking(client);
 
     if (enableStallTracking) {
       this.stallTrackingInstrumentation = new StallTrackingInstrumentation();
@@ -259,8 +259,11 @@ export class ReactNativeTracing implements Integration {
   /**
    * @inheritdoc
    */
-  public processEvent(event: Event): Event {
-    return this._getCurrentViewEventProcessor(event);
+  public processEvent(event: Event): Promise<Event> | Event {
+    const eventWithView = this._getCurrentViewEventProcessor(event);
+    return this.nativeFramesInstrumentation
+      ? this.nativeFramesInstrumentation.processEvent(eventWithView)
+      : eventWithView;
   }
 
   /**
@@ -354,7 +357,7 @@ export class ReactNativeTracing implements Integration {
   /**
    * Enables or disables native frames tracking based on the `enableNativeFramesTracking` option.
    */
-  private _enableNativeFramesTracking(): void {
+  private _enableNativeFramesTracking(client: Client): void {
     if (this.options.enableNativeFramesTracking && !NATIVE.enableNative) {
       // Do not enable native frames tracking if native is not available.
       logger.warn(
@@ -375,6 +378,7 @@ export class ReactNativeTracing implements Integration {
 
     NATIVE.enableNativeFramesTracking();
     this.nativeFramesInstrumentation = new NativeFramesInstrumentation();
+    this.nativeFramesInstrumentation.setup(client);
   }
 
   /**
