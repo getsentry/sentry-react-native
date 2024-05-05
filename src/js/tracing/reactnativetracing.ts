@@ -526,6 +526,7 @@ export class ReactNativeTracing implements Integration {
       name: name || 'Route Change',
       op,
       forceTransaction: true,
+      scope: getCurrentScope(),
       // trimEnd: true, // TODO: Verify is end is still trimmed
     };
 

@@ -1,4 +1,4 @@
-import { addBreadcrumb } from '@sentry/core';
+import { addBreadcrumb, SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from '@sentry/core';
 import type { Span } from '@sentry/types';
 
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
@@ -155,14 +155,18 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
     this._latestTransaction.setAttributes({
       // TODO: Should we include pass props? I don't know exactly what it contains, cant find it in the RNavigation docs
       'route.name': event.componentName,
+      'route.component_id': event.componentId,
       'route.component_type': event.componentType,
       'route.has_been_seen': routeHasBeenSeen,
       'previous_route.name': this._prevComponentEvent?.componentName,
+      'previous_route.component_id': this._prevComponentEvent?.componentId,
       'previous_route.component_type': this._prevComponentEvent?.componentType,
+      [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
+      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
     });
 
     // TODO: route name tag is replaces by event.contexts.app.view_names
-    // TODO: Should we remove beforeNavigation callback or change it to be compatible with V8?
+    this._beforeNavigate?.(this._latestTransaction);
 
     // TODO: Remove onConfirmRoute when `context.view_names` are set directly in the navigation instrumentation
     this._onConfirmRoute?.(event.componentName);
