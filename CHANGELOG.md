@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+Access to Mobile Replay is limited to early access orgs on Sentry. If you're interested, [sign up for the waitlist](https://sentry.io/lp/mobile-replay-beta/)
+
+## 5.22.1
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.24.0 to v8.25.0 ([#3790](https://github.com/getsentry/sentry-react-native/pull/3790))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8250)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.24.0...8.25.0)
+
 ## 5.23.0-alpha.0
 
 ### Features
