@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Fix Apple non UIKit builds ([#3784](https://github.com/getsentry/sentry-react-native/pull/3784))
+
 ## 5.22.1
 
 ### Dependencies
