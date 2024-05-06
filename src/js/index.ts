@@ -75,5 +75,5 @@ export {
   startTimeToFullDisplaySpan,
 } from './tracing';
 
-export type { ReactNavigationTransactionContext, TimeToDisplayProps } from './tracing';
+export type { TimeToDisplayProps } from './tracing';
 export { Integrations, SDK_NAME, SDK_VERSION };

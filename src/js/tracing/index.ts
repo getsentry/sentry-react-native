@@ -10,7 +10,7 @@ export {
 } from './reactnavigation';
 export { ReactNativeNavigationInstrumentation } from './reactnativenavigation';
 
-export type { ReactNavigationCurrentRoute, ReactNavigationRoute, ReactNavigationTransactionContext } from './types';
+export type { ReactNavigationCurrentRoute, ReactNavigationRoute } from './types';
 
 export { ReactNativeProfiler } from './reactnativeprofiler';
 
