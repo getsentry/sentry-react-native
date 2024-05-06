@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Pass `replaysSessionSampleRate` option to Android ([#3714](https://github.com/getsentry/sentry-react-native/pull/3714))
+
 Access to Mobile Replay is limited to early access orgs on Sentry. If you're interested, [sign up for the waitlist](https://sentry.io/lp/mobile-replay-beta/)
 
 ## 5.22.1

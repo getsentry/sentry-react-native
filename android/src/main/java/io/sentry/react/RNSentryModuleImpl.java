@@ -309,7 +309,7 @@ public class RNSentryModuleImpl {
             return androidReplayOptions;
         }
 
-        androidReplayOptions.setErrorSampleRate(rnExperimentsOptions.hasKey("replaysSessionSampleRate")
+        androidReplayOptions.setSessionSampleRate(rnExperimentsOptions.hasKey("replaysSessionSampleRate")
                 ? rnExperimentsOptions.getDouble("replaysSessionSampleRate") : null);
         androidReplayOptions.setErrorSampleRate(rnExperimentsOptions.hasKey("replaysOnErrorSampleRate")
                 ? rnExperimentsOptions.getDouble("replaysOnErrorSampleRate") : null);
