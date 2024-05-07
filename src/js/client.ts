@@ -84,7 +84,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     const envelope = createUserFeedbackEnvelope(feedback, {
       metadata: this._options._metadata,
       dsn: this.getDsn(),
-      tunnel: this._options.tunnel,
+      tunnel: undefined,
     });
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.sendEnvelope(envelope);

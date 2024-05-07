@@ -21,6 +21,8 @@
     return self;
 }
 
+#if SENTRY_HAS_UIKIT
+
 - (void)initializeFramesTrackerListenerWith:(RNSentryEmitNewFrameEvent)eventEmitter
 {
   @synchronized(sentryDependencyContainerLock) {
@@ -28,5 +30,7 @@
                                                                                 andEventEmitter: eventEmitter];
   }
 }
+
+#endif
 
 @end

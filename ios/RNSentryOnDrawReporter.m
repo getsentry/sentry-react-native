@@ -1,3 +1,5 @@
+#if SENTRY_HAS_UIKIT
+
 #import <UIKit/UIKit.h>
 #import <React/RCTViewManager.h>
 #import "RNSentryFramesTrackerListener.h"
@@ -68,3 +70,5 @@ RCT_EXPORT_VIEW_PROPERTY(fullDisplay, BOOL)
 }
 
 @end
+
+#endif
