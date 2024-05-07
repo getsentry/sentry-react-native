@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { Scope, sentryTraceGesture, startSpan, startSpanManual } from '@sentry/react-native';
+import { sentryTraceGesture, startSpanManual } from '@sentry/react-native';
 import { Span } from '@sentry/types';
 
 const GesturesTracingScreen = () => {
@@ -20,7 +20,9 @@ const GesturesTracingScreen = () => {
 
 const startExampleSpan = () => {
   startSpanManual({ name: 'Example', op: 'example' }, (span: Span) => {
-    span.end();
+    setTimeout(() => {
+      span.end();
+    }, 1000);
   });
 };
 
