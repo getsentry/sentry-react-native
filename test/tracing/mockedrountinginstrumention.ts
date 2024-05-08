@@ -22,12 +22,3 @@ export const createMockedRoutingInstrumentation = (): MockedRoutingInstrumentati
   };
   return mock;
 };
-
-export const mockedConfirmedRouteTransactionContext = {
-  name: 'mockedRouteName',
-  data: {
-    route: {
-      name: 'mockedRouteName',
-    },
-  },
-};
