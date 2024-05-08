@@ -12,6 +12,12 @@ export interface FramesMeasurements extends Measurements {
   frames_frozen: { value: number; unit: MeasurementUnit };
 }
 
+/** The listeners for each native frames response, keyed by traceId. This must be global to avoid closure issues and reading outdated values. */
+const _framesListeners: Map<string, () => void> = new Map();
+
+/** The native frames at the transaction finish time, keyed by traceId. This must be global to avoid closure issues and reading outdated values. */
+const _finishFrames: Map<string, { timestamp: number; nativeFrames: NativeFramesResponse | null }> = new Map();
+
 /**
  * A margin of error of 50ms is allowed for the async native bridge call.
  * Anything larger would reduce the accuracy of our frames measurements.
@@ -22,10 +28,6 @@ const MARGIN_OF_ERROR_SECONDS = 0.05;
  * Instrumentation to add native slow/frozen frames measurements onto transactions.
  */
 export class NativeFramesInstrumentation {
-  /** The native frames at the transaction finish time, keyed by traceId. */
-  private _finishFrames: Map<string, { timestamp: number; nativeFrames: NativeFramesResponse | null }> = new Map();
-  /** The listeners for each native frames response, keyed by traceId */
-  private _framesListeners: Map<string, () => void> = new Map();
   /** The native frames at the finish time of the most recent span. */
   private _lastSpanFinishFrames?: {
     timestamp: number;
@@ -98,22 +100,22 @@ export class NativeFramesInstrumentation {
     finalEndTimestamp: number,
     startFrames: NativeFramesResponse,
   ): Promise<FramesMeasurements | null> {
-    if (this._finishFrames.has(traceId)) {
+    if (_finishFrames.has(traceId)) {
       return this._prepareMeasurements(traceId, finalEndTimestamp, startFrames);
     }
 
     return new Promise(resolve => {
       const timeout = setTimeout(() => {
-        this._framesListeners.delete(traceId);
+        _framesListeners.delete(traceId);
 
         resolve(null);
       }, 2000);
 
-      this._framesListeners.set(traceId, () => {
+      _framesListeners.set(traceId, () => {
         resolve(this._prepareMeasurements(traceId, finalEndTimestamp, startFrames));
 
         clearTimeout(timeout);
-        this._framesListeners.delete(traceId);
+        _framesListeners.delete(traceId);
       });
     });
   }
@@ -128,7 +130,7 @@ export class NativeFramesInstrumentation {
   ): FramesMeasurements | null {
     let finalFinishFrames: NativeFramesResponse | undefined;
 
-    const finish = this._finishFrames.get(traceId);
+    const finish = _finishFrames.get(traceId);
     if (
       finish &&
       finish.nativeFrames &&
@@ -178,12 +180,12 @@ export class NativeFramesInstrumentation {
       finishFrames = await NATIVE.fetchNativeFrames();
     }
 
-    this._finishFrames.set(transaction.traceId, {
+    _finishFrames.set(transaction.traceId, {
       nativeFrames: finishFrames,
       timestamp,
     });
 
-    this._framesListeners.get(transaction.traceId)?.();
+    _framesListeners.get(transaction.traceId)?.();
 
     setTimeout(() => this._cancelFinishFrames(transaction), 2000);
   }
@@ -192,8 +194,8 @@ export class NativeFramesInstrumentation {
    * On a finish frames failure, we cancel the await.
    */
   private _cancelFinishFrames(transaction: Transaction): void {
-    if (this._finishFrames.has(transaction.traceId)) {
-      this._finishFrames.delete(transaction.traceId);
+    if (_finishFrames.has(transaction.traceId)) {
+      _finishFrames.delete(transaction.traceId);
 
       logger.log(
         `[NativeFrames] Native frames timed out for ${transaction.op} transaction ${transaction.name}. Not adding native frames measurements.`,
@@ -243,7 +245,7 @@ export class NativeFramesInstrumentation {
             ...measurements,
           };
 
-          this._finishFrames.delete(traceId);
+          _finishFrames.delete(traceId);
         }
 
         delete traceContext.data.__startFrames;
