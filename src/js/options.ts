@@ -232,7 +232,7 @@ export interface ReactNativeOptions
     BaseReactNativeOptions {}
 
 export interface ReactNativeClientOptions
-  extends Omit<ClientOptions<ReactNativeTransportOptions>, '_experiments'>,
+  extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel' | '_experiments'>,
     BaseReactNativeOptions {}
 
 export interface ReactNativeWrapperOptions {

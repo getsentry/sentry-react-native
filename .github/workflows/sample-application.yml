@@ -40,13 +40,15 @@ jobs:
       matrix:
         rn-architecture: ['legacy', 'new']
         ios-use-frameworks: ['no-frameworks', 'dynamic-frameworks']
-        platform: ['android', 'ios']
+        platform: ['android', 'ios', 'macos']
         build-type: ['dev', 'production']
         include:
           - platform: ios
             runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
             runtime: 'latest'
             device: 'iPhone 14'
+          - platform: macos
+            runs-on: macos-14
           - platform: android
             runs-on: ubuntu-latest
         exclude:
@@ -54,6 +56,10 @@ jobs:
             ios-use-frameworks: 'dynamic-frameworks'
           - rn-architecture: 'new'
             ios-use-frameworks: 'dynamic-frameworks'
+          - rn-architecture: 'new'
+            platform: 'macos'
+          - ios-use-frameworks: 'dynamic-frameworks'
+            platform: 'macos'
     steps:
       - uses: actions/checkout@v4
 
@@ -66,7 +72,7 @@ jobs:
             samples/react-native/yarn.lock
 
       - uses: ruby/setup-ruby@v1
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
         with:
           working-directory: samples/react-native
           ruby-version: '3.3.0' # based on what is used in the sample
@@ -96,9 +102,12 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Install App Pods
-        if: ${{ matrix.platform == 'ios' }}
-        working-directory: samples/react-native/ios
+        if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
+        working-directory: samples/react-native
         run: |
+          [[ "${{ matrix.platform }}" == "ios" ]] && cd ios
+          [[ "${{ matrix.platform }}" == "macos" ]] && cd macos
+
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic && export NO_FLIPPER=1
@@ -138,9 +147,28 @@ jobs:
             | tee xcodebuild.log \
             | xcbeautify --quieter --is-ci --disable-colored-output
 
+      - name: Build macOS App
+        if: ${{ matrix.platform == 'macos' }}
+        working-directory: samples/react-native/macos
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          echo "Building $CONFIG"
+          mkdir -p "DerivedData"
+          derivedData="$(cd "DerivedData" ; pwd -P)"
+          set -o pipefail && xcodebuild \
+            -workspace sentry-react-native-sample.xcworkspace \
+            -configuration "$CONFIG" \
+            -scheme sentry-react-native-sample-macOS \
+            -destination 'platform=macOS' \
+            ONLY_ACTIVE_ARCH=yes \
+            -derivedDataPath "$derivedData" \
+            build \
+            | tee xcodebuild.log \
+            | xcbeautify --quieter --is-ci --disable-colored-output
+
       - name: Upload logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: build-sample-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
-          path: samples/react-native/ios/*.log
+          path: samples/react-native/${{ matrix.platform }}/*.log

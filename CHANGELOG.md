@@ -8,6 +8,28 @@
 
 Access to Mobile Replay is limited to early access orgs on Sentry. If you're interested, [sign up for the waitlist](https://sentry.io/lp/mobile-replay-beta/)
 
+### Dependencies
+
+- Bump CLI from v2.30.4 to v2.31.2 ([#3719](https://github.com/getsentry/sentry-react-native/pull/3719))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2312)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.4...2.31.2)
+- Bump Cocoa SDK from v8.25.0 to v8.25.2 ([#3802](https://github.com/getsentry/sentry-react-native/pull/3802))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8252)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.25.0...8.25.2)
+
+## 5.22.2
+
+### Fixes
+
+- Remove `tunnel` from SDK Options ([#3787](https://github.com/getsentry/sentry-react-native/pull/3787))
+- Fix Apple non UIKit builds ([#3784](https://github.com/getsentry/sentry-react-native/pull/3784))
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.110.1 to v7.113.0 ([#3768](https://github.com/getsentry/sentry-react-native/pull/3768))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#71130)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.110.1...7.113.0)
+
 ## 5.22.1
 
 ### Dependencies

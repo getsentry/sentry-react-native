@@ -134,7 +134,7 @@ android {
         applicationId "io.sentry.reactnative.sample"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 12
+        versionCode 13
         versionName "5.23.0-alpha.0"
     }
 
