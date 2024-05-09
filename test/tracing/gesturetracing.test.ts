@@ -133,7 +133,7 @@ describe('GestureTracing', () => {
       await jest.runAllTimersAsync();
 
       const touchTransactionEvent = client.eventQueue[0];
-      const gestureTransactionEvent = client.eventQueue[1]; // TODO: is undefined
+      const gestureTransactionEvent = client.eventQueue[1];
       expect(touchTransactionEvent).toEqual(
         expect.objectContaining({
           timestamp: expect.any(Number),
