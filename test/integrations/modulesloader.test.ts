@@ -1,17 +1,11 @@
-import type { Event, EventHint } from '@sentry/types';
+import type { Client, Event, EventHint } from '@sentry/types';
 
-import { ModulesLoader } from '../../src/js/integrations';
+import { modulesLoaderIntegration } from '../../src/js/integrations';
 import { NATIVE } from '../../src/js/wrapper';
 
 jest.mock('../../src/js/wrapper');
 
 describe('Modules Loader', () => {
-  let integration: ModulesLoader;
-
-  beforeEach(() => {
-    integration = new ModulesLoader();
-  });
-
   it('integration event processor does not throw on native error', async () => {
     (NATIVE.fetchModules as jest.Mock).mockImplementation(() => {
       throw new Error('Test Error');
@@ -46,16 +40,11 @@ describe('Modules Loader', () => {
     });
   });
 
-  function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint = {}): Promise<Event | null> {
-    return new Promise((resolve, reject) => {
-      integration.setupOnce(async eventProcessor => {
-        try {
-          const processedEvent = await eventProcessor(mockedEvent, mockedHint);
-          resolve(processedEvent);
-        } catch (e) {
-          reject(e);
-        }
-      });
-    });
+  function executeIntegrationFor(
+    mockedEvent: Event,
+    mockedHint: EventHint = {},
+  ): Event | null | PromiseLike<Event | null> {
+    const integration = modulesLoaderIntegration();
+    return integration.processEvent!(mockedEvent, mockedHint, {} as Client);
   }
 });

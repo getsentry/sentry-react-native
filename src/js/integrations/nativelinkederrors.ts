@@ -4,10 +4,8 @@ import type {
   DebugImage,
   Event,
   EventHint,
-  EventProcessor,
   Exception,
   ExtendedError,
-  Hub,
   Integration,
   StackFrame,
   StackParser,
@@ -28,197 +26,171 @@ interface LinkedErrorsOptions {
 /**
  * Processes JS and RN native linked errors.
  */
-export class NativeLinkedErrors implements Integration {
-  /**
-   * @inheritDoc
-   */
-  public static id: string = 'NativeLinkedErrors';
+export const nativeLinkedErrorsIntegration = (options: Partial<LinkedErrorsOptions> = {}): Integration => {
+  const key = options.key || DEFAULT_KEY;
+  const limit = options.limit || DEFAULT_LIMIT;
 
-  /**
-   * @inheritDoc
-   */
-  public name: string = NativeLinkedErrors.id;
+  return {
+    name: 'NativeLinkedErrors',
+    setupOnce: (): void => {
+      // noop
+    },
+    preprocessEvent: (event: Event, hint: EventHint, client: Client): void =>
+      preprocessEvent(event, hint, client, limit, key),
+  };
+};
 
-  private readonly _key: LinkedErrorsOptions['key'];
-  private readonly _limit: LinkedErrorsOptions['limit'];
-  private _nativePackage: string | null = null;
-
-  /**
-   * @inheritDoc
-   */
-  public constructor(options: Partial<LinkedErrorsOptions> = {}) {
-    this._key = options.key || DEFAULT_KEY;
-    this._limit = options.limit || DEFAULT_LIMIT;
+function preprocessEvent(event: Event, hint: EventHint | undefined, client: Client, limit: number, key: string): void {
+  if (!event.exception || !event.exception.values || !hint || !isInstanceOf(hint.originalException, Error)) {
+    return;
   }
 
-  /**
-   * @inheritDoc
-   */
-  public setupOnce(_addGlobalEventProcessor: (callback: EventProcessor) => void, _getCurrentHub: () => Hub): void {
-    /* noop */
-  }
+  const parser = client.getOptions().stackParser;
 
-  /**
-   * @inheritDoc
-   */
-  public preprocessEvent(event: Event, hint: EventHint | undefined, client: Client): void {
-    if (this._nativePackage === null) {
-      this._nativePackage = this._fetchNativePackage();
-    }
+  const { exceptions: linkedErrors, debugImages } = walkErrorTree(
+    parser,
+    limit,
+    hint.originalException as ExtendedError,
+    key,
+  );
+  event.exception.values = [...event.exception.values, ...linkedErrors];
 
-    this._handler(client.getOptions().stackParser, this._key, this._limit, event, hint);
-  }
+  event.debug_meta = event.debug_meta || {};
+  event.debug_meta.images = event.debug_meta.images || [];
+  event.debug_meta.images.push(...(debugImages || []));
+}
 
-  /**
-   * Enriches passed event with linked exceptions and native debug meta images.
-   */
-  private _handler(parser: StackParser, key: string, limit: number, event: Event, hint?: EventHint): void {
-    if (!event.exception || !event.exception.values || !hint || !isInstanceOf(hint.originalException, Error)) {
-      return;
-    }
-    const { exceptions: linkedErrors, debugImages } = this._walkErrorTree(
-      parser,
-      limit,
-      hint.originalException as ExtendedError,
-      key,
-    );
-    event.exception.values = [...event.exception.values, ...linkedErrors];
-
-    event.debug_meta = event.debug_meta || {};
-    event.debug_meta.images = event.debug_meta.images || [];
-    event.debug_meta.images.push(...(debugImages || []));
-  }
-
-  /**
-   * Walks linked errors and created Sentry exceptions chain.
-   * Collects debug images from native errors stack frames.
-   */
-  private _walkErrorTree(
-    parser: StackParser,
-    limit: number,
-    error: ExtendedError,
-    key: string,
-    exceptions: Exception[] = [],
-    debugImages: DebugImage[] = [],
-  ): {
-    exceptions: Exception[];
-    debugImages?: DebugImage[];
-  } {
-    const linkedError = error[key];
-    if (!linkedError || exceptions.length + 1 >= limit) {
-      return {
-        exceptions,
-        debugImages,
-      };
-    }
-
-    let exception: Exception;
-    let exceptionDebugImages: DebugImage[] | undefined;
-    if ('stackElements' in linkedError) {
-      // isJavaException
-      exception = this._exceptionFromJavaStackElements(linkedError);
-    } else if ('stackReturnAddresses' in linkedError) {
-      // isObjCException
-      const { appleException, appleDebugImages } = this._exceptionFromAppleStackReturnAddresses(linkedError);
-      exception = appleException;
-      exceptionDebugImages = appleDebugImages;
-    } else if (isInstanceOf(linkedError, Error)) {
-      exception = exceptionFromError(parser, error[key]);
-    } else if (isPlainObject(linkedError)) {
-      exception = {
-        type: typeof linkedError.name === 'string' ? linkedError.name : undefined,
-        value: typeof linkedError.message === 'string' ? linkedError.message : undefined,
-      };
-    } else {
-      return {
-        exceptions,
-        debugImages,
-      };
-    }
-
-    return this._walkErrorTree(
-      parser,
-      limit,
-      linkedError,
-      key,
-      [...exceptions, exception],
-      [...debugImages, ...(exceptionDebugImages || [])],
-    );
-  }
-
-  /**
-   * Converts a Java Throwable to an SentryException
-   */
-  private _exceptionFromJavaStackElements(javaThrowable: {
-    name: string;
-    message: string;
-    stackElements: {
-      className: string;
-      fileName: string;
-      methodName: string;
-      lineNumber: number;
-    }[];
-  }): Exception {
+/**
+ * Walks linked errors and created Sentry exceptions chain.
+ * Collects debug images from native errors stack frames.
+ */
+function walkErrorTree(
+  parser: StackParser,
+  limit: number,
+  error: ExtendedError,
+  key: string,
+  exceptions: Exception[] = [],
+  debugImages: DebugImage[] = [],
+): {
+  exceptions: Exception[];
+  debugImages?: DebugImage[];
+} {
+  const linkedError = error[key];
+  if (!linkedError || exceptions.length + 1 >= limit) {
     return {
-      type: javaThrowable.name,
-      value: javaThrowable.message,
+      exceptions,
+      debugImages,
+    };
+  }
+
+  let exception: Exception;
+  let exceptionDebugImages: DebugImage[] | undefined;
+  if ('stackElements' in linkedError) {
+    // isJavaException
+    exception = exceptionFromJavaStackElements(linkedError);
+  } else if ('stackReturnAddresses' in linkedError) {
+    // isObjCException
+    const { appleException, appleDebugImages } = exceptionFromAppleStackReturnAddresses(linkedError);
+    exception = appleException;
+    exceptionDebugImages = appleDebugImages;
+  } else if (isInstanceOf(linkedError, Error)) {
+    exception = exceptionFromError(parser, error[key]);
+  } else if (isPlainObject(linkedError)) {
+    exception = {
+      type: typeof linkedError.name === 'string' ? linkedError.name : undefined,
+      value: typeof linkedError.message === 'string' ? linkedError.message : undefined,
+    };
+  } else {
+    return {
+      exceptions,
+      debugImages,
+    };
+  }
+
+  return walkErrorTree(
+    parser,
+    limit,
+    linkedError,
+    key,
+    [...exceptions, exception],
+    [...debugImages, ...(exceptionDebugImages || [])],
+  );
+}
+
+/**
+ * Converts a Java Throwable to an SentryException
+ */
+function exceptionFromJavaStackElements(javaThrowable: {
+  name: string;
+  message: string;
+  stackElements: {
+    className: string;
+    fileName: string;
+    methodName: string;
+    lineNumber: number;
+  }[];
+}): Exception {
+  const nativePackage = fetchNativePackage();
+  return {
+    type: javaThrowable.name,
+    value: javaThrowable.message,
+    stacktrace: {
+      frames: javaThrowable.stackElements
+        .map(
+          stackElement =>
+            <StackFrame>{
+              platform: 'java',
+              module: stackElement.className,
+              filename: stackElement.fileName,
+              lineno: stackElement.lineNumber >= 0 ? stackElement.lineNumber : undefined,
+              function: stackElement.methodName,
+              in_app: nativePackage !== null && stackElement.className.startsWith(nativePackage) ? true : undefined,
+            },
+        )
+        .reverse(),
+    },
+  };
+}
+
+/**
+ * Converts StackAddresses to a SentryException with DebugMetaImages
+ */
+function exceptionFromAppleStackReturnAddresses(objCException: {
+  name: string;
+  message: string;
+  stackReturnAddresses: number[];
+}): {
+  appleException: Exception;
+  appleDebugImages: DebugImage[];
+} {
+  const nativeStackFrames = fetchNativeStackFrames(objCException.stackReturnAddresses);
+
+  return {
+    appleException: {
+      type: objCException.name,
+      value: objCException.message,
       stacktrace: {
-        frames: javaThrowable.stackElements
-          .map(
-            stackElement =>
-              <StackFrame>{
-                platform: 'java',
-                module: stackElement.className,
-                filename: stackElement.fileName,
-                lineno: stackElement.lineNumber >= 0 ? stackElement.lineNumber : undefined,
-                function: stackElement.methodName,
-                in_app:
-                  this._nativePackage !== null && stackElement.className.startsWith(this._nativePackage)
-                    ? true
-                    : undefined,
-              },
-          )
-          .reverse(),
+        frames: (nativeStackFrames && nativeStackFrames.frames.reverse()) || [],
       },
-    };
-  }
+    },
+    appleDebugImages: (nativeStackFrames && (nativeStackFrames.debugMetaImages as DebugImage[])) || [],
+  };
+}
 
-  /**
-   * Converts StackAddresses to a SentryException with DebugMetaImages
-   */
-  private _exceptionFromAppleStackReturnAddresses(objCException: {
-    name: string;
-    message: string;
-    stackReturnAddresses: number[];
-  }): {
-    appleException: Exception;
-    appleDebugImages: DebugImage[];
-  } {
-    const nativeStackFrames = this._fetchNativeStackFrames(objCException.stackReturnAddresses);
-
-    return {
-      appleException: {
-        type: objCException.name,
-        value: objCException.message,
-        stacktrace: {
-          frames: (nativeStackFrames && nativeStackFrames.frames.reverse()) || [],
-        },
-      },
-      appleDebugImages: (nativeStackFrames && (nativeStackFrames.debugMetaImages as DebugImage[])) || [],
-    };
+let nativePackage: string | null = null;
+/**
+ * Fetches the native package/image name from the native layer
+ */
+function fetchNativePackage(): string | null {
+  if (nativePackage === null) {
+    nativePackage = NATIVE.fetchNativePackageName();
   }
+  return nativePackage;
+}
 
-  /**
-   * Fetches the native package/image name from the native layer
-   */
-  private _fetchNativePackage(): string | null {
-    return NATIVE.fetchNativePackageName();
-  }
-
-  /**
-   * Fetches native debug image information on iOS
-   */
-  private _fetchNativeStackFrames(instructionsAddr: number[]): NativeStackFrames | null {
-    return NATIVE.fetchNativeStackFramesBy(instructionsAddr);
-  }
+/**
+ * Fetches native debug image information on iOS
+ */
+function fetchNativeStackFrames(instructionsAddr: number[]): NativeStackFrames | null {
+  return NATIVE.fetchNativeStackFramesBy(instructionsAddr);
 }

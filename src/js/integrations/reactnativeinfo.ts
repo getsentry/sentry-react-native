@@ -1,4 +1,4 @@
-import type { Context, Event, EventHint, EventProcessor, Integration } from '@sentry/types';
+import type { Context, Event, EventHint, Integration } from '@sentry/types';
 
 import {
   getExpoGoVersion,
@@ -26,71 +26,64 @@ export interface ReactNativeContext extends Context {
 }
 
 /** Loads React Native context at runtime */
-export class ReactNativeInfo implements Integration {
-  /**
-   * @inheritDoc
-   */
-  public static id: string = 'ReactNativeInfo';
+export const reactNativeInfoIntegration = (): Integration => {
+  return {
+    name: 'ReactNativeInfo',
+    setupOnce: () => {
+      // noop
+    },
+    processEvent,
+  };
+};
 
-  /**
-   * @inheritDoc
-   */
-  public name: string = ReactNativeInfo.id;
+function processEvent(event: Event, hint: EventHint): Event {
+  const reactNativeError = hint?.originalException ? (hint?.originalException as ReactNativeError) : undefined;
 
-  /**
-   * @inheritDoc
-   */
-  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void): void {
-    addGlobalEventProcessor(async (event: Event, hint?: EventHint) => {
-      const reactNativeError = hint?.originalException ? (hint?.originalException as ReactNativeError) : undefined;
+  const reactNativeContext: ReactNativeContext = {
+    turbo_module: isTurboModuleEnabled(),
+    fabric: isFabricEnabled(),
+    react_native_version: getReactNativeVersion(),
+    expo: isExpo(),
+  };
 
-      const reactNativeContext: ReactNativeContext = {
-        turbo_module: isTurboModuleEnabled(),
-        fabric: isFabricEnabled(),
-        react_native_version: getReactNativeVersion(),
-        expo: isExpo(),
-      };
-
-      if (isHermesEnabled()) {
-        reactNativeContext.js_engine = 'hermes';
-        const hermesVersion = getHermesVersion();
-        if (hermesVersion) {
-          reactNativeContext.hermes_version = hermesVersion;
-        }
-        reactNativeContext.hermes_debug_info = !isEventWithHermesBytecodeFrames(event);
-      } else if (reactNativeError?.jsEngine) {
-        reactNativeContext.js_engine = reactNativeError.jsEngine;
-      }
-
-      if (reactNativeContext.js_engine === 'hermes') {
-        event.tags = {
-          hermes: 'true',
-          ...event.tags,
-        };
-      }
-
-      if (reactNativeError?.componentStack) {
-        reactNativeContext.component_stack = reactNativeError.componentStack;
-      }
-
-      const expoGoVersion = getExpoGoVersion();
-      if (expoGoVersion) {
-        reactNativeContext.expo_go_version = expoGoVersion;
-      }
-
-      const expoSdkVersion = getExpoSdkVersion();
-      if (expoSdkVersion) {
-        reactNativeContext.expo_sdk_version = expoSdkVersion;
-      }
-
-      event.contexts = {
-        react_native_context: reactNativeContext,
-        ...event.contexts,
-      };
-
-      return event;
-    });
+  if (isHermesEnabled()) {
+    reactNativeContext.js_engine = 'hermes';
+    const hermesVersion = getHermesVersion();
+    if (hermesVersion) {
+      reactNativeContext.hermes_version = hermesVersion;
+    }
+    reactNativeContext.hermes_debug_info = !isEventWithHermesBytecodeFrames(event);
+  } else if (reactNativeError?.jsEngine) {
+    reactNativeContext.js_engine = reactNativeError.jsEngine;
   }
+
+  if (reactNativeContext.js_engine === 'hermes') {
+    event.tags = {
+      hermes: 'true',
+      ...event.tags,
+    };
+  }
+
+  if (reactNativeError?.componentStack) {
+    reactNativeContext.component_stack = reactNativeError.componentStack;
+  }
+
+  const expoGoVersion = getExpoGoVersion();
+  if (expoGoVersion) {
+    reactNativeContext.expo_go_version = expoGoVersion;
+  }
+
+  const expoSdkVersion = getExpoSdkVersion();
+  if (expoSdkVersion) {
+    reactNativeContext.expo_sdk_version = expoSdkVersion;
+  }
+
+  event.contexts = {
+    react_native_context: reactNativeContext,
+    ...event.contexts,
+  };
+
+  return event;
 }
 
 /**
