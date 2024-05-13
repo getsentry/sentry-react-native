@@ -107,4 +107,4 @@ export type { ReactNavigationTransactionContext, TimeToDisplayProps } from './tr
 export {
   /** @deprecated Import the integration function directly, e.g. `screenshotIntegration()` instead of `new Integrations.Screenshot(). */
   Integrations,
-}
+};
