@@ -117,14 +117,6 @@
     "uuid": "^9.0.1",
     "xmlhttprequest": "^1.8.0"
   },
-  "rnpm": {
-    "commands": {},
-    "android": {
-      "packageInstance": "new RNSentryPackage()",
-      "packageImportPath": "import io.sentry.react.RNSentryPackage;"
-    },
-    "ios": {}
-  },
   "codegenConfig": {
     "name": "RNSentrySpec",
     "type": "modules",
