@@ -7,7 +7,6 @@ import {
   setCurrentClient,
   startSpan,
   startSpanManual,
-  startTransaction,
 } from '@sentry/core';
 import type { Span } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
@@ -110,15 +109,15 @@ describe('StallTracking', () => {
 
   it('Stall tracking timeout is stopped after finishing all transactions (multiple)', async () => {
     // new `startSpan` API doesn't allow creation of multiple transactions
-    const t0 = startTransaction({ name: 'Test Transaction 0' });
-    const t1 = startTransaction({ name: 'Test Transaction 1' });
-    const t2 = startTransaction({ name: 'Test Transaction 2' });
+    const t0 = startSpanManual({ name: 'Test Transaction 0', forceTransaction: true }, span => span);
+    const t1 = startSpanManual({ name: 'Test Transaction 1', forceTransaction: true }, span => span);
+    const t2 = startSpanManual({ name: 'Test Transaction 2', forceTransaction: true }, span => span);
 
-    t0.end();
+    t0!.end();
     jest.runOnlyPendingTimers();
-    t1.end();
+    t1!.end();
     jest.runOnlyPendingTimers();
-    t2.end();
+    t2!.end();
     jest.runOnlyPendingTimers();
 
     await client.flush();
@@ -144,9 +143,9 @@ describe('StallTracking', () => {
     expectStallMeasurements(client.event?.measurements);
   });
 
-  it("Stall tracking returns null on a custom endTimestamp that is not a span's", async () => {
-    startSpanManual({ name: 'Stall will happen during this span', trimEnd: false }, (rootSpan: Span | undefined) => {
-      rootSpan!.end(timestampInSeconds());
+  it('Stall tracking returns null on a custom endTimestamp that is not near now', async () => {
+    startSpanManual({ name: 'Stall will happen during this span' }, (rootSpan: Span | undefined) => {
+      rootSpan!.end(timestampInSeconds() - 1);
     });
 
     await client.flush();
@@ -171,6 +170,9 @@ describe('StallTracking', () => {
     expectStallMeasurements(client.event?.measurements);
   });
 
+  /**
+   * @deprecated This behavior will be removed in the future. Replaced by close time proximity check.
+   **/
   it('Stall tracking rejects endTimestamp that is from the last span if trimEnd is false (trimEnd case)', async () => {
     startSpanManual({ name: 'Stall will happen during this span', trimEnd: false }, (rootSpan: Span | undefined) => {
       let childSpanEnd: number | undefined = undefined;
@@ -188,6 +190,9 @@ describe('StallTracking', () => {
     expect(client.event?.measurements).toBeUndefined();
   });
 
+  /**
+   * @deprecated This behavior will be removed in the future. Replaced by close time proximity check.
+   **/
   it('Stall tracking rejects endTimestamp even if it is a span time (custom endTimestamp case)', async () => {
     startSpanManual({ name: 'Stall will happen during this span', trimEnd: false }, (rootSpan: Span | undefined) => {
       let childSpanEnd: number | undefined = undefined;
@@ -206,7 +211,7 @@ describe('StallTracking', () => {
   });
 
   it('Stall tracking ignores unfinished spans in normal transactions', async () => {
-    startSpan({ name: 'Stall will happen during this span', trimEnd: true }, () => {
+    startSpan({ name: 'Stall will happen during this span' }, () => {
       startSpan({ name: 'This child span will finish' }, () => {
         jest.runOnlyPendingTimers();
       });
@@ -244,10 +249,10 @@ describe('StallTracking', () => {
     new Array(11)
       .fill(undefined)
       .map((_, i) => {
-        return startTransaction({ name: `Test Transaction ${i}` });
+        return startSpanManual({ name: `Test Transaction ${i}`, forceTransaction: true }, span => span);
       })
       .forEach(t => {
-        t.end();
+        t!.end();
       });
 
     await client.flush();
