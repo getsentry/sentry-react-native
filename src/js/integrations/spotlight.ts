@@ -1,4 +1,11 @@
-import type { Client, Envelope, EventProcessor, Integration } from '@sentry/types';
+import type {
+  BaseTransportOptions,
+  Client,
+  ClientOptions,
+  Envelope,
+  Integration,
+  IntegrationFnResult,
+} from '@sentry/types';
 import { logger, serializeEnvelope } from '@sentry/utils';
 
 import { makeUtf8TextEncoder } from '../transports/TextEncoder';
@@ -20,24 +27,32 @@ type SpotlightReactNativeIntegrationOptions = {
  *
  * Learn more about spotlight at https://spotlightjs.com
  */
-export function Spotlight({
+export function spotlightIntegration({
   sidecarUrl = getDefaultSidecarUrl(),
-}: SpotlightReactNativeIntegrationOptions = {}): Integration {
+}: SpotlightReactNativeIntegrationOptions = {}): IntegrationFnResult {
   logger.info('[Spotlight] Using Sidecar URL', sidecarUrl);
 
   return {
     name: 'Spotlight',
 
-    setupOnce(_: (callback: EventProcessor) => void, getCurrentHub) {
-      const client = getCurrentHub().getClient();
-      if (client) {
-        setup(client, sidecarUrl);
-      } else {
-        logger.warn('[Spotlight] Could not initialize Sidecar integration due to missing Client');
-      }
+    setupOnce(): void {
+      // nothing to do here
+    },
+
+    setup(client: Client<ClientOptions<BaseTransportOptions>>): void {
+      setup(client, sidecarUrl);
     },
   };
 }
+
+/**
+ * Use this integration to send errors and transactions to Spotlight.
+ *
+ * Learn more about spotlight at https://spotlightjs.com
+ *
+ * @deprecated Use `spotlightIntegration()` instead.
+ */
+export const Spotlight = spotlightIntegration as (...args: Parameters<typeof spotlightIntegration>) => Integration;
 
 function setup(client: Client, sidecarUrl: string): void {
   sendEnvelopesToSidecar(client, sidecarUrl);
