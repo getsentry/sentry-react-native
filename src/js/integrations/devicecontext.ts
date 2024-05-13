@@ -1,5 +1,6 @@
 /* eslint-disable complexity */
-import type { Event, IntegrationFn } from '@sentry/types';
+import { convertIntegrationFnToClass } from '@sentry/core';
+import type { Event, Integration, IntegrationClass, IntegrationFnResult } from '@sentry/types';
 import { logger, severityLevelFromString } from '@sentry/utils';
 import { AppState } from 'react-native';
 
@@ -7,16 +8,29 @@ import { breadcrumbFromObject } from '../breadcrumb';
 import type { NativeDeviceContextsResponse } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';
 
+const INTEGRATION_NAME = 'DeviceContext';
+
 /** Load device context from native. */
-export const deviceContextIntegration: IntegrationFn = () => {
+export const deviceContextIntegration = (): IntegrationFnResult => {
   return {
-    name: 'DeviceContext',
+    name: INTEGRATION_NAME,
     setupOnce: () => {
       /* noop */
     },
     processEvent,
   };
 };
+
+/**
+ * Load device context from native.
+ *
+ * @deprecated Use `deviceContextIntegration()` instead.
+ */
+// eslint-disable-next-line deprecation/deprecation
+export const DeviceContext = convertIntegrationFnToClass(
+  INTEGRATION_NAME,
+  deviceContextIntegration,
+) as IntegrationClass<Integration>;
 
 async function processEvent(event: Event): Promise<Event> {
   let native: NativeDeviceContextsResponse | null = null;

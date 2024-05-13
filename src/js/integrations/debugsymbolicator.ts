@@ -1,9 +1,19 @@
-import type { Event, EventHint, IntegrationFn, StackFrame as SentryStackFrame } from '@sentry/types';
+import { convertIntegrationFnToClass } from '@sentry/core';
+import type {
+  Event,
+  EventHint,
+  Integration,
+  IntegrationClass,
+  IntegrationFnResult,
+  StackFrame as SentryStackFrame,
+} from '@sentry/types';
 import { addContextToFrame, logger } from '@sentry/utils';
 
 import { getFramesToPop, isErrorLike } from '../utils/error';
 import type * as ReactNative from '../vendor/react-native';
 import { fetchSourceContext, getDevServer, parseErrorStack, symbolicateStackTrace } from './debugsymbolicatorutils';
+
+const INTEGRATION_NAME = 'DebugSymbolicator';
 
 // eslint-disable-next-line @sentry-internal/sdk/no-regexp-constructor
 const INTERNAL_CALLSITES_REGEX = new RegExp(['ReactNativeRenderer-dev\\.js$', 'MessageQueue\\.js$'].join('|'));
@@ -19,15 +29,26 @@ export type ReactNativeError = Error & {
 };
 
 /** Tries to symbolicate the JS stack trace on the device. */
-export const debugSymbolicatorIntegration: IntegrationFn = () => {
+export const debugSymbolicatorIntegration = (): IntegrationFnResult => {
   return {
-    name: 'DebugSymbolicator',
+    name: INTEGRATION_NAME,
     setupOnce: () => {
       /* noop */
     },
     processEvent,
   };
 };
+
+/**
+ * Tries to symbolicate the JS stack trace on the device.
+ *
+ * @deprecated Use `debugSymbolicatorIntegration()` instead.
+ */
+// eslint-disable-next-line deprecation/deprecation
+export const DebugSymbolicator = convertIntegrationFnToClass(
+  INTEGRATION_NAME,
+  debugSymbolicatorIntegration,
+) as IntegrationClass<Integration>;
 
 async function processEvent(event: Event, hint: EventHint): Promise<Event> {
   if (event.exception && isErrorLike(hint.originalException)) {

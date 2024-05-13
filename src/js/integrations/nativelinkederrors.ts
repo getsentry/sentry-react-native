@@ -1,4 +1,5 @@
 import { exceptionFromError } from '@sentry/browser';
+import { convertIntegrationFnToClass } from '@sentry/core';
 import type {
   Client,
   DebugImage,
@@ -7,6 +8,8 @@ import type {
   Exception,
   ExtendedError,
   Integration,
+  IntegrationClass,
+  IntegrationFnResult,
   StackFrame,
   StackParser,
 } from '@sentry/types';
@@ -14,6 +17,8 @@ import { isInstanceOf, isPlainObject } from '@sentry/utils';
 
 import type { NativeStackFrames } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';
+
+const INTEGRATION_NAME = 'NativeLinkedErrors';
 
 const DEFAULT_KEY = 'cause';
 const DEFAULT_LIMIT = 5;
@@ -26,18 +31,31 @@ interface LinkedErrorsOptions {
 /**
  * Processes JS and RN native linked errors.
  */
-export const nativeLinkedErrorsIntegration = (options: Partial<LinkedErrorsOptions> = {}): Integration => {
+export const nativeLinkedErrorsIntegration = (options: Partial<LinkedErrorsOptions> = {}): IntegrationFnResult => {
   const key = options.key || DEFAULT_KEY;
   const limit = options.limit || DEFAULT_LIMIT;
 
   return {
-    name: 'NativeLinkedErrors',
+    name: INTEGRATION_NAME,
     setupOnce: (): void => {
       // noop
     },
     preprocessEvent: (event: Event, hint: EventHint, client: Client): void =>
       preprocessEvent(event, hint, client, limit, key),
   };
+};
+
+/**
+ * Processes JS and RN native linked errors.
+ *
+ * @deprecated Use `nativeLinkedErrorsIntegration()` instead.
+ */
+// eslint-disable-next-line deprecation/deprecation
+export const NativeLinkedErrors = convertIntegrationFnToClass(
+  INTEGRATION_NAME,
+  nativeLinkedErrorsIntegration,
+) as IntegrationClass<Integration> & {
+  new (options?: Partial<LinkedErrorsOptions>): Integration;
 };
 
 function preprocessEvent(event: Event, hint: EventHint | undefined, client: Client, limit: number, key: string): void {

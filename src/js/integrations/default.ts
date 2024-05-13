@@ -1,34 +1,34 @@
-import { httpClientIntegration } from '@sentry/integrations';
-import {
-  breadcrumbsIntegration,
-  browserApiErrorsIntegration,
-  dedupeIntegration,
-  functionToStringIntegration,
-  globalHandlersIntegration as browserGlobalHandlersIntegration,
-  httpContextIntegration,
-  inboundFiltersIntegration,
-  linkedErrorsIntegration as browserLinkedErrorsIntegration,
-} from '@sentry/react';
 import type { Integration } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../options';
-import { HermesProfiling } from '../profiling/integration';
 import { ReactNativeTracing } from '../tracing';
 import { isExpoGo, notWeb } from '../utils/environment';
-import { debugSymbolicatorIntegration } from './debugsymbolicator';
-import { deviceContextIntegration } from './devicecontext';
-import { eventOriginIntegration } from './eventorigin';
-import { expoContextIntegration } from './expocontext';
-import { modulesLoaderIntegration } from './modulesloader';
-import { nativeLinkedErrorsIntegration } from './nativelinkederrors';
-import { reactNativeErrorHandlersIntegration } from './reactnativeerrorhandlers';
-import { reactNativeInfoIntegration } from './reactnativeinfo';
-import { nativeReleaseIntegration } from './release';
+import {
+  breadcrumbsIntegration,
+  browserApiErrorsIntegration,
+  browserGlobalHandlersIntegration,
+  browserLinkedErrorsIntegration,
+  debugSymbolicatorIntegration,
+  dedupeIntegration,
+  deviceContextIntegration,
+  eventOriginIntegration,
+  expoContextIntegration,
+  functionToStringIntegration,
+  hermesProfilingIntegration,
+  httpClientIntegration,
+  httpContextIntegration,
+  inboundFiltersIntegration,
+  modulesLoaderIntegration,
+  nativeLinkedErrorsIntegration,
+  nativeReleaseIntegration,
+  reactNativeErrorHandlersIntegration,
+  reactNativeInfoIntegration,
+  screenshotIntegration,
+  sdkInfoIntegration,
+  spotlightIntegration,
+  viewHierarchyIntegration,
+} from './exports';
 import { createReactNativeRewriteFrames } from './rewriteframes';
-import { screenshotIntegration } from './screenshot';
-import { sdkInfoIntegration } from './sdkinfo';
-import { Spotlight } from './spotlight';
-import { viewHierarchyIntegration } from './viewhierarchy';
 
 /**
  * Returns the default ReactNative integrations based on the current environment.
@@ -82,7 +82,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
       integrations.push(viewHierarchyIntegration());
     }
     if (options._experiments && typeof options._experiments.profilesSampleRate === 'number') {
-      integrations.push(new HermesProfiling());
+      integrations.push(hermesProfilingIntegration());
     }
   }
 
@@ -106,7 +106,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
 
   if (options.enableSpotlight) {
     integrations.push(
-      Spotlight({
+      spotlightIntegration({
         sidecarUrl: options.spotlightSidecarUrl,
       }),
     );

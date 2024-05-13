@@ -1,17 +1,38 @@
-import type { DeviceContext, Event, Integration, OsContext } from '@sentry/types';
+import { convertIntegrationFnToClass } from '@sentry/core';
+import type {
+  DeviceContext,
+  Event,
+  Integration,
+  IntegrationClass,
+  IntegrationFnResult,
+  OsContext,
+} from '@sentry/types';
 
 import { getExpoDevice } from '../utils/expomodules';
 
+const INTEGRATION_NAME = 'ExpoContext';
+
 /** Load device context from expo modules. */
-export const expoContextIntegration = (): Integration => {
+export const expoContextIntegration = (): IntegrationFnResult => {
   return {
-    name: 'ExpoContext',
+    name: INTEGRATION_NAME,
     setupOnce: () => {
       // noop
     },
     processEvent,
   };
 };
+
+/**
+ * Load device context from expo modules.
+ *
+ * @deprecated Use `expoContextIntegration()` instead.
+ */
+// eslint-disable-next-line deprecation/deprecation
+export const ExpoContext = convertIntegrationFnToClass(
+  INTEGRATION_NAME,
+  expoContextIntegration,
+) as IntegrationClass<Integration>;
 
 function processEvent(event: Event): Event {
   const expoDeviceContext = getExpoDeviceContext();

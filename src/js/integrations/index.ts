@@ -1,14 +1,16 @@
-export { debugSymbolicatorIntegration } from './debugsymbolicator';
-export { deviceContextIntegration } from './devicecontext';
-export { reactNativeErrorHandlersIntegration } from './reactnativeerrorhandlers';
-export { nativeLinkedErrorsIntegration } from './nativelinkederrors';
-export { nativeReleaseIntegration } from './release';
-export { eventOriginIntegration } from './eventorigin';
-export { sdkInfoIntegration } from './sdkinfo';
-export { reactNativeInfoIntegration } from './reactnativeinfo';
-export { modulesLoaderIntegration } from './modulesloader';
+// THESE EXPORTS WILL BE REMOVED IN THE NEXT MAJOR RELEASE
+
+export { DebugSymbolicator } from './debugsymbolicator';
+export { DeviceContext } from './devicecontext';
+export { ReactNativeErrorHandlers } from './reactnativeerrorhandlers';
+export { NativeLinkedErrors } from './nativelinkederrors';
+export { Release } from './release';
+export { EventOrigin } from './eventorigin';
+export { SdkInfo } from './sdkinfo';
+export { ReactNativeInfo } from './reactnativeinfo';
+export { ModulesLoader } from './modulesloader';
 export { HermesProfiling } from '../profiling/integration';
-export { screenshotIntegration } from './screenshot';
-export { viewHierarchyIntegration } from './viewhierarchy';
-export { expoContextIntegration } from './expocontext';
+export { Screenshot } from './screenshot';
+export { ViewHierarchy } from './viewhierarchy';
+export { ExpoContext } from './expocontext';
 export { Spotlight } from './spotlight';

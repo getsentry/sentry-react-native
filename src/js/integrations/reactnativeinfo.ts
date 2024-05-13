@@ -1,4 +1,5 @@
-import type { Context, Event, EventHint, Integration } from '@sentry/types';
+import { convertIntegrationFnToClass } from '@sentry/core';
+import type { Context, Event, EventHint, Integration, IntegrationClass, IntegrationFnResult } from '@sentry/types';
 
 import {
   getExpoGoVersion,
@@ -11,6 +12,8 @@ import {
   isTurboModuleEnabled,
 } from '../utils/environment';
 import type { ReactNativeError } from './debugsymbolicator';
+
+const INTEGRATION_NAME = 'ReactNativeInfo';
 
 export interface ReactNativeContext extends Context {
   js_engine?: string;
@@ -26,15 +29,26 @@ export interface ReactNativeContext extends Context {
 }
 
 /** Loads React Native context at runtime */
-export const reactNativeInfoIntegration = (): Integration => {
+export const reactNativeInfoIntegration = (): IntegrationFnResult => {
   return {
-    name: 'ReactNativeInfo',
+    name: INTEGRATION_NAME,
     setupOnce: () => {
       // noop
     },
     processEvent,
   };
 };
+
+/**
+ * Loads React Native context at runtime
+ *
+ * @deprecated Use `reactNativeInfoIntegration()` instead.
+ */
+// eslint-disable-next-line deprecation/deprecation
+export const ReactNativeInfo = convertIntegrationFnToClass(
+  INTEGRATION_NAME,
+  reactNativeInfoIntegration,
+) as IntegrationClass<Integration>;
 
 function processEvent(event: Event, hint: EventHint): Event {
   const reactNativeError = hint?.originalException ? (hint?.originalException as ReactNativeError) : undefined;

@@ -1,10 +1,12 @@
-import { captureException, getClient, getCurrentScope } from '@sentry/core';
-import type { EventHint, Integration, SeverityLevel } from '@sentry/types';
+import { captureException, convertIntegrationFnToClass, getClient, getCurrentScope } from '@sentry/core';
+import type { EventHint, Integration, IntegrationClass, IntegrationFnResult, SeverityLevel } from '@sentry/types';
 import { addExceptionMechanism, logger } from '@sentry/utils';
 
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { checkPromiseAndWarn, polyfillPromise, requireRejectionTracking } from './reactnativeerrorhandlersutils';
+
+const INTEGRATION_NAME = 'ReactNativeErrorHandlers';
 
 /** ReactNativeErrorHandlers Options */
 interface ReactNativeErrorHandlersOptions {
@@ -21,9 +23,9 @@ interface PromiseRejectionTrackingOptions {
 /** ReactNativeErrorHandlers Integration */
 export const reactNativeErrorHandlersIntegration = (
   options: Partial<ReactNativeErrorHandlersOptions> = {},
-): Integration => {
+): IntegrationFnResult => {
   return {
-    name: 'ReactNativeErrorHandlers',
+    name: INTEGRATION_NAME,
     setupOnce: () =>
       setup({
         onerror: options.onerror || true,
@@ -31,6 +33,19 @@ export const reactNativeErrorHandlersIntegration = (
         patchGlobalPromise: options.patchGlobalPromise || true,
       }),
   };
+};
+
+/**
+ * ReactNativeErrorHandlers Integration
+ *
+ * @deprecated Use `reactNativeErrorHandlersIntegration()` instead.
+ */
+// eslint-disable-next-line deprecation/deprecation
+export const ReactNativeErrorHandlers = convertIntegrationFnToClass(
+  INTEGRATION_NAME,
+  reactNativeErrorHandlersIntegration,
+) as IntegrationClass<Integration> & {
+  new (options?: Partial<ReactNativeErrorHandlersOptions>): Integration;
 };
 
 function setup(options: ReactNativeErrorHandlersOptions): void {

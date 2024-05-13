@@ -1,18 +1,32 @@
-import type { Event, Integration } from '@sentry/types';
+import { convertIntegrationFnToClass } from '@sentry/core';
+import type { Event, Integration, IntegrationClass, IntegrationFnResult } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { NATIVE } from '../wrapper';
 
+const INTEGRATION_NAME = 'ModulesLoader';
+
 /** Loads runtime JS modules from prepared file. */
-export const modulesLoaderIntegration = (): Integration => {
+export const modulesLoaderIntegration = (): IntegrationFnResult => {
   return {
-    name: 'ModulesLoader',
+    name: INTEGRATION_NAME,
     setupOnce: () => {
       // noop
     },
     processEvent: createProcessEvent(),
   };
 };
+
+/**
+ * Loads runtime JS modules from prepared file.
+ *
+ * @deprecated Use `modulesLoaderIntegration()` instead.
+ */
+// eslint-disable-next-line deprecation/deprecation
+export const ModulesLoader = convertIntegrationFnToClass(
+  INTEGRATION_NAME,
+  modulesLoaderIntegration,
+) as IntegrationClass<Integration>;
 
 function createProcessEvent(): (event: Event) => Promise<Event> {
   let isSetup = false;
