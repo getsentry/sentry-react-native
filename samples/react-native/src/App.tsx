@@ -28,6 +28,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 
+Sentry.Integrations.ReactNativeErrorHandlers.enableNative = false;
+
 const reactNavigationInstrumentation =
   new Sentry.ReactNavigationInstrumentation({
     routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms

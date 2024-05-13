@@ -1,6 +1,6 @@
 import type { Client, Event, EventHint } from '@sentry/types';
 
-import { modulesLoaderIntegration } from '../../src/js/integrations';
+import { modulesLoaderIntegration } from '../../src/js/integrations/modulesloader';
 import { NATIVE } from '../../src/js/wrapper';
 
 jest.mock('../../src/js/wrapper');

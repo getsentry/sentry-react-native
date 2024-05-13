@@ -1,7 +1,7 @@
 import type { Event, EventHint, Package } from '@sentry/types';
 
 import { SDK_NAME, SDK_VERSION } from '../../src/js';
-import { sdkInfoIntegration } from '../../src/js/integrations';
+import { sdkInfoIntegration } from '../../src/js/integrations/sdkinfo';
 import { NATIVE } from '../../src/js/wrapper';
 
 let mockedFetchNativeSdkInfo: jest.Mock<PromiseLike<Package | null>, []>;

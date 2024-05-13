@@ -63,8 +63,7 @@ export {
 
 export { lastEventId } from '@sentry/browser';
 
-/** @deprecated Import the integration function directly, e.g. `screenshotIntegration()` instead of `new Integrations.Screenshot(). */
-export * as Integrations from './integrations';
+import * as Integrations from './integrations';
 
 export * from './integrations/exports';
 
@@ -104,3 +103,8 @@ export {
 } from './tracing';
 
 export type { ReactNavigationTransactionContext, TimeToDisplayProps } from './tracing';
+
+export {
+  /** @deprecated Import the integration function directly, e.g. `screenshotIntegration()` instead of `new Integrations.Screenshot(). */
+  Integrations,
+}
