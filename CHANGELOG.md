@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Remove unused `rnpm` config ([#3811](https://github.com/getsentry/sentry-react-native/pull/3811))
+
 ### Dependencies
 
 - Bump CLI from v2.30.4 to v2.31.2 ([#3719](https://github.com/getsentry/sentry-react-native/pull/3719))
