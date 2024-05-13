@@ -4,7 +4,7 @@ import { nativeReleaseIntegration } from '../../src/js/integrations/release';
 
 jest.mock('../../src/js/wrapper', () => ({
   NATIVE: {
-    fetchNativeRelease: () => ({
+    fetchNativeRelease: async () => ({
       build: 'native_build',
       id: 'native_id',
       version: 'native_version',
@@ -67,7 +67,10 @@ describe('Tests the Release integration', () => {
       },
       {},
       {
-        getOptions: () => ({ dist: 'options_dist' }),
+        getOptions: () => ({
+          dist: 'options_dist',
+          release: 'options_release',
+        }),
       } as Client,
     );
 

@@ -28,9 +28,10 @@ export const reactNativeErrorHandlersIntegration = (
     name: INTEGRATION_NAME,
     setupOnce: () =>
       setup({
-        onerror: options.onerror || true,
-        onunhandledrejection: options.onunhandledrejection || true,
-        patchGlobalPromise: options.patchGlobalPromise || true,
+        onerror: true,
+        onunhandledrejection: true,
+        patchGlobalPromise: true,
+        ...options,
       }),
   };
 };

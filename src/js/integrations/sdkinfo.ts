@@ -75,9 +75,10 @@ function createCachedFetchNativeSdkInfo(): () => Promise<Package | null> {
     };
   }
 
+  let isCached: boolean = false;
+  let nativeSdkPackageCache: Package | null = null;
+
   return async () => {
-    let isCached: boolean = false;
-    let nativeSdkPackageCache: Package | null = null;
     if (isCached) {
       return nativeSdkPackageCache;
     }

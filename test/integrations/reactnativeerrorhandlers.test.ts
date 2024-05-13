@@ -1,6 +1,6 @@
 jest.mock('../../src/js/integrations/reactnativeerrorhandlersutils');
 
-import { type Hub, setCurrentClient } from '@sentry/core';
+import { setCurrentClient } from '@sentry/core';
 import type { ExtendedError, SeverityLevel } from '@sentry/types';
 
 import { reactNativeErrorHandlersIntegration } from '../../src/js/integrations/reactnativeerrorhandlers';
@@ -42,10 +42,7 @@ describe('ReactNativeErrorHandlers', () => {
 
       const integration = reactNativeErrorHandlersIntegration();
 
-      integration.setupOnce!(
-        () => {},
-        () => ({} as Hub),
-      );
+      integration.setupOnce();
 
       expect(ErrorUtils.setGlobalHandler).toHaveBeenCalledWith(errorHandlerCallback);
     });
@@ -85,10 +82,7 @@ describe('ReactNativeErrorHandlers', () => {
   describe('onUnhandledRejection', () => {
     test('unhandled rejected promise is captured with synthetical error', async () => {
       const integration = reactNativeErrorHandlersIntegration();
-      integration.setupOnce!(
-        () => {},
-        () => ({} as Hub),
-      );
+      integration.setupOnce();
 
       const [actualTrackingOptions] = mockEnable.mock.calls[0] || [];
       actualTrackingOptions?.onUnhandled?.(1, 'Test Error');
@@ -110,10 +104,7 @@ describe('ReactNativeErrorHandlers', () => {
 
     test('error like unhandled rejected promise is captured without synthetical error', async () => {
       const integration = reactNativeErrorHandlersIntegration();
-      integration.setupOnce!(
-        () => {},
-        () => ({} as Hub),
-      );
+      integration.setupOnce();
 
       const [actualTrackingOptions] = mockEnable.mock.calls[0] || [];
       actualTrackingOptions?.onUnhandled?.(1, new Error('Test Error'));
