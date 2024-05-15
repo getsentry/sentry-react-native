@@ -8,6 +8,43 @@
 
 Access to Mobile Replay is limited to early access orgs on Sentry. If you're interested, [sign up for the waitlist](https://sentry.io/lp/mobile-replay-beta/)
 
+### Features
+
+- Functional integrations ([#3814](https://github.com/getsentry/sentry-react-native/pull/3814))
+
+  Instead of installing `@sentry/integrations` and creating integrations using the `new` keyword, you can use direct imports of the functional integrations.
+
+  ```js
+  // Before
+  import * as Sentry from '@sentry/react-native';
+  import { HttpClient } from '@sentry/integrations';
+
+  Sentry.init({
+    integrations: [
+      new Sentry.BrowserIntegrations.Dedupe(),
+      new Sentry.Integration.Screenshot(),
+      new HttpClient(),
+    ],
+  });
+
+  // After
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    integrations: [
+      Sentry.dedupeIntegration(),
+      Sentry.screenshotIntegration(),
+      Sentry.httpClientIntegration(),
+    ],
+  });
+  ```
+
+  Note that the `Sentry.BrowserIntegrations`, `Sentry.Integration` and the Class style integrations will be removed in the next major version of the SDK.
+
+### Fixes
+
+- Remove unused `rnpm` config ([#3811](https://github.com/getsentry/sentry-react-native/pull/3811))
+
 ### Dependencies
 
 - Bump CLI from v2.30.4 to v2.31.2 ([#3719](https://github.com/getsentry/sentry-react-native/pull/3719))

@@ -1,17 +1,31 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { spanToJSON } from '@sentry/core';
-import type { SpanJSON, Transaction, TransactionContext } from '@sentry/types';
+import {
+  addGlobalEventProcessor,
+  getActiveSpan,
+  getCurrentHub,
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
+  SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE,
+  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
+  setCurrentClient,
+  spanToJSON,
+} from '@sentry/core';
+import type { Event } from '@sentry/types';
 import type { EmitterSubscription } from 'react-native';
 
+import { ReactNativeTracing } from '../../src/js';
 import type {
   BottomTabPressedEvent,
   ComponentWillAppearEvent,
   EventsRegistry,
-  NavigationDelegate,
 } from '../../src/js/tracing/reactnativenavigation';
 import { ReactNativeNavigationInstrumentation } from '../../src/js/tracing/reactnativenavigation';
-import type { TransactionCreator } from '../../src/js/tracing/routingInstrumentation';
-import { getMockTransaction } from '../testutils';
+import type { BeforeNavigate } from '../../src/js/tracing/types';
+import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
+import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 
 interface MockEventsRegistry extends EventsRegistry {
   componentWillAppearListener?: (event: ComponentWillAppearEvent) => void;
@@ -22,71 +36,21 @@ interface MockEventsRegistry extends EventsRegistry {
   onBottomTabPressed(event: BottomTabPressedEvent): void;
 }
 
-const mockEventsRegistry: MockEventsRegistry = {
-  onComponentWillAppear(event: ComponentWillAppearEvent): void {
-    this.componentWillAppearListener?.(event);
-  },
-  onCommand(name: string, params: unknown): void {
-    this.commandListener?.(name, params);
-  },
-  onBottomTabPressed(event) {
-    this.bottomTabPressedListener?.(event);
-  },
-  registerComponentWillAppearListener(callback: (event: ComponentWillAppearEvent) => void) {
-    this.componentWillAppearListener = callback;
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      remove() {},
-    } as EmitterSubscription;
-  },
-  registerCommandListener(callback: (name: string, params: unknown) => void) {
-    this.commandListener = callback;
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      remove() {},
-    };
-  },
-  registerBottomTabPressedListener(callback: (event: BottomTabPressedEvent) => void) {
-    this.bottomTabPressedListener = callback;
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      remove() {},
-    } as EmitterSubscription;
-  },
-};
-
-const mockNavigationDelegate: NavigationDelegate = {
-  events() {
-    return mockEventsRegistry;
-  },
-};
+jest.useFakeTimers({ advanceTimers: true });
 
 describe('React Native Navigation Instrumentation', () => {
-  let instrumentation: ReactNativeNavigationInstrumentation;
-  let tracingListener: jest.Mock<ReturnType<TransactionCreator>, Parameters<TransactionCreator>>;
-  let mockTransaction: Transaction;
+  let mockEventsRegistry: MockEventsRegistry;
+  let client: TestClient;
 
   beforeEach(() => {
-    instrumentation = new ReactNativeNavigationInstrumentation(mockNavigationDelegate);
-
-    mockTransaction = getMockTransaction(ReactNativeNavigationInstrumentation.instrumentationName);
-
-    tracingListener = jest.fn((_context: TransactionContext) => mockTransaction);
-    instrumentation.registerRoutingInstrumentation(
-      tracingListener,
-      context => context,
-      () => {},
-    );
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+    RN_GLOBAL_OBJ.__SENTRY__.globalEventProcessors = []; // resets integrations
   });
 
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
-
-  test('Correctly instruments a route change', () => {
-    mockEventsRegistry.onCommand('root', {});
-
-    expect(spanToJSON(mockTransaction).description).toBe('Route Change');
+  test('Correctly instruments a route change', async () => {
+    setupTestClient();
 
     const mockEvent: ComponentWillAppearEvent = {
       componentId: '0',
@@ -94,49 +58,47 @@ describe('React Native Navigation Instrumentation', () => {
       componentType: 'Component',
       passProps: {},
     };
+
+    mockEventsRegistry.onCommand('root', {});
     mockEventsRegistry.onComponentWillAppear(mockEvent);
 
-    expect(spanToJSON(mockTransaction)).toEqual(
-      expect.objectContaining(<Partial<Transaction>>{
-        description: 'Test',
-        tags: {
-          'routing.instrumentation': 'react-native-navigation',
-          'routing.route.name': 'Test',
-        },
-        data: {
-          route: {
-            componentId: '0',
-            componentName: 'Test',
-            componentType: 'Component',
-            passProps: {},
-            name: 'Test',
-            hasBeenSeen: false,
-          },
-          previousRoute: null,
-          'sentry.op': 'navigation',
-          'sentry.origin': 'manual',
-          'sentry.source': 'component',
-        },
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    expect(client.event).toEqual(
+      expect.objectContaining({
+        type: 'transaction',
+        transaction: 'Test',
+        contexts: expect.objectContaining({
+          trace: expect.objectContaining({
+            data: {
+              route: {
+                name: 'Test',
+                componentName: 'Test',
+                componentId: '0',
+                componentType: 'Component',
+                hasBeenSeen: false,
+                passProps: {},
+              },
+              previousRoute: null,
+              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
+              [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+            },
+          }),
+        }),
       }),
     );
   });
 
-  test('Transaction context is changed with beforeNavigate', () => {
-    instrumentation.registerRoutingInstrumentation(
-      tracingListener,
-      context => {
-        context.sampled = false;
-        context.description = 'Description';
-        context.name = 'New Name';
-
-        return context;
+  test('Transaction context is changed with beforeNavigate', async () => {
+    setupTestClient({
+      beforeNavigate: span => {
+        span.name = 'New Name';
+        return span;
       },
-      () => {},
-    );
-
-    mockEventsRegistry.onCommand('root', {});
-
-    expect(mockTransaction.name).toBe('Route Change');
+    });
 
     const mockEvent: ComponentWillAppearEvent = {
       componentId: '0',
@@ -144,57 +106,60 @@ describe('React Native Navigation Instrumentation', () => {
       componentType: 'Component',
       passProps: {},
     };
+
+    mockEventsRegistry.onCommand('root', {});
     mockEventsRegistry.onComponentWillAppear(mockEvent);
 
-    expect(spanToJSON(mockTransaction)).toEqual(
-      expect.objectContaining(<Partial<SpanJSON>>{
-        description: 'New Name',
-        tags: {
-          'routing.instrumentation': 'react-native-navigation',
-          'routing.route.name': 'Test',
-        },
-        data: {
-          route: {
-            componentId: '0',
-            componentName: 'Test',
-            componentType: 'Component',
-            passProps: {},
-            name: 'Test',
-            hasBeenSeen: false,
-          },
-          previousRoute: null,
-          'sentry.op': 'navigation',
-          'sentry.origin': 'manual',
-          'sentry.source': 'custom',
-        },
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    expect(client.event).toEqual(
+      expect.objectContaining(<Partial<Event>>{
+        type: 'transaction',
+        transaction: 'New Name',
+        contexts: expect.objectContaining({
+          trace: expect.objectContaining({
+            data: {
+              route: {
+                name: 'Test',
+                componentName: 'Test',
+                componentId: '0',
+                componentType: 'Component',
+                hasBeenSeen: false,
+                passProps: {},
+              },
+              previousRoute: null,
+              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'custom',
+              [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+            },
+          }),
+        }),
       }),
     );
   });
 
-  test('Transaction not sent on a cancelled route change', () => {
-    jest.useFakeTimers();
+  test('Transaction not sent on a cancelled route change', async () => {
+    setupTestClient();
 
     mockEventsRegistry.onCommand('root', {});
 
-    expect(mockTransaction.name).toBe('Route Change');
-    expect(mockTransaction.sampled).toBe(true);
+    await jest.runAllTimersAsync();
+    await client.flush();
 
-    jest.runAllTimers();
-
-    expect(mockTransaction.sampled).toBe(false);
-
-    jest.useRealTimers();
+    expect(client.event).toBeUndefined();
   });
 
-  test('Transaction not sent if route change timeout is passed', () => {
-    jest.useFakeTimers();
+  test('Transaction not sent if route change timeout is passed', async () => {
+    setupTestClient();
 
     mockEventsRegistry.onCommand('root', {});
 
-    expect(mockTransaction.name).toBe('Route Change');
-    expect(mockTransaction.sampled).toBe(true);
+    expect(spanToJSON(getActiveSpan()!).description).toEqual('Route Change');
+    expect(getActiveSpan()!.isRecording()).toBe(true);
 
-    jest.runAllTimers();
+    await jest.runAllTimersAsync();
 
     const mockEvent: ComponentWillAppearEvent = {
       componentId: '0',
@@ -204,142 +169,94 @@ describe('React Native Navigation Instrumentation', () => {
     };
     mockEventsRegistry.onComponentWillAppear(mockEvent);
 
-    expect(mockTransaction.sampled).toBe(false);
-    expect(mockTransaction.name).not.toBe('Test');
+    await jest.runAllTimersAsync();
+    await client.flush();
 
-    jest.useRealTimers();
+    expect(client.event).toBeUndefined();
   });
 
   describe('tab change', () => {
-    beforeEach(() => {
-      instrumentation = new ReactNativeNavigationInstrumentation(mockNavigationDelegate, {
+    test('correctly instruments a tab change', async () => {
+      setupTestClient({
         enableTabsInstrumentation: true,
       });
-      instrumentation.registerRoutingInstrumentation(
-        tracingListener,
-        context => context,
-        () => {},
-      );
-    });
-
-    test('correctly instruments a tab change', () => {
-      mockEventsRegistry.onBottomTabPressed({ tabIndex: 0 });
-      mockEventsRegistry.onComponentWillAppear(<ComponentWillAppearEvent>{
-        componentId: '0',
-        componentName: 'TestScreenName',
-        componentType: 'Component',
-        passProps: {},
-      });
-
-      expect(spanToJSON(mockTransaction)).toEqual(
-        expect.objectContaining(<Partial<SpanJSON>>{
-          description: 'TestScreenName',
-          tags: {
-            'routing.instrumentation': 'react-native-navigation',
-            'routing.route.name': 'TestScreenName',
-          },
-          data: {
-            route: {
-              componentId: '0',
-              componentName: 'TestScreenName',
-              componentType: 'Component',
-              passProps: {},
-              name: 'TestScreenName',
-              hasBeenSeen: false,
-            },
-            previousRoute: null,
-            'sentry.op': 'navigation',
-            'sentry.origin': 'manual',
-            'sentry.source': 'component',
-          },
-        }),
-      );
-    });
-
-    test('not instrument tabs if disabled', () => {
-      jest.useFakeTimers();
-
-      instrumentation = new ReactNativeNavigationInstrumentation(mockNavigationDelegate, {
-        enableTabsInstrumentation: false,
-      });
-      tracingListener = jest.fn((_context: TransactionContext) => mockTransaction);
-      instrumentation.registerRoutingInstrumentation(
-        tracingListener,
-        context => context,
-        () => {},
-      );
 
       mockEventsRegistry.onBottomTabPressed({ tabIndex: 0 });
       mockEventsRegistry.onComponentWillAppear(<ComponentWillAppearEvent>{
         componentId: '0',
         componentName: 'TestScreenName',
         componentType: 'Component',
+        passProps: {},
       });
 
-      expect(tracingListener).not.toBeCalled();
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
 
-      jest.runAllTimers();
-      expect(mockTransaction.sampled).toBe(false);
-
-      jest.useRealTimers();
-    });
-  });
-
-  describe('onRouteConfirmed', () => {
-    let confirmedContext: TransactionContext | undefined;
-
-    beforeEach(() => {
-      instrumentation.registerRoutingInstrumentation(
-        tracingListener,
-        context => context,
-        context => {
-          confirmedContext = context;
-        },
-      );
-    });
-
-    test('onRouteConfirmed called with correct route data', () => {
-      mockEventsRegistry.onCommand('root', {});
-
-      expect(mockTransaction.name).toBe('Route Change');
-
-      const mockEvent1: ComponentWillAppearEvent = {
-        componentId: '1',
-        componentName: 'Test 1',
-        componentType: 'Component',
-        passProps: {},
-      };
-      mockEventsRegistry.onComponentWillAppear(mockEvent1);
-
-      mockEventsRegistry.onCommand('root', {});
-
-      const mockEvent2: ComponentWillAppearEvent = {
-        componentId: '2',
-        componentName: 'Test 2',
-        componentType: 'Component',
-        passProps: {},
-      };
-      mockEventsRegistry.onComponentWillAppear(mockEvent2);
-
-      expect(confirmedContext).toEqual(
-        expect.objectContaining(<Partial<TransactionContext>>{
-          name: 'Test 2',
-          data: expect.objectContaining({
-            route: expect.objectContaining({
-              name: 'Test 2',
-            }),
-            previousRoute: expect.objectContaining({
-              name: 'Test 1',
+      expect(client.event).toEqual(
+        expect.objectContaining(<Partial<Event>>{
+          type: 'transaction',
+          transaction: 'TestScreenName',
+          contexts: expect.objectContaining({
+            trace: expect.objectContaining({
+              data: {
+                route: {
+                  name: 'TestScreenName',
+                  componentName: 'TestScreenName',
+                  componentId: '0',
+                  componentType: 'Component',
+                  hasBeenSeen: false,
+                  passProps: {},
+                },
+                previousRoute: null,
+                [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+                [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
+                [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+                [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+              },
             }),
           }),
         }),
       );
     });
 
-    test('onRouteConfirmed clears transaction', () => {
-      mockEventsRegistry.onCommand('root', {});
+    test('not instrument tabs if disabled', async () => {
+      setupTestClient({
+        enableTabsInstrumentation: false,
+      });
 
-      expect(mockTransaction.name).toBe('Route Change');
+      mockEventsRegistry.onBottomTabPressed({ tabIndex: 0 });
+      mockEventsRegistry.onComponentWillAppear(<ComponentWillAppearEvent>{
+        componentId: '0',
+        componentName: 'TestScreenName',
+        componentType: 'Component',
+      });
+
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.event).toBeUndefined();
+    });
+
+    test('tabs instrumentation is disabled by default', async () => {
+      setupTestClient();
+
+      mockEventsRegistry.onBottomTabPressed({ tabIndex: 0 });
+      mockEventsRegistry.onComponentWillAppear(<ComponentWillAppearEvent>{
+        componentId: '0',
+        componentName: 'TestScreenName',
+        componentType: 'Component',
+      });
+
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.event).toBeUndefined();
+    });
+  });
+
+  describe('onRouteConfirmed', () => {
+    test('onRouteConfirmed called with correct route data', async () => {
+      setupTestClient();
 
       const mockEvent1: ComponentWillAppearEvent = {
         componentId: '1',
@@ -347,21 +264,179 @@ describe('React Native Navigation Instrumentation', () => {
         componentType: 'Component',
         passProps: {},
       };
-      mockEventsRegistry.onComponentWillAppear(mockEvent1);
-
       const mockEvent2: ComponentWillAppearEvent = {
         componentId: '2',
         componentName: 'Test 2',
         componentType: 'Component',
         passProps: {},
       };
+
+      mockEventsRegistry.onCommand('root', {});
+      mockEventsRegistry.onComponentWillAppear(mockEvent1);
+
+      mockEventsRegistry.onCommand('root', {});
       mockEventsRegistry.onComponentWillAppear(mockEvent2);
 
-      expect(confirmedContext).toEqual(
-        expect.objectContaining(<Partial<TransactionContext>>{
-          name: 'Test 1',
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.eventQueue.length).toEqual(2);
+      expect(client.event).toEqual(
+        expect.objectContaining(<Partial<Event>>{
+          type: 'transaction',
+          transaction: 'Test 2',
+          contexts: expect.objectContaining({
+            trace: expect.objectContaining({
+              data: {
+                route: {
+                  name: 'Test 2',
+                  componentName: 'Test 2',
+                  componentId: '2',
+                  componentType: 'Component',
+                  hasBeenSeen: false,
+                  passProps: {},
+                },
+                previousRoute: {
+                  name: 'Test 1',
+                  componentName: 'Test 1',
+                  componentId: '1',
+                  componentType: 'Component',
+                  passProps: {},
+                },
+                [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+                [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
+                [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+                [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+              },
+            }),
+          }),
+        }),
+      );
+    });
+
+    test('onRouteConfirmed clears transaction', async () => {
+      setupTestClient();
+
+      const mockEvent1: ComponentWillAppearEvent = {
+        componentId: '1',
+        componentName: 'Test 1',
+        componentType: 'Component',
+        passProps: {},
+      };
+      const mockEvent2: ComponentWillAppearEvent = {
+        componentId: '2',
+        componentName: 'Test 2',
+        componentType: 'Component',
+        passProps: {},
+      };
+
+      mockEventsRegistry.onCommand('root', {});
+      mockEventsRegistry.onComponentWillAppear(mockEvent1);
+
+      mockEventsRegistry.onComponentWillAppear(mockEvent2);
+
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.eventQueue.length).toEqual(1);
+      expect(client.event).toEqual(
+        expect.objectContaining(<Partial<Event>>{
+          type: 'transaction',
+          transaction: 'Test 1',
+          contexts: expect.objectContaining({
+            trace: expect.objectContaining({
+              data: {
+                route: {
+                  name: 'Test 1',
+                  componentName: 'Test 1',
+                  componentId: '1',
+                  componentType: 'Component',
+                  hasBeenSeen: false,
+                  passProps: {},
+                },
+                previousRoute: null,
+                [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+                [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
+                [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+                [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+              },
+            }),
+          }),
         }),
       );
     });
   });
+
+  function setupTestClient(
+    setupOptions: {
+      beforeNavigate?: BeforeNavigate;
+      enableTabsInstrumentation?: boolean;
+    } = {},
+  ) {
+    createMockNavigation();
+    const rNavigation = new ReactNativeNavigationInstrumentation(
+      {
+        events() {
+          return mockEventsRegistry;
+        },
+      },
+      {
+        routeChangeTimeoutMs: 200,
+        enableTabsInstrumentation: setupOptions.enableTabsInstrumentation,
+      },
+    );
+
+    const rnTracing = new ReactNativeTracing({
+      routingInstrumentation: rNavigation,
+      enableStallTracking: false,
+      enableNativeFramesTracking: false,
+      enableAppStartTracking: false,
+      beforeNavigate: setupOptions.beforeNavigate || (span => span),
+    });
+
+    const options = getDefaultTestClientOptions({
+      tracesSampleRate: 1.0,
+      integrations: [rnTracing],
+    });
+    client = new TestClient(options);
+    setCurrentClient(client);
+    client.init();
+
+    rnTracing.setupOnce(addGlobalEventProcessor, getCurrentHub);
+  }
+
+  function createMockNavigation() {
+    mockEventsRegistry = {
+      onComponentWillAppear(event: ComponentWillAppearEvent): void {
+        this.componentWillAppearListener?.(event);
+      },
+      onCommand(name: string, params: unknown): void {
+        this.commandListener?.(name, params);
+      },
+      onBottomTabPressed(event) {
+        this.bottomTabPressedListener?.(event);
+      },
+      registerComponentWillAppearListener(callback: (event: ComponentWillAppearEvent) => void) {
+        this.componentWillAppearListener = callback;
+        return {
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          remove() {},
+        } as EmitterSubscription;
+      },
+      registerCommandListener(callback: (name: string, params: unknown) => void) {
+        this.commandListener = callback;
+        return {
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          remove() {},
+        };
+      },
+      registerBottomTabPressedListener(callback: (event: BottomTabPressedEvent) => void) {
+        this.bottomTabPressedListener = callback;
+        return {
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          remove() {},
+        } as EmitterSubscription;
+      },
+    };
+  }
 });

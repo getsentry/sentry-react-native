@@ -1,4 +1,12 @@
-import { BaseClient, createTransport, initAndBind } from '@sentry/core';
+import {
+  BaseClient,
+  createTransport,
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  initAndBind,
+  setCurrentClient,
+} from '@sentry/core';
 import type {
   ClientOptions,
   Event,
@@ -10,6 +18,8 @@ import type {
   SeverityLevel,
 } from '@sentry/types';
 import { resolvedSyncPromise } from '@sentry/utils';
+
+import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 
 export function getDefaultTestClientOptions(options: Partial<TestClientOptions> = {}): TestClientOptions {
   return {
@@ -102,4 +112,18 @@ export class TestClient extends BaseClient<TestClientOptions> {
 
 export function init(options: TestClientOptions): void {
   initAndBind(TestClient, options);
+}
+
+export function setupTestClient(options: Partial<TestClientOptions> = {}): TestClient {
+  _addTracingExtensions();
+
+  getCurrentScope().clear();
+  getIsolationScope().clear();
+  getGlobalScope().clear();
+
+  const finalOptions = getDefaultTestClientOptions({ tracesSampleRate: 1.0, ...options });
+  const client = new TestClient(finalOptions);
+  setCurrentClient(client);
+  client.init();
+  return client;
 }

@@ -64,8 +64,10 @@ export {
 export { lastEventId } from '@sentry/browser';
 
 import * as Integrations from './integrations';
-export { mobileReplayIntegration } from './integrations';
-import { SDK_NAME, SDK_VERSION } from './version';
+
+export * from './integrations/exports';
+
+export { SDK_NAME, SDK_VERSION } from './version';
 export type { ReactNativeOptions } from './options';
 export { ReactNativeClient } from './client';
 
@@ -101,4 +103,8 @@ export {
 } from './tracing';
 
 export type { ReactNavigationTransactionContext, TimeToDisplayProps } from './tracing';
-export { Integrations, SDK_NAME, SDK_VERSION };
+
+export {
+  /** @deprecated Import the integration function directly, e.g. `screenshotIntegration()` instead of `new Integrations.Screenshot(). */
+  Integrations,
+};

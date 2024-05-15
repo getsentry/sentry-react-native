@@ -7,9 +7,9 @@ import { getCurrentHub } from '@sentry/core';
 import type { Envelope, Event, Profile, ThreadCpuProfile, Transaction, Transport } from '@sentry/types';
 
 import * as Sentry from '../../src/js';
-import { HermesProfiling } from '../../src/js/integrations';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { getDebugMetadata } from '../../src/js/profiling/debugid';
+import { hermesProfilingIntegration } from '../../src/js/profiling/integration';
 import type { AndroidProfileEvent } from '../../src/js/profiling/types';
 import { getDefaultEnvironment, isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
@@ -62,7 +62,7 @@ describe('profiling integration', () => {
     });
     getCurrentHub().getScope()?.setSpan(transaction);
 
-    getCurrentHub().getClient()?.addIntegration?.(new HermesProfiling());
+    getCurrentHub().getClient()?.addIntegration?.(hermesProfilingIntegration());
 
     transaction.finish();
     jest.runAllTimers();
@@ -336,35 +336,22 @@ describe('profiling integration', () => {
     });
 
     test('profile timeout is reset when transaction is finished', () => {
-      const integration = getCurrentHermesProfilingIntegration();
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
       const transaction: Transaction = Sentry.startTransaction({
         name: 'test-name',
       });
-      const timeoutAfterProfileStarted = integration._currentProfileTimeout;
+      const timeoutAfterProfileStarted = setTimeoutSpy.mock.results[0].value;
 
       jest.advanceTimersByTime(40 * 1e6);
 
       transaction.finish();
-      const timeoutAfterProfileFinished = integration._currentProfileTimeout;
+      expect(clearTimeoutSpy).toBeCalledWith(timeoutAfterProfileStarted);
 
       jest.runAllTimers();
-
-      expect(timeoutAfterProfileStarted).toBeDefined();
-      expect(timeoutAfterProfileFinished).toBeUndefined();
     });
   });
 });
-
-type TestHermesIntegration = Omit<HermesProfiling, '_currentProfileTimeout'> & {
-  _currentProfileTimeout: number | undefined;
-};
-function getCurrentHermesProfilingIntegration(): TestHermesIntegration {
-  const integration = Sentry.getCurrentHub().getClient()?.getIntegration(HermesProfiling);
-  if (!integration) {
-    throw new Error('HermesProfiling integration is not installed');
-  }
-  return integration as unknown as TestHermesIntegration;
-}
 
 function initTestClient(
   testOptions: {
