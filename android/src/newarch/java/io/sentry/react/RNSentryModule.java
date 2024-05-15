@@ -160,8 +160,8 @@ public class RNSentryModule extends NativeRNSentrySpec {
     }
 
     @Override
-    public void startReplay(boolean isHardCrash, Promise promise) {
-        this.impl.startReplay(isHardCrash, promise);
+    public void captureReplay(boolean isHardCrash, Promise promise) {
+        this.impl.captureReplay(isHardCrash, promise);
     }
 
     @Override

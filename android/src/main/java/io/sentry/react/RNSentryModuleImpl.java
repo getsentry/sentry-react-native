@@ -445,7 +445,7 @@ public class RNSentryModuleImpl {
         }
     }
 
-    public void startReplay(boolean isHardCrash, Promise promise) {
+    public void captureReplay(boolean isHardCrash, Promise promise) {
         Sentry.getCurrentHub().getOptions().getReplayController().sendReplay(isHardCrash, null, null);
         promise.resolve(getCurrentReplayId());
     }

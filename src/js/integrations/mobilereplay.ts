@@ -78,7 +78,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       return event;
     }
 
-    const replayId = await NATIVE.startReplay(isHardCrash(event));
+    const replayId = await NATIVE.captureReplay(isHardCrash(event));
     if (!replayId) {
       logger.debug(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} not sampled for event ${event.event_id}.`);
       return event;

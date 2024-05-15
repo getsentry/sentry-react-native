@@ -665,7 +665,7 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 
-RCT_EXPORT_METHOD(startReplay: (BOOL)isHardCrash
+RCT_EXPORT_METHOD(captureReplay: (BOOL)isHardCrash
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {

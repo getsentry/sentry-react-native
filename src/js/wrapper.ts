@@ -110,7 +110,7 @@ interface SentryNativeWrapper {
   fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | null;
   initNativeReactNavigationNewFrameTracking(): Promise<void>;
 
-  startReplay(isHardCrash: boolean): Promise<string | null>;
+  captureReplay(isHardCrash: boolean): Promise<string | null>;
   getCurrentReplayId(): string | null;
 }
 
@@ -616,17 +616,17 @@ export const NATIVE: SentryNativeWrapper = {
     return RNSentry.initNativeReactNavigationNewFrameTracking();
   },
 
-  async startReplay(isHardCrash: boolean): Promise<string | null> {
+  async captureReplay(isHardCrash: boolean): Promise<string | null> {
     if (!this.enableNative) {
-      logger.warn(`[NATIVE] \`${this.startReplay.name}\` is not available when native is disabled.`);
+      logger.warn(`[NATIVE] \`${this.captureReplay.name}\` is not available when native is disabled.`);
       return Promise.resolve(null);
     }
     if (!this._isModuleLoaded(RNSentry)) {
-      logger.warn(`[NATIVE] \`${this.startReplay.name}\` is not available when native is not available.`);
+      logger.warn(`[NATIVE] \`${this.captureReplay.name}\` is not available when native is not available.`);
       return Promise.resolve(null);
     }
 
-    return (await RNSentry.startReplay(isHardCrash)) || null;
+    return (await RNSentry.captureReplay(isHardCrash)) || null;
   },
 
   getCurrentReplayId(): string | null {

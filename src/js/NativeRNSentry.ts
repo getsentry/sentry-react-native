@@ -44,7 +44,7 @@ export interface Spec extends TurboModule {
   fetchNativePackageName(): string | undefined | null;
   fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | undefined | null;
   initNativeReactNavigationNewFrameTracking(): Promise<void>;
-  startReplay(isHardCrash: boolean): Promise<string | undefined | null>;
+  captureReplay(isHardCrash: boolean): Promise<string | undefined | null>;
   getCurrentReplayId(): string | undefined | null;
 }
 
