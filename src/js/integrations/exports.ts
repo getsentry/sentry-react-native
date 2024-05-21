@@ -12,6 +12,7 @@ export { screenshotIntegration } from './screenshot';
 export { viewHierarchyIntegration } from './viewhierarchy';
 export { expoContextIntegration } from './expocontext';
 export { spotlightIntegration } from './spotlight';
+export { mobileReplayIntegration } from './mobilereplay';
 
 export {
   breadcrumbsIntegration,
@@ -24,4 +25,5 @@ export {
   inboundFiltersIntegration,
   linkedErrorsIntegration as browserLinkedErrorsIntegration,
   rewriteFramesIntegration,
+  replayIntegration as browserReplayIntegration,
 } from '@sentry/react';

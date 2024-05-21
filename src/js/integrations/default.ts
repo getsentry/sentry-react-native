@@ -1,3 +1,5 @@
+/* eslint-disable complexity */
+import type { BrowserOptions } from '@sentry/react';
 import type { Integration } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../options';
@@ -8,6 +10,7 @@ import {
   browserApiErrorsIntegration,
   browserGlobalHandlersIntegration,
   browserLinkedErrorsIntegration,
+  browserReplayIntegration,
   debugSymbolicatorIntegration,
   dedupeIntegration,
   deviceContextIntegration,
@@ -18,6 +21,7 @@ import {
   httpClientIntegration,
   httpContextIntegration,
   inboundFiltersIntegration,
+  mobileReplayIntegration,
   modulesLoaderIntegration,
   nativeLinkedErrorsIntegration,
   nativeReleaseIntegration,
@@ -110,6 +114,17 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
         sidecarUrl: options.spotlightSidecarUrl,
       }),
     );
+  }
+
+  if (
+    (options._experiments && typeof options._experiments.replaysOnErrorSampleRate === 'number') ||
+    (options._experiments && typeof options._experiments.replaysSessionSampleRate === 'number')
+  ) {
+    integrations.push(notWeb() ? mobileReplayIntegration() : browserReplayIntegration());
+    if (!notWeb()) {
+      (options as BrowserOptions).replaysOnErrorSampleRate = options._experiments.replaysOnErrorSampleRate;
+      (options as BrowserOptions).replaysSessionSampleRate = options._experiments.replaysSessionSampleRate;
+    }
   }
 
   return integrations;

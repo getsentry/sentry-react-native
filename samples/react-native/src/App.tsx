@@ -25,6 +25,7 @@ import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { Platform, StyleSheet } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import PlaygroundScreen from './Screens/PlaygroundScreen';
 
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 
@@ -79,6 +80,10 @@ Sentry.init({
         failedRequestTargets: [/.*/],
       }),
       Sentry.metrics.metricsAggregatorIntegration(),
+      Sentry.mobileReplayIntegration({
+        maskAllImages: false,
+        // maskAllText: false,
+      }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
@@ -102,6 +107,8 @@ Sentry.init({
   // dist: `1`,
   _experiments: {
     profilesSampleRate: 1.0,
+    // replaysSessionSampleRate: 1.0,
+    replaysOnErrorSampleRate: 1.0,
   },
   enableSpotlight: true,
 });
@@ -197,6 +204,22 @@ function BottomTabs() {
             tabBarIcon: ({ focused, color, size }) => (
               <Ionicons
                 name={focused ? 'speedometer' : 'speedometer-outline'}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="PlaygroundTab"
+          component={PlaygroundScreen}
+          options={{
+            tabBarLabel: 'Playground',
+            tabBarIcon: ({ focused, color, size }) => (
+              <Ionicons
+                name={
+                  focused ? 'american-football' : 'american-football-outline'
+                }
                 size={size}
                 color={color}
               />

@@ -116,7 +116,6 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         // Because we sent it already before the app crashed.
         if (nil != event.exceptions.firstObject.type &&
             [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
-            NSLog(@"Unhandled JS Exception");
             return nil;
         }
 
@@ -134,6 +133,28 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
     [mutableOptions removeObjectForKey:@"enableTracing"];
+
+    if ([mutableOptions valueForKey:@"_experiments"] != nil) {
+      NSDictionary *experiments = mutableOptions[@"_experiments"];
+      if (experiments[@"replaysSessionSampleRate"] != nil || experiments[@"replaysOnErrorSampleRate"] != nil) {
+        [mutableOptions setValue:@{
+          @"sessionReplay": @{
+            @"sessionSampleRate": experiments[@"replaysSessionSampleRate"] ?: [NSNull null],
+            @"errorSampleRate": experiments[@"replaysOnErrorSampleRate"] ?: [NSNull null],
+            @"redactAllImages": mutableOptions[@"mobileReplayOptions"] != nil &&
+              mutableOptions[@"mobileReplayOptions"][@"maskAllImages"] != nil
+                ? mutableOptions[@"mobileReplayOptions"][@"maskAllImages"]
+                : [NSNull null],
+            @"redactAllText": mutableOptions[@"mobileReplayOptions"] != nil &&
+              mutableOptions[@"mobileReplayOptions"][@"maskAllText"] != nil
+                ? mutableOptions[@"mobileReplayOptions"][@"maskAllText"]
+                : [NSNull null],
+          }
+        } forKey:@"experimental"];
+        [self addReplayRNRedactClasses: mutableOptions[@"mobileReplayOptions"]];
+      }
+      [mutableOptions removeObjectForKey:@"_experiments"];
+    }
 
     SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:errorPointer];
     if (*errorPointer != nil) {
@@ -642,6 +663,31 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // If you're starting the Cocoa SDK manually,
     // you can set the 'enableAutoPerformanceTracing: true' option and
     // the 'tracesSampleRate' or 'tracesSampler' option.
+}
+
+RCT_EXPORT_METHOD(captureReplay: (BOOL)isHardCrash
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  [PrivateSentrySDKOnly captureReplay];
+  resolve([PrivateSentrySDKOnly getReplayId]);
+}
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentReplayId)
+{
+  return [PrivateSentrySDKOnly getReplayId];
+}
+
+- (void) addReplayRNRedactClasses: (NSDictionary *_Nullable)replayOptions
+{
+  NSMutableArray *_Nonnull classesToRedact = [[NSMutableArray alloc] init];
+  if ([replayOptions[@"maskAllImages"] boolValue] == YES) {
+    [classesToRedact addObject: NSClassFromString(@"RCTImageView")];
+  }
+  if ([replayOptions[@"maskAllText"] boolValue] == YES) {
+    [classesToRedact addObject: NSClassFromString(@"RCTTextView")];
+  }
+  [PrivateSentrySDKOnly addReplayRedactClasses: classesToRedact];
 }
 
 static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";

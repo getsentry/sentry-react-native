@@ -61,6 +61,7 @@ import io.sentry.SentryEvent;
 import io.sentry.SentryExecutorService;
 import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
+import io.sentry.SentryReplayOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AndroidProfiler;
@@ -79,6 +80,7 @@ import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
 import io.sentry.android.core.performance.AppStartMetrics;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
+import io.sentry.protocol.SentryId;
 import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
@@ -252,7 +254,9 @@ public class RNSentryModuleImpl {
             if (rnOptions.hasKey("enableNdk")) {
                 options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
             }
-
+            if (rnOptions.hasKey("_experiments")) {
+                options.getExperimental().setSessionReplay(getReplayOptions(rnOptions));
+            }
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException
                 // Since we catch it before that, we don't want to send this one
@@ -291,6 +295,37 @@ public class RNSentryModuleImpl {
         });
 
         promise.resolve(true);
+    }
+
+    private SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
+        @NotNull final SentryReplayOptions androidReplayOptions = new SentryReplayOptions();
+
+        @Nullable final ReadableMap rnExperimentsOptions = rnOptions.getMap("_experiments");
+        if (rnExperimentsOptions == null) {
+            return androidReplayOptions;
+        }
+
+        if (!(rnExperimentsOptions.hasKey("replaysSessionSampleRate") || rnExperimentsOptions.hasKey("replaysOnErrorSampleRate"))) {
+            return androidReplayOptions;
+        }
+
+        androidReplayOptions.setSessionSampleRate(rnExperimentsOptions.hasKey("replaysSessionSampleRate")
+                ? rnExperimentsOptions.getDouble("replaysSessionSampleRate") : null);
+        androidReplayOptions.setErrorSampleRate(rnExperimentsOptions.hasKey("replaysOnErrorSampleRate")
+                ? rnExperimentsOptions.getDouble("replaysOnErrorSampleRate") : null);
+
+        if (!rnOptions.hasKey("mobileReplayOptions")) {
+            return androidReplayOptions;
+        }
+        @Nullable final ReadableMap rnMobileReplayOptions = rnOptions.getMap("mobileReplayOptions");
+        if (rnMobileReplayOptions == null) {
+            return androidReplayOptions;
+        }
+
+        androidReplayOptions.setRedactAllText(!rnMobileReplayOptions.hasKey("maskAllText") || rnMobileReplayOptions.getBoolean("maskAllText"));
+        androidReplayOptions.setRedactAllImages(!rnMobileReplayOptions.hasKey("maskAllImages") || rnMobileReplayOptions.getBoolean("maskAllImages"));
+
+        return androidReplayOptions;
     }
 
     public void crash() {
@@ -408,6 +443,24 @@ public class RNSentryModuleImpl {
                 promise.resolve(null);
             }
         }
+    }
+
+    public void captureReplay(boolean isHardCrash, Promise promise) {
+        Sentry.getCurrentHub().getOptions().getReplayController().sendReplay(isHardCrash, null, null);
+        promise.resolve(getCurrentReplayId());
+    }
+
+    public @Nullable String getCurrentReplayId() {
+        final @Nullable IScope scope = InternalSentrySdk.getCurrentScope();
+        if (scope == null) {
+            return null;
+        }
+
+        final @NotNull SentryId id = scope.getReplayId();
+        if (id == SentryId.EMPTY_ID) {
+            return null;
+        }
+        return id.toString();
     }
 
     public void captureEnvelope(String rawBytes, ReadableMap options, Promise promise) {

@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased
+## 5.23.0-alpha.1
+
+### Fixes
+
+- Pass `replaysSessionSampleRate` option to Android ([#3714](https://github.com/getsentry/sentry-react-native/pull/3714))
+
+Access to Mobile Replay is limited to early access orgs on Sentry. If you're interested, [sign up for the waitlist](https://sentry.io/lp/mobile-replay-beta/)
 
 ### Features
 
@@ -68,6 +74,47 @@
 - Bump Cocoa SDK from v8.24.0 to v8.25.0 ([#3790](https://github.com/getsentry/sentry-react-native/pull/3790))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8250)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.24.0...8.25.0)
+
+## 5.23.0-alpha.0
+
+### Features
+
+- Mobile Session Replay Alpha ([#3714](https://github.com/getsentry/sentry-react-native/pull/3714))
+
+  To enable Replay for React Native on mobile and web add the following options.
+
+  ```js
+  Sentry.init({
+    _experiments: {
+      replaysSessionSampleRate: 1.0,
+      replaysOnErrorSampleRate: 1.0,
+    },
+  });
+  ```
+
+  To change the default Mobile Replay options add the `mobileReplayIntegration`.
+
+  ```js
+  Sentry.init({
+    _experiments: {
+      replaysSessionSampleRate: 1.0,
+      replaysOnErrorSampleRate: 1.0,
+    },
+    integration: [
+      Sentry.mobileReplayIntegration({
+        maskAllText: true,
+        maskAllImages: true,
+      }),
+    ],
+  });
+  ```
+
+  Access is limited to early access orgs on Sentry. If you're interested, [sign up for the waitlist](https://sentry.io/lp/mobile-replay-beta/)
+
+### Dependencies
+
+- Bump Cocoa SDK to [8.25.0-alpha.0](https://github.com/getsentry/sentry-cocoa/releases/tag/8.25.0-alpha.0)
+- Bump Android SDK to [7.9.0-alpha.1](https://github.com/getsentry/sentry-java/releases/tag/7.9.0-alpha.1)
 
 ## 5.22.0
 

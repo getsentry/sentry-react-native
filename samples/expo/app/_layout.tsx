@@ -78,6 +78,8 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
   // dist: `1`,
   _experiments: {
     profilesSampleRate: 0,
+    // replaysOnErrorSampleRate: 1.0,
+    replaysSessionSampleRate: 1.0,
   },
   enableSpotlight: true,
 });

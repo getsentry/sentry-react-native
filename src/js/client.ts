@@ -16,6 +16,8 @@ import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 import { Alert } from 'react-native';
 
 import { createIntegration } from './integrations/factory';
+import type { mobileReplayIntegration } from './integrations/mobilereplay';
+import { MOBILE_REPLAY_INTEGRATION_NAME } from './integrations/mobilereplay';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import type { ReactNativeClientOptions } from './options';
 import { ReactNativeTracing } from './tracing';
@@ -44,7 +46,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     super(options);
 
     this._outcomesBuffer = [];
-    this._initNativeSdk();
   }
 
   /**
@@ -111,6 +112,21 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    */
   public setupIntegrations(): void {
     super.setupIntegrations();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public init(): void {
+    super.init();
+    this._initNativeSdk();
+  }
+
+  /**
+   * @inheritdoc
+   */
+  protected _setupIntegrations(): void {
+    super._setupIntegrations();
     const tracing = this.getIntegration(ReactNativeTracing);
     const routingName = tracing?.options.routingInstrumentation?.name;
     if (routingName) {
@@ -160,7 +176,14 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * Starts native client with dsn and options
    */
   private _initNativeSdk(): void {
-    NATIVE.initNativeSdk(this._options)
+    NATIVE.initNativeSdk({
+      ...this._options,
+      mobileReplayOptions:
+        this._integrations[MOBILE_REPLAY_INTEGRATION_NAME] &&
+        'options' in this._integrations[MOBILE_REPLAY_INTEGRATION_NAME]
+          ? (this._integrations[MOBILE_REPLAY_INTEGRATION_NAME] as ReturnType<typeof mobileReplayIntegration>).options
+          : undefined,
+    })
       .then(
         (result: boolean) => {
           return result;
