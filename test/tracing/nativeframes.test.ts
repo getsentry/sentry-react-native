@@ -1,16 +1,8 @@
-import {
-  addGlobalEventProcessor,
-  getCurrentHub,
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
-  setCurrentClient,
-  startSpan,
-} from '@sentry/core';
+import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpan } from '@sentry/core';
 import type { Event, Measurements } from '@sentry/types';
 
 import { ReactNativeTracing } from '../../src/js';
-import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
+import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 import { NATIVE } from '../../src/js/wrapper';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { mockFunction } from '../testutils';
@@ -18,7 +10,7 @@ import { mockFunction } from '../testutils';
 jest.mock('../../src/js/wrapper', () => {
   return {
     NATIVE: {
-      fetchNativeFrames: jest.fn().mockResolvedValue(null),
+      fetchNativeFrames: jest.fn(),
       disableNativeFramesTracking: jest.fn(),
       enableNative: true,
       enableNativeFramesTracking: jest.fn(),
@@ -32,26 +24,23 @@ describe('NativeFramesInstrumentation', () => {
   let client: TestClient;
 
   beforeEach(() => {
+    _addTracingExtensions();
+
     getCurrentScope().clear();
     getIsolationScope().clear();
     getGlobalScope().clear();
-    RN_GLOBAL_OBJ.__SENTRY__.globalEventProcessors = []; // resets integrations
 
-    const integration = new ReactNativeTracing({
-      enableNativeFramesTracking: true,
-    });
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
-      integrations: [integration],
+      integrations: [
+        new ReactNativeTracing({
+          enableNativeFramesTracking: true,
+        }),
+      ],
     });
     client = new TestClient(options);
     setCurrentClient(client);
     client.init();
-    addGlobalEventProcessor(async event => {
-      await wait(10);
-      return event;
-    });
-    integration.setupOnce(addGlobalEventProcessor, getCurrentHub);
   });
 
   afterEach(() => {
@@ -184,9 +173,3 @@ describe('NativeFramesInstrumentation', () => {
     );
   });
 });
-
-function wait(ms) {
-  return new Promise(resolve => {
-    setTimeout(resolve, ms);
-  });
-}

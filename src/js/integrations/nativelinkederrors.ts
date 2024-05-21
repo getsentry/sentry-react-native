@@ -1,5 +1,4 @@
 import { exceptionFromError } from '@sentry/browser';
-import { convertIntegrationFnToClass } from '@sentry/core';
 import type {
   Client,
   DebugImage,
@@ -8,8 +7,6 @@ import type {
   Exception,
   ExtendedError,
   Integration,
-  IntegrationClass,
-  IntegrationFnResult,
   StackFrame,
   StackParser,
 } from '@sentry/types';
@@ -31,7 +28,7 @@ interface LinkedErrorsOptions {
 /**
  * Processes JS and RN native linked errors.
  */
-export const nativeLinkedErrorsIntegration = (options: Partial<LinkedErrorsOptions> = {}): IntegrationFnResult => {
+export const nativeLinkedErrorsIntegration = (options: Partial<LinkedErrorsOptions> = {}): Integration => {
   const key = options.key || DEFAULT_KEY;
   const limit = options.limit || DEFAULT_LIMIT;
 
@@ -43,19 +40,6 @@ export const nativeLinkedErrorsIntegration = (options: Partial<LinkedErrorsOptio
     preprocessEvent: (event: Event, hint: EventHint, client: Client): void =>
       preprocessEvent(event, hint, client, limit, key),
   };
-};
-
-/**
- * Processes JS and RN native linked errors.
- *
- * @deprecated Use `nativeLinkedErrorsIntegration()` instead.
- */
-// eslint-disable-next-line deprecation/deprecation
-export const NativeLinkedErrors = convertIntegrationFnToClass(
-  INTEGRATION_NAME,
-  nativeLinkedErrorsIntegration,
-) as IntegrationClass<Integration> & {
-  new (options?: Partial<LinkedErrorsOptions>): Integration;
 };
 
 function preprocessEvent(event: Event, hint: EventHint | undefined, client: Client, limit: number, key: string): void {

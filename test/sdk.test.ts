@@ -571,7 +571,7 @@ describe('Tests the SDK functionality', () => {
 
       expect(actualIntegrations).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: 'TryCatch' }),
+          expect.objectContaining({ name: 'BrowserApiErrors' }),
           expect.objectContaining({ name: 'GlobalHandlers' }),
           expect.objectContaining({ name: 'LinkedErrors' }),
         ]),

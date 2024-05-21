@@ -3,7 +3,7 @@ jest.spyOn(logger, 'error');
 import { setCurrentClient } from '@sentry/core';
 import { logger } from '@sentry/utils';
 
-import { configureScope, flush } from '../src/js/sdk';
+import { flush } from '../src/js/sdk';
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
 
 describe('Tests the SDK functionality', () => {
@@ -33,17 +33,6 @@ describe('Tests the SDK functionality', () => {
       expect(client.flush).toBeCalled();
       expect(flushResult).toBe(false);
       expect(logger.error).toBeCalledWith('Failed to flush the event queue.');
-    });
-  });
-
-  describe('configureScope', () => {
-    test('configureScope callback does not throw', () => {
-      const mockScopeCallback = jest.fn(() => {
-        throw 'Test error';
-      });
-
-      expect(() => configureScope(mockScopeCallback)).not.toThrow();
-      expect(mockScopeCallback).toBeCalledTimes(1);
     });
   });
 });

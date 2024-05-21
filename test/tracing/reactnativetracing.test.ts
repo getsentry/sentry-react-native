@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as SentryBrowser from '@sentry/browser';
-import type { Event } from '@sentry/types';
+import type { Event, Span } from '@sentry/types';
 
 import type { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
 import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
@@ -49,8 +49,8 @@ const mockedAppState: AppState & MockAppState = {
 };
 jest.mock('react-native/Libraries/AppState/AppState', () => mockedAppState);
 
-import { getActiveSpan, startSpanManual } from '@sentry/browser';
-import { addGlobalEventProcessor, getCurrentHub, getCurrentScope, spanToJSON, startInactiveSpan } from '@sentry/core';
+import { getActiveSpan, spanToJSON, startSpanManual } from '@sentry/browser';
+import { getCurrentScope, SPAN_STATUS_ERROR, startInactiveSpan } from '@sentry/core';
 import type { AppState, AppStateStatus } from 'react-native';
 
 import { APP_START_COLD, APP_START_WARM } from '../../src/js/measurements';
@@ -62,7 +62,6 @@ import {
 import { APP_START_WARM as APP_SPAN_START_WARM } from '../../src/js/tracing/ops';
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
-import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { NATIVE } from '../../src/js/wrapper';
 import type { TestClient } from '../mocks/client';
 import { setupTestClient } from '../mocks/client';
@@ -74,7 +73,7 @@ const DEFAULT_IDLE_TIMEOUT = 1000;
 
 describe('ReactNativeTracing', () => {
   beforeEach(() => {
-    jest.useFakeTimers({ advanceTimers: true });
+    jest.useFakeTimers();
     NATIVE.enableNative = true;
     mockedAppState.isAvailable = true;
     mockedAppState.addEventListener = (_, listener) => {
@@ -89,21 +88,19 @@ describe('ReactNativeTracing', () => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
     jest.clearAllMocks();
-    RN_GLOBAL_OBJ.__SENTRY__.globalEventProcessors = []; // resets integrations
   });
 
   describe('trace propagation targets', () => {
     it('uses tracePropagationTargets', () => {
       const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
-      const integration = new ReactNativeTracing({
-        enableStallTracking: false,
-        tracePropagationTargets: ['test1', 'test2'],
-      });
       setupTestClient({
-        integrations: [integration],
+        integrations: [
+          new ReactNativeTracing({
+            enableStallTracking: false,
+            tracePropagationTargets: ['test1', 'test2'],
+          }),
+        ],
       });
-
-      setup(integration);
 
       expect(instrumentOutgoingRequests).toBeCalledWith(
         expect.objectContaining({
@@ -114,13 +111,10 @@ describe('ReactNativeTracing', () => {
 
     it('uses tracePropagationTargets from client options', () => {
       const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
-      const integration = new ReactNativeTracing({ enableStallTracking: false });
       setupTestClient({
         tracePropagationTargets: ['test1', 'test2'],
-        integrations: [integration],
+        integrations: [new ReactNativeTracing({ enableStallTracking: false })],
       });
-
-      setup(integration);
 
       expect(instrumentOutgoingRequests).toBeCalledWith(
         expect.objectContaining({
@@ -131,12 +125,9 @@ describe('ReactNativeTracing', () => {
 
     it('uses defaults', () => {
       const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
-      const integration = new ReactNativeTracing({ enableStallTracking: false });
       setupTestClient({
-        integrations: [integration],
+        integrations: [new ReactNativeTracing({ enableStallTracking: false })],
       });
-
-      setup(integration);
 
       expect(instrumentOutgoingRequests).toBeCalledWith(
         expect.objectContaining({
@@ -147,16 +138,15 @@ describe('ReactNativeTracing', () => {
 
     it('client tracePropagationTargets takes priority over integration options', () => {
       const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
-      const integration = new ReactNativeTracing({
-        enableStallTracking: false,
-        tracePropagationTargets: ['test3', 'test4'],
-      });
       setupTestClient({
         tracePropagationTargets: ['test1', 'test2'],
-        integrations: [integration],
+        integrations: [
+          new ReactNativeTracing({
+            enableStallTracking: false,
+            tracePropagationTargets: ['test3', 'test4'],
+          }),
+        ],
       });
-
-      setup(integration);
 
       expect(instrumentOutgoingRequests).toBeCalledWith(
         expect.objectContaining({
@@ -181,7 +171,7 @@ describe('ReactNativeTracing', () => {
 
         const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStartResponse({ cold: true });
 
-        setup(integration);
+        integration.setup(client);
         integration.onAppStartFinish(Date.now() / 1000);
 
         await jest.advanceTimersByTimeAsync(500);
@@ -204,7 +194,7 @@ describe('ReactNativeTracing', () => {
 
         const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStartResponse({ cold: false });
 
-        setup(integration);
+        integration.setup(client);
 
         await jest.advanceTimersByTimeAsync(500);
         await jest.runOnlyPendingTimersAsync();
@@ -226,13 +216,12 @@ describe('ReactNativeTracing', () => {
 
         mockAppStartResponse({ cold: false });
 
-        setup(integration);
+        integration.setup(client);
 
         await jest.advanceTimersByTimeAsync(500);
 
         mockedAppState.setState('background');
-        await jest.runAllTimersAsync();
-        await client.flush();
+        jest.runAllTimers();
 
         const transaction = client.event;
         expect(transaction?.contexts?.trace?.status).toBe('cancelled');
@@ -245,20 +234,16 @@ describe('ReactNativeTracing', () => {
           return undefined;
         }) as unknown as (typeof mockedAppState)['addEventListener']; // RN Web can return undefined
 
-        const integration = new ReactNativeTracing();
         setupTestClient({
-          integrations: [integration],
+          integrations: [new ReactNativeTracing()],
         });
 
         mockAppStartResponse({ cold: false });
 
-        setup(integration);
-
         await jest.advanceTimersByTimeAsync(500);
         const transaction = getActiveSpan();
 
-        await jest.runAllTimersAsync();
-        await client.flush();
+        jest.runAllTimers();
 
         expect(spanToJSON(transaction!).timestamp).toBeDefined();
       });
@@ -277,7 +262,7 @@ describe('ReactNativeTracing', () => {
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
         mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
-        setup(integration);
+        integration.setup(client);
 
         await jest.advanceTimersByTimeAsync(500);
         await jest.runOnlyPendingTimersAsync();
@@ -303,7 +288,7 @@ describe('ReactNativeTracing', () => {
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
         mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
-        setup(integration);
+        integration.setup(client);
 
         await jest.advanceTimersByTimeAsync(500);
         await jest.runOnlyPendingTimersAsync();
@@ -320,7 +305,7 @@ describe('ReactNativeTracing', () => {
 
         mockAppStartResponse({ cold: false, didFetchAppStart: true });
 
-        setup(integration);
+        integration.setup(client);
 
         await jest.advanceTimersByTimeAsync(500);
         await jest.runOnlyPendingTimersAsync();
@@ -339,7 +324,7 @@ describe('ReactNativeTracing', () => {
 
         mockAppStartResponse({ cold: true });
 
-        setup(integration);
+        integration.setup(client);
         // wait for internal promises to resolve, fetch app start data from mocked native
         await Promise.resolve();
 
@@ -364,14 +349,14 @@ describe('ReactNativeTracing', () => {
 
         const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStartResponse({ cold: true });
 
-        setup(integration);
+        integration.setup(client);
         // wait for internal promises to resolve, fetch app start data from mocked native
         await Promise.resolve();
 
         expect(getActiveSpan()).toBeUndefined();
 
         routingInstrumentation.onRouteWillChange({
-          name: 'Route Change',
+          name: 'test',
         });
 
         expect(getActiveSpan()).toBeDefined();
@@ -379,8 +364,7 @@ describe('ReactNativeTracing', () => {
 
         // trigger idle transaction to finish and call before finish callbacks
         jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT);
-        await jest.runOnlyPendingTimersAsync();
-        await client.flush();
+        jest.runOnlyPendingTimers();
 
         const routeTransactionEvent = client.event;
         expect(routeTransactionEvent!.measurements![APP_START_COLD].value).toBe(
@@ -390,7 +374,7 @@ describe('ReactNativeTracing', () => {
         expect(routeTransactionEvent!.contexts!.trace!.op).toBe(UI_LOAD);
         expect(routeTransactionEvent!.start_timestamp).toBe(appStartTimeMilliseconds / 1000);
 
-        const span = spanToJSON(routeTransactionEvent!.spans![routeTransactionEvent!.spans!.length - 1]);
+        const span = routeTransactionEvent!.spans![routeTransactionEvent!.spans!.length - 1];
         expect(span!.op).toBe(APP_START_COLD_OP);
         expect(span!.description).toBe('Cold App Start');
         expect(span!.start_timestamp).toBe(appStartTimeMilliseconds / 1000);
@@ -405,14 +389,14 @@ describe('ReactNativeTracing', () => {
 
         const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStartResponse({ cold: false });
 
-        setup(integration);
+        integration.setup(client);
         // wait for internal promises to resolve, fetch app start data from mocked native
         await Promise.resolve();
 
         expect(getActiveSpan()).toBeUndefined();
 
         routingInstrumentation.onRouteWillChange({
-          name: 'Route Change',
+          name: 'test',
         });
 
         expect(getActiveSpan()).toBeDefined();
@@ -420,8 +404,7 @@ describe('ReactNativeTracing', () => {
 
         // trigger idle transaction to finish and call before finish callbacks
         jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT);
-        await jest.runOnlyPendingTimersAsync();
-        await client.flush();
+        jest.runOnlyPendingTimers();
 
         const routeTransaction = client.event;
         expect(routeTransaction!.measurements![APP_START_WARM].value).toBe(
@@ -431,7 +414,7 @@ describe('ReactNativeTracing', () => {
         expect(routeTransaction!.contexts!.trace!.op).toBe(UI_LOAD);
         expect(routeTransaction!.start_timestamp).toBe(appStartTimeMilliseconds / 1000);
 
-        const span = spanToJSON(routeTransaction!.spans![routeTransaction!.spans!.length - 1]);
+        const span = routeTransaction!.spans![routeTransaction!.spans!.length - 1];
         expect(span!.op).toBe(APP_START_WARM_OP);
         expect(span!.description).toBe('Warm App Start');
         expect(span!.start_timestamp).toBe(appStartTimeMilliseconds / 1000);
@@ -447,14 +430,14 @@ describe('ReactNativeTracing', () => {
 
         const [, appStartTimeMilliseconds] = mockAppStartResponse({ cold: false, didFetchAppStart: true });
 
-        setup(integration);
+        integration.setup(client);
         // wait for internal promises to resolve, fetch app start data from mocked native
         await Promise.resolve();
 
         expect(getActiveSpan()).toBeUndefined();
 
         routingInstrumentation.onRouteWillChange({
-          name: 'Route Change',
+          name: 'test',
         });
 
         expect(getActiveSpan()).toBeDefined();
@@ -462,8 +445,7 @@ describe('ReactNativeTracing', () => {
 
         // trigger idle transaction to finish and call before finish callbacks
         jest.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT);
-        await jest.runOnlyPendingTimersAsync();
-        await client.flush();
+        jest.runOnlyPendingTimers();
 
         const routeTransaction = client.event;
         expect(routeTransaction!.measurements).toBeUndefined();
@@ -477,7 +459,7 @@ describe('ReactNativeTracing', () => {
       const integration = new ReactNativeTracing({
         enableAppStartTracking: false,
       });
-      setup(integration);
+      integration.setup(client);
 
       await jest.advanceTimersByTimeAsync(500);
       await jest.runOnlyPendingTimersAsync();
@@ -491,7 +473,7 @@ describe('ReactNativeTracing', () => {
       NATIVE.enableNative = false;
 
       const integration = new ReactNativeTracing();
-      setup(integration);
+      integration.setup(client);
 
       await jest.advanceTimersByTimeAsync(500);
       await jest.runOnlyPendingTimersAsync();
@@ -505,7 +487,7 @@ describe('ReactNativeTracing', () => {
       mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(null);
 
       const integration = new ReactNativeTracing();
-      setup(integration);
+      integration.setup(client);
 
       await jest.advanceTimersByTimeAsync(500);
       await jest.runOnlyPendingTimersAsync();
@@ -517,15 +499,17 @@ describe('ReactNativeTracing', () => {
   });
 
   describe('Native Frames', () => {
+    let client: TestClient;
+
     beforeEach(() => {
-      setupTestClient();
+      client = setupTestClient();
     });
 
     it('Initialize native frames instrumentation if flag is true', async () => {
       const integration = new ReactNativeTracing({
         enableNativeFramesTracking: true,
       });
-      setup(integration);
+      integration.setup(client);
 
       await jest.advanceTimersByTimeAsync(500);
 
@@ -537,7 +521,7 @@ describe('ReactNativeTracing', () => {
         enableNativeFramesTracking: false,
       });
 
-      setup(integration);
+      integration.setup(client);
 
       await jest.advanceTimersByTimeAsync(500);
 
@@ -562,7 +546,6 @@ describe('ReactNativeTracing', () => {
         });
 
         client.addIntegration(integration);
-        setup(integration);
 
         routing.onRouteWillChange({ name: 'First Route' });
         await jest.advanceTimersByTimeAsync(500);
@@ -571,7 +554,6 @@ describe('ReactNativeTracing', () => {
         routing.onRouteWillChange({ name: 'Second Route' });
         await jest.advanceTimersByTimeAsync(500);
         await jest.runOnlyPendingTimersAsync();
-        await client.flush();
 
         const transaction = client.event;
         expect(transaction!.contexts!.app).toBeDefined();
@@ -693,8 +675,8 @@ describe('ReactNativeTracing', () => {
     describe('disabled user interaction', () => {
       test('User interaction tracing is disabled by default', () => {
         tracing = new ReactNativeTracing();
-        setup(tracing);
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.setup(client);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
 
         expect(tracing.options.enableUserInteractionTracing).toBeFalsy();
         expect(getActiveSpan()).toBeUndefined();
@@ -707,19 +689,12 @@ describe('ReactNativeTracing', () => {
           routingInstrumentation: mockedRoutingInstrumentation,
           enableUserInteractionTracing: true,
         });
-        setup(tracing);
-        mockedRoutingInstrumentation.registeredOnConfirmRoute!({
-          name: 'mockedTransactionName',
-          data: {
-            route: {
-              name: 'mockedRouteName',
-            },
-          },
-        });
+        tracing.setup(client);
+        mockedRoutingInstrumentation.registeredOnConfirmRoute!('mockedRouteName');
       });
 
       test('user interaction tracing is enabled and transaction is bound to scope', () => {
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
 
         const actualTransaction = getActiveSpan();
         const actualTransactionContext = spanToJSON(actualTransaction!);
@@ -733,7 +708,7 @@ describe('ReactNativeTracing', () => {
       });
 
       test('UI event transaction not sampled if no child spans', () => {
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const actualTransaction = getActiveSpan();
 
         jest.runAllTimers();
@@ -743,7 +718,7 @@ describe('ReactNativeTracing', () => {
       });
 
       test('does cancel UI event transaction when app goes to background', () => {
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const actualTransaction = getActiveSpan();
 
         mockedAppState.setState('background');
@@ -760,10 +735,10 @@ describe('ReactNativeTracing', () => {
       });
 
       test('do not overwrite existing status of UI event transactions', () => {
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const actualTransaction = getActiveSpan();
 
-        actualTransaction?.setStatus('mocked_status');
+        actualTransaction?.setStatus({ code: SPAN_STATUS_ERROR, message: 'mocked_status' });
 
         jest.runAllTimers();
 
@@ -778,29 +753,28 @@ describe('ReactNativeTracing', () => {
 
       test('same UI event and same element does not reschedule idle timeout', () => {
         const timeoutCloseToActualIdleTimeoutMs = 800;
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const actualTransaction = getActiveSpan();
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
 
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
 
         expect(spanToJSON(actualTransaction!).timestamp).toEqual(expect.any(Number));
       });
 
-      test('different UI event and same element finish first and start new transaction', async () => {
+      test('different UI event and same element finish first and start new transaction', () => {
         const timeoutCloseToActualIdleTimeoutMs = 800;
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const firstTransaction = getActiveSpan();
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
         const childFirstTransaction = startInactiveSpan({ name: 'Child Span of the first Tx', op: 'child.op' });
 
-        tracing.startUserInteractionTransaction({ ...mockedUserInteractionId, op: 'different.op' });
+        tracing.startUserInteractionSpan({ ...mockedUserInteractionId, op: 'different.op' });
         const secondTransaction = getActiveSpan();
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
         childFirstTransaction?.end();
-        await jest.runAllTimersAsync();
-        await client.flush();
+        jest.runAllTimers();
 
         const firstTransactionEvent = client.eventQueue[0];
         expect(firstTransaction).toBeDefined();
@@ -827,18 +801,17 @@ describe('ReactNativeTracing', () => {
         );
       });
 
-      test('different UI event and same element finish first transaction with last span', async () => {
+      test('different UI event and same element finish first transaction with last span', () => {
         const timeoutCloseToActualIdleTimeoutMs = 800;
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const firstTransaction = getActiveSpan();
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
         const childFirstTransaction = startInactiveSpan({ name: 'Child Span of the first Tx', op: 'child.op' });
 
-        tracing.startUserInteractionTransaction({ ...mockedUserInteractionId, op: 'different.op' });
+        tracing.startUserInteractionSpan({ ...mockedUserInteractionId, op: 'different.op' });
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
         childFirstTransaction?.end();
-        await jest.runAllTimersAsync();
-        await client.flush();
+        jest.runAllTimers();
 
         const firstTransactionEvent = client.eventQueue[0];
         expect(firstTransaction).toBeDefined();
@@ -855,11 +828,11 @@ describe('ReactNativeTracing', () => {
       });
 
       test('same ui event after UI event transaction finished', () => {
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const firstTransaction = getActiveSpan();
         jest.runAllTimers();
 
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const secondTransaction = getActiveSpan();
         jest.runAllTimers();
 
@@ -873,18 +846,18 @@ describe('ReactNativeTracing', () => {
       test('do not start UI event transaction if active transaction on scope', () => {
         const activeTransaction = startSpanManual(
           { name: 'activeTransactionOnScope', scope: getCurrentScope() },
-          span => span,
+          (span: Span) => span,
         );
         expect(activeTransaction).toBeDefined();
         expect(activeTransaction).toBe(getActiveSpan());
 
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         expect(activeTransaction).toBe(getActiveSpan());
       });
 
       test('UI event transaction is canceled when routing transaction starts', () => {
         const timeoutCloseToActualIdleTimeoutMs = 800;
-        tracing.startUserInteractionTransaction(mockedUserInteractionId);
+        tracing.startUserInteractionSpan(mockedUserInteractionId);
         const interactionTransaction = getActiveSpan();
         jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
 
@@ -927,8 +900,4 @@ function mockAppStartResponse({ cold, didFetchAppStart }: { cold: boolean; didFe
   mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
   return [timeOriginMilliseconds, appStartTimeMilliseconds];
-}
-
-function setup(integration: ReactNativeTracing) {
-  integration.setupOnce(addGlobalEventProcessor, getCurrentHub);
 }

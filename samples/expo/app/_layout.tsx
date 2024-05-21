@@ -5,7 +5,6 @@ import { SplashScreen, Stack, useNavigationContainerRef } from 'expo-router';
 import { useEffect } from 'react';
 
 import { useColorScheme } from '@/components/useColorScheme';
-import { HttpClient } from '@sentry/integrations';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
 import { isExpoGo } from '../utils/isExpoGo';
@@ -41,7 +40,7 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
   },
   integrations(integrations) {
     integrations.push(
-      new HttpClient({
+      Sentry.httpClientIntegration({
         // These options are effective only in JS.
         // This array can contain tuples of `[begin, end]` (both inclusive),
         // Single status codes, or a combinations of both.
@@ -51,7 +50,6 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
-      Sentry.metrics.metricsAggregatorIntegration(),
       new Sentry.ReactNativeTracing({
         routingInstrumentation,
       }),

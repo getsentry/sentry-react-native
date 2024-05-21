@@ -1,7 +1,8 @@
-import { getCurrentHub, Profiler } from '@sentry/react';
+import { spanToJSON } from '@sentry/core';
+import { getClient, Profiler } from '@sentry/react';
 
 import { createIntegration } from '../integrations/factory';
-import { ReactNativeTracing } from './reactnativetracing';
+import type { ReactNativeTracing } from './reactnativetracing';
 
 const ReactNativeProfilerGlobalState = {
   appStartReported: false,
@@ -28,8 +29,7 @@ export class ReactNativeProfiler extends Profiler {
    * Notifies the Tracing integration that the app start has finished.
    */
   private _reportAppStart(): void {
-    const hub = getCurrentHub();
-    const client = hub.getClient();
+    const client = getClient();
 
     if (!client) {
       // We can't use logger here because this will be logged before the `Sentry.init`.
@@ -40,11 +40,11 @@ export class ReactNativeProfiler extends Profiler {
 
     client.addIntegration && client.addIntegration(createIntegration(this.name));
 
-    const tracingIntegration = hub.getIntegration(ReactNativeTracing);
+    const endTimestamp = this._mountSpan && typeof spanToJSON(this._mountSpan).timestamp
+    const tracingIntegration = client.getIntegrationByName && client.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing');
     tracingIntegration
-      && this._mountSpan
-      && typeof this._mountSpan.endTimestamp !== 'undefined'
+      && typeof endTimestamp === 'number'
       // The first root component mount is the app start finish.
-      && tracingIntegration.onAppStartFinish(this._mountSpan.endTimestamp);
+      && tracingIntegration.onAppStartFinish(endTimestamp);
   }
 }

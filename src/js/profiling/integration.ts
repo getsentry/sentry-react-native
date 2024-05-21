@@ -1,18 +1,11 @@
 /* eslint-disable complexity */
-import { convertIntegrationFnToClass, getActiveTransaction, getClient, getCurrentHub } from '@sentry/core';
-import type {
-  Envelope,
-  Event,
-  Integration,
-  IntegrationClass,
-  IntegrationFn,
-  ThreadCpuProfile,
-  Transaction,
-} from '@sentry/types';
+import { getActiveSpan, getClient, spanIsSampled } from '@sentry/core';
+import type { Envelope, Event, IntegrationFn, Span, ThreadCpuProfile } from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 import { Platform } from 'react-native';
 
 import { isHermesEnabled } from '../utils/environment';
+import { isRootSpan } from '../utils/span';
 import { NATIVE } from '../wrapper';
 import { PROFILE_QUEUE } from './cache';
 import { MAX_PROFILE_DURATION_MS } from './constants';
@@ -43,8 +36,14 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
       }
     | undefined;
   let _currentProfileTimeout: number | undefined;
+  let isReady: boolean = false;
 
   const setupOnce = (): void => {
+    if (isReady) {
+      return;
+    }
+    isReady = true;
+
     if (!isHermesEnabled()) {
       logger.log('[Profiling] Hermes is not enabled, not adding profiling integration.');
       return;
@@ -57,9 +56,9 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
     }
 
     _startCurrentProfileForActiveTransaction();
-    client.on('startTransaction', _startCurrentProfile);
+    client.on('spanStart', _startCurrentProfile);
 
-    client.on('finishTransaction', _finishCurrentProfile);
+    client.on('spanEnd', _finishCurrentProfile);
 
     client.on('beforeEnvelope', (envelope: Envelope) => {
       if (!PROFILE_QUEUE.size()) {
@@ -87,24 +86,28 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
     if (_currentProfile) {
       return;
     }
-    const transaction = getActiveTransaction(getCurrentHub());
-    transaction && _startCurrentProfile(transaction);
+    const activeSpan = getActiveSpan();
+    activeSpan && _startCurrentProfile(activeSpan);
   };
 
-  const _startCurrentProfile = (transaction: Transaction): void => {
+  const _startCurrentProfile = (activeSpan: Span): void => {
     _finishCurrentProfile();
 
-    const shouldStartProfiling = _shouldStartProfiling(transaction);
+    if (!isRootSpan(activeSpan)) {
+      return;
+    }
+
+    const shouldStartProfiling = _shouldStartProfiling(activeSpan);
     if (!shouldStartProfiling) {
       return;
     }
 
     _currentProfileTimeout = setTimeout(_finishCurrentProfile, MAX_PROFILE_DURATION_MS);
-    _startNewProfile(transaction);
+    _startNewProfile(activeSpan);
   };
 
-  const _shouldStartProfiling = (transaction: Transaction): boolean => {
-    if (!transaction.sampled) {
+  const _shouldStartProfiling = (activeSpan: Span): boolean => {
+    if (!spanIsSampled(activeSpan)) {
       logger.log('[Profiling] Transaction is not sampled, skipping profiling');
       return false;
     }
@@ -133,7 +136,7 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
   /**
    * Starts a new profile and links it to the transaction.
    */
-  const _startNewProfile = (transaction: Transaction): void => {
+  const _startNewProfile = (activeSpan: Span): void => {
     const profileStartTimestampNs = startProfiling();
     if (!profileStartTimestampNs) {
       return;
@@ -143,9 +146,7 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
       profile_id: uuid4(),
       startTimestampNs: profileStartTimestampNs,
     };
-    transaction.setContext('profile', { profile_id: _currentProfile.profile_id });
-    // @ts-expect-error profile_id is not part of the metadata type
-    transaction.setMetadata({ profile_id: _currentProfile.profile_id });
+    activeSpan.setAttribute('profile_id', _currentProfile.profile_id);
     logger.log('[Profiling] started profiling: ', _currentProfile.profile_id);
   };
 
@@ -172,7 +173,7 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
   };
 
   const _createProfileEventFor = (profiledTransaction: Event): ProfileEvent | null => {
-    const profile_id = profiledTransaction?.contexts?.['profile']?.['profile_id'];
+    const profile_id = profiledTransaction?.contexts?.['trace']?.['data']?.['profile_id'];
 
     if (typeof profile_id !== 'string') {
       logger.log('[Profiling] cannot find profile for a transaction without a profile context');
@@ -180,8 +181,8 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
     }
 
     // Remove the profile from the transaction context before sending, relay will take care of the rest.
-    if (profiledTransaction?.contexts?.['.profile']) {
-      delete profiledTransaction.contexts.profile;
+    if (profiledTransaction?.contexts?.['trace']?.['data']?.['profile_id']) {
+      delete profiledTransaction.contexts.trace.data.profile_id;
     }
 
     const profile = PROFILE_QUEUE.get(profile_id);
@@ -208,17 +209,6 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
     setupOnce,
   };
 };
-
-/**
- * Profiling integration creates a profile for each transaction and adds it to the event envelope.
- *
- * @deprecated Use `hermesProfilingIntegration()` instead.
- */
-// eslint-disable-next-line deprecation/deprecation
-export const HermesProfiling = convertIntegrationFnToClass(
-  INTEGRATION_NAME,
-  hermesProfilingIntegration,
-) as IntegrationClass<Integration>;
 
 /**
  * Starts Profilers and returns the timestamp when profiling started in nanoseconds.

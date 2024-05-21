@@ -1,12 +1,4 @@
-import { convertIntegrationFnToClass } from '@sentry/core';
-import type {
-  Event,
-  EventHint,
-  Integration,
-  IntegrationClass,
-  IntegrationFnResult,
-  StackFrame as SentryStackFrame,
-} from '@sentry/types';
+import type { Event, EventHint, Integration, StackFrame as SentryStackFrame } from '@sentry/types';
 import { addContextToFrame, logger } from '@sentry/utils';
 
 import { getFramesToPop, isErrorLike } from '../utils/error';
@@ -29,7 +21,7 @@ export type ReactNativeError = Error & {
 };
 
 /** Tries to symbolicate the JS stack trace on the device. */
-export const debugSymbolicatorIntegration = (): IntegrationFnResult => {
+export const debugSymbolicatorIntegration = (): Integration => {
   return {
     name: INTEGRATION_NAME,
     setupOnce: () => {
@@ -38,17 +30,6 @@ export const debugSymbolicatorIntegration = (): IntegrationFnResult => {
     processEvent,
   };
 };
-
-/**
- * Tries to symbolicate the JS stack trace on the device.
- *
- * @deprecated Use `debugSymbolicatorIntegration()` instead.
- */
-// eslint-disable-next-line deprecation/deprecation
-export const DebugSymbolicator = convertIntegrationFnToClass(
-  INTEGRATION_NAME,
-  debugSymbolicatorIntegration,
-) as IntegrationClass<Integration>;
 
 async function processEvent(event: Event, hint: EventHint): Promise<Event> {
   if (event.exception && isErrorLike(hint.originalException)) {
