@@ -40,7 +40,7 @@ jobs:
         platform: ["ios", "android"]
         include:
           - platform: ios
-            runs-on: macos-latest
+            runs-on: macos-12
             name: iOS
             appPlain: test/perf/test-app-plain.ipa
           - platform: android
@@ -49,6 +49,10 @@ jobs:
             appPlain: test/perf/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
       - uses: actions/checkout@v4
+
+      - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
+        if: ${{ matrix.platform == 'ios' }}
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -178,7 +182,7 @@ jobs:
             device: 'iPhone 14'
           - platform: ios
             rn-version: '0.65.3'
-            runs-on: macos-latest
+            runs-on: macos-12
             runtime: 'latest'
             device: 'iPhone 14'
           - platform: android
@@ -224,6 +228,9 @@ jobs:
           echo "SENTRY_RELEASE=$SENTRY_RELEASE"
           echo "SENTRY_DIST=$SENTRY_DIST"
 
+      - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
+        if: ${{ matrix.platform == 'ios' && matrix.rn-version == '0.65.3' }}
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -249,7 +256,7 @@ jobs:
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
-        run: brew install xcbeautify
+        run: which xcbeautify || brew install xcbeautify
 
       - name: NPM cache SDK
         uses: actions/cache@v4
@@ -478,7 +485,7 @@ jobs:
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
-        run: brew install xcbeautify
+        run: which xcbeautify || brew install xcbeautify
 
       - name: Download App Package
         if: matrix.build-type == 'production'
@@ -551,7 +558,7 @@ jobs:
 
         # Wait until the Appium server starts.
       - name: Check Appium Server
-        uses: nick-fields/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # pin@v2
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # pin@3.0.0
         with:
           timeout_seconds: 60
           max_attempts: 10

@@ -15,13 +15,14 @@
 #define SENTRY_TARGET_PROFILING_SUPPORTED 0
 #endif
 
-#import <Sentry/Sentry.h>
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
 #import <Sentry/SentryBinaryImageCache.h>
 #import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentryFormatter.h>
+#import <Sentry/SentryAppStartMeasurement.h>
+#import "RNSentryId.h"
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
@@ -35,8 +36,11 @@
 
 #import "RNSentryEvents.h"
 #import "RNSentryDependencyContainer.h"
-#import "RNSentryFramesTrackerListener.h"
+
+#if SENTRY_HAS_UIKIT
 #import "RNSentryRNSScreen.h"
+#import "RNSentryFramesTrackerListener.h"
+#endif
 
 @interface SentryTraceContext : NSObject
 - (nullable instancetype)initWithDict:(NSDictionary<NSString *, id> *)dictionary;
@@ -191,6 +195,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking:(RCTPromiseResolveBlock)resolve
                                                    rejecter:(RCTPromiseRejectBlock)reject)
 {
+#if SENTRY_HAS_UIKIT
     if ([[NSThread currentThread] isMainThread]) {
         [RNSentryRNSScreen swizzleViewDidAppear];
     } else {
@@ -200,16 +205,20 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking:(RCTPromiseResolveBl
     }
 
     [self initFramesTracking];
+#endif
     resolve(nil);
 }
 
 - (void)initFramesTracking {
+#if SENTRY_HAS_UIKIT
+
   RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
     if (self->hasListeners) {
       [self sendEventWithName:RNSentryNewFrameEvent body:@{ @"newFrameTimestampInSeconds": newFrameTimestampInSeconds }];
     }
   };
   [[RNSentryDependencyContainer sharedInstance] initializeFramesTrackerListenerWith: emitNewFrameEvent];
+#endif
 }
 
 // Will be called when this module's first listener is added.
@@ -369,7 +378,7 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-
+#if SENTRY_HAS_UIKIT
     SentryAppStartMeasurement *appStartMeasurement = PrivateSentrySDKOnly.appStartMeasurement;
 
     if (appStartMeasurement == nil) {
@@ -388,6 +397,9 @@ RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
     // This is always set to true, as we would only allow an app start fetch to only happen once
     // in the case of a JS bundle reload, we do not want it to be instrumented again.
     didFetchAppStart = true;
+#else
+    resolve(nil);
+#endif
 }
 
 RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
@@ -643,7 +655,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
         facebook::hermes::HermesRuntime::enableSamplingProfiler();
         if (nativeProfileTraceId == nil && nativeProfileStartTime == 0) {
 #if SENTRY_TARGET_PROFILING_SUPPORTED
-            nativeProfileTraceId = [[SentryId alloc] init];
+            nativeProfileTraceId = [RNSentryId newId];
             nativeProfileStartTime = [PrivateSentrySDKOnly startProfilerForTrace: nativeProfileTraceId];
 #endif
         } else {
@@ -681,7 +693,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
         NSDictionary<NSString *, id> * nativeProfile = nil;
         if (nativeProfileTraceId != nil && nativeProfileStartTime != 0) {
 #if SENTRY_TARGET_PROFILING_SUPPORTED
-            uint64_t nativeProfileStopTime = [[[SentryDependencyContainer sharedInstance] dateProvider] systemTime];
+            uint64_t nativeProfileStopTime = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
             nativeProfile = [PrivateSentrySDKOnly collectProfileBetween:nativeProfileStartTime and:nativeProfileStopTime forTrace:nativeProfileTraceId];
 #endif
         }

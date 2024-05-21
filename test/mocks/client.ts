@@ -1,4 +1,12 @@
-import { BaseClient, createTransport, initAndBind } from '@sentry/core';
+import {
+  BaseClient,
+  createTransport,
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  initAndBind,
+  setCurrentClient,
+} from '@sentry/core';
 import type {
   ClientOptions,
   Event,
@@ -11,8 +19,12 @@ import type {
 } from '@sentry/types';
 import { resolvedSyncPromise } from '@sentry/utils';
 
+import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
+
 export function getDefaultTestClientOptions(options: Partial<TestClientOptions> = {}): TestClientOptions {
   return {
+    dsn: 'https://1234@some-domain.com/4505526893805568',
+    enabled: true,
     integrations: [],
     sendClientReports: true,
     transport: () =>
@@ -39,6 +51,7 @@ export class TestClient extends BaseClient<TestClientOptions> {
   public static sendEventCalled?: (event: Event) => void;
 
   public event?: Event;
+  public eventQueue: Array<Event> = [];
   public hint?: EventHint;
   public session?: Session;
 
@@ -74,6 +87,7 @@ export class TestClient extends BaseClient<TestClientOptions> {
 
   public sendEvent(event: Event, hint?: EventHint): void {
     this.event = event;
+    this.eventQueue.push(event);
     this.hint = hint;
 
     // In real life, this will get deleted as part of envelope creation.
@@ -98,4 +112,18 @@ export class TestClient extends BaseClient<TestClientOptions> {
 
 export function init(options: TestClientOptions): void {
   initAndBind(TestClient, options);
+}
+
+export function setupTestClient(options: Partial<TestClientOptions> = {}): TestClient {
+  _addTracingExtensions();
+
+  getCurrentScope().clear();
+  getIsolationScope().clear();
+  getGlobalScope().clear();
+
+  const finalOptions = getDefaultTestClientOptions({ tracesSampleRate: 1.0, ...options });
+  const client = new TestClient(finalOptions);
+  setCurrentClient(client);
+  client.init();
+  return client;
 }

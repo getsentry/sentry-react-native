@@ -1,43 +1,52 @@
-import type { Event, EventProcessor, Integration } from '@sentry/types';
+import { convertIntegrationFnToClass } from '@sentry/core';
+import type { Event, Integration, IntegrationClass, IntegrationFnResult } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { NATIVE } from '../wrapper';
 
+const INTEGRATION_NAME = 'ModulesLoader';
+
 /** Loads runtime JS modules from prepared file. */
-export class ModulesLoader implements Integration {
-  /**
-   * @inheritDoc
-   */
-  public static id: string = 'ModulesLoader';
+export const modulesLoaderIntegration = (): IntegrationFnResult => {
+  return {
+    name: INTEGRATION_NAME,
+    setupOnce: () => {
+      // noop
+    },
+    processEvent: createProcessEvent(),
+  };
+};
 
-  /**
-   * @inheritDoc
-   */
-  public name: string = ModulesLoader.id;
+/**
+ * Loads runtime JS modules from prepared file.
+ *
+ * @deprecated Use `modulesLoaderIntegration()` instead.
+ */
+// eslint-disable-next-line deprecation/deprecation
+export const ModulesLoader = convertIntegrationFnToClass(
+  INTEGRATION_NAME,
+  modulesLoaderIntegration,
+) as IntegrationClass<Integration>;
 
-  /**
-   * @inheritDoc
-   */
-  public setupOnce(addGlobalEventProcessor: (e: EventProcessor) => void): void {
-    let isSetup = false;
-    let modules: Record<string, string> | null;
+function createProcessEvent(): (event: Event) => Promise<Event> {
+  let isSetup = false;
+  let modules: Record<string, string> | null = null;
 
-    addGlobalEventProcessor(async (event: Event) => {
-      if (!isSetup) {
-        try {
-          modules = await NATIVE.fetchModules();
-        } catch (e) {
-          logger.log(`Failed to get modules from native: ${e}`);
-        }
-        isSetup = true;
+  return async (event: Event) => {
+    if (!isSetup) {
+      try {
+        modules = await NATIVE.fetchModules();
+      } catch (e) {
+        logger.log(`Failed to get modules from native: ${e}`);
       }
-      if (modules) {
-        event.modules = {
-          ...modules,
-          ...event.modules,
-        };
-      }
-      return event;
-    });
-  }
+      isSetup = true;
+    }
+    if (modules) {
+      event.modules = {
+        ...modules,
+        ...event.modules,
+      };
+    }
+    return event;
+  };
 }

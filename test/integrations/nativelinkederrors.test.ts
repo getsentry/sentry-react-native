@@ -1,7 +1,7 @@
 import { defaultStackParser } from '@sentry/browser';
 import type { Client, DebugImage, Event, EventHint, ExtendedError } from '@sentry/types';
 
-import { NativeLinkedErrors } from '../../src/js/integrations/nativelinkederrors';
+import { nativeLinkedErrorsIntegration } from '../../src/js/integrations/nativelinkederrors';
 import type { NativeStackFrames } from '../../src/js/NativeRNSentry';
 import { NATIVE } from '../../src/js/wrapper';
 
@@ -267,7 +267,7 @@ describe('NativeLinkedErrors', () => {
       },
     );
 
-    expect(NATIVE.fetchNativePackageName).toBeCalledTimes(1);
+    expect(NATIVE.fetchNativePackageName).toBeCalledTimes(0); // not need for iOS
     expect(NATIVE.fetchNativeStackFramesBy).toBeCalledTimes(1);
     expect(NATIVE.fetchNativeStackFramesBy).toBeCalledWith([6446871344, 6442783348, 4350761216]);
     expect(actualEvent).toEqual(
@@ -346,8 +346,8 @@ function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Event
     }),
   } as unknown as Client;
 
-  const integration = new NativeLinkedErrors();
-  integration.preprocessEvent(mockedEvent, mockedHint, mockedClient);
+  const integration = nativeLinkedErrorsIntegration();
+  integration.preprocessEvent!(mockedEvent, mockedHint, mockedClient);
   return mockedEvent;
 }
 

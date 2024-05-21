@@ -4,18 +4,111 @@
 
 ### Features
 
-- Add `getDefaultConfig` option to `getSentryExpoConfig` ([#3690](https://github.com/getsentry/sentry-react-native/pull/3690))
+- Functional integrations ([#3814](https://github.com/getsentry/sentry-react-native/pull/3814))
+
+  Instead of installing `@sentry/integrations` and creating integrations using the `new` keyword, you can use direct imports of the functional integrations.
+
+  ```js
+  // Before
+  import * as Sentry from '@sentry/react-native';
+  import { HttpClient } from '@sentry/integrations';
+
+  Sentry.init({
+    integrations: [
+      new Sentry.BrowserIntegrations.Dedupe(),
+      new Sentry.Integration.Screenshot(),
+      new HttpClient(),
+    ],
+  });
+
+  // After
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    integrations: [
+      Sentry.dedupeIntegration(),
+      Sentry.screenshotIntegration(),
+      Sentry.httpClientIntegration(),
+    ],
+  });
+  ```
+
+  Note that the `Sentry.BrowserIntegrations`, `Sentry.Integration` and the Class style integrations will be removed in the next major version of the SDK.
 
 ### Fixes
 
-- Do not enable NativeFramesTracking when native is not available ([#3705](https://github.com/getsentry/sentry-react-native/pull/3705))
+- Remove unused `rnpm` config ([#3811](https://github.com/getsentry/sentry-react-native/pull/3811))
 - CaptureMessage stack-trace is now symbolicated ([#3635](https://github.com/getsentry/sentry-react-native/pull/3635))
 
 ### Dependencies
 
-- Bump CLI from v2.30.0 to v2.30.2 ([#3678](https://github.com/getsentry/sentry-react-native/pull/3678))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2302)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.0...2.30.2)
+- Bump CLI from v2.30.4 to v2.31.2 ([#3719](https://github.com/getsentry/sentry-react-native/pull/3719))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2312)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.4...2.31.2)
+- Bump Cocoa SDK from v8.25.0 to v8.25.2 ([#3802](https://github.com/getsentry/sentry-react-native/pull/3802))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8252)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.25.0...8.25.2)
+
+## 5.22.2
+
+### Fixes
+
+- Remove `tunnel` from SDK Options ([#3787](https://github.com/getsentry/sentry-react-native/pull/3787))
+- Fix Apple non UIKit builds ([#3784](https://github.com/getsentry/sentry-react-native/pull/3784))
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.110.1 to v7.113.0 ([#3768](https://github.com/getsentry/sentry-react-native/pull/3768))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#71130)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.110.1...7.113.0)
+
+## 5.22.1
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.24.0 to v8.25.0 ([#3790](https://github.com/getsentry/sentry-react-native/pull/3790))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8250)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.24.0...8.25.0)
+
+## 5.22.0
+
+### Features
+
+- Updated metric normalization from `@sentry/core` ([#11519](https://github.com/getsentry/sentry-javascript/pull/11519))
+- Metric rate limiting from `sentry-cocoa` and `sentry-android`
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.21.0 to v8.24.0 ([#3686](https://github.com/getsentry/sentry-react-native/pull/3694), [#3696](https://github.com/getsentry/sentry-react-native/pull/3696))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8240)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.21.0...8.24.0)
+- Bump Android SDK from v7.6.0 to v7.8.0 ([#3750](https://github.com/getsentry/sentry-react-native/pull/3750))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#780)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.6.0...7.8.0)
+- Bump JavaScript SDK from v7.100.1 to v7.110.1 ([#3601](https://github.com/getsentry/sentry-react-native/pull/3601), [#3758](https://github.com/getsentry/sentry-react-native/pull/3758))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/v7/CHANGELOG.md#71101)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.100.1...7.110.1)
+
+## 5.21.0
+
+### Features
+
+- Add `getDefaultConfig` option to `getSentryExpoConfig` ([#3690](https://github.com/getsentry/sentry-react-native/pull/3690))
+- Add `beforeScreenshot` option to `ReactNativeOptions` ([#3715](https://github.com/getsentry/sentry-react-native/pull/3715))
+
+### Fixes
+
+- Do not enable NativeFramesTracking when native is not available ([#3705](https://github.com/getsentry/sentry-react-native/pull/3705))
+- Do not initialize the SDK during `expo-router` static routes generation ([#3730](https://github.com/getsentry/sentry-react-native/pull/3730))
+- Cancel spans in background doesn't crash in environments without AppState ([#3727](https://github.com/getsentry/sentry-react-native/pull/3727))
+- Fix missing Stall measurements when using new `.end()` span API ([#3737](https://github.com/getsentry/sentry-react-native/pull/3737))
+- Change TimeToDisplay unsupported log from error to warning level. ([#3699](https://github.com/getsentry/sentry-react-native/pull/3699))
+
+### Dependencies
+
+- Bump CLI from v2.30.0 to v2.30.4 ([#3678](https://github.com/getsentry/sentry-react-native/pull/3678), [#3704](https://github.com/getsentry/sentry-react-native/pull/3704))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2304)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.0...2.30.4)
 - Bump Android SDK from v7.5.0 to v7.6.0 ([#3675](https://github.com/getsentry/sentry-react-native/pull/3675))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#760)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.5.0...7.6.0)

@@ -57,7 +57,7 @@ const ErrorsScreen = (_props: Props) => {
 
   const [data, setData] = React.useState<Uint8Array | null>(null);
   useEffect(() => {
-    AssetsModule.getExampleAssetData().then((asset: number[]) =>
+    AssetsModule?.getExampleAssetData().then((asset: number[]) =>
       setData(new Uint8Array(asset)),
     );
   }, []);

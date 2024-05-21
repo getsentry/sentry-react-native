@@ -1,7 +1,14 @@
 /* eslint-disable complexity */
-import type { Hub } from '@sentry/core';
-import { getActiveTransaction } from '@sentry/core';
-import type { Envelope, Event, EventProcessor, Integration, ThreadCpuProfile, Transaction } from '@sentry/types';
+import { convertIntegrationFnToClass, getActiveTransaction, getClient, getCurrentHub } from '@sentry/core';
+import type {
+  Envelope,
+  Event,
+  Integration,
+  IntegrationClass,
+  IntegrationFn,
+  ThreadCpuProfile,
+  Transaction,
+} from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 import { Platform } from 'react-native';
 
@@ -19,6 +26,8 @@ import {
   findProfiledTransactionsFromEnvelope,
 } from './utils';
 
+const INTEGRATION_NAME = 'HermesProfiling';
+
 const MS_TO_NS: number = 1e6;
 
 /**
@@ -26,48 +35,31 @@ const MS_TO_NS: number = 1e6;
  *
  * @experimental
  */
-export class HermesProfiling implements Integration {
-  /**
-   * @inheritDoc
-   */
-  public static id: string = 'HermesProfiling';
-
-  /**
-   * @inheritDoc
-   */
-  public name: string = HermesProfiling.id;
-
-  private _getCurrentHub?: () => Hub;
-
-  private _currentProfile:
+export const hermesProfilingIntegration: IntegrationFn = () => {
+  let _currentProfile:
     | {
         profile_id: string;
         startTimestampNs: number;
       }
     | undefined;
+  let _currentProfileTimeout: number | undefined;
 
-  private _currentProfileTimeout: number | undefined;
-
-  /**
-   * @inheritDoc
-   */
-  public setupOnce(_: (e: EventProcessor) => void, getCurrentHub: () => Hub): void {
+  const setupOnce = (): void => {
     if (!isHermesEnabled()) {
       logger.log('[Profiling] Hermes is not enabled, not adding profiling integration.');
       return;
     }
 
-    this._getCurrentHub = getCurrentHub;
-    const client = getCurrentHub().getClient();
+    const client = getClient();
 
     if (!client || typeof client.on !== 'function') {
       return;
     }
 
-    this._startCurrentProfileForActiveTransaction();
-    client.on('startTransaction', this._startCurrentProfile);
+    _startCurrentProfileForActiveTransaction();
+    client.on('startTransaction', _startCurrentProfile);
 
-    client.on('finishTransaction', this._finishCurrentProfile);
+    client.on('finishTransaction', _finishCurrentProfile);
 
     client.on('beforeEnvelope', (envelope: Envelope) => {
       if (!PROFILE_QUEUE.size()) {
@@ -82,42 +74,42 @@ export class HermesProfiling implements Integration {
 
       const profilesToAddToEnvelope: ProfileEvent[] = [];
       for (const profiledTransaction of profiledTransactions) {
-        const profile = this._createProfileEventFor(profiledTransaction);
+        const profile = _createProfileEventFor(profiledTransaction);
         if (profile) {
           profilesToAddToEnvelope.push(profile);
         }
       }
       addProfilesToEnvelope(envelope, profilesToAddToEnvelope);
     });
-  }
-
-  private _startCurrentProfileForActiveTransaction = (): void => {
-    if (this._currentProfile) {
-      return;
-    }
-    const transaction = this._getCurrentHub && getActiveTransaction(this._getCurrentHub());
-    transaction && this._startCurrentProfile(transaction);
   };
 
-  private _startCurrentProfile = (transaction: Transaction): void => {
-    this._finishCurrentProfile();
+  const _startCurrentProfileForActiveTransaction = (): void => {
+    if (_currentProfile) {
+      return;
+    }
+    const transaction = getActiveTransaction(getCurrentHub());
+    transaction && _startCurrentProfile(transaction);
+  };
 
-    const shouldStartProfiling = this._shouldStartProfiling(transaction);
+  const _startCurrentProfile = (transaction: Transaction): void => {
+    _finishCurrentProfile();
+
+    const shouldStartProfiling = _shouldStartProfiling(transaction);
     if (!shouldStartProfiling) {
       return;
     }
 
-    this._currentProfileTimeout = setTimeout(this._finishCurrentProfile, MAX_PROFILE_DURATION_MS);
-    this._startNewProfile(transaction);
+    _currentProfileTimeout = setTimeout(_finishCurrentProfile, MAX_PROFILE_DURATION_MS);
+    _startNewProfile(transaction);
   };
 
-  private _shouldStartProfiling = (transaction: Transaction): boolean => {
+  const _shouldStartProfiling = (transaction: Transaction): boolean => {
     if (!transaction.sampled) {
       logger.log('[Profiling] Transaction is not sampled, skipping profiling');
       return false;
     }
 
-    const client = this._getCurrentHub && this._getCurrentHub().getClient();
+    const client = getClient();
     const options = client && client.getOptions();
 
     const profilesSampleRate =
@@ -141,45 +133,45 @@ export class HermesProfiling implements Integration {
   /**
    * Starts a new profile and links it to the transaction.
    */
-  private _startNewProfile = (transaction: Transaction): void => {
+  const _startNewProfile = (transaction: Transaction): void => {
     const profileStartTimestampNs = startProfiling();
     if (!profileStartTimestampNs) {
       return;
     }
 
-    this._currentProfile = {
+    _currentProfile = {
       profile_id: uuid4(),
       startTimestampNs: profileStartTimestampNs,
     };
-    transaction.setContext('profile', { profile_id: this._currentProfile.profile_id });
+    transaction.setContext('profile', { profile_id: _currentProfile.profile_id });
     // @ts-expect-error profile_id is not part of the metadata type
-    transaction.setMetadata({ profile_id: this._currentProfile.profile_id });
-    logger.log('[Profiling] started profiling: ', this._currentProfile.profile_id);
+    transaction.setMetadata({ profile_id: _currentProfile.profile_id });
+    logger.log('[Profiling] started profiling: ', _currentProfile.profile_id);
   };
 
   /**
    * Stops profiling and adds the profile to the queue to be processed on beforeEnvelope.
    */
-  private _finishCurrentProfile = (): void => {
-    this._clearCurrentProfileTimeout();
-    if (this._currentProfile === undefined) {
+  const _finishCurrentProfile = (): void => {
+    _clearCurrentProfileTimeout();
+    if (_currentProfile === undefined) {
       return;
     }
 
-    const profile = stopProfiling(this._currentProfile.startTimestampNs);
+    const profile = stopProfiling(_currentProfile.startTimestampNs);
     if (!profile) {
       logger.warn('[Profiling] Stop failed. Cleaning up...');
-      this._currentProfile = undefined;
+      _currentProfile = undefined;
       return;
     }
 
-    PROFILE_QUEUE.add(this._currentProfile.profile_id, profile);
+    PROFILE_QUEUE.add(_currentProfile.profile_id, profile);
 
-    logger.log('[Profiling] finished profiling: ', this._currentProfile.profile_id);
-    this._currentProfile = undefined;
+    logger.log('[Profiling] finished profiling: ', _currentProfile.profile_id);
+    _currentProfile = undefined;
   };
 
-  private _createProfileEventFor = (profiledTransaction: Event): ProfileEvent | null => {
+  const _createProfileEventFor = (profiledTransaction: Event): ProfileEvent | null => {
     const profile_id = profiledTransaction?.contexts?.['profile']?.['profile_id'];
 
     if (typeof profile_id !== 'string') {
@@ -206,11 +198,27 @@ export class HermesProfiling implements Integration {
     return profileWithEvent;
   };
 
-  private _clearCurrentProfileTimeout = (): void => {
-    this._currentProfileTimeout !== undefined && clearTimeout(this._currentProfileTimeout);
-    this._currentProfileTimeout = undefined;
+  const _clearCurrentProfileTimeout = (): void => {
+    _currentProfileTimeout !== undefined && clearTimeout(_currentProfileTimeout);
+    _currentProfileTimeout = undefined;
   };
-}
+
+  return {
+    name: INTEGRATION_NAME,
+    setupOnce,
+  };
+};
+
+/**
+ * Profiling integration creates a profile for each transaction and adds it to the event envelope.
+ *
+ * @deprecated Use `hermesProfilingIntegration()` instead.
+ */
+// eslint-disable-next-line deprecation/deprecation
+export const HermesProfiling = convertIntegrationFnToClass(
+  INTEGRATION_NAME,
+  hermesProfilingIntegration,
+) as IntegrationClass<Integration>;
 
 /**
  * Starts Profilers and returns the timestamp when profiling started in nanoseconds.

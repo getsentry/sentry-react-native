@@ -1,6 +1,6 @@
 {
-  "name": "sentry-react-native-bare-sample",
-  "version": "0.0.1",
+  "name": "sentry-react-native-sample",
+  "version": "5.22.2",
   "private": true,
   "scripts": {
     "postinstall": "patch-package",
@@ -14,7 +14,10 @@
     "pod-install-legacy": "cd ios; bundle exec pod install; cd ..",
     "pod-install-legacy-production": "cd ios; PRODUCTION=1 bundle exec pod install; cd ..",
     "clean-ios": "cd ios; rm -rf Podfile.lock Pods build; cd ..",
-    "clean-watchman": "watchman watch-del-all"
+    "clean-watchman": "watchman watch-del-all",
+    "set-build-number": "npx react-native-version --skip-tag --never-amend --set-build",
+    "set-version": "npm version --no-git-tag-version",
+    "postversion": "npx react-native-version --skip-tag --never-amend"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.5.12",
@@ -25,6 +28,7 @@
     "react": "18.2.0",
     "react-native": "0.73.2",
     "react-native-gesture-handler": "^2.14.0",
+    "react-native-macos": "^0.73.0-0",
     "react-native-safe-area-context": "4.8.0",
     "react-native-screens": "3.29.0",
     "react-native-vector-icons": "^10.0.3",

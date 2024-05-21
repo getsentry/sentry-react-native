@@ -1,44 +1,53 @@
-import type { DeviceContext, Event, EventProcessor, Hub, Integration, OsContext } from '@sentry/types';
+import { convertIntegrationFnToClass } from '@sentry/core';
+import type {
+  DeviceContext,
+  Event,
+  Integration,
+  IntegrationClass,
+  IntegrationFnResult,
+  OsContext,
+} from '@sentry/types';
 
 import { getExpoDevice } from '../utils/expomodules';
 
+const INTEGRATION_NAME = 'ExpoContext';
+
 /** Load device context from expo modules. */
-export class ExpoContext implements Integration {
-  /**
-   * @inheritDoc
-   */
-  public static id: string = 'ExpoContext';
+export const expoContextIntegration = (): IntegrationFnResult => {
+  return {
+    name: INTEGRATION_NAME,
+    setupOnce: () => {
+      // noop
+    },
+    processEvent,
+  };
+};
 
-  /**
-   * @inheritDoc
-   */
-  public name: string = ExpoContext.id;
+/**
+ * Load device context from expo modules.
+ *
+ * @deprecated Use `expoContextIntegration()` instead.
+ */
+// eslint-disable-next-line deprecation/deprecation
+export const ExpoContext = convertIntegrationFnToClass(
+  INTEGRATION_NAME,
+  expoContextIntegration,
+) as IntegrationClass<Integration>;
 
-  /**
-   * @inheritDoc
-   */
-  public setupOnce(addGlobalEventProcessor: (callback: EventProcessor) => void, getCurrentHub: () => Hub): void {
-    addGlobalEventProcessor(async (event: Event) => {
-      const self = getCurrentHub().getIntegration(ExpoContext);
-      if (!self) {
-        return event;
-      }
-
-      const expoDeviceContext = getExpoDeviceContext();
-      if (expoDeviceContext) {
-        event.contexts = event.contexts || {};
-        event.contexts.device = { ...expoDeviceContext, ...event.contexts.device };
-      }
-
-      const expoOsContext = getExpoOsContext();
-      if (expoOsContext) {
-        event.contexts = event.contexts || {};
-        event.contexts.os = { ...expoOsContext, ...event.contexts.os };
-      }
-
-      return event;
-    });
+function processEvent(event: Event): Event {
+  const expoDeviceContext = getExpoDeviceContext();
+  if (expoDeviceContext) {
+    event.contexts = event.contexts || {};
+    event.contexts.device = { ...expoDeviceContext, ...event.contexts.device };
   }
+
+  const expoOsContext = getExpoOsContext();
+  if (expoOsContext) {
+    event.contexts = event.contexts || {};
+    event.contexts.os = { ...expoOsContext, ...event.contexts.os };
+  }
+
+  return event;
 }
 
 /**
