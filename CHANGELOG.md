@@ -38,6 +38,7 @@
 ### Fixes
 
 - Remove unused `rnpm` config ([#3811](https://github.com/getsentry/sentry-react-native/pull/3811))
+- Missing `RNSentryOnDrawReporterView` on iOS ([#3832](https://github.com/getsentry/sentry-react-native/pull/3832))
 
 ### Dependencies
 
