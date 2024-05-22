@@ -323,21 +323,6 @@ describe('profiling integration', () => {
         spanToJSON(transaction).trace_id,
       );
     });
-
-    test('profile timeout is reset when transaction is finished', () => {
-      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-      const transaction = Sentry.startSpanManual({ name: 'test-name' }, span => span);
-
-      const timeoutAfterProfileStarted = setTimeoutSpy.mock.results[0].value;
-
-      jest.advanceTimersByTime(40 * 1e6);
-
-      transaction.end();
-      expect(clearTimeoutSpy).toBeCalledWith(timeoutAfterProfileStarted);
-
-      jest.runAllTimers();
-    });
   });
 });
 

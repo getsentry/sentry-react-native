@@ -6,7 +6,7 @@
           "type": "node",
           "request": "launch",
           "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/node_modules/jest/bin/jest.js"],
-          "args": ["--runInBand", "-t", "gesture cancel previous interaction transaction"],
+          "args": ["--runInBand", "-t", "profiling integration"],
           "cwd": "${workspaceRoot}",
           "console": "integratedTerminal",
           "internalConsoleOptions": "neverOpen",
