@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Missing `RNSentryOnDrawReporterView` on iOS ([#3832](https://github.com/getsentry/sentry-react-native/pull/3832))
+
 ## 5.22.2
 
 ### Fixes
