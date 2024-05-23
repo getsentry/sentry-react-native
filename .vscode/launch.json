@@ -6,7 +6,7 @@
           "type": "node",
           "request": "launch",
           "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/node_modules/jest/bin/jest.js"],
-          "args": ["--runInBand", "-t", "profiling integration"],
+          "args": ["--runInBand", "-t", ""],
           "cwd": "${workspaceRoot}",
           "console": "integratedTerminal",
           "internalConsoleOptions": "neverOpen",
