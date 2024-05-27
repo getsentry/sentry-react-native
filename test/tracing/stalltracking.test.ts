@@ -11,7 +11,6 @@ import type { Span } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 
 import { ReactNativeTracing } from '../../src/js';
-import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { expectNonZeroStallMeasurements, expectStallMeasurements } from './stalltrackingutils';
 
@@ -32,8 +31,6 @@ describe('StallTracking', () => {
   let client: TestClient;
 
   beforeEach(() => {
-    _addTracingExtensions();
-
     getCurrentScope().clear();
     getIsolationScope().clear();
     getGlobalScope().clear();

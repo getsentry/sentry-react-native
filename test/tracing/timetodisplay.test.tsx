@@ -6,7 +6,6 @@ import type { Event, Measurements, Span, SpanJSON} from '@sentry/types';
 import React from "react";
 import TestRenderer from 'react-test-renderer';
 
-import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing/timetodisplay';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
@@ -18,8 +17,6 @@ describe('TimeToDisplay', () => {
   let client: TestClient;
 
   beforeEach(() => {
-    _addTracingExtensions();
-
     getCurrentScope().clear();
     getIsolationScope().clear();
     getGlobalScope().clear();

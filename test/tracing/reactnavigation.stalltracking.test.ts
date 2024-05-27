@@ -6,7 +6,6 @@ jest.mock('../../src/js/tracing/utils', () => ({
 import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpanManual } from '@sentry/core';
 
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../../src/js';
-import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 import { isNearToNow } from '../../src/js/tracing/utils';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
@@ -21,7 +20,6 @@ describe('StallTracking with ReactNavigation', () => {
 
   beforeEach(() => {
     RN_GLOBAL_OBJ.__sentry_rn_v5_registered = false;
-    _addTracingExtensions();
 
     getCurrentScope().clear();
     getIsolationScope().clear();

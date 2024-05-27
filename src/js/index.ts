@@ -39,9 +39,6 @@ export {
   metricsDefault as metrics,
 } from '@sentry/core';
 
-import { _addTracingExtensions } from './tracing/addTracingExtensions';
-_addTracingExtensions();
-
 export {
   ErrorBoundary,
   withErrorBoundary,

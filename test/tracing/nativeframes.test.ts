@@ -2,7 +2,6 @@ import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, s
 import type { Event, Measurements } from '@sentry/types';
 
 import { ReactNativeTracing } from '../../src/js';
-import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 import { NATIVE } from '../../src/js/wrapper';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { mockFunction } from '../testutils';
@@ -24,8 +23,6 @@ describe('NativeFramesInstrumentation', () => {
   let client: TestClient;
 
   beforeEach(() => {
-    _addTracingExtensions();
-
     getCurrentScope().clear();
     getIsolationScope().clear();
     getGlobalScope().clear();
