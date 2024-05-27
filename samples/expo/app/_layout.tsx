@@ -52,6 +52,8 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
       }),
       new Sentry.ReactNativeTracing({
         routingInstrumentation,
+        enableNativeFramesTracking: !isExpoGo(), // This is not supported in Expo Go.
+        enableAppStartTracking: !isExpoGo(), // This is not supported in Expo Go.
       }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
