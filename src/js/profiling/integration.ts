@@ -161,7 +161,11 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
     }
 
     if (span.spanContext().spanId !== _currentProfile?.span_id) {
-      logger.log(`[Profiling] Span (${span.spanContext().spanId}) ended is not the currently profiled span (${_currentProfile?.span_id}). Not stopping profiling.`);
+      logger.log(
+        `[Profiling] Span (${span.spanContext().spanId}) ended is not the currently profiled span (${
+          _currentProfile?.span_id
+        }). Not stopping profiling.`,
+      );
       return;
     }
 
