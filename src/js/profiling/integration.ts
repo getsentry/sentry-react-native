@@ -31,6 +31,7 @@ const MS_TO_NS: number = 1e6;
 export const hermesProfilingIntegration: IntegrationFn = () => {
   let _currentProfile:
     | {
+        span_id: string;
         profile_id: string;
         startTimestampNs: number;
       }
@@ -58,7 +59,7 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
     _startCurrentProfileForActiveTransaction();
     client.on('spanStart', _startCurrentProfile);
 
-    client.on('spanEnd', _finishCurrentProfile);
+    client.on('spanEnd', _finishCurrentProfileForSpan);
 
     client.on('beforeEnvelope', (envelope: Envelope) => {
       if (!PROFILE_QUEUE.size()) {
@@ -91,11 +92,11 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
   };
 
   const _startCurrentProfile = (activeSpan: Span): void => {
-    _finishCurrentProfile();
-
     if (!isRootSpan(activeSpan)) {
       return;
     }
+
+    _finishCurrentProfile();
 
     const shouldStartProfiling = _shouldStartProfiling(activeSpan);
     if (!shouldStartProfiling) {
@@ -143,11 +144,28 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
     }
 
     _currentProfile = {
+      span_id: activeSpan.spanContext().spanId,
       profile_id: uuid4(),
       startTimestampNs: profileStartTimestampNs,
     };
     activeSpan.setAttribute('profile_id', _currentProfile.profile_id);
     logger.log('[Profiling] started profiling: ', _currentProfile.profile_id);
+  };
+
+  /**
+   * Stops current profile if the ending span is the currently profiled span.
+   */
+  const _finishCurrentProfileForSpan = (span: Span): void => {
+    if (!isRootSpan(span)) {
+      return;
+    }
+
+    if (span.spanContext().spanId !== _currentProfile?.span_id) {
+      logger.log(`[Profiling] Span (${span.spanContext().spanId}) ended is not the currently profiled span (${_currentProfile?.span_id}). Not stopping profiling.`);
+      return;
+    }
+
+    _finishCurrentProfile();
   };
 
   /**
