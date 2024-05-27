@@ -1,16 +1,14 @@
-import type { Event, EventHint } from '@sentry/types';
+import type { Client, Event, EventHint } from '@sentry/types';
 
-import { ViewHierarchy } from '../../src/js/integrations/viewhierarchy';
+import { viewHierarchyIntegration } from '../../src/js/integrations/viewhierarchy';
 import { NATIVE } from '../../src/js/wrapper';
 
 jest.mock('../../src/js/wrapper');
 
 describe('ViewHierarchy', () => {
-  let integration: ViewHierarchy;
   let mockEvent: Event;
 
   beforeEach(() => {
-    integration = new ViewHierarchy();
     mockEvent = {
       exception: {
         values: [
@@ -27,7 +25,7 @@ describe('ViewHierarchy', () => {
       throw new Error('Test Error');
     });
     const mockHint: EventHint = {};
-    await executeIntegrationFor(mockEvent, mockHint);
+    await processEvent(mockEvent, mockHint);
     expect(mockHint).toEqual({});
   });
 
@@ -35,7 +33,7 @@ describe('ViewHierarchy', () => {
     (NATIVE.fetchViewHierarchy as jest.Mock).mockImplementation(<typeof NATIVE.fetchViewHierarchy>(
       (() => Promise.resolve(new Uint8Array([])))
     ));
-    await executeIntegrationFor(mockEvent);
+    await processEvent(mockEvent);
 
     expect(mockEvent).toEqual({
       exception: {
@@ -53,7 +51,7 @@ describe('ViewHierarchy', () => {
       (() => Promise.resolve(new Uint8Array([1, 2, 3])))
     ));
     const mockHint: EventHint = {};
-    await executeIntegrationFor(mockEvent, mockHint);
+    await processEvent(mockEvent, mockHint);
 
     expect(mockHint).toEqual(<EventHint>{
       attachments: [
@@ -80,7 +78,7 @@ describe('ViewHierarchy', () => {
         },
       ],
     };
-    await executeIntegrationFor(mockEvent, mockHint);
+    await processEvent(mockEvent, mockHint);
 
     expect(mockHint).toEqual(<EventHint>{
       attachments: [
@@ -104,21 +102,13 @@ describe('ViewHierarchy', () => {
       (() => Promise.resolve(null))
     ));
     const mockHint: EventHint = {};
-    await executeIntegrationFor(mockEvent, mockHint);
+    await processEvent(mockEvent, mockHint);
 
     expect(mockHint).toEqual({});
   });
 
-  function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint = {}): Promise<Event | null> {
-    return new Promise((resolve, reject) => {
-      integration.setupOnce(async eventProcessor => {
-        try {
-          const processedEvent = await eventProcessor(mockedEvent, mockedHint);
-          resolve(processedEvent);
-        } catch (e) {
-          reject(e);
-        }
-      });
-    });
+  function processEvent(mockedEvent: Event, mockedHint: EventHint = {}): Event | null | PromiseLike<Event | null> {
+    const integration = viewHierarchyIntegration();
+    return integration.processEvent!(mockedEvent, mockedHint, {} as Client);
   }
 });

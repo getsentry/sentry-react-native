@@ -1,62 +1,46 @@
-import { getClient } from '@sentry/core';
-import type { Event, EventHint, EventProcessor, Integration } from '@sentry/types';
-import { resolvedSyncPromise } from '@sentry/utils';
+import { convertIntegrationFnToClass } from '@sentry/core';
+import type { Event, EventHint, Integration, IntegrationClass, IntegrationFnResult } from '@sentry/types';
 
 import type { ReactNativeClient } from '../client';
 import type { Screenshot as ScreenshotAttachment } from '../wrapper';
 import { NATIVE } from '../wrapper';
 
+const INTEGRATION_NAME = 'Screenshot';
+
 /** Adds screenshots to error events */
-export class Screenshot implements Integration {
-  /**
-   * @inheritDoc
-   */
-  public static id: string = 'Screenshot';
+export const screenshotIntegration = (): IntegrationFnResult => {
+  return {
+    name: INTEGRATION_NAME,
+    setupOnce: () => {
+      // noop
+    },
+    processEvent,
+  };
+};
 
-  /**
-   * @inheritDoc
-   */
-  public name: string = Screenshot.id;
+/**
+ * Adds screenshots to error events
+ *
+ * @deprecated Use `screenshotIntegration()` instead.
+ */
+// eslint-disable-next-line deprecation/deprecation
+export const Screenshot = convertIntegrationFnToClass(
+  INTEGRATION_NAME,
+  screenshotIntegration,
+) as IntegrationClass<Integration>;
 
-  /**
-   * If enabled attaches a screenshot to the event hint.
-   *
-   * @deprecated Screenshots are now added in global event processor.
-   */
-  public static attachScreenshotToEventHint(
-    hint: EventHint,
-    { attachScreenshot }: { attachScreenshot?: boolean },
-  ): PromiseLike<EventHint> {
-    if (!attachScreenshot) {
-      return resolvedSyncPromise(hint);
-    }
+async function processEvent(event: Event, hint: EventHint, client: ReactNativeClient): Promise<Event> {
+  const options = client.getOptions();
 
-    return NATIVE.captureScreenshot().then(screenshots => {
-      if (screenshots !== null && screenshots.length > 0) {
-        hint.attachments = [...screenshots, ...(hint?.attachments || [])];
-      }
-      return hint;
-    });
+  const hasException = event.exception && event.exception.values && event.exception.values.length > 0;
+  if (!hasException || options?.beforeScreenshot?.(event, hint) === false) {
+    return event;
   }
 
-  /**
-   * @inheritDoc
-   */
-  public setupOnce(addGlobalEventProcessor: (e: EventProcessor) => void): void {
-    const options = getClient<ReactNativeClient>()?.getOptions();
-
-    addGlobalEventProcessor(async (event: Event, hint: EventHint) => {
-      const hasException = event.exception && event.exception.values && event.exception.values.length > 0;
-      if (!hasException || options?.beforeScreenshot?.(event, hint) === false) {
-        return event;
-      }
-
-      const screenshots: ScreenshotAttachment[] | null = await NATIVE.captureScreenshot();
-      if (screenshots && screenshots.length > 0) {
-        hint.attachments = [...screenshots, ...(hint?.attachments || [])];
-      }
-
-      return event;
-    });
+  const screenshots: ScreenshotAttachment[] | null = await NATIVE.captureScreenshot();
+  if (screenshots && screenshots.length > 0) {
+    hint.attachments = [...screenshots, ...(hint?.attachments || [])];
   }
+
+  return event;
 }

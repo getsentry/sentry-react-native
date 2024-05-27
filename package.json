@@ -68,7 +68,7 @@
   },
   "dependencies": {
     "@sentry/browser": "7.113.0",
-    "@sentry/cli": "2.30.4",
+    "@sentry/cli": "2.31.2",
     "@sentry/core": "7.113.0",
     "@sentry/hub": "7.113.0",
     "@sentry/integrations": "7.113.0",
@@ -116,14 +116,6 @@
     "uglify-js": "^3.17.4",
     "uuid": "^9.0.1",
     "xmlhttprequest": "^1.8.0"
-  },
-  "rnpm": {
-    "commands": {},
-    "android": {
-      "packageInstance": "new RNSentryPackage()",
-      "packageImportPath": "import io.sentry.react.RNSentryPackage;"
-    },
-    "ios": {}
   },
   "codegenConfig": {
     "name": "RNSentrySpec",
