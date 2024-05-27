@@ -1,4 +1,3 @@
-import type { Hub } from '@sentry/core';
 import type { Span, StartSpanOptions } from '@sentry/types';
 
 import type { BeforeNavigate } from './types';
@@ -44,7 +43,6 @@ export class RoutingInstrumentation implements RoutingInstrumentationInstance {
 
   public readonly name: string = RoutingInstrumentation.instrumentationName;
 
-  protected _getCurrentHub?: () => Hub;
   protected _beforeNavigate?: BeforeNavigate;
   protected _onConfirmRoute?: OnConfirmRoute;
   protected _tracingListener?: TransactionCreator;

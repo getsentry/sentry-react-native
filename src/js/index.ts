@@ -16,7 +16,6 @@ export {
   captureException,
   captureEvent,
   captureMessage,
-  Hub,
   Scope,
   setContext,
   setExtra,

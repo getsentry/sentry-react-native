@@ -1,7 +1,6 @@
 /* eslint-disable max-lines */
 import type { RequestInstrumentationOptions } from '@sentry/browser';
 import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from '@sentry/browser';
-import type { Hub } from '@sentry/core';
 import {
   getActiveSpan,
   getCurrentScope,
@@ -163,7 +162,6 @@ export class ReactNativeTracing implements Integration {
   public useAppStartWithProfiler: boolean = false;
 
   private _inflightInteractionTransaction?: Span;
-  private _getCurrentHub?: () => Hub;
   private _awaitingAppStartData?: NativeAppStartResponse;
   private _appStartFinishTimestamp?: number;
   private _currentRoute?: string;
