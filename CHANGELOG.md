@@ -38,13 +38,21 @@
 ### Fixes
 
 - Remove unused `rnpm` config ([#3811](https://github.com/getsentry/sentry-react-native/pull/3811))
-- Missing `RNSentryOnDrawReporterView` on iOS ([#3832](https://github.com/getsentry/sentry-react-native/pull/3832))
 
 ### Dependencies
 
 - Bump CLI from v2.30.4 to v2.31.2 ([#3719](https://github.com/getsentry/sentry-react-native/pull/3719))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2312)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.4...2.31.2)
+
+## 5.22.3
+
+### Fixes
+
+- Missing `RNSentryOnDrawReporterView` on iOS ([#3832](https://github.com/getsentry/sentry-react-native/pull/3832))
+
+### Dependencies
+
 - Bump Cocoa SDK from v8.25.0 to v8.26.0 ([#3802](https://github.com/getsentry/sentry-react-native/pull/3802), [#3815](https://github.com/getsentry/sentry-react-native/pull/3815))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8260)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.25.0...8.26.0)
