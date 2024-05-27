@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Missing `RNSentryOnDrawReporterView` on iOS ([#3832](https://github.com/getsentry/sentry-react-native/pull/3832))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.25.0 to v8.26.0 ([#3802](https://github.com/getsentry/sentry-react-native/pull/3802), [#3815](https://github.com/getsentry/sentry-react-native/pull/3815))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8260)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.25.0...8.26.0)
+
 ## 5.22.2
 
 ### Fixes
