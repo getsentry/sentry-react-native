@@ -19,7 +19,7 @@ export const screenshotIntegration = (): Integration => {
 
 async function processEvent(event: Event, hint: EventHint, client: ReactNativeClient): Promise<Event> {
   const hasException = event.exception && event.exception.values && event.exception.values.length > 0;
-  if (!hasException || client.getOptions()?.beforeScreenshot?.(event, hint) === false) {
+  if (!hasException || client.getOptions().beforeScreenshot?.(event, hint) === false) {
     return event;
   }
 
