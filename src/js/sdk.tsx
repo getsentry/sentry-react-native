@@ -4,7 +4,7 @@ import {
   defaultStackParser,
   makeFetchTransport,
 } from '@sentry/react';
-import type { Integration, Scope,UserFeedback } from '@sentry/types';
+import type { Integration, Scope, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
