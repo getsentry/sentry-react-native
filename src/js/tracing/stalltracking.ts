@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { getRootSpan, getSpanDescendants, spanToJSON } from '@sentry/core';
+import { getRootSpan, spanToJSON } from '@sentry/core';
 import type { Client, Integration, Measurements, MeasurementUnit, Span } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 import type { AppStateStatus } from 'react-native';
@@ -7,7 +7,7 @@ import { AppState } from 'react-native';
 
 import { STALL_COUNT, STALL_LONGEST_TIME, STALL_TOTAL_TIME } from '../measurements';
 import { isRootSpan } from '../utils/span';
-import { isNearToNow, setSpanMeasurement } from './utils';
+import { getLatestChildSpanEndTimestamp, isNearToNow, setSpanMeasurement } from './utils';
 
 export interface StallMeasurements extends Measurements {
   [STALL_COUNT]: { value: number; unit: MeasurementUnit };
@@ -115,7 +115,7 @@ export class StallTrackingInstrumentation implements Integration {
    * Stops stall tracking if no more transactions are running.
    * @returns The stall measurements
    */
-  private _onSpanEnd = (rootSpan: Span, passedEndTimestamp?: number): void => {
+  private _onSpanEnd = (rootSpan: Span): void => {
     if (!isRootSpan(rootSpan)) {
       return this._onChildSpanEnd(rootSpan);
     }
@@ -132,59 +132,33 @@ export class StallTrackingInstrumentation implements Integration {
       return;
     }
 
-    const endTimestamp = passedEndTimestamp ?? spanToJSON(rootSpan).timestamp;
-
-    const spans = getSpanDescendants(rootSpan);
-    const finishedSpanCount = spans.reduce(
-      (count, s) => (s !== rootSpan && spanToJSON(s).timestamp ? count + 1 : count),
-      0,
-    );
-
-    // TODO: Transaction will be removed, can we replace trimEnd with lastSpan.end_timestamp === rootSpan.end_timestamp?
-    // Is the `spanEnd` event executed after the transaction is trimmed?
-    const trimEnd = true;
-    const endWillBeTrimmed = trimEnd && finishedSpanCount > 0;
-
-    /*
-      This is not safe in the case that something changes upstream, but if we're planning to move this over to @sentry/javascript anyways,
-      we can have this temporarily for now.
-    */
-    const isIdleTransaction = 'activities' in rootSpan;
+    // The endTimestamp is always set, but type-wise it's optional
+    // https://github.com/getsentry/sentry-javascript/blob/38bd57b0785c97c413f36f89ff931d927e469078/packages/core/src/tracing/sentrySpan.ts#L170
+    const endTimestamp = spanToJSON(rootSpan).timestamp;
 
     let statsOnFinish: StallMeasurements | undefined;
-    if (endTimestamp && isIdleTransaction) {
-      /*
-        There is different behavior regarding child spans in a normal transaction and an idle transaction. In normal transactions,
-        the child spans that aren't finished will be dumped, while in an idle transaction they're cancelled and finished.
+    if (isNearToNow(endTimestamp)) {
+      statsOnFinish = this._getCurrentStats(rootSpan);
+    } else {
+      // The idleSpan in JS V8 is always trimmed to the last span's endTimestamp (timestamp).
+      // The unfinished child spans are removed from the root span after the `spanEnd` event.
 
-        Note: `endTimestamp` will always be defined if this is called on an idle transaction finish. This is because we only instrument
-        idle transactions inside `ReactNativeTracing`, which will pass an `endTimestamp`.
-      */
-
-      // There will be cancelled spans, which means that the end won't be trimmed
-      // TODO: Check if this works, as the event spanEnd might be executed after the spans are cancelled
-      const spansWillBeCancelled = spans.some(s => {
-        const sStartTime = spanToJSON(s).start_timestamp;
-        return sStartTime && s !== rootSpan && sStartTime < endTimestamp && !spanToJSON(s).timestamp;
-      });
-
-      if (endWillBeTrimmed && !spansWillBeCancelled) {
-        // the last span's timestamp will be used.
-
-        if (transactionStats.atTimestamp) {
-          statsOnFinish = transactionStats.atTimestamp.stats;
-        }
-      } else {
-        // this endTimestamp will be used.
-        statsOnFinish = this._getCurrentStats(rootSpan);
+      const latestChildSpanEnd = getLatestChildSpanEndTimestamp(rootSpan);
+      if (latestChildSpanEnd !== endTimestamp) {
+        logger.log(
+          '[StallTracking] Stall measurements not added due to a custom `endTimestamp` (root end is not equal to the latest child span end).',
+        );
       }
-    } else if (endWillBeTrimmed) {
-      // If `trimEnd` is used, and there is a span to trim to. If there isn't, then the transaction should use `endTimestamp` or generate one.
-      if (transactionStats.atTimestamp) {
+
+      if (!transactionStats.atTimestamp) {
+        logger.log(
+          '[StallTracking] Stall measurements not added due to `endTimestamp` not being close to now. And no previous stats from child end were found.',
+        );
+      }
+
+      if (latestChildSpanEnd === endTimestamp && transactionStats.atTimestamp) {
         statsOnFinish = transactionStats.atTimestamp.stats;
       }
-    } else if (isNearToNow(endTimestamp)) {
-      statsOnFinish = this._getCurrentStats(rootSpan);
     }
 
     this._statsByRootSpan.delete(rootSpan);
@@ -198,10 +172,6 @@ export class StallTrackingInstrumentation implements Integration {
           endTimestamp,
           'now',
           timestampInSeconds(),
-        );
-      } else if (trimEnd) {
-        logger.log(
-          '[StallTracking] Stall measurements not added due to `trimEnd` being set but we could not determine the stall measurements at that time.',
         );
       }
 

@@ -162,41 +162,21 @@ describe('StallTracking', () => {
     expectStallMeasurements(client.event?.measurements);
   });
 
-  // TODO: I'm not sure what this is testing, might not be relevant anymore
-  // it('Stall tracking rejects endTimestamp that is from the last span if trimEnd is false (trimEnd case)', async () => {
-  //   startSpanManual({ name: 'Stall will happen during this span', trimEnd: false }, (rootSpan: Span | undefined) => {
-  //     let childSpanEnd: number | undefined = undefined;
-  //     startSpanManual({ name: 'This is a child of the active span' }, (childSpan: Span | undefined) => {
-  //       childSpanEnd = timestampInSeconds();
-  //       childSpan!.end(childSpanEnd);
-  //       jest.runOnlyPendingTimers();
-  //     });
-  //     jest.runOnlyPendingTimers();
-  //     rootSpan!.end(childSpanEnd);
-  //   });
+  it('Stall tracking rejects custom endTimestamp that is far from now and not equal to the last child end', async () => {
+    const rootSpan = startIdleSpan({ name: 'Stall will happen during this span' });
+    let childSpanEnd: number | undefined = undefined;
+    startSpanManual({ name: 'This is a child of the active span' }, (childSpan: Span | undefined) => {
+      childSpanEnd = timestampInSeconds() + 10;
+      childSpan!.end(childSpanEnd);
+      jest.runOnlyPendingTimers();
+    });
+    jest.runOnlyPendingTimers();
+    rootSpan!.end(childSpanEnd! + 20);
 
-  //   await client.flush();
+    await client.flush();
 
-  //   expect(client.event?.measurements).toBeUndefined();
-  // });
-
-  // TODO: I'm not sure what this is testing, might not be relevant anymore
-  // it('Stall tracking rejects endTimestamp even if it is a span time (custom endTimestamp case)', async () => {
-  //   startSpanManual({ name: 'Stall will happen during this span', trimEnd: false }, (rootSpan: Span | undefined) => {
-  //     let childSpanEnd: number | undefined = undefined;
-  //     startSpanManual({ name: 'This is a child of the active span' }, (childSpan: Span | undefined) => {
-  //       childSpanEnd = timestampInSeconds();
-  //       childSpan!.end(childSpanEnd);
-  //       jest.runOnlyPendingTimers();
-  //     });
-  //     jest.runOnlyPendingTimers();
-  //     rootSpan!.end(childSpanEnd! + 0.1);
-  //   });
-
-  //   await client.flush();
-
-  //   expect(client.event?.measurements).toBeUndefined();
-  // });
+    expect(client.event?.measurements).toBeUndefined();
+  });
 
   it('Stall tracking ignores unfinished spans in normal transactions', async () => {
     startSpan({ name: 'Stall will happen during this span' }, () => {
@@ -214,16 +194,16 @@ describe('StallTracking', () => {
     expectStallMeasurements(client.event?.measurements);
   });
 
-  it('Stall tracking only measures stalls inside the final time when trimEnd is used', async () => {
-    startSpan({ name: 'Stall will happen during this span' }, () => {
-      startSpan({ name: 'This child span contains expensive operation' }, () => {
-        expensiveOperation();
-        jest.runOnlyPendingTimers();
-      });
+  it('Stall tracking only measures stalls inside the final time when end is trimmed', async () => {
+    startIdleSpan({ name: 'Stall will happen during this span' });
 
-      expensiveOperation(); // This should not be recorded
-      jest.runOnlyPendingTimers();
+    startSpan({ name: 'This is a child of the active span' }, () => {
+      expensiveOperation();
     });
+
+    jest.runOnlyPendingTimers(); // This allows the child span end to be processed
+    expensiveOperation(); // This should not be recorded
+    jest.runAllTimers(); // This should finish the root span
 
     await client.flush();
 

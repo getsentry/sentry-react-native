@@ -231,9 +231,7 @@ export class NativeFramesInstrumentation implements Integration {
       this._finishFrames.delete(traceId);
 
       logger.log(
-        `[NativeFrames] Native frames timed out for ${spanJSON.op} transaction ${
-          spanJSON.description
-        }. Not adding native frames measurements.`,
+        `[NativeFrames] Native frames timed out for ${spanJSON.op} transaction ${spanJSON.description}. Not adding native frames measurements.`,
       );
     }
   }

@@ -1,4 +1,5 @@
 import {
+  getSpanDescendants,
   SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_UNIT,
   SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_VALUE,
   setMeasurement,
@@ -72,4 +73,15 @@ export function setSpanMeasurement(span: Span, key: string, value: number, unit:
     [SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_VALUE]: value,
     [SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_UNIT]: unit as string,
   });
+}
+
+/**
+ * Returns the latest end timestamp of the child spans of the given span.
+ */
+export function getLatestChildSpanEndTimestamp(span: Span): number | undefined {
+  const childEndTimestamps = getSpanDescendants(span)
+    .map(span => spanToJSON(span).timestamp)
+    .filter(timestamp => !!timestamp) as number[];
+
+  return childEndTimestamps.length ? Math.max(...childEndTimestamps) : undefined;
 }
