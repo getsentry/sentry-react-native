@@ -130,8 +130,8 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @inheritDoc
    */
   public init(): void {
-    super.init();
     this._initNativeSdk();
+    super.init();
   }
 
   /**
