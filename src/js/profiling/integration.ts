@@ -195,7 +195,7 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
   };
 
   const _createProfileEventFor = (profiledTransaction: Event): ProfileEvent | null => {
-    const profile_id = profiledTransaction?.contexts?.['trace']?.['data']?.['profile_id'];
+    const profile_id = profiledTransaction?.contexts?.trace?.data?.profile_id;
 
     if (typeof profile_id !== 'string') {
       logger.log('[Profiling] cannot find profile for a transaction without a profile context');
@@ -203,7 +203,7 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
     }
 
     // Remove the profile from the transaction context before sending, relay will take care of the rest.
-    if (profiledTransaction?.contexts?.['trace']?.['data']?.['profile_id']) {
+    if (profiledTransaction?.contexts?.trace?.data?.profile_id) {
       delete profiledTransaction.contexts.trace.data.profile_id;
     }
 
