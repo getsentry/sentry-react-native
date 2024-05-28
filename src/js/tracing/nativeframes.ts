@@ -40,7 +40,7 @@ export class NativeFramesInstrumentation implements Integration {
   }
 
   /**
-   *
+   * Hooks into the client start and end span events.
    */
   public setup(client: Client): void {
     client.on('spanStart', this._onSpanStart);
@@ -48,14 +48,17 @@ export class NativeFramesInstrumentation implements Integration {
   }
 
   /**
-   *
+   * Adds frames measurements to an event. Called from a valid event processor.
+   * Awaits for finish frames if needed.
    */
   public processEvent(event: Event): Promise<Event> {
     return this._processEvent(event);
   }
 
   /**
+   * Fetches the native frames in background if the given span is a root span.
    *
+   * @param {Span} rootSpan - The span that has started.
    */
   private _onSpanStart = (rootSpan: Span): void => {
     if (!isRootSpan(rootSpan)) {
