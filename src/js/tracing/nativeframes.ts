@@ -221,7 +221,8 @@ export class NativeFramesInstrumentation implements Integration {
    * On a finish frames failure, we cancel the await.
    */
   private _cancelFinishFrames(span: Span): void {
-    const traceId = spanToJSON(span).trace_id;
+    const spanJSON = spanToJSON(span);
+    const traceId = spanJSON.trace_id;
     if (!traceId) {
       return;
     }
@@ -230,8 +231,8 @@ export class NativeFramesInstrumentation implements Integration {
       this._finishFrames.delete(traceId);
 
       logger.log(
-        `[NativeFrames] Native frames timed out for ${spanToJSON(span).op} transaction ${
-          spanToJSON(span).description
+        `[NativeFrames] Native frames timed out for ${spanJSON.op} transaction ${
+          spanJSON.description
         }. Not adding native frames measurements.`,
       );
     }
