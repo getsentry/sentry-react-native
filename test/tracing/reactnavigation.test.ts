@@ -70,7 +70,7 @@ describe('ReactNavigationInstrumentation', () => {
               [SEMANTIC_ATTRIBUTE_ROUTE_KEY]: 'initial_screen',
               [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
               [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
-              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component', // Check why this was component
+              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
               [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
