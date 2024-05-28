@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { useColorScheme } from '@/components/useColorScheme';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
+import { ErrorEvent } from '@sentry/types';
 import { isExpoGo } from '../utils/isExpoGo';
 
 export {
@@ -26,7 +27,7 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   environment: 'dev',
-  beforeSend: (event: Sentry.Event) => {
+  beforeSend: (event: ErrorEvent) => {
     console.log('Event beforeSend:', event.event_id);
     return event;
   },
