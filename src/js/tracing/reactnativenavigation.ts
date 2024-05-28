@@ -165,10 +165,8 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
       [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
     });
 
-    // TODO: route name tag is replaces by event.contexts.app.view_names
     this._beforeNavigate?.(this._latestTransaction);
 
-    // TODO: Remove onConfirmRoute when `context.view_names` are set directly in the navigation instrumentation
     this._onConfirmRoute?.(event.componentName);
 
     addBreadcrumb({

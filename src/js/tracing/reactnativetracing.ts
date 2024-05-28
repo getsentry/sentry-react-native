@@ -339,7 +339,6 @@ export class ReactNativeTracing implements Integration {
     const context: StartSpanOptions = {
       name,
       op,
-      // trimEnd: true, // TODO: check if end still trimmed
       scope,
     };
     clearActiveSpanFromScope(scope);
@@ -525,7 +524,6 @@ export class ReactNativeTracing implements Integration {
       op,
       forceTransaction: true,
       scope: getCurrentScope(),
-      // trimEnd: true, // TODO: Verify is end is still trimmed
     };
 
     const addAwaitingAppStartBeforeSpanEnds = (span: Span): void => {

@@ -451,7 +451,7 @@ describe('ReactNativeTracing', () => {
         expect(routeTransaction!.measurements).toBeUndefined();
         expect(routeTransaction!.contexts!.trace!.op).not.toBe(UI_LOAD);
         expect(routeTransaction!.start_timestamp).not.toBe(appStartTimeMilliseconds / 1000);
-        expect(routeTransaction!.spans!.length).toBe(0); // TODO: check why originally was 2
+        expect(routeTransaction!.spans!.length).toBe(0);
       });
     });
 

@@ -303,13 +303,10 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
           });
 
-          // TODO: route name tag is replaces by event.contexts.app.view_names
-
           this._beforeNavigate?.(this._latestTransaction);
           // Clear the timeout so the transaction does not get cancelled.
           this._clearStateChangeTimeout();
 
-          // TODO: Remove onConfirmRoute when `context.view_names` are set directly in the navigation instrumentation
           this._onConfirmRoute?.(route.name);
 
           // TODO: Add test for addBreadcrumb
