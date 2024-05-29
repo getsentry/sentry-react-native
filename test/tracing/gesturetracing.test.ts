@@ -1,4 +1,4 @@
-import { addGlobalEventProcessor, getActiveSpan, getCurrentHub, spanToJSON, startSpan } from '@sentry/core';
+import { getActiveSpan, spanToJSON, startSpan } from '@sentry/core';
 import type { Breadcrumb } from '@sentry/types';
 
 import { UI_ACTION } from '../../src/js/tracing';
@@ -62,15 +62,7 @@ describe('GestureTracing', () => {
         enableUserInteractionTracing: true,
       });
       client.addIntegration(tracing);
-      tracing.setupOnce(addGlobalEventProcessor, getCurrentHub);
-      mockedRoutingInstrumentation.registeredOnConfirmRoute!({
-        name: 'mockedScreenName',
-        data: {
-          route: {
-            name: 'mockedScreenName',
-          },
-        },
-      });
+      mockedRoutingInstrumentation.registeredOnConfirmRoute!('mockedScreenName');
       mockedGesture = {
         handlers: {
           onBegin: jest.fn(),
@@ -85,7 +77,7 @@ describe('GestureTracing', () => {
       jest.useRealTimers();
     });
 
-    it('gesture creates interaction transaction', async () => {
+    it('gesture creates interaction transaction', () => {
       sentryTraceGesture('mockedGesture', mockedGesture);
       mockedGesture.handlers!.onBegin!();
       const transaction = getActiveSpan();
@@ -122,7 +114,7 @@ describe('GestureTracing', () => {
       sentryTraceGesture('mockedGesture', mockedGesture);
 
       const mockedTouchInteractionId = { elementId: 'mockedElementId', op: 'mocked.op' };
-      tracing.startUserInteractionTransaction(mockedTouchInteractionId);
+      tracing.startUserInteractionSpan(mockedTouchInteractionId);
       startChildSpan();
       await jest.advanceTimersByTimeAsync(timeoutCloseToActualIdleTimeoutMs);
 

@@ -19,8 +19,6 @@ import type {
 } from '@sentry/types';
 import { resolvedSyncPromise } from '@sentry/utils';
 
-import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
-
 export function getDefaultTestClientOptions(options: Partial<TestClientOptions> = {}): TestClientOptions {
   return {
     dsn: 'https://1234@some-domain.com/4505526893805568',
@@ -115,8 +113,6 @@ export function init(options: TestClientOptions): void {
 }
 
 export function setupTestClient(options: Partial<TestClientOptions> = {}): TestClient {
-  _addTracingExtensions();
-
   getCurrentScope().clear();
   getIsolationScope().clear();
   getGlobalScope().clear();

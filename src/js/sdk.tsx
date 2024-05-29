@@ -1,12 +1,10 @@
 /* eslint-disable complexity */
-import type { Scope } from '@sentry/core';
-import { getIntegrationsToSetup, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
+import { getClient, getIntegrationsToSetup, initAndBind, withScope as coreWithScope } from '@sentry/core';
 import {
   defaultStackParser,
-  getCurrentHub,
   makeFetchTransport,
 } from '@sentry/react';
-import type { Integration, UserFeedback } from '@sentry/types';
+import type { Integration, Scope, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -14,11 +12,11 @@ import { ReactNativeClient } from './client';
 import { getDefaultIntegrations } from './integrations/default';
 import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { shouldEnableNativeNagger } from './options';
-import { ReactNativeScope } from './scope';
 import { TouchEventBoundary } from './touchevents';
-import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
+import type { ReactNativeTracing } from './tracing';
+import { ReactNativeProfiler } from './tracing';
+import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
-import { makeUtf8TextEncoder } from './transports/TextEncoder';
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer } from './utils/environment';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { NATIVE } from './wrapper';
@@ -30,9 +28,6 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableAutoPerformanceTracing: true,
   enableWatchdogTerminationTracking: true,
   patchGlobalPromise: true,
-  transportOptions: {
-    textEncoder: makeUtf8TextEncoder(),
-  },
   sendClientReports: true,
   maxQueueSize: DEFAULT_BUFFER_SIZE,
   attachStacktrace: true,
@@ -48,8 +43,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     return;
   }
 
-  const reactNativeHub = new Hub(undefined, new ReactNativeScope());
-  makeMain(reactNativeHub);
+  useEncodePolyfill();
 
   const maxQueueSize = passedOptions.maxQueueSize
     // eslint-disable-next-line deprecation/deprecation
@@ -112,7 +106,7 @@ export function wrap<P extends Record<string, unknown>>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
-  const tracingIntegration = getCurrentHub().getIntegration(ReactNativeTracing);
+  const tracingIntegration = getClient()?.getIntegrationByName?.('ReactNativeTracing') as ReactNativeTracing | undefined;
   if (tracingIntegration) {
     tracingIntegration.useAppStartWithProfiler = true;
   }
@@ -136,32 +130,11 @@ export function wrap<P extends Record<string, unknown>>(
 }
 
 /**
- * Deprecated. Sets the release on the event.
- * NOTE: Does not set the release on sessions.
- * @deprecated
- */
-export function setRelease(release: string): void {
-  setExtra('__sentry_release', release);
-}
-
-/**
- * Deprecated. Sets the dist on the event.
- * NOTE: Does not set the dist on sessions.
- * @deprecated
- */
-export function setDist(dist: string): void {
-  setExtra('__sentry_dist', dist);
-}
-
-/**
  * If native client is available it will trigger a native crash.
  * Use this only for testing purposes.
  */
 export function nativeCrash(): void {
-  const client = getCurrentHub().getClient<ReactNativeClient>();
-  if (client) {
-    client.nativeCrash();
-  }
+  NATIVE.nativeCrash();
 }
 
 /**
@@ -170,7 +143,7 @@ export function nativeCrash(): void {
  */
 export async function flush(): Promise<boolean> {
   try {
-    const client = getCurrentHub().getClient<ReactNativeClient>();
+    const client = getClient();
 
     if (client) {
       const result = await client.flush();
@@ -190,7 +163,7 @@ export async function flush(): Promise<boolean> {
  */
 export async function close(): Promise<void> {
   try {
-    const client = getCurrentHub().getClient<ReactNativeClient>();
+    const client = getClient();
 
     if (client) {
       await client.close();
@@ -204,7 +177,7 @@ export async function close(): Promise<void> {
  * Captures user feedback and sends it to Sentry.
  */
 export function captureUserFeedback(feedback: UserFeedback): void {
-  getCurrentHub().getClient<ReactNativeClient>()?.captureUserFeedback(feedback);
+  getClient<ReactNativeClient>()?.captureUserFeedback(feedback);
 }
 
 /**
@@ -229,20 +202,5 @@ export function withScope<T>(callback: (scope: Scope) => T): T | undefined {
       return undefined;
     }
   };
-  return getCurrentHub().withScope(safeCallback);
-}
-
-/**
- * Callback to set context information onto the scope.
- * @param callback Callback function that receives Scope.
- */
-export function configureScope(callback: (scope: Scope) => void): ReturnType<Hub['configureScope']> {
-  const safeCallback = (scope: Scope): void => {
-    try {
-      callback(scope);
-    } catch (e) {
-      logger.error('Error while running configureScope callback', e);
-    }
-  };
-  getCurrentHub().configureScope(safeCallback);
+  return coreWithScope(safeCallback);
 }

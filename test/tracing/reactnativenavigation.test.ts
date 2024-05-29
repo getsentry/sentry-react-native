@@ -1,15 +1,9 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import {
-  addGlobalEventProcessor,
   getActiveSpan,
-  getCurrentHub,
   getCurrentScope,
   getGlobalScope,
   getIsolationScope,
-  SEMANTIC_ATTRIBUTE_SENTRY_OP,
-  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
-  SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE,
-  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
   setCurrentClient,
   spanToJSON,
 } from '@sentry/core';
@@ -23,8 +17,21 @@ import type {
   EventsRegistry,
 } from '../../src/js/tracing/reactnativenavigation';
 import { ReactNativeNavigationInstrumentation } from '../../src/js/tracing/reactnativenavigation';
+import {
+  SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_COMPONENT_ID,
+  SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_COMPONENT_TYPE,
+  SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME,
+  SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_ID,
+  SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_TYPE,
+  SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN,
+  SEMANTIC_ATTRIBUTE_ROUTE_NAME,
+  SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
+  SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE,
+  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
+} from '../../src/js/tracing/semanticAttributes';
 import type { BeforeNavigate } from '../../src/js/tracing/types';
-import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 
 interface MockEventsRegistry extends EventsRegistry {
@@ -46,7 +53,6 @@ describe('React Native Navigation Instrumentation', () => {
     getCurrentScope().clear();
     getIsolationScope().clear();
     getGlobalScope().clear();
-    RN_GLOBAL_OBJ.__SENTRY__.globalEventProcessors = []; // resets integrations
   });
 
   test('Correctly instruments a route change', async () => {
@@ -72,19 +78,15 @@ describe('React Native Navigation Instrumentation', () => {
         contexts: expect.objectContaining({
           trace: expect.objectContaining({
             data: {
-              route: {
-                name: 'Test',
-                componentName: 'Test',
-                componentId: '0',
-                componentType: 'Component',
-                hasBeenSeen: false,
-                passProps: {},
-              },
-              previousRoute: null,
+              [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'Test',
+              [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_ID]: '0',
+              [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_TYPE]: 'Component',
+              [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
               [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
               [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+              [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
             },
           }),
         }),
@@ -95,8 +97,7 @@ describe('React Native Navigation Instrumentation', () => {
   test('Transaction context is changed with beforeNavigate', async () => {
     setupTestClient({
       beforeNavigate: span => {
-        span.name = 'New Name';
-        return span;
+        span.updateName('New Name');
       },
     });
 
@@ -120,19 +121,15 @@ describe('React Native Navigation Instrumentation', () => {
         contexts: expect.objectContaining({
           trace: expect.objectContaining({
             data: {
-              route: {
-                name: 'Test',
-                componentName: 'Test',
-                componentId: '0',
-                componentType: 'Component',
-                hasBeenSeen: false,
-                passProps: {},
-              },
-              previousRoute: null,
+              [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'Test',
+              [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_ID]: '0',
+              [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_TYPE]: 'Component',
+              [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
               [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
-              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'custom',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+              [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
             },
           }),
         }),
@@ -199,19 +196,15 @@ describe('React Native Navigation Instrumentation', () => {
           contexts: expect.objectContaining({
             trace: expect.objectContaining({
               data: {
-                route: {
-                  name: 'TestScreenName',
-                  componentName: 'TestScreenName',
-                  componentId: '0',
-                  componentType: 'Component',
-                  hasBeenSeen: false,
-                  passProps: {},
-                },
-                previousRoute: null,
+                [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'TestScreenName',
+                [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_ID]: '0',
+                [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_TYPE]: 'Component',
+                [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
                 [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
                 [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
                 [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
                 [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+                [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
               },
             }),
           }),
@@ -288,25 +281,18 @@ describe('React Native Navigation Instrumentation', () => {
           contexts: expect.objectContaining({
             trace: expect.objectContaining({
               data: {
-                route: {
-                  name: 'Test 2',
-                  componentName: 'Test 2',
-                  componentId: '2',
-                  componentType: 'Component',
-                  hasBeenSeen: false,
-                  passProps: {},
-                },
-                previousRoute: {
-                  name: 'Test 1',
-                  componentName: 'Test 1',
-                  componentId: '1',
-                  componentType: 'Component',
-                  passProps: {},
-                },
+                [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'Test 2',
+                [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_ID]: '2',
+                [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_TYPE]: 'Component',
+                [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
+                [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]: 'Test 1',
+                [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_COMPONENT_ID]: '1',
+                [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_COMPONENT_TYPE]: 'Component',
                 [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
                 [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
                 [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
                 [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+                [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
               },
             }),
           }),
@@ -346,19 +332,15 @@ describe('React Native Navigation Instrumentation', () => {
           contexts: expect.objectContaining({
             trace: expect.objectContaining({
               data: {
-                route: {
-                  name: 'Test 1',
-                  componentName: 'Test 1',
-                  componentId: '1',
-                  componentType: 'Component',
-                  hasBeenSeen: false,
-                  passProps: {},
-                },
-                previousRoute: null,
+                [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'Test 1',
+                [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_ID]: '1',
+                [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_TYPE]: 'Component',
+                [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
                 [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
                 [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
                 [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
                 [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+                [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
               },
             }),
           }),
@@ -391,7 +373,7 @@ describe('React Native Navigation Instrumentation', () => {
       enableStallTracking: false,
       enableNativeFramesTracking: false,
       enableAppStartTracking: false,
-      beforeNavigate: setupOptions.beforeNavigate || (span => span),
+      beforeNavigate: setupOptions.beforeNavigate,
     });
 
     const options = getDefaultTestClientOptions({
@@ -401,8 +383,6 @@ describe('React Native Navigation Instrumentation', () => {
     client = new TestClient(options);
     setCurrentClient(client);
     client.init();
-
-    rnTracing.setupOnce(addGlobalEventProcessor, getCurrentHub);
   }
 
   function createMockNavigation() {

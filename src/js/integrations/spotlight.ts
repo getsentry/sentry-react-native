@@ -1,14 +1,6 @@
-import type {
-  BaseTransportOptions,
-  Client,
-  ClientOptions,
-  Envelope,
-  Integration,
-  IntegrationFnResult,
-} from '@sentry/types';
+import type { BaseTransportOptions, Client, ClientOptions, Envelope, Integration } from '@sentry/types';
 import { logger, serializeEnvelope } from '@sentry/utils';
 
-import { makeUtf8TextEncoder } from '../transports/TextEncoder';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 
@@ -29,7 +21,7 @@ type SpotlightReactNativeIntegrationOptions = {
  */
 export function spotlightIntegration({
   sidecarUrl = getDefaultSidecarUrl(),
-}: SpotlightReactNativeIntegrationOptions = {}): IntegrationFnResult {
+}: SpotlightReactNativeIntegrationOptions = {}): Integration {
   logger.info('[Spotlight] Using Sidecar URL', sidecarUrl);
 
   return {
@@ -44,15 +36,6 @@ export function spotlightIntegration({
     },
   };
 }
-
-/**
- * Use this integration to send errors and transactions to Spotlight.
- *
- * Learn more about spotlight at https://spotlightjs.com
- *
- * @deprecated Use `spotlightIntegration()` instead.
- */
-export const Spotlight = spotlightIntegration as (...args: Parameters<typeof spotlightIntegration>) => Integration;
 
 function setup(client: Client, sidecarUrl: string): void {
   sendEnvelopesToSidecar(client, sidecarUrl);
@@ -96,7 +79,7 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
       }
     };
 
-    xhr.send(serializeEnvelope(spotlightEnvelope, makeUtf8TextEncoder()));
+    xhr.send(serializeEnvelope(spotlightEnvelope));
   });
 }
 

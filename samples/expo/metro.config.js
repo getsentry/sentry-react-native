@@ -15,7 +15,6 @@ config.watchFolders.push(path.resolve(__dirname, '../../node_modules/@sentry'));
 config.watchFolders.push(path.resolve(__dirname, '../../node_modules/@sentry-internal'));
 config.watchFolders.push(path.resolve(__dirname, '../../node_modules/tslib'));
 config.watchFolders.push(path.resolve(__dirname, '../../node_modules/hoist-non-react-statics'));
-config.watchFolders.push(path.resolve(__dirname, '../../node_modules/localforage'));
 config.watchFolders.push(path.resolve(__dirname, '../../node_modules/@react-native/js-polyfills'));
 config.watchFolders.push(`${__dirname}/../../dist`);
 

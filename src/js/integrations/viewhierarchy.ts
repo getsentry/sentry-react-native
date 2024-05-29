@@ -1,5 +1,4 @@
-import { convertIntegrationFnToClass } from '@sentry/core';
-import type { Attachment, Event, EventHint, Integration, IntegrationClass, IntegrationFnResult } from '@sentry/types';
+import type { Attachment, Event, EventHint, Integration } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { NATIVE } from '../wrapper';
@@ -11,7 +10,7 @@ const attachmentType = 'event.view_hierarchy' as Attachment['attachmentType'];
 const INTEGRATION_NAME = 'ViewHierarchy';
 
 /** Adds ViewHierarchy to error events */
-export const viewHierarchyIntegration = (): IntegrationFnResult => {
+export const viewHierarchyIntegration = (): Integration => {
   return {
     name: INTEGRATION_NAME,
     setupOnce: () => {
@@ -20,17 +19,6 @@ export const viewHierarchyIntegration = (): IntegrationFnResult => {
     processEvent,
   };
 };
-
-/**
- * Adds ViewHierarchy to error events
- *
- * @deprecated Use `viewHierarchyIntegration()` instead.
- */
-// eslint-disable-next-line deprecation/deprecation
-export const ViewHierarchy = convertIntegrationFnToClass(
-  INTEGRATION_NAME,
-  viewHierarchyIntegration,
-) as IntegrationClass<Integration>;
 
 async function processEvent(event: Event, hint: EventHint): Promise<Event> {
   const hasException = event.exception && event.exception.values && event.exception.values.length > 0;

@@ -1,21 +1,18 @@
-import {
-  addGlobalEventProcessor,
-  getCurrentHub,
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
-  setCurrentClient,
-  startSpanManual,
-} from '@sentry/core';
+jest.mock('../../src/js/tracing/utils', () => ({
+  ...jest.requireActual('../../src/js/tracing/utils'),
+  isNearToNow: jest.fn(),
+}));
+
+import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpanManual } from '@sentry/core';
 
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../../src/js';
-import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
+import { isNearToNow } from '../../src/js/tracing/utils';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
 import { expectStallMeasurements } from './stalltrackingutils';
 
-jest.useFakeTimers({ advanceTimers: true });
+jest.useFakeTimers({ advanceTimers: 1 });
 
 describe('StallTracking with ReactNavigation', () => {
   let client: TestClient;
@@ -23,7 +20,6 @@ describe('StallTracking with ReactNavigation', () => {
 
   beforeEach(() => {
     RN_GLOBAL_OBJ.__sentry_rn_v5_registered = false;
-    _addTracingExtensions();
 
     getCurrentScope().clear();
     getIsolationScope().clear();
@@ -46,9 +42,6 @@ describe('StallTracking with ReactNavigation', () => {
     client = new TestClient(options);
     setCurrentClient(client);
     client.init();
-
-    // We have to call this manually as setupOnce is executed once per runtime (global var check)
-    rnTracing.setupOnce(addGlobalEventProcessor, getCurrentHub);
   });
 
   afterEach(() => {
@@ -56,6 +49,7 @@ describe('StallTracking with ReactNavigation', () => {
   });
 
   it('Stall tracking supports idleTransaction with unfinished spans', async () => {
+    (isNearToNow as jest.Mock).mockReturnValue(true);
     jest.runOnlyPendingTimers(); // Flush app start transaction
     mockNavigation.navigateToNewScreen();
     startSpanManual({ name: 'This child span will never finish' }, () => {});

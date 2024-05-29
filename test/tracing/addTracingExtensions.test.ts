@@ -33,7 +33,6 @@ describe('Tracing extensions', () => {
   });
 
   test('transaction start span creates default op', async () => {
-    // TODO: add event listener to spanStart and add default op if not set
     startSpanManual({ name: 'parent', scope: getCurrentScope() }, () => {});
     const span = startSpanManual({ name: 'child', scope: getCurrentScope() }, span => span);
 

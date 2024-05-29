@@ -23,8 +23,8 @@ import { store } from './reduxApp';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { Platform, StyleSheet } from 'react-native';
-import { HttpClient } from '@sentry/integrations';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { ErrorEvent } from '@sentry/types';
 
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 
@@ -39,7 +39,7 @@ Sentry.init({
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   environment: 'dev',
-  beforeSend: (event: Sentry.Event) => {
+  beforeSend: (event: ErrorEvent) => {
     console.log('Event beforeSend:', event.event_id);
     return event;
   },
@@ -59,16 +59,8 @@ Sentry.init({
         routingInstrumentation: reactNavigationInstrumentation,
         enableUserInteractionTracing: true,
         ignoreEmptyBackNavigationTransactions: true,
-        beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
-          // Example of not sending a transaction for the screen with the name "Manual Tracker"
-          if (context.data.route.name === 'ManualTracker') {
-            context.sampled = false;
-          }
-
-          return context;
-        },
       }),
-      new HttpClient({
+      Sentry.httpClientIntegration({
         // These options are effective only in JS.
         // This array can contain tuples of `[begin, end]` (both inclusive),
         // Single status codes, or a combinations of both.
@@ -78,7 +70,6 @@ Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
-      Sentry.metrics.metricsAggregatorIntegration(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },

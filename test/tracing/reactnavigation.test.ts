@@ -1,22 +1,22 @@
 /* eslint-disable deprecation/deprecation */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  addGlobalEventProcessor,
-  getCurrentHub,
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
-  SEMANTIC_ATTRIBUTE_SENTRY_OP,
-  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
-  SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE,
-  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
-  setCurrentClient,
-  Transaction,
-} from '@sentry/core';
+import { getCurrentScope, getGlobalScope, getIsolationScope, SentrySpan, setCurrentClient } from '@sentry/core';
 
 import { ReactNativeTracing } from '../../src/js';
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 import { ReactNavigationInstrumentation } from '../../src/js/tracing/reactnavigation';
+import {
+  SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY,
+  SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME,
+  SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN,
+  SEMANTIC_ATTRIBUTE_ROUTE_KEY,
+  SEMANTIC_ATTRIBUTE_ROUTE_NAME,
+  SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
+  SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE,
+  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
+} from '../../src/js/tracing/semanticAttributes';
 import type { BeforeNavigate } from '../../src/js/tracing/types';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
@@ -66,24 +66,15 @@ describe('ReactNavigationInstrumentation', () => {
         contexts: expect.objectContaining({
           trace: expect.objectContaining({
             data: {
-              route: {
-                hasBeenSeen: false,
-                key: 'initial_screen',
-                name: 'Initial Screen',
-                params: {},
-              },
-              previousRoute: null,
+              [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'Initial Screen',
+              [SEMANTIC_ATTRIBUTE_ROUTE_KEY]: 'initial_screen',
+              [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
               [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
               [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+              [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
             },
-            op: 'navigation',
-            origin: 'manual',
-            tags: expect.objectContaining({
-              'routing.instrumentation': 'react-navigation-v5',
-              'routing.route.name': 'Initial Screen',
-            }),
           }),
         }),
       }),
@@ -107,28 +98,17 @@ describe('ReactNavigationInstrumentation', () => {
         contexts: expect.objectContaining({
           trace: expect.objectContaining({
             data: {
-              route: {
-                hasBeenSeen: false,
-                key: 'new_screen',
-                name: 'New Screen',
-                params: {},
-              },
-              previousRoute: {
-                key: 'initial_screen',
-                name: 'Initial Screen',
-                params: {},
-              },
+              [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'New Screen',
+              [SEMANTIC_ATTRIBUTE_ROUTE_KEY]: 'new_screen',
+              [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
+              [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]: 'Initial Screen',
+              [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY]: 'initial_screen',
               [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
               [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+              [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
             },
-            op: 'navigation',
-            origin: 'manual',
-            tags: expect.objectContaining({
-              'routing.instrumentation': 'react-navigation-v5',
-              'routing.route.name': 'New Screen',
-            }),
           }),
         }),
       }),
@@ -155,28 +135,17 @@ describe('ReactNavigationInstrumentation', () => {
         contexts: expect.objectContaining({
           trace: expect.objectContaining({
             data: {
-              route: {
-                hasBeenSeen: false,
-                key: 'second_screen',
-                name: 'Second Screen',
-                params: {},
-              },
-              previousRoute: {
-                key: 'new_screen',
-                name: 'New Screen',
-                params: {},
-              },
+              [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'Second Screen',
+              [SEMANTIC_ATTRIBUTE_ROUTE_KEY]: 'second_screen',
+              [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
+              [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]: 'New Screen',
+              [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY]: 'new_screen',
               [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
               [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+              [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
             },
-            op: 'navigation',
-            origin: 'manual',
-            tags: expect.objectContaining({
-              'routing.instrumentation': 'react-navigation-v5',
-              'routing.route.name': 'Second Screen',
-            }),
           }),
         }),
       }),
@@ -186,8 +155,7 @@ describe('ReactNavigationInstrumentation', () => {
   test('transaction context changed with beforeNavigate', async () => {
     setupTestClient({
       beforeNavigate: span => {
-        span.name = 'New Span Name';
-        return span;
+        span.updateName('New Span Name');
       },
     });
     jest.runOnlyPendingTimers(); // Flush the init transaction
@@ -205,28 +173,17 @@ describe('ReactNavigationInstrumentation', () => {
         contexts: expect.objectContaining({
           trace: expect.objectContaining({
             data: {
-              route: {
-                hasBeenSeen: false,
-                key: 'new_screen',
-                name: 'New Screen',
-                params: {},
-              },
-              previousRoute: {
-                key: 'initial_screen',
-                name: 'Initial Screen',
-                params: {},
-              },
+              [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'New Screen',
+              [SEMANTIC_ATTRIBUTE_ROUTE_KEY]: 'new_screen',
+              [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
+              [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]: 'Initial Screen',
+              [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY]: 'initial_screen',
               [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
-              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'custom',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+              [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
             },
-            op: 'navigation',
-            origin: 'manual',
-            tags: expect.objectContaining({
-              'routing.instrumentation': 'react-navigation-v5',
-              'routing.route.name': 'New Screen',
-            }),
           }),
         }),
       }),
@@ -318,7 +275,7 @@ describe('ReactNavigationInstrumentation', () => {
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer(mockNavigationContainer);
 
-      const mockTransaction = new Transaction({ name: 'Test' });
+      const mockTransaction = new SentrySpan();
       const tracingListener = jest.fn(() => mockTransaction);
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
@@ -338,7 +295,7 @@ describe('ReactNavigationInstrumentation', () => {
         routeChangeTimeoutMs: 200,
       });
 
-      const mockTransaction = new Transaction({ name: 'Test', sampled: true });
+      const mockTransaction = new SentrySpan({ sampled: true });
       const tracingListener = jest.fn(() => mockTransaction);
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
@@ -379,7 +336,7 @@ describe('ReactNavigationInstrumentation', () => {
       enableStallTracking: false,
       enableNativeFramesTracking: false,
       enableAppStartTracking: false,
-      beforeNavigate: setupOptions.beforeNavigate || (span => span),
+      beforeNavigate: setupOptions.beforeNavigate,
     });
 
     const options = getDefaultTestClientOptions({
@@ -389,8 +346,5 @@ describe('ReactNavigationInstrumentation', () => {
     client = new TestClient(options);
     setCurrentClient(client);
     client.init();
-
-    // We have to call this manually as setupOnce is executed once per runtime (global var check)
-    rnTracing.setupOnce(addGlobalEventProcessor, getCurrentHub);
   }
 });

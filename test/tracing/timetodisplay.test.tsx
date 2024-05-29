@@ -1,13 +1,11 @@
 import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
 jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
-import type { Span as SpanClass} from '@sentry/core';
-import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, spanToJSON, startSpanManual} from '@sentry/core';
+import { getCurrentScope, getGlobalScope, getIsolationScope, getSpanDescendants, setCurrentClient, spanToJSON, startSpanManual} from '@sentry/core';
 import type { Event, Measurements, Span, SpanJSON} from '@sentry/types';
 import React from "react";
 import TestRenderer from 'react-test-renderer';
 
-import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing/timetodisplay';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
@@ -19,8 +17,6 @@ describe('TimeToDisplay', () => {
   let client: TestClient;
 
   beforeEach(() => {
-    _addTracingExtensions();
-
     getCurrentScope().clear();
     getIsolationScope().clear();
     getGlobalScope().clear();
@@ -375,10 +371,4 @@ function expectNoFullDisplayMeasurementOnSpan(event: Event) {
     undefined,
     expect.not.objectContaining<Measurements>({ time_to_full_display: expect.anything() }),
   ]);
-}
-
-// Will be replaced by https://github.com/getsentry/sentry-javascript/blob/99d8390f667e8ad31a9b1fd62fbd4941162fab04/packages/core/src/tracing/utils.ts#L54
-// after JS v8 upgrade
-function getSpanDescendants(span?: Span) {
-  return (span as SpanClass)?.spanRecorder?.spans;
 }

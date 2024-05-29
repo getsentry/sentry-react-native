@@ -1,4 +1,4 @@
-import { getActiveSpan, Span as SpanClass, spanToJSON, startInactiveSpan } from '@sentry/core';
+import { getActiveSpan, getSpanDescendants, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
 import type { Span,StartSpanOptions  } from '@sentry/types';
 import { fill, logger } from '@sentry/utils';
 import * as React from 'react';
@@ -94,12 +94,7 @@ export function startTimeToInitialDisplaySpan(
     return;
   }
 
-  if (!(activeSpan instanceof SpanClass)) {
-    logger.warn(`[TimeToDisplay] Active span is not instance of Span class.`);
-    return;
-  }
-
-  const existingSpan = activeSpan.spanRecorder?.spans.find((span) => spanToJSON(span).op === 'ui.load.initial_display');
+  const existingSpan = getSpanDescendants(activeSpan).find((span) => spanToJSON(span).op === 'ui.load.initial_display');
   if (existingSpan) {
     logger.debug(`[TimeToDisplay] Found existing ui.load.initial_display span.`);
     return existingSpan
@@ -108,7 +103,7 @@ export function startTimeToInitialDisplaySpan(
   const initialDisplaySpan = startInactiveSpan({
     op: 'ui.load.initial_display',
     name: 'Time To Initial Display',
-    startTimestamp: spanToJSON(activeSpan).start_timestamp,
+    startTime: spanToJSON(activeSpan).start_timestamp,
     ...options,
   });
 
@@ -138,12 +133,7 @@ export function startTimeToFullDisplaySpan(
     return;
   }
 
-  if (!(activeSpan instanceof SpanClass)) {
-    logger.warn(`[TimeToDisplay] Active span is not instance of Span class.`);
-    return;
-  }
-
-  const descendantSpans = activeSpan.spanRecorder?.spans || [];
+  const descendantSpans = getSpanDescendants(activeSpan);
 
   const initialDisplaySpan = descendantSpans.find((span) => spanToJSON(span).op === 'ui.load.initial_display');
   if (!initialDisplaySpan) {
@@ -160,7 +150,7 @@ export function startTimeToFullDisplaySpan(
   const fullDisplaySpan = startInactiveSpan({
     op: 'ui.load.full_display',
     name: 'Time To Full Display',
-    startTimestamp: spanToJSON(initialDisplaySpan).start_timestamp,
+    startTime: spanToJSON(initialDisplaySpan).start_timestamp,
     ...options,
   });
   if (!fullDisplaySpan) {
@@ -171,13 +161,13 @@ export function startTimeToFullDisplaySpan(
     if (spanToJSON(fullDisplaySpan).timestamp) {
       return;
     }
-    fullDisplaySpan.setStatus('deadline_exceeded');
+    fullDisplaySpan.setStatus({ code: SPAN_STATUS_ERROR, message: 'deadline_exceeded' });
     fullDisplaySpan.end(spanToJSON(initialDisplaySpan).timestamp);
     setSpanDurationAsMeasurement('time_to_full_display', fullDisplaySpan);
     logger.warn(`[TimeToDisplay] Full display span deadline_exceeded.`);
   }, options.timeoutMs);
 
-  fill(fullDisplaySpan, 'end', (originalEnd: SpanClass['end']) => (endTimestamp?: Parameters<SpanClass['end']>[0]) => {
+  fill(fullDisplaySpan, 'end', (originalEnd: Span['end']) => (endTimestamp?: Parameters<Span['end']>[0]) => {
     clearTimeout(timeout);
     originalEnd.call(fullDisplaySpan, endTimestamp);
   });
@@ -219,7 +209,7 @@ function updateInitialDisplaySpan(frameTimestampSeconds: number): void {
   }
 
   span.end(frameTimestampSeconds);
-  span.setStatus('ok');
+  span.setStatus({ code: SPAN_STATUS_OK });
   logger.debug(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp.`);
 
   if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
@@ -237,13 +227,8 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
     return;
   }
 
-  if (!(activeSpan instanceof SpanClass)) {
-    logger.warn(`[TimeToDisplay] Active span is not instance of Span class.`);
-    return;
-  }
-
   const existingInitialDisplaySpan = passedInitialDisplaySpan
-    || activeSpan.spanRecorder?.spans.find((span) => spanToJSON(span).op === 'ui.load.initial_display');
+    || getSpanDescendants(activeSpan).find((span) => spanToJSON(span).op === 'ui.load.initial_display');
   const initialDisplayEndTimestamp = existingInitialDisplaySpan && spanToJSON(existingInitialDisplaySpan).timestamp;
   if (!initialDisplayEndTimestamp) {
     fullDisplayBeforeInitialDisplay.set(activeSpan, true);
@@ -264,7 +249,7 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
 
   span.end(frameTimestampSeconds);
 
-  span.setStatus('ok');
+  span.setStatus({ code: SPAN_STATUS_OK });
   logger.debug(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp.`);
 
   setSpanDurationAsMeasurement('time_to_full_display', span);

@@ -48,7 +48,7 @@ export function findProfiledTransactionsFromEnvelope(envelope: Envelope): Event[
 
       // @ts-expect-error accessing private property
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (event && event.contexts && event.contexts['profile'] && event.contexts['profile']['profile_id']) {
+      if (event.contexts?.trace?.data?.profile_id) {
         events.push(item[j] as Event);
       }
     }

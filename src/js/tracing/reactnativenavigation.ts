@@ -1,11 +1,11 @@
-import type { Transaction as TransactionType, TransactionContext } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import { addBreadcrumb, SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from '@sentry/core';
+import type { Span } from '@sentry/types';
 
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
+import { isSentrySpan } from '../utils/span';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
-import type { BeforeNavigate, RouteChangeContextData } from './types';
-import { customTransactionSource, defaultTransactionSource, getBlankTransactionContext } from './utils';
+import type { BeforeNavigate } from './types';
 
 interface ReactNativeNavigationOptions {
   /**
@@ -78,7 +78,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
 
   private _prevComponentEvent: ComponentWillAppearEvent | null = null;
 
-  private _latestTransaction?: TransactionType;
+  private _latestTransaction?: Span;
   private _recentComponentIds: string[] = [];
   private _stateChangeTimeout?: number | undefined;
 
@@ -124,9 +124,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
       this._discardLatestTransaction();
     }
 
-    this._latestTransaction = this.onRouteWillChange(
-      getBlankTransactionContext(ReactNativeNavigationInstrumentation.name),
-    );
+    this._latestTransaction = this.onRouteWillChange({ name: 'Route Change' });
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
@@ -151,79 +149,48 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
 
     this._clearStateChangeTimeout();
 
-    const originalContext = this._latestTransaction.toContext();
     const routeHasBeenSeen = this._recentComponentIds.includes(event.componentId);
 
-    const data: RouteChangeContextData = {
-      ...originalContext.data,
-      route: {
-        ...event,
-        name: event.componentName,
-        hasBeenSeen: routeHasBeenSeen,
+    this._latestTransaction.updateName(event.componentName);
+    this._latestTransaction.setAttributes({
+      // TODO: Should we include pass props? I don't know exactly what it contains, cant find it in the RNavigation docs
+      'route.name': event.componentName,
+      'route.component_id': event.componentId,
+      'route.component_type': event.componentType,
+      'route.has_been_seen': routeHasBeenSeen,
+      'previous_route.name': this._prevComponentEvent?.componentName,
+      'previous_route.component_id': this._prevComponentEvent?.componentId,
+      'previous_route.component_type': this._prevComponentEvent?.componentType,
+      [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
+      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+    });
+
+    this._beforeNavigate?.(this._latestTransaction);
+
+    this._onConfirmRoute?.(event.componentName);
+
+    addBreadcrumb({
+      category: 'navigation',
+      type: 'navigation',
+      message: `Navigation to ${event.componentName}`,
+      data: {
+        from: this._prevComponentEvent?.componentName,
+        to: event.componentName,
       },
-      previousRoute: this._prevComponentEvent
-        ? {
-            ...this._prevComponentEvent,
-            name: this._prevComponentEvent?.componentName,
-          }
-        : null,
-    };
+    });
 
-    const updatedContext = {
-      ...originalContext,
-      name: event.componentName,
-      tags: {
-        ...originalContext.tags,
-        'routing.route.name': event.componentName,
-      },
-      data,
-    };
-
-    const finalContext = this._prepareFinalContext(updatedContext);
-    this._latestTransaction.updateWithContext(finalContext);
-
-    const isCustomName = updatedContext.name !== finalContext.name;
-    this._latestTransaction.setName(
-      finalContext.name,
-      isCustomName ? customTransactionSource : defaultTransactionSource,
-    );
-
-    this._onConfirmRoute?.(finalContext);
     this._prevComponentEvent = event;
-
     this._latestTransaction = undefined;
-  }
-
-  /** Creates final transaction context before confirmation */
-  private _prepareFinalContext(updatedContext: TransactionContext): TransactionContext {
-    let finalContext = this._beforeNavigate?.({ ...updatedContext });
-
-    // This block is to catch users not returning a transaction context
-    if (!finalContext) {
-      logger.error(
-        `[${ReactNativeNavigationInstrumentation.name}] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`,
-      );
-
-      finalContext = {
-        ...updatedContext,
-        sampled: false,
-      };
-    }
-
-    if (finalContext.sampled === false) {
-      logger.log(
-        `[${ReactNativeNavigationInstrumentation.name}] Will not send transaction "${finalContext.name}" due to beforeNavigate.`,
-      );
-    }
-
-    return finalContext;
   }
 
   /** Cancels the latest transaction so it does not get sent to Sentry. */
   private _discardLatestTransaction(): void {
     if (this._latestTransaction) {
-      this._latestTransaction.sampled = false;
-      this._latestTransaction.finish();
+      if (isSentrySpan(this._latestTransaction)) {
+        this._latestTransaction['_sampled'] = false;
+      }
+      // TODO: What if it's not SentrySpan?
+      this._latestTransaction.end();
       this._latestTransaction = undefined;
     }
 

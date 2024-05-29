@@ -3,7 +3,7 @@ import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest';
 import type { Client, Envelope } from '@sentry/types';
 import { XMLHttpRequest } from 'xmlhttprequest';
 
-import { Spotlight } from '../../src/js/integrations/spotlight';
+import { spotlightIntegration } from '../../src/js/integrations/spotlight';
 
 globalThis.XMLHttpRequest = XMLHttpRequest;
 const requestListener = jest.fn<void, HttpRequestEventMap['request']>();
@@ -22,7 +22,7 @@ describe('spotlight', () => {
   it('should not change the original envelope', () => {
     const mockClient = createMockClient();
 
-    const spotlight = Spotlight();
+    const spotlight = spotlightIntegration();
     spotlight.setup?.(mockClient as unknown as Client);
 
     const spotlightBeforeEnvelope = mockClient.on.mock.calls[0]?.[1] as ((envelope: Envelope) => void) | undefined;
@@ -37,7 +37,7 @@ describe('spotlight', () => {
   it('should remove image attachments from spotlight envelope', async () => {
     const mockClient = createMockClient();
 
-    const spotlight = Spotlight();
+    const spotlight = spotlightIntegration();
     spotlight.setup?.(mockClient as unknown as Client);
 
     const spotlightBeforeEnvelope = mockClient.on.mock.calls[0]?.[1] as ((envelope: Envelope) => void) | undefined;

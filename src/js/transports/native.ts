@@ -1,4 +1,4 @@
-import type { BaseTransportOptions, Envelope, Transport } from '@sentry/types';
+import type { BaseTransportOptions, Envelope, Transport, TransportMakeRequestResponse } from '@sentry/types';
 import type { PromiseBuffer } from '@sentry/utils';
 import { makePromiseBuffer } from '@sentry/utils';
 
@@ -26,8 +26,9 @@ export class NativeTransport implements Transport {
    *
    * @param envelope Envelope that should be sent to Sentry.
    */
-  public send(envelope: Envelope): PromiseLike<void> {
-    return this._buffer.add(() => NATIVE.sendEnvelope(envelope));
+  public send(envelope: Envelope): PromiseLike<TransportMakeRequestResponse> {
+    // TODO: We currently can't retrieve the response information from native
+    return this._buffer.add(() => NATIVE.sendEnvelope(envelope)).then(() => ({}));
   }
 
   /**
