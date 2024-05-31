@@ -294,6 +294,9 @@ public class RNSentryModuleImpl {
             }
         });
 
+        Sentry.getCurrentHub().getOptions().getReplayController()
+                .setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
+
         promise.resolve(true);
     }
 
