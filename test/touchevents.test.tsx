@@ -102,6 +102,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
       category: defaultProps.breadcrumbCategory,
       data: {
         componentTree: ['View', 'Connect(View)', 'LABEL!'],
+        target: "LABEL!",
       },
       level: 'info' as SeverityLevel,
       message: 'Touch event within element: LABEL!',
@@ -161,6 +162,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
       category: defaultProps.breadcrumbCategory,
       data: {
         componentTree: ['Styled(View2)', 'Styled(View)'],
+        target: 'Styled(View2)',
       },
       level: 'info' as SeverityLevel,
       message: 'Touch event within element: Styled(View2)',
@@ -211,6 +213,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
       category: defaultProps.breadcrumbCategory,
       data: {
         componentTree: ['Connect(View)', 'Styled(View)'],
+        target: 'Connect(View)',
       },
       level: 'info' as SeverityLevel,
       message: 'Touch event within element: Connect(View)',
