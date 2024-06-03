@@ -13,8 +13,8 @@ import { getDefaultIntegrations } from './integrations/default';
 import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { shouldEnableNativeNagger } from './options';
 import { TouchEventBoundary } from './touchevents';
-import type { ReactNativeTracing } from './tracing';
 import { ReactNativeProfiler } from './tracing';
+import { useAppStartFromSentryRNPProfiler } from './tracing/integrations/appStart';
 import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer } from './utils/environment';
@@ -106,10 +106,7 @@ export function wrap<P extends Record<string, unknown>>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
-  const tracingIntegration = getClient()?.getIntegrationByName?.('ReactNativeTracing') as ReactNativeTracing | undefined;
-  if (tracingIntegration) {
-    tracingIntegration.useAppStartWithProfiler = true;
-  }
+  useAppStartFromSentryRNPProfiler();
 
   const profilerProps = {
     ...(options?.profilerProps ?? {}),

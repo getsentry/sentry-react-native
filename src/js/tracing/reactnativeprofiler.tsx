@@ -2,7 +2,7 @@ import { spanToJSON } from '@sentry/core';
 import { getClient, Profiler } from '@sentry/react';
 
 import { createIntegration } from '../integrations/factory';
-import type { ReactNativeTracing } from './reactnativetracing';
+import { setAppStartEndTimestamp } from '../tracing/integrations/appStart';
 
 const ReactNativeProfilerGlobalState = {
   appStartReported: false,
@@ -41,10 +41,6 @@ export class ReactNativeProfiler extends Profiler {
     client.addIntegration && client.addIntegration(createIntegration(this.name));
 
     const endTimestamp = this._mountSpan && typeof spanToJSON(this._mountSpan).timestamp
-    const tracingIntegration = client.getIntegrationByName && client.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing');
-    tracingIntegration
-      && typeof endTimestamp === 'number'
-      // The first root component mount is the app start finish.
-      && tracingIntegration.onAppStartFinish(endTimestamp);
+    typeof endTimestamp === 'number' && setAppStartEndTimestamp(endTimestamp);
   }
 }

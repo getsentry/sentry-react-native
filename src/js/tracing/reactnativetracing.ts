@@ -4,22 +4,16 @@ import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from
 import {
   getActiveSpan,
   getCurrentScope,
-  getSpanDescendants,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SentryNonRecordingSpan,
-  setMeasurement,
   SPAN_STATUS_ERROR,
   spanToJSON,
   startIdleSpan,
-  startInactiveSpan,
 } from '@sentry/core';
 import type { Client, Event, Integration, PropagationContext, Scope, Span, StartSpanOptions } from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 
-import { APP_START_COLD, APP_START_WARM } from '../measurements';
-import type { NativeAppStartResponse } from '../NativeRNSentry';
 import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
-import { isRootSpan, isSentrySpan } from '../utils/span';
 import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
 import {
@@ -29,10 +23,9 @@ import {
   onlySampleIfChildSpans,
   onThisSpanEnd,
 } from './onSpanEndUtils';
-import { APP_START_COLD as APP_START_COLD_OP, APP_START_WARM as APP_START_WARM_OP, UI_LOAD } from './ops';
+import { UI_LOAD } from './ops';
 import { StallTrackingInstrumentation } from './stalltracking';
 import type { BeforeNavigate } from './types';
-import { getTimeOriginMilliseconds, setSpanDurationAsMeasurement } from './utils';
 
 const SCOPE_SPAN_FIELD = '_sentrySpan';
 
@@ -147,8 +140,7 @@ export class ReactNativeTracing implements Integration {
    * @inheritDoc
    */
   public static id: string = 'ReactNativeTracing';
-  /** We filter out App starts more than 60s */
-  private static _maxAppStart: number = 60000;
+
   /**
    * @inheritDoc
    */
@@ -162,8 +154,7 @@ export class ReactNativeTracing implements Integration {
   public useAppStartWithProfiler: boolean = false;
 
   private _inflightInteractionTransaction?: Span;
-  private _awaitingAppStartData?: NativeAppStartResponse;
-  private _appStartFinishTimestamp?: number;
+
   private _currentRoute?: string;
   private _hasSetTracePropagationTargets: boolean;
   private _currentViewName: string | undefined;
@@ -222,9 +213,7 @@ export class ReactNativeTracing implements Integration {
       DEFAULT_TRACE_PROPAGATION_TARGETS;
 
     if (enableAppStartTracking) {
-      this._instrumentAppStart().then(undefined, (reason: unknown) => {
-        logger.error(`[ReactNativeTracing] Error while instrumenting app start:`, reason);
-      });
+      this._instrumentAppStart();
     }
 
     this._enableNativeFramesTracking(client);
@@ -264,12 +253,12 @@ export class ReactNativeTracing implements Integration {
       : eventWithView;
   }
 
-  /**
-   * Called by the ReactNativeProfiler component on first component mount.
-   */
-  public onAppStartFinish(endTimestamp: number): void {
-    this._appStartFinishTimestamp = endTimestamp;
-  }
+  // /**
+  //  * Called by the ReactNativeProfiler component on first component mount.
+  //  */
+  // public onAppStartFinish(endTimestamp: number): void {
+  //   this._appStartFinishTimestamp = endTimestamp;
+  // }
 
   /**
    * Starts a new transaction for a user interaction.
@@ -390,95 +379,18 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
-   * Returns the App Start Duration in Milliseconds. Also returns undefined if not able do
-   * define the duration.
-   */
-  private _getAppStartDurationMilliseconds(appStart: NativeAppStartResponse): number | undefined {
-    if (!this._appStartFinishTimestamp) {
-      return undefined;
-    }
-    return this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
-  }
-
-  /**
    * Instruments the app start measurements on the first route transaction.
    * Starts a route transaction if there isn't routing instrumentation.
    */
-  private async _instrumentAppStart(): Promise<void> {
-    if (!this.options.enableAppStartTracking || !NATIVE.enableNative) {
+  private _instrumentAppStart(): void {
+    if (!this.options.enableAppStartTracking || !NATIVE.enableNative || this.options.routingInstrumentation) {
       return;
     }
 
-    const appStart = await NATIVE.fetchNativeAppStart();
-
-    if (!appStart || appStart.didFetchAppStart) {
-      return;
-    }
-
-    if (!this.useAppStartWithProfiler) {
-      this._appStartFinishTimestamp = getTimeOriginMilliseconds() / 1000;
-    }
-
-    if (this.options.routingInstrumentation) {
-      this._awaitingAppStartData = appStart;
-    } else {
-      const idleTransaction = this._createRouteTransaction({
-        name: 'App Start',
-        op: UI_LOAD,
-      });
-
-      if (idleTransaction) {
-        this._addAppStartData(idleTransaction, appStart);
-      }
-    }
-  }
-
-  /**
-   * Adds app start measurements and starts a child span on a transaction.
-   */
-  private _addAppStartData(span: Span, appStart: NativeAppStartResponse): void {
-    if (!isSentrySpan(span)) {
-      return;
-    }
-
-    const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStart);
-    if (!appStartDurationMilliseconds) {
-      logger.warn('App start was never finished.');
-      return;
-    }
-
-    // we filter out app start more than 60s.
-    // this could be due to many different reasons.
-    // we've seen app starts with hours, days and even months.
-    if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
-      return;
-    }
-
-    const appStartTimeSeconds = appStart.appStartTime / 1000;
-
-    span.updateStartTime(appStartTimeSeconds);
-    const children = getSpanDescendants(span);
-
-    const maybeTtidSpan = children.find(span => spanToJSON(span).op === 'ui.load.initial_display');
-    if (maybeTtidSpan && isSentrySpan(maybeTtidSpan)) {
-      maybeTtidSpan.updateStartTime(appStartTimeSeconds);
-      setSpanDurationAsMeasurement('time_to_initial_display', maybeTtidSpan);
-    }
-
-    const maybeTtfdSpan = children.find(span => spanToJSON(span).op === 'ui.load.full_display');
-    if (maybeTtfdSpan && isSentrySpan(maybeTtfdSpan)) {
-      maybeTtfdSpan.updateStartTime(appStartTimeSeconds);
-      setSpanDurationAsMeasurement('time_to_full_display', maybeTtfdSpan);
-    }
-
-    const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
-    startInactiveSpan({
-      name: appStart.isColdStart ? 'Cold App Start' : 'Warm App Start',
-      op,
-      startTime: appStartTimeSeconds,
-    }).end(this._appStartFinishTimestamp);
-    const measurement = appStart.isColdStart ? APP_START_COLD : APP_START_WARM;
-    setMeasurement(measurement, appStartDurationMilliseconds, 'millisecond');
+    this._createRouteTransaction({
+      name: 'App Start',
+      op: UI_LOAD,
+    });
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */
@@ -526,21 +438,7 @@ export class ReactNativeTracing implements Integration {
       scope: getCurrentScope(),
     };
 
-    const addAwaitingAppStartBeforeSpanEnds = (span: Span): void => {
-      if (!isRootSpan(span)) {
-        logger.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
-        return;
-      }
-
-      if (this.options.enableAppStartTracking && this._awaitingAppStartData) {
-        span.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_OP, UI_LOAD);
-        this._addAppStartData(span, this._awaitingAppStartData);
-
-        this._awaitingAppStartData = undefined;
-      }
-    };
-
-    const idleSpan = this._startIdleSpan(expandedContext, addAwaitingAppStartBeforeSpanEnds);
+    const idleSpan = this._startIdleSpan(expandedContext);
     if (!idleSpan) {
       return undefined;
     }
