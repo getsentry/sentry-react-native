@@ -503,6 +503,7 @@ export class ReactNativeTracing implements Integration {
   private _addNativeSpansTo(appStartSpan: Span, nativeSpans: NativeAppStartResponse['spans']): void {
     nativeSpans.forEach(span => {
       appStartSpan.startChild({
+        op: appStartSpan.op,
         description: span.description,
         startTimestamp: span.start_timestamp_ms / 1000,
         endTimestamp: span.end_timestamp_ms / 1000,
