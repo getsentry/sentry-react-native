@@ -90,9 +90,14 @@ export type NativeStackFrames = {
 };
 
 export type NativeAppStartResponse = {
-  isColdStart: boolean;
-  appStartTime: number;
-  didFetchAppStart: boolean;
+  type: 'cold' | 'warm' | 'unknown';
+  has_fetched: boolean;
+  app_start_timestamp_ms?: number;
+  spans: {
+    description: string;
+    start_timestamp_ms: number;
+    end_timestamp_ms: number;
+  }[];
 };
 
 export type NativeFramesResponse = {
