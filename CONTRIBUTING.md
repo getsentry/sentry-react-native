@@ -113,7 +113,7 @@ Comment out sentry dependency in `RNSentry.podspec`.
 
 ```diff
 -   s.dependency 'Sentry/HybridSDK', '7.31.0'
-+   # s.dependency 'Sentry/HybridSDK', '7.31.0'
++   s.dependency 'Sentry/HybridSDK'
 ```
 
 Add local pods to `sample/ios/Podfile`.
@@ -123,9 +123,7 @@ target 'sample' do
 
   # ... react native config
 
-+  pod 'Sentry/HybridSDK', :path => '../../../sentry-cocoa'
-+  pod 'SentryPrivate', :path => '../../../sentry-cocoa/SentryPrivate.podspec'
-
+ pod 'Sentry/HybridSDK', :path => '../../../sentry-cocoa'
   # ... rest of the configuration
 
 end
@@ -151,12 +149,12 @@ cd sentry-react-native/sample
 
 Add local maven to `sample/android/build.gradle`.
 
-```diff
-+ allprojects {
-+     repositories {
-+         mavenLocal()
-+     }
-+ }
+```gradle
+allprojects {
+    repositories {
+        mavenLocal()
+    }
+}
 ```
 
 Update `sentry-android` version, to the one locally published, in `android/build.gradle`.
