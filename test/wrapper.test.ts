@@ -22,13 +22,6 @@ jest.mock('react-native', () => {
         },
       }),
     ),
-    fetchNativeRelease: jest.fn(() =>
-      Promise.resolve({
-        build: '1.0.0.1',
-        id: 'test-mock',
-        version: '1.0.0',
-      }),
-    ),
     setContext: jest.fn(),
     setExtra: jest.fn(),
     setTag: jest.fn(),
@@ -454,16 +447,6 @@ describe('Tests Native Wrapper', () => {
         ),
         { store: true },
       );
-    });
-  });
-
-  describe('fetchRelease', () => {
-    test('fetches the release from native', async () => {
-      await expect(NATIVE.fetchNativeRelease()).resolves.toMatchObject({
-        build: '1.0.0.1',
-        id: 'test-mock',
-        version: '1.0.0',
-      });
     });
   });
 
