@@ -380,20 +380,24 @@ RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_HAS_UIKIT
-    NSDictionary<NSString *, id> *measurements = [PrivateSentrySDKOnly appStartMeasurementWithSpans];
-    if (measurements == nil) {
-        resolve(nil);
-        return;
-    }
+    SentryAppStartMeasurement *appStartMeasurement = PrivateSentrySDKOnly.appStartMeasurement;
 
-    NSMutableDictionary<NSString *, id> *mutableMeasurements = [[NSMutableDictionary alloc] initWithDictionary:measurements];
-    [mutableMeasurements setValue:[NSNumber numberWithBool:didFetchAppStart] forKey:@"has_fetched"];
+    if (appStartMeasurement == nil) {
+        resolve(nil);
+    } else {
+        BOOL isColdStart = appStartMeasurement.type == SentryAppStartTypeCold;
+
+        resolve(@{
+            @"isColdStart": [NSNumber numberWithBool:isColdStart],
+            @"appStartTime": [NSNumber numberWithDouble:(appStartMeasurement.appStartTimestamp.timeIntervalSince1970 * 1000)],
+            @"didFetchAppStart": [NSNumber numberWithBool:didFetchAppStart],
+                });
+
+    }
 
     // This is always set to true, as we would only allow an app start fetch to only happen once
     // in the case of a JS bundle reload, we do not want it to be instrumented again.
     didFetchAppStart = true;
-
-    resolve(mutableMeasurements);
 #else
     resolve(nil);
 #endif
