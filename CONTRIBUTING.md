@@ -123,7 +123,7 @@ target 'sample' do
 
   # ... react native config
 
- pod 'Sentry/HybridSDK', :path => '../../../sentry-cocoa'
+ pod 'Sentry/HybridSDK', :path => '../../../../sentry-cocoa'
   # ... rest of the configuration
 
 end
