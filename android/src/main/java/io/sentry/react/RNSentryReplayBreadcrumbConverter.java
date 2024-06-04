@@ -13,7 +13,7 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
 
   @Override
   public @Nullable RRWebEvent convert(final @NotNull Breadcrumb breadcrumb) {
-    var rrwebBreadcrumb = new RRWebBreadcrumbEvent();
+    RRWebBreadcrumbEvent rrwebBreadcrumb = new RRWebBreadcrumbEvent();
     assert rrwebBreadcrumb.getCategory() == null;
 
     if (breadcrumb.getCategory().equals("touch")) {
