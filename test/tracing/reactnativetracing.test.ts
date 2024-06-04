@@ -269,9 +269,10 @@ describe('ReactNativeTracing', () => {
         const timeOriginMilliseconds = Date.now();
         const appStartTimeMilliseconds = timeOriginMilliseconds - 65000;
         const mockAppStartResponse: NativeAppStartResponse = {
-          isColdStart: false,
-          appStartTime: appStartTimeMilliseconds,
-          didFetchAppStart: false,
+          type: 'warm',
+          app_start_timestamp_ms: appStartTimeMilliseconds,
+          has_fetched: false,
+          spans: [],
         };
 
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
@@ -295,9 +296,10 @@ describe('ReactNativeTracing', () => {
         const timeOriginMilliseconds = Date.now();
         const appStartTimeMilliseconds = timeOriginMilliseconds - 65000;
         const mockAppStartResponse: NativeAppStartResponse = {
-          isColdStart: false,
-          appStartTime: appStartTimeMilliseconds,
-          didFetchAppStart: false,
+          type: 'warm',
+          app_start_timestamp_ms: appStartTimeMilliseconds,
+          has_fetched: false,
+          spans: [],
         };
 
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
@@ -918,9 +920,10 @@ function mockAppStartResponse({ cold, didFetchAppStart }: { cold: boolean; didFe
   const timeOriginMilliseconds = Date.now();
   const appStartTimeMilliseconds = timeOriginMilliseconds - 100;
   const mockAppStartResponse: NativeAppStartResponse = {
-    isColdStart: cold,
-    appStartTime: appStartTimeMilliseconds,
-    didFetchAppStart: didFetchAppStart ?? false,
+    type: cold ? 'cold' : 'warm',
+    app_start_timestamp_ms: appStartTimeMilliseconds,
+    has_fetched: didFetchAppStart ?? false,
+    spans: [],
   };
 
   mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
