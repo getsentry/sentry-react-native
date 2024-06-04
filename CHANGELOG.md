@@ -35,6 +35,8 @@
 
   Note that the `Sentry.BrowserIntegrations`, `Sentry.Integration` and the Class style integrations will be removed in the next major version of the SDK.
 
+- Added JS Bundle Execution start information to the application start measurements ([#3857](https://github.com/getsentry/sentry-react-native/pull/3857))
+
 ### Fixes
 
 - Remove unused `rnpm` config ([#3811](https://github.com/getsentry/sentry-react-native/pull/3811))
