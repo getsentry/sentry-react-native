@@ -4,7 +4,7 @@
 
 ### Fix
 
-- Add missing logs to dropped App Start spans ([#3860](https://github.com/getsentry/sentry-react-native/pull/3860))
+- Add missing logs to dropped App Start spans ([#3861](https://github.com/getsentry/sentry-react-native/pull/3861))
 
 ## 5.23.0
 
