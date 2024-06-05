@@ -36,6 +36,7 @@
 
 #import "RNSentryEvents.h"
 #import "RNSentryDependencyContainer.h"
+#import "RNSentryBreadcrumbConverter.h"
 
 #if SENTRY_HAS_UIKIT
 #import "RNSentryRNSScreen.h"
@@ -89,6 +90,9 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [PrivateSentrySDKOnly setSdkName: nativeSdkName andVersionString: sdkVersion];
 
     [SentrySDK startWithOptions:sentryOptions];
+
+    RNSentryBreadcrumbConverter* breadcrumbConverter = [[RNSentryBreadcrumbConverter alloc] init];
+    [PrivateSentrySDKOnly configureSessionReplayWith: breadcrumbConverter screenshotProvider: nil];
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     BOOL appIsActive = [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
