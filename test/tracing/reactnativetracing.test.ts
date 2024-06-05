@@ -348,8 +348,7 @@ describe('ReactNativeTracing', () => {
 
           const bundleStartSpan = transaction!.spans!.find(
             ({ description }) =>
-              description === 'JS Bundle Execution Start'
-              || description === 'JS Bundle Execution Before React Root'
+              description === 'JS Bundle Execution Start' || description === 'JS Bundle Execution Before React Root',
           );
 
           expect(bundleStartSpan).toBeUndefined();
@@ -370,7 +369,9 @@ describe('ReactNativeTracing', () => {
           const transaction = client.event;
 
           const appStartRootSpan = transaction!.spans!.find(({ description }) => description === 'Cold App Start');
-          const bundleStartSpan = transaction!.spans!.find(({ description }) => description === 'JS Bundle Execution Start');
+          const bundleStartSpan = transaction!.spans!.find(
+            ({ description }) => description === 'JS Bundle Execution Start',
+          );
           const appStartRootSpanJSON = spanToJSON(appStartRootSpan!);
           const bundleStartSpanJSON = spanToJSON(bundleStartSpan!);
 
@@ -409,7 +410,9 @@ describe('ReactNativeTracing', () => {
           const transaction = client.event;
 
           const appStartRootSpan = transaction!.spans!.find(({ description }) => description === 'Cold App Start');
-          const bundleStartSpan = transaction!.spans!.find(({ description }) => description === 'JS Bundle Execution Before React Root');
+          const bundleStartSpan = transaction!.spans!.find(
+            ({ description }) => description === 'JS Bundle Execution Before React Root',
+          );
           const appStartRootSpanJSON = spanToJSON(appStartRootSpan!);
           const bundleStartSpanJSON = spanToJSON(bundleStartSpan!);
 
