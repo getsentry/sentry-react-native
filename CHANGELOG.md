@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fix
+
+- Add missing logs to dropped App Start spans ([#3860](https://github.com/getsentry/sentry-react-native/pull/3860))
+
 ## 5.23.0
 
 ### Features
