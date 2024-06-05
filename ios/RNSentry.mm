@@ -23,6 +23,7 @@
 #import <Sentry/SentryFormatter.h>
 #import <Sentry/SentryAppStartMeasurement.h>
 #import "RNSentryId.h"
+#import "RNSentryBreadcrumb.h"
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
@@ -557,32 +558,7 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary *)userKeys
 RCT_EXPORT_METHOD(addBreadcrumb:(NSDictionary *)breadcrumb)
 {
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        SentryBreadcrumb* breadcrumbInstance = [[SentryBreadcrumb alloc] init];
-
-        NSString * levelString = breadcrumb[@"level"];
-        SentryLevel sentryLevel;
-        if ([levelString isEqualToString:@"fatal"]) {
-            sentryLevel = kSentryLevelFatal;
-        } else if ([levelString isEqualToString:@"warning"]) {
-            sentryLevel = kSentryLevelWarning;
-        } else if ([levelString isEqualToString:@"error"]) {
-            sentryLevel = kSentryLevelError;
-        } else if ([levelString isEqualToString:@"debug"]) {
-            sentryLevel = kSentryLevelDebug;
-        } else {
-            sentryLevel = kSentryLevelInfo;
-        }
-        [breadcrumbInstance setLevel:sentryLevel];
-
-        [breadcrumbInstance setCategory:breadcrumb[@"category"]];
-
-        [breadcrumbInstance setType:breadcrumb[@"type"]];
-
-        [breadcrumbInstance setMessage:breadcrumb[@"message"]];
-
-        [breadcrumbInstance setData:breadcrumb[@"data"]];
-
-        [scope addBreadcrumb:breadcrumbInstance];
+        [scope addBreadcrumb:[RNSentryBreadcrumb from:breadcrumb]];
     }];
 }
 
