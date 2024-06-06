@@ -465,7 +465,7 @@ export class ReactNativeTracing implements Integration {
     // this could be due to many different reasons.
     // we've seen app starts with hours, days and even months.
     if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
-      logger.warn('[ReactNativeTracing] App start duration is over minute long, not adding app start span.');
+      logger.warn('[ReactNativeTracing] App start duration is over a minute long, not adding app start span.');
       return;
     }
 
