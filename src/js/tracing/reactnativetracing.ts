@@ -422,11 +422,18 @@ export class ReactNativeTracing implements Integration {
 
     const appStart = await NATIVE.fetchNativeAppStart();
 
-    if (!appStart || appStart.didFetchAppStart) {
+    if (!appStart) {
+      logger.warn('[ReactNativeTracing] Not instrumenting App Start because native returned null.');
+      return;
+    }
+
+    if (appStart.didFetchAppStart) {
+      logger.warn('[ReactNativeTracing] Not instrumenting App Start because this start was already reported.');
       return;
     }
 
     if (!this.useAppStartWithProfiler) {
+      logger.warn('[ReactNativeTracing] `Sentry.wrap` not detected, using JS context init as app start end.');
       this._appStartFinishTimestamp = getTimeOriginMilliseconds() / 1000;
     }
 
@@ -450,7 +457,7 @@ export class ReactNativeTracing implements Integration {
   private _addAppStartData(transaction: IdleTransaction, appStart: NativeAppStartResponse): void {
     const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStart);
     if (!appStartDurationMilliseconds) {
-      logger.warn('App start was never finished.');
+      logger.warn('[ReactNativeTracing] App start end has not been recorded, not adding app start span.');
       return;
     }
 
@@ -458,6 +465,7 @@ export class ReactNativeTracing implements Integration {
     // this could be due to many different reasons.
     // we've seen app starts with hours, days and even months.
     if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
+      logger.warn('[ReactNativeTracing] App start duration is over a minute long, not adding app start span.');
       return;
     }
 
