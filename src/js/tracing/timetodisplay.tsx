@@ -262,7 +262,12 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
     return;
   }
 
-  span.end(frameTimestampSeconds);
+  if (initialDisplayEndTimestamp > frameTimestampSeconds) {
+    logger.warn(`[TimeToDisplay] Using initial display end. Full display end frame timestamp is before initial display end.`);
+    span.end(initialDisplayEndTimestamp);
+  } else {
+    span.end(frameTimestampSeconds);
+  }
 
   span.setStatus('ok');
   logger.debug(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp.`);
