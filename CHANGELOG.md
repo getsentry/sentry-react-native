@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Fix
+
+- Add missing logs to dropped App Start spans ([#3861](https://github.com/getsentry/sentry-react-native/pull/3861))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.27.0 to v8.28.0 ([#3866](https://github.com/getsentry/sentry-react-native/pull/3866))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8280)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.27.0...8.28.0)
+
+## 5.23.0
+
 ### Features
 
 - Functional integrations ([#3814](https://github.com/getsentry/sentry-react-native/pull/3814))
@@ -47,6 +59,9 @@
 - Bump CLI from v2.30.4 to v2.31.2 ([#3719](https://github.com/getsentry/sentry-react-native/pull/3719))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2312)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.4...2.31.2)
+- Bump Cocoa SDK from v8.26.0 to v8.27.0 ([#3858](https://github.com/getsentry/sentry-react-native/pull/3858))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8270)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.26.0...8.27.0)
 
 ## 5.22.3
 
