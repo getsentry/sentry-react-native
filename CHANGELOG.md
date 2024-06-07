@@ -4,6 +4,7 @@
 
 ### Fix
 
+- Fix failing iOS builds due to missing SentryLevel ([#3854](https://github.com/getsentry/sentry-react-native/pull/3854))
 - Add missing logs to dropped App Start spans ([#3861](https://github.com/getsentry/sentry-react-native/pull/3861))
 - Make all options of `startTimeToInitialDisplaySpan` optional ([#3867](https://github.com/getsentry/sentry-react-native/pull/3867))
 - Add Span IDs to Time to Display debug logs ([#3868](https://github.com/getsentry/sentry-react-native/pull/3868))
