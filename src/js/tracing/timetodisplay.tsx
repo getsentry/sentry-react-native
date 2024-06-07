@@ -86,7 +86,10 @@ function TimeToDisplay(props: {
  * Returns current span if already exists in the currently active span.
  */
 export function startTimeToInitialDisplaySpan(
-  options?: Exclude<StartSpanOptions, 'op' | 'name'> & { name?: string; isAutoInstrumented?: boolean },
+  options?: Omit<StartSpanOptions, 'op' | 'name'> & {
+    name?: string;
+    isAutoInstrumented?: boolean
+  },
 ): Span | undefined {
   const activeSpan = getActiveSpan();
   if (!activeSpan) {
