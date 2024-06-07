@@ -258,15 +258,16 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
     return;
   }
 
-  if (spanToJSON(span).timestamp) {
-    logger.warn(`[TimeToDisplay] ${spanToJSON(span).description} (${span.spanContext().spanId}) span already ended.`);
+  const spanJSON = spanToJSON(span);
+  if (spanJSON.timestamp) {
+    logger.warn(`[TimeToDisplay] ${spanJSON.description} (${spanJSON.span_id}) span already ended.`);
     return;
   }
 
   span.end(frameTimestampSeconds);
 
   span.setStatus('ok');
-  logger.debug(`[TimeToDisplay] ${spanToJSON(span).description} (${span.spanContext().spanId}) span updated with end timestamp.`);
+  logger.debug(`[TimeToDisplay] ${spanJSON.description} (${spanJSON.span_id}) span updated with end timestamp.`);
 
   setSpanDurationAsMeasurement('time_to_full_display', span);
 }
