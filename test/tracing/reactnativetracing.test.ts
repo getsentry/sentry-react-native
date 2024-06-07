@@ -317,10 +317,10 @@ describe('ReactNativeTracing', () => {
         expect(transaction?.start_timestamp).toBeGreaterThanOrEqual(timeOriginMilliseconds / 1000);
       });
 
-      it('Does not create app start transaction if didFetchAppStart == true', async () => {
+      it('Does not create app start transaction if has_fetched == true', async () => {
         const integration = new ReactNativeTracing();
 
-        mockAppStartResponse({ cold: false, didFetchAppStart: true });
+        mockAppStartResponse({ cold: false, has_fetched: true });
 
         setup(integration);
 
@@ -480,14 +480,14 @@ describe('ReactNativeTracing', () => {
         expect(span!.timestamp).toBe(timeOriginMilliseconds / 1000);
       });
 
-      it('Does not update route transaction if didFetchAppStart == true', async () => {
+      it('Does not update route transaction if has_fetched == true', async () => {
         const routingInstrumentation = new RoutingInstrumentation();
         const integration = new ReactNativeTracing({
           enableStallTracking: false,
           routingInstrumentation,
         });
 
-        const [, appStartTimeMilliseconds] = mockAppStartResponse({ cold: false, didFetchAppStart: true });
+        const [, appStartTimeMilliseconds] = mockAppStartResponse({ cold: false, has_fetched: true });
 
         setup(integration);
         // wait for internal promises to resolve, fetch app start data from mocked native
@@ -958,11 +958,11 @@ describe('ReactNativeTracing', () => {
 
 function mockAppStartResponse({
   cold,
-  didFetchAppStart,
+  has_fetched,
   enableNativeSpans,
 }: {
   cold: boolean;
-  didFetchAppStart?: boolean;
+  has_fetched?: boolean;
   enableNativeSpans?: boolean;
 }) {
   const timeOriginMilliseconds = Date.now();
@@ -970,7 +970,7 @@ function mockAppStartResponse({
   const mockAppStartResponse: NativeAppStartResponse = {
     type: cold ? 'cold' : 'warm',
     app_start_timestamp_ms: appStartTimeMilliseconds,
-    has_fetched: didFetchAppStart ?? false,
+    has_fetched: has_fetched ?? false,
     spans: enableNativeSpans
       ? [
           {

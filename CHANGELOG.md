@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Features
+
+- Add native application start spans ([#3855](https://github.com/getsentry/sentry-react-native/pull/3855))
+  - This doesn't change the app start measurement length, but add child spans (more detail) into the existing app start span
+
 ### Fix
 
 - Add missing logs to dropped App Start spans ([#3861](https://github.com/getsentry/sentry-react-native/pull/3861))
@@ -49,9 +54,6 @@
   ```
 
   Note that the `Sentry.BrowserIntegrations`, `Sentry.Integration` and the Class style integrations will be removed in the next major version of the SDK.
-
-- Add native application start spans ([#3855](https://github.com/getsentry/sentry-react-native/pull/3855))
-  - This doesn't change the app start measurement length, but add child spans (more detail) into the existing app start span
 
 ### Fixes
 

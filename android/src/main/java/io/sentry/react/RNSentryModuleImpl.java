@@ -103,7 +103,7 @@ public class RNSentryModuleImpl {
     private FrameMetricsAggregator frameMetricsAggregator = null;
     private boolean androidXAvailable;
 
-    private static boolean didFetchAppStart;
+    private static boolean hasFetchedAppStart;
 
     // 700ms to constitute frozen frames.
     private static final int FROZEN_FRAME_THRESHOLD = 700;
@@ -337,12 +337,12 @@ public class RNSentryModuleImpl {
         final Map<String, Object> measurement = InternalSentrySdk.getAppStartMeasurement();
 
         WritableMap mutableMeasurement = (WritableMap) RNSentryMapConverter.convertToWritable(measurement);
-        mutableMeasurement.putBoolean("has_fetched", didFetchAppStart);
+        mutableMeasurement.putBoolean("has_fetched", hasFetchedAppStart);
 
         // This is always set to true, as we would only allow an app start fetch to only
         // happen once in the case of a JS bundle reload, we do not want it to be
         // instrumented again.
-        didFetchAppStart = true;
+        hasFetchedAppStart = true;
 
         promise.resolve(mutableMeasurement);
     }

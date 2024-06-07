@@ -55,7 +55,7 @@
 
 @end
 
-static bool didFetchAppStart;
+static bool hasFetchedAppStart;
 
 static NSString* const nativeSdkName = @"sentry.cocoa.react-native";
 
@@ -387,11 +387,11 @@ RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
     }
 
     NSMutableDictionary<NSString *, id> *mutableMeasurements = [[NSMutableDictionary alloc] initWithDictionary:measurements];
-    [mutableMeasurements setValue:[NSNumber numberWithBool:didFetchAppStart] forKey:@"has_fetched"];
+    [mutableMeasurements setValue:[NSNumber numberWithBool:hasFetchedAppStart] forKey:@"has_fetched"];
 
     // This is always set to true, as we would only allow an app start fetch to only happen once
     // in the case of a JS bundle reload, we do not want it to be instrumented again.
-    didFetchAppStart = true;
+    hasFetchedAppStart = true;
 
     resolve(mutableMeasurements);
 #else
