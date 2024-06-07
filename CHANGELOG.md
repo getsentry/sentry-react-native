@@ -7,6 +7,7 @@
 - Add missing logs to dropped App Start spans ([#3861](https://github.com/getsentry/sentry-react-native/pull/3861))
 - Make all options of `startTimeToInitialDisplaySpan` optional ([#3867](https://github.com/getsentry/sentry-react-native/pull/3867))
 - Add Span IDs to Time to Display debug logs ([#3868](https://github.com/getsentry/sentry-react-native/pull/3868))
+- Use TTID end timestamp when TTFD should be updated with an earlier timestamp ([#3869](https://github.com/getsentry/sentry-react-native/pull/3869))
 
 ### Dependencies
 
