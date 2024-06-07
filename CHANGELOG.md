@@ -7,10 +7,6 @@
 - Add native application start spans ([#3855](https://github.com/getsentry/sentry-react-native/pull/3855))
   - This doesn't change the app start measurement length, but add child spans (more detail) into the existing app start span
 
-### Fix
-
-- Add missing logs to dropped App Start spans ([#3861](https://github.com/getsentry/sentry-react-native/pull/3861))
-
 ### Dependencies
 
 - Bump Cocoa SDK from v8.27.0 to v8.28.0 ([#3866](https://github.com/getsentry/sentry-react-native/pull/3866))
@@ -20,7 +16,19 @@
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7100)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.8.0...7.10.0)
 
+## 5.23.1
+
+### Fixes
+
+- Fix failing iOS builds due to missing SentryLevel ([#3854](https://github.com/getsentry/sentry-react-native/pull/3854))
+- Add missing logs to dropped App Start spans ([#3861](https://github.com/getsentry/sentry-react-native/pull/3861))
+- Make all options of `startTimeToInitialDisplaySpan` optional ([#3867](https://github.com/getsentry/sentry-react-native/pull/3867))
+- Add Span IDs to Time to Display debug logs ([#3868](https://github.com/getsentry/sentry-react-native/pull/3868))
+- Use TTID end timestamp when TTFD should be updated with an earlier timestamp ([#3869](https://github.com/getsentry/sentry-react-native/pull/3869))
+
 ## 5.23.0
+
+This release does *not* build on iOS. Please use `5.23.1` or newer.
 
 ### Features
 
