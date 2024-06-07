@@ -86,7 +86,10 @@ function TimeToDisplay(props: {
  * Returns current span if already exists in the currently active span.
  */
 export function startTimeToInitialDisplaySpan(
-  options?: Exclude<StartSpanOptions, 'op' | 'name'> & { name?: string; isAutoInstrumented?: boolean },
+  options?: Omit<StartSpanOptions, 'op' | 'name'> & {
+    name?: string;
+    isAutoInstrumented?: boolean
+  },
 ): Span | undefined {
   const activeSpan = getActiveSpan();
   if (!activeSpan) {
@@ -224,6 +227,7 @@ function updateInitialDisplaySpan(frameTimestampSeconds: number): void {
 
   if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
     fullDisplayBeforeInitialDisplay.delete(activeSpan);
+    logger.debug(`[TimeToDisplay] Updating full display with initial display (${span.spanContext().spanId}) end.`);
     updateFullDisplaySpan(frameTimestampSeconds, span);
   }
 
@@ -233,7 +237,7 @@ function updateInitialDisplaySpan(frameTimestampSeconds: number): void {
 function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDisplaySpan?: Span): void {
   const activeSpan = getActiveSpan();
   if (!activeSpan) {
-    logger.warn(`[TimeToDisplay] No active span found to attach ui.load.full_display to.`);
+    logger.warn(`[TimeToDisplay] No active span found to update ui.load.full_display in.`);
     return;
   }
 
@@ -247,18 +251,19 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
   const initialDisplayEndTimestamp = existingInitialDisplaySpan && spanToJSON(existingInitialDisplaySpan).timestamp;
   if (!initialDisplayEndTimestamp) {
     fullDisplayBeforeInitialDisplay.set(activeSpan, true);
-    logger.warn(`[TimeToDisplay] Full display called before initial display for active span.`);
+    logger.warn(`[TimeToDisplay] Full display called before initial display for active span (${activeSpan.spanContext().spanId}).`);
     return;
   }
 
   const span = startTimeToFullDisplaySpan();
   if (!span) {
-    logger.warn(`[TimeToDisplay] No span found or created, possibly performance is disabled.`);
+    logger.warn(`[TimeToDisplay] No TimeToFullDisplay span found or created, possibly performance is disabled.`);
     return;
   }
 
-  if (spanToJSON(span).timestamp) {
-    logger.warn(`[TimeToDisplay] ${spanToJSON(span).description} span already ended.`);
+  const spanJSON = spanToJSON(span);
+  if (spanJSON.timestamp) {
+    logger.warn(`[TimeToDisplay] ${spanJSON.description} (${spanJSON.span_id}) span already ended.`);
     return;
   }
 
@@ -270,7 +275,7 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
   }
 
   span.setStatus('ok');
-  logger.debug(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp.`);
+  logger.debug(`[TimeToDisplay] ${spanJSON.description} (${spanJSON.span_id}) span updated with end timestamp.`);
 
   setSpanDurationAsMeasurement('time_to_full_display', span);
 }
