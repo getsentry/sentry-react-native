@@ -438,7 +438,7 @@ describe('ReactNativeTracing', () => {
           );
         });
       });
-      
+
       it('adds native spans as a child of the main app start span', async () => {
         const integration = new ReactNativeTracing();
 

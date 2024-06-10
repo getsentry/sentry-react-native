@@ -501,31 +501,21 @@ export class ReactNativeTracing implements Integration {
       setSpanDurationAsMeasurement('time_to_full_display', maybeTtfdSpan);
     }
 
-<<<<<<< kw/add-bundle-execution-start-span -- Incoming Change
-    const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
-    const appStartSpan = transaction.startChild({
-      description: appStart.isColdStart ? 'Cold App Start' : 'Warm App Start',
-=======
     const op = appStart.type === 'cold' ? APP_START_COLD_OP : APP_START_WARM_OP;
     const appStartSpan = transaction.startChild({
       description: appStart.type === 'cold' ? 'Cold App Start' : 'Warm App Start',
->>>>>>> main -- Current Change
       op,
       startTimestamp: appStartTimeSeconds,
       endTimestamp: this._appStartFinishTimestamp,
     });
-<<<<<<< kw/add-bundle-execution-start-span -- Incoming Change
     this._addJSExecutionBeforeRoot(appStartSpan);
-=======
     this._addNativeSpansTo(appStartSpan, appStart.spans);
->>>>>>> main -- Current Change
 
     const measurement = appStart.type === 'cold' ? APP_START_COLD : APP_START_WARM;
     transaction.setMeasurement(measurement, appStartDurationMilliseconds, 'millisecond');
   }
 
   /**
-<<<<<<< kw/add-bundle-execution-start-span -- Incoming Change
    * Adds JS Execution before React Root. If `Sentry.wrap` is not used, create a span for the start of JS Bundle execution.
    */
   private _addJSExecutionBeforeRoot(appStartSpan: Span): void {
@@ -550,7 +540,10 @@ export class ReactNativeTracing implements Integration {
       op: appStartSpan.op,
       startTimestamp: bundleStartTimestampMs / 1000,
       endTimestamp: this._firstConstructorCallTimestampMs / 1000,
-=======
+    });
+  }
+
+  /**
    * Adds native spans to the app start span.
    */
   private _addNativeSpansTo(appStartSpan: Span, nativeSpans: NativeAppStartResponse['spans']): void {
@@ -561,7 +554,6 @@ export class ReactNativeTracing implements Integration {
         startTimestamp: span.start_timestamp_ms / 1000,
         endTimestamp: span.end_timestamp_ms / 1000,
       });
->>>>>>> main -- Current Change
     });
   }
 
