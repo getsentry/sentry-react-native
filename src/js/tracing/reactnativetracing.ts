@@ -7,6 +7,7 @@ import type {
   Event,
   EventProcessor,
   Integration,
+  Span,
   Transaction as TransactionType,
   TransactionContext,
 } from '@sentry/types';
@@ -404,11 +405,11 @@ export class ReactNativeTracing implements Integration {
    * Returns the App Start Duration in Milliseconds. Also returns undefined if not able do
    * define the duration.
    */
-  private _getAppStartDurationMilliseconds(appStart: NativeAppStartResponse): number | undefined {
+  private _getAppStartDurationMilliseconds(appStartTimestampMs: number): number | undefined {
     if (!this._appStartFinishTimestamp) {
       return undefined;
     }
-    return this._appStartFinishTimestamp * 1000 - appStart.appStartTime;
+    return this._appStartFinishTimestamp * 1000 - appStartTimestampMs;
   }
 
   /**
@@ -427,7 +428,7 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
-    if (appStart.didFetchAppStart) {
+    if (appStart.has_fetched) {
       logger.warn('[ReactNativeTracing] Not instrumenting App Start because this start was already reported.');
       return;
     }
@@ -455,7 +456,13 @@ export class ReactNativeTracing implements Integration {
    * Adds app start measurements and starts a child span on a transaction.
    */
   private _addAppStartData(transaction: IdleTransaction, appStart: NativeAppStartResponse): void {
-    const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStart);
+    const appStartTimestampMs = appStart.app_start_timestamp_ms;
+    if (!appStartTimestampMs) {
+      logger.warn('App start timestamp could not be loaded from the native layer.');
+      return;
+    }
+
+    const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStartTimestampMs);
     if (!appStartDurationMilliseconds) {
       logger.warn('[ReactNativeTracing] App start end has not been recorded, not adding app start span.');
       return;
@@ -469,7 +476,7 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
-    const appStartTimeSeconds = appStart.appStartTime / 1000;
+    const appStartTimeSeconds = appStartTimestampMs / 1000;
 
     transaction.startTimestamp = appStartTimeSeconds;
 
@@ -485,16 +492,31 @@ export class ReactNativeTracing implements Integration {
       setSpanDurationAsMeasurement('time_to_full_display', maybeTtfdSpan);
     }
 
-    const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
-    transaction.startChild({
-      description: appStart.isColdStart ? 'Cold App Start' : 'Warm App Start',
+    const op = appStart.type === 'cold' ? APP_START_COLD_OP : APP_START_WARM_OP;
+    const appStartSpan = transaction.startChild({
+      description: appStart.type === 'cold' ? 'Cold App Start' : 'Warm App Start',
       op,
       startTimestamp: appStartTimeSeconds,
       endTimestamp: this._appStartFinishTimestamp,
     });
+    this._addNativeSpansTo(appStartSpan, appStart.spans);
 
-    const measurement = appStart.isColdStart ? APP_START_COLD : APP_START_WARM;
+    const measurement = appStart.type === 'cold' ? APP_START_COLD : APP_START_WARM;
     transaction.setMeasurement(measurement, appStartDurationMilliseconds, 'millisecond');
+  }
+
+  /**
+   * Adds native spans to the app start span.
+   */
+  private _addNativeSpansTo(appStartSpan: Span, nativeSpans: NativeAppStartResponse['spans']): void {
+    nativeSpans.forEach(span => {
+      appStartSpan.startChild({
+        op: appStartSpan.op,
+        description: span.description,
+        startTimestamp: span.start_timestamp_ms / 1000,
+        endTimestamp: span.end_timestamp_ms / 1000,
+      });
+    });
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */

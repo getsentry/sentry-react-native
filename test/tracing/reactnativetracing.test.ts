@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as SentryBrowser from '@sentry/browser';
-import type { Event } from '@sentry/types';
+import type { Event, SpanJSON } from '@sentry/types';
 
 import type { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
 import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
@@ -269,9 +269,10 @@ describe('ReactNativeTracing', () => {
         const timeOriginMilliseconds = Date.now();
         const appStartTimeMilliseconds = timeOriginMilliseconds - 65000;
         const mockAppStartResponse: NativeAppStartResponse = {
-          isColdStart: false,
-          appStartTime: appStartTimeMilliseconds,
-          didFetchAppStart: false,
+          type: 'warm',
+          app_start_timestamp_ms: appStartTimeMilliseconds,
+          has_fetched: false,
+          spans: [],
         };
 
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
@@ -295,9 +296,10 @@ describe('ReactNativeTracing', () => {
         const timeOriginMilliseconds = Date.now();
         const appStartTimeMilliseconds = timeOriginMilliseconds - 65000;
         const mockAppStartResponse: NativeAppStartResponse = {
-          isColdStart: false,
-          appStartTime: appStartTimeMilliseconds,
-          didFetchAppStart: false,
+          type: 'warm',
+          app_start_timestamp_ms: appStartTimeMilliseconds,
+          has_fetched: false,
+          spans: [],
         };
 
         mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
@@ -315,10 +317,10 @@ describe('ReactNativeTracing', () => {
         expect(transaction?.start_timestamp).toBeGreaterThanOrEqual(timeOriginMilliseconds / 1000);
       });
 
-      it('Does not create app start transaction if didFetchAppStart == true', async () => {
+      it('Does not create app start transaction if has_fetched == true', async () => {
         const integration = new ReactNativeTracing();
 
-        mockAppStartResponse({ cold: false, didFetchAppStart: true });
+        mockAppStartResponse({ cold: false, has_fetched: true });
 
         setup(integration);
 
@@ -327,6 +329,46 @@ describe('ReactNativeTracing', () => {
 
         const transaction = client.event;
         expect(transaction).toBeUndefined();
+      });
+
+      it('adds native spans as a child of the main app start span', async () => {
+        const integration = new ReactNativeTracing();
+
+        const [timeOriginMilliseconds] = mockAppStartResponse({
+          cold: true,
+          enableNativeSpans: true,
+        });
+
+        setup(integration);
+
+        await jest.advanceTimersByTimeAsync(500);
+        await jest.runOnlyPendingTimersAsync();
+
+        const transaction = client.event;
+
+        const appStartRootSpan = transaction!.spans!.find(({ description }) => description === 'Cold App Start');
+        const nativeSpan = transaction!.spans!.find(({ description }) => description === 'test native app start span');
+        const nativeSpanJSON = spanToJSON(nativeSpan!);
+        const appStartRootSpanJSON = spanToJSON(appStartRootSpan!);
+
+        expect(appStartRootSpan).toBeDefined();
+        expect(nativeSpan).toBeDefined();
+        expect(appStartRootSpanJSON).toEqual(
+          expect.objectContaining(<SpanJSON>{
+            description: 'Cold App Start',
+            span_id: expect.any(String),
+            op: APP_START_COLD_OP,
+          }),
+        );
+        expect(nativeSpanJSON).toEqual(
+          expect.objectContaining(<SpanJSON>{
+            description: 'test native app start span',
+            start_timestamp: (timeOriginMilliseconds - 100) / 1000,
+            timestamp: (timeOriginMilliseconds - 50) / 1000,
+            parent_span_id: spanToJSON(appStartRootSpan!).span_id, // parent is the root app start span
+            op: spanToJSON(appStartRootSpan!).op, // op is the same as the root app start span
+          }),
+        );
       });
     });
 
@@ -438,14 +480,14 @@ describe('ReactNativeTracing', () => {
         expect(span!.timestamp).toBe(timeOriginMilliseconds / 1000);
       });
 
-      it('Does not update route transaction if didFetchAppStart == true', async () => {
+      it('Does not update route transaction if has_fetched == true', async () => {
         const routingInstrumentation = new RoutingInstrumentation();
         const integration = new ReactNativeTracing({
           enableStallTracking: false,
           routingInstrumentation,
         });
 
-        const [, appStartTimeMilliseconds] = mockAppStartResponse({ cold: false, didFetchAppStart: true });
+        const [, appStartTimeMilliseconds] = mockAppStartResponse({ cold: false, has_fetched: true });
 
         setup(integration);
         // wait for internal promises to resolve, fetch app start data from mocked native
@@ -914,13 +956,30 @@ describe('ReactNativeTracing', () => {
   });
 });
 
-function mockAppStartResponse({ cold, didFetchAppStart }: { cold: boolean; didFetchAppStart?: boolean }) {
+function mockAppStartResponse({
+  cold,
+  has_fetched,
+  enableNativeSpans,
+}: {
+  cold: boolean;
+  has_fetched?: boolean;
+  enableNativeSpans?: boolean;
+}) {
   const timeOriginMilliseconds = Date.now();
   const appStartTimeMilliseconds = timeOriginMilliseconds - 100;
   const mockAppStartResponse: NativeAppStartResponse = {
-    isColdStart: cold,
-    appStartTime: appStartTimeMilliseconds,
-    didFetchAppStart: didFetchAppStart ?? false,
+    type: cold ? 'cold' : 'warm',
+    app_start_timestamp_ms: appStartTimeMilliseconds,
+    has_fetched: has_fetched ?? false,
+    spans: enableNativeSpans
+      ? [
+          {
+            description: 'test native app start span',
+            start_timestamp_ms: timeOriginMilliseconds - 100,
+            end_timestamp_ms: timeOriginMilliseconds - 50,
+          },
+        ]
+      : [],
   };
 
   mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);

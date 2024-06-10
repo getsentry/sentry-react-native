@@ -55,7 +55,7 @@
 
 @end
 
-static bool didFetchAppStart;
+static bool hasFetchedAppStart;
 
 static NSString* const nativeSdkName = @"sentry.cocoa.react-native";
 
@@ -380,24 +380,20 @@ RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_HAS_UIKIT
-    SentryAppStartMeasurement *appStartMeasurement = PrivateSentrySDKOnly.appStartMeasurement;
-
-    if (appStartMeasurement == nil) {
+    NSDictionary<NSString *, id> *measurements = [PrivateSentrySDKOnly appStartMeasurementWithSpans];
+    if (measurements == nil) {
         resolve(nil);
-    } else {
-        BOOL isColdStart = appStartMeasurement.type == SentryAppStartTypeCold;
-
-        resolve(@{
-            @"isColdStart": [NSNumber numberWithBool:isColdStart],
-            @"appStartTime": [NSNumber numberWithDouble:(appStartMeasurement.appStartTimestamp.timeIntervalSince1970 * 1000)],
-            @"didFetchAppStart": [NSNumber numberWithBool:didFetchAppStart],
-                });
-
+        return;
     }
+
+    NSMutableDictionary<NSString *, id> *mutableMeasurements = [[NSMutableDictionary alloc] initWithDictionary:measurements];
+    [mutableMeasurements setValue:[NSNumber numberWithBool:hasFetchedAppStart] forKey:@"has_fetched"];
 
     // This is always set to true, as we would only allow an app start fetch to only happen once
     // in the case of a JS bundle reload, we do not want it to be instrumented again.
-    didFetchAppStart = true;
+    hasFetchedAppStart = true;
+
+    resolve(mutableMeasurements);
 #else
     resolve(nil);
 #endif
