@@ -24,6 +24,7 @@ import { cancelInBackground, onlySampleIfChildSpans } from './transaction';
 import type { BeforeNavigate, RouteChangeContextData } from './types';
 import {
   adjustTransactionDuration,
+  getBundleStartTimestampMs,
   getTimeOriginMilliseconds,
   isNearToNow,
   setSpanDurationAsMeasurement,
@@ -153,6 +154,7 @@ export class ReactNativeTracing implements Integration {
   private _hasSetTracePropagationTargets: boolean;
   private _hasSetTracingOrigins: boolean;
   private _currentViewName: string | undefined;
+  private _firstConstructorCallTimestampMs: number | undefined;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this._hasSetTracePropagationTargets = !!(
@@ -293,6 +295,13 @@ export class ReactNativeTracing implements Integration {
    */
   public onAppStartFinish(endTimestamp: number): void {
     this._appStartFinishTimestamp = endTimestamp;
+  }
+
+  /**
+   * Sets the root component first constructor call timestamp.
+   */
+  public setRootComponentFirstConstructorCallTimestampMs(timestamp: number): void {
+    this._firstConstructorCallTimestampMs = timestamp;
   }
 
   /**
@@ -499,10 +508,39 @@ export class ReactNativeTracing implements Integration {
       startTimestamp: appStartTimeSeconds,
       endTimestamp: this._appStartFinishTimestamp,
     });
+    this._addJSExecutionBeforeRoot(appStartSpan);
     this._addNativeSpansTo(appStartSpan, appStart.spans);
 
     const measurement = appStart.type === 'cold' ? APP_START_COLD : APP_START_WARM;
     transaction.setMeasurement(measurement, appStartDurationMilliseconds, 'millisecond');
+  }
+
+  /**
+   * Adds JS Execution before React Root. If `Sentry.wrap` is not used, create a span for the start of JS Bundle execution.
+   */
+  private _addJSExecutionBeforeRoot(appStartSpan: Span): void {
+    const bundleStartTimestampMs = getBundleStartTimestampMs();
+    if (!bundleStartTimestampMs) {
+      return;
+    }
+
+    if (!this._firstConstructorCallTimestampMs) {
+      logger.warn('Missing the root component first constructor call timestamp.');
+      appStartSpan.startChild({
+        description: 'JS Bundle Execution Start',
+        op: appStartSpan.op,
+        startTimestamp: bundleStartTimestampMs / 1000,
+        endTimestamp: bundleStartTimestampMs / 1000,
+      });
+      return;
+    }
+
+    appStartSpan.startChild({
+      description: 'JS Bundle Execution Before React Root',
+      op: appStartSpan.op,
+      startTimestamp: bundleStartTimestampMs / 1000,
+      endTimestamp: this._firstConstructorCallTimestampMs / 1000,
+    });
   }
 
   /**
