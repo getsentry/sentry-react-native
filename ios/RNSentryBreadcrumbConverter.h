@@ -5,6 +5,8 @@
 @interface RNSentryBreadcrumbConverter
     : NSObject <SentryReplayBreadcrumbConverter>
 
+- (instancetype _Nonnull)init;
+
 - (NSArray<SentryRRWebEvent *> *_Nonnull)
     convertWithBreadcrumbs:(NSArray<SentryBreadcrumb *> *_Nonnull)breadcrumbs
                       from:(NSDate *_Nonnull)from
