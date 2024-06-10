@@ -6,6 +6,7 @@
 
 - Add native application start spans ([#3855](https://github.com/getsentry/sentry-react-native/pull/3855))
   - This doesn't change the app start measurement length, but add child spans (more detail) into the existing app start span
+- Added JS Bundle Execution start information to the application start measurements ([#3857](https://github.com/getsentry/sentry-react-native/pull/3857))
 
 ### Dependencies
 
@@ -62,8 +63,6 @@ This release does *not* build on iOS. Please use `5.23.1` or newer.
   ```
 
   Note that the `Sentry.BrowserIntegrations`, `Sentry.Integration` and the Class style integrations will be removed in the next major version of the SDK.
-
-- Added JS Bundle Execution start information to the application start measurements ([#3857](https://github.com/getsentry/sentry-react-native/pull/3857))
 
 ### Fixes
 
