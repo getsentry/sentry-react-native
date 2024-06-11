@@ -187,6 +187,16 @@ export interface BaseReactNativeOptions {
    * from the function, no screenshot will be attached.
    */
   beforeScreenshot?: (event: Event, hint: EventHint) => boolean;
+
+  /**
+   * Track the app start time by adding measurements to the first route transaction. If there is no routing instrumentation
+   * an app start transaction will be started.
+   *
+   * Requires performance monitoring to be enabled.
+   *
+   * Default: true
+   */
+  enableAppStartTracking?: boolean;
 }
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {

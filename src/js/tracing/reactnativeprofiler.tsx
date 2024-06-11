@@ -1,10 +1,8 @@
-import { spanToJSON } from '@sentry/core';
 import { getClient, Profiler } from '@sentry/react';
 import { timestampInSeconds } from '@sentry/utils';
 
 import { createIntegration } from '../integrations/factory';
-import { setAppStartEndTimestamp } from '../tracing/integrations/appStart';
-import type { ReactNativeTracing } from './reactnativetracing';
+import { setAppStartEndTimestampMs, setRootComponentCreationTimestampMs } from '../tracing/integrations/appStart';
 
 const ReactNativeProfilerGlobalState = {
   appStartReported: false,
@@ -17,9 +15,7 @@ export class ReactNativeProfiler extends Profiler {
   public readonly name: string = 'ReactNativeProfiler';
 
   public constructor(props: ConstructorParameters<typeof Profiler>[0]) {
-    const client = getClient();
-    const integration = client && client.getIntegrationByName && client.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing');
-    integration && integration.setRootComponentFirstConstructorCallTimestampMs(timestampInSeconds() * 1000);
+    setRootComponentCreationTimestampMs(timestampInSeconds() * 1000);
     super(props);
   }
 
@@ -49,7 +45,6 @@ export class ReactNativeProfiler extends Profiler {
 
     client.addIntegration && client.addIntegration(createIntegration(this.name));
 
-    const endTimestamp = this._mountSpan && typeof spanToJSON(this._mountSpan).timestamp
-    typeof endTimestamp === 'number' && setAppStartEndTimestamp(endTimestamp);
+    setAppStartEndTimestampMs(timestampInSeconds() * 1000);
   }
 }

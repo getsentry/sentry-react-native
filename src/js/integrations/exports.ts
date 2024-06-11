@@ -12,6 +12,7 @@ export { screenshotIntegration } from './screenshot';
 export { viewHierarchyIntegration } from './viewhierarchy';
 export { expoContextIntegration } from './expocontext';
 export { spotlightIntegration } from './spotlight';
+export { appStartIntegration } from '../tracing/integrations/appStart';
 
 export {
   breadcrumbsIntegration,

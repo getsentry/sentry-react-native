@@ -93,14 +93,6 @@ export interface ReactNativeTracingOptions extends RequestInstrumentationOptions
   beforeNavigate: BeforeNavigate;
 
   /**
-   * Track the app start time by adding measurements to the first route transaction. If there is no routing instrumentation
-   * an app start transaction will be started.
-   *
-   * Default: true
-   */
-  enableAppStartTracking: boolean;
-
-  /**
    * Track slow/frozen frames from the native layer and adds them as measurements to all transactions.
    */
   enableNativeFramesTracking: boolean;
@@ -126,7 +118,6 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   finalTimeoutMs: 600000,
   ignoreEmptyBackNavigationTransactions: true,
   beforeNavigate: context => context,
-  enableAppStartTracking: true,
   enableNativeFramesTracking: true,
   enableStallTracking: true,
   enableUserInteractionTracing: false,
@@ -159,7 +150,6 @@ export class ReactNativeTracing implements Integration {
   private _hasSetTracePropagationTargets: boolean;
   private _currentViewName: string | undefined;
   private _client: Client | undefined;
-  private _firstConstructorCallTimestampMs: number | undefined;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this._hasSetTracePropagationTargets = !!(
@@ -203,7 +193,6 @@ export class ReactNativeTracing implements Integration {
       // eslint-disable-next-line deprecation/deprecation
       tracePropagationTargets: thisOptionsTracePropagationTargets,
       routingInstrumentation,
-      enableAppStartTracking,
       enableStallTracking,
     } = this.options;
 
@@ -212,10 +201,6 @@ export class ReactNativeTracing implements Integration {
       clientOptionsTracePropagationTargets ||
       (this._hasSetTracePropagationTargets && thisOptionsTracePropagationTargets) ||
       DEFAULT_TRACE_PROPAGATION_TARGETS;
-
-    if (enableAppStartTracking) {
-      this._instrumentAppStart();
-    }
 
     this._enableNativeFramesTracking(client);
 
@@ -232,6 +217,10 @@ export class ReactNativeTracing implements Integration {
       );
     } else {
       logger.log('[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.');
+      this._createRouteTransaction({
+        name: 'App Start',
+        op: UI_LOAD,
+      });
     }
 
     addDefaultOpForSpanFrom(client);
@@ -252,20 +241,6 @@ export class ReactNativeTracing implements Integration {
     return this.nativeFramesInstrumentation
       ? this.nativeFramesInstrumentation.processEvent(eventWithView)
       : eventWithView;
-  }
-
-  // /**
-  //  * Called by the ReactNativeProfiler component on first component mount.
-  //  */
-  // public onAppStartFinish(endTimestamp: number): void {
-  //   this._appStartFinishTimestamp = endTimestamp;
-  // }
-
-  /**
-   * Sets the root component first constructor call timestamp.
-   */
-  public setRootComponentFirstConstructorCallTimestampMs(timestamp: number): void {
-    this._firstConstructorCallTimestampMs = timestamp;
   }
 
   /**
@@ -384,21 +359,6 @@ export class ReactNativeTracing implements Integration {
       event.contexts.app = { view_names: [this._currentViewName], ...event.contexts.app };
     }
     return event;
-  }
-
-  /**
-   * Instruments the app start measurements on the first route transaction.
-   * Starts a route transaction if there isn't routing instrumentation.
-   */
-  private _instrumentAppStart(): void {
-    if (!this.options.enableAppStartTracking || !NATIVE.enableNative || this.options.routingInstrumentation) {
-      return;
-    }
-
-    this._createRouteTransaction({
-      name: 'App Start',
-      op: UI_LOAD,
-    });
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */

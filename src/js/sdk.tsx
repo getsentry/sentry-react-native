@@ -33,6 +33,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   attachStacktrace: true,
   enableCaptureFailedRequests: false,
   enableNdk: true,
+  enableAppStartTracking: true,
 };
 
 /**
