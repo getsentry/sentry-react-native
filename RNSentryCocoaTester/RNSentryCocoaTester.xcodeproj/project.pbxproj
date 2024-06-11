@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		330F308C2C0F3840002A0D4E /* RNSentryBreadcrumbTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 330F308B2C0F3840002A0D4E /* RNSentryBreadcrumbTests.m */; };
+		33958C692BFCF12600AD1FB6 /* RNSentryOnDrawReporterTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33958C682BFCF12600AD1FB6 /* RNSentryOnDrawReporterTests.m */; };
 		33AFDFED2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m */; };
 		33AFDFF12B8D15E500AAB120 /* RNSentryDependencyContainerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainerTests.m */; };
 		33F58AD02977037D008F60EA /* RNSentryTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33F58ACF2977037D008F60EA /* RNSentryTests.mm */; };
@@ -15,8 +17,12 @@
 
 /* Begin PBXFileReference section */
 		1482D5685A340AB93348A43D /* Pods-RNSentryCocoaTesterTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.release.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.release.xcconfig"; sourceTree = "<group>"; };
+		330F308B2C0F3840002A0D4E /* RNSentryBreadcrumbTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryBreadcrumbTests.m; sourceTree = "<group>"; };
+		330F308D2C0F385A002A0D4E /* RNSentryBreadcrumb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryBreadcrumb.h; path = ../ios/RNSentryBreadcrumb.h; sourceTree = "<group>"; };
 		3360898D29524164007C7730 /* RNSentryCocoaTesterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RNSentryCocoaTesterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		338739072A7D7D2800950DDD /* RNSentryTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSentryTests.h; sourceTree = "<group>"; };
+		33958C672BFCEF5A00AD1FB6 /* RNSentryOnDrawReporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryOnDrawReporter.h; path = ../ios/RNSentryOnDrawReporter.h; sourceTree = "<group>"; };
+		33958C682BFCF12600AD1FB6 /* RNSentryOnDrawReporterTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryOnDrawReporterTests.m; sourceTree = "<group>"; };
 		33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryFramesTrackerListenerTests.m; sourceTree = "<group>"; };
 		33AFDFEE2B8D14C200AAB120 /* RNSentryFramesTrackerListenerTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSentryFramesTrackerListenerTests.h; sourceTree = "<group>"; };
 		33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryDependencyContainerTests.m; sourceTree = "<group>"; };
@@ -76,6 +82,8 @@
 				33AFDFEE2B8D14C200AAB120 /* RNSentryFramesTrackerListenerTests.h */,
 				33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainerTests.m */,
 				33AFDFF22B8D15F600AAB120 /* RNSentryDependencyContainerTests.h */,
+				33958C682BFCF12600AD1FB6 /* RNSentryOnDrawReporterTests.m */,
+				330F308B2C0F3840002A0D4E /* RNSentryBreadcrumbTests.m */,
 			);
 			path = RNSentryCocoaTesterTests;
 			sourceTree = "<group>";
@@ -83,6 +91,8 @@
 		33AFE0122B8F319000AAB120 /* RNSentry */ = {
 			isa = PBXGroup;
 			children = (
+				330F308D2C0F385A002A0D4E /* RNSentryBreadcrumb.h */,
+				33958C672BFCEF5A00AD1FB6 /* RNSentryOnDrawReporter.h */,
 				33AFE0132B8F31AF00AAB120 /* RNSentryDependencyContainer.h */,
 			);
 			name = RNSentry;
@@ -198,6 +208,8 @@
 			files = (
 				33AFDFF12B8D15E500AAB120 /* RNSentryDependencyContainerTests.m in Sources */,
 				33F58AD02977037D008F60EA /* RNSentryTests.mm in Sources */,
+				33958C692BFCF12600AD1FB6 /* RNSentryOnDrawReporterTests.m in Sources */,
+				330F308C2C0F3840002A0D4E /* RNSentryBreadcrumbTests.m in Sources */,
 				33AFDFED2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

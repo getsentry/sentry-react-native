@@ -159,6 +159,7 @@ export class ReactNativeTracing implements Integration {
   private _hasSetTracePropagationTargets: boolean;
   private _currentViewName: string | undefined;
   private _client: Client | undefined;
+  private _firstConstructorCallTimestampMs: number | undefined;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this._hasSetTracePropagationTargets = !!(
@@ -259,6 +260,13 @@ export class ReactNativeTracing implements Integration {
   // public onAppStartFinish(endTimestamp: number): void {
   //   this._appStartFinishTimestamp = endTimestamp;
   // }
+
+  /**
+   * Sets the root component first constructor call timestamp.
+   */
+  public setRootComponentFirstConstructorCallTimestampMs(timestamp: number): void {
+    this._firstConstructorCallTimestampMs = timestamp;
+  }
 
   /**
    * Starts a new transaction for a user interaction.

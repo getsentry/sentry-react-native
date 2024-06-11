@@ -1,5 +1,6 @@
 import { spanToJSON } from '@sentry/core';
 import { getClient, Profiler } from '@sentry/react';
+import { timestampInSeconds } from '@sentry/utils';
 
 import { createIntegration } from '../integrations/factory';
 import { setAppStartEndTimestamp } from '../tracing/integrations/appStart';
@@ -13,6 +14,13 @@ const ReactNativeProfilerGlobalState = {
  */
 export class ReactNativeProfiler extends Profiler {
   public readonly name: string = 'ReactNativeProfiler';
+
+  public constructor(props: ConstructorParameters<typeof Profiler>[0]) {
+    const client = getClient();
+    const integration = client && client.getIntegrationByName && client.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing');
+    integration && integration.setRootComponentFirstConstructorCallTimestampMs(timestampInSeconds() * 1000);
+    super(props);
+  }
 
   /**
    * Get the app root mount time.
