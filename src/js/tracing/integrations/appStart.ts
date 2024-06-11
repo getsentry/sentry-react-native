@@ -5,13 +5,14 @@ import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,
 } from '../../measurements';
+import type { NativeAppStartResponse } from '../../NativeRNSentry';
 import { NATIVE } from '../../wrapper';
 import {
   APP_START_COLD as APP_START_COLD_OP,
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD as UI_LOAD_OP,
 } from '../ops';
-import { getTimeOriginMilliseconds } from '../utils';
+import { getBundleStartTimestampMs, getTimeOriginMilliseconds } from '../utils';
 
 const INTEGRATION_NAME = 'AppStart';
 
@@ -78,31 +79,33 @@ export const appStartIntegration = (): Integration => {
     event.contexts.trace.data['SEMANTIC_ATTRIBUTE_SENTRY_OP'] = UI_LOAD_OP;
 
     const appStart = await NATIVE.fetchNativeAppStart();
-
     if (!appStart) {
       logger.warn('Failed to retrieve the app start metrics from the native layer.');
       return;
     }
-
-    if (appStart.didFetchAppStart) {
+    if (appStart.has_fetched) {
       logger.warn('Measured app start metrics were already reported from the native layer.');
       return;
     }
 
+    const appStartTimestampMs = appStart.app_start_timestamp_ms;
+    if (!appStartTimestampMs) {
+      logger.warn('App start timestamp could not be loaded from the native layer.');
+      return;
+    }
     if (!appStartEndTimestampMs) {
       logger.warn('Javascript failed to record app start end.');
       return;
     }
 
-    const appStartDurationMs = appStartEndTimestampMs - appStart.appStartTime;
-
+    const appStartDurationMs = appStartEndTimestampMs - appStartTimestampMs;
     if (appStartDurationMs >= MAX_APP_START_DURATION_MS) {
       return;
     }
 
     appStartDataFlushed = true;
 
-    const appStartTimestampSeconds = appStart.appStartTime / 1000;
+    const appStartTimestampSeconds = appStartTimestampMs / 1000;
     event.start_timestamp = appStartTimestampSeconds;
 
     event.spans = event.spans || [];
@@ -121,18 +124,22 @@ export const appStartIntegration = (): Integration => {
       setSpanDurationAsMeasurementOnTransactionEvent(event, 'time_to_full_display', maybeTtfdSpan);
     }
 
-    const op = appStart.isColdStart ? APP_START_COLD_OP : APP_START_WARM_OP;
-
-    children.push({
-      description: appStart.isColdStart ? 'Cold App Start' : 'Warm App Start',
+    const op = appStart.type === 'cold' ? APP_START_COLD_OP : APP_START_WARM_OP;
+    const appStartSpanJSON: SpanJSON = {
+      description: appStart.type === 'cold' ? 'Cold App Start' : 'Warm App Start',
       op,
       start_timestamp: appStartTimestampSeconds,
       timestamp: appStartEndTimestampMs / 1000,
       trace_id: event.contexts.trace.trace_id,
       span_id: uuid4(),
-    });
-    const measurement = appStart.isColdStart ? APP_START_COLD_MEASUREMENT : APP_START_WARM_MEASUREMENT;
+    };
+    const jsExecutionSpanJSON = createJSExecutionBeforeRoot(appStartSpanJSON, -1);
 
+    children.push(appStartSpanJSON);
+    jsExecutionSpanJSON && children.push(jsExecutionSpanJSON);
+    children.push(...convertNativeSpansToSpanJSON(appStartSpanJSON, appStart.spans));
+
+    const measurement = appStart.type === 'cold' ? APP_START_COLD_MEASUREMENT : APP_START_WARM_MEASUREMENT;
     event.measurements = event.measurements || {};
     event.measurements[measurement] = {
       value: appStartDurationMs,
@@ -161,4 +168,55 @@ function setSpanDurationAsMeasurementOnTransactionEvent(event: TransactionEvent,
     value: (span.timestamp - span.start_timestamp) * 1000,
     unit: 'millisecond',
   };
+}
+
+/**
+ * Adds JS Execution before React Root. If `Sentry.wrap` is not used, create a span for the start of JS Bundle execution.
+ */
+function createJSExecutionBeforeRoot(
+  parentSpan: SpanJSON,
+  rootComponentFirstConstructorCallTimestampMs: number | undefined,
+): SpanJSON | undefined {
+  const bundleStartTimestampMs = getBundleStartTimestampMs();
+  if (!bundleStartTimestampMs) {
+    return;
+  }
+
+  if (!rootComponentFirstConstructorCallTimestampMs) {
+    logger.warn('Missing the root component first constructor call timestamp.');
+    return {
+      description: 'JS Bundle Execution Start',
+      start_timestamp: bundleStartTimestampMs / 1000,
+      timestamp: bundleStartTimestampMs / 1000,
+      span_id: uuid4(),
+      op: parentSpan.op,
+      trace_id: parentSpan.trace_id,
+      parent_span_id: parentSpan.span_id,
+    };
+  }
+
+  return {
+    description: 'JS Bundle Execution Before React Root',
+    start_timestamp: bundleStartTimestampMs / 1000,
+    timestamp: rootComponentFirstConstructorCallTimestampMs / 1000,
+    span_id: uuid4(),
+    op: parentSpan.op,
+    trace_id: parentSpan.trace_id,
+    parent_span_id: parentSpan.span_id,
+  };
+}
+
+/**
+ * Adds native spans to the app start span.
+ */
+function convertNativeSpansToSpanJSON(parentSpan: SpanJSON, nativeSpans: NativeAppStartResponse['spans']): SpanJSON[] {
+  return nativeSpans.map(span => ({
+    description: span.description,
+    start_timestamp: span.start_timestamp_ms / 1000,
+    timestamp: span.end_timestamp_ms / 1000,
+    span_id: uuid4(),
+    op: parentSpan.op,
+    trace_id: parentSpan.trace_id,
+    parent_span_id: parentSpan.span_id,
+  }));
 }

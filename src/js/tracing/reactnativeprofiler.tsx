@@ -4,6 +4,7 @@ import { timestampInSeconds } from '@sentry/utils';
 
 import { createIntegration } from '../integrations/factory';
 import { setAppStartEndTimestamp } from '../tracing/integrations/appStart';
+import type { ReactNativeTracing } from './reactnativetracing';
 
 const ReactNativeProfilerGlobalState = {
   appStartReported: false,
