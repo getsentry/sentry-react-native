@@ -277,6 +277,12 @@ export class ReactNativeTracing implements Integration {
       // Only if this method is called at or within margin of error to the start timestamp.
       this.nativeFramesInstrumentation?.onTransactionStart(transaction);
       this.stallTrackingInstrumentation?.onTransactionStart(transaction);
+    } else {
+      logger.warn(
+        `[ReactNativeTracing] onTransactionStart called with delay (larger than margin of error) for transaction ${
+          transaction.description
+        } (${transaction.spanContext().spanId}). Not fetching native frames or tracking stalls.`,
+      );
     }
   }
 

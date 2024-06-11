@@ -7,6 +7,10 @@
 - Add native application start spans ([#3855](https://github.com/getsentry/sentry-react-native/pull/3855))
   - This doesn't change the app start measurement length, but add child spans (more detail) into the existing app start span
 
+### Fixes
+
+- Add more expressive debug logs to Native Frames Integration ([#3880](https://github.com/getsentry/sentry-react-native/pull/3880))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.27.0 to v8.28.0 ([#3866](https://github.com/getsentry/sentry-react-native/pull/3866))
