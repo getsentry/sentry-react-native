@@ -22,6 +22,8 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
       ___SENTRY_METRO_DEV_SERVER___?: string;
     };
   };
+  __BUNDLE_START_TIME__?: number;
+  nativePerformanceNow?: () => number;
 }
 
 /** Get's the global object for the current JavaScript runtime */

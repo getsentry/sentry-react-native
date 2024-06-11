@@ -36,9 +36,10 @@ describe('React Navigation - TTID', () => {
       (isHermesEnabled as jest.Mock).mockReturnValue(true);
 
       mockWrapper.NATIVE.fetchNativeAppStart.mockResolvedValue({
-        appStartTime: mockedAppStartTimeSeconds * 1000,
-        didFetchAppStart: false,
-        isColdStart: true,
+        app_start_timestamp_ms: mockedAppStartTimeSeconds * 1000,
+        has_fetched: false,
+        type: 'cold',
+        spans: [],
       });
 
       mockedEventEmitter = mockedSentryEventEmitter.createMockedSentryEventEmitter();

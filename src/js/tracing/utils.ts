@@ -6,7 +6,9 @@ import {
   spanToJSON,
 } from '@sentry/core';
 import type { MeasurementUnit, Span, TransactionSource } from '@sentry/types';
-import { timestampInSeconds } from '@sentry/utils';
+import { logger, timestampInSeconds } from '@sentry/utils';
+
+import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
 export const defaultTransactionSource: TransactionSource = 'component';
 export const customTransactionSource: TransactionSource = 'custom';
@@ -69,4 +71,26 @@ export function getLatestChildSpanEndTimestamp(span: Span): number | undefined {
     .filter(timestamp => !!timestamp) as number[];
 
   return childEndTimestamps.length ? Math.max(...childEndTimestamps) : undefined;
+}
+
+/**
+ * Returns unix timestamp in ms of the bundle start time.
+ *
+ * If not available, returns undefined.
+ */
+export function getBundleStartTimestampMs(): number | undefined {
+  const bundleStartTime = RN_GLOBAL_OBJ.__BUNDLE_START_TIME__;
+  if (!bundleStartTime) {
+    logger.warn('Missing the bundle start time on the global object.');
+    return undefined;
+  }
+
+  if (!RN_GLOBAL_OBJ.nativePerformanceNow) {
+    // bundleStartTime is Date.now() in milliseconds
+    return bundleStartTime;
+  }
+
+  // nativePerformanceNow() is monotonic clock like performance.now()
+  const approxStartingTimeOrigin = Date.now() - RN_GLOBAL_OBJ.nativePerformanceNow();
+  return approxStartingTimeOrigin + bundleStartTime;
 }

@@ -237,6 +237,42 @@ describe('TimeToDisplay', () => {
     expect(spanToJSON(fullDisplaySpan!).timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
   });
 
+  test('full display which ended before but processed after initial display is extended to initial display end', async () => {
+    const fullDisplayEndTimestampMs = secondInFutureTimestampMs();
+    const initialDisplayEndTimestampMs = secondInFutureTimestampMs() + 500;
+    const [initialDisplaySpan, fullDisplaySpan, activeSpan] = startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
+        const initialDisplaySpan = startTimeToInitialDisplaySpan();
+        const fullDisplaySpan = startTimeToFullDisplaySpan();
+
+        const timeToDisplayComponent = TestRenderer.create(<><TimeToInitialDisplay record={false} /><TimeToFullDisplay record={true}/></>);
+        timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={true} /></>);
+
+        emitNativeInitialDisplayEvent(initialDisplayEndTimestampMs);
+        emitNativeFullDisplayEvent(fullDisplayEndTimestampMs);
+
+        activeSpan?.end();
+        return [initialDisplaySpan, fullDisplaySpan, activeSpan];
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    expectFinishedInitialDisplaySpan(initialDisplaySpan, activeSpan);
+    expectFinishedFullDisplaySpan(fullDisplaySpan, activeSpan);
+
+    expectInitialDisplayMeasurementOnSpan(client.event!);
+    expectFullDisplayMeasurementOnSpan(client.event!);
+
+    expect(spanToJSON(initialDisplaySpan!).timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
+    expect(spanToJSON(fullDisplaySpan!).timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
+  });
+
   test('consequent renders do not update display end', async () => {
     const initialDisplayEndTimestampMs = secondInFutureTimestampMs();
     const fullDisplayEndTimestampMs = secondInFutureTimestampMs() + 500;
