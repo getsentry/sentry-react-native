@@ -548,13 +548,44 @@ export class ReactNativeTracing implements Integration {
    */
   private _addNativeSpansTo(appStartSpan: Span, nativeSpans: NativeAppStartResponse['spans']): void {
     nativeSpans.forEach(span => {
-      appStartSpan.startChild({
+      if (span.description === 'UIKit init') {
+        return this._createUIKitSpan(appStartSpan, span);
+      }
+
+      return appStartSpan.startChild({
         op: appStartSpan.op,
         description: span.description,
         startTimestamp: span.start_timestamp_ms / 1000,
         endTimestamp: span.end_timestamp_ms / 1000,
       });
     });
+  }
+
+  /**
+   * UIKit init is measured by the native layers till the native SDK start
+   * RN initializes the native SDK later, the end timestamp would be wrong
+   */
+  private _createUIKitSpan(parentSpan: Span, nativeUIKitSpan: NativeAppStartResponse['spans'][number]): Span {
+    const bundleStart = getBundleStartTimestampMs();
+
+    // If UIKit init ends after the bundle start the native SDK was auto initialize
+    // and so the end timestamp is incorrect
+    // The timestamps can't equal as after UIKit RN initializes
+    if (bundleStart && bundleStart < nativeUIKitSpan.end_timestamp_ms) {
+      return parentSpan.startChild({
+        op: parentSpan.op,
+        description: 'UIKit init start',
+        startTimestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
+        endTimestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
+      });
+    } else {
+      return parentSpan.startChild({
+        op: parentSpan.op,
+        description: 'UIKit init',
+        startTimestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
+        endTimestamp: nativeUIKitSpan.end_timestamp_ms / 1000,
+      });
+    }
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */
