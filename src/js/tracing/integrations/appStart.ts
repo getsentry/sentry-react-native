@@ -29,6 +29,7 @@ let rootComponentCreationTimestampMs: number | undefined = undefined;
 
 /**
  * Records the application start end.
+ * Used automatically by `Sentry.wrap`.
  */
 export const setAppStartEndTimestampMs = (timestampMs: number): void => {
   recordedAppStartEndTimestampMs && logger.warn('Overwriting already set app start.');
@@ -37,7 +38,7 @@ export const setAppStartEndTimestampMs = (timestampMs: number): void => {
 
 /**
  * Sets the root component first constructor call timestamp.
- * This depends on `Sentry.wrap` being used.
+ * Used automatically by `Sentry.wrap`.
  */
 export function setRootComponentCreationTimestampMs(timestampMs: number): void {
   if (recordedAppStartEndTimestampMs) {
