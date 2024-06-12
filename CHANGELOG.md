@@ -8,6 +8,11 @@
   - This doesn't change the app start measurement length, but add child spans (more detail) into the existing app start span
 - Added JS Bundle Execution start information to the application start measurements ([#3857](https://github.com/getsentry/sentry-react-native/pull/3857))
 
+### Fixes
+
+- Ensure `sentry-cli` doesn't trigger Xcode `error:` prefix ([#3887](https://github.com/getsentry/sentry-react-native/pull/3887))
+  - Fixes `--allow-failure` failing Xcode builds
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.27.0 to v8.28.0 ([#3866](https://github.com/getsentry/sentry-react-native/pull/3866))

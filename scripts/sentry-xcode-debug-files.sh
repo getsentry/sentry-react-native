@@ -35,5 +35,12 @@ if [ "$SENTRY_DISABLE_AUTO_UPLOAD" == true ]; then
 elif echo "$XCODE_BUILD_CONFIGURATION" | grep -iq "debug"; then # case insensitive check for "debug"
   echo "Skipping debug files upload for *Debug* configuration"
 else
-  /bin/sh -c "\"$LOCAL_NODE_BINARY\" $UPLOAD_DEBUG_FILES"
+  # 'warning:' triggers a warning in Xcode, 'error:' triggers an error
+  SENTRY_UPLOAD_COMMAND_OUTPUT=$(/bin/sh -c "\"$LOCAL_NODE_BINARY\" $UPLOAD_DEBUG_FILES")
+  if [ $? -eq 0 ]; then
+    echo "output: sentry-cli - $SENTRY_UPLOAD_COMMAND_OUTPUT"
+  else
+    echo "message: sentry-cli - To disable native debug files auto upload, set SENTRY_DISABLE_AUTO_UPLOAD=true in your environment variables. Or to allow failing upload, set SENTRY_ALLOW_FAILURE=true"
+    echo "error: sentry-cli - $SENTRY_UPLOAD_COMMAND_OUTPUT"
+  fi
 fi
