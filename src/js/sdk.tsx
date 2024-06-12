@@ -14,7 +14,6 @@ import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOp
 import { shouldEnableNativeNagger } from './options';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler } from './tracing';
-import { useAppStartFromSentryRNPProfiler } from './tracing/integrations/appStart';
 import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer } from './utils/environment';
@@ -107,8 +106,6 @@ export function wrap<P extends Record<string, unknown>>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
-  useAppStartFromSentryRNPProfiler();
-
   const profilerProps = {
     ...(options?.profilerProps ?? {}),
     name: RootComponent.displayName ?? 'Root',

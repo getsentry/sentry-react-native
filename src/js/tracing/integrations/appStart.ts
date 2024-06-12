@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import type { Event, Integration, SpanJSON, TransactionEvent } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
@@ -12,7 +13,7 @@ import {
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD as UI_LOAD_OP,
 } from '../ops';
-import { createChildSpanJSON, createSpanJSON, getBundleStartTimestampMs, getTimeOriginMilliseconds } from '../utils';
+import { createChildSpanJSON, createSpanJSON, getBundleStartTimestampMs } from '../utils';
 
 const INTEGRATION_NAME = 'AppStart';
 
@@ -21,31 +22,29 @@ const INTEGRATION_NAME = 'AppStart';
  * This could be due to many different reasons.
  * We've seen app starts with hours, days and even months.
  */
-const MAX_APP_START_DURATION_MS = 60000;
+const MAX_APP_START_DURATION_MS = 60_000;
 
-let useAppStartEndFromSentryRNProfiler = false;
-let appStartEndTimestampMs: number | undefined = undefined;
+let recordedAppStartEndTimestampMs: number | undefined = undefined;
 let rootComponentCreationTimestampMs: number | undefined = undefined;
 
 /**
  * Records the application start end.
  */
 export const setAppStartEndTimestampMs = (timestampMs: number): void => {
-  appStartEndTimestampMs && logger.warn('Overwriting already set app start.');
-  appStartEndTimestampMs = timestampMs;
-};
-
-/**
- * Sets the App Start integration to use the application start end from the Sentry React Native Profiler.
- */
-export const useAppStartFromSentryRNPProfiler = (): void => {
-  useAppStartEndFromSentryRNProfiler = true;
+  recordedAppStartEndTimestampMs && logger.warn('Overwriting already set app start.');
+  recordedAppStartEndTimestampMs = timestampMs;
 };
 
 /**
  * Sets the root component first constructor call timestamp.
+ * This depends on `Sentry.wrap` being used.
  */
 export function setRootComponentCreationTimestampMs(timestampMs: number): void {
+  if (recordedAppStartEndTimestampMs) {
+    logger.error('Root component creation timestamp can not be set after app start end is set.');
+    return;
+  }
+
   rootComponentCreationTimestampMs = timestampMs;
 }
 
@@ -55,14 +54,9 @@ export function setRootComponentCreationTimestampMs(timestampMs: number): void {
 export const appStartIntegration = (): Integration => {
   let appStartDataFlushed = false;
 
-  const setup = (): void => {
-    if (!useAppStartEndFromSentryRNProfiler) {
-      appStartEndTimestampMs = getTimeOriginMilliseconds();
-    }
-  };
-
   const processEvent = async (event: Event): Promise<Event> => {
     if (appStartDataFlushed) {
+      // App start data is only relevant for the first transaction
       return event;
     }
 
@@ -71,7 +65,6 @@ export const appStartIntegration = (): Integration => {
       return event;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     await attachAppStartToTransactionEvent(event as TransactionEvent);
 
     return event;
@@ -98,13 +91,18 @@ export const appStartIntegration = (): Integration => {
       logger.warn('[AppStart] App start timestamp could not be loaded from the native layer.');
       return;
     }
+
+    const appStartEndTimestampMs = recordedAppStartEndTimestampMs || getBundleStartTimestampMs();
     if (!appStartEndTimestampMs) {
-      logger.warn('[AppStart] Javascript failed to record app start end.');
+      logger.warn(
+        '[AppStart] Javascript failed to record app start end. `setAppStartEndTimestampMs` was not called nor could the bundle start be found.',
+      );
       return;
     }
 
     const appStartDurationMs = appStartEndTimestampMs - appStartTimestampMs;
-    if (appStartDurationMs >= MAX_APP_START_DURATION_MS) {
+    if (!__DEV__ && appStartDurationMs >= MAX_APP_START_DURATION_MS) {
+      // Dev builds can have long app start waiting over minute for the first bundle to be produced
       logger.warn('[AppStart] App start duration is over a minute long, not adding app start span.');
       return;
     }
@@ -133,17 +131,25 @@ export const appStartIntegration = (): Integration => {
       setSpanDurationAsMeasurementOnTransactionEvent(event, 'time_to_full_display', maybeTtfdSpan);
     }
 
+    const appStartEndTimestampSeconds = appStartEndTimestampMs / 1000;
+    if (event.timestamp && event.timestamp < appStartEndTimestampSeconds) {
+      logger.debug(
+        '[AppStart] Transaction event timestamp is before app start end. Adjusting transaction event timestamp.',
+      );
+      event.timestamp = appStartEndTimestampSeconds;
+    }
+
     const op = appStart.type === 'cold' ? APP_START_COLD_OP : APP_START_WARM_OP;
     const appStartSpanJSON: SpanJSON = createSpanJSON({
       op,
       description: appStart.type === 'cold' ? 'Cold App Start' : 'Warm App Start',
       start_timestamp: appStartTimestampSeconds,
-      timestamp: appStartEndTimestampMs / 1000,
+      timestamp: appStartEndTimestampSeconds,
       trace_id: event.contexts.trace.trace_id,
       parent_span_id: event.contexts.trace.span_id,
       origin: 'auto',
     });
-    const jsExecutionSpanJSON = createJSExecutionBeforeRoot(appStartSpanJSON, rootComponentCreationTimestampMs);
+    const jsExecutionSpanJSON = createJSExecutionStartSpan(appStartSpanJSON, rootComponentCreationTimestampMs);
 
     const appStartSpans = [
       appStartSpanJSON,
@@ -169,7 +175,6 @@ export const appStartIntegration = (): Integration => {
 
   return {
     name: INTEGRATION_NAME,
-    setup,
     processEvent,
   };
 };
@@ -190,7 +195,7 @@ function setSpanDurationAsMeasurementOnTransactionEvent(event: TransactionEvent,
 /**
  * Adds JS Execution before React Root. If `Sentry.wrap` is not used, create a span for the start of JS Bundle execution.
  */
-function createJSExecutionBeforeRoot(
+function createJSExecutionStartSpan(
   parentSpan: SpanJSON,
   rootComponentCreationTimestampMs: number | undefined,
 ): SpanJSON | undefined {
@@ -220,20 +225,39 @@ function createJSExecutionBeforeRoot(
  */
 function convertNativeSpansToSpanJSON(parentSpan: SpanJSON, nativeSpans: NativeAppStartResponse['spans']): SpanJSON[] {
   return nativeSpans.map(span => {
-    const spanJSON = createChildSpanJSON(parentSpan, {
+    if (span.description === 'UIKit init') {
+      return createUIKitSpan(parentSpan, span);
+    }
+
+    return createChildSpanJSON(parentSpan, {
       description: span.description,
       start_timestamp: span.start_timestamp_ms / 1000,
       timestamp: span.end_timestamp_ms / 1000,
     });
-
-    if (span.description === 'UIKit init') {
-      // TODO: check based on time
-      // UIKit init is measured by the native layers till the native SDK start
-      // RN initializes the native SDK later, the end timestamp would be wrong
-      spanJSON.timestamp = spanJSON.start_timestamp;
-      spanJSON.description = 'UIKit init start';
-    }
-
-    return spanJSON;
   });
+}
+
+/**
+ * UIKit init is measured by the native layers till the native SDK start
+ * RN initializes the native SDK later, the end timestamp would be wrong
+ */
+function createUIKitSpan(parentSpan: SpanJSON, nativeUIKitSpan: NativeAppStartResponse['spans'][number]): SpanJSON {
+  const bundleStart = getBundleStartTimestampMs();
+
+  // If UIKit init ends after the bundle start the native SDK was auto initialize
+  // and so the end timestamp is incorrect
+  // The timestamps can't equal as after UIKit RN initializes
+  if (bundleStart && bundleStart < nativeUIKitSpan.end_timestamp_ms) {
+    return createChildSpanJSON(parentSpan, {
+      description: 'UIKit init start',
+      start_timestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
+      timestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
+    });
+  } else {
+    return createChildSpanJSON(parentSpan, {
+      description: 'UIKit init',
+      start_timestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
+      timestamp: nativeUIKitSpan.end_timestamp_ms / 1000,
+    });
+  }
 }
