@@ -568,9 +568,9 @@ export class ReactNativeTracing implements Integration {
   private _createUIKitSpan(parentSpan: Span, nativeUIKitSpan: NativeAppStartResponse['spans'][number]): Span {
     const bundleStart = getBundleStartTimestampMs();
 
-    // If UIKit init ends after the bundle start the native SDK was auto initialize
-    // and so the end timestamp is incorrect
-    // The timestamps can't equal as after UIKit RN initializes
+    // If UIKit init ends after the bundle start, the native SDK was auto-initialized
+    // and so the end timestamp is incorrect.
+    // The timestamps can't equal, as RN initializes after UIKit.
     if (bundleStart && bundleStart < nativeUIKitSpan.end_timestamp_ms) {
       return parentSpan.startChild({
         op: parentSpan.op,
