@@ -503,13 +503,13 @@ describe('ReactNativeTracing', () => {
 
         const transaction = client.event;
 
-        const nativeSpan = transaction!.spans!.find(({ description }) => description?.startsWith('UIKit init'));
+        const nativeSpan = transaction!.spans!.find(({ description }) => description?.startsWith('UIKit Init'));
         const nativeSpanJSON = spanToJSON(nativeSpan!);
 
         expect(nativeSpan).toBeDefined();
         expect(nativeSpanJSON).toEqual(
           expect.objectContaining(<SpanJSON>{
-            description: 'UIKit init',
+            description: 'UIKit Init',
             start_timestamp: (timeOriginMilliseconds - 100) / 1000,
             timestamp: (timeOriginMilliseconds - 60) / 1000,
           }),
@@ -540,15 +540,27 @@ describe('ReactNativeTracing', () => {
 
         const transaction = client.event;
 
-        const nativeSpan = transaction!.spans!.find(({ description }) => description?.startsWith('UIKit init'));
-        const nativeSpanJSON = spanToJSON(nativeSpan!);
+        const uiKitInitMarkSpan = transaction!.spans!.find(({ description }) => description?.startsWith('UIKit Init'));
+        const nativeRuntimeInitSpan = transaction!.spans!.find(({ description }) =>
+          description?.startsWith('Native Runtime Init'),
+        );
+        const uiKitInitMarkSpanJSON = spanToJSON(uiKitInitMarkSpan!);
+        const nativeRuntimeInitSpanJSON = spanToJSON(nativeRuntimeInitSpan!);
 
-        expect(nativeSpan).toBeDefined();
-        expect(nativeSpanJSON).toEqual(
+        expect(uiKitInitMarkSpan).toBeDefined();
+        expect(nativeRuntimeInitSpanJSON).toBeDefined();
+        expect(uiKitInitMarkSpanJSON).toEqual(
           expect.objectContaining(<SpanJSON>{
-            description: 'UIKit init start',
+            description: 'UIKit Init Start',
             start_timestamp: (timeOriginMilliseconds - 100) / 1000,
             timestamp: (timeOriginMilliseconds - 100) / 1000,
+          }),
+        );
+        expect(nativeRuntimeInitSpanJSON).toEqual(
+          expect.objectContaining(<SpanJSON>{
+            description: 'Native Runtime Init',
+            start_timestamp: (timeOriginMilliseconds - 100) / 1000,
+            timestamp: (timeOriginMilliseconds - 50) / 1000,
           }),
         );
       });
