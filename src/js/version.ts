@@ -1,3 +1,3 @@
 export const SDK_PACKAGE_NAME = 'npm:@sentry/react-native';
 export const SDK_NAME = 'sentry.javascript.react-native';
-export const SDK_VERSION = '5.23.1';
+export const SDK_VERSION = '5.24.0';
