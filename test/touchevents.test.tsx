@@ -163,7 +163,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
         componentTree: ['Styled(View2)', 'Styled(View)'],
       },
       level: 'info' as SeverityLevel,
-      message: 'Touch event within element: Styled(View2)',
+      message: 'Touch event within element: Styled(View)',
       type: defaultProps.breadcrumbType,
     });
   });

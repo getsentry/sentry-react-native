@@ -186,43 +186,30 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
       }
 
       const props = currentInst.memoizedProps;
-      const sentryLabel =
+      const labelValue =
         typeof props?.[SENTRY_LABEL_PROP_KEY] !== 'undefined'
           ? `${props[SENTRY_LABEL_PROP_KEY]}`
-          : undefined;
-
-      // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
-      // the "check-label" if sentence, so we have to assign it to a variable here first
-      let labelValue;
-      if (typeof this.props.labelName === 'string')
-        labelValue = props?.[this.props.labelName];
+        // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
+        // the "check-label" if sentence, so we have to assign it to a variable here first
+          : (typeof this.props.labelName === 'string') ? props?.[this.props.labelName] : undefined;
 
       // Check the label first
-      if (sentryLabel && !this._isNameIgnored(sentryLabel)) {
-        if (!activeLabel) {
-          activeLabel = sentryLabel;
+      if (labelValue && typeof labelValue === 'string') {
+        if (this._pushIfNotIgnored(componentTreeNames, labelValue)) {
+          if (!activeLabel) {
+            activeLabel = labelValue;
+          }
         }
-        componentTreeNames.push(sentryLabel);
-      } else if (
-        typeof labelValue === 'string' &&
-        !this._isNameIgnored(labelValue)
-      ) {
-        if (!activeLabel) {
-          activeLabel = labelValue;
-        }
-        componentTreeNames.push(labelValue);
       } else if (currentInst.elementType) {
         const { elementType } = currentInst;
 
-        if (
-          elementType.displayName &&
-          !this._isNameIgnored(elementType.displayName)
-        ) {
-          // Check display name
-          if (!activeDisplayName) {
-            activeDisplayName = elementType.displayName;
+        // Check display name
+        if (elementType.displayName) {
+          if (this._pushIfNotIgnored(componentTreeNames, elementType.displayName)) {
+            if (!activeDisplayName) {
+              activeDisplayName = elementType.displayName;
+            }
           }
-          componentTreeNames.push(elementType.displayName);
         }
       }
 
@@ -239,6 +226,18 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
       elementId: activeLabel,
       op: UI_ACTION_TOUCH,
     });
+  }
+
+  /**
+   * Pushes the name to the componentTreeNames array if it is not ignored.
+   */
+  private _pushIfNotIgnored(componentTreeNames: string[], name: string, file?: string): boolean {
+    const value = file ? `${name} (${file})` : name;
+    if (this._isNameIgnored(value)) {
+      return false;
+    }
+    componentTreeNames.push(value);
+    return true;
   }
 }
 
