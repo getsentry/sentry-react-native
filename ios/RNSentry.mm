@@ -415,12 +415,6 @@ RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
         NSNumber *total = [NSNumber numberWithLong:frames.total];
         NSNumber *frozen = [NSNumber numberWithLong:frames.frozen];
         NSNumber *slow = [NSNumber numberWithLong:frames.slow];
-        NSNumber *zero = [NSNumber numberWithLong:0L];
-
-        if ([total isEqualToNumber:zero] && [frozen isEqualToNumber:zero] && [slow isEqualToNumber:zero]) {
-            resolve(nil);
-            return;
-        }
 
         resolve(@{
             @"totalFrames": total,

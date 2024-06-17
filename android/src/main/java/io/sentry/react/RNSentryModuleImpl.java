@@ -381,11 +381,6 @@ public class RNSentryModuleImpl {
                     }
                 }
 
-                if (totalFrames == 0 && slowFrames == 0 && frozenFrames == 0) {
-                    promise.resolve(null);
-                    return;
-                }
-
                 WritableMap map = Arguments.createMap();
                 map.putInt("totalFrames", totalFrames);
                 map.putInt("slowFrames", slowFrames);

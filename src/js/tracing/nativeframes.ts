@@ -192,6 +192,17 @@ export class NativeFramesInstrumentation {
       },
     };
 
+    if (
+      measurements.frames_frozen.value <= 0 &&
+      measurements.frames_slow.value <= 0 &&
+      measurements.frames_total.value <= 0
+    ) {
+      logger.warn(
+        `[NativeFrames] Detected zero slow or frozen frames. Not adding measurements to traceId (${traceId}).`,
+      );
+      return null;
+    }
+
     return measurements;
   }
 
