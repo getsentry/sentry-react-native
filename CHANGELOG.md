@@ -6,7 +6,6 @@
 
 - App Start Native Frames can start with zeroed values ([#3881](https://github.com/getsentry/sentry-react-native/pull/3881))
 
-
 ## 5.24.0
 
 ### Features
