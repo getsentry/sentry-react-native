@@ -7,7 +7,6 @@ on:
   # And on on every PR merge so we get the updated dependencies ASAP, and to make sure the changelog doesn't conflict.
   push:
     branches:
-      - '**'
       - main
 
 jobs:
