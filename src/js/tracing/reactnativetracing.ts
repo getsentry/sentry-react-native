@@ -24,6 +24,7 @@ import { cancelInBackground, onlySampleIfChildSpans } from './transaction';
 import type { BeforeNavigate, RouteChangeContextData } from './types';
 import {
   adjustTransactionDuration,
+  getBundleStartTimestampMs,
   getTimeOriginMilliseconds,
   isNearToNow,
   setSpanDurationAsMeasurement,
@@ -153,6 +154,7 @@ export class ReactNativeTracing implements Integration {
   private _hasSetTracePropagationTargets: boolean;
   private _hasSetTracingOrigins: boolean;
   private _currentViewName: string | undefined;
+  private _firstConstructorCallTimestampMs: number | undefined;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this._hasSetTracePropagationTargets = !!(
@@ -299,6 +301,13 @@ export class ReactNativeTracing implements Integration {
    */
   public onAppStartFinish(endTimestamp: number): void {
     this._appStartFinishTimestamp = endTimestamp;
+  }
+
+  /**
+   * Sets the root component first constructor call timestamp.
+   */
+  public setRootComponentFirstConstructorCallTimestampMs(timestamp: number): void {
+    this._firstConstructorCallTimestampMs = timestamp;
   }
 
   /**
@@ -505,6 +514,7 @@ export class ReactNativeTracing implements Integration {
       startTimestamp: appStartTimeSeconds,
       endTimestamp: this._appStartFinishTimestamp,
     });
+    this._addJSExecutionBeforeRoot(appStartSpan);
     this._addNativeSpansTo(appStartSpan, appStart.spans);
 
     const measurement = appStart.type === 'cold' ? APP_START_COLD : APP_START_WARM;
@@ -512,10 +522,42 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
+   * Adds JS Execution before React Root. If `Sentry.wrap` is not used, create a span for the start of JS Bundle execution.
+   */
+  private _addJSExecutionBeforeRoot(appStartSpan: Span): void {
+    const bundleStartTimestampMs = getBundleStartTimestampMs();
+    if (!bundleStartTimestampMs) {
+      return;
+    }
+
+    if (!this._firstConstructorCallTimestampMs) {
+      logger.warn('Missing the root component first constructor call timestamp.');
+      appStartSpan.startChild({
+        description: 'JS Bundle Execution Start',
+        op: appStartSpan.op,
+        startTimestamp: bundleStartTimestampMs / 1000,
+        endTimestamp: bundleStartTimestampMs / 1000,
+      });
+      return;
+    }
+
+    appStartSpan.startChild({
+      description: 'JS Bundle Execution Before React Root',
+      op: appStartSpan.op,
+      startTimestamp: bundleStartTimestampMs / 1000,
+      endTimestamp: this._firstConstructorCallTimestampMs / 1000,
+    });
+  }
+
+  /**
    * Adds native spans to the app start span.
    */
   private _addNativeSpansTo(appStartSpan: Span, nativeSpans: NativeAppStartResponse['spans']): void {
     nativeSpans.forEach(span => {
+      if (span.description === 'UIKit init') {
+        return this._createUIKitSpan(appStartSpan, span);
+      }
+
       appStartSpan.startChild({
         op: appStartSpan.op,
         description: span.description,
@@ -523,6 +565,33 @@ export class ReactNativeTracing implements Integration {
         endTimestamp: span.end_timestamp_ms / 1000,
       });
     });
+  }
+
+  /**
+   * UIKit init is measured by the native layers till the native SDK start
+   * RN initializes the native SDK later, the end timestamp would be wrong
+   */
+  private _createUIKitSpan(parentSpan: Span, nativeUIKitSpan: NativeAppStartResponse['spans'][number]): void {
+    const bundleStart = getBundleStartTimestampMs();
+
+    // If UIKit init ends after the bundle start, the native SDK was auto-initialized
+    // and so the end timestamp is incorrect.
+    // The timestamps can't equal, as RN initializes after UIKit.
+    if (bundleStart && bundleStart < nativeUIKitSpan.end_timestamp_ms) {
+      parentSpan.startChild({
+        op: parentSpan.op,
+        description: 'UIKit Init to JS Exec Start',
+        startTimestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
+        endTimestamp: bundleStart / 1000,
+      });
+    } else {
+      parentSpan.startChild({
+        op: parentSpan.op,
+        description: 'UIKit Init',
+        startTimestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
+        endTimestamp: nativeUIKitSpan.end_timestamp_ms / 1000,
+      });
+    }
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */

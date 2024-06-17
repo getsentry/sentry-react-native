@@ -23,7 +23,16 @@ ARGS="$NO_AUTO_RELEASE $SENTRY_CLI_EXTRA_ARGS $SENTRY_CLI_RN_XCODE_EXTRA_ARGS"
 REACT_NATIVE_XCODE_WITH_SENTRY="\"$SENTRY_CLI_EXECUTABLE\" react-native xcode $ARGS \"$REACT_NATIVE_XCODE\""
 
 if [ "$SENTRY_DISABLE_AUTO_UPLOAD" != true ]; then
-  /bin/sh -c "\"$LOCAL_NODE_BINARY\" $REACT_NATIVE_XCODE_WITH_SENTRY"
+  # 'warning:' triggers a warning in Xcode, 'error:' triggers an error
+  set +x +e # disable printing commands otherwise we might print `error:` by accident and allow continuing on error
+  SENTRY_XCODE_COMMAND_OUTPUT=$(/bin/sh -c "\"$LOCAL_NODE_BINARY\" $REACT_NATIVE_XCODE_WITH_SENTRY" 2>&1)
+  if [ $? -eq 0 ]; then
+    echo "$SENTRY_XCODE_COMMAND_OUTPUT" | awk '{print "output: sentry-cli - " $0}'
+  else
+    echo "error: sentry-cli - To disable source maps auto upload, set SENTRY_DISABLE_AUTO_UPLOAD=true in your environment variables. Or to allow failing upload, set SENTRY_ALLOW_FAILURE=true"
+    echo "error: sentry-cli - $SENTRY_XCODE_COMMAND_OUTPUT"
+  fi
+  set -x -e # re-enable
 else
   echo "SENTRY_DISABLE_AUTO_UPLOAD=true, skipping sourcemaps upload"
   /bin/sh -c "$REACT_NATIVE_XCODE"

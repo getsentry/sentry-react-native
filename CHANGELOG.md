@@ -4,8 +4,16 @@
 
 ### Features
 
-- Add native application start spans ([#3855](https://github.com/getsentry/sentry-react-native/pull/3855))
+- Add native application start spans ([#3855](https://github.com/getsentry/sentry-react-native/pull/3855), [#3884](https://github.com/getsentry/sentry-react-native/pull/3884))
   - This doesn't change the app start measurement length, but add child spans (more detail) into the existing app start span
+- Added JS Bundle Execution start information to the application start measurements ([#3857](https://github.com/getsentry/sentry-react-native/pull/3857))
+
+### Fixes
+
+- Add more expressive debug logs to Native Frames Integration ([#3880](https://github.com/getsentry/sentry-react-native/pull/3880))
+- Add missing tracing integrations when using `client.init()` ([#3882](https://github.com/getsentry/sentry-react-native/pull/3882))
+- Ensure `sentry-cli` doesn't trigger Xcode `error:` prefix ([#3887](https://github.com/getsentry/sentry-react-native/pull/3887))
+  - Fixes `--allow-failure` failing Xcode builds
 
 ### Fixes
 
@@ -20,6 +28,9 @@
 - Bump Android SDK from v7.8.0 to v7.10.0 ([#3805](https://github.com/getsentry/sentry-react-native/pull/3805))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7100)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.8.0...7.10.0)
+- Bump JavaScript SDK from v7.113.0 to v7.117.0 ([#3806](https://github.com/getsentry/sentry-react-native/pull/3806))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/v7/CHANGELOG.md#71170)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.113.0...7.117.0)
 
 ## 5.23.1
 
