@@ -478,6 +478,82 @@ describe('ReactNativeTracing', () => {
           }),
         );
       });
+
+      it('adds ui kit init full length as a child of the main app start span', async () => {
+        const integration = new ReactNativeTracing();
+
+        const timeOriginMilliseconds = Date.now();
+        mockAppStartResponse({
+          cold: true,
+          enableNativeSpans: true,
+          customNativeSpans: [
+            {
+              description: 'UIKit init',
+              start_timestamp_ms: timeOriginMilliseconds - 100,
+              end_timestamp_ms: timeOriginMilliseconds - 60,
+            },
+          ],
+        });
+        mockReactNativeBundleExecutionStartTimestamp();
+
+        setup(integration);
+
+        await jest.advanceTimersByTimeAsync(500);
+        await jest.runOnlyPendingTimersAsync();
+
+        const transaction = client.event;
+
+        const nativeSpan = transaction!.spans!.find(({ description }) => description?.startsWith('UIKit Init'));
+        const nativeSpanJSON = spanToJSON(nativeSpan!);
+
+        expect(nativeSpan).toBeDefined();
+        expect(nativeSpanJSON).toEqual(
+          expect.objectContaining(<SpanJSON>{
+            description: 'UIKit Init',
+            start_timestamp: (timeOriginMilliseconds - 100) / 1000,
+            timestamp: (timeOriginMilliseconds - 60) / 1000,
+          }),
+        );
+      });
+
+      it('adds ui kit init start mark as a child of the main app start span', async () => {
+        const integration = new ReactNativeTracing();
+
+        const timeOriginMilliseconds = Date.now();
+        mockAppStartResponse({
+          cold: true,
+          enableNativeSpans: true,
+          customNativeSpans: [
+            {
+              description: 'UIKit init',
+              start_timestamp_ms: timeOriginMilliseconds - 100,
+              end_timestamp_ms: timeOriginMilliseconds - 20, // After mocked bundle execution start
+            },
+          ],
+        });
+        mockReactNativeBundleExecutionStartTimestamp();
+
+        setup(integration);
+
+        await jest.advanceTimersByTimeAsync(500);
+        await jest.runOnlyPendingTimersAsync();
+
+        const transaction = client.event;
+
+        const nativeRuntimeInitSpan = transaction!.spans!.find(({ description }) =>
+          description?.startsWith('UIKit Init to JS Exec Start'),
+        );
+        const nativeRuntimeInitSpanJSON = spanToJSON(nativeRuntimeInitSpan!);
+
+        expect(nativeRuntimeInitSpanJSON).toBeDefined();
+        expect(nativeRuntimeInitSpanJSON).toEqual(
+          expect.objectContaining(<SpanJSON>{
+            description: 'UIKit Init to JS Exec Start',
+            start_timestamp: (timeOriginMilliseconds - 100) / 1000,
+            timestamp: (timeOriginMilliseconds - 50) / 1000,
+          }),
+        );
+      });
     });
 
     describe('With routing instrumentation', () => {
@@ -1068,10 +1144,12 @@ function mockAppStartResponse({
   cold,
   has_fetched,
   enableNativeSpans,
+  customNativeSpans,
 }: {
   cold: boolean;
   has_fetched?: boolean;
   enableNativeSpans?: boolean;
+  customNativeSpans?: NativeAppStartResponse['spans'];
 }) {
   const timeOriginMilliseconds = Date.now();
   const appStartTimeMilliseconds = timeOriginMilliseconds - 100;
@@ -1086,6 +1164,7 @@ function mockAppStartResponse({
             start_timestamp_ms: timeOriginMilliseconds - 100,
             end_timestamp_ms: timeOriginMilliseconds - 50,
           },
+          ...(customNativeSpans ?? []),
         ]
       : [],
   };
