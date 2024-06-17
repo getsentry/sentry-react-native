@@ -540,25 +540,15 @@ describe('ReactNativeTracing', () => {
 
         const transaction = client.event;
 
-        const uiKitInitMarkSpan = transaction!.spans!.find(({ description }) => description?.startsWith('UIKit Init'));
         const nativeRuntimeInitSpan = transaction!.spans!.find(({ description }) =>
-          description?.startsWith('Native Runtime Init'),
+          description?.startsWith('UIKit Init to JS Exec Start'),
         );
-        const uiKitInitMarkSpanJSON = spanToJSON(uiKitInitMarkSpan!);
         const nativeRuntimeInitSpanJSON = spanToJSON(nativeRuntimeInitSpan!);
 
-        expect(uiKitInitMarkSpan).toBeDefined();
         expect(nativeRuntimeInitSpanJSON).toBeDefined();
-        expect(uiKitInitMarkSpanJSON).toEqual(
-          expect.objectContaining(<SpanJSON>{
-            description: 'UIKit Init Start',
-            start_timestamp: (timeOriginMilliseconds - 100) / 1000,
-            timestamp: (timeOriginMilliseconds - 100) / 1000,
-          }),
-        );
         expect(nativeRuntimeInitSpanJSON).toEqual(
           expect.objectContaining(<SpanJSON>{
-            description: 'Native Runtime Init',
+            description: 'UIKit Init to JS Exec Start',
             start_timestamp: (timeOriginMilliseconds - 100) / 1000,
             timestamp: (timeOriginMilliseconds - 50) / 1000,
           }),

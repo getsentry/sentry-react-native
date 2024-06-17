@@ -580,13 +580,7 @@ export class ReactNativeTracing implements Integration {
     if (bundleStart && bundleStart < nativeUIKitSpan.end_timestamp_ms) {
       parentSpan.startChild({
         op: parentSpan.op,
-        description: 'UIKit Init Start',
-        startTimestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
-        endTimestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
-      });
-      parentSpan.startChild({
-        op: parentSpan.op,
-        description: 'Native Runtime Init',
+        description: 'UIKit Init to JS Exec Start',
         startTimestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
         endTimestamp: bundleStart / 1000,
       });
