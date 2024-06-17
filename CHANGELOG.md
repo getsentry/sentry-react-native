@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- App Start Native Frames can start with zeroed values ([#3881](https://github.com/getsentry/sentry-react-native/pull/3881))
+
+
 ## 5.24.0
 
 ### Features
@@ -14,11 +21,6 @@
 - Add missing tracing integrations when using `client.init()` ([#3882](https://github.com/getsentry/sentry-react-native/pull/3882))
 - Ensure `sentry-cli` doesn't trigger Xcode `error:` prefix ([#3887](https://github.com/getsentry/sentry-react-native/pull/3887))
   - Fixes `--allow-failure` failing Xcode builds
-
-### Fixes
-
-- Add more expressive debug logs to Native Frames Integration ([#3880](https://github.com/getsentry/sentry-react-native/pull/3880))
-- App Start Native Frames can start with zeroed values ([#3881](https://github.com/getsentry/sentry-react-native/pull/3881))
 
 ### Dependencies
 
