@@ -4,6 +4,45 @@
 
 ### Features
 
+- Add native application start spans ([#3855](https://github.com/getsentry/sentry-react-native/pull/3855), [#3884](https://github.com/getsentry/sentry-react-native/pull/3884))
+  - This doesn't change the app start measurement length, but add child spans (more detail) into the existing app start span
+- Added JS Bundle Execution start information to the application start measurements ([#3857](https://github.com/getsentry/sentry-react-native/pull/3857))
+
+### Fixes
+
+- Add more expressive debug logs to Native Frames Integration ([#3880](https://github.com/getsentry/sentry-react-native/pull/3880))
+- Add missing tracing integrations when using `client.init()` ([#3882](https://github.com/getsentry/sentry-react-native/pull/3882))
+- Ensure `sentry-cli` doesn't trigger Xcode `error:` prefix ([#3887](https://github.com/getsentry/sentry-react-native/pull/3887))
+  - Fixes `--allow-failure` failing Xcode builds
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.27.0 to v8.28.0 ([#3866](https://github.com/getsentry/sentry-react-native/pull/3866))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8280)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.27.0...8.28.0)
+- Bump Android SDK from v7.8.0 to v7.10.0 ([#3805](https://github.com/getsentry/sentry-react-native/pull/3805))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7100)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.8.0...7.10.0)
+- Bump JavaScript SDK from v7.113.0 to v7.114.0 ([#3806](https://github.com/getsentry/sentry-react-native/pull/3806))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#71140)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.113.0...7.114.0)
+
+## 5.23.1
+
+### Fixes
+
+- Fix failing iOS builds due to missing SentryLevel ([#3854](https://github.com/getsentry/sentry-react-native/pull/3854))
+- Add missing logs to dropped App Start spans ([#3861](https://github.com/getsentry/sentry-react-native/pull/3861))
+- Make all options of `startTimeToInitialDisplaySpan` optional ([#3867](https://github.com/getsentry/sentry-react-native/pull/3867))
+- Add Span IDs to Time to Display debug logs ([#3868](https://github.com/getsentry/sentry-react-native/pull/3868))
+- Use TTID end timestamp when TTFD should be updated with an earlier timestamp ([#3869](https://github.com/getsentry/sentry-react-native/pull/3869))
+
+## 5.23.0
+
+This release does *not* build on iOS. Please use `5.23.1` or newer.
+
+### Features
+
 - Functional integrations ([#3814](https://github.com/getsentry/sentry-react-native/pull/3814))
 
   Instead of installing `@sentry/integrations` and creating integrations using the `new` keyword, you can use direct imports of the functional integrations.
@@ -44,12 +83,21 @@
 - Bump CLI from v2.30.4 to v2.31.2 ([#3719](https://github.com/getsentry/sentry-react-native/pull/3719))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2312)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.30.4...2.31.2)
-- Bump Cocoa SDK from v8.25.0 to v8.25.2 ([#3802](https://github.com/getsentry/sentry-react-native/pull/3802))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8252)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.25.0...8.25.2)
-- Bump JavaScript SDK from v7.113.0 to v7.114.0 ([#3806](https://github.com/getsentry/sentry-react-native/pull/3806))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#71140)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.113.0...7.114.0)
+- Bump Cocoa SDK from v8.26.0 to v8.27.0 ([#3858](https://github.com/getsentry/sentry-react-native/pull/3858))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8270)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.26.0...8.27.0)
+
+## 5.22.3
+
+### Fixes
+
+- Missing `RNSentryOnDrawReporterView` on iOS ([#3832](https://github.com/getsentry/sentry-react-native/pull/3832))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.25.0 to v8.26.0 ([#3802](https://github.com/getsentry/sentry-react-native/pull/3802), [#3815](https://github.com/getsentry/sentry-react-native/pull/3815))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8260)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.25.0...8.26.0)
 
 ## 5.22.2
 
