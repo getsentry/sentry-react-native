@@ -191,16 +191,19 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 
       const props = currentInst.memoizedProps ?? {};
       const info: TouchedComponentInfo = {};
-      if (typeof props[SENTRY_COMPONENT_PROP_KEY] === 'string' && props[SENTRY_COMPONENT_PROP_KEY].length > 0) {
+
+      // provided by @sentry/babel-plugin-component-annotate
+      if (typeof props[SENTRY_COMPONENT_PROP_KEY] === 'string' && props[SENTRY_COMPONENT_PROP_KEY].length > 0 && props[SENTRY_COMPONENT_PROP_KEY] !== 'unknown') {
         info.name = props[SENTRY_COMPONENT_PROP_KEY];
       }
-      if (typeof props[SENTRY_ELEMENT_PROP_KEY] === 'string' && props[SENTRY_ELEMENT_PROP_KEY].length > 0) {
+      if (typeof props[SENTRY_ELEMENT_PROP_KEY] === 'string' && props[SENTRY_ELEMENT_PROP_KEY].length > 0 && props[SENTRY_ELEMENT_PROP_KEY] !== 'unknown') {
         info.element = props[SENTRY_ELEMENT_PROP_KEY];
       }
-      if (typeof props[SENTRY_FILE_PROP_KEY] === 'string' && props[SENTRY_FILE_PROP_KEY].length > 0) {
+      if (typeof props[SENTRY_FILE_PROP_KEY] === 'string' && props[SENTRY_FILE_PROP_KEY].length > 0 && props[SENTRY_FILE_PROP_KEY] !== 'unknown') {
         info.file = props[SENTRY_FILE_PROP_KEY];
       }
 
+      // use custom label if provided by the user, or displayName if available
       const labelValue =
         typeof props[SENTRY_LABEL_PROP_KEY] === 'string'
           ? props[SENTRY_LABEL_PROP_KEY]
@@ -247,6 +250,12 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     if (value.label && this._isNameIgnored(value.label)) {
       return false;
     }
+
+    // Deduplicate same subsequent items.
+    if (touchPath.length > 0 && JSON.stringify(touchPath[touchPath.length - 1]) === JSON.stringify(value)) {
+      return false;
+    }
+
     touchPath.push(value);
     return true;
   }

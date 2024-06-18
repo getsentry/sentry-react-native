@@ -238,23 +238,29 @@ describe('TouchEventBoundary._onTouchStart', () => {
             displayName: 'Text',
           },
           return: {
-            memoizedProps: {
-              'custom-sentry-label-name': 'Connect(View)',
-              'data-sentry-component': 'MyView',
-              'data-sentry-source-file': 'myview.tsx',
+            elementType: {
+              displayName: 'Text',
             },
             return: {
-              elementType: {
-                displayName: 'Styled(View)',
+              memoizedProps: {
+                'custom-sentry-label-name': 'Connect(View)',
+                'data-sentry-component': 'MyView',
+                'data-sentry-element': 'unknown', // should be ignored
+                'data-sentry-source-file': 'myview.tsx',
               },
               return: {
-                memoizedProps: {
-                  'data-sentry-component': 'Happy',
-                  'data-sentry-element': 'View',
-                  'data-sentry-source-file': 'happyview.js',
+                elementType: {
+                  displayName: 'Styled(View)',
+                },
+                return: {
+                  memoizedProps: {
+                    'data-sentry-component': 'Happy',
+                    'data-sentry-element': 'View',
+                    'data-sentry-source-file': 'happyview.js',
+                  },
                 },
               },
-            },
+            }
           },
         },
       },
