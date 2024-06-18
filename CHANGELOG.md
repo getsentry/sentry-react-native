@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Improve touch event component info if annotated with [`@sentry/babel-plugin-component-annotate`](https://www.npmjs.com/package/@sentry/babel-plugin-component-annotate) ([#3899](https://github.com/getsentry/sentry-react-native/pull/3899))
+
 ## 5.24.1
 
 ### Fixes
@@ -642,7 +648,7 @@ This release is compatible with `expo@50.0.0-preview.6` and newer.
   });
   ```
 
-  Read more at https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7690
+  Read more at <https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7690>
 
 - Report current screen in `contexts.app.view_names` ([#3339](https://github.com/getsentry/sentry-react-native/pull/3339))
 
@@ -1033,6 +1039,7 @@ This has been fixed in [version `5.9.1`](https://github.com/getsentry/sentry-rea
 ## 5.4.0
 
 ### Features
+
 - Add TS 4.1 typings ([#2995](https://github.com/getsentry/sentry-react-native/pull/2995))
   - TS 3.8 are present and work automatically with older projects
 - Add CPU Info to Device Context ([#2984](https://github.com/getsentry/sentry-react-native/pull/2984))
@@ -2680,7 +2687,7 @@ We are looking into ways making this more stable and plan to re-enable it again 
 
 ## v0.23.2
 
-- Fixed #228 again ¯\\_(ツ)_/¯
+- Fixed #228 again ¯\\*(ツ)*/¯
 
 ## v0.23.1
 
