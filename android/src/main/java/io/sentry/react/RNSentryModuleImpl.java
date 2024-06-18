@@ -105,7 +105,7 @@ public class RNSentryModuleImpl {
     private FrameMetricsAggregator frameMetricsAggregator = null;
     private boolean androidXAvailable;
 
-    private static boolean didFetchAppStart;
+    private static boolean hasFetchedAppStart;
 
     // 700ms to constitute frozen frames.
     private static final int FROZEN_FRAME_THRESHOLD = 700;
@@ -369,28 +369,17 @@ public class RNSentryModuleImpl {
     }
 
     public void fetchNativeAppStart(Promise promise) {
-        final AppStartMetrics appStartInstance = AppStartMetrics.getInstance();
-        final SentryDate appStartTime = appStartInstance.getAppStartTimeSpan().getStartTimestamp();
-        final boolean isColdStart = appStartInstance.getAppStartType() == AppStartMetrics.AppStartType.COLD;
+        final Map<String, Object> measurement = InternalSentrySdk.getAppStartMeasurement();
 
-        if (appStartTime == null) {
-            logger.log(SentryLevel.WARNING, "App start won't be sent due to missing appStartTime.");
-            promise.resolve(null);
-        } else {
-            final double appStartTimestampMs = DateUtils.nanosToMillis(appStartTime.nanoTimestamp());
+        WritableMap mutableMeasurement = (WritableMap) RNSentryMapConverter.convertToWritable(measurement);
+        mutableMeasurement.putBoolean("has_fetched", hasFetchedAppStart);
 
-            WritableMap appStart = Arguments.createMap();
-
-            appStart.putDouble("appStartTime", appStartTimestampMs);
-            appStart.putBoolean("isColdStart", isColdStart);
-            appStart.putBoolean("didFetchAppStart", didFetchAppStart);
-
-            promise.resolve(appStart);
-        }
         // This is always set to true, as we would only allow an app start fetch to only
         // happen once in the case of a JS bundle reload, we do not want it to be
         // instrumented again.
-        didFetchAppStart = true;
+        hasFetchedAppStart = true;
+
+        promise.resolve(mutableMeasurement);
     }
 
     /**
@@ -425,11 +414,6 @@ public class RNSentryModuleImpl {
                             }
                         }
                     }
-                }
-
-                if (totalFrames == 0 && slowFrames == 0 && frozenFrames == 0) {
-                    promise.resolve(null);
-                    return;
                 }
 
                 WritableMap map = Arguments.createMap();

@@ -98,6 +98,80 @@ describe('NativeFramesInstrumentation', () => {
     );
   });
 
+  it('sets native frames measurements on a transaction event (start frames zero)', async () => {
+    const startFrames = {
+      totalFrames: 0,
+      slowFrames: 0,
+      frozenFrames: 0,
+    };
+    const finishFrames = {
+      totalFrames: 100,
+      slowFrames: 20,
+      frozenFrames: 5,
+    };
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValueOnce(startFrames).mockResolvedValueOnce(finishFrames);
+
+    await startSpan({ name: 'test' }, async () => {
+      await Promise.resolve(); // native frames fetch is async call this will flush the start frames fetch promise
+    });
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    expect(client.event!).toEqual(
+      expect.objectContaining<Partial<Event>>({
+        measurements: expect.objectContaining<Measurements>({
+          frames_total: {
+            value: 100,
+            unit: 'none',
+          },
+          frames_slow: {
+            value: 20,
+            unit: 'none',
+          },
+          frames_frozen: {
+            value: 5,
+            unit: 'none',
+          },
+        }),
+      }),
+    );
+  });
+
+  it('does not sent zero value native frames measurements', async () => {
+    const startFrames = {
+      totalFrames: 100,
+      slowFrames: 20,
+      frozenFrames: 5,
+    };
+    const finishFrames = {
+      totalFrames: 100,
+      slowFrames: 20,
+      frozenFrames: 5,
+    };
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValueOnce(startFrames).mockResolvedValueOnce(finishFrames);
+
+    await startSpan({ name: 'test' }, async () => {
+      await Promise.resolve(); // native frames fetch is async call this will flush the start frames fetch promise
+    });
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    expect(client.event!).toEqual(
+      expect.objectContaining<Partial<Event>>({
+        measurements: expect.toBeOneOf([
+          expect.not.objectContaining<Measurements>({
+            frames_total: expect.any(Object),
+            frames_slow: expect.any(Object),
+            frames_frozen: expect.any(Object),
+          }),
+          undefined,
+        ]),
+      }),
+    );
+  });
+
   it('does not set measurements on transactions without startFrames', async () => {
     const startFrames = null;
     const finishFrames = {

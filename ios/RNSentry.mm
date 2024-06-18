@@ -23,6 +23,7 @@
 #import <Sentry/SentryFormatter.h>
 #import <Sentry/SentryAppStartMeasurement.h>
 #import "RNSentryId.h"
+#import "RNSentryBreadcrumb.h"
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
@@ -54,7 +55,7 @@
 
 @end
 
-static bool didFetchAppStart;
+static bool hasFetchedAppStart;
 
 static NSString* const nativeSdkName = @"sentry.cocoa.react-native";
 
@@ -400,24 +401,20 @@ RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_HAS_UIKIT
-    SentryAppStartMeasurement *appStartMeasurement = PrivateSentrySDKOnly.appStartMeasurement;
-
-    if (appStartMeasurement == nil) {
+    NSDictionary<NSString *, id> *measurements = [PrivateSentrySDKOnly appStartMeasurementWithSpans];
+    if (measurements == nil) {
         resolve(nil);
-    } else {
-        BOOL isColdStart = appStartMeasurement.type == SentryAppStartTypeCold;
-
-        resolve(@{
-            @"isColdStart": [NSNumber numberWithBool:isColdStart],
-            @"appStartTime": [NSNumber numberWithDouble:(appStartMeasurement.appStartTimestamp.timeIntervalSince1970 * 1000)],
-            @"didFetchAppStart": [NSNumber numberWithBool:didFetchAppStart],
-                });
-
+        return;
     }
+
+    NSMutableDictionary<NSString *, id> *mutableMeasurements = [[NSMutableDictionary alloc] initWithDictionary:measurements];
+    [mutableMeasurements setValue:[NSNumber numberWithBool:hasFetchedAppStart] forKey:@"has_fetched"];
 
     // This is always set to true, as we would only allow an app start fetch to only happen once
     // in the case of a JS bundle reload, we do not want it to be instrumented again.
-    didFetchAppStart = true;
+    hasFetchedAppStart = true;
+
+    resolve(mutableMeasurements);
 #else
     resolve(nil);
 #endif
@@ -439,12 +436,6 @@ RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
         NSNumber *total = [NSNumber numberWithLong:frames.total];
         NSNumber *frozen = [NSNumber numberWithLong:frames.frozen];
         NSNumber *slow = [NSNumber numberWithLong:frames.slow];
-        NSNumber *zero = [NSNumber numberWithLong:0L];
-
-        if ([total isEqualToNumber:zero] && [frozen isEqualToNumber:zero] && [slow isEqualToNumber:zero]) {
-            resolve(nil);
-            return;
-        }
 
         resolve(@{
             @"totalFrames": total,
@@ -578,32 +569,7 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary *)userKeys
 RCT_EXPORT_METHOD(addBreadcrumb:(NSDictionary *)breadcrumb)
 {
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        SentryBreadcrumb* breadcrumbInstance = [[SentryBreadcrumb alloc] init];
-
-        NSString * levelString = breadcrumb[@"level"];
-        SentryLevel sentryLevel;
-        if ([levelString isEqualToString:@"fatal"]) {
-            sentryLevel = kSentryLevelFatal;
-        } else if ([levelString isEqualToString:@"warning"]) {
-            sentryLevel = kSentryLevelWarning;
-        } else if ([levelString isEqualToString:@"error"]) {
-            sentryLevel = kSentryLevelError;
-        } else if ([levelString isEqualToString:@"debug"]) {
-            sentryLevel = kSentryLevelDebug;
-        } else {
-            sentryLevel = kSentryLevelInfo;
-        }
-        [breadcrumbInstance setLevel:sentryLevel];
-
-        [breadcrumbInstance setCategory:breadcrumb[@"category"]];
-
-        [breadcrumbInstance setType:breadcrumb[@"type"]];
-
-        [breadcrumbInstance setMessage:breadcrumb[@"message"]];
-
-        [breadcrumbInstance setData:breadcrumb[@"data"]];
-
-        [scope addBreadcrumb:breadcrumbInstance];
+        [scope addBreadcrumb:[RNSentryBreadcrumb from:breadcrumb]];
     }];
 }
 

@@ -6,6 +6,13 @@ import type { NativeFramesResponse } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';
 import { instrumentChildSpanFinish } from './utils';
 
+/**
+ * Timeout from the final native frames fetch to processing the associated transaction.
+ * If the transaction is not processed by this time, the native frames will be dropped
+ * and not added to the event.
+ */
+const FINAL_FRAMES_TIMEOUT_MS = 2000;
+
 export interface FramesMeasurements extends Measurements {
   frames_total: { value: number; unit: MeasurementUnit };
   frames_slow: { value: number; unit: MeasurementUnit };
@@ -45,14 +52,24 @@ export class NativeFramesInstrumentation {
    * Logs the native frames at this start point and instruments child span finishes.
    */
   public onTransactionStart(transaction: Transaction): void {
+    logger.debug(`[NativeFrames] Fetching frames for root span start (${transaction.spanContext().spanId}).`);
     void NATIVE.fetchNativeFrames()
       .then(framesMetrics => {
         if (framesMetrics) {
           transaction.setData('__startFrames', framesMetrics);
+        } else {
+          logger.warn(
+            `[NativeFrames] Fetched frames for root span start (${
+              transaction.spanContext().spanId
+            }), but no frames were returned.`,
+          );
         }
       })
       .then(undefined, error => {
-        logger.error(`[ReactNativeTracing] Error while fetching native frames: ${error}`);
+        logger.error(
+          `[NativeFrames] Error while fetching frames for root span start (${transaction.spanContext().spanId})`,
+          error,
+        );
       });
 
     instrumentChildSpanFinish(transaction, (_: Span, endTimestamp?: number) => {
@@ -66,8 +83,11 @@ export class NativeFramesInstrumentation {
    * To be called when a transaction is finished
    */
   public onTransactionFinish(transaction: Transaction): void {
-    this._fetchFramesForTransaction(transaction).then(undefined, (reason: unknown) => {
-      logger.error(`[ReactNativeTracing] Error while fetching native frames:`, reason);
+    this._fetchEndFramesForTransaction(transaction).then(undefined, (reason: unknown) => {
+      logger.error(
+        `[NativeFrames] Error while fetching frames for root span start (${transaction.spanContext().spanId})`,
+        reason,
+      );
     });
   }
 
@@ -88,7 +108,7 @@ export class NativeFramesInstrumentation {
         }
       })
       .then(undefined, error => {
-        logger.error(`[ReactNativeTracing] Error while fetching native frames: ${error}`);
+        logger.error(`[NativeFrames] Error while fetching frames for child span end.`, error);
       });
   }
 
@@ -101,17 +121,20 @@ export class NativeFramesInstrumentation {
     startFrames: NativeFramesResponse,
   ): Promise<FramesMeasurements | null> {
     if (_finishFrames.has(traceId)) {
+      logger.debug(`[NativeFrames] Native end frames already fetched for trace id (${traceId}).`);
       return this._prepareMeasurements(traceId, finalEndTimestamp, startFrames);
     }
 
     return new Promise(resolve => {
       const timeout = setTimeout(() => {
+        logger.debug(`[NativeFrames] Native end frames listener removed by timeout for trace id (${traceId}).`);
         _framesListeners.delete(traceId);
 
         resolve(null);
       }, 2000);
 
       _framesListeners.set(traceId, () => {
+        logger.debug(`[NativeFrames] Native end frames listener called for trace id (${traceId}).`);
         resolve(this._prepareMeasurements(traceId, finalEndTimestamp, startFrames));
 
         clearTimeout(timeout);
@@ -137,6 +160,7 @@ export class NativeFramesInstrumentation {
       // Must be in the margin of error of the actual transaction finish time (finalEndTimestamp)
       Math.abs(finish.timestamp - finalEndTimestamp) < MARGIN_OF_ERROR_SECONDS
     ) {
+      logger.debug(`[NativeFrames] Using frames from root span end (traceId, ${traceId}).`);
       finalFinishFrames = finish.nativeFrames;
     } else if (
       this._lastSpanFinishFrames &&
@@ -144,8 +168,12 @@ export class NativeFramesInstrumentation {
     ) {
       // Fallback to the last span finish if it is within the margin of error of the actual finish timestamp.
       // This should be the case for trimEnd.
+      logger.debug(`[NativeFrames] Using native frames from last span end (traceId, ${traceId}).`);
       finalFinishFrames = this._lastSpanFinishFrames.nativeFrames;
     } else {
+      logger.warn(
+        `[NativeFrames] Frames were collected within larger than margin of error delay for traceId (${traceId}). Dropping the inaccurate values.`,
+      );
       return null;
     }
 
@@ -164,13 +192,24 @@ export class NativeFramesInstrumentation {
       },
     };
 
+    if (
+      measurements.frames_frozen.value <= 0 &&
+      measurements.frames_slow.value <= 0 &&
+      measurements.frames_total.value <= 0
+    ) {
+      logger.warn(
+        `[NativeFrames] Detected zero slow or frozen frames. Not adding measurements to traceId (${traceId}).`,
+      );
+      return null;
+    }
+
     return measurements;
   }
 
   /**
    * Fetch finish frames for a transaction at the current time. Calls any awaiting listeners.
    */
-  private async _fetchFramesForTransaction(transaction: Transaction): Promise<void> {
+  private async _fetchEndFramesForTransaction(transaction: Transaction): Promise<void> {
     const startFrames = transaction.data.__startFrames as NativeFramesResponse | undefined;
 
     // This timestamp marks when the finish frames were retrieved. It should be pretty close to the transaction finish.
@@ -187,13 +226,13 @@ export class NativeFramesInstrumentation {
 
     _framesListeners.get(transaction.traceId)?.();
 
-    setTimeout(() => this._cancelFinishFrames(transaction), 2000);
+    setTimeout(() => this._cancelEndFrames(transaction), FINAL_FRAMES_TIMEOUT_MS);
   }
 
   /**
    * On a finish frames failure, we cancel the await.
    */
-  private _cancelFinishFrames(transaction: Transaction): void {
+  private _cancelEndFrames(transaction: Transaction): void {
     if (_finishFrames.has(transaction.traceId)) {
       _finishFrames.delete(transaction.traceId);
 
@@ -222,6 +261,12 @@ export class NativeFramesInstrumentation {
 
       const traceId = traceContext.trace_id;
 
+      if (!traceContext.data?.__startFrames) {
+        logger.warn(
+          `[NativeFrames] Start frames of transaction ${event.transaction} (eventId, ${event.event_id}) are missing, but it already ended.`,
+        );
+      }
+
       if (traceId && traceContext.data?.__startFrames && event.timestamp) {
         const measurements = await this._getFramesMeasurements(
           traceId,
@@ -229,11 +274,7 @@ export class NativeFramesInstrumentation {
           traceContext.data.__startFrames as NativeFramesResponse,
         );
 
-        if (!measurements) {
-          logger.log(
-            `[NativeFrames] Could not fetch native frames for ${traceContext.op} transaction ${event.transaction}. Not adding native frames measurements.`,
-          );
-        } else {
+        if (measurements) {
           logger.log(
             `[Measurements] Adding measurements to ${traceContext.op} transaction ${
               event.transaction

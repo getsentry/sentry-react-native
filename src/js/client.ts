@@ -108,13 +108,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   }
 
   /**
-   * Sets up the integrations
-   */
-  public setupIntegrations(): void {
-    super.setupIntegrations();
-  }
-
-  /**
    * @inheritDoc
    */
   public init(): void {
@@ -123,7 +116,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   }
 
   /**
-   * @inheritdoc
+   * Sets up the integrations
    */
   protected _setupIntegrations(): void {
     super._setupIntegrations();
