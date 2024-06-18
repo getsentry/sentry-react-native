@@ -33,6 +33,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "7.1.6",
+    "@sentry/babel-plugin-component-annotate": "^2.18.0",
     "@types/node": "20.10.4"
   },
   "overrides": {
