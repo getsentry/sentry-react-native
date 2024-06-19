@@ -239,6 +239,10 @@ function BottomTabs() {
 }
 
 function RunningIndicator() {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
+    return null;
+  }
+
   const sv = useSharedValue<number>(0);
 
   React.useEffect(() => {
