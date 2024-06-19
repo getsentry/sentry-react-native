@@ -37,7 +37,13 @@
 
 #import "RNSentryEvents.h"
 #import "RNSentryDependencyContainer.h"
+
+#if SENTRY_HAS_UIKIT && !TARGET_OS_VISION
+#define SENTRY_TARGET_REPLAY_SUPPORTED 1 // TODO update after https://github.com/getsentry/sentry-cocoa/pull/4089
 #import "RNSentrySessionReplay.h"
+#else
+#define SENTRY_TARGET_REPLAY_SUPPORTED 0
+#endif
 
 #if SENTRY_HAS_UIKIT
 #import "RNSentryRNSScreen.h"
@@ -92,7 +98,9 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 
     [SentrySDK startWithOptions:sentryOptions];
 
-    [RNSentrySessionReplay setup];
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    [RNSentrySessionReplay postInit];
+#endif
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     BOOL appIsActive = [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
@@ -138,27 +146,9 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [mutableOptions removeObjectForKey:@"tracesSampler"];
     [mutableOptions removeObjectForKey:@"enableTracing"];
 
-    if ([mutableOptions valueForKey:@"_experiments"] != nil) {
-      NSDictionary *experiments = mutableOptions[@"_experiments"];
-      if (experiments[@"replaysSessionSampleRate"] != nil || experiments[@"replaysOnErrorSampleRate"] != nil) {
-        [mutableOptions setValue:@{
-          @"sessionReplay": @{
-            @"sessionSampleRate": experiments[@"replaysSessionSampleRate"] ?: [NSNull null],
-            @"errorSampleRate": experiments[@"replaysOnErrorSampleRate"] ?: [NSNull null],
-            @"redactAllImages": mutableOptions[@"mobileReplayOptions"] != nil &&
-              mutableOptions[@"mobileReplayOptions"][@"maskAllImages"] != nil
-                ? mutableOptions[@"mobileReplayOptions"][@"maskAllImages"]
-                : [NSNull null],
-            @"redactAllText": mutableOptions[@"mobileReplayOptions"] != nil &&
-              mutableOptions[@"mobileReplayOptions"][@"maskAllText"] != nil
-                ? mutableOptions[@"mobileReplayOptions"][@"maskAllText"]
-                : [NSNull null],
-          }
-        } forKey:@"experimental"];
-        [self addReplayRNRedactClasses: mutableOptions[@"mobileReplayOptions"]];
-      }
-      [mutableOptions removeObjectForKey:@"_experiments"];
-    }
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    [RNSentrySessionReplay updateOptions:mutableOptions];
+#endif
 
     SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:errorPointer];
     if (*errorPointer != nil) {
@@ -638,25 +628,21 @@ RCT_EXPORT_METHOD(captureReplay: (BOOL)isHardCrash
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+#if SENTRY_TARGET_REPLAY_SUPPORTED
   [PrivateSentrySDKOnly captureReplay];
   resolve([PrivateSentrySDKOnly getReplayId]);
+#else
+  resolve(nil);
+#endif
 }
 
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentReplayId)
 {
+#if SENTRY_TARGET_REPLAY_SUPPORTED
   return [PrivateSentrySDKOnly getReplayId];
-}
-
-- (void) addReplayRNRedactClasses: (NSDictionary *_Nullable)replayOptions
-{
-  NSMutableArray *_Nonnull classesToRedact = [[NSMutableArray alloc] init];
-  if ([replayOptions[@"maskAllImages"] boolValue] == YES) {
-    [classesToRedact addObject: NSClassFromString(@"RCTImageView")];
-  }
-  if ([replayOptions[@"maskAllText"] boolValue] == YES) {
-    [classesToRedact addObject: NSClassFromString(@"RCTTextView")];
-  }
-  [PrivateSentrySDKOnly addReplayRedactClasses: classesToRedact];
+#else
+  return nil;
+#endif
 }
 
 static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";

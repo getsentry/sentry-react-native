@@ -1,6 +1,8 @@
 
 @interface RNSentrySessionReplay : NSObject
 
-+ (void)setup;
++ (void)updateOptions:(NSMutableDictionary *)options;
+
++ (void)postInit;
 
 @end
