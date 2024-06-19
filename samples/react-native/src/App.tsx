@@ -5,8 +5,14 @@ import {
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createStackNavigator } from '@react-navigation/stack';
-
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
@@ -22,7 +28,7 @@ import { Provider } from 'react-redux';
 import { store } from './reduxApp';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
@@ -227,13 +233,49 @@ function BottomTabs() {
           }}
         />
       </Tab.Navigator>
+      <RunningIndicator />
     </NavigationContainer>
+  );
+}
+
+function RunningIndicator() {
+  const sv = useSharedValue<number>(0);
+
+  React.useEffect(() => {
+    sv.value = withRepeat(
+      withTiming(360, {
+        duration: 1_000_000,
+        easing: Easing.linear,
+      }),
+      -1,
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${sv.value * 360}deg` }],
+  }));
+
+  return (
+    <View style={styles.container}>
+      <Animated.View style={[styles.box, animatedStyle]} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
+  },
+  container: {
+    position: 'absolute',
+    left: 30,
+    top: 30,
+  },
+  box: {
+    height: 50,
+    width: 50,
+    backgroundColor: '#b58df1',
+    borderRadius: 5,
   },
 });
 
