@@ -2687,7 +2687,7 @@ We are looking into ways making this more stable and plan to re-enable it again 
 
 ## v0.23.2
 
-- Fixed #228 again ¯\\*(ツ)*/¯
+- Fixed #228 again ¯\\_(ツ)_/¯
 
 ## v0.23.1
 
