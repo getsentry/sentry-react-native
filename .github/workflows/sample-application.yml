@@ -91,6 +91,9 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         run: which xcbeautify || brew install xcbeautify
 
+      - run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+        if: ${{ matrix.platform == 'ios' }}
+
       - name: Install SDK Dependencies
         run: yarn install --frozen-lockfile
 
