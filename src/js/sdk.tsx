@@ -10,6 +10,7 @@ import * as React from 'react';
 
 import { ReactNativeClient } from './client';
 import { getDefaultIntegrations } from './integrations/default';
+import { setIsolationScopeAsGlobal, setReactNativeDefaultIsolationScope } from './mobileScopes';
 import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { shouldEnableNativeNagger } from './options';
 import { TouchEventBoundary } from './touchevents';
@@ -44,6 +45,8 @@ export function init(passedOptions: ReactNativeOptions): void {
   }
 
   useEncodePolyfill();
+  setReactNativeDefaultIsolationScope();
+  setIsolationScopeAsGlobal();
 
   const maxQueueSize = passedOptions.maxQueueSize
     // eslint-disable-next-line deprecation/deprecation
