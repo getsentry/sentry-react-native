@@ -44,7 +44,7 @@ export type CodeFrame = Readonly<{
 export type SymbolicatedStackTrace = Readonly<{
   stack: Array<StackFrame>;
   codeFrame?: CodeFrame;
-}>;
+}> | Array<StackFrame>;
 
 // Adapted from https://github.com/facebook/react-native/blob/d09c02f9e2d468e4d0bde51890e312ae7003a3e6/packages/react-native/Libraries/Core/Devtools/getDevServer.js#L17
 export type DevServerInfo = {

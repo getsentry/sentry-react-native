@@ -72,7 +72,7 @@ async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promi
     }
 
     // This has been changed in an react-native version so stack is contained in here
-    const newStack = prettyStack.stack || prettyStack;
+    const newStack = 'stack' in prettyStack ? prettyStack.stack : prettyStack;
 
     // https://github.com/getsentry/sentry-javascript/blob/739d904342aaf9327312f409952f14ceff4ae1ab/packages/utils/src/stacktrace.ts#L23
     // Match SentryParser which counts lines of stack (-1 for first line with the Error message)

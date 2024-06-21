@@ -287,27 +287,27 @@ export class ReactNativeTracing implements Integration {
   public startUserInteractionSpan(userInteractionId: { elementId: string | undefined; op: string }): Span | undefined {
     const client = this._client;
     if (!client) {
-      return;
+      return undefined;
     }
 
     const { elementId, op } = userInteractionId;
     if (!this.options.enableUserInteractionTracing) {
       logger.log('[ReactNativeTracing] User Interaction Tracing is disabled.');
-      return;
+      return undefined;
     }
     if (!this.options.routingInstrumentation) {
       logger.error(
         '[ReactNativeTracing] User Interaction Tracing is not working because no routing instrumentation is set.',
       );
-      return;
+      return undefined;
     }
     if (!elementId) {
       logger.log('[ReactNativeTracing] User Interaction Tracing can not create transaction with undefined elementId.');
-      return;
+      return undefined;
     }
     if (!this._currentRoute) {
       logger.log('[ReactNativeTracing] User Interaction Tracing can not create transaction without a current route.');
-      return;
+      return undefined;
     }
 
     const activeTransaction = getActiveSpan();
@@ -321,7 +321,7 @@ export class ReactNativeTracing implements Integration {
           spanToJSON(activeTransaction).description
         } exists on the scope.`,
       );
-      return;
+      return undefined;
     }
 
     const name = `${this._currentRoute}.${elementId}`;
@@ -335,7 +335,7 @@ export class ReactNativeTracing implements Integration {
           spanToJSON(this._inflightInteractionTransaction).description
         } already exists on the scope.`,
       );
-      return;
+      return undefined;
     }
 
     if (this._inflightInteractionTransaction) {
