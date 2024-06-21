@@ -243,6 +243,10 @@ function RunningIndicator() {
     return null;
   }
 
+  return <RotatingBox />;
+}
+
+function RotatingBox() {
   const sv = useSharedValue<number>(0);
 
   React.useEffect(() => {
