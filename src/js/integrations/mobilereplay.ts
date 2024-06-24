@@ -5,6 +5,7 @@ import { isHardCrash } from '../misc';
 import { hasHooks } from '../utils/clientutils';
 import { isExpoGo, notMobileOs } from '../utils/environment';
 import { NATIVE } from '../wrapper';
+import { enrichNetworkBreadcrumbsForMobileReplay } from './mobilereplayutils';
 
 export const MOBILE_REPLAY_INTEGRATION_NAME = 'MobileReplay';
 
@@ -103,6 +104,8 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
         dsc.replay_id = currentReplayId;
       }
     });
+
+    client.on('beforeAddBreadcrumb', enrichNetworkBreadcrumbsForMobileReplay)
   }
 
   // TODO: When adding manual API, ensure overlap with the web replay so users can use the same API interchangeably
