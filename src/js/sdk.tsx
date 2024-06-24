@@ -44,10 +44,6 @@ export function init(passedOptions: ReactNativeOptions): void {
     return;
   }
 
-  useEncodePolyfill();
-  enableSyncToNative(getGlobalScope());
-  enableSyncToNative(getIsolationScope());
-
   const maxQueueSize = passedOptions.maxQueueSize
     // eslint-disable-next-line deprecation/deprecation
     ?? passedOptions.transportOptions?.bufferSize
@@ -56,6 +52,13 @@ export function init(passedOptions: ReactNativeOptions): void {
   const enableNative = passedOptions.enableNative === undefined || passedOptions.enableNative
     ? NATIVE.isNativeAvailable()
     : false;
+
+  useEncodePolyfill();
+  if (enableNative) {
+    enableSyncToNative(getGlobalScope());
+    enableSyncToNative(getIsolationScope());
+  }
+
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,

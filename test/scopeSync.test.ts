@@ -108,45 +108,92 @@ describe('ScopeSync', () => {
   });
 
   describe('static apis', () => {
+    let setUserScopeSpy: jest.SpyInstance;
+    let setTagScopeSpy: jest.SpyInstance;
+    let setTagsScopeSpy: jest.SpyInstance;
+    let setExtraScopeSpy: jest.SpyInstance;
+    let setExtrasScopeSpy: jest.SpyInstance;
+    let addBreadcrumbScopeSpy: jest.SpyInstance;
+    let setContextScopeSpy: jest.SpyInstance;
+
+    beforeAll(() => {
+      const testScope = SentryCore.getIsolationScope();
+      setUserScopeSpy = jest.spyOn(testScope, 'setUser');
+      setTagScopeSpy = jest.spyOn(testScope, 'setTag');
+      setTagsScopeSpy = jest.spyOn(testScope, 'setTags');
+      setExtraScopeSpy = jest.spyOn(testScope, 'setExtra');
+      setExtrasScopeSpy = jest.spyOn(testScope, 'setExtras');
+      addBreadcrumbScopeSpy = jest.spyOn(testScope, 'addBreadcrumb');
+      setContextScopeSpy = jest.spyOn(testScope, 'setContext');
+    });
+
     beforeEach(() => {
       SentryCore.setCurrentClient(new TestClient(getDefaultTestClientOptions()));
       enableSyncToNative(SentryCore.getIsolationScope());
     });
 
     it('setUser', () => {
+      expect(SentryCore.getIsolationScope().setUser).not.toBe(setUserScopeSpy);
+
       const user = { id: '123' };
       SentryCore.setUser(user);
       expect(NATIVE.setUser).toHaveBeenCalledExactlyOnceWith({ id: '123' });
+      expect(setUserScopeSpy).toHaveBeenCalledExactlyOnceWith({ id: '123' });
     });
 
     it('setTag', () => {
+      expect(SentryCore.getIsolationScope().setTag).not.toBe(setTagScopeSpy);
+
       SentryCore.setTag('key', 'value');
       expect(NATIVE.setTag).toHaveBeenCalledExactlyOnceWith('key', 'value');
+      expect(setTagScopeSpy).toHaveBeenCalledExactlyOnceWith('key', 'value');
     });
 
     it('setTags', () => {
-      SentryCore.setTags({ key: 'value' });
-      expect(NATIVE.setTag).toHaveBeenCalledExactlyOnceWith('key', 'value');
+      expect(SentryCore.getIsolationScope().setTags).not.toBe(setTagsScopeSpy);
+
+      SentryCore.setTags({ key: 'value', second: 'bar' });
+      expect(NATIVE.setTag).toBeCalledTimes(2);
+      expect(NATIVE.setTag).toHaveBeenCalledWith('key', 'value');
+      expect(NATIVE.setTag).toHaveBeenCalledWith('second', 'bar');
+      expect(setTagsScopeSpy).toHaveBeenCalledExactlyOnceWith({ key: 'value', second: 'bar' });
     });
 
     it('setExtra', () => {
+      expect(SentryCore.getIsolationScope().setExtra).not.toBe(setExtraScopeSpy);
+
       SentryCore.setExtra('key', 'value');
       expect(NATIVE.setExtra).toHaveBeenCalledExactlyOnceWith('key', 'value');
+      expect(setExtraScopeSpy).toHaveBeenCalledExactlyOnceWith('key', 'value');
     });
 
     it('setExtras', () => {
-      SentryCore.setExtras({ key: 'value' });
-      expect(NATIVE.setExtra).toHaveBeenCalledExactlyOnceWith('key', 'value');
+      expect(SentryCore.getIsolationScope().setExtras).not.toBe(setExtrasScopeSpy);
+
+      SentryCore.setExtras({ key: 'value', second: 'bar' });
+      expect(NATIVE.setExtra).toBeCalledTimes(2);
+      expect(NATIVE.setExtra).toHaveBeenCalledWith('key', 'value');
+      expect(NATIVE.setExtra).toHaveBeenCalledWith('second', 'bar');
+      expect(setExtrasScopeSpy).toHaveBeenCalledExactlyOnceWith({ key: 'value', second: 'bar' });
     });
 
     it('addBreadcrumb', () => {
+      expect(SentryCore.getIsolationScope().addBreadcrumb).not.toBe(addBreadcrumbScopeSpy);
+
       SentryCore.addBreadcrumb({ message: 'test' });
       expect(NATIVE.addBreadcrumb).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'test' }));
+      expect(addBreadcrumbScopeSpy).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ message: 'test' }),
+        expect.any(Number),
+      );
     });
 
     it('setContext', () => {
+      expect(SentryCore.getIsolationScope().setContext).not.toBe(setContextScopeSpy);
+
       SentryCore.setContext('key', { key: 'value' });
       expect(NATIVE.setContext).toHaveBeenCalledExactlyOnceWith('key', { key: 'value' });
+      expect(setContextScopeSpy).toHaveBeenCalledExactlyOnceWith('key', { key: 'value' });
     });
   });
 });
