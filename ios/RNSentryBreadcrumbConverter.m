@@ -54,9 +54,6 @@
     }
 
     NSMutableDictionary* data = [[NSMutableDictionary alloc] init];
-    if ([breadcrumb.data[@"status_code"] isKindOfClass:[NSString class]]) {
-      data[@"status_code"] = breadcrumb.data[@"status_code"];
-    }
     if ([breadcrumb.data[@"method"] isKindOfClass:[NSString class]]) {
       data[@"method"] = breadcrumb.data[@"method"];
     }
