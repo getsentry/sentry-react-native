@@ -1,18 +1,18 @@
 /* eslint-disable complexity */
-import { getClient, getIntegrationsToSetup, initAndBind, withScope as coreWithScope } from '@sentry/core';
+import { getClient, getGlobalScope,getIntegrationsToSetup, getIsolationScope,initAndBind, withScope as coreWithScope } from '@sentry/core';
 import {
   defaultStackParser,
   makeFetchTransport,
 } from '@sentry/react';
-import type { Integration, Scope, UserFeedback } from '@sentry/types';
+import type { Integration, Scope,UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
 import { ReactNativeClient } from './client';
 import { getDefaultIntegrations } from './integrations/default';
-import { setIsolationScopeAsGlobal, setReactNativeDefaultIsolationScope } from './mobileScopes';
 import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { shouldEnableNativeNagger } from './options';
+import { enableSyncToNative } from './scopeSync';
 import { TouchEventBoundary } from './touchevents';
 import type { ReactNativeTracing } from './tracing';
 import { ReactNativeProfiler } from './tracing';
@@ -45,8 +45,8 @@ export function init(passedOptions: ReactNativeOptions): void {
   }
 
   useEncodePolyfill();
-  setReactNativeDefaultIsolationScope();
-  setIsolationScopeAsGlobal();
+  enableSyncToNative(getGlobalScope());
+  enableSyncToNative(getIsolationScope());
 
   const maxQueueSize = passedOptions.maxQueueSize
     // eslint-disable-next-line deprecation/deprecation

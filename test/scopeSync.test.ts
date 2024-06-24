@@ -1,22 +1,19 @@
+import { Scope } from '@sentry/core';
 import type { Breadcrumb } from '@sentry/types';
 
-import { ReactNativeScope } from '../src/js/scope';
+import { enableSyncToNative } from '../src/js/scopeSync';
 import { NATIVE } from '../src/js/wrapper';
 
 jest.mock('../src/js/wrapper');
 
-type TestScope = ReactNativeScope & { _breadcrumbs: Breadcrumb[] };
-const createScope = (): TestScope => {
-  return new ReactNativeScope() as TestScope;
-};
-
-describe('Scope', () => {
+describe('ScopeSync', () => {
   describe('addBreadcrumb', () => {
-    let scope: TestScope;
+    let scope: Scope;
     let nativeAddBreadcrumbMock: jest.Mock;
 
     beforeEach(() => {
-      scope = createScope();
+      scope = new Scope();
+      enableSyncToNative(scope);
       nativeAddBreadcrumbMock = (NATIVE.addBreadcrumb as jest.Mock).mockImplementationOnce(() => {
         return;
       });
@@ -32,13 +29,13 @@ describe('Scope', () => {
         timestamp: 1234,
       };
       scope.addBreadcrumb(breadcrumb);
-      expect(scope._breadcrumbs).toEqual([
+      expect(scope.getLastBreadcrumb()).toEqual(
         {
           message: 'test',
           timestamp: 1234,
           level: 'info',
         },
-      ]);
+      );
     });
 
     it('adds timestamp to breadcrumb without timestamp', () => {
@@ -46,7 +43,7 @@ describe('Scope', () => {
         message: 'test',
       };
       scope.addBreadcrumb(breadcrumb);
-      expect(scope._breadcrumbs).toEqual([expect.objectContaining(<Breadcrumb>{ timestamp: expect.any(Number) })]);
+      expect(scope.getLastBreadcrumb()).toEqual(expect.objectContaining(<Breadcrumb>{ timestamp: expect.any(Number) }));
     });
 
     it('passes breadcrumb with timestamp to native', () => {
