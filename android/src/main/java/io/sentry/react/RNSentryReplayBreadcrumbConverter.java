@@ -8,6 +8,7 @@ import io.sentry.rrweb.RRWebSpanEvent;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.HashMap;
 
@@ -27,12 +28,14 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
       return convertNetworkBreadcrumb(breadcrumb);
     }
     if (breadcrumb.getCategory().equals("http")) {
+      // Drop native http breadcrumbs to avoid duplicates
       return null;
     }
     return super.convert(breadcrumb);
   }
 
-  private @NotNull RRWebEvent convertTouchBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
+  @TestOnly
+  public @NotNull RRWebEvent convertTouchBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
     final RRWebBreadcrumbEvent rrWebBreadcrumb = new RRWebBreadcrumbEvent();
     assert rrWebBreadcrumb.getCategory() == null;
     rrWebBreadcrumb.setCategory("ui.tap");
@@ -47,7 +50,8 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     return rrWebBreadcrumb;
   }
 
-  private @Nullable RRWebEvent convertNetworkBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
+  @TestOnly
+  public @Nullable RRWebEvent convertNetworkBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
     final Double startTimestamp = breadcrumb.getData("start_timestamp") instanceof Number
             ? (Double) breadcrumb.getData("start_timestamp") : null;
     final Double endTimestamp = breadcrumb.getData("end_timestamp") instanceof Number
