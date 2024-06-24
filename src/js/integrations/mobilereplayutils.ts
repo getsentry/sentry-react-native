@@ -1,13 +1,14 @@
 import type { Breadcrumb, BreadcrumbHint,SentryWrappedXMLHttpRequest, XhrBreadcrumbHint } from '@sentry/types';
 import { dropUndefinedKeys } from '@sentry/utils';
 
+import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { utf8ToBytes } from '../vendor';
 
 /**
  *
  */
 export function enrichNetworkBreadcrumbsForMobileReplay(breadcrumb: Breadcrumb, hint: BreadcrumbHint | undefined): void {
-  if (breadcrumb.type !== 'xhr' || !hint) {
+  if (breadcrumb.category !== 'xhr' || !hint) {
     return;
   }
 
@@ -48,7 +49,7 @@ export function getBodySize(body: RequestBody): number | undefined {
   }
 
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  const encode = global.TextEncoder ? (new TextEncoder()).encode : utf8ToBytes;
+  const encode = RN_GLOBAL_OBJ.TextEncoder ? (new RN_GLOBAL_OBJ.TextEncoder()).encode : utf8ToBytes;
 
   try {
     if (typeof body === 'string') {
