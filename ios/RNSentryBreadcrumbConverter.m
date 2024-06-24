@@ -58,13 +58,13 @@
       data[@"method"] = breadcrumb.data[@"method"];
     }
     if ([breadcrumb.data[@"status_code"] isKindOfClass:[NSNumber class]]) {
-      data[@"status_code"] = breadcrumb.data[@"status_code"];
+      data[@"statusCode"] = breadcrumb.data[@"status_code"];
     }
     if ([breadcrumb.data[@"request_body_size"] isKindOfClass:[NSNumber class]]) {
-      data[@"request_content_length"] = breadcrumb.data[@"request_body_size"];
+      data[@"requestBodySize"] = breadcrumb.data[@"request_body_size"];
     }
     if ([breadcrumb.data[@"response_body_size"] isKindOfClass:[NSNumber class]]) {
-      data[@"response_content_length"] = breadcrumb.data[@"response_body_size"];
+      data[@"responseBodySize"] = breadcrumb.data[@"response_body_size"];
     }
 
     return [SentrySessionReplayIntegration

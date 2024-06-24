@@ -17,59 +17,71 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
 
   @Override
   public @Nullable RRWebEvent convert(final @NotNull Breadcrumb breadcrumb) {
+    if (breadcrumb.getCategory() == null) {
+      return null;
+    }
     if (breadcrumb.getCategory().equals("touch")) {
-      RRWebBreadcrumbEvent rrwebBreadcrumb = new RRWebBreadcrumbEvent();
-      assert rrwebBreadcrumb.getCategory() == null;
-      rrwebBreadcrumb.setCategory("ui.tap");
-      Object target = breadcrumb.getData("target");
-      if (target != null) {
-        rrwebBreadcrumb.setMessage(target.toString());
-      }
-      rrwebBreadcrumb.setData(breadcrumb.getData());
-      rrwebBreadcrumb.setTimestamp(breadcrumb.getTimestamp().getTime());
-      rrwebBreadcrumb.setBreadcrumbTimestamp(breadcrumb.getTimestamp().getTime() / 1000.0);
-      rrwebBreadcrumb.setBreadcrumbType("default");
-      return rrwebBreadcrumb;
-    } else if (breadcrumb.getCategory().equals("xhr")) {
-      Double startTimestamp = breadcrumb.getData("start_timestamp") instanceof Number
-        ? (Double) breadcrumb.getData("start_timestamp") : null;
-      Double endTimestamp = breadcrumb.getData("end_timestamp") instanceof Number
-              ? (Double) breadcrumb.getData("end_timestamp") : null;
-      String url = breadcrumb.getData("url") instanceof String
-              ? (String) breadcrumb.getData("url") : null;
+      return convertTouchBreadcrumb(breadcrumb);
+    }
+    if (breadcrumb.getCategory().equals("xhr")) {
+      return convertNetworkBreadcrumb(breadcrumb);
+    }
+    if (breadcrumb.getCategory().equals("http")) {
+      return null;
+    }
+    return super.convert(breadcrumb);
+  }
 
-      if (startTimestamp == null || endTimestamp == null || url == null) {
-        return null;
-      }
+  private @NotNull RRWebEvent convertTouchBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
+    final RRWebBreadcrumbEvent rrWebBreadcrumb = new RRWebBreadcrumbEvent();
+    assert rrWebBreadcrumb.getCategory() == null;
+    rrWebBreadcrumb.setCategory("ui.tap");
+    final Object target = breadcrumb.getData("target");
+    if (target != null) {
+      rrWebBreadcrumb.setMessage(target.toString());
+    }
+    rrWebBreadcrumb.setData(breadcrumb.getData());
+    rrWebBreadcrumb.setTimestamp(breadcrumb.getTimestamp().getTime());
+    rrWebBreadcrumb.setBreadcrumbTimestamp(breadcrumb.getTimestamp().getTime() / 1000.0);
+    rrWebBreadcrumb.setBreadcrumbType("default");
+    return rrWebBreadcrumb;
+  }
 
-      HashMap<String, Object> data = new HashMap<>();
-      if (breadcrumb.getData("method") instanceof String) {
-        data.put("method", breadcrumb.getData("method"));
-      }
-      if (breadcrumb.getData("status_code") instanceof Double) {
-        Double statusCode = (Double) breadcrumb.getData("status_code");
-        if (statusCode > 0) {
-          data.put("status_code", breadcrumb.getData("status_code"));
-        }
-      }
-      if (breadcrumb.getData("request_body_size") instanceof Double) {
-        data.put("request_content_length", breadcrumb.getData("request_body_size"));
-      }
-      if (breadcrumb.getData("response_body_size") instanceof Double) {
-        data.put("response_content_length", breadcrumb.getData("response_body_size"));
-      }
+  private @Nullable RRWebEvent convertNetworkBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
+    final Double startTimestamp = breadcrumb.getData("start_timestamp") instanceof Number
+            ? (Double) breadcrumb.getData("start_timestamp") : null;
+    final Double endTimestamp = breadcrumb.getData("end_timestamp") instanceof Number
+            ? (Double) breadcrumb.getData("end_timestamp") : null;
+    final String url = breadcrumb.getData("url") instanceof String
+            ? (String) breadcrumb.getData("url") : null;
 
-      RRWebSpanEvent rrWebSpanEvent = new RRWebSpanEvent();
-      rrWebSpanEvent.setOp("resource.http");
-      rrWebSpanEvent.setStartTimestamp(startTimestamp / 1000.0);
-      rrWebSpanEvent.setEndTimestamp(endTimestamp / 1000.0);
-      rrWebSpanEvent.setDescription(url);
-      rrWebSpanEvent.setData(data);
-      return rrWebSpanEvent;
-    } else if (breadcrumb.getCategory().equals("http")) {
+    if (startTimestamp == null || endTimestamp == null || url == null) {
       return null;
     }
 
-    return super.convert(breadcrumb);
+    final HashMap<String, Object> data = new HashMap<>();
+    if (breadcrumb.getData("method") instanceof String) {
+      data.put("method", breadcrumb.getData("method"));
+    }
+    if (breadcrumb.getData("status_code") instanceof Double) {
+      final Double statusCode = (Double) breadcrumb.getData("status_code");
+      if (statusCode > 0) {
+        data.put("statusCode", statusCode.intValue());
+      }
+    }
+    if (breadcrumb.getData("request_body_size") instanceof Double) {
+      data.put("requestBodySize", breadcrumb.getData("request_body_size"));
+    }
+    if (breadcrumb.getData("response_body_size") instanceof Double) {
+      data.put("responseBodySize", breadcrumb.getData("response_body_size"));
+    }
+
+    final RRWebSpanEvent rrWebSpanEvent = new RRWebSpanEvent();
+    rrWebSpanEvent.setOp("resource.http");
+    rrWebSpanEvent.setStartTimestamp(startTimestamp / 1000.0);
+    rrWebSpanEvent.setEndTimestamp(endTimestamp / 1000.0);
+    rrWebSpanEvent.setDescription(url);
+    rrWebSpanEvent.setData(data);
+    return rrWebSpanEvent;
   }
 }
