@@ -238,29 +238,24 @@ describe('TouchEventBoundary._onTouchStart', () => {
             displayName: 'Text',
           },
           return: {
-            elementType: {
-              displayName: 'Text',
+            memoizedProps: {
+              'custom-sentry-label-name': 'Connect(View)',
+              'data-sentry-component': 'MyView',
+              'data-sentry-element': 'unknown', // should be ignored
+              'data-sentry-source-file': 'myview.tsx',
             },
             return: {
-              memoizedProps: {
-                'custom-sentry-label-name': 'Connect(View)',
-                'data-sentry-component': 'MyView',
-                'data-sentry-element': 'unknown', // should be ignored
-                'data-sentry-source-file': 'myview.tsx',
+              elementType: {
+                displayName: 'Styled(View)',
               },
               return: {
-                elementType: {
-                  displayName: 'Styled(View)',
-                },
-                return: {
-                  memoizedProps: {
-                    'data-sentry-component': 'Happy',
-                    'data-sentry-element': 'View',
-                    'data-sentry-source-file': 'happyview.js',
-                  },
+                memoizedProps: {
+                  'data-sentry-component': 'Happy',
+                  'data-sentry-element': 'View',
+                  'data-sentry-source-file': 'happyview.js',
                 },
               },
-            }
+            },
           },
         },
       },
@@ -282,6 +277,37 @@ describe('TouchEventBoundary._onTouchStart', () => {
       },
       level: 'info' as SeverityLevel,
       message: 'Touch event within element: Screen (screen.tsx)',
+      type: defaultProps.breadcrumbType,
+    });
+  });
+
+  it('deduplicates', () => {
+    const { defaultProps } = TouchEventBoundary;
+    const boundary = new TouchEventBoundary(defaultProps);
+
+    const event = {
+      _targetInst: {
+        elementType: {
+          displayName: 'Text',
+        },
+        return: {
+          elementType: {
+            displayName: 'Text',
+          },
+        },
+      },
+    };
+
+    // @ts-expect-error Calling private member
+    boundary._onTouchStart(event);
+
+    expect(addBreadcrumb).toBeCalledWith({
+      category: defaultProps.breadcrumbCategory,
+      data: {
+        path: [{ name: 'Text' }],
+      },
+      level: 'info' as SeverityLevel,
+      message: 'Touch event within element: Text',
       type: defaultProps.breadcrumbType,
     });
   });
