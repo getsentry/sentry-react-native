@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add network data to Session Replays ([#3912](https://github.com/getsentry/sentry-react-native/pull/3912))
+
 ## 5.23.0-alpha.1
 
 ### Fixes
