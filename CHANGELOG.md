@@ -2,6 +2,10 @@
 
 ## 5.23.0-alpha.1
 
+### Features
+
+- Add replay breadcrumbs for touch & navigation events ([#3846](https://github.com/getsentry/sentry-react-native/pull/3846))
+
 ### Fixes
 
 - Pass `replaysSessionSampleRate` option to Android ([#3714](https://github.com/getsentry/sentry-react-native/pull/3714))

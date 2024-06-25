@@ -98,10 +98,6 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 
     [SentrySDK startWithOptions:sentryOptions];
 
-#if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentrySessionReplay postInit];
-#endif
-
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     BOOL appIsActive = [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
 #else
@@ -116,6 +112,10 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 
         sentHybridSdkDidBecomeActive = true;
     }
+
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    [RNSentrySessionReplay postInit];
+#endif
 
     resolve(@YES);
 }
