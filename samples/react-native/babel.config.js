@@ -1,3 +1,5 @@
+const componentAnnotatePlugin = require('@sentry/babel-plugin-component-annotate');
+
 module.exports = {
   presets: ['module:@react-native/babel-preset'],
   plugins: [
@@ -9,5 +11,6 @@ module.exports = {
         },
       },
     ],
+    componentAnnotatePlugin,
   ],
 };
