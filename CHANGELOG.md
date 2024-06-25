@@ -648,7 +648,7 @@ This release is compatible with `expo@50.0.0-preview.6` and newer.
   });
   ```
 
-  Read more at <https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7690>
+  Read more at https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7690
 
 - Report current screen in `contexts.app.view_names` ([#3339](https://github.com/getsentry/sentry-react-native/pull/3339))
 
