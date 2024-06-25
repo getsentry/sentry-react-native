@@ -154,7 +154,7 @@ if (!sentryOrg || !sentryProject || !sentryUrl) {
       console.log(`${SENTRY_URL} resolved to ${sentryUrl} from expo config.`);
     }
     else {
-      sentryUrl = `ḧttps://sentry.io/`;
+      sentryUrl = `https://sentry.io/`;
       console.log(
         `Since it wasn't specified in the Expo config or environment variable, ${SENTRY_URL} now points to ${sentryUrl}.`
       );
