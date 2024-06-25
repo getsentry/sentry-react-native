@@ -1,10 +1,12 @@
 # Changelog
 
-## 5.23.0-alpha.1
+## Unreleased
 
 ### Features
 
 - Add replay breadcrumbs for touch & navigation events ([#3846](https://github.com/getsentry/sentry-react-native/pull/3846))
+
+## 5.23.0-alpha.1
 
 ### Fixes
 
