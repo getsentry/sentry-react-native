@@ -94,7 +94,7 @@ export function startTimeToInitialDisplaySpan(
   const activeSpan = getActiveSpan();
   if (!activeSpan) {
     logger.warn(`[TimeToDisplay] No active span found to attach ui.load.initial_display to.`);
-    return;
+    return undefined;
   }
 
   const existingSpan = getSpanDescendants(activeSpan).find((span) => spanToJSON(span).op === 'ui.load.initial_display');
@@ -111,7 +111,7 @@ export function startTimeToInitialDisplaySpan(
   });
 
   if (!initialDisplaySpan) {
-    return;
+    return undefined;
   }
 
   if (!options?.isAutoInstrumented) {
@@ -133,7 +133,7 @@ export function startTimeToFullDisplaySpan(
   const activeSpan = getActiveSpan();
   if (!activeSpan) {
     logger.warn(`[TimeToDisplay] No active span found to attach ui.load.full_display to.`);
-    return;
+    return undefined;
   }
 
   const descendantSpans = getSpanDescendants(activeSpan);
@@ -141,7 +141,7 @@ export function startTimeToFullDisplaySpan(
   const initialDisplaySpan = descendantSpans.find((span) => spanToJSON(span).op === 'ui.load.initial_display');
   if (!initialDisplaySpan) {
     logger.warn(`[TimeToDisplay] No initial display span found to attach ui.load.full_display to.`);
-    return;
+    return undefined;
   }
 
   const existingSpan = descendantSpans.find((span) => spanToJSON(span).op === 'ui.load.full_display');
@@ -157,7 +157,7 @@ export function startTimeToFullDisplaySpan(
     ...options,
   });
   if (!fullDisplaySpan) {
-    return;
+    return undefined;
   }
 
   const timeout = setTimeout(() => {
