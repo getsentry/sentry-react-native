@@ -89,6 +89,8 @@ import io.sentry.util.JsonSerializationUtils;
 import io.sentry.vendor.Base64;
 import io.sentry.util.FileUtils;
 
+import io.sentry.android.fragment.SentryFragmentLifecycleCallbacks;
+
 public class RNSentryModuleImpl {
 
     public static final String NAME = "RNSentry";
@@ -294,6 +296,23 @@ public class RNSentryModuleImpl {
                 currentActivityHolder.setActivity(currentActivity);
             }
         });
+
+        // TMP: Only to test how fragment navigation can show in Replays
+        // This is hacky solution to work with our sample, but in real app could happen when user initialize the app manually
+        final @Nullable FragmentActivity fragmentActivity = (FragmentActivity) getCurrentActivity();
+        if (fragmentActivity != null) {
+            final @Nullable FragmentManager supportFragmentManager = fragmentActivity.getSupportFragmentManager();
+            if (supportFragmentManager != null) {
+                supportFragmentManager.registerFragmentLifecycleCallbacks(
+                        new SentryFragmentLifecycleCallbacks(
+                                Sentry.getCurrentHub(),
+                                true,
+                                true
+                                ),
+                        true
+                );
+            }
+        }
 
         promise.resolve(true);
     }
