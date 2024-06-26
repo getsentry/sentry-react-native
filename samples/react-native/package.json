@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-sample",
-  "version": "5.24.0",
+  "version": "5.24.1",
   "private": true,
   "scripts": {
     "postinstall": "patch-package",
@@ -43,6 +43,7 @@
     "@react-native/eslint-config": "^0.73.1",
     "@react-native/metro-config": "^0.73.1",
     "@react-native/typescript-config": "^0.73.1",
+    "@sentry/babel-plugin-component-annotate": "^2.18.0",
     "@types/react": "^18.2.65",
     "@types/react-native-vector-icons": "^6.4.18",
     "@types/react-test-renderer": "^18.0.0",
