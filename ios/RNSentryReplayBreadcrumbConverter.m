@@ -62,11 +62,18 @@
                                 level:breadcrumb.level
                                  data:breadcrumb.data];
   } else {
-    SentryRRWebEvent* nativeBreadcrumb = [self->defaultConverter convertFrom:breadcrumb];
-      if ([nativeBreadcrumb.data[@"payload"][@"category"] isEqualToString:@"navigation"]) {
-          return nil;
-      }
-      return nativeBreadcrumb;
+    SentryRRWebEvent *nativeBreadcrumb =
+        [self->defaultConverter convertFrom:breadcrumb];
+
+    // ignore native navigation breadcrumbs
+    if (nativeBreadcrumb && nativeBreadcrumb.data &&
+        nativeBreadcrumb.data[@"payload"] &&
+        nativeBreadcrumb.data[@"payload"][@"category"] &&
+        [nativeBreadcrumb.data[@"payload"][@"category"]
+            isEqualToString:@"navigation"]) {
+      return nil;
+    }
+    return nativeBreadcrumb;
   }
 }
 

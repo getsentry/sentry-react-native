@@ -52,9 +52,16 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
       rrwebBreadcrumb.setTimestamp(breadcrumb.getTimestamp().getTime());
       rrwebBreadcrumb.setBreadcrumbTimestamp(breadcrumb.getTimestamp().getTime() / 1000.0);
       rrwebBreadcrumb.setBreadcrumbType("default");
-      return rrwebBreadcrumb;
+    } else {
+      rrwebBreadcrumb = super.convert(breadcrumb);
+
+      // ignore native navigation breadcrumbs
+      if (rrwebBreadcrumb != null && rrwebBreadcrumb.getCategory() != null
+          && rrwebBreadcrumb.getCategory().equals("navigation")) {
+        rrwebBreadcrumb = null;
+      }
     }
 
-    return super.convert(breadcrumb);
+    return rrwebBreadcrumb;
   }
 }
