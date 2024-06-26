@@ -16,10 +16,10 @@ import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 import { Alert } from 'react-native';
 
 import { createIntegration } from './integrations/factory';
-import type { mobileReplayIntegration } from './integrations/mobilereplay';
-import { MOBILE_REPLAY_INTEGRATION_NAME } from './integrations/mobilereplay';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import type { ReactNativeClientOptions } from './options';
+import type { mobileReplayIntegration } from './replay/mobilereplay';
+import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
 import { ReactNativeTracing } from './tracing';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
