@@ -46,22 +46,29 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
         rrwebBreadcrumb.setMessage(message.toString());
       }
       rrwebBreadcrumb.setData(breadcrumb.getData());
+    } else if (breadcrumb.getCategory().equals("navigation")) {
+      rrwebBreadcrumb.setCategory(breadcrumb.getCategory());
+      rrwebBreadcrumb.setData(breadcrumb.getData());
     }
 
     if (rrwebBreadcrumb.getCategory() != null && !rrwebBreadcrumb.getCategory().isEmpty()) {
+      rrwebBreadcrumb.setLevel(breadcrumb.getLevel());
       rrwebBreadcrumb.setTimestamp(breadcrumb.getTimestamp().getTime());
       rrwebBreadcrumb.setBreadcrumbTimestamp(breadcrumb.getTimestamp().getTime() / 1000.0);
       rrwebBreadcrumb.setBreadcrumbType("default");
-    } else {
-      rrwebBreadcrumb = super.convert(breadcrumb);
+      return rrwebBreadcrumb;
+    }
 
-      // ignore native navigation breadcrumbs
-      if (rrwebBreadcrumb != null && rrwebBreadcrumb.getCategory() != null
-          && rrwebBreadcrumb.getCategory().equals("navigation")) {
-        rrwebBreadcrumb = null;
+    RRWebEvent nativeBreadcrumb = super.convert(breadcrumb);
+
+    // ignore native navigation breadcrumbs
+    if (nativeBreadcrumb instanceof RRWebBreadcrumbEvent) {
+      rrwebBreadcrumb = (RRWebBreadcrumbEvent) nativeBreadcrumb;
+      if (rrwebBreadcrumb.getCategory() != null && rrwebBreadcrumb.getCategory().equals("navigation")) {
+        return null;
       }
     }
 
-    return rrwebBreadcrumb;
+    return nativeBreadcrumb;
   }
 }
