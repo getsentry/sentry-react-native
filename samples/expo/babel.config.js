@@ -1,4 +1,6 @@
-module.exports = function(api) {
+const componentAnnotatePlugin = require('@sentry/babel-plugin-component-annotate');
+
+module.exports = function (api) {
   api.cache(false);
   return {
     presets: ['babel-preset-expo'],
@@ -11,6 +13,7 @@ module.exports = function(api) {
           },
         },
       ],
+      componentAnnotatePlugin,
     ],
   };
 };
