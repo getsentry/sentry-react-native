@@ -62,7 +62,11 @@
                                 level:breadcrumb.level
                                  data:breadcrumb.data];
   } else {
-    return [self->defaultConverter convertFrom:breadcrumb];
+    SentryRRWebEvent* nativeBreadcrumb = [self->defaultConverter convertFrom:breadcrumb];
+      if ([nativeBreadcrumb.data[@"payload"][@"category"] isEqualToString:@"navigation"]) {
+          return nil;
+      }
+      return nativeBreadcrumb;
   }
 }
 
