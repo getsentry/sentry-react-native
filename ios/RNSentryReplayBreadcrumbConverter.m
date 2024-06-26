@@ -1,10 +1,10 @@
-#import "RNSentryBreadcrumbConverter.h"
+#import "RNSentryReplayBreadcrumbConverter.h"
 
 @import Sentry;
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 
-@implementation RNSentryBreadcrumbConverter {
+@implementation RNSentryReplayBreadcrumbConverter {
   SentrySRDefaultBreadcrumbConverter *defaultConverter;
 }
 
