@@ -38,11 +38,8 @@
 #import "RNSentryEvents.h"
 #import "RNSentryDependencyContainer.h"
 
-#if SENTRY_HAS_UIKIT && !TARGET_OS_VISION
-#define SENTRY_TARGET_REPLAY_SUPPORTED 1 // TODO update after https://github.com/getsentry/sentry-cocoa/pull/4089
+#if SENTRY_TARGET_REPLAY_SUPPORTED
 #import "RNSentrySessionReplay.h"
-#else
-#define SENTRY_TARGET_REPLAY_SUPPORTED 0
 #endif
 
 #if SENTRY_HAS_UIKIT

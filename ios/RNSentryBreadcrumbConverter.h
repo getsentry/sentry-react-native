@@ -1,7 +1,6 @@
 @import Sentry;
 
-// TODO update after https://github.com/getsentry/sentry-cocoa/pull/4089
-#if SENTRY_HAS_UIKIT && !TARGET_OS_VISION
+#if SENTRY_TARGET_REPLAY_SUPPORTED
 @class SentryRRWebEvent;
 
 @interface RNSentryBreadcrumbConverter
