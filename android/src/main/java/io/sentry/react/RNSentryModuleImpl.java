@@ -188,7 +188,7 @@ public class RNSentryModuleImpl {
 
             options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
             options.setNativeSdkName(NATIVE_SDK_NAME);
-          options.setSdkVersion(sdkVersion);
+            options.setSdkVersion(sdkVersion);
 
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
@@ -256,6 +256,7 @@ public class RNSentryModuleImpl {
             }
             if (rnOptions.hasKey("_experiments")) {
                 options.getExperimental().setSessionReplay(getReplayOptions(rnOptions));
+                options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
             }
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException

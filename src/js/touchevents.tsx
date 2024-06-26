@@ -193,13 +193,25 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
       const info: TouchedComponentInfo = {};
 
       // provided by @sentry/babel-plugin-component-annotate
-      if (typeof props[SENTRY_COMPONENT_PROP_KEY] === 'string' && props[SENTRY_COMPONENT_PROP_KEY].length > 0 && props[SENTRY_COMPONENT_PROP_KEY] !== 'unknown') {
+      if (
+        typeof props[SENTRY_COMPONENT_PROP_KEY] === 'string' &&
+        props[SENTRY_COMPONENT_PROP_KEY].length > 0 &&
+        props[SENTRY_COMPONENT_PROP_KEY] !== 'unknown'
+      ) {
         info.name = props[SENTRY_COMPONENT_PROP_KEY];
       }
-      if (typeof props[SENTRY_ELEMENT_PROP_KEY] === 'string' && props[SENTRY_ELEMENT_PROP_KEY].length > 0 && props[SENTRY_ELEMENT_PROP_KEY] !== 'unknown') {
+      if (
+        typeof props[SENTRY_ELEMENT_PROP_KEY] === 'string' &&
+        props[SENTRY_ELEMENT_PROP_KEY].length > 0 &&
+        props[SENTRY_ELEMENT_PROP_KEY] !== 'unknown'
+      ) {
         info.element = props[SENTRY_ELEMENT_PROP_KEY];
       }
-      if (typeof props[SENTRY_FILE_PROP_KEY] === 'string' && props[SENTRY_FILE_PROP_KEY].length > 0 && props[SENTRY_FILE_PROP_KEY] !== 'unknown') {
+      if (
+        typeof props[SENTRY_FILE_PROP_KEY] === 'string' &&
+        props[SENTRY_FILE_PROP_KEY].length > 0 &&
+        props[SENTRY_FILE_PROP_KEY] !== 'unknown'
+      ) {
         info.file = props[SENTRY_FILE_PROP_KEY];
       }
 
