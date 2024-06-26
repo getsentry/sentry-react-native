@@ -1,10 +1,10 @@
-#import "RNSentryBreadcrumbConverter.h"
+#import "RNSentryReplayBreadcrumbConverter.h"
 
 @import Sentry;
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 
-@implementation RNSentryBreadcrumbConverter {
+@implementation RNSentryReplayBreadcrumbConverter {
   SentrySRDefaultBreadcrumbConverter *defaultConverter;
 }
 
@@ -17,7 +17,7 @@
 }
 
 - (id<SentryRRWebEvent> _Nullable)convertFrom:
-(SentryBreadcrumb *_Nonnull)breadcrumb {
+    (SentryBreadcrumb *_Nonnull)breadcrumb {
   assert(breadcrumb.timestamp != nil);
 
   if ([breadcrumb.category isEqualToString:@"http"]) {
@@ -28,30 +28,69 @@
     // Drop native navigation breadcrumbs to avoid duplicates
     return nil;
   }
+
   if ([breadcrumb.category isEqualToString:@"touch"]) {
+    NSMutableString *message;
+    if (breadcrumb.data) {
+      NSMutableArray *path = [breadcrumb.data valueForKey:@"path"];
+      if (path != nil) {
+        message = [[NSMutableString alloc] init];
+        for (NSInteger i = MIN(3, [path count] - 1); i >= 0; i--) {
+          NSDictionary *item = [path objectAtIndex:i];
+          [message appendString:[item objectForKey:@"name"]];
+          if ([item objectForKey:@"element"] || [item objectForKey:@"file"]) {
+            [message appendString:@"("];
+            if ([item objectForKey:@"element"]) {
+              [message appendString:[item objectForKey:@"element"]];
+              if ([item objectForKey:@"file"]) {
+                [message appendString:@", "];
+                [message appendString:[item objectForKey:@"file"]];
+              }
+            } else if ([item objectForKey:@"file"]) {
+              [message appendString:[item objectForKey:@"file"]];
+            }
+            [message appendString:@")"];
+          }
+          if (i > 0) {
+            [message appendString:@" > "];
+          }
+        }
+      }
+    }
     return [SentrySessionReplayIntegration
-            createBreadcrumbwithTimestamp:breadcrumb.timestamp
-            category:@"ui.tap"
-            message:breadcrumb.data
-            ? [breadcrumb.data
-               valueForKey:@"target"]
-            : nil
-            level:breadcrumb.level
-            data:breadcrumb.data];
+        createBreadcrumbwithTimestamp:breadcrumb.timestamp
+                             category:@"ui.tap"
+                              message:message
+                                level:breadcrumb.level
+                                 data:breadcrumb.data];
   }
+
   if ([breadcrumb.category isEqualToString:@"navigation"]) {
     return [SentrySessionReplayIntegration
-            createBreadcrumbwithTimestamp:breadcrumb.timestamp ?: 0
-            category:breadcrumb.category
-            message:nil
-            level:breadcrumb.level
-            data:breadcrumb.data];
+        createBreadcrumbwithTimestamp:breadcrumb.timestamp
+                             category:breadcrumb.category
+                              message:nil
+                                level:breadcrumb.level
+                                 data:breadcrumb.data];
   }
+
   if ([breadcrumb.category isEqualToString:@"xhr"]) {
     return [self convertNavigation:breadcrumb];
   }
 
-  return [self->defaultConverter convertFrom:breadcrumb];
+  SentryRRWebEvent *nativeBreadcrumb =
+    [self->defaultConverter convertFrom:breadcrumb];
+
+  // ignore native navigation breadcrumbs
+  if (nativeBreadcrumb && nativeBreadcrumb.data &&
+      nativeBreadcrumb.data[@"payload"] &&
+      nativeBreadcrumb.data[@"payload"][@"category"] &&
+      [nativeBreadcrumb.data[@"payload"][@"category"]
+          isEqualToString:@"navigation"]) {
+    return nil;
+  }
+  
+  return nativeBreadcrumb;
 }
 
 - (id<SentryRRWebEvent> _Nullable)convertNavigation: (SentryBreadcrumb *_Nonnull)breadcrumb {

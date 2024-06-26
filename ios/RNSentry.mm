@@ -39,7 +39,7 @@
 #import "RNSentryDependencyContainer.h"
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-#import "RNSentrySessionReplay.h"
+#import "RNSentryReplay.h"
 #endif
 
 #if SENTRY_HAS_UIKIT
@@ -111,7 +111,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     }
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentrySessionReplay postInit];
+    [RNSentryReplay postInit];
 #endif
 
     resolve(@YES);
@@ -144,7 +144,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [mutableOptions removeObjectForKey:@"enableTracing"];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentrySessionReplay updateOptions:mutableOptions];
+    [RNSentryReplay updateOptions:mutableOptions];
 #endif
 
     SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:errorPointer];

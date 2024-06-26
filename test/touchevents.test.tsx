@@ -102,7 +102,6 @@ describe('TouchEventBoundary._onTouchStart', () => {
       category: defaultProps.breadcrumbCategory,
       data: {
         path: [{ name: 'View' }, { name: 'Connect(View)' }, { label: 'LABEL!' }],
-        target: "LABEL!",
       },
       level: 'info' as SeverityLevel,
       message: 'Touch event within element: LABEL!',
@@ -162,7 +161,6 @@ describe('TouchEventBoundary._onTouchStart', () => {
       category: defaultProps.breadcrumbCategory,
       data: {
         path: [{ name: 'Styled(View)' }],
-        target: "Styled(View)",
       },
       level: 'info' as SeverityLevel,
       message: 'Touch event within element: Styled(View)',
@@ -213,7 +211,6 @@ describe('TouchEventBoundary._onTouchStart', () => {
       category: defaultProps.breadcrumbCategory,
       data: {
         path: [{ label: 'Connect(View)' }, { name: 'Styled(View)' }],
-        target: "Connect(View)",
       },
       level: 'info' as SeverityLevel,
       message: 'Touch event within element: Connect(View)',
@@ -277,7 +274,6 @@ describe('TouchEventBoundary._onTouchStart', () => {
           { name: 'Styled(View)' },
           { element: 'View', file: 'happyview.js', name: 'Happy' },
         ],
-        target: "Screen (screen.tsx)",
       },
       level: 'info' as SeverityLevel,
       message: 'Touch event within element: Screen (screen.tsx)',
@@ -309,7 +305,6 @@ describe('TouchEventBoundary._onTouchStart', () => {
       category: defaultProps.breadcrumbCategory,
       data: {
         path: [{ name: 'Text' }],
-        target: "Text",
       },
       level: 'info' as SeverityLevel,
       message: 'Touch event within element: Text',

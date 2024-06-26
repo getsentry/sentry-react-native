@@ -1,9 +1,9 @@
-#import "RNSentrySessionReplay.h"
-#import "RNSentryBreadcrumbConverter.h"
+#import "RNSentryReplay.h"
+#import "RNSentryReplayBreadcrumbConverter.h"
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 
-@implementation RNSentrySessionReplay {
+@implementation RNSentryReplay {
 }
 
 + (void)updateOptions:(NSMutableDictionary *)options {
@@ -35,7 +35,7 @@
   }
              forKey:@"experimental"];
 
-  [RNSentrySessionReplay addReplayRNRedactClasses:replayOptions];
+  [RNSentryReplay addReplayRNRedactClasses:replayOptions];
 }
 
 + (void)addReplayRNRedactClasses:(NSDictionary *_Nullable)replayOptions {
@@ -50,8 +50,8 @@
 }
 
 + (void)postInit {
-  RNSentryBreadcrumbConverter *breadcrumbConverter =
-      [[RNSentryBreadcrumbConverter alloc] init];
+  RNSentryReplayBreadcrumbConverter *breadcrumbConverter =
+      [[RNSentryReplayBreadcrumbConverter alloc] init];
   [PrivateSentrySDKOnly configureSessionReplayWith:breadcrumbConverter
                                 screenshotProvider:nil];
 }

@@ -1,5 +1,5 @@
 
-@interface RNSentrySessionReplay : NSObject
+@interface RNSentryReplay : NSObject
 
 + (void)updateOptions:(NSMutableDictionary *)options;
 

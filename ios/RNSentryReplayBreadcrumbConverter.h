@@ -3,7 +3,7 @@
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 @class SentryRRWebEvent;
 
-@interface RNSentryBreadcrumbConverter
+@interface RNSentryReplayBreadcrumbConverter
     : NSObject <SentryReplayBreadcrumbConverter>
 
 - (instancetype _Nonnull)init;
