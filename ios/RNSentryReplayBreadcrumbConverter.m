@@ -89,7 +89,7 @@
           isEqualToString:@"navigation"]) {
     return nil;
   }
-  
+
   return nativeBreadcrumb;
 }
 
