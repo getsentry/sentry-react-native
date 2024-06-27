@@ -29,9 +29,9 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     }
     if (breadcrumb.getCategory().equals("navigation")) {
       final RRWebBreadcrumbEvent rrWebBreadcrumb = new RRWebBreadcrumbEvent();
-      rrwebBreadcrumb.setCategory(breadcrumb.getCategory());
-      rrwebBreadcrumb.setData(breadcrumb.getData());
-      return rrwebBreadcrumb;
+      rrWebBreadcrumb.setCategory(breadcrumb.getCategory());
+      rrWebBreadcrumb.setData(breadcrumb.getData());
+      return rrWebBreadcrumb;
     }
     if (breadcrumb.getCategory().equals("xhr")) {
       return convertNetworkBreadcrumb(breadcrumb);
@@ -45,8 +45,8 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
 
     // ignore native navigation breadcrumbs
     if (nativeBreadcrumb instanceof RRWebBreadcrumbEvent) {
-      rrwebBreadcrumb = (RRWebBreadcrumbEvent) nativeBreadcrumb;
-      if (rrwebBreadcrumb.getCategory() != null && rrwebBreadcrumb.getCategory().equals("navigation")) {
+      final RRWebBreadcrumbEvent rrWebBreadcrumb = (RRWebBreadcrumbEvent) nativeBreadcrumb;
+      if (rrWebBreadcrumb.getCategory() != null && rrWebBreadcrumb.getCategory().equals("navigation")) {
         return null;
       }
     }
@@ -58,7 +58,7 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
   public @NotNull RRWebEvent convertTouchBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
     final RRWebBreadcrumbEvent rrWebBreadcrumb = new RRWebBreadcrumbEvent();
 
-    rrwebBreadcrumb.setCategory("ui.tap");
+    rrWebBreadcrumb.setCategory("ui.tap");
     ArrayList path = (ArrayList) breadcrumb.getData("path");
     if (path != null) {
       StringBuilder message = new StringBuilder();
@@ -82,10 +82,10 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
           message.append(" > ");
         }
       }
-      rrwebBreadcrumb.setMessage(message.toString());
+      rrWebBreadcrumb.setMessage(message.toString());
     }
 
-    rrwebBreadcrumb.setLevel(breadcrumb.getLevel());
+    rrWebBreadcrumb.setLevel(breadcrumb.getLevel());
     rrWebBreadcrumb.setData(breadcrumb.getData());
     rrWebBreadcrumb.setTimestamp(breadcrumb.getTimestamp().getTime());
     rrWebBreadcrumb.setBreadcrumbTimestamp(breadcrumb.getTimestamp().getTime() / 1000.0);
