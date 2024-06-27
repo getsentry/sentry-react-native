@@ -1,7 +1,7 @@
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { utf8ToBytes } from '../vendor';
 
-/** Convert a Content-Length header to number/undefined.  */
+/** Convert a Content-Length header to number/undefined. */
 export function parseContentLengthHeader(header: string | null | undefined): number | undefined {
   if (!header) {
     return undefined;
