@@ -9,19 +9,22 @@ plugins {
 spotless {
     lineEndings = LineEnding.UNIX
 
-    format("misc") {
-        // define the files to apply `misc` to
-        target("*.gradle")
+    groovyGradle {
+        target("**/*.gradle")
+        targetExclude("**/node_modules/**", "**/generated/**", "**/vendor/**")
 
-        // define the steps to apply to those files
+        importOrder()
+        removeSemicolons()
         trimTrailingWhitespace()
-        indentWithTabs() // or spaces. Takes an integer argument if you don't like 4
+        greclipse()
+        indentWithSpaces(4)
         endWithNewline()
     }
 
     java {
         target("**/*.java")
+        targetExclude("**/node_modules/**", "**/generated/**", "**/vendor/**")
+
         googleJavaFormat()
-        targetExclude("**/generated/**", "**/vendor/**")
     }
 }
