@@ -59,6 +59,6 @@ function _encode(input: string): number[] | Uint8Array {
 function _serializeFormData(formData: FormData): string {
   // This is a bit simplified, but gives us a decent estimate
   // This converts e.g. { name: 'Anne Smith', age: 13 } to 'name=Anne+Smith&age=13'
-  // @ts-expect-error passing FormData to URLSearchParams actually works
+  // @ts-expect-error passing FormData to URLSearchParams won't correctly serialize `File` entries, which is fine for this use-case. See https://github.com/microsoft/TypeScript/issues/30584
   return new URLSearchParams(formData).toString();
 }
