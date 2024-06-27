@@ -14,4 +14,4 @@ export { Screenshot } from './screenshot';
 export { ViewHierarchy } from './viewhierarchy';
 export { ExpoContext } from './expocontext';
 export { Spotlight } from './spotlight';
-export { mobileReplayIntegration } from './mobilereplay';
+export { mobileReplayIntegration } from '../replay/mobilereplay';

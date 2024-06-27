@@ -12,7 +12,6 @@ import type {
 import { logger, normalize, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
 
-import type { MobileReplayOptions } from './integrations/mobilereplay';
 import { isHardCrash } from './misc';
 import type {
   NativeAppStartResponse,
@@ -26,6 +25,7 @@ import type {
 import type { ReactNativeClientOptions } from './options';
 import type * as Hermes from './profiling/hermes';
 import type { NativeAndroidProfileEvent, NativeProfileEvent } from './profiling/nativeTypes';
+import type { MobileReplayOptions } from './replay/mobilereplay';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
 import { ReactNativeLibraries } from './utils/rnlibraries';
