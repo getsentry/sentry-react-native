@@ -74,3 +74,9 @@ yalc.lock
 
 # E2E tests
 test/react-native/versions
+
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
