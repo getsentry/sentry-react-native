@@ -8,6 +8,7 @@
 
 ### Fixes
 
+- errors with cause are now correctly serialized on debug build ([#3920](https://github.com/getsentry/sentry-react-native/pull/3920))
 - `sentry-expo-upload-sourcemaps` no longer requires Sentry url when uploading sourcemaps to `sentry.io` ([#3915](https://github.com/getsentry/sentry-react-native/pull/3915))
 
 ### Dependencies

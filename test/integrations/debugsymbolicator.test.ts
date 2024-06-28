@@ -42,7 +42,6 @@ describe('Debug Symbolicator Integration', () => {
   at baz2 (native)
   `;
 
-
     const mockSentryParsedFrames: Array<StackFrame> = [
       {
         function: '[native] baz',
