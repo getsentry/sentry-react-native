@@ -9,7 +9,7 @@
 ### Fixes
 
 - `sentry-expo-upload-sourcemaps` no longer requires Sentry url when uploading sourcemaps to `sentry.io` ([#3915](https://github.com/getsentry/sentry-react-native/pull/3915))
-- Android projects can now use the environment variable `SENTRY_AUTH_TOKEN` during the release build. ([#3917](https://github.com/getsentry/sentry-react-native/pull/3917))
+- Flavor aware Android builds use `SENTRY_AUTH_TOKEN` env as fallback when token not found in `sentry-flavor-type.properties`. ([#3917](https://github.com/getsentry/sentry-react-native/pull/3917))
 
 ### Dependencies
 
