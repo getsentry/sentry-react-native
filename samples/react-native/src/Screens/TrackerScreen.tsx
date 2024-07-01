@@ -113,8 +113,8 @@ const TrackerScreen = () => {
 
 const TrackerTitle = () => (
   <View style={styles.titleContainer}>
-  <Text style={styles.title}>Global COVID19 Cases</Text>
-</View>
+    <Text style={styles.title}>Global COVID19 Cases</Text>
+  </View>
 );
 
 export default Sentry.withProfiler(TrackerScreen);
