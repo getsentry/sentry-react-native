@@ -44,6 +44,7 @@ export function cleanDefaultBabelTransformerPath(): void {
     }
     logger.debug('Cleaned default Babel transformer path');
   } catch (e) {
+    // We don't want to fail the build if we can't clean the file
     // eslint-disable-next-line no-console
     console.error('[Sentry] Failed to clean default Babel transformer path:', e);
   }
@@ -59,7 +60,7 @@ function getDefaultBabelTransformerPath(): string {
 export function loadDefaultBabelTransformer(): BabelTransformer {
   const defaultBabelTransformerPath = readDefaultBabelTransformerPath();
   if (!defaultBabelTransformerPath) {
-    throw new Error('Default Babel transformer path not found');
+    throw new Error('Default Babel Transformer Path not found in `.sentry` directory.');
   }
 
   logger.debug(`Loading default Babel transformer from ${defaultBabelTransformerPath}`);

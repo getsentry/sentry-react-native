@@ -104,6 +104,7 @@ export function withSentryBabelTransformer(config: MetroConfig): MetroConfig {
   logger.debug('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
 
   if (!defaultBabelTransformerPath) {
+    // This has to be console.warn because the options is enabled but won't be used
     // eslint-disable-next-line no-console
     console.warn('`transformer.babelTransformerPath` is undefined.');
     // eslint-disable-next-line no-console
