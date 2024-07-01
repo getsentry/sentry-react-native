@@ -3,24 +3,21 @@ import XCTest
 final class RNSentryCocoaUnitTesterTests: XCTestCase {
 
     func testTouchMessageReturnsNilOnEmptyArray() throws {
-        let converter = RNSentryReplayBreadcrumbConverter()
-      let actual = converter.getTouchPathMessage(from: [])
+      let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: [])
         XCTAssertEqual(actual, nil);
     }
 
     func testTouchMessageReturnsNilOnNilArray() throws {
-        let converter = RNSentryReplayBreadcrumbConverter()
-      let actual = converter.getTouchPathMessage(from: nil as [Any]?)
+      let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: nil as [Any]?)
         XCTAssertEqual(actual, nil);
     }
-  
-    func testTouchMessageReturnsNilOnMissingNameAndLavel() throws {
+
+    func testTouchMessageReturnsNilOnMissingNameAndLevel() throws {
         let testPath: [Any?] = [["element": "element4", "file": "file4"]]
-        let converter = RNSentryReplayBreadcrumbConverter()
-        let actual = converter.getTouchPathMessage(from: testPath as [Any])
+        let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: testPath as [Any])
         XCTAssertEqual(actual, nil);
     }
-  
+
     func testTouchMessageReturnsMessageOnValidPathExample1() throws {
         let testPath: [Any?] = [
             ["label": "label0"],
@@ -30,11 +27,10 @@ final class RNSentryCocoaUnitTesterTests: XCTestCase {
             ["name": "item4", "label": "label4", "file": "file4"],
             ["name": "item5", "label": "label5", "element": "element5", "file": "file5"],
         ]
-        let converter = RNSentryReplayBreadcrumbConverter()
-        let actual = converter.getTouchPathMessage(from: testPath as [Any])
+        let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: testPath as [Any])
         XCTAssertEqual(actual, "label3(element3) > label2 > name1 > label0");
     }
-  
+
     func testTouchMessageReturnsMessageOnValidPathExample2() throws {
         let testPath: [Any?] = [
             ["name": "item2", "label": "label2"],
@@ -44,8 +40,7 @@ final class RNSentryCocoaUnitTesterTests: XCTestCase {
             ["label": "label6"],
             ["name": "name7"],
         ]
-        let converter = RNSentryReplayBreadcrumbConverter()
-        let actual = converter.getTouchPathMessage(from: testPath as [Any])
+        let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: testPath as [Any])
         XCTAssertEqual(actual, "label5(element5, file5) > label4(file4) > label3(element3) > label2");
     }
 

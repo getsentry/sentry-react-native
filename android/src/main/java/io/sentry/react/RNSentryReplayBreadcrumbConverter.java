@@ -6,13 +6,13 @@ import io.sentry.rrweb.RRWebEvent;
 import io.sentry.rrweb.RRWebBreadcrumbEvent;
 import io.sentry.rrweb.RRWebSpanEvent;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadcrumbConverter {
   public RNSentryReplayBreadcrumbConverter() {
@@ -59,31 +59,9 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     final RRWebBreadcrumbEvent rrWebBreadcrumb = new RRWebBreadcrumbEvent();
 
     rrWebBreadcrumb.setCategory("ui.tap");
-    ArrayList path = (ArrayList) breadcrumb.getData("path");
-    if (path != null) {
-      StringBuilder message = new StringBuilder();
-      for (int i = Math.min(3, path.size()); i >= 0; i--) {
-        HashMap item = (HashMap) path.get(i);
-        message.append(item.get("name"));
-        if (item.containsKey("element") || item.containsKey("file")) {
-          message.append('(');
-          if (item.containsKey("element")) {
-            message.append(item.get("element"));
-            if (item.containsKey("file")) {
-              message.append(", ");
-              message.append(item.get("file"));
-            }
-          } else if (item.containsKey("file")) {
-            message.append(item.get("file"));
-          }
-          message.append(')');
-        }
-        if (i > 0) {
-          message.append(" > ");
-        }
-      }
-      rrWebBreadcrumb.setMessage(message.toString());
-    }
+
+      rrWebBreadcrumb.setMessage(RNSentryReplayBreadcrumbConverter
+              .getTouchPathMessage(breadcrumb.getData("path")));
 
     rrWebBreadcrumb.setLevel(breadcrumb.getLevel());
     rrWebBreadcrumb.setData(breadcrumb.getData());
@@ -91,6 +69,66 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     rrWebBreadcrumb.setBreadcrumbTimestamp(breadcrumb.getTimestamp().getTime() / 1000.0);
     rrWebBreadcrumb.setBreadcrumbType("default");
     return rrWebBreadcrumb;
+  }
+
+  @TestOnly
+  public static @Nullable String getTouchPathMessage(final @Nullable Object maybePath) {
+    if (!(maybePath instanceof List)) {
+      return null;
+    }
+
+    final @NotNull List path = (List) maybePath;
+    if (path.size() == 0) {
+      return null;
+    }
+
+    final @NotNull StringBuilder message = new StringBuilder();
+    for (int i = Math.min(3, path.size() - 1); i >= 0; i--) {
+      final @Nullable Object maybeItem = path.get(i);
+      if (!(maybeItem instanceof Map)) {
+          return null;
+      }
+
+      final @NotNull Map item = (Map) maybeItem;
+      final @Nullable Object maybeName = item.get("name");
+      final @Nullable Object maybeLabel = item.get("label");
+      boolean hasName = maybeName instanceof String;
+      boolean hasLabel = maybeLabel instanceof String;
+      if (!hasName && !hasLabel) {
+        return null; // This again should never be allowed in JS, but to be safe we check it here
+      }
+      if (hasLabel) {
+        message.append(maybeLabel);
+      } else { // hasName is true
+        message.append(maybeName);
+      }
+
+      final @Nullable Object maybeElement = item.get("element");
+      final @Nullable Object maybeFile = item.get("file");
+      boolean hasElement = maybeElement instanceof String;
+      boolean hasFile = maybeFile instanceof String;
+      if (hasElement && hasFile) {
+        message.append('(')
+          .append(maybeElement)
+          .append(", ")
+          .append(maybeFile)
+          .append(')');
+      } else if (hasElement) {
+        message.append('(')
+          .append(maybeElement)
+          .append(')');
+      } else if (hasFile) {
+        message.append('(')
+          .append(maybeFile)
+          .append(')');
+      }
+
+      if (i > 0) {
+        message.append(" > ");
+      }
+    }
+
+    return message.toString();
   }
 
   @TestOnly

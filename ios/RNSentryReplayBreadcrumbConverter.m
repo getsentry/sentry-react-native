@@ -67,7 +67,7 @@
   }
   
   NSMutableArray *path = [breadcrumb.data valueForKey:@"path"];
-  NSString* message = [self getTouchPathMessageFrom:path];
+  NSString* message = [RNSentryReplayBreadcrumbConverter getTouchPathMessageFrom:path];
 
   return [SentrySessionReplayIntegration
       createBreadcrumbwithTimestamp:breadcrumb.timestamp
@@ -77,7 +77,7 @@
                                data:breadcrumb.data];
 }
 
-- (NSString* _Nullable) getTouchPathMessageFrom:(NSArray* _Nullable) path {
++ (NSString* _Nullable) getTouchPathMessageFrom:(NSArray* _Nullable) path {
   if (path == nil) {
     return nil;
   }

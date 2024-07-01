@@ -8,7 +8,7 @@
 
 - (instancetype _Nonnull)init;
 
-- (NSString* _Nullable) getTouchPathMessageFrom:(NSArray* _Nullable) path;
++ (NSString* _Nullable) getTouchPathMessageFrom:(NSArray* _Nullable) path;
 
 @end
 #endif
