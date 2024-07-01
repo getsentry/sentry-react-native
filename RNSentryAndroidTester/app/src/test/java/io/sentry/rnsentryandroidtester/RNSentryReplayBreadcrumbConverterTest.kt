@@ -1,5 +1,6 @@
 package io.sentry.rnsentryandroidtester
 
+import io.sentry.Breadcrumb
 import io.sentry.react.RNSentryReplayBreadcrumbConverter
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -8,6 +9,24 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class RNSentryReplayBreadcrumbConverterTest {
+
+    @Test
+    fun doesNotConvertSentryEventBreadcrumb() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb();
+        testBreadcrumb.category = "sentry.event"
+        val actual = converter.convert(testBreadcrumb)
+        assertEquals(null, actual)
+    }
+
+    @Test
+    fun doesNotConvertSentryTransactionBreadcrumb() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb();
+        testBreadcrumb.category = "sentry.transaction"
+        val actual = converter.convert(testBreadcrumb)
+        assertEquals(null, actual)
+    }
 
     @Test
     fun doesNotConvertNullPath() {
