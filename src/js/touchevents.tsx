@@ -263,10 +263,10 @@ function getTouchedComponentInfo(currentInst: ElementInstance, labelKey: string 
 }
 
 function getComponentName(props: Record<string, unknown>): string | undefined {
-  return (typeof props[SENTRY_COMPONENT_PROP_KEY] === 'string' &&
+  return typeof props[SENTRY_COMPONENT_PROP_KEY] === 'string' &&
     props[SENTRY_COMPONENT_PROP_KEY].length > 0 &&
     props[SENTRY_COMPONENT_PROP_KEY] !== 'unknown' &&
-    props[SENTRY_COMPONENT_PROP_KEY]) || undefined;
+    props[SENTRY_COMPONENT_PROP_KEY] || undefined;
 }
 
 function getElementName(props: Record<string, unknown>): string | undefined {
