@@ -6,12 +6,12 @@ jest.mock('fs', () => {
 });
 
 import * as fs from 'fs';
-import * as path from 'path';
 
 // needs to be defined before sentryBabelTransformer is imported
 // the transformer is created on import (side effect)
 (fs.existsSync as jest.Mock).mockReturnValue(true);
 (fs.readFileSync as jest.Mock).mockReturnValue(require.resolve('./fixtures/mockBabelTransformer.js'));
+
 import * as SentryBabelTransformer from '../../src/js/tools/sentryBabelTransformer';
 import type { BabelTransformerArgs } from '../../src/js/tools/vendor/metro/metroBabelTransformer';
 
@@ -21,7 +21,9 @@ const MockDefaultBabelTransformer: {
 } = require('./fixtures/mockBabelTransformer');
 
 describe('SentryBabelTransformer', () => {
-  // WARN: since the mocked fs is called during import we can't clear mock before each test
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   test('getCacheKey calls the original transformer', () => {
     SentryBabelTransformer.getCacheKey?.();
@@ -30,26 +32,58 @@ describe('SentryBabelTransformer', () => {
     expect(MockDefaultBabelTransformer.getCacheKey).toHaveBeenCalledTimes(1);
   });
 
-  test('transform calls the original transformer', () => {
+  test('transform calls the original transformer with the annotation plugin', () => {
     SentryBabelTransformer.transform?.({
-      filename: 'filename',
+      filename: '/project/file',
+      options: {
+        projectRoot: 'project/root',
+      },
+      plugins: [jest.fn()],
+    } as BabelTransformerArgs);
+
+    expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledTimes(1);
+    expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledWith({
+      filename: '/project/file',
+      options: {
+        projectRoot: 'project/root',
+      },
+      plugins: [expect.any(Function), expect.any(Function)],
+    });
+    expect(MockDefaultBabelTransformer.transform.mock.calls[0][0]['plugins'][1].name).toEqual(
+      'componentNameAnnotatePlugin',
+    );
+  });
+
+  test('transform adds plugin', () => {
+    SentryBabelTransformer.transform?.({
+      filename: '/project/file',
       options: {
         projectRoot: 'project/root',
       },
       plugins: [],
     } as BabelTransformerArgs);
+  });
 
-    expect(fs.readFileSync).toHaveBeenCalledWith(path.join(process.cwd(), '.sentry/.defaultBabelTransformerPath'));
+  test.each([
+    [
+      {
+        filename: 'node_modules/file',
+        plugins: [jest.fn()],
+      } as BabelTransformerArgs,
+    ],
+    [
+      {
+        filename: 'project/node_modules/file',
+        plugins: [jest.fn()],
+      } as BabelTransformerArgs,
+    ],
+  ])('transform does not add plugin if filename includes node_modules', input => {
+    SentryBabelTransformer.transform?.(input);
+
     expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledTimes(1);
     expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledWith({
-      filename: 'filename',
-      options: {
-        projectRoot: 'project/root',
-      },
-      plugins: [expect.any(Function)],
+      filename: input.filename,
+      plugins: expect.not.arrayContaining([expect.objectContaining({ name: 'componentNameAnnotatePlugin' })]),
     });
-    expect(MockDefaultBabelTransformer.transform.mock.calls[0][0]['plugins'][0].name).toEqual(
-      'componentNameAnnotatePlugin',
-    );
   });
 });
