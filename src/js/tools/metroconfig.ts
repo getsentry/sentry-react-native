@@ -4,11 +4,7 @@ import * as process from 'process';
 import { env } from 'process';
 
 import { enableLogger } from './enableLogger';
-import {
-  canUseSentryBabelTransformer,
-  cleanDefaultBabelTransformerPath,
-  saveDefaultBabelTransformerPath,
-} from './sentryBabelTransformerUtils';
+import { cleanDefaultBabelTransformerPath, saveDefaultBabelTransformerPath } from './sentryBabelTransformerUtils';
 import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } from './sentryMetroSerializer';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 
@@ -28,7 +24,7 @@ export interface SentryExpoConfigOptions {
   /**
    * Pass a custom `getDefaultConfig` function to override the default Expo configuration getter.
    */
-  getDefaultConfig?: typeof getSentryExpoConfig
+  getDefaultConfig?: typeof getSentryExpoConfig;
 }
 
 /**
@@ -100,20 +96,23 @@ function loadExpoMetroConfigModule(): {
   }
 }
 
-function withSentryBabelTransformer(config: MetroConfig): MetroConfig {
+/**
+ * Adds Sentry Babel transformer to the Metro config.
+ */
+export function withSentryBabelTransformer(config: MetroConfig): MetroConfig {
   const defaultBabelTransformerPath = config.transformer && config.transformer.babelTransformerPath;
   logger.debug('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
 
-  if (!defaultBabelTransformerPath && !canUseSentryBabelTransformer(config.projectRoot)) {
+  if (!defaultBabelTransformerPath) {
     // eslint-disable-next-line no-console
     console.warn('Sentry Babel transformer cannot be used. Not adding it ...');
     return config;
   }
 
   if (defaultBabelTransformerPath) {
-    saveDefaultBabelTransformerPath(config.projectRoot || '.', defaultBabelTransformerPath);
+    saveDefaultBabelTransformerPath(defaultBabelTransformerPath);
     process.on('exit', () => {
-      cleanDefaultBabelTransformerPath(config.projectRoot || '.');
+      cleanDefaultBabelTransformerPath();
     });
   }
 

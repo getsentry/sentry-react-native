@@ -10,18 +10,14 @@ enableLogger();
  * Creates a Babel transformer with Sentry component annotation plugin.
  */
 function createSentryBabelTransformer(): BabelTransformer {
-  let defaultTransformer: BabelTransformer | undefined;
+  const defaultTransformer = loadDefaultBabelTransformer();
 
   // Using spread operator to avoid any conflicts with the default transformer
   const transform: BabelTransformer['transform'] = (...args) => {
     const transformerArgs = args[0];
-    const projectRoot = transformerArgs.options.projectRoot;
-
-    if (!defaultTransformer) {
-      defaultTransformer = loadDefaultBabelTransformer(projectRoot);
-    }
 
     addSentryComponentAnnotatePlugin(transformerArgs);
+
     return defaultTransformer.transform(...args);
   };
 

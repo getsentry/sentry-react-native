@@ -1,33 +1,115 @@
-import type { MetroConfig } from 'metro';
+jest.mock('fs', () => {
+  return {
+    existsSync: jest.fn(),
+    mkdirSync: jest.fn(),
+    writeFileSync: jest.fn(),
+    unlinkSync: jest.fn(),
+  };
+});
 
-import { withSentryFramesCollapsed } from '../../src/js/tools/metroconfig';
+import * as fs from 'fs';
+import type { MetroConfig } from 'metro';
+import * as path from 'path';
+import * as process from 'process';
+
+import { withSentryBabelTransformer, withSentryFramesCollapsed } from '../../src/js/tools/metroconfig';
 
 type MetroFrame = Parameters<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>[0];
 
-describe('withSentryFramesCollapsed', () => {
-  test('adds customizeFrames if undefined ', () => {
-    const config = withSentryFramesCollapsed({});
-    expect(config.symbolicator?.customizeFrame).toBeDefined();
+describe('metroconfig', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  test('wraps existing customizeFrames', async () => {
-    const originalCustomizeFrame = jest.fn();
-    const config = withSentryFramesCollapsed({ symbolicator: { customizeFrame: originalCustomizeFrame } });
+  describe('withSentryFramesCollapsed', () => {
+    test('adds customizeFrames if undefined ', () => {
+      const config = withSentryFramesCollapsed({});
+      expect(config.symbolicator?.customizeFrame).toBeDefined();
+    });
 
-    const customizeFrame = config.symbolicator?.customizeFrame;
-    await customizeFrame?.(createMockSentryInstrumentMetroFrame());
+    test('wraps existing customizeFrames', async () => {
+      const originalCustomizeFrame = jest.fn();
+      const config = withSentryFramesCollapsed({ symbolicator: { customizeFrame: originalCustomizeFrame } });
 
-    expect(config.symbolicator?.customizeFrame).not.toBe(originalCustomizeFrame);
-    expect(originalCustomizeFrame).toHaveBeenCalledTimes(1);
+      const customizeFrame = config.symbolicator?.customizeFrame;
+      await customizeFrame?.(createMockSentryInstrumentMetroFrame());
+
+      expect(config.symbolicator?.customizeFrame).not.toBe(originalCustomizeFrame);
+      expect(originalCustomizeFrame).toHaveBeenCalledTimes(1);
+    });
+
+    test('collapses sentry instrument frames', async () => {
+      const config = withSentryFramesCollapsed({});
+
+      const customizeFrame = config.symbolicator?.customizeFrame;
+      const customizedFrame = await customizeFrame?.(createMockSentryInstrumentMetroFrame());
+
+      expect(customizedFrame?.collapse).toBe(true);
+    });
   });
 
-  test('collapses sentry instrument frames', async () => {
-    const config = withSentryFramesCollapsed({});
+  describe('withSentryBabelTransformer', () => {
+    test.each([[{}], [{ transformer: {} }], [{ transformer: { hermesParser: true } }]])(
+      "does not add babel transformer none is set in the config object '%o'",
+      input => {
+        expect(withSentryBabelTransformer(JSON.parse(JSON.stringify(input)))).toEqual(input);
+      },
+    );
 
-    const customizeFrame = config.symbolicator?.customizeFrame;
-    const customizedFrame = await customizeFrame?.(createMockSentryInstrumentMetroFrame());
+    test.each([
+      [{ transformer: { babelTransformerPath: 'babelTransformerPath' }, projectRoot: 'project/root' }],
+      [{ transformer: { babelTransformerPath: 'babelTransformerPath' } }],
+    ])('save default babel transformer path to a file', () => {
+      const defaultBabelTransformerPath = '/default/babel/transformer';
 
-    expect(customizedFrame?.collapse).toBe(true);
+      withSentryBabelTransformer({
+        transformer: {
+          babelTransformerPath: defaultBabelTransformerPath,
+        },
+        projectRoot: 'project/root',
+      });
+
+      expect(fs.mkdirSync).toHaveBeenCalledWith(path.join(process.cwd(), '.sentry'), { recursive: true });
+      expect(fs.writeFileSync).toHaveBeenCalledWith(
+        path.join(process.cwd(), '.sentry/.defaultBabelTransformerPath'),
+        defaultBabelTransformerPath,
+      );
+    });
+
+    test('clean default babel transformer path file on exit', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      const processOnSpy: jest.SpyInstance = jest.spyOn(process, 'on');
+
+      const defaultBabelTransformerPath = 'defaultBabelTransformerPath';
+
+      withSentryBabelTransformer({
+        transformer: {
+          babelTransformerPath: defaultBabelTransformerPath,
+        },
+        projectRoot: 'project/root',
+      });
+
+      const actualExitHandler: () => void | undefined = processOnSpy.mock.calls[0][1];
+      actualExitHandler?.();
+
+      expect(processOnSpy).toHaveBeenCalledWith('exit', expect.any(Function));
+      expect(fs.existsSync).toHaveBeenCalledWith(path.join(process.cwd(), '.sentry/.defaultBabelTransformerPath'));
+      expect(fs.unlinkSync).toHaveBeenCalledWith(path.join(process.cwd(), '.sentry/.defaultBabelTransformerPath'));
+    });
+
+    test('return config with sentry babel transformer path', () => {
+      const defaultBabelTransformerPath = 'defaultBabelTransformerPath';
+
+      const config = withSentryBabelTransformer({
+        transformer: {
+          babelTransformerPath: defaultBabelTransformerPath,
+        },
+      });
+
+      expect(config.transformer?.babelTransformerPath).toBe(
+        require.resolve('../../src/js/tools/sentryBabelTransformer'),
+      );
+    });
   });
 });
 
