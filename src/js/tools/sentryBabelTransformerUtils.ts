@@ -49,7 +49,7 @@ export function cleanDefaultBabelTransformerPath(projectRoot: string): void {
 }
 
 function getDefaultBabelTransformerPath(from: string): string {
-  return path.join(from, '.sentry/.defaultBabelTransformerPath')
+  return path.join(from, '.sentry/.defaultBabelTransformerPath');
 }
 
 /**
@@ -70,7 +70,9 @@ export function loadDefaultBabelTransformer(projectRoot: string): BabelTransform
 
   let defaultTransformerPath: string;
   try {
-    defaultTransformerPath = require.resolve('@react-native/metro-babel-transformer', { paths: [reactNativeMetroConfigPath] });
+    defaultTransformerPath = require.resolve('@react-native/metro-babel-transformer', {
+      paths: [reactNativeMetroConfigPath],
+    });
     logger.debug(`Resolved @react-native/metro-babel-transformer to ${defaultTransformerPath}`);
   } catch (e) {
     throw new Error('Cannot load `@react-native/metro-babel-transformer` from `${reactNativeMetroConfig}`.');

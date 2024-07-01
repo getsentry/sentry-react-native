@@ -4,7 +4,11 @@ import * as process from 'process';
 import { env } from 'process';
 
 import { enableLogger } from './enableLogger';
-import { canUseSentryBabelTransformer, cleanDefaultBabelTransformerPath, saveDefaultBabelTransformerPath } from './sentryBabelTransformerUtils';
+import {
+  canUseSentryBabelTransformer,
+  cleanDefaultBabelTransformerPath,
+  saveDefaultBabelTransformerPath,
+} from './sentryBabelTransformerUtils';
 import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } from './sentryMetroSerializer';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 
@@ -28,9 +32,7 @@ export interface SentryMetroConfigOptions {
  */
 export function withSentryConfig(
   config: MetroConfig,
-  {
-    annotateReactComponents = false,
-  }: SentryMetroConfigOptions = {},
+  { annotateReactComponents = false }: SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
 

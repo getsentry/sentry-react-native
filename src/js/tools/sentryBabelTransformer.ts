@@ -39,7 +39,7 @@ function addSentryComponentAnnotatePlugin(args: BabelTransformerArgs | undefined
   if (!args.filename.includes('node_modules')) {
     args.plugins.push(componentAnnotatePlugin);
   }
-};
+}
 
 const sentryBabelTransformer = createSentryBabelTransformer();
 // With TS set to `commonjs` this will be translated to `module.exports = sentryBabelTransformer;`
