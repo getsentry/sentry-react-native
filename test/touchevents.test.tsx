@@ -101,12 +101,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     expect(addBreadcrumb).toBeCalledWith({
       category: defaultProps.breadcrumbCategory,
       data: {
-<<<<<<< HEAD
         path: [{ name: 'View' }, { name: 'Connect(View)' }, { label: 'LABEL!' }],
-=======
-        componentTree: ['View', 'Connect(View)', 'LABEL!'],
-        target: "LABEL!",
->>>>>>> a9139c63 (fix touchevent tests)
       },
       level: 'info' as SeverityLevel,
       message: 'Touch event within element: LABEL!',
@@ -165,12 +160,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     expect(addBreadcrumb).toBeCalledWith({
       category: defaultProps.breadcrumbCategory,
       data: {
-<<<<<<< HEAD
         path: [{ name: 'Styled(View)' }],
-=======
-        componentTree: ['Styled(View2)', 'Styled(View)'],
-        target: 'Styled(View2)',
->>>>>>> a9139c63 (fix touchevent tests)
       },
       level: 'info' as SeverityLevel,
       message: 'Touch event within element: Styled(View)',
@@ -220,12 +210,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     expect(addBreadcrumb).toBeCalledWith({
       category: defaultProps.breadcrumbCategory,
       data: {
-<<<<<<< HEAD
         path: [{ label: 'Connect(View)' }, { name: 'Styled(View)' }],
-=======
-        componentTree: ['Connect(View)', 'Styled(View)'],
-        target: 'Connect(View)',
->>>>>>> a9139c63 (fix touchevent tests)
       },
       level: 'info' as SeverityLevel,
       message: 'Touch event within element: Connect(View)',
