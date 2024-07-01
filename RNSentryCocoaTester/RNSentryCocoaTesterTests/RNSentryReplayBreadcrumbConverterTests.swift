@@ -1,6 +1,6 @@
 import XCTest
 
-final class RNSentryCocoaUnitTesterTests: XCTestCase {
+final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
 
     func testTouchMessageReturnsNilOnEmptyArray() throws {
       let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: [])

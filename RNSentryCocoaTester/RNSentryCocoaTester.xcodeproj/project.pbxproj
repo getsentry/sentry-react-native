@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		330F308C2C0F3840002A0D4E /* RNSentryBreadcrumbTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 330F308B2C0F3840002A0D4E /* RNSentryBreadcrumbTests.m */; };
-		336084392C32E382008CC412 /* RNSentryCocoaUnitTesterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336084382C32E382008CC412 /* RNSentryCocoaUnitTesterTests.swift */; };
+		336084392C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336084382C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift */; };
 		33958C692BFCF12600AD1FB6 /* RNSentryOnDrawReporterTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33958C682BFCF12600AD1FB6 /* RNSentryOnDrawReporterTests.m */; };
 		33AFDFED2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m */; };
 		33AFDFF12B8D15E500AAB120 /* RNSentryDependencyContainerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainerTests.m */; };
@@ -21,7 +21,7 @@
 		330F308B2C0F3840002A0D4E /* RNSentryBreadcrumbTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryBreadcrumbTests.m; sourceTree = "<group>"; };
 		330F308D2C0F385A002A0D4E /* RNSentryBreadcrumb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryBreadcrumb.h; path = ../ios/RNSentryBreadcrumb.h; sourceTree = "<group>"; };
 		336084372C32E382008CC412 /* RNSentryCocoaTesterTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RNSentryCocoaTesterTests-Bridging-Header.h"; sourceTree = "<group>"; };
-		336084382C32E382008CC412 /* RNSentryCocoaUnitTesterTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RNSentryCocoaUnitTesterTests.swift; sourceTree = "<group>"; };
+		336084382C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RNSentryReplayBreadcrumbConverterTests.swift; sourceTree = "<group>"; };
 		3360843A2C32E3A8008CC412 /* RNSentryReplayBreadcrumbConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryReplayBreadcrumbConverter.h; path = ../ios/RNSentryReplayBreadcrumbConverter.h; sourceTree = "<group>"; };
 		3360898D29524164007C7730 /* RNSentryCocoaTesterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RNSentryCocoaTesterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		338739072A7D7D2800950DDD /* RNSentryTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSentryTests.h; sourceTree = "<group>"; };
@@ -80,7 +80,7 @@
 		3360899029524164007C7730 /* RNSentryCocoaTesterTests */ = {
 			isa = PBXGroup;
 			children = (
-				336084382C32E382008CC412 /* RNSentryCocoaUnitTesterTests.swift */,
+				336084382C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift */,
 				33F58ACF2977037D008F60EA /* RNSentryTests.mm */,
 				338739072A7D7D2800950DDD /* RNSentryTests.h */,
 				33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m */,
@@ -216,7 +216,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				33AFDFF12B8D15E500AAB120 /* RNSentryDependencyContainerTests.m in Sources */,
-				336084392C32E382008CC412 /* RNSentryCocoaUnitTesterTests.swift in Sources */,
+				336084392C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift in Sources */,
 				33F58AD02977037D008F60EA /* RNSentryTests.mm in Sources */,
 				33958C692BFCF12600AD1FB6 /* RNSentryOnDrawReporterTests.m in Sources */,
 				330F308C2C0F3840002A0D4E /* RNSentryBreadcrumbTests.m in Sources */,
