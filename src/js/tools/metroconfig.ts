@@ -19,6 +19,7 @@ export function withSentryConfig(config: MetroConfig): MetroConfig {
 
   newConfig = withSentryDebugId(newConfig);
   newConfig = withSentryFramesCollapsed(newConfig);
+  newConfig = withSentryBabelTransformer(newConfig);
 
   return newConfig;
 }
@@ -62,6 +63,18 @@ function loadExpoMetroConfigModule(): {
   } catch (e) {
     throw new Error('Unable to load `expo/metro-config`. Make sure you have Expo installed.');
   }
+}
+
+function withSentryBabelTransformer(config: MetroConfig): MetroConfig {
+  // TODO: check if custom babel transformer set, if so wrap it
+
+  return {
+    ...config,
+    transformer: {
+      ...config.transformer,
+      babelTransformerPath: require.resolve('./sentryBabelTransformer'),
+    },
+  };
 }
 
 type MetroCustomSerializer = Required<Required<MetroConfig>['serializer']>['customSerializer'] | undefined;

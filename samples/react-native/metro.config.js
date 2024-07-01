@@ -57,7 +57,11 @@ const config = {
       },
     ),
   },
+  transformer: {
+    babelTransformerPath: require.resolve('./sentryTransformer.js'),
+  },
 };
 
 const m = mergeConfig(getDefaultConfig(__dirname), config);
+console.log(m.transformer.babelTransformerPath);
 module.exports = withSentryConfig(m);
