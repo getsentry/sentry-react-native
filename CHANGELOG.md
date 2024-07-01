@@ -7,6 +7,18 @@
 - Improve touch event component info if annotated with [`@sentry/babel-plugin-component-annotate`](https://www.npmjs.com/package/@sentry/babel-plugin-component-annotate) ([#3899](https://github.com/getsentry/sentry-react-native/pull/3899))
 - Add replay breadcrumbs for touch & navigation events ([#3846](https://github.com/getsentry/sentry-react-native/pull/3846))
 - Add network data to Session Replays ([#3912](https://github.com/getsentry/sentry-react-native/pull/3912))
+- Add `annotateReactComponents` option to `@sentry/react-native/metro` ([#3916](https://github.com/getsentry/sentry-react-native/pull/3916))
+
+  ```js
+  // For Expo
+  const { getSentryExpoConfig } = require("@sentry/react-native/metro");
+  const config = getSentryExpoConfig(__dirname, { annotateReactComponents: true });
+
+  // For RN
+  const { getDefaultConfig } = require('@react-native/metro-config');
+  const { withSentryConfig } = require('@sentry/react-native/metro');
+  module.exports = withSentryConfig(getDefaultConfig(__dirname), { annotateReactComponents: true });
+  ```
 
 ### Dependencies
 
@@ -473,7 +485,7 @@ see [the Expo guide](https://docs.sentry.io/platforms/react-native/manual-setup/
   const { getSentryExpoConfig } = require("@sentry/react-native/metro");
 
   // const config = getDefaultConfig(__dirname);
-  const config = getSentryExpoConfig(config, {});
+  const config = getSentryExpoConfig(__dirname);
   ```
 
 - New `npx sentry-expo-upload-sourcemaps` for simple EAS Update (`npx expo export`) source maps upload ([#3491](https://github.com/getsentry/sentry-react-native/pull/3491), [#3510](https://github.com/getsentry/sentry-react-native/pull/3510), [#3515](https://github.com/getsentry/sentry-react-native/pull/3515), [#3507](https://github.com/getsentry/sentry-react-native/pull/3507))
