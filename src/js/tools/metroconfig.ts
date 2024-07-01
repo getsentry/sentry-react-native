@@ -24,6 +24,13 @@ export interface SentryMetroConfigOptions {
   annotateReactComponents?: boolean;
 }
 
+export interface SentryExpoConfigOptions {
+  /**
+   * Pass a custom `getDefaultConfig` function to override the default Expo configuration getter.
+   */
+  getDefaultConfig?: typeof getSentryExpoConfig
+}
+
 /**
  * Adds Sentry to the Metro config.
  *
@@ -52,7 +59,7 @@ export function withSentryConfig(
  */
 export function getSentryExpoConfig(
   projectRoot: string,
-  options: DefaultConfigOptions & { getDefaultConfig?: typeof getSentryExpoConfig } = {},
+  options: DefaultConfigOptions & SentryExpoConfigOptions & SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
 
@@ -65,8 +72,12 @@ export function getSentryExpoConfig(
     ],
   });
 
-  // TODO:     newConfig = withSentryBabelTransformer(newConfig);
-  return withSentryFramesCollapsed(config);
+  let newConfig = withSentryFramesCollapsed(config);
+  if (options.annotateReactComponents) {
+    newConfig = withSentryBabelTransformer(newConfig);
+  }
+
+  return newConfig;
 }
 
 function loadExpoMetroConfigModule(): {
