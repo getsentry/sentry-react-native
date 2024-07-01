@@ -130,10 +130,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 
     const crumb = {
       category: this.props.breadcrumbCategory,
-      data: {
-        path: touchPath,
-        target: detail,
-      },
+      data: { path: touchPath },
       level: level,
       message: `Touch event within element: ${detail}`,
       type: this.props.breadcrumbType,
