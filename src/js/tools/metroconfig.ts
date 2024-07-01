@@ -105,7 +105,9 @@ export function withSentryBabelTransformer(config: MetroConfig): MetroConfig {
 
   if (!defaultBabelTransformerPath) {
     // eslint-disable-next-line no-console
-    console.warn('Sentry Babel transformer cannot be used. Not adding it ...');
+    console.warn('`transformer.babelTransformerPath` is undefined.');
+    // eslint-disable-next-line no-console
+    console.warn('Sentry Babel transformer cannot be used. Not adding it...');
     return config;
   }
 
