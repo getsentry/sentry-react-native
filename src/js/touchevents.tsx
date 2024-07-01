@@ -238,28 +238,35 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 }
 
 function getTouchedComponentInfo(currentInst: ElementInstance, labelKey: string | undefined): TouchedComponentInfo | undefined {
+  const displayName = currentInst.elementType?.displayName;
+
   const props = currentInst.memoizedProps;
   if (!props) {
     // Early return if no props are available, as we can't extract any useful information
+    if (displayName) {
+      return {
+        name: displayName,
+      };
+    }
     return undefined;
   }
 
-  // provided by @sentry/babel-plugin-component-annotate
-  const info: TouchedComponentInfo = {};
-  info.name = getComponentName(props) || currentInst.elementType?.displayName;
-  info.element = getElementName(props);
-  info.file = getFileName(props);
+  return dropUndefinedKeys<TouchedComponentInfo>({
+    // provided by @sentry/babel-plugin-component-annotate
+    name: getComponentName(props) || displayName,
+    element: getElementName(props),
+    file: getFileName(props),
 
-  // `sentry-label` or user defined label key
-  info.label = getLabelValue(props, labelKey);
-  return dropUndefinedKeys(info);
+    // `sentry-label` or user defined label key
+    label: getLabelValue(props, labelKey),
+  });
 }
 
 function getComponentName(props: Record<string, unknown>): string | undefined {
-  return typeof props[SENTRY_COMPONENT_PROP_KEY] === 'string' &&
+  return (typeof props[SENTRY_COMPONENT_PROP_KEY] === 'string' &&
     props[SENTRY_COMPONENT_PROP_KEY].length > 0 &&
     props[SENTRY_COMPONENT_PROP_KEY] !== 'unknown' &&
-    props[SENTRY_COMPONENT_PROP_KEY] || undefined;
+    props[SENTRY_COMPONENT_PROP_KEY]) || undefined;
 }
 
 function getElementName(props: Record<string, unknown>): string | undefined {
