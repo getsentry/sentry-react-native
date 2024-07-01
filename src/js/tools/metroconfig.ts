@@ -1,10 +1,24 @@
+import { logger } from '@sentry/utils';
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
+import * as process from 'process';
 import { env } from 'process';
 
+import { enableLogger } from './enableLogger';
+import { canUseSentryBabelTransformer, cleanDefaultBabelTransformerPath, saveDefaultBabelTransformerPath } from './sentryBabelTransformerUtils';
 import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } from './sentryMetroSerializer';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 
 export * from './sentryMetroSerializer';
+
+enableLogger();
+
+export interface SentryMetroConfigOptions {
+  /**
+   * Annotates React components with Sentry data.
+   * @default false
+   */
+  annotateReactComponents?: boolean;
+}
 
 /**
  * Adds Sentry to the Metro config.
@@ -12,14 +26,21 @@ export * from './sentryMetroSerializer';
  * Adds Debug ID to the output bundle and source maps.
  * Collapses Sentry frames from the stack trace view in LogBox.
  */
-export function withSentryConfig(config: MetroConfig): MetroConfig {
+export function withSentryConfig(
+  config: MetroConfig,
+  {
+    annotateReactComponents = false,
+  }: SentryMetroConfigOptions = {},
+): MetroConfig {
   setSentryMetroDevServerEnvFlag();
 
   let newConfig = config;
 
   newConfig = withSentryDebugId(newConfig);
   newConfig = withSentryFramesCollapsed(newConfig);
-  newConfig = withSentryBabelTransformer(newConfig);
+  if (annotateReactComponents) {
+    newConfig = withSentryBabelTransformer(newConfig);
+  }
 
   return newConfig;
 }
@@ -42,6 +63,7 @@ export function getSentryExpoConfig(
     ],
   });
 
+  // TODO:     newConfig = withSentryBabelTransformer(newConfig);
   return withSentryFramesCollapsed(config);
 }
 
@@ -66,7 +88,21 @@ function loadExpoMetroConfigModule(): {
 }
 
 function withSentryBabelTransformer(config: MetroConfig): MetroConfig {
-  // TODO: check if custom babel transformer set, if so wrap it
+  const defaultBabelTransformerPath = config.transformer && config.transformer.babelTransformerPath;
+  logger.debug('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
+
+  if (!defaultBabelTransformerPath && !canUseSentryBabelTransformer(config.projectRoot)) {
+    // eslint-disable-next-line no-console
+    console.warn('Sentry Babel transformer cannot be used. Not adding it ...');
+    return config;
+  }
+
+  if (defaultBabelTransformerPath) {
+    saveDefaultBabelTransformerPath(config.projectRoot || '.', defaultBabelTransformerPath);
+    process.on('exit', () => {
+      cleanDefaultBabelTransformerPath(config.projectRoot || '.');
+    });
+  }
 
   return {
     ...config,
