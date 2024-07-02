@@ -15,9 +15,14 @@
 
 ### Dependencies
 
-- Bump Cocoa SDK from v8.29.1 to v8.30.0 ([#3914](https://github.com/getsentry/sentry-react-native/pull/3914))
+- Bump Cocoa SDK from v8.25.0-alpha.0 to v8.30.0 ([#3914](https://github.com/getsentry/sentry-react-native/pull/3914))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8300)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.29.1...8.30.0)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.25.0-alpha.0...8.30.0)
+- Bump Android SDK from v7.9.0-alpha.1 to v7.11.0-alpha.2 ([#3830](https://github.com/getsentry/sentry-react-native/pull/3830))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/7.11.0-alpha.2/CHANGELOG.md#7110-alpha2)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.9.0-alpha.1...7.11.0-alpha.2)
+
+Access to Mobile Replay is limited to early access orgs on Sentry. If you're interested, [sign up for the waitlist](https://sentry.io/lp/mobile-replay-beta/)
 
 ## 5.24.1
 
