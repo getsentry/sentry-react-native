@@ -42,6 +42,7 @@
   NSMutableArray *_Nonnull classesToRedact = [[NSMutableArray alloc] init];
   if ([replayOptions[@"maskAllImages"] boolValue] == YES) {
     [classesToRedact addObject:NSClassFromString(@"RCTImageView")];
+    [classesToRedact addObject:NSClassFromString(@"RNSVGSvgView")];
   }
   if ([replayOptions[@"maskAllText"] boolValue] == YES) {
     [classesToRedact addObject:NSClassFromString(@"RCTTextView")];
