@@ -30,39 +30,7 @@
   }
 
   if ([breadcrumb.category isEqualToString:@"touch"]) {
-    NSMutableString *message;
-    if (breadcrumb.data) {
-      NSMutableArray *path = [breadcrumb.data valueForKey:@"path"];
-      if (path != nil) {
-        message = [[NSMutableString alloc] init];
-        for (NSInteger i = MIN(3, [path count] - 1); i >= 0; i--) {
-          NSDictionary *item = [path objectAtIndex:i];
-          [message appendString:[item objectForKey:@"name"]];
-          if ([item objectForKey:@"element"] || [item objectForKey:@"file"]) {
-            [message appendString:@"("];
-            if ([item objectForKey:@"element"]) {
-              [message appendString:[item objectForKey:@"element"]];
-              if ([item objectForKey:@"file"]) {
-                [message appendString:@", "];
-                [message appendString:[item objectForKey:@"file"]];
-              }
-            } else if ([item objectForKey:@"file"]) {
-              [message appendString:[item objectForKey:@"file"]];
-            }
-            [message appendString:@")"];
-          }
-          if (i > 0) {
-            [message appendString:@" > "];
-          }
-        }
-      }
-    }
-    return [SentrySessionReplayIntegration
-        createBreadcrumbwithTimestamp:breadcrumb.timestamp
-                             category:@"ui.tap"
-                              message:message
-                                level:breadcrumb.level
-                                 data:breadcrumb.data];
+    return [self convertTouch:breadcrumb];
   }
 
   if ([breadcrumb.category isEqualToString:@"navigation"]) {
@@ -91,6 +59,72 @@
   }
 
   return nativeBreadcrumb;
+}
+
+- (id<SentryRRWebEvent> _Nullable) convertTouch:(SentryBreadcrumb *_Nonnull)breadcrumb {
+  if (breadcrumb.data == nil) {
+    return nil;
+  }
+  
+  NSMutableArray *path = [breadcrumb.data valueForKey:@"path"];
+  NSString* message = [RNSentryReplayBreadcrumbConverter getTouchPathMessageFrom:path];
+
+  return [SentrySessionReplayIntegration
+      createBreadcrumbwithTimestamp:breadcrumb.timestamp
+                           category:@"ui.tap"
+                            message:message
+                              level:breadcrumb.level
+                               data:breadcrumb.data];
+}
+
++ (NSString* _Nullable) getTouchPathMessageFrom:(NSArray* _Nullable) path {
+  if (path == nil) {
+    return nil;
+  }
+  
+  NSInteger pathCount = [path count];
+  if (pathCount <= 0) {
+    return nil;
+  }
+
+  NSMutableString *message = [[NSMutableString alloc] init];
+  for (NSInteger i = MIN(3, pathCount - 1); i >= 0; i--) {
+    NSDictionary *item = [path objectAtIndex:i];
+    if (item == nil) {
+      return nil; // There should be no nil (undefined) from JS, but to be safe we check it here
+    }
+
+    id name = [item objectForKey:@"name"];
+    id label = [item objectForKey:@"label"];
+    BOOL hasName = [name isKindOfClass:[NSString class]];
+    BOOL hasLabel = [label isKindOfClass:[NSString class]];
+    if (!hasName && !hasLabel) {
+      return nil; // This again should never be allowed in JS, but to be safe we check it here
+    }
+    if (hasLabel) {
+      [message appendString:(NSString *)label];
+    } else if (hasName) {
+      [message appendString:(NSString *)name];
+    }
+
+    id element = [item objectForKey:@"element"];
+    id file = [item objectForKey:@"file"];
+    BOOL hasElement = [element isKindOfClass:[NSString class]];
+    BOOL hasFile = [file isKindOfClass:[NSString class]];
+    if (hasElement && hasFile) {
+      [message appendFormat:@"(%@, %@)", (NSString *)element, (NSString *)file];
+    } else if (hasElement) {
+      [message appendFormat:@"(%@)", (NSString *)element];
+    } else if (hasFile) {
+      [message appendFormat:@"(%@)", (NSString *)file];
+    }
+
+    if (i > 0) {
+      [message appendString:@" > "];
+    }
+  }
+  
+  return message;
 }
 
 - (id<SentryRRWebEvent> _Nullable)convertNavigation: (SentryBreadcrumb *_Nonnull)breadcrumb {
