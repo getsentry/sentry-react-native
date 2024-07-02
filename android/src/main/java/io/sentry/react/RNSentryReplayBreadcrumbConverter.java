@@ -24,6 +24,12 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
       return null;
     }
 
+    // Do not add Sentry Event breadcrumbs to replay
+    if (breadcrumb.getCategory().equals("sentry.event") ||
+      breadcrumb.getCategory().equals("sentry.transaction")) {
+      return null;
+    }
+
     if (breadcrumb.getCategory().equals("touch")) {
       return convertTouchBreadcrumb(breadcrumb);
     }

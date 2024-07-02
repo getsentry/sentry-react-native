@@ -20,6 +20,12 @@
     (SentryBreadcrumb *_Nonnull)breadcrumb {
   assert(breadcrumb.timestamp != nil);
 
+  if ([breadcrumb.category isEqualToString:@"sentry.event"] ||
+      [breadcrumb.category isEqualToString:@"sentry.transaction"]) {
+    // Do not add Sentry Event breadcrumbs to replay
+    return nil;
+  }
+  
   if ([breadcrumb.category isEqualToString:@"http"]) {
     // Drop native network breadcrumbs to avoid duplicates
     return nil;

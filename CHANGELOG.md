@@ -7,6 +7,7 @@
 - Improve touch event component info if annotated with [`@sentry/babel-plugin-component-annotate`](https://www.npmjs.com/package/@sentry/babel-plugin-component-annotate) ([#3899](https://github.com/getsentry/sentry-react-native/pull/3899))
 - Add replay breadcrumbs for touch & navigation events ([#3846](https://github.com/getsentry/sentry-react-native/pull/3846))
 - Add network data to Session Replays ([#3912](https://github.com/getsentry/sentry-react-native/pull/3912))
+- Filter Sentry Event Breadcrumbs from Mobile Replays ([#3925](https://github.com/getsentry/sentry-react-native/pull/3925))
 
 ### Dependencies
 
