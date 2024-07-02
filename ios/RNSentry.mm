@@ -550,6 +550,13 @@ RCT_EXPORT_METHOD(addBreadcrumb:(NSDictionary *)breadcrumb)
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
         [scope addBreadcrumb:[RNSentryBreadcrumb from:breadcrumb]];
     }];
+
+#if SENTRY_HAS_UIKIT
+    NSString *_Nullable screen = [RNSentryBreadcrumb getCurrentScreenFrom:breadcrumb];
+    if (screen != nil) {
+        [PrivateSentrySDKOnly setCurrentScreen:screen];
+    }
+#endif //SENTRY_HAS_UIKIT
 }
 
 RCT_EXPORT_METHOD(clearBreadcrumbs) {
