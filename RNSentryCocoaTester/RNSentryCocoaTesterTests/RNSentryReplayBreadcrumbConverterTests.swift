@@ -1,7 +1,7 @@
 import XCTest
 
 final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
-  
+
     func testNotConvertSentryEventBreadcrumb() {
         let converter = RNSentryReplayBreadcrumbConverter()
         let testBreadcrumb = Breadcrumb()
@@ -9,7 +9,7 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         let actual = converter.convert(from: testBreadcrumb)
         XCTAssertNil(actual)
     }
-  
+
     func testNotConvertSentryTransactionBreadcrumb() {
         let converter = RNSentryReplayBreadcrumbConverter()
         let testBreadcrumb = Breadcrumb()
@@ -17,7 +17,7 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         let actual = converter.convert(from: testBreadcrumb)
         XCTAssertNil(actual)
     }
-  
+
     func testTouchMessageReturnsNilOnEmptyArray() throws {
         let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: [])
         XCTAssertEqual(actual, nil);
