@@ -9,6 +9,10 @@
 - Add network data to Session Replays ([#3912](https://github.com/getsentry/sentry-react-native/pull/3912))
 - Filter Sentry Event Breadcrumbs from Mobile Replays ([#3925](https://github.com/getsentry/sentry-react-native/pull/3925))
 
+### Fixes
+
+- `sentry-expo-upload-sourcemaps` no longer requires Sentry url when uploading sourcemaps to `sentry.io` ([#3915](https://github.com/getsentry/sentry-react-native/pull/3915))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.29.1 to v8.30.0 ([#3914](https://github.com/getsentry/sentry-react-native/pull/3914))

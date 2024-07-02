@@ -149,16 +149,17 @@ if (!sentryOrg || !sentryProject || !sentryUrl) {
     console.log(`${SENTRY_PROJECT} resolved to ${sentryProject} from expo config.`);
   }
   if (!sentryUrl) {
-    if (!pluginConfig.url) {
-      console.error(
-        `Could not resolve sentry url, set it in the environment variable ${SENTRY_URL} or in the '@sentry/react-native' plugin properties in your expo config.`,
-      );
-      process.exit(1);
+    if (pluginConfig.url) {
+      sentryUrl = pluginConfig.url;
+      console.log(`${SENTRY_URL} resolved to ${sentryUrl} from expo config.`);
     }
-
-    sentryUrl = pluginConfig.url;
-    console.log(`${SENTRY_URL} resolved to ${sentryUrl} from expo config.`);
-  } 
+    else {
+      sentryUrl = `https://sentry.io/`;
+      console.log(
+        `Since it wasn't specified in the Expo config or environment variable, ${SENTRY_URL} now points to ${sentryUrl}.`
+      );
+    }
+  }
 }
 
 if (!authToken) {
@@ -210,8 +211,7 @@ if (numAssetsUploaded === totalAssets) {
   console.log('✅ Uploaded bundles and sourcemaps to Sentry successfully.');
 } else {
   console.warn(
-    `⚠️  Uploaded ${numAssetsUploaded} of ${totalAssets} bundles and sourcemaps. ${
-      numAssetsUploaded === 0 ? 'Ensure you are running `expo export` with the `--dump-sourcemap` flag.' : ''
+    `⚠️  Uploaded ${numAssetsUploaded} of ${totalAssets} bundles and sourcemaps. ${numAssetsUploaded === 0 ? 'Ensure you are running `expo export` with the `--dump-sourcemap` flag.' : ''
     }`,
   );
 }
