@@ -15,7 +15,7 @@ public class RNSentryBreadcrumb {
     @Nullable
     public static String getCurrentScreenFrom(ReadableMap from) {
         final @Nullable String maybeCategory = from.hasKey("category") ? from.getString("category") : null;
-        if (maybeCategory == null) {
+        if (maybeCategory == null || !maybeCategory.equals("navigation")) {
             return null;
         }
 
@@ -24,9 +24,12 @@ public class RNSentryBreadcrumb {
             return null;
         }
 
-        final @Nullable String maybeCurrentScreen = from.hasKey("to") ? from.getString("to") : null;
-
-        return maybeCurrentScreen;
+        try {
+            // getString might throw if cast to string fails (data.to is not enforced by TS to be a string)
+            return maybeData.hasKey("to") ? maybeData.getString("to") : null;
+        } catch (Throwable exception) {
+            return null;
+        }
     }
 
     @NotNull
