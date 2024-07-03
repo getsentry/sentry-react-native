@@ -30,4 +30,23 @@
     return crumb;
 }
 
++ (NSString *_Nullable) getCurrentScreenFrom: (NSDictionary<NSString*, id> *_Nonnull) dict {
+    NSString *_Nullable maybeCategory = [dict valueForKey:@"category"];
+    if (![maybeCategory isEqualToString:@"navigation"]) {
+        return nil;
+    }
+
+    NSDictionary<NSString*, id> *_Nullable maybeData = [dict valueForKey:@"data"];
+    if (![maybeData isKindOfClass:[NSDictionary class]]) {
+        return nil;
+    }
+
+    NSString *_Nullable maybeCurrentScreen = [maybeData valueForKey:@"to"];
+    if (![maybeCurrentScreen isKindOfClass:[NSString class]]) {
+        return nil;
+    }
+    
+    return maybeCurrentScreen;
+}
+
 @end

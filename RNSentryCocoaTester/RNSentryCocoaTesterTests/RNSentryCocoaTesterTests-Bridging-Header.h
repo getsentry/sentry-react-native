@@ -1,0 +1,1 @@
+#import "RNSentryBreadcrumb.h"
