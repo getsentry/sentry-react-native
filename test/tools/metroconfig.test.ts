@@ -1,6 +1,5 @@
 jest.mock('fs', () => {
   return {
-    existsSync: jest.fn(),
     mkdirSync: jest.fn(),
     writeFileSync: jest.fn(),
     unlinkSync: jest.fn(),
@@ -77,7 +76,6 @@ describe('metroconfig', () => {
     });
 
     test('clean default babel transformer path file on exit', () => {
-      (fs.existsSync as jest.Mock).mockReturnValue(true);
       const processOnSpy: jest.SpyInstance = jest.spyOn(process, 'on');
 
       const defaultBabelTransformerPath = 'defaultBabelTransformerPath';
@@ -93,7 +91,6 @@ describe('metroconfig', () => {
       actualExitHandler?.();
 
       expect(processOnSpy).toHaveBeenCalledWith('exit', expect.any(Function));
-      expect(fs.existsSync).toHaveBeenCalledWith(path.join(process.cwd(), '.sentry/.defaultBabelTransformerPath'));
       expect(fs.unlinkSync).toHaveBeenCalledWith(path.join(process.cwd(), '.sentry/.defaultBabelTransformerPath'));
     });
 

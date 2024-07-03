@@ -1,6 +1,5 @@
 jest.mock('fs', () => {
   return {
-    existsSync: jest.fn(),
     readFileSync: jest.fn(),
   };
 });
@@ -9,7 +8,6 @@ import * as fs from 'fs';
 
 // needs to be defined before sentryBabelTransformer is imported
 // the transformer is created on import (side effect)
-(fs.existsSync as jest.Mock).mockReturnValue(true);
 (fs.readFileSync as jest.Mock).mockReturnValue(require.resolve('./fixtures/mockBabelTransformer.js'));
 
 import * as SentryBabelTransformer from '../../src/js/tools/sentryBabelTransformer';
