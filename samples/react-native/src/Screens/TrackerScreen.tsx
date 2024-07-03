@@ -69,8 +69,6 @@ const TrackerScreen = () => {
     (state === 'loaded' && 'Loaded') ||
     'Unknown';
   const shouldRecordFullDisplay = state === 'loaded' || state === 'error';
-  console.log('shouldRecordFullDisplay', shouldRecordFullDisplay);
-  console.log('statusText', statusText);
 
   return (
     <View style={styles.screen}>
