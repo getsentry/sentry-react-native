@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add `annotateReactComponents` option to `@sentry/react-native/metro` ([#3916](https://github.com/getsentry/sentry-react-native/pull/3916))
+
+  ```js
+  // For Expo
+  const { getSentryExpoConfig } = require("@sentry/react-native/metro");
+  const config = getSentryExpoConfig(__dirname, { annotateReactComponents: true });
+
+  // For RN
+  const { getDefaultConfig } = require('@react-native/metro-config');
+  const { withSentryConfig } = require('@sentry/react-native/metro');
+  module.exports = withSentryConfig(getDefaultConfig(__dirname), { annotateReactComponents: true });
+  ```
+
 ## 5.25.0-alpha.2
 
 ### Features
@@ -483,7 +500,7 @@ see [the Expo guide](https://docs.sentry.io/platforms/react-native/manual-setup/
   const { getSentryExpoConfig } = require("@sentry/react-native/metro");
 
   // const config = getDefaultConfig(__dirname);
-  const config = getSentryExpoConfig(config, {});
+  const config = getSentryExpoConfig(__dirname);
   ```
 
 - New `npx sentry-expo-upload-sourcemaps` for simple EAS Update (`npx expo export`) source maps upload ([#3491](https://github.com/getsentry/sentry-react-native/pull/3491), [#3510](https://github.com/getsentry/sentry-react-native/pull/3510), [#3515](https://github.com/getsentry/sentry-react-native/pull/3515), [#3507](https://github.com/getsentry/sentry-react-native/pull/3507))
