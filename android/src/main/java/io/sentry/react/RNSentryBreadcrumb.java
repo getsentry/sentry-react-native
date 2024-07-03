@@ -14,23 +14,19 @@ public class RNSentryBreadcrumb {
 
     @Nullable
     public static String getCurrentScreenFrom(ReadableMap from) {
-        if (!from.hasKey("category")) {
-            return null;
-        }
-        final @Nullable String category = from.getString("category") : 
-
-        if (!category.equals("navigation")) {
+        final @Nullable String maybeCategory = from.hasKey("category") ? from.getString("category") : null;
+        if (maybeCategory == null || !maybeCategory.equals("navigation")) {
             return null;
         }
 
-        if (!from.hasKey("data")) {
+        final @Nullable ReadableMap maybeData = from.hasKey("data") ? from.getMap("data") : null;
+        if (maybeData == null) {
             return null;
         }
-        final @Nullable ReadableMap data = from.getMap("data");
 
         try {
             // getString might throw if cast to string fails (data.to is not enforced by TS to be a string)
-            return data.hasKey("to") ? data.getString("to") : null;
+            return maybeData.hasKey("to") ? maybeData.getString("to") : null;
         } catch (Throwable exception) {
             return null;
         }
