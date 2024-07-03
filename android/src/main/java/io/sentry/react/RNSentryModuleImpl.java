@@ -398,7 +398,7 @@ public class RNSentryModuleImpl {
         byte[] bytes = Base64.decode(rawBytes, Base64.DEFAULT);
 
         try {
-            InternalSentrySdk.captureEnvelope(bytes, false);
+            InternalSentrySdk.captureEnvelope(bytes, !options.hasKey("hardCrashed") || !options.getBoolean("hardCrashed"));
         } catch (Throwable e) {
             logger.log(SentryLevel.ERROR, "Error while capturing envelope");
             promise.resolve(false);
