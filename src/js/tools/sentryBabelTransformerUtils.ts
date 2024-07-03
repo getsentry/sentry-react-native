@@ -24,9 +24,7 @@ export function saveDefaultBabelTransformerPath(defaultBabelTransformerPath: str
  */
 export function readDefaultBabelTransformerPath(): string | undefined {
   try {
-    if (fs.existsSync(getDefaultBabelTransformerPath())) {
-      return fs.readFileSync(getDefaultBabelTransformerPath()).toString();
-    }
+    return fs.readFileSync(getDefaultBabelTransformerPath()).toString();
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error('[Sentry] Failed to read default Babel transformer path:', e);
@@ -39,9 +37,7 @@ export function readDefaultBabelTransformerPath(): string | undefined {
  */
 export function cleanDefaultBabelTransformerPath(): void {
   try {
-    if (fs.existsSync(getDefaultBabelTransformerPath())) {
-      fs.unlinkSync(getDefaultBabelTransformerPath());
-    }
+    fs.unlinkSync(getDefaultBabelTransformerPath());
     logger.debug('Cleaned default Babel transformer path');
   } catch (e) {
     // We don't want to fail the build if we can't clean the file
