@@ -551,53 +551,12 @@ public class RNSentryModuleImpl {
 
     public void addBreadcrumb(final ReadableMap breadcrumb) {
         Sentry.configureScope(scope -> {
-            Breadcrumb breadcrumbInstance = new Breadcrumb();
+            scope.addBreadcrumb(RNSentryBreadcrumb.fromMap(breadcrumb));
 
-            if (breadcrumb.hasKey("message")) {
-                breadcrumbInstance.setMessage(breadcrumb.getString("message"));
+            final @Nullable String screen = RNSentryBreadcrumb.getCurrentScreenFrom(breadcrumb);
+            if (screen != null) {
+                scope.setScreen(screen);
             }
-
-            if (breadcrumb.hasKey("type")) {
-                breadcrumbInstance.setType(breadcrumb.getString("type"));
-            }
-
-            if (breadcrumb.hasKey("category")) {
-                breadcrumbInstance.setCategory(breadcrumb.getString("category"));
-            }
-
-            if (breadcrumb.hasKey("level")) {
-                switch (breadcrumb.getString("level")) {
-                    case "fatal":
-                        breadcrumbInstance.setLevel(SentryLevel.FATAL);
-                        break;
-                    case "warning":
-                        breadcrumbInstance.setLevel(SentryLevel.WARNING);
-                        break;
-                    case "debug":
-                        breadcrumbInstance.setLevel(SentryLevel.DEBUG);
-                        break;
-                    case "error":
-                        breadcrumbInstance.setLevel(SentryLevel.ERROR);
-                        break;
-                    case "info":
-                    default:
-                        breadcrumbInstance.setLevel(SentryLevel.INFO);
-                        break;
-                }
-            }
-
-            if (breadcrumb.hasKey("data")) {
-                final ReadableMap data = breadcrumb.getMap("data");
-                for (final Map.Entry<String, Object> entry : data.toHashMap().entrySet()) {
-                    final Object value = entry.getValue();
-                    // data is ConcurrentHashMap and can't have null values
-                    if (value != null) {
-                        breadcrumbInstance.setData(entry.getKey(), entry.getValue());
-                    }
-                }
-            }
-
-            scope.addBreadcrumb(breadcrumbInstance);
         });
     }
 

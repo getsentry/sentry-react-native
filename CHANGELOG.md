@@ -5,6 +5,7 @@
 ### Features
 
 - Improve touch event component info if annotated with [`@sentry/babel-plugin-component-annotate`](https://www.npmjs.com/package/@sentry/babel-plugin-component-annotate) ([#3899](https://github.com/getsentry/sentry-react-native/pull/3899))
+- Set `currentScreen` on native scope ([#3927](https://github.com/getsentry/sentry-react-native/pull/3927))
 
 ### Fixes
 
