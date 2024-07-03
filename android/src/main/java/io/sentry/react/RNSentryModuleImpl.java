@@ -328,9 +328,12 @@ public class RNSentryModuleImpl {
         androidReplayOptions.setRedactAllText(!rnMobileReplayOptions.hasKey("maskAllText") || rnMobileReplayOptions.getBoolean("maskAllText"));
         androidReplayOptions.setRedactAllImages(!rnMobileReplayOptions.hasKey("maskAllImages") || rnMobileReplayOptions.getBoolean("maskAllImages"));
 
-        final @NotNull Set<String> toRedact = new HashSet<>();
-        toRedact.add("com.horcrux.svg.SvgView");
-        androidReplayOptions.setRedactClasses(toRedact);
+        final boolean redactVectors = !rnMobileReplayOptions.hasKey("maskAllVectors") || rnMobileReplayOptions.getBoolean("maskAllVectors");
+        if (redactVectors) {
+            final @NotNull Set<String> toRedact = new HashSet<>();
+            toRedact.add("com.horcrux.svg.SvgView"); // react-native-svg
+            androidReplayOptions.setRedactClasses(toRedact);
+        }
 
         return androidReplayOptions;
     }

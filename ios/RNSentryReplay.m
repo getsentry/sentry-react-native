@@ -40,14 +40,16 @@
 
 + (void)addReplayRNRedactClasses:(NSDictionary *_Nullable)replayOptions {
   NSMutableArray *_Nonnull classesToRedact = [[NSMutableArray alloc] init];
+  if ([replayOptions[@"maskAllVectors"] boolValue] == YES) {
+    Class _Nullable maybeRNSVGViewClass = NSClassFromString(@"RNSVGSvgView");
+    if (maybeRNSVGViewClass != nil) {
+      [classesToRedact addObject:maybeRNSVGViewClass];
+    }
+  }
   if ([replayOptions[@"maskAllImages"] boolValue] == YES) {
     Class _Nullable maybeRCTImageClass = NSClassFromString(@"RCTImageView");
     if (maybeRCTImageClass != nil) {
       [classesToRedact addObject:maybeRCTImageClass];
-    }
-    Class _Nullable maybeRNSVGViewClass = NSClassFromString(@"RNSVGSvgView");
-    if (maybeRNSVGViewClass != nil) {
-      [classesToRedact addObject:maybeRNSVGViewClass];
     }
   }
   if ([replayOptions[@"maskAllText"] boolValue] == YES) {

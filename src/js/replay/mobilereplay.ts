@@ -12,18 +12,31 @@ export const MOBILE_REPLAY_INTEGRATION_NAME = 'MobileReplay';
 export interface MobileReplayOptions {
   /**
    * Mask all text in recordings
+   *
+   * @default true
    */
   maskAllText?: boolean;
 
   /**
    * Mask all text in recordings
+   *
+   * @default true
    */
   maskAllImages?: boolean;
+
+  /**
+   * Mask all vector graphics in recordings
+   * Supports `react-native-svg`
+   *
+   * @default true
+   */
+  maskAllVectors?: boolean;
 }
 
 const defaultOptions: Required<MobileReplayOptions> = {
   maskAllText: true,
   maskAllImages: true,
+  maskAllVectors: true,
 };
 
 type MobileReplayIntegration = IntegrationFnResult & {

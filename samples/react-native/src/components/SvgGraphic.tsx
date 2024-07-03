@@ -1,14 +1,9 @@
-import * as React from "react"
-import Svg, { SvgProps, Defs, G, Path, Ellipse } from "react-native-svg"
+import * as React from 'react';
+import Svg, { SvgProps, Defs, G, Path, Ellipse } from 'react-native-svg';
 
 const SvgComponent = (props: SvgProps) => (
-  <Svg
-    id="ART"
-    width={259.492}
-    height={336.983}
-    {...props}
-  >
-    <Defs></Defs>
+  <Svg id="ART" width={259.492} height={336.983} {...props}>
+    <Defs />
     <G id="_2_color" data-name="2 color">
       <Path
         d="m68.745 246.964 31.195-18.801 42.254 21.966-.508 43.17-72.94-46.335z"
@@ -204,7 +199,7 @@ const SvgComponent = (props: SvgProps) => (
     />
     <Path
       d="m58.802 146.73 11.836 21.872c.181.334-.038.9-.4 1.038l-22.158 8.39c-.553.21-.996-.228-.802-.799l10.324-30.35c.213-.625.9-.708 1.2-.152Z"
-      fill= "#ebb432"
+      fill="#ebb432"
     />
     <Path
       d="M46.32 178.124a.94.94 0 0 1-.66-.26c-.268-.26-.352-.661-.22-1.049l10.609-31.256c.141-.42.478-.7.879-.736.385-.038.755.175.957.545l12.374 22.566c.135.244.148.557.037.856a1.065 1.065 0 0 1-.606.645l-22.981 8.616c-.13.05-.262.073-.39.073Zm10.688-32.361c-.006.001-.04.023-.067.099l-10.609 31.257 23.026-8.567c.034-.021.079-.131.069-.178L57.059 145.82c-.025-.044-.046-.057-.051-.058Z"
@@ -230,20 +225,8 @@ const SvgComponent = (props: SvgProps) => (
       d="m219.126 173.572 7.678 37.023 10.758-2.263a.92.92 0 0 0 .682-1.008l-4.486-36.339a.917.917 0 0 0-1.12-.786l-13.512 3.373Z"
       fill="#fff"
     />
-    <Ellipse
-      cx={171.171}
-      cy={187.529}
-      fill="#b19cd1"
-      rx={2.689}
-      ry={5.892}
-    />
-    <Ellipse
-      cx={174.374}
-      cy={211.567}
-      fill="#b19cd1"
-      rx={2.689}
-      ry={5.892}
-    />
+    <Ellipse cx={171.171} cy={187.529} fill="#b19cd1" rx={2.689} ry={5.892} />
+    <Ellipse cx={174.374} cy={211.567} fill="#b19cd1" rx={2.689} ry={5.892} />
     <Path
       d="m219.739 174.09-40.07-14.248-.475 1.884 5.611 2.48-1.536 5.665 5.066-.227 1.228-2.404 27.31 8.257"
       fill="#ece8f0"
@@ -289,7 +272,7 @@ const SvgComponent = (props: SvgProps) => (
       cy={178.292}
       rx={1.504}
       ry={1.258}
-      fill= "#eab332"
+      fill="#eab332"
       transform="rotate(-7.162 230.91 178.293)"
     />
     <Ellipse
@@ -301,5 +284,5 @@ const SvgComponent = (props: SvgProps) => (
       transform="rotate(-7.162 231.41 182.268)"
     />
   </Svg>
-)
-export default SvgComponent
+);
+export default SvgComponent;
