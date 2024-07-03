@@ -28,10 +28,12 @@ import { Provider } from 'react-redux';
 import { store } from './reduxApp';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
-import { Platform, StyleSheet, View } from 'react-native';
+import { LogBox, Platform, StyleSheet, View } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
+
+LogBox.ignoreAllLogs();
 
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 

@@ -1,6 +1,6 @@
 import { addBreadcrumb, getCurrentHub } from '@sentry/core';
 import type { SeverityLevel } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import { dropUndefinedKeys, logger } from '@sentry/utils';
 import * as React from 'react';
 import type { GestureResponderEvent } from 'react-native';
 import { StyleSheet, View } from 'react-native';
@@ -189,50 +189,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
         break;
       }
 
-      const props = currentInst.memoizedProps ?? {};
-      const info: TouchedComponentInfo = {};
-
-      // provided by @sentry/babel-plugin-component-annotate
-      if (
-        typeof props[SENTRY_COMPONENT_PROP_KEY] === 'string' &&
-        props[SENTRY_COMPONENT_PROP_KEY].length > 0 &&
-        props[SENTRY_COMPONENT_PROP_KEY] !== 'unknown'
-      ) {
-        info.name = props[SENTRY_COMPONENT_PROP_KEY];
-      }
-      if (
-        typeof props[SENTRY_ELEMENT_PROP_KEY] === 'string' &&
-        props[SENTRY_ELEMENT_PROP_KEY].length > 0 &&
-        props[SENTRY_ELEMENT_PROP_KEY] !== 'unknown'
-      ) {
-        info.element = props[SENTRY_ELEMENT_PROP_KEY];
-      }
-      if (
-        typeof props[SENTRY_FILE_PROP_KEY] === 'string' &&
-        props[SENTRY_FILE_PROP_KEY].length > 0 &&
-        props[SENTRY_FILE_PROP_KEY] !== 'unknown'
-      ) {
-        info.file = props[SENTRY_FILE_PROP_KEY];
-      }
-
-      // use custom label if provided by the user, or displayName if available
-      const labelValue =
-        typeof props[SENTRY_LABEL_PROP_KEY] === 'string'
-          ? props[SENTRY_LABEL_PROP_KEY]
-          : // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
-          // the "check-label" if sentence, so we have to assign it to a variable here first
-          typeof this.props.labelName === 'string'
-          ? props[this.props.labelName]
-          : undefined;
-
-      if (typeof labelValue === 'string' && labelValue.length > 0) {
-        info.label = labelValue;
-      }
-
-      if (!info.name && currentInst.elementType?.displayName) {
-        info.name = currentInst.elementType?.displayName;
-      }
-
+      const info = getTouchedComponentInfo(currentInst, this.props.labelName);
       this._pushIfNotIgnored(touchPath, info);
 
       currentInst = currentInst.return;
@@ -252,7 +209,11 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
   /**
    * Pushes the name to the componentTreeNames array if it is not ignored.
    */
-  private _pushIfNotIgnored(touchPath: TouchedComponentInfo[], value: TouchedComponentInfo): boolean {
+  private _pushIfNotIgnored(touchPath: TouchedComponentInfo[], value: TouchedComponentInfo | undefined): boolean {
+    if (!value) {
+      return false;
+    }
+
     if (!value.name && !value.label) {
       return false;
     }
@@ -271,6 +232,62 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     touchPath.push(value);
     return true;
   }
+}
+
+function getTouchedComponentInfo(currentInst: ElementInstance, labelKey: string | undefined): TouchedComponentInfo | undefined {
+  const displayName = currentInst.elementType?.displayName;
+
+  const props = currentInst.memoizedProps;
+  if (!props) {
+    // Early return if no props are available, as we can't extract any useful information
+    if (displayName) {
+      return {
+        name: displayName,
+      };
+    }
+    return undefined;
+  }
+
+  return dropUndefinedKeys<TouchedComponentInfo>({
+    // provided by @sentry/babel-plugin-component-annotate
+    name: getComponentName(props) || displayName,
+    element: getElementName(props),
+    file: getFileName(props),
+
+    // `sentry-label` or user defined label key
+    label: getLabelValue(props, labelKey),
+  });
+}
+
+function getComponentName(props: Record<string, unknown>): string | undefined {
+  return typeof props[SENTRY_COMPONENT_PROP_KEY] === 'string' &&
+    props[SENTRY_COMPONENT_PROP_KEY].length > 0 &&
+    props[SENTRY_COMPONENT_PROP_KEY] !== 'unknown' &&
+    props[SENTRY_COMPONENT_PROP_KEY] || undefined;
+}
+
+function getElementName(props: Record<string, unknown>): string | undefined {
+  return typeof props[SENTRY_ELEMENT_PROP_KEY] === 'string' &&
+    props[SENTRY_ELEMENT_PROP_KEY].length > 0 &&
+    props[SENTRY_ELEMENT_PROP_KEY] !== 'unknown' &&
+    props[SENTRY_ELEMENT_PROP_KEY] || undefined;
+}
+
+function getFileName(props: Record<string, unknown>): string | undefined {
+  return typeof props[SENTRY_FILE_PROP_KEY] === 'string' &&
+    props[SENTRY_FILE_PROP_KEY].length > 0 &&
+    props[SENTRY_FILE_PROP_KEY] !== 'unknown' &&
+    props[SENTRY_FILE_PROP_KEY] || undefined;
+}
+
+function getLabelValue(props: Record<string, unknown>, labelKey: string | undefined): string | undefined {
+  return typeof props[SENTRY_LABEL_PROP_KEY] === 'string' && props[SENTRY_LABEL_PROP_KEY].length > 0
+    ? props[SENTRY_LABEL_PROP_KEY] as string
+    // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
+    // the "check-label" if sentence, so we have to assign it to a variable here first
+    : typeof labelKey === 'string' && typeof props[labelKey] == 'string' && (props[labelKey] as string).length > 0
+      ? props[labelKey] as string
+      : undefined;
 }
 
 /**
