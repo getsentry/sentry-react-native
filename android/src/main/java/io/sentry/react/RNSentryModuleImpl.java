@@ -41,9 +41,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import io.sentry.Breadcrumb;
@@ -325,6 +327,10 @@ public class RNSentryModuleImpl {
 
         androidReplayOptions.setRedactAllText(!rnMobileReplayOptions.hasKey("maskAllText") || rnMobileReplayOptions.getBoolean("maskAllText"));
         androidReplayOptions.setRedactAllImages(!rnMobileReplayOptions.hasKey("maskAllImages") || rnMobileReplayOptions.getBoolean("maskAllImages"));
+
+        final @NotNull Set<String> toRedact = new HashSet<>();
+        toRedact.add("com.horcrux.svg.SvgView");
+        androidReplayOptions.setRedactClasses(toRedact);
 
         return androidReplayOptions;
     }
