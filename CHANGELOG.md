@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Redact `react-native-svg` SVGs when `maskAllVectors` ([#3930](https://github.com/getsentry/sentry-react-native/pull/3930))
+
 ## 5.25.0-alpha.2
 
 ### Features
@@ -8,7 +14,6 @@
 - Add replay breadcrumbs for touch & navigation events ([#3846](https://github.com/getsentry/sentry-react-native/pull/3846))
 - Add network data to Session Replays ([#3912](https://github.com/getsentry/sentry-react-native/pull/3912))
 - Filter Sentry Event Breadcrumbs from Mobile Replays ([#3925](https://github.com/getsentry/sentry-react-native/pull/3925))
-- Redact `react-native-svg` SVGs when `maskAllVectors` ([#3930](https://github.com/getsentry/sentry-react-native/pull/3930))
 
 ### Fixes
 
