@@ -456,7 +456,7 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSString * _Nonnull)rawBytes
     #if DEBUG
         [PrivateSentrySDKOnly captureEnvelope:envelope];
     #else
-        if ([[options objectForKey:@"store"] boolValue]) {
+        if ([[options objectForKey:@"hardCrashed"] boolValue]) {
             // Storing to disk happens asynchronously with captureEnvelope
             [PrivateSentrySDKOnly storeEnvelope:envelope];
         } else {
