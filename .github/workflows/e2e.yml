@@ -568,7 +568,7 @@ jobs:
         if: ${{ matrix.platform == 'android' }}
         env:
           APPIUM_APP: ./app-release.apk
-        uses: reactivecircus/android-emulator-runner@6b0df4b0efb23bb0ec63d881db79aefbc976e4b2 # pin@v2
+        uses: reactivecircus/android-emulator-runner@77986be26589807b8ebab3fde7bbf5c60dabec32 # pin@v2
         with:
           working-directory: test/e2e
           api-level: 30
