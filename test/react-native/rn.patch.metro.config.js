@@ -20,6 +20,8 @@ const importSerializer = "const { withSentryConfig } = require('@sentry/react-na
 
 let config = fs.readFileSync(configFilePath, 'utf8').split('\n');
 
+const sentryOptions = '{ annotateReactComponents: true }';
+
 const isPatched = config.includes(importSerializer);
 if (!isPatched) {
   config = [importSerializer, ...config];
@@ -35,11 +37,18 @@ if (!isPatched) {
     lineParsed[1] = lineParsed[1].slice(0, -1);
   }
 
-  lineParsed[1] = `= withSentryConfig(${lineParsed[1]}${endsWithSemicolon ? ');' : ''}`;
+  lineParsed[1] = `= withSentryConfig(${lineParsed[1]}${endsWithSemicolon ? `, ${sentryOptions});` : ''}`;
   config[moduleExportsLineIndex] = lineParsed.join('');
 
   if (endOfModuleExportsIndex !== -1) {
-    config[endOfModuleExportsIndex] = '});';
+    config[endOfModuleExportsIndex] = `}, ${sentryOptions});`;
+  }
+
+  // RN Before 0.72 does not include default config in the metro.config.js
+  // We have to specify babelTransformerPath manually
+  const transformerIndex = config.findIndex(line => line.includes('transformer: {'));
+  if (transformerIndex !== -1) {
+    config[transformerIndex] = `transformer: { babelTransformerPath: require.resolve('metro-babel-transformer'),`;
   }
 
   fs.writeFileSync(configFilePath, config.join('\n'), 'utf8');

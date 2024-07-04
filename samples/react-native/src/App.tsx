@@ -32,6 +32,7 @@ import { LogBox, Platform, StyleSheet, View } from 'react-native';
 import { HttpClient } from '@sentry/integrations';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
+import { logWithoutTracing } from './utils';
 
 LogBox.ignoreAllLogs();
 
@@ -49,16 +50,19 @@ Sentry.init({
   debug: true,
   environment: 'dev',
   beforeSend: (event: Sentry.Event) => {
-    console.log('Event beforeSend:', event.event_id);
+    logWithoutTracing('Event beforeSend:', event.event_id);
     return event;
   },
   beforeSendTransaction(event) {
-    console.log('Transaction beforeSend:', event.event_id);
+    logWithoutTracing('Transaction beforeSend:', event.event_id);
     return event;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
   onReady: ({ didCallNativeInit }) => {
-    console.log('onReady called with didCallNativeInit:', didCallNativeInit);
+    logWithoutTracing(
+      'onReady called with didCallNativeInit:',
+      didCallNativeInit,
+    );
   },
   integrations(integrations) {
     integrations.push(
