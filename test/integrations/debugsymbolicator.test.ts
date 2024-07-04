@@ -57,7 +57,9 @@ describe('Debug Symbolicator Integration', () => {
     const customMockRawStack = (errorNumber: number, value: number) =>
       `Error${errorNumber}: This is mocked error stack trace
       at foo${errorNumber} (http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false:${value}:${value})
-      at bar${errorNumber} (http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false:${value + 1}:${value + 1})
+      at bar${errorNumber} (http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false:${value + 1}:${
+        value + 1
+      })
       at baz${errorNumber} (native)
       `;
 
@@ -79,9 +81,8 @@ describe('Debug Symbolicator Integration', () => {
           lineno: value2,
           colno: value2,
         },
-
       ];
-    }
+    };
 
     beforeEach(() => {
       (parseErrorStack as jest.Mock).mockReturnValue(<Array<ReactNative.StackFrame>>[
@@ -537,8 +538,7 @@ describe('Debug Symbolicator Integration', () => {
         .mockReturnValueOnce(setupStackFrame(5))
         .mockReturnValueOnce(setupStackFrame(7));
 
-      const mocksymbolicateStackTrace = (value: number): ReactNative.SymbolicatedStackTrace =>
-      ({
+      const mocksymbolicateStackTrace = (value: number): ReactNative.SymbolicatedStackTrace => ({
         stack: [
           {
             file: `/User/project/foo${value}.js`,
@@ -552,13 +552,13 @@ describe('Debug Symbolicator Integration', () => {
             column: value + 1,
             methodName: `bar${value + 1}`,
           },
-        ]
+        ],
       });
       (symbolicateStackTrace as jest.Mock)
         .mockReturnValueOnce(Promise.resolve(mocksymbolicateStackTrace(1)))
         .mockReturnValueOnce(Promise.resolve(mocksymbolicateStackTrace(3)))
         .mockReturnValueOnce(Promise.resolve(mocksymbolicateStackTrace(5)))
-        .mockReturnValueOnce(Promise.resolve(mocksymbolicateStackTrace(7)))
+        .mockReturnValueOnce(Promise.resolve(mocksymbolicateStackTrace(7)));
 
       const symbolicatedEvent = await processEvent(
         {
@@ -604,8 +604,8 @@ describe('Debug Symbolicator Integration', () => {
                 stack: customMockRawStack(5, 5),
                 cause: {
                   stack: customMockRawStack(7, 7),
-                }
-              }
+                },
+              },
             },
           },
         },
@@ -679,7 +679,8 @@ describe('Debug Symbolicator Integration', () => {
                   },
                 ],
               },
-            }, {
+            },
+            {
               type: 'Error4',
               value: 'Error4: test',
               stacktrace: {
@@ -733,8 +734,7 @@ describe('Debug Symbolicator Integration', () => {
         .mockReturnValueOnce(setupStackFrame(5))
         .mockReturnValueOnce(setupStackFrame(7));
 
-      const mocksymbolicateStackTrace = (value: number): ReactNative.SymbolicatedStackTrace =>
-      ({
+      const mocksymbolicateStackTrace = (value: number): ReactNative.SymbolicatedStackTrace => ({
         stack: [
           {
             file: `/User/project/foo${value}.js`,
@@ -748,13 +748,13 @@ describe('Debug Symbolicator Integration', () => {
             column: value + 1,
             methodName: `bar${value + 1}`,
           },
-        ]
+        ],
       });
       (symbolicateStackTrace as jest.Mock)
         .mockReturnValueOnce(Promise.resolve(mocksymbolicateStackTrace(1)))
         .mockReturnValueOnce(Promise.resolve(mocksymbolicateStackTrace(3)))
         .mockReturnValueOnce(Promise.resolve(mocksymbolicateStackTrace(5)))
-        .mockReturnValueOnce(Promise.resolve(mocksymbolicateStackTrace(7)))
+        .mockReturnValueOnce(Promise.resolve(mocksymbolicateStackTrace(7)));
 
       const symbolicatedEvent = await processEvent(
         {
@@ -786,8 +786,8 @@ describe('Debug Symbolicator Integration', () => {
                 stack: customMockRawStack(5, 5),
                 cause: {
                   stack: customMockRawStack(7, 7),
-                }
-              }
+                },
+              },
             },
           },
         },
