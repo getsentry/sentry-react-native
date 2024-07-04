@@ -456,7 +456,7 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSString * _Nonnull)rawBytes
     #if DEBUG
         [PrivateSentrySDKOnly captureEnvelope:envelope];
     #else
-        if ([[options objectForKey:@"store"] boolValue]) {
+        if ([[options objectForKey:@"hardCrashed"] boolValue]) {
             // Storing to disk happens asynchronously with captureEnvelope
             [PrivateSentrySDKOnly storeEnvelope:envelope];
         } else {
@@ -550,6 +550,13 @@ RCT_EXPORT_METHOD(addBreadcrumb:(NSDictionary *)breadcrumb)
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
         [scope addBreadcrumb:[RNSentryBreadcrumb from:breadcrumb]];
     }];
+
+#if SENTRY_HAS_UIKIT
+    NSString *_Nullable screen = [RNSentryBreadcrumb getCurrentScreenFrom:breadcrumb];
+    if (screen != nil) {
+        [PrivateSentrySDKOnly setCurrentScreen:screen];
+    }
+#endif //SENTRY_HAS_UIKIT
 }
 
 RCT_EXPORT_METHOD(clearBreadcrumbs) {
