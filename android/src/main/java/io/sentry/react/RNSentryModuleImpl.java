@@ -330,9 +330,7 @@ public class RNSentryModuleImpl {
 
         final boolean redactVectors = !rnMobileReplayOptions.hasKey("maskAllVectors") || rnMobileReplayOptions.getBoolean("maskAllVectors");
         if (redactVectors) {
-            final @NotNull Set<String> toRedact = new HashSet<>();
-            toRedact.add("com.horcrux.svg.SvgView"); // react-native-svg
-            androidReplayOptions.setRedactClasses(toRedact);
+            androidReplayOptions.addClassToRedact("com.horcrux.svg.SvgView"); // react-native-svg
         }
 
         return androidReplayOptions;
