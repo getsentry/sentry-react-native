@@ -9,6 +9,7 @@
 
 ### Fixes
 
+- errors with cause are now correctly serialized on debug build ([#3920](https://github.com/getsentry/sentry-react-native/pull/3920))
 - `sentry-expo-upload-sourcemaps` no longer requires Sentry url when uploading sourcemaps to `sentry.io` ([#3915](https://github.com/getsentry/sentry-react-native/pull/3915))
 - Flavor aware Android builds use `SENTRY_AUTH_TOKEN` env as fallback when token not found in `sentry-flavor-type.properties`. ([#3917](https://github.com/getsentry/sentry-react-native/pull/3917))
 - `mechanism.handled:false` should crash current session ([#3900](https://github.com/getsentry/sentry-react-native/pull/3900))
