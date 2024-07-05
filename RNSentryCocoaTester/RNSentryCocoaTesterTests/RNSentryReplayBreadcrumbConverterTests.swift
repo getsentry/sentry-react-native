@@ -2,6 +2,34 @@ import XCTest
 
 final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
 
+    func testConvertForegroundBreadcrumb() {
+        let converter = RNSentryReplayBreadcrumbConverter()
+        let testBreadcrumb = Breadcrumb()
+        testBreadcrumb.type = "navigation"
+        testBreadcrumb.category = "app.lifecycle"
+        testBreadcrumb.data = ["state": "foreground"]
+        let actual = converter.convert(from: testBreadcrumb)
+
+        XCTAssertNotNil(actual)
+        let data = actual!.serialize()["data"] as! [String: Any?];
+        let payload = data["payload"] as! [String: Any?];
+        XCTAssertEqual(payload["category"] as! String, "app.foreground")
+    }
+
+    func testConvertBackgroundBreadcrumb() {
+        let converter = RNSentryReplayBreadcrumbConverter()
+        let testBreadcrumb = Breadcrumb()
+        testBreadcrumb.type = "navigation"
+        testBreadcrumb.category = "app.lifecycle"
+        testBreadcrumb.data = ["state": "background"]
+        let actual = converter.convert(from: testBreadcrumb)
+
+        XCTAssertNotNil(actual)
+        let data = actual!.serialize()["data"] as! [String: Any?];
+        let payload = data["payload"] as! [String: Any?];
+        XCTAssertEqual(payload["category"] as! String, "app.background")
+    }
+
     func testNotConvertSentryEventBreadcrumb() {
         let converter = RNSentryReplayBreadcrumbConverter()
         let testBreadcrumb = Breadcrumb()

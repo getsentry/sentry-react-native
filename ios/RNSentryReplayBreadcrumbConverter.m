@@ -25,13 +25,9 @@
     // Do not add Sentry Event breadcrumbs to replay
     return nil;
   }
-  
+
   if ([breadcrumb.category isEqualToString:@"http"]) {
     // Drop native network breadcrumbs to avoid duplicates
-    return nil;
-  }
-  if ([breadcrumb.type isEqualToString:@"navigation"] && ![breadcrumb.category isEqualToString:@"navigation"]) {
-    // Drop native navigation breadcrumbs to avoid duplicates
     return nil;
   }
 
@@ -71,7 +67,7 @@
   if (breadcrumb.data == nil) {
     return nil;
   }
-  
+
   NSMutableArray *path = [breadcrumb.data valueForKey:@"path"];
   NSString* message = [RNSentryReplayBreadcrumbConverter getTouchPathMessageFrom:path];
 
@@ -87,7 +83,7 @@
   if (path == nil) {
     return nil;
   }
-  
+
   NSInteger pathCount = [path count];
   if (pathCount <= 0) {
     return nil;
@@ -129,7 +125,7 @@
       [message appendString:@" > "];
     }
   }
-  
+
   return message;
 }
 

@@ -17,6 +17,10 @@
   module.exports = withSentryConfig(getDefaultConfig(__dirname), { annotateReactComponents: true });
   ```
 
+### Fixes
+
+- Add `app.foreground/background` breadcrumbs to iOS Replays ([#3932](https://github.com/getsentry/sentry-react-native/pull/3932))
+
 ## 5.25.0-alpha.2
 
 ### Features

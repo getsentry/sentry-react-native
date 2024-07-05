@@ -2,6 +2,7 @@ package io.sentry.rnsentryandroidtester
 
 import io.sentry.Breadcrumb
 import io.sentry.react.RNSentryReplayBreadcrumbConverter
+import io.sentry.rrweb.RRWebBreadcrumbEvent
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -9,6 +10,30 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class RNSentryReplayBreadcrumbConverterTest {
+
+    @Test
+    fun testConvertForegroundBreadcrumb() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.type = "navigation"
+        testBreadcrumb.category = "app.lifecycle"
+        testBreadcrumb.setData("state", "foreground");
+        val actual = converter.convert(testBreadcrumb) as RRWebBreadcrumbEvent
+
+        assertEquals("app.foreground", actual.category)
+    }
+
+    @Test
+    fun testConvertBackgroundBreadcrumb() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.type = "navigation"
+        testBreadcrumb.category = "app.lifecycle"
+        testBreadcrumb.setData("state", "background");
+        val actual = converter.convert(testBreadcrumb) as RRWebBreadcrumbEvent
+
+        assertEquals("app.background", actual.category)
+    }
 
     @Test
     fun doesNotConvertSentryEventBreadcrumb() {
