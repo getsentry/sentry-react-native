@@ -194,7 +194,7 @@ export const NATIVE: SentryNativeWrapper = {
       envelopeBytes = newBytes;
     }
 
-    await RNSentry.captureEnvelope(base64StringFromByteArray(envelopeBytes), { store: hardCrashed });
+    await RNSentry.captureEnvelope(base64StringFromByteArray(envelopeBytes), { hardCrashed });
   },
 
   /**

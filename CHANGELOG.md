@@ -4,6 +4,7 @@
 
 ### Features
 
+- Set `currentScreen` on native scope ([#3927](https://github.com/getsentry/sentry-react-native/pull/3927))
 - Add `annotateReactComponents` option to `@sentry/react-native/metro` ([#3916](https://github.com/getsentry/sentry-react-native/pull/3916))
 
   ```js
@@ -20,6 +21,9 @@
 ### Fixes
 
 - Add `app.foreground/background` breadcrumbs to iOS Replays ([#3932](https://github.com/getsentry/sentry-react-native/pull/3932))
+- errors with cause are now correctly serialized on debug build ([#3920](https://github.com/getsentry/sentry-react-native/pull/3920))
+- Flavor aware Android builds use `SENTRY_AUTH_TOKEN` env as fallback when token not found in `sentry-flavor-type.properties`. ([#3917](https://github.com/getsentry/sentry-react-native/pull/3917))
+- `mechanism.handled:false` should crash current session ([#3900](https://github.com/getsentry/sentry-react-native/pull/3900))
 
 ## 5.25.0-alpha.2
 

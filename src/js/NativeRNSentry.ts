@@ -13,7 +13,7 @@ export interface Spec extends TurboModule {
   captureEnvelope(
     bytes: string,
     options: {
-      store: boolean;
+      hardCrashed: boolean;
     },
   ): Promise<boolean>;
   captureScreenshot(): Promise<NativeScreenshot[] | undefined | null>;

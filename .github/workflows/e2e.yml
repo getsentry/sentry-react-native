@@ -22,7 +22,7 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
+        uses: styfle/cancel-workflow-action@85880fa0301c86cca9da44039ee3bb12d3bedbfa # pin@0.12.1
         with:
           access_token: ${{ github.token }}
 
@@ -568,7 +568,7 @@ jobs:
         if: ${{ matrix.platform == 'android' }}
         env:
           APPIUM_APP: ./app-release.apk
-        uses: reactivecircus/android-emulator-runner@6b0df4b0efb23bb0ec63d881db79aefbc976e4b2 # pin@v2
+        uses: reactivecircus/android-emulator-runner@77986be26589807b8ebab3fde7bbf5c60dabec32 # pin@v2.31.0
         with:
           working-directory: test/e2e
           api-level: 30

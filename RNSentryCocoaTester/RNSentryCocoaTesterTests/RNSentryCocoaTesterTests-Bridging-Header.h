@@ -3,3 +3,4 @@
 //
 
 #import "RNSentryReplayBreadcrumbConverter.h"
+#import "RNSentryBreadcrumb.h"
