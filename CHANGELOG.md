@@ -4,12 +4,12 @@
 
 ### Features
 
-- Improve touch event component info if annotated with [`@sentry/babel-plugin-component-annotate`](https://www.npmjs.com/package/@sentry/babel-plugin-component-annotate) ([#3899](https://github.com/getsentry/sentry-react-native/pull/3899))
+- Improved Touch Event Breadcrumb components structure ([#3899](https://github.com/getsentry/sentry-react-native/pull/3899))
 - Set `currentScreen` on native scope ([#3927](https://github.com/getsentry/sentry-react-native/pull/3927))
 
 ### Fixes
 
-- errors with cause are now correctly serialized on debug build ([#3920](https://github.com/getsentry/sentry-react-native/pull/3920))
+- `error.cause` chain is locally symbolicated in development builds ([#3920](https://github.com/getsentry/sentry-react-native/pull/3920))
 - `sentry-expo-upload-sourcemaps` no longer requires Sentry url when uploading sourcemaps to `sentry.io` ([#3915](https://github.com/getsentry/sentry-react-native/pull/3915))
 - Flavor aware Android builds use `SENTRY_AUTH_TOKEN` env as fallback when token not found in `sentry-flavor-type.properties`. ([#3917](https://github.com/getsentry/sentry-react-native/pull/3917))
 - `mechanism.handled:false` should crash current session ([#3900](https://github.com/getsentry/sentry-react-native/pull/3900))
