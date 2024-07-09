@@ -5,6 +5,7 @@
 ### Features
 
 - Redact `react-native-svg` SVGs when `maskAllVectors` ([#3930](https://github.com/getsentry/sentry-react-native/pull/3930))
+- Set `currentScreen` on native scope ([#3927](https://github.com/getsentry/sentry-react-native/pull/3927))
 - Add `annotateReactComponents` option to `@sentry/react-native/metro` ([#3916](https://github.com/getsentry/sentry-react-native/pull/3916))
 
   ```js
@@ -17,6 +18,19 @@
   const { withSentryConfig } = require('@sentry/react-native/metro');
   module.exports = withSentryConfig(getDefaultConfig(__dirname), { annotateReactComponents: true });
   ```
+
+### Fixes
+
+- Add `app.foreground/background` breadcrumbs to iOS Replays ([#3932](https://github.com/getsentry/sentry-react-native/pull/3932))
+- errors with cause are now correctly serialized on debug build ([#3920](https://github.com/getsentry/sentry-react-native/pull/3920))
+- Flavor aware Android builds use `SENTRY_AUTH_TOKEN` env as fallback when token not found in `sentry-flavor-type.properties`. ([#3917](https://github.com/getsentry/sentry-react-native/pull/3917))
+- `mechanism.handled:false` should crash current session ([#3900](https://github.com/getsentry/sentry-react-native/pull/3900))
+
+### Dependencies
+
+- Bump Android SDK from v7.11.0-alpha.2 to v7.12.0-alpha.3 ([#3830](https://github.com/getsentry/sentry-react-native/pull/3830))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/7.12.0-alpha.3/CHANGELOG.md#7120-alpha3)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.11.0-alpha.2...7.12.0-alpha.3)
 
 ## 5.25.0-alpha.2
 

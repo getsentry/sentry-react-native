@@ -30,6 +30,22 @@ describe('misc', () => {
         }),
       ).toBe(false);
     });
+    test('handled false outside of onerror is not a hard crash', () => {
+      expect(
+        isHardCrash({
+          exception: {
+            values: [
+              {
+                mechanism: {
+                  handled: false,
+                  type: 'test',
+                },
+              },
+            ],
+          },
+        }),
+      ).toBe(false);
+    });
     test('any handled false is a hard crash', () => {
       expect(
         isHardCrash({
@@ -39,7 +55,7 @@ describe('misc', () => {
               {
                 mechanism: {
                   handled: false,
-                  type: 'test',
+                  type: 'onerror',
                 },
               },
               {

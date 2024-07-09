@@ -29,6 +29,10 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
       breadcrumb.getCategory().equals("sentry.transaction")) {
       return null;
     }
+    if (breadcrumb.getCategory().equals("http")) {
+      // Drop native http breadcrumbs to avoid duplicates
+      return null;
+    }
 
     if (breadcrumb.getCategory().equals("touch")) {
       return convertTouchBreadcrumb(breadcrumb);
@@ -41,10 +45,6 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     }
     if (breadcrumb.getCategory().equals("xhr")) {
       return convertNetworkBreadcrumb(breadcrumb);
-    }
-    if (breadcrumb.getCategory().equals("http")) {
-      // Drop native http breadcrumbs to avoid duplicates
-      return null;
     }
 
     RRWebEvent nativeBreadcrumb = super.convert(breadcrumb);
