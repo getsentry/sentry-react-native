@@ -13,6 +13,7 @@ import {
   SafeAreaView,
   Pressable,
 } from 'react-native';
+import SvgGraphic from '../components/SvgGraphic';
 
 const multilineText = `This
 is
@@ -65,6 +66,8 @@ const PlaygroundScreen = () => {
                 }}>
                 <Text>Press me</Text>
               </Pressable>
+              <Text>react-native-svg</Text>
+              <SvgGraphic />
             </View>
           </TouchableWithoutFeedback>
         </ScrollView>

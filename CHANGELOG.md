@@ -4,6 +4,7 @@
 
 ### Features
 
+- Redact `react-native-svg` SVGs when `maskAllVectors` ([#3930](https://github.com/getsentry/sentry-react-native/pull/3930))
 - Set `currentScreen` on native scope ([#3927](https://github.com/getsentry/sentry-react-native/pull/3927))
 - Add `annotateReactComponents` option to `@sentry/react-native/metro` ([#3916](https://github.com/getsentry/sentry-react-native/pull/3916))
 

@@ -93,7 +93,8 @@ Sentry.init({
       }),
       Sentry.metrics.metricsAggregatorIntegration(),
       Sentry.mobileReplayIntegration({
-        maskAllImages: false,
+        maskAllImages: true,
+        maskAllVectors: true,
         // maskAllText: false,
       }),
     );
