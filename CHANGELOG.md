@@ -5,7 +5,6 @@
 ### Features
 
 - Redact `react-native-svg` SVGs when `maskAllVectors` ([#3930](https://github.com/getsentry/sentry-react-native/pull/3930))
-- Set `currentScreen` on native scope ([#3927](https://github.com/getsentry/sentry-react-native/pull/3927))
 - Add `annotateReactComponents` option to `@sentry/react-native/metro` ([#3916](https://github.com/getsentry/sentry-react-native/pull/3916))
 
   ```js
@@ -22,15 +21,35 @@
 ### Fixes
 
 - Add `app.foreground/background` breadcrumbs to iOS Replays ([#3932](https://github.com/getsentry/sentry-react-native/pull/3932))
-- errors with cause are now correctly serialized on debug build ([#3920](https://github.com/getsentry/sentry-react-native/pull/3920))
-- Flavor aware Android builds use `SENTRY_AUTH_TOKEN` env as fallback when token not found in `sentry-flavor-type.properties`. ([#3917](https://github.com/getsentry/sentry-react-native/pull/3917))
-- `mechanism.handled:false` should crash current session ([#3900](https://github.com/getsentry/sentry-react-native/pull/3900))
 
 ### Dependencies
 
 - Bump Android SDK from v7.11.0-alpha.2 to v7.12.0-alpha.4 ([#3830](https://github.com/getsentry/sentry-react-native/pull/3830))
   - [changelog](https://github.com/getsentry/sentry-java/blob/7.12.0-alpha.3/CHANGELOG.md#7120-alpha4)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.11.0-alpha.2...7.12.0-alpha.4)
+
+## 5.25.0
+
+### Features
+
+- Improved Touch Event Breadcrumb components structure ([#3899](https://github.com/getsentry/sentry-react-native/pull/3899))
+- Set `currentScreen` on native scope ([#3927](https://github.com/getsentry/sentry-react-native/pull/3927))
+
+### Fixes
+
+- `error.cause` chain is locally symbolicated in development builds ([#3920](https://github.com/getsentry/sentry-react-native/pull/3920))
+- `sentry-expo-upload-sourcemaps` no longer requires Sentry url when uploading sourcemaps to `sentry.io` ([#3915](https://github.com/getsentry/sentry-react-native/pull/3915))
+- Flavor aware Android builds use `SENTRY_AUTH_TOKEN` env as fallback when token not found in `sentry-flavor-type.properties`. ([#3917](https://github.com/getsentry/sentry-react-native/pull/3917))
+- `mechanism.handled:false` should crash current session ([#3900](https://github.com/getsentry/sentry-react-native/pull/3900))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.29.1 to v8.30.0 ([#3914](https://github.com/getsentry/sentry-react-native/pull/3914))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8300)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.29.1...8.30.0)
+- Bump Android SDK from v7.10.0 to v7.11.0 ([#3926](https://github.com/getsentry/sentry-react-native/pull/3926))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7110)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.10.0...7.11.0)
 
 ## 5.25.0-alpha.2
 
