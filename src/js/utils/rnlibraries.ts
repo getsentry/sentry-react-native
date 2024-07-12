@@ -14,7 +14,7 @@ export const ReactNativeLibraries: Required<ReactNativeLibrariesInterface> = {
     },
     symbolicateStackTrace: (
       stack: Array<ReactNative.StackFrame>,
-      extraData?: Record<string, unknown>,
+      extraData?: Record<string, unknown>
     ): Promise<ReactNative.SymbolicatedStackTrace> => {
       const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
       return symbolicateStackTrace(stack, extraData);
@@ -35,4 +35,7 @@ export const ReactNativeLibraries: Required<ReactNativeLibrariesInterface> = {
     version: RNV,
   },
   TurboModuleRegistry,
+  Libraries: {
+    requireNativeComponent: require('react-native/Libraries/ReactNative/requireNativeComponent')
+  }
 };
