@@ -38,10 +38,7 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
       return convertTouchBreadcrumb(breadcrumb);
     }
     if (breadcrumb.getCategory().equals("navigation")) {
-      final RRWebBreadcrumbEvent rrWebBreadcrumb = new RRWebBreadcrumbEvent();
-      rrWebBreadcrumb.setCategory(breadcrumb.getCategory());
-      rrWebBreadcrumb.setData(breadcrumb.getData());
-      return rrWebBreadcrumb;
+      return convertNavigationBreadcrumb(breadcrumb);
     }
     if (breadcrumb.getCategory().equals("xhr")) {
       return convertNetworkBreadcrumb(breadcrumb);
@@ -61,6 +58,14 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
   }
 
   @TestOnly
+  public @NotNull RRWebEvent convertNavigationBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
+    final RRWebBreadcrumbEvent rrWebBreadcrumb = new RRWebBreadcrumbEvent();
+    rrWebBreadcrumb.setCategory(breadcrumb.getCategory());
+    setRRWebEventDefaultsFrom(rrWebBreadcrumb, breadcrumb);
+    return rrWebBreadcrumb;
+  }
+
+  @TestOnly
   public @NotNull RRWebEvent convertTouchBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
     final RRWebBreadcrumbEvent rrWebBreadcrumb = new RRWebBreadcrumbEvent();
 
@@ -69,11 +74,7 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
       rrWebBreadcrumb.setMessage(RNSentryReplayBreadcrumbConverter
               .getTouchPathMessage(breadcrumb.getData("path")));
 
-    rrWebBreadcrumb.setLevel(breadcrumb.getLevel());
-    rrWebBreadcrumb.setData(breadcrumb.getData());
-    rrWebBreadcrumb.setTimestamp(breadcrumb.getTimestamp().getTime());
-    rrWebBreadcrumb.setBreadcrumbTimestamp(breadcrumb.getTimestamp().getTime() / 1000.0);
-    rrWebBreadcrumb.setBreadcrumbType("default");
+    setRRWebEventDefaultsFrom(rrWebBreadcrumb, breadcrumb);
     return rrWebBreadcrumb;
   }
 
@@ -174,5 +175,13 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     rrWebSpanEvent.setDescription(url);
     rrWebSpanEvent.setData(data);
     return rrWebSpanEvent;
+  }
+
+  private void setRRWebEventDefaultsFrom(final @NotNull RRWebBreadcrumbEvent rrWebBreadcrumb, final @NotNull Breadcrumb breadcrumb) {
+    rrWebBreadcrumb.setLevel(breadcrumb.getLevel());
+    rrWebBreadcrumb.setData(breadcrumb.getData());
+    rrWebBreadcrumb.setTimestamp(breadcrumb.getTimestamp().getTime());
+    rrWebBreadcrumb.setBreadcrumbTimestamp(breadcrumb.getTimestamp().getTime() / 1000.0);
+    rrWebBreadcrumb.setBreadcrumbType("default");
   }
 }

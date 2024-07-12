@@ -1,6 +1,56 @@
 import XCTest
+import Sentry
 
 final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
+
+    func testConvertNavigationBreadcrumb() {
+        let converter = RNSentryReplayBreadcrumbConverter()
+        let testBreadcrumb = Breadcrumb()
+        testBreadcrumb.timestamp = Date()
+        testBreadcrumb.level = .info
+        testBreadcrumb.type = "navigation"
+        testBreadcrumb.category = "navigation"
+        testBreadcrumb.data = [
+            "from": "HomeScreen",
+            "to": "ProfileScreen",
+        ]
+        let actual = converter.convert(from: testBreadcrumb)
+
+        XCTAssertNotNil(actual)
+        let event = actual!.serialize()
+        let data = event["data"] as! [String: Any?]
+        let payload = data["payload"] as! [String: Any?]
+        let payloadData = payload["data"] as! [String: Any?]
+        assertRRWebBreadcrumbDefaults(actual: event)
+        XCTAssertEqual("info", payload["level"] as! String)
+        XCTAssertEqual("navigation", payload["category"] as! String)
+        XCTAssertEqual("HomeScreen", payloadData["from"] as! String)
+        XCTAssertEqual("ProfileScreen", payloadData["to"] as! String)
+    }
+
+    func testConvertNavigationBreadcrumbWithOnlyTo() {
+        let converter = RNSentryReplayBreadcrumbConverter()
+        let testBreadcrumb = Breadcrumb()
+        testBreadcrumb.timestamp = Date()
+        testBreadcrumb.level = .info
+        testBreadcrumb.type = "navigation"
+        testBreadcrumb.category = "navigation"
+        testBreadcrumb.data = [
+            "to": "ProfileScreen",
+        ]
+        let actual = converter.convert(from: testBreadcrumb)
+
+        XCTAssertNotNil(actual)
+        let event = actual!.serialize()
+        let data = event["data"] as! [String: Any?]
+        let payload = data["payload"] as! [String: Any?]
+        let payloadData = payload["data"] as! [String: Any?]
+        assertRRWebBreadcrumbDefaults(actual: event)
+        XCTAssertEqual("info", payload["level"] as! String)
+        XCTAssertEqual("navigation", payload["category"] as! String)
+        XCTAssertNil(payloadData["from"] ?? nil)
+        XCTAssertEqual("ProfileScreen", payloadData["to"] as! String)
+    }
 
     func testConvertForegroundBreadcrumb() {
         let converter = RNSentryReplayBreadcrumbConverter()
@@ -11,8 +61,10 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         let actual = converter.convert(from: testBreadcrumb)
 
         XCTAssertNotNil(actual)
-        let data = actual!.serialize()["data"] as! [String: Any?];
+        let event = actual!.serialize()
+        let data = event["data"] as! [String: Any?]
         let payload = data["payload"] as! [String: Any?];
+        assertRRWebBreadcrumbDefaults(actual: event)
         XCTAssertEqual(payload["category"] as! String, "app.foreground")
     }
 
@@ -25,8 +77,10 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         let actual = converter.convert(from: testBreadcrumb)
 
         XCTAssertNotNil(actual)
-        let data = actual!.serialize()["data"] as! [String: Any?];
+        let event = actual!.serialize()
+        let data = event["data"] as! [String: Any?]
         let payload = data["payload"] as! [String: Any?];
+        assertRRWebBreadcrumbDefaults(actual: event)
         XCTAssertEqual(payload["category"] as! String, "app.background")
     }
 
@@ -44,6 +98,36 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         testBreadcrumb.category = "sentry.transaction"
         let actual = converter.convert(from: testBreadcrumb)
         XCTAssertNil(actual)
+    }
+
+    func testConvertTouchBreadcrumb() {
+        let converter = RNSentryReplayBreadcrumbConverter()
+        let testBreadcrumb = Breadcrumb()
+        testBreadcrumb.timestamp = Date()
+        testBreadcrumb.level = .info
+        testBreadcrumb.type = "user"
+        testBreadcrumb.category = "touch"
+        testBreadcrumb.message = "this won't be used for replay"
+        testBreadcrumb.data = [
+            "path": [
+                ["element": "element4", "file": "file4"]
+            ]
+        ]
+        let actual = converter.convert(from: testBreadcrumb)
+
+        XCTAssertNotNil(actual)
+        let event = actual!.serialize()
+        let data = event["data"] as! [String: Any?]
+        let payload = data["payload"] as! [String: Any?]
+        let payloadData = payload["data"] as! [String: Any?]
+        assertRRWebBreadcrumbDefaults(actual: event)
+        XCTAssertEqual("info", payload["level"] as! String)
+        XCTAssertEqual("ui.tap", payload["category"] as! String)
+        XCTAssertEqual(1, payloadData.keys.count)
+        XCTAssertEqual([[
+            "element": "element4",
+            "file": "file4"
+        ]], payloadData["path"] as! [[String: String]])
     }
 
     func testTouchMessageReturnsNilOnEmptyArray() throws {
@@ -86,6 +170,14 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         ]
         let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: testPath as [Any])
         XCTAssertEqual(actual, "label5(element5, file5) > label4(file4) > label3(element3) > label2");
+    }
+
+    private func assertRRWebBreadcrumbDefaults(actual: [String: Any?]) {
+        let data = actual["data"] as! [String: Any?]
+        let payload = data["payload"] as! [String: Any?]
+        XCTAssertEqual("default", payload["type"] as! String)
+        XCTAssertEqual((payload["timestamp"] as! Double) * 1000.0, Double(actual["timestamp"] as! Int), accuracy: 1.0)
+        XCTAssertTrue(payload["timestamp"] as! Double > 0.0)
     }
 
 }
