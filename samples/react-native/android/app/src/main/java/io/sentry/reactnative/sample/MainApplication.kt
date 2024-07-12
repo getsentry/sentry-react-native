@@ -51,6 +51,8 @@ class MainApplication() : Application(), ReactApplication {
 
     private fun initializeSentry() {
         SentryAndroid.init(this) { options ->
+            // Only options set here will apply to the Android SDK
+            // Options from JS are not passed to the Android SDK when initialized manually
             options.dsn = "https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561"
             options.isDebug = true
 

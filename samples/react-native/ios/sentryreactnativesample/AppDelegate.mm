@@ -19,6 +19,8 @@
 - (void) initializeSentry
 {
   [SentrySDK startWithConfigureOptions:^(SentryOptions *options) {
+    // Only options set here will apply to the iOS SDK
+    // Options from JS are not passed to the iOS SDK when initialized manually
     options.dsn = @"https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561";
     options.debug = YES; // Enabled debug when first installing is always helpful
 
