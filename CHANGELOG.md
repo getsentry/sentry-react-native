@@ -4,8 +4,29 @@
 
 ### Features
 
-- Redact `react-native-svg` SVGs when `maskAllVectors` ([#3930](https://github.com/getsentry/sentry-react-native/pull/3930))
-- Add `annotateReactComponents` option to `@sentry/react-native/metro` ([#3916](https://github.com/getsentry/sentry-react-native/pull/3916))
+- Session Replay Public Beta ([#3830](https://github.com/getsentry/sentry-react-native/pull/3830))
+
+  To enable Replay use the `replaysSessionSampleRate` or `replaysOnErrorSampleRate` options.
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    _experiments: {
+      replaysSessionSampleRate: 1.0,
+      replaysOnErrorSampleRate: 1.0,
+    },
+    integrations: [
+      Sentry.mobileReplayIntegration({
+        maskAllImages: true,
+        maskAllVectors: true,
+        maskAllText: true,
+      }),
+    ],
+  });
+  ```
+
+  To add React Component Names use `annotateReactComponents` in `metro.config.js`.
 
   ```js
   // For Expo
@@ -18,9 +39,27 @@
   module.exports = withSentryConfig(getDefaultConfig(__dirname), { annotateReactComponents: true });
   ```
 
-### Fixes
+  To change default redaction behavior add the `mobileReplayIntegration`.
 
-- Add `app.foreground/background` breadcrumbs to iOS Replays ([#3932](https://github.com/getsentry/sentry-react-native/pull/3932))
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    _experiments: {
+      replaysSessionSampleRate: 1.0,
+      replaysOnErrorSampleRate: 1.0,
+    },
+    integrations: [
+      Sentry.mobileReplayIntegration({
+        maskAllImages: true,
+        maskAllVectors: true,
+        maskAllText: true,
+      }),
+    ],
+  });
+  ```
+
+  To learn more visit [Sentry's Mobile Session Replay](https://docs.sentry.io/product/explore/session-replay/) documentation page.
 
 ### Dependencies
 
