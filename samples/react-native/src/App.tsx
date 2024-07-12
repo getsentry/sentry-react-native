@@ -104,6 +104,8 @@ Sentry.init({
     profilesSampleRate: 1.0,
   },
   enableSpotlight: true,
+  // This should be disabled when manually initializing the native SDK
+  autoInitializeNativeSdk: true,
 });
 
 const Stack = isMobileOs
