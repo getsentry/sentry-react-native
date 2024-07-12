@@ -16,13 +16,6 @@
       replaysSessionSampleRate: 1.0,
       replaysOnErrorSampleRate: 1.0,
     },
-    integrations: [
-      Sentry.mobileReplayIntegration({
-        maskAllImages: true,
-        maskAllVectors: true,
-        maskAllText: true,
-      }),
-    ],
   });
   ```
 
