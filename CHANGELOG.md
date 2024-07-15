@@ -52,7 +52,7 @@
   });
   ```
 
-  To learn more visit [Sentry's Mobile Session Replay](https://docs.sentry.io/product/explore/session-replay/) documentation page.
+  To learn more visit [Sentry's Mobile Session Replay](https://docs.sentry.io/product/explore/session-replay/mobile/) documentation page.
 
 ### Dependencies
 
