@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-import { TurboModuleRegistry } from 'react-native';
-import { version as RNV } from 'react-native/Libraries/Core/ReactNativeVersion';
+import { Platform, TurboModuleRegistry } from 'react-native';
 
 import type * as ReactNative from '../vendor/react-native';
 import type { ReactNativeLibrariesInterface } from './rnlibrariesinterface';
@@ -32,7 +31,7 @@ export const ReactNativeLibraries: Required<ReactNativeLibrariesInterface> = {
     },
   },
   ReactNativeVersion: {
-    version: RNV,
+    version: Platform.constants.reactNativeVersion,
   },
   TurboModuleRegistry,
 };

@@ -5,12 +5,13 @@
 // that don't have all the internals available. For example react-native-web.
 //
 
-import type { version as RNV } from 'react-native/Libraries/Core/ReactNativeVersion';
+import type { Platform } from 'react-native';
 
 import type * as ReactNative from '../vendor/react-native';
 
 export type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 export type { EmitterSubscription } from 'react-native/Libraries/vendor/emitter/EventEmitter';
+
 
 export interface ReactNativeLibrariesInterface {
   Devtools?: {
@@ -26,7 +27,7 @@ export interface ReactNativeLibrariesInterface {
   };
   Promise?: typeof Promise;
   ReactNativeVersion?: {
-    version: typeof RNV;
+    version: typeof Platform.constants.reactNativeVersion;
   };
   TurboModuleRegistry?: ReactNative.TurboModuleRegistry;
 }
