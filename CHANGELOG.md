@@ -4,9 +4,9 @@
 
 ### Dependencies
 
-- Bump Cocoa SDK from v8.30.1 to v8.31.0 ([#3951](https://github.com/getsentry/sentry-react-native/pull/3951))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8301)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.31.0...8.31.0)
+- Bump Cocoa SDK from v8.30.1 to v8.31.0 ([#3954](https://github.com/getsentry/sentry-react-native/pull/3954))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8311)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.31.0...8.31.1)
 
 ### Dependencies
 
