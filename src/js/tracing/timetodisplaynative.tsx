@@ -1,6 +1,7 @@
 import * as React from 'react';
 import type { HostComponent } from 'react-native';
 import { UIManager, View } from 'react-native';
+
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import type { RNSentryOnDrawReporterProps } from './timetodisplaynative.types';
 
@@ -27,9 +28,9 @@ let RNSentryOnDrawReporter: HostComponent<RNSentryOnDrawReporterProps> | typeof 
  * Native component that reports the on draw timestamp.
  */
 export const getRNSentryOnDrawReporter = (): typeof RNSentryOnDrawReporter => {
-  if (!RNSentryOnDrawReporter && ReactNativeLibraries.Libraries?.requireNativeComponent) {
-    RNSentryOnDrawReporter = nativeComponentExists && ReactNativeLibraries.Libraries?.requireNativeComponent
-      ? ReactNativeLibraries.Libraries?.requireNativeComponent(RNSentryOnDrawReporterClass)
+  if (!RNSentryOnDrawReporter && ReactNativeLibraries.ReactNative.requireNativeComponent) {
+    RNSentryOnDrawReporter = nativeComponentExists
+      ? ReactNativeLibraries.ReactNative.requireNativeComponent(RNSentryOnDrawReporterClass)
       : RNSentryOnDrawReporterNoop;
   }
   return RNSentryOnDrawReporter;

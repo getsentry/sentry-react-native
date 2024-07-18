@@ -29,7 +29,7 @@ export interface ReactNativeLibrariesInterface {
     version: typeof RNV;
   };
   TurboModuleRegistry?: ReactNative.TurboModuleRegistry;
-  Libraries?: {
+  ReactNative?: {
     requireNativeComponent?: <T>(viewName: string) => ReactNative.HostComponent<T>;
   }
 }
