@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Fix requireNativeComponent missing in react-native-web #3823 ([#3958](https://github.com/getsentry/sentry-react-native/pull/3958))
+
 ## 5.26.0
 
 ### Features
