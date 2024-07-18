@@ -1,5 +1,3 @@
-const componentAnnotatePlugin = require('@sentry/babel-plugin-component-annotate');
-
 module.exports = function (api) {
   api.cache(false);
   return {
@@ -13,7 +11,6 @@ module.exports = function (api) {
           },
         },
       ],
-      componentAnnotatePlugin,
     ],
   };
 };

@@ -60,4 +60,6 @@ const config = {
 };
 
 const m = mergeConfig(getDefaultConfig(__dirname), config);
-module.exports = withSentryConfig(m);
+module.exports = withSentryConfig(m, {
+  annotateReactComponents: true,
+});

@@ -3804,6 +3804,11 @@
   resolved "https://registry.yarnpkg.com/@sentry-internal/typescript/-/typescript-7.117.0.tgz#bd43fc07a222e98861e6ab8a85ddd60e7399cd47"
   integrity sha512-SylReCEo1FiTuir6XiZuV+sWBOBERDL0C3YmdHhczOh0aeu50FUja7uJfoXMx0LTEwaUAXq62dWUvb9WetluOQ==
 
+"@sentry/babel-plugin-component-annotate@2.20.1":
+  version "2.20.1"
+  resolved "https://registry.yarnpkg.com/@sentry/babel-plugin-component-annotate/-/babel-plugin-component-annotate-2.20.1.tgz#204c63ed006a048f48f633876e1b8bacf87a9722"
+  integrity sha512-4mhEwYTK00bIb5Y9UWIELVUfru587Vaeg0DQGswv4aIRHIiMKLyNqCEejaaybQ/fNChIZOKmvyqXk430YVd7Qg==
+
 "@sentry/browser@7.117.0":
   version "7.117.0"
   resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-7.117.0.tgz#3030073f360974dadcf5a5f2e1542497b3be2482"

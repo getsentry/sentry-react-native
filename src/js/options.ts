@@ -187,6 +187,32 @@ export interface BaseReactNativeOptions {
    * from the function, no screenshot will be attached.
    */
   beforeScreenshot?: (event: Event, hint: EventHint) => boolean;
+
+  /**
+   * Options which are in beta, or otherwise not guaranteed to be stable.
+   */
+  _experiments?: {
+    [key: string]: unknown;
+
+    /**
+     * The sample rate for profiling
+     * 1.0 will profile all transactions and 0 will profile none.
+     */
+    profilesSampleRate?: number;
+
+    /**
+     * The sample rate for session-long replays.
+     * 1.0 will record all sessions and 0 will record none.
+     */
+    replaysSessionSampleRate?: number;
+
+    /**
+     * The sample rate for sessions that has had an error occur.
+     * This is independent of `sessionSampleRate`.
+     * 1.0 will record all sessions and 0 will record none.
+     */
+    replaysOnErrorSampleRate?: number;
+  };
 }
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {
@@ -201,10 +227,12 @@ export interface ReactNativeTransportOptions extends BrowserTransportOptions {
  * @see ReactNativeFrontend for more information.
  */
 
-export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseReactNativeOptions {}
+export interface ReactNativeOptions
+  extends Omit<Options<ReactNativeTransportOptions>, '_experiments'>,
+    BaseReactNativeOptions {}
 
 export interface ReactNativeClientOptions
-  extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel'>,
+  extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel' | '_experiments'>,
     BaseReactNativeOptions {}
 
 export interface ReactNativeWrapperOptions {

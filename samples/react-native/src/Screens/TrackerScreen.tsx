@@ -69,15 +69,11 @@ const TrackerScreen = () => {
     (state === 'loaded' && 'Loaded') ||
     'Unknown';
   const shouldRecordFullDisplay = state === 'loaded' || state === 'error';
-  console.log('shouldRecordFullDisplay', shouldRecordFullDisplay);
-  console.log('statusText', statusText);
 
   return (
     <View style={styles.screen}>
       <Sentry.TimeToInitialDisplay record />
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>Global COVID19 Cases</Text>
-      </View>
+      <TrackerTitle />
       <View style={styles.card}>
         {cases ? (
           <>
@@ -112,6 +108,12 @@ const TrackerScreen = () => {
     </View>
   );
 };
+
+const TrackerTitle = () => (
+  <View style={styles.titleContainer}>
+    <Text style={styles.title}>Global COVID19 Cases</Text>
+  </View>
+);
 
 export default Sentry.withProfiler(TrackerScreen);
 
