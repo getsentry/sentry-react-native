@@ -1,10 +1,31 @@
+import { logger } from '@sentry/utils';
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
+import * as process from 'process';
 import { env } from 'process';
 
+import { enableLogger } from './enableLogger';
+import { cleanDefaultBabelTransformerPath, saveDefaultBabelTransformerPath } from './sentryBabelTransformerUtils';
 import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } from './sentryMetroSerializer';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 
 export * from './sentryMetroSerializer';
+
+enableLogger();
+
+export interface SentryMetroConfigOptions {
+  /**
+   * Annotates React components with Sentry data.
+   * @default false
+   */
+  annotateReactComponents?: boolean;
+}
+
+export interface SentryExpoConfigOptions {
+  /**
+   * Pass a custom `getDefaultConfig` function to override the default Expo configuration getter.
+   */
+  getDefaultConfig?: typeof getSentryExpoConfig;
+}
 
 /**
  * Adds Sentry to the Metro config.
@@ -12,13 +33,19 @@ export * from './sentryMetroSerializer';
  * Adds Debug ID to the output bundle and source maps.
  * Collapses Sentry frames from the stack trace view in LogBox.
  */
-export function withSentryConfig(config: MetroConfig): MetroConfig {
+export function withSentryConfig(
+  config: MetroConfig,
+  { annotateReactComponents = false }: SentryMetroConfigOptions = {},
+): MetroConfig {
   setSentryMetroDevServerEnvFlag();
 
   let newConfig = config;
 
   newConfig = withSentryDebugId(newConfig);
   newConfig = withSentryFramesCollapsed(newConfig);
+  if (annotateReactComponents) {
+    newConfig = withSentryBabelTransformer(newConfig);
+  }
 
   return newConfig;
 }
@@ -28,7 +55,7 @@ export function withSentryConfig(config: MetroConfig): MetroConfig {
  */
 export function getSentryExpoConfig(
   projectRoot: string,
-  options: DefaultConfigOptions & { getDefaultConfig?: typeof getSentryExpoConfig } = {},
+  options: DefaultConfigOptions & SentryExpoConfigOptions & SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
 
@@ -41,7 +68,12 @@ export function getSentryExpoConfig(
     ],
   });
 
-  return withSentryFramesCollapsed(config);
+  let newConfig = withSentryFramesCollapsed(config);
+  if (options.annotateReactComponents) {
+    newConfig = withSentryBabelTransformer(newConfig);
+  }
+
+  return newConfig;
 }
 
 function loadExpoMetroConfigModule(): {
@@ -62,6 +94,38 @@ function loadExpoMetroConfigModule(): {
   } catch (e) {
     throw new Error('Unable to load `expo/metro-config`. Make sure you have Expo installed.');
   }
+}
+
+/**
+ * Adds Sentry Babel transformer to the Metro config.
+ */
+export function withSentryBabelTransformer(config: MetroConfig): MetroConfig {
+  const defaultBabelTransformerPath = config.transformer && config.transformer.babelTransformerPath;
+  logger.debug('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
+
+  if (!defaultBabelTransformerPath) {
+    // This has to be console.warn because the options is enabled but won't be used
+    // eslint-disable-next-line no-console
+    console.warn('`transformer.babelTransformerPath` is undefined.');
+    // eslint-disable-next-line no-console
+    console.warn('Sentry Babel transformer cannot be used. Not adding it...');
+    return config;
+  }
+
+  if (defaultBabelTransformerPath) {
+    saveDefaultBabelTransformerPath(defaultBabelTransformerPath);
+    process.on('exit', () => {
+      cleanDefaultBabelTransformerPath();
+    });
+  }
+
+  return {
+    ...config,
+    transformer: {
+      ...config.transformer,
+      babelTransformerPath: require.resolve('./sentryBabelTransformer'),
+    },
+  };
 }
 
 type MetroCustomSerializer = Required<Required<MetroConfig>['serializer']>['customSerializer'] | undefined;

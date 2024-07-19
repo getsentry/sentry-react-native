@@ -9,11 +9,14 @@ import { HttpClient } from '@sentry/integrations';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
 import { isExpoGo } from '../utils/isExpoGo';
+import { LogBox } from 'react-native';
 
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
+
+LogBox.ignoreAllLogs();
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -78,6 +81,8 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
   // dist: `1`,
   _experiments: {
     profilesSampleRate: 0,
+    // replaysOnErrorSampleRate: 1.0,
+    replaysSessionSampleRate: 1.0,
   },
   enableSpotlight: true,
 });

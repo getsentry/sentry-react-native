@@ -41,9 +41,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import io.sentry.Breadcrumb;
@@ -61,6 +63,7 @@ import io.sentry.SentryEvent;
 import io.sentry.SentryExecutorService;
 import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
+import io.sentry.SentryReplayOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AndroidProfiler;
@@ -79,6 +82,7 @@ import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
 import io.sentry.android.core.performance.AppStartMetrics;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
+import io.sentry.protocol.SentryId;
 import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
@@ -186,7 +190,7 @@ public class RNSentryModuleImpl {
 
             options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
             options.setNativeSdkName(NATIVE_SDK_NAME);
-          options.setSdkVersion(sdkVersion);
+            options.setSdkVersion(sdkVersion);
 
             if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
                 options.setDebug(true);
@@ -252,7 +256,10 @@ public class RNSentryModuleImpl {
             if (rnOptions.hasKey("enableNdk")) {
                 options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
             }
-
+            if (rnOptions.hasKey("_experiments")) {
+                options.getExperimental().setSessionReplay(getReplayOptions(rnOptions));
+                options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
+            }
             options.setBeforeSend((event, hint) -> {
                 // React native internally throws a JavascriptException
                 // Since we catch it before that, we don't want to send this one
@@ -291,6 +298,42 @@ public class RNSentryModuleImpl {
         });
 
         promise.resolve(true);
+    }
+
+    private SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
+        @NotNull final SentryReplayOptions androidReplayOptions = new SentryReplayOptions();
+
+        @Nullable final ReadableMap rnExperimentsOptions = rnOptions.getMap("_experiments");
+        if (rnExperimentsOptions == null) {
+            return androidReplayOptions;
+        }
+
+        if (!(rnExperimentsOptions.hasKey("replaysSessionSampleRate") || rnExperimentsOptions.hasKey("replaysOnErrorSampleRate"))) {
+            return androidReplayOptions;
+        }
+
+        androidReplayOptions.setSessionSampleRate(rnExperimentsOptions.hasKey("replaysSessionSampleRate")
+                ? rnExperimentsOptions.getDouble("replaysSessionSampleRate") : null);
+        androidReplayOptions.setErrorSampleRate(rnExperimentsOptions.hasKey("replaysOnErrorSampleRate")
+                ? rnExperimentsOptions.getDouble("replaysOnErrorSampleRate") : null);
+
+        if (!rnOptions.hasKey("mobileReplayOptions")) {
+            return androidReplayOptions;
+        }
+        @Nullable final ReadableMap rnMobileReplayOptions = rnOptions.getMap("mobileReplayOptions");
+        if (rnMobileReplayOptions == null) {
+            return androidReplayOptions;
+        }
+
+        androidReplayOptions.setRedactAllText(!rnMobileReplayOptions.hasKey("maskAllText") || rnMobileReplayOptions.getBoolean("maskAllText"));
+        androidReplayOptions.setRedactAllImages(!rnMobileReplayOptions.hasKey("maskAllImages") || rnMobileReplayOptions.getBoolean("maskAllImages"));
+
+        final boolean redactVectors = !rnMobileReplayOptions.hasKey("maskAllVectors") || rnMobileReplayOptions.getBoolean("maskAllVectors");
+        if (redactVectors) {
+            androidReplayOptions.addClassToRedact("com.horcrux.svg.SvgView"); // react-native-svg
+        }
+
+        return androidReplayOptions;
     }
 
     public void crash() {
@@ -392,6 +435,24 @@ public class RNSentryModuleImpl {
                 promise.resolve(null);
             }
         }
+    }
+
+    public void captureReplay(boolean isHardCrash, Promise promise) {
+        Sentry.getCurrentHub().getOptions().getReplayController().sendReplay(isHardCrash, null, null);
+        promise.resolve(getCurrentReplayId());
+    }
+
+    public @Nullable String getCurrentReplayId() {
+        final @Nullable IScope scope = InternalSentrySdk.getCurrentScope();
+        if (scope == null) {
+            return null;
+        }
+
+        final @NotNull SentryId id = scope.getReplayId();
+        if (id == SentryId.EMPTY_ID) {
+            return null;
+        }
+        return id.toString();
     }
 
     public void captureEnvelope(String rawBytes, ReadableMap options, Promise promise) {
