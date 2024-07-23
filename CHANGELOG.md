@@ -275,7 +275,7 @@ Access to Mobile Replay is limited to early access orgs on Sentry. If you're int
       replaysSessionSampleRate: 1.0,
       replaysOnErrorSampleRate: 1.0,
     },
-    integration: [
+    integrations: [
       Sentry.mobileReplayIntegration({
         maskAllText: true,
         maskAllImages: true,
