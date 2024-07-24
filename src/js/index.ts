@@ -1,17 +1,15 @@
-export {
+export type {
   Breadcrumb,
   Request,
   SdkInfo,
   Event,
   Exception,
-  Response,
-  Severity,
   StackFrame,
   Stacktrace,
-  Status,
   Thread,
   User,
-} from "@sentry/types";
+  UserFeedback,
+} from '@sentry/types';
 
 export {
   addGlobalEventProcessor,
@@ -19,7 +17,6 @@ export {
   captureException,
   captureEvent,
   captureMessage,
-  configureScope,
   getHubFromCarrier,
   getCurrentHub,
   Hub,
@@ -31,15 +28,27 @@ export {
   setTags,
   setUser,
   startTransaction,
-  withScope,
-} from "@sentry/core";
 
-// We need to import it so we patch the hub with global functions
-// aka. this has side effects
-import "@sentry/tracing";
+  // v8 spans
+  startInactiveSpan,
+  startSpan,
+  startSpanManual,
+  getActiveSpan,
+  spanToJSON,
+  spanIsSampled,
+  setMeasurement,
 
-// Add the React Native SDK's own tracing extensions, this needs to happen AFTER @sentry/tracing's
-import { _addTracingExtensions } from "./measurements";
+  // v8 scopes
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  getClient,
+  setCurrentClient,
+  addEventProcessor,
+  metrics,
+} from '@sentry/core';
+
+import { _addTracingExtensions } from './tracing/addTracingExtensions';
 _addTracingExtensions();
 
 export {
@@ -50,14 +59,17 @@ export {
   Profiler,
   useProfiler,
   withProfiler,
-} from "@sentry/react";
+} from '@sentry/react';
 
-import * as Integrations from "./integrations";
-import { SDK_NAME, SDK_VERSION } from "./version";
+export { lastEventId } from '@sentry/browser';
 
-export { ReactNativeBackend } from "./backend";
-export { ReactNativeOptions } from "./options";
-export { ReactNativeClient } from "./client";
+import * as Integrations from './integrations';
+
+export * from './integrations/exports';
+
+export { SDK_NAME, SDK_VERSION } from './version';
+export type { ReactNativeOptions } from './options';
+export { ReactNativeClient } from './client';
 
 export {
   init,
@@ -69,8 +81,11 @@ export {
   nativeCrash,
   flush,
   close,
-} from "./sdk";
-export { TouchEventBoundary, withTouchEventBoundary } from "./touchevents";
+  captureUserFeedback,
+  withScope,
+  configureScope,
+} from './sdk';
+export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 
 export {
   ReactNativeTracing,
@@ -80,7 +95,16 @@ export {
   ReactNavigationInstrumentation,
   ReactNativeNavigationInstrumentation,
   RoutingInstrumentation,
-  ReactNavigationTransactionContext,
-} from "./tracing";
+  sentryTraceGesture,
+  TimeToInitialDisplay,
+  TimeToFullDisplay,
+  startTimeToInitialDisplaySpan,
+  startTimeToFullDisplaySpan,
+} from './tracing';
 
-export { Integrations, SDK_NAME, SDK_VERSION };
+export type { ReactNavigationTransactionContext, TimeToDisplayProps } from './tracing';
+
+export {
+  /** @deprecated Import the integration function directly, e.g. `screenshotIntegration()` instead of `new Integrations.Screenshot(). */
+  Integrations,
+};

@@ -1,19 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Transaction } from "@sentry/tracing";
-import { TransactionContext } from "@sentry/types";
-import { getGlobalObject } from "@sentry/utils";
+import { Transaction } from '@sentry/core';
+import type { TransactionContext } from '@sentry/types';
 
-import {
+import type {
   AppContainerInstance,
-  INITIAL_TRANSACTION_CONTEXT_V4,
   NavigationRouteV4,
   NavigationStateV4,
+} from '../../src/js/tracing/reactnavigationv4';
+import {
+  INITIAL_TRANSACTION_CONTEXT_V4,
   ReactNavigationV4Instrumentation,
-} from "../../src/js/tracing/reactnavigationv4";
+} from '../../src/js/tracing/reactnavigationv4';
+import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 
 const initialRoute = {
-  routeName: "Initial Route",
-  key: "route0",
+  routeName: 'Initial Route',
+  key: 'route0',
   params: {
     hello: true,
   },
@@ -33,25 +35,19 @@ class MockAppContainer implements AppContainerInstance {
     state: NavigationStateV4;
     router: {
       dispatchAction: (action: any) => void;
-      getStateForAction: (
-        action: any,
-        state: NavigationStateV4
-      ) => NavigationStateV4;
+      getStateForAction: (action: any, state: NavigationStateV4) => NavigationStateV4;
     };
   };
 
   constructor() {
     const router = {
       dispatchAction: (action: any) => {
-        const newState = router.getStateForAction(
-          action,
-          this._navigation.state
-        );
+        const newState = router.getStateForAction(action, this._navigation.state);
 
         this._navigation.state = newState;
       },
       getStateForAction: (action: any, state: NavigationStateV4) => {
-        if (action.routeName === "DoNotNavigate") {
+        if (action.routeName === 'DoNotNavigate') {
           return state;
         }
 
@@ -73,7 +69,7 @@ class MockAppContainer implements AppContainerInstance {
     this._navigation = {
       state: {
         index: 0,
-        key: "0",
+        key: '0',
         isTransitioning: false,
         routes: [initialRoute],
       },
@@ -82,18 +78,14 @@ class MockAppContainer implements AppContainerInstance {
   }
 }
 
-const _global = getGlobalObject<{
-  __sentry_rn_v4_registered?: boolean;
-}>();
-
 afterEach(() => {
-  _global.__sentry_rn_v4_registered = false;
+  RN_GLOBAL_OBJ.__sentry_rn_v4_registered = false;
 
   jest.resetAllMocks();
 });
 
-describe("ReactNavigationV4Instrumentation", () => {
-  test("transaction set on initialize", () => {
+describe('ReactNavigationV4Instrumentation', () => {
+  test('transaction set on initialize', () => {
     const instrumentation = new ReactNavigationV4Instrumentation();
 
     const mockTransaction = getMockTransaction();
@@ -102,8 +94,8 @@ describe("ReactNavigationV4Instrumentation", () => {
     const tracingListener = jest.fn();
     instrumentation.registerRoutingInstrumentation(
       tracingListener as any,
-      (context) => context,
-      () => {}
+      context => context,
+      () => {},
     );
 
     const mockAppContainerRef = {
@@ -112,36 +104,31 @@ describe("ReactNavigationV4Instrumentation", () => {
 
     instrumentation.registerAppContainer(mockAppContainerRef as any);
 
-    const firstRoute = mockAppContainerRef.current._navigation.state
-      .routes[0] as NavigationRouteV4;
+    const firstRoute = mockAppContainerRef.current._navigation.state.routes[0] as NavigationRouteV4;
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(1);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(instrumentation.onRouteWillChange).toHaveBeenLastCalledWith(
-      INITIAL_TRANSACTION_CONTEXT_V4
-    );
+    expect(instrumentation.onRouteWillChange).toHaveBeenLastCalledWith(INITIAL_TRANSACTION_CONTEXT_V4);
 
     expect(mockTransaction.name).toBe(firstRoute.routeName);
     expect(mockTransaction.tags).toStrictEqual({
-      "routing.instrumentation":
-        ReactNavigationV4Instrumentation.instrumentationName,
-      "routing.route.name": firstRoute.routeName,
+      'routing.instrumentation': ReactNavigationV4Instrumentation.instrumentationName,
+      'routing.route.name': firstRoute.routeName,
     });
     expect(mockTransaction.data).toStrictEqual({
       route: {
         name: firstRoute.routeName,
         key: firstRoute.key,
-        params: firstRoute.params,
+        params: {}, // expect the data to be stripped
         hasBeenSeen: false,
       },
       previousRoute: null,
     });
     expect(mockTransaction.sampled).toBe(true);
+    expect(mockTransaction.metadata.source).toBe('component');
   });
 
-  test("transaction sent on navigation", () => {
+  test('transaction sent on navigation', () => {
     const instrumentation = new ReactNavigationV4Instrumentation();
 
     const mockTransaction = getMockTransaction();
@@ -150,8 +137,8 @@ describe("ReactNavigationV4Instrumentation", () => {
     const tracingListener = jest.fn();
     instrumentation.registerRoutingInstrumentation(
       tracingListener as any,
-      (context) => context,
-      () => {}
+      context => context,
+      () => {},
     );
 
     const mockAppContainerRef = {
@@ -161,62 +148,58 @@ describe("ReactNavigationV4Instrumentation", () => {
     instrumentation.registerAppContainer(mockAppContainerRef as any);
 
     const action = {
-      routeName: "New Route",
-      key: "key1",
+      routeName: 'New Route',
+      key: 'key1',
       params: {
         someParam: 42,
       },
     };
     mockAppContainerRef.current._navigation.router.dispatchAction(action);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(2);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(instrumentation.onRouteWillChange).toHaveBeenLastCalledWith({
       name: action.routeName,
-      op: "navigation",
+      op: 'navigation',
       tags: {
-        "routing.instrumentation":
-          ReactNavigationV4Instrumentation.instrumentationName,
-        "routing.route.name": action.routeName,
+        'routing.instrumentation': ReactNavigationV4Instrumentation.instrumentationName,
+        'routing.route.name': action.routeName,
       },
       data: {
         route: {
           name: action.routeName,
           key: action.key,
-          params: action.params,
+          params: {}, // expect the data to be stripped
           hasBeenSeen: false,
         },
         previousRoute: {
-          name: "Initial Route",
-          key: "route0",
-          params: {
-            hello: true,
-          },
+          name: 'Initial Route',
+          key: 'route0',
+          params: {}, // expect the data to be stripped
         },
       },
     });
 
     expect(mockTransaction.sampled).toBe(true);
+    expect(mockTransaction.metadata.source).toBe('component');
   });
 
-  test("transaction context changed with beforeNavigate", () => {
+  test('transaction context changed with beforeNavigate', () => {
     const instrumentation = new ReactNavigationV4Instrumentation();
 
     const mockTransaction = getMockTransaction();
     const tracingListener = jest.fn(() => mockTransaction);
     instrumentation.registerRoutingInstrumentation(
       tracingListener as any,
-      (context) => {
+      context => {
         context.sampled = false;
-        context.description = "Description";
-        context.name = "New Name";
+        context.description = 'Description';
+        context.name = 'New Name';
         context.tags = {};
 
         return context;
       },
-      () => {}
+      () => {},
     );
 
     const mockAppContainerRef = {
@@ -226,45 +209,42 @@ describe("ReactNavigationV4Instrumentation", () => {
     instrumentation.registerAppContainer(mockAppContainerRef as any);
 
     const action = {
-      routeName: "DoNotSend",
-      key: "key1",
+      routeName: 'DoNotSend',
+      key: 'key1',
       params: {
         someParam: 42,
       },
     };
     mockAppContainerRef.current._navigation.router.dispatchAction(action);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(tracingListener).toHaveBeenCalledTimes(2);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(tracingListener).toHaveBeenLastCalledWith({
-      name: "New Name",
-      op: "navigation",
-      description: "Description",
+      name: 'New Name',
+      op: 'navigation',
+      description: 'Description',
       tags: {},
       data: {
         route: {
           name: action.routeName,
           key: action.key,
-          params: action.params,
+          params: {}, // expect the data to be stripped
           hasBeenSeen: false,
         },
         previousRoute: {
-          name: "Initial Route",
-          key: "route0",
-          params: {
-            hello: true,
-          },
+          name: 'Initial Route',
+          key: 'route0',
+          params: {}, // expect the data to be stripped
         },
       },
       sampled: false,
     });
 
     expect(mockTransaction.sampled).toBe(false);
+    expect(mockTransaction.metadata.source).toBe('custom');
   });
 
-  test("transaction not attached on a cancelled navigation", () => {
+  test('transaction not attached on a cancelled navigation', () => {
     const instrumentation = new ReactNavigationV4Instrumentation();
 
     const mockTransaction = getMockTransaction();
@@ -273,8 +253,8 @@ describe("ReactNavigationV4Instrumentation", () => {
     const tracingListener = jest.fn();
     instrumentation.registerRoutingInstrumentation(
       tracingListener as any,
-      (context) => context,
-      () => {}
+      context => context,
+      () => {},
     );
 
     const mockAppContainerRef = {
@@ -284,16 +264,15 @@ describe("ReactNavigationV4Instrumentation", () => {
     instrumentation.registerAppContainer(mockAppContainerRef as any);
 
     const action = {
-      routeName: "DoNotNavigate",
+      routeName: 'DoNotNavigate',
     };
     mockAppContainerRef.current._navigation.router.dispatchAction(action);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(1);
   });
 
-  describe("navigation container registration", () => {
-    test("registers navigation container object ref", () => {
+  describe('navigation container registration', () => {
+    test('registers navigation container object ref', () => {
       const instrumentation = new ReactNavigationV4Instrumentation();
       const mockTransaction = getMockTransaction();
       instrumentation.onRouteWillChange = jest.fn(() => mockTransaction);
@@ -301,8 +280,8 @@ describe("ReactNavigationV4Instrumentation", () => {
       const tracingListener = jest.fn();
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
-        (context) => context,
-        () => {}
+        context => context,
+        () => {},
       );
 
       const mockAppContainer = new MockAppContainer();
@@ -310,15 +289,14 @@ describe("ReactNavigationV4Instrumentation", () => {
         current: mockAppContainer,
       });
 
-      expect(_global.__sentry_rn_v4_registered).toBe(true);
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v4_registered).toBe(true);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(1);
       expect(mockTransaction.name).toBe(initialRoute.routeName);
       expect(mockTransaction.sampled).toBe(true);
     });
 
-    test("registers navigation container direct ref", () => {
+    test('registers navigation container direct ref', () => {
       const instrumentation = new ReactNavigationV4Instrumentation();
       const mockTransaction = getMockTransaction();
       instrumentation.onRouteWillChange = jest.fn(() => mockTransaction);
@@ -326,23 +304,22 @@ describe("ReactNavigationV4Instrumentation", () => {
       const tracingListener = jest.fn();
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
-        (context) => context,
-        () => {}
+        context => context,
+        () => {},
       );
 
       const mockAppContainer = new MockAppContainer();
       instrumentation.registerAppContainer(mockAppContainer);
 
-      expect(_global.__sentry_rn_v4_registered).toBe(true);
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v4_registered).toBe(true);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(instrumentation.onRouteWillChange).toHaveBeenCalledTimes(1);
       expect(mockTransaction.name).toBe(initialRoute.routeName);
       expect(mockTransaction.sampled).toBe(true);
     });
 
-    test("does not register navigation container if there is an existing one", async () => {
-      _global.__sentry_rn_v4_registered = true;
+    test('does not register navigation container if there is an existing one', async () => {
+      RN_GLOBAL_OBJ.__sentry_rn_v4_registered = true;
 
       const instrumentation = new ReactNavigationV4Instrumentation();
       const mockTransaction = getMockTransaction();
@@ -351,16 +328,16 @@ describe("ReactNavigationV4Instrumentation", () => {
       const tracingListener = jest.fn();
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
-        (context) => context,
-        () => {}
+        context => context,
+        () => {},
       );
 
       const mockAppContainer = new MockAppContainer();
       instrumentation.registerAppContainer(mockAppContainer);
 
-      expect(_global.__sentry_rn_v4_registered).toBe(true);
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v4_registered).toBe(true);
 
-      await new Promise<void>((resolve) => {
+      await new Promise<void>(resolve => {
         setTimeout(() => {
           expect(mockTransaction.sampled).toBe(false);
           resolve();
@@ -368,7 +345,7 @@ describe("ReactNavigationV4Instrumentation", () => {
       });
     });
 
-    test("works if routing instrumentation registration is after navigation registration", async () => {
+    test('works if routing instrumentation registration is after navigation registration', async () => {
       const instrumentation = new ReactNavigationV4Instrumentation();
 
       const mockNavigationContainer = new MockAppContainer();
@@ -378,11 +355,11 @@ describe("ReactNavigationV4Instrumentation", () => {
       const tracingListener = jest.fn(() => mockTransaction);
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
-        (context) => context,
-        () => {}
+        context => context,
+        () => {},
       );
 
-      await new Promise<void>((resolve) => {
+      await new Promise<void>(resolve => {
         setTimeout(() => {
           expect(mockTransaction.sampled).toBe(true);
           resolve();
@@ -391,8 +368,8 @@ describe("ReactNavigationV4Instrumentation", () => {
     });
   });
 
-  describe("options", () => {
-    test("waits until routeChangeTimeoutMs", async () => {
+  describe('options', () => {
+    test('waits until routeChangeTimeoutMs', async () => {
       const instrumentation = new ReactNavigationV4Instrumentation({
         routeChangeTimeoutMs: 200,
       });
@@ -401,19 +378,17 @@ describe("ReactNavigationV4Instrumentation", () => {
       const tracingListener = jest.fn(() => mockTransaction);
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
-        (context) => context,
-        () => {}
+        context => context,
+        () => {},
       );
 
       const mockNavigationContainerRef = {
         current: new MockAppContainer(),
       };
 
-      return new Promise<void>((resolve) => {
+      return new Promise<void>(resolve => {
         setTimeout(() => {
-          instrumentation.registerAppContainer(
-            mockNavigationContainerRef as any
-          );
+          instrumentation.registerAppContainer(mockNavigationContainerRef as any);
 
           expect(mockTransaction.sampled).toBe(true);
           expect(mockTransaction.name).toBe(initialRoute.routeName);
@@ -423,7 +398,7 @@ describe("ReactNavigationV4Instrumentation", () => {
       });
     });
 
-    test("discards if after routeChangeTimeoutMs", async () => {
+    test('discards if after routeChangeTimeoutMs', async () => {
       const instrumentation = new ReactNavigationV4Instrumentation({
         routeChangeTimeoutMs: 200,
       });
@@ -432,19 +407,17 @@ describe("ReactNavigationV4Instrumentation", () => {
       const tracingListener = jest.fn(() => mockTransaction);
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
-        (context) => context,
-        () => {}
+        context => context,
+        () => {},
       );
 
       const mockNavigationContainerRef = {
         current: new MockAppContainer(),
       };
 
-      return new Promise<void>((resolve) => {
+      return new Promise<void>(resolve => {
         setTimeout(() => {
-          instrumentation.registerAppContainer(
-            mockNavigationContainerRef as any
-          );
+          instrumentation.registerAppContainer(mockNavigationContainerRef as any);
 
           expect(mockTransaction.sampled).toBe(false);
           resolve();
@@ -453,8 +426,8 @@ describe("ReactNavigationV4Instrumentation", () => {
     });
   });
 
-  describe("onRouteConfirmed", () => {
-    test("onRouteConfirmed called with correct route data", () => {
+  describe('onRouteConfirmed', () => {
+    test('onRouteConfirmed called with correct route data', () => {
       const instrumentation = new ReactNavigationV4Instrumentation();
 
       const mockTransaction = getMockTransaction();
@@ -464,10 +437,10 @@ describe("ReactNavigationV4Instrumentation", () => {
       let confirmedContext: TransactionContext | undefined;
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
-        (context) => context,
-        (context) => {
+        context => context,
+        context => {
           confirmedContext = context;
-        }
+        },
       );
 
       const mockAppContainerRef = {
@@ -477,8 +450,8 @@ describe("ReactNavigationV4Instrumentation", () => {
       instrumentation.registerAppContainer(mockAppContainerRef as any);
 
       const route1 = {
-        routeName: "New Route 1",
-        key: "1",
+        routeName: 'New Route 1',
+        key: '1',
         params: {
           someParam: 42,
         },
@@ -486,8 +459,8 @@ describe("ReactNavigationV4Instrumentation", () => {
       mockAppContainerRef.current._navigation.router.dispatchAction(route1);
 
       const route2 = {
-        routeName: "New Route 2",
-        key: "2",
+        routeName: 'New Route 2',
+        key: '2',
         params: {
           someParam: 42,
         },
@@ -498,13 +471,12 @@ describe("ReactNavigationV4Instrumentation", () => {
       if (confirmedContext) {
         expect(confirmedContext.name).toBe(route2.routeName);
         expect(confirmedContext.data).toBeDefined();
+        expect(confirmedContext.metadata).toBeUndefined();
         if (confirmedContext.data) {
           expect(confirmedContext.data.route.name).toBe(route2.routeName);
           expect(confirmedContext.data.previousRoute).toBeDefined();
           if (confirmedContext.data.previousRoute) {
-            expect(confirmedContext.data.previousRoute.name).toBe(
-              route1.routeName
-            );
+            expect(confirmedContext.data.previousRoute.name).toBe(route1.routeName);
           }
         }
       }

@@ -1,7 +1,11 @@
 <p align="center">
-    <a href="https://sentry.io" target="_blank" align="center">
-        <img src="https://sentry-brand.storage.googleapis.com/sentry-logo-black.png" width="280">
-    </a>
+  <a href="https://sentry.io/?utm_source=github&utm_medium=logo" target="_blank">
+    <picture>
+      <source srcset="https://sentry-brand.storage.googleapis.com/sentry-logo-white.png" media="(prefers-color-scheme: dark)" />
+      <source srcset="https://sentry-brand.storage.googleapis.com/sentry-logo-black.png" media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
+      <img src="https://sentry-brand.storage.googleapis.com/sentry-logo-black.png" alt="Sentry" width="280">
+    </picture>
+  </a>
 </p>
 
 _Bad software is everywhere, and we're tired of it. Sentry is on a mission to help developers write better software faster, so we can get back to enjoying technology. If you want to join us [<kbd>**Check out our open positions**</kbd>](https://sentry.io/careers/)_
@@ -9,15 +13,15 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 # Sentry SDK for React Native
 
 [![Build & Test](https://github.com/getsentry/sentry-react-native/actions/workflows/buildandtest.yml/badge.svg)](https://github.com/getsentry/sentry-react-native/actions/workflows/buildandtest.yml)
-[![E2E Tests](https://img.shields.io/github/workflow/status/getsentry/sentry-react-native/End-to-End%20Tests?label=E2E%20Tests)](https://github.com/getsentry/sentry-react-native/actions?query=workflow%3A"End-to-End%20Tests")
 [![npm version](https://img.shields.io/npm/v/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
 [![npm dm](https://img.shields.io/npm/dm/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
 [![npm dt](https://img.shields.io/npm/dt/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
 [![Discord Chat](https://img.shields.io/discord/621778831602221064?logo=discord&logoColor=ffffff&color=7389D8)](https://discord.gg/PXa5Apfe7K)
+[![Runs with Expo](https://img.shields.io/badge/Runs%20with%20Expo-4630EB.svg?style=flat-square&logo=EXPO&labelColor=f3f3f3&logoColor=000)](https://expo.dev/)
 
 ## Requirements
 
-- `react-native >= 0.56.0`
+- `react-native >= 0.65.0`
 
 ## Features
 
@@ -29,24 +33,15 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 - Events with enriched device data
 - RAM bundle support
 - Hermes support
-- Expo support ([sentry-expo](https://github.com/expo/sentry-expo))
+- [Expo support](https://docs.sentry.io/platforms/react-native/manual-setup/expo/)
+- RN New Architecture support
 
 ## Installation and Usage
 
-To install the package:
+To install the package and setup your project:
 
 ```sh
-npm install --save @sentry/react-native
-# OR
-yarn add @sentry/react-native
-```
-
-If you are using a version of React Native <= 0.60.x link the package using `react-native`.
-
-```sh
-react-native link @sentry/react-native
-# OR, if self hosting
-SENTRY_WIZARD_URL=http://sentry.acme.com/ react-native link @sentry/react-native
+npx @sentry/wizard -s -i reactNative
 ```
 
 How to use it:
@@ -56,6 +51,11 @@ import * as Sentry from "@sentry/react-native";
 
 Sentry.init({
   dsn: "__DSN__",
+
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: 1.0,
 });
 
 Sentry.setTag("myTag", "tag-value");
@@ -71,6 +71,14 @@ If you are coming from `react-native-sentry` which was our SDK `< 1.0` you shoul
 
 ## Blog posts
 
+[Introducing Mobile Screenshots and Suspect Commits](https://blog.sentry.io/2022/07/07/introducing-mobile-screenshots-and-suspect-commits).
+
+[Tips for Optimizing React Native Application Performance - Part 2: Using Sentry SDK for Performance Monitoring](https://blog.sentry.io/2022/06/28/tips-for-optimizing-react-native-application-performance-part-2-using-sentry).
+
+[Tips for Optimizing React Native Application Performance: Part 1](https://blog.sentry.io/2022/06/01/tips-for-optimizing-react-native-application-performance-part-1).
+
+[Tracking Stability in a Bluetooth Low Energy-Based React-Native App](https://blog.sentry.io/2022/02/22/tracking-stability-in-a-bluetooth-low-energy-based-react-native-app).
+
 [Mobile Vitals - Four Metrics Every Mobile Developer Should Care About](https://blog.sentry.io/2021/08/23/mobile-vitals-four-metrics-every-mobile-developer-should-care-about/).
 
 [Performance Monitoring Support for React Native](https://blog.sentry.io/2021/03/11/performance-monitoring-support-for-react-native/?utm_source=github&utm_medium=readme&utm_campaign=sentry-react-native).
@@ -78,7 +86,7 @@ If you are coming from `react-native-sentry` which was our SDK `< 1.0` you shoul
 ## Resources
 
 - [![Documentation](https://img.shields.io/badge/documentation-sentry.io-green.svg)](https://docs.sentry.io/platforms/react-native/)
-- [![Forum](https://img.shields.io/badge/forum-sentry-green.svg)](https://forum.sentry.io/c/sdks)
+- [![Discussions](https://img.shields.io/github/discussions/getsentry/sentry-react-native.svg)](https://github.com/getsentry/sentry-react-native/discussions)
 - [![Discord Chat](https://img.shields.io/discord/621778831602221064?logo=discord&logoColor=ffffff&color=7389D8)](https://discord.gg/PXa5Apfe7K)
 - [![Stack Overflow](https://img.shields.io/badge/stack%20overflow-sentry-green.svg)](http://stackoverflow.com/questions/tagged/sentry)
 - [![Code of Conduct](https://img.shields.io/badge/code%20of%20conduct-sentry-green.svg)](https://github.com/getsentry/.github/blob/main/CODE_OF_CONDUCT.md)

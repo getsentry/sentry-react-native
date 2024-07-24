@@ -1,0 +1,56 @@
+name: Skip CI
+on:
+  workflow_call:
+    outputs:
+      skip_ci:
+        description: "Value yes if the current PR only contains changes to files not related to code, otherwise, not defined."
+        value: ${{ jobs.diff_check.outputs.skip_ci }}
+
+jobs:
+  diff_check:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    outputs:
+      skip_ci:
+        ${{ steps.check_diff.outputs.skip_ci }}
+    steps:
+      - name: Check if is PR
+        id: check-pr
+        run: |
+          if [ -z "${{ github.event.pull_request.number }}" ] || [ -z "${{ github.base_ref }}" ] || [ -z "${{ github.head_ref }}" ]; then
+            echo "This action is intended to be run on pull requests only."
+            echo "is-pr=false" >> $GITHUB_OUTPUT
+          else
+            echo "is-pr=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout PR Base Branch
+        if: steps.check-pr.outputs.is-pr == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.base_ref }}
+
+      - name: Checkout PR Head Branch
+        if: steps.check-pr.outputs.is-pr == 'true'
+        run: |
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:${{ github.head_ref }}
+          git checkout ${{ github.head_ref }}
+
+      - name: Check diff from Pull Request
+        if: steps.check-pr.outputs.is-pr == 'true'
+        id: check_diff
+        run: |
+          skipList=(".github/CODEOWNERS" ".prettierignore")
+          # Ignores changelog.md, readme.md,...
+          fileChangesArray=($(git diff --name-only ${{ github.base_ref }}...${{ github.head_ref }} | grep -v '\.md$' || true))
+          printf '%s\n' "${fileChangesArray[@]}"
+          for item in "${fileChangesArray[@]}"
+          do
+            if [[ ! " ${skipList[@]} " =~ " ${item} " ]]; then
+              echo "found '${item}' that doesn't belong to the skip list."
+              exit 0
+            fi
+          done
+          echo "skip_ci=true" >> $GITHUB_OUTPUT
+          echo "no source code files commited, skipping CI."

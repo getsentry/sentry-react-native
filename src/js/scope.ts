@@ -1,7 +1,9 @@
-import { Scope } from "@sentry/hub";
-import { Breadcrumb, User } from "@sentry/types";
+import { Scope } from '@sentry/core';
+import type { Attachment, Breadcrumb, User } from '@sentry/types';
 
-import { NATIVE } from "./wrapper";
+import { DEFAULT_BREADCRUMB_LEVEL } from './breadcrumb';
+import { convertToNormalizedObject } from './utils/normalize';
+import { NATIVE } from './wrapper';
 
 /**
  * Extends the scope methods to set scope on the Native SDKs
@@ -28,7 +30,7 @@ export class ReactNativeScope extends Scope {
    */
   public setTags(tags: { [key: string]: string }): this {
     // As native only has setTag, we just loop through each tag key.
-    Object.keys(tags).forEach((key) => {
+    Object.keys(tags).forEach(key => {
       NATIVE.setTag(key, tags[key]);
     });
     return super.setTags(tags);
@@ -39,7 +41,7 @@ export class ReactNativeScope extends Scope {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public setExtras(extras: { [key: string]: any }): this {
-    Object.keys(extras).forEach((key) => {
+    Object.keys(extras).forEach(key => {
       NATIVE.setExtra(key, extras[key]);
     });
     return super.setExtras(extras);
@@ -58,8 +60,17 @@ export class ReactNativeScope extends Scope {
    * @inheritDoc
    */
   public addBreadcrumb(breadcrumb: Breadcrumb, maxBreadcrumbs?: number): this {
-    NATIVE.addBreadcrumb(breadcrumb);
-    return super.addBreadcrumb(breadcrumb, maxBreadcrumbs);
+    const mergedBreadcrumb: Breadcrumb = {
+      ...breadcrumb,
+      level: breadcrumb.level || DEFAULT_BREADCRUMB_LEVEL,
+      data: breadcrumb.data ? convertToNormalizedObject(breadcrumb.data) : undefined,
+    };
+
+    super.addBreadcrumb(mergedBreadcrumb, maxBreadcrumbs);
+
+    const finalBreadcrumb = this._breadcrumbs[this._breadcrumbs.length - 1];
+    NATIVE.addBreadcrumb(finalBreadcrumb);
+    return this;
   }
 
   /**
@@ -77,5 +88,19 @@ export class ReactNativeScope extends Scope {
   public setContext(key: string, context: { [key: string]: any } | null): this {
     NATIVE.setContext(key, context);
     return super.setContext(key, context);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public addAttachment(attachment: Attachment): this {
+    return super.addAttachment(attachment);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public clearAttachments(): this {
+    return super.clearAttachments();
   }
 }

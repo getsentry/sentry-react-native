@@ -1,8 +1,12 @@
 # Ignore build generated dir
 dist
 
-# Ignore sample folder
-sample
+# Ignore standalone apps
+samples/react-native
+test/perf/TestApp*
 
 # Ignore dangerfile
 dangerfile.js
+
+# Android Test App includes js in JVM test reports
+RNSentryAndroidTester

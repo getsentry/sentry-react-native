@@ -8,20 +8,26 @@ on:
   pull_request:
 
 jobs:
+  diff_check:
+    uses: ./.github/workflows/skip-ci.yml
+
   job_test:
     name: Test
     runs-on: ubuntu-latest
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-
-      - uses: actions/cache@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ github.sha }}
       - name: Install Dependencies
-        if: steps.cache.outputs['cache-hit'] != 'true'
+        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Test
         run: yarn test
@@ -29,83 +35,217 @@ jobs:
   job_lint:
     name: Lint
     runs-on: ubuntu-latest
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v2
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ github.sha }}
       - name: Install Dependencies
-        if: steps.cache.outputs['cache-hit'] != 'true'
+        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Lint
         run: yarn lint
 
+  job_lint_sample_new_arch:
+    name: Lint Sample
+    runs-on: ubuntu-latest
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: samples/react-native/node_modules
+          key: ${{ runner.os }}-${{ github.sha }}
+      - name: Install Dependencies
+        if: steps.cache.outputs['cache-hit'] != 'true'
+        run: yarn install
+        working-directory: samples/react-native
+      - name: Lint Sample
+        run: yarn lint
+        working-directory: samples/react-native
+
+  job_check_integrity:
+    name: Check package integrity
+    runs-on: ubuntu-latest
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ github.sha }}
+      - name: Save initial lock file
+        run: cp yarn.lock yarn.lock.initial
+      - name: Install Dependencies (update lock if necessary)
+        run: yarn install
+      - name: Check lock file integrity
+        run: |
+          ["$(diff yarn.lock.initial yarn.lock)" -eq ""]
+
   job_build:
     name: Build
     runs-on: ubuntu-latest
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-      - uses: actions/cache@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ github.sha }}
       - name: Install Dependencies
-        if: steps.cache.outputs['cache-hit'] != 'true'
+        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Build
         run: yarn build
+      - name: Archive dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Archive ts3.8
+        uses: actions/upload-artifact@v4
+        with:
+          name: ts3.8
+          path: ts3.8
+      - name: Archive Expo Plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: expo-plugin
+          path: plugin/build
       - name: Pack
         run: yarn pack
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.sha }}
           path: |
             ${{ github.workspace }}/*.tgz
 
+  job_type_check:
+    name: Type Check Typescript 3.8
+    runs-on: ubuntu-latest
+    needs: [job_build, diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: test/typescript/ts3.8/node_modules
+          key: ${{ runner.os }}-${{ github.sha }}-ts3.8
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Download ts3.8
+        uses: actions/download-artifact@v4
+        with:
+          name: ts3.8
+          path: ts3.8
+      - name: Install Global Dependencies
+        run: yarn global add yalc
+      - name: Publish SDK
+        run: yalc publish
+      - name: Install SDK
+        working-directory: test/typescript/ts3.8
+        run: yalc add @sentry/react-native
+      - name: Install Dependencies
+        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
+        working-directory: test/typescript/ts3.8
+        run: yarn install
+      - name: Type Check
+        working-directory: test/typescript/ts3.8
+        run: yarn type-check
+
+  job_circular_dep_check:
+    name: Circular Dependency Check
+    runs-on: ubuntu-latest
+    needs: [job_build, diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ github.sha }}
+      - name: Install Dependencies
+        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
+        run: yarn install
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Download Expo Plugin
+        uses: actions/download-artifact@v4
+        with:
+          name: expo-plugin
+          path: plugin/build
+      - name: Run madge
+        run: yarn circularDepCheck
+
   job_bundle:
     name: Bundle
     runs-on: ubuntu-latest
-    needs: [job_test, job_build]
+    needs: [job_test, job_build, diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
       matrix:
-        platform: ["ios", "android"]
+        platform: ['ios', 'android']
         dev: [true, false]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: "12"
+          node-version: 18
       - name: Cache Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: cache
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ github.sha }}
       - name: Cache Sample Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: cache-sample
         with:
-          path: sample/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('sample/yarn.lock') }}
+          path: samples/react-native/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('samples/react-native/yarn.lock') }}
       - name: Install Dependencies
-        if: steps.cache.outputs['cache-hit'] != 'true'
+        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Install Sample Dependencies
-        if: steps.cache-sample.outputs['cache-hit'] != 'true'
+        if: ${{ steps.cache-sample.outputs['cache-hit'] != 'true' }}
         run: yarn install
-        working-directory: sample
+        working-directory: samples/react-native
       - name: Build
         run: yarn build
       - name: Make Sample Build Directory
         run: mkdir build
-        working-directory: sample
+        working-directory: samples/react-native
       - name: Bundle
         run: |
           yarn run react-native bundle \
@@ -115,4 +255,4 @@ jobs:
           --reset-cache \
           --bundle-output build/bundle.${{ matrix.platform }}.js \
           --sourcemap-output build/bundle.${{ matrix.platform }}.map
-        working-directory: sample
+        working-directory: samples/react-native

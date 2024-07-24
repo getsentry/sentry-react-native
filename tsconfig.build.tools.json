@@ -1,0 +1,19 @@
+{
+  "extends": "./node_modules/@sentry-internal/typescript/tsconfig.json",
+  "include": ["src/js/tools/**/*.ts"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "metro": ["node_modules/metro/src/index"]
+    },
+    "outDir": "dist",
+    "rootDir": "src",
+    "lib": ["es7"],
+    "types": ["node"],
+    "target": "es6",
+    "module": "CommonJS",
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true
+  }
+}

@@ -1,117 +1,114 @@
-import { initAndBind, setExtra } from "@sentry/core";
-import { Hub, makeMain } from "@sentry/hub";
-import { RewriteFrames } from "@sentry/integrations";
-import { defaultIntegrations, getCurrentHub } from "@sentry/react";
-import { StackFrame } from "@sentry/types";
-import { getGlobalObject, logger } from "@sentry/utils";
-import * as React from "react";
-
-import { ReactNativeClient } from "./client";
+/* eslint-disable complexity */
+import type { Scope } from '@sentry/core';
+import { getIntegrationsToSetup, Hub, initAndBind, makeMain, setExtra } from '@sentry/core';
 import {
-  DebugSymbolicator,
-  DeviceContext,
-  EventOrigin,
-  ReactNativeErrorHandlers,
-  Release,
-  SdkInfo,
-} from "./integrations";
-import { ReactNativeOptions, ReactNativeWrapperOptions } from "./options";
-import { ReactNativeScope } from "./scope";
-import { TouchEventBoundary } from "./touchevents";
-import { ReactNativeProfiler, ReactNativeTracing } from "./tracing";
+  defaultStackParser,
+  getCurrentHub,
+  makeFetchTransport,
+} from '@sentry/react';
+import type { Integration, UserFeedback } from '@sentry/types';
+import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
+import * as React from 'react';
 
-const IGNORED_DEFAULT_INTEGRATIONS = [
-  "GlobalHandlers", // We will use the react-native internal handlers
-  "TryCatch", // We don't need this
-];
+import { ReactNativeClient } from './client';
+import { getDefaultIntegrations } from './integrations/default';
+import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
+import { shouldEnableNativeNagger } from './options';
+import { ReactNativeScope } from './scope';
+import { TouchEventBoundary } from './touchevents';
+import { ReactNativeProfiler, ReactNativeTracing } from './tracing';
+import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
+import { makeUtf8TextEncoder } from './transports/TextEncoder';
+import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer } from './utils/environment';
+import { safeFactory, safeTracesSampler } from './utils/safe';
+import { NATIVE } from './wrapper';
+
 const DEFAULT_OPTIONS: ReactNativeOptions = {
-  enableNative: true,
   enableNativeCrashHandling: true,
   enableNativeNagger: true,
   autoInitializeNativeSdk: true,
-  enableAutoPerformanceTracking: true,
-  enableOutOfMemoryTracking: true,
+  enableAutoPerformanceTracing: true,
+  enableWatchdogTerminationTracking: true,
+  patchGlobalPromise: true,
+  transportOptions: {
+    textEncoder: makeUtf8TextEncoder(),
+  },
+  sendClientReports: true,
+  maxQueueSize: DEFAULT_BUFFER_SIZE,
+  attachStacktrace: true,
+  enableCaptureFailedRequests: false,
+  enableNdk: true,
 };
 
 /**
  * Inits the SDK and returns the final options.
  */
 export function init(passedOptions: ReactNativeOptions): void {
+  if (isRunningInMetroDevServer()) {
+    return;
+  }
+
   const reactNativeHub = new Hub(undefined, new ReactNativeScope());
   makeMain(reactNativeHub);
 
-  const options = {
+  const maxQueueSize = passedOptions.maxQueueSize
+    // eslint-disable-next-line deprecation/deprecation
+    ?? passedOptions.transportOptions?.bufferSize
+    ?? DEFAULT_OPTIONS.maxQueueSize;
+
+  const enableNative = passedOptions.enableNative === undefined || passedOptions.enableNative
+    ? NATIVE.isNativeAvailable()
+    : false;
+  const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
-  };
-
-  // As long as tracing is opt in with either one of these options, then this is how we determine tracing is enabled.
-  const tracingEnabled =
-    typeof options.tracesSampler !== "undefined" ||
-    typeof options.tracesSampleRate !== "undefined";
-
-  if (options.defaultIntegrations === undefined) {
-    options.defaultIntegrations = [
-      new ReactNativeErrorHandlers(),
-      new Release(),
-      ...defaultIntegrations.filter(
-        (i) => !IGNORED_DEFAULT_INTEGRATIONS.includes(i.name)
-      ),
-      new EventOrigin(),
-      new SdkInfo(),
-    ];
-
-    if (__DEV__) {
-      options.defaultIntegrations.push(new DebugSymbolicator());
-    }
-
-    options.defaultIntegrations.push(
-      new RewriteFrames({
-        iteratee: (frame: StackFrame) => {
-          if (frame.filename) {
-            frame.filename = frame.filename
-              .replace(/^file:\/\//, "")
-              .replace(/^address at /, "")
-              .replace(/^.*\/[^.]+(\.app|CodePush|.*(?=\/))/, "");
-
-            if (
-              frame.filename !== "[native code]" &&
-              frame.filename !== "native"
-            ) {
-              const appPrefix = "app://";
-              // We always want to have a triple slash
-              frame.filename =
-                frame.filename.indexOf("/") === 0
-                  ? `${appPrefix}${frame.filename}`
-                  : `${appPrefix}/${frame.filename}`;
-            }
-          }
-          return frame;
-        },
+    enableNative,
+    enableNativeNagger: shouldEnableNativeNagger(passedOptions.enableNativeNagger),
+    // If custom transport factory fails the SDK won't initialize
+    transport: passedOptions.transport
+      || makeNativeTransportFactory({
+        enableNative,
       })
-    );
-    if (options.enableNative) {
-      options.defaultIntegrations.push(new DeviceContext());
-    }
-    if (tracingEnabled) {
-      if (options.enableAutoPerformanceTracking) {
-        options.defaultIntegrations.push(new ReactNativeTracing());
-      }
-    }
+      || makeFetchTransport,
+    transportOptions: {
+      ...DEFAULT_OPTIONS.transportOptions,
+      ...(passedOptions.transportOptions ?? {}),
+      bufferSize: maxQueueSize,
+    },
+    maxQueueSize,
+    integrations: [],
+    stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser),
+    beforeBreadcrumb: safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' }),
+    initialScope: safeFactory(passedOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
+  };
+  if ('tracesSampler' in options) {
+    options.tracesSampler = safeTracesSampler(options.tracesSampler);
   }
 
+  if (!('environment' in options)) {
+    options.environment = getDefaultEnvironment();
+  }
+
+  const defaultIntegrations: false | Integration[] = passedOptions.defaultIntegrations === undefined
+    ? getDefaultIntegrations(options)
+    : passedOptions.defaultIntegrations;
+
+  options.integrations = getIntegrationsToSetup({
+    integrations: safeFactory(passedOptions.integrations, { loggerMessage: 'The integrations threw an error' }),
+    defaultIntegrations,
+  });
   initAndBind(ReactNativeClient, options);
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
-  if (getGlobalObject<any>().HermesInternal) {
-    getCurrentHub().setTag("hermes", "true");
+  if (isExpoGo()) {
+    logger.info('Offline caching, native errors features are not available in Expo Go.');
+    logger.info('Use EAS Build / Native Release Build to test these features.');
   }
 }
 
 /**
  * Inits the Sentry React Native SDK with automatic instrumentation and wrapped features.
  */
-export function wrap<P>(
+export function wrap<P extends Record<string, unknown>>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
@@ -122,7 +119,7 @@ export function wrap<P>(
 
   const profilerProps = {
     ...(options?.profilerProps ?? {}),
-    name: RootComponent.displayName ?? "Root",
+    name: RootComponent.displayName ?? 'Root',
   };
 
   const RootApp: React.FC<P> = (appProps) => {
@@ -144,7 +141,7 @@ export function wrap<P>(
  * @deprecated
  */
 export function setRelease(release: string): void {
-  setExtra("__sentry_release", release);
+  setExtra('__sentry_release', release);
 }
 
 /**
@@ -153,7 +150,7 @@ export function setRelease(release: string): void {
  * @deprecated
  */
 export function setDist(dist: string): void {
-  setExtra("__sentry_dist", dist);
+  setExtra('__sentry_dist', dist);
 }
 
 /**
@@ -181,9 +178,9 @@ export async function flush(): Promise<boolean> {
       return result;
     }
     // eslint-disable-next-line no-empty
-  } catch (_) {}
+  } catch (_) { }
 
-  logger.error("Failed to flush the event queue.");
+  logger.error('Failed to flush the event queue.');
 
   return false;
 }
@@ -199,6 +196,53 @@ export async function close(): Promise<void> {
       await client.close();
     }
   } catch (e) {
-    logger.error("Failed to close the SDK");
+    logger.error('Failed to close the SDK');
   }
+}
+
+/**
+ * Captures user feedback and sends it to Sentry.
+ */
+export function captureUserFeedback(feedback: UserFeedback): void {
+  getCurrentHub().getClient<ReactNativeClient>()?.captureUserFeedback(feedback);
+}
+
+/**
+ * Creates a new scope with and executes the given operation within.
+ * The scope is automatically removed once the operation
+ * finishes or throws.
+ *
+ * This is essentially a convenience function for:
+ *
+ *     pushScope();
+ *     callback();
+ *     popScope();
+ *
+ * @param callback that will be enclosed into push/popScope.
+ */
+export function withScope<T>(callback: (scope: Scope) => T): T | undefined {
+  const safeCallback = (scope: Scope): T | undefined => {
+    try {
+      return callback(scope);
+    } catch (e) {
+      logger.error('Error while running withScope callback', e);
+      return undefined;
+    }
+  };
+  return getCurrentHub().withScope(safeCallback);
+}
+
+/**
+ * Callback to set context information onto the scope.
+ * @param callback Callback function that receives Scope.
+ */
+export function configureScope(callback: (scope: Scope) => void): ReturnType<Hub['configureScope']> {
+  const safeCallback = (scope: Scope): void => {
+    try {
+      callback(scope);
+    } catch (e) {
+      logger.error('Error while running configureScope callback', e);
+    }
+  };
+  getCurrentHub().configureScope(safeCallback);
 }

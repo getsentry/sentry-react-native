@@ -1,10 +1,20 @@
 {
   "extends": "./tsconfig.build.json",
-  "include": ["src/js/*.ts", "src/js/*.tsx", "test/**/*.ts", "test/**/*.tsx"],
+  "include": [
+    "src/js/tools/**/*.ts",
+    "src/js/*.ts",
+    "src/js/**/*.web.ts",
+    "src/js/*.tsx",
+    "test/**/*.ts",
+    "test/**/*.tsx",
+    "typings/*.d.ts",
+    "plugin/**/*.ts"
+  ],
   "exclude": ["dist"],
+  "allowSyntheticDefaultImports": true,
   "compilerOptions": {
     "rootDir": ".",
-    "jsx": "react-native",
-    "types": ["jest"]
+    "jsx": "react",
+    "types": ["jest", "react-native"]
   }
 }

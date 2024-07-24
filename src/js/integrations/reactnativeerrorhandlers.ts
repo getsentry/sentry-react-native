@@ -1,14 +1,18 @@
-import { eventFromException } from "@sentry/browser";
-import { getCurrentHub } from "@sentry/core";
-import { Integration, Severity } from "@sentry/types";
-import { addExceptionMechanism, getGlobalObject, logger } from "@sentry/utils";
+import { captureException, convertIntegrationFnToClass, getClient, getCurrentScope } from '@sentry/core';
+import type { EventHint, Integration, IntegrationClass, IntegrationFnResult, SeverityLevel } from '@sentry/types';
+import { addExceptionMechanism, logger } from '@sentry/utils';
 
-import { ReactNativeClient } from "../client";
+import { createSyntheticError, isErrorLike } from '../utils/error';
+import { RN_GLOBAL_OBJ } from '../utils/worldwide';
+import { checkPromiseAndWarn, polyfillPromise, requireRejectionTracking } from './reactnativeerrorhandlersutils';
+
+const INTEGRATION_NAME = 'ReactNativeErrorHandlers';
 
 /** ReactNativeErrorHandlers Options */
 interface ReactNativeErrorHandlersOptions {
   onerror: boolean;
   onunhandledrejection: boolean;
+  patchGlobalPromise: boolean;
 }
 
 interface PromiseRejectionTrackingOptions {
@@ -16,192 +20,161 @@ interface PromiseRejectionTrackingOptions {
   onHandled: (id: string) => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const global: any;
-
 /** ReactNativeErrorHandlers Integration */
-export class ReactNativeErrorHandlers implements Integration {
-  /**
-   * @inheritDoc
-   */
-  public static id: string = "ReactNativeErrorHandlers";
+export const reactNativeErrorHandlersIntegration = (
+  options: Partial<ReactNativeErrorHandlersOptions> = {},
+): IntegrationFnResult => {
+  return {
+    name: INTEGRATION_NAME,
+    setupOnce: () =>
+      setup({
+        onerror: true,
+        onunhandledrejection: true,
+        patchGlobalPromise: true,
+        ...options,
+      }),
+  };
+};
 
-  /**
-   * @inheritDoc
-   */
-  public name: string = ReactNativeErrorHandlers.id;
+/**
+ * ReactNativeErrorHandlers Integration
+ *
+ * @deprecated Use `reactNativeErrorHandlersIntegration()` instead.
+ */
+// eslint-disable-next-line deprecation/deprecation
+export const ReactNativeErrorHandlers = convertIntegrationFnToClass(
+  INTEGRATION_NAME,
+  reactNativeErrorHandlersIntegration,
+) as IntegrationClass<Integration> & {
+  new (options?: Partial<ReactNativeErrorHandlersOptions>): Integration;
+};
 
-  /** ReactNativeOptions */
-  private readonly _options: ReactNativeErrorHandlersOptions;
+function setup(options: ReactNativeErrorHandlersOptions): void {
+  options.onunhandledrejection && setupUnhandledRejectionsTracking(options.patchGlobalPromise);
+  options.onerror && setupErrorUtilsGlobalHandler();
+}
 
-  /** Constructor */
-  public constructor(options?: ReactNativeErrorHandlersOptions) {
-    this._options = {
-      onerror: true,
-      onunhandledrejection: true,
-      ...options,
-    };
+/**
+ * Setup unhandled promise rejection tracking
+ */
+function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
+  if (patchGlobalPromise) {
+    polyfillPromise();
   }
 
-  /**
-   * @inheritDoc
-   */
-  public setupOnce(): void {
-    this._handleUnhandledRejections();
-    this._handleOnError();
-  }
+  attachUnhandledRejectionHandler();
+  checkPromiseAndWarn();
+}
 
-  /**
-   * Handle Promises
-   */
-  private _handleUnhandledRejections(): void {
-    if (this._options.onunhandledrejection) {
-      /*
-        In newer RN versions >=0.63, the global promise is not the same reference as the one imported from the promise library.
-        This is due to a version mismatch between promise versions. The version will need to be fixed with a package resolution.
-        We first run a check and show a warning if needed.
-      */
-      this._checkPromiseVersion();
+function attachUnhandledRejectionHandler(): void {
+  const tracking = requireRejectionTracking();
 
-      const tracking: {
-        disable: () => void;
-        enable: (arg: unknown) => void;
-        // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
-      } = require("promise/setimmediate/rejection-tracking");
-
-      const promiseRejectionTrackingOptions = this._getPromiseRejectionTrackingOptions();
-
-      tracking.disable();
-      tracking.enable({
-        allRejections: true,
-        onUnhandled: (id: string, error: Error) => {
-          if (__DEV__) {
-            promiseRejectionTrackingOptions.onUnhandled(id, error);
-          }
-
-          getCurrentHub().captureException(error, {
-            data: { id },
-            originalException: error,
-          });
-        },
-        onHandled: (id: string) => {
-          promiseRejectionTrackingOptions.onHandled(id);
-        },
-      });
-    }
-  }
-  /**
-   * Gets the promise rejection handlers, tries to get React Native's default one but otherwise will default to console.logging unhandled rejections.
-   */
-  private _getPromiseRejectionTrackingOptions(): PromiseRejectionTrackingOptions {
-    return {
-      onUnhandled: (id, rejection = {}) => {
-        // eslint-disable-next-line no-console
-        console.warn(
-          `Possible Unhandled Promise Rejection (id: ${id}):\n${rejection}`
-        );
-      },
-      onHandled: (id) => {
-        // eslint-disable-next-line no-console
-        console.warn(
-          `Promise Rejection Handled (id: ${id})\n` +
-            "This means you can ignore any previous messages of the form " +
-            `"Possible Unhandled Promise Rejection (id: ${id}):"`
-        );
-      },
-    };
-  }
-  /**
-   * Checks if the promise is the same one or not, if not it will warn the user
-   */
-  private _checkPromiseVersion(): void {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
-      const Promise = require("promise/setimmediate/core");
-
-      const _global = getGlobalObject<{ Promise: typeof Promise }>();
-
-      if (Promise !== _global.Promise) {
-        logger.warn(
-          "Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page."
-        );
-      } else {
-        logger.log("Unhandled promise rejections will be caught by Sentry.");
-      }
-    } catch (e) {
-      // Do Nothing
-      logger.warn(
-        "Unhandled promise rejections will not be caught by Sentry. Read about how to fix this on our troubleshooting page."
+  const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
+    onUnhandled: (id, rejection = {}) => {
+      // eslint-disable-next-line no-console
+      console.warn(`Possible Unhandled Promise Rejection (id: ${id}):\n${rejection}`);
+    },
+    onHandled: id => {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Promise Rejection Handled (id: ${id})\n` +
+          'This means you can ignore any previous messages of the form ' +
+          `"Possible Unhandled Promise Rejection (id: ${id}):"`,
       );
-    }
+    },
+  };
+
+  tracking.enable({
+    allRejections: true,
+    onUnhandled: (id: string, error: unknown) => {
+      if (__DEV__) {
+        promiseRejectionTrackingOptions.onUnhandled(id, error);
+      }
+
+      captureException(error, {
+        data: { id },
+        originalException: error,
+        syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
+      });
+    },
+    onHandled: (id: string) => {
+      promiseRejectionTrackingOptions.onHandled(id);
+    },
+  });
+}
+
+function setupErrorUtilsGlobalHandler(): void {
+  let handlingFatal = false;
+
+  const errorUtils = RN_GLOBAL_OBJ.ErrorUtils;
+  if (!errorUtils) {
+    logger.warn('ErrorUtils not found. Can be caused by different environment for example react-native-web.');
+    return;
   }
-  /**
-   * Handle errors
-   */
-  private _handleOnError(): void {
-    if (this._options.onerror) {
-      let handlingFatal = false;
 
-      const defaultHandler =
-        ErrorUtils.getGlobalHandler && ErrorUtils.getGlobalHandler();
+  const defaultHandler = errorUtils.getGlobalHandler && errorUtils.getGlobalHandler();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ErrorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
-        // We want to handle fatals, but only in production mode.
-        const shouldHandleFatal = isFatal && !__DEV__;
-        if (shouldHandleFatal) {
-          if (handlingFatal) {
-            logger.log(
-              "Encountered multiple fatals in a row. The latest:",
-              error
-            );
-            return;
-          }
-          handlingFatal = true;
-        }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  errorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
+    // We want to handle fatals, but only in production mode.
+    const shouldHandleFatal = isFatal && !__DEV__;
+    if (shouldHandleFatal) {
+      if (handlingFatal) {
+        logger.log('Encountered multiple fatals in a row. The latest:', error);
+        return;
+      }
+      handlingFatal = true;
+    }
 
-        const currentHub = getCurrentHub();
-        const client = currentHub.getClient<ReactNativeClient>();
+    const client = getClient();
 
-        if (!client) {
-          logger.error(
-            "Sentry client is missing, the error event might be lost.",
-            error
-          );
+    if (!client) {
+      logger.error('Sentry client is missing, the error event might be lost.', error);
 
-          // If there is no client something is fishy, anyway we call the default handler
-          defaultHandler(error, isFatal);
+      // If there is no client something is fishy, anyway we call the default handler
+      defaultHandler(error, isFatal);
 
-          return;
-        }
+      return;
+    }
 
-        const options = client.getOptions();
+    const hint: EventHint = {
+      originalException: error,
+      attachments: getCurrentScope().getScopeData().attachments,
+    };
+    const event = await client.eventFromException(error, hint);
 
-        const event = await eventFromException(options, error, {
-          originalException: error,
-        });
+    if (isFatal) {
+      event.level = 'fatal' as SeverityLevel;
 
-        if (isFatal) {
-          event.level = Severity.Fatal;
+      addExceptionMechanism(event, {
+        handled: false,
+        type: 'onerror',
+      });
+    } else {
+      event.level = 'error';
 
-          addExceptionMechanism(event, {
-            handled: false,
-            type: "onerror",
-          });
-        }
-
-        currentHub.captureEvent(event);
-
-        if (!__DEV__) {
-          void client.flush(options.shutdownTimeout || 2000).then(() => {
-            defaultHandler(error, isFatal);
-          });
-        } else {
-          // If in dev, we call the default handler anyway and hope the error will be sent
-          // Just for a better dev experience
-          defaultHandler(error, isFatal);
-        }
+      addExceptionMechanism(event, {
+        handled: true,
+        type: 'generic',
       });
     }
-  }
+
+    client.captureEvent(event, hint);
+
+    if (__DEV__) {
+      // If in dev, we call the default handler anyway and hope the error will be sent
+      // Just for a better dev experience
+      defaultHandler(error, isFatal);
+      return;
+    }
+
+    void client.flush(client.getOptions().shutdownTimeout || 2000).then(
+      () => {
+        defaultHandler(error, isFatal);
+      },
+      (reason: unknown) => {
+        logger.error('[ReactNativeErrorHandlers] Error while flushing the event cache after uncaught error.', reason);
+      },
+    );
+  });
 }

@@ -1,136 +1,127 @@
-jest.mock("@sentry/core", () => {
-  const core = jest.requireActual("@sentry/core");
+jest.mock('../../src/js/integrations/reactnativeerrorhandlersutils');
 
-  const client = {
-    getOptions: () => ({}),
-  };
+import { setCurrentClient } from '@sentry/core';
+import type { ExtendedError, SeverityLevel } from '@sentry/types';
 
-  const hub = {
-    getClient: () => client,
-    captureEvent: jest.fn(),
-  };
+import { reactNativeErrorHandlersIntegration } from '../../src/js/integrations/reactnativeerrorhandlers';
+import { requireRejectionTracking } from '../../src/js/integrations/reactnativeerrorhandlersutils';
+import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 
-  return {
-    ...core,
-    addGlobalEventProcessor: jest.fn(),
-    getCurrentHub: () => hub,
-  };
-});
+describe('ReactNativeErrorHandlers', () => {
+  let client: TestClient;
+  let mockDisable: jest.Mock;
+  let mockEnable: jest.Mock;
 
-jest.mock("@sentry/utils", () => {
-  const utils = jest.requireActual("@sentry/utils");
-  return {
-    ...utils,
-    logger: {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
-    },
-  };
-});
+  beforeEach(() => {
+    mockDisable = jest.fn();
+    mockEnable = jest.fn();
+    (requireRejectionTracking as jest.Mock).mockReturnValue({
+      disable: mockDisable,
+      enable: mockEnable,
+    });
+    ErrorUtils.getGlobalHandler = () => jest.fn();
 
-jest.mock("promise/setimmediate/core", () => {
-  return {};
-});
+    client = new TestClient(getDefaultTestClientOptions());
+    setCurrentClient(client);
+    client.init();
+  });
 
-import { getCurrentHub } from "@sentry/core";
-import { Severity } from "@sentry/types";
-import { getGlobalObject, logger } from "@sentry/utils";
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
-import { ReactNativeErrorHandlers } from "../../src/js/integrations/reactnativeerrorhandlers";
+  describe('onError', () => {
+    let errorHandlerCallback: (error: Error, isFatal: boolean) => Promise<void>;
 
-beforeEach(() => {
-  ErrorUtils.getGlobalHandler = () => jest.fn();
-});
+    beforeEach(() => {
+      errorHandlerCallback = () => Promise.resolve();
 
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
-describe("ReactNativeErrorHandlers", () => {
-  describe("onError", () => {
-    test("Sets handled:false on a fatal error", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      let callback: (error: Error, isFatal: boolean) => Promise<void> = () =>
-        Promise.resolve();
-
-      ErrorUtils.setGlobalHandler = jest.fn((_callback) => {
-        callback = _callback as typeof callback;
+      ErrorUtils.setGlobalHandler = jest.fn(_callback => {
+        errorHandlerCallback = _callback as typeof errorHandlerCallback;
       });
 
-      const integration = new ReactNativeErrorHandlers();
+      const integration = reactNativeErrorHandlersIntegration();
 
       integration.setupOnce();
 
-      expect(ErrorUtils.setGlobalHandler).toHaveBeenCalledWith(callback);
-
-      await callback(new Error("Test Error"), true);
-
-      const hub = getCurrentHub();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      const mockCall = (hub.captureEvent as jest.MockedFunction<
-        typeof hub.captureEvent
-      >).mock.calls[0];
-      const event = mockCall[0];
-
-      expect(event.level).toBe(Severity.Fatal);
-      expect(event.exception?.values?.[0].mechanism?.handled).toBe(false);
-      expect(event.exception?.values?.[0].mechanism?.type).toBe("onerror");
+      expect(ErrorUtils.setGlobalHandler).toHaveBeenCalledWith(errorHandlerCallback);
     });
 
-    test("Does not set handled:false on a non-fatal error", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      let callback: (error: Error, isFatal: boolean) => Promise<void> = () =>
-        Promise.resolve();
+    test('Sets handled:false on a fatal error', async () => {
+      await errorHandlerCallback(new Error('Test Error'), true);
+      await client.flush();
 
-      ErrorUtils.setGlobalHandler = jest.fn((_callback) => {
-        callback = _callback as typeof callback;
-      });
+      const event = client.event;
 
-      const integration = new ReactNativeErrorHandlers();
+      expect(event?.level).toBe('fatal' as SeverityLevel);
+      expect(event?.exception?.values?.[0].mechanism?.handled).toBe(false);
+      expect(event?.exception?.values?.[0].mechanism?.type).toBe('onerror');
+    });
 
-      integration.setupOnce();
+    test('Does not set handled:false on a non-fatal error', async () => {
+      await errorHandlerCallback(new Error('Test Error'), false);
+      await client.flush();
 
-      expect(ErrorUtils.setGlobalHandler).toHaveBeenCalledWith(callback);
+      const event = client.event;
 
-      await callback(new Error("Test Error"), false);
+      expect(event?.level).toBe('error' as SeverityLevel);
+      expect(event?.exception?.values?.[0].mechanism?.handled).toBe(true);
+      expect(event?.exception?.values?.[0].mechanism?.type).toBe('generic');
+    });
 
-      const hub = getCurrentHub();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      const mockCall = (hub.captureEvent as jest.MockedFunction<
-        typeof hub.captureEvent
-      >).mock.calls[0];
-      const event = mockCall[0];
+    test('Includes original exception in hint', async () => {
+      await errorHandlerCallback(new Error('Test Error'), false);
+      await client.flush();
 
-      expect(event.level).toBe(Severity.Error);
-      expect(event.exception?.values?.[0].mechanism?.handled).toBe(true);
-      expect(event.exception?.values?.[0].mechanism?.type).toBe("generic");
+      const hint = client.hint;
+
+      expect(hint).toEqual(expect.objectContaining({ originalException: new Error('Test Error') }));
     });
   });
 
-  describe("onUnhandledRejection", () => {
-    it("Warns if promise instances are different", () => {
-      const _global = getGlobalObject<{ Promise: any }>();
+  describe('onUnhandledRejection', () => {
+    test('unhandled rejected promise is captured with synthetical error', async () => {
+      const integration = reactNativeErrorHandlersIntegration();
+      integration.setupOnce();
 
-      _global.Promise = {};
+      const [actualTrackingOptions] = mockEnable.mock.calls[0] || [];
+      actualTrackingOptions?.onUnhandled?.(1, 'Test Error');
 
-      const inst = new ReactNativeErrorHandlers();
-      inst.setupOnce();
+      await client.flush();
+      const actualSyntheticError = client.hint?.syntheticException;
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(logger.warn).toBeCalled();
+      expect(mockDisable).not.toHaveBeenCalled();
+      expect(mockEnable).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allRejections: true,
+          onUnhandled: expect.any(Function),
+          onHandled: expect.any(Function),
+        }),
+      );
+      expect(mockEnable).toHaveBeenCalledTimes(1);
+      expect((actualSyntheticError as ExtendedError).framesToPop).toBe(3);
     });
 
-    it("Does not warn if promise instances match", () => {
-      const _global = getGlobalObject<{ Promise: any }>();
+    test('error like unhandled rejected promise is captured without synthetical error', async () => {
+      const integration = reactNativeErrorHandlersIntegration();
+      integration.setupOnce();
 
-      _global.Promise = require("promise/setimmediate/core");
+      const [actualTrackingOptions] = mockEnable.mock.calls[0] || [];
+      actualTrackingOptions?.onUnhandled?.(1, new Error('Test Error'));
 
-      const inst = new ReactNativeErrorHandlers();
-      inst.setupOnce();
+      await client.flush();
+      const actualSyntheticError = client.hint?.syntheticException;
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(logger.warn).not.toBeCalled();
+      expect(mockDisable).not.toHaveBeenCalled();
+      expect(mockEnable).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allRejections: true,
+          onUnhandled: expect.any(Function),
+          onHandled: expect.any(Function),
+        }),
+      );
+      expect(mockEnable).toHaveBeenCalledTimes(1);
+      expect(actualSyntheticError).toBeUndefined();
     });
   });
 });

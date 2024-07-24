@@ -1,15 +1,20 @@
-const replace = require("replace-in-file");
+const replace = require('replace-in-file');
 
-const pjson = require("../package.json");
+const pjson = require('../package.json');
 
 replace({
-  files: ["src/js/version.ts"],
+  files: ['src/js/version.ts'],
   from: /\d+\.\d+.\d+(?:-\w+(?:\.\w+)?)?/g,
   to: pjson.version,
 })
-  .then((changedFiles) => {
-    console.log("Modified files:", changedFiles.join(", "));
+  .then(matchedFiles => {
+    const modifiedFiles =
+      matchedFiles
+        .filter(file => file.hasChanged)
+        .map(file => file.file)
+        .join(', ') || 'none';
+    console.log('Modified files:', modifiedFiles);
   })
-  .catch((error) => {
-    console.error("Error occurred:", error);
+  .catch(error => {
+    console.error('Error occurred:', error);
   });

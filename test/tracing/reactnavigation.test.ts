@@ -1,292 +1,304 @@
+/* eslint-disable deprecation/deprecation */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Transaction } from "@sentry/tracing";
-import { TransactionContext } from "@sentry/types";
-import { getGlobalObject } from "@sentry/utils";
-
 import {
-  BLANK_TRANSACTION_CONTEXT,
-  NavigationRoute,
-  ReactNavigationInstrumentation,
-} from "../../src/js/tracing/reactnavigation";
+  addGlobalEventProcessor,
+  getCurrentHub,
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
+  SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE,
+  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
+  setCurrentClient,
+  Transaction,
+} from '@sentry/core';
+
+import { ReactNativeTracing } from '../../src/js';
+import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
+import { ReactNavigationInstrumentation } from '../../src/js/tracing/reactnavigation';
+import type { BeforeNavigate } from '../../src/js/tracing/types';
+import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
+import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
+import { createMockNavigationAndAttachTo } from './reactnavigationutils';
 
 const dummyRoute = {
-  name: "Route",
-  key: "0",
+  name: 'Route',
+  key: '0',
 };
 
+jest.useFakeTimers({ advanceTimers: true });
+
 class MockNavigationContainer {
-  currentRoute: NavigationRoute = dummyRoute;
+  currentRoute: NavigationRoute | undefined = dummyRoute;
   listeners: Record<string, (e: any) => void> = {};
-  addListener: any = jest.fn(
-    (eventType: string, listener: (e: any) => void): void => {
-      this.listeners[eventType] = listener;
-    }
-  );
-  getCurrentRoute(): NavigationRoute {
+  addListener: any = jest.fn((eventType: string, listener: (e: any) => void): void => {
+    this.listeners[eventType] = listener;
+  });
+  getCurrentRoute(): NavigationRoute | undefined {
     return this.currentRoute;
   }
 }
 
-const getMockTransaction = () => {
-  const transaction = new Transaction(BLANK_TRANSACTION_CONTEXT);
+describe('ReactNavigationInstrumentation', () => {
+  let client: TestClient;
+  let mockNavigation: ReturnType<typeof createMockNavigationAndAttachTo>;
 
-  // Assume it's sampled
-  transaction.sampled = true;
+  beforeEach(() => {
+    RN_GLOBAL_OBJ.__sentry_rn_v5_registered = false;
 
-  return transaction;
-};
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+  });
 
-const _global = getGlobalObject<{
-  __sentry_rn_v5_registered?: boolean;
-}>();
+  test('transaction set on initialize', async () => {
+    setupTestClient();
+    jest.runOnlyPendingTimers(); // Flush the init transaction
 
-afterEach(() => {
-  _global.__sentry_rn_v5_registered = false;
+    await client.flush();
 
-  jest.resetAllMocks();
-});
-
-describe("ReactNavigationInstrumentation", () => {
-  test("transaction set on initialize", () => {
-    const instrumentation = new ReactNavigationInstrumentation();
-
-    const mockTransaction = getMockTransaction();
-    const tracingListener = jest.fn(() => mockTransaction);
-    instrumentation.registerRoutingInstrumentation(
-      tracingListener as any,
-      (context) => context,
-      () => {}
+    const actualEvent = client.event;
+    expect(actualEvent).toEqual(
+      expect.objectContaining({
+        type: 'transaction',
+        transaction: 'Initial Screen',
+        contexts: expect.objectContaining({
+          trace: expect.objectContaining({
+            data: {
+              route: {
+                hasBeenSeen: false,
+                key: 'initial_screen',
+                name: 'Initial Screen',
+                params: {},
+              },
+              previousRoute: null,
+              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
+              [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+            },
+            op: 'navigation',
+            origin: 'manual',
+            tags: expect.objectContaining({
+              'routing.instrumentation': 'react-navigation-v5',
+              'routing.route.name': 'Initial Screen',
+            }),
+          }),
+        }),
+      }),
     );
+  });
 
-    const mockNavigationContainerRef = {
-      current: new MockNavigationContainer(),
-    };
+  test('transaction sent on navigation', async () => {
+    setupTestClient();
+    jest.runOnlyPendingTimers(); // Flush the init transaction
 
-    instrumentation.registerNavigationContainer(
-      mockNavigationContainerRef as any
+    mockNavigation.navigateToNewScreen();
+    jest.runOnlyPendingTimers(); // Flush the navigation transaction
+
+    await client.flush();
+
+    const actualEvent = client.event;
+    expect(actualEvent).toEqual(
+      expect.objectContaining({
+        type: 'transaction',
+        transaction: 'New Screen',
+        contexts: expect.objectContaining({
+          trace: expect.objectContaining({
+            data: {
+              route: {
+                hasBeenSeen: false,
+                key: 'new_screen',
+                name: 'New Screen',
+                params: {},
+              },
+              previousRoute: {
+                key: 'initial_screen',
+                name: 'Initial Screen',
+                params: {},
+              },
+              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
+              [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+            },
+            op: 'navigation',
+            origin: 'manual',
+            tags: expect.objectContaining({
+              'routing.instrumentation': 'react-navigation-v5',
+              'routing.route.name': 'New Screen',
+            }),
+          }),
+        }),
+      }),
     );
+  });
 
-    expect(mockTransaction.name).toBe(dummyRoute.name);
-    expect(mockTransaction.tags).toStrictEqual({
-      ...BLANK_TRANSACTION_CONTEXT.tags,
-      "routing.route.name": dummyRoute.name,
-    });
-    expect(mockTransaction.data).toStrictEqual({
-      route: {
-        name: dummyRoute.name,
-        key: dummyRoute.key,
-        params: {},
-        hasBeenSeen: false,
+  test('transaction has correct metadata after multiple navigations', async () => {
+    setupTestClient();
+    jest.runOnlyPendingTimers(); // Flush the init transaction
+
+    mockNavigation.navigateToNewScreen();
+    jest.runOnlyPendingTimers(); // Flush the navigation transaction
+
+    mockNavigation.navigateToSecondScreen();
+    jest.runOnlyPendingTimers(); // Flush the navigation transaction
+
+    await client.flush();
+
+    const actualEvent = client.event;
+    expect(actualEvent).toEqual(
+      expect.objectContaining({
+        type: 'transaction',
+        transaction: 'Second Screen',
+        contexts: expect.objectContaining({
+          trace: expect.objectContaining({
+            data: {
+              route: {
+                hasBeenSeen: false,
+                key: 'second_screen',
+                name: 'Second Screen',
+                params: {},
+              },
+              previousRoute: {
+                key: 'new_screen',
+                name: 'New Screen',
+                params: {},
+              },
+              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
+              [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+            },
+            op: 'navigation',
+            origin: 'manual',
+            tags: expect.objectContaining({
+              'routing.instrumentation': 'react-navigation-v5',
+              'routing.route.name': 'Second Screen',
+            }),
+          }),
+        }),
+      }),
+    );
+  });
+
+  test('transaction context changed with beforeNavigate', async () => {
+    setupTestClient({
+      beforeNavigate: span => {
+        span.name = 'New Span Name';
+        return span;
       },
-      previousRoute: null,
     });
+    jest.runOnlyPendingTimers(); // Flush the init transaction
+
+    mockNavigation.navigateToNewScreen();
+    jest.runOnlyPendingTimers(); // Flush the navigation transaction
+
+    await client.flush();
+
+    const actualEvent = client.event;
+    expect(actualEvent).toEqual(
+      expect.objectContaining({
+        type: 'transaction',
+        transaction: 'New Span Name',
+        contexts: expect.objectContaining({
+          trace: expect.objectContaining({
+            data: {
+              route: {
+                hasBeenSeen: false,
+                key: 'new_screen',
+                name: 'New Screen',
+                params: {},
+              },
+              previousRoute: {
+                key: 'initial_screen',
+                name: 'Initial Screen',
+                params: {},
+              },
+              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'custom',
+              [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+            },
+            op: 'navigation',
+            origin: 'manual',
+            tags: expect.objectContaining({
+              'routing.instrumentation': 'react-navigation-v5',
+              'routing.route.name': 'New Screen',
+            }),
+          }),
+        }),
+      }),
+    );
   });
 
-  test("transaction sent on navigation", async () => {
-    const instrumentation = new ReactNavigationInstrumentation();
+  test('transaction not sent on a cancelled navigation', async () => {
+    setupTestClient();
+    jest.runOnlyPendingTimers(); // Flush the init transaction
 
-    // Need a dummy transaction as the instrumentation will start a transaction right away when the first navigation container is attached.
-    const mockTransactionDummy = getMockTransaction();
-    const transactionRef = {
-      current: mockTransactionDummy,
-    };
-    const tracingListener = jest.fn(() => transactionRef.current);
-    instrumentation.registerRoutingInstrumentation(
-      tracingListener as any,
-      (context) => context,
-      () => {}
+    mockNavigation.emitCancelledNavigation();
+    jest.runOnlyPendingTimers(); // Flush the cancelled navigation
+
+    await client.flush();
+
+    expect(client.eventQueue.length).toBe(1);
+    expect(client.event).toEqual(
+      expect.objectContaining({
+        type: 'transaction',
+        transaction: 'Initial Screen',
+      }),
     );
-
-    const mockNavigationContainerRef = {
-      current: new MockNavigationContainer(),
-    };
-
-    instrumentation.registerNavigationContainer(
-      mockNavigationContainerRef as any
-    );
-
-    const mockTransaction = getMockTransaction();
-    transactionRef.current = mockTransaction;
-
-    mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
-
-    await new Promise<void>((resolve) => {
-      setTimeout(() => {
-        const route = {
-          name: "New Route",
-          key: "1",
-          params: {
-            someParam: 42,
-          },
-        };
-        mockNavigationContainerRef.current.currentRoute = route;
-        mockNavigationContainerRef.current.listeners["state"]({});
-
-        expect(mockTransaction.name).toBe(route.name);
-        expect(mockTransaction.tags).toStrictEqual({
-          ...BLANK_TRANSACTION_CONTEXT.tags,
-          "routing.route.name": route.name,
-        });
-        expect(mockTransaction.data).toStrictEqual({
-          route: {
-            name: route.name,
-            key: route.key,
-            params: route.params,
-            hasBeenSeen: false,
-          },
-          previousRoute: {
-            name: dummyRoute.name,
-            key: dummyRoute.key,
-            params: {},
-          },
-        });
-
-        resolve();
-      }, 50);
-    });
   });
 
-  test("transaction context changed with beforeNavigate", async () => {
-    const instrumentation = new ReactNavigationInstrumentation();
+  test('transaction not sent on multiple cancelled navigations', async () => {
+    setupTestClient();
+    jest.runOnlyPendingTimers(); // Flush the init transaction
 
-    // Need a dummy transaction as the instrumentation will start a transaction right away when the first navigation container is attached.
-    const mockTransactionDummy = getMockTransaction();
-    const transactionRef = {
-      current: mockTransactionDummy,
-    };
-    const tracingListener = jest.fn(() => transactionRef.current);
-    instrumentation.registerRoutingInstrumentation(
-      tracingListener as any,
-      (context) => {
-        context.sampled = false;
-        context.description = "Description";
-        context.name = "New Name";
+    mockNavigation.emitCancelledNavigation();
+    jest.runOnlyPendingTimers(); // Flush the cancelled navigation
 
-        return context;
-      },
-      () => {}
+    mockNavigation.emitCancelledNavigation();
+    jest.runOnlyPendingTimers(); // Flush the cancelled navigation
+
+    await client.flush();
+
+    expect(client.eventQueue.length).toBe(1);
+    expect(client.event).toEqual(
+      expect.objectContaining({
+        type: 'transaction',
+        transaction: 'Initial Screen',
+      }),
     );
-
-    const mockNavigationContainerRef = {
-      current: new MockNavigationContainer(),
-    };
-
-    instrumentation.registerNavigationContainer(
-      mockNavigationContainerRef as any
-    );
-
-    const mockTransaction = getMockTransaction();
-    transactionRef.current = mockTransaction;
-
-    mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
-
-    await new Promise<void>((resolve) => {
-      setTimeout(() => {
-        const route = {
-          name: "DoNotSend",
-          key: "1",
-        };
-        mockNavigationContainerRef.current.currentRoute = route;
-        mockNavigationContainerRef.current.listeners["state"]({});
-
-        expect(mockTransaction.sampled).toBe(false);
-        expect(mockTransaction.name).toBe("New Name");
-        expect(mockTransaction.description).toBe("Description");
-        resolve();
-      }, 50);
-    });
   });
 
-  test("transaction not sent on a cancelled navigation", async () => {
-    const instrumentation = new ReactNavigationInstrumentation();
-
-    // Need a dummy transaction as the instrumentation will start a transaction right away when the first navigation container is attached.
-    const mockTransactionDummy = getMockTransaction();
-    const transactionRef = {
-      current: mockTransactionDummy,
-    };
-    const tracingListener = jest.fn(() => transactionRef.current);
-    instrumentation.registerRoutingInstrumentation(
-      tracingListener as any,
-      (context) => context,
-      () => {}
-    );
-
-    const mockNavigationContainerRef = {
-      current: new MockNavigationContainer(),
-    };
-
-    instrumentation.registerNavigationContainer(
-      mockNavigationContainerRef as any
-    );
-
-    const mockTransaction = getMockTransaction();
-    transactionRef.current = mockTransaction;
-
-    mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
-
-    await new Promise<void>((resolve) => {
-      setTimeout(() => {
-        expect(mockTransaction.sampled).toBe(false);
-        expect(mockTransaction.name).toStrictEqual(
-          BLANK_TRANSACTION_CONTEXT.name
-        );
-        expect(mockTransaction.tags).toStrictEqual(
-          BLANK_TRANSACTION_CONTEXT.tags
-        );
-        expect(mockTransaction.data).toStrictEqual({});
-        resolve();
-      }, 1100);
-    });
-  });
-
-  describe("navigation container registration", () => {
-    test("registers navigation container object ref", () => {
+  describe('navigation container registration', () => {
+    test('registers navigation container object ref', () => {
       const instrumentation = new ReactNavigationInstrumentation();
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer({
         current: mockNavigationContainer,
       });
 
-      expect(_global.__sentry_rn_v5_registered).toBe(true);
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
-        1,
-        "__unsafe_action__",
-        expect.any(Function)
-      );
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
-        2,
-        "state",
-        expect.any(Function)
-      );
+      expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(1, '__unsafe_action__', expect.any(Function));
+      expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(2, 'state', expect.any(Function));
     });
 
-    test("registers navigation container direct ref", () => {
+    test('registers navigation container direct ref', () => {
       const instrumentation = new ReactNavigationInstrumentation();
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer(mockNavigationContainer);
 
-      expect(_global.__sentry_rn_v5_registered).toBe(true);
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
-        1,
-        "__unsafe_action__",
-        expect.any(Function)
-      );
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(
-        2,
-        "state",
-        expect.any(Function)
-      );
+      expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(1, '__unsafe_action__', expect.any(Function));
+      expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(2, 'state', expect.any(Function));
     });
 
-    test("does not register navigation container if there is an existing one", () => {
-      _global.__sentry_rn_v5_registered = true;
+    test('does not register navigation container if there is an existing one', () => {
+      RN_GLOBAL_OBJ.__sentry_rn_v5_registered = true;
 
       const instrumentation = new ReactNavigationInstrumentation();
       const mockNavigationContainer = new MockNavigationContainer();
@@ -294,165 +306,91 @@ describe("ReactNavigationInstrumentation", () => {
         current: mockNavigationContainer,
       });
 
-      expect(_global.__sentry_rn_v5_registered).toBe(true);
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).not.toHaveBeenCalled();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockNavigationContainer.addListener).not.toHaveBeenCalled();
     });
 
-    test("works if routing instrumentation registration is after navigation registration", async () => {
+    test('works if routing instrumentation registration is after navigation registration', async () => {
       const instrumentation = new ReactNavigationInstrumentation();
 
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer(mockNavigationContainer);
 
-      const mockTransaction = getMockTransaction();
+      const mockTransaction = new Transaction({ name: 'Test' });
       const tracingListener = jest.fn(() => mockTransaction);
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
-        (context) => context,
-        () => {}
+        context => context,
+        () => {},
       );
 
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          expect(mockTransaction.sampled).not.toBe(false);
-          resolve();
-        }, 500);
-      });
+      await jest.runOnlyPendingTimersAsync();
+
+      expect(mockTransaction['_sampled']).not.toBe(false);
     });
   });
 
-  describe("options", () => {
-    test("waits until routeChangeTimeoutMs", async () => {
+  describe('options', () => {
+    test('waits until routeChangeTimeoutMs', () => {
       const instrumentation = new ReactNavigationInstrumentation({
         routeChangeTimeoutMs: 200,
       });
 
-      const mockTransaction = getMockTransaction();
+      const mockTransaction = new Transaction({ name: 'Test', sampled: true });
       const tracingListener = jest.fn(() => mockTransaction);
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
-        (context) => context,
-        () => {}
+        context => context,
+        () => {},
       );
 
       const mockNavigationContainerRef = {
         current: new MockNavigationContainer(),
       };
 
-      return new Promise<void>((resolve) => {
-        setTimeout(() => {
-          instrumentation.registerNavigationContainer(
-            mockNavigationContainerRef as any
-          );
+      instrumentation.registerNavigationContainer(mockNavigationContainerRef as any);
+      mockNavigationContainerRef.current.listeners['__unsafe_action__']({});
 
-          expect(mockTransaction.sampled).toBe(true);
-          expect(mockTransaction.name).toBe(dummyRoute.name);
+      jest.advanceTimersByTime(190);
 
-          resolve();
-        }, 190);
-      });
-    });
+      expect(mockTransaction['_sampled']).toBe(true);
+      expect(mockTransaction['_name']).toBe('Route');
 
-    test("discards if after routeChangeTimeoutMs", async () => {
-      const instrumentation = new ReactNavigationInstrumentation({
-        routeChangeTimeoutMs: 200,
-      });
+      jest.advanceTimersByTime(20);
 
-      const mockTransaction = getMockTransaction();
-      const tracingListener = jest.fn(() => mockTransaction);
-      instrumentation.registerRoutingInstrumentation(
-        tracingListener as any,
-        (context) => context,
-        () => {}
-      );
-
-      const mockNavigationContainerRef = {
-        current: new MockNavigationContainer(),
-      };
-
-      return new Promise<void>((resolve) => {
-        setTimeout(() => {
-          instrumentation.registerNavigationContainer(
-            mockNavigationContainerRef as any
-          );
-
-          expect(mockTransaction.sampled).toBe(false);
-          resolve();
-        }, 210);
-      });
+      expect(mockTransaction['_sampled']).toBe(false);
     });
   });
 
-  describe("onRouteConfirmed", () => {
-    test("onRouteConfirmed called with correct route data", () => {
-      const instrumentation = new ReactNavigationInstrumentation();
-
-      // Need a dummy transaction as the instrumentation will start a transaction right away when the first navigation container is attached.
-      const mockTransactionDummy = getMockTransaction();
-      const transactionRef = {
-        current: mockTransactionDummy,
-      };
-      let confirmedContext: TransactionContext | undefined;
-      const tracingListener = jest.fn(() => transactionRef.current);
-      instrumentation.registerRoutingInstrumentation(
-        tracingListener as any,
-        (context) => context,
-        (context) => {
-          confirmedContext = context;
-        }
-      );
-
-      const mockNavigationContainerRef = {
-        current: new MockNavigationContainer(),
-      };
-
-      instrumentation.registerNavigationContainer(
-        mockNavigationContainerRef as any
-      );
-
-      const mockTransaction = getMockTransaction();
-      transactionRef.current = mockTransaction;
-
-      mockNavigationContainerRef.current.listeners["__unsafe_action__"]({});
-
-      const route1 = {
-        name: "New Route 1",
-        key: "1",
-        params: {
-          someParam: 42,
-        },
-      };
-
-      mockNavigationContainerRef.current.currentRoute = route1;
-      mockNavigationContainerRef.current.listeners["state"]({});
-
-      const route2 = {
-        name: "New Route 2",
-        key: "2",
-        params: {
-          someParam: 42,
-        },
-      };
-
-      mockNavigationContainerRef.current.currentRoute = route2;
-      mockNavigationContainerRef.current.listeners["state"]({});
-
-      expect(confirmedContext).toBeDefined();
-      if (confirmedContext) {
-        expect(confirmedContext.name).toBe(route2.name);
-        expect(confirmedContext.data).toBeDefined();
-        if (confirmedContext.data) {
-          expect(confirmedContext.data.route.name).toBe(route2.name);
-          expect(confirmedContext.data.previousRoute).toBeDefined();
-          if (confirmedContext.data.previousRoute) {
-            expect(confirmedContext.data.previousRoute.name).toBe(route1.name);
-          }
-        }
-      }
+  function setupTestClient(
+    setupOptions: {
+      beforeNavigate?: BeforeNavigate;
+    } = {},
+  ) {
+    const rNavigation = new ReactNavigationInstrumentation({
+      routeChangeTimeoutMs: 200,
     });
-  });
+    mockNavigation = createMockNavigationAndAttachTo(rNavigation);
+
+    const rnTracing = new ReactNativeTracing({
+      routingInstrumentation: rNavigation,
+      enableStallTracking: false,
+      enableNativeFramesTracking: false,
+      enableAppStartTracking: false,
+      beforeNavigate: setupOptions.beforeNavigate || (span => span),
+    });
+
+    const options = getDefaultTestClientOptions({
+      tracesSampleRate: 1.0,
+      integrations: [rnTracing],
+    });
+    client = new TestClient(options);
+    setCurrentClient(client);
+    client.init();
+
+    // We have to call this manually as setupOnce is executed once per runtime (global var check)
+    rnTracing.setupOnce(addGlobalEventProcessor, getCurrentHub);
+  }
 });

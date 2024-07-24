@@ -5,8 +5,27 @@
 !CHANGELOG.md
 !README.md
 !/dist/**/*
+!ts3.8/**/*
 !RNSentry.podspec
 !sentry.gradle
 !react-native.config.js
 !/ios/**/*
 !/android/**/*
+!src/js/NativeRNSentry.ts
+!scripts/collect-modules.sh
+!scripts/copy-debugid.js
+!scripts/has-sourcemap-debugid.js
+!scripts/sentry-xcode.sh
+!scripts/sentry-xcode-debug-files.sh
+!scripts/sentry_utils.rb
+!scripts/expo-upload-sourcemaps.js
+
+# Metro
+!/metro.js
+!/metro.d.ts
+
+# Expo
+!/expo.js
+!/expo.d.ts
+!/app.plugin.js
+!/plugin/build/**/*

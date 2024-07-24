@@ -1,0 +1,17 @@
+name: Add Platform Label
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+jobs:
+  add_label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: andymckay/labeler@e6c4322d0397f3240f0e7e30a33b5c5df2d39e90 # pin@1.0.4
+        with:
+          add-labels: 'Platform: React-Native'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

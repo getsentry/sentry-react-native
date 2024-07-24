@@ -1,43 +1,19 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Attach to packager",
-      "cwd": "${workspaceFolder}",
-      "type": "reactnative",
-      "request": "attach"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug e2e:android",
-      "cwd": "${workspaceFolder}/sample",
-      "program": "./node_modules/jest/bin/jest",
-      "args": [
-        "--runInBand",
-        "--config=./jest.config.js"
-      ],
-      "env": {
-        "PLATFORM": "android"
-      },
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug e2e:ios",
-      "cwd": "${workspaceFolder}/sample",
-      "program": "./node_modules/jest/bin/jest",
-      "args": [
-        "--runInBand",
-        "--config=./jest.config.js"
-      ],
-      "env": {
-        "PLATFORM": "ios"
-      },
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-  ]
+    "version": "0.2.0",
+    "configurations": [
+        {
+          "name": "Jest Tests",
+          "type": "node",
+          "request": "launch",
+          "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/node_modules/jest/bin/jest.js"],
+          "args": ["--runInBand", "-t", "gesture cancel previous interaction transaction"],
+          "cwd": "${workspaceRoot}",
+          "console": "integratedTerminal",
+          "internalConsoleOptions": "neverOpen",
+          "outputCapture": "std",
+          "sourceMaps": true,
+          "smartStep": true
+        },
+
+    ]
 }

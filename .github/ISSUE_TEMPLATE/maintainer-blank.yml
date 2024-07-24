@@ -1,0 +1,17 @@
+name: Blank Issue
+description: Blank Issue. Reserved for maintainers.
+labels: ["Platform: React-Native"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please describe the issue.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |-
+        ## Thanks 🙏
+        Check our [triage docs](https://open.sentry.io/triage/) for what to expect next.

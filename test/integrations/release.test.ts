@@ -1,109 +1,80 @@
-import { addGlobalEventProcessor, getCurrentHub } from "@sentry/core";
-import { EventProcessor } from "@sentry/types";
+import type { Client } from '@sentry/types';
 
-import { Release } from "../../src/js/integrations/release";
+import { nativeReleaseIntegration } from '../../src/js/integrations/release';
 
-jest.mock("@sentry/core", () => {
-  const client = {
-    getOptions: jest.fn(),
-  };
-
-  const hub = {
-    getClient: () => client,
-    getIntegration: () => Release,
-  };
-
-  return {
-    addGlobalEventProcessor: jest.fn(),
-    getCurrentHub: () => hub,
-  };
-});
-
-jest.mock("../../src/js/wrapper", () => ({
+jest.mock('../../src/js/wrapper', () => ({
   NATIVE: {
     fetchNativeRelease: async () => ({
-      build: "native_build",
-      id: "native_id",
-      version: "native_version",
+      build: 'native_build',
+      id: 'native_id',
+      version: 'native_version',
     }),
   },
 }));
 
-describe("Tests the Release integration", () => {
-  test("Uses release from native SDK if release/dist are not present in options.", async () => {
-    const releaseIntegration = new Release();
+describe('Tests the Release integration', () => {
+  test('Uses release from native SDK if release/dist are not present in options.', async () => {
+    const releaseIntegration = nativeReleaseIntegration();
 
-    let eventProcessor: EventProcessor = () => null;
+    const event = await releaseIntegration.processEvent!({}, {}, { getOptions: () => ({}) } as Client);
 
-    // @ts-ignore Mock
-    addGlobalEventProcessor.mockImplementation((e) => (eventProcessor = e));
-    releaseIntegration.setupOnce();
-
-    expect(addGlobalEventProcessor).toBeCalled();
-
-    const client = getCurrentHub().getClient();
-
-    // @ts-ignore Mock
-    client.getOptions.mockImplementation(() => ({}));
-
-    const event = await eventProcessor({});
-
-    expect(event?.release).toBe(`native_id@native_version+native_build`);
-    expect(event?.dist).toBe("native_build");
+    expect(event?.release).toBe('native_id@native_version+native_build');
+    expect(event?.dist).toBe('native_build');
   });
 
-  test("Uses release and dist from options", async () => {
-    const releaseIntegration = new Release();
+  test('Uses release from native SDK if release is not present in options.', async () => {
+    const releaseIntegration = nativeReleaseIntegration();
 
-    let eventProcessor: EventProcessor = () => null;
+    const event = await releaseIntegration.processEvent!({}, {}, {
+      getOptions: () => ({ dist: 'options_dist' }),
+    } as Client);
 
-    // @ts-ignore Mock
-    addGlobalEventProcessor.mockImplementation((e) => (eventProcessor = e));
-    releaseIntegration.setupOnce();
-
-    expect(addGlobalEventProcessor).toBeCalled();
-
-    const client = getCurrentHub().getClient();
-
-    // @ts-ignore Mock
-    client.getOptions.mockImplementation(() => ({
-      dist: "options_dist",
-      release: "options_release",
-    }));
-
-    const event = await eventProcessor({});
-
-    expect(event?.release).toBe("options_release");
-    expect(event?.dist).toBe("options_dist");
+    expect(event?.release).toBe('native_id@native_version+native_build');
+    expect(event?.dist).toBe('options_dist');
   });
 
-  test("Uses __sentry_release and __sentry_dist over everything else.", async () => {
-    const releaseIntegration = new Release();
+  test('Uses dist from native SDK if dist is not present in options.', async () => {
+    const releaseIntegration = nativeReleaseIntegration();
 
-    let eventProcessor: EventProcessor = () => null;
+    const event = await releaseIntegration.processEvent!({}, {}, {
+      getOptions: () => ({ release: 'options_release' }),
+    } as Client);
 
-    // @ts-ignore Mock
-    addGlobalEventProcessor.mockImplementation((e) => (eventProcessor = e));
-    releaseIntegration.setupOnce();
+    expect(event?.release).toBe('options_release');
+    expect(event?.dist).toBe('native_build');
+  });
 
-    expect(addGlobalEventProcessor).toBeCalled();
+  test('Uses release and dist from options', async () => {
+    const releaseIntegration = nativeReleaseIntegration();
 
-    const client = getCurrentHub().getClient();
+    const event = await releaseIntegration.processEvent!({}, {}, {
+      getOptions: () => ({ dist: 'options_dist', release: 'options_release' }),
+    } as Client);
 
-    // @ts-ignore Mock
-    client.getOptions.mockImplementation(() => ({
-      dist: "options_dist",
-      release: "options_release",
-    }));
+    expect(event?.release).toBe('options_release');
+    expect(event?.dist).toBe('options_dist');
+  });
 
-    const event = await eventProcessor({
-      extra: {
-        __sentry_dist: "sentry_dist",
-        __sentry_release: "sentry_release",
+  test('Uses __sentry_release and __sentry_dist over everything else.', async () => {
+    const releaseIntegration = nativeReleaseIntegration();
+
+    const event = await releaseIntegration.processEvent!(
+      {
+        extra: {
+          __sentry_dist: 'sentry_dist',
+          __sentry_release: 'sentry_release',
+        },
       },
-    });
+      {},
+      {
+        getOptions: () => ({
+          dist: 'options_dist',
+          release: 'options_release',
+        }),
+      } as Client,
+    );
 
-    expect(event?.release).toBe("sentry_release");
-    expect(event?.dist).toBe("sentry_dist");
+    expect(event?.release).toBe('sentry_release');
+    expect(event?.dist).toBe('sentry_dist');
   });
 });

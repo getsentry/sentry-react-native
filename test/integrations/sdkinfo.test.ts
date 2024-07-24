@@ -1,96 +1,94 @@
-import { Event } from "@sentry/types";
+import type { Event, EventHint, Package } from '@sentry/types';
 
-import { SdkInfo } from "../../src/js/integrations";
-import { NATIVE } from "../../src/js/wrapper";
+import { SDK_NAME, SDK_VERSION } from '../../src/js';
+import { sdkInfoIntegration } from '../../src/js/integrations/sdkinfo';
+import { NATIVE } from '../../src/js/wrapper';
 
-const mockPackage = {
-  name: "sentry-cocoa",
-  version: "0.0.1",
+let mockedFetchNativeSdkInfo: jest.Mock<PromiseLike<Package | null>, []>;
+
+const mockCocoaPackage = {
+  name: 'sentry-cocoa',
+  version: '0.0.1',
 };
 
-jest.mock("../../src/js/wrapper", () => {
-  const actual = jest.requireActual("../../src/js/wrapper");
+const mockAndroidPackage = {
+  name: 'sentry-android',
+  version: '0.0.1',
+};
+
+jest.mock('../../src/js/wrapper', () => {
+  const actual = jest.requireActual('../../src/js/wrapper');
 
   return {
     NATIVE: {
       ...actual.NATIVE,
-      platform: "ios",
-      fetchNativeSdkInfo: jest.fn(() => Promise.resolve(mockPackage)),
+      platform: 'ios',
+      fetchNativeSdkInfo: () => mockedFetchNativeSdkInfo(),
     },
   };
 });
 
-afterEach(() => {
-  NATIVE.platform = "ios";
-});
-
-describe("Sdk Info", () => {
-  it("Adds native package and javascript platform to event on iOS", (done) => {
-    const integration = new SdkInfo();
-
-    const mockEvent: Event = {};
-
-    integration.setupOnce(async (eventProcessor) => {
-      try {
-        const processedEvent = await eventProcessor(mockEvent);
-
-        expect(processedEvent).toBeDefined();
-        if (processedEvent) {
-          expect(processedEvent.sdk).toBeDefined();
-          if (processedEvent.sdk) {
-            expect(processedEvent.sdk.packages).toBeDefined();
-            if (processedEvent.sdk.packages) {
-              expect(
-                processedEvent.sdk.packages.some(
-                  (pkg) =>
-                    pkg.name === mockPackage.name &&
-                    pkg.version === mockPackage.version
-                )
-              ).toBe(true);
-            }
-          }
-          expect(processedEvent.platform === "javascript");
-        }
-
-        done();
-      } catch (e) {
-        done(e);
-      }
-    });
+describe('Sdk Info', () => {
+  afterEach(() => {
+    NATIVE.platform = 'ios';
   });
 
-  it("Adds javascript platform but not native package on Android", (done) => {
-    NATIVE.platform = "android";
-    const integration = new SdkInfo();
-
+  it('Adds native package and javascript platform to event on iOS', async () => {
+    mockedFetchNativeSdkInfo = jest.fn().mockResolvedValue(mockCocoaPackage);
     const mockEvent: Event = {};
+    const processedEvent = await processEvent(mockEvent);
 
-    integration.setupOnce(async (eventProcessor) => {
-      try {
-        const processedEvent = await eventProcessor(mockEvent);
+    expect(processedEvent?.sdk?.packages).toEqual(expect.arrayContaining([mockCocoaPackage]));
+    expect(processedEvent?.platform === 'javascript');
+    expect(mockedFetchNativeSdkInfo).toBeCalledTimes(1);
+  });
 
-        expect(processedEvent).toBeDefined();
-        if (processedEvent) {
-          expect(processedEvent.sdk).toBeDefined();
-          if (processedEvent.sdk) {
-            expect(processedEvent.sdk.packages).toBeDefined();
-            if (processedEvent.sdk.packages) {
-              expect(
-                processedEvent.sdk.packages.some(
-                  (pkg) =>
-                    pkg.name === mockPackage.name &&
-                    pkg.version === mockPackage.version
-                )
-              ).toBe(false);
-            }
-          }
-          expect(processedEvent.platform === "javascript");
-        }
+  it('Adds native package and javascript platform to event on Android', async () => {
+    NATIVE.platform = 'android';
+    mockedFetchNativeSdkInfo = jest.fn().mockResolvedValue(mockAndroidPackage);
+    const mockEvent: Event = {};
+    const processedEvent = await processEvent(mockEvent);
 
-        done();
-      } catch (e) {
-        done(e);
-      }
-    });
+    expect(processedEvent?.sdk?.packages).toEqual(expect.not.arrayContaining([mockCocoaPackage]));
+    expect(processedEvent?.platform === 'javascript');
+    expect(mockedFetchNativeSdkInfo).toBeCalledTimes(1);
+  });
+
+  it('Does not add any default non native packages', async () => {
+    mockedFetchNativeSdkInfo = jest.fn().mockResolvedValue(null);
+    const mockEvent: Event = {};
+    const processedEvent = await processEvent(mockEvent);
+
+    expect(processedEvent?.sdk?.packages).toEqual([]);
+    expect(processedEvent?.platform === 'javascript');
+    expect(mockedFetchNativeSdkInfo).toBeCalledTimes(1);
+  });
+
+  it('Does not overwrite existing sdk name and version', async () => {
+    mockedFetchNativeSdkInfo = jest.fn().mockResolvedValue(null);
+    const mockEvent: Event = {
+      sdk: {
+        name: 'test-sdk',
+        version: '1.0.0',
+      },
+    };
+    const processedEvent = await processEvent(mockEvent);
+
+    expect(processedEvent?.sdk?.name).toEqual('test-sdk');
+    expect(processedEvent?.sdk?.version).toEqual('1.0.0');
+  });
+
+  it('Does use default sdk name and version', async () => {
+    mockedFetchNativeSdkInfo = jest.fn().mockResolvedValue(null);
+    const mockEvent: Event = {};
+    const processedEvent = await processEvent(mockEvent);
+
+    expect(processedEvent?.sdk?.name).toEqual(SDK_NAME);
+    expect(processedEvent?.sdk?.version).toEqual(SDK_VERSION);
   });
 });
+
+function processEvent(mockedEvent: Event, mockedHint: EventHint = {}): Event | null | PromiseLike<Event | null> {
+  const integration = sdkInfoIntegration();
+  return integration.processEvent!(mockedEvent, mockedHint, {} as any);
+}

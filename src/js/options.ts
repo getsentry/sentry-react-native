@@ -1,15 +1,12 @@
-import { BrowserOptions } from "@sentry/react";
-import { ProfilerProps } from "@sentry/react/dist/profiler";
-import { CaptureContext } from "@sentry/types/dist/scope";
+import type { BrowserTransportOptions } from '@sentry/browser/types/transports/types';
+import type { ProfilerProps } from '@sentry/react/types/profiler';
+import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@sentry/types';
+import { Platform } from 'react-native';
 
-import { TouchEventBoundaryProps } from "./touchevents";
+import type { TouchEventBoundaryProps } from './touchevents';
+import { getExpoConstants } from './utils/expomodules';
 
-/**
- * Configuration options for the Sentry ReactNative SDK.
- * @see ReactNativeFrontend for more information.
- */
-
-export interface ReactNativeOptions extends BrowserOptions {
+export interface BaseReactNativeOptions {
   /**
    * Enables native transport + device info + offline caching.
    * Be careful, disabling this also breaks automatic release setting.
@@ -37,9 +34,6 @@ export interface ReactNativeOptions extends BrowserOptions {
    */
   autoInitializeNativeSdk?: boolean;
 
-  /** Maximum time to wait to drain the request queue, before the process is allowed to exit. */
-  shutdownTimeout?: number;
-
   /** Should the native nagger alert be shown or not. */
   enableNativeNagger?: boolean;
 
@@ -49,7 +43,15 @@ export interface ReactNativeOptions extends BrowserOptions {
   /** The interval to end a session if the App goes to the background. */
   sessionTrackingIntervalMillis?: number;
 
-  /** Enable scope sync from Java to NDK on Android */
+  /** Enable NDK on Android
+   *
+   * @default true
+   */
+  enableNdk?: boolean;
+
+  /** Enable scope sync from Java to NDK on Android
+   * Only has an effect if `enableNdk` is `true`.
+   */
   enableNdkScopeSync?: boolean;
 
   /** When enabled, all the threads are automatically attached to all logged events on Android */
@@ -59,7 +61,7 @@ export interface ReactNativeOptions extends BrowserOptions {
    *  When enabled, certain personally identifiable information (PII) is added by active integrations.
    *
    * @default false
-   * */
+   */
   sendDefaultPii?: boolean;
 
   /**
@@ -70,24 +72,168 @@ export interface ReactNativeOptions extends BrowserOptions {
     didCallNativeInit: boolean;
   }) => void;
 
-  /** Enable auto performance tracking by default. */
-  enableAutoPerformanceTracking?: boolean;
+  /** Enable auto performance tracking by default. Renamed from `enableAutoPerformanceTracking` in v5. */
+  enableAutoPerformanceTracing?: boolean;
 
   /**
    * Enables Out of Memory Tracking for iOS and macCatalyst.
    * See the following link for more information and possible restrictions:
    * https://docs.sentry.io/platforms/apple/guides/ios/configuration/out-of-memory/
    *
+   * Renamed from `enableOutOfMemoryTracking` in v5.
+   *
    * @default true
-   * */
-  enableOutOfMemoryTracking?: boolean;
+   */
+  enableWatchdogTerminationTracking?: boolean;
 
   /**
    * Set data to the inital scope
    * @deprecated Use `Sentry.configureScope(...)`
    */
   initialScope?: CaptureContext;
+
+  /**
+   * When enabled, Sentry will overwrite the global Promise instance to ensure that unhandled rejections are correctly tracked.
+   * If you run into issues with Promise polyfills such as `core-js`, make sure you polyfill after Sentry is initialized.
+   * Read more at https://docs.sentry.io/platforms/react-native/troubleshooting/#unhandled-promise-rejections
+   *
+   * When disabled, this option will not disable unhandled rejection tracking. Set `onunhandledrejection: false` on the `ReactNativeErrorHandlers` integration instead.
+   *
+   * @default true
+   */
+  patchGlobalPromise?: boolean;
+
+  /**
+   * The max cache items for capping the number of envelopes.
+   *
+   * @default 30
+   */
+  maxCacheItems?: number;
+
+  /**
+   * When enabled, the SDK tracks when the application stops responding for a specific amount of
+   * time defined by the `appHangTimeoutInterval` option.
+   *
+   * iOS only
+   *
+   * @default true
+   */
+  enableAppHangTracking?: boolean;
+
+  /**
+   * The minimum amount of time an app should be unresponsive to be classified as an App Hanging.
+   * The actual amount may be a little longer.
+   * Avoid using values lower than 100ms, which may cause a lot of app hangs events being transmitted.
+   * Value should be in seconds.
+   *
+   * iOS only
+   *
+   * @default 2
+   */
+  appHangTimeoutInterval?: number;
+
+  /**
+   * The max queue size for capping the number of envelopes waiting to be sent by Transport.
+   */
+  maxQueueSize?: number;
+
+  /**
+   * When enabled and a user experiences an error, Sentry provides the ability to take a screenshot and include it as an attachment.
+   *
+   * @default false
+   */
+  attachScreenshot?: boolean;
+
+  /**
+   * When enabled Sentry includes the current view hierarchy in the error attachments.
+   *
+   * @default false
+   */
+  attachViewHierarchy?: boolean;
+
+  /**
+   * When enabled, Sentry will capture failed XHR/Fetch requests. This option also enabled HTTP Errors on iOS.
+   * [Sentry Android Gradle Plugin](https://docs.sentry.io/platforms/android/configuration/integrations/okhttp/)
+   * is needed to capture HTTP Errors on Android.
+   *
+   * @default false
+   */
+  enableCaptureFailedRequests?: boolean;
+
+  /**
+   * This option will enable forwarding captured Sentry events to Spotlight.
+   *
+   * More details: https://spotlightjs.com/
+   *
+   * IMPORTANT: Only set this option to `true` while developing, not in production!
+   */
+  enableSpotlight?: boolean;
+
+  /**
+   * This option changes the default Spotlight Sidecar URL.
+   *
+   * By default, the SDK expects the Sidecar to be running
+   * on the same host as React Native Metro Dev Server.
+   *
+   * More details: https://spotlightjs.com/
+   *
+   * @default "http://localhost:8969/stream"
+   */
+  spotlightSidecarUrl?: string;
+
+  /**
+   * Sets a callback which is executed before capturing screenshots. Only
+   * relevant if `attachScreenshot` is set to true. When false is returned
+   * from the function, no screenshot will be attached.
+   */
+  beforeScreenshot?: (event: Event, hint: EventHint) => boolean;
+
+  /**
+   * Options which are in beta, or otherwise not guaranteed to be stable.
+   */
+  _experiments?: {
+    [key: string]: unknown;
+
+    /**
+     * The sample rate for profiling
+     * 1.0 will profile all transactions and 0 will profile none.
+     */
+    profilesSampleRate?: number;
+
+    /**
+     * The sample rate for session-long replays.
+     * 1.0 will record all sessions and 0 will record none.
+     */
+    replaysSessionSampleRate?: number;
+
+    /**
+     * The sample rate for sessions that has had an error occur.
+     * This is independent of `sessionSampleRate`.
+     * 1.0 will record all sessions and 0 will record none.
+     */
+    replaysOnErrorSampleRate?: number;
+  };
 }
+
+export interface ReactNativeTransportOptions extends BrowserTransportOptions {
+  /**
+   * @deprecated use `maxQueueSize` in the root of the SDK options.
+   */
+  bufferSize?: number;
+}
+
+/**
+ * Configuration options for the Sentry ReactNative SDK.
+ * @see ReactNativeFrontend for more information.
+ */
+
+export interface ReactNativeOptions
+  extends Omit<Options<ReactNativeTransportOptions>, '_experiments'>,
+    BaseReactNativeOptions {}
+
+export interface ReactNativeClientOptions
+  extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel' | '_experiments'>,
+    BaseReactNativeOptions {}
 
 export interface ReactNativeWrapperOptions {
   /** Props for the root React profiler */
@@ -95,4 +241,29 @@ export interface ReactNativeWrapperOptions {
 
   /** Props for the root touch event boundary */
   touchEventBoundaryProps?: TouchEventBoundaryProps;
+}
+
+/**
+ * If the user has not explicitly set `enableNativeNagger`
+ * the function enables native nagging based on the current
+ * environment.
+ */
+export function shouldEnableNativeNagger(userOptions: unknown): boolean {
+  if (typeof userOptions === 'boolean') {
+    // User can override the default behavior
+    return userOptions;
+  }
+
+  if (Platform.OS === 'web' || Platform.OS === 'windows') {
+    // We don't want to nag on known platforms that don't support native
+    return false;
+  }
+
+  const expoConstants = getExpoConstants();
+  if (expoConstants && expoConstants.appOwnership === 'expo') {
+    // If the app is running in Expo Go, we don't want to nag
+    return false;
+  }
+
+  return true;
 }

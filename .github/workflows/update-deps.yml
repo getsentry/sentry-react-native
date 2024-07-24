@@ -1,0 +1,68 @@
+name: Update Dependencies
+
+on:
+  # Run every day.
+  schedule:
+    - cron: '0 3 * * *'
+  # And on on every PR merge so we get the updated dependencies ASAP, and to make sure the changelog doesn't conflict.
+  push:
+    branches:
+      - main
+
+jobs:
+  android:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
+    with:
+      path: scripts/update-android.sh
+      name: Android SDK
+      pr-strategy: update
+    secrets:
+      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+
+  cocoa:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
+    with:
+      path: scripts/update-cocoa.sh
+      name: Cocoa SDK
+      pr-strategy: update
+    secrets:
+      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+
+  javascript:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
+    with:
+      path: scripts/update-javascript.sh
+      name: JavaScript SDK
+      pr-strategy: update
+    secrets:
+      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+
+  wizard:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
+    with:
+      path: scripts/update-wizard.sh
+      name: Wizard
+      pr-strategy: update
+      changelog-entry: false
+    secrets:
+      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+
+  cli:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
+    with:
+      path: scripts/update-cli.sh
+      name: CLI
+      pr-strategy: update
+    secrets:
+      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+
+  sample-rn:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
+    with:
+      path: scripts/update-rn.sh
+      name: React Native
+      pattern: '^v[0-9.]+$' # only match non-preview versions, also ignores "latest"
+      pr-strategy: update
+      changelog-entry: false
+    secrets:
+      api-token: ${{ secrets.CI_DEPLOY_KEY }}

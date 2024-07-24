@@ -1,0 +1,26 @@
+{
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "baseUrl": ".",
+    "target": "es2015",
+    "jsx": "react-native",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@sentry/react-native": [
+        "../../dist/js/index.js"
+      ],
+      "react-native": [
+        "../../node_modules/react-native/index.js"
+      ]
+    },
+    "types": [
+      "react-native",
+    ],
+  }
+}
