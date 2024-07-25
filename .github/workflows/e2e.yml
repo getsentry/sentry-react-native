@@ -163,8 +163,6 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     env:
       SENTRY_DISABLE_AUTO_UPLOAD: 'true' # TODO: Remove this when testing against a mocked Sentry server
-      RN_SENTRY_POD_NAME: RNSentry
-      RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
@@ -296,22 +294,6 @@ jobs:
         with:
           node-version: 16
 
-      - name: Download Plain RN ${{ matrix.rn-version }} App
-        working-directory: test/react-native/versions
-        run: git clone $RN_DIFF_REPOSITORY --branch release/${{ matrix.rn-version }} --single-branch ${{ matrix.rn-version }}
-
-      - name: Add SDK to App
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: yalc add @sentry/react-native
-
-      - name: Install App JS Dependencies
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: yarn install
-
-      - name: Add E2E Tests Library to App
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: yarn add ../../../../e2e
-
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' }}
         with:
@@ -319,9 +301,11 @@ jobs:
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
-      - run: gem install cocoapods -v 1.15.2 # fixes Hermes pod install https://github.com/CocoaPods/CocoaPods/issues/12226#issuecomment-1930604302
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        if: ${{ matrix.platform == 'ios' }}
+
+      - name: Setup Plain RN ${{ matrix.rn-version }} App
+        run: ./scripts/e2e.js ${{ matrix.platform }}
+        env:
+          RN_VERSION: ${{ matrix.rn-version }}
 
       - name: Install App Pods
         if: ${{ matrix.platform == 'ios' }}
