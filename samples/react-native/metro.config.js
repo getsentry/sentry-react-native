@@ -2,7 +2,8 @@ const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 const path = require('path');
 const blacklist = require('metro-config/src/defaults/exclusionList');
 
-const { withSentryConfig } = require('../../metro');
+const { withSentryConfig } = require('@sentry/react-native/metro');
+
 const parentDir = path.resolve(__dirname, '../..');
 
 /**
