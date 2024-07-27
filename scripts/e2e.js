@@ -20,34 +20,38 @@ if (argv.length >= 4) {
   var newActions = [];
   for (let index = 0; index < actions.length; index++) {
     const action = actions[index];
-    if (argv.includes(`--${action}`)) {
+    if (argv.includes(`--${action}`) || argv.includes(`-${action}`) || argv.includes(action)) {
       newActions.push(action);
     }
   }
   actions = newActions;
 }
+console.log(`Performing actions: ${actions}`);
 
-const rootDir = path.resolve(__dirname, '..');
-const rootPackageJson = JSON.parse(fs.readFileSync(`${rootDir}/package.json`, 'utf8'));
-
-const RNVersion = env.RN_VERSION ? env.RN_VERSION : rootPackageJson.devDependencies['react-native'];
-const RNEngine = env.RN_ENGINE ? env.RN_ENGINE : 'hermes';
-const buildType = env.PRODUCTION ? 'Release' : 'Debug';
-
-const appSourceRepo = 'https://github.com/react-native-community/rn-diff-purge.git';
-const appRepoDir = `${rootDir}/test/react-native/versions/${RNVersion}`;
-const appDir = `${appRepoDir}/RnDiffApp`;
-
+env.SENTRY_DISABLE_AUTO_UPLOAD = 'true'
+if (env.PRODUCTION === undefined && env.CI == undefined) {
+  env.PRODUCTION = 1;
+}
 if (env.USE_FRAMEWORKS) {
   env.NO_FLIPPER = 1;
 }
 
-// Build and publish the SDK
-execSync(`yarn build`, { stdio: 'inherit', cwd: rootDir, env: env });
-execSync(`yalc publish`, { stdio: 'inherit', cwd: rootDir, env: env });
+const rootDir = path.resolve(__dirname, '..');
+const rootPackageJson = JSON.parse(fs.readFileSync(`${rootDir}/package.json`, 'utf8'));
+const RNVersion = env.RN_VERSION ? env.RN_VERSION : rootPackageJson.devDependencies['react-native'];
+const RNEngine = env.RN_ENGINE ? env.RN_ENGINE : 'hermes';
+const buildType = env.PRODUCTION ? 'Release' : 'Debug';
+const appSourceRepo = 'https://github.com/react-native-community/rn-diff-purge.git';
+const appRepoDir = `${rootDir}/test/react-native/versions/${RNVersion}`;
+const appName = 'RnDiffApp';
+const appDir = `${appRepoDir}/${appName}`;
+const e2eDir = `${rootDir}/test/e2e`;
 
-// Build e2e tests
-execSync(`yarn build`, { stdio: 'inherit', cwd: `${rootDir}/test/e2e`, env: env });
+if (actions.includes('create') || actions.includes('build')) {
+  // Build and publish the SDK
+  execSync(`yarn build`, { stdio: 'inherit', cwd: rootDir, env: env });
+  execSync(`yalc publish`, { stdio: 'inherit', cwd: rootDir, env: env });
+}
 
 if (actions.includes('create')) {
   // Clone the test app repo
@@ -84,7 +88,7 @@ if (actions.includes('create')) {
     execSync('pod install --repo-update', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
     execSync('cat Podfile.lock | grep RNSentry', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
 
-    execSync(`../../../rn.patch.xcode.js --project ios/RnDiffApp.xcodeproj/project.pbxproj --rn-version ${RNVersion}`, { stdio: 'inherit', cwd: appDir, env: env });
+    execSync(`../../../rn.patch.xcode.js --project ios/${appName}.xcodeproj/project.pbxproj --rn-version ${RNVersion}`, { stdio: 'inherit', cwd: appDir, env: env });
   } else if (platform == 'android') {
     execSync(`../../../rn.patch.gradle.properties.js --gradle-properties android/gradle.properties --engine ${RNEngine}`, { stdio: 'inherit', cwd: appDir, env: env });
     execSync(`../../../rn.patch.app.build.gradle.js --app-build-gradle android/app/build.gradle`, { stdio: 'inherit', cwd: appDir, env: env });
@@ -98,24 +102,36 @@ if (actions.includes('create')) {
 
 if (actions.includes('build')) {
   console.log(`Building ${platform}: ${buildType}`);
+  var appProduct;
 
   if (platform == 'ios') {
     const runtime = env.IOS_RUNTIME ? env.IOS_RUNTIME : 'latest';
-    const device = env.IOS_DEVICE ? env.IOS_DEVICE : 'iPhone 14';
+    const device = env.IOS_DEVICE ? env.IOS_DEVICE : 'iPhone 15';
     const derivedData = `${appDir}/ios/DerivedData`
     fs.mkdirSync(derivedData, { recursive: true });
     execSync(`set -o pipefail && xcodebuild \
-    -workspace RnDiffApp.xcworkspace \
+    -workspace ${appName}.xcworkspace \
     -configuration ${buildType} \
-    -scheme RnDiffApp \
+    -scheme ${appName} \
     -destination 'platform=iOS Simulator,OS=${runtime},name=${device}' \
     ONLY_ACTIVE_ARCH=yes \
-    CODE_SIGN_IDENTITY='' \
-    CODE_SIGNING_REQUIRED=NO \
     -derivedDataPath ${derivedData} \
     build | tee xcodebuild.log | xcbeautify`,
       { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
+
+    appProduct = `${derivedData}/Build/Products/${buildType}-iphonesimulator/${appName}.app`;
   } else if (platform == 'android') {
     execSync(`./gradlew assemble${buildType} -PreactNativeArchitectures=x86`, { stdio: 'inherit', cwd: `${appDir}/android`, env: env });
+    appProduct = `${appDir}/android/app/build/outputs/apk/release/app-release.apk`;
   }
+
+  var testApp = `${e2eDir}/test-app${path.extname(appProduct)}`;
+  console.log(`Moving ${appProduct} to ${testApp}`);
+  if (fs.existsSync(testApp)) execSync(`rm -rf ${testApp}`);
+  fs.renameSync(appProduct, testApp);
+}
+
+if (actions.includes('test')) {
+  // Build e2e tests
+  execSync(`yarn build`, { stdio: 'inherit', cwd: e2eDir, env: env });
 }
