@@ -15,6 +15,7 @@ const rootPackageJson = JSON.parse(fs.readFileSync(`${rootDir}/package.json`, 'u
 
 const RNVersion = env.RN_VERSION ? env.RN_VERSION : rootPackageJson.devDependencies['react-native'];
 const RNEngine = env.RN_ENGINE ? env.RN_ENGINE : 'hermes';
+const buildType = env.PRODUCTION ? 'Release' : 'Debug';
 
 const appSourceRepo = 'https://github.com/react-native-community/rn-diff-purge.git';
 const appRepoDir = `${rootDir}/test/react-native/versions/${RNVersion}`;
@@ -66,10 +67,36 @@ if (platform == 'ios') {
   execSync('cat Podfile.lock | grep RNSentry', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
 
   execSync(`../../../rn.patch.xcode.js --project ios/RnDiffApp.xcodeproj/project.pbxproj --rn-version ${RNVersion}`, { stdio: 'inherit', cwd: appDir, env: env });
-
 } else if (platform == 'android') {
   execSync(`../../../rn.patch.gradle.properties.js --gradle-properties android/gradle.properties --engine ${RNEngine}`, { stdio: 'inherit', cwd: appDir, env: env });
   execSync(`../../../rn.patch.app.build.gradle.js --app-build-gradle android/app/build.gradle`, { stdio: 'inherit', cwd: appDir, env: env });
+
+  if (env.RCT_NEW_ARCH_ENABLED) {
+    execSync(`perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' android/gradle.properties`, { stdio: 'inherit', cwd: appDir, env: env });
+    console.log('New Architecture enabled');
+  }
 } else {
   throw new Error(`Unsupported platform: ${platform}`);
+}
+
+console.log(`Building ${platform}: ${buildType}`);
+
+if (platform == 'ios') {
+  const runtime = env.IOS_RUNTIME ? env.IOS_RUNTIME : 'latest';
+  const device = env.IOS_DEVICE ? env.IOS_DEVICE : 'iPhone 14';
+  const derivedData = `${appDir}/ios/DerivedData`
+  fs.mkdirSync(derivedData, { recursive: true });
+  execSync(`set -o pipefail && xcodebuild \
+    -workspace RnDiffApp.xcworkspace \
+    -configuration ${buildType} \
+    -scheme RnDiffApp \
+    -destination 'platform=iOS Simulator,OS=${runtime},name=${device}' \
+    ONLY_ACTIVE_ARCH=yes \
+    CODE_SIGN_IDENTITY='' \
+    CODE_SIGNING_REQUIRED=NO \
+    -derivedDataPath ${derivedData} \
+    build | tee xcodebuild.log | xcbeautify`,
+    { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
+} else if (platform == 'android') {
+  execSync(`./gradlew assemble${buildType} -PreactNativeArchitectures=x86`, { stdio: 'inherit', cwd: `${appDir}/android`, env: env });
 }

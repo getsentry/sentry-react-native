@@ -304,42 +304,14 @@ jobs:
           USE_FRAMEWORKS: ${{ matrix.ios-use-frameworks }}
           PRODUCTION: ${{ matrix.build-type == 'production' && '1' || '0' }}
           RCT_NEW_ARCH_ENABLED: ${{ matrix.rn-architecture == 'new' && '1' || '0' }}
+          IOS_RUNTIME: ${{ matrix.runtime }}
+          IOS_DEVICE: ${{ matrix.device }}
 
       # This prevents modules resolution from outside of the RN Test App projects
       # during the native app build
+      # TODO how to do this in e2e script & allow local execution?
       - name: Clean SDK node_modules
         run: rm -rf node_modules
-
-      - name: Build Android App
-        if: ${{ matrix.platform == 'android' }}
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/android
-        run: |
-          if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
-            perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
-            echo 'New Architecture enabled'
-          fi
-          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
-          echo "Building $CONFIG"
-          ./gradlew ":app:assemble$CONFIG" -PreactNativeArchitectures=x86
-
-      - name: Build iOS App
-        if: ${{ matrix.platform == 'ios' }}
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
-        run: |
-          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
-          echo "Building $CONFIG"
-          mkdir -p "DerivedData"
-          derivedData="$(cd "DerivedData" ; pwd -P)"
-          set -o pipefail && xcodebuild \
-            -workspace RnDiffApp.xcworkspace \
-            -configuration "$CONFIG" \
-            -scheme RnDiffApp \
-            -destination 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}' \
-            ONLY_ACTIVE_ARCH=yes \
-            -derivedDataPath "$derivedData" \
-            build \
-            | tee xcodebuild.log \
-            | xcbeautify --quieter --is-ci --disable-colored-output
 
       - name: Archive Android APK
         if: matrix.platform == 'android' && matrix.build-type == 'production'
