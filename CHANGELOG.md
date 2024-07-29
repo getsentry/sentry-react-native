@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Drop app start data older than one minute ([#3974](https://github.com/getsentry/sentry-react-native/pull/3974))
+
 ## 5.26.0
 
 ### Features
