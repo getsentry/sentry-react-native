@@ -203,6 +203,9 @@ public class RNSentryModuleImpl {
                 // SentryAndroid needs an empty string fallback for the dsn.
                 options.setDsn("");
             }
+            if (rnOptions.hasKey("sampleRate")) {
+                options.setSampleRate(rnOptions.getDouble("sampleRate"));
+            }
             if (rnOptions.hasKey("sendClientReports")) {
                 options.setSendClientReports(rnOptions.getBoolean("sendClientReports"));
             }
