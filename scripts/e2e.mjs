@@ -52,8 +52,9 @@ const appDir = `${appRepoDir}/${appName}`;
 const e2eDir = `${rootDir}/test/e2e`;
 const testAppName = `test-app.${platform == 'ios' ? 'app' : 'apk'}`;
 
-if (actions.includes('create') || actions.includes('build')) {
-  // Build and publish the SDK
+// Build and publish the SDK - we only need to do this once in CI.
+// Locally, we may want to get updates from the latest build so do it on every app build.
+if (actions.includes('create') || (env.CI === undefined && actions.includes('build'))) {
   execSync(`yarn build`, { stdio: 'inherit', cwd: rootDir, env: env });
   execSync(`yalc publish`, { stdio: 'inherit', cwd: rootDir, env: env });
 }
