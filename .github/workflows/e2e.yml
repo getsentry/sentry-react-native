@@ -168,7 +168,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.73.2']
+        rn-version: ['0.65.3', '0.73.9']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -176,7 +176,7 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
-            rn-version: '0.73.2'
+            rn-version: '0.73.9'
             runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
             runtime: 'latest'
             device: 'iPhone 14'
@@ -189,7 +189,7 @@ jobs:
             runs-on: ubuntu-latest
         exclude:
           # exclude JSC for new RN versions (keeping the matrix manageable)
-          - rn-version: '0.73.2'
+          - rn-version: '0.73.9'
             engine: 'jsc'
           # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
@@ -328,8 +328,9 @@ jobs:
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
         run: |
           ../../../../rn.patch.podfile.js --pod-file Podfile --engine ${{ matrix.engine }}
-          [[ "${{ matrix.ios-use-frameworks }}" == "static" ]] && export USE_FRAMEWORKS=static && export NO_FLIPPER=1
-          [[ "${{ matrix.ios-use-frameworks }}" == "dynamic" ]] && export USE_FRAMEWORKS=dynamic && export NO_FLIPPER=1
+          export NO_FLIPPER=1 # Flipper is causing build issues on iOS, so we disable it
+          [[ "${{ matrix.ios-use-frameworks }}" == "static" ]] && export USE_FRAMEWORKS=static
+          [[ "${{ matrix.ios-use-frameworks }}" == "dynamic" ]] && export USE_FRAMEWORKS=dynamic
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
           [[ "${{ matrix.rn-version }}" == "0.65.3" ]] && POD_INSTALL_COMMNAND="pod install" || POD_INSTALL_COMMNAND="bundle exec pod install"
@@ -445,7 +446,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.73.2']
+        rn-version: ['0.65.3', '0.73.9']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -453,7 +454,7 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
-            rn-version: '0.73.2'
+            rn-version: '0.73.9'
             runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
             runtime: 'latest'
             device: 'iPhone 14'
@@ -471,10 +472,10 @@ jobs:
           # e2e test only the default combinations
           - rn-version: '0.65.3'
             engine: 'hermes'
-          - rn-version: '0.73.2'
+          - rn-version: '0.73.9'
             engine: 'jsc'
           # E2E timeout due to a race condition https://github.com/facebook/react-native/issues/42123#issuecomment-1881203719
-          - rn-version: '0.73.2'
+          - rn-version: '0.73.9'
             platform: 'ios'
             rn-architecture: 'new'
     env:
