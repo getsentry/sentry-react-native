@@ -57,6 +57,7 @@ const testAppName = `${appName}.${platform == 'ios' ? 'app' : 'apk'}`;
 if (actions.includes('create') || (env.CI === undefined && actions.includes('build'))) {
   execSync(`yarn build`, { stdio: 'inherit', cwd: rootDir, env: env });
   execSync(`yalc publish`, { stdio: 'inherit', cwd: rootDir, env: env });
+  execSync(`yarn build`, { stdio: 'inherit', cwd: e2eDir, env: env });
 }
 
 if (actions.includes('create')) {
