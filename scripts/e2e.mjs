@@ -1,8 +1,12 @@
 #!/usr/bin/env node
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const { argv, env } = require('process');
+import { execSync, spawn } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import { argv, env } from 'process';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 if (argv.length < 3) {
   console.error(`Usage: ${path.basename(__filename)} <platform>`);
@@ -46,6 +50,7 @@ const appRepoDir = `${rootDir}/test/react-native/versions/${RNVersion}`;
 const appName = 'RnDiffApp';
 const appDir = `${appRepoDir}/${appName}`;
 const e2eDir = `${rootDir}/test/e2e`;
+const testAppName = `test-app.${platform == 'ios' ? 'app' : 'apk'}`;
 
 if (actions.includes('create') || actions.includes('build')) {
   // Build and publish the SDK
@@ -125,7 +130,7 @@ if (actions.includes('build')) {
     appProduct = `${appDir}/android/app/build/outputs/apk/release/app-release.apk`;
   }
 
-  var testApp = `${e2eDir}/test-app${path.extname(appProduct)}`;
+  var testApp = `${e2eDir}/${testAppName}`;
   console.log(`Moving ${appProduct} to ${testApp}`);
   if (fs.existsSync(testApp)) execSync(`rm -rf ${testApp}`);
   fs.renameSync(appProduct, testApp);
@@ -134,4 +139,52 @@ if (actions.includes('build')) {
 if (actions.includes('test')) {
   // Build e2e tests
   execSync(`yarn build`, { stdio: 'inherit', cwd: e2eDir, env: env });
+
+  // Start the appium server.
+  const appium = spawn('appium', ['--log-timestamp', '--log-no-colors', '--log', `appium${platform}.log`], { stdio: 'inherit', cwd: e2eDir, env: env });
+  appium.on('exit', () => {
+    console.log("Appium server stopped");
+  });
+
+  try {
+    await waitForAppium();
+
+    // Run e2e tests
+    const testEnv = env;
+    testEnv.PLATFORM = platform;
+    // testEnv.DEVICE: ${{ matrix.device }}
+    testEnv.APPIUM_APP = testAppName;
+
+    if (platform == 'ios') {
+      testEnv.APPIUM_DERIVED_DATA = 'DerivedData';
+    } else if (platform == 'android') {
+      execSync(`adb logcat -c`, { stdio: 'inherit', cwd: e2eDir, env: env });
+      execSync(`adb logcat '*:D' 2>&1 >adb.log &`, { stdio: 'inherit', cwd: e2eDir, env: env });
+      execSync(`adb devices -l`, { stdio: 'inherit', cwd: e2eDir, env: env });
+    }
+
+    execSync(`yarn test --verbose`, { stdio: 'inherit', cwd: e2eDir, env: testEnv });
+  } finally {
+    appium.kill();
+  }
+}
+
+
+async function waitForAppium() {
+  for (let i = 0; i < 60; i++) {
+    try {
+      await fetch("http://127.0.0.1:4723/sessions", { method: "HEAD" });
+      console.log("Appium server started");
+      return;
+    } catch (error) {
+      if (error.name != 'ECONNREFUSED') {
+        throw error;
+      }
+      await sleep(1000);
+    }
+  }
+}
+
+async function sleep(millis) {
+  return new Promise(resolve => setTimeout(resolve, millis));
 }

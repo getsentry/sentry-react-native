@@ -303,7 +303,7 @@ jobs:
           cache-version: 1 # cache the installed gems
 
       - name: Setup Plain RN ${{ matrix.rn-version }} App
-        run: ./scripts/e2e.js ${{ matrix.platform }} --create
+        run: ./scripts/e2e.mjs ${{ matrix.platform }} --create
 
       # This prevents modules resolution from outside of the RN Test App projects
       # during the native app build
@@ -311,7 +311,7 @@ jobs:
         run: rm -rf node_modules
 
       - name: Build Plain RN ${{ matrix.rn-version }} App
-        run: ./scripts/e2e.js ${{ matrix.platform }} --build
+        run: ./scripts/e2e.mjs ${{ matrix.platform }} --build
 
       - name: Upload App
         if: matrix.build-type == 'production'
@@ -442,25 +442,10 @@ jobs:
             | tee xcodebuild.log \
             | xcbeautify --quieter --is-ci --disable-colored-output
 
-      - name: Start Appium Server
-        working-directory: test/e2e
-        run: yarn run appium --log-timestamp --log-no-colors --log appium.${{ matrix.platform }}.log &
-
-        # Wait until the Appium server starts.
-      - name: Check Appium Server
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # pin@3.0.0
-        with:
-          timeout_seconds: 60
-          max_attempts: 10
-          command: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/sessions
-
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
-        env:
-          APPIUM_APP: ./test-app.apk
         uses: reactivecircus/android-emulator-runner@77986be26589807b8ebab3fde7bbf5c60dabec32 # pin@v2.31.0
         with:
-          working-directory: test/e2e
           api-level: 30
           force-avd-creation: false
           disable-animations: true
@@ -476,20 +461,11 @@ jobs:
             -camera-back none
             -camera-front none
             -timezone US/Pacific
-          script: |
-            # Collect logs
-            adb logcat '*:D' 2>&1 >adb.log &
-            adb devices -l
-
-            yarn test --verbose
+          script: ./scripts/e2e.mjs ${{ matrix.platform }} --test
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
-        working-directory: test/e2e
-        env:
-          APPIUM_APP: ./test-app.app
-          APPIUM_DERIVED_DATA: DerivedData
-        run: yarn test --verbose
+        run: ./scripts/e2e.mjs ${{ matrix.platform }} --test
 
       - name: Upload logs
         if: ${{ always() }}
