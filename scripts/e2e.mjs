@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { argv, env } from 'process';
 import { fileURLToPath } from 'node:url';
+import fetch from 'node-fetch';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,7 +51,7 @@ const appRepoDir = `${rootDir}/test/react-native/versions/${RNVersion}`;
 const appName = 'RnDiffApp';
 const appDir = `${appRepoDir}/${appName}`;
 const e2eDir = `${rootDir}/test/e2e`;
-const testAppName = `test-app.${platform == 'ios' ? 'app' : 'apk'}`;
+const testAppName = `${appName}.${platform == 'ios' ? 'app' : 'apk'}`;
 
 // Build and publish the SDK - we only need to do this once in CI.
 // Locally, we may want to get updates from the latest build so do it on every app build.
@@ -113,7 +114,9 @@ if (actions.includes('build')) {
   if (platform == 'ios') {
     const runtime = env.IOS_RUNTIME ? env.IOS_RUNTIME : 'latest';
     const device = env.IOS_DEVICE ? env.IOS_DEVICE : 'iPhone 15';
-    const derivedData = `${appDir}/ios/DerivedData`
+
+    // Build iOS test app
+    var derivedData = `${appDir}/ios/DerivedData`
     fs.mkdirSync(derivedData, { recursive: true });
     execSync(`set -o pipefail && xcodebuild \
     -workspace ${appName}.xcworkspace \
@@ -126,6 +129,21 @@ if (actions.includes('build')) {
       { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
 
     appProduct = `${derivedData}/Build/Products/${buildType}-iphonesimulator/${appName}.app`;
+
+    // Build iOS WebDriverAgent
+    derivedData = `${e2eDir}/DerivedData`
+    fs.mkdirSync(derivedData, { recursive: true });
+    execSync(`set -o pipefail && xcodebuild \
+      -project node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
+      -scheme WebDriverAgentRunner \
+      -destination 'platform=iOS Simulator,OS=${runtime},name=${device}' \
+      GCC_TREAT_WARNINGS_AS_ERRORS=0 \
+      COMPILER_INDEX_STORE_ENABLE=NO \
+      ONLY_ACTIVE_ARCH=yes \
+      -derivedDataPath ${derivedData} \
+      build | tee xcodebuild-agent.log | xcbeautify`,
+      { stdio: 'inherit', cwd: e2eDir, env: env });
+
   } else if (platform == 'android') {
     execSync(`./gradlew assemble${buildType} -PreactNativeArchitectures=x86`, { stdio: 'inherit', cwd: `${appDir}/android`, env: env });
     appProduct = `${appDir}/android/app/build/outputs/apk/release/app-release.apk`;
@@ -153,8 +171,7 @@ if (actions.includes('test')) {
     // Run e2e tests
     const testEnv = env;
     testEnv.PLATFORM = platform;
-    // testEnv.DEVICE: ${{ matrix.device }}
-    testEnv.APPIUM_APP = testAppName;
+    testEnv.APPIUM_APP = `./${testAppName}`;
 
     if (platform == 'ios') {
       testEnv.APPIUM_DERIVED_DATA = 'DerivedData';
@@ -172,14 +189,17 @@ if (actions.includes('test')) {
 
 
 async function waitForAppium() {
+  console.log("Waiting for Appium server to start...");
   for (let i = 0; i < 60; i++) {
     try {
       await fetch("http://127.0.0.1:4723/sessions", { method: "HEAD" });
       console.log("Appium server started");
       return;
     } catch (error) {
-      if (error.name != 'ECONNREFUSED') {
+      if (!error.toString().includes('ECONNREFUSED')) {
         throw error;
+      } else {
+        console.log(`Appium server hasn't started yet (${error})...`);
       }
       await sleep(1000);
     }

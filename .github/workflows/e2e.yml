@@ -313,7 +313,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
-          path: test/e2e/test-app.ap*
+          path: test/e2e/RnDiffApp.ap*
           retention-days: 1
 
       - name: Upload logs
