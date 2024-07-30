@@ -4,7 +4,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { argv, env } from 'process';
 import { fileURLToPath } from 'node:url';
-import fetch from 'node-fetch';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -196,11 +195,7 @@ async function waitForAppium() {
       console.log("Appium server started");
       return;
     } catch (error) {
-      if (!error.toString().includes('ECONNREFUSED')) {
-        throw error;
-      } else {
-        console.log(`Appium server hasn't started yet (${error})...`);
-      }
+      console.log(`Appium server hasn't started yet (${error})...`);
       await sleep(1000);
     }
   }
