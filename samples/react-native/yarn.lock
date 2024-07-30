@@ -7361,10 +7361,10 @@ react-native-gesture-handler@^2.14.0:
     lodash "^4.17.21"
     prop-types "^15.7.2"
 
-react-native-macos@^0.73.0-0:
-  version "0.73.26"
-  resolved "https://registry.yarnpkg.com/react-native-macos/-/react-native-macos-0.73.26.tgz#2705ebffb8ff7dbeed02cb939f0bfbdb4b99d78c"
-  integrity sha512-BgRr00irEPu2SaCryQqrDatRViTqIdwflCHR6STpB9m7K8mqqStGXcLRESL6//3T3KQjmNvFlDVrSaKiPwhDGQ==
+react-native-macos@0.73.34:
+  version "0.73.34"
+  resolved "https://registry.yarnpkg.com/react-native-macos/-/react-native-macos-0.73.34.tgz#5b3d6d53339f6c231ea0432562425db914a31b63"
+  integrity sha512-kh+m+36NwWZ/xjBL3B6n+zEbGG4ynqs3bfiADPI38XDzpbWgKKvoGp66e2htc0J5A/2aRliYDFfKg++wpBx2Qw==
   dependencies:
     "@jest/create-cache-key-function" "^29.6.3"
     "@react-native-community/cli" "12.3.6"
