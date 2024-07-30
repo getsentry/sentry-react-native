@@ -232,7 +232,7 @@ jobs:
         if: ${{ matrix.platform == 'ios' && matrix.rn-version == '0.65.3' }}
 
       - name: Enable Corepack # RN 0.73.9 and newer are using yarn 3 which requires corepack
-        if: ${{ matrix.rn-version != '0.65.3' }}
+        if: ${{ matrix.rn-version == '0.73.9' }}
         run: corepack enable
 
       - uses: actions/setup-node@v4
@@ -308,12 +308,20 @@ jobs:
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
         run: yalc add @sentry/react-native
 
-      - name: Install App JS Dependencies
+      - name: Install App JS Dependencies (yarn v1)
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
+        if: ${{ matrix.rn-version != '0.73.9' }}
         run: |
-          rm -f .yarnrc.yml
-          touch yarn.lock
-          export YARN_ENABLE_IMMUTABLE_INSTALLS=false
+          yarn install
+
+      - name: Install App JS Dependencies (yarn v3)
+        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
+        if: ${{ matrix.rn-version == '0.73.9' }}
+        run: |
+          rm -f .yarnrc.yml # original yarnrc contains the exact yarn version which causes corepack to fail to install yarn v3
+          echo "nodeLinker: node-modules" > .yarnrc.yml # RN build script require dependencies to be present in node_modules
+          touch yarn.lock # yarn v3 won't install dependencies in a sub project without a yarn.lock file present
+          export YARN_ENABLE_IMMUTABLE_INSTALLS=false # yarn v3 run immutable install by default in CI
           yarn install
 
       - name: Add E2E Tests Library to App
