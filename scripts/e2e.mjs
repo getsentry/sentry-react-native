@@ -186,7 +186,6 @@ if (actions.includes('test')) {
   }
 }
 
-
 async function waitForAppium() {
   console.log("Waiting for Appium server to start...");
   for (let i = 0; i < 60; i++) {

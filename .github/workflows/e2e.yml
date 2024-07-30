@@ -419,24 +419,6 @@ jobs:
         working-directory: test/e2e
         run: yarn install
 
-      - name: Build iOS WebDriverAgent
-        if: matrix.platform == 'ios'
-        working-directory: test/e2e
-        run: |
-          mkdir -p "DerivedData"
-          derivedData="$(cd "DerivedData" ; pwd -P)"
-          set -o pipefail && xcodebuild \
-            -project node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
-            -scheme WebDriverAgentRunner \
-            GCC_TREAT_WARNINGS_AS_ERRORS=0 \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            -destination 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}' \
-            ONLY_ACTIVE_ARCH=yes \
-            -derivedDataPath "$derivedData" \
-            build \
-            | tee xcodebuild.log \
-            | xcbeautify --quieter --is-ci --disable-colored-output
-
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
         uses: reactivecircus/android-emulator-runner@77986be26589807b8ebab3fde7bbf5c60dabec32 # pin@v2.31.0
