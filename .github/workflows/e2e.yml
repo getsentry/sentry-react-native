@@ -231,7 +231,7 @@ jobs:
       - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' && matrix.rn-version == '0.65.3' }}
 
-      - name: Enable Corepack
+      - name: Enable Corepack # RN 0.73.9 and newer are using yarn 3 which requires corepack
         run: corepack enable
 
       - uses: actions/setup-node@v4
@@ -309,7 +309,10 @@ jobs:
 
       - name: Install App JS Dependencies
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: yarn install
+        run: |
+          rm -f .yarnrc.yml
+          touch yarn.lock
+          yarn install
 
       - name: Add E2E Tests Library to App
         working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
