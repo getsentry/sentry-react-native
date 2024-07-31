@@ -31,7 +31,7 @@ export const ReactNativeLibraries: Required<ReactNativeLibrariesInterface> = {
     },
   },
   ReactNativeVersion: {
-    version: Platform.constants.reactNativeVersion,
+    version: Platform.constants?.reactNativeVersion,
   },
   TurboModuleRegistry,
 };
