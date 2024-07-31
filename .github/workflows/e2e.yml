@@ -433,15 +433,11 @@ jobs:
             -timezone US/Pacific
           script: ./scripts/e2e.mjs ${{ matrix.platform }} --test
 
-      - run: yarn info --version appium-webdriveragent | tee appium-webdriveragent-version.txt
-        if: ${{ matrix.platform == 'ios' }}
-        working-directory: test/e2e
-
       - uses: actions/cache@v4
         if: ${{ matrix.platform == 'ios' }}
         with:
           path: test/e2e/DerivedData/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app
-          key: appium-webdriveragent-${{ hashFiles('test/e2e/appium-webdriveragent-version.txt') }}
+          key: appium-webdriveragent-${{ hashFiles('test/e2e/yarn.lock') }}
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
