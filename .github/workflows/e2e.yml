@@ -417,14 +417,6 @@ jobs:
         working-directory: test/e2e
         run: yarn install
 
-      - run: yarn info --version appium-webdriveragent | tee appium-webdriveragent-version.txt
-        working-directory: test/e2e
-
-      - uses: actions/cache@v4
-        with:
-          path: test/e2e/DerivedData/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app
-          key: appium-webdriveragent-${{ hashFiles('test/e2e/appium-webdriveragent-version.txt') }}
-
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
         uses: reactivecircus/android-emulator-runner@77986be26589807b8ebab3fde7bbf5c60dabec32 # pin@v2.31.0
@@ -445,6 +437,16 @@ jobs:
             -camera-front none
             -timezone US/Pacific
           script: ./scripts/e2e.mjs ${{ matrix.platform }} --test
+
+      - run: yarn info --version appium-webdriveragent | tee appium-webdriveragent-version.txt
+        if: ${{ matrix.platform == 'ios' }}
+        working-directory: test/e2e
+
+      - uses: actions/cache@v4
+        if: ${{ matrix.platform == 'ios' }}
+        with:
+          path: test/e2e/DerivedData/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app
+          key: appium-webdriveragent-${{ hashFiles('test/e2e/appium-webdriveragent-version.txt') }}
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
