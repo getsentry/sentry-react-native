@@ -417,6 +417,14 @@ jobs:
         working-directory: test/e2e
         run: yarn install
 
+      - run: yarn info --version appium-webdriveragent > appium-webdriveragent-version.txt
+        working-directory: test/e2e
+
+      - uses: actions/cache@v4
+        with:
+          path: test/e2e/DerivedData/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app
+          key: appium-webdriveragent-${{ hashFiles('appium-webdriveragent-version.txt') }}
+
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
         uses: reactivecircus/android-emulator-runner@77986be26589807b8ebab3fde7bbf5c60dabec32 # pin@v2.31.0
