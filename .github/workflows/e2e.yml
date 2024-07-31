@@ -287,15 +287,16 @@ jobs:
         with:
           node-version: 16
 
-      - uses: ruby/setup-ruby@v1
+      - name: Setup Plain RN ${{ matrix.rn-version }} App
+        run: ./scripts/e2e.mjs ${{ matrix.platform }} --create
+
+        - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' }}
         with:
+          working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
-
-      - name: Setup Plain RN ${{ matrix.rn-version }} App
-        run: ./scripts/e2e.mjs ${{ matrix.platform }} --create
 
       # This prevents modules resolution from outside of the RN Test App projects
       # during the native app build

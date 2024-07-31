@@ -113,7 +113,6 @@ if (actions.includes('create')) {
     execSync(`gem install cocoapods -v 1.15.2`, { stdio: 'inherit', cwd: appDir, env: env });
     execSync(`../../../../rn.patch.podfile.js --pod-file Podfile --engine ${RNEngine}`, { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
 
-    // const podInstallCommand = RNVersion === '0.65.3' ? 'pod install' : 'bundle exec pod install';
     execSync('pod install --repo-update', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
     execSync('cat Podfile.lock | grep RNSentry', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
 
