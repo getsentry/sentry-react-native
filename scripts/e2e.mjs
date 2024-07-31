@@ -148,19 +148,6 @@ if (actions.includes('build')) {
       { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
 
     appProduct = `${appDir}/ios/DerivedData/Build/Products/${buildType}-iphonesimulator/${appName}.app`;
-
-    // Build iOS WebDriverAgent
-    execSync(`set -o pipefail && xcodebuild \
-      -project node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
-      -scheme WebDriverAgentRunner \
-      -destination 'platform=iOS Simulator,OS=${runtime},name=${device}' \
-      GCC_TREAT_WARNINGS_AS_ERRORS=0 \
-      COMPILER_INDEX_STORE_ENABLE=NO \
-      ONLY_ACTIVE_ARCH=yes \
-      -derivedDataPath DerivedData \
-      build | tee xcodebuild-agent.log | xcbeautify`,
-      { stdio: 'inherit', cwd: e2eDir, env: env });
-
   } else if (platform == 'android') {
     execSync(`./gradlew assemble${buildType} -PreactNativeArchitectures=x86`, { stdio: 'inherit', cwd: `${appDir}/android`, env: env });
     appProduct = `${appDir}/android/app/build/outputs/apk/release/app-release.apk`;
@@ -175,6 +162,20 @@ if (actions.includes('build')) {
 if (actions.includes('test')) {
   // Build e2e tests
   execSync(`yarn build`, { stdio: 'inherit', cwd: e2eDir, env: env });
+
+  if (platform == 'ios' && !fs.existsSync(`${e2eDir}/DerivedData/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app`)) {
+    // Build iOS WebDriverAgent
+    execSync(`set -o pipefail && xcodebuild \
+      -project node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
+      -scheme WebDriverAgentRunner \
+      -destination 'platform=iOS Simulator,OS=${runtime},name=${device}' \
+      GCC_TREAT_WARNINGS_AS_ERRORS=0 \
+      COMPILER_INDEX_STORE_ENABLE=NO \
+      ONLY_ACTIVE_ARCH=yes \
+      -derivedDataPath DerivedData \
+      build | tee xcodebuild-agent.log | xcbeautify`,
+      { stdio: 'inherit', cwd: e2eDir, env: env });
+  }
 
   // Start the appium server.
   const appium = spawn('appium', ['--log-timestamp', '--log-no-colors', '--log', `appium${platform}.log`], { stdio: 'inherit', cwd: e2eDir, env: env });
