@@ -4,6 +4,7 @@
 
 ### Fixes
 
+- Pass `sampleRate` option to the Android SDK ([#3979](https://github.com/getsentry/sentry-react-native/pull/3979))
 - Drop app start data older than one minute ([#3974](https://github.com/getsentry/sentry-react-native/pull/3974))
 
 ### Dependencies
