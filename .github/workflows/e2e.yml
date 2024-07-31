@@ -176,7 +176,7 @@ jobs:
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
-        ios-use-frameworks: ['', 'static', 'dynamic']
+        ios-use-frameworks: ['no', 'static', 'dynamic']
         engine: ['hermes', 'jsc']
         include:
           - platform: ios

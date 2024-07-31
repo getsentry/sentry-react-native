@@ -43,7 +43,7 @@ if (env.PRODUCTION === undefined && env.CI == undefined) {
   env.PRODUCTION = 1;
 }
 
-if (!env.USE_FRAMEWORKS) {
+if (!env.USE_FRAMEWORKS || env.USE_FRAMEWORKS === 'no') {
   // In case it's set to an empty string, it causes issues in Podfile.
   delete env.USE_FRAMEWORKS;
 }
