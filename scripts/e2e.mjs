@@ -178,7 +178,7 @@ if (actions.includes('test')) {
   }
 
   // Start the appium server.
-  const appium = spawn('appium', ['--log-timestamp', '--log-no-colors', '--log', `appium${platform}.log`], { stdio: 'inherit', cwd: e2eDir, env: env });
+  const appium = spawn('yarn', ['run', 'appium', '--log-timestamp', '--log-no-colors', '--log', `appium${platform}.log`], { stdio: 'inherit', cwd: e2eDir, env: env });
   appium.on('exit', () => {
     console.log("Appium server stopped");
   });
