@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Pass `sampleRate` option to the Android SDK ([#3979](https://github.com/getsentry/sentry-react-native/pull/3979))
+- Drop app start data older than one minute ([#3974](https://github.com/getsentry/sentry-react-native/pull/3974))
+
+### Dependencies
+
+- Bump Android SDK from v7.12.0 to v7.12.1 ([#3970](https://github.com/getsentry/sentry-react-native/pull/3970))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7121)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.12.0...7.12.1)
+
 ## 5.26.0
 
 ### Features
@@ -275,7 +288,7 @@ Access to Mobile Replay is limited to early access orgs on Sentry. If you're int
       replaysSessionSampleRate: 1.0,
       replaysOnErrorSampleRate: 1.0,
     },
-    integration: [
+    integrations: [
       Sentry.mobileReplayIntegration({
         maskAllText: true,
         maskAllImages: true,
