@@ -75,7 +75,7 @@ if (actions.includes('create') || (env.CI === undefined && actions.includes('bui
 if (actions.includes('create')) {
   // Clone the test app repo
   if (fs.existsSync(appRepoDir)) fs.rmSync(appRepoDir, { recursive: true });
-  execSync(`git clone ${appSourceRepo}  --branch release/${RNVersion} --single-branch ${appRepoDir}`, { stdio: 'inherit', env: env });
+  execSync(`git clone ${appSourceRepo} --branch release/${RNVersion} --single-branch ${appRepoDir}`, { stdio: 'inherit', env: env });
 
   // Install dependencies
   // yalc add doesn't fail if the package is not found - it skips silently.
