@@ -2,7 +2,7 @@
 import type { RequestInstrumentationOptions } from '@sentry/browser';
 import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from '@sentry/browser';
 import type { Hub, IdleTransaction, Transaction } from '@sentry/core';
-import { getActiveTransaction, getCurrentHub, startIdleTransaction } from '@sentry/core';
+import { getActiveTransaction, getCurrentHub, spanToJSON, startIdleTransaction } from '@sentry/core';
 import type {
   Event,
   EventProcessor,
@@ -134,6 +134,8 @@ export class ReactNativeTracing implements Integration {
   public static id: string = 'ReactNativeTracing';
   /** We filter out App starts more than 60s */
   private static _maxAppStart: number = 60000;
+  /** We filter out App starts which timestamp is 60s and more before the transaction start */
+  private static _maxAppStartBeforeTransactionMs: number = 60000;
   /**
    * @inheritDoc
    */
@@ -477,6 +479,14 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
+    const isAppStartWithinBounds =
+      appStartTimestampMs >=
+      getTransactionStartTimestampMs(transaction) - ReactNativeTracing._maxAppStartBeforeTransactionMs;
+    if (!__DEV__ && !isAppStartWithinBounds) {
+      logger.warn('[ReactNativeTracing] App start timestamp is too far in the past to be used for app start span.');
+      return;
+    }
+
     const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStartTimestampMs);
     if (!appStartDurationMilliseconds) {
       logger.warn('[ReactNativeTracing] App start end has not been recorded, not adding app start span.');
@@ -710,4 +720,12 @@ export class ReactNativeTracing implements Integration {
     cancelInBackground(tx);
     return tx;
   }
+}
+
+/**
+ * Returns transaction start timestamp in milliseconds.
+ * If start timestamp is not available, returns 0.
+ */
+function getTransactionStartTimestampMs(transaction: Transaction): number {
+  return (spanToJSON(transaction).start_timestamp || 0) * 1000;
 }

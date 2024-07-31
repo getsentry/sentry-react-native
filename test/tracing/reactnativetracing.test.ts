@@ -26,6 +26,15 @@ jest.mock('../../src/js/tracing/utils', () => {
   };
 });
 
+jest.mock('@sentry/utils', () => {
+  const originalUtils = jest.requireActual('@sentry/utils');
+
+  return {
+    ...originalUtils,
+    timestampInSeconds: jest.fn(originalUtils.timestampInSeconds),
+  };
+});
+
 type MockAppState = {
   setState: (state: AppStateStatus) => void;
   listener: (newState: AppStateStatus) => void;
@@ -51,6 +60,7 @@ jest.mock('react-native/Libraries/AppState/AppState', () => mockedAppState);
 
 import { getActiveSpan, startSpanManual } from '@sentry/browser';
 import { addGlobalEventProcessor, getCurrentHub, getCurrentScope, spanToJSON, startInactiveSpan } from '@sentry/core';
+import { timestampInSeconds } from '@sentry/utils';
 import type { AppState, AppStateStatus } from 'react-native';
 
 import { APP_START_COLD, APP_START_WARM } from '../../src/js/measurements';
@@ -69,6 +79,8 @@ import { setupTestClient } from '../mocks/client';
 import { mockFunction } from '../testutils';
 import type { MockedRoutingInstrumentation } from './mockedrountinginstrumention';
 import { createMockedRoutingInstrumentation } from './mockedrountinginstrumention';
+
+const originalTimestampInSeconds = mockFunction(timestampInSeconds).getMockImplementation();
 
 const DEFAULT_IDLE_TIMEOUT = 1000;
 
@@ -315,6 +327,65 @@ describe('ReactNativeTracing', () => {
         expect(transaction).toBeDefined();
         expect(transaction?.spans?.some(span => span.op == APP_SPAN_START_WARM)).toBeFalse();
         expect(transaction?.start_timestamp).toBeGreaterThanOrEqual(timeOriginMilliseconds / 1000);
+      });
+
+      describe('old app starts', () => {
+        let integration: ReactNativeTracing;
+        let timeOriginMilliseconds: number;
+
+        beforeEach(() => {
+          integration = new ReactNativeTracing();
+
+          timeOriginMilliseconds = Date.now();
+          const appStartTimeMilliseconds = timeOriginMilliseconds - 65000;
+          const mockAppStartResponse: NativeAppStartResponse = {
+            type: 'warm',
+            app_start_timestamp_ms: appStartTimeMilliseconds,
+            has_fetched: false,
+            spans: [],
+          };
+
+          // App start finish timestamp
+          mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds - 64000);
+          mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
+          // Transaction start timestamp
+          mockFunction(timestampInSeconds).mockReturnValue(timeOriginMilliseconds / 1000 + 65);
+        });
+
+        afterEach(() => {
+          mockFunction(timestampInSeconds).mockReset().mockImplementation(originalTimestampInSeconds);
+          set__DEV__(true);
+        });
+
+        it('Does not add app start span older than than 60s in production', async () => {
+          set__DEV__(false);
+
+          setup(integration);
+
+          await jest.advanceTimersByTimeAsync(500);
+          await jest.runOnlyPendingTimersAsync();
+
+          const transaction = client.event;
+
+          expect(transaction).toBeDefined();
+          expect(transaction?.spans?.some(span => span.op == APP_SPAN_START_WARM)).toBeFalse();
+          expect(transaction?.start_timestamp).toBeGreaterThanOrEqual(timeOriginMilliseconds / 1000);
+        });
+
+        it('Does add app start span older than than 60s in development builds', async () => {
+          set__DEV__(true);
+
+          setup(integration);
+
+          await jest.advanceTimersByTimeAsync(500);
+          await jest.runOnlyPendingTimersAsync();
+
+          const transaction = client.event;
+
+          expect(transaction).toBeDefined();
+          expect(transaction?.spans?.some(span => span.op == APP_SPAN_START_WARM)).toBeTrue();
+          expect(transaction?.start_timestamp).toBeGreaterThanOrEqual((timeOriginMilliseconds - 65000) / 1000);
+        });
       });
 
       it('Does not create app start transaction if has_fetched == true', async () => {
@@ -1194,4 +1265,11 @@ function mockReactNativeBundleExecutionStartTimestamp() {
 function clearReactNativeBundleExecutionStartTimestamp() {
   delete RN_GLOBAL_OBJ.nativePerformanceNow;
   delete RN_GLOBAL_OBJ.__BUNDLE_START_TIME__;
+}
+
+function set__DEV__(value: boolean) {
+  Object.defineProperty(globalThis, '__DEV__', {
+    value,
+    writable: true,
+  });
 }
