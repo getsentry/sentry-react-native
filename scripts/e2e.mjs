@@ -38,6 +38,7 @@ if (env.SENTRY_DISABLE_AUTO_UPLOAD === undefined) {
   env.SENTRY_DISABLE_AUTO_UPLOAD = 'true'
 }
 if (env.PRODUCTION === undefined && env.CI == undefined) {
+  // When executed locally and PROD not specified most likely we wanted production build
   env.PRODUCTION = 1;
 }
 
