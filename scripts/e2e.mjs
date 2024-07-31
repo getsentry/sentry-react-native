@@ -164,9 +164,6 @@ if (actions.includes('build')) {
 }
 
 if (actions.includes('test')) {
-  // Build e2e tests
-  execSync(`yarn build`, { stdio: 'inherit', cwd: e2eDir, env: env });
-
   if (platform == 'ios' && !fs.existsSync(`${e2eDir}/DerivedData/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app`)) {
     // Build iOS WebDriverAgent
     execSync(`set -o pipefail && xcodebuild \
