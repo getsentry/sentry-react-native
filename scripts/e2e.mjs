@@ -37,6 +37,7 @@ if (env.SENTRY_DISABLE_AUTO_UPLOAD === undefined) {
   // This can be removed in the future or when mocked server is added
   env.SENTRY_DISABLE_AUTO_UPLOAD = 'true'
 }
+
 if (env.PRODUCTION === undefined && env.CI == undefined) {
   // When executed locally and PROD not specified most likely we wanted production build
   env.PRODUCTION = 1;
@@ -109,11 +110,14 @@ if (actions.includes('create')) {
   if (platform == 'ios') {
     execSync('ruby --version', { stdio: 'inherit', cwd: `${appDir}`, env: env });
 
-    // Fixes Hermes pod install https://github.com/CocoaPods/CocoaPods/issues/12226#issuecomment-1930604302
-    execSync(`gem install cocoapods -v 1.15.2`, { stdio: 'inherit', cwd: appDir, env: env });
     execSync(`../../../../rn.patch.podfile.js --pod-file Podfile --engine ${RNEngine}`, { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
 
-    execSync('pod install --repo-update', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
+    if (fs.existsSync(`${appDir}/Gemfile`)) {
+      execSync(`bundle install`, { stdio: 'inherit', cwd: appDir, env: env });
+      execSync('bundle exec pod install --repo-update', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
+    } else {
+      execSync('pod install --repo-update', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
+    }
     execSync('cat Podfile.lock | grep RNSentry', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
 
     execSync(`../../../rn.patch.xcode.js --project ios/${appName}.xcodeproj/project.pbxproj --rn-version ${RNVersion}`, { stdio: 'inherit', cwd: appDir, env: env });
@@ -217,6 +221,7 @@ async function waitForAppium() {
       await sleep(1000);
     }
   }
+  throw new Error("Appium server failed to start");
 }
 
 async function sleep(millis) {
