@@ -72,5 +72,5 @@ export type ReactNativeVersion = {
     minor: number;
     patch: number;
     prerelease?: number | null | undefined;
-  },
+  };
 };
