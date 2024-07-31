@@ -42,8 +42,8 @@ if (!env.USE_FRAMEWORKS) {
   delete env.USE_FRAMEWORKS;
 }
 
-// Flipper is causing build issues on iOS, so we disable it
 if (platform == 'ios') {
+  // Flipper is causing build issues on iOS, so we disable it
   env.NO_FLIPPER = 1
 }
 
