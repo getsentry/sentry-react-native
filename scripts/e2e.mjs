@@ -38,6 +38,9 @@ if (env.PRODUCTION === undefined && env.CI == undefined) {
 }
 if (env.USE_FRAMEWORKS) {
   env.NO_FLIPPER = 1;
+} else {
+  // in case it's set to an empty string, it causes issues in Podfile
+  delete env.USE_FRAMEWORKS;
 }
 
 const rootDir = path.resolve(__dirname, '..');
@@ -62,7 +65,7 @@ if (actions.includes('create') || (env.CI === undefined && actions.includes('bui
 
 if (actions.includes('create')) {
   // Clone the test app repo
-  if (fs.existsSync(appRepoDir)) execSync(`rm -rf ${appRepoDir}`);
+  if (fs.existsSync(appRepoDir)) fs.rmSync(appRepoDir, { recursive: true });
   execSync(`git clone ${appSourceRepo}  --branch release/${RNVersion} --single-branch ${appRepoDir}`, { stdio: 'inherit', env: env });
 
   // Install dependencies
@@ -90,7 +93,6 @@ if (actions.includes('create')) {
     execSync(`gem install cocoapods -v 1.15.2`, { stdio: 'inherit', cwd: appDir, env: env });
     execSync(`../../../../rn.patch.podfile.js --pod-file Podfile --engine ${RNEngine}`, { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
 
-    console.log(env);
     // const podInstallCommand = RNVersion === '0.65.3' ? 'pod install' : 'bundle exec pod install';
     execSync('pod install --repo-update', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
     execSync('cat Podfile.lock | grep RNSentry', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
@@ -116,23 +118,19 @@ if (actions.includes('build')) {
     const device = env.IOS_DEVICE ? env.IOS_DEVICE : 'iPhone 15';
 
     // Build iOS test app
-    var derivedData = `${appDir}/ios/DerivedData`
-    fs.mkdirSync(derivedData, { recursive: true });
     execSync(`set -o pipefail && xcodebuild \
     -workspace ${appName}.xcworkspace \
     -configuration ${buildType} \
     -scheme ${appName} \
     -destination 'platform=iOS Simulator,OS=${runtime},name=${device}' \
     ONLY_ACTIVE_ARCH=yes \
-    -derivedDataPath ${derivedData} \
+    -derivedDataPath DerivedData \
     build | tee xcodebuild.log | xcbeautify`,
       { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
 
-    appProduct = `${derivedData}/Build/Products/${buildType}-iphonesimulator/${appName}.app`;
+    appProduct = `${appDir}/ios/DerivedData/Build/Products/${buildType}-iphonesimulator/${appName}.app`;
 
     // Build iOS WebDriverAgent
-    derivedData = `${e2eDir}/DerivedData`
-    fs.mkdirSync(derivedData, { recursive: true });
     execSync(`set -o pipefail && xcodebuild \
       -project node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
       -scheme WebDriverAgentRunner \
@@ -140,7 +138,7 @@ if (actions.includes('build')) {
       GCC_TREAT_WARNINGS_AS_ERRORS=0 \
       COMPILER_INDEX_STORE_ENABLE=NO \
       ONLY_ACTIVE_ARCH=yes \
-      -derivedDataPath ${derivedData} \
+      -derivedDataPath DerivedData \
       build | tee xcodebuild-agent.log | xcbeautify`,
       { stdio: 'inherit', cwd: e2eDir, env: env });
 
@@ -151,7 +149,7 @@ if (actions.includes('build')) {
 
   var testApp = `${e2eDir}/${testAppName}`;
   console.log(`Moving ${appProduct} to ${testApp}`);
-  if (fs.existsSync(testApp)) execSync(`rm -rf ${testApp}`);
+  if (fs.existsSync(testApp)) fs.rmSync(testApp, { recursive: true });
   fs.renameSync(appProduct, testApp);
 }
 
