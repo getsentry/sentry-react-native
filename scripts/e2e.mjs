@@ -36,11 +36,15 @@ env.SENTRY_DISABLE_AUTO_UPLOAD = 'true'
 if (env.PRODUCTION === undefined && env.CI == undefined) {
   env.PRODUCTION = 1;
 }
-if (env.USE_FRAMEWORKS) {
-  env.NO_FLIPPER = 1;
-} else {
-  // in case it's set to an empty string, it causes issues in Podfile
+
+if (!env.USE_FRAMEWORKS) {
+  // In case it's set to an empty string, it causes issues in Podfile.
   delete env.USE_FRAMEWORKS;
+}
+
+// Flipper is causing build issues on iOS, so we disable it
+if (platform == 'ios') {
+  env.NO_FLIPPER = 1
 }
 
 const rootDir = path.resolve(__dirname, '..');
@@ -77,7 +81,18 @@ if (actions.includes('create')) {
   } else {
     console.log(yalcAddOutput.trim());
   }
-  execSync(`yarn install`, { stdio: 'inherit', cwd: appDir, env: env });
+
+  // original yarnrc contains the exact yarn version which causes corepack to fail to install yarn v3
+  fs.writeFileSync(`${appDir}/.yarnrc.yml`, 'nodeLinker: node-modules', { encoding: 'utf-8' });
+  // yarn v3 won't install dependencies in a sub project without a yarn.lock file present
+  fs.writeFileSync(`${appDir}/yarn.lock`, '');
+
+  execSync(`yarn install`, {
+    stdio: 'inherit', cwd: appDir,
+    // yarn v3 run immutable install by default in CI
+    env: Object.assign(env, { YARN_ENABLE_IMMUTABLE_INSTALLS: false })
+  });
+
   execSync(`yarn add ../../../../e2e`, { stdio: 'inherit', cwd: appDir, env: env });
 
   // Patch the app
