@@ -417,13 +417,13 @@ jobs:
         working-directory: test/e2e
         run: yarn install
 
-      - run: yarn info --version appium-webdriveragent > appium-webdriveragent-version.txt
+      - run: yarn info --version appium-webdriveragent | tee appium-webdriveragent-version.txt
         working-directory: test/e2e
 
       - uses: actions/cache@v4
         with:
           path: test/e2e/DerivedData/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app
-          key: appium-webdriveragent-${{ hashFiles('appium-webdriveragent-version.txt') }}
+          key: appium-webdriveragent-${{ hashFiles('test/e2e/appium-webdriveragent-version.txt') }}
 
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
