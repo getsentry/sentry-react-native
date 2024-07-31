@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Drop app start data older than one minute ([#3974](https://github.com/getsentry/sentry-react-native/pull/3974))
+
 ### Dependencies
 
 - Bump Android SDK from v7.12.0 to v7.12.1 ([#3970](https://github.com/getsentry/sentry-react-native/pull/3970))
