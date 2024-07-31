@@ -290,7 +290,7 @@ jobs:
       - name: Setup Plain RN ${{ matrix.rn-version }} App
         run: ./scripts/e2e.mjs ${{ matrix.platform }} --create
 
-        - uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' }}
         with:
           working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
