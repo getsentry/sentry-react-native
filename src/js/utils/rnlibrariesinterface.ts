@@ -12,7 +12,6 @@ import type * as ReactNative from '../vendor/react-native';
 export type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 export type { EmitterSubscription } from 'react-native/Libraries/vendor/emitter/EventEmitter';
 
-
 export interface ReactNativeLibrariesInterface {
   Devtools?: {
     parseErrorStack: (errorStack: string) => Array<ReactNative.StackFrame>;
