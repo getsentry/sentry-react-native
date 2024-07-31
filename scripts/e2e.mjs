@@ -32,7 +32,11 @@ if (argv.length >= 4) {
 }
 console.log(`Performing actions: ${actions}`);
 
-env.SENTRY_DISABLE_AUTO_UPLOAD = 'true'
+if (env.SENTRY_DISABLE_AUTO_UPLOAD === undefined) {
+  // Auto upload to prod made the CI flaky
+  // This can be removed in the future or when mocked server is added
+  env.SENTRY_DISABLE_AUTO_UPLOAD = 'true'
+}
 if (env.PRODUCTION === undefined && env.CI == undefined) {
   env.PRODUCTION = 1;
 }
