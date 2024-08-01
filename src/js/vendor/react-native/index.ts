@@ -64,3 +64,13 @@ export type TurboModuleRegistry = {
   get<T extends TurboModule>(name: string): T | null;
   getEnforcing<T extends TurboModule>(name: string): T;
 };
+
+// Adapted from https://github.com/facebook/react-native/blob/575ab7862553d7ad7bc753951ed19dcd50d59b95/packages/react-native/Libraries/Utilities/Platform.d.ts#L23-L28
+export type ReactNativeVersion = {
+  version: {
+    major: number;
+    minor: number;
+    patch: number;
+    prerelease?: number | null | undefined;
+  };
+};
