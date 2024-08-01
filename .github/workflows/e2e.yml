@@ -436,7 +436,10 @@ jobs:
             -camera-back none
             -camera-front none
             -timezone US/Pacific
-          script: ./scripts/e2e.mjs ${{ matrix.platform }} --test
+          script: |
+            ./scripts/e2e.mjs ${{ matrix.platform }} --test
+            # See https://github.com/ReactiveCircus/android-emulator-runner/issues/385
+            killall --signal 9 crashpad_handler
 
       - uses: actions/cache@v4
         if: ${{ matrix.platform == 'ios' }}
