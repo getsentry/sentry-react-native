@@ -436,11 +436,7 @@ jobs:
             -camera-back none
             -camera-front none
             -timezone US/Pacific
-          script: |
-            ./scripts/e2e.mjs ${{ matrix.platform }} --test
-            # For some reason there's another appium process running that prevents the emulator to stop.
-            # We need to kill it manually.
-            pkill -f appium
+          script: ./scripts/e2e.mjs ${{ matrix.platform }} --test
 
       - uses: actions/cache@v4
         if: ${{ matrix.platform == 'ios' }}

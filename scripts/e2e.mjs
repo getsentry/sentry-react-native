@@ -200,7 +200,7 @@ if (actions.includes('test')) {
       })
     };
   }
-  await newProcess('appium', spawn('yarn', ['run', 'appium', '--log-timestamp', '--log-no-colors', '--log', `appium${platform}.log`], { stdio: 'inherit', cwd: e2eDir, env: env }));
+  await newProcess('appium', spawn('node_modules/.bin/appium', ['--log-timestamp', '--log-no-colors', '--log', `appium${platform}.log`], { stdio: 'inherit', cwd: e2eDir, env: env, shell: false }));
 
   try {
     await waitForAppium();
@@ -218,7 +218,7 @@ if (actions.includes('test')) {
       execSync(`adb logcat -c`, { stdio: 'inherit', cwd: e2eDir, env: env });
 
       var adbLogStream = fs.createWriteStream(`${e2eDir}/adb.log`);
-      const adbLogProcess = spawn('adb', ['logcat'], { cwd: e2eDir, env: env })
+      const adbLogProcess = spawn('adb', ['logcat'], { cwd: e2eDir, env: env, shell: false })
       adbLogProcess.stdout.pipe(adbLogStream);
       adbLogProcess.stderr.pipe(adbLogStream);
       adbLogProcess.on('close', () => adbLogStream.close())
