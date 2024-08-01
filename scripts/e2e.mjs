@@ -137,45 +137,55 @@ if (actions.includes('create')) {
 }
 
 if (actions.includes('build')) {
-  console.log(`Building ${platform}: ${buildType}`);
-  var appProduct;
+  // This prevents modules resolution from outside of the RN Test App projects during the native app build.
+  // See https://github.com/getsentry/sentry-react-native/pull/3409
+  console.log('Renaming node_modules to node_modules.bak');
+  fs.renameSync(`${rootDir}/node_modules`, `${rootDir}/node_modules.bak`);
 
-  if (platform == 'ios') {
-    // Build iOS test app
-    execSync(`set -o pipefail && xcodebuild \
-    -workspace ${appName}.xcworkspace \
-    -configuration ${buildType} \
-    -scheme ${appName} \
-    -destination 'platform=iOS Simulator,OS=${runtime},name=${device}' \
-    ONLY_ACTIVE_ARCH=yes \
-    -derivedDataPath DerivedData \
-    build | tee xcodebuild.log | xcbeautify`,
-      { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
+  try {
+    console.log(`Building ${platform}: ${buildType}`);
+    var appProduct;
 
-    appProduct = `${appDir}/ios/DerivedData/Build/Products/${buildType}-iphonesimulator/${appName}.app`;
-  } else if (platform == 'android') {
-    execSync(`./gradlew assemble${buildType} -PreactNativeArchitectures=x86`, { stdio: 'inherit', cwd: `${appDir}/android`, env: env });
-    appProduct = `${appDir}/android/app/build/outputs/apk/release/app-release.apk`;
+    if (platform == 'ios') {
+      // Build iOS test app
+      execSync(`set -o pipefail && xcodebuild \
+                    -workspace ${appName}.xcworkspace \
+                    -configuration ${buildType} \
+                    -scheme ${appName} \
+                    -destination 'platform=iOS Simulator,OS=${runtime},name=${device}' \
+                    ONLY_ACTIVE_ARCH=yes \
+                    -derivedDataPath DerivedData \
+                    build | tee xcodebuild.log | xcbeautify`,
+        { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
+
+      appProduct = `${appDir}/ios/DerivedData/Build/Products/${buildType}-iphonesimulator/${appName}.app`;
+    } else if (platform == 'android') {
+      execSync(`./gradlew assemble${buildType} -PreactNativeArchitectures=x86`, { stdio: 'inherit', cwd: `${appDir}/android`, env: env });
+      appProduct = `${appDir}/android/app/build/outputs/apk/release/app-release.apk`;
+    }
+
+    var testApp = `${e2eDir}/${testAppName}`;
+    console.log(`Moving ${appProduct} to ${testApp}`);
+    if (fs.existsSync(testApp)) fs.rmSync(testApp, { recursive: true });
+    fs.renameSync(appProduct, testApp);
+  } finally {
+    console.log('Restoring node_modules from node_modules.bak');
+    fs.renameSync(`${rootDir}/node_modules.bak`, `${rootDir}/node_modules`);
   }
-
-  var testApp = `${e2eDir}/${testAppName}`;
-  console.log(`Moving ${appProduct} to ${testApp}`);
-  if (fs.existsSync(testApp)) fs.rmSync(testApp, { recursive: true });
-  fs.renameSync(appProduct, testApp);
 }
 
 if (actions.includes('test')) {
   if (platform == 'ios' && !fs.existsSync(`${e2eDir}/DerivedData/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app`)) {
     // Build iOS WebDriverAgent
     execSync(`set -o pipefail && xcodebuild \
-      -project node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
-      -scheme WebDriverAgentRunner \
-      -destination 'platform=iOS Simulator,OS=${runtime},name=${device}' \
-      GCC_TREAT_WARNINGS_AS_ERRORS=0 \
-      COMPILER_INDEX_STORE_ENABLE=NO \
-      ONLY_ACTIVE_ARCH=yes \
-      -derivedDataPath DerivedData \
-      build | tee xcodebuild-agent.log | xcbeautify`,
+                  -project node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
+                  -scheme WebDriverAgentRunner \
+                  -destination 'platform=iOS Simulator,OS=${runtime},name=${device}' \
+                  GCC_TREAT_WARNINGS_AS_ERRORS=0 \
+                  COMPILER_INDEX_STORE_ENABLE=NO \
+                  ONLY_ACTIVE_ARCH=yes \
+                  -derivedDataPath DerivedData \
+                  build | tee xcodebuild-agent.log | xcbeautify`,
       { stdio: 'inherit', cwd: e2eDir, env: env });
   }
 

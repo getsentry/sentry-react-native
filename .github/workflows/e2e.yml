@@ -298,11 +298,6 @@ jobs:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
 
-      # This prevents modules resolution from outside of the RN Test App projects
-      # during the native app build
-      - name: Clean SDK node_modules
-        run: rm -rf node_modules
-
       - name: Build Plain RN ${{ matrix.rn-version }} App
         run: ./scripts/e2e.mjs ${{ matrix.platform }} --build
 
