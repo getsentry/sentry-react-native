@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+'use strict';
+
 import { execSync, spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -178,10 +180,27 @@ if (actions.includes('test')) {
   }
 
   // Start the appium server.
-  const appium = spawn('yarn', ['run', 'appium', '--log-timestamp', '--log-no-colors', '--log', `appium${platform}.log`], { stdio: 'inherit', cwd: e2eDir, env: env });
-  appium.on('exit', () => {
-    console.log("Appium server stopped");
-  });
+  var processesToKill = {};
+  async function newProcess(name, process) {
+    await new Promise((resolve, reject) => {
+      process.on('error', (e) => {
+        console.error(`Failed to start process '${name}': ${e}`);
+        reject(e);
+      });
+      process.on('spawn', () => {
+        console.log(`Process '${name}' (${process.pid}) started`);
+        resolve();
+      });
+    });
+
+    processesToKill[name] = {
+      process: process,
+      complete: new Promise((resolve, _reject) => {
+        process.on('exit', resolve);
+      })
+    };
+  }
+  await newProcess('appium', spawn('yarn', ['run', 'appium', '--log-timestamp', '--log-no-colors', '--log', `appium${platform}.log`], { stdio: 'inherit', cwd: e2eDir, env: env }));
 
   try {
     await waitForAppium();
@@ -194,14 +213,37 @@ if (actions.includes('test')) {
     if (platform == 'ios') {
       testEnv.APPIUM_DERIVED_DATA = 'DerivedData';
     } else if (platform == 'android') {
-      execSync(`adb logcat -c`, { stdio: 'inherit', cwd: e2eDir, env: env });
-      execSync(`adb logcat '*:D' 2>&1 >adb.log &`, { stdio: 'inherit', cwd: e2eDir, env: env });
       execSync(`adb devices -l`, { stdio: 'inherit', cwd: e2eDir, env: env });
+
+      execSync(`adb logcat -c`, { stdio: 'inherit', cwd: e2eDir, env: env });
+
+      var adbLogStream = fs.createWriteStream(`${e2eDir}/adb.log`);
+      const adbLogProcess = spawn('adb', ['logcat'], { cwd: e2eDir, env: env })
+      adbLogProcess.stdout.pipe(adbLogStream);
+      adbLogProcess.stderr.pipe(adbLogStream);
+      adbLogProcess.on('close', () => adbLogStream.close())
+      await newProcess('adb logcat', adbLogProcess);
     }
 
     execSync(`yarn test --verbose`, { stdio: 'inherit', cwd: e2eDir, env: testEnv });
   } finally {
-    appium.kill();
+    for (const [name, info] of Object.entries(processesToKill)) {
+      console.log(`Sending termination signal to process '${name}' (${info.process.pid})`);
+
+      // Send SIGTERM first to allow graceful shutdown.
+      info.process.kill(15);
+
+      // Also send SIGKILL after 10 seconds.
+      const killTimeout = setTimeout(() => process.kill(9), "10000");
+
+      // Wait for the process to exit (either via SIGTERM or SIGKILL).
+      const code = await info.complete;
+
+      // Successfully exited now, no need to kill (if it hasn't run yet).
+      clearTimeout(killTimeout);
+
+      console.log(`Process '${name}' (${info.process.pid}) exited with code ${code}`);
+    }
   }
 }
 
