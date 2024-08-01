@@ -417,14 +417,9 @@ jobs:
         working-directory: test/e2e
         run: yarn install
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
         uses: reactivecircus/android-emulator-runner@77986be26589807b8ebab3fde7bbf5c60dabec32 # pin@v2.31.0
-        env:
-          ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL: 60
         with:
           api-level: 30
           force-avd-creation: false
@@ -443,8 +438,9 @@ jobs:
             -timezone US/Pacific
           script: |
             ./scripts/e2e.mjs ${{ matrix.platform }} --test
-            # https://github.com/ReactiveCircus/android-emulator-runner/issues/385
-            killall --signal 9 crashpad_handler
+            # For some reason there's another appium process running that prevents the emulator to stop.
+            # We need to kill it manually.
+            pkill -f appium
 
       - uses: actions/cache@v4
         if: ${{ matrix.platform == 'ios' }}

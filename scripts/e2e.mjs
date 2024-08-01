@@ -196,7 +196,7 @@ if (actions.includes('test')) {
     processesToKill[name] = {
       process: process,
       complete: new Promise((resolve, _reject) => {
-        process.on('exit', resolve);
+        process.on('close', resolve);
       })
     };
   }
