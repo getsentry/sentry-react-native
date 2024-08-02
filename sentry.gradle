@@ -183,7 +183,7 @@ gradle.projectsEvaluated {
                       ])
                       args.addAll(!config.flavorAware ? [] : [
                           "--url", sentryProps.get("defaults.url"),
-                          "--auth-token", sentryProps.get("auth.token")
+                          "--auth-token", sentryProps.get("auth.token") ?: System.getenv("SENTRY_AUTH_TOKEN")
                       ])
                       args.addAll(["react-native", "gradle",
                           "--bundle", bundleOutput,           // The path to a bundle that should be uploaded.

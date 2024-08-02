@@ -24,7 +24,13 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   };
   __BUNDLE_START_TIME__?: number;
   nativePerformanceNow?: () => number;
+  TextEncoder?: TextEncoder;
 }
+
+type TextEncoder = {
+  new (): TextEncoder;
+  encode(input?: string): Uint8Array;
+};
 
 /** Get's the global object for the current JavaScript runtime */
 export const RN_GLOBAL_OBJ = GLOBAL_OBJ as ReactNativeInternalGlobal;

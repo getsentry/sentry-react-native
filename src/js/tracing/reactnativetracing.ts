@@ -150,6 +150,8 @@ export class ReactNativeTracing implements Integration {
   public static id: string = 'ReactNativeTracing';
   /** We filter out App starts more than 60s */
   private static _maxAppStart: number = 60000;
+  /** We filter out App starts which timestamp is 60s and more before the transaction start */
+  private static _maxAppStartBeforeTransactionMs: number = 60000;
   /**
    * @inheritDoc
    */
@@ -463,6 +465,13 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
+    const isAppStartWithinBounds =
+      appStartTimestampMs >= getSpanStartTimestampMs(span) - ReactNativeTracing._maxAppStartBeforeTransactionMs;
+    if (!__DEV__ && !isAppStartWithinBounds) {
+      logger.warn('[ReactNativeTracing] App start timestamp is too far in the past to be used for app start span.');
+      return;
+    }
+
     const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStartTimestampMs);
 
     if (!appStartDurationMilliseconds) {
@@ -544,12 +553,42 @@ export class ReactNativeTracing implements Integration {
    */
   private _addNativeSpansTo(appStartSpan: Span, nativeSpans: NativeAppStartResponse['spans']): void {
     nativeSpans.forEach(span => {
+      if (span.description === 'UIKit init') {
+        return this._createUIKitSpan(appStartSpan, span);
+      }
+
       startInactiveSpan({
         op: spanToJSON(appStartSpan).op,
         name: span.description,
         startTime: span.start_timestamp_ms / 1000,
       }).end(span.end_timestamp_ms / 1000);
     });
+  }
+
+  /**
+   * UIKit init is measured by the native layers till the native SDK start
+   * RN initializes the native SDK later, the end timestamp would be wrong
+   */
+  private _createUIKitSpan(parentSpan: Span, nativeUIKitSpan: NativeAppStartResponse['spans'][number]): void {
+    const bundleStart = getBundleStartTimestampMs();
+    const parentSpanOp = spanToJSON(parentSpan).op;
+
+    // If UIKit init ends after the bundle start, the native SDK was auto-initialized
+    // and so the end timestamp is incorrect.
+    // The timestamps can't equal, as RN initializes after UIKit.
+    if (bundleStart && bundleStart < nativeUIKitSpan.end_timestamp_ms) {
+      startInactiveSpan({
+        op: parentSpanOp,
+        name: 'UIKit Init to JS Exec Start',
+        startTime: nativeUIKitSpan.start_timestamp_ms / 1000,
+      }).end(bundleStart / 1000);
+    } else {
+      startInactiveSpan({
+        op: parentSpanOp,
+        name: 'UIKit Init',
+        startTime: nativeUIKitSpan.start_timestamp_ms / 1000,
+      }).end(nativeUIKitSpan.end_timestamp_ms / 1000);
+    }
   }
 
   /** To be called when the route changes, but BEFORE the components of the new route mount. */
@@ -662,4 +701,12 @@ function addDefaultOpForSpanFrom(client: Client): void {
       span.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_OP, 'default');
     }
   });
+}
+
+/**
+ * Returns transaction start timestamp in milliseconds.
+ * If start timestamp is not available, returns 0.
+ */
+function getSpanStartTimestampMs(span: Span): number {
+  return (spanToJSON(span).start_timestamp || 0) * 1000;
 }

@@ -235,7 +235,7 @@ describe('Tests ReactNativeClient', () => {
           },
           transport: () => new NativeTransport(),
         }),
-      );
+      ).init();
     });
 
     test('calls onReady callback with false if Native SDK was not initialized', done => {
@@ -649,7 +649,39 @@ describe('Tests ReactNativeClient', () => {
       expect(client.getIntegrationByName('ReactNativeUserInteractionTracing')).toBeTruthy();
     });
 
+    test('register user interactions tracing - init()', () => {
+      const client = new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          integrations: [
+            new ReactNativeTracing({
+              enableUserInteractionTracing: true,
+            }),
+          ],
+        }),
+      );
+      client.init();
+
+      expect(client.getIntegrationByName('ReactNativeUserInteractionTracing')).toBeTruthy();
+    });
+
     test('do not register user interactions tracing', () => {
+      const client = new ReactNativeClient(
+        mockedOptions({
+          dsn: EXAMPLE_DSN,
+          integrations: [
+            new ReactNativeTracing({
+              enableUserInteractionTracing: false,
+            }),
+          ],
+        }),
+      );
+      client.init();
+
+      expect(client.getIntegrationByName('ReactNativeUserInteractionTracing')).toBeUndefined();
+    });
+
+    test('do not register user interactions tracing - init()', () => {
       const client = new ReactNativeClient(
         mockedOptions({
           dsn: EXAMPLE_DSN,

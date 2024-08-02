@@ -23,7 +23,7 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
+        uses: styfle/cancel-workflow-action@85880fa0301c86cca9da44039ee3bb12d3bedbfa # pin@0.12.1
         with:
           access_token: ${{ github.token }}
 
@@ -108,9 +108,10 @@ jobs:
           [[ "${{ matrix.platform }}" == "ios" ]] && cd ios
           [[ "${{ matrix.platform }}" == "macos" ]] && cd macos
 
+          export NO_FLIPPER=1 # Flipper is causing build issues on iOS, so we disable it
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
-          [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic && export NO_FLIPPER=1
+          [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic
           echo "ENABLE_PROD=$ENABLE_PROD"
           echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
           PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH bundle exec pod install

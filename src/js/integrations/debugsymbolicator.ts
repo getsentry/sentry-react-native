@@ -1,6 +1,7 @@
-import type { Event, EventHint, Integration, StackFrame as SentryStackFrame } from '@sentry/types';
+import type { Event, EventHint, Exception, Integration, StackFrame as SentryStackFrame } from '@sentry/types';
 import { addContextToFrame, logger } from '@sentry/utils';
 
+import type { ExtendedError } from '../utils/error';
 import { getFramesToPop, isErrorLike } from '../utils/error';
 import type * as ReactNative from '../vendor/react-native';
 import { fetchSourceContext, getDevServer, parseErrorStack, symbolicateStackTrace } from './debugsymbolicatorutils';
@@ -32,13 +33,14 @@ export const debugSymbolicatorIntegration = (): Integration => {
 };
 
 async function processEvent(event: Event, hint: EventHint): Promise<Event> {
-  if (event.exception && isErrorLike(hint.originalException)) {
+  if (event.exception?.values && isErrorLike(hint.originalException)) {
     // originalException is ErrorLike object
-    const symbolicatedFrames = await symbolicate(
-      hint.originalException.stack,
-      getFramesToPop(hint.originalException as Error),
-    );
-    symbolicatedFrames && replaceExceptionFramesInEvent(event, symbolicatedFrames);
+    const errorGroup = getExceptionGroup(hint.originalException);
+    for (const [index, error] of errorGroup.entries()) {
+      const symbolicatedFrames = await symbolicate(error.stack, getFramesToPop(error));
+
+      symbolicatedFrames && replaceExceptionFramesInException(event.exception.values[index], symbolicatedFrames);
+    }
   } else if (hint.syntheticException && isErrorLike(hint.syntheticException)) {
     // syntheticException is Error object
     const symbolicatedFrames = await symbolicate(
@@ -47,7 +49,9 @@ async function processEvent(event: Event, hint: EventHint): Promise<Event> {
     );
 
     if (event.exception) {
-      symbolicatedFrames && replaceExceptionFramesInEvent(event, symbolicatedFrames);
+      symbolicatedFrames &&
+        event.exception.values &&
+        replaceExceptionFramesInException(event.exception.values[0], symbolicatedFrames);
     } else if (event.threads) {
       // RN JS doesn't have threads
       symbolicatedFrames && replaceThreadFramesInEvent(event, symbolicatedFrames);
@@ -130,9 +134,9 @@ async function convertReactNativeFramesToSentryFrames(frames: ReactNative.StackF
  * @param event Event
  * @param frames StackFrame[]
  */
-function replaceExceptionFramesInEvent(event: Event, frames: SentryStackFrame[]): void {
-  if (event.exception && event.exception.values && event.exception.values[0] && event.exception.values[0].stacktrace) {
-    event.exception.values[0].stacktrace.frames = frames.reverse();
+function replaceExceptionFramesInException(exception: Exception, frames: SentryStackFrame[]): void {
+  if (exception?.stacktrace) {
+    exception.stacktrace.frames = frames.reverse();
   }
 }
 
@@ -180,4 +184,18 @@ async function addSourceContext(frame: SentryStackFrame): Promise<void> {
 
   const lines = sourceContext.split('\n');
   addContextToFrame(lines, frame);
+}
+
+/**
+ * Return a list containing the original exception and also the cause if found.
+ *
+ * @param originalException The original exception.
+ */
+function getExceptionGroup(originalException: unknown): (Error & { stack: string })[] {
+  const err = originalException as ExtendedError;
+  const errorGroup: (Error & { stack: string })[] = [];
+  for (let cause: ExtendedError | undefined = err; isErrorLike(cause); cause = cause.cause) {
+    errorGroup.push(cause);
+  }
+  return errorGroup;
 }

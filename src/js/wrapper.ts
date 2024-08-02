@@ -25,6 +25,7 @@ import type {
 import type { ReactNativeClientOptions } from './options';
 import type * as Hermes from './profiling/hermes';
 import type { NativeAndroidProfileEvent, NativeProfileEvent } from './profiling/nativeTypes';
+import type { MobileReplayOptions } from './replay/mobilereplay';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
 import { ReactNativeLibraries } from './utils/rnlibraries';
@@ -47,6 +48,10 @@ export interface Screenshot {
   filename: string;
 }
 
+export type NativeSdkOptions = Partial<ReactNativeClientOptions> & {
+  mobileReplayOptions: MobileReplayOptions | undefined;
+};
+
 interface SentryNativeWrapper {
   enableNative: boolean;
   nativeIsReady: boolean;
@@ -63,7 +68,7 @@ interface SentryNativeWrapper {
 
   isNativeAvailable(): boolean;
 
-  initNativeSdk(options: Partial<ReactNativeClientOptions>): PromiseLike<boolean>;
+  initNativeSdk(options: NativeSdkOptions): PromiseLike<boolean>;
   closeNativeSdk(): PromiseLike<void>;
 
   sendEnvelope(envelope: Envelope): Promise<void>;
@@ -104,6 +109,9 @@ interface SentryNativeWrapper {
    */
   fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | null;
   initNativeReactNavigationNewFrameTracking(): Promise<void>;
+
+  captureReplay(isHardCrash: boolean): Promise<string | null>;
+  getCurrentReplayId(): string | null;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -186,15 +194,15 @@ export const NATIVE: SentryNativeWrapper = {
       envelopeBytes = newBytes;
     }
 
-    await RNSentry.captureEnvelope(base64StringFromByteArray(envelopeBytes), { store: hardCrashed });
+    await RNSentry.captureEnvelope(base64StringFromByteArray(envelopeBytes), { hardCrashed });
   },
 
   /**
    * Starts native with the provided options.
    * @param options ReactNativeClientOptions
    */
-  async initNativeSdk(originalOptions: Partial<ReactNativeClientOptions>): Promise<boolean> {
-    const options: Partial<ReactNativeClientOptions> = {
+  async initNativeSdk(originalOptions: NativeSdkOptions): Promise<boolean> {
+    const options: NativeSdkOptions = {
       enableNative: true,
       autoInitializeNativeSdk: true,
       ...originalOptions,
@@ -607,6 +615,32 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.initNativeReactNavigationNewFrameTracking();
+  },
+
+  async captureReplay(isHardCrash: boolean): Promise<string | null> {
+    if (!this.enableNative) {
+      logger.warn(`[NATIVE] \`${this.captureReplay.name}\` is not available when native is disabled.`);
+      return Promise.resolve(null);
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      logger.warn(`[NATIVE] \`${this.captureReplay.name}\` is not available when native is not available.`);
+      return Promise.resolve(null);
+    }
+
+    return (await RNSentry.captureReplay(isHardCrash)) || null;
+  },
+
+  getCurrentReplayId(): string | null {
+    if (!this.enableNative) {
+      logger.warn(`[NATIVE] \`${this.getCurrentReplayId.name}\` is not available when native is disabled.`);
+      return null;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      logger.warn(`[NATIVE] \`${this.getCurrentReplayId.name}\` is not available when native is not available.`);
+      return null;
+    }
+
+    return RNSentry.getCurrentReplayId() || null;
   },
 
   /**

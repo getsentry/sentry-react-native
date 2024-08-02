@@ -1,5 +1,6 @@
 export interface ExtendedError extends Error {
   framesToPop?: number | undefined;
+  cause?: Error | undefined;
 }
 
 // Sentry Stack Parser is skipping lines not frames
