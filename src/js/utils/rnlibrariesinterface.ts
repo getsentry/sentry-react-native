@@ -5,8 +5,6 @@
 // that don't have all the internals available. For example react-native-web.
 //
 
-import type { version as RNV } from 'react-native/Libraries/Core/ReactNativeVersion';
-
 import type * as ReactNative from '../vendor/react-native';
 
 export type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
@@ -25,9 +23,7 @@ export interface ReactNativeLibrariesInterface {
     polyfillGlobal: <T>(name: string, getValue: () => T) => void;
   };
   Promise?: typeof Promise;
-  ReactNativeVersion?: {
-    version: typeof RNV;
-  };
+  ReactNativeVersion?: ReactNative.ReactNativeVersion;
   TurboModuleRegistry?: ReactNative.TurboModuleRegistry;
   ReactNative?: {
     requireNativeComponent?: <T>(viewName: string) => ReactNative.HostComponent<T>;
