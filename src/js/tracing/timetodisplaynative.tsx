@@ -28,8 +28,8 @@ let RNSentryOnDrawReporter: HostComponent<RNSentryOnDrawReporterProps> | typeof 
  * Native component that reports the on draw timestamp.
  */
 export const getRNSentryOnDrawReporter = (): typeof RNSentryOnDrawReporter => {
-  if (!RNSentryOnDrawReporter && ReactNativeLibraries.ReactNative.requireNativeComponent) {
-    RNSentryOnDrawReporter = nativeComponentExists
+  if (!RNSentryOnDrawReporter) {
+    RNSentryOnDrawReporter = nativeComponentExists && ReactNativeLibraries.ReactNative?.requireNativeComponent
       ? ReactNativeLibraries.ReactNative.requireNativeComponent(RNSentryOnDrawReporterClass)
       : RNSentryOnDrawReporterNoop;
   }

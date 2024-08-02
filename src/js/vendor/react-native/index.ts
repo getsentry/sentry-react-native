@@ -66,14 +66,10 @@ export type TurboModuleRegistry = {
 };
 
 // Adapted from https://github.com/facebook/react-native/blob/3f8340975b35767b192e3118f05d2b039676052e/packages/react-native/types/public/ReactNativeTypes.d.ts#L137
-export interface HostComponent<P>
-  extends Pick<
-    React.ComponentClass<P>,
-    Exclude<keyof React.ComponentClass<P>, 'new'>
-  > {
-  new(props: P, context?: any): React.Component<P> & Readonly<unknown>;
+export interface HostComponent<P> extends Pick<React.ComponentClass<P>, Exclude<keyof React.ComponentClass<P>, 'new'>> {
+  new (props: P, context?: any): React.Component<P> & Readonly<unknown>;
 }
-  
+
 // Adapted from https://github.com/facebook/react-native/blob/575ab7862553d7ad7bc753951ed19dcd50d59b95/packages/react-native/Libraries/Utilities/Platform.d.ts#L23-L28
 export type ReactNativeVersion = {
   version: {
