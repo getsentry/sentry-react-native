@@ -1,5 +1,5 @@
 import { logger } from '@sentry/utils';
-import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
+import { type MetroConfig, type MixedOutput, type Module, type ReadOnlyGraph,mergeConfig } from 'metro';
 import * as process from 'process';
 import { env } from 'process';
 
@@ -18,6 +18,11 @@ export interface SentryMetroConfigOptions {
    * @default false
    */
   annotateReactComponents?: boolean;
+  /**
+   * Adds the Sentry replay for web.
+   * @default false
+   */
+  includeWebReplay?: boolean;
 }
 
 export interface SentryExpoConfigOptions {
@@ -35,7 +40,7 @@ export interface SentryExpoConfigOptions {
  */
 export function withSentryConfig(
   config: MetroConfig,
-  { annotateReactComponents = false }: SentryMetroConfigOptions = {},
+  { annotateReactComponents = false, includeWebReplay = false }: SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
 
@@ -46,8 +51,9 @@ export function withSentryConfig(
   if (annotateReactComponents) {
     newConfig = withSentryBabelTransformer(newConfig);
   }
+  newConfig = excludeSentryWebReplay(config);
 
-  return newConfig;
+    return newConfig;
 }
 
 /**
@@ -144,6 +150,61 @@ function withSentryDebugId(config: MetroConfig): MetroConfig {
       customSerializer,
     },
   };
+}
+
+function excludeSentryWebReplay(config: MetroConfig): MetroConfig {
+  console.log("sad")
+      return {
+    ...config.transformerPath,
+    transformer: {
+      ...config.transformer,
+      getTransformOptions: async () => ({
+        transform: {
+          experimentalImportSupport: false,
+          inlineRequires: false,
+        },
+        preloadedModules: false,
+        publicPath: '/assets',
+        plugins: [
+          [
+            require.resolve('babel-plugin-transform-inline-environment-variables'),
+            {
+              include: [
+                "RRWEB_EXCLUDE_IFRAME",
+                "RRWEB_EXCLUDE_SHADOW_DOM",
+                "SENTRY_EXCLUDE_REPLAY_WORKER"
+              ]
+            }
+          ]
+        ]
+      })
+    }
+  };
+  /*
+
+  const originalResolver = config.resolver?.resolveRequest;
+
+  return mergeConfig(config, {
+    resolver: {
+      resolveRequest: (context, moduleName, platform) => {
+      // eslint-disable-next-line no-console
+      console.log(`resolving the request ${  moduleName}`);
+
+
+        if (moduleName.includes('@sentry/replay')) {
+          return { type: 'empty' };
+        }
+        if (moduleName) {
+          throw new Error('we found replay');
+        }
+           if (originalResolver) {
+             return originalResolver(context, moduleName, platform);
+           }
+        return context.resolveRequest(context, moduleName, platform);
+      }
+    }
+  });
+  */
 }
 
 type MetroFrame = Parameters<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>[0];

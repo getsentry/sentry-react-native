@@ -4,9 +4,9 @@ module.exports = {
     [
       'module-resolver',
       {
-        alias: {
-          '@sentry/react-native': '../../dist/js',
-        },
+  //      alias: {
+    //      '@sentry/react-native': '../../dist/js',
+      //  },
       },
     ],
     'react-native-reanimated/plugin',

@@ -7,8 +7,10 @@
     /* Completeness */
     "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
     "baseUrl": ".",
+/*
     "paths": {
       "@sentry/react-native": ["../../"]
     },
-  },
+*/
+    },
 }
