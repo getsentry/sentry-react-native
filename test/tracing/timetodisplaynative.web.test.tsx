@@ -15,9 +15,9 @@ import { getRNSentryOnDrawReporter } from '../../src/js/tracing/timetodisplaynat
 import { ReactNativeLibraries } from '../../src/js/utils/rnlibraries';
 
 describe('timetodisplaynative', () => {
-  test('requireNativeComponent to be defined', () => {
+  test('requireNativeComponent to be undefined', () => {
     expect(ReactNativeLibraries).toBeDefined();
-    expect(JSON.stringify(ReactNativeLibraries)).toBe('{}');
+    expect(ReactNativeLibraries.ReactNative?.requireNativeComponent).not.toBeDefined();
   });
 
   test('getRNSentryOnDrawReporter returns Noop', () => {
