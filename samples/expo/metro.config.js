@@ -9,6 +9,7 @@ const config = getSentryExpoConfig(__dirname, {
   // [Web-only]: Enables CSS support in Metro.
   isCSSEnabled: true,
   getDefaultConfig,
+  annotateReactComponents: true,
 });
 
 config.watchFolders.push(path.resolve(__dirname, '../../node_modules/@sentry'));

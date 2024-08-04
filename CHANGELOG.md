@@ -2,11 +2,154 @@
 
 ## Unreleased
 
+### Fixes
+
+- Pass `sampleRate` option to the Android SDK ([#3979](https://github.com/getsentry/sentry-react-native/pull/3979))
+- Drop app start data older than one minute ([#3974](https://github.com/getsentry/sentry-react-native/pull/3974))
+- Use `Platform.constants.reactNativeVersion` instead of `react-native` internal export ([#3949](https://github.com/getsentry/sentry-react-native/pull/3949))
+
+### Dependencies
+
+- Bump Android SDK from v7.12.0 to v7.13.0 ([#3970](https://github.com/getsentry/sentry-react-native/pull/3970), [#3984](https://github.com/getsentry/sentry-react-native/pull/3984))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7130)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.12.0...7.13.0)
+
+## 5.26.0
+
 ### Features
 
-- Add native application start spans ([#3855](https://github.com/getsentry/sentry-react-native/pull/3855))
+- Session Replay Public Beta ([#3830](https://github.com/getsentry/sentry-react-native/pull/3830))
+
+  To enable Replay use the `replaysSessionSampleRate` or `replaysOnErrorSampleRate` options.
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    _experiments: {
+      replaysSessionSampleRate: 1.0,
+      replaysOnErrorSampleRate: 1.0,
+    },
+  });
+  ```
+
+  To add React Component Names use `annotateReactComponents` in `metro.config.js`.
+
+  ```js
+  // For Expo
+  const { getSentryExpoConfig } = require("@sentry/react-native/metro");
+  const config = getSentryExpoConfig(__dirname, { annotateReactComponents: true });
+
+  // For RN
+  const { getDefaultConfig } = require('@react-native/metro-config');
+  const { withSentryConfig } = require('@sentry/react-native/metro');
+  module.exports = withSentryConfig(getDefaultConfig(__dirname), { annotateReactComponents: true });
+  ```
+
+  To change default redaction behavior add the `mobileReplayIntegration`.
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    _experiments: {
+      replaysSessionSampleRate: 1.0,
+      replaysOnErrorSampleRate: 1.0,
+    },
+    integrations: [
+      Sentry.mobileReplayIntegration({
+        maskAllImages: true,
+        maskAllVectors: true,
+        maskAllText: true,
+      }),
+    ],
+  });
+  ```
+
+  To learn more visit [Sentry's Mobile Session Replay](https://docs.sentry.io/product/explore/session-replay/mobile/) documentation page.
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.30.0 to v8.31.1 ([#3954](https://github.com/getsentry/sentry-react-native/pull/3954))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8311)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.30.0...8.31.1)
+- Bump Android SDK from v7.11.0 to v7.12.0 ([#3950](https://github.com/getsentry/sentry-react-native/pull/3949))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7120)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.11.0...7.12.0)
+
+## 5.25.0
+
+### Features
+
+- Improved Touch Event Breadcrumb components structure ([#3899](https://github.com/getsentry/sentry-react-native/pull/3899))
+- Set `currentScreen` on native scope ([#3927](https://github.com/getsentry/sentry-react-native/pull/3927))
+
+### Fixes
+
+- `error.cause` chain is locally symbolicated in development builds ([#3920](https://github.com/getsentry/sentry-react-native/pull/3920))
+- `sentry-expo-upload-sourcemaps` no longer requires Sentry url when uploading sourcemaps to `sentry.io` ([#3915](https://github.com/getsentry/sentry-react-native/pull/3915))
+- Flavor aware Android builds use `SENTRY_AUTH_TOKEN` env as fallback when token not found in `sentry-flavor-type.properties`. ([#3917](https://github.com/getsentry/sentry-react-native/pull/3917))
+- `mechanism.handled:false` should crash current session ([#3900](https://github.com/getsentry/sentry-react-native/pull/3900))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.29.1 to v8.30.0 ([#3914](https://github.com/getsentry/sentry-react-native/pull/3914))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8300)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.29.1...8.30.0)
+- Bump Android SDK from v7.10.0 to v7.11.0 ([#3926](https://github.com/getsentry/sentry-react-native/pull/3926))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7110)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.10.0...7.11.0)
+
+## 5.25.0-alpha.2
+
+### Features
+
+- Improve touch event component info if annotated with [`@sentry/babel-plugin-component-annotate`](https://www.npmjs.com/package/@sentry/babel-plugin-component-annotate) ([#3899](https://github.com/getsentry/sentry-react-native/pull/3899))
+- Add replay breadcrumbs for touch & navigation events ([#3846](https://github.com/getsentry/sentry-react-native/pull/3846))
+- Add network data to Session Replays ([#3912](https://github.com/getsentry/sentry-react-native/pull/3912))
+- Filter Sentry Event Breadcrumbs from Mobile Replays ([#3925](https://github.com/getsentry/sentry-react-native/pull/3925))
+
+### Fixes
+
+- `sentry-expo-upload-sourcemaps` no longer requires Sentry url when uploading sourcemaps to `sentry.io` ([#3915](https://github.com/getsentry/sentry-react-native/pull/3915))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.25.0-alpha.0 to v8.30.0 ([#3914](https://github.com/getsentry/sentry-react-native/pull/3914))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8300)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.25.0-alpha.0...8.30.0)
+- Bump Android SDK from v7.9.0-alpha.1 to v7.11.0-alpha.2 ([#3830](https://github.com/getsentry/sentry-react-native/pull/3830))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/7.11.0-alpha.2/CHANGELOG.md#7110-alpha2)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.9.0-alpha.1...7.11.0-alpha.2)
+
+Access to Mobile Replay is limited to early access orgs on Sentry. If you're interested, [sign up for the waitlist](https://sentry.io/lp/mobile-replay-beta/)
+
+## 5.24.1
+
+### Fixes
+
+- App Start Native Frames can start with zeroed values ([#3881](https://github.com/getsentry/sentry-react-native/pull/3881))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.28.0 to v8.29.1 ([#3890](https://github.com/getsentry/sentry-react-native/pull/3890))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8291)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.28.0...8.29.1)
+
+## 5.24.0
+
+### Features
+
+- Add native application start spans ([#3855](https://github.com/getsentry/sentry-react-native/pull/3855), [#3884](https://github.com/getsentry/sentry-react-native/pull/3884))
   - This doesn't change the app start measurement length, but add child spans (more detail) into the existing app start span
 - Added JS Bundle Execution start information to the application start measurements ([#3857](https://github.com/getsentry/sentry-react-native/pull/3857))
+
+### Fixes
+
+- Add more expressive debug logs to Native Frames Integration ([#3880](https://github.com/getsentry/sentry-react-native/pull/3880))
+- Add missing tracing integrations when using `client.init()` ([#3882](https://github.com/getsentry/sentry-react-native/pull/3882))
+- Ensure `sentry-cli` doesn't trigger Xcode `error:` prefix ([#3887](https://github.com/getsentry/sentry-react-native/pull/3887))
+  - Fixes `--allow-failure` failing Xcode builds
 
 ### Dependencies
 
@@ -16,6 +159,9 @@
 - Bump Android SDK from v7.8.0 to v7.10.0 ([#3805](https://github.com/getsentry/sentry-react-native/pull/3805))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7100)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.8.0...7.10.0)
+- Bump JavaScript SDK from v7.113.0 to v7.117.0 ([#3806](https://github.com/getsentry/sentry-react-native/pull/3806))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/v7/CHANGELOG.md#71170)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.113.0...7.117.0)
 
 ## 5.23.1
 
@@ -78,6 +224,14 @@ This release does *not* build on iOS. Please use `5.23.1` or newer.
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8270)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.26.0...8.27.0)
 
+## 5.23.0-alpha.1
+
+### Fixes
+
+- Pass `replaysSessionSampleRate` option to Android ([#3714](https://github.com/getsentry/sentry-react-native/pull/3714))
+
+Access to Mobile Replay is limited to early access orgs on Sentry. If you're interested, [sign up for the waitlist](https://sentry.io/lp/mobile-replay-beta/)
+
 ## 5.22.3
 
 ### Fixes
@@ -110,6 +264,47 @@ This release does *not* build on iOS. Please use `5.23.1` or newer.
 - Bump Cocoa SDK from v8.24.0 to v8.25.0 ([#3790](https://github.com/getsentry/sentry-react-native/pull/3790))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8250)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.24.0...8.25.0)
+
+## 5.23.0-alpha.0
+
+### Features
+
+- Mobile Session Replay Alpha ([#3714](https://github.com/getsentry/sentry-react-native/pull/3714))
+
+  To enable Replay for React Native on mobile and web add the following options.
+
+  ```js
+  Sentry.init({
+    _experiments: {
+      replaysSessionSampleRate: 1.0,
+      replaysOnErrorSampleRate: 1.0,
+    },
+  });
+  ```
+
+  To change the default Mobile Replay options add the `mobileReplayIntegration`.
+
+  ```js
+  Sentry.init({
+    _experiments: {
+      replaysSessionSampleRate: 1.0,
+      replaysOnErrorSampleRate: 1.0,
+    },
+    integrations: [
+      Sentry.mobileReplayIntegration({
+        maskAllText: true,
+        maskAllImages: true,
+      }),
+    ],
+  });
+  ```
+
+  Access is limited to early access orgs on Sentry. If you're interested, [sign up for the waitlist](https://sentry.io/lp/mobile-replay-beta/)
+
+### Dependencies
+
+- Bump Cocoa SDK to [8.25.0-alpha.0](https://github.com/getsentry/sentry-cocoa/releases/tag/8.25.0-alpha.0)
+- Bump Android SDK to [7.9.0-alpha.1](https://github.com/getsentry/sentry-java/releases/tag/7.9.0-alpha.1)
 
 ## 5.22.0
 
@@ -389,7 +584,7 @@ see [the Expo guide](https://docs.sentry.io/platforms/react-native/manual-setup/
   const { getSentryExpoConfig } = require("@sentry/react-native/metro");
 
   // const config = getDefaultConfig(__dirname);
-  const config = getSentryExpoConfig(config, {});
+  const config = getSentryExpoConfig(__dirname);
   ```
 
 - New `npx sentry-expo-upload-sourcemaps` for simple EAS Update (`npx expo export`) source maps upload ([#3491](https://github.com/getsentry/sentry-react-native/pull/3491), [#3510](https://github.com/getsentry/sentry-react-native/pull/3510), [#3515](https://github.com/getsentry/sentry-react-native/pull/3515), [#3507](https://github.com/getsentry/sentry-react-native/pull/3507))
@@ -621,7 +816,7 @@ This release is compatible with `expo@50.0.0-preview.6` and newer.
   });
   ```
 
-  Read more at https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7690
+  Read more at <https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#7690>
 
 - Report current screen in `contexts.app.view_names` ([#3339](https://github.com/getsentry/sentry-react-native/pull/3339))
 
@@ -1012,6 +1207,7 @@ This has been fixed in [version `5.9.1`](https://github.com/getsentry/sentry-rea
 ## 5.4.0
 
 ### Features
+
 - Add TS 4.1 typings ([#2995](https://github.com/getsentry/sentry-react-native/pull/2995))
   - TS 3.8 are present and work automatically with older projects
 - Add CPU Info to Device Context ([#2984](https://github.com/getsentry/sentry-react-native/pull/2984))
@@ -2659,7 +2855,7 @@ We are looking into ways making this more stable and plan to re-enable it again 
 
 ## v0.23.2
 
-- Fixed #228 again ¯\\_(ツ)_/¯
+- Fixed #228 again ¯\\*(ツ)*/¯
 
 ## v0.23.1
 

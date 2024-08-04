@@ -158,4 +158,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         // Not used on Android
         return null;
     }
+
+    @ReactMethod
+    public void captureReplay(boolean isHardCrash, Promise promise) {
+        this.impl.captureReplay(isHardCrash, promise);
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String getCurrentReplayId() {
+        return this.impl.getCurrentReplayId();
+    }
 }

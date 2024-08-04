@@ -24,6 +24,9 @@ const INTEGRATION_NAME = 'AppStart';
  */
 const MAX_APP_START_DURATION_MS = 60_000;
 
+/** We filter out App starts which timestamp is 60s and more before the transaction start */
+const MAX_APP_START_AGE_MS = 60_000;
+
 let recordedAppStartEndTimestampMs: number | undefined = undefined;
 let rootComponentCreationTimestampMs: number | undefined = undefined;
 
@@ -98,6 +101,13 @@ export const appStartIntegration = (): Integration => {
       logger.warn(
         '[AppStart] Javascript failed to record app start end. `setAppStartEndTimestampMs` was not called nor could the bundle start be found.',
       );
+      return;
+    }
+
+    const isAppStartWithinBounds = !!event.start_timestamp &&
+      appStartTimestampMs >= event.start_timestamp - MAX_APP_START_AGE_MS;
+    if (!__DEV__ && !isAppStartWithinBounds) {
+      logger.warn('[AppStart] App start timestamp is too far in the past to be used for app start span.');
       return;
     }
 
@@ -202,7 +212,7 @@ function createJSExecutionStartSpan(
 ): SpanJSON | undefined {
   const bundleStartTimestampMs = getBundleStartTimestampMs();
   if (!bundleStartTimestampMs) {
-    return;
+    return undefined;
   }
 
   if (!rootComponentCreationTimestampMs) {

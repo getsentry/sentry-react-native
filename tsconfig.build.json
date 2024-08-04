@@ -24,6 +24,7 @@
     "module": "es6",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    "strictBindCallApply": true
+    "strictBindCallApply": true,
+    "strictNullChecks": false
   }
 }

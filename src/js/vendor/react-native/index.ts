@@ -41,10 +41,12 @@ export type CodeFrame = Readonly<{
 }>;
 
 // Adapted from https://github.com/facebook/react-native/blob/d09c02f9e2d468e4d0bde51890e312ae7003a3e6/packages/react-native/Libraries/Core/Devtools/symbolicateStackTrace.js#L27
-export type SymbolicatedStackTrace = Readonly<{
-  stack: Array<StackFrame>;
-  codeFrame?: CodeFrame;
-}>;
+export type SymbolicatedStackTrace =
+  | Readonly<{
+      stack: Array<StackFrame>;
+      codeFrame?: CodeFrame;
+    }>
+  | Array<StackFrame>;
 
 // Adapted from https://github.com/facebook/react-native/blob/d09c02f9e2d468e4d0bde51890e312ae7003a3e6/packages/react-native/Libraries/Core/Devtools/getDevServer.js#L17
 export type DevServerInfo = {
@@ -63,4 +65,14 @@ type TurboModule = {
 export type TurboModuleRegistry = {
   get<T extends TurboModule>(name: string): T | null;
   getEnforcing<T extends TurboModule>(name: string): T;
+};
+
+// Adapted from https://github.com/facebook/react-native/blob/575ab7862553d7ad7bc753951ed19dcd50d59b95/packages/react-native/Libraries/Utilities/Platform.d.ts#L23-L28
+export type ReactNativeVersion = {
+  version: {
+    major: number;
+    minor: number;
+    patch: number;
+    prerelease?: number | null | undefined;
+  };
 };
