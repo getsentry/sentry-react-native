@@ -254,18 +254,18 @@ function convertNativeSpansToSpanJSON(parentSpan: SpanJSON, nativeSpans: NativeA
 function createUIKitSpan(parentSpan: SpanJSON, nativeUIKitSpan: NativeAppStartResponse['spans'][number]): SpanJSON {
   const bundleStart = getBundleStartTimestampMs();
 
-  // If UIKit init ends after the bundle start the native SDK was auto initialize
-  // and so the end timestamp is incorrect
-  // The timestamps can't equal as after UIKit RN initializes
+  // If UIKit init ends after the bundle start, the native SDK was auto-initialized
+  // and so the end timestamp is incorrect.
+  // The timestamps can't equal, as RN initializes after UIKit.
   if (bundleStart && bundleStart < nativeUIKitSpan.end_timestamp_ms) {
     return createChildSpanJSON(parentSpan, {
-      description: 'UIKit init start',
+      description: 'UIKit Init to JS Exec Start',
       start_timestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
-      timestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
+      timestamp: bundleStart / 1000,
     });
   } else {
     return createChildSpanJSON(parentSpan, {
-      description: 'UIKit init',
+      description: 'UIKit Init',
       start_timestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
       timestamp: nativeUIKitSpan.end_timestamp_ms / 1000,
     });

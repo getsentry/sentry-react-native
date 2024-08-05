@@ -56,6 +56,7 @@ jest.mock('@sentry/utils', () => {
 describe('App Start Integration', () => {
   beforeEach(() => {
     mockReactNativeBundleExecutionStartTimestamp();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -205,17 +206,106 @@ describe('App Start Integration', () => {
       );
     });
 
-    it('adds native spans as a child of the main app start span', async () => {});
+    it('adds native spans as a child of the main app start span', async () => {
+      const [timeOriginMilliseconds] = mockAppStart({
+        cold: true,
+        enableNativeSpans: true,
+      });
 
-    it('adds ui kit init full length as a child of the main app start span', async () => {});
+      const actualEvent = await processEvent(getMinimalTransactionEvent());
 
-    it('adds ui kit init start mark as a child of the main app start span', async () => {});
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const nativeSpan = actualEvent!.spans!.find(({ description }) => description === 'test native app start span');
+
+      expect(appStartRootSpan).toEqual(
+        expect.objectContaining(<SpanJSON>{
+          description: 'Cold App Start',
+          span_id: expect.any(String),
+          op: APP_START_COLD_OP,
+        }),
+      );
+      expect(nativeSpan).toEqual(
+        expect.objectContaining(<SpanJSON>{
+          description: 'test native app start span',
+          start_timestamp: (timeOriginMilliseconds - 100) / 1000,
+          timestamp: (timeOriginMilliseconds - 50) / 1000,
+          parent_span_id: appStartRootSpan!.span_id, // parent is the root app start span
+          op: appStartRootSpan!.op, // op is the same as the root app start span
+        }),
+      );
+    });
+
+    it('adds ui kit init full length as a child of the main app start span', async () => {
+      const timeOriginMilliseconds = Date.now();
+      mockAppStart({
+        cold: true,
+        enableNativeSpans: true,
+        customNativeSpans: [
+          {
+            description: 'UIKit init', // init with lower case is emitted by the native layer
+            start_timestamp_ms: timeOriginMilliseconds - 100,
+            end_timestamp_ms: timeOriginMilliseconds - 60,
+          },
+        ],
+      });
+      mockReactNativeBundleExecutionStartTimestamp();
+
+      const actualEvent = await processEvent(getMinimalTransactionEvent());
+
+      const nativeSpan = actualEvent!.spans!.find(({ description }) => description?.startsWith('UIKit Init'));
+
+      expect(nativeSpan).toBeDefined();
+      expect(nativeSpan).toEqual(
+        expect.objectContaining(<SpanJSON>{
+          description: 'UIKit Init',
+          start_timestamp: (timeOriginMilliseconds - 100) / 1000,
+          timestamp: (timeOriginMilliseconds - 60) / 1000,
+        }),
+      );
+    });
+
+    it('adds ui kit init start mark as a child of the main app start span', async () => {
+      const timeOriginMilliseconds = Date.now();
+      mockAppStart({
+        cold: true,
+        enableNativeSpans: true,
+        customNativeSpans: [
+          {
+            description: 'UIKit init', // init with lower case is emitted by the native layer
+            start_timestamp_ms: timeOriginMilliseconds - 100,
+            end_timestamp_ms: timeOriginMilliseconds - 20, // After mocked bundle execution start
+          },
+        ],
+      });
+      mockReactNativeBundleExecutionStartTimestamp();
+
+      const actualEvent = await processEvent(getMinimalTransactionEvent());
+
+      const nativeRuntimeInitSpan = actualEvent!.spans!.find(({ description }) =>
+        description?.startsWith('UIKit Init to JS Exec Start'),
+      );
+
+      expect(nativeRuntimeInitSpan).toBeDefined();
+      expect(nativeRuntimeInitSpan).toEqual(
+        expect.objectContaining(<SpanJSON>{
+          description: 'UIKit Init to JS Exec Start',
+          start_timestamp: (timeOriginMilliseconds - 100) / 1000,
+          timestamp: (timeOriginMilliseconds - 50) / 1000,
+        }),
+      );
+    });
 
     it('Does not add app start span twice', async () => {});
 
     it('Does not add app start span when marked as fetched from the native layer', async () => {});
 
-    it('Does not add app start if native returns null', async () => {});
+    it('Does not add app start if native returns null', async () => {
+      mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(null);
+
+      const actualEvent = await processEvent(getMinimalTransactionEvent());
+      expect(actualEvent).toStrictEqual(getMinimalTransactionEvent());
+      expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
+    });
   });
 });
 

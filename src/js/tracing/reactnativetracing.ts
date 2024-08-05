@@ -23,7 +23,6 @@ import {
   onlySampleIfChildSpans,
   onThisSpanEnd,
 } from './onSpanEndUtils';
-import { UI_LOAD } from './ops';
 import { StallTrackingInstrumentation } from './stalltracking';
 import type { BeforeNavigate } from './types';
 
@@ -217,10 +216,6 @@ export class ReactNativeTracing implements Integration {
       );
     } else {
       logger.log('[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.');
-      this._createRouteTransaction({
-        name: 'App Start',
-        op: UI_LOAD,
-      });
     }
 
     addDefaultOpForSpanFrom(client);
