@@ -63,8 +63,6 @@ describe('App Start Integration', () => {
     clearReactNativeBundleExecutionStartTimestamp();
   });
 
-  it('Creates standalone App Start Transaction when no routing instrumentation enabled', () => {});
-
   describe('App Start Attached to the First Root Span', () => {
     it('Does not add App Start Span to Error Event', async () => {
       const inputEvent: ErrorEvent = {
@@ -295,9 +293,32 @@ describe('App Start Integration', () => {
       );
     });
 
-    it('Does not add app start span twice', async () => {});
+    it('Does not add app start span twice', async () => {
+      const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStart({ cold: true });
 
-    it('Does not add app start span when marked as fetched from the native layer', async () => {});
+      const integration = appStartIntegration();
+      const client = new TestClient(getDefaultTestClientOptions());
+
+      const actualEvent = await integration.processEvent(getMinimalTransactionEvent(), {}, client);
+      expect(actualEvent).toEqual(
+        expectEventWithColdAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
+      );
+
+      const secondEvent = await integration.processEvent(getMinimalTransactionEvent(), {}, client);
+      expect(secondEvent).toStrictEqual(getMinimalTransactionEvent());
+    });
+
+    it('Does not add app start span when marked as fetched from the native layer', async () => {
+      mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue({
+        type: 'cold',
+        has_fetched: true,
+        spans: [],
+      });
+
+      const actualEvent = await processEvent(getMinimalTransactionEvent());
+      expect(actualEvent).toStrictEqual(getMinimalTransactionEvent());
+      expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
+    });
 
     it('Does not add app start if native returns null', async () => {
       mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(null);
