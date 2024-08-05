@@ -1,4 +1,11 @@
-import { SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
+import {
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
+  setCurrentClient,
+} from '@sentry/core';
 import type { ErrorEvent, Event, SpanJSON, TransactionEvent } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 
@@ -13,8 +20,9 @@ import {
   UI_LOAD,
 } from '../../src/js/tracing';
 import {
+  _clearRootComponentCreationTimestampMs,
+  _setAppStartEndTimestampMs,
   appStartIntegration,
-  setAppStartEndTimestampMs,
   setRootComponentCreationTimestampMs,
 } from '../../src/js/tracing/integrations/appStart';
 import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
@@ -63,6 +71,275 @@ describe('App Start Integration', () => {
     clearReactNativeBundleExecutionStartTimestamp();
   });
 
+  describe('Standalone App Start', () => {
+    it('Adds Cold App Start Span to Active Span', async () => {
+      const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStart({ cold: true });
+
+      const actualEvent = await captureStandAloneAppStart();
+      expect(actualEvent).toEqual(
+        expectEventWithStandaloneColdAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
+      );
+    });
+
+    it('Adds Warm App Start Span to Active Span', async () => {
+      const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStart({ cold: false });
+
+      const actualEvent = await captureStandAloneAppStart();
+      expect(actualEvent).toEqual(
+        expectEventWithStandaloneWarmAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
+      );
+    });
+
+    it('Does not add any spans or measurements when App Start Span is longer than threshold', async () => {
+      set__DEV__(false);
+      mockTooLongAppStart();
+
+      const actualEvent = await captureStandAloneAppStart();
+      expect(actualEvent).toStrictEqual(undefined);
+    });
+
+    it('Does add App Start Span spans and measurements longer than threshold in development builds', async () => {
+      set__DEV__(true);
+      const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockTooLongAppStart();
+
+      const actualEvent = await captureStandAloneAppStart();
+      expect(actualEvent).toEqual(
+        expectEventWithStandaloneWarmAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
+      );
+    });
+
+    it('Does not add App Start Span older than threshold', async () => {
+      set__DEV__(false);
+      mockTooOldAppStart();
+
+      const actualEvent = await captureStandAloneAppStart();
+      expect(actualEvent).toStrictEqual(undefined);
+    });
+
+    it('Does add App Start Span older than threshold in development builds', async () => {
+      set__DEV__(true);
+      const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockTooOldAppStart();
+
+      const actualEvent = await captureStandAloneAppStart();
+      expect(actualEvent).toEqual(
+        expectEventWithStandaloneWarmAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
+      );
+    });
+
+    it('Does not create app start transaction if has_fetched == true', async () => {
+      mockAppStart({ has_fetched: true });
+
+      const actualEvent = await captureStandAloneAppStart();
+      expect(actualEvent).toStrictEqual(undefined);
+    });
+
+    it('Does not add bundle execution span when bundle start time is missing', async () => {
+      clearReactNativeBundleExecutionStartTimestamp();
+
+      const actualEvent = await captureStandAloneAppStart();
+      expect(actualEvent).toStrictEqual(undefined);
+    });
+
+    it('Adds bundle execution span', async () => {
+      _clearRootComponentCreationTimestampMs();
+      mockReactNativeBundleExecutionStartTimestamp();
+      const [timeOriginMilliseconds] = mockAppStart({ cold: true });
+
+      const actualEvent = await captureStandAloneAppStart();
+
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const bundleStartSpan = actualEvent!.spans!.find(
+        ({ description }) => description === 'JS Bundle Execution Start',
+      );
+
+      expect(appStartRootSpan).toEqual(
+        expect.objectContaining(<SpanJSON>{
+          description: 'Cold App Start',
+          span_id: expect.any(String),
+          op: APP_START_COLD_OP,
+        }),
+      );
+      expect(bundleStartSpan).toEqual(
+        expect.objectContaining(<SpanJSON>{
+          description: 'JS Bundle Execution Start',
+          start_timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
+          timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
+          parent_span_id: appStartRootSpan!.span_id, // parent is the root app start span
+          op: appStartRootSpan!.op, // op is the same as the root app start span
+        }),
+      );
+    });
+
+    it('adds bundle execution before react root', async () => {
+      mockReactNativeBundleExecutionStartTimestamp();
+      const [timeOriginMilliseconds] = mockAppStart({ cold: true });
+      setRootComponentCreationTimestampMs(timeOriginMilliseconds - 10);
+
+      const actualEvent = await captureStandAloneAppStart();
+
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const bundleStartSpan = actualEvent!.spans!.find(
+        ({ description }) => description === 'JS Bundle Execution Before React Root',
+      );
+
+      expect(appStartRootSpan).toEqual(
+        expect.objectContaining(<SpanJSON>{
+          description: 'Cold App Start',
+          span_id: expect.any(String),
+          op: APP_START_COLD_OP,
+        }),
+      );
+      expect(bundleStartSpan).toEqual(
+        expect.objectContaining(<SpanJSON>{
+          description: 'JS Bundle Execution Before React Root',
+          start_timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
+          timestamp: (timeOriginMilliseconds - 10) / 1000,
+          parent_span_id: appStartRootSpan!.span_id, // parent is the root app start span
+          op: appStartRootSpan!.op, // op is the same as the root app start span
+        }),
+      );
+    });
+
+    it('adds native spans as a child of the main app start span', async () => {
+      const [timeOriginMilliseconds] = mockAppStart({
+        cold: true,
+        enableNativeSpans: true,
+      });
+
+      const actualEvent = await captureStandAloneAppStart();
+
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const nativeSpan = actualEvent!.spans!.find(({ description }) => description === 'test native app start span');
+
+      expect(appStartRootSpan).toEqual(
+        expect.objectContaining(<SpanJSON>{
+          description: 'Cold App Start',
+          span_id: expect.any(String),
+          op: APP_START_COLD_OP,
+        }),
+      );
+      expect(nativeSpan).toEqual(
+        expect.objectContaining(<SpanJSON>{
+          description: 'test native app start span',
+          start_timestamp: (timeOriginMilliseconds - 100) / 1000,
+          timestamp: (timeOriginMilliseconds - 50) / 1000,
+          parent_span_id: appStartRootSpan!.span_id, // parent is the root app start span
+          op: appStartRootSpan!.op, // op is the same as the root app start span
+        }),
+      );
+    });
+
+    it('adds ui kit init full length as a child of the main app start span', async () => {
+      const timeOriginMilliseconds = Date.now();
+      mockAppStart({
+        cold: true,
+        enableNativeSpans: true,
+        customNativeSpans: [
+          {
+            description: 'UIKit init', // init with lower case is emitted by the native layer
+            start_timestamp_ms: timeOriginMilliseconds - 100,
+            end_timestamp_ms: timeOriginMilliseconds - 60,
+          },
+        ],
+      });
+      mockReactNativeBundleExecutionStartTimestamp();
+
+      const actualEvent = await captureStandAloneAppStart();
+
+      const nativeSpan = actualEvent!.spans!.find(({ description }) => description?.startsWith('UIKit Init'));
+
+      expect(nativeSpan).toBeDefined();
+      expect(nativeSpan).toEqual(
+        expect.objectContaining(<SpanJSON>{
+          description: 'UIKit Init',
+          start_timestamp: (timeOriginMilliseconds - 100) / 1000,
+          timestamp: (timeOriginMilliseconds - 60) / 1000,
+        }),
+      );
+    });
+
+    it('adds ui kit init start mark as a child of the main app start span', async () => {
+      const timeOriginMilliseconds = Date.now();
+      mockAppStart({
+        cold: true,
+        enableNativeSpans: true,
+        customNativeSpans: [
+          {
+            description: 'UIKit init', // init with lower case is emitted by the native layer
+            start_timestamp_ms: timeOriginMilliseconds - 100,
+            end_timestamp_ms: timeOriginMilliseconds - 20, // After mocked bundle execution start
+          },
+        ],
+      });
+      mockReactNativeBundleExecutionStartTimestamp();
+
+      const actualEvent = await captureStandAloneAppStart();
+
+      const nativeRuntimeInitSpan = actualEvent!.spans!.find(({ description }) =>
+        description?.startsWith('UIKit Init to JS Exec Start'),
+      );
+
+      expect(nativeRuntimeInitSpan).toBeDefined();
+      expect(nativeRuntimeInitSpan).toEqual(
+        expect.objectContaining(<SpanJSON>{
+          description: 'UIKit Init to JS Exec Start',
+          start_timestamp: (timeOriginMilliseconds - 100) / 1000,
+          timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
+        }),
+      );
+    });
+
+    it('Does not add app start span twice', async () => {
+      getCurrentScope().clear();
+      getIsolationScope().clear();
+      getGlobalScope().clear();
+
+      const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStart({ cold: true });
+
+      const integration = appStartIntegration({
+        standalone: true,
+      });
+      const client = new TestClient({
+        ...getDefaultTestClientOptions(),
+        tracesSampleRate: 1.0,
+        enableAppStartTracking: true,
+      });
+      setCurrentClient(client);
+
+      integration.setup(client);
+      await integration.captureStandaloneAppStart();
+      const actualEvent = client.event;
+      expect(actualEvent).toEqual(
+        expectEventWithStandaloneColdAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
+      );
+
+      client.event = undefined;
+      await integration.captureStandaloneAppStart();
+      const secondEvent = client.event;
+      expect(secondEvent).toBe(undefined);
+    });
+
+    it('Does not add app start span when marked as fetched from the native layer', async () => {
+      mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue({
+        type: 'cold',
+        has_fetched: true,
+        spans: [],
+      });
+
+      const actualEvent = await captureStandAloneAppStart();
+      expect(actualEvent).toStrictEqual(undefined);
+      expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
+    });
+
+    it('Does not add app start if native returns null', async () => {
+      mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(null);
+
+      const actualEvent = await captureStandAloneAppStart();
+      expect(actualEvent).toStrictEqual(undefined);
+      expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
+    });
+  });
+
   describe('App Start Attached to the First Root Span', () => {
     it('Does not add App Start Span to Error Event', async () => {
       const inputEvent: ErrorEvent = {
@@ -80,7 +357,7 @@ describe('App Start Integration', () => {
 
       const actualEvent = await processEvent(getMinimalTransactionEvent());
       expect(actualEvent).toEqual(
-        expectEventWithColdAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
+        expectEventWithAttachedColdAppStart({ timeOriginMilliseconds, appStartTimeMilliseconds }),
       );
     });
 
@@ -89,7 +366,7 @@ describe('App Start Integration', () => {
 
       const actualEvent = await processEvent(getMinimalTransactionEvent());
       expect(actualEvent).toEqual(
-        expectEventWithWarmAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
+        expectEventWithAttachedWarmAppStart({ timeOriginMilliseconds, appStartTimeMilliseconds }),
       );
     });
 
@@ -107,7 +384,7 @@ describe('App Start Integration', () => {
 
       const actualEvent = await processEvent(getMinimalTransactionEvent());
       expect(actualEvent).toEqual(
-        expectEventWithWarmAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
+        expectEventWithAttachedWarmAppStart({ timeOriginMilliseconds, appStartTimeMilliseconds }),
       );
     });
 
@@ -127,7 +404,7 @@ describe('App Start Integration', () => {
         getMinimalTransactionEvent({ startTimestampSeconds: timeOriginMilliseconds }),
       );
       expect(actualEvent).toEqual(
-        expectEventWithWarmAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
+        expectEventWithAttachedWarmAppStart({ timeOriginMilliseconds, appStartTimeMilliseconds }),
       );
     });
 
@@ -146,6 +423,7 @@ describe('App Start Integration', () => {
     });
 
     it('Adds bundle execution span', async () => {
+      _clearRootComponentCreationTimestampMs();
       mockReactNativeBundleExecutionStartTimestamp();
       const [timeOriginMilliseconds] = mockAppStart({ cold: true });
 
@@ -288,7 +566,7 @@ describe('App Start Integration', () => {
         expect.objectContaining(<SpanJSON>{
           description: 'UIKit Init to JS Exec Start',
           start_timestamp: (timeOriginMilliseconds - 100) / 1000,
-          timestamp: (timeOriginMilliseconds - 50) / 1000,
+          timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
         }),
       );
     });
@@ -301,7 +579,7 @@ describe('App Start Integration', () => {
 
       const actualEvent = await integration.processEvent(getMinimalTransactionEvent(), {}, client);
       expect(actualEvent).toEqual(
-        expectEventWithColdAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
+        expectEventWithAttachedColdAppStart({ timeOriginMilliseconds, appStartTimeMilliseconds }),
       );
 
       const secondEvent = await integration.processEvent(getMinimalTransactionEvent(), {}, client);
@@ -335,6 +613,26 @@ function processEvent(event: Event): PromiseLike<Event | null> | Event | null {
   return integration.processEvent(event, {}, new TestClient(getDefaultTestClientOptions()));
 }
 
+async function captureStandAloneAppStart(): Promise<PromiseLike<Event | null> | Event | null> {
+  getCurrentScope().clear();
+  getIsolationScope().clear();
+  getGlobalScope().clear();
+
+  const integration = appStartIntegration({
+    standalone: true,
+  });
+  const client = new TestClient({
+    ...getDefaultTestClientOptions(),
+    enableAppStartTracking: true,
+    tracesSampleRate: 1.0,
+  });
+  setCurrentClient(client);
+  integration.setup(client);
+  await integration.captureStandaloneAppStart();
+
+  return client.event;
+}
+
 function getMinimalTransactionEvent({
   startTimestampSeconds = 100,
 }: {
@@ -363,16 +661,13 @@ function getMinimalTransactionEvent({
   };
 }
 
-function expectEventWithColdAppStart(
-  event: Event,
-  {
-    timeOriginMilliseconds,
-    appStartTimeMilliseconds,
-  }: {
-    timeOriginMilliseconds: number;
-    appStartTimeMilliseconds: number;
-  },
-) {
+function expectEventWithAttachedColdAppStart({
+  timeOriginMilliseconds,
+  appStartTimeMilliseconds,
+}: {
+  timeOriginMilliseconds: number;
+  appStartTimeMilliseconds: number;
+}) {
   return expect.objectContaining<TransactionEvent>({
     type: 'transaction',
     start_timestamp: appStartTimeMilliseconds / 1000,
@@ -418,16 +713,13 @@ function expectEventWithColdAppStart(
   });
 }
 
-function expectEventWithWarmAppStart(
-  event: Event,
-  {
-    timeOriginMilliseconds,
-    appStartTimeMilliseconds,
-  }: {
-    timeOriginMilliseconds: number;
-    appStartTimeMilliseconds: number;
-  },
-) {
+function expectEventWithAttachedWarmAppStart({
+  timeOriginMilliseconds,
+  appStartTimeMilliseconds,
+}: {
+  timeOriginMilliseconds: number;
+  appStartTimeMilliseconds: number;
+}) {
   return expect.objectContaining<TransactionEvent>({
     type: 'transaction',
     start_timestamp: appStartTimeMilliseconds / 1000,
@@ -473,6 +765,100 @@ function expectEventWithWarmAppStart(
   });
 }
 
+function expectEventWithStandaloneColdAppStart(
+  actualEvent: Event,
+  {
+    timeOriginMilliseconds,
+    appStartTimeMilliseconds,
+  }: {
+    timeOriginMilliseconds: number;
+    appStartTimeMilliseconds: number;
+  },
+) {
+  return expect.objectContaining<TransactionEvent>({
+    type: 'transaction',
+    start_timestamp: appStartTimeMilliseconds / 1000,
+    contexts: expect.objectContaining({
+      trace: expect.objectContaining({
+        op: UI_LOAD,
+        data: expect.objectContaining({
+          [SEMANTIC_ATTRIBUTE_SENTRY_OP]: UI_LOAD,
+        }),
+      }),
+    }),
+    measurements: expect.objectContaining({
+      [APP_START_COLD_MEASUREMENT]: {
+        value: timeOriginMilliseconds - appStartTimeMilliseconds,
+        unit: 'millisecond',
+      },
+    }),
+    spans: expect.arrayContaining<SpanJSON>([
+      {
+        op: APP_START_COLD_OP,
+        description: 'Cold App Start',
+        start_timestamp: appStartTimeMilliseconds / 1000,
+        timestamp: expect.any(Number),
+        trace_id: expect.any(String),
+        span_id: expect.any(String),
+        parent_span_id: actualEvent!.contexts!.trace!.span_id,
+        origin: 'auto',
+        status: 'ok',
+        data: {
+          [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'auto',
+        },
+      },
+    ]),
+  });
+}
+
+function expectEventWithStandaloneWarmAppStart(
+  actualEvent: Event,
+  {
+    timeOriginMilliseconds,
+    appStartTimeMilliseconds,
+  }: {
+    timeOriginMilliseconds: number;
+    appStartTimeMilliseconds: number;
+  },
+) {
+  return expect.objectContaining<TransactionEvent>({
+    type: 'transaction',
+    start_timestamp: appStartTimeMilliseconds / 1000,
+    contexts: expect.objectContaining({
+      trace: expect.objectContaining({
+        op: UI_LOAD,
+        data: expect.objectContaining({
+          [SEMANTIC_ATTRIBUTE_SENTRY_OP]: UI_LOAD,
+        }),
+      }),
+    }),
+    measurements: expect.objectContaining({
+      [APP_START_WARM_MEASUREMENT]: {
+        value: timeOriginMilliseconds - appStartTimeMilliseconds,
+        unit: 'millisecond',
+      },
+    }),
+    spans: expect.arrayContaining<SpanJSON>([
+      {
+        op: APP_START_WARM_OP,
+        description: 'Warm App Start',
+        start_timestamp: appStartTimeMilliseconds / 1000,
+        timestamp: expect.any(Number),
+        trace_id: expect.any(String),
+        span_id: expect.any(String),
+        parent_span_id: actualEvent!.contexts!.trace!.span_id,
+        origin: 'auto',
+        status: 'ok',
+        data: {
+          [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_WARM_OP,
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'auto',
+        },
+      },
+    ]),
+  });
+}
+
 function mockAppStart({
   cold = false,
   has_fetched = false,
@@ -502,7 +888,7 @@ function mockAppStart({
       : [],
   };
 
-  setAppStartEndTimestampMs(timeOriginMilliseconds);
+  _setAppStartEndTimestampMs(timeOriginMilliseconds);
   mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
   mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
@@ -519,7 +905,7 @@ function mockTooLongAppStart() {
     spans: [],
   };
 
-  setAppStartEndTimestampMs(timeOriginMilliseconds);
+  _setAppStartEndTimestampMs(timeOriginMilliseconds);
   mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
   mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
@@ -537,7 +923,7 @@ function mockTooOldAppStart() {
   };
 
   // App start finish timestamp
-  setAppStartEndTimestampMs(timeOriginMilliseconds);
+  _setAppStartEndTimestampMs(timeOriginMilliseconds);
   mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds - 64000);
   mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
   // Transaction start timestamp

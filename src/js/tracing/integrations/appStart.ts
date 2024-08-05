@@ -1,22 +1,36 @@
 /* eslint-disable complexity */
-import type { Event, Integration, SpanJSON, TransactionEvent } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import {
+  getCapturedScopesOnSpan,
+  getClient,
+  getCurrentScope,
+  SentryNonRecordingSpan,
+  startInactiveSpan,
+} from '@sentry/core';
+import type { Client, Event, Integration, SpanJSON, TransactionEvent } from '@sentry/types';
+import { logger, timestampInSeconds } from '@sentry/utils';
 
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,
 } from '../../measurements';
 import type { NativeAppStartResponse } from '../../NativeRNSentry';
+import type { ReactNativeClientOptions } from '../../options';
+import { convertSpanToTransaction, setEndTimeValue } from '../../utils/span';
 import { NATIVE } from '../../wrapper';
 import {
   APP_START_COLD as APP_START_COLD_OP,
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD as UI_LOAD_OP,
 } from '../ops';
+import { ReactNativeTracing } from '../reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP } from '../semanticAttributes';
 import { createChildSpanJSON, createSpanJSON, getBundleStartTimestampMs } from '../utils';
 
 const INTEGRATION_NAME = 'AppStart';
+
+export type AppStartIntegration = Integration & {
+  captureStandaloneAppStart: () => Promise<void>;
+};
 
 /**
  * We filter out app start more than 60s.
@@ -28,37 +42,97 @@ const MAX_APP_START_DURATION_MS = 60_000;
 /** We filter out App starts which timestamp is 60s and more before the transaction start */
 const MAX_APP_START_AGE_MS = 60_000;
 
+/** App Start transaction name */
+const APP_START_TX_NAME = 'App Start';
+
 let recordedAppStartEndTimestampMs: number | undefined = undefined;
 let rootComponentCreationTimestampMs: number | undefined = undefined;
 
 /**
  * Records the application start end.
- * Used automatically by `Sentry.wrap`.
+ * Used automatically by `Sentry.wrap` and `Sentry.ReactNativeProfiler`.
  */
-export const setAppStartEndTimestampMs = (timestampMs: number): void => {
+export async function captureAppStart(): Promise<void> {
+  const client = getClient();
+  if (!client) {
+    logger.warn('[AppStart] Could not capture App Start, missing client.');
+    return;
+  }
+
+  _setAppStartEndTimestampMs(timestampInSeconds() * 1000);
+  await client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.captureStandaloneAppStart();
+}
+
+/**
+ * Sets the root component first constructor call timestamp.
+ * Used automatically by `Sentry.wrap` and `Sentry.ReactNativeProfiler`.
+ */
+export function setRootComponentCreationTimestampMs(timestampMs: number): void {
+  recordedAppStartEndTimestampMs &&
+    logger.warn('Setting Root component creation timestamp after app start end is set.');
+  rootComponentCreationTimestampMs && logger.warn('Overwriting already set root component creation timestamp.');
+  rootComponentCreationTimestampMs = timestampMs;
+}
+
+/**
+ * For internal use only.
+ *
+ * @private
+ */
+export const _setAppStartEndTimestampMs = (timestampMs: number): void => {
   recordedAppStartEndTimestampMs && logger.warn('Overwriting already set app start.');
   recordedAppStartEndTimestampMs = timestampMs;
 };
 
 /**
- * Sets the root component first constructor call timestamp.
- * Used automatically by `Sentry.wrap`.
+ * For testing purposes only.
+ *
+ * @private
  */
-export function setRootComponentCreationTimestampMs(timestampMs: number): void {
-  recordedAppStartEndTimestampMs &&
-    logger.warn('Setting Root component creation timestamp after app start end is set.');
-  rootComponentCreationTimestampMs = timestampMs;
+export function _clearRootComponentCreationTimestampMs(): void {
+  rootComponentCreationTimestampMs = undefined;
 }
 
 /**
  * Adds AppStart spans from the native layer to the transaction event.
  */
-export const appStartIntegration = (): Integration => {
+export const appStartIntegration = ({
+  standalone: standaloneUserOption,
+}: {
+  /**
+   * Should the integration send App Start as a standalone root span (transaction)?
+   * If false, App Start will be added as a child span to the first transaction.
+   *
+   * @default false
+   */
+  standalone?: boolean;
+} = {}): AppStartIntegration => {
+  let _client: Client | undefined = undefined;
+  let standalone = standaloneUserOption;
+  let isEnabled = true;
   let appStartDataFlushed = false;
 
+  const setup = (client: Client): void => {
+    _client = client;
+    const clientOptions = client.getOptions() as ReactNativeClientOptions;
+
+    const { enableAppStartTracking } = clientOptions;
+    if (!enableAppStartTracking) {
+      isEnabled = false;
+      logger.warn('[AppStart] App start tracking is disabled.');
+    }
+  };
+
+  const afterAllSetup = (client: Client): void => {
+    if (standaloneUserOption === undefined) {
+      // If not user defined, set based on the routing instrumentation presence
+      standalone = !client.getIntegrationByName<ReactNativeTracing>(ReactNativeTracing.id)?.options
+        .routingInstrumentation;
+    }
+  };
+
   const processEvent = async (event: Event): Promise<Event> => {
-    if (appStartDataFlushed) {
-      // App start data is only relevant for the first transaction
+    if (!isEnabled || standalone) {
       return event;
     }
 
@@ -72,7 +146,51 @@ export const appStartIntegration = (): Integration => {
     return event;
   };
 
+  async function captureStandaloneAppStart(): Promise<void> {
+    if (!standalone) {
+      logger.debug(
+        '[AppStart] App start tracking is enabled. App start will be added to the first transaction as a child span.',
+      );
+      return;
+    }
+
+    logger.debug('[AppStart] App start tracking standalone root span (transaction).');
+
+    const span = startInactiveSpan({
+      forceTransaction: true,
+      name: APP_START_TX_NAME,
+      op: UI_LOAD_OP,
+    });
+    if (span instanceof SentryNonRecordingSpan) {
+      // Tracing is disabled or the transaction was sampled
+      return;
+    }
+
+    setEndTimeValue(span, timestampInSeconds());
+    _client.emit('spanEnd', span);
+
+    const event = convertSpanToTransaction(span);
+    if (!event) {
+      logger.warn('[AppStart] Failed to convert App Start span to transaction.');
+      return;
+    }
+
+    await attachAppStartToTransactionEvent(event);
+    if (!event.spans || event.spans.length === 0) {
+      // No spans were added to the transaction, so we don't need to send it
+      return;
+    }
+
+    const scope = getCapturedScopesOnSpan(span).scope || getCurrentScope();
+    scope.captureEvent(event);
+  }
+
   async function attachAppStartToTransactionEvent(event: TransactionEvent): Promise<void> {
+    if (appStartDataFlushed) {
+      // App start data is only relevant for the first transaction
+      return;
+    }
+
     if (!event.contexts || !event.contexts.trace) {
       logger.warn('[AppStart] Transaction event is missing trace context. Can not attach app start.');
       return;
@@ -185,7 +303,10 @@ export const appStartIntegration = (): Integration => {
 
   return {
     name: INTEGRATION_NAME,
+    setup,
+    afterAllSetup,
     processEvent,
+    captureStandaloneAppStart,
   };
 };
 

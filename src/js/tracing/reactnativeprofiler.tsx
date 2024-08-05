@@ -2,7 +2,7 @@ import { getClient, Profiler } from '@sentry/react';
 import { timestampInSeconds } from '@sentry/utils';
 
 import { createIntegration } from '../integrations/factory';
-import { setAppStartEndTimestampMs, setRootComponentCreationTimestampMs } from '../tracing/integrations/appStart';
+import { captureAppStart, setRootComponentCreationTimestampMs } from '../tracing/integrations/appStart';
 
 const ReactNativeProfilerGlobalState = {
   appStartReported: false,
@@ -44,7 +44,7 @@ export class ReactNativeProfiler extends Profiler {
     }
 
     client.addIntegration && client.addIntegration(createIntegration(this.name));
-
-    setAppStartEndTimestampMs(timestampInSeconds() * 1000);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    captureAppStart();
   }
 }

@@ -54,7 +54,7 @@ Sentry.init({
     return event;
   },
   beforeSendTransaction(event) {
-    logWithoutTracing('Transaction beforeSend:', event.event_id);
+    logWithoutTracing('Transaction beforeSend:', event.event_id, event);
     return event;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
@@ -87,6 +87,9 @@ Sentry.init({
         maskAllImages: true,
         maskAllVectors: true,
         // maskAllText: false,
+      }),
+      Sentry.appStartIntegration({
+        standalone: false,
       }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
