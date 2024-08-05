@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.27.0
 
 ### Fixes
 
