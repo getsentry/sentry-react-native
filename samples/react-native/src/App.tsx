@@ -54,7 +54,7 @@ Sentry.init({
     return event;
   },
   beforeSendTransaction(event) {
-    logWithoutTracing('Transaction beforeSend:', event.event_id, event);
+    logWithoutTracing('Transaction beforeSend:', event.event_id);
     return event;
   },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
