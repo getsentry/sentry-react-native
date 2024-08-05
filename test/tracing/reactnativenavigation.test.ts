@@ -372,13 +372,13 @@ describe('React Native Navigation Instrumentation', () => {
       routingInstrumentation: rNavigation,
       enableStallTracking: false,
       enableNativeFramesTracking: false,
-      enableAppStartTracking: false,
       beforeNavigate: setupOptions.beforeNavigate,
     });
 
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
       integrations: [rnTracing],
+      enableAppStartTracking: false,
     });
     client = new TestClient(options);
     setCurrentClient(client);
