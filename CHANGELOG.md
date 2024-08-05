@@ -7,6 +7,8 @@
 - Pass `sampleRate` option to the Android SDK ([#3979](https://github.com/getsentry/sentry-react-native/pull/3979))
 - Drop app start data older than one minute ([#3974](https://github.com/getsentry/sentry-react-native/pull/3974))
 - Use `Platform.constants.reactNativeVersion` instead of `react-native` internal export ([#3949](https://github.com/getsentry/sentry-react-native/pull/3949))
+- `Sentry.captureMessage` stack trace is in `event.exception` (moved from `event.threads`) ([#3635](https://github.com/getsentry/sentry-react-native/pull/3635), [#3988](https://github.com/getsentry/sentry-react-native/pull/3988))
+  - To revert to the old behavior (causing the stack to be unsymbolicated) use `useThreadsForMessageStack` option
 
 ### Dependencies
 
