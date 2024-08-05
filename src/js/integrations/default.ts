@@ -24,6 +24,7 @@ import {
   inboundFiltersIntegration,
   mobileReplayIntegration,
   modulesLoaderIntegration,
+  nativeFramesIntegration,
   nativeLinkedErrorsIntegration,
   nativeReleaseIntegration,
   reactNativeErrorHandlersIntegration,
@@ -98,11 +99,14 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     options.enableTracing ||
     typeof options.tracesSampleRate === 'number' ||
     typeof options.tracesSampler === 'function';
-  if (hasTracingEnabled && options.enableAutoPerformanceTracing) {
-    integrations.push(new ReactNativeTracing());
-  }
   if (hasTracingEnabled && options.enableAppStartTracking) {
     integrations.push(appStartIntegration());
+  }
+  if (hasTracingEnabled && options.enableNativeFramesTracking) {
+    integrations.push(nativeFramesIntegration());
+  }
+  if (hasTracingEnabled && options.enableAutoPerformanceTracing) {
+    integrations.push(new ReactNativeTracing());
   }
   if (options.enableCaptureFailedRequests) {
     integrations.push(httpClientIntegration());

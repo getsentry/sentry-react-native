@@ -14,8 +14,6 @@ import type { Client, Event, Integration, PropagationContext, Scope, Span, Start
 import { logger, uuid4 } from '@sentry/utils';
 
 import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
-import { NATIVE } from '../wrapper';
-import { NativeFramesInstrumentation } from './nativeframes';
 import {
   adjustTransactionDuration,
   cancelInBackground,
@@ -92,11 +90,6 @@ export interface ReactNativeTracingOptions extends RequestInstrumentationOptions
   beforeNavigate: BeforeNavigate;
 
   /**
-   * Track slow/frozen frames from the native layer and adds them as measurements to all transactions.
-   */
-  enableNativeFramesTracking: boolean;
-
-  /**
    * Track when and how long the JS event loop stalls for. Adds stalls as measurements to all transactions.
    */
   enableStallTracking: boolean;
@@ -117,7 +110,6 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   finalTimeoutMs: 600000,
   ignoreEmptyBackNavigationTransactions: true,
   beforeNavigate: context => context,
-  enableNativeFramesTracking: true,
   enableStallTracking: true,
   enableUserInteractionTracing: false,
 };
@@ -139,7 +131,6 @@ export class ReactNativeTracing implements Integration {
   /** ReactNativeTracing options */
   public options: ReactNativeTracingOptions;
 
-  public nativeFramesInstrumentation?: NativeFramesInstrumentation;
   public stallTrackingInstrumentation?: StallTrackingInstrumentation;
   public useAppStartWithProfiler: boolean = false;
 
@@ -201,8 +192,6 @@ export class ReactNativeTracing implements Integration {
       (this._hasSetTracePropagationTargets && thisOptionsTracePropagationTargets) ||
       DEFAULT_TRACE_PROPAGATION_TARGETS;
 
-    this._enableNativeFramesTracking(client);
-
     if (enableStallTracking) {
       this.stallTrackingInstrumentation = new StallTrackingInstrumentation();
       this.stallTrackingInstrumentation.setup(client);
@@ -233,9 +222,7 @@ export class ReactNativeTracing implements Integration {
    */
   public processEvent(event: Event): Promise<Event> | Event {
     const eventWithView = this._getCurrentViewEventProcessor(event);
-    return this.nativeFramesInstrumentation
-      ? this.nativeFramesInstrumentation.processEvent(eventWithView)
-      : eventWithView;
+    return eventWithView;
   }
 
   /**
@@ -316,33 +303,6 @@ export class ReactNativeTracing implements Integration {
     onlySampleIfChildSpans(client, this._inflightInteractionTransaction);
     logger.log(`[ReactNativeTracing] User Interaction Tracing Created ${op} transaction ${name}.`);
     return this._inflightInteractionTransaction;
-  }
-
-  /**
-   * Enables or disables native frames tracking based on the `enableNativeFramesTracking` option.
-   */
-  private _enableNativeFramesTracking(client: Client): void {
-    if (this.options.enableNativeFramesTracking && !NATIVE.enableNative) {
-      // Do not enable native frames tracking if native is not available.
-      logger.warn(
-        '[ReactNativeTracing] NativeFramesTracking is not available on the Web, Expo Go and other platforms without native modules.',
-      );
-      return;
-    }
-
-    if (!this.options.enableNativeFramesTracking && NATIVE.enableNative) {
-      // Disable native frames tracking when native available and option is false.
-      NATIVE.disableNativeFramesTracking();
-      return;
-    }
-
-    if (!this.options.enableNativeFramesTracking) {
-      return;
-    }
-
-    NATIVE.enableNativeFramesTracking();
-    this.nativeFramesInstrumentation = new NativeFramesInstrumentation();
-    this.nativeFramesInstrumentation.setup(client);
   }
 
   /**
