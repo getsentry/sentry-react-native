@@ -13,6 +13,7 @@ import {
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD as UI_LOAD_OP,
 } from '../ops';
+import { SEMANTIC_ATTRIBUTE_SENTRY_OP } from '../semanticAttributes';
 import { createChildSpanJSON, createSpanJSON, getBundleStartTimestampMs } from '../utils';
 
 const INTEGRATION_NAME = 'AppStart';
@@ -44,11 +45,8 @@ export const setAppStartEndTimestampMs = (timestampMs: number): void => {
  * Used automatically by `Sentry.wrap`.
  */
 export function setRootComponentCreationTimestampMs(timestampMs: number): void {
-  if (recordedAppStartEndTimestampMs) {
-    logger.error('Root component creation timestamp can not be set after app start end is set.');
-    return;
-  }
-
+  recordedAppStartEndTimestampMs &&
+    logger.warn('Setting Root component creation timestamp after app start end is set.');
   rootComponentCreationTimestampMs = timestampMs;
 }
 
@@ -104,8 +102,8 @@ export const appStartIntegration = (): Integration => {
       return;
     }
 
-    const isAppStartWithinBounds = !!event.start_timestamp &&
-      appStartTimestampMs >= event.start_timestamp - MAX_APP_START_AGE_MS;
+    const isAppStartWithinBounds =
+      !!event.start_timestamp && appStartTimestampMs >= event.start_timestamp - MAX_APP_START_AGE_MS;
     if (!__DEV__ && !isAppStartWithinBounds) {
       logger.warn('[AppStart] App start timestamp is too far in the past to be used for app start span.');
       return;
@@ -121,7 +119,8 @@ export const appStartIntegration = (): Integration => {
     appStartDataFlushed = true;
 
     event.contexts.trace.data = event.contexts.trace.data || {};
-    event.contexts.trace.data['SEMANTIC_ATTRIBUTE_SENTRY_OP'] = UI_LOAD_OP;
+    event.contexts.trace.data[SEMANTIC_ATTRIBUTE_SENTRY_OP] = UI_LOAD_OP;
+    event.contexts.trace.op = UI_LOAD_OP;
 
     const appStartTimestampSeconds = appStartTimestampMs / 1000;
     event.start_timestamp = appStartTimestampSeconds;
