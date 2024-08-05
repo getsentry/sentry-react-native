@@ -129,6 +129,11 @@ describe('End to end tests for common events', () => {
     const eventId = await waitForEventId();
     const sentryEvent = await fetchEvent(eventId);
     expect(sentryEvent.eventID).toMatch(eventId);
+
+    expect(sentryEvent.contexts).toBeDefined();
+    const replay = sentryEvent.contexts!['replay'] as any;
+    expect(replay).toBeDefined();
+    expect(replay.replay_id.length).toBe(32);
   });
 
   test('unhandledPromiseRejection', async () => {
