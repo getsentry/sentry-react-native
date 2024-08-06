@@ -4,6 +4,8 @@
 
 ### Changes
 
+- New Native Frames Integration ([#3996](https://github.com/getsentry/sentry-react-native/pull/3996))
+- New Stall Tracking Integration ([#3997](https://github.com/getsentry/sentry-react-native/pull/3997))
 - New App Start Integration ([#3852](https://github.com/getsentry/sentry-react-native/pull/3852))
 
   By default app start spans are attached to the first created transaction.
@@ -15,20 +17,13 @@
   Sentry.init({
     tracesSampleRate: 1.0,
     enableAppStartTracking: true, // default true
+    enableNativeFramesTracking: true, // default true
+    enableStallTracking: true, // default true
     integrations: [
       Sentry.appStartIntegration({
         standalone: false, // default false
       }),
     ],
-  });
-  ```
-
-- New Native Frames Integration ([#3996](https://github.com/getsentry/sentry-react-native/pull/3996))
-
-  ```js
-  Sentry.init({
-    tracesSampleRate: 1.0,
-    enableNativeFramesTracking: true, // default true
   });
   ```
 

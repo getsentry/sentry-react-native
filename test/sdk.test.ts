@@ -456,6 +456,29 @@ describe('Tests the SDK functionality', () => {
       expectNotIntegration('NativeFrames');
     });
 
+    it('no stall tracking integration by default', () => {
+      init({});
+
+      expectNotIntegration('StallTracking');
+    });
+
+    it('when tracing enabled stall tracking integration added by default', () => {
+      init({
+        tracesSampleRate: 0.5,
+      });
+
+      expectIntegration('StallTracking');
+    });
+
+    it('when tracing enabled and stall tracking disabled the integration is not added', () => {
+      init({
+        tracesSampleRate: 0.5,
+        enableStallTracking: false,
+      });
+
+      expectNotIntegration('StallTracking');
+    });
+
     it('no default integrations', () => {
       init({
         defaultIntegrations: false,

@@ -10,8 +10,8 @@ import {
 import type { Span } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 
-import { ReactNativeTracing } from '../../src/js';
-import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
+import { stallTrackingIntegration } from '../../../../src/js/tracing/integrations/stalltracking';
+import { getDefaultTestClientOptions, TestClient } from '../../../mocks/client';
 import { expectNonZeroStallMeasurements, expectStallMeasurements } from './stalltrackingutils';
 
 jest.useFakeTimers({ advanceTimers: true });
@@ -35,14 +35,10 @@ describe('StallTracking', () => {
     getIsolationScope().clear();
     getGlobalScope().clear();
 
-    const rnTracing = new ReactNativeTracing({
-      enableStallTracking: true,
-      enableNativeFramesTracking: false,
-    });
-
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
-      integrations: [rnTracing],
+      enableStallTracking: true,
+      integrations: [stallTrackingIntegration()],
       enableAppStartTracking: false,
     });
     client = new TestClient(options);
