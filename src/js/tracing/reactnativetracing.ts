@@ -98,8 +98,6 @@ const DEFAULT_TRACE_PROPAGATION_TARGETS = ['localhost', /^\/(?!\/)/];
 
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   ...defaultRequestInstrumentationOptions,
-  idleTimeout: 1000,
-  maxTransactionDuration: 600,
   idleTimeoutMs: 1000,
   finalTimeoutMs: 600000,
   ignoreEmptyBackNavigationTransactions: true,
@@ -143,19 +141,8 @@ export class ReactNativeTracing implements Integration {
     this.options = {
       ...defaultReactNativeTracingOptions,
       ...options,
-      finalTimeoutMs:
-        options.finalTimeoutMs ??
-        // eslint-disable-next-line deprecation/deprecation
-        (typeof options.maxTransactionDuration === 'number'
-          ? // eslint-disable-next-line deprecation/deprecation
-            options.maxTransactionDuration * 1000
-          : undefined) ??
-        defaultReactNativeTracingOptions.finalTimeoutMs,
-      idleTimeoutMs:
-        options.idleTimeoutMs ??
-        // eslint-disable-next-line deprecation/deprecation
-        options.idleTimeout ??
-        defaultReactNativeTracingOptions.idleTimeoutMs,
+      finalTimeoutMs: options.finalTimeoutMs ?? defaultReactNativeTracingOptions.finalTimeoutMs,
+      idleTimeoutMs: options.idleTimeoutMs ?? defaultReactNativeTracingOptions.idleTimeoutMs,
     };
   }
 
