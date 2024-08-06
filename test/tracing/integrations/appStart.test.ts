@@ -12,26 +12,26 @@ import { timestampInSeconds } from '@sentry/utils';
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,
-} from '../../src/js/measurements';
-import type { NativeAppStartResponse } from '../../src/js/NativeRNSentry';
+} from '../../../src/js/measurements';
+import type { NativeAppStartResponse } from '../../../src/js/NativeRNSentry';
 import {
   APP_START_COLD as APP_START_COLD_OP,
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD,
-} from '../../src/js/tracing';
+} from '../../../src/js/tracing';
 import {
   _clearRootComponentCreationTimestampMs,
   _setAppStartEndTimestampMs,
   appStartIntegration,
   setRootComponentCreationTimestampMs,
-} from '../../src/js/tracing/integrations/appStart';
-import { getTimeOriginMilliseconds } from '../../src/js/tracing/utils';
-import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
-import { NATIVE } from '../../src/js/wrapper';
-import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
-import { mockFunction } from '../testutils';
+} from '../../../src/js/tracing/integrations/appStart';
+import { getTimeOriginMilliseconds } from '../../../src/js/tracing/utils';
+import { RN_GLOBAL_OBJ } from '../../../src/js/utils/worldwide';
+import { NATIVE } from '../../../src/js/wrapper';
+import { getDefaultTestClientOptions, TestClient } from '../../mocks/client';
+import { mockFunction } from '../../testutils';
 
-jest.mock('../../src/js/wrapper', () => {
+jest.mock('../../../src/js/wrapper', () => {
   return {
     NATIVE: {
       fetchNativeAppStart: jest.fn(),
@@ -43,8 +43,8 @@ jest.mock('../../src/js/wrapper', () => {
   };
 });
 
-jest.mock('../../src/js/tracing/utils', () => {
-  const originalUtils = jest.requireActual('../../src/js/tracing/utils');
+jest.mock('../../../src/js/tracing/utils', () => {
+  const originalUtils = jest.requireActual('../../../src/js/tracing/utils');
 
   return {
     ...originalUtils,
