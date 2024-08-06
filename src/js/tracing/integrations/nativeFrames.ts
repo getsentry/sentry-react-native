@@ -32,8 +32,6 @@ const _finishFrames: Map<string, { timestamp: number; nativeFrames: NativeFrames
  */
 const MARGIN_OF_ERROR_SECONDS = 0.05;
 
-// TODO: make sure native frames start for already running active root spans
-
 /**
  * Instrumentation to add native slow/frozen frames measurements onto transactions.
  */
@@ -75,6 +73,7 @@ export const nativeFramesIntegration = (): Integration => {
 
     NATIVE.enableNativeFramesTracking();
 
+    // TODO: Ensure other integrations like ReactNativeTracing and ReactNavigation create spans after all integration are setup.
     client.on('spanStart', _onSpanStart);
     client.on('spanEnd', _onSpanFinish);
     logger.log('[ReactNativeTracing] Native frames instrumentation initialized.');

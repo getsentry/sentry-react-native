@@ -141,18 +141,18 @@ describe('NativeFramesInstrumentation', () => {
     await jest.runOnlyPendingTimersAsync();
     await client.flush();
 
-    expect(client.event!).toEqual(
-      expect.objectContaining<Partial<Event>>({
-        measurements: expect.toBeOneOf([
-          expect.not.objectContaining<Measurements>({
-            frames_total: expect.any(Object),
-            frames_slow: expect.any(Object),
-            frames_frozen: expect.any(Object),
-          }),
-          undefined,
-        ]),
+    expect(client.event!).toBeOneOf([
+      expect.not.objectContaining<Partial<Event>>({
+        measurements: expect.anything(),
       }),
-    );
+      expect.objectContaining<Partial<Event>>({
+        measurements: expect.not.objectContaining<Measurements>({
+          frames_total: expect.any(Object),
+          frames_slow: expect.any(Object),
+          frames_frozen: expect.any(Object),
+        }),
+      }),
+    ]);
   });
 
   it('does not set measurements on transactions without startFrames', async () => {
@@ -171,15 +171,18 @@ describe('NativeFramesInstrumentation', () => {
     await jest.runOnlyPendingTimersAsync();
     await client.flush();
 
-    expect(client.event!).toEqual(
+    expect(client.event!).toBeOneOf([
+      expect.not.objectContaining<Partial<Event>>({
+        measurements: expect.anything(),
+      }),
       expect.objectContaining<Partial<Event>>({
-        measurements: expect.not.objectContaining({
-          frames_total: {},
-          frames_slow: {},
-          frames_frozen: {},
+        measurements: expect.not.objectContaining<Measurements>({
+          frames_total: expect.any(Object),
+          frames_slow: expect.any(Object),
+          frames_frozen: expect.any(Object),
         }),
       }),
-    );
+    ]);
   });
 
   it('does not set measurements on transactions without finishFrames', async () => {
@@ -198,15 +201,18 @@ describe('NativeFramesInstrumentation', () => {
     await jest.runOnlyPendingTimersAsync();
     await client.flush();
 
-    expect(client.event!).toEqual(
+    expect(client.event!).toBeOneOf([
+      expect.not.objectContaining<Partial<Event>>({
+        measurements: expect.anything(),
+      }),
       expect.objectContaining<Partial<Event>>({
-        measurements: expect.not.objectContaining({
-          frames_total: {},
-          frames_slow: {},
-          frames_frozen: {},
+        measurements: expect.not.objectContaining<Measurements>({
+          frames_total: expect.any(Object),
+          frames_slow: expect.any(Object),
+          frames_frozen: expect.any(Object),
         }),
       }),
-    );
+    ]);
   });
 
   it('does not set measurements on a transaction event for which finishFrames times out.', async () => {
@@ -230,14 +236,17 @@ describe('NativeFramesInstrumentation', () => {
     await jest.advanceTimersByTimeAsync(2100); // hardcoded final frames timeout 2000ms
     await client.flush();
 
-    expect(client.event!).toEqual(
+    expect(client.event!).toBeOneOf([
+      expect.not.objectContaining<Partial<Event>>({
+        measurements: expect.anything(),
+      }),
       expect.objectContaining<Partial<Event>>({
-        measurements: expect.not.objectContaining({
-          frames_total: {},
-          frames_slow: {},
-          frames_frozen: {},
+        measurements: expect.not.objectContaining<Measurements>({
+          frames_total: expect.any(Object),
+          frames_slow: expect.any(Object),
+          frames_frozen: expect.any(Object),
         }),
       }),
-    );
+    ]);
   });
 });
