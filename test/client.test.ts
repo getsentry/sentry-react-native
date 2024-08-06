@@ -349,6 +349,16 @@ describe('Tests ReactNativeClient', () => {
 
     beforeEach(() => {
       mockTransportSend = jest.fn(() => Promise.resolve());
+    });
+
+    afterEach(() => {
+      mockTransportSend.mockClear();
+    });
+
+    const getMessageEventFrom = (func: jest.Mock) =>
+      func.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
+
+    test('captureMessage contains stack trace in exception', async () => {
       client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         attachStacktrace: true,
@@ -359,16 +369,27 @@ describe('Tests ReactNativeClient', () => {
           flush: jest.fn(),
         }),
       } as ReactNativeClientOptions);
+
+      const mockSyntheticExceptionFromHub = new Error();
+      client.captureMessage('test message', 'error', { syntheticException: mockSyntheticExceptionFromHub });
+      expect(getMessageEventFrom(mockTransportSend).exception.values.length).toBeGreaterThan(0);
+      expect(getMessageEventFrom(mockTransportSend).exception).toBeDefined();
+      expect(getMessageEventFrom(mockTransportSend).threads).toBeUndefined();
     });
 
-    afterEach(() => {
-      mockTransportSend.mockClear();
-    });
+    test('captureMessage contains stack trace in exception', async () => {
+      client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        attachStacktrace: true,
+        stackParser: defaultStackParser,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        useThreadsForMessageStack: true,
+      } as ReactNativeClientOptions);
 
-    const getMessageEventFrom = (func: jest.Mock) =>
-      func.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
-
-    test('captureMessage contains stack trace in threads', async () => {
       const mockSyntheticExceptionFromHub = new Error();
       client.captureMessage('test message', 'error', { syntheticException: mockSyntheticExceptionFromHub });
       expect(getMessageEventFrom(mockTransportSend).threads.values.length).toBeGreaterThan(0);
