@@ -23,6 +23,15 @@
   });
   ```
 
+- New Native Frames Integration ([#3996](https://github.com/getsentry/sentry-react-native/pull/3996))
+
+  ```js
+  Sentry.init({
+    tracesSampleRate: 1.0,
+    enableNativeFramesTracking: true, // default true
+  });
+  ```
+
 ### Fixes
 
 - Pass `sampleRate` option to the Android SDK ([#3979](https://github.com/getsentry/sentry-react-native/pull/3979))
