@@ -38,7 +38,7 @@ const MARGIN_OF_ERROR_SECONDS = 0.05;
  * Instrumentation to add native slow/frozen frames measurements onto transactions.
  */
 export const nativeFramesIntegration = (): Integration => {
-  const name: string = 'NativeFramesInstrumentation';
+  const name: string = 'NativeFrames';
 
   /** The native frames at the finish time of the most recent span. */
   let _lastSpanFinishFrames:

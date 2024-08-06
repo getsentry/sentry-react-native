@@ -315,10 +315,7 @@ describe('Tests the SDK functionality', () => {
     it('no http client integration by default', () => {
       init({});
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-
-      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'HttpClient' })]));
+      expectNotIntegration('HttpClient');
     });
 
     it('adds http client integration', () => {
@@ -326,10 +323,7 @@ describe('Tests the SDK functionality', () => {
         enableCaptureFailedRequests: true,
       });
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-
-      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'HttpClient' })]));
+      expectIntegration('HttpClient');
     });
 
     it('user defined http client integration overwrites default', () => {
@@ -361,10 +355,7 @@ describe('Tests the SDK functionality', () => {
     it('no screenshot integration by default', () => {
       init({});
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-
-      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'Screenshot' })]));
+      expectNotIntegration('Screenshot');
     });
 
     it('adds screenshot integration', () => {
@@ -372,21 +363,13 @@ describe('Tests the SDK functionality', () => {
         attachScreenshot: true,
       });
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-
-      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Screenshot' })]));
+      expectIntegration('Screenshot');
     });
 
     it('no view hierarchy integration by default', () => {
       init({});
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-
-      expect(actualIntegrations).toEqual(
-        expect.not.arrayContaining([expect.objectContaining({ name: 'ViewHierarchy' })]),
-      );
+      expectNotIntegration('ViewHierarchy');
     });
 
     it('adds view hierarchy integration', () => {
@@ -394,20 +377,13 @@ describe('Tests the SDK functionality', () => {
         attachViewHierarchy: true,
       });
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-
-      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'ViewHierarchy' })]));
+      expectIntegration('ViewHierarchy');
     });
 
     it('no profiling integration by default', () => {
       init({});
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-      expect(actualIntegrations).toEqual(
-        expect.not.arrayContaining([expect.objectContaining({ name: 'HermesProfiling' })]),
-      );
+      expectNotIntegration('HermesProfiling');
     });
 
     it('adds profiling integration', () => {
@@ -417,19 +393,13 @@ describe('Tests the SDK functionality', () => {
         },
       });
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-      expect(actualIntegrations).toEqual(
-        expect.arrayContaining([expect.objectContaining({ name: 'HermesProfiling' })]),
-      );
+      expectIntegration('HermesProfiling');
     });
 
     it('no spotlight integration by default', () => {
       init({});
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'Spotlight' })]));
+      expectNotIntegration('Spotlight');
     });
 
     it('adds spotlight integration', () => {
@@ -437,17 +407,13 @@ describe('Tests the SDK functionality', () => {
         enableSpotlight: true,
       });
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Spotlight' })]));
+      expectIntegration('Spotlight');
     });
 
     it('no app start integration by default', () => {
       init({});
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'AppStart' })]));
+      expectNotIntegration('AppStart');
     });
 
     it('when tracing enabled app start integration added by default', () => {
@@ -455,9 +421,7 @@ describe('Tests the SDK functionality', () => {
         tracesSampleRate: 0.5,
       });
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'AppStart' })]));
+      expectIntegration('AppStart');
     });
 
     it('when tracing enabled and app start disabled the integration is not added', () => {
@@ -466,9 +430,30 @@ describe('Tests the SDK functionality', () => {
         enableAppStartTracking: false,
       });
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'AppStart' })]));
+      expectNotIntegration('AppStart');
+    });
+
+    it('no native frames integration by default', () => {
+      init({});
+
+      expectNotIntegration('NativeFrames');
+    });
+
+    it('when tracing enabled native frames integration added by default', () => {
+      init({
+        tracesSampleRate: 0.5,
+      });
+
+      expectIntegration('NativeFrames');
+    });
+
+    it('when tracing enabled and native frames disabled the integration is not added', () => {
+      init({
+        tracesSampleRate: 0.5,
+        enableNativeFramesTracking: false,
+      });
+
+      expectNotIntegration('NativeFrames');
     });
 
     it('no default integrations', () => {
@@ -561,50 +546,29 @@ describe('Tests the SDK functionality', () => {
     it('adds react default integrations', () => {
       init({});
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-
-      expect(actualIntegrations).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: 'InboundFilters' }),
-          expect.objectContaining({ name: 'FunctionToString' }),
-          expect.objectContaining({ name: 'Breadcrumbs' }),
-          expect.objectContaining({ name: 'Dedupe' }),
-          expect.objectContaining({ name: 'HttpContext' }),
-        ]),
-      );
+      expectIntegration('InboundFilters');
+      expectIntegration('FunctionToString');
+      expectIntegration('Breadcrumbs');
+      expectIntegration('Dedupe');
+      expectIntegration('HttpContext');
     });
 
     it('adds all platform default integrations', () => {
       init({});
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-
-      expect(actualIntegrations).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: 'Release' }),
-          expect.objectContaining({ name: 'EventOrigin' }),
-          expect.objectContaining({ name: 'SdkInfo' }),
-          expect.objectContaining({ name: 'ReactNativeInfo' }),
-        ]),
-      );
+      expectIntegration('Release');
+      expectIntegration('EventOrigin');
+      expectIntegration('SdkInfo');
+      expectIntegration('ReactNativeInfo');
     });
 
     it('adds web platform specific default integrations', () => {
       (notWeb as jest.Mock).mockImplementation(() => false);
       init({});
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-
-      expect(actualIntegrations).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: 'BrowserApiErrors' }),
-          expect.objectContaining({ name: 'GlobalHandlers' }),
-          expect.objectContaining({ name: 'LinkedErrors' }),
-        ]),
-      );
+      expectIntegration('BrowserApiErrors');
+      expectIntegration('GlobalHandlers');
+      expectIntegration('LinkedErrors');
     });
 
     it('does not add native integrations if native disabled', () => {
@@ -617,22 +581,11 @@ describe('Tests the SDK functionality', () => {
         },
       });
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-
-      expect(actualIntegrations).toEqual(
-        expect.not.arrayContaining([expect.objectContaining({ name: 'DeviceContext' })]),
-      );
-      expect(actualIntegrations).toEqual(
-        expect.not.arrayContaining([expect.objectContaining({ name: 'ModulesLoader' })]),
-      );
-      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'Screenshot' })]));
-      expect(actualIntegrations).toEqual(
-        expect.not.arrayContaining([expect.objectContaining({ name: 'ViewHierarchy' })]),
-      );
-      expect(actualIntegrations).toEqual(
-        expect.not.arrayContaining([expect.objectContaining({ name: 'HermesProfiling' })]),
-      );
+      expectNotIntegration('DeviceContext');
+      expectNotIntegration('ModulesLoader');
+      expectNotIntegration('Screenshot');
+      expectNotIntegration('ViewHierarchy');
+      expectNotIntegration('HermesProfiling');
     });
   });
 
@@ -640,12 +593,21 @@ describe('Tests the SDK functionality', () => {
     (isExpoGo as jest.Mock).mockImplementation(() => true);
     init({});
 
-    const actualOptions = usedOptions();
-    const actualIntegrations = actualOptions?.integrations;
-
-    expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'ExpoContext' })]));
+    expectIntegration('ExpoContext');
   });
 });
+
+function expectIntegration(name: string): void {
+  const actualOptions = usedOptions();
+  const actualIntegrations = actualOptions?.integrations;
+  expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name })]));
+}
+
+function expectNotIntegration(name: string): void {
+  const actualOptions = usedOptions();
+  const actualIntegrations = actualOptions?.integrations;
+  expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name })]));
+}
 
 function createMockedIntegration({ name }: { name?: string } = {}): Integration {
   return {
