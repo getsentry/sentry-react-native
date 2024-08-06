@@ -1,12 +1,12 @@
 import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpan } from '@sentry/core';
 import type { Event, Measurements } from '@sentry/types';
 
-import { ReactNativeTracing } from '../../src/js';
-import { NATIVE } from '../../src/js/wrapper';
-import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
-import { mockFunction } from '../testutils';
+import { nativeFramesIntegration } from '../../../src/js';
+import { NATIVE } from '../../../src/js/wrapper';
+import { getDefaultTestClientOptions, TestClient } from '../../mocks/client';
+import { mockFunction } from '../../testutils';
 
-jest.mock('../../src/js/wrapper', () => {
+jest.mock('../../../src/js/wrapper', () => {
   return {
     NATIVE: {
       fetchNativeFrames: jest.fn(),
@@ -29,11 +29,8 @@ describe('NativeFramesInstrumentation', () => {
 
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
-      integrations: [
-        new ReactNativeTracing({
-          enableNativeFramesTracking: true,
-        }),
-      ],
+      enableNativeFramesTracking: true,
+      integrations: [nativeFramesIntegration()],
     });
     client = new TestClient(options);
     setCurrentClient(client);
