@@ -4,8 +4,8 @@
 
 ### Changes
 
-- Removed deprecated ReactNativeTracing option `idleTimeout` use `idleTimeoutMs` instead([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
-- Removed deprecated ReactNativeTracing option `maxTransactionDuration` use `finalTimeoutMs` instead([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
+- Removed deprecated ReactNativeTracing option `idleTimeout` use `idleTimeoutMs` instead ([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
+- Removed deprecated ReactNativeTracing option `maxTransactionDuration` use `finalTimeoutMs` instead ([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
 - New Native Frames Integration ([#3996](https://github.com/getsentry/sentry-react-native/pull/3996))
 - New Stall Tracking Integration ([#3997](https://github.com/getsentry/sentry-react-native/pull/3997))
 - New User Interaction Tracing Integration ([#3999](https://github.com/getsentry/sentry-react-native/pull/3999))
