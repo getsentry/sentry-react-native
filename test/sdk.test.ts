@@ -442,6 +442,35 @@ describe('Tests the SDK functionality', () => {
       expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Spotlight' })]));
     });
 
+    it('no app start integration by default', () => {
+      init({});
+
+      const actualOptions = usedOptions();
+      const actualIntegrations = actualOptions?.integrations;
+      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'AppStart' })]));
+    });
+
+    it('when tracing enabled app start integration added by default', () => {
+      init({
+        tracesSampleRate: 0.5,
+      });
+
+      const actualOptions = usedOptions();
+      const actualIntegrations = actualOptions?.integrations;
+      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'AppStart' })]));
+    });
+
+    it('when tracing enabled and app start disabled the integration is not added', () => {
+      init({
+        tracesSampleRate: 0.5,
+        enableAppStartTracking: false,
+      });
+
+      const actualOptions = usedOptions();
+      const actualIntegrations = actualOptions?.integrations;
+      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'AppStart' })]));
+    });
+
     it('no default integrations', () => {
       init({
         defaultIntegrations: false,
