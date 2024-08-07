@@ -87,9 +87,9 @@ describe('ReactNativeTracing', () => {
     it('uses tracePropagationTargets', () => {
       const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
       setupTestClient({
+        enableStallTracking: false,
         integrations: [
           new ReactNativeTracing({
-            enableStallTracking: false,
             tracePropagationTargets: ['test1', 'test2'],
           }),
         ],
@@ -106,7 +106,8 @@ describe('ReactNativeTracing', () => {
       const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
       setupTestClient({
         tracePropagationTargets: ['test1', 'test2'],
-        integrations: [new ReactNativeTracing({ enableStallTracking: false })],
+        enableStallTracking: false,
+        integrations: [new ReactNativeTracing({})],
       });
 
       expect(instrumentOutgoingRequests).toBeCalledWith(
@@ -119,7 +120,8 @@ describe('ReactNativeTracing', () => {
     it('uses defaults', () => {
       const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
       setupTestClient({
-        integrations: [new ReactNativeTracing({ enableStallTracking: false })],
+        enableStallTracking: false,
+        integrations: [new ReactNativeTracing({})],
       });
 
       expect(instrumentOutgoingRequests).toBeCalledWith(
@@ -133,9 +135,9 @@ describe('ReactNativeTracing', () => {
       const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
       setupTestClient({
         tracePropagationTargets: ['test1', 'test2'],
+        enableStallTracking: false,
         integrations: [
           new ReactNativeTracing({
-            enableStallTracking: false,
             tracePropagationTargets: ['test3', 'test4'],
           }),
         ],
