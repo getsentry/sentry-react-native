@@ -456,7 +456,7 @@ describe('Tests the SDK functionality', () => {
       expectNotIntegration('NativeFrames');
     });
 
-    it('no stall tracking integration by default', () => {
+    it('when tracing not set stall tracking the integration is not added', () => {
       init({});
 
       expectNotIntegration('StallTracking');

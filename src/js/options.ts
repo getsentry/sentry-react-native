@@ -208,6 +208,8 @@ export interface BaseReactNativeOptions {
 
   /**
    * Track when and how long the JS event loop stalls for. Adds stalls as measurements to all transactions.
+   *
+   * @default true
    */
   enableStallTracking?: boolean;
 
