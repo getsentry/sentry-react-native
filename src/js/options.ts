@@ -214,6 +214,13 @@ export interface BaseReactNativeOptions {
   enableStallTracking?: boolean;
 
   /**
+   * Trace User Interaction events like touch and gestures.
+   *
+   * @default false
+   */
+  enableUserInteractionTracing?: boolean;
+
+  /**
    * Options which are in beta, or otherwise not guaranteed to be stable.
    */
   _experiments?: {

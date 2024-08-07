@@ -1,9 +1,9 @@
-import { addBreadcrumb, getClient } from '@sentry/core';
+import { addBreadcrumb } from '@sentry/core';
 import type { Breadcrumb } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
+import { startUserInteractionSpan } from './integrations/userInteraction';
 import { UI_ACTION } from './ops';
-import type { ReactNativeTracing } from './reactnativetracing';
 
 export const DEFAULT_BREADCRUMB_CATEGORY = 'gesture';
 export const DEFAULT_BREADCRUMB_TYPE = 'user';
@@ -69,9 +69,7 @@ export function sentryTraceGesture<GestureT>(
 
   const originalOnBegin = gestureCandidate.handlers.onBegin;
   (gesture as unknown as Required<BaseGesture>).handlers.onBegin = (event: GestureEvent) => {
-    getClient()
-      ?.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing')
-      ?.startUserInteractionSpan({ elementId: label, op: `${UI_ACTION}.${name}` });
+    startUserInteractionSpan({ elementId: label, op: `${UI_ACTION}.${name}` });
 
     addGestureBreadcrumb(`Gesture ${label} begin.`, { event, name });
 

@@ -479,6 +479,39 @@ describe('Tests the SDK functionality', () => {
       expectNotIntegration('StallTracking');
     });
 
+    describe('user interaction integration', () => {
+      test('no integration when tracing disabled', () => {
+        init({});
+
+        expectNotIntegration('UserInteraction');
+      });
+      test('no integration when tracing enabled', () => {
+        init({
+          tracesSampleRate: 0.5,
+        });
+
+        expectNotIntegration('UserInteraction');
+      });
+
+      test('no integration when tracing enabled but user interaction explicitly disabled', () => {
+        init({
+          tracesSampleRate: 0.5,
+          enableUserInteractionTracing: false,
+        });
+
+        expectNotIntegration('UserInteraction');
+      });
+
+      test('integration added when tracing enabled and user interaction enabled', () => {
+        init({
+          tracesSampleRate: 0.5,
+          enableUserInteractionTracing: true,
+        });
+
+        expectIntegration('UserInteraction');
+      });
+    });
+
     it('no default integrations', () => {
       init({
         defaultIntegrations: false,

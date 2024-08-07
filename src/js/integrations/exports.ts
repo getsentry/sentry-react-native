@@ -16,6 +16,7 @@ export { mobileReplayIntegration } from '../replay/mobilereplay';
 export { appStartIntegration } from '../tracing/integrations/appStart';
 export { nativeFramesIntegration } from '../tracing/integrations/nativeFrames';
 export { stallTrackingIntegration } from '../tracing/integrations/stalltracking';
+export { userInteractionIntegration } from '../tracing/integrations/userInteraction';
 
 export {
   breadcrumbsIntegration,

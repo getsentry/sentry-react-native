@@ -146,10 +146,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     if (routingName) {
       this.addIntegration(createIntegration(routingName));
     }
-    const enableUserInteractionTracing = tracing?.options.enableUserInteractionTracing;
-    if (enableUserInteractionTracing) {
-      this.addIntegration(createIntegration('ReactNativeUserInteractionTracing'));
-    }
   }
 
   /**

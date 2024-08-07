@@ -7,6 +7,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { createIntegration } from './integrations/factory';
 import type { ReactNativeTracing } from './tracing';
+import { startUserInteractionSpan } from './tracing/integrations/userInteraction';
 import { UI_ACTION_TOUCH } from './tracing/ops';
 
 export type TouchEventBoundaryProps = {
@@ -200,7 +201,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
       this._logTouchEvent(touchPath, label);
     }
 
-    this._tracingIntegration?.startUserInteractionSpan({
+    startUserInteractionSpan({
       elementId: label,
       op: UI_ACTION_TOUCH,
     });
