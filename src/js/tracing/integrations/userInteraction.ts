@@ -1,11 +1,4 @@
-import {
-  getActiveSpan,
-  getClient,
-  getCurrentScope,
-  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
-  spanToJSON,
-  startIdleSpan,
-} from '@sentry/core';
+import { getActiveSpan, getClient, getCurrentScope, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, spanToJSON } from '@sentry/core';
 import type { Integration, Span, StartSpanOptions } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
@@ -13,7 +6,7 @@ import type { ReactNativeClientOptions } from '../../options';
 import { onlySampleIfChildSpans } from '../onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_INTERACTION } from '../origin';
 import { getCurrentReactNativeTracingIntegration } from '../reactnativetracing';
-import { clearActiveSpanFromScope, isSentryInteractionSpan } from '../span';
+import { clearActiveSpanFromScope, isSentryInteractionSpan, startIdleSpan } from '../span';
 
 const INTEGRATION_NAME = 'UserInteraction';
 

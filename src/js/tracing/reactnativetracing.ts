@@ -11,6 +11,16 @@ import type { BeforeNavigate } from './types';
 
 export interface ReactNativeTracingOptions extends RequestInstrumentationOptions {
   /**
+   * @deprecated Replaced by idleTimeoutMs
+   */
+  idleTimeout: number;
+
+  /**
+   * @deprecated Replaced by maxTransactionDurationMs
+   */
+  maxTransactionDuration: number;
+
+  /**
    * The time to wait in ms until the transaction will be finished. The transaction will use the end timestamp of
    * the last finished span as the endtime for the transaction.
    * Time is in ms.
@@ -89,6 +99,7 @@ export class ReactNativeTracing implements Integration {
 
   private _hasSetTracePropagationTargets: boolean;
   private _currentViewName: string | undefined;
+  private _client: Client | undefined;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this._hasSetTracePropagationTargets = !!(
@@ -209,7 +220,6 @@ export function getCurrentReactNativeTracingIntegration(): ReactNativeTracing | 
   if (!client) {
     return undefined;
   }
-
   return client.getIntegrationByName(ReactNativeTracing.id) as ReactNativeTracing | undefined;
 }
 

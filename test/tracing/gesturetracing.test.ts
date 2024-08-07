@@ -7,6 +7,7 @@ import {
   DEFAULT_BREADCRUMB_TYPE as DEFAULT_GESTURE_BREADCRUMB_TYPE,
   sentryTraceGesture,
 } from '../../src/js/tracing/gesturetracing';
+import { startUserInteractionSpan } from '../../src/js/tracing/integrations/userInteraction';
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { type TestClient, setupTestClient } from '../mocks/client';
 import type { MockedRoutingInstrumentation } from './mockedrountinginstrumention';
@@ -55,11 +56,12 @@ describe('GestureTracing', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       jest.useFakeTimers();
-      client = setupTestClient();
+      client = setupTestClient({
+        enableUserInteractionTracing: true,
+      });
       mockedRoutingInstrumentation = createMockedRoutingInstrumentation();
       tracing = new ReactNativeTracing({
         routingInstrumentation: mockedRoutingInstrumentation,
-        enableUserInteractionTracing: true,
       });
       client.addIntegration(tracing);
       mockedRoutingInstrumentation.registeredOnConfirmRoute!('mockedScreenName');
@@ -114,7 +116,7 @@ describe('GestureTracing', () => {
       sentryTraceGesture('mockedGesture', mockedGesture);
 
       const mockedTouchInteractionId = { elementId: 'mockedElementId', op: 'mocked.op' };
-      tracing.startUserInteractionSpan(mockedTouchInteractionId);
+      startUserInteractionSpan(mockedTouchInteractionId);
       startChildSpan();
       await jest.advanceTimersByTimeAsync(timeoutCloseToActualIdleTimeoutMs);
 

@@ -8,7 +8,7 @@ jest.mock('@sentry/utils', () => {
 });
 
 import * as SentryBrowser from '@sentry/browser';
-import type { Event, Span } from '@sentry/types';
+import type { Event } from '@sentry/types';
 
 import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
 
@@ -56,16 +56,13 @@ const mockedAppState: AppState & MockAppState = {
 };
 jest.mock('react-native/Libraries/AppState/AppState', () => mockedAppState);
 
-import { getActiveSpan, spanToJSON, startSpanManual } from '@sentry/browser';
-import { getCurrentScope, SPAN_STATUS_ERROR, startInactiveSpan } from '@sentry/core';
+import { getActiveSpan, spanToJSON } from '@sentry/browser';
 import type { AppState, AppStateStatus } from 'react-native';
 
 import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
 import { NATIVE } from '../../src/js/wrapper';
 import type { TestClient } from '../mocks/client';
 import { setupTestClient } from '../mocks/client';
-import type { MockedRoutingInstrumentation } from './mockedrountinginstrumention';
-import { createMockedRoutingInstrumentation } from './mockedrountinginstrumention';
 
 describe('ReactNativeTracing', () => {
   beforeEach(() => {

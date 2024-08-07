@@ -33,6 +33,7 @@ import {
   sdkInfoIntegration,
   spotlightIntegration,
   stallTrackingIntegration,
+  userInteractionIntegration,
   viewHierarchyIntegration,
 } from './exports';
 import { createReactNativeRewriteFrames } from './rewriteframes';
@@ -108,6 +109,9 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   }
   if (hasTracingEnabled && options.enableStallTracking) {
     integrations.push(stallTrackingIntegration());
+  }
+  if (hasTracingEnabled && options.enableUserInteractionTracing) {
+    integrations.push(userInteractionIntegration());
   }
   if (hasTracingEnabled && options.enableAutoPerformanceTracing) {
     integrations.push(new ReactNativeTracing());

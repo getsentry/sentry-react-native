@@ -13,10 +13,7 @@ import {
   startUserInteractionSpan,
   userInteractionIntegration,
 } from '../../../src/js/tracing/integrations/userInteraction';
-import {
-  type ReactNativeTracingIntegration,
-  reactNativeTracingIntegration,
-} from '../../../src/js/tracing/reactnativetracing';
+import { ReactNativeTracing } from '../../../src/js/tracing/reactnativetracing';
 import { NATIVE } from '../../../src/js/wrapper';
 import type { TestClient } from '../../mocks/client';
 import { setupTestClient } from '../../mocks/client';
@@ -60,7 +57,7 @@ jest.mock('../../../src/js/wrapper', () => {
 
 describe('User Interaction Tracing', () => {
   let client: TestClient;
-  let tracing: ReactNativeTracingIntegration;
+  let tracing: ReactNativeTracing;
   let mockedUserInteractionId: { elementId: string | undefined; op: string };
   let mockedRoutingInstrumentation: MockedRoutingInstrumentation;
 
@@ -101,7 +98,7 @@ describe('User Interaction Tracing', () => {
 
   describe('enabled user interaction', () => {
     beforeEach(() => {
-      tracing = reactNativeTracingIntegration({
+      tracing = new ReactNativeTracing({
         routingInstrumentation: mockedRoutingInstrumentation,
       });
       client.addIntegration(userInteractionIntegration());

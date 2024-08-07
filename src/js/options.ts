@@ -213,6 +213,8 @@ export interface BaseReactNativeOptions {
 
   /**
    * Trace User Interaction events like touch and gestures.
+   *
+   * @default false
    */
   enableUserInteractionTracing?: boolean;
 
