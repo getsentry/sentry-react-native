@@ -21,7 +21,6 @@ import {
   onlySampleIfChildSpans,
   onThisSpanEnd,
 } from './onSpanEndUtils';
-import { StallTrackingInstrumentation } from './stalltracking';
 import type { BeforeNavigate } from './types';
 
 const SCOPE_SPAN_FIELD = '_sentrySpan';
@@ -90,11 +89,6 @@ export interface ReactNativeTracingOptions extends RequestInstrumentationOptions
   beforeNavigate: BeforeNavigate;
 
   /**
-   * Track when and how long the JS event loop stalls for. Adds stalls as measurements to all transactions.
-   */
-  enableStallTracking: boolean;
-
-  /**
    * Trace User Interaction events like touch and gestures.
    */
   enableUserInteractionTracing: boolean;
@@ -110,7 +104,6 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   finalTimeoutMs: 600000,
   ignoreEmptyBackNavigationTransactions: true,
   beforeNavigate: context => context,
-  enableStallTracking: true,
   enableUserInteractionTracing: false,
 };
 
@@ -131,7 +124,6 @@ export class ReactNativeTracing implements Integration {
   /** ReactNativeTracing options */
   public options: ReactNativeTracingOptions;
 
-  public stallTrackingInstrumentation?: StallTrackingInstrumentation;
   public useAppStartWithProfiler: boolean = false;
 
   private _inflightInteractionTransaction?: Span;
@@ -183,7 +175,6 @@ export class ReactNativeTracing implements Integration {
       // eslint-disable-next-line deprecation/deprecation
       tracePropagationTargets: thisOptionsTracePropagationTargets,
       routingInstrumentation,
-      enableStallTracking,
     } = this.options;
 
     const clientOptionsTracePropagationTargets = clientOptions && clientOptions.tracePropagationTargets;
@@ -191,11 +182,6 @@ export class ReactNativeTracing implements Integration {
       clientOptionsTracePropagationTargets ||
       (this._hasSetTracePropagationTargets && thisOptionsTracePropagationTargets) ||
       DEFAULT_TRACE_PROPAGATION_TARGETS;
-
-    if (enableStallTracking) {
-      this.stallTrackingInstrumentation = new StallTrackingInstrumentation();
-      this.stallTrackingInstrumentation.setup(client);
-    }
 
     if (routingInstrumentation) {
       routingInstrumentation.registerRoutingInstrumentation(

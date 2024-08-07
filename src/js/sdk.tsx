@@ -35,6 +35,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNdk: true,
   enableAppStartTracking: true,
   enableNativeFramesTracking: true,
+  enableStallTracking: true,
 };
 
 /**
