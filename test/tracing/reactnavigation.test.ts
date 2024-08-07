@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getCurrentScope, getGlobalScope, getIsolationScope, SentrySpan, setCurrentClient } from '@sentry/core';
 
-import { ReactNativeTracing } from '../../src/js';
+import { reactNativeTracingIntegration } from '../../src/js';
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 import { ReactNavigationInstrumentation } from '../../src/js/tracing/reactnavigation';
 import {
@@ -331,7 +331,7 @@ describe('ReactNavigationInstrumentation', () => {
     });
     mockNavigation = createMockNavigationAndAttachTo(rNavigation);
 
-    const rnTracing = new ReactNativeTracing({
+    const rnTracing = reactNativeTracingIntegration({
       routingInstrumentation: rNavigation,
       enableStallTracking: false,
       enableNativeFramesTracking: false,

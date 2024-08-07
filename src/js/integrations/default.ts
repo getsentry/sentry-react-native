@@ -3,7 +3,7 @@ import type { BrowserOptions } from '@sentry/react';
 import type { Integration } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../options';
-import { ReactNativeTracing } from '../tracing';
+import { reactNativeTracingIntegration } from '../tracing';
 import { isExpoGo, notWeb } from '../utils/environment';
 import {
   appStartIntegration,
@@ -114,7 +114,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(userInteractionIntegration());
   }
   if (hasTracingEnabled && options.enableAutoPerformanceTracing) {
-    integrations.push(new ReactNativeTracing());
+    integrations.push(reactNativeTracingIntegration());
   }
   if (options.enableCaptureFailedRequests) {
     integrations.push(httpClientIntegration());

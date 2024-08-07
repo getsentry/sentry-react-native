@@ -12,7 +12,7 @@ import type { BaseTransportOptions, ClientOptions, Integration, Scope } from '@s
 import { logger } from '@sentry/utils';
 
 import { init, withScope } from '../src/js/sdk';
-import { ReactNativeTracing, ReactNavigationInstrumentation } from '../src/js/tracing';
+import { reactNativeTracingIntegration, ReactNavigationInstrumentation } from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
 import { getDefaultEnvironment, isExpoGo, notWeb } from '../src/js/utils/environment';
 import { NATIVE } from './mockWrapper';
@@ -32,7 +32,7 @@ describe('Tests the SDK functionality', () => {
     describe('enableAutoPerformanceTracing', () => {
       const reactNavigationInstrumentation = (): ReactNativeTracing => {
         const nav = new ReactNavigationInstrumentation();
-        return new ReactNativeTracing({ routingInstrumentation: nav });
+        return reactNativeTracingIntegration({ routingInstrumentation: nav });
       };
 
       it('Auto Performance is disabled by default', () => {

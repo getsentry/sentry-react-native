@@ -6,7 +6,6 @@ import type { GestureResponderEvent } from 'react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { createIntegration } from './integrations/factory';
-import type { ReactNativeTracing } from './tracing';
 import { startUserInteractionSpan } from './tracing/integrations/userInteraction';
 import { UI_ACTION_TOUCH } from './tracing/ops';
 
@@ -92,17 +91,12 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 
   public readonly name: string = 'TouchEventBoundary';
 
-  private _tracingIntegration: ReactNativeTracing | null = null;
-
   /**
    * Registers the TouchEventBoundary as a Sentry Integration.
    */
   public componentDidMount(): void {
     const client = getClient();
     client?.addIntegration?.(createIntegration(this.name));
-    if (!this._tracingIntegration && client) {
-      this._tracingIntegration = client.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing') || null;
-    }
   }
 
   /**

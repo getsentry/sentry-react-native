@@ -10,7 +10,7 @@ import {
 import type { Event } from '@sentry/types';
 import type { EmitterSubscription } from 'react-native';
 
-import { ReactNativeTracing } from '../../src/js';
+import { reactNativeTracingIntegration } from '../../src/js';
 import type {
   BottomTabPressedEvent,
   ComponentWillAppearEvent,
@@ -368,7 +368,7 @@ describe('React Native Navigation Instrumentation', () => {
       },
     );
 
-    const rnTracing = new ReactNativeTracing({
+    const rnTracing = reactNativeTracingIntegration({
       routingInstrumentation: rNavigation,
       enableStallTracking: false,
       enableNativeFramesTracking: false,

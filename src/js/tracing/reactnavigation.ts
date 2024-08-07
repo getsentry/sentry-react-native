@@ -303,7 +303,6 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
           });
 
-          this._beforeNavigate?.(this._latestTransaction);
           // Clear the timeout so the transaction does not get cancelled.
           this._clearStateChangeTimeout();
 
