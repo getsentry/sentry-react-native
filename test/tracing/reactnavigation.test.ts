@@ -6,7 +6,7 @@ import type { Event, Measurements, StartSpanOptions } from '@sentry/types';
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
 import { DEFAULT_NAVIGATION_SPAN_NAME } from '../../src/js/tracing/reactnativetracing';
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
-import { ReactNavigationInstrumentation } from '../../src/js/tracing/reactnavigation';
+import { reactNavigationIntegration } from '../../src/js/tracing/reactnavigation';
 import {
   SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY,
   SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME,
@@ -100,7 +100,7 @@ describe('ReactNavigationInstrumentation', () => {
       };
       NATIVE.fetchNativeFrames.mockResolvedValueOnce(startFrames).mockResolvedValueOnce(finishFrames);
 
-      const rNavigation = new ReactNavigationInstrumentation({
+      const rNavigation = new reactNavigationIntegration({
         routeChangeTimeoutMs: 200,
       });
       mockNavigation = createMockNavigationAndAttachTo(rNavigation);
@@ -314,7 +314,7 @@ describe('ReactNavigationInstrumentation', () => {
 
   describe('navigation container registration', () => {
     test('registers navigation container object ref', () => {
-      const instrumentation = new ReactNavigationInstrumentation();
+      const instrumentation = new reactNavigationIntegration();
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer({
         current: mockNavigationContainer,
@@ -327,7 +327,7 @@ describe('ReactNavigationInstrumentation', () => {
     });
 
     test('registers navigation container direct ref', () => {
-      const instrumentation = new ReactNavigationInstrumentation();
+      const instrumentation = new reactNavigationIntegration();
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer(mockNavigationContainer);
 
@@ -340,7 +340,7 @@ describe('ReactNavigationInstrumentation', () => {
     test('does not register navigation container if there is an existing one', () => {
       RN_GLOBAL_OBJ.__sentry_rn_v5_registered = true;
 
-      const instrumentation = new ReactNavigationInstrumentation();
+      const instrumentation = new reactNavigationIntegration();
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer({
         current: mockNavigationContainer,
@@ -353,7 +353,7 @@ describe('ReactNavigationInstrumentation', () => {
     });
 
     test('works if routing instrumentation registration is after navigation registration', async () => {
-      const instrumentation = new ReactNavigationInstrumentation();
+      const instrumentation = new reactNavigationIntegration();
 
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer(mockNavigationContainer);
@@ -374,7 +374,7 @@ describe('ReactNavigationInstrumentation', () => {
 
   describe('options', () => {
     test('waits until routeChangeTimeoutMs', () => {
-      const instrumentation = new ReactNavigationInstrumentation({
+      const instrumentation = new reactNavigationIntegration({
         routeChangeTimeoutMs: 200,
       });
 
@@ -409,7 +409,7 @@ describe('ReactNavigationInstrumentation', () => {
       beforeSpanStart?: (options: StartSpanOptions) => StartSpanOptions;
     } = {},
   ) {
-    const rNavigation = new ReactNavigationInstrumentation({
+    const rNavigation = new reactNavigationIntegration({
       routeChangeTimeoutMs: 200,
     });
     mockNavigation = createMockNavigationAndAttachTo(rNavigation);

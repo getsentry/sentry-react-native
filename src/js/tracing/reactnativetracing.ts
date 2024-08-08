@@ -4,7 +4,6 @@ import { getClient, getCurrentScope } from '@sentry/core';
 import type { Client, Event, Integration, StartSpanOptions } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
-import type { RoutingInstrumentationInstance } from './routingInstrumentation';
 import { addDefaultOpForSpanFrom, startIdleNavigationSpan } from './span';
 
 export const INTEGRATION_NAME = 'ReactNativeTracing';
@@ -48,12 +47,6 @@ export interface ReactNativeTracingOptions {
   enableHTTPTimings: boolean;
 
   /**
-   * The routing instrumentation to be used with the tracing integration.
-   * There is no routing instrumentation if nothing is passed.
-   */
-  routingInstrumentation?: RoutingInstrumentationInstance;
-
-  /**
    * Does not sample transactions that are from routes that have been seen any more and don't have any spans.
    * This removes a lot of the clutter as most back navigation transactions are now ignored.
    *
@@ -88,7 +81,7 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   ignoreEmptyBackNavigationTransactions: true,
 };
 
-type ReactNativeTracingState = {
+export type ReactNativeTracingState = {
   currentRoute: string | undefined;
 };
 
@@ -97,6 +90,7 @@ export const reactNativeTracingIntegration = (
 ): Integration & {
   options: ReactNativeTracingOptions;
   state: ReactNativeTracingState;
+  setCurrentRoute: (route: string) => void;
 } => {
   const state: ReactNativeTracingState = {
     currentRoute: undefined,
@@ -121,37 +115,6 @@ export const reactNativeTracingIntegration = (
     });
   };
 
-  const afterAllSetup = (): void => {
-    if (finalOptions.routingInstrumentation) {
-      const idleNavigationSpanOptions = {
-        finalTimeout: finalOptions.finalTimeoutMs,
-        idleTimeout: finalOptions.idleTimeoutMs,
-        ignoreEmptyBackNavigationTransactions: finalOptions.ignoreEmptyBackNavigationTransactions,
-      };
-      finalOptions.routingInstrumentation.registerRoutingInstrumentation(
-        navigationInstrumentationOptions =>
-          startIdleNavigationSpan(
-            finalOptions.beforeStartSpan({
-              name: DEFAULT_NAVIGATION_SPAN_NAME,
-              op: 'navigation',
-              forceTransaction: true,
-              scope: getCurrentScope(),
-              ...navigationInstrumentationOptions,
-            }),
-            idleNavigationSpanOptions,
-          ),
-        () => {
-          // no-op, replaced by beforeStartSpan, will be removed in the future
-        },
-        (currentViewName: string | undefined) => {
-          state.currentRoute = currentViewName;
-        },
-      );
-    } else {
-      logger.log(`[${INTEGRATION_NAME}] Not instrumenting route changes as routingInstrumentation has not been set.`);
-    }
-  };
-
   const processEvent = (event: Event): Event => {
     if (event.contexts && state.currentRoute) {
       event.contexts.app = { view_names: [state.currentRoute], ...event.contexts.app };
@@ -162,10 +125,12 @@ export const reactNativeTracingIntegration = (
   return {
     name: INTEGRATION_NAME,
     setup,
-    afterAllSetup,
     processEvent,
     options: finalOptions,
     state,
+    setCurrentRoute: (route: string) => {
+      state.currentRoute = route;
+    },
   };
 };
 

@@ -8,40 +8,30 @@ import {
   spanToJSON,
   startInactiveSpan,
 } from '@sentry/core';
-import type { Span } from '@sentry/types';
-import { logger, timestampInSeconds } from '@sentry/utils';
+import type { Client, Integration, Span } from '@sentry/types';
+import { isPlainObject, logger, timestampInSeconds } from '@sentry/utils';
 
 import type { NewFrameEvent } from '../utils/sentryeventemitter';
 import { type SentryEventEmitter, createSentryEventEmitter, NewFrameEventName } from '../utils/sentryeventemitter';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
-import { DEFAULT_NAVIGATION_SPAN_NAME } from './reactnativetracing';
-import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
-import { InternalRoutingInstrumentation } from './routingInstrumentation';
+import type { ReactNativeTracingState } from './reactnativetracing';
+import { DEFAULT_NAVIGATION_SPAN_NAME, getReactNativeTracingIntegration } from './reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
+import { startIdleNavigationSpan as startGenericIdleNavigationSpan } from './span';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
-import type { BeforeNavigate } from './types';
 
-export interface NavigationRoute {
-  name: string;
-  key: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  params?: Record<string, any>;
-}
+export const INTEGRATION_NAME = 'ReactNavigation';
 
-interface NavigationContainer {
-  addListener: (type: string, listener: () => void) => void;
-  getCurrentRoute: () => NavigationRoute;
-}
+const NAVIGATION_HISTORY_MAX_SIZE = 200;
 
-interface ReactNavigationOptions {
+interface ReactNavigationIntegrationOptions {
   /**
    * How long the instrumentation will wait for the route to mount after a change has been initiated,
    * before the transaction is discarded.
-   * Time is in ms.
    *
-   * @default 1000
+   * @default 1_000 (ms)
    */
   routeChangeTimeoutMs: number;
 
@@ -54,11 +44,6 @@ interface ReactNavigationOptions {
   enableTimeToInitialDisplay: boolean;
 }
 
-const defaultOptions: ReactNavigationOptions = {
-  routeChangeTimeoutMs: 1000,
-  enableTimeToInitialDisplay: false,
-};
-
 /**
  * Instrumentation for React-Navigation V5 and above. See docs or sample app for usage.
  *
@@ -67,317 +52,312 @@ const defaultOptions: ReactNavigationOptions = {
  * - `_onStateChange` is then called AFTER the state change happens due to a dispatch and sets the route context onto the active transaction.
  * - If `_onStateChange` isn't called within `STATE_CHANGE_TIMEOUT_DURATION` of the dispatch, then the transaction is not sampled and finished.
  */
-export class ReactNavigationInstrumentation extends InternalRoutingInstrumentation {
-  public static instrumentationName: string = 'react-navigation-v5';
-
-  public readonly name: string = ReactNavigationInstrumentation.instrumentationName;
-
-  private _navigationContainer: NavigationContainer | null = null;
-  private _newScreenFrameEventEmitter: SentryEventEmitter | null = null;
-
-  private readonly _maxRecentRouteLen: number = 200;
-
-  private _latestRoute?: NavigationRoute;
-  private _latestTransaction?: Span;
-  private _navigationProcessingSpan?: Span;
-
-  private _initialStateHandled: boolean = false;
-  private _stateChangeTimeout?: number | undefined;
-  private _recentRouteKeys: string[] = [];
-
-  private _options: ReactNavigationOptions;
-
-  public constructor(options: Partial<ReactNavigationOptions> = {}) {
-    super();
-
-    this._options = {
-      ...defaultOptions,
-      ...options,
-    };
-
-    if (this._options.enableTimeToInitialDisplay) {
-      this._newScreenFrameEventEmitter = createSentryEventEmitter();
-      this._newScreenFrameEventEmitter.initAsync(NewFrameEventName);
-      NATIVE.initNativeReactNavigationNewFrameTracking().catch((reason: unknown) => {
-        logger.error(`[ReactNavigationInstrumentation] Failed to initialize native new frame tracking: ${reason}`);
-      });
-    }
-  }
-
-  /**
-   * Extends by calling _handleInitialState at the end.
-   */
-  public registerRoutingInstrumentation(
-    listener: TransactionCreator,
-    beforeNavigate: BeforeNavigate,
-    onConfirmRoute: OnConfirmRoute,
-  ): void {
-    super.registerRoutingInstrumentation(listener, beforeNavigate, onConfirmRoute);
-
-    // We create an initial state here to ensure a transaction gets created before the first route mounts.
-    if (!this._initialStateHandled) {
-      this._onDispatch();
-      if (this._navigationContainer) {
-        // Navigation container already registered, just populate with route state
-        this._onStateChange();
-
-        this._initialStateHandled = true;
-      }
-    }
-  }
-
+export const reactNavigationIntegration = ({
+  routeChangeTimeoutMs = 1_000,
+  enableTimeToInitialDisplay = false,
+}: Partial<ReactNavigationIntegrationOptions> = {}): Integration & {
   /**
    * Pass the ref to the navigation container to register it to the instrumentation
    * @param navigationContainerRef Ref to a `NavigationContainer`
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-  public registerNavigationContainer(navigationContainerRef: any): void {
+  registerNavigationContainer: (navigationContainerRef: unknown) => void;
+} => {
+  let navigationContainer: NavigationContainer | undefined;
+  let newScreenFrameEventEmitter: SentryEventEmitter | undefined;
+
+  let latestRoute: NavigationRoute | undefined;
+
+  let latestTransaction: Span | undefined;
+  let navigationProcessingSpan: Span | undefined;
+
+  let initialStateHandled: boolean = false;
+  let stateChangeTimeout: ReturnType<typeof setTimeout> | undefined;
+  let recentRouteKeys: string[] = [];
+
+  if (enableTimeToInitialDisplay) {
+    newScreenFrameEventEmitter = createSentryEventEmitter();
+    newScreenFrameEventEmitter.initAsync(NewFrameEventName);
+    NATIVE.initNativeReactNavigationNewFrameTracking().catch((reason: unknown) => {
+      logger.error(`[ReactNavigationInstrumentation] Failed to initialize native new frame tracking: ${reason}`);
+    });
+  }
+
+  /**
+   * Set the initial state and start initial navigation span for the current screen.
+   */
+  const afterAllSetup = (client: Client): void => {
+    const tracing = getReactNativeTracingIntegration(client);
+    if (tracing) {
+      tracingStateRef = tracing.state;
+    }
+
+    if (initialStateHandled) {
+      // We create an initial state here to ensure a transaction gets created before the first route mounts.
+      return undefined;
+    }
+
+    _startIdleNavigationSpan();
+
+    if (!navigationContainer) {
+      // This is expected as navigation container is registered after the root component is mounted.
+      return undefined;
+    }
+
+    // Navigation container already registered, just populate with route state
+    updateLatestNavigationSpanWithCurrentRoute();
+    initialStateHandled = true;
+  };
+
+  const registerNavigationContainer = (navigationContainerRef: unknown): void => {
     /* We prevent duplicate routing instrumentation to be initialized on fast refreshes
 
       Explanation: If the user triggers a fast refresh on the file that the instrumentation is
       initialized in, it will initialize a new instance and will cause undefined behavior.
      */
-    if (!RN_GLOBAL_OBJ.__sentry_rn_v5_registered) {
-      if ('current' in navigationContainerRef) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        this._navigationContainer = navigationContainerRef.current;
-      } else {
-        this._navigationContainer = navigationContainerRef;
-      }
-
-      if (this._navigationContainer) {
-        this._navigationContainer.addListener(
-          '__unsafe_action__', // This action is emitted on every dispatch
-          this._onDispatch.bind(this),
-        );
-        this._navigationContainer.addListener(
-          'state', // This action is emitted on every state change
-          this._onStateChange.bind(this),
-        );
-
-        if (!this._initialStateHandled) {
-          if (this._latestTransaction) {
-            // If registerRoutingInstrumentation was called first _onDispatch has already been called
-            this._onStateChange();
-
-            this._initialStateHandled = true;
-          } else {
-            logger.log(
-              '[ReactNavigationInstrumentation] Navigation container registered, but integration has not been setup yet.',
-            );
-          }
-        }
-
-        RN_GLOBAL_OBJ.__sentry_rn_v5_registered = true;
-      } else {
-        logger.warn('[ReactNavigationInstrumentation] Received invalid navigation container ref!');
-      }
-    } else {
+    if (RN_GLOBAL_OBJ.__sentry_rn_v5_registered) {
       logger.log(
         '[ReactNavigationInstrumentation] Instrumentation already exists, but register has been called again, doing nothing.',
       );
+      return undefined;
     }
-  }
+
+    if (isPlainObject(navigationContainerRef) && 'current' in navigationContainerRef) {
+      navigationContainer = navigationContainerRef.current as NavigationContainer;
+    } else {
+      navigationContainer = navigationContainerRef as NavigationContainer;
+    }
+    if (!navigationContainer) {
+      logger.warn('[ReactNavigationInstrumentation] Received invalid navigation container ref!');
+      return undefined;
+    }
+
+    // This action is emitted on every dispatch
+    navigationContainer.addListener('__unsafe_action__', _startIdleNavigationSpan);
+    navigationContainer.addListener('state', updateLatestNavigationSpanWithCurrentRoute);
+    RN_GLOBAL_OBJ.__sentry_rn_v5_registered = true;
+
+    if (initialStateHandled) {
+      return undefined;
+    }
+
+    if (!latestTransaction) {
+      logger.log(
+        '[ReactNavigationInstrumentation] Navigation container registered, but integration has not been setup yet.',
+      );
+      return undefined;
+    }
+
+    // Navigation Container is registered after the first navigation
+    // Initial navigation span was started, after integration setup,
+    // so now we populate it with the current route.
+    updateLatestNavigationSpanWithCurrentRoute();
+    initialStateHandled = true;
+  };
 
   /**
    * To be called on every React-Navigation action dispatch.
    * It does not name the transaction or populate it with route information. Instead, it waits for the state to fully change
-   * and gets the route information from there, @see _onStateChange
+   * and gets the route information from there, @see updateLatestNavigationSpanWithCurrentRoute
    */
-  private _onDispatch(): void {
-    if (this._latestTransaction) {
+  const _startIdleNavigationSpan = (): void => {
+    if (latestTransaction) {
       logger.log(
         '[ReactNavigationInstrumentation] A transaction was detected that turned out to be a noop, discarding.',
       );
-      this._discardLatestTransaction();
-      this._clearStateChangeTimeout();
+      _discardLatestTransaction();
+      _clearStateChangeTimeout();
     }
 
-    this._latestTransaction = this.onRouteWillChange({ name: DEFAULT_NAVIGATION_SPAN_NAME });
+    latestTransaction = startGenericIdleNavigationSpan(
+      // TODO: call before start span
+      { name: DEFAULT_NAVIGATION_SPAN_NAME },
+      {
+        finalTimeout: 60_000, // TODO: react from tracing options
+        idleTimeout: 1_000, // TODO: react from tracing options
+        ignoreEmptyBackNavigationTransactions: false, // TODO: react from nav options
+      },
+    );
 
-    if (this._options.enableTimeToInitialDisplay) {
-      this._navigationProcessingSpan = startInactiveSpan({
+    if (enableTimeToInitialDisplay) {
+      navigationProcessingSpan = startInactiveSpan({
         op: 'navigation.processing',
         name: 'Navigation processing',
-        startTime: this._latestTransaction && spanToJSON(this._latestTransaction).start_timestamp,
+        startTime: latestTransaction && spanToJSON(latestTransaction).start_timestamp,
       });
     }
 
-    this._stateChangeTimeout = setTimeout(
-      this._discardLatestTransaction.bind(this),
-      this._options.routeChangeTimeoutMs,
-    );
-  }
+    stateChangeTimeout = setTimeout(_discardLatestTransaction, routeChangeTimeoutMs);
+  };
 
   /**
    * To be called AFTER the state has been changed to populate the transaction with the current route.
    */
-  private _onStateChange(): void {
+  const updateLatestNavigationSpanWithCurrentRoute = (): void => {
     const stateChangedTimestamp = timestampInSeconds();
+    const previousRoute = latestRoute;
 
-    // Use the getCurrentRoute method to be accurate.
-    const previousRoute = this._latestRoute;
-
-    if (!this._navigationContainer) {
-      logger.warn(
-        '[ReactNavigationInstrumentation] Missing navigation container ref. Route transactions will not be sent.',
-      );
-
-      return;
+    if (!navigationContainer) {
+      logger.warn(`${INTEGRATION_NAME} Missing navigation container ref. Route transactions will not be sent.`);
+      return undefined;
     }
 
-    const route = this._navigationContainer.getCurrentRoute();
+    const route = navigationContainer.getCurrentRoute();
+    if (!route) {
+      logger.debug(`[${INTEGRATION_NAME}] Navigation state changed, but no route is rendered.`);
+      return undefined;
+    }
 
-    if (route) {
-      if (this._latestTransaction) {
-        if (!previousRoute || previousRoute.key !== route.key) {
-          const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
-          const latestTtidSpan =
-            !routeHasBeenSeen &&
-            this._options.enableTimeToInitialDisplay &&
-            startTimeToInitialDisplaySpan({
-              name: `${route.name} initial display`,
-              isAutoInstrumented: true,
-            });
+    if (!latestTransaction) {
+      logger.debug(
+        `[${INTEGRATION_NAME}] Navigation state changed, but navigation transaction was not started on dispatch.`,
+      );
+      return undefined;
+    }
 
-          !routeHasBeenSeen &&
-            this._newScreenFrameEventEmitter?.once(
-              NewFrameEventName,
-              ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
-                const activeSpan = getActiveSpan();
-                if (!activeSpan) {
-                  logger.warn(
-                    '[ReactNavigationInstrumentation] No active span found to attach ui.load.initial_display to.',
-                  );
-                  return;
-                }
+    if (previousRoute && previousRoute.key === route.key) {
+      logger.debug(`[${INTEGRATION_NAME}] Navigation state changed, but route is the same as previous.`);
+      _pushRecentRouteKey(route.key);
+      latestRoute = route;
 
-                if (manualInitialDisplaySpans.has(activeSpan)) {
-                  logger.warn(
-                    '[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.',
-                  );
-                  return;
-                }
+      // Clear the latest transaction as it has been handled.
+      latestTransaction = undefined;
+      return undefined;
+    }
 
-                if (!latestTtidSpan) {
-                  return;
-                }
+    const routeHasBeenSeen = recentRouteKeys.includes(route.key);
+    const latestTtidSpan =
+      !routeHasBeenSeen &&
+      enableTimeToInitialDisplay &&
+      startTimeToInitialDisplaySpan({
+        name: `${route.name} initial display`,
+        isAutoInstrumented: true,
+      });
 
-                if (spanToJSON(latestTtidSpan).parent_span_id !== getActiveSpan()?.spanContext().spanId) {
-                  logger.warn(
-                    '[ReactNavigationInstrumentation] Currently Active Span changed before the new frame was rendered, _latestTtidSpan is not a child of the currently active span.',
-                  );
-                  return;
-                }
-
-                latestTtidSpan.setStatus({ code: SPAN_STATUS_OK });
-                latestTtidSpan.end(newFrameTimestampInSeconds);
-                const ttidSpan = spanToJSON(latestTtidSpan);
-
-                const ttidSpanEnd = ttidSpan.timestamp;
-                const ttidSpanStart = ttidSpan.start_timestamp;
-                if (!ttidSpanEnd || !ttidSpanStart) {
-                  return;
-                }
-
-                setMeasurement('time_to_initial_display', (ttidSpanEnd - ttidSpanStart) * 1000, 'millisecond');
-              },
-            );
-
-          this._navigationProcessingSpan?.updateName(`Processing navigation to ${route.name}`);
-          this._navigationProcessingSpan?.setStatus({ code: SPAN_STATUS_OK });
-          this._navigationProcessingSpan?.end(stateChangedTimestamp);
-          this._navigationProcessingSpan = undefined;
-
-          if (spanToJSON(this._latestTransaction).description === DEFAULT_NAVIGATION_SPAN_NAME) {
-            this._latestTransaction.updateName(route.name);
-          }
-          this._latestTransaction.setAttributes({
-            'route.name': route.name,
-            'route.key': route.key,
-            // TODO: filter PII params instead of dropping them all
-            // 'route.params': {},
-            'route.has_been_seen': routeHasBeenSeen,
-            'previous_route.name': previousRoute?.name,
-            'previous_route.key': previousRoute?.key,
-            // TODO: filter PII params instead of dropping them all
-            // 'previous_route.params': {},
-            [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
-            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
-          });
-
-          // Clear the timeout so the transaction does not get cancelled.
-          this._clearStateChangeTimeout();
-
-          this._onConfirmRoute?.(route.name);
-
-          // TODO: Add test for addBreadcrumb
-          addBreadcrumb({
-            category: 'navigation',
-            type: 'navigation',
-            message: `Navigation to ${route.name}`,
-            data: {
-              from: previousRoute?.name,
-              to: route.name,
-            },
-          });
+    !routeHasBeenSeen &&
+      newScreenFrameEventEmitter?.once(NewFrameEventName, ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
+        const activeSpan = getActiveSpan();
+        if (!activeSpan) {
+          logger.warn('[ReactNavigationInstrumentation] No active span found to attach ui.load.initial_display to.');
+          return;
         }
 
-        this._pushRecentRouteKey(route.key);
-        this._latestRoute = route;
+        if (manualInitialDisplaySpans.has(activeSpan)) {
+          logger.warn('[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.');
+          return;
+        }
 
-        // Clear the latest transaction as it has been handled.
-        this._latestTransaction = undefined;
-      }
+        if (!latestTtidSpan) {
+          return;
+        }
+
+        if (spanToJSON(latestTtidSpan).parent_span_id !== getActiveSpan()?.spanContext().spanId) {
+          logger.warn(
+            '[ReactNavigationInstrumentation] Currently Active Span changed before the new frame was rendered, _latestTtidSpan is not a child of the currently active span.',
+          );
+          return;
+        }
+
+        latestTtidSpan.setStatus({ code: SPAN_STATUS_OK });
+        latestTtidSpan.end(newFrameTimestampInSeconds);
+        const ttidSpan = spanToJSON(latestTtidSpan);
+
+        const ttidSpanEnd = ttidSpan.timestamp;
+        const ttidSpanStart = ttidSpan.start_timestamp;
+        if (!ttidSpanEnd || !ttidSpanStart) {
+          return;
+        }
+
+        setMeasurement('time_to_initial_display', (ttidSpanEnd - ttidSpanStart) * 1000, 'millisecond');
+      });
+
+    navigationProcessingSpan?.updateName(`Processing navigation to ${route.name}`);
+    navigationProcessingSpan?.setStatus({ code: SPAN_STATUS_OK });
+    navigationProcessingSpan?.end(stateChangedTimestamp);
+    navigationProcessingSpan = undefined;
+
+    if (spanToJSON(latestTransaction).description === DEFAULT_NAVIGATION_SPAN_NAME) {
+      latestTransaction.updateName(route.name);
     }
-  }
+    latestTransaction.setAttributes({
+      'route.name': route.name,
+      'route.key': route.key,
+      // TODO: filter PII params instead of dropping them all
+      // 'route.params': {},
+      'route.has_been_seen': routeHasBeenSeen,
+      'previous_route.name': previousRoute?.name,
+      'previous_route.key': previousRoute?.key,
+      // TODO: filter PII params instead of dropping them all
+      // 'previous_route.params': {},
+      [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
+      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+    });
+
+    // Clear the timeout so the transaction does not get cancelled.
+    _clearStateChangeTimeout();
+
+    // TODO: Add test for addBreadcrumb
+    addBreadcrumb({
+      category: 'navigation',
+      type: 'navigation',
+      message: `Navigation to ${route.name}`,
+      data: {
+        from: previousRoute?.name,
+        to: route.name,
+      },
+    });
+
+    _pushRecentRouteKey(route.key);
+    latestRoute = route;
+    // Clear the latest transaction as it has been handled.
+    latestTransaction = undefined;
+  };
 
   /** Pushes a recent route key, and removes earlier routes when there is greater than the max length */
-  private _pushRecentRouteKey = (key: string): void => {
-    this._recentRouteKeys.push(key);
+  const _pushRecentRouteKey = (key: string): void => {
+    recentRouteKeys.push(key);
 
-    if (this._recentRouteKeys.length > this._maxRecentRouteLen) {
-      this._recentRouteKeys = this._recentRouteKeys.slice(this._recentRouteKeys.length - this._maxRecentRouteLen);
+    if (recentRouteKeys.length > NAVIGATION_HISTORY_MAX_SIZE) {
+      recentRouteKeys = recentRouteKeys.slice(recentRouteKeys.length - NAVIGATION_HISTORY_MAX_SIZE);
     }
   };
 
   /** Cancels the latest transaction so it does not get sent to Sentry. */
-  private _discardLatestTransaction(): void {
-    if (this._latestTransaction) {
-      if (isSentrySpan(this._latestTransaction)) {
-        this._latestTransaction['_sampled'] = false;
+  const _discardLatestTransaction = (): void => {
+    if (latestTransaction) {
+      if (isSentrySpan(latestTransaction)) {
+        latestTransaction['_sampled'] = false;
       }
       // TODO: What if it's not SentrySpan?
-      this._latestTransaction.end();
-      this._latestTransaction = undefined;
+      latestTransaction.end();
+      latestTransaction = undefined;
     }
-    if (this._navigationProcessingSpan) {
-      this._navigationProcessingSpan = undefined;
+    if (navigationProcessingSpan) {
+      navigationProcessingSpan = undefined;
     }
-  }
+  };
 
-  /**
-   *
-   */
-  private _clearStateChangeTimeout(): void {
-    if (typeof this._stateChangeTimeout !== 'undefined') {
-      clearTimeout(this._stateChangeTimeout);
-      this._stateChangeTimeout = undefined;
+  const _clearStateChangeTimeout = (): void => {
+    if (typeof stateChangeTimeout !== 'undefined') {
+      clearTimeout(stateChangeTimeout);
+      stateChangeTimeout = undefined;
     }
-  }
+  };
+
+  return {
+    name: INTEGRATION_NAME,
+    afterAllSetup,
+    registerNavigationContainer,
+  };
+};
+
+export interface NavigationRoute {
+  name: string;
+  key: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  params?: Record<string, any>;
 }
 
-/**
- * Backwards compatibility alias for ReactNavigationInstrumentation
- * @deprecated Use ReactNavigationInstrumentation
- */
-export const ReactNavigationV5Instrumentation = ReactNavigationInstrumentation;
-
-export const BLANK_TRANSACTION_CONTEXT = {
-  name: 'Route Change',
-  op: 'navigation',
-  tags: {
-    'routing.instrumentation': ReactNavigationInstrumentation.instrumentationName,
-  },
-  data: {},
-};
+interface NavigationContainer {
+  addListener: (type: string, listener: () => void) => void;
+  getCurrentRoute: () => NavigationRoute;
+}

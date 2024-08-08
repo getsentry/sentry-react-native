@@ -8,7 +8,7 @@ export type { RoutingInstrumentationInstance } from './routingInstrumentation';
 export { RoutingInstrumentation } from './routingInstrumentation';
 
 export {
-  ReactNavigationInstrumentation,
+  reactNavigationIntegration as ReactNavigationInstrumentation,
   // eslint-disable-next-line deprecation/deprecation
   ReactNavigationV5Instrumentation,
 } from './reactnavigation';
