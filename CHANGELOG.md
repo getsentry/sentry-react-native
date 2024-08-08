@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- `Sentry.captureMessage` stack trace is in `event.exception` (moved from `event.threads`) ([#3635](https://github.com/getsentry/sentry-react-native/pull/3635), [#3988](https://github.com/getsentry/sentry-react-native/pull/3988))
+  - To revert to the old behavior (causing the stack to be unsymbolicated) use `useThreadsForMessageStack` option
+
 ## 5.27.0
 
 ### Fixes
