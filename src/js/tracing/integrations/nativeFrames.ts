@@ -73,7 +73,6 @@ export const nativeFramesIntegration = (): Integration => {
 
     NATIVE.enableNativeFramesTracking();
 
-    // TODO: Ensure other integrations like ReactNativeTracing and ReactNavigation create spans after all integration are setup.
     client.on('spanStart', _onSpanStart);
     client.on('spanEnd', _onSpanFinish);
     logger.log('[ReactNativeTracing] Native frames instrumentation initialized.');
