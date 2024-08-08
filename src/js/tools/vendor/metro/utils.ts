@@ -80,10 +80,15 @@ export const createDefaultMetroSerializer = (): MetroSerializer => {
       return code;
     }
 
-    let sourceMapStringFunction;
+    let sourceMapStringFunction: typeof sourceMapString | undefined;
     if (typeof sourceMapString === 'function') {
       sourceMapStringFunction = sourceMapString;
-    } else if (typeof (sourceMapString as NewSourceMapStringExport).sourceMapString === 'function') {
+    } else if (
+      typeof sourceMapString === 'object' &&
+      sourceMapString != null &&
+      'sourceMapString' in sourceMapString &&
+      typeof sourceMapString['sourceMapString'] === 'function'
+    ) {
       sourceMapStringFunction = (sourceMapString as NewSourceMapStringExport).sourceMapString;
     } else {
       throw new Error(`
