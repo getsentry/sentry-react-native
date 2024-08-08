@@ -86,7 +86,10 @@ export const createDefaultMetroSerializer = (): MetroSerializer => {
     } else if (typeof (sourceMapString as NewSourceMapStringExport).sourceMapString === 'function') {
       sourceMapStringFunction = (sourceMapString as NewSourceMapStringExport).sourceMapString;
     } else {
-      throw new Error('[@sentry/react-native/metro] Cannot find sourceMapString function in Metro');
+      throw new Error(`
+[@sentry/react-native/metro] Cannot find sourceMapString function in 'metro/src/DeltaBundler/Serializers/sourceMapString'.
+Please check the version of Metro you are using and report the issue at http://www.github.com/getsentry/sentry-react-native/issues
+`);
     }
 
     // Always generate source maps, can't use Sentry without source maps
