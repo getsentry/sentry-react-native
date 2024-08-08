@@ -31,6 +31,11 @@ import * as bundleToString from 'metro/src/lib/bundleToString';
 
 import type { MetroSerializer } from '../../utils';
 
+type NewSourceMapStringExport = {
+  // Since Metro v0.80.10 https://github.com/facebook/metro/compare/v0.80.9...v0.80.10#diff-1b836d1729e527a725305eef0cec22e44605af2700fa413f4c2489ea1a03aebcL28
+  sourceMapString: typeof sourceMapString;
+};
+
 /**
  * This function ensures that modules in source maps are sorted in the same
  * order as in a plain JS bundle.
@@ -75,8 +80,17 @@ export const createDefaultMetroSerializer = (): MetroSerializer => {
       return code;
     }
 
+    let sourceMapStringFunction;
+    if (typeof sourceMapString === 'function') {
+      sourceMapStringFunction = sourceMapString;
+    } else if (typeof (sourceMapString as NewSourceMapStringExport).sourceMapString === 'function') {
+      sourceMapStringFunction = (sourceMapString as NewSourceMapStringExport).sourceMapString;
+    } else {
+      throw new Error('[@sentry/react-native/metro] Cannot find sourceMapString function in Metro');
+    }
+
     // Always generate source maps, can't use Sentry without source maps
-    const map = sourceMapString([...preModules, ...getSortedModules(graph, options)], {
+    const map = sourceMapStringFunction([...preModules, ...getSortedModules(graph, options)], {
       processModuleFilter: options.processModuleFilter,
       shouldAddToIgnoreList: options.shouldAddToIgnoreList,
     });
