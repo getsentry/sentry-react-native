@@ -2,12 +2,13 @@ import {
   getActiveSpan,
   getClient,
   getCurrentScope,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SentryNonRecordingSpan,
   SPAN_STATUS_ERROR,
   spanToJSON,
   startIdleSpan as coreStartIdleSpan,
 } from '@sentry/core';
-import type { Scope, Span, StartSpanOptions } from '@sentry/types';
+import type { Client, Scope, Span, StartSpanOptions } from '@sentry/types';
 import { generatePropagationContext, logger } from '@sentry/utils';
 
 import { isRootSpan } from '../utils/span';
@@ -15,13 +16,7 @@ import { adjustTransactionDuration, cancelInBackground, ignoreEmptyBackNavigatio
 import { SPAN_ORIGIN_AUTO_INTERACTION } from './origin';
 
 export const startIdleNavigationSpan = (
-  {
-    name,
-    op,
-  }: {
-    name?: string;
-    op?: string;
-  } = {},
+  startSpanOption: StartSpanOptions,
   {
     finalTimeout,
     idleTimeout,
@@ -47,15 +42,12 @@ export const startIdleNavigationSpan = (
     activeSpan.end();
   }
 
-  const expandedContext: StartSpanOptions = {
-    name,
-    op,
-    forceTransaction: true,
-    scope: getCurrentScope(),
-  };
-
-  const idleSpan = startIdleSpan(expandedContext, { finalTimeout, idleTimeout });
-  logger.log(`[ReactNativeTracing] Starting ${op || 'unknown op'} transaction "${name}" on scope`);
+  const idleSpan = startIdleSpan(startSpanOption, { finalTimeout, idleTimeout });
+  logger.log(
+    `[ReactNativeTracing] Starting ${startSpanOption.op || 'unknown op'} transaction "${
+      startSpanOption.name
+    }" on scope`,
+  );
 
   adjustTransactionDuration(client, idleSpan, finalTimeout);
   if (ignoreEmptyBackNavigationTransactions) {
@@ -108,4 +100,15 @@ type ScopeWithMaybeSpan = Scope & {
 export function clearActiveSpanFromScope(scope: ScopeWithMaybeSpan): void {
   // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
   delete scope[SCOPE_SPAN_FIELD];
+}
+
+/**
+ * Ensures that all created spans have an operation name.
+ */
+export function addDefaultOpForSpanFrom(client: Client): void {
+  client.on('spanStart', (span: Span) => {
+    if (!spanToJSON(span).op) {
+      span.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_OP, 'default');
+    }
+  });
 }

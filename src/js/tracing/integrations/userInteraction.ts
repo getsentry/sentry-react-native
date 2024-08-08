@@ -45,7 +45,7 @@ export const startUserInteractionSpan = (userInteractionId: {
     logger.log(`[${INTEGRATION_NAME}] User Interaction Tracing can not create transaction with undefined elementId.`);
     return undefined;
   }
-  if (!tracing.currentRoute) {
+  if (!tracing.state.currentRoute) {
     logger.log(`[${INTEGRATION_NAME}] User Interaction Tracing can not create transaction without a current route.`);
     return undefined;
   }
@@ -61,7 +61,7 @@ export const startUserInteractionSpan = (userInteractionId: {
     return undefined;
   }
 
-  const name = `${tracing.currentRoute}.${elementId}`;
+  const name = `${tracing.state.currentRoute}.${elementId}`;
   if (
     activeTransaction &&
     spanToJSON(activeTransaction).description === name &&

@@ -531,10 +531,10 @@ function initSentry(sut: ReactNavigationInstrumentation): {
   const options: Sentry.ReactNativeOptions = {
     dsn: MOCK_DSN,
     enableTracing: true,
+    enableStallTracking: false,
     integrations: [
-      new Sentry.ReactNativeTracing({
+      Sentry.reactNativeTracingIntegration({
         routingInstrumentation: sut,
-        enableStallTracking: false,
         ignoreEmptyBackNavigationTransactions: true, // default true
       }),
     ],

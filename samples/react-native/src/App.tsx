@@ -66,11 +66,10 @@ Sentry.init({
   },
   integrations(integrations) {
     integrations.push(
-      new Sentry.ReactNativeTracing({
+      Sentry.reactNativeTracingIntegration({
         // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
-        idleTimeout: 5000,
+        idleTimeoutMs: 5_000,
         routingInstrumentation: reactNavigationInstrumentation,
-        enableUserInteractionTracing: true,
         ignoreEmptyBackNavigationTransactions: true,
       }),
       Sentry.httpClientIntegration({

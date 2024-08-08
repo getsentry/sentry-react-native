@@ -7,10 +7,10 @@ import {
   setCurrentClient,
   spanToJSON,
 } from '@sentry/core';
-import type { Event } from '@sentry/types';
+import type { Event, StartSpanOptions } from '@sentry/types';
 import type { EmitterSubscription } from 'react-native';
 
-import { ReactNativeTracing } from '../../src/js';
+import { reactNativeTracingIntegration } from '../../src/js';
 import type {
   BottomTabPressedEvent,
   ComponentWillAppearEvent,
@@ -31,7 +31,6 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE,
   SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
 } from '../../src/js/tracing/semanticAttributes';
-import type { BeforeNavigate } from '../../src/js/tracing/types';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 
 interface MockEventsRegistry extends EventsRegistry {
@@ -94,10 +93,11 @@ describe('React Native Navigation Instrumentation', () => {
     );
   });
 
-  test('Transaction context is changed with beforeNavigate', async () => {
+  test('start span options are changes by before start span callback', async () => {
     setupTestClient({
-      beforeNavigate: span => {
-        span.updateName('New Name');
+      beforeStartSpan: startSpanOptions => {
+        startSpanOptions.name = 'New Name';
+        return startSpanOptions;
       },
     });
 
@@ -351,7 +351,7 @@ describe('React Native Navigation Instrumentation', () => {
 
   function setupTestClient(
     setupOptions: {
-      beforeNavigate?: BeforeNavigate;
+      beforeStartSpan?: (options: StartSpanOptions) => StartSpanOptions;
       enableTabsInstrumentation?: boolean;
     } = {},
   ) {
@@ -368,15 +368,15 @@ describe('React Native Navigation Instrumentation', () => {
       },
     );
 
-    const rnTracing = new ReactNativeTracing({
+    const rnTracing = reactNativeTracingIntegration({
       routingInstrumentation: rNavigation,
-      enableStallTracking: false,
-      enableNativeFramesTracking: false,
-      beforeNavigate: setupOptions.beforeNavigate,
+      beforeStartSpan: setupOptions.beforeStartSpan,
     });
 
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
+      enableStallTracking: false,
+      enableNativeFramesTracking: false,
       integrations: [rnTracing],
       enableAppStartTracking: false,
     });

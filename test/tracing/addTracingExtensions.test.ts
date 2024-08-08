@@ -1,6 +1,6 @@
 import { getCurrentScope, spanToJSON, startSpanManual } from '@sentry/core';
 
-import { ReactNativeTracing } from '../../src/js';
+import { reactNativeTracingIntegration } from '../../src/js';
 import { type TestClient, setupTestClient } from '../mocks/client';
 
 describe('Tracing extensions', () => {
@@ -8,7 +8,7 @@ describe('Tracing extensions', () => {
 
   beforeEach(() => {
     client = setupTestClient({
-      integrations: [new ReactNativeTracing()],
+      integrations: [reactNativeTracingIntegration()],
     });
   });
 

@@ -59,7 +59,7 @@ jest.mock('react-native/Libraries/AppState/AppState', () => mockedAppState);
 import { getActiveSpan, spanToJSON } from '@sentry/browser';
 import type { AppState, AppStateStatus } from 'react-native';
 
-import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
+import { reactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
 import { NATIVE } from '../../src/js/wrapper';
 import type { TestClient } from '../mocks/client';
 import { setupTestClient } from '../mocks/client';
@@ -84,30 +84,12 @@ describe('ReactNativeTracing', () => {
   });
 
   describe('trace propagation targets', () => {
-    it('uses tracePropagationTargets', () => {
-      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
-      setupTestClient({
-        enableStallTracking: false,
-        integrations: [
-          new ReactNativeTracing({
-            tracePropagationTargets: ['test1', 'test2'],
-          }),
-        ],
-      });
-
-      expect(instrumentOutgoingRequests).toBeCalledWith(
-        expect.objectContaining({
-          tracePropagationTargets: ['test1', 'test2'],
-        }),
-      );
-    });
-
     it('uses tracePropagationTargets from client options', () => {
       const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
       setupTestClient({
         tracePropagationTargets: ['test1', 'test2'],
         enableStallTracking: false,
-        integrations: [new ReactNativeTracing({})],
+        integrations: [reactNativeTracingIntegration()],
       });
 
       expect(instrumentOutgoingRequests).toBeCalledWith(
@@ -121,31 +103,12 @@ describe('ReactNativeTracing', () => {
       const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
       setupTestClient({
         enableStallTracking: false,
-        integrations: [new ReactNativeTracing({})],
+        integrations: [reactNativeTracingIntegration()],
       });
 
       expect(instrumentOutgoingRequests).toBeCalledWith(
         expect.objectContaining({
           tracePropagationTargets: ['localhost', /^\/(?!\/)/],
-        }),
-      );
-    });
-
-    it('client tracePropagationTargets takes priority over integration options', () => {
-      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
-      setupTestClient({
-        tracePropagationTargets: ['test1', 'test2'],
-        enableStallTracking: false,
-        integrations: [
-          new ReactNativeTracing({
-            tracePropagationTargets: ['test3', 'test4'],
-          }),
-        ],
-      });
-
-      expect(instrumentOutgoingRequests).toBeCalledWith(
-        expect.objectContaining({
-          tracePropagationTargets: ['test1', 'test2'],
         }),
       );
     });
@@ -161,7 +124,7 @@ describe('ReactNativeTracing', () => {
     describe('With routing instrumentation', () => {
       it('Cancels route transaction when app goes to background', async () => {
         const routingInstrumentation = new RoutingInstrumentation();
-        const integration = new ReactNativeTracing({
+        const integration = reactNativeTracingIntegration({
           routingInstrumentation,
         });
 
@@ -191,7 +154,7 @@ describe('ReactNativeTracing', () => {
         const routingInstrumentation = new RoutingInstrumentation();
         setupTestClient({
           integrations: [
-            new ReactNativeTracing({
+            reactNativeTracingIntegration({
               routingInstrumentation,
             }),
           ],
@@ -221,7 +184,7 @@ describe('ReactNativeTracing', () => {
     describe('_onConfirmRoute', () => {
       it('Sets app context', async () => {
         const routing = new RoutingInstrumentation();
-        const integration = new ReactNativeTracing({
+        const integration = reactNativeTracingIntegration({
           routingInstrumentation: routing,
         });
 
@@ -243,7 +206,7 @@ describe('ReactNativeTracing', () => {
       describe('View Names event processor', () => {
         it('Do not overwrite event app context', () => {
           const routing = new RoutingInstrumentation();
-          const integration = new ReactNativeTracing({
+          const integration = reactNativeTracingIntegration({
             routingInstrumentation: routing,
           });
 
@@ -251,16 +214,15 @@ describe('ReactNativeTracing', () => {
           const event: Event = { contexts: { app: { appKey: 'value' } } };
           const expectedEvent: Event = { contexts: { app: { appKey: 'value', view_names: [expectedRouteName] } } };
 
-          // @ts-expect-error only for testing.
-          integration._currentViewName = expectedRouteName;
-          const processedEvent = integration['_getCurrentViewEventProcessor'](event);
+          integration.state.currentRoute = expectedRouteName;
+          const processedEvent = integration.processEvent(event, {}, client);
 
           expect(processedEvent).toEqual(expectedEvent);
         });
 
         it('Do not add view_names if context is undefined', () => {
           const routing = new RoutingInstrumentation();
-          const integration = new ReactNativeTracing({
+          const integration = reactNativeTracingIntegration({
             routingInstrumentation: routing,
           });
 
@@ -268,23 +230,22 @@ describe('ReactNativeTracing', () => {
           const event: Event = { release: 'value' };
           const expectedEvent: Event = { release: 'value' };
 
-          // @ts-expect-error only for testing.
-          integration._currentViewName = expectedRouteName;
-          const processedEvent = integration['_getCurrentViewEventProcessor'](event);
+          integration.state.currentRoute = expectedRouteName;
+          const processedEvent = integration.processEvent(event, {}, client);
 
           expect(processedEvent).toEqual(expectedEvent);
         });
 
         it('ignore view_names if undefined', () => {
           const routing = new RoutingInstrumentation();
-          const integration = new ReactNativeTracing({
+          const integration = reactNativeTracingIntegration({
             routingInstrumentation: routing,
           });
 
           const event: Event = { contexts: { app: { key: 'value ' } } };
           const expectedEvent: Event = { contexts: { app: { key: 'value ' } } };
 
-          const processedEvent = integration['_getCurrentViewEventProcessor'](event);
+          const processedEvent = integration.processEvent(event, {}, client);
 
           expect(processedEvent).toEqual(expectedEvent);
         });

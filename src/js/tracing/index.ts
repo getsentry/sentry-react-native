@@ -1,4 +1,8 @@
-export { ReactNativeTracing } from './reactnativetracing';
+export {
+  reactNativeTracingIntegration,
+  INTEGRATION_NAME as REACT_NATIVE_TRACING_INTEGRATION_NAME,
+} from './reactnativetracing';
+export type { ReactNativeTracingIntegration } from './reactnativetracing';
 
 export type { RoutingInstrumentationInstance } from './routingInstrumentation';
 export { RoutingInstrumentation } from './routingInstrumentation';
