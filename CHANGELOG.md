@@ -7,6 +7,7 @@
 - Removed deprecated ReactNativeTracing option `idleTimeout` use `idleTimeoutMs` instead ([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
 - Removed deprecated ReactNativeTracing option `maxTransactionDuration` use `finalTimeoutMs` instead ([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
 - Removed `beforeNavigate` use `beforeStartSpan` instead ([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
+  - `beforeStartSpan` is executed before the span start, compared to `beforeNavigate` which was executed before the navigation ended (after the span was created)
 - New Native Frames Integration ([#3996](https://github.com/getsentry/sentry-react-native/pull/3996))
 - New Stall Tracking Integration ([#3997](https://github.com/getsentry/sentry-react-native/pull/3997))
 - New User Interaction Tracing Integration ([#3999](https://github.com/getsentry/sentry-react-native/pull/3999))
@@ -25,6 +26,12 @@
     enableStallTracking: true, // default true
     enableUserInteractionTracing: true, // default false
     integrations: [
+      Sentry.reactNativeTracingIntegration({
+        beforeStartSpan: (startSpanOptions) => {
+          startSpanOptions.name = 'New Name';
+          return startSpanOptions;
+        },
+      }),
       Sentry.appStartIntegration({
         standalone: false, // default false
       }),

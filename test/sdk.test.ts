@@ -12,7 +12,12 @@ import type { BaseTransportOptions, ClientOptions, Integration, Scope } from '@s
 import { logger } from '@sentry/utils';
 
 import { init, withScope } from '../src/js/sdk';
-import { reactNativeTracingIntegration, ReactNavigationInstrumentation } from '../src/js/tracing';
+import type { ReactNativeTracingIntegration } from '../src/js/tracing';
+import {
+  REACT_NATIVE_TRACING_INTEGRATION_NAME,
+  reactNativeTracingIntegration,
+  ReactNavigationInstrumentation,
+} from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
 import { getDefaultEnvironment, isExpoGo, notWeb } from '../src/js/utils/environment';
 import { NATIVE } from './mockWrapper';
@@ -30,7 +35,7 @@ describe('Tests the SDK functionality', () => {
 
   describe('init', () => {
     describe('enableAutoPerformanceTracing', () => {
-      const reactNavigationInstrumentation = (): ReactNativeTracing => {
+      const reactNavigationInstrumentation = (): ReactNativeTracingIntegration => {
         const nav = new ReactNavigationInstrumentation();
         return reactNativeTracingIntegration({ routingInstrumentation: nav });
       };
@@ -84,7 +89,9 @@ describe('Tests the SDK functionality', () => {
         });
 
         const options = usedIntegrations();
-        expect(options.filter(integration => integration.name === ReactNativeTracing.id).length).toBe(1);
+        expect(options.filter(integration => integration.name === REACT_NATIVE_TRACING_INTEGRATION_NAME).length).toBe(
+          1,
+        );
         expect(options.some(integration => integration === tracing)).toBe(true);
       });
 
@@ -97,7 +104,9 @@ describe('Tests the SDK functionality', () => {
         });
 
         const options = usedIntegrations();
-        expect(options.filter(integration => integration.name === ReactNativeTracing.id).length).toBe(1);
+        expect(options.filter(integration => integration.name === REACT_NATIVE_TRACING_INTEGRATION_NAME).length).toBe(
+          1,
+        );
         expect(options.some(integration => integration === tracing)).toBe(true);
       });
     });
@@ -681,5 +690,5 @@ function usedIntegrations(): Integration[] {
 }
 
 function autoPerformanceIsEnabled(): boolean {
-  return usedIntegrations().some(integration => integration.name === ReactNativeTracing.id);
+  return usedIntegrations().some(integration => integration.name === REACT_NATIVE_TRACING_INTEGRATION_NAME);
 }

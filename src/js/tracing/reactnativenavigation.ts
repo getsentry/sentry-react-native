@@ -1,8 +1,14 @@
-import { addBreadcrumb, SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from '@sentry/core';
+import {
+  addBreadcrumb,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
+  spanToJSON,
+} from '@sentry/core';
 import type { Span } from '@sentry/types';
 
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
 import { isSentrySpan } from '../utils/span';
+import { DEFAULT_NAVIGATION_SPAN_NAME } from './reactnativetracing';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
 import type { BeforeNavigate } from './types';
@@ -124,7 +130,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
       this._discardLatestTransaction();
     }
 
-    this._latestTransaction = this.onRouteWillChange({ name: 'Route Change' });
+    this._latestTransaction = this.onRouteWillChange({ name: DEFAULT_NAVIGATION_SPAN_NAME });
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
@@ -151,7 +157,9 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
 
     const routeHasBeenSeen = this._recentComponentIds.includes(event.componentId);
 
-    this._latestTransaction.updateName(event.componentName);
+    if (spanToJSON(this._latestTransaction).description === DEFAULT_NAVIGATION_SPAN_NAME) {
+      this._latestTransaction.updateName(event.componentName);
+    }
     this._latestTransaction.setAttributes({
       // TODO: Should we include pass props? I don't know exactly what it contains, cant find it in the RNavigation docs
       'route.name': event.componentName,

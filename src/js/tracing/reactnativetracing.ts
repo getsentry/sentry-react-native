@@ -77,6 +77,7 @@ export interface ReactNativeTracingOptions {
 }
 
 const DEFAULT_TRACE_PROPAGATION_TARGETS = ['localhost', /^\/(?!\/)/];
+export const DEFAULT_NAVIGATION_SPAN_NAME = 'Route Change';
 
 const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   idleTimeoutMs: 1_000,
@@ -102,9 +103,9 @@ export const reactNativeTracingIntegration = (
   };
 
   const finalOptions = {
-    beforeStartSpan: (options: StartSpanOptions) => options,
     ...defaultReactNativeTracingOptions,
     ...options,
+    beforeStartSpan: options.beforeStartSpan ?? ((options: StartSpanOptions) => options),
     finalTimeoutMs: options.finalTimeoutMs ?? defaultReactNativeTracingOptions.finalTimeoutMs,
     idleTimeoutMs: options.idleTimeoutMs ?? defaultReactNativeTracingOptions.idleTimeoutMs,
   };
@@ -117,13 +118,14 @@ export const reactNativeTracingIntegration = (
         ignoreEmptyBackNavigationTransactions: finalOptions.ignoreEmptyBackNavigationTransactions,
       };
       finalOptions.routingInstrumentation.registerRoutingInstrumentation(
-        () =>
+        navigationInstrumentationOptions =>
           startIdleNavigationSpan(
             finalOptions.beforeStartSpan({
-              name: 'Route Change',
+              name: DEFAULT_NAVIGATION_SPAN_NAME,
               op: 'navigation',
               forceTransaction: true,
               scope: getCurrentScope(),
+              ...navigationInstrumentationOptions,
             }),
             idleNavigationSpanOptions,
           ),
