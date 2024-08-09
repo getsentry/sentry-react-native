@@ -85,7 +85,7 @@ describe('ReactNavigationInstrumentation', () => {
   });
 
   describe('initial navigation span is created after all integrations are setup', () => {
-    let rnTracing: ReturnType<typeof reactNativeTracingIntegration>;
+    let reactNavigation: ReturnType<typeof reactNavigationIntegration>;
 
     beforeEach(() => {
       const startFrames = {
@@ -100,14 +100,10 @@ describe('ReactNavigationInstrumentation', () => {
       };
       NATIVE.fetchNativeFrames.mockResolvedValueOnce(startFrames).mockResolvedValueOnce(finishFrames);
 
-      const rNavigation = new reactNavigationIntegration({
+      reactNavigation = reactNavigationIntegration({
         routeChangeTimeoutMs: 200,
       });
-      mockNavigation = createMockNavigationAndAttachTo(rNavigation);
-
-      rnTracing = reactNativeTracingIntegration({
-        routingInstrumentation: rNavigation,
-      });
+      mockNavigation = createMockNavigationAndAttachTo(reactNavigation);
     });
 
     test('initial navigation span contains native frames when nativeFrames integration is after react native tracing', async () => {
@@ -115,7 +111,7 @@ describe('ReactNavigationInstrumentation', () => {
         enableNativeFramesTracking: true,
         enableStallTracking: false,
         tracesSampleRate: 1.0,
-        integrations: [rnTracing, nativeFramesIntegration()],
+        integrations: [reactNavigation, nativeFramesIntegration()],
         enableAppStartTracking: false,
       });
       client = new TestClient(options);
@@ -134,7 +130,7 @@ describe('ReactNavigationInstrumentation', () => {
         enableNativeFramesTracking: true,
         enableStallTracking: false,
         tracesSampleRate: 1.0,
-        integrations: [nativeFramesIntegration(), rnTracing],
+        integrations: [nativeFramesIntegration(), reactNavigation],
         enableAppStartTracking: false,
       });
       client = new TestClient(options);
@@ -314,7 +310,7 @@ describe('ReactNavigationInstrumentation', () => {
 
   describe('navigation container registration', () => {
     test('registers navigation container object ref', () => {
-      const instrumentation = new reactNavigationIntegration();
+      const instrumentation = reactNavigationIntegration();
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer({
         current: mockNavigationContainer,
@@ -327,7 +323,7 @@ describe('ReactNavigationInstrumentation', () => {
     });
 
     test('registers navigation container direct ref', () => {
-      const instrumentation = new reactNavigationIntegration();
+      const instrumentation = reactNavigationIntegration();
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer(mockNavigationContainer);
 
@@ -340,7 +336,7 @@ describe('ReactNavigationInstrumentation', () => {
     test('does not register navigation container if there is an existing one', () => {
       RN_GLOBAL_OBJ.__sentry_rn_v5_registered = true;
 
-      const instrumentation = new reactNavigationIntegration();
+      const instrumentation = reactNavigationIntegration();
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer({
         current: mockNavigationContainer,
@@ -353,7 +349,7 @@ describe('ReactNavigationInstrumentation', () => {
     });
 
     test('works if routing instrumentation registration is after navigation registration', async () => {
-      const instrumentation = new reactNavigationIntegration();
+      const instrumentation = reactNavigationIntegration();
 
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer(mockNavigationContainer);
@@ -374,7 +370,7 @@ describe('ReactNavigationInstrumentation', () => {
 
   describe('options', () => {
     test('waits until routeChangeTimeoutMs', () => {
-      const instrumentation = new reactNavigationIntegration({
+      const instrumentation = reactNavigationIntegration({
         routeChangeTimeoutMs: 200,
       });
 
@@ -409,7 +405,7 @@ describe('ReactNavigationInstrumentation', () => {
       beforeSpanStart?: (options: StartSpanOptions) => StartSpanOptions;
     } = {},
   ) {
-    const rNavigation = new reactNavigationIntegration({
+    const rNavigation = reactNavigationIntegration({
       routeChangeTimeoutMs: 200,
     });
     mockNavigation = createMockNavigationAndAttachTo(rNavigation);
