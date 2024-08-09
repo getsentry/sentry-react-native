@@ -74,6 +74,7 @@ yalc.lock
 
 # E2E tests
 test/react-native/versions
+node_modules.bak
 
 # Created by Sentry Metro Plugin
 .sentry/
