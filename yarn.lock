@@ -2240,10 +2240,18 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@clack/core@0.3.3", "@clack/core@^0.3.3":
+"@clack/core@^0.3.3":
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@clack/core/-/core-0.3.3.tgz#233ccebf779aa5a66fc68ee48df5e58cd226fd94"
   integrity sha512-5ZGyb75BUBjlll6eOa1m/IZBxwk91dooBWhPSL67sWcLS0zt9SnswRL0l26TVdBhb0wnWORRxUn//uH6n4z7+A==
+  dependencies:
+    picocolors "^1.0.0"
+    sisteransi "^1.0.5"
+
+"@clack/core@^0.3.4":
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/@clack/core/-/core-0.3.4.tgz#375e82fc8fe46650b37cab2f2ea8752c6b7f0450"
+  integrity sha512-H4hxZDXgHtWTwV3RAVenqcC4VbJZNegbBjlPvzOzCouXtS2y3sDvlO3IsbrPNWuLWPPlYVYPghQdSF64683Ldw==
   dependencies:
     picocolors "^1.0.0"
     sisteransi "^1.0.5"
@@ -3985,18 +3993,18 @@
   dependencies:
     "@sentry/types" "7.76.0"
 
-"@sentry/wizard@3.16.3":
-  version "3.16.3"
-  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-3.16.3.tgz#73469136408ad8b33d5761a8a0f74693e8b9cc34"
-  integrity sha512-HKSDMosay1GSWGAHdMOn2zvmSW4/G5JRjzYnri82vg2jv/DAXoC5t1vgtLmaWkc/nMmV4x9oBiB5jFLnOpMmyQ==
+"@sentry/wizard@3.26.0":
+  version "3.26.0"
+  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-3.26.0.tgz#d0d1b3e528e26f16698d26d3fdc4bb793a35a127"
+  integrity sha512-1herQt6mHnMBQVGFPaX0yCCe/5qpkYts4cS/SYx6ZigYYRajEA9VAFiy9QUj2v92GBG3IJlVwaJRm5ANgmnVaA==
   dependencies:
-    "@clack/core" "0.3.3"
+    "@clack/core" "^0.3.4"
     "@clack/prompts" "0.7.0"
     "@sentry/cli" "^1.72.0"
     "@sentry/node" "^7.69.0"
-    axios "1.3.5"
+    axios "1.6.0"
     chalk "^2.4.1"
-    glob "^7.1.3"
+    glob "^8.1.0"
     inquirer "^6.2.0"
     lodash "^4.17.15"
     magicast "^0.2.10"
@@ -5051,10 +5059,10 @@ available-typed-arrays@^1.0.5:
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
 
-axios@1.3.5:
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.3.5.tgz#e07209b39a0d11848e3e341fa087acd71dadc542"
-  integrity sha512-glL/PvG/E+xCWwV8S6nCHcrfg1exGx7vxyUIivIA1iL7BIh6bePylCfVHwp6k13ao7SATxB6imau2kqY+I67kw==
+axios@1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.0.tgz#f1e5292f26b2fd5c2e66876adc5b06cdbd7d2102"
+  integrity sha512-EZ1DYihju9pwVB+jg67ogm+Tmqc6JmhamRN6I4Zt8DfZu5lbcQGw3ozH9lFejSJgs/ibaef3A9PMXPLeefFGJg==
   dependencies:
     follow-redirects "^1.15.0"
     form-data "^4.0.0"
