@@ -246,3 +246,14 @@ export function configureScope(callback: (scope: Scope) => void): ReturnType<Hub
   };
   getCurrentHub().configureScope(safeCallback);
 }
+
+/**
+ * Returns if the app crashed in the last run.
+ */
+export async function crashedLastRun(): Promise<boolean> {
+  const client = getCurrentHub().getClient<ReactNativeClient>();
+  if (client) {
+    return client.crashedLastRun();
+  }
+  return false;
+}
