@@ -1,5 +1,6 @@
 import { logger } from '@sentry/utils';
-import { type MetroConfig, type MixedOutput, type Module, type ReadOnlyGraph,mergeConfig } from 'metro';
+import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
+import { mergeConfig } from 'metro';
 import * as process from 'process';
 import { env } from 'process';
 
@@ -167,8 +168,8 @@ function excludeSentryWebReplay(config: MetroConfig): MetroConfig {
           return originalResolver(context, moduleName, platform);
         }
         return context.resolveRequest(context, moduleName, platform);
-      }
-    }
+      },
+    },
   });
 }
 

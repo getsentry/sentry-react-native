@@ -49,6 +49,10 @@ Sentry.init({
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   environment: 'dev',
+  beforeSend: (event: Sentry.Event) => {
+    logWithoutTracing('Event beforeSend:', event.event_id);
+    return event;
+  },
   beforeSendTransaction(event) {
     logWithoutTracing('Transaction beforeSend:', event.event_id);
     return event;

@@ -9,11 +9,9 @@ module.exports = {
       automaticPodsInstallation: true,
     },
   },
- /*
   dependencies: {
     RNSentry: {
       root: path.resolve(__dirname, '../../'),
     },
   },
-  */
 };

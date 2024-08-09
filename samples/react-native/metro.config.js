@@ -2,8 +2,8 @@ const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 const path = require('path');
 const blacklist = require('metro-config/src/defaults/exclusionList');
 
-const { withSentryConfig } = require('@sentry/react-native/metro');
-const parentDir = path.resolve(__dirname, 'node_modules/@sentry/react-native');
+const { withSentryConfig } = require('../../metro');
+const parentDir = path.resolve(__dirname, '../..');
 
 /**
  * Metro configuration
@@ -17,11 +17,8 @@ const config = {
     path.resolve(__dirname, 'node_modules'),
     `${parentDir}/dist`,
     `${parentDir}/node_modules`,
-  ],resolveRequest:
-  resolver: {
+  ],  resolver: {
     resolveRequest: (context, moduleName, platform) => {
-      console.log("hi")
-      if (1 == 1)throw new Error("hi");
       if (moduleName.includes('promise/')) {
         return context.resolveRequest(
           {
@@ -34,19 +31,11 @@ const config = {
           platform,
         );
       }
-      if (moduleName.includes('@sentry/replay')) {
-      return {
-     type: 'empty',
-      //    filePath: path.resolve(__dirname, 'empty-module.js'),
-        };
-      }
-
       return context.resolveRequest(context, moduleName, platform);
     },
     blacklistRE: blacklist([
       new RegExp(`${parentDir}/node_modules/react-native/.*`),
       new RegExp('.*\\android\\.*'), // Required for Windows in order to run the Sample.
-   //   new RegExp(`/node_modules/@sentry/replay/.*`),
     ]),
     extraNodeModules: new Proxy(
       {
@@ -70,38 +59,6 @@ const config = {
 };
 
 const m = mergeConfig(getDefaultConfig(__dirname), config);
-//const last = withSentryConfig(m, {
-//  annotateReactComponents: true,
-//});
-if (m.resolve) {
-  m.resolve.resolveRequest = (context, moduleName, platform) => {
-    console.log("hi")
-    if (1 == 1) throw new Error("hi");
-    if (moduleName.includes('promise/')) {
-      return context.resolveRequest(
-        {
-          ...context,
-          // Ensures the promise module is resolved from the sample's node_modules.
-          allowHaste: false,
-          disableHierarchicalLookup: true,
-        },
-        moduleName,
-        platform,
-      );
-    }
-    if (moduleName.includes('@sentry/replay')) {
-      return {
-        type: 'empty',
-        //    filePath: path.resolve(__dirname, 'empty-module.js'),
-      };
-    }
-
-    return context.resolveRequest(context, moduleName, platform);
-  };
-}
-else {
-  console.log(" :( ");
-}
-
-module.exports = m;
-
+module.exports = withSentryConfig(m, {
+  annotateReactComponents: true,
+});
