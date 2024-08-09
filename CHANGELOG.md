@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Implement crashedLastRun ([#4014](https://github.com/getsentry/sentry-react-native/pull/4014))
+
 ## 5.28.0
 
 ### Fixes
