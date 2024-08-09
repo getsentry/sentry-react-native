@@ -108,6 +108,9 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   if (hasTracingEnabled && options.enableAutoPerformanceTracing) {
     integrations.push(new ReactNativeTracing());
   }
+  if (hasTracingEnabled && options.enableAppStartTracking) {
+    integrations.push(appStartIntegration());
+  }
   if (options.enableCaptureFailedRequests) {
     integrations.push(httpClientIntegration());
   }
