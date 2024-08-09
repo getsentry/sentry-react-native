@@ -1,6 +1,5 @@
 import { logger } from '@sentry/utils';
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
-import { mergeConfig } from 'metro';
 import * as process from 'process';
 import { env } from 'process';
 
@@ -158,8 +157,10 @@ function withSentryDebugId(config: MetroConfig): MetroConfig {
 function excludeSentryWebReplay(config: MetroConfig): MetroConfig {
   const originalResolver = config.resolver?.resolveRequest;
 
-  return mergeConfig(config, {
+  return {
+    ...config,
     resolver: {
+      ...config.resolver,
       resolveRequest: (context, moduleName, platform) => {
         if (moduleName.includes('@sentry/replay')) {
           return { type: 'empty' };
@@ -170,7 +171,7 @@ function excludeSentryWebReplay(config: MetroConfig): MetroConfig {
         return context.resolveRequest(context, moduleName, platform);
       },
     },
-  });
+  }
 }
 
 type MetroFrame = Parameters<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>[0];
