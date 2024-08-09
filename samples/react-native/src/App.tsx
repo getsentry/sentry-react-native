@@ -29,10 +29,10 @@ import { store } from './reduxApp';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { LogBox, Platform, StyleSheet, View } from 'react-native';
-import { HttpClient } from '@sentry/integrations';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
 import { logWithoutTracing } from './utils';
+import { ErrorEvent } from '@sentry/types';
 
 LogBox.ignoreAllLogs();
 
@@ -49,7 +49,7 @@ Sentry.init({
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   environment: 'dev',
-  beforeSend: (event: Sentry.Event) => {
+  beforeSend: (event: ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
     return event;
   },
@@ -72,16 +72,8 @@ Sentry.init({
         routingInstrumentation: reactNavigationInstrumentation,
         enableUserInteractionTracing: true,
         ignoreEmptyBackNavigationTransactions: true,
-        beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
-          // Example of not sending a transaction for the screen with the name "Manual Tracker"
-          if (context.data.route.name === 'ManualTracker') {
-            context.sampled = false;
-          }
-
-          return context;
-        },
       }),
-      new HttpClient({
+      Sentry.httpClientIntegration({
         // These options are effective only in JS.
         // This array can contain tuples of `[begin, end]` (both inclusive),
         // Single status codes, or a combinations of both.
@@ -91,11 +83,13 @@ Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
-      Sentry.metrics.metricsAggregatorIntegration(),
       Sentry.mobileReplayIntegration({
         maskAllImages: true,
         maskAllVectors: true,
         // maskAllText: false,
+      }),
+      Sentry.appStartIntegration({
+        standalone: false,
       }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');

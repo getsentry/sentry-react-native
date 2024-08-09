@@ -14,6 +14,7 @@ import TestRenderer from 'react-test-renderer';
 import * as Sentry from '../../src/js';
 import { ReactNavigationInstrumentation } from '../../src/js';
 import { TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing';
+import { _setAppStartEndTimestampMs } from '../../src/js/tracing/integrations/appStart';
 import { isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { createSentryEventEmitter } from '../../src/js/utils/sentryeventemitter';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
@@ -41,6 +42,7 @@ describe('React Navigation - TTID', () => {
         type: 'cold',
         spans: [],
       });
+      _setAppStartEndTimestampMs(mockedAppStartTimeSeconds * 1000);
 
       mockedEventEmitter = mockedSentryEventEmitter.createMockedSentryEventEmitter();
       (createSentryEventEmitter as jest.Mock).mockReturnValue(mockedEventEmitter);
@@ -537,19 +539,12 @@ function initSentry(sut: ReactNavigationInstrumentation): {
       }),
     ],
     transport: () => ({
-      send: transportSendMock.mockResolvedValue(undefined),
+      send: transportSendMock.mockResolvedValue({}),
       flush: jest.fn().mockResolvedValue(true),
     }),
+    enableAppStartTracking: true,
   };
   Sentry.init(options);
-
-  // In production integrations are setup only once, but in the tests we want them to setup on every init
-  const integrations = Sentry.getCurrentHub().getClient()?.getOptions().integrations;
-  if (integrations) {
-    for (const integration of integrations) {
-      integration.setupOnce(Sentry.addGlobalEventProcessor, Sentry.getCurrentHub);
-    }
-  }
 
   return {
     transportSendMock,

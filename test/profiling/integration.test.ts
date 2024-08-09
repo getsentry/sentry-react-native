@@ -3,8 +3,8 @@ jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
 jest.mock('../../src/js/profiling/debugid');
 
-import { getCurrentHub } from '@sentry/core';
-import type { Envelope, Event, Profile, ThreadCpuProfile, Transaction, Transport } from '@sentry/types';
+import { getClient, spanToJSON } from '@sentry/core';
+import type { Envelope, Event, Integration, Profile, Span, ThreadCpuProfile, Transport } from '@sentry/types';
 
 import * as Sentry from '../../src/js';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
@@ -12,7 +12,6 @@ import { getDebugMetadata } from '../../src/js/profiling/debugid';
 import { hermesProfilingIntegration } from '../../src/js/profiling/integration';
 import type { AndroidProfileEvent } from '../../src/js/profiling/types';
 import { getDefaultEnvironment, isHermesEnabled, notWeb } from '../../src/js/utils/environment';
-import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { MOCK_DSN } from '../mockDsn';
 import { envelopeItemPayload, envelopeItems } from '../testutils';
 import {
@@ -48,7 +47,6 @@ describe('profiling integration', () => {
   afterEach(async () => {
     jest.runAllTimers();
     jest.useRealTimers();
-    RN_GLOBAL_OBJ.__SENTRY__.globalEventProcessors = []; // resets integrations
     await Sentry.close();
   });
 
@@ -57,17 +55,24 @@ describe('profiling integration', () => {
     jest.runAllTimers();
     jest.clearAllMocks();
 
-    const transaction: Transaction = Sentry.startTransaction({
-      name: 'test-name',
-    });
-    getCurrentHub().getScope()?.setSpan(transaction);
+    const transaction = Sentry.startSpanManual(
+      {
+        name: 'test-name',
+      },
+      (span: Span) => {
+        addIntegrationAndForceSetupOnce(hermesProfilingIntegration());
+        return span;
+      },
+    );
 
-    getCurrentHub().getClient()?.addIntegration?.(hermesProfilingIntegration());
-
-    transaction.finish();
+    transaction.end();
     jest.runAllTimers();
 
-    expectEnvelopeToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', transaction.traceId);
+    expectEnvelopeToContainProfile(
+      mock.transportSendMock.mock.lastCall?.[0],
+      'test-name',
+      spanToJSON(transaction).trace_id,
+    );
   });
 
   describe('environment', () => {
@@ -99,10 +104,7 @@ describe('profiling integration', () => {
     test('should use default environment for transaction and profile', () => {
       mock = initTestClient();
 
-      const transaction: Transaction = Sentry.startTransaction({
-        name: 'test-name',
-      });
-      transaction.finish();
+      Sentry.startSpan({ name: 'test-name' }, () => {});
 
       jest.runAllTimers();
 
@@ -114,10 +116,7 @@ describe('profiling integration', () => {
     test('should use native environment for transaction and profile if user value is nullish', () => {
       mock = initTestClient({ withProfiling: true, environment: '' });
 
-      const transaction: Transaction = Sentry.startTransaction({
-        name: 'test-name',
-      });
-      transaction.finish();
+      Sentry.startSpan({ name: 'test-name' }, () => {});
 
       jest.runAllTimers();
 
@@ -132,10 +131,7 @@ describe('profiling integration', () => {
       });
       mock = initTestClient({ withProfiling: true, environment: undefined });
 
-      const transaction: Transaction = Sentry.startTransaction({
-        name: 'test-name',
-      });
-      transaction.finish();
+      Sentry.startSpan({ name: 'test-name' }, () => {});
 
       jest.runAllTimers();
 
@@ -147,10 +143,7 @@ describe('profiling integration', () => {
     test('should keep custom environment for transaction and profile', () => {
       mock = initTestClient({ withProfiling: true, environment: 'custom' });
 
-      const transaction: Transaction = Sentry.startTransaction({
-        name: 'test-name',
-      });
-      transaction.finish();
+      Sentry.startSpan({ name: 'test-name' }, () => {});
 
       jest.runAllTimers();
 
@@ -174,15 +167,12 @@ describe('profiling integration', () => {
           nativeProfile: createMockMinimalValidAppleProfile(),
         });
 
-        const transaction: Transaction = Sentry.startTransaction({
-          name: 'test-name',
-        });
-        transaction.finish();
+        const transaction = Sentry.startSpan({ name: 'test-name' }, span => span);
 
         jest.runAllTimers();
 
         const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
-        expectEnvelopeToContainProfile(envelope, 'test-name', transaction.traceId);
+        expectEnvelopeToContainProfile(envelope, 'test-name', spanToJSON(transaction).trace_id);
         // Expect merged profile
         expect(getProfileFromEnvelope(envelope)).toEqual(
           expect.objectContaining(<Partial<Profile>>{
@@ -228,15 +218,12 @@ describe('profiling integration', () => {
           androidProfile: createMockMinimalValidAndroidProfile(),
         });
 
-        const transaction: Transaction = Sentry.startTransaction({
-          name: 'test-name',
-        });
-        transaction.finish();
+        const transaction = Sentry.startSpan({ name: 'test-name' }, span => span);
 
         jest.runAllTimers();
 
         const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
-        expectEnvelopeToContainAndroidProfile(envelope, 'test-name', transaction.traceId);
+        expectEnvelopeToContainAndroidProfile(envelope, 'test-name', spanToJSON(transaction).trace_id);
         // Expect merged profile
         expect(getProfileFromEnvelope(envelope)).toEqual(
           expect.objectContaining(<Partial<AndroidProfileEvent>>{
@@ -266,37 +253,39 @@ describe('profiling integration', () => {
     });
 
     test('should create a new profile and add in to the transaction envelope', () => {
-      const transaction: Transaction = Sentry.startTransaction({
-        name: 'test-name',
-      });
-      transaction.finish();
+      const transaction = Sentry.startSpan({ name: 'test-name' }, span => span);
 
       jest.runAllTimers();
 
-      expectEnvelopeToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', transaction.traceId);
+      expectEnvelopeToContainProfile(
+        mock.transportSendMock.mock.lastCall?.[0],
+        'test-name',
+        spanToJSON(transaction).trace_id,
+      );
     });
 
     test('should finish previous profile when a new transaction starts', () => {
-      const transaction1: Transaction = Sentry.startTransaction({
-        name: 'test-name-1',
-      });
-      const transaction2: Transaction = Sentry.startTransaction({
-        name: 'test-name-2',
-      });
-      transaction1.finish();
-      transaction2.finish();
+      const transaction1 = Sentry.startSpanManual({ name: 'test-name-1' }, span => span);
+      const transaction2 = Sentry.startSpanManual({ name: 'test-name-2' }, span => span);
+      transaction1.end();
+      transaction2.end();
 
       jest.runAllTimers();
 
-      expectEnvelopeToContainProfile(mock.transportSendMock.mock.calls[0][0], 'test-name-1', transaction1.traceId);
-      expectEnvelopeToContainProfile(mock.transportSendMock.mock.calls[1][0], 'test-name-2', transaction2.traceId);
+      expectEnvelopeToContainProfile(
+        mock.transportSendMock.mock.calls[0][0],
+        'test-name-1',
+        spanToJSON(transaction1).trace_id,
+      );
+      expectEnvelopeToContainProfile(
+        mock.transportSendMock.mock.calls[1][0],
+        'test-name-2',
+        spanToJSON(transaction2).trace_id,
+      );
     });
 
     test('profile should start at the same time as transaction', () => {
-      const transaction: Transaction = Sentry.startTransaction({
-        name: 'test-name',
-      });
-      transaction.finish();
+      Sentry.startSpan({ name: 'test-name' }, () => {});
 
       jest.runAllTimers();
 
@@ -309,46 +298,30 @@ describe('profiling integration', () => {
     });
 
     test('profile is only recorded until max duration is reached', () => {
-      const transaction: Transaction = Sentry.startTransaction({
-        name: 'test-name',
-      });
+      const transaction = Sentry.startSpanManual({ name: 'test-name' }, span => span);
       jest.clearAllMocks();
 
       jest.advanceTimersByTime(40 * 1e6);
 
       expect(mockWrapper.NATIVE.stopProfiling.mock.calls.length).toEqual(1);
 
-      transaction.finish();
+      transaction.end();
     });
 
     test('profile that reached max duration is sent', () => {
-      const transaction: Transaction = Sentry.startTransaction({
-        name: 'test-name',
-      });
+      const transaction = Sentry.startSpanManual({ name: 'test-name' }, span => span);
 
       jest.advanceTimersByTime(40 * 1e6);
 
-      transaction.finish();
+      transaction.end();
 
       jest.runAllTimers();
 
-      expectEnvelopeToContainProfile(mock.transportSendMock.mock.lastCall?.[0], 'test-name', transaction.traceId);
-    });
-
-    test('profile timeout is reset when transaction is finished', () => {
-      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-      const transaction: Transaction = Sentry.startTransaction({
-        name: 'test-name',
-      });
-      const timeoutAfterProfileStarted = setTimeoutSpy.mock.results[0].value;
-
-      jest.advanceTimersByTime(40 * 1e6);
-
-      transaction.finish();
-      expect(clearTimeoutSpy).toBeCalledWith(timeoutAfterProfileStarted);
-
-      jest.runAllTimers();
+      expectEnvelopeToContainProfile(
+        mock.transportSendMock.mock.lastCall?.[0],
+        'test-name',
+        spanToJSON(transaction).trace_id,
+      );
     });
   });
 });
@@ -377,7 +350,7 @@ function initTestClient(
       return integrations;
     },
     transport: () => ({
-      send: transportSendMock.mockResolvedValue(undefined),
+      send: transportSendMock.mockResolvedValue({}),
       flush: jest.fn().mockResolvedValue(true),
     }),
   };
@@ -387,10 +360,10 @@ function initTestClient(
   Sentry.init(options);
 
   // In production integrations are setup only once, but in the tests we want them to setup on every init
-  const integrations = Sentry.getCurrentHub().getClient()?.getOptions().integrations;
+  const integrations = getClient()?.getOptions().integrations;
   if (integrations) {
     for (const integration of integrations) {
-      integration.setupOnce(Sentry.addGlobalEventProcessor, Sentry.getCurrentHub);
+      integration.setupOnce?.();
     }
   }
 
@@ -439,4 +412,14 @@ function expectEnvelopeToContainAndroidProfile(
 
 function getProfileFromEnvelope(envelope: Envelope | undefined): Profile | undefined {
   return envelope?.[envelopeItems]?.[1]?.[1] as unknown as Profile;
+}
+
+function addIntegrationAndForceSetupOnce(integration: Integration): void {
+  const client = Sentry.getClient();
+  if (!client) {
+    throw new Error('Client is not initialized');
+  }
+
+  client.addIntegration(integration);
+  integration.setupOnce && integration.setupOnce();
 }

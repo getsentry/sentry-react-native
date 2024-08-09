@@ -130,7 +130,7 @@ function addDebugIdModule(
     modifiedPreModules[0].path === PRELUDE_MODULE_PATH
   ) {
     // prelude module must be first as it measures the bundle startup time
-    modifiedPreModules.unshift(preModules[0]);
+    modifiedPreModules.unshift(preModules[0] as Module<VirtualJSOutput>);
     modifiedPreModules[1] = debugIdModule;
   } else {
     modifiedPreModules.unshift(debugIdModule);

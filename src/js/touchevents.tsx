@@ -1,4 +1,4 @@
-import { addBreadcrumb, getCurrentHub } from '@sentry/core';
+import { addBreadcrumb, getClient } from '@sentry/core';
 import type { SeverityLevel } from '@sentry/types';
 import { dropUndefinedKeys, logger } from '@sentry/utils';
 import * as React from 'react';
@@ -6,7 +6,7 @@ import type { GestureResponderEvent } from 'react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { createIntegration } from './integrations/factory';
-import { ReactNativeTracing } from './tracing';
+import type { ReactNativeTracing } from './tracing';
 import { UI_ACTION_TOUCH } from './tracing/ops';
 
 export type TouchEventBoundaryProps = {
@@ -97,10 +97,10 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
    * Registers the TouchEventBoundary as a Sentry Integration.
    */
   public componentDidMount(): void {
-    const client = getCurrentHub().getClient();
+    const client = getClient();
     client?.addIntegration?.(createIntegration(this.name));
     if (!this._tracingIntegration && client) {
-      this._tracingIntegration = client.getIntegration(ReactNativeTracing);
+      this._tracingIntegration = client.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing') || null;
     }
   }
 
@@ -200,7 +200,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
       this._logTouchEvent(touchPath, label);
     }
 
-    this._tracingIntegration?.startUserInteractionTransaction({
+    this._tracingIntegration?.startUserInteractionSpan({
       elementId: label,
       op: UI_ACTION_TOUCH,
     });

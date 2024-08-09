@@ -1,7 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { getCurrentHub, Scope, sentryTraceGesture } from '@sentry/react-native';
+import { sentryTraceGesture, startSpanManual } from '@sentry/react-native';
+import { Span } from '@sentry/types';
 
 const GesturesTracingScreen = () => {
   const gesture = Gesture.Pinch().onBegin(() => {
@@ -18,10 +19,9 @@ const GesturesTracingScreen = () => {
 };
 
 const startExampleSpan = () => {
-  getCurrentHub().withScope((scope: Scope) => {
-    const child = scope.getTransaction()?.startChild({ op: 'example' });
+  startSpanManual({ name: 'Example', op: 'example' }, (span: Span) => {
     setTimeout(() => {
-      child?.finish();
+      span.end();
     }, 1000);
   });
 };

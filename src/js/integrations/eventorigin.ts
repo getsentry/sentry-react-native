@@ -1,10 +1,9 @@
-import { convertIntegrationFnToClass } from '@sentry/core';
-import type { Event, Integration, IntegrationClass, IntegrationFnResult } from '@sentry/types';
+import type { Event, Integration } from '@sentry/types';
 
 const INTEGRATION_NAME = 'EventOrigin';
 
 /** Default EventOrigin instrumentation */
-export const eventOriginIntegration = (): IntegrationFnResult => {
+export const eventOriginIntegration = (): Integration => {
   return {
     name: INTEGRATION_NAME,
     setupOnce: () => {
@@ -20,14 +19,3 @@ export const eventOriginIntegration = (): IntegrationFnResult => {
     },
   };
 };
-
-/**
- * Default EventOrigin instrumentation
- *
- * @deprecated Use `eventOriginIntegration()` instead.
- */
-// eslint-disable-next-line deprecation/deprecation
-export const EventOrigin = convertIntegrationFnToClass(
-  INTEGRATION_NAME,
-  eventOriginIntegration,
-) as IntegrationClass<Integration>;

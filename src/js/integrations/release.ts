@@ -1,21 +1,11 @@
-import { convertIntegrationFnToClass } from '@sentry/core';
-import type {
-  BaseTransportOptions,
-  Client,
-  ClientOptions,
-  Event,
-  EventHint,
-  Integration,
-  IntegrationClass,
-  IntegrationFnResult,
-} from '@sentry/types';
+import type { BaseTransportOptions, Client, ClientOptions, Event, EventHint, Integration } from '@sentry/types';
 
 import { NATIVE } from '../wrapper';
 
 const INTEGRATION_NAME = 'Release';
 
 /** Release integration responsible to load release from file. */
-export const nativeReleaseIntegration = (): IntegrationFnResult => {
+export const nativeReleaseIntegration = (): Integration => {
   return {
     name: INTEGRATION_NAME,
     setupOnce: () => {
@@ -24,17 +14,6 @@ export const nativeReleaseIntegration = (): IntegrationFnResult => {
     processEvent,
   };
 };
-
-/**
- * Release integration responsible to load release from file.
- *
- * @deprecated Use `nativeReleaseIntegration()` instead.
- */
-// eslint-disable-next-line deprecation/deprecation
-export const Release = convertIntegrationFnToClass(
-  INTEGRATION_NAME,
-  nativeReleaseIntegration,
-) as IntegrationClass<Integration>;
 
 async function processEvent(
   event: Event,

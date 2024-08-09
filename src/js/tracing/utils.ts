@@ -1,31 +1,19 @@
 import {
-  type IdleTransaction,
-  type Span as SpanClass,
-  type Transaction,
+  getSpanDescendants,
+  SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_UNIT,
+  SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_VALUE,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   setMeasurement,
   spanToJSON,
 } from '@sentry/core';
-import type { Span, TransactionContext, TransactionSource } from '@sentry/types';
-import { logger, timestampInSeconds } from '@sentry/utils';
+import type { MeasurementUnit, Span, SpanJSON, TransactionSource } from '@sentry/types';
+import { dropUndefinedKeys, logger, timestampInSeconds, uuid4 } from '@sentry/utils';
 
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
 export const defaultTransactionSource: TransactionSource = 'component';
 export const customTransactionSource: TransactionSource = 'custom';
-
-export const getBlankTransactionContext = (name: string): TransactionContext => {
-  return {
-    name: 'Route Change',
-    op: 'navigation',
-    tags: {
-      'routing.instrumentation': name,
-    },
-    data: {},
-    metadata: {
-      source: defaultTransactionSource,
-    },
-  };
-};
 
 /**
  * A margin of error of 50ms is allowed for the async native bridge call.
@@ -36,22 +24,6 @@ export const MARGIN_OF_ERROR_SECONDS = 0.05;
 const timeOriginMilliseconds = Date.now();
 
 /**
- *
- */
-export function adjustTransactionDuration(
-  maxDurationMs: number,
-  transaction: IdleTransaction,
-  endTimestamp: number,
-): void {
-  const diff = endTimestamp - transaction.startTimestamp;
-  const isOutdatedTransaction = endTimestamp && (diff > maxDurationMs || diff < 0);
-  if (isOutdatedTransaction) {
-    transaction.setStatus('deadline_exceeded');
-    transaction.setTag('maxTransactionDurationExceeded', 'true');
-  }
-}
-
-/**
  * Returns the timestamp where the JS global scope was initialized.
  */
 export function getTimeOriginMilliseconds(): number {
@@ -59,44 +31,12 @@ export function getTimeOriginMilliseconds(): number {
 }
 
 /**
- * Calls the callback every time a child span of the transaction is finished.
- */
-export function instrumentChildSpanFinish(
-  transaction: Transaction,
-  callback: (span: SpanClass, endTimestamp?: number) => void,
-): void {
-  if (transaction.spanRecorder) {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const originalAdd = transaction.spanRecorder.add;
-
-    transaction.spanRecorder.add = (span: SpanClass): void => {
-      originalAdd.apply(transaction.spanRecorder, [span]);
-
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      const originalSpanFinish = span.finish;
-
-      span.finish = (endTimestamp?: number) => {
-        originalSpanFinish.apply(span, [endTimestamp]);
-
-        callback(span, endTimestamp);
-      };
-
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      const originalSpanEnd = span.end;
-
-      span.end = (endTimestamp?: number) => {
-        originalSpanEnd.apply(span, [endTimestamp]);
-
-        callback(span, endTimestamp);
-      };
-    };
-  }
-}
-
-/**
  * Determines if the timestamp is now or within the specified margin of error from now.
  */
-export function isNearToNow(timestamp: number): boolean {
+export function isNearToNow(timestamp: number | undefined): boolean {
+  if (!timestamp) {
+    return false;
+  }
   return Math.abs(timestampInSeconds() - timestamp) <= MARGIN_OF_ERROR_SECONDS;
 }
 
@@ -112,6 +52,27 @@ export function setSpanDurationAsMeasurement(name: string, span: Span): void {
   }
 
   setMeasurement(name, (spanEnd - spanStart) * 1000, 'millisecond');
+}
+
+/**
+ * Sets measurement on the give span.
+ */
+export function setSpanMeasurement(span: Span, key: string, value: number, unit: MeasurementUnit): void {
+  span.addEvent(key, {
+    [SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_VALUE]: value,
+    [SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_UNIT]: unit as string,
+  });
+}
+
+/**
+ * Returns the latest end timestamp of the child spans of the given span.
+ */
+export function getLatestChildSpanEndTimestamp(span: Span): number | undefined {
+  const childEndTimestamps = getSpanDescendants(span)
+    .map(span => spanToJSON(span).timestamp)
+    .filter(timestamp => !!timestamp) as number[];
+
+  return childEndTimestamps.length ? Math.max(...childEndTimestamps) : undefined;
 }
 
 /**
@@ -134,4 +95,41 @@ export function getBundleStartTimestampMs(): number | undefined {
   // nativePerformanceNow() is monotonic clock like performance.now()
   const approxStartingTimeOrigin = Date.now() - RN_GLOBAL_OBJ.nativePerformanceNow();
   return approxStartingTimeOrigin + bundleStartTime;
+}
+
+/**
+ * Creates valid span JSON object from the given data.
+ */
+export function createSpanJSON(
+  from: Partial<SpanJSON> & Pick<Required<SpanJSON>, 'description' | 'start_timestamp' | 'timestamp' | 'origin'>,
+): SpanJSON {
+  return dropUndefinedKeys({
+    status: 'ok',
+    ...from,
+    span_id: from.span_id ? from.span_id : uuid4().substring(16),
+    trace_id: from.trace_id ? from.trace_id : uuid4(),
+    data: dropUndefinedKeys({
+      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: from.op,
+      [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: from.origin,
+      ...(from.data ? from.data : {}),
+    }),
+  });
+}
+
+const SENTRY_DEFAULT_ORIGIN = 'manual';
+
+/**
+ *
+ */
+export function createChildSpanJSON(
+  parent: SpanJSON,
+  from: Partial<SpanJSON> & Pick<Required<SpanJSON>, 'description' | 'start_timestamp' | 'timestamp'>,
+): SpanJSON {
+  return createSpanJSON({
+    op: parent.op,
+    trace_id: parent.trace_id,
+    parent_span_id: parent.span_id,
+    origin: parent.origin || SENTRY_DEFAULT_ORIGIN,
+    ...from,
+  });
 }

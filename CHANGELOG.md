@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+
+- New App Start Integration ([#3852](https://github.com/getsentry/sentry-react-native/pull/3852))
+
+  By default app start spans are attached to the first created transaction.
+  Standalone mode creates single root span (transaction) including only app start data.
+
+  ```js
+  import Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    tracesSampleRate: 1.0,
+    enableAppStartTracking: true, // default true
+    integrations: [
+      Sentry.appStartIntegration({
+        standalone: false, // default false
+      }),
+    ],
+  });
+  ```
+
 ## 5.28.0
 
 ### Fixes
@@ -230,6 +253,7 @@ This release does *not* build on iOS. Please use `5.23.1` or newer.
 ### Fixes
 
 - Remove unused `rnpm` config ([#3811](https://github.com/getsentry/sentry-react-native/pull/3811))
+- CaptureMessage stack-trace is now symbolicated ([#3635](https://github.com/getsentry/sentry-react-native/pull/3635))
 
 ### Dependencies
 

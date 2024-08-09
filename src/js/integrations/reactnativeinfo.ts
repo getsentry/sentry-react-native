@@ -1,5 +1,4 @@
-import { convertIntegrationFnToClass } from '@sentry/core';
-import type { Context, Event, EventHint, Integration, IntegrationClass, IntegrationFnResult } from '@sentry/types';
+import type { Context, Event, EventHint, Integration } from '@sentry/types';
 
 import {
   getExpoGoVersion,
@@ -29,7 +28,7 @@ export interface ReactNativeContext extends Context {
 }
 
 /** Loads React Native context at runtime */
-export const reactNativeInfoIntegration = (): IntegrationFnResult => {
+export const reactNativeInfoIntegration = (): Integration => {
   return {
     name: INTEGRATION_NAME,
     setupOnce: () => {
@@ -38,17 +37,6 @@ export const reactNativeInfoIntegration = (): IntegrationFnResult => {
     processEvent,
   };
 };
-
-/**
- * Loads React Native context at runtime
- *
- * @deprecated Use `reactNativeInfoIntegration()` instead.
- */
-// eslint-disable-next-line deprecation/deprecation
-export const ReactNativeInfo = convertIntegrationFnToClass(
-  INTEGRATION_NAME,
-  reactNativeInfoIntegration,
-) as IntegrationClass<Integration>;
 
 function processEvent(event: Event, hint: EventHint): Event {
   const reactNativeError = hint?.originalException ? (hint?.originalException as ReactNativeError) : undefined;

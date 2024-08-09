@@ -1,9 +1,9 @@
-import { getCurrentHub } from '@sentry/core';
-import type { Breadcrumb, Hub } from '@sentry/types';
+import { addBreadcrumb, getClient } from '@sentry/core';
+import type { Breadcrumb } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { UI_ACTION } from './ops';
-import { ReactNativeTracing } from './reactnativetracing';
+import type { ReactNativeTracing } from './reactnativetracing';
 
 export const DEFAULT_BREADCRUMB_CATEGORY = 'gesture';
 export const DEFAULT_BREADCRUMB_TYPE = 'user';
@@ -33,10 +33,6 @@ interface BaseGesture {
   handlerName: string;
 }
 
-interface GestureTracingOptions {
-  getCurrentHub: () => Hub;
-}
-
 /**
  * Patches React Native Gesture Handler v2 Gesture to start a transaction on gesture begin with the appropriate label.
  * Example: ShoppingCartScreen.dismissGesture
@@ -48,7 +44,6 @@ export function sentryTraceGesture<GestureT>(
    */
   label: string,
   gesture: GestureT,
-  options: Partial<GestureTracingOptions> = {},
 ): GestureT {
   const gestureCandidate = gesture as unknown as BaseGesture | undefined | null;
   if (!gestureCandidate) {
@@ -65,8 +60,6 @@ export function sentryTraceGesture<GestureT>(
     logger.warn('[GestureTracing] Can not wrap gesture without name.');
     return gesture;
   }
-  const hub = options.getCurrentHub?.() || getCurrentHub();
-
   const name =
     gestureCandidate.handlerName.length > GESTURE_POSTFIX_LENGTH
       ? gestureCandidate.handlerName
@@ -76,12 +69,11 @@ export function sentryTraceGesture<GestureT>(
 
   const originalOnBegin = gestureCandidate.handlers.onBegin;
   (gesture as unknown as Required<BaseGesture>).handlers.onBegin = (event: GestureEvent) => {
-    hub
-      .getClient()
-      ?.getIntegration(ReactNativeTracing)
-      ?.startUserInteractionTransaction({ elementId: label, op: `${UI_ACTION}.${name}` });
+    getClient()
+      ?.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing')
+      ?.startUserInteractionSpan({ elementId: label, op: `${UI_ACTION}.${name}` });
 
-    addGestureBreadcrumb(`Gesture ${label} begin.`, { event, hub, name });
+    addGestureBreadcrumb(`Gesture ${label} begin.`, { event, name });
 
     if (originalOnBegin) {
       originalOnBegin(event);
@@ -90,7 +82,7 @@ export function sentryTraceGesture<GestureT>(
 
   const originalOnEnd = gestureCandidate.handlers.onEnd;
   (gesture as unknown as Required<BaseGesture>).handlers.onEnd = (event: GestureEvent) => {
-    addGestureBreadcrumb(`Gesture ${label} end.`, { event, hub, name });
+    addGestureBreadcrumb(`Gesture ${label} end.`, { event, name });
 
     if (originalOnEnd) {
       originalOnEnd(event);
@@ -104,11 +96,10 @@ function addGestureBreadcrumb(
   message: string,
   options: {
     event: Record<string, unknown> | undefined | null;
-    hub: Hub;
     name: string;
   },
 ): void {
-  const { event, hub, name } = options;
+  const { event, name } = options;
   const crumb: Breadcrumb = {
     message,
     level: 'info',
@@ -129,7 +120,7 @@ function addGestureBreadcrumb(
     crumb.data = data;
   }
 
-  hub.addBreadcrumb(crumb);
+  addBreadcrumb(crumb);
 
   logger.log(`[GestureTracing] ${crumb.message}`);
 }

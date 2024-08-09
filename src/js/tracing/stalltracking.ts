@@ -1,11 +1,13 @@
 /* eslint-disable max-lines */
-import type { IdleTransaction, Span, Transaction } from '@sentry/core';
-import type { Measurements, MeasurementUnit } from '@sentry/types';
+import { getRootSpan, spanToJSON } from '@sentry/core';
+import type { Client, Integration, Measurements, MeasurementUnit, Span } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
 
 import { STALL_COUNT, STALL_LONGEST_TIME, STALL_TOTAL_TIME } from '../measurements';
+import { isRootSpan } from '../utils/span';
+import { getLatestChildSpanEndTimestamp, isNearToNow, setSpanMeasurement } from './utils';
 
 export interface StallMeasurements extends Measurements {
   [STALL_COUNT]: { value: number; unit: MeasurementUnit };
@@ -35,7 +37,9 @@ const MAX_RUNNING_TRANSACTIONS = 10;
  * However, we modified the interval implementation to instead have a fixed loop timeout interval of `LOOP_TIMEOUT_INTERVAL_MS`.
  * We then would consider that iteration a stall when the total time for that interval to run is greater than `LOOP_TIMEOUT_INTERVAL_MS + minimumStallThreshold`
  */
-export class StallTrackingInstrumentation {
+export class StallTrackingInstrumentation implements Integration {
+  public name: string = 'StallTrackingInstrumentation';
+
   public isTracking: boolean = false;
 
   private _minimumStallThreshold: number;
@@ -51,8 +55,8 @@ export class StallTrackingInstrumentation {
 
   private _isBackground: boolean = false;
 
-  private _statsByTransaction: Map<
-    Transaction,
+  private _statsByRootSpan: Map<
+    Span,
     {
       longestStallTime: number;
       atStart: StallMeasurements;
@@ -76,167 +80,136 @@ export class StallTrackingInstrumentation {
 
   /**
    * @inheritDoc
-   * Not used for this integration. Instead call `registerTransactionStart` to start tracking.
    */
-  public setupOnce(): void {
-    // Do nothing.
+  public setup(client: Client): void {
+    client.on('spanStart', this._onSpanStart);
+    client.on('spanEnd', this._onSpanEnd);
   }
 
   /**
    * Register a transaction as started. Starts stall tracking if not already running.
-   * @returns A finish method that returns the stall measurements.
    */
-  public onTransactionStart(transaction: Transaction): void {
-    if (this._statsByTransaction.has(transaction)) {
+  private _onSpanStart = (rootSpan: Span): void => {
+    if (!isRootSpan(rootSpan)) {
+      return;
+    }
+
+    if (this._statsByRootSpan.has(rootSpan)) {
       logger.error(
         '[StallTracking] Tried to start stall tracking on a transaction already being tracked. Measurements might be lost.',
       );
-
       return;
     }
 
     this._startTracking();
-    this._statsByTransaction.set(transaction, {
+    this._statsByRootSpan.set(rootSpan, {
       longestStallTime: 0,
       atTimestamp: null,
-      atStart: this._getCurrentStats(transaction),
+      atStart: this._getCurrentStats(rootSpan),
     });
     this._flushLeakedTransactions();
-
-    if (transaction.spanRecorder) {
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      const originalAdd = transaction.spanRecorder.add;
-
-      transaction.spanRecorder.add = (span: Span): void => {
-        originalAdd.apply(transaction.spanRecorder, [span]);
-
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        const originalSpanFinish = span.finish;
-
-        span.finish = (endTimestamp?: number) => {
-          // We let the span determine its own end timestamp as well in case anything gets changed upstream
-          originalSpanFinish.apply(span, [endTimestamp]);
-
-          // The span should set a timestamp, so this would be defined.
-          if (span.endTimestamp) {
-            this._markSpanFinish(transaction, span.endTimestamp);
-          }
-        };
-
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        const originalSpanEnd = span.end;
-
-        span.end = (endTimestamp?: number) => {
-          // We let the span determine its own end timestamp as well in case anything gets changed upstream
-          originalSpanEnd.apply(span, [endTimestamp]);
-
-          // The span should set a timestamp, so this would be defined.
-          if (span.endTimestamp) {
-            this._markSpanFinish(transaction, span.endTimestamp);
-          }
-        };
-      };
-    }
-  }
+  };
 
   /**
    * Logs a transaction as finished.
    * Stops stall tracking if no more transactions are running.
    * @returns The stall measurements
    */
-  public onTransactionFinish(transaction: Transaction | IdleTransaction, passedEndTimestamp?: number): void {
-    const transactionStats = this._statsByTransaction.get(transaction);
+  private _onSpanEnd = (rootSpan: Span): void => {
+    if (!isRootSpan(rootSpan)) {
+      return this._onChildSpanEnd(rootSpan);
+    }
+
+    const transactionStats = this._statsByRootSpan.get(rootSpan);
 
     if (!transactionStats) {
       // Transaction has been flushed out somehow, we return null.
       logger.log('[StallTracking] Stall measurements were not added to transaction due to exceeding the max count.');
 
-      this._statsByTransaction.delete(transaction);
+      this._statsByRootSpan.delete(rootSpan);
       this._shouldStopTracking();
 
       return;
     }
 
-    const endTimestamp = passedEndTimestamp ?? transaction.endTimestamp;
-
-    const spans = transaction.spanRecorder ? transaction.spanRecorder.spans : [];
-    const finishedSpanCount = spans.reduce((count, s) => (s !== transaction && s.endTimestamp ? count + 1 : count), 0);
-
-    const trimEnd = transaction.toContext().trimEnd;
-    const endWillBeTrimmed = trimEnd && finishedSpanCount > 0;
-
-    /*
-      This is not safe in the case that something changes upstream, but if we're planning to move this over to @sentry/javascript anyways,
-      we can have this temporarily for now.
-    */
-    const isIdleTransaction = 'activities' in transaction;
+    // The endTimestamp is always set, but type-wise it's optional
+    // https://github.com/getsentry/sentry-javascript/blob/38bd57b0785c97c413f36f89ff931d927e469078/packages/core/src/tracing/sentrySpan.ts#L170
+    const endTimestamp = spanToJSON(rootSpan).timestamp;
 
     let statsOnFinish: StallMeasurements | undefined;
-    if (endTimestamp && isIdleTransaction) {
-      /*
-        There is different behavior regarding child spans in a normal transaction and an idle transaction. In normal transactions,
-        the child spans that aren't finished will be dumped, while in an idle transaction they're cancelled and finished.
+    if (isNearToNow(endTimestamp)) {
+      statsOnFinish = this._getCurrentStats(rootSpan);
+    } else {
+      // The idleSpan in JS V8 is always trimmed to the last span's endTimestamp (timestamp).
+      // The unfinished child spans are removed from the root span after the `spanEnd` event.
 
-        Note: `endTimestamp` will always be defined if this is called on an idle transaction finish. This is because we only instrument
-        idle transactions inside `ReactNativeTracing`, which will pass an `endTimestamp`.
-      */
-
-      // There will be cancelled spans, which means that the end won't be trimmed
-      const spansWillBeCancelled = spans.some(
-        s => s !== transaction && s.startTimestamp < endTimestamp && !s.endTimestamp,
-      );
-
-      if (endWillBeTrimmed && !spansWillBeCancelled) {
-        // the last span's timestamp will be used.
-
-        if (transactionStats.atTimestamp) {
-          statsOnFinish = transactionStats.atTimestamp.stats;
-        }
-      } else {
-        // this endTimestamp will be used.
-        statsOnFinish = this._getCurrentStats(transaction);
+      const latestChildSpanEnd = getLatestChildSpanEndTimestamp(rootSpan);
+      if (latestChildSpanEnd !== endTimestamp) {
+        logger.log(
+          '[StallTracking] Stall measurements not added due to a custom `endTimestamp` (root end is not equal to the latest child span end).',
+        );
       }
-    } else if (endWillBeTrimmed) {
-      // If `trimEnd` is used, and there is a span to trim to. If there isn't, then the transaction should use `endTimestamp` or generate one.
-      if (transactionStats.atTimestamp) {
+
+      if (!transactionStats.atTimestamp) {
+        logger.log(
+          '[StallTracking] Stall measurements not added due to `endTimestamp` not being close to now. And no previous stats from child end were found.',
+        );
+      }
+
+      if (latestChildSpanEnd === endTimestamp && transactionStats.atTimestamp) {
         statsOnFinish = transactionStats.atTimestamp.stats;
       }
-    } else if (!endTimestamp) {
-      statsOnFinish = this._getCurrentStats(transaction);
     }
 
-    this._statsByTransaction.delete(transaction);
+    this._statsByRootSpan.delete(rootSpan);
     this._shouldStopTracking();
 
     if (!statsOnFinish) {
       if (typeof endTimestamp !== 'undefined') {
-        logger.log('[StallTracking] Stall measurements not added due to `endTimestamp` being set.');
-      } else if (trimEnd) {
         logger.log(
-          '[StallTracking] Stall measurements not added due to `trimEnd` being set but we could not determine the stall measurements at that time.',
+          '[StallTracking] Stall measurements not added due to `endTimestamp` not being close to now.',
+          'endTimestamp',
+          endTimestamp,
+          'now',
+          timestampInSeconds(),
         );
       }
 
       return;
     }
 
-    transaction.setMeasurement(
+    setSpanMeasurement(
+      rootSpan,
       STALL_COUNT,
       statsOnFinish.stall_count.value - transactionStats.atStart.stall_count.value,
       transactionStats.atStart.stall_count.unit,
     );
 
-    transaction.setMeasurement(
+    setSpanMeasurement(
+      rootSpan,
       STALL_TOTAL_TIME,
       statsOnFinish.stall_total_time.value - transactionStats.atStart.stall_total_time.value,
       transactionStats.atStart.stall_total_time.unit,
     );
 
-    transaction.setMeasurement(
+    setSpanMeasurement(
+      rootSpan,
       STALL_LONGEST_TIME,
       statsOnFinish.stall_longest_time.value,
       statsOnFinish.stall_longest_time.unit,
     );
+  };
+
+  /**
+   * Marks stalls
+   */
+  private _onChildSpanEnd(childSpan: Span): void {
+    const rootSpan = getRootSpan(childSpan);
+
+    const finalEndTimestamp = spanToJSON(childSpan).timestamp;
+    if (finalEndTimestamp) {
+      this._markSpanFinish(rootSpan, finalEndTimestamp);
+    }
   }
 
   /**
@@ -258,27 +231,27 @@ export class StallTrackingInstrumentation {
   /**
    * Logs the finish time of the span for use in `trimEnd: true` transactions.
    */
-  private _markSpanFinish(transaction: Transaction, spanEndTimestamp: number): void {
-    const previousStats = this._statsByTransaction.get(transaction);
+  private _markSpanFinish(rootSpan: Span, childSpanEndTime: number): void {
+    const previousStats = this._statsByRootSpan.get(rootSpan);
     if (previousStats) {
-      if (Math.abs(timestampInSeconds() - spanEndTimestamp) > MARGIN_OF_ERROR_SECONDS) {
+      if (Math.abs(timestampInSeconds() - childSpanEndTime) > MARGIN_OF_ERROR_SECONDS) {
         logger.log(
           '[StallTracking] Span end not logged due to end timestamp being outside the margin of error from now.',
         );
 
-        if (previousStats.atTimestamp && previousStats.atTimestamp.timestamp < spanEndTimestamp) {
+        if (previousStats.atTimestamp && previousStats.atTimestamp.timestamp < childSpanEndTime) {
           // We also need to delete the stat for the last span, as the transaction would be trimmed to this span not the last one.
-          this._statsByTransaction.set(transaction, {
+          this._statsByRootSpan.set(rootSpan, {
             ...previousStats,
             atTimestamp: null,
           });
         }
       } else {
-        this._statsByTransaction.set(transaction, {
+        this._statsByRootSpan.set(rootSpan, {
           ...previousStats,
           atTimestamp: {
-            timestamp: spanEndTimestamp,
-            stats: this._getCurrentStats(transaction),
+            timestamp: childSpanEndTime,
+            stats: this._getCurrentStats(rootSpan),
           },
         });
       }
@@ -288,12 +261,12 @@ export class StallTrackingInstrumentation {
   /**
    * Get the current stats for a transaction at a given time.
    */
-  private _getCurrentStats(transaction: Transaction): StallMeasurements {
+  private _getCurrentStats(span: Span): StallMeasurements {
     return {
       stall_count: { value: this._stallCount, unit: 'none' },
       stall_total_time: { value: this._totalStallTime, unit: 'millisecond' },
       stall_longest_time: {
-        value: this._statsByTransaction.get(transaction)?.longestStallTime ?? 0,
+        value: this._statsByRootSpan.get(span)?.longestStallTime ?? 0,
         unit: 'millisecond',
       },
     };
@@ -329,7 +302,7 @@ export class StallTrackingInstrumentation {
    * Will stop tracking if there are no more transactions.
    */
   private _shouldStopTracking(): void {
-    if (this._statsByTransaction.size === 0) {
+    if (this._statsByRootSpan.size === 0) {
       this._stopTracking();
     }
   }
@@ -341,7 +314,7 @@ export class StallTrackingInstrumentation {
     this._stallCount = 0;
     this._totalStallTime = 0;
     this._lastIntervalMs = 0;
-    this._statsByTransaction.clear();
+    this._statsByRootSpan.clear();
   }
 
   /**
@@ -357,10 +330,10 @@ export class StallTrackingInstrumentation {
       this._stallCount += 1;
       this._totalStallTime += stallTime;
 
-      for (const [transaction, value] of this._statsByTransaction.entries()) {
+      for (const [transaction, value] of this._statsByRootSpan.entries()) {
         const longestStallTime = Math.max(value.longestStallTime ?? 0, stallTime);
 
-        this._statsByTransaction.set(transaction, {
+        this._statsByRootSpan.set(transaction, {
           ...value,
           longestStallTime,
         });
@@ -378,14 +351,14 @@ export class StallTrackingInstrumentation {
    * Deletes leaked transactions (Earliest transactions when we have more than MAX_RUNNING_TRANSACTIONS transactions.)
    */
   private _flushLeakedTransactions(): void {
-    if (this._statsByTransaction.size > MAX_RUNNING_TRANSACTIONS) {
+    if (this._statsByRootSpan.size > MAX_RUNNING_TRANSACTIONS) {
       let counter = 0;
-      const len = this._statsByTransaction.size - MAX_RUNNING_TRANSACTIONS;
-      const transactions = this._statsByTransaction.keys();
+      const len = this._statsByRootSpan.size - MAX_RUNNING_TRANSACTIONS;
+      const transactions = this._statsByRootSpan.keys();
       for (const t of transactions) {
         if (counter >= len) break;
         counter += 1;
-        this._statsByTransaction.delete(t);
+        this._statsByRootSpan.delete(t);
       }
     }
   }

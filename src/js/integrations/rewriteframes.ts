@@ -1,4 +1,4 @@
-import { rewriteFramesIntegration } from '@sentry/integrations';
+import { rewriteFramesIntegration } from '@sentry/core';
 import type { Integration, StackFrame } from '@sentry/types';
 import { Platform } from 'react-native';
 

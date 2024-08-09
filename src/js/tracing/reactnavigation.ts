@@ -1,17 +1,26 @@
 /* eslint-disable max-lines */
-import { getActiveSpan, setMeasurement, spanToJSON, startInactiveSpan } from '@sentry/core';
-import type { Span, Transaction as TransactionType, TransactionContext } from '@sentry/types';
+import {
+  addBreadcrumb,
+  getActiveSpan,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  setMeasurement,
+  SPAN_STATUS_OK,
+  spanToJSON,
+  startInactiveSpan,
+} from '@sentry/core';
+import type { Span } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
 import type { NewFrameEvent } from '../utils/sentryeventemitter';
 import { type SentryEventEmitter, createSentryEventEmitter, NewFrameEventName } from '../utils/sentryeventemitter';
+import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
+import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
-import type { BeforeNavigate, ReactNavigationTransactionContext, RouteChangeContextData } from './types';
-import { customTransactionSource, defaultTransactionSource, getBlankTransactionContext } from './utils';
+import type { BeforeNavigate } from './types';
 
 export interface NavigationRoute {
   name: string;
@@ -68,7 +77,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
   private readonly _maxRecentRouteLen: number = 200;
 
   private _latestRoute?: NavigationRoute;
-  private _latestTransaction?: TransactionType;
+  private _latestTransaction?: Span;
   private _navigationProcessingSpan?: Span;
 
   private _initialStateHandled: boolean = false;
@@ -183,15 +192,13 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       this._clearStateChangeTimeout();
     }
 
-    this._latestTransaction = this.onRouteWillChange(
-      getBlankTransactionContext(ReactNavigationInstrumentation.instrumentationName),
-    );
+    this._latestTransaction = this.onRouteWillChange({ name: 'Route Change' });
 
     if (this._options.enableTimeToInitialDisplay) {
       this._navigationProcessingSpan = startInactiveSpan({
         op: 'navigation.processing',
         name: 'Navigation processing',
-        startTimestamp: this._latestTransaction?.startTimestamp,
+        startTime: this._latestTransaction && spanToJSON(this._latestTransaction).start_timestamp,
       });
     }
 
@@ -262,7 +269,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
                   return;
                 }
 
-                latestTtidSpan.setStatus('ok');
+                latestTtidSpan.setStatus({ code: SPAN_STATUS_OK });
                 latestTtidSpan.end(newFrameTimestampInSeconds);
                 const ttidSpan = spanToJSON(latestTtidSpan);
 
@@ -277,51 +284,41 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             );
 
           this._navigationProcessingSpan?.updateName(`Processing navigation to ${route.name}`);
-          this._navigationProcessingSpan?.setStatus('ok');
+          this._navigationProcessingSpan?.setStatus({ code: SPAN_STATUS_OK });
           this._navigationProcessingSpan?.end(stateChangedTimestamp);
           this._navigationProcessingSpan = undefined;
 
-          const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
+          this._latestTransaction.updateName(route.name);
+          this._latestTransaction.setAttributes({
+            'route.name': route.name,
+            'route.key': route.key,
+            // TODO: filter PII params instead of dropping them all
+            // 'route.params': {},
+            'route.has_been_seen': routeHasBeenSeen,
+            'previous_route.name': previousRoute?.name,
+            'previous_route.key': previousRoute?.key,
+            // TODO: filter PII params instead of dropping them all
+            // 'previous_route.params': {},
+            [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+          });
 
-          const data: RouteChangeContextData = {
-            ...originalContext.data,
-            route: {
-              name: route.name,
-              key: route.key,
-              // TODO: filter PII params instead of dropping them all
-              params: {},
-              hasBeenSeen: routeHasBeenSeen,
+          this._beforeNavigate?.(this._latestTransaction);
+          // Clear the timeout so the transaction does not get cancelled.
+          this._clearStateChangeTimeout();
+
+          this._onConfirmRoute?.(route.name);
+
+          // TODO: Add test for addBreadcrumb
+          addBreadcrumb({
+            category: 'navigation',
+            type: 'navigation',
+            message: `Navigation to ${route.name}`,
+            data: {
+              from: previousRoute?.name,
+              to: route.name,
             },
-            previousRoute: previousRoute
-              ? {
-                  name: previousRoute.name,
-                  key: previousRoute.key,
-                  // TODO: filter PII params instead of dropping them all
-                  params: {},
-                }
-              : null,
-          };
-
-          const updatedContext: ReactNavigationTransactionContext = {
-            ...originalContext,
-            name: route.name,
-            tags: {
-              ...originalContext.tags,
-              'routing.route.name': route.name,
-            },
-            data,
-          };
-
-          const finalContext = this._prepareFinalContext(updatedContext);
-          this._latestTransaction.updateWithContext(finalContext);
-
-          const isCustomName = updatedContext.name !== finalContext.name;
-          this._latestTransaction.setName(
-            finalContext.name,
-            isCustomName ? customTransactionSource : defaultTransactionSource,
-          );
-
-          this._onConfirmRoute?.(finalContext);
+          });
         }
 
         this._pushRecentRouteKey(route.key);
@@ -331,35 +328,6 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
         this._latestTransaction = undefined;
       }
     }
-  }
-
-  /** Creates final transaction context before confirmation */
-  private _prepareFinalContext(updatedContext: TransactionContext): TransactionContext {
-    let finalContext = this._beforeNavigate?.({ ...updatedContext });
-
-    // This block is to catch users not returning a transaction context
-    if (!finalContext) {
-      logger.error(
-        `[ReactNavigationInstrumentation] beforeNavigate returned ${finalContext}, return context.sampled = false to not send transaction.`,
-      );
-
-      finalContext = {
-        ...updatedContext,
-        sampled: false,
-      };
-    }
-
-    // Note: finalContext.sampled will be false at this point only if the user sets it to be so in beforeNavigate.
-    if (finalContext.sampled === false) {
-      logger.log(
-        `[ReactNavigationInstrumentation] Will not send transaction "${finalContext.name}" due to beforeNavigate.`,
-      );
-    } else {
-      // Clear the timeout so the transaction does not get cancelled.
-      this._clearStateChangeTimeout();
-    }
-
-    return finalContext;
   }
 
   /** Pushes a recent route key, and removes earlier routes when there is greater than the max length */
@@ -374,8 +342,11 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
   /** Cancels the latest transaction so it does not get sent to Sentry. */
   private _discardLatestTransaction(): void {
     if (this._latestTransaction) {
-      this._latestTransaction.sampled = false;
-      this._latestTransaction.finish();
+      if (isSentrySpan(this._latestTransaction)) {
+        this._latestTransaction['_sampled'] = false;
+      }
+      // TODO: What if it's not SentrySpan?
+      this._latestTransaction.end();
       this._latestTransaction = undefined;
     }
     if (this._navigationProcessingSpan) {

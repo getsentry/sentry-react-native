@@ -1,8 +1,8 @@
-import { getClient, getCurrentHub, Profiler } from '@sentry/react';
+import { getClient, Profiler } from '@sentry/react';
 import { timestampInSeconds } from '@sentry/utils';
 
 import { createIntegration } from '../integrations/factory';
-import { ReactNativeTracing } from './reactnativetracing';
+import { captureAppStart, setRootComponentCreationTimestampMs } from '../tracing/integrations/appStart';
 
 const ReactNativeProfilerGlobalState = {
   appStartReported: false,
@@ -15,9 +15,7 @@ export class ReactNativeProfiler extends Profiler {
   public readonly name: string = 'ReactNativeProfiler';
 
   public constructor(props: ConstructorParameters<typeof Profiler>[0]) {
-    const client = getClient();
-    const integration = client && client.getIntegrationByName && client.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing');
-    integration && integration.setRootComponentFirstConstructorCallTimestampMs(timestampInSeconds() * 1000);
+    setRootComponentCreationTimestampMs(timestampInSeconds() * 1000);
     super(props);
   }
 
@@ -36,8 +34,7 @@ export class ReactNativeProfiler extends Profiler {
    * Notifies the Tracing integration that the app start has finished.
    */
   private _reportAppStart(): void {
-    const hub = getCurrentHub();
-    const client = hub.getClient();
+    const client = getClient();
 
     if (!client) {
       // We can't use logger here because this will be logged before the `Sentry.init`.
@@ -47,12 +44,7 @@ export class ReactNativeProfiler extends Profiler {
     }
 
     client.addIntegration && client.addIntegration(createIntegration(this.name));
-
-    const tracingIntegration = hub.getIntegration(ReactNativeTracing);
-    tracingIntegration
-      && this._mountSpan
-      && typeof this._mountSpan.endTimestamp !== 'undefined'
-      // The first root component mount is the app start finish.
-      && tracingIntegration.onAppStartFinish(this._mountSpan.endTimestamp);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    captureAppStart();
   }
 }

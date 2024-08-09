@@ -6,10 +6,9 @@ import type {
   Envelope,
   Event,
   EventHint,
-  Exception,
   Outcome,
   SeverityLevel,
-  Thread,
+  TransportMakeRequestResponse,
   UserFeedback,
 } from '@sentry/types';
 import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
@@ -20,7 +19,7 @@ import { defaultSdkInfo } from './integrations/sdkinfo';
 import type { ReactNativeClientOptions } from './options';
 import type { mobileReplayIntegration } from './replay/mobilereplay';
 import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
-import { ReactNativeTracing } from './tracing';
+import type { ReactNativeTracing } from './tracing';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';
@@ -59,25 +58,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @inheritDoc
    */
   public eventFromMessage(message: string, level?: SeverityLevel, hint?: EventHint): PromiseLike<Event> {
-    if (this._options.useThreadsForMessageStack) {
-      return eventFromMessage(this._options.stackParser, message, level, hint, this._options.attachStacktrace).then(
-        (event: Event) => {
-          // TMP! Remove this function once JS SDK uses threads for messages
-          if (!event.exception?.values || event.exception.values.length <= 0) {
-            return event;
-          }
-          const values = event.exception.values.map(
-            (exception: Exception): Thread => ({
-              stacktrace: exception.stacktrace,
-            }),
-          );
-          (event as { threads?: { values: Thread[] } }).threads = { values };
-          delete event.exception;
-          return event;
-        },
-      );
-    }
-
     return eventFromMessage(this._options.stackParser, message, level, hint, this._options.attachStacktrace);
   }
 
@@ -108,37 +88,14 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       dsn: this.getDsn(),
       tunnel: undefined,
     });
-    this._sendEnvelope(envelope);
-  }
-
-  /**
-   * @inheritDoc
-   */
-  public init(): void {
-    super.init();
-    this._initNativeSdk();
-  }
-
-  /**
-   * Sets up the integrations
-   */
-  protected _setupIntegrations(): void {
-    super._setupIntegrations();
-    const tracing = this.getIntegration(ReactNativeTracing);
-    const routingName = tracing?.options.routingInstrumentation?.name;
-    if (routingName) {
-      this.addIntegration(createIntegration(routingName));
-    }
-    const enableUserInteractionTracing = tracing?.options.enableUserInteractionTracing;
-    if (enableUserInteractionTracing) {
-      this.addIntegration(createIntegration('ReactNativeUserInteractionTracing'));
-    }
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.sendEnvelope(envelope);
   }
 
   /**
    * @inheritdoc
    */
-  protected _sendEnvelope(envelope: Envelope): void {
+  public sendEnvelope(envelope: Envelope): PromiseLike<TransportMakeRequestResponse> {
     const outcomes = this._clearOutcomes();
     this._outcomesBuffer = mergeOutcomes(this._outcomesBuffer, outcomes);
 
@@ -166,6 +123,32 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
     if (shouldClearOutcomesBuffer) {
       this._outcomesBuffer = []; // if send fails synchronously the _outcomesBuffer will stay intact
+    }
+
+    return Promise.resolve({});
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public init(): void {
+    super.init();
+    this._initNativeSdk();
+  }
+
+  /**
+   * @inheritdoc
+   */
+  protected _setupIntegrations(): void {
+    super._setupIntegrations();
+    const tracing = this.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing');
+    const routingName = tracing?.options?.routingInstrumentation?.name;
+    if (routingName) {
+      this.addIntegration(createIntegration(routingName));
+    }
+    const enableUserInteractionTracing = tracing?.options.enableUserInteractionTracing;
+    if (enableUserInteractionTracing) {
+      this.addIntegration(createIntegration('ReactNativeUserInteractionTracing'));
     }
   }
 

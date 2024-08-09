@@ -1,13 +1,4 @@
-import { convertIntegrationFnToClass } from '@sentry/core';
-import type {
-  Event,
-  EventHint,
-  Exception,
-  Integration,
-  IntegrationClass,
-  IntegrationFnResult,
-  StackFrame as SentryStackFrame,
-} from '@sentry/types';
+import type { Event, EventHint, Exception, Integration, StackFrame as SentryStackFrame } from '@sentry/types';
 import { addContextToFrame, logger } from '@sentry/utils';
 
 import type { ExtendedError } from '../utils/error';
@@ -31,7 +22,7 @@ export type ReactNativeError = Error & {
 };
 
 /** Tries to symbolicate the JS stack trace on the device. */
-export const debugSymbolicatorIntegration = (): IntegrationFnResult => {
+export const debugSymbolicatorIntegration = (): Integration => {
   return {
     name: INTEGRATION_NAME,
     setupOnce: () => {
@@ -40,17 +31,6 @@ export const debugSymbolicatorIntegration = (): IntegrationFnResult => {
     processEvent,
   };
 };
-
-/**
- * Tries to symbolicate the JS stack trace on the device.
- *
- * @deprecated Use `debugSymbolicatorIntegration()` instead.
- */
-// eslint-disable-next-line deprecation/deprecation
-export const DebugSymbolicator = convertIntegrationFnToClass(
-  INTEGRATION_NAME,
-  debugSymbolicatorIntegration,
-) as IntegrationClass<Integration>;
 
 async function processEvent(event: Event, hint: EventHint): Promise<Event> {
   if (event.exception?.values && isErrorLike(hint.originalException)) {
@@ -96,7 +76,7 @@ async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promi
     }
 
     // This has been changed in an react-native version so stack is contained in here
-    const newStack = prettyStack.stack || prettyStack;
+    const newStack = 'stack' in prettyStack ? prettyStack.stack : prettyStack;
 
     // https://github.com/getsentry/sentry-javascript/blob/739d904342aaf9327312f409952f14ceff4ae1ab/packages/utils/src/stacktrace.ts#L23
     // Match SentryParser which counts lines of stack (-1 for first line with the Error message)

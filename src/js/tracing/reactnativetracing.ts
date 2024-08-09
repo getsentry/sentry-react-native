@@ -1,34 +1,41 @@
 /* eslint-disable max-lines */
 import type { RequestInstrumentationOptions } from '@sentry/browser';
 import { defaultRequestInstrumentationOptions, instrumentOutgoingRequests } from '@sentry/browser';
-import type { Hub, IdleTransaction, Transaction } from '@sentry/core';
-import { getActiveTransaction, getCurrentHub, spanToJSON, startIdleTransaction } from '@sentry/core';
-import type {
-  Event,
-  EventProcessor,
-  Integration,
-  Span,
-  Transaction as TransactionType,
-  TransactionContext,
-} from '@sentry/types';
-import { logger } from '@sentry/utils';
+import {
+  getActiveSpan,
+  getCurrentScope,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SentryNonRecordingSpan,
+  SPAN_STATUS_ERROR,
+  spanToJSON,
+  startIdleSpan,
+} from '@sentry/core';
+import type { Client, Event, Integration, PropagationContext, Scope, Span, StartSpanOptions } from '@sentry/types';
+import { logger, uuid4 } from '@sentry/utils';
 
-import { APP_START_COLD, APP_START_WARM } from '../measurements';
-import type { NativeAppStartResponse } from '../NativeRNSentry';
 import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
 import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
-import { APP_START_COLD as APP_START_COLD_OP, APP_START_WARM as APP_START_WARM_OP, UI_LOAD } from './ops';
-import { StallTrackingInstrumentation } from './stalltracking';
-import { cancelInBackground, onlySampleIfChildSpans } from './transaction';
-import type { BeforeNavigate, RouteChangeContextData } from './types';
 import {
   adjustTransactionDuration,
-  getBundleStartTimestampMs,
-  getTimeOriginMilliseconds,
-  isNearToNow,
-  setSpanDurationAsMeasurement,
-} from './utils';
+  cancelInBackground,
+  ignoreEmptyBackNavigation,
+  onlySampleIfChildSpans,
+  onThisSpanEnd,
+} from './onSpanEndUtils';
+import { StallTrackingInstrumentation } from './stalltracking';
+import type { BeforeNavigate } from './types';
+
+const SCOPE_SPAN_FIELD = '_sentrySpan';
+
+type ScopeWithMaybeSpan = Scope & {
+  [SCOPE_SPAN_FIELD]?: Span;
+};
+
+function clearActiveSpanFromScope(scope: ScopeWithMaybeSpan): void {
+  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+  delete scope[SCOPE_SPAN_FIELD];
+}
 
 export interface ReactNativeTracingOptions extends RequestInstrumentationOptions {
   /**
@@ -85,14 +92,6 @@ export interface ReactNativeTracingOptions extends RequestInstrumentationOptions
   beforeNavigate: BeforeNavigate;
 
   /**
-   * Track the app start time by adding measurements to the first route transaction. If there is no routing instrumentation
-   * an app start transaction will be started.
-   *
-   * Default: true
-   */
-  enableAppStartTracking: boolean;
-
-  /**
    * Track slow/frozen frames from the native layer and adds them as measurements to all transactions.
    */
   enableNativeFramesTracking: boolean;
@@ -118,7 +117,6 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   finalTimeoutMs: 600000,
   ignoreEmptyBackNavigationTransactions: true,
   beforeNavigate: context => context,
-  enableAppStartTracking: true,
   enableNativeFramesTracking: true,
   enableStallTracking: true,
   enableUserInteractionTracing: false,
@@ -132,10 +130,7 @@ export class ReactNativeTracing implements Integration {
    * @inheritDoc
    */
   public static id: string = 'ReactNativeTracing';
-  /** We filter out App starts more than 60s */
-  private static _maxAppStart: number = 60000;
-  /** We filter out App starts which timestamp is 60s and more before the transaction start */
-  private static _maxAppStartBeforeTransactionMs: number = 60000;
+
   /**
    * @inheritDoc
    */
@@ -148,26 +143,18 @@ export class ReactNativeTracing implements Integration {
   public stallTrackingInstrumentation?: StallTrackingInstrumentation;
   public useAppStartWithProfiler: boolean = false;
 
-  private _inflightInteractionTransaction?: IdleTransaction;
-  private _getCurrentHub?: () => Hub;
-  private _awaitingAppStartData?: NativeAppStartResponse;
-  private _appStartFinishTimestamp?: number;
+  private _inflightInteractionTransaction?: Span;
+
   private _currentRoute?: string;
   private _hasSetTracePropagationTargets: boolean;
-  private _hasSetTracingOrigins: boolean;
   private _currentViewName: string | undefined;
-  private _firstConstructorCallTimestampMs: number | undefined;
+  private _client: Client | undefined;
 
   public constructor(options: Partial<ReactNativeTracingOptions> = {}) {
     this._hasSetTracePropagationTargets = !!(
       options &&
       // eslint-disable-next-line deprecation/deprecation
       options.tracePropagationTargets
-    );
-    this._hasSetTracingOrigins = !!(
-      options &&
-      // eslint-disable-next-line deprecation/deprecation
-      options.tracingOrigins
     );
 
     this.options = {
@@ -192,12 +179,8 @@ export class ReactNativeTracing implements Integration {
   /**
    *  Registers routing and request instrumentation.
    */
-  public async setupOnce(
-    addGlobalEventProcessor: (callback: EventProcessor) => void,
-    getCurrentHub: () => Hub,
-  ): Promise<void> {
-    const hub = getCurrentHub();
-    const client = hub.getClient();
+  public setup(client: Client): void {
+    this._client = client;
     const clientOptions = client && client.getOptions();
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -205,52 +188,24 @@ export class ReactNativeTracing implements Integration {
       traceFetch,
       traceXHR,
       // eslint-disable-next-line deprecation/deprecation
-      tracingOrigins,
       shouldCreateSpanForRequest,
       // eslint-disable-next-line deprecation/deprecation
       tracePropagationTargets: thisOptionsTracePropagationTargets,
       routingInstrumentation,
-      enableAppStartTracking,
       enableStallTracking,
     } = this.options;
 
-    this._getCurrentHub = getCurrentHub;
-
     const clientOptionsTracePropagationTargets = clientOptions && clientOptions.tracePropagationTargets;
-    // There are three ways to configure tracePropagationTargets:
-    // 1. via top level client option `tracePropagationTargets`
-    // 2. via ReactNativeTracing option `tracePropagationTargets`
-    // 3. via ReactNativeTracing option `tracingOrigins` (deprecated)
-    //
-    // To avoid confusion, favour top level client option `tracePropagationTargets`, and fallback to
-    // ReactNativeTracing option `tracePropagationTargets` and then `tracingOrigins` (deprecated).
-    //
-    // If both 1 and either one of 2 or 3 are set (from above), we log out a warning.
     const tracePropagationTargets =
       clientOptionsTracePropagationTargets ||
       (this._hasSetTracePropagationTargets && thisOptionsTracePropagationTargets) ||
-      (this._hasSetTracingOrigins && tracingOrigins) ||
       DEFAULT_TRACE_PROPAGATION_TARGETS;
-    if (
-      __DEV__ &&
-      (this._hasSetTracePropagationTargets || this._hasSetTracingOrigins) &&
-      clientOptionsTracePropagationTargets
-    ) {
-      logger.warn(
-        '[ReactNativeTracing] The `tracePropagationTargets` option was set in the ReactNativeTracing integration and top level `Sentry.init`. The top level `Sentry.init` value is being used.',
-      );
-    }
 
-    if (enableAppStartTracking) {
-      this._instrumentAppStart().then(undefined, (reason: unknown) => {
-        logger.error(`[ReactNativeTracing] Error while instrumenting app start:`, reason);
-      });
-    }
-
-    this._enableNativeFramesTracking(addGlobalEventProcessor);
+    this._enableNativeFramesTracking(client);
 
     if (enableStallTracking) {
       this.stallTrackingInstrumentation = new StallTrackingInstrumentation();
+      this.stallTrackingInstrumentation.setup(client);
     }
 
     if (routingInstrumentation) {
@@ -263,7 +218,7 @@ export class ReactNativeTracing implements Integration {
       logger.log('[ReactNativeTracing] Not instrumenting route changes as routingInstrumentation has not been set.');
     }
 
-    addGlobalEventProcessor(this._getCurrentViewEventProcessor.bind(this));
+    addDefaultOpForSpanFrom(client);
 
     instrumentOutgoingRequests({
       traceFetch,
@@ -274,101 +229,91 @@ export class ReactNativeTracing implements Integration {
   }
 
   /**
-   * To be called on a transaction start. Can have async methods
+   * @inheritdoc
    */
-  public onTransactionStart(transaction: Transaction): void {
-    if (isNearToNow(transaction.startTimestamp)) {
-      // Only if this method is called at or within margin of error to the start timestamp.
-      this.nativeFramesInstrumentation?.onTransactionStart(transaction);
-      this.stallTrackingInstrumentation?.onTransactionStart(transaction);
-    } else {
-      logger.warn(
-        `[ReactNativeTracing] onTransactionStart called with delay (larger than margin of error) for transaction ${
-          transaction.description
-        } (${transaction.spanContext().spanId}). Not fetching native frames or tracking stalls.`,
-      );
-    }
-  }
-
-  /**
-   * To be called on a transaction finish. Cannot have async methods.
-   */
-  public onTransactionFinish(transaction: Transaction, endTimestamp?: number): void {
-    this.nativeFramesInstrumentation?.onTransactionFinish(transaction);
-    this.stallTrackingInstrumentation?.onTransactionFinish(transaction, endTimestamp);
-  }
-
-  /**
-   * Called by the ReactNativeProfiler component on first component mount.
-   */
-  public onAppStartFinish(endTimestamp: number): void {
-    this._appStartFinishTimestamp = endTimestamp;
-  }
-
-  /**
-   * Sets the root component first constructor call timestamp.
-   */
-  public setRootComponentFirstConstructorCallTimestampMs(timestamp: number): void {
-    this._firstConstructorCallTimestampMs = timestamp;
+  public processEvent(event: Event): Promise<Event> | Event {
+    const eventWithView = this._getCurrentViewEventProcessor(event);
+    return this.nativeFramesInstrumentation
+      ? this.nativeFramesInstrumentation.processEvent(eventWithView)
+      : eventWithView;
   }
 
   /**
    * Starts a new transaction for a user interaction.
    * @param userInteractionId Consists of `op` representation UI Event and `elementId` unique element identifier on current screen.
    */
-  public startUserInteractionTransaction(userInteractionId: {
-    elementId: string | undefined;
-    op: string;
-  }): TransactionType | undefined {
+  public startUserInteractionSpan(userInteractionId: { elementId: string | undefined; op: string }): Span | undefined {
+    const client = this._client;
+    if (!client) {
+      return undefined;
+    }
+
     const { elementId, op } = userInteractionId;
     if (!this.options.enableUserInteractionTracing) {
       logger.log('[ReactNativeTracing] User Interaction Tracing is disabled.');
-      return;
+      return undefined;
     }
     if (!this.options.routingInstrumentation) {
       logger.error(
         '[ReactNativeTracing] User Interaction Tracing is not working because no routing instrumentation is set.',
       );
-      return;
+      return undefined;
     }
     if (!elementId) {
       logger.log('[ReactNativeTracing] User Interaction Tracing can not create transaction with undefined elementId.');
-      return;
+      return undefined;
     }
     if (!this._currentRoute) {
       logger.log('[ReactNativeTracing] User Interaction Tracing can not create transaction without a current route.');
-      return;
+      return undefined;
     }
 
-    const hub = this._getCurrentHub?.() || getCurrentHub();
-    const activeTransaction = getActiveTransaction(hub);
+    const activeTransaction = getActiveSpan();
     const activeTransactionIsNotInteraction =
-      activeTransaction?.spanId !== this._inflightInteractionTransaction?.spanId;
+      !activeTransaction ||
+      !this._inflightInteractionTransaction ||
+      spanToJSON(activeTransaction).span_id !== spanToJSON(this._inflightInteractionTransaction).span_id;
     if (activeTransaction && activeTransactionIsNotInteraction) {
       logger.warn(
-        `[ReactNativeTracing] Did not create ${op} transaction because active transaction ${activeTransaction.name} exists on the scope.`,
+        `[ReactNativeTracing] Did not create ${op} transaction because active transaction ${
+          spanToJSON(activeTransaction).description
+        } exists on the scope.`,
       );
-      return;
-    }
-
-    if (this._inflightInteractionTransaction) {
-      this._inflightInteractionTransaction.cancelIdleTimeout(undefined, { restartOnChildSpanChange: false });
-      this._inflightInteractionTransaction = undefined;
+      return undefined;
     }
 
     const name = `${this._currentRoute}.${elementId}`;
-    const context: TransactionContext = {
+    if (
+      this._inflightInteractionTransaction &&
+      spanToJSON(this._inflightInteractionTransaction).description === name &&
+      spanToJSON(this._inflightInteractionTransaction).op === op
+    ) {
+      logger.warn(
+        `[ReactNativeTracing] Did not create ${op} transaction because it the same transaction ${
+          spanToJSON(this._inflightInteractionTransaction).description
+        } already exists on the scope.`,
+      );
+      return undefined;
+    }
+
+    if (this._inflightInteractionTransaction) {
+      // TODO: Check the interaction transactions spec, see if can be implemented differently
+      // this._inflightInteractionTransaction.cancelIdleTimeout(undefined, { restartOnChildSpanChange: false });
+      this._inflightInteractionTransaction = undefined;
+    }
+
+    const scope = getCurrentScope();
+    const context: StartSpanOptions = {
       name,
       op,
-      trimEnd: true,
+      scope,
     };
-    this._inflightInteractionTransaction = this._startIdleTransaction(context);
-    this._inflightInteractionTransaction.registerBeforeFinishCallback((transaction: IdleTransaction) => {
+    clearActiveSpanFromScope(scope);
+    this._inflightInteractionTransaction = this._startIdleSpan(context);
+    onThisSpanEnd(client, this._inflightInteractionTransaction, () => {
       this._inflightInteractionTransaction = undefined;
-      this.onTransactionFinish(transaction);
     });
-    this._inflightInteractionTransaction.registerBeforeFinishCallback(onlySampleIfChildSpans);
-    this.onTransactionStart(this._inflightInteractionTransaction);
+    onlySampleIfChildSpans(client, this._inflightInteractionTransaction);
     logger.log(`[ReactNativeTracing] User Interaction Tracing Created ${op} transaction ${name}.`);
     return this._inflightInteractionTransaction;
   }
@@ -376,7 +321,7 @@ export class ReactNativeTracing implements Integration {
   /**
    * Enables or disables native frames tracking based on the `enableNativeFramesTracking` option.
    */
-  private _enableNativeFramesTracking(addGlobalEventProcessor: (callback: EventProcessor) => void): void {
+  private _enableNativeFramesTracking(client: Client): void {
     if (this.options.enableNativeFramesTracking && !NATIVE.enableNative) {
       // Do not enable native frames tracking if native is not available.
       logger.warn(
@@ -396,15 +341,8 @@ export class ReactNativeTracing implements Integration {
     }
 
     NATIVE.enableNativeFramesTracking();
-    this.nativeFramesInstrumentation = new NativeFramesInstrumentation(addGlobalEventProcessor, () => {
-      const self = getCurrentHub().getIntegration(ReactNativeTracing);
-
-      if (self) {
-        return !!self.nativeFramesInstrumentation;
-      }
-
-      return false;
-    });
+    this.nativeFramesInstrumentation = new NativeFramesInstrumentation();
+    this.nativeFramesInstrumentation.setup(client);
   }
 
   /**
@@ -418,314 +356,100 @@ export class ReactNativeTracing implements Integration {
     return event;
   }
 
-  /**
-   * Returns the App Start Duration in Milliseconds. Also returns undefined if not able do
-   * define the duration.
-   */
-  private _getAppStartDurationMilliseconds(appStartTimestampMs: number): number | undefined {
-    if (!this._appStartFinishTimestamp) {
-      return undefined;
-    }
-    return this._appStartFinishTimestamp * 1000 - appStartTimestampMs;
-  }
-
-  /**
-   * Instruments the app start measurements on the first route transaction.
-   * Starts a route transaction if there isn't routing instrumentation.
-   */
-  private async _instrumentAppStart(): Promise<void> {
-    if (!this.options.enableAppStartTracking || !NATIVE.enableNative) {
-      return;
-    }
-
-    const appStart = await NATIVE.fetchNativeAppStart();
-
-    if (!appStart) {
-      logger.warn('[ReactNativeTracing] Not instrumenting App Start because native returned null.');
-      return;
-    }
-
-    if (appStart.has_fetched) {
-      logger.warn('[ReactNativeTracing] Not instrumenting App Start because this start was already reported.');
-      return;
-    }
-
-    if (!this.useAppStartWithProfiler) {
-      logger.warn('[ReactNativeTracing] `Sentry.wrap` not detected, using JS context init as app start end.');
-      this._appStartFinishTimestamp = getTimeOriginMilliseconds() / 1000;
-    }
-
-    if (this.options.routingInstrumentation) {
-      this._awaitingAppStartData = appStart;
-    } else {
-      const idleTransaction = this._createRouteTransaction({
-        name: 'App Start',
-        op: UI_LOAD,
-      });
-
-      if (idleTransaction) {
-        this._addAppStartData(idleTransaction, appStart);
-      }
-    }
-  }
-
-  /**
-   * Adds app start measurements and starts a child span on a transaction.
-   */
-  private _addAppStartData(transaction: IdleTransaction, appStart: NativeAppStartResponse): void {
-    const appStartTimestampMs = appStart.app_start_timestamp_ms;
-    if (!appStartTimestampMs) {
-      logger.warn('App start timestamp could not be loaded from the native layer.');
-      return;
-    }
-
-    const isAppStartWithinBounds =
-      appStartTimestampMs >=
-      getTransactionStartTimestampMs(transaction) - ReactNativeTracing._maxAppStartBeforeTransactionMs;
-    if (!__DEV__ && !isAppStartWithinBounds) {
-      logger.warn('[ReactNativeTracing] App start timestamp is too far in the past to be used for app start span.');
-      return;
-    }
-
-    const appStartDurationMilliseconds = this._getAppStartDurationMilliseconds(appStartTimestampMs);
-    if (!appStartDurationMilliseconds) {
-      logger.warn('[ReactNativeTracing] App start end has not been recorded, not adding app start span.');
-      return;
-    }
-
-    // we filter out app start more than 60s.
-    // this could be due to many different reasons.
-    // we've seen app starts with hours, days and even months.
-    if (appStartDurationMilliseconds >= ReactNativeTracing._maxAppStart) {
-      logger.warn('[ReactNativeTracing] App start duration is over a minute long, not adding app start span.');
-      return;
-    }
-
-    const appStartTimeSeconds = appStartTimestampMs / 1000;
-
-    transaction.startTimestamp = appStartTimeSeconds;
-
-    const maybeTtidSpan = transaction.spanRecorder?.spans.find(span => span.op === 'ui.load.initial_display');
-    if (maybeTtidSpan) {
-      maybeTtidSpan.startTimestamp = appStartTimeSeconds;
-      setSpanDurationAsMeasurement('time_to_initial_display', maybeTtidSpan);
-    }
-
-    const maybeTtfdSpan = transaction.spanRecorder?.spans.find(span => span.op === 'ui.load.full_display');
-    if (maybeTtfdSpan) {
-      maybeTtfdSpan.startTimestamp = appStartTimeSeconds;
-      setSpanDurationAsMeasurement('time_to_full_display', maybeTtfdSpan);
-    }
-
-    const op = appStart.type === 'cold' ? APP_START_COLD_OP : APP_START_WARM_OP;
-    const appStartSpan = transaction.startChild({
-      description: appStart.type === 'cold' ? 'Cold App Start' : 'Warm App Start',
-      op,
-      startTimestamp: appStartTimeSeconds,
-      endTimestamp: this._appStartFinishTimestamp,
-    });
-    this._addJSExecutionBeforeRoot(appStartSpan);
-    this._addNativeSpansTo(appStartSpan, appStart.spans);
-
-    const measurement = appStart.type === 'cold' ? APP_START_COLD : APP_START_WARM;
-    transaction.setMeasurement(measurement, appStartDurationMilliseconds, 'millisecond');
-  }
-
-  /**
-   * Adds JS Execution before React Root. If `Sentry.wrap` is not used, create a span for the start of JS Bundle execution.
-   */
-  private _addJSExecutionBeforeRoot(appStartSpan: Span): void {
-    const bundleStartTimestampMs = getBundleStartTimestampMs();
-    if (!bundleStartTimestampMs) {
-      return;
-    }
-
-    if (!this._firstConstructorCallTimestampMs) {
-      logger.warn('Missing the root component first constructor call timestamp.');
-      appStartSpan.startChild({
-        description: 'JS Bundle Execution Start',
-        op: appStartSpan.op,
-        startTimestamp: bundleStartTimestampMs / 1000,
-        endTimestamp: bundleStartTimestampMs / 1000,
-      });
-      return;
-    }
-
-    appStartSpan.startChild({
-      description: 'JS Bundle Execution Before React Root',
-      op: appStartSpan.op,
-      startTimestamp: bundleStartTimestampMs / 1000,
-      endTimestamp: this._firstConstructorCallTimestampMs / 1000,
-    });
-  }
-
-  /**
-   * Adds native spans to the app start span.
-   */
-  private _addNativeSpansTo(appStartSpan: Span, nativeSpans: NativeAppStartResponse['spans']): void {
-    nativeSpans.forEach(span => {
-      if (span.description === 'UIKit init') {
-        return this._createUIKitSpan(appStartSpan, span);
-      }
-
-      appStartSpan.startChild({
-        op: appStartSpan.op,
-        description: span.description,
-        startTimestamp: span.start_timestamp_ms / 1000,
-        endTimestamp: span.end_timestamp_ms / 1000,
-      });
-    });
-  }
-
-  /**
-   * UIKit init is measured by the native layers till the native SDK start
-   * RN initializes the native SDK later, the end timestamp would be wrong
-   */
-  private _createUIKitSpan(parentSpan: Span, nativeUIKitSpan: NativeAppStartResponse['spans'][number]): void {
-    const bundleStart = getBundleStartTimestampMs();
-
-    // If UIKit init ends after the bundle start, the native SDK was auto-initialized
-    // and so the end timestamp is incorrect.
-    // The timestamps can't equal, as RN initializes after UIKit.
-    if (bundleStart && bundleStart < nativeUIKitSpan.end_timestamp_ms) {
-      parentSpan.startChild({
-        op: parentSpan.op,
-        description: 'UIKit Init to JS Exec Start',
-        startTimestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
-        endTimestamp: bundleStart / 1000,
-      });
-    } else {
-      parentSpan.startChild({
-        op: parentSpan.op,
-        description: 'UIKit Init',
-        startTimestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
-        endTimestamp: nativeUIKitSpan.end_timestamp_ms / 1000,
-      });
-    }
-  }
-
   /** To be called when the route changes, but BEFORE the components of the new route mount. */
-  private _onRouteWillChange(context: TransactionContext): TransactionType | undefined {
-    return this._createRouteTransaction(context);
+  private _onRouteWillChange(): Span | undefined {
+    return this._createRouteTransaction();
   }
 
   /**
-   * Creates a breadcrumb and sets the current route as a tag.
+   * Save the current route to set it in context during event processing.
    */
-  private _onConfirmRoute(context: TransactionContext): void {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    this._currentRoute = context.data?.route?.name;
-
-    this._getCurrentHub?.().configureScope(scope => {
-      if (context.data) {
-        const contextData = context.data as RouteChangeContextData;
-
-        scope.addBreadcrumb({
-          category: 'navigation',
-          type: 'navigation',
-          // We assume that context.name is the name of the route.
-          message: `Navigation to ${context.name}`,
-          data: {
-            from: contextData.previousRoute?.name,
-            to: contextData.route.name,
-          },
-        });
-      }
-
-      this._currentViewName = context.name;
-      /**
-       * @deprecated tag routing.route.name will be removed in the future.
-       */
-      scope.setTag('routing.route.name', context.name);
-    });
+  private _onConfirmRoute(currentViewName: string | undefined): void {
+    this._currentViewName = currentViewName;
+    this._currentRoute = currentViewName;
   }
 
   /** Create routing idle transaction. */
-  private _createRouteTransaction(context: TransactionContext): IdleTransaction | undefined {
-    if (!this._getCurrentHub) {
-      logger.warn(`[ReactNativeTracing] Did not create ${context.op} transaction because _getCurrentHub is invalid.`);
+  private _createRouteTransaction({
+    name,
+    op,
+  }: {
+    name?: string;
+    op?: string;
+  } = {}): Span | undefined {
+    if (!this._client) {
+      logger.warn(`[ReactNativeTracing] Can't create route change span, missing client.`);
       return undefined;
     }
 
     if (this._inflightInteractionTransaction) {
       logger.log(
-        `[ReactNativeTracing] Canceling ${this._inflightInteractionTransaction.op} transaction because navigation ${context.op}.`,
+        `[ReactNativeTracing] Canceling ${
+          spanToJSON(this._inflightInteractionTransaction).op
+        } transaction because of a new navigation root span.`,
       );
-      this._inflightInteractionTransaction.setStatus('cancelled');
-      this._inflightInteractionTransaction.finish();
+      this._inflightInteractionTransaction.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
+      this._inflightInteractionTransaction.end();
     }
 
     const { finalTimeoutMs } = this.options;
 
-    const expandedContext = {
-      ...context,
-      trimEnd: true,
+    const expandedContext: StartSpanOptions = {
+      name: name || 'Route Change',
+      op,
+      forceTransaction: true,
+      scope: getCurrentScope(),
     };
 
-    const idleTransaction = this._startIdleTransaction(expandedContext);
-
-    this.onTransactionStart(idleTransaction);
-
-    logger.log(`[ReactNativeTracing] Starting ${context.op} transaction "${context.name}" on scope`);
-
-    idleTransaction.registerBeforeFinishCallback((transaction, endTimestamp) => {
-      this.onTransactionFinish(transaction, endTimestamp);
-    });
-
-    idleTransaction.registerBeforeFinishCallback(transaction => {
-      if (this.options.enableAppStartTracking && this._awaitingAppStartData) {
-        transaction.op = UI_LOAD;
-        this._addAppStartData(transaction, this._awaitingAppStartData);
-
-        this._awaitingAppStartData = undefined;
-      }
-    });
-
-    idleTransaction.registerBeforeFinishCallback((transaction, endTimestamp) => {
-      adjustTransactionDuration(finalTimeoutMs, transaction, endTimestamp);
-    });
-
-    if (this.options.ignoreEmptyBackNavigationTransactions) {
-      idleTransaction.registerBeforeFinishCallback(transaction => {
-        if (
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          transaction.data?.route?.hasBeenSeen &&
-          (!transaction.spanRecorder ||
-            transaction.spanRecorder.spans.filter(
-              span =>
-                span.spanId !== transaction.spanId &&
-                span.op !== 'ui.load.initial_display' &&
-                span.op !== 'navigation.processing',
-            ).length === 0)
-        ) {
-          logger.log(
-            '[ReactNativeTracing] Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.',
-          );
-          // Route has been seen before and has no child spans.
-          transaction.sampled = false;
-        }
-      });
+    const idleSpan = this._startIdleSpan(expandedContext);
+    if (!idleSpan) {
+      return undefined;
     }
 
-    return idleTransaction;
+    logger.log(`[ReactNativeTracing] Starting ${op || 'unknown op'} transaction "${name}" on scope`);
+
+    adjustTransactionDuration(this._client, idleSpan, finalTimeoutMs);
+
+    if (this.options.ignoreEmptyBackNavigationTransactions) {
+      ignoreEmptyBackNavigation(this._client, idleSpan);
+    }
+
+    return idleSpan;
   }
 
   /**
    * Start app state aware idle transaction on the scope.
    */
-  private _startIdleTransaction(context: TransactionContext): IdleTransaction {
+  private _startIdleSpan(startSpanOption: StartSpanOptions, beforeSpanEnd?: (span: Span) => void): Span {
+    if (!this._client) {
+      logger.warn(`[ReactNativeTracing] Can't create idle span, missing client.`);
+      return new SentryNonRecordingSpan();
+    }
+
+    getCurrentScope().setPropagationContext(generatePropagationContext());
+
     const { idleTimeoutMs, finalTimeoutMs } = this.options;
-    const hub = this._getCurrentHub?.() || getCurrentHub();
-    const tx = startIdleTransaction(hub, context, idleTimeoutMs, finalTimeoutMs, true);
-    cancelInBackground(tx);
-    return tx;
+    const span = startIdleSpan(startSpanOption, {
+      finalTimeout: finalTimeoutMs,
+      idleTimeout: idleTimeoutMs,
+      beforeSpanEnd,
+    });
+    cancelInBackground(this._client, span);
+    return span;
   }
 }
 
-/**
- * Returns transaction start timestamp in milliseconds.
- * If start timestamp is not available, returns 0.
- */
-function getTransactionStartTimestampMs(transaction: Transaction): number {
-  return (spanToJSON(transaction).start_timestamp || 0) * 1000;
+function generatePropagationContext(): PropagationContext {
+  return {
+    traceId: uuid4(),
+    spanId: uuid4().substring(16),
+  };
+}
+
+function addDefaultOpForSpanFrom(client: Client): void {
+  client.on('spanStart', (span: Span) => {
+    if (!spanToJSON(span).op) {
+      span.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_OP, 'default');
+    }
+  });
 }

@@ -2,7 +2,7 @@ import * as mockedtimetodisplaynative from './tracing/mockedtimetodisplaynative'
 jest.mock('../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
 import { defaultStackParser } from '@sentry/browser';
-import type { Envelope, Event, MetricInstance, Outcome, Transport } from '@sentry/types';
+import type { Envelope, Event, Outcome, Transport } from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 import * as RN from 'react-native';
 
@@ -199,25 +199,6 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransport.send).not.toBeCalled();
     });
 
-    test('captureAggregateMetrics does not call transport when enabled false', () => {
-      const mockTransport = createMockTransport();
-      const client = createDisabledClientWith(mockTransport);
-
-      client.captureAggregateMetrics([
-        {
-          // https://github.com/getsentry/sentry-javascript/blob/a7097d9ba2a74b2cb323da0ef22988a383782ffb/packages/core/test/lib/metrics/aggregator.test.ts#L115
-          metric: { _value: 1 } as unknown as MetricInstance,
-          metricType: 'c',
-          name: 'requests',
-          tags: {},
-          timestamp: expect.any(Number),
-          unit: 'none',
-        },
-      ]);
-
-      expect(mockTransport.send).not.toBeCalled();
-    });
-
     function createDisabledClientWith(transport: Transport) {
       return new ReactNativeClient({
         ...DEFAULT_OPTIONS,
@@ -375,25 +356,6 @@ describe('Tests ReactNativeClient', () => {
       expect(getMessageEventFrom(mockTransportSend).exception.values.length).toBeGreaterThan(0);
       expect(getMessageEventFrom(mockTransportSend).exception).toBeDefined();
       expect(getMessageEventFrom(mockTransportSend).threads).toBeUndefined();
-    });
-
-    test('captureMessage contains stack trace in exception', async () => {
-      client = new ReactNativeClient({
-        ...DEFAULT_OPTIONS,
-        attachStacktrace: true,
-        stackParser: defaultStackParser,
-        dsn: EXAMPLE_DSN,
-        transport: () => ({
-          send: mockTransportSend,
-          flush: jest.fn(),
-        }),
-        useThreadsForMessageStack: true,
-      } as ReactNativeClientOptions);
-
-      const mockSyntheticExceptionFromHub = new Error();
-      client.captureMessage('test message', 'error', { syntheticException: mockSyntheticExceptionFromHub });
-      expect(getMessageEventFrom(mockTransportSend).threads.values.length).toBeGreaterThan(0);
-      expect(getMessageEventFrom(mockTransportSend).exception).toBeUndefined();
     });
   });
 
@@ -665,9 +627,9 @@ describe('Tests ReactNativeClient', () => {
           ],
         }),
       );
-      client.setupIntegrations();
+      client.init();
 
-      expect(client.getIntegrationById('MockRoutingInstrumentation')).toBeTruthy();
+      expect(client.getIntegrationByName('MockRoutingInstrumentation')).toBeTruthy();
     });
   });
 
@@ -683,9 +645,9 @@ describe('Tests ReactNativeClient', () => {
           ],
         }),
       );
-      client.setupIntegrations();
+      client.init();
 
-      expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeTruthy();
+      expect(client.getIntegrationByName('ReactNativeUserInteractionTracing')).toBeTruthy();
     });
 
     test('register user interactions tracing - init()', () => {
@@ -701,7 +663,7 @@ describe('Tests ReactNativeClient', () => {
       );
       client.init();
 
-      expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeTruthy();
+      expect(client.getIntegrationByName('ReactNativeUserInteractionTracing')).toBeTruthy();
     });
 
     test('do not register user interactions tracing', () => {
@@ -715,9 +677,9 @@ describe('Tests ReactNativeClient', () => {
           ],
         }),
       );
-      client.setupIntegrations();
+      client.init();
 
-      expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeUndefined();
+      expect(client.getIntegrationByName('ReactNativeUserInteractionTracing')).toBeUndefined();
     });
 
     test('do not register user interactions tracing - init()', () => {
@@ -733,7 +695,7 @@ describe('Tests ReactNativeClient', () => {
       );
       client.init();
 
-      expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeUndefined();
+      expect(client.getIntegrationByName('ReactNativeUserInteractionTracing')).toBeUndefined();
     });
   });
 });

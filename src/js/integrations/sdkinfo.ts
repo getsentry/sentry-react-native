@@ -1,12 +1,4 @@
-import { convertIntegrationFnToClass } from '@sentry/core';
-import type {
-  Event,
-  Integration,
-  IntegrationClass,
-  IntegrationFnResult,
-  Package,
-  SdkInfo as SdkInfoType,
-} from '@sentry/types';
+import type { Event, Integration, Package, SdkInfo as SdkInfoType } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { isExpoGo, notWeb } from '../utils/environment';
@@ -29,7 +21,7 @@ export const defaultSdkInfo: DefaultSdkInfo = {
 };
 
 /** Default SdkInfo instrumentation */
-export const sdkInfoIntegration = (): IntegrationFnResult => {
+export const sdkInfoIntegration = (): Integration => {
   const fetchNativeSdkInfo = createCachedFetchNativeSdkInfo();
 
   return {
@@ -40,17 +32,6 @@ export const sdkInfoIntegration = (): IntegrationFnResult => {
     processEvent: (event: Event) => processEvent(event, fetchNativeSdkInfo),
   };
 };
-
-/**
- * Default SdkInfo instrumentation
- *
- * @deprecated Use `sdkInfoIntegration()` instead.
- */
-// eslint-disable-next-line deprecation/deprecation
-export const SdkInfo = convertIntegrationFnToClass(
-  INTEGRATION_NAME,
-  sdkInfoIntegration,
-) as IntegrationClass<Integration>;
 
 async function processEvent(event: Event, fetchNativeSdkInfo: () => Promise<Package | null>): Promise<Event> {
   const nativeSdkPackage = await fetchNativeSdkInfo();

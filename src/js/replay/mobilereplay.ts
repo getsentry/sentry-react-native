@@ -1,4 +1,4 @@
-import type { Client, DynamicSamplingContext, Event, IntegrationFnResult } from '@sentry/types';
+import type { Client, DynamicSamplingContext, Event, Integration } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { isHardCrash } from '../misc';
@@ -39,7 +39,7 @@ const defaultOptions: Required<MobileReplayOptions> = {
   maskAllVectors: true,
 };
 
-type MobileReplayIntegration = IntegrationFnResult & {
+type MobileReplayIntegration = Integration & {
   options: Required<MobileReplayOptions>;
 };
 
