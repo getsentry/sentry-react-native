@@ -18,6 +18,11 @@ export interface SentryMetroConfigOptions {
    * @default false
    */
   annotateReactComponents?: boolean;
+  /**
+   * Adds the Sentry replay package for web.
+   * @default false
+   */
+  includeWebReplay?: boolean;
 }
 
 export interface SentryExpoConfigOptions {
@@ -35,7 +40,7 @@ export interface SentryExpoConfigOptions {
  */
 export function withSentryConfig(
   config: MetroConfig,
-  { annotateReactComponents = false }: SentryMetroConfigOptions = {},
+  { annotateReactComponents = false, includeWebReplay = false }: SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
 
@@ -45,6 +50,9 @@ export function withSentryConfig(
   newConfig = withSentryFramesCollapsed(newConfig);
   if (annotateReactComponents) {
     newConfig = withSentryBabelTransformer(newConfig);
+  }
+  if (includeWebReplay === false) {
+    newConfig = excludeSentryWebReplay(newConfig);
   }
 
   return newConfig;
@@ -71,6 +79,9 @@ export function getSentryExpoConfig(
   let newConfig = withSentryFramesCollapsed(config);
   if (options.annotateReactComponents) {
     newConfig = withSentryBabelTransformer(newConfig);
+  }
+  if (options.includeWebReplay === false) {
+    newConfig = excludeSentryWebReplay(newConfig);
   }
 
   return newConfig;
@@ -144,6 +155,26 @@ function withSentryDebugId(config: MetroConfig): MetroConfig {
       customSerializer,
     },
   };
+}
+
+function excludeSentryWebReplay(config: MetroConfig): MetroConfig {
+  const originalResolver = config.resolver?.resolveRequest;
+
+  return {
+    ...config,
+    resolver: {
+      ...config.resolver,
+      resolveRequest: (context, moduleName, platform) => {
+        if (moduleName.includes('@sentry/replay')) {
+          return { type: 'empty' };
+        }
+        if (originalResolver) {
+          return originalResolver(context, moduleName, platform);
+        }
+        return context.resolveRequest(context, moduleName, platform);
+      },
+    },
+  }
 }
 
 type MetroFrame = Parameters<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>[0];
