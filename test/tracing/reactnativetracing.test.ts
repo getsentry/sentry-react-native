@@ -129,6 +129,7 @@ describe('ReactNativeTracing', () => {
         });
 
         integration.setup(client);
+        integration.afterAllSetup(client);
         // wait for internal promises to resolve, fetch app start data from mocked native
         await Promise.resolve();
 
