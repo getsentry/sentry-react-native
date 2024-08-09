@@ -9,9 +9,6 @@ import type { Span } from '@sentry/types';
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
 import { isSentrySpan } from '../utils/span';
 import { DEFAULT_NAVIGATION_SPAN_NAME } from './reactnativetracing';
-import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
-import { InternalRoutingInstrumentation } from './routingInstrumentation';
-import type { BeforeNavigate } from './types';
 
 interface ReactNativeNavigationOptions {
   /**
@@ -74,7 +71,7 @@ export interface NavigationDelegate {
  * - `_onComponentWillAppear` is then called AFTER the state change happens due to a dispatch and sets the route context onto the active transaction.
  * - If `_onComponentWillAppear` isn't called within `options.routeChangeTimeoutMs` of the dispatch, then the transaction is not sampled and finished.
  */
-export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrumentation {
+export class ReactNativeNavigationInstrumentation {
   public static instrumentationName: string = 'react-native-navigation';
 
   public readonly name: string = ReactNativeNavigationInstrumentation.instrumentationName;
@@ -93,8 +90,6 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
     navigation: unknown,
     options: Partial<ReactNativeNavigationOptions> = {},
   ) {
-    super();
-
     this._navigation = navigation as NavigationDelegate;
 
     this._options = {
@@ -106,13 +101,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
   /**
    * Registers the event listeners for React Native Navigation
    */
-  public registerRoutingInstrumentation(
-    listener: TransactionCreator,
-    beforeNavigate: BeforeNavigate,
-    onConfirmRoute: OnConfirmRoute,
-  ): void {
-    super.registerRoutingInstrumentation(listener, beforeNavigate, onConfirmRoute);
-
+  public registerRoutingInstrumentation(): void {
     this._navigation.events().registerCommandListener(this._onNavigation.bind(this));
 
     if (this._options.enableTabsInstrumentation) {
@@ -130,7 +119,7 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
       this._discardLatestTransaction();
     }
 
-    this._latestTransaction = this.onRouteWillChange({ name: DEFAULT_NAVIGATION_SPAN_NAME });
+    // this._latestTransaction = this.onRouteWillChange({ name: DEFAULT_NAVIGATION_SPAN_NAME });
 
     this._stateChangeTimeout = setTimeout(
       this._discardLatestTransaction.bind(this),
@@ -173,9 +162,9 @@ export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrum
       [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
     });
 
-    this._beforeNavigate?.(this._latestTransaction);
+    // this._beforeNavigate?.(this._latestTransaction);
 
-    this._onConfirmRoute?.(event.componentName);
+    // this._onConfirmRoute?.(event.componentName);
 
     addBreadcrumb({
       category: 'navigation',

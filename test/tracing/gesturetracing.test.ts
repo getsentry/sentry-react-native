@@ -11,8 +11,6 @@ import { startUserInteractionSpan } from '../../src/js/tracing/integrations/user
 import type { ReactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
 import { reactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
 import { type TestClient, setupTestClient } from '../mocks/client';
-import type { MockedRoutingInstrumentation } from './mockedrountinginstrumention';
-import { createMockedRoutingInstrumentation } from './mockedrountinginstrumention';
 
 jest.mock('../../src/js/wrapper', () => {
   return {

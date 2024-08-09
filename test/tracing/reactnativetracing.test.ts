@@ -10,8 +10,6 @@ jest.mock('@sentry/utils', () => {
 import * as SentryBrowser from '@sentry/browser';
 import type { Event } from '@sentry/types';
 
-import { RoutingInstrumentation } from '../../src/js/tracing/routingInstrumentation';
-
 jest.mock('../../src/js/wrapper', () => {
   return {
     NATIVE: {

@@ -1,10 +1,9 @@
 /* eslint-disable max-lines */
 import { instrumentOutgoingRequests } from '@sentry/browser';
-import { getClient, getCurrentScope } from '@sentry/core';
+import { getClient } from '@sentry/core';
 import type { Client, Event, Integration, StartSpanOptions } from '@sentry/types';
-import { logger } from '@sentry/utils';
 
-import { addDefaultOpForSpanFrom, startIdleNavigationSpan } from './span';
+import { addDefaultOpForSpanFrom } from './span';
 
 export const INTEGRATION_NAME = 'ReactNativeTracing';
 
@@ -47,14 +46,6 @@ export interface ReactNativeTracingOptions {
   enableHTTPTimings: boolean;
 
   /**
-   * Does not sample transactions that are from routes that have been seen any more and don't have any spans.
-   * This removes a lot of the clutter as most back navigation transactions are now ignored.
-   *
-   * @default true
-   */
-  ignoreEmptyBackNavigationTransactions: boolean;
-
-  /**
    * A callback which is called before a span for a navigation is started.
    * It receives the options passed to `startSpan`, and expects to return an updated options object.
    */
@@ -72,13 +63,12 @@ export interface ReactNativeTracingOptions {
 const DEFAULT_TRACE_PROPAGATION_TARGETS = ['localhost', /^\/(?!\/)/];
 export const DEFAULT_NAVIGATION_SPAN_NAME = 'Route Change';
 
-const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
+export const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   idleTimeoutMs: 1_000,
   finalTimeoutMs: 60_0000,
   traceFetch: true,
   traceXHR: true,
   enableHTTPTimings: true,
-  ignoreEmptyBackNavigationTransactions: true,
 };
 
 export type ReactNativeTracingState = {

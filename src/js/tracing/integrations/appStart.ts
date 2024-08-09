@@ -22,8 +22,6 @@ import {
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD as UI_LOAD_OP,
 } from '../ops';
-import { getReactNativeTracingIntegration } from '../reactnativetracing';
-// import { getReactNativeTracingIntegration } from '../reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP } from '../semanticAttributes';
 import { createChildSpanJSON, createSpanJSON, getBundleStartTimestampMs } from '../utils';
 
@@ -98,7 +96,7 @@ export function _clearRootComponentCreationTimestampMs(): void {
  * Adds AppStart spans from the native layer to the transaction event.
  */
 export const appStartIntegration = ({
-  standalone: standaloneUserOption,
+  standalone = false,
 }: {
   /**
    * Should the integration send App Start as a standalone root span (transaction)?
@@ -109,7 +107,6 @@ export const appStartIntegration = ({
   standalone?: boolean;
 } = {}): AppStartIntegration => {
   let _client: Client | undefined = undefined;
-  let standalone = standaloneUserOption;
   let isEnabled = true;
   let appStartDataFlushed = false;
 
@@ -124,11 +121,8 @@ export const appStartIntegration = ({
     }
   };
 
-  const afterAllSetup = (client: Client): void => {
-    if (standaloneUserOption === undefined) {
-      // If not user defined, set based on the routing instrumentation presence
-      standalone = !getReactNativeTracingIntegration(client)?.options.routingInstrumentation;
-    }
+  const afterAllSetup = (_client: Client): void => {
+    // TODO: automatically set standalone based on the presence of the native layer navigation integration
   };
 
   const processEvent = async (event: Event): Promise<Event> => {

@@ -14,12 +14,10 @@ import type {
 import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 import { Alert } from 'react-native';
 
-import { createIntegration } from './integrations/factory';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import type { ReactNativeClientOptions } from './options';
 import type { mobileReplayIntegration } from './replay/mobilereplay';
 import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
-import { getReactNativeTracingIntegration } from './tracing/reactnativetracing';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';
@@ -134,18 +132,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   public init(): void {
     super.init();
     this._initNativeSdk();
-  }
-
-  /**
-   * @inheritdoc
-   */
-  protected _setupIntegrations(): void {
-    super._setupIntegrations();
-    const tracing = getReactNativeTracingIntegration(this);
-    const routingName = tracing?.options?.routingInstrumentation?.name;
-    if (routingName) {
-      this.addIntegration(createIntegration(routingName));
-    }
   }
 
   /**

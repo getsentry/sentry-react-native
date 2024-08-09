@@ -4,14 +4,7 @@ export {
 } from './reactnativetracing';
 export type { ReactNativeTracingIntegration } from './reactnativetracing';
 
-export type { RoutingInstrumentationInstance } from './routingInstrumentation';
-export { RoutingInstrumentation } from './routingInstrumentation';
-
-export {
-  reactNavigationIntegration as ReactNavigationInstrumentation,
-  // eslint-disable-next-line deprecation/deprecation
-  ReactNavigationV5Instrumentation,
-} from './reactnavigation';
+export { reactNavigationIntegration } from './reactnavigation';
 export { ReactNativeNavigationInstrumentation } from './reactnativenavigation';
 
 export type { ReactNavigationCurrentRoute, ReactNavigationRoute } from './types';

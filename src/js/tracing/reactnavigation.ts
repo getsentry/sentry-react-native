@@ -16,8 +16,12 @@ import { type SentryEventEmitter, createSentryEventEmitter, NewFrameEventName } 
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
-import type { ReactNativeTracingState } from './reactnativetracing';
-import { DEFAULT_NAVIGATION_SPAN_NAME, getReactNativeTracingIntegration } from './reactnativetracing';
+import type { ReactNativeTracingIntegration } from './reactnativetracing';
+import {
+  DEFAULT_NAVIGATION_SPAN_NAME,
+  defaultReactNativeTracingOptions,
+  getReactNativeTracingIntegration,
+} from './reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
 import { startIdleNavigationSpan as startGenericIdleNavigationSpan } from './span';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
@@ -42,6 +46,14 @@ interface ReactNavigationIntegrationOptions {
    * @default false
    */
   enableTimeToInitialDisplay: boolean;
+
+  /**
+   * Does not sample transactions that are from routes that have been seen any more and don't have any spans.
+   * This removes a lot of the clutter as most back navigation transactions are now ignored.
+   *
+   * @default true
+   */
+  ignoreEmptyBackNavigationTransactions: boolean;
 }
 
 /**
@@ -55,6 +67,7 @@ interface ReactNavigationIntegrationOptions {
 export const reactNavigationIntegration = ({
   routeChangeTimeoutMs = 1_000,
   enableTimeToInitialDisplay = false,
+  ignoreEmptyBackNavigationTransactions = true,
 }: Partial<ReactNavigationIntegrationOptions> = {}): Integration & {
   /**
    * Pass the ref to the navigation container to register it to the instrumentation
@@ -65,6 +78,12 @@ export const reactNavigationIntegration = ({
   let navigationContainer: NavigationContainer | undefined;
   let newScreenFrameEventEmitter: SentryEventEmitter | undefined;
 
+  let tracing: ReactNativeTracingIntegration | undefined;
+  let idleSpanOptions: Parameters<typeof startGenericIdleNavigationSpan>[1] = {
+    finalTimeout: defaultReactNativeTracingOptions.finalTimeoutMs,
+    idleTimeout: defaultReactNativeTracingOptions.idleTimeoutMs,
+    ignoreEmptyBackNavigationTransactions,
+  };
   let latestRoute: NavigationRoute | undefined;
 
   let latestTransaction: Span | undefined;
@@ -86,10 +105,12 @@ export const reactNavigationIntegration = ({
    * Set the initial state and start initial navigation span for the current screen.
    */
   const afterAllSetup = (client: Client): void => {
-    const tracing = getReactNativeTracingIntegration(client);
-    if (tracing) {
-      tracingStateRef = tracing.state;
-    }
+    tracing = getReactNativeTracingIntegration(client);
+    idleSpanOptions = {
+      finalTimeout: tracing.options.finalTimeoutMs,
+      idleTimeout: tracing.options.idleTimeoutMs,
+      ignoreEmptyBackNavigationTransactions,
+    };
 
     if (initialStateHandled) {
       // We create an initial state here to ensure a transaction gets created before the first route mounts.
@@ -169,13 +190,10 @@ export const reactNavigationIntegration = ({
     }
 
     latestTransaction = startGenericIdleNavigationSpan(
-      // TODO: call before start span
-      { name: DEFAULT_NAVIGATION_SPAN_NAME },
-      {
-        finalTimeout: 60_000, // TODO: react from tracing options
-        idleTimeout: 1_000, // TODO: react from tracing options
-        ignoreEmptyBackNavigationTransactions: false, // TODO: react from nav options
-      },
+      tracing.options.beforeStartSpan
+        ? tracing.options.beforeStartSpan({ name: DEFAULT_NAVIGATION_SPAN_NAME })
+        : { name: DEFAULT_NAVIGATION_SPAN_NAME },
+      idleSpanOptions,
     );
 
     if (enableTimeToInitialDisplay) {
@@ -305,6 +323,8 @@ export const reactNavigationIntegration = ({
         to: route.name,
       },
     });
+
+    tracing?.setCurrentRoute(route.key);
 
     _pushRecentRouteKey(route.key);
     latestRoute = route;

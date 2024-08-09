@@ -18,8 +18,6 @@ import { reactNativeTracingIntegration } from '../../../src/js/tracing/reactnati
 import { NATIVE } from '../../../src/js/wrapper';
 import type { TestClient } from '../../mocks/client';
 import { setupTestClient } from '../../mocks/client';
-import type { MockedRoutingInstrumentation } from '../mockedrountinginstrumention';
-import { createMockedRoutingInstrumentation } from '../mockedrountinginstrumention';
 
 type MockAppState = {
   setState: (state: AppStateStatus) => void;
