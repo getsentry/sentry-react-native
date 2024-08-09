@@ -80,6 +80,9 @@ export function getSentryExpoConfig(
   if (options.annotateReactComponents) {
     newConfig = withSentryBabelTransformer(newConfig);
   }
+  if (options.includeWebReplay === false) {
+    newConfig = excludeSentryWebReplay(newConfig);
+  }
 
   return newConfig;
 }
