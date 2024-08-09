@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+### Changes
+
+- New App Start Integration ([#3852](https://github.com/getsentry/sentry-react-native/pull/3852))
+
+  By default app start spans are attached to the first created transaction.
+  Standalone mode creates single root span (transaction) including only app start data.
+
+  ```js
+  import Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    tracesSampleRate: 1.0,
+    enableAppStartTracking: true, // default true
+    integrations: [
+      Sentry.appStartIntegration({
+        standalone: false, // default false
+      }),
+    ],
+  });
+  ```
+
 ### Fixes
 
 - Pass `sampleRate` option to the Android SDK ([#3979](https://github.com/getsentry/sentry-react-native/pull/3979))

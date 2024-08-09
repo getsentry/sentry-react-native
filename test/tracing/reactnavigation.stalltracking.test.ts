@@ -32,12 +32,12 @@ describe('StallTracking with ReactNavigation', () => {
       routingInstrumentation: rnavigation,
       enableStallTracking: true,
       enableNativeFramesTracking: false,
-      enableAppStartTracking: false,
     });
 
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
       integrations: [rnTracing],
+      enableAppStartTracking: false,
     });
     client = new TestClient(options);
     setCurrentClient(client);

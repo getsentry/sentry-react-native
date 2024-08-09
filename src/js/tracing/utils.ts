@@ -2,11 +2,13 @@ import {
   getSpanDescendants,
   SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_UNIT,
   SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_VALUE,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   setMeasurement,
   spanToJSON,
 } from '@sentry/core';
-import type { MeasurementUnit, Span, TransactionSource } from '@sentry/types';
-import { logger, timestampInSeconds } from '@sentry/utils';
+import type { MeasurementUnit, Span, SpanJSON, TransactionSource } from '@sentry/types';
+import { dropUndefinedKeys, logger, timestampInSeconds, uuid4 } from '@sentry/utils';
 
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
@@ -93,4 +95,41 @@ export function getBundleStartTimestampMs(): number | undefined {
   // nativePerformanceNow() is monotonic clock like performance.now()
   const approxStartingTimeOrigin = Date.now() - RN_GLOBAL_OBJ.nativePerformanceNow();
   return approxStartingTimeOrigin + bundleStartTime;
+}
+
+/**
+ * Creates valid span JSON object from the given data.
+ */
+export function createSpanJSON(
+  from: Partial<SpanJSON> & Pick<Required<SpanJSON>, 'description' | 'start_timestamp' | 'timestamp' | 'origin'>,
+): SpanJSON {
+  return dropUndefinedKeys({
+    status: 'ok',
+    ...from,
+    span_id: from.span_id ? from.span_id : uuid4().substring(16),
+    trace_id: from.trace_id ? from.trace_id : uuid4(),
+    data: dropUndefinedKeys({
+      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: from.op,
+      [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: from.origin,
+      ...(from.data ? from.data : {}),
+    }),
+  });
+}
+
+const SENTRY_DEFAULT_ORIGIN = 'manual';
+
+/**
+ *
+ */
+export function createChildSpanJSON(
+  parent: SpanJSON,
+  from: Partial<SpanJSON> & Pick<Required<SpanJSON>, 'description' | 'start_timestamp' | 'timestamp'>,
+): SpanJSON {
+  return createSpanJSON({
+    op: parent.op,
+    trace_id: parent.trace_id,
+    parent_span_id: parent.span_id,
+    origin: parent.origin || SENTRY_DEFAULT_ORIGIN,
+    ...from,
+  });
 }

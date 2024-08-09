@@ -88,6 +88,9 @@ Sentry.init({
         maskAllVectors: true,
         // maskAllText: false,
       }),
+      Sentry.appStartIntegration({
+        standalone: false,
+      }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },

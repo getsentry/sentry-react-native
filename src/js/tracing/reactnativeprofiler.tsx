@@ -1,9 +1,8 @@
-import { spanToJSON } from '@sentry/core';
 import { getClient, Profiler } from '@sentry/react';
 import { timestampInSeconds } from '@sentry/utils';
 
 import { createIntegration } from '../integrations/factory';
-import type { ReactNativeTracing } from './reactnativetracing';
+import { captureAppStart, setRootComponentCreationTimestampMs } from '../tracing/integrations/appStart';
 
 const ReactNativeProfilerGlobalState = {
   appStartReported: false,
@@ -16,9 +15,7 @@ export class ReactNativeProfiler extends Profiler {
   public readonly name: string = 'ReactNativeProfiler';
 
   public constructor(props: ConstructorParameters<typeof Profiler>[0]) {
-    const client = getClient();
-    const integration = client && client.getIntegrationByName && client.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing');
-    integration && integration.setRootComponentFirstConstructorCallTimestampMs(timestampInSeconds() * 1000);
+    setRootComponentCreationTimestampMs(timestampInSeconds() * 1000);
     super(props);
   }
 
@@ -47,12 +44,7 @@ export class ReactNativeProfiler extends Profiler {
     }
 
     client.addIntegration && client.addIntegration(createIntegration(this.name));
-
-    const endTimestamp = this._mountSpan && typeof spanToJSON(this._mountSpan).timestamp
-    const tracingIntegration = client.getIntegrationByName && client.getIntegrationByName<ReactNativeTracing>('ReactNativeTracing');
-    tracingIntegration
-      && typeof endTimestamp === 'number'
-      // The first root component mount is the app start finish.
-      && tracingIntegration.onAppStartFinish(endTimestamp);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    captureAppStart();
   }
 }

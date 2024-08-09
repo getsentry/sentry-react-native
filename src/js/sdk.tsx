@@ -14,7 +14,6 @@ import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOp
 import { shouldEnableNativeNagger } from './options';
 import { enableSyncToNative } from './scopeSync';
 import { TouchEventBoundary } from './touchevents';
-import type { ReactNativeTracing } from './tracing';
 import { ReactNativeProfiler } from './tracing';
 import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
@@ -34,6 +33,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   attachStacktrace: true,
   enableCaptureFailedRequests: false,
   enableNdk: true,
+  enableAppStartTracking: true,
 };
 
 /**
@@ -112,11 +112,6 @@ export function wrap<P extends Record<string, unknown>>(
   RootComponent: React.ComponentType<P>,
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
-  const tracingIntegration = getClient()?.getIntegrationByName?.('ReactNativeTracing') as ReactNativeTracing | undefined;
-  if (tracingIntegration) {
-    tracingIntegration.useAppStartWithProfiler = true;
-  }
-
   const profilerProps = {
     ...(options?.profilerProps ?? {}),
     name: RootComponent.displayName ?? 'Root',

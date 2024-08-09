@@ -8,7 +8,6 @@ import {
   setCurrentClient,
 } from '@sentry/core';
 import type {
-  ClientOptions,
   Event,
   EventHint,
   Integration,
@@ -18,6 +17,8 @@ import type {
   SeverityLevel,
 } from '@sentry/types';
 import { resolvedSyncPromise } from '@sentry/utils';
+
+import type { ReactNativeClientOptions } from '../../src/js/options';
 
 export function getDefaultTestClientOptions(options: Partial<TestClientOptions> = {}): TestClientOptions {
   return {
@@ -37,7 +38,7 @@ export function getDefaultTestClientOptions(options: Partial<TestClientOptions> 
   };
 }
 
-export interface TestClientOptions extends ClientOptions {
+export interface TestClientOptions extends ReactNativeClientOptions {
   test?: boolean;
   mockInstallFailure?: boolean;
   enableSend?: boolean;

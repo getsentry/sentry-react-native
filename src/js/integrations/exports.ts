@@ -13,6 +13,7 @@ export { viewHierarchyIntegration } from './viewhierarchy';
 export { expoContextIntegration } from './expocontext';
 export { spotlightIntegration } from './spotlight';
 export { mobileReplayIntegration } from '../replay/mobilereplay';
+export { appStartIntegration } from '../tracing/integrations/appStart';
 
 export {
   breadcrumbsIntegration,
