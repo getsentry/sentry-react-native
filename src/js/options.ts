@@ -231,6 +231,14 @@ export interface BaseReactNativeOptions {
      */
     replaysOnErrorSampleRate?: number;
   };
+
+  /**
+   * This options changes the placement of the attached stacktrace of `captureMessage` in the event.
+   *
+   * @default false
+   * @deprecated This option will be removed in the next major version. Use `beforeSend` instead.
+   */
+  useThreadsForMessageStack?: boolean;
 }
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {
