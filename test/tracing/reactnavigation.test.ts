@@ -1,9 +1,9 @@
 /* eslint-disable deprecation/deprecation */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getCurrentScope, getGlobalScope, getIsolationScope, SentrySpan, setCurrentClient } from '@sentry/core';
-import type { StartSpanOptions } from '@sentry/types';
+import type { Event, Measurements, StartSpanOptions } from '@sentry/types';
 
-import { reactNativeTracingIntegration } from '../../src/js';
+import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
 import { DEFAULT_NAVIGATION_SPAN_NAME } from '../../src/js/tracing/reactnativetracing';
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 import { ReactNavigationInstrumentation } from '../../src/js/tracing/reactnavigation';
@@ -21,6 +21,7 @@ import {
 } from '../../src/js/tracing/semanticAttributes';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
+import { NATIVE } from '../mockWrapper';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
 
 const dummyRoute = {
@@ -28,6 +29,7 @@ const dummyRoute = {
   key: '0',
 };
 
+jest.mock('../../src/js/wrapper.ts', () => jest.requireActual('../mockWrapper.ts'));
 jest.useFakeTimers({ advanceTimers: true });
 
 class MockNavigationContainer {
@@ -80,6 +82,85 @@ describe('ReactNavigationInstrumentation', () => {
         }),
       }),
     );
+  });
+
+  describe('initial navigation span is created after all integrations are setup', () => {
+    let rnTracing: ReturnType<typeof reactNativeTracingIntegration>;
+
+    beforeEach(() => {
+      const startFrames = {
+        totalFrames: 100,
+        slowFrames: 20,
+        frozenFrames: 5,
+      };
+      const finishFrames = {
+        totalFrames: 200,
+        slowFrames: 40,
+        frozenFrames: 10,
+      };
+      NATIVE.fetchNativeFrames.mockResolvedValueOnce(startFrames).mockResolvedValueOnce(finishFrames);
+
+      const rNavigation = new ReactNavigationInstrumentation({
+        routeChangeTimeoutMs: 200,
+      });
+      mockNavigation = createMockNavigationAndAttachTo(rNavigation);
+
+      rnTracing = reactNativeTracingIntegration({
+        routingInstrumentation: rNavigation,
+      });
+    });
+
+    test('initial navigation span contains native frames when nativeFrames integration is after react native tracing', async () => {
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: true,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [rnTracing, nativeFramesIntegration()],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      // Flush the init transaction, must be async to allow for the native start frames to be fetched
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expectInitNavigationSpanWithNativeFrames(client.event);
+    });
+
+    test('initial navigation span contains native frames when nativeFrames integration is before react native tracing', async () => {
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: true,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [nativeFramesIntegration(), rnTracing],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      // Flush the init transaction, must be async to allow for the native start frames to be fetched
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expectInitNavigationSpanWithNativeFrames(client.event);
+    });
+
+    function expectInitNavigationSpanWithNativeFrames(event: Event): void {
+      expect(event).toEqual(
+        expect.objectContaining<Event>({
+          type: 'transaction',
+          transaction: 'Initial Screen',
+          measurements: expect.objectContaining<Measurements>({
+            frames_total: expect.toBeObject(),
+            frames_slow: expect.toBeObject(),
+            frames_frozen: expect.toBeObject(),
+          }),
+        }),
+      );
+    }
   });
 
   test('transaction sent on navigation', async () => {

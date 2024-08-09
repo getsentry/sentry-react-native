@@ -111,6 +111,17 @@ export const reactNativeTracingIntegration = (
   };
 
   const setup = (client: Client): void => {
+    addDefaultOpForSpanFrom(client);
+
+    instrumentOutgoingRequests({
+      traceFetch: finalOptions.traceFetch,
+      traceXHR: finalOptions.traceXHR,
+      shouldCreateSpanForRequest: finalOptions.shouldCreateSpanForRequest,
+      tracePropagationTargets: client.getOptions().tracePropagationTargets || DEFAULT_TRACE_PROPAGATION_TARGETS,
+    });
+  };
+
+  const afterAllSetup = (): void => {
     if (finalOptions.routingInstrumentation) {
       const idleNavigationSpanOptions = {
         finalTimeout: finalOptions.finalTimeoutMs,
@@ -139,15 +150,6 @@ export const reactNativeTracingIntegration = (
     } else {
       logger.log(`[${INTEGRATION_NAME}] Not instrumenting route changes as routingInstrumentation has not been set.`);
     }
-
-    addDefaultOpForSpanFrom(client);
-
-    instrumentOutgoingRequests({
-      traceFetch: finalOptions.traceFetch,
-      traceXHR: finalOptions.traceXHR,
-      shouldCreateSpanForRequest: finalOptions.shouldCreateSpanForRequest,
-      tracePropagationTargets: client.getOptions().tracePropagationTargets || DEFAULT_TRACE_PROPAGATION_TARGETS,
-    });
   };
 
   const processEvent = (event: Event): Event => {
@@ -160,6 +162,7 @@ export const reactNativeTracingIntegration = (
   return {
     name: INTEGRATION_NAME,
     setup,
+    afterAllSetup,
     processEvent,
     options: finalOptions,
     state,
