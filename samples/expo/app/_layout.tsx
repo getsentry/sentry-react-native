@@ -21,7 +21,7 @@ LogBox.ignoreAllLogs();
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-const routingInstrumentation = new Sentry.ReactNavigationInstrumentation({
+const navigationIntegration = Sentry.reactNavigationIntegration({
   enableTimeToInitialDisplay: !isExpoGo(), // This is not supported in Expo Go.
 });
 
@@ -54,9 +54,8 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
-      Sentry.reactNativeTracingIntegration({
-        routingInstrumentation,
-      }),
+      navigationIntegration,
+      Sentry.reactNativeTracingIntegration(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
@@ -91,7 +90,7 @@ function RootLayout() {
 
   useEffect(() => {
     if (ref) {
-      routingInstrumentation.registerNavigationContainer(ref);
+      navigationIntegration.registerNavigationContainer(ref);
     }
   }, [ref]);
 

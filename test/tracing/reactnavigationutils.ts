@@ -1,6 +1,6 @@
-import type { NavigationRoute, ReactNavigationInstrumentation } from '../../src/js/tracing/reactnavigation';
+import type { NavigationRoute, reactNavigationIntegration } from '../../src/js/tracing/reactnavigation';
 
-export function createMockNavigationAndAttachTo(sut: ReactNavigationInstrumentation) {
+export function createMockNavigationAndAttachTo(sut: reactNavigationIntegration) {
   const mockedNavigationContained = mockNavigationContainer();
   const mockedNavigation = {
     emitCancelledNavigation: () => {
