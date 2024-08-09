@@ -19,7 +19,7 @@ export interface SentryMetroConfigOptions {
    */
   annotateReactComponents?: boolean;
   /**
-   * Adds the Sentry replay for web.
+   * Adds the Sentry replay package for web.
    * @default false
    */
   includeWebReplay?: boolean;
