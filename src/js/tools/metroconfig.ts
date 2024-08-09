@@ -51,9 +51,11 @@ export function withSentryConfig(
   if (annotateReactComponents) {
     newConfig = withSentryBabelTransformer(newConfig);
   }
-  newConfig = excludeSentryWebReplay(config);
+  if (includeWebReplay === false) {
+    newConfig = excludeSentryWebReplay(config);
+  }
 
-    return newConfig;
+  return newConfig;
 }
 
 /**
@@ -153,58 +155,21 @@ function withSentryDebugId(config: MetroConfig): MetroConfig {
 }
 
 function excludeSentryWebReplay(config: MetroConfig): MetroConfig {
-  console.log("sad")
-      return {
-    ...config.transformerPath,
-    transformer: {
-      ...config.transformer,
-      getTransformOptions: async () => ({
-        transform: {
-          experimentalImportSupport: false,
-          inlineRequires: false,
-        },
-        preloadedModules: false,
-        publicPath: '/assets',
-        plugins: [
-          [
-            require.resolve('babel-plugin-transform-inline-environment-variables'),
-            {
-              include: [
-                "RRWEB_EXCLUDE_IFRAME",
-                "RRWEB_EXCLUDE_SHADOW_DOM",
-                "SENTRY_EXCLUDE_REPLAY_WORKER"
-              ]
-            }
-          ]
-        ]
-      })
-    }
-  };
-  /*
-
   const originalResolver = config.resolver?.resolveRequest;
 
   return mergeConfig(config, {
     resolver: {
       resolveRequest: (context, moduleName, platform) => {
-      // eslint-disable-next-line no-console
-      console.log(`resolving the request ${  moduleName}`);
-
-
         if (moduleName.includes('@sentry/replay')) {
           return { type: 'empty' };
         }
-        if (moduleName) {
-          throw new Error('we found replay');
+        if (originalResolver) {
+          return originalResolver(context, moduleName, platform);
         }
-           if (originalResolver) {
-             return originalResolver(context, moduleName, platform);
-           }
         return context.resolveRequest(context, moduleName, platform);
       }
     }
   });
-  */
 }
 
 type MetroFrame = Parameters<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>[0];
