@@ -194,9 +194,17 @@ export interface BaseReactNativeOptions {
    *
    * Requires performance monitoring to be enabled.
    *
-   * Default: true
+   * @default true
    */
   enableAppStartTracking?: boolean;
+
+  /**
+   * Track the slow and frozen frames in the application. Enabling this options will add
+   * slow and frozen frames measurements to all created root spans (transactions).
+   *
+   * @default true
+   */
+  enableNativeFramesTracking?: boolean;
 
   /**
    * Options which are in beta, or otherwise not guaranteed to be stable.

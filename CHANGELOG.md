@@ -23,6 +23,15 @@
   });
   ```
 
+- New Native Frames Integration ([#3996](https://github.com/getsentry/sentry-react-native/pull/3996))
+
+  ```js
+  Sentry.init({
+    tracesSampleRate: 1.0,
+    enableNativeFramesTracking: true, // default true
+  });
+  ```
+
 ## 5.28.0
 
 ### Fixes
