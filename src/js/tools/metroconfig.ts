@@ -53,7 +53,7 @@ export function withSentryConfig(
     newConfig = withSentryBabelTransformer(newConfig);
   }
   if (includeWebReplay === false) {
-    newConfig = excludeSentryWebReplay(config);
+    newConfig = excludeSentryWebReplay(newConfig);
   }
 
   return newConfig;

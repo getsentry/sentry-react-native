@@ -17,7 +17,8 @@ const config = {
     path.resolve(__dirname, 'node_modules'),
     `${parentDir}/dist`,
     `${parentDir}/node_modules`,
-  ],  resolver: {
+  ],
+  resolver: {
     resolveRequest: (context, moduleName, platform) => {
       if (moduleName.includes('promise/')) {
         return context.resolveRequest(
