@@ -2,6 +2,7 @@
 import {
   addBreadcrumb,
   getActiveSpan,
+  getCurrentScope,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   setMeasurement,
   SPAN_STATUS_OK,
@@ -106,11 +107,13 @@ export const reactNavigationIntegration = ({
    */
   const afterAllSetup = (client: Client): void => {
     tracing = getReactNativeTracingIntegration(client);
-    idleSpanOptions = {
-      finalTimeout: tracing.options.finalTimeoutMs,
-      idleTimeout: tracing.options.idleTimeoutMs,
-      ignoreEmptyBackNavigationTransactions,
-    };
+    if (tracing) {
+      idleSpanOptions = {
+        finalTimeout: tracing.options.finalTimeoutMs,
+        idleTimeout: tracing.options.idleTimeoutMs,
+        ignoreEmptyBackNavigationTransactions,
+      };
+    }
 
     if (initialStateHandled) {
       // We create an initial state here to ensure a transaction gets created before the first route mounts.
@@ -190,9 +193,19 @@ export const reactNavigationIntegration = ({
     }
 
     latestTransaction = startGenericIdleNavigationSpan(
-      tracing.options.beforeStartSpan
-        ? tracing.options.beforeStartSpan({ name: DEFAULT_NAVIGATION_SPAN_NAME })
-        : { name: DEFAULT_NAVIGATION_SPAN_NAME },
+      tracing && tracing.options.beforeStartSpan
+        ? tracing.options.beforeStartSpan({
+            name: DEFAULT_NAVIGATION_SPAN_NAME,
+            op: 'navigation',
+            forceTransaction: true,
+            scope: getCurrentScope(),
+          })
+        : {
+            name: DEFAULT_NAVIGATION_SPAN_NAME,
+            op: 'navigation',
+            forceTransaction: true,
+            scope: getCurrentScope(),
+          },
       idleSpanOptions,
     );
 

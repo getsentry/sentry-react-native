@@ -14,18 +14,19 @@ import { generatePropagationContext, logger } from '@sentry/utils';
 import { isRootSpan } from '../utils/span';
 import { adjustTransactionDuration, cancelInBackground, ignoreEmptyBackNavigation } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_INTERACTION } from './origin';
+import { defaultReactNativeTracingOptions } from './reactnativetracing';
 
 export const startIdleNavigationSpan = (
   startSpanOption: StartSpanOptions,
   {
-    finalTimeout,
-    idleTimeout,
-    ignoreEmptyBackNavigationTransactions,
+    finalTimeout = defaultReactNativeTracingOptions.finalTimeoutMs,
+    idleTimeout = defaultReactNativeTracingOptions.idleTimeoutMs,
+    ignoreEmptyBackNavigationTransactions = true,
   }: {
-    finalTimeout: number;
-    idleTimeout: number;
-    ignoreEmptyBackNavigationTransactions: boolean;
-  },
+    finalTimeout?: number;
+    idleTimeout?: number;
+    ignoreEmptyBackNavigationTransactions?: boolean;
+  } = {},
 ): Span | undefined => {
   const client = getClient();
   if (!client) {

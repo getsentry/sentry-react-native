@@ -1,6 +1,14 @@
 /* eslint-disable deprecation/deprecation */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getCurrentScope, getGlobalScope, getIsolationScope, SentrySpan, setCurrentClient } from '@sentry/core';
+import type {
+  SentrySpan} from '@sentry/core';
+import {
+  getActiveSpan,
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  setCurrentClient,
+} from '@sentry/core';
 import type { Event, Measurements, StartSpanOptions } from '@sentry/types';
 
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
@@ -348,19 +356,14 @@ describe('ReactNavigationInstrumentation', () => {
       expect(mockNavigationContainer.addListener).not.toHaveBeenCalled();
     });
 
-    test('works if routing instrumentation registration is after navigation registration', async () => {
+    test('works if routing instrumentation setup is after navigation registration', async () => {
       const instrumentation = reactNavigationIntegration();
 
       const mockNavigationContainer = new MockNavigationContainer();
       instrumentation.registerNavigationContainer(mockNavigationContainer);
 
-      const mockTransaction = new SentrySpan();
-      const tracingListener = jest.fn(() => mockTransaction);
-      instrumentation.registerRoutingInstrumentation(
-        tracingListener as any,
-        context => context,
-        () => {},
-      );
+      instrumentation.afterAllSetup(client);
+      const mockTransaction = getActiveSpan() as SentrySpan;
 
       await jest.runOnlyPendingTimersAsync();
 
@@ -374,13 +377,7 @@ describe('ReactNavigationInstrumentation', () => {
         routeChangeTimeoutMs: 200,
       });
 
-      const mockTransaction = new SentrySpan({ sampled: true, name: DEFAULT_NAVIGATION_SPAN_NAME });
-      const tracingListener = jest.fn(() => mockTransaction);
-      instrumentation.registerRoutingInstrumentation(
-        tracingListener as any,
-        context => context,
-        () => {},
-      );
+      instrumentation.afterAllSetup(client);
 
       const mockNavigationContainerRef = {
         current: new MockNavigationContainer(),
@@ -388,11 +385,12 @@ describe('ReactNavigationInstrumentation', () => {
 
       instrumentation.registerNavigationContainer(mockNavigationContainerRef as any);
       mockNavigationContainerRef.current.listeners['__unsafe_action__']({});
+      const mockTransaction = getActiveSpan() as SentrySpan;
 
       jest.advanceTimersByTime(190);
 
       expect(mockTransaction['_sampled']).toBe(true);
-      expect(mockTransaction['_name']).toBe('Route');
+      expect(mockTransaction['_name']).toBe(DEFAULT_NAVIGATION_SPAN_NAME);
 
       jest.advanceTimersByTime(20);
 
@@ -411,7 +409,6 @@ describe('ReactNavigationInstrumentation', () => {
     mockNavigation = createMockNavigationAndAttachTo(rNavigation);
 
     const rnTracing = reactNativeTracingIntegration({
-      routingInstrumentation: rNavigation,
       beforeStartSpan: setupOptions.beforeSpanStart,
     });
 
@@ -419,7 +416,7 @@ describe('ReactNavigationInstrumentation', () => {
       enableNativeFramesTracking: false,
       enableStallTracking: false,
       tracesSampleRate: 1.0,
-      integrations: [rnTracing],
+      integrations: [rNavigation, rnTracing],
       enableAppStartTracking: false,
     });
     client = new TestClient(options);
