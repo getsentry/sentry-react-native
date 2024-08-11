@@ -4,34 +4,55 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
   spanToJSON,
 } from '@sentry/core';
-import type { Span } from '@sentry/types';
+import type { Client, Integration, Span } from '@sentry/types';
 
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
 import { isSentrySpan } from '../utils/span';
-import { DEFAULT_NAVIGATION_SPAN_NAME } from './reactnativetracing';
+import type { ReactNativeTracingIntegration } from './reactnativetracing';
+import {
+  DEFAULT_NAVIGATION_SPAN_NAME,
+  defaultReactNativeTracingOptions,
+  getReactNativeTracingIntegration,
+} from './reactnativetracing';
+import { getDefaultIdleNavigationSpanOptions, startIdleNavigationSpan as startGenericIdleNavigationSpan } from './span';
+
+export const INTEGRATION_NAME = 'ReactNativeNavigation';
+
+const NAVIGATION_HISTORY_MAX_SIZE = 200;
 
 interface ReactNativeNavigationOptions {
   /**
    * How long the instrumentation will wait for the route to mount after a change has been initiated,
    * before the transaction is discarded.
-   * Time is in ms.
    *
-   * Default: 1000
+   * @default 1_000 (ms)
    */
-  routeChangeTimeoutMs: number;
+  routeChangeTimeoutMs?: number;
+
   /**
    * Instrumentation will create a transaction on tab change.
    * By default only navigation commands create transactions.
    *
-   * Default: true
+   * @default false
    */
-  enableTabsInstrumentation: boolean;
-}
+  enableTabsInstrumentation?: boolean;
 
-const defaultOptions: ReactNativeNavigationOptions = {
-  routeChangeTimeoutMs: 1000,
-  enableTabsInstrumentation: true,
-};
+  /**
+   * Does not sample transactions that are from routes that have been seen any more and don't have any spans.
+   * This removes a lot of the clutter as most back navigation transactions are now ignored.
+   *
+   * @default true
+   */
+  ignoreEmptyBackNavigationTransactions?: boolean;
+
+  /** The React Native Navigation `NavigationDelegate`.
+   *
+   * ```js
+   * import { Navigation } from 'react-native-navigation';
+   * ```
+   */
+  navigation: unknown;
+}
 
 interface ComponentEvent {
   componentId: string;
@@ -71,134 +92,137 @@ export interface NavigationDelegate {
  * - `_onComponentWillAppear` is then called AFTER the state change happens due to a dispatch and sets the route context onto the active transaction.
  * - If `_onComponentWillAppear` isn't called within `options.routeChangeTimeoutMs` of the dispatch, then the transaction is not sampled and finished.
  */
-export class ReactNativeNavigationInstrumentation {
-  public static instrumentationName: string = 'react-native-navigation';
+export const reactNativeNavigationIntegration = ({
+  navigation: optionsNavigation,
+  routeChangeTimeoutMs = 1_000,
+  enableTabsInstrumentation = false,
+  ignoreEmptyBackNavigationTransactions = true,
+}: ReactNativeNavigationOptions): Integration => {
+  const navigation = optionsNavigation as NavigationDelegate;
+  let recentComponentIds: string[] = [];
 
-  public readonly name: string = ReactNativeNavigationInstrumentation.instrumentationName;
+  let tracing: ReactNativeTracingIntegration | undefined;
+  let idleSpanOptions: Parameters<typeof startGenericIdleNavigationSpan>[1] = {
+    finalTimeout: defaultReactNativeTracingOptions.finalTimeoutMs,
+    idleTimeout: defaultReactNativeTracingOptions.idleTimeoutMs,
+    ignoreEmptyBackNavigationTransactions,
+  };
 
-  private _navigation: NavigationDelegate;
-  private _options: ReactNativeNavigationOptions;
+  let stateChangeTimeout: ReturnType<typeof setTimeout> | undefined;
+  let prevComponentEvent: ComponentWillAppearEvent | null = null;
+  let latestNavigationSpan: Span | undefined;
 
-  private _prevComponentEvent: ComponentWillAppearEvent | null = null;
+  const afterAllSetup = (client: Client): void => {
+    tracing = getReactNativeTracingIntegration(client);
+    if (tracing) {
+      idleSpanOptions = {
+        finalTimeout: tracing.options.finalTimeoutMs,
+        idleTimeout: tracing.options.idleTimeoutMs,
+        ignoreEmptyBackNavigationTransactions,
+      };
+    }
+  };
 
-  private _latestTransaction?: Span;
-  private _recentComponentIds: string[] = [];
-  private _stateChangeTimeout?: number | undefined;
-
-  public constructor(
-    /** The react native navigation `NavigationDelegate`. This is usually the import named `Navigation`. */
-    navigation: unknown,
-    options: Partial<ReactNativeNavigationOptions> = {},
-  ) {
-    this._navigation = navigation as NavigationDelegate;
-
-    this._options = {
-      ...defaultOptions,
-      ...options,
-    };
-  }
-
-  /**
-   * Registers the event listeners for React Native Navigation
-   */
-  public registerRoutingInstrumentation(): void {
-    this._navigation.events().registerCommandListener(this._onNavigation.bind(this));
-
-    if (this._options.enableTabsInstrumentation) {
-      this._navigation.events().registerBottomTabPressedListener(this._onNavigation.bind(this));
+  const startIdleNavigationSpan = (): void => {
+    if (latestNavigationSpan) {
+      discardLatestNavigationSpan();
     }
 
-    this._navigation.events().registerComponentWillAppearListener(this._onComponentWillAppear.bind(this));
-  }
-
-  /**
-   * To be called when a navigation is initiated. (Command, BottomTabSelected, etc.)
-   */
-  private _onNavigation(): void {
-    if (this._latestTransaction) {
-      this._discardLatestTransaction();
-    }
-
-    // this._latestTransaction = this.onRouteWillChange({ name: DEFAULT_NAVIGATION_SPAN_NAME });
-
-    this._stateChangeTimeout = setTimeout(
-      this._discardLatestTransaction.bind(this),
-      this._options.routeChangeTimeoutMs,
+    latestNavigationSpan = startGenericIdleNavigationSpan(
+      tracing && tracing.options.beforeStartSpan
+        ? tracing.options.beforeStartSpan(getDefaultIdleNavigationSpanOptions())
+        : getDefaultIdleNavigationSpanOptions(),
+      idleSpanOptions,
     );
-  }
 
-  /**
-   * To be called AFTER the state has been changed to populate the transaction with the current route.
-   */
-  private _onComponentWillAppear(event: ComponentWillAppearEvent): void {
-    if (!this._latestTransaction) {
+    stateChangeTimeout = setTimeout(discardLatestNavigationSpan.bind(this), routeChangeTimeoutMs);
+  };
+
+  const updateLatestNavigationSpanWithCurrentComponent = (event: ComponentWillAppearEvent): void => {
+    if (!latestNavigationSpan) {
       return;
     }
 
     // We ignore actions that pertain to the same screen.
-    const isSameComponent = this._prevComponentEvent && event.componentId === this._prevComponentEvent.componentId;
+    const isSameComponent = prevComponentEvent && event.componentId === prevComponentEvent.componentId;
     if (isSameComponent) {
-      this._discardLatestTransaction();
+      discardLatestNavigationSpan();
       return;
     }
 
-    this._clearStateChangeTimeout();
+    clearStateChangeTimeout();
 
-    const routeHasBeenSeen = this._recentComponentIds.includes(event.componentId);
+    const routeHasBeenSeen = recentComponentIds.includes(event.componentId);
 
-    if (spanToJSON(this._latestTransaction).description === DEFAULT_NAVIGATION_SPAN_NAME) {
-      this._latestTransaction.updateName(event.componentName);
+    if (spanToJSON(latestNavigationSpan).description === DEFAULT_NAVIGATION_SPAN_NAME) {
+      latestNavigationSpan.updateName(event.componentName);
     }
-    this._latestTransaction.setAttributes({
+    latestNavigationSpan.setAttributes({
       // TODO: Should we include pass props? I don't know exactly what it contains, cant find it in the RNavigation docs
       'route.name': event.componentName,
       'route.component_id': event.componentId,
       'route.component_type': event.componentType,
       'route.has_been_seen': routeHasBeenSeen,
-      'previous_route.name': this._prevComponentEvent?.componentName,
-      'previous_route.component_id': this._prevComponentEvent?.componentId,
-      'previous_route.component_type': this._prevComponentEvent?.componentType,
+      'previous_route.name': prevComponentEvent?.componentName,
+      'previous_route.component_id': prevComponentEvent?.componentId,
+      'previous_route.component_type': prevComponentEvent?.componentType,
       [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
       [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
     });
 
-    // this._beforeNavigate?.(this._latestTransaction);
-
-    // this._onConfirmRoute?.(event.componentName);
+    tracing?.setCurrentRoute(event.componentName);
 
     addBreadcrumb({
       category: 'navigation',
       type: 'navigation',
       message: `Navigation to ${event.componentName}`,
       data: {
-        from: this._prevComponentEvent?.componentName,
+        from: prevComponentEvent?.componentName,
         to: event.componentName,
       },
     });
 
-    this._prevComponentEvent = event;
-    this._latestTransaction = undefined;
-  }
+    pushRecentComponentId(event.componentId);
+    prevComponentEvent = event;
+    latestNavigationSpan = undefined;
+  };
 
-  /** Cancels the latest transaction so it does not get sent to Sentry. */
-  private _discardLatestTransaction(): void {
-    if (this._latestTransaction) {
-      if (isSentrySpan(this._latestTransaction)) {
-        this._latestTransaction['_sampled'] = false;
+  navigation.events().registerCommandListener(startIdleNavigationSpan);
+  if (enableTabsInstrumentation) {
+    navigation.events().registerBottomTabPressedListener(startIdleNavigationSpan);
+  }
+  navigation.events().registerComponentWillAppearListener(updateLatestNavigationSpanWithCurrentComponent);
+
+  const pushRecentComponentId = (id: string): void => {
+    recentComponentIds.push(id);
+
+    if (recentComponentIds.length > NAVIGATION_HISTORY_MAX_SIZE) {
+      recentComponentIds = recentComponentIds.slice(recentComponentIds.length - NAVIGATION_HISTORY_MAX_SIZE);
+    }
+  };
+
+  const discardLatestNavigationSpan = (): void => {
+    if (latestNavigationSpan) {
+      if (isSentrySpan(latestNavigationSpan)) {
+        latestNavigationSpan['_sampled'] = false;
       }
       // TODO: What if it's not SentrySpan?
-      this._latestTransaction.end();
-      this._latestTransaction = undefined;
+      latestNavigationSpan.end();
+      latestNavigationSpan = undefined;
     }
 
-    this._clearStateChangeTimeout();
-  }
+    clearStateChangeTimeout();
+  };
 
-  /** Cancels the latest transaction so it does not get sent to Sentry. */
-  private _clearStateChangeTimeout(): void {
-    if (typeof this._stateChangeTimeout !== 'undefined') {
-      clearTimeout(this._stateChangeTimeout);
-      this._stateChangeTimeout = undefined;
+  const clearStateChangeTimeout = (): void => {
+    if (typeof stateChangeTimeout !== 'undefined') {
+      clearTimeout(stateChangeTimeout);
+      stateChangeTimeout = undefined;
     }
-  }
-}
+  };
+
+  return {
+    name: INTEGRATION_NAME,
+    afterAllSetup,
+  };
+};

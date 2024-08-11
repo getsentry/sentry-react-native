@@ -86,7 +86,7 @@ export const reactNavigationIntegration = ({
   };
   let latestRoute: NavigationRoute | undefined;
 
-  let latestTransaction: Span | undefined;
+  let latestNavigationSpan: Span | undefined;
   let navigationProcessingSpan: Span | undefined;
 
   let initialStateHandled: boolean = false;
@@ -119,7 +119,7 @@ export const reactNavigationIntegration = ({
       return undefined;
     }
 
-    _startIdleNavigationSpan();
+    startIdleNavigationSpan();
 
     if (!navigationContainer) {
       // This is expected as navigation container is registered after the root component is mounted.
@@ -155,7 +155,7 @@ export const reactNavigationIntegration = ({
     }
 
     // This action is emitted on every dispatch
-    navigationContainer.addListener('__unsafe_action__', _startIdleNavigationSpan);
+    navigationContainer.addListener('__unsafe_action__', startIdleNavigationSpan);
     navigationContainer.addListener('state', updateLatestNavigationSpanWithCurrentRoute);
     RN_GLOBAL_OBJ.__sentry_rn_v5_registered = true;
 
@@ -163,7 +163,7 @@ export const reactNavigationIntegration = ({
       return undefined;
     }
 
-    if (!latestTransaction) {
+    if (!latestNavigationSpan) {
       logger.log(
         '[ReactNavigationInstrumentation] Navigation container registered, but integration has not been setup yet.',
       );
@@ -182,16 +182,16 @@ export const reactNavigationIntegration = ({
    * It does not name the transaction or populate it with route information. Instead, it waits for the state to fully change
    * and gets the route information from there, @see updateLatestNavigationSpanWithCurrentRoute
    */
-  const _startIdleNavigationSpan = (): void => {
-    if (latestTransaction) {
+  const startIdleNavigationSpan = (): void => {
+    if (latestNavigationSpan) {
       logger.log(
         '[ReactNavigationInstrumentation] A transaction was detected that turned out to be a noop, discarding.',
       );
       _discardLatestTransaction();
-      _clearStateChangeTimeout();
+      clearStateChangeTimeout();
     }
 
-    latestTransaction = startGenericIdleNavigationSpan(
+    latestNavigationSpan = startGenericIdleNavigationSpan(
       tracing && tracing.options.beforeStartSpan
         ? tracing.options.beforeStartSpan(getDefaultIdleNavigationSpanOptions())
         : getDefaultIdleNavigationSpanOptions(),
@@ -202,7 +202,7 @@ export const reactNavigationIntegration = ({
       navigationProcessingSpan = startInactiveSpan({
         op: 'navigation.processing',
         name: 'Navigation processing',
-        startTime: latestTransaction && spanToJSON(latestTransaction).start_timestamp,
+        startTime: latestNavigationSpan && spanToJSON(latestNavigationSpan).start_timestamp,
       });
     }
 
@@ -227,7 +227,7 @@ export const reactNavigationIntegration = ({
       return undefined;
     }
 
-    if (!latestTransaction) {
+    if (!latestNavigationSpan) {
       logger.debug(
         `[${INTEGRATION_NAME}] Navigation state changed, but navigation transaction was not started on dispatch.`,
       );
@@ -236,11 +236,11 @@ export const reactNavigationIntegration = ({
 
     if (previousRoute && previousRoute.key === route.key) {
       logger.debug(`[${INTEGRATION_NAME}] Navigation state changed, but route is the same as previous.`);
-      _pushRecentRouteKey(route.key);
+      pushRecentRouteKey(route.key);
       latestRoute = route;
 
       // Clear the latest transaction as it has been handled.
-      latestTransaction = undefined;
+      latestNavigationSpan = undefined;
       return undefined;
     }
 
@@ -295,10 +295,10 @@ export const reactNavigationIntegration = ({
     navigationProcessingSpan?.end(stateChangedTimestamp);
     navigationProcessingSpan = undefined;
 
-    if (spanToJSON(latestTransaction).description === DEFAULT_NAVIGATION_SPAN_NAME) {
-      latestTransaction.updateName(route.name);
+    if (spanToJSON(latestNavigationSpan).description === DEFAULT_NAVIGATION_SPAN_NAME) {
+      latestNavigationSpan.updateName(route.name);
     }
-    latestTransaction.setAttributes({
+    latestNavigationSpan.setAttributes({
       'route.name': route.name,
       'route.key': route.key,
       // TODO: filter PII params instead of dropping them all
@@ -313,9 +313,8 @@ export const reactNavigationIntegration = ({
     });
 
     // Clear the timeout so the transaction does not get cancelled.
-    _clearStateChangeTimeout();
+    clearStateChangeTimeout();
 
-    // TODO: Add test for addBreadcrumb
     addBreadcrumb({
       category: 'navigation',
       type: 'navigation',
@@ -328,14 +327,14 @@ export const reactNavigationIntegration = ({
 
     tracing?.setCurrentRoute(route.key);
 
-    _pushRecentRouteKey(route.key);
+    pushRecentRouteKey(route.key);
     latestRoute = route;
     // Clear the latest transaction as it has been handled.
-    latestTransaction = undefined;
+    latestNavigationSpan = undefined;
   };
 
   /** Pushes a recent route key, and removes earlier routes when there is greater than the max length */
-  const _pushRecentRouteKey = (key: string): void => {
+  const pushRecentRouteKey = (key: string): void => {
     recentRouteKeys.push(key);
 
     if (recentRouteKeys.length > NAVIGATION_HISTORY_MAX_SIZE) {
@@ -345,20 +344,20 @@ export const reactNavigationIntegration = ({
 
   /** Cancels the latest transaction so it does not get sent to Sentry. */
   const _discardLatestTransaction = (): void => {
-    if (latestTransaction) {
-      if (isSentrySpan(latestTransaction)) {
-        latestTransaction['_sampled'] = false;
+    if (latestNavigationSpan) {
+      if (isSentrySpan(latestNavigationSpan)) {
+        latestNavigationSpan['_sampled'] = false;
       }
       // TODO: What if it's not SentrySpan?
-      latestTransaction.end();
-      latestTransaction = undefined;
+      latestNavigationSpan.end();
+      latestNavigationSpan = undefined;
     }
     if (navigationProcessingSpan) {
       navigationProcessingSpan = undefined;
     }
   };
 
-  const _clearStateChangeTimeout = (): void => {
+  const clearStateChangeTimeout = (): void => {
     if (typeof stateChangeTimeout !== 'undefined') {
       clearTimeout(stateChangeTimeout);
       stateChangeTimeout = undefined;
