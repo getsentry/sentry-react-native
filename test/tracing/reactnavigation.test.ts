@@ -1,14 +1,7 @@
 /* eslint-disable deprecation/deprecation */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type {
-  SentrySpan} from '@sentry/core';
-import {
-  getActiveSpan,
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
-  setCurrentClient,
-} from '@sentry/core';
+import type { SentrySpan } from '@sentry/core';
+import { getActiveSpan, getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient } from '@sentry/core';
 import type { Event, Measurements, StartSpanOptions } from '@sentry/types';
 
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';

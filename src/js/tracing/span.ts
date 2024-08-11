@@ -14,7 +14,7 @@ import { generatePropagationContext, logger } from '@sentry/utils';
 import { isRootSpan } from '../utils/span';
 import { adjustTransactionDuration, cancelInBackground, ignoreEmptyBackNavigation } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_INTERACTION } from './origin';
-import { defaultReactNativeTracingOptions } from './reactnativetracing';
+import { DEFAULT_NAVIGATION_SPAN_NAME, defaultReactNativeTracingOptions } from './reactnativetracing';
 
 export const startIdleNavigationSpan = (
   startSpanOption: StartSpanOptions,
@@ -43,10 +43,15 @@ export const startIdleNavigationSpan = (
     activeSpan.end();
   }
 
-  const idleSpan = startIdleSpan(startSpanOption, { finalTimeout, idleTimeout });
+  const finalStartStapOptions = {
+    ...getDefaultIdleNavigationSpanOptions(),
+    ...startSpanOption,
+  };
+
+  const idleSpan = startIdleSpan(finalStartStapOptions, { finalTimeout, idleTimeout });
   logger.log(
-    `[ReactNativeTracing] Starting ${startSpanOption.op || 'unknown op'} transaction "${
-      startSpanOption.name
+    `[ReactNativeTracing] Starting ${finalStartStapOptions.op || 'unknown op'} transaction "${
+      finalStartStapOptions.name
     }" on scope`,
   );
 
@@ -81,6 +86,18 @@ export const startIdleSpan = (
   cancelInBackground(client, span);
   return span;
 };
+
+/**
+ * Returns the default options for the idle navigation span.
+ */
+export function getDefaultIdleNavigationSpanOptions(): StartSpanOptions {
+  return {
+    name: DEFAULT_NAVIGATION_SPAN_NAME,
+    op: 'navigation',
+    forceTransaction: true,
+    scope: getCurrentScope(),
+  };
+}
 
 /**
  * Checks if the span is a Sentry User Interaction span.

@@ -15,6 +15,7 @@ import {
 } from '../../../src/js/tracing/integrations/userInteraction';
 import type { ReactNativeTracingIntegration } from '../../../src/js/tracing/reactnativetracing';
 import { reactNativeTracingIntegration } from '../../../src/js/tracing/reactnativetracing';
+import { startIdleNavigationSpan } from '../../../src/js/tracing/span';
 import { NATIVE } from '../../../src/js/wrapper';
 import type { TestClient } from '../../mocks/client';
 import { setupTestClient } from '../../mocks/client';
@@ -58,7 +59,6 @@ describe('User Interaction Tracing', () => {
   let client: TestClient;
   let tracing: ReactNativeTracingIntegration;
   let mockedUserInteractionId: { elementId: string | undefined; op: string };
-  let mockedRoutingInstrumentation: MockedRoutingInstrumentation;
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -75,7 +75,6 @@ describe('User Interaction Tracing', () => {
     client = setupTestClient({
       enableUserInteractionTracing: true,
     });
-    mockedRoutingInstrumentation = createMockedRoutingInstrumentation();
   });
 
   afterEach(() => {
@@ -87,7 +86,6 @@ describe('User Interaction Tracing', () => {
   describe('disabled user interaction', () => {
     test('User interaction tracing is disabled by default', () => {
       client = setupTestClient({});
-      mockedRoutingInstrumentation = createMockedRoutingInstrumentation();
       startUserInteractionSpan(mockedUserInteractionId);
 
       expect(client.getOptions().enableUserInteractionTracing).toBeFalsy();
@@ -97,12 +95,10 @@ describe('User Interaction Tracing', () => {
 
   describe('enabled user interaction', () => {
     beforeEach(() => {
-      tracing = reactNativeTracingIntegration({
-        routingInstrumentation: mockedRoutingInstrumentation,
-      });
+      tracing = reactNativeTracingIntegration();
       client.addIntegration(userInteractionIntegration());
       client.addIntegration(tracing);
-      mockedRoutingInstrumentation.registeredOnConfirmRoute!('mockedRouteName');
+      tracing.setCurrentRoute('mockedRouteName');
     });
 
     test('user interaction tracing is enabled and transaction is bound to scope', () => {
@@ -270,8 +266,7 @@ describe('User Interaction Tracing', () => {
       startUserInteractionSpan(mockedUserInteractionId);
       const interactionTransaction = getActiveSpan();
       jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
-
-      const routingTransaction = mockedRoutingInstrumentation.registeredListener!({
+      const routingTransaction = startIdleNavigationSpan({
         name: 'newMockedRouteName',
       });
       jest.runAllTimers();

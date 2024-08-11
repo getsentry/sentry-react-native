@@ -2,7 +2,6 @@
 import {
   addBreadcrumb,
   getActiveSpan,
-  getCurrentScope,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   setMeasurement,
   SPAN_STATUS_OK,
@@ -24,7 +23,7 @@ import {
   getReactNativeTracingIntegration,
 } from './reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
-import { startIdleNavigationSpan as startGenericIdleNavigationSpan } from './span';
+import { getDefaultIdleNavigationSpanOptions, startIdleNavigationSpan as startGenericIdleNavigationSpan } from './span';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
 
 export const INTEGRATION_NAME = 'ReactNavigation';
@@ -194,18 +193,8 @@ export const reactNavigationIntegration = ({
 
     latestTransaction = startGenericIdleNavigationSpan(
       tracing && tracing.options.beforeStartSpan
-        ? tracing.options.beforeStartSpan({
-            name: DEFAULT_NAVIGATION_SPAN_NAME,
-            op: 'navigation',
-            forceTransaction: true,
-            scope: getCurrentScope(),
-          })
-        : {
-            name: DEFAULT_NAVIGATION_SPAN_NAME,
-            op: 'navigation',
-            forceTransaction: true,
-            scope: getCurrentScope(),
-          },
+        ? tracing.options.beforeStartSpan(getDefaultIdleNavigationSpanOptions())
+        : getDefaultIdleNavigationSpanOptions(),
       idleSpanOptions,
     );
 
