@@ -1,11 +1,6 @@
-import {
-  type IdleTransaction,
-  type Span as SpanClass,
-  type Transaction,
-  setMeasurement,
-  spanToJSON,
-} from '@sentry/core';
-import type { Span, TransactionContext, TransactionSource } from '@sentry/types';
+import type { Transaction } from '@sentry/core';
+import { type IdleTransaction, type Span as SpanClass, setMeasurement, spanToJSON } from '@sentry/core';
+import type { Span, Transaction as TransactionType, TransactionContext, TransactionSource } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
@@ -112,6 +107,24 @@ export function setSpanDurationAsMeasurement(name: string, span: Span): void {
   }
 
   setMeasurement(name, (spanEnd - spanStart) * 1000, 'millisecond');
+}
+
+/**
+ * Sets the duration of the span as a measurement.
+ * Uses `setMeasurement` function from @sentry/core.
+ */
+export function setSpanDurationAsMeasurementOnTransaction(
+  transaction: TransactionType,
+  name: string,
+  span: Span,
+): void {
+  const spanEnd = spanToJSON(span).timestamp;
+  const spanStart = spanToJSON(span).start_timestamp;
+  if (!spanEnd || !spanStart) {
+    return;
+  }
+
+  transaction.setMeasurement(name, (spanEnd - spanStart) * 1000, 'millisecond');
 }
 
 /**

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- fix(ttid): End and measure TTID regardless current active span ([#4019](https://github.com/getsentry/sentry-react-native/pull/4019))
+  - Fixes possible missing TTID measurements and spans
+
 ### Dependencies
 
 - Bump JavaScript SDK from v7.117.0 to v7.118.0 ([#4018](https://github.com/getsentry/sentry-react-native/pull/4018))

@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { getActiveSpan, setMeasurement, spanToJSON, startInactiveSpan } from '@sentry/core';
+import { getActiveSpan, startInactiveSpan } from '@sentry/core';
 import type { Span, Transaction as TransactionType, TransactionContext } from '@sentry/types';
 import { logger, timestampInSeconds } from '@sentry/utils';
 
@@ -11,7 +11,12 @@ import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentatio
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
 import type { BeforeNavigate, ReactNavigationTransactionContext, RouteChangeContextData } from './types';
-import { customTransactionSource, defaultTransactionSource, getBlankTransactionContext } from './utils';
+import {
+  customTransactionSource,
+  defaultTransactionSource,
+  getBlankTransactionContext,
+  setSpanDurationAsMeasurementOnTransaction,
+} from './utils';
 
 export interface NavigationRoute {
   name: string;
@@ -224,6 +229,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       if (this._latestTransaction) {
         if (!previousRoute || previousRoute.key !== route.key) {
           const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
+          const latestTransaction = this._latestTransaction;
           const latestTtidSpan =
             !routeHasBeenSeen &&
             this._options.enableTimeToInitialDisplay &&
@@ -233,46 +239,21 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             });
 
           !routeHasBeenSeen &&
+            latestTtidSpan &&
             this._newScreenFrameEventEmitter?.once(
               NewFrameEventName,
               ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
                 const activeSpan = getActiveSpan();
-                if (!activeSpan) {
-                  logger.warn(
-                    '[ReactNavigationInstrumentation] No active span found to attach ui.load.initial_display to.',
-                  );
-                  return;
-                }
-
-                if (manualInitialDisplaySpans.has(activeSpan)) {
+                if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
                   logger.warn(
                     '[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.',
                   );
                   return;
                 }
 
-                if (!latestTtidSpan) {
-                  return;
-                }
-
-                if (spanToJSON(latestTtidSpan).parent_span_id !== getActiveSpan()?.spanContext().spanId) {
-                  logger.warn(
-                    '[ReactNavigationInstrumentation] Currently Active Span changed before the new frame was rendered, _latestTtidSpan is not a child of the currently active span.',
-                  );
-                  return;
-                }
-
                 latestTtidSpan.setStatus('ok');
                 latestTtidSpan.end(newFrameTimestampInSeconds);
-                const ttidSpan = spanToJSON(latestTtidSpan);
-
-                const ttidSpanEnd = ttidSpan.timestamp;
-                const ttidSpanStart = ttidSpan.start_timestamp;
-                if (!ttidSpanEnd || !ttidSpanStart) {
-                  return;
-                }
-
-                setMeasurement('time_to_initial_display', (ttidSpanEnd - ttidSpanStart) * 1000, 'millisecond');
+                setSpanDurationAsMeasurementOnTransaction(latestTransaction, 'time_to_initial_display', latestTtidSpan);
               },
             );
 
@@ -281,7 +262,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
           this._navigationProcessingSpan?.end(stateChangedTimestamp);
           this._navigationProcessingSpan = undefined;
 
-          const originalContext = this._latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
+          const originalContext = latestTransaction.toContext() as typeof BLANK_TRANSACTION_CONTEXT;
 
           const data: RouteChangeContextData = {
             ...originalContext.data,
@@ -313,10 +294,10 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
           };
 
           const finalContext = this._prepareFinalContext(updatedContext);
-          this._latestTransaction.updateWithContext(finalContext);
+          latestTransaction.updateWithContext(finalContext);
 
           const isCustomName = updatedContext.name !== finalContext.name;
-          this._latestTransaction.setName(
+          latestTransaction.setName(
             finalContext.name,
             isCustomName ? customTransactionSource : defaultTransactionSource,
           );
