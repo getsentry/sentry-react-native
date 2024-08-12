@@ -5,7 +5,6 @@ import { getActiveSpan, getCurrentScope, getGlobalScope, getIsolationScope, setC
 import type { Event, Measurements, StartSpanOptions } from '@sentry/types';
 
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
-import { DEFAULT_NAVIGATION_SPAN_NAME } from '../../src/js/tracing/reactnativetracing';
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 import { reactNavigationIntegration } from '../../src/js/tracing/reactnavigation';
 import {
@@ -20,6 +19,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE,
   SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
 } from '../../src/js/tracing/semanticAttributes';
+import { DEFAULT_NAVIGATION_SPAN_NAME } from '../../src/js/tracing/span';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';

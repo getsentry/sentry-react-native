@@ -3,7 +3,7 @@ import { instrumentOutgoingRequests } from '@sentry/browser';
 import { getClient } from '@sentry/core';
 import type { Client, Event, Integration, StartSpanOptions } from '@sentry/types';
 
-import { addDefaultOpForSpanFrom } from './span';
+import { addDefaultOpForSpanFrom, defaultIdleOptions } from './span';
 
 export const INTEGRATION_NAME = 'ReactNativeTracing';
 
@@ -14,7 +14,7 @@ export interface ReactNativeTracingOptions {
    *
    * @default 1_000 (ms)
    */
-  idleTimeoutMs: number;
+  idleTimeoutMs?: number;
 
   /**
    * The max. time an idle span may run.
@@ -22,7 +22,7 @@ export interface ReactNativeTracingOptions {
    *
    * @default 60_0000 (ms)
    */
-  finalTimeoutMs: number;
+  finalTimeoutMs?: number;
 
   /**
    * Flag to disable patching all together for fetch requests.
@@ -61,11 +61,8 @@ export interface ReactNativeTracingOptions {
 }
 
 const DEFAULT_TRACE_PROPAGATION_TARGETS = ['localhost', /^\/(?!\/)/];
-export const DEFAULT_NAVIGATION_SPAN_NAME = 'Route Change';
 
 export const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
-  idleTimeoutMs: 1_000,
-  finalTimeoutMs: 60_0000,
   traceFetch: true,
   traceXHR: true,
   enableHTTPTimings: true,
@@ -90,8 +87,8 @@ export const reactNativeTracingIntegration = (
     ...defaultReactNativeTracingOptions,
     ...options,
     beforeStartSpan: options.beforeStartSpan ?? ((options: StartSpanOptions) => options),
-    finalTimeoutMs: options.finalTimeoutMs ?? defaultReactNativeTracingOptions.finalTimeoutMs,
-    idleTimeoutMs: options.idleTimeoutMs ?? defaultReactNativeTracingOptions.idleTimeoutMs,
+    finalTimeoutMs: options.finalTimeoutMs ?? defaultIdleOptions.finalTimeout,
+    idleTimeoutMs: options.idleTimeoutMs ?? defaultIdleOptions.idleTimeout,
   };
 
   const setup = (client: Client): void => {

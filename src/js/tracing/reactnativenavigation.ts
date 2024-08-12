@@ -1,5 +1,6 @@
 import {
   addBreadcrumb,
+  getClient,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
   spanToJSON,
@@ -8,13 +9,15 @@ import type { Client, Integration, Span } from '@sentry/types';
 
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
 import { isSentrySpan } from '../utils/span';
+import { ignoreEmptyBackNavigation } from './onSpanEndUtils';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
+import { getReactNativeTracingIntegration } from './reactnativetracing';
 import {
   DEFAULT_NAVIGATION_SPAN_NAME,
-  defaultReactNativeTracingOptions,
-  getReactNativeTracingIntegration,
-} from './reactnativetracing';
-import { getDefaultIdleNavigationSpanOptions, startIdleNavigationSpan as startGenericIdleNavigationSpan } from './span';
+  defaultIdleOptions,
+  getDefaultIdleNavigationSpanOptions,
+  startIdleNavigationSpan as startGenericIdleNavigationSpan,
+} from './span';
 
 export const INTEGRATION_NAME = 'ReactNativeNavigation';
 
@@ -102,11 +105,7 @@ export const reactNativeNavigationIntegration = ({
   let recentComponentIds: string[] = [];
 
   let tracing: ReactNativeTracingIntegration | undefined;
-  let idleSpanOptions: Parameters<typeof startGenericIdleNavigationSpan>[1] = {
-    finalTimeout: defaultReactNativeTracingOptions.finalTimeoutMs,
-    idleTimeout: defaultReactNativeTracingOptions.idleTimeoutMs,
-    ignoreEmptyBackNavigationTransactions,
-  };
+  let idleSpanOptions: Parameters<typeof startGenericIdleNavigationSpan>[1] = defaultIdleOptions;
 
   let stateChangeTimeout: ReturnType<typeof setTimeout> | undefined;
   let prevComponentEvent: ComponentWillAppearEvent | null = null;
@@ -118,7 +117,6 @@ export const reactNativeNavigationIntegration = ({
       idleSpanOptions = {
         finalTimeout: tracing.options.finalTimeoutMs,
         idleTimeout: tracing.options.idleTimeoutMs,
-        ignoreEmptyBackNavigationTransactions,
       };
     }
   };
@@ -134,6 +132,9 @@ export const reactNativeNavigationIntegration = ({
         : getDefaultIdleNavigationSpanOptions(),
       idleSpanOptions,
     );
+    if (ignoreEmptyBackNavigationTransactions) {
+      ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
+    }
 
     stateChangeTimeout = setTimeout(discardLatestNavigationSpan.bind(this), routeChangeTimeoutMs);
   };

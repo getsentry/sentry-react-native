@@ -7,7 +7,7 @@ import { AppState } from 'react-native';
 import { isRootSpan, isSentrySpan } from '../utils/span';
 
 /**
- *
+ * Hooks on span end event to execute a callback when the span ends.
  */
 export function onThisSpanEnd(client: Client, span: Span, callback: (span: Span) => void): void {
   client.on('spanEnd', (endedSpan: Span) => {
@@ -44,7 +44,18 @@ export const adjustTransactionDuration = (client: Client, span: Span, maxDuratio
     }
   });
 };
-export const ignoreEmptyBackNavigation = (client: Client, span: Span): void => {
+
+export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span): void => {
+  if (!client) {
+    logger.warn('Could not hook on spanEnd event because client is not defined.');
+    return;
+  }
+
+  if (!span) {
+    logger.warn('Could not hook on spanEnd event because span is not defined.');
+    return;
+  }
+
   if (!isRootSpan(span) || !isSentrySpan(span)) {
     logger.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
     return;
@@ -70,7 +81,7 @@ export const ignoreEmptyBackNavigation = (client: Client, span: Span): void => {
     if (filtered.length <= 0) {
       // filter children must include at least one span not created by the navigation automatic instrumentation
       logger.log(
-        '[ReactNativeTracing] Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.',
+        'Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.',
       );
       // Route has been seen before and has no child spans.
       span['_sampled'] = false;
