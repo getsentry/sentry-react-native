@@ -2,6 +2,7 @@
 import {
   addBreadcrumb,
   getActiveSpan,
+  getClient,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   setMeasurement,
   SPAN_STATUS_OK,
@@ -16,11 +17,13 @@ import { type SentryEventEmitter, createSentryEventEmitter, NewFrameEventName } 
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
+import { ignoreEmptyBackNavigation } from './onSpanEndUtils';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
-import { defaultReactNativeTracingOptions, getReactNativeTracingIntegration } from './reactnativetracing';
+import { getReactNativeTracingIntegration } from './reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
 import {
   DEFAULT_NAVIGATION_SPAN_NAME,
+  defaultIdleOptions,
   getDefaultIdleNavigationSpanOptions,
   startIdleNavigationSpan as startGenericIdleNavigationSpan,
 } from './span';
@@ -79,11 +82,7 @@ export const reactNavigationIntegration = ({
   let newScreenFrameEventEmitter: SentryEventEmitter | undefined;
 
   let tracing: ReactNativeTracingIntegration | undefined;
-  let idleSpanOptions: Parameters<typeof startGenericIdleNavigationSpan>[1] = {
-    finalTimeout: defaultReactNativeTracingOptions.finalTimeoutMs,
-    idleTimeout: defaultReactNativeTracingOptions.idleTimeoutMs,
-    ignoreEmptyBackNavigationTransactions,
-  };
+  let idleSpanOptions: Parameters<typeof startGenericIdleNavigationSpan>[1] = defaultIdleOptions;
   let latestRoute: NavigationRoute | undefined;
 
   let latestNavigationSpan: Span | undefined;
@@ -97,7 +96,7 @@ export const reactNavigationIntegration = ({
     newScreenFrameEventEmitter = createSentryEventEmitter();
     newScreenFrameEventEmitter.initAsync(NewFrameEventName);
     NATIVE.initNativeReactNavigationNewFrameTracking().catch((reason: unknown) => {
-      logger.error(`[ReactNavigationInstrumentation] Failed to initialize native new frame tracking: ${reason}`);
+      logger.error(`${INTEGRATION_NAME} Failed to initialize native new frame tracking: ${reason}`);
     });
   }
 
@@ -110,7 +109,6 @@ export const reactNavigationIntegration = ({
       idleSpanOptions = {
         finalTimeout: tracing.options.finalTimeoutMs,
         idleTimeout: tracing.options.idleTimeoutMs,
-        ignoreEmptyBackNavigationTransactions,
       };
     }
 
@@ -139,7 +137,7 @@ export const reactNavigationIntegration = ({
      */
     if (RN_GLOBAL_OBJ.__sentry_rn_v5_registered) {
       logger.log(
-        '[ReactNavigationInstrumentation] Instrumentation already exists, but register has been called again, doing nothing.',
+        `${INTEGRATION_NAME} Instrumentation already exists, but register has been called again, doing nothing.`,
       );
       return undefined;
     }
@@ -150,7 +148,7 @@ export const reactNavigationIntegration = ({
       navigationContainer = navigationContainerRef as NavigationContainer;
     }
     if (!navigationContainer) {
-      logger.warn('[ReactNavigationInstrumentation] Received invalid navigation container ref!');
+      logger.warn(`${INTEGRATION_NAME} Received invalid navigation container ref!`);
       return undefined;
     }
 
@@ -164,9 +162,7 @@ export const reactNavigationIntegration = ({
     }
 
     if (!latestNavigationSpan) {
-      logger.log(
-        '[ReactNavigationInstrumentation] Navigation container registered, but integration has not been setup yet.',
-      );
+      logger.log(`${INTEGRATION_NAME} Navigation container registered, but integration has not been setup yet.`);
       return undefined;
     }
 
@@ -184,9 +180,7 @@ export const reactNavigationIntegration = ({
    */
   const startIdleNavigationSpan = (): void => {
     if (latestNavigationSpan) {
-      logger.log(
-        '[ReactNavigationInstrumentation] A transaction was detected that turned out to be a noop, discarding.',
-      );
+      logger.log(`${INTEGRATION_NAME} A transaction was detected that turned out to be a noop, discarding.`);
       _discardLatestTransaction();
       clearStateChangeTimeout();
     }
@@ -197,6 +191,9 @@ export const reactNavigationIntegration = ({
         : getDefaultIdleNavigationSpanOptions(),
       idleSpanOptions,
     );
+    if (ignoreEmptyBackNavigationTransactions) {
+      ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
+    }
 
     if (enableTimeToInitialDisplay) {
       navigationProcessingSpan = startInactiveSpan({
@@ -257,12 +254,12 @@ export const reactNavigationIntegration = ({
       newScreenFrameEventEmitter?.once(NewFrameEventName, ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
         const activeSpan = getActiveSpan();
         if (!activeSpan) {
-          logger.warn('[ReactNavigationInstrumentation] No active span found to attach ui.load.initial_display to.');
+          logger.warn(`${INTEGRATION_NAME} No active span found to attach ui.load.initial_display to.`);
           return;
         }
 
         if (manualInitialDisplaySpans.has(activeSpan)) {
-          logger.warn('[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.');
+          logger.warn(`${INTEGRATION_NAME} Detected manual instrumentation for the current active span.`);
           return;
         }
 
@@ -272,7 +269,7 @@ export const reactNavigationIntegration = ({
 
         if (spanToJSON(latestTtidSpan).parent_span_id !== getActiveSpan()?.spanContext().spanId) {
           logger.warn(
-            '[ReactNavigationInstrumentation] Currently Active Span changed before the new frame was rendered, _latestTtidSpan is not a child of the currently active span.',
+            `${INTEGRATION_NAME} Currently Active Span changed before the new frame was rendered, _latestTtidSpan is not a child of the currently active span.`,
           );
           return;
         }
