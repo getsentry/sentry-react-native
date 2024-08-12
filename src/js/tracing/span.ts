@@ -14,19 +14,40 @@ import { generatePropagationContext, logger } from '@sentry/utils';
 import { isRootSpan } from '../utils/span';
 import { adjustTransactionDuration, cancelInBackground, ignoreEmptyBackNavigation } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_INTERACTION } from './origin';
-import { DEFAULT_NAVIGATION_SPAN_NAME, defaultReactNativeTracingOptions } from './reactnativetracing';
+
+export const DEFAULT_NAVIGATION_SPAN_NAME = 'Route Change';
+
+export const defaultIdleOptions: {
+  /**
+   * The time that has to pass without any span being created.
+   * If this time is exceeded, the idle span will finish.
+   *
+   * @default 1_000 (ms)
+   */
+  finalTimeout: number;
+
+  /**
+   * The max. time an idle span may run.
+   * If this time is exceeded, the idle span will finish no matter what.
+   *
+   * @default 60_0000 (ms)
+   */
+  idleTimeout: number;
+
+  ignoreEmptyBackNavigationTransactions: boolean;
+} = {
+  idleTimeout: 1_000,
+  finalTimeout: 60_0000,
+  ignoreEmptyBackNavigationTransactions: true,
+};
 
 export const startIdleNavigationSpan = (
   startSpanOption: StartSpanOptions,
   {
-    finalTimeout = defaultReactNativeTracingOptions.finalTimeoutMs,
-    idleTimeout = defaultReactNativeTracingOptions.idleTimeoutMs,
-    ignoreEmptyBackNavigationTransactions = true,
-  }: {
-    finalTimeout?: number;
-    idleTimeout?: number;
-    ignoreEmptyBackNavigationTransactions?: boolean;
-  } = {},
+    finalTimeout = defaultIdleOptions.finalTimeout,
+    idleTimeout = defaultIdleOptions.idleTimeout,
+    ignoreEmptyBackNavigationTransactions = defaultIdleOptions.ignoreEmptyBackNavigationTransactions,
+  }: Partial<typeof defaultIdleOptions> = {},
 ): Span | undefined => {
   const client = getClient();
   if (!client) {

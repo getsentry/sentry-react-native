@@ -17,13 +17,13 @@ import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
+import { defaultReactNativeTracingOptions, getReactNativeTracingIntegration } from './reactnativetracing';
+import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
 import {
   DEFAULT_NAVIGATION_SPAN_NAME,
-  defaultReactNativeTracingOptions,
-  getReactNativeTracingIntegration,
-} from './reactnativetracing';
-import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
-import { getDefaultIdleNavigationSpanOptions, startIdleNavigationSpan as startGenericIdleNavigationSpan } from './span';
+  getDefaultIdleNavigationSpanOptions,
+  startIdleNavigationSpan as startGenericIdleNavigationSpan,
+} from './span';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
 
 export const INTEGRATION_NAME = 'ReactNavigation';

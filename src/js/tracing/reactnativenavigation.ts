@@ -9,12 +9,12 @@ import type { Client, Integration, Span } from '@sentry/types';
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
 import { isSentrySpan } from '../utils/span';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
+import { defaultReactNativeTracingOptions, getReactNativeTracingIntegration } from './reactnativetracing';
 import {
   DEFAULT_NAVIGATION_SPAN_NAME,
-  defaultReactNativeTracingOptions,
-  getReactNativeTracingIntegration,
-} from './reactnativetracing';
-import { getDefaultIdleNavigationSpanOptions, startIdleNavigationSpan as startGenericIdleNavigationSpan } from './span';
+  getDefaultIdleNavigationSpanOptions,
+  startIdleNavigationSpan as startGenericIdleNavigationSpan,
+} from './span';
 
 export const INTEGRATION_NAME = 'ReactNativeNavigation';
 
