@@ -6,18 +6,30 @@ jest.mock('fs', () => {
   };
 });
 
+import type { getDefaultConfig } from 'expo/metro-config';
 import * as fs from 'fs';
 import type { MetroConfig } from 'metro';
 import * as path from 'path';
 import * as process from 'process';
 
-import { withSentryBabelTransformer, withSentryFramesCollapsed } from '../../src/js/tools/metroconfig';
+import {
+  getSentryExpoConfig,
+  withSentryBabelTransformer,
+  withSentryFramesCollapsed,
+} from '../../src/js/tools/metroconfig';
 
 type MetroFrame = Parameters<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>[0];
 
 describe('metroconfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  test('getSentryExpoConfig keeps compatible interface with Expos getDefaultConfig', () => {
+    const acceptsExpoDefaultConfigFactory = (_factory: typeof getDefaultConfig): void => {
+      expect(true).toBe(true);
+    };
+    acceptsExpoDefaultConfigFactory(getSentryExpoConfig);
   });
 
   describe('withSentryFramesCollapsed', () => {
