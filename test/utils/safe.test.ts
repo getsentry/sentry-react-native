@@ -38,14 +38,14 @@ describe('safe', () => {
     test('calls given function with correct args', () => {
       const mockFn = jest.fn();
       const actualSafeFunction = safeTracesSampler(mockFn);
-      actualSafeFunction?.({ transactionContext: { name: 'foo' } });
+      actualSafeFunction?.({ name: 'foo', transactionContext: { name: 'foo' } });
       expect(mockFn).toBeCalledTimes(1);
-      expect(mockFn).toBeCalledWith({ transactionContext: { name: 'foo' } });
+      expect(mockFn).toBeCalledWith({ name: 'foo', transactionContext: { name: 'foo' } });
     });
     test('calls given function amd return its result', () => {
       const mockFn = jest.fn(() => 0.5);
       const actualSafeFunction = safeTracesSampler(mockFn);
-      const actualResult = actualSafeFunction?.({ transactionContext: { name: 'foo' } });
+      const actualResult = actualSafeFunction?.({ name: 'foo', transactionContext: { name: 'foo' } });
       expect(mockFn).toBeCalledTimes(1);
       expect(actualResult).toBe(0.5);
     });
@@ -58,7 +58,7 @@ describe('safe', () => {
         throw 'Test error';
       });
       const actualSafeFunction = safeTracesSampler(mockFn);
-      const actualResult = actualSafeFunction?.({ transactionContext: { name: 'foo' } });
+      const actualResult = actualSafeFunction?.({ name: 'foo', transactionContext: { name: 'foo' } });
       expect(mockFn).toBeCalledTimes(1);
       expect(actualResult).toEqual(0);
     });

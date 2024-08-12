@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { View } from 'react-native';
 
 import type { RNSentryOnDrawNextFrameEvent, RNSentryOnDrawReporterProps } from '../../src/js/tracing/timetodisplaynative.types';

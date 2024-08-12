@@ -406,7 +406,7 @@ describe('Tests ReactNativeClient', () => {
 
   describe('event data enhancement', () => {
     test('event contains sdk default information', async () => {
-      const mockedSend = jest.fn<PromiseLike<void>, [Envelope]>().mockResolvedValue(undefined);
+      const mockedSend = jest.fn<PromiseLike<TransportMakeRequestResponse>, [Envelope]>().mockResolvedValue({});
       const mockedTransport = (): Transport => ({
         send: mockedSend,
         flush: jest.fn().mockResolvedValue(true),
@@ -434,7 +434,7 @@ describe('Tests ReactNativeClient', () => {
 
   describe('normalizes events', () => {
     test('handles circular input', async () => {
-      const mockedSend = jest.fn<PromiseLike<void>, [Envelope]>();
+      const mockedSend = jest.fn<PromiseLike<TransportMakeRequestResponse>, [Envelope]>().mockResolvedValue({});
       const mockedTransport = (): Transport => ({
         send: mockedSend,
         flush: jest.fn().mockResolvedValue(true),
@@ -467,7 +467,7 @@ describe('Tests ReactNativeClient', () => {
 
   describe('clientReports', () => {
     test('does not send client reports if disabled', () => {
-      const mockTransportSend = jest.fn((_envelope: Envelope) => Promise.resolve());
+      const mockTransportSend = jest.fn<PromiseLike<TransportMakeRequestResponse>, [Envelope]>().mockResolvedValue({});
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
@@ -486,7 +486,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     test('send client reports on event envelope', () => {
-      const mockTransportSend = jest.fn((_envelope: Envelope) => Promise.resolve());
+      const mockTransportSend = jest.fn<PromiseLike<TransportMakeRequestResponse>, [Envelope]>().mockResolvedValue({});
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
@@ -520,7 +520,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     test('does not send empty client report', () => {
-      const mockTransportSend = jest.fn((_envelope: Envelope) => Promise.resolve());
+      const mockTransportSend = jest.fn<PromiseLike<TransportMakeRequestResponse>, [Envelope]>().mockResolvedValue({});
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,

@@ -156,7 +156,7 @@ describe('NativeFramesInstrumentation', () => {
   });
 
   it('does not set measurements on transactions without startFrames', async () => {
-    const startFrames = null;
+    const startFrames: null = null;
     const finishFrames = {
       totalFrames: 200,
       slowFrames: 40,
@@ -191,7 +191,7 @@ describe('NativeFramesInstrumentation', () => {
       slowFrames: 20,
       frozenFrames: 5,
     };
-    const finishFrames = null;
+    const finishFrames: null = null;
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValueOnce(startFrames).mockResolvedValueOnce(finishFrames);
 
     await startSpan({ name: 'test' }, async () => {
