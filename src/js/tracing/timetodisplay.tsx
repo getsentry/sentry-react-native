@@ -36,6 +36,7 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
   const activeSpan = getActiveSpan();
   if (activeSpan) {
     manualInitialDisplaySpans.set(activeSpan, true);
+    startTimeToInitialDisplaySpan();
   }
 
   return <TimeToDisplay initialDisplay={props.record}>{props.children}</TimeToDisplay>;
@@ -49,6 +50,7 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
  * <TimeToInitialDisplay record />
  */
 export function TimeToFullDisplay(props: TimeToDisplayProps): React.ReactElement {
+  startTimeToFullDisplaySpan();
   return <TimeToDisplay fullDisplay={props.record}>{props.children}</TimeToDisplay>;
 }
 
