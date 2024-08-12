@@ -5,7 +5,7 @@ export {
 export type { ReactNativeTracingIntegration } from './reactnativetracing';
 
 export { reactNavigationIntegration } from './reactnavigation';
-export { ReactNativeNavigationInstrumentation } from './reactnativenavigation';
+export { reactNativeNavigationIntegration } from './reactnativenavigation';
 
 export type { ReactNavigationCurrentRoute, ReactNavigationRoute } from './types';
 

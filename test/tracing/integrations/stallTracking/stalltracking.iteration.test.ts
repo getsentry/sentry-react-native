@@ -1,8 +1,21 @@
 import { stallTrackingIntegration } from '../../../../src/js/tracing/integrations/stalltracking';
 
+type StallTrackingWithTestProperties = ReturnType<typeof stallTrackingIntegration> & {
+  isTracking: boolean;
+  _internalState: {
+    isBackground: boolean;
+    lastIntervalMs: number;
+    timeout: ReturnType<typeof setTimeout> | null;
+    stallCount: number;
+    totalStallTime: number;
+    statsByTransaction: Map<string, { count: number; total: number }>;
+    iteration: () => void;
+  };
+};
+
 describe('Iteration', () => {
   it('Stall tracking does not set _timeout when isTracking is false', () => {
-    const stallTracking = stallTrackingIntegration();
+    const stallTracking = stallTrackingIntegration() as StallTrackingWithTestProperties;
     stallTracking['isTracking'] = false;
     stallTracking['_internalState']['isBackground'] = false;
     stallTracking['_internalState']['lastIntervalMs'] = Date.now() - 1000; // Force a timeout
@@ -12,7 +25,7 @@ describe('Iteration', () => {
     expect(stallTracking['_internalState']['timeout']).toBeNull();
   });
   it('Stall tracking does not set _timeout when isBackground is true', () => {
-    const stallTracking = stallTrackingIntegration();
+    const stallTracking = stallTrackingIntegration() as StallTrackingWithTestProperties;
     stallTracking['isTracking'] = true;
     stallTracking['_internalState']['isBackground'] = true;
     stallTracking['_internalState']['lastIntervalMs'] = Date.now() - 1000; // Force a timeout
@@ -22,7 +35,7 @@ describe('Iteration', () => {
     expect(stallTracking['_internalState']['timeout']).toBeNull();
   });
   it('Stall tracking should set _timeout when isTracking is true and isBackground false', () => {
-    const stallTracking = stallTrackingIntegration();
+    const stallTracking = stallTrackingIntegration() as StallTrackingWithTestProperties;
     stallTracking['isTracking'] = true;
     stallTracking['_internalState']['isBackground'] = false;
     jest.useFakeTimers();
@@ -32,7 +45,7 @@ describe('Iteration', () => {
     expect(stallTracking['_internalState']['timeout']).toBeDefined();
   });
   it('Stall tracking should update _stallCount and _totalStallTime when timeout condition is met', () => {
-    const stallTracking = stallTrackingIntegration();
+    const stallTracking = stallTrackingIntegration() as StallTrackingWithTestProperties;
     const LOOP_TIMEOUT_INTERVAL_MS = 50;
     const _minimumStallThreshold = 100;
     // Call _iteration with totalTimeTaken >= LOOP_TIMEOUT_INTERVAL_MS + _minimumStallThreshold

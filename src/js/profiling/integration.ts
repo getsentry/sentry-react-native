@@ -36,7 +36,7 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
         startTimestampNs: number;
       }
     | undefined;
-  let _currentProfileTimeout: number | undefined;
+  let _currentProfileTimeout: ReturnType<typeof setTimeout> | undefined;
   let isReady: boolean = false;
 
   const setupOnce = (): void => {

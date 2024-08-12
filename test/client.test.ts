@@ -2,7 +2,7 @@ import * as mockedtimetodisplaynative from './tracing/mockedtimetodisplaynative'
 jest.mock('../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
 import { defaultStackParser } from '@sentry/browser';
-import type { Envelope, Event, Outcome, Transport } from '@sentry/types';
+import type { Envelope, Event, Outcome, Transport, TransportMakeRequestResponse } from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 import * as RN from 'react-native';
 
@@ -104,7 +104,6 @@ describe('Tests ReactNativeClient', () => {
       });
 
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
-      // @ts-expect-error: Is Mocked
       await expect(RN.LogBox.ignoreLogs).toBeCalled();
     });
 
@@ -133,7 +132,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     test('use custom transport function', async () => {
-      const mySend = (_request: Envelope) => Promise.resolve();
+      const mySend = (_request: Envelope): Promise<TransportMakeRequestResponse> => Promise.resolve({});
       const myFlush = (timeout?: number) => Promise.resolve(Boolean(timeout));
       const myCustomTransportFn = (): Transport => ({
         send: mySend,

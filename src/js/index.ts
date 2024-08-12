@@ -60,7 +60,7 @@ export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 export {
   reactNativeTracingIntegration,
   reactNavigationIntegration,
-  ReactNativeNavigationInstrumentation,
+  reactNativeNavigationIntegration,
   sentryTraceGesture,
   TimeToInitialDisplay,
   TimeToFullDisplay,
