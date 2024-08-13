@@ -108,12 +108,9 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(expoContextIntegration());
   }
 
-  if (options.enableSpotlight) {
-    integrations.push(
-      spotlightIntegration({
-        sidecarUrl: options.spotlightSidecarUrl,
-      }),
-    );
+  if (options.spotlight || options.enableSpotlight) {
+    const sidecarUrl = (typeof options.spotlight === 'string' && options.spotlight) || options.spotlightSidecarUrl;
+    integrations.push(spotlightIntegration({ sidecarUrl }));
   }
 
   if (

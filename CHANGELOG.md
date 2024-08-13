@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Features
+
+- Add `spotlight` option ([#4023](https://github.com/getsentry/sentry-react-native/pull/4023))
+  - Deprecating `enableSpotlight` and `spotlightSidecarUrl`
+
 ### Fixed
 
 - fix(ttid): End and measure TTID regardless current active span ([#4019](https://github.com/getsentry/sentry-react-native/pull/4019))
