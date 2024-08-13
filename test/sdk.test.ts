@@ -456,33 +456,27 @@ describe('Tests the SDK functionality', () => {
       expectNotIntegration('NativeFrames');
     });
 
-    it('no app start integration by default', () => {
+    it('when tracing not set stall tracking the integration is not added', () => {
       init({});
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'AppStart' })]));
+      expectNotIntegration('StallTracking');
     });
 
-    it('when tracing enabled app start integration added by default', () => {
+    it('when tracing enabled stall tracking integration added by default', () => {
       init({
         tracesSampleRate: 0.5,
       });
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'AppStart' })]));
+      expectIntegration('StallTracking');
     });
 
-    it('when tracing enabled and app start disabled the integration is not added', () => {
+    it('when tracing enabled and stall tracking disabled the integration is not added', () => {
       init({
         tracesSampleRate: 0.5,
-        enableAppStartTracking: false,
+        enableStallTracking: false,
       });
 
-      const actualOptions = usedOptions();
-      const actualIntegrations = actualOptions?.integrations;
-      expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'AppStart' })]));
+      expectNotIntegration('StallTracking');
     });
 
     it('no default integrations', () => {

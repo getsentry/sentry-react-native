@@ -6,11 +6,12 @@ jest.mock('../../src/js/tracing/utils', () => ({
 import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpanManual } from '@sentry/core';
 
 import { ReactNativeTracing, ReactNavigationInstrumentation } from '../../src/js';
+import { stallTrackingIntegration } from '../../src/js/tracing/integrations/stalltracking';
 import { isNearToNow } from '../../src/js/tracing/utils';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
+import { expectStallMeasurements } from './integrations/stallTracking/stalltrackingutils';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
-import { expectStallMeasurements } from './stalltrackingutils';
 
 jest.useFakeTimers({ advanceTimers: 1 });
 
@@ -30,14 +31,14 @@ describe('StallTracking with ReactNavigation', () => {
 
     const rnTracing = new ReactNativeTracing({
       routingInstrumentation: rnavigation,
-      enableStallTracking: true,
-      enableNativeFramesTracking: false,
     });
 
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
-      integrations: [rnTracing],
+      integrations: [stallTrackingIntegration(), rnTracing],
+      enableNativeFramesTracking: false,
       enableAppStartTracking: false,
+      enableStallTracking: true,
     });
     client = new TestClient(options);
     setCurrentClient(client);
