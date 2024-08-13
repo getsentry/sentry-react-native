@@ -100,8 +100,7 @@ export function isNearToNow(timestamp: number): boolean {
  * Uses `setMeasurement` function from @sentry/core.
  */
 export function setSpanDurationAsMeasurement(name: string, span: Span): void {
-  const spanEnd = spanToJSON(span).timestamp;
-  const spanStart = spanToJSON(span).start_timestamp;
+  const { timestamp: spanEnd, start_timestamp: spanStart } = spanToJSON(span);
   if (!spanEnd || !spanStart) {
     return;
   }
@@ -118,8 +117,7 @@ export function setSpanDurationAsMeasurementOnTransaction(
   name: string,
   span: Span,
 ): void {
-  const spanEnd = spanToJSON(span).timestamp;
-  const spanStart = spanToJSON(span).start_timestamp;
+  const { timestamp: spanEnd, start_timestamp: spanStart } = spanToJSON(span);
   if (!spanEnd || !spanStart) {
     return;
   }
