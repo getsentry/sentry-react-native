@@ -12,6 +12,7 @@
   - Fixes possible missing TTID measurements and spans
 - Fix crash when passing array as data to `Sentry.addBreadcrumb({ data: [] })` ([#4021](https://github.com/getsentry/sentry-react-native/pull/4021))
   - The expected `data` type is plain JS object, otherwise the data might be lost.
+- Fix requireNativeComponent missing in react-native-web #3823 ([#3958](https://github.com/getsentry/sentry-react-native/pull/3958))
 
 ### Dependencies
 
