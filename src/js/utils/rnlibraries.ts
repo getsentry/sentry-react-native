@@ -34,4 +34,10 @@ export const ReactNativeLibraries: Required<ReactNativeLibrariesInterface> = {
     version: Platform.constants?.reactNativeVersion,
   },
   TurboModuleRegistry,
+  ReactNative: {
+    requireNativeComponent: <T>(viewName: string): ReactNative.HostComponent<T> => {
+      const { requireNativeComponent } = require('react-native');
+      return requireNativeComponent(viewName);
+    },
+  },
 };
