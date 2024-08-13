@@ -12,6 +12,7 @@
   - Fixes possible missing TTID measurements and spans
 - Fix crash when passing array as data to `Sentry.addBreadcrumb({ data: [] })` ([#4021](https://github.com/getsentry/sentry-react-native/pull/4021))
   - The expected `data` type is plain JS object, otherwise the data might be lost.
+- Fix requireNativeComponent missing in react-native-web #3823 ([#3958](https://github.com/getsentry/sentry-react-native/pull/3958))
 
 ### Dependencies
 
@@ -37,7 +38,6 @@
 
 ### Fixes
 
-- Fix requireNativeComponent missing in react-native-web #3823 ([#3958](https://github.com/getsentry/sentry-react-native/pull/3958))
 - Pass `sampleRate` option to the Android SDK ([#3979](https://github.com/getsentry/sentry-react-native/pull/3979))
 - Drop app start data older than one minute ([#3974](https://github.com/getsentry/sentry-react-native/pull/3974))
 - Use `Platform.constants.reactNativeVersion` instead of `react-native` internal export ([#3949](https://github.com/getsentry/sentry-react-native/pull/3949))
