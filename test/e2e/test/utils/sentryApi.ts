@@ -36,7 +36,9 @@ const fetchFromSentry = async (url: string): Promise<Response> => {
         setTimeout(() => {
           retries++;
           // eslint-disable-next-line no-console
-          console.log(`API request (${url}) failed with: ${response.statusText}. Retrying. Retry number: ${retries}/${RETRY_COUNT}`);
+          console.log(
+            `API request (${url}) failed with: ${response.statusText}. Retrying. Retry number: ${retries}/${RETRY_COUNT}`,
+          );
           resolve(request().then(retrier));
         }, RETRY_INTERVAL);
       } else {
@@ -45,11 +47,11 @@ const fetchFromSentry = async (url: string): Promise<Response> => {
     });
 
   return request().then(retrier);
-}
+};
 
 const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
   const response = await fetchFromSentry(`${baseUrl}/events/${eventId}/`);
-  const json = await response.json()
+  const json = await response.json();
   return json as ApiEvent;
 };
 
