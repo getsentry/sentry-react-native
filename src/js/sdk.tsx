@@ -34,6 +34,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableCaptureFailedRequests: false,
   enableNdk: true,
   enableAppStartTracking: true,
+  enableNativeFramesTracking: true,
 };
 
 /**

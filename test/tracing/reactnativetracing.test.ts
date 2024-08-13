@@ -212,39 +212,6 @@ describe('ReactNativeTracing', () => {
     });
   });
 
-  describe('Native Frames', () => {
-    let client: TestClient;
-
-    beforeEach(() => {
-      client = setupTestClient();
-    });
-
-    it('Initialize native frames instrumentation if flag is true', async () => {
-      const integration = new ReactNativeTracing({
-        enableNativeFramesTracking: true,
-      });
-      integration.setup(client);
-
-      await jest.advanceTimersByTimeAsync(500);
-
-      expect(integration.nativeFramesInstrumentation).toBeDefined();
-      expect(NATIVE.enableNativeFramesTracking).toBeCalledTimes(1);
-    });
-    it('Does not initialize native frames instrumentation if flag is false', async () => {
-      const integration = new ReactNativeTracing({
-        enableNativeFramesTracking: false,
-      });
-
-      integration.setup(client);
-
-      await jest.advanceTimersByTimeAsync(500);
-
-      expect(integration.nativeFramesInstrumentation).toBeUndefined();
-      expect(NATIVE.disableNativeFramesTracking).toBeCalledTimes(1);
-      expect(NATIVE.fetchNativeFrames).not.toBeCalled();
-    });
-  });
-
   describe('Routing Instrumentation', () => {
     let client: TestClient;
 
