@@ -330,16 +330,6 @@ describe('Tests ReactNativeClient', () => {
 
     beforeEach(() => {
       mockTransportSend = jest.fn(() => Promise.resolve());
-      client = new ReactNativeClient({
-        ...DEFAULT_OPTIONS,
-        attachStacktrace: true,
-        stackParser: defaultStackParser,
-        dsn: EXAMPLE_DSN,
-        transport: () => ({
-          send: mockTransportSend,
-          flush: jest.fn(),
-        }),
-      } as ReactNativeClientOptions);
     });
 
     afterEach(() => {
@@ -350,6 +340,17 @@ describe('Tests ReactNativeClient', () => {
       func.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload];
 
     test('captureMessage contains stack trace in exception', async () => {
+      client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        attachStacktrace: true,
+        stackParser: defaultStackParser,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+      } as ReactNativeClientOptions);
+
       const mockSyntheticExceptionFromHub = new Error();
       client.captureMessage('test message', 'error', { syntheticException: mockSyntheticExceptionFromHub });
       expect(getMessageEventFrom(mockTransportSend).exception.values.length).toBeGreaterThan(0);
