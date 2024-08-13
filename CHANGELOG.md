@@ -6,17 +6,24 @@
 
 - Add `spotlight` option ([#4023](https://github.com/getsentry/sentry-react-native/pull/4023))
   - Deprecating `enableSpotlight` and `spotlightSidecarUrl`
+- `TimeToInitialDisplay` and `TimeToFullDisplay` start the time to display spans on mount ([#4020](https://github.com/getsentry/sentry-react-native/pull/4020))
 
 ### Fixed
 
 - fix(ttid): End and measure TTID regardless current active span ([#4019](https://github.com/getsentry/sentry-react-native/pull/4019))
   - Fixes possible missing TTID measurements and spans
+- Fix crash when passing array as data to `Sentry.addBreadcrumb({ data: [] })` ([#4021](https://github.com/getsentry/sentry-react-native/pull/4021))
+  - The expected `data` type is plain JS object, otherwise the data might be lost.
+- Fix `requireNativeComponent` missing in `react-native-web` ([#3958](https://github.com/getsentry/sentry-react-native/pull/3958))
 
 ### Dependencies
 
 - Bump JavaScript SDK from v7.117.0 to v7.118.0 ([#4018](https://github.com/getsentry/sentry-react-native/pull/4018))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/v7/CHANGELOG.md#71180)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.117.0...7.118.0)
+- Bump Android SDK from v7.13.0 to v7.14.0 ([#4022](https://github.com/getsentry/sentry-react-native/pull/4022))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7140)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.13.0...7.14.0)
 
 ## 5.28.0
 
