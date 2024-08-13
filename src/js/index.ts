@@ -58,7 +58,7 @@ export { init, wrap, nativeCrash, flush, close, captureUserFeedback, withScope }
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 
 export {
-  ReactNativeTracing,
+  reactNativeTracingIntegration,
   ReactNavigationV5Instrumentation,
   ReactNavigationInstrumentation,
   ReactNativeNavigationInstrumentation,

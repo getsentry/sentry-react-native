@@ -16,6 +16,7 @@ import { type SentryEventEmitter, createSentryEventEmitter, NewFrameEventName } 
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
+import { DEFAULT_NAVIGATION_SPAN_NAME } from './reactnativetracing';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
 import { InternalRoutingInstrumentation } from './routingInstrumentation';
 import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
@@ -192,7 +193,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       this._clearStateChangeTimeout();
     }
 
-    this._latestTransaction = this.onRouteWillChange({ name: 'Route Change' });
+    this._latestTransaction = this.onRouteWillChange({ name: DEFAULT_NAVIGATION_SPAN_NAME });
 
     if (this._options.enableTimeToInitialDisplay) {
       this._navigationProcessingSpan = startInactiveSpan({
@@ -288,7 +289,9 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
           this._navigationProcessingSpan?.end(stateChangedTimestamp);
           this._navigationProcessingSpan = undefined;
 
-          this._latestTransaction.updateName(route.name);
+          if (spanToJSON(this._latestTransaction).description === DEFAULT_NAVIGATION_SPAN_NAME) {
+            this._latestTransaction.updateName(route.name);
+          }
           this._latestTransaction.setAttributes({
             'route.name': route.name,
             'route.key': route.key,
@@ -303,7 +306,6 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
           });
 
-          this._beforeNavigate?.(this._latestTransaction);
           // Clear the timeout so the transaction does not get cancelled.
           this._clearStateChangeTimeout();
 

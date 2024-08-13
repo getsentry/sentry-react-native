@@ -22,7 +22,7 @@ import {
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD as UI_LOAD_OP,
 } from '../ops';
-import { ReactNativeTracing } from '../reactnativetracing';
+import { getReactNativeTracingIntegration } from '../reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP } from '../semanticAttributes';
 import { createChildSpanJSON, createSpanJSON, getBundleStartTimestampMs } from '../utils';
 
@@ -126,8 +126,7 @@ export const appStartIntegration = ({
   const afterAllSetup = (client: Client): void => {
     if (standaloneUserOption === undefined) {
       // If not user defined, set based on the routing instrumentation presence
-      standalone = !client.getIntegrationByName<ReactNativeTracing>(ReactNativeTracing.id)?.options
-        .routingInstrumentation;
+      standalone = !getReactNativeTracingIntegration(client)?.options.routingInstrumentation;
     }
   };
 

@@ -8,7 +8,8 @@ import {
   sentryTraceGesture,
 } from '../../src/js/tracing/gesturetracing';
 import { startUserInteractionSpan } from '../../src/js/tracing/integrations/userInteraction';
-import { ReactNativeTracing } from '../../src/js/tracing/reactnativetracing';
+import type { ReactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
+import { reactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
 import { type TestClient, setupTestClient } from '../mocks/client';
 import type { MockedRoutingInstrumentation } from './mockedrountinginstrumention';
 import { createMockedRoutingInstrumentation } from './mockedrountinginstrumention';
@@ -37,7 +38,7 @@ describe('GestureTracing', () => {
 
   describe('gracefully fails on invalid gestures', () => {
     it('gesture is undefined', () => {
-      const gesture = undefined;
+      const gesture: unknown = undefined;
       expect(sentryTraceGesture(label, gesture)).toBeUndefined();
     });
 
@@ -49,7 +50,7 @@ describe('GestureTracing', () => {
 
   describe('traces gestures', () => {
     let client: TestClient;
-    let tracing: ReactNativeTracing;
+    let tracing: ReactNativeTracingIntegration;
     let mockedRoutingInstrumentation: MockedRoutingInstrumentation;
     let mockedGesture: MockGesture;
 
@@ -60,7 +61,7 @@ describe('GestureTracing', () => {
         enableUserInteractionTracing: true,
       });
       mockedRoutingInstrumentation = createMockedRoutingInstrumentation();
-      tracing = new ReactNativeTracing({
+      tracing = reactNativeTracingIntegration({
         routingInstrumentation: mockedRoutingInstrumentation,
       });
       client.addIntegration(tracing);

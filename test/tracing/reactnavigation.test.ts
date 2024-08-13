@@ -1,8 +1,10 @@
 /* eslint-disable deprecation/deprecation */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getCurrentScope, getGlobalScope, getIsolationScope, SentrySpan, setCurrentClient } from '@sentry/core';
+import type { StartSpanOptions } from '@sentry/types';
 
-import { ReactNativeTracing } from '../../src/js';
+import { reactNativeTracingIntegration } from '../../src/js';
+import { DEFAULT_NAVIGATION_SPAN_NAME } from '../../src/js/tracing/reactnativetracing';
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 import { ReactNavigationInstrumentation } from '../../src/js/tracing/reactnavigation';
 import {
@@ -17,7 +19,6 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE,
   SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
 } from '../../src/js/tracing/semanticAttributes';
-import type { BeforeNavigate } from '../../src/js/tracing/types';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
@@ -152,10 +153,11 @@ describe('ReactNavigationInstrumentation', () => {
     );
   });
 
-  test('transaction context changed with beforeNavigate', async () => {
+  test('start span option changed in before start span callback', async () => {
     setupTestClient({
-      beforeNavigate: span => {
-        span.updateName('New Span Name');
+      beforeSpanStart: startSpanOption => {
+        startSpanOption.name = 'New Span Name';
+        return startSpanOption;
       },
     });
     jest.runOnlyPendingTimers(); // Flush the init transaction
@@ -295,7 +297,7 @@ describe('ReactNavigationInstrumentation', () => {
         routeChangeTimeoutMs: 200,
       });
 
-      const mockTransaction = new SentrySpan({ sampled: true });
+      const mockTransaction = new SentrySpan({ sampled: true, name: DEFAULT_NAVIGATION_SPAN_NAME });
       const tracingListener = jest.fn(() => mockTransaction);
       instrumentation.registerRoutingInstrumentation(
         tracingListener as any,
@@ -323,7 +325,7 @@ describe('ReactNavigationInstrumentation', () => {
 
   function setupTestClient(
     setupOptions: {
-      beforeNavigate?: BeforeNavigate;
+      beforeSpanStart?: (options: StartSpanOptions) => StartSpanOptions;
     } = {},
   ) {
     const rNavigation = new ReactNavigationInstrumentation({
@@ -331,14 +333,14 @@ describe('ReactNavigationInstrumentation', () => {
     });
     mockNavigation = createMockNavigationAndAttachTo(rNavigation);
 
-    const rnTracing = new ReactNativeTracing({
+    const rnTracing = reactNativeTracingIntegration({
       routingInstrumentation: rNavigation,
-      enableStallTracking: false,
-      enableNativeFramesTracking: false,
-      beforeNavigate: setupOptions.beforeNavigate,
+      beforeStartSpan: setupOptions.beforeSpanStart,
     });
 
     const options = getDefaultTestClientOptions({
+      enableNativeFramesTracking: false,
+      enableStallTracking: false,
       tracesSampleRate: 1.0,
       integrations: [rnTracing],
       enableAppStartTracking: false,
