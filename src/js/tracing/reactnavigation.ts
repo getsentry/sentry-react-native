@@ -4,7 +4,6 @@ import {
   getActiveSpan,
   getClient,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
-  setMeasurement,
   SPAN_STATUS_OK,
   spanToJSON,
   startInactiveSpan,
@@ -28,6 +27,7 @@ import {
   startIdleNavigationSpan as startGenericIdleNavigationSpan,
 } from './span';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
+import { setSpanDurationAsMeasurementOnSpan } from './utils';
 
 export const INTEGRATION_NAME = 'ReactNavigation';
 
@@ -242,6 +242,7 @@ export const reactNavigationIntegration = ({
     }
 
     const routeHasBeenSeen = recentRouteKeys.includes(route.key);
+
     const latestTtidSpan =
       !routeHasBeenSeen &&
       enableTimeToInitialDisplay &&
@@ -250,41 +251,21 @@ export const reactNavigationIntegration = ({
         isAutoInstrumented: true,
       });
 
+    const navigationSpanWithTtid = latestNavigationSpan;
     !routeHasBeenSeen &&
+      latestTtidSpan &&
       newScreenFrameEventEmitter?.once(NewFrameEventName, ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
         const activeSpan = getActiveSpan();
-        if (!activeSpan) {
-          logger.warn(`${INTEGRATION_NAME} No active span found to attach ui.load.initial_display to.`);
-          return;
-        }
-
-        if (manualInitialDisplaySpans.has(activeSpan)) {
-          logger.warn(`${INTEGRATION_NAME} Detected manual instrumentation for the current active span.`);
-          return;
-        }
-
-        if (!latestTtidSpan) {
-          return;
-        }
-
-        if (spanToJSON(latestTtidSpan).parent_span_id !== getActiveSpan()?.spanContext().spanId) {
+        if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
           logger.warn(
-            `${INTEGRATION_NAME} Currently Active Span changed before the new frame was rendered, _latestTtidSpan is not a child of the currently active span.`,
+            '[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.',
           );
           return;
         }
 
         latestTtidSpan.setStatus({ code: SPAN_STATUS_OK });
         latestTtidSpan.end(newFrameTimestampInSeconds);
-        const ttidSpan = spanToJSON(latestTtidSpan);
-
-        const ttidSpanEnd = ttidSpan.timestamp;
-        const ttidSpanStart = ttidSpan.start_timestamp;
-        if (!ttidSpanEnd || !ttidSpanStart) {
-          return;
-        }
-
-        setMeasurement('time_to_initial_display', (ttidSpanEnd - ttidSpanStart) * 1000, 'millisecond');
+        setSpanDurationAsMeasurementOnSpan('time_to_initial_display', latestTtidSpan, navigationSpanWithTtid);
       });
 
     navigationProcessingSpan?.updateName(`Processing navigation to ${route.name}`);
