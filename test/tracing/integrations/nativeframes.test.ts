@@ -19,10 +19,16 @@ jest.mock('../../../src/js/wrapper', () => {
 
 jest.useFakeTimers({ advanceTimers: true });
 
+const mockDate = new Date(2024, 7, 14); // Set your desired mock date here
+const originalDateNow = Date.now; // Store the original Date.now function
+
 describe('NativeFramesInstrumentation', () => {
   let client: TestClient;
+  let asyncProcessorBeforeNativeFrames: (event: Event) => Promise<Event> = async (event: Event) => event;
 
   beforeEach(() => {
+    global.Date.now = jest.fn(() => mockDate.getTime());
+
     getCurrentScope().clear();
     getIsolationScope().clear();
     getGlobalScope().clear();
@@ -30,7 +36,13 @@ describe('NativeFramesInstrumentation', () => {
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
       enableNativeFramesTracking: true,
-      integrations: [nativeFramesIntegration()],
+      integrations: [
+        {
+          name: 'MockAsyncIntegration',
+          processEvent: e => asyncProcessorBeforeNativeFrames(e),
+        },
+        nativeFramesIntegration(),
+      ],
     });
     client = new TestClient(options);
     setCurrentClient(client);
@@ -39,6 +51,7 @@ describe('NativeFramesInstrumentation', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    global.Date.now = originalDateNow;
   });
 
   it('sets native frames measurements on a transaction event', async () => {
@@ -216,6 +229,15 @@ describe('NativeFramesInstrumentation', () => {
   });
 
   it('does not set measurements on a transaction event for which finishFrames times out.', async () => {
+    asyncProcessorBeforeNativeFrames = async (event: Event) => {
+      // Questionable, but it works for testing the timeout without mocking the AsyncExpiringMap
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      global.Date.now = jest.fn(() => mockDate.getTime() + 2100); // hardcoded final frames timeout 2000ms
+      return event;
+    };
+
     const startFrames = {
       totalFrames: 100,
       slowFrames: 20,
