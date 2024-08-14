@@ -257,9 +257,7 @@ export const reactNavigationIntegration = ({
       newScreenFrameEventEmitter?.once(NewFrameEventName, ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
         const activeSpan = getActiveSpan();
         if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
-          logger.warn(
-            '[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.',
-          );
+          logger.warn('[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.');
           return;
         }
 
