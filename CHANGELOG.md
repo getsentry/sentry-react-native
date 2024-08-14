@@ -1,11 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Add `spotlight` option ([#4023](https://github.com/getsentry/sentry-react-native/pull/4023))
+  - Deprecating `enableSpotlight` and `spotlightSidecarUrl`
+
 ## 5.29.0
 
 ### Features
 
-- Add `spotlight` option ([#4023](https://github.com/getsentry/sentry-react-native/pull/4023))
-  - Deprecating `enableSpotlight` and `spotlightSidecarUrl`
 - `TimeToInitialDisplay` and `TimeToFullDisplay` start the time to display spans on mount ([#4020](https://github.com/getsentry/sentry-react-native/pull/4020))
 
 ### Fixed
