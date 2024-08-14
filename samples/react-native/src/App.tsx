@@ -117,6 +117,9 @@ Sentry.init({
     replaysOnErrorSampleRate: 1.0,
   },
   enableSpotlight: true,
+  // This should be disabled when manually initializing the native SDK
+  // Note that options from JS are not passed to the native SDKs when initialized manually
+  autoInitializeNativeSdk: true,
 });
 
 const Stack = isMobileOs

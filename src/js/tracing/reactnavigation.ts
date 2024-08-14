@@ -3,7 +3,6 @@ import {
   addBreadcrumb,
   getActiveSpan,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
-  setMeasurement,
   SPAN_STATUS_OK,
   spanToJSON,
   startInactiveSpan,
@@ -22,6 +21,7 @@ import { InternalRoutingInstrumentation } from './routingInstrumentation';
 import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
 import type { BeforeNavigate } from './types';
+import { setSpanDurationAsMeasurementOnSpan } from './utils';
 
 export interface NavigationRoute {
   name: string;
@@ -232,6 +232,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
       if (this._latestTransaction) {
         if (!previousRoute || previousRoute.key !== route.key) {
           const routeHasBeenSeen = this._recentRouteKeys.includes(route.key);
+          const latestTransaction = this._latestTransaction;
           const latestTtidSpan =
             !routeHasBeenSeen &&
             this._options.enableTimeToInitialDisplay &&
@@ -241,46 +242,21 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             });
 
           !routeHasBeenSeen &&
+            latestTtidSpan &&
             this._newScreenFrameEventEmitter?.once(
               NewFrameEventName,
               ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
                 const activeSpan = getActiveSpan();
-                if (!activeSpan) {
-                  logger.warn(
-                    '[ReactNavigationInstrumentation] No active span found to attach ui.load.initial_display to.',
-                  );
-                  return;
-                }
-
-                if (manualInitialDisplaySpans.has(activeSpan)) {
+                if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
                   logger.warn(
                     '[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.',
                   );
                   return;
                 }
 
-                if (!latestTtidSpan) {
-                  return;
-                }
-
-                if (spanToJSON(latestTtidSpan).parent_span_id !== getActiveSpan()?.spanContext().spanId) {
-                  logger.warn(
-                    '[ReactNavigationInstrumentation] Currently Active Span changed before the new frame was rendered, _latestTtidSpan is not a child of the currently active span.',
-                  );
-                  return;
-                }
-
                 latestTtidSpan.setStatus({ code: SPAN_STATUS_OK });
                 latestTtidSpan.end(newFrameTimestampInSeconds);
-                const ttidSpan = spanToJSON(latestTtidSpan);
-
-                const ttidSpanEnd = ttidSpan.timestamp;
-                const ttidSpanStart = ttidSpan.start_timestamp;
-                if (!ttidSpanEnd || !ttidSpanStart) {
-                  return;
-                }
-
-                setMeasurement('time_to_initial_display', (ttidSpanEnd - ttidSpanStart) * 1000, 'millisecond');
+                setSpanDurationAsMeasurementOnSpan('time_to_initial_display', latestTtidSpan, latestTransaction);
               },
             );
 

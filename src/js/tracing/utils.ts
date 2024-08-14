@@ -45,13 +45,25 @@ export function isNearToNow(timestamp: number | undefined): boolean {
  * Uses `setMeasurement` function from @sentry/core.
  */
 export function setSpanDurationAsMeasurement(name: string, span: Span): void {
-  const spanEnd = spanToJSON(span).timestamp;
-  const spanStart = spanToJSON(span).start_timestamp;
+  const { timestamp: spanEnd, start_timestamp: spanStart } = spanToJSON(span);
   if (!spanEnd || !spanStart) {
     return;
   }
 
   setMeasurement(name, (spanEnd - spanStart) * 1000, 'millisecond');
+}
+
+/**
+ * Sets the duration of the span as a measurement.
+ * Uses `setMeasurement` function from @sentry/core.
+ */
+export function setSpanDurationAsMeasurementOnSpan(name: string, span: Span, on: Span): void {
+  const { timestamp: spanEnd, start_timestamp: spanStart } = spanToJSON(span);
+  if (!spanEnd || !spanStart) {
+    return;
+  }
+
+  setSpanMeasurement(on, name, (spanEnd - spanStart) * 1000, 'millisecond');
 }
 
 /**

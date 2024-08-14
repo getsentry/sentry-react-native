@@ -23,7 +23,6 @@ import {
   UI_LOAD as UI_LOAD_OP,
 } from '../ops';
 import { getReactNativeTracingIntegration } from '../reactnativetracing';
-// import { getReactNativeTracingIntegration } from '../reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP } from '../semanticAttributes';
 import { createChildSpanJSON, createSpanJSON, getBundleStartTimestampMs } from '../utils';
 

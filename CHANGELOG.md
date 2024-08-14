@@ -39,6 +39,43 @@
   });
   ```
 
+### Features
+
+- `TimeToInitialDisplay` and `TimeToFullDisplay` start the time to display spans on mount ([#4020](https://github.com/getsentry/sentry-react-native/pull/4020))
+
+### Fixed
+
+- fix(ttid): End and measure TTID regardless current active span ([#4019](https://github.com/getsentry/sentry-react-native/pull/4019))
+  - Fixes possible missing TTID measurements and spans
+- Fix crash when passing array as data to `Sentry.addBreadcrumb({ data: [] })` ([#4021](https://github.com/getsentry/sentry-react-native/pull/4021))
+  - The expected `data` type is plain JS object, otherwise the data might be lost.
+- Fix `requireNativeComponent` missing in `react-native-web` ([#3958](https://github.com/getsentry/sentry-react-native/pull/3958))
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.117.0 to v7.118.0 ([#4018](https://github.com/getsentry/sentry-react-native/pull/4018))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/v7/CHANGELOG.md#71180)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.117.0...7.118.0)
+- Bump Android SDK from v7.13.0 to v7.14.0 ([#4022](https://github.com/getsentry/sentry-react-native/pull/4022))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7140)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.13.0...7.14.0)
+
+## 5.28.0
+
+### Fixes
+
+- Support `metro@0.80.10` new `sourceMapString` export ([#4004](https://github.com/getsentry/sentry-react-native/pull/4004))
+- `Sentry.captureMessage` stack trace is in `event.exception` (moved from `event.threads`) ([#3635](https://github.com/getsentry/sentry-react-native/pull/3635), [#3988](https://github.com/getsentry/sentry-react-native/pull/3988))
+  - To revert to the old behavior (causing the stack to be unsymbolicated) use `useThreadsForMessageStack` option
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.32.0 to v8.33.0 ([#4007](https://github.com/getsentry/sentry-react-native/pull/4007))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8330)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.32.0...8.33.0)
+
+## 5.27.0
+
 ### Fixes
 
 - Pass `sampleRate` option to the Android SDK ([#3979](https://github.com/getsentry/sentry-react-native/pull/3979))
@@ -50,6 +87,9 @@
 - Bump Android SDK from v7.12.0 to v7.13.0 ([#3970](https://github.com/getsentry/sentry-react-native/pull/3970), [#3984](https://github.com/getsentry/sentry-react-native/pull/3984))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7130)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.12.0...7.13.0)
+- Bump Cocoa SDK from v8.31.1 to v8.32.0 ([#3969](https://github.com/getsentry/sentry-react-native/pull/3969))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8320)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.31.1...8.32.0)
 
 ## 5.26.0
 
