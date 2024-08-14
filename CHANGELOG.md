@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add `spotlight` option ([#4023](https://github.com/getsentry/sentry-react-native/pull/4023))
+  - Deprecating `enableSpotlight` and `spotlightSidecarUrl`
+
 ## 5.29.0
 
 ### Features
