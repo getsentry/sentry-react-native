@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+This is an alpha version of the next major version of the Sentry React Native SDK 6.0.0.
+Please read the changes listed below as well as the changes made in the underlying
+Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascript/guides/react/migration/v7-to-v8/)).
+
 ### Changes
 
 - Removed deprecated ReactNativeTracing option `idleTimeout` use `idleTimeoutMs` instead ([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
