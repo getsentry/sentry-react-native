@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 6.0.0-alpha.0
 
 This is an alpha version of the next major version of the Sentry React Native SDK 6.0.0.
 Please read the changes listed below as well as the changes made in the underlying
