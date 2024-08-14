@@ -1,7 +1,7 @@
 import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
 jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
-import { getCurrentScope, getGlobalScope, getIsolationScope, getSpanDescendants, setCurrentClient, spanToJSON, startSpanManual} from '@sentry/core';
+import { getActiveSpan, getCurrentScope, getGlobalScope, getIsolationScope, getSpanDescendants, setCurrentClient, spanToJSON, startSpanManual} from '@sentry/core';
 import type { Event, Measurements, Span, SpanJSON} from '@sentry/types';
 import * as React from "react";
 import * as TestRenderer from 'react-test-renderer';
@@ -73,6 +73,61 @@ describe('TimeToDisplay', () => {
         emitNativeInitialDisplayEvent();
 
         TestRenderer.create(<TimeToFullDisplay record={true} />);
+        emitNativeFullDisplayEvent();
+
+        activeSpan?.end();
+        return [testSpan, activeSpan];
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    expectFullDisplayMeasurementOnSpan(client.event!);
+    expectFinishedFullDisplaySpan(testSpan, activeSpan);
+    expect(spanToJSON(testSpan!).start_timestamp).toEqual(spanToJSON(activeSpan!).start_timestamp);
+  });
+
+  test('creates initial display span on first component render', async () => {
+    const [testSpan, activeSpan] = startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+       (activeSpan: Span | undefined) => {
+        const renderer = TestRenderer.create(<TimeToInitialDisplay record={false} />);
+        const testSpan = getInitialDisplaySpan(activeSpan);
+
+        renderer.update(<TimeToInitialDisplay record={true} />);
+        emitNativeInitialDisplayEvent();
+
+        activeSpan?.end();
+        return [testSpan, activeSpan];
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    expectInitialDisplayMeasurementOnSpan(client.event!);
+    expectFinishedInitialDisplaySpan(testSpan, activeSpan);
+    expect(spanToJSON(testSpan!).start_timestamp).toEqual(spanToJSON(activeSpan!).start_timestamp);
+  });
+
+  test('creates full display span on first component render', async () => {
+    const [testSpan, activeSpan] = startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
+        TestRenderer.create(<TimeToInitialDisplay record={true} />);
+        emitNativeInitialDisplayEvent();
+
+        const renderer = TestRenderer.create(<TimeToFullDisplay record={false} />);
+        const testSpan = getFullDisplaySpan(getActiveSpan());
+
+        renderer.update(<TimeToFullDisplay record={true} />);
         emitNativeFullDisplayEvent();
 
         activeSpan?.end();
