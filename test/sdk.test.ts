@@ -406,7 +406,7 @@ describe('Tests the SDK functionality', () => {
       expectNotIntegration('Spotlight');
     });
 
-    it('adds spotlight integration', () => {
+    it('adds spotlight integration with enableSpotlight', () => {
       init({
         enableSpotlight: true,
       });
@@ -514,6 +514,26 @@ describe('Tests the SDK functionality', () => {
 
         expectIntegration('UserInteraction');
       });
+    });
+
+    it('adds spotlight integration with spotlight bool', () => {
+      init({
+        spotlight: true,
+      });
+
+      const actualOptions = usedOptions();
+      const actualIntegrations = actualOptions?.integrations;
+      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Spotlight' })]));
+    });
+
+    it('adds spotlight integration with direct url', () => {
+      init({
+        spotlight: 'http://localhost:8969/stream',
+      });
+
+      const actualOptions = usedOptions();
+      const actualIntegrations = actualOptions?.integrations;
+      expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Spotlight' })]));
     });
 
     it('no default integrations', () => {

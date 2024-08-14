@@ -77,6 +77,17 @@
   });
   ```
 
+- Add `spotlight` option ([#4023](https://github.com/getsentry/sentry-react-native/pull/4023))
+  - Deprecating `enableSpotlight` and `spotlightSidecarUrl`
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.118.0 to v8.11.0 ([#3910](https://github.com/getsentry/sentry-react-native/pull/3910))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8110)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.118.0...8.11.0)
+
+## 5.29.0
+
 ### Features
 
 - `TimeToInitialDisplay` and `TimeToFullDisplay` start the time to display spans on mount ([#4020](https://github.com/getsentry/sentry-react-native/pull/4020))
