@@ -343,7 +343,6 @@ This release does *not* build on iOS. Please use `5.23.1` or newer.
 ### Fixes
 
 - Remove unused `rnpm` config ([#3811](https://github.com/getsentry/sentry-react-native/pull/3811))
-- CaptureMessage stack-trace is now symbolicated ([#3635](https://github.com/getsentry/sentry-react-native/pull/3635))
 
 ### Dependencies
 
