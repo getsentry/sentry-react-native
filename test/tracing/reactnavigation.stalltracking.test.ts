@@ -5,7 +5,7 @@ jest.mock('../../src/js/tracing/utils', () => ({
 
 import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpanManual } from '@sentry/core';
 
-import { reactNativeTracingIntegration, ReactNavigationInstrumentation } from '../../src/js';
+import { reactNativeTracingIntegration, reactNavigationIntegration } from '../../src/js';
 import { stallTrackingIntegration } from '../../src/js/tracing/integrations/stalltracking';
 import { isNearToNow } from '../../src/js/tracing/utils';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
@@ -26,12 +26,10 @@ describe('StallTracking with ReactNavigation', () => {
     getIsolationScope().clear();
     getGlobalScope().clear();
 
-    const rnavigation = new ReactNavigationInstrumentation();
+    const rnavigation = reactNavigationIntegration();
     mockNavigation = createMockNavigationAndAttachTo(rnavigation);
 
-    const rnTracing = reactNativeTracingIntegration({
-      routingInstrumentation: rnavigation,
-    });
+    const rnTracing = reactNativeTracingIntegration();
 
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,

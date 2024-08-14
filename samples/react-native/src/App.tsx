@@ -38,11 +38,11 @@ LogBox.ignoreAllLogs();
 
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 
-const reactNavigationInstrumentation =
-  new Sentry.ReactNavigationInstrumentation({
-    routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
-    enableTimeToInitialDisplay: isMobileOs,
-  });
+const reactNavigationIntegration = Sentry.reactNavigationIntegration({
+  routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
+  enableTimeToInitialDisplay: isMobileOs,
+  ignoreEmptyBackNavigationTransactions: true,
+});
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
@@ -66,11 +66,10 @@ Sentry.init({
   },
   integrations(integrations) {
     integrations.push(
+      reactNavigationIntegration,
       Sentry.reactNativeTracingIntegration({
         // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
         idleTimeoutMs: 5_000,
-        routingInstrumentation: reactNavigationInstrumentation,
-        ignoreEmptyBackNavigationTransactions: true,
       }),
       Sentry.httpClientIntegration({
         // These options are effective only in JS.
@@ -183,7 +182,7 @@ function BottomTabs() {
     <NavigationContainer
       ref={navigation}
       onReady={() => {
-        reactNavigationInstrumentation.registerNavigationContainer(navigation);
+        reactNavigationIntegration.registerNavigationContainer(navigation);
       }}>
       <Tab.Navigator
         screenOptions={{

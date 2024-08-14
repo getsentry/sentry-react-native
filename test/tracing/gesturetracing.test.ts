@@ -11,8 +11,6 @@ import { startUserInteractionSpan } from '../../src/js/tracing/integrations/user
 import type { ReactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
 import { reactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
 import { type TestClient, setupTestClient } from '../mocks/client';
-import type { MockedRoutingInstrumentation } from './mockedrountinginstrumention';
-import { createMockedRoutingInstrumentation } from './mockedrountinginstrumention';
 
 jest.mock('../../src/js/wrapper', () => {
   return {
@@ -51,7 +49,6 @@ describe('GestureTracing', () => {
   describe('traces gestures', () => {
     let client: TestClient;
     let tracing: ReactNativeTracingIntegration;
-    let mockedRoutingInstrumentation: MockedRoutingInstrumentation;
     let mockedGesture: MockGesture;
 
     beforeEach(() => {
@@ -60,12 +57,9 @@ describe('GestureTracing', () => {
       client = setupTestClient({
         enableUserInteractionTracing: true,
       });
-      mockedRoutingInstrumentation = createMockedRoutingInstrumentation();
-      tracing = reactNativeTracingIntegration({
-        routingInstrumentation: mockedRoutingInstrumentation,
-      });
+      tracing = reactNativeTracingIntegration();
       client.addIntegration(tracing);
-      mockedRoutingInstrumentation.registeredOnConfirmRoute!('mockedScreenName');
+      tracing.setCurrentRoute('mockedScreenName');
       mockedGesture = {
         handlers: {
           onBegin: jest.fn(),

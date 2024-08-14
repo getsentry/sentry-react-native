@@ -16,7 +16,7 @@ import type {
   ComponentWillAppearEvent,
   EventsRegistry,
 } from '../../src/js/tracing/reactnativenavigation';
-import { ReactNativeNavigationInstrumentation } from '../../src/js/tracing/reactnativenavigation';
+import { reactNativeNavigationIntegration } from '../../src/js/tracing/reactnativenavigation';
 import {
   SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_COMPONENT_ID,
   SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_COMPONENT_TYPE,
@@ -356,20 +356,17 @@ describe('React Native Navigation Instrumentation', () => {
     } = {},
   ) {
     createMockNavigation();
-    const rNavigation = new ReactNativeNavigationInstrumentation(
-      {
+    const rNavigation = reactNativeNavigationIntegration({
+      navigation: {
         events() {
           return mockEventsRegistry;
         },
       },
-      {
-        routeChangeTimeoutMs: 200,
-        enableTabsInstrumentation: setupOptions.enableTabsInstrumentation,
-      },
-    );
+      routeChangeTimeoutMs: 200,
+      enableTabsInstrumentation: setupOptions.enableTabsInstrumentation,
+    });
 
     const rnTracing = reactNativeTracingIntegration({
-      routingInstrumentation: rNavigation,
       beforeStartSpan: setupOptions.beforeStartSpan,
     });
 
@@ -377,7 +374,7 @@ describe('React Native Navigation Instrumentation', () => {
       tracesSampleRate: 1.0,
       enableStallTracking: false,
       enableNativeFramesTracking: false,
-      integrations: [rnTracing],
+      integrations: [rNavigation, rnTracing],
       enableAppStartTracking: false,
     });
     client = new TestClient(options);

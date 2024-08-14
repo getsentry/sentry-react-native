@@ -13,7 +13,6 @@ import React from "react";
 import TestRenderer from 'react-test-renderer';
 
 import * as Sentry from '../../src/js';
-import { ReactNavigationInstrumentation } from '../../src/js';
 import { TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing';
 import { _setAppStartEndTimestampMs } from '../../src/js/tracing/integrations/appStart';
 import { isHermesEnabled, notWeb } from '../../src/js/utils/environment';
@@ -592,7 +591,10 @@ describe('React Navigation - TTID', () => {
   }
 
   function createTestedInstrumentation(options?: { enableTimeToInitialDisplay?: boolean }) {
-    const sut = new ReactNavigationInstrumentation(options);
+    const sut = Sentry.reactNavigationIntegration({
+      ...options,
+      ignoreEmptyBackNavigationTransactions: true, // default true
+    });
     return sut;
   }
 
@@ -602,7 +604,7 @@ describe('React Navigation - TTID', () => {
   }
 });
 
-function initSentry(sut: ReactNavigationInstrumentation): {
+function initSentry(sut: ReturnType<typeof Sentry.reactNavigationIntegration>): {
   transportSendMock: jest.Mock<ReturnType<Transport['send']>, Parameters<Transport['send']>>;
 } {
   RN_GLOBAL_OBJ.__sentry_rn_v5_registered = false;
@@ -612,10 +614,8 @@ function initSentry(sut: ReactNavigationInstrumentation): {
     enableTracing: true,
     enableStallTracking: false,
     integrations: [
-      Sentry.reactNativeTracingIntegration({
-        routingInstrumentation: sut,
-        ignoreEmptyBackNavigationTransactions: true, // default true
-      }),
+      sut,
+      Sentry.reactNativeTracingIntegration(),
     ],
     transport: () => ({
       send: transportSendMock.mockResolvedValue({}),

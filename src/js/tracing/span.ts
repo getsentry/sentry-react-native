@@ -12,48 +12,69 @@ import type { Client, Scope, Span, StartSpanOptions } from '@sentry/types';
 import { generatePropagationContext, logger } from '@sentry/utils';
 
 import { isRootSpan } from '../utils/span';
-import { adjustTransactionDuration, cancelInBackground, ignoreEmptyBackNavigation } from './onSpanEndUtils';
+import { adjustTransactionDuration, cancelInBackground } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_INTERACTION } from './origin';
+
+export const DEFAULT_NAVIGATION_SPAN_NAME = 'Route Change';
+
+export const defaultIdleOptions: {
+  /**
+   * The time that has to pass without any span being created.
+   * If this time is exceeded, the idle span will finish.
+   *
+   * @default 1_000 (ms)
+   */
+  finalTimeout: number;
+
+  /**
+   * The max. time an idle span may run.
+   * If this time is exceeded, the idle span will finish no matter what.
+   *
+   * @default 60_0000 (ms)
+   */
+  idleTimeout: number;
+} = {
+  idleTimeout: 1_000,
+  finalTimeout: 60_0000,
+};
 
 export const startIdleNavigationSpan = (
   startSpanOption: StartSpanOptions,
   {
-    finalTimeout,
-    idleTimeout,
-    ignoreEmptyBackNavigationTransactions,
-  }: {
-    finalTimeout: number;
-    idleTimeout: number;
-    ignoreEmptyBackNavigationTransactions: boolean;
-  },
+    finalTimeout = defaultIdleOptions.finalTimeout,
+    idleTimeout = defaultIdleOptions.idleTimeout,
+  }: Partial<typeof defaultIdleOptions> = {},
 ): Span | undefined => {
   const client = getClient();
   if (!client) {
-    logger.warn(`[ReactNativeTracing] Can't create route change span, missing client.`);
+    logger.warn(`[startIdleNavigationSpan] Can't create route change span, missing client.`);
     return undefined;
   }
 
   const activeSpan = getActiveSpan();
   if (activeSpan && isRootSpan(activeSpan) && isSentryInteractionSpan(activeSpan)) {
     logger.log(
-      `[ReactNativeTracing] Canceling ${spanToJSON(activeSpan).op} transaction because of a new navigation root span.`,
+      `[startIdleNavigationSpan] Canceling ${
+        spanToJSON(activeSpan).op
+      } transaction because of a new navigation root span.`,
     );
     activeSpan.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
     activeSpan.end();
   }
 
-  const idleSpan = startIdleSpan(startSpanOption, { finalTimeout, idleTimeout });
+  const finalStartStapOptions = {
+    ...getDefaultIdleNavigationSpanOptions(),
+    ...startSpanOption,
+  };
+
+  const idleSpan = startIdleSpan(finalStartStapOptions, { finalTimeout, idleTimeout });
   logger.log(
-    `[ReactNativeTracing] Starting ${startSpanOption.op || 'unknown op'} transaction "${
-      startSpanOption.name
+    `[startIdleNavigationSpan] Starting ${finalStartStapOptions.op || 'unknown op'} transaction "${
+      finalStartStapOptions.name
     }" on scope`,
   );
 
   adjustTransactionDuration(client, idleSpan, finalTimeout);
-  if (ignoreEmptyBackNavigationTransactions) {
-    ignoreEmptyBackNavigation(client, idleSpan);
-  }
-
   return idleSpan;
 };
 
@@ -70,7 +91,7 @@ export const startIdleSpan = (
 ): Span => {
   const client = getClient();
   if (!client) {
-    logger.warn(`[ReactNativeTracing] Can't create idle span, missing client.`);
+    logger.warn(`[startIdleSpan] Can't create idle span, missing client.`);
     return new SentryNonRecordingSpan();
   }
 
@@ -80,6 +101,18 @@ export const startIdleSpan = (
   cancelInBackground(client, span);
   return span;
 };
+
+/**
+ * Returns the default options for the idle navigation span.
+ */
+export function getDefaultIdleNavigationSpanOptions(): StartSpanOptions {
+  return {
+    name: DEFAULT_NAVIGATION_SPAN_NAME,
+    op: 'navigation',
+    forceTransaction: true,
+    scope: getCurrentScope(),
+  };
+}
 
 /**
  * Checks if the span is a Sentry User Interaction span.

@@ -59,15 +59,18 @@ export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 
 export {
   reactNativeTracingIntegration,
-  ReactNavigationV5Instrumentation,
-  ReactNavigationInstrumentation,
-  ReactNativeNavigationInstrumentation,
-  RoutingInstrumentation,
+  getCurrentReactNativeTracingIntegration,
+  getReactNativeTracingIntegration,
+  reactNavigationIntegration,
+  reactNativeNavigationIntegration,
   sentryTraceGesture,
   TimeToInitialDisplay,
   TimeToFullDisplay,
   startTimeToInitialDisplaySpan,
   startTimeToFullDisplaySpan,
+  startIdleNavigationSpan,
+  startIdleSpan,
+  getDefaultIdleNavigationSpanOptions,
 } from './tracing';
 
 export type { TimeToDisplayProps } from './tracing';

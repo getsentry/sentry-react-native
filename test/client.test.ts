@@ -8,8 +8,6 @@ import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';
 import type { ReactNativeClientOptions } from '../src/js/options';
-import type { RoutingInstrumentationInstance } from '../src/js/tracing';
-import { reactNativeTracingIntegration } from '../src/js/tracing';
 import { NativeTransport } from '../src/js/transports/native';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../src/js/version';
 import { NATIVE } from '../src/js/wrapper';
@@ -608,29 +606,6 @@ describe('Tests ReactNativeClient', () => {
     function mockDroppedEvent(client: ReactNativeClient) {
       client.recordDroppedEvent('before_send', 'error');
     }
-  });
-
-  describe('register enabled instrumentation as integrations', () => {
-    test('register routing instrumentation', () => {
-      const mockRoutingInstrumentation: RoutingInstrumentationInstance = {
-        registerRoutingInstrumentation: jest.fn(),
-        onRouteWillChange: jest.fn(),
-        name: 'MockRoutingInstrumentation',
-      };
-      const client = new ReactNativeClient(
-        mockedOptions({
-          dsn: EXAMPLE_DSN,
-          integrations: [
-            reactNativeTracingIntegration({
-              routingInstrumentation: mockRoutingInstrumentation,
-            }),
-          ],
-        }),
-      );
-      client.init();
-
-      expect(client.getIntegrationByName('MockRoutingInstrumentation')).toBeTruthy();
-    });
   });
 });
 

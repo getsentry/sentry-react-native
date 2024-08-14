@@ -39,6 +39,44 @@
   });
   ```
 
+- New React Navigation Integration interface ([#4003](https://github.com/getsentry/sentry-react-native/pull/4003))
+
+  ```js
+  import Sentry from '@sentry/react-native';
+  import { NavigationContainer } from '@react-navigation/native';
+
+  const reactNavigationIntegration = Sentry.reactNavigationIntegration();
+
+  Sentry.init({
+    tracesSampleRate: 1.0,
+    integrations: [reactNavigationIntegration],
+  });
+
+  function RootComponent() {
+    const navigation = React.useRef(null);
+
+    return <NavigationContainer ref={navigation}
+      onReady={() => {
+        reactNavigationIntegration.registerNavigationContainer(navigation);
+      }}>
+    </NavigationContainer>;
+  }
+  ```
+
+- New React Native Navigation Integration interface ([#4003](https://github.com/getsentry/sentry-react-native/pull/4003))
+
+  ```js
+  import Sentry from '@sentry/react-native';
+  import { Navigation } from 'react-native-navigation';
+
+  Sentry.init({
+    tracesSampleRate: 1.0,
+    integrations: [
+      Sentry.reactNativeNavigationIntegration({ navigation: Navigation })
+    ],
+  });
+  ```
+
 ### Features
 
 - `TimeToInitialDisplay` and `TimeToFullDisplay` start the time to display spans on mount ([#4020](https://github.com/getsentry/sentry-react-native/pull/4020))
