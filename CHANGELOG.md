@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 6.0.0-alpha.0
 
 This is an alpha version of the next major version of the Sentry React Native SDK 6.0.0.
 Please read the changes listed below as well as the changes made in the underlying
@@ -343,7 +343,6 @@ This release does *not* build on iOS. Please use `5.23.1` or newer.
 ### Fixes
 
 - Remove unused `rnpm` config ([#3811](https://github.com/getsentry/sentry-react-native/pull/3811))
-- CaptureMessage stack-trace is now symbolicated ([#3635](https://github.com/getsentry/sentry-react-native/pull/3635))
 
 ### Dependencies
 
