@@ -11,7 +11,11 @@ import type { MetroConfig } from 'metro';
 import * as path from 'path';
 import * as process from 'process';
 
-import { excludeSentryWebReplay,withSentryBabelTransformer, withSentryFramesCollapsed } from '../../src/js/tools/metroconfig';
+import {
+  excludeSentryWebReplay,
+  withSentryBabelTransformer,
+  withSentryFramesCollapsed,
+} from '../../src/js/tools/metroconfig';
 
 type MetroFrame = Parameters<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>[0];
 
@@ -110,11 +114,11 @@ describe('metroconfig', () => {
   });
 
   describe('excludeSentryWebReplay', () => {
-    let originalResolverMock : any;
+    let originalResolverMock: any;
 
     // @ts-expect-error Can't see type CustomResolutionContext
-    let contextMock : CustomResolutionContext;
-    let config : MetroConfig = {};
+    let contextMock: CustomResolutionContext;
+    let config: MetroConfig = {};
 
     beforeEach(() => {
       originalResolverMock = jest.fn();
@@ -144,7 +148,7 @@ describe('metroconfig', () => {
       expect(originalResolverMock).not.toHaveBeenCalled();
     });
 
-/* Test expected to fail but not required since excludeSentryWebReplay is not run when includeWebReplay is true.
+    /* Test expected to fail but not required since excludeSentryWebReplay is not run when includeWebReplay is true.
     test('keep Web Replay when platform is android and includeWebReplay is true', () => {
       const modifiedConfig = excludeSentryWebReplay(config, true);
       resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'android');
@@ -169,7 +173,7 @@ describe('metroconfig', () => {
       expect(originalResolverMock).not.toHaveBeenCalled();
     });
 
-/* Test expected to fail but not required since excludeSentryWebReplay is not run when includeWebReplay is true.
+    /* Test expected to fail but not required since excludeSentryWebReplay is not run when includeWebReplay is true.
     test('keep Web Replay when platform is ios and includeWebReplay is true', () => {
       const modifiedConfig = excludeSentryWebReplay(config, true);
       resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'ios');
@@ -197,7 +201,7 @@ describe('metroconfig', () => {
     test('calls originalResolver when moduleName is not @sentry/replay', () => {
       const modifiedConfig = excludeSentryWebReplay(config, true);
       const moduleName = 'some/other/module';
-      resolveRequest(modifiedConfig,contextMock, moduleName, 'web');
+      resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
 
       expect(originalResolverMock).toHaveBeenCalledWith(contextMock, moduleName, 'web');
     });
@@ -205,7 +209,7 @@ describe('metroconfig', () => {
     test('calls context.resolveRequest when originalResolver is not provided', () => {
       const modifiedConfig = excludeSentryWebReplay({ resolver: {} }, true);
       const moduleName = 'some/other/module';
-      resolveRequest(modifiedConfig,contextMock, moduleName, 'web');
+      resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
 
       expect(contextMock.resolveRequest).toHaveBeenCalledWith(contextMock, moduleName, 'web');
     });
@@ -219,4 +223,5 @@ function createMockSentryInstrumentMetroFrame(): MetroFrame {
 
 // @ts-expect-error Can't see type Resolution.
 function resolveRequest(metroConfig: MetroConfig, context: any, moduleName: string, platform: string): Resolution {
-  return metroConfig.resolver?.resolveRequest && metroConfig.resolver.resolveRequest(context, moduleName, platform);}
+  return metroConfig.resolver?.resolveRequest && metroConfig.resolver.resolveRequest(context, moduleName, platform);
+}

@@ -169,8 +169,7 @@ export function excludeSentryWebReplay(config: MetroConfig, includeWebReplay: bo
     resolver: {
       ...config.resolver,
       resolveRequest: (context, moduleName, platform) => {
-        if (includeWebReplay === false || platform !== 'web' &&
-            moduleName.includes('@sentry/replay')) {
+        if (includeWebReplay === false || (platform !== 'web' && moduleName.includes('@sentry/replay'))) {
           return { type: 'empty' };
         }
         if (originalResolver) {
@@ -179,7 +178,7 @@ export function excludeSentryWebReplay(config: MetroConfig, includeWebReplay: bo
         return context.resolveRequest(context, moduleName, platform);
       },
     },
-  }
+  };
 }
 
 type MetroFrame = Parameters<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>[0];
