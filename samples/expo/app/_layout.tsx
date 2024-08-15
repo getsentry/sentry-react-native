@@ -84,7 +84,7 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
     // replaysOnErrorSampleRate: 1.0,
     replaysSessionSampleRate: 1.0,
   },
-  enableSpotlight: true,
+  spotlight: true,
 });
 
 function RootLayout() {

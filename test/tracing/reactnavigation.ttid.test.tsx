@@ -6,6 +6,7 @@ jest.mock('../../src/js/utils/environment');
 jest.mock('../../src/js/utils/sentryeventemitter', () => mockedSentryEventEmitter);
 jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
+import { Span } from '@sentry/core';
 import type { SpanJSON, TransactionEvent, Transport } from '@sentry/types';
 import { timestampInSeconds } from '@sentry/utils';
 import React from "react";
@@ -80,6 +81,78 @@ describe('React Navigation - TTID', () => {
               timestamp: expect.any(Number),
             }),
           ]),
+        }),
+      );
+    });
+
+    test('should end ttid with measurements even when active span was removed from the scope', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+
+      mockedNavigation.navigateToNewScreen();
+      Sentry.getCurrentScope().setSpan(undefined);
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush transaction
+
+      const transaction = getLastTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          spans: expect.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              data: {
+                'sentry.op': 'ui.load.initial_display',
+                'sentry.origin': 'manual',
+              },
+              description: 'New Screen initial display',
+              op: 'ui.load.initial_display',
+              origin: 'manual',
+              status: 'ok',
+              start_timestamp: transaction.start_timestamp,
+              timestamp: expect.any(Number),
+            }),
+          ]),
+          measurements: expect.objectContaining<Required<TransactionEvent>['measurements']>({
+            time_to_initial_display: {
+              value: expect.any(Number),
+              unit: 'millisecond',
+            },
+          }),
+        }),
+      );
+    });
+
+    test('should end ttid with measurements even when active span on the scope changed', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+
+      mockedNavigation.navigateToNewScreen();
+      Sentry.getCurrentScope().setSpan(new Span());
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush transaction
+
+      const transaction = getLastTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          spans: expect.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              data: {
+                'sentry.op': 'ui.load.initial_display',
+                'sentry.origin': 'manual',
+              },
+              description: 'New Screen initial display',
+              op: 'ui.load.initial_display',
+              origin: 'manual',
+              status: 'ok',
+              start_timestamp: transaction.start_timestamp,
+              timestamp: expect.any(Number),
+            }),
+          ]),
+          measurements: expect.objectContaining<Required<TransactionEvent>['measurements']>({
+            time_to_initial_display: {
+              value: expect.any(Number),
+              unit: 'millisecond',
+            },
+          }),
         }),
       );
     });
