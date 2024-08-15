@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+### Features
+
 - Add `spotlight` option ([#4023](https://github.com/getsentry/sentry-react-native/pull/4023))
   - Deprecating `enableSpotlight` and `spotlightSidecarUrl`
+
+### Fixes
+
+- Exclude Sentry Web Replay on mobile by default, reducing the code in 130KB. ([#4006](https://github.com/getsentry/sentry-react-native/pull/4006))
 
 ## 5.29.0
 
