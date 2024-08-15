@@ -423,7 +423,6 @@ jobs:
           target: 'aosp_atd'
           channel: canary # Necessary for ATDs
           emulator-options: >
-            -no-window
             -no-snapshot-save
             -gpu swiftshader_indirect
             -noaudio
