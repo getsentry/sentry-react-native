@@ -1,5 +1,7 @@
 /**
+ * A Map that automatically removes entries after their TTL has expired.
  *
+ * The map is Promise-aware, meaning it will start TTL countdown only after the promise has resolved.
  */
 export class AsyncExpiringMap<K, V> {
   private _ttl: number;
@@ -21,7 +23,7 @@ export class AsyncExpiringMap<K, V> {
   }
 
   /**
-   *
+   * Set a key-value pair.
    */
   public set(key: K, promise: PromiseLike<V> | V): void {
     if (!this._cleanupInterval) {
@@ -54,7 +56,7 @@ export class AsyncExpiringMap<K, V> {
   }
 
   /**
-   *
+   * Pops a key-value pair.
    */
   public pop(key: K): PromiseLike<V> | V | undefined {
     const entry = this.get(key);
@@ -63,7 +65,9 @@ export class AsyncExpiringMap<K, V> {
   }
 
   /**
+   * Get a value by key.
    *
+   * If the values is expired it will be returned and removed from the map.
    */
   public get(key: K): PromiseLike<V> | V | undefined {
     const entry = this._map.get(key);
@@ -78,14 +82,15 @@ export class AsyncExpiringMap<K, V> {
 
     if (entry.expiresAt && entry.expiresAt <= Date.now()) {
       this._map.delete(key);
-      return undefined;
     }
 
     return entry.value;
   }
 
   /**
+   * Check if a key exists in the map.
    *
+   * If the key is expired it's not present in the map.
    */
   public has(key: K): boolean {
     const entry = this._map.get(key);
@@ -107,7 +112,7 @@ export class AsyncExpiringMap<K, V> {
   }
 
   /**
-   *
+   * Get the remaining time to live of a key.
    */
   public ttl(key: K): number | undefined {
     const entry = this._map.get(key);
@@ -119,7 +124,7 @@ export class AsyncExpiringMap<K, V> {
   }
 
   /**
-   *
+   * Remove expired entries.
    */
   public cleanup(): void {
     const now = Date.now();
@@ -129,13 +134,13 @@ export class AsyncExpiringMap<K, V> {
       }
     }
     const size = this._map.size;
-    if (size) {
+    if (!size) {
       this.stopCleanup();
     }
   }
 
   /**
-   *
+   * Clear all entries.
    */
   public clear(): void {
     clearInterval(this._cleanupInterval);
@@ -143,14 +148,14 @@ export class AsyncExpiringMap<K, V> {
   }
 
   /**
-   *
+   * Stop the cleanup interval.
    */
   public stopCleanup(): void {
     clearInterval(this._cleanupInterval);
   }
 
   /**
-   *
+   * Start the cleanup interval.
    */
   public startCleanup(): void {
     this._cleanupInterval = setInterval(() => this.cleanup(), this._cleanupIntervalMs);
