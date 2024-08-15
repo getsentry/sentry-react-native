@@ -122,7 +122,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   /**
    * Returns if the app crashed in the last run.
    */
-  public crashedLastRun(): Promise<boolean> {
+  public crashedLastRun(): Promise<boolean | null> {
     return NATIVE.crashedLastRun();
   }
 

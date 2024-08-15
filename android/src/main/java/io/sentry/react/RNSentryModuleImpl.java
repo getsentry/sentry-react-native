@@ -853,8 +853,7 @@ public class RNSentryModuleImpl {
     }
 
     public void crashedLastRun(Promise promise) {
-        Boolean crashedLastRun = Sentry.isCrashedLastRun();
-        promise.resolve(crashedLastRun != null ? crashedLastRun : false);
+        promise.resolve(Sentry.isCrashedLastRun());
     }
 
     private void setEventOriginTag(SentryEvent event) {
