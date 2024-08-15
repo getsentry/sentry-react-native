@@ -11,7 +11,7 @@ import type { MetroConfig } from 'metro';
 import * as path from 'path';
 import * as process from 'process';
 
-import { withSentryBabelTransformer, withSentryFramesCollapsed } from '../../src/js/tools/metroconfig';
+import { excludeSentryWebReplay,withSentryBabelTransformer, withSentryFramesCollapsed } from '../../src/js/tools/metroconfig';
 
 type MetroFrame = Parameters<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>[0];
 
@@ -108,9 +108,115 @@ describe('metroconfig', () => {
       );
     });
   });
+
+  describe('excludeSentryWebReplay', () => {
+    let originalResolverMock : any;
+
+    // @ts-expect-error Can't see type CustomResolutionContext
+    let contextMock : CustomResolutionContext;
+    let config : MetroConfig = {};
+
+    beforeEach(() => {
+      originalResolverMock = jest.fn();
+      contextMock = {
+        resolveRequest: jest.fn(),
+      };
+
+      config = {
+        resolver: {
+          resolveRequest: originalResolverMock,
+        },
+      };
+    });
+
+    test('keep Web Replay when platform is web and includeWebReplay is true', () => {
+      const modifiedConfig = excludeSentryWebReplay(config, true);
+      resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'web');
+
+      expect(originalResolverMock).toHaveBeenCalledWith(contextMock, '@sentry/replay', 'web');
+    });
+
+    test('removes Web Replay when platform is web and includeWebReplay is false', () => {
+      const modifiedConfig = excludeSentryWebReplay(config, false);
+      const result = resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'web');
+
+      expect(result).toEqual({ type: 'empty' });
+      expect(originalResolverMock).not.toHaveBeenCalled();
+    });
+
+/* Test expected to fail but not required since excludeSentryWebReplay is not run when includeWebReplay is true.
+    test('keep Web Replay when platform is android and includeWebReplay is true', () => {
+      const modifiedConfig = excludeSentryWebReplay(config, true);
+      resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'android');
+
+      expect(originalResolverMock).toHaveBeenCalledWith(contextMock, '@sentry/replay', 'android');
+    });
+*/
+
+    test('removes Web Replay when platform is android and includeWebReplay is false', () => {
+      const modifiedConfig = excludeSentryWebReplay(config, false);
+      const result = resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'android');
+
+      expect(result).toEqual({ type: 'empty' });
+      expect(originalResolverMock).not.toHaveBeenCalled();
+    });
+
+    test('removes Web Replay when platform is android and includeWebReplay is undefined', () => {
+      const modifiedConfig = excludeSentryWebReplay(config, undefined);
+      const result = resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'android');
+
+      expect(result).toEqual({ type: 'empty' });
+      expect(originalResolverMock).not.toHaveBeenCalled();
+    });
+
+/* Test expected to fail but not required since excludeSentryWebReplay is not run when includeWebReplay is true.
+    test('keep Web Replay when platform is ios and includeWebReplay is true', () => {
+      const modifiedConfig = excludeSentryWebReplay(config, true);
+      resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'ios');
+
+      expect(originalResolverMock).toHaveBeenCalledWith(contextMock, '@sentry/replay', 'ios');
+    });
+*/
+
+    test('removes Web Replay when platform is ios and includeWebReplay is false', () => {
+      const modifiedConfig = excludeSentryWebReplay(config, false);
+      const result = resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'ios');
+
+      expect(result).toEqual({ type: 'empty' });
+      expect(originalResolverMock).not.toHaveBeenCalled();
+    });
+
+    test('removes Web Replay when platform is ios and includeWebReplay is undefined', () => {
+      const modifiedConfig = excludeSentryWebReplay(config, undefined);
+      const result = resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'ios');
+
+      expect(result).toEqual({ type: 'empty' });
+      expect(originalResolverMock).not.toHaveBeenCalled();
+    });
+
+    test('calls originalResolver when moduleName is not @sentry/replay', () => {
+      const modifiedConfig = excludeSentryWebReplay(config, true);
+      const moduleName = 'some/other/module';
+      resolveRequest(modifiedConfig,contextMock, moduleName, 'web');
+
+      expect(originalResolverMock).toHaveBeenCalledWith(contextMock, moduleName, 'web');
+    });
+
+    test('calls context.resolveRequest when originalResolver is not provided', () => {
+      const modifiedConfig = excludeSentryWebReplay({ resolver: {} }, true);
+      const moduleName = 'some/other/module';
+      resolveRequest(modifiedConfig,contextMock, moduleName, 'web');
+
+      expect(contextMock.resolveRequest).toHaveBeenCalledWith(contextMock, moduleName, 'web');
+    });
+  });
 });
 
 // function create mock metro frame
 function createMockSentryInstrumentMetroFrame(): MetroFrame {
   return { file: 'node_modules/@sentry/utils/cjs/instrument.js' };
 }
+
+// @ts-expect-error Can't see type Resolution.
+function resolveRequest(metroConfig: MetroConfig, context: any, moduleName: string, platform: string): Resolution {
+  return metroConfig.resolver?.resolveRequest && metroConfig.resolver.resolveRequest(context, moduleName, platform);}

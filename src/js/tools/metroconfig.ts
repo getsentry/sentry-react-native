@@ -18,10 +18,9 @@ export interface SentryMetroConfigOptions {
    * @default false
    */
   annotateReactComponents?: boolean;
-
   /**
    * Adds the Sentry replay package for web.
-   * @default false
+   * @default false (Mobile) undefined (Web)
    */
   includeWebReplay?: boolean;
 }
@@ -41,7 +40,7 @@ export interface SentryExpoConfigOptions {
  */
 export function withSentryConfig(
   config: MetroConfig,
-  { annotateReactComponents = false, includeWebReplay = false }: SentryMetroConfigOptions = {},
+  { annotateReactComponents = false, includeWebReplay }: SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
 
@@ -52,8 +51,8 @@ export function withSentryConfig(
   if (annotateReactComponents) {
     newConfig = withSentryBabelTransformer(newConfig);
   }
-  if (includeWebReplay === false) {
-    newConfig = excludeSentryWebReplay(newConfig);
+  if (includeWebReplay !== true) {
+    newConfig = excludeSentryWebReplay(newConfig, includeWebReplay);
   }
 
   return newConfig;
@@ -81,8 +80,9 @@ export function getSentryExpoConfig(
   if (options.annotateReactComponents) {
     newConfig = withSentryBabelTransformer(newConfig);
   }
-  if (options.includeWebReplay === false) {
-    newConfig = excludeSentryWebReplay(newConfig);
+
+  if (options.includeWebReplay !== true) {
+    newConfig = excludeSentryWebReplay(newConfig, options.includeWebReplay);
   }
 
   return newConfig;
@@ -158,7 +158,10 @@ function withSentryDebugId(config: MetroConfig): MetroConfig {
   };
 }
 
-function excludeSentryWebReplay(config: MetroConfig): MetroConfig {
+/**
+ *
+ */
+export function excludeSentryWebReplay(config: MetroConfig, includeWebReplay: boolean | undefined): MetroConfig {
   const originalResolver = config.resolver?.resolveRequest;
 
   return {
@@ -166,7 +169,8 @@ function excludeSentryWebReplay(config: MetroConfig): MetroConfig {
     resolver: {
       ...config.resolver,
       resolveRequest: (context, moduleName, platform) => {
-        if (moduleName.includes('@sentry/replay')) {
+        if (includeWebReplay === false || platform !== 'web' &&
+            moduleName.includes('@sentry/replay')) {
           return { type: 'empty' };
         }
         if (originalResolver) {
