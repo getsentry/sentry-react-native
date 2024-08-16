@@ -11,7 +11,7 @@
 
 - `TimeToInitialDisplay` and `TimeToFullDisplay` start the time to display spans on mount ([#4020](https://github.com/getsentry/sentry-react-native/pull/4020))
 
-### Fixed
+### Fixes
 
 - fix(ttid): End and measure TTID regardless current active span ([#4019](https://github.com/getsentry/sentry-react-native/pull/4019))
   - Fixes possible missing TTID measurements and spans
