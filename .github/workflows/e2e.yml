@@ -371,6 +371,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: ./.github/actions/disk-cleanup
+        if: ${{ matrix.platform == 'android' }}
+
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
         run: which xcbeautify || brew install xcbeautify
