@@ -2,8 +2,19 @@
 
 ## Unreleased
 
+### Features
+
 - Add `spotlight` option ([#4023](https://github.com/getsentry/sentry-react-native/pull/4023))
   - Deprecating `enableSpotlight` and `spotlightSidecarUrl`
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.118.0 to v7.119.0 ([#4031](https://github.com/getsentry/sentry-react-native/pull/4031))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/v7/CHANGELOG.md#71190)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.118.0...7.119.0)
+- Bump Cocoa SDK from v8.33.0 to v8.34.0 ([#4026](https://github.com/getsentry/sentry-react-native/pull/4026))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8340)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.33.0...8.34.0)
 
 ## 5.29.0
 
