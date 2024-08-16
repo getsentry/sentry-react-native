@@ -27,7 +27,7 @@ let content = fs.readFileSync(args['gradle-properties'], 'utf8');
 const isHermesEnabled = content.includes('hermesEnabled=true');
 if (enableHermes !== isHermesEnabled) {
   const patch = enableHermes ? 'hermesEnabled=true' : 'hermesEnabled=false';
-  const content = content.match(/hermesEnabled=.*/)
+  content = content.match(/hermesEnabled=.*/)
     ? content.replace(/hermesEnabled=.*/g, patch)
     : content.concat(`\n${patch}`);
   if (enableHermes) {
