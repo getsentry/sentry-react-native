@@ -230,11 +230,13 @@ describe('NativeFramesInstrumentation', () => {
 
   it('does not set measurements on a transaction event for which finishFrames times out.', async () => {
     asyncProcessorBeforeNativeFrames = async (event: Event) => {
-      // Questionable, but it works for testing the timeout without mocking the AsyncExpiringMap
       await Promise.resolve();
       await Promise.resolve();
       await Promise.resolve();
+
       global.Date.now = jest.fn(() => mockDate.getTime() + 2100); // hardcoded final frames timeout 2000ms
+      await jest.runOnlyPendingTimersAsync();
+      await jest.advanceTimersByTimeAsync(2100); // hardcoded final frames timeout 2000ms
       return event;
     };
 
@@ -254,8 +256,6 @@ describe('NativeFramesInstrumentation', () => {
       await Promise.resolve(); // native frames fetch is async call this will flush the start frames fetch promise
     });
 
-    await jest.runOnlyPendingTimersAsync();
-    await jest.advanceTimersByTimeAsync(2100); // hardcoded final frames timeout 2000ms
     await client.flush();
 
     expect(client.event!).toBeOneOf([
