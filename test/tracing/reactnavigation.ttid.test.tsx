@@ -1,3 +1,8 @@
+import type { Scope, Span, SpanJSON, TransactionEvent, Transport } from '@sentry/types';
+import { timestampInSeconds } from '@sentry/utils';
+import * as TestRenderer from '@testing-library/react-native'
+import * as React from "react";
+
 import * as mockWrapper from '../mockWrapper';
 import * as mockedSentryEventEmitter from '../utils/mockedSentryeventemitter';
 import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
@@ -6,13 +11,8 @@ jest.mock('../../src/js/utils/environment');
 jest.mock('../../src/js/utils/sentryeventemitter', () => mockedSentryEventEmitter);
 jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
-import { startSpanManual } from '@sentry/core';
-import type { Scope, Span,SpanJSON, TransactionEvent, Transport } from '@sentry/types';
-import { timestampInSeconds } from '@sentry/utils';
-import React from "react";
-import TestRenderer from 'react-test-renderer';
-
 import * as Sentry from '../../src/js';
+import { startSpanManual } from '../../src/js';
 import { TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing';
 import { _setAppStartEndTimestampMs } from '../../src/js/tracing/integrations/appStart';
 import { isHermesEnabled, notWeb } from '../../src/js/utils/environment';
@@ -275,7 +275,7 @@ describe('React Navigation - TTID', () => {
       mockedNavigation.finishAppStartNavigation();
       mockedEventEmitter.emitNewFrameEvent();
 
-      TestRenderer.create(<TimeToFullDisplay record />);
+      TestRenderer.render(<TimeToFullDisplay record />);
       emitNativeFullDisplayEvent();
 
       jest.runOnlyPendingTimers(); // Flush ttid transaction
@@ -344,7 +344,7 @@ describe('React Navigation - TTID', () => {
       mockedNavigation.finishAppStartNavigation();
       mockedEventEmitter.emitNewFrameEvent();
 
-      TestRenderer.create(<TimeToFullDisplay record />);
+      TestRenderer.render(<TimeToFullDisplay record />);
       emitNativeFullDisplayEvent();
 
       jest.runOnlyPendingTimers(); // Flush ttid transaction
@@ -442,7 +442,7 @@ describe('React Navigation - TTID', () => {
       jest.runOnlyPendingTimers(); // Flush app start transaction
 
       mockedNavigation.navigateToNewScreen();
-      const timeToDisplayComponent = TestRenderer.create(<TimeToInitialDisplay />);
+      const timeToDisplayComponent = TestRenderer.render(<TimeToInitialDisplay />);
 
       mockedEventEmitter.emitNewFrameEvent();
       timeToDisplayComponent.update(<TimeToInitialDisplay record />);
@@ -479,7 +479,7 @@ describe('React Navigation - TTID', () => {
       mockedEventEmitter.emitNewFrameEvent(autoInitialDisplayEndTimestampMs);
 
       // Initialized too late auto instrumentation finished before manual
-      TestRenderer.create(<TimeToInitialDisplay record />);
+      TestRenderer.render(<TimeToInitialDisplay record />);
       emitNativeInitialDisplayEvent(secondInFutureTimestampMs());
 
       jest.runOnlyPendingTimers(); // Flush transaction

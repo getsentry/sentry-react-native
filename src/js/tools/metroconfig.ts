@@ -1,5 +1,6 @@
 import { logger } from '@sentry/utils';
-import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
+import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
+import type { MetroConfig } from 'metro-config';
 import * as process from 'process';
 import { env } from 'process';
 

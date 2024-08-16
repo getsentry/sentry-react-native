@@ -242,7 +242,6 @@ export const reactNavigationIntegration = ({
     }
 
     const routeHasBeenSeen = recentRouteKeys.includes(route.key);
-
     const latestTtidSpan =
       !routeHasBeenSeen &&
       enableTimeToInitialDisplay &&

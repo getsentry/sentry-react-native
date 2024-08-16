@@ -1,11 +1,3 @@
-jest.spyOn(logger, 'error');
-jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
-jest.mock('../src/js/utils/environment');
-jest.mock('@sentry/core', () => ({
-  ...jest.requireActual('@sentry/core'),
-  initAndBind: jest.fn(),
-}));
-
 import { initAndBind } from '@sentry/core';
 import { makeFetchTransport } from '@sentry/react';
 import type { BaseTransportOptions, ClientOptions, Integration, Scope } from '@sentry/types';
@@ -18,6 +10,14 @@ import { makeNativeTransport } from '../src/js/transports/native';
 import { getDefaultEnvironment, isExpoGo, notWeb } from '../src/js/utils/environment';
 import { NATIVE } from './mockWrapper';
 import { firstArg, secondArg } from './testutils';
+
+jest.spyOn(logger, 'error');
+jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
+jest.mock('../src/js/utils/environment');
+jest.mock('@sentry/core', () => ({
+  ...jest.requireActual('@sentry/core'),
+  initAndBind: jest.fn(),
+}));
 
 describe('Tests the SDK functionality', () => {
   beforeEach(() => {

@@ -73,9 +73,7 @@ describe('Buffer utf8 tests', () => {
   describe('test strings', () => {
     for (const input of testCases) {
       it(`should encode "${input}"`, () => {
-        // @ts-expect-error The test run in node where Buffer is available
         const actual = Buffer.from(utf8ToBytes(input));
-        // @ts-expect-error The test run in node where Buffer is available
         const expected = Buffer.from(input, 'utf8');
 
         expect(actual).toEqual(expected);

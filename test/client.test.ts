@@ -2,7 +2,7 @@ import * as mockedtimetodisplaynative from './tracing/mockedtimetodisplaynative'
 jest.mock('../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
 import { defaultStackParser } from '@sentry/browser';
-import type { Envelope, Event, Outcome, Transport } from '@sentry/types';
+import type { Envelope, Event, Outcome, Transport, TransportMakeRequestResponse } from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 import * as RN from 'react-native';
 
@@ -104,7 +104,6 @@ describe('Tests ReactNativeClient', () => {
       });
 
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
-      // @ts-expect-error: Is Mocked
       await expect(RN.LogBox.ignoreLogs).toBeCalled();
     });
 
@@ -133,7 +132,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     test('use custom transport function', async () => {
-      const mySend = (_request: Envelope) => Promise.resolve();
+      const mySend = (_request: Envelope): Promise<TransportMakeRequestResponse> => Promise.resolve({});
       const myFlush = (timeout?: number) => Promise.resolve(Boolean(timeout));
       const myCustomTransportFn = (): Transport => ({
         send: mySend,
@@ -408,7 +407,7 @@ describe('Tests ReactNativeClient', () => {
 
   describe('event data enhancement', () => {
     test('event contains sdk default information', async () => {
-      const mockedSend = jest.fn<PromiseLike<void>, [Envelope]>().mockResolvedValue(undefined);
+      const mockedSend = jest.fn<PromiseLike<TransportMakeRequestResponse>, [Envelope]>().mockResolvedValue({});
       const mockedTransport = (): Transport => ({
         send: mockedSend,
         flush: jest.fn().mockResolvedValue(true),
@@ -436,7 +435,7 @@ describe('Tests ReactNativeClient', () => {
 
   describe('normalizes events', () => {
     test('handles circular input', async () => {
-      const mockedSend = jest.fn<PromiseLike<void>, [Envelope]>();
+      const mockedSend = jest.fn<PromiseLike<TransportMakeRequestResponse>, [Envelope]>().mockResolvedValue({});
       const mockedTransport = (): Transport => ({
         send: mockedSend,
         flush: jest.fn().mockResolvedValue(true),
@@ -469,7 +468,7 @@ describe('Tests ReactNativeClient', () => {
 
   describe('clientReports', () => {
     test('does not send client reports if disabled', () => {
-      const mockTransportSend = jest.fn((_envelope: Envelope) => Promise.resolve());
+      const mockTransportSend = jest.fn<PromiseLike<TransportMakeRequestResponse>, [Envelope]>().mockResolvedValue({});
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
@@ -488,7 +487,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     test('send client reports on event envelope', () => {
-      const mockTransportSend = jest.fn((_envelope: Envelope) => Promise.resolve());
+      const mockTransportSend = jest.fn<PromiseLike<TransportMakeRequestResponse>, [Envelope]>().mockResolvedValue({});
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
@@ -522,7 +521,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     test('does not send empty client report', () => {
-      const mockTransportSend = jest.fn((_envelope: Envelope) => Promise.resolve());
+      const mockTransportSend = jest.fn<PromiseLike<TransportMakeRequestResponse>, [Envelope]>().mockResolvedValue({});
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,

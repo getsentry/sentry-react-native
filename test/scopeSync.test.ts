@@ -179,6 +179,7 @@ describe('ScopeSync', () => {
 
     it('addBreadcrumb', () => {
       expect(SentryCore.getIsolationScope().addBreadcrumb).not.toBe(addBreadcrumbScopeSpy);
+      SentryCore.getIsolationScope().getLastBreadcrumb = jest.fn(() => ({ message: 'test' }));
 
       SentryCore.addBreadcrumb({ message: 'test' });
       expect(NATIVE.addBreadcrumb).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'test' }));

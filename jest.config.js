@@ -4,13 +4,17 @@ module.exports = {
   setupFilesAfterEnv: ['jest-extended/all', '<rootDir>/test/mockConsole.ts'],
   globals: {
     __DEV__: true,
-    'ts-jest': {
-      tsConfig: './tsconfig.json',
-      diagnostics: false,
-    },
   },
-  moduleFileExtensions: ['ts', 'tsx', 'js'],
+  transform: {
+    '^.+\\.jsx$': 'babel-jest',
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.json',
+      },
+    ],
+  },
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testPathIgnorePatterns: ['<rootDir>/test/e2e/', '<rootDir>/test/tools/', '<rootDir>/test/react-native/versions'],
-  testEnvironment: 'node',
   testMatch: ['**/*.test.(ts|tsx)'],
 };

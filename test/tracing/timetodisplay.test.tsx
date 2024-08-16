@@ -3,8 +3,8 @@ jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplayn
 
 import { getActiveSpan, getCurrentScope, getGlobalScope, getIsolationScope, getSpanDescendants, setCurrentClient, spanToJSON, startSpanManual} from '@sentry/core';
 import type { Event, Measurements, Span, SpanJSON} from '@sentry/types';
-import React from "react";
-import TestRenderer from 'react-test-renderer';
+import * as React from "react";
+import * as TestRenderer from 'react-test-renderer';
 
 import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing/timetodisplay';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';

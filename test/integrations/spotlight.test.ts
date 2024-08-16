@@ -1,11 +1,10 @@
 import type { HttpRequestEventMap } from '@mswjs/interceptors';
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest';
 import type { Client, Envelope } from '@sentry/types';
-import { XMLHttpRequest } from 'xmlhttprequest';
 
 import { spotlightIntegration } from '../../src/js/integrations/spotlight';
 
-globalThis.XMLHttpRequest = XMLHttpRequest;
+globalThis.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 const requestListener = jest.fn<void, HttpRequestEventMap['request']>();
 const interceptor = new XMLHttpRequestInterceptor();
 interceptor.on('request', requestListener);

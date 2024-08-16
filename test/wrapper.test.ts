@@ -96,7 +96,7 @@ describe('Tests Native Wrapper', () => {
 
   describe('startWithOptions', () => {
     test('calls native module', async () => {
-      await NATIVE.initNativeSdk({ dsn: 'test', enableNative: true });
+      await NATIVE.initNativeSdk({ dsn: 'test', enableNative: true, mobileReplayOptions: undefined });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
     });
@@ -104,7 +104,7 @@ describe('Tests Native Wrapper', () => {
     test('warns if there is no dsn', async () => {
       logger.warn = jest.fn();
 
-      await NATIVE.initNativeSdk({ enableNative: true });
+      await NATIVE.initNativeSdk({ enableNative: true, mobileReplayOptions: undefined });
 
       expect(RNSentry.initNativeSdk).not.toBeCalled();
       expect(logger.warn).toHaveBeenLastCalledWith(
@@ -119,6 +119,7 @@ describe('Tests Native Wrapper', () => {
         dsn: 'test',
         enableNative: false,
         enableNativeNagger: true,
+        mobileReplayOptions: undefined,
       });
 
       expect(RNSentry.initNativeSdk).not.toBeCalled();
@@ -132,6 +133,7 @@ describe('Tests Native Wrapper', () => {
         enableNative: true,
         autoInitializeNativeSdk: true,
         beforeSend: jest.fn(),
+        mobileReplayOptions: undefined,
       });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
@@ -147,6 +149,7 @@ describe('Tests Native Wrapper', () => {
         enableNative: true,
         autoInitializeNativeSdk: true,
         beforeBreadcrumb: jest.fn(),
+        mobileReplayOptions: undefined,
       });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
@@ -162,6 +165,7 @@ describe('Tests Native Wrapper', () => {
         enableNative: true,
         autoInitializeNativeSdk: true,
         beforeSendTransaction: jest.fn(),
+        mobileReplayOptions: undefined,
       });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
@@ -177,6 +181,7 @@ describe('Tests Native Wrapper', () => {
         enableNative: true,
         autoInitializeNativeSdk: true,
         integrations: [],
+        mobileReplayOptions: undefined,
       });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
@@ -194,6 +199,7 @@ describe('Tests Native Wrapper', () => {
         dsn: 'test',
         enableNative: true,
         autoInitializeNativeSdk: false,
+        mobileReplayOptions: undefined,
       });
 
       expect(RNSentry.initNativeSdk).not.toBeCalled();
@@ -232,6 +238,7 @@ describe('Tests Native Wrapper', () => {
       logger.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
+        mobileReplayOptions: undefined,
         dsn: 'test',
         enableNative: false,
         autoInitializeNativeSdk: false,
@@ -282,7 +289,7 @@ describe('Tests Native Wrapper', () => {
     test('serializes class instances', async () => {
       class TestInstance {
         value: number = 0;
-        method = () => null;
+        method = (): null => null;
       }
 
       const event = {
@@ -313,7 +320,7 @@ describe('Tests Native Wrapper', () => {
     });
     test('does not call RNSentry at all if enableNative is false', async () => {
       try {
-        await NATIVE.initNativeSdk({ dsn: 'test-dsn', enableNative: false });
+        await NATIVE.initNativeSdk({ dsn: 'test-dsn', enableNative: false, mobileReplayOptions: undefined });
 
         // @ts-expect-error for testing, does not accept an empty class.
         await NATIVE.sendEnvelope({});
@@ -505,7 +512,7 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.crash).toBeCalled();
     });
     test('does not call crash if enableNative is false', async () => {
-      await NATIVE.initNativeSdk({ dsn: 'test-dsn', enableNative: false });
+      await NATIVE.initNativeSdk({ dsn: 'test-dsn', enableNative: false, mobileReplayOptions: undefined });
       NATIVE.nativeCrash();
 
       expect(RNSentry.crash).not.toBeCalled();
@@ -516,7 +523,6 @@ describe('Tests Native Wrapper', () => {
     test('serializes all user object keys', async () => {
       NATIVE.setUser({
         email: 'hello@sentry.io',
-        // @ts-expect-error Intentional incorrect type to simulate using a double as an id (We had a user open an issue because this didn't work before)
         id: 3.14159265359,
         unique: 123,
       });

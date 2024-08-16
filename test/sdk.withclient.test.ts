@@ -1,10 +1,10 @@
-jest.spyOn(logger, 'error');
-
 import { setCurrentClient } from '@sentry/core';
 import { logger } from '@sentry/utils';
 
 import { flush } from '../src/js/sdk';
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
+
+jest.spyOn(logger, 'error');
 
 describe('Tests the SDK functionality', () => {
   let client: TestClient;
