@@ -13,6 +13,7 @@ Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascri
 - Removed `beforeNavigate` use `beforeStartSpan` instead ([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
   - `beforeStartSpan` is executed before the span start, compared to `beforeNavigate` which was executed before the navigation ended (after the span was created)
 - New Native Frames Integration ([#3996](https://github.com/getsentry/sentry-react-native/pull/3996))
+- Native Frames uses `spanId` to attach frames replacing `traceId` ([#4030](https://github.com/getsentry/sentry-react-native/pull/4030))
 - New Stall Tracking Integration ([#3997](https://github.com/getsentry/sentry-react-native/pull/3997))
 - New User Interaction Tracing Integration ([#3999](https://github.com/getsentry/sentry-react-native/pull/3999))
 - New App Start Integration ([#3852](https://github.com/getsentry/sentry-react-native/pull/3852))
