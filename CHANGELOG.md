@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 6.0.0-alpha.0
+
+This is an alpha version of the next major version of the Sentry React Native SDK 6.0.0.
+Please read the changes listed below as well as the changes made in the underlying
+Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascript/guides/react/migration/v7-to-v8/)).
 
 ### Changes
 
@@ -76,6 +80,17 @@
     ],
   });
   ```
+
+- Add `spotlight` option ([#4023](https://github.com/getsentry/sentry-react-native/pull/4023))
+  - Deprecating `enableSpotlight` and `spotlightSidecarUrl`
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.118.0 to v8.11.0 ([#3910](https://github.com/getsentry/sentry-react-native/pull/3910))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8110)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.118.0...8.11.0)
+
+## 5.29.0
 
 ### Features
 
@@ -328,7 +343,6 @@ This release does *not* build on iOS. Please use `5.23.1` or newer.
 ### Fixes
 
 - Remove unused `rnpm` config ([#3811](https://github.com/getsentry/sentry-react-native/pull/3811))
-- CaptureMessage stack-trace is now symbolicated ([#3635](https://github.com/getsentry/sentry-react-native/pull/3635))
 
 ### Dependencies
 
