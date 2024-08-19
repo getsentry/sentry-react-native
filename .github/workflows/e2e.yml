@@ -50,6 +50,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: ./.github/actions/disk-cleanup
+        if: ${{ matrix.platform == 'android' }}
+
       - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' }}
 
@@ -217,6 +220,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: ./.github/actions/disk-cleanup
+        if: ${{ matrix.platform == 'android' }}
+
       - name: Sentry Release
         run: |
           SENTRY_RELEASE_CANDIDATE=$(echo 'e2e/${{ github.ref }}' | perl -pe 's/\//-/g')
@@ -364,6 +370,9 @@ jobs:
       DEVICE: ${{ matrix.device }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/disk-cleanup
+        if: ${{ matrix.platform == 'android' }}
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
