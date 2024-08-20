@@ -22,21 +22,22 @@ if (enableHermes === null) {
 }
 
 logger.info('Patching gradle.properties', args['gradle-properties']);
-const content = fs.readFileSync(args['gradle-properties'], 'utf8');
+let content = fs.readFileSync(args['gradle-properties'], 'utf8');
 
 const isHermesEnabled = content.includes('hermesEnabled=true');
-const shouldPatch = enableHermes !== isHermesEnabled;
-if (shouldPatch) {
+if (enableHermes !== isHermesEnabled) {
   const patch = enableHermes ? 'hermesEnabled=true' : 'hermesEnabled=false';
-  const patched = content.match(/hermesEnabled=.*/)
-    ? content.replace(/hermesEnabled=.*/, patch)
+  content = content.match(/hermesEnabled=.*/)
+    ? content.replace(/hermesEnabled=.*/g, patch)
     : content.concat(`\n${patch}`);
   if (enableHermes) {
     logger.info('Patching gradle.properties for Hermes');
   } else {
     logger.info('Patching gradle.properties for JSC');
   }
-  fs.writeFileSync(args['gradle-properties'], patched);
-} else {
-  logger.info('gradle.properties is already patched!');
 }
+
+content = content.replace(/reactNativeArchitectures=.*/g, 'reactNativeArchitectures=x86');
+content = content.replace(/org.gradle.jvmargs=.*/g, 'org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=512m');
+
+fs.writeFileSync(args['gradle-properties'], content);
