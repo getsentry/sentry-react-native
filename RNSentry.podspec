@@ -32,17 +32,32 @@ Pod::Spec.new do |s|
 
   s.preserve_paths = '*.js'
 
-  s.dependency 'Sentry/HybridSDK', '8.34.0'
-
   s.source_files = 'ios/**/*.{h,m,mm}'
   s.public_header_files = 'ios/RNSentry.h'
 
   s.compiler_flags = other_cflags
 
+  s.dependency 'Sentry/HybridSDK', '8.34.0'
+
   if defined? install_modules_dependencies
-     install_modules_dependencies(s)
-   else
-     s.dependency 'React-Core'
+    # Default React Native dependencies for 0.71 and above (new and legacy architecture)
+    install_modules_dependencies(s)
+  else
+    s.dependency 'React-Core'
+
+    if is_new_arch_enabled then
+      # New Architecture on React Native 0.70 and older
+      s.pod_target_xcconfig = {
+          "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
+          "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
+      }
+
+      s.dependency "React-Codegen"
+      s.dependency "RCT-Folly"
+      s.dependency "RCTRequired"
+      s.dependency "RCTTypeSafety"
+      s.dependency "ReactCommon/turbomodule/core"
+    end
   end
 
   if is_using_hermes then
