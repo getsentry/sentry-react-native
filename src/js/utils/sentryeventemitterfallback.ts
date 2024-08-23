@@ -2,17 +2,16 @@ import { logger } from '@sentry/utils';
 import type { EmitterSubscription } from 'react-native';
 import { DeviceEventEmitter } from 'react-native';
 
-import  { NewFrameEventName } from './sentryeventemitter';
+import { NewFrameEventName } from './sentryeventemitter';
 
-export type FallBackNewFrameEvent = { newFrameTimestampInSeconds: number, isFallback?: boolean };
+export type FallBackNewFrameEvent = { newFrameTimestampInSeconds: number; isFallback?: boolean };
 export interface SentryEventEmitterFallback {
   /**
    * Initializes the fallback event emitter
-   * This method is synchronous in JS but the event emitter starts asynchronously
-   * https://github.com/facebook/react-native/blob/d09c02f9e2d468e4d0bde51890e312ae7003a3e6/packages/react-native/React/Modules/RCTEventEmitter.m#L95
+   * This method is synchronous in JS but the event emitter starts asynchronously.
    */
   initAsync: () => void;
-  closeAllAsync: () => void;
+  closeAll: () => void;
   startListenerAsync: () => void;
 }
 
@@ -24,12 +23,11 @@ function timeNowNanosecond(): number {
  * Creates emitter that allows to listen to UI Frame events when ready.
  */
 export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
-  let  NativeEmitterCalled: boolean = false;
+  let NativeEmitterCalled: boolean = false;
   let subscription: EmitterSubscription | undefined = undefined;
   let isListening = false;
   return {
     initAsync() {
-
       subscription = DeviceEventEmitter.addListener(NewFrameEventName, () => {
         // Avoid noise from pages that we do not want to track.
         if (isListening) {
@@ -56,7 +54,7 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
           if (NativeEmitterCalled) {
             NativeEmitterCalled = false;
             isListening = false;
-            return; // Native Repplied the bridge with a given timestamp.
+            return; // Native Replied the bridge with a given timestamp.
           }
 
           retries++;
@@ -65,18 +63,20 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
           } else {
             logger.log('Native timestamp did not reply in time, using fallback.');
             isListening = false;
-            DeviceEventEmitter.emit(NewFrameEventName, { newFrameTimestampInSeconds: timestampInSeconds, isFallback: true });
+            DeviceEventEmitter.emit(NewFrameEventName, {
+              newFrameTimestampInSeconds: timestampInSeconds,
+              isFallback: true,
+            });
           }
         };
 
         // Start the retry process
         retryCheck();
-
       });
     },
 
-    closeAllAsync() {
+    closeAll() {
       subscription?.remove();
-    }
-  }
+    },
+  };
 }
