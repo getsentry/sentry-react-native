@@ -652,7 +652,8 @@ export const NATIVE: SentryNativeWrapper = {
       return null;
     }
 
-    return RNSentry.crashedLastRun();
+    const result = RNSentry.crashedLastRun();
+    return typeof result === 'boolean' ? result : null;
   },
 
   /**
