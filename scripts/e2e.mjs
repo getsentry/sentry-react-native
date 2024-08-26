@@ -160,7 +160,8 @@ if (actions.includes('build')) {
 
       appProduct = `${appDir}/ios/DerivedData/Build/Products/${buildType}-iphonesimulator/${appName}.app`;
     } else if (platform == 'android') {
-      execSync(`./gradlew assemble${buildType} -PreactNativeArchitectures=x86`, { stdio: 'inherit', cwd: `${appDir}/android`, env: env });
+      execSync(`./gradlew assemble${buildType} -PreactNativeArchitectures=x86 --no-daemon`,
+        { stdio: 'inherit', cwd: `${appDir}/android`, env: env });
       appProduct = `${appDir}/android/app/build/outputs/apk/release/app-release.apk`;
     }
 

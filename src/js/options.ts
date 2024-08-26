@@ -166,6 +166,8 @@ export interface BaseReactNativeOptions {
    * More details: https://spotlightjs.com/
    *
    * IMPORTANT: Only set this option to `true` while developing, not in production!
+   *
+   * @deprecated Use `spotlight` instead.
    */
   enableSpotlight?: boolean;
 
@@ -178,8 +180,22 @@ export interface BaseReactNativeOptions {
    * More details: https://spotlightjs.com/
    *
    * @default "http://localhost:8969/stream"
+   *
+   * @deprecated Use `spotlight` instead.
    */
   spotlightSidecarUrl?: string;
+
+  /**
+   * If you use Spotlight by Sentry during development, use
+   * this option to forward captured Sentry events to Spotlight.
+   *
+   * Either set it to true, or provide a specific Spotlight Sidecar URL.
+   *
+   * More details: https://spotlightjs.com/
+   *
+   * IMPORTANT: Only set this option to `true` while developing, not in production!
+   */
+  spotlight?: boolean | string;
 
   /**
    * Sets a callback which is executed before capturing screenshots. Only
