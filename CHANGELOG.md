@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add `Sentry.crashedLastRun()` ([#4014](https://github.com/getsentry/sentry-react-native/pull/4014))
+
 ### Fixes
 
 - Use `install_modules_dependencies` for React iOS dependencies ([#4040](https://github.com/getsentry/sentry-react-native/pull/4040))
@@ -32,7 +36,6 @@
 
 ### Features
 
-- Add `Sentry.crashedLastRun()` ([#4014](https://github.com/getsentry/sentry-react-native/pull/4014))
 - `TimeToInitialDisplay` and `TimeToFullDisplay` start the time to display spans on mount ([#4020](https://github.com/getsentry/sentry-react-native/pull/4020))
 
 ### Fixes
