@@ -46,7 +46,7 @@ export interface Spec extends TurboModule {
   initNativeReactNavigationNewFrameTracking(): Promise<void>;
   captureReplay(isHardCrash: boolean): Promise<string | undefined | null>;
   getCurrentReplayId(): string | undefined | null;
-  crashedLastRun(): Promise<boolean | null>;
+  crashedLastRun(): Promise<boolean | undefined | null>;
 }
 
 export type NativeStackFrame = {
