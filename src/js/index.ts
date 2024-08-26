@@ -84,6 +84,7 @@ export {
   captureUserFeedback,
   withScope,
   configureScope,
+  crashedLastRun,
 } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 
