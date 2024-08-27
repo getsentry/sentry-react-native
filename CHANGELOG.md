@@ -9,6 +9,7 @@
 ### Fixes
 
 - Use `install_modules_dependencies` for React iOS dependencies ([#4040](https://github.com/getsentry/sentry-react-native/pull/4040))
+- `Replay.maskAllText` masks `RCTParagraphComponentView` ([#4048](https://github.com/getsentry/sentry-react-native/pull/4048))
 
 ### Dependencies
 
