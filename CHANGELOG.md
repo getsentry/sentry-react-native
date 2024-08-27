@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.119.0 to v8.26.0 ([#3895](https://github.com/getsentry/sentry-react-native/pull/3895))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8260)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.119.0...8.26.0)
+
 ## 6.0.0-alpha.0
 
 This is an alpha version of the next major version of the Sentry React Native SDK 6.0.0.

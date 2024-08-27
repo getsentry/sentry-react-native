@@ -94,7 +94,7 @@ export const reactNativeTracingIntegration = (
   const setup = (client: Client): void => {
     addDefaultOpForSpanFrom(client);
 
-    instrumentOutgoingRequests({
+    instrumentOutgoingRequests(client, {
       traceFetch: finalOptions.traceFetch,
       traceXHR: finalOptions.traceXHR,
       shouldCreateSpanForRequest: finalOptions.shouldCreateSpanForRequest,
