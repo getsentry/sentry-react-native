@@ -57,6 +57,10 @@
     if (maybeRCTTextClass != nil) {
       [classesToRedact addObject:maybeRCTTextClass];
     }
+    Class _Nullable maybeRCTParagraphComponentViewClass = NSClassFromString(@"RCTParagraphComponentView");
+    if (maybeRCTParagraphComponentViewClass != nil) {
+        [classesToRedact addObject:maybeRCTParagraphComponentViewClass];
+    }
   }
   [PrivateSentrySDKOnly addReplayRedactClasses:classesToRedact];
 }

@@ -168,4 +168,9 @@ public class RNSentryModule extends NativeRNSentrySpec {
     public String getCurrentReplayId() {
         return this.impl.getCurrentReplayId();
     }
+
+    @Override
+    public void crashedLastRun(Promise promise) {
+        this.impl.crashedLastRun(promise);
+    }
 }

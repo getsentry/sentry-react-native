@@ -81,14 +81,36 @@ Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascri
   });
   ```
 
+### Features
+
+- Add `Sentry.crashedLastRun()` ([#4014](https://github.com/getsentry/sentry-react-native/pull/4014))
+
+### Fixes
+
+- Use `install_modules_dependencies` for React iOS dependencies ([#4040](https://github.com/getsentry/sentry-react-native/pull/4040))
+- `Replay.maskAllText` masks `RCTParagraphComponentView` ([#4048](https://github.com/getsentry/sentry-react-native/pull/4048))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.34.0 to v8.36.0 ([#4037](https://github.com/getsentry/sentry-react-native/pull/4037), [#4046](https://github.com/getsentry/sentry-react-native/pull/4046), [#4049](https://github.com/getsentry/sentry-react-native/pull/4049))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8360)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.34.0...8.36.0)
+
+## 5.30.0
+
+### Features
+
 - Add `spotlight` option ([#4023](https://github.com/getsentry/sentry-react-native/pull/4023))
   - Deprecating `enableSpotlight` and `spotlightSidecarUrl`
 
 ### Dependencies
 
-- Bump JavaScript SDK from v7.118.0 to v8.11.0 ([#3910](https://github.com/getsentry/sentry-react-native/pull/3910))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8110)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.118.0...8.11.0)
+- Bump JavaScript SDK from v7.118.0 to v7.119.0 ([#4031](https://github.com/getsentry/sentry-react-native/pull/4031))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/v7/CHANGELOG.md#71190)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.118.0...7.119.0)
+- Bump Cocoa SDK from v8.33.0 to v8.34.0 ([#4026](https://github.com/getsentry/sentry-react-native/pull/4026))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8340)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.33.0...8.34.0)
 
 ## 5.29.0
 
@@ -96,7 +118,7 @@ Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascri
 
 - `TimeToInitialDisplay` and `TimeToFullDisplay` start the time to display spans on mount ([#4020](https://github.com/getsentry/sentry-react-native/pull/4020))
 
-### Fixed
+### Fixes
 
 - fix(ttid): End and measure TTID regardless current active span ([#4019](https://github.com/getsentry/sentry-react-native/pull/4019))
   - Fixes possible missing TTID measurements and spans

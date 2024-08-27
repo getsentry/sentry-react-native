@@ -56,6 +56,8 @@ const NATIVE: MockInterface<NativeType> = {
 
   captureReplay: jest.fn(),
   getCurrentReplayId: jest.fn(),
+
+  crashedLastRun: jest.fn(),
 };
 
 NATIVE.isNativeAvailable.mockReturnValue(true);
@@ -79,6 +81,7 @@ NATIVE.fetchNativeStackFramesBy.mockReturnValue(null);
 NATIVE.initNativeReactNavigationNewFrameTracking.mockReturnValue(Promise.resolve());
 NATIVE.captureReplay.mockResolvedValue(null);
 NATIVE.getCurrentReplayId.mockReturnValue(null);
+NATIVE.crashedLastRun.mockResolvedValue(false);
 
 export const getRNSentryModule = jest.fn();
 
