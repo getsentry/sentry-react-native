@@ -4,9 +4,26 @@
 
 ### Dependencies
 
-- Bump JavaScript SDK from v7.119.0 to v8.26.0 ([#3895](https://github.com/getsentry/sentry-react-native/pull/3895))
+- Bump JavaScript SDK from v8.11.0 to v8.26.0 ([#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8260)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.119.0...8.26.0)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.11.0...8.26.0)
+
+## 5.31.0
+
+### Features
+
+- Add `Sentry.crashedLastRun()` ([#4014](https://github.com/getsentry/sentry-react-native/pull/4014))
+
+### Fixes
+
+- Use `install_modules_dependencies` for React iOS dependencies ([#4040](https://github.com/getsentry/sentry-react-native/pull/4040))
+- `Replay.maskAllText` masks `RCTParagraphComponentView` ([#4048](https://github.com/getsentry/sentry-react-native/pull/4048))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.34.0 to v8.36.0 ([#4037](https://github.com/getsentry/sentry-react-native/pull/4037), [#4046](https://github.com/getsentry/sentry-react-native/pull/4046), [#4049](https://github.com/getsentry/sentry-react-native/pull/4049))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8360)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.34.0...8.36.0)
 
 ## 6.0.0-alpha.0
 
@@ -89,20 +106,14 @@ Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascri
   });
   ```
 
-### Features
-
-- Add `Sentry.crashedLastRun()` ([#4014](https://github.com/getsentry/sentry-react-native/pull/4014))
-
-### Fixes
-
-- Use `install_modules_dependencies` for React iOS dependencies ([#4040](https://github.com/getsentry/sentry-react-native/pull/4040))
-- `Replay.maskAllText` masks `RCTParagraphComponentView` ([#4048](https://github.com/getsentry/sentry-react-native/pull/4048))
+- Add `spotlight` option ([#4023](https://github.com/getsentry/sentry-react-native/pull/4023))
+  - Deprecating `enableSpotlight` and `spotlightSidecarUrl`
 
 ### Dependencies
 
-- Bump Cocoa SDK from v8.34.0 to v8.36.0 ([#4037](https://github.com/getsentry/sentry-react-native/pull/4037), [#4046](https://github.com/getsentry/sentry-react-native/pull/4046), [#4049](https://github.com/getsentry/sentry-react-native/pull/4049))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8360)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.34.0...8.36.0)
+- Bump JavaScript SDK from v7.118.0 to v8.11.0 ([#3910](https://github.com/getsentry/sentry-react-native/pull/3910))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8110)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.118.0...8.11.0)
 
 ## 5.30.0
 
