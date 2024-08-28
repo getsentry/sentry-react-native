@@ -112,6 +112,8 @@ interface SentryNativeWrapper {
 
   captureReplay(isHardCrash: boolean): Promise<string | null>;
   getCurrentReplayId(): string | null;
+
+  crashedLastRun(): Promise<boolean | null>;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -640,6 +642,18 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.getCurrentReplayId() || null;
+  },
+
+  async crashedLastRun(): Promise<boolean | null> {
+    if (!this.enableNative) {
+      return null;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return null;
+    }
+
+    const result = RNSentry.crashedLastRun();
+    return typeof result === 'boolean' ? result : null;
   },
 
   /**

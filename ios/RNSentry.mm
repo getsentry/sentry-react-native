@@ -47,10 +47,6 @@
 #import "RNSentryFramesTrackerListener.h"
 #endif
 
-@interface SentryTraceContext : NSObject
-- (nullable instancetype)initWithDict:(NSDictionary<NSString *, id> *)dictionary;
-@end
-
 @interface SentrySDK (RNSentry)
 
 + (void)captureEnvelope:(SentryEnvelope *)envelope;
@@ -759,6 +755,12 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
 #else
     return @{ @"error": enabledProfilingMessage };
 #endif
+}
+
+RCT_EXPORT_METHOD(crashedLastRun:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    resolve(@([SentrySDK crashedLastRun]));
 }
 
 // Thanks to this guard, we won't compile this code when we build for the old architecture.
