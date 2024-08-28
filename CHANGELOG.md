@@ -2,9 +2,21 @@
 
 ## Unreleased
 
-### Fixes
+### Features
 
-- Exclude Sentry Web Replay on mobile by default, reducing the code in 130KB. ([#4006](https://github.com/getsentry/sentry-react-native/pull/4006))
+- Exclude Sentry Web Replay by default, reducing the code in 130KB. ([#4006](https://github.com/getsentry/sentry-react-native/pull/4006))
+  - You can keep Sentry Web Replay by setting `includeWebReplay` to `true` in your metro config as shown in the snippet:
+
+  ```js
+  // For Expo
+  const { getSentryExpoConfig } = require("@sentry/react-native/metro");
+  const config = getSentryExpoConfig(__dirname, { includeWebReplay: true });
+
+  // For RN
+  const { getDefaultConfig } = require('@react-native/metro-config');
+  const { withSentryConfig } = require('@sentry/react-native/metro');
+  module.exports = withSentryConfig(getDefaultConfig(__dirname), { includeWebReplay: true });
+  ```
 
 ## 5.31.0
 
@@ -65,20 +77,6 @@
 ## 5.28.0
 
 ### Fixes
-
-- Exclude Sentry Web Replay by default, reducing the code in 130KB. ([#4006](https://github.com/getsentry/sentry-react-native/pull/4006))
-  - You can keep Sentry Web Replay by setting `includeWebReplay` to `true` in your metro config as shown in the snippet:
-
-  ```js
-  // For Expo
-  const { getSentryExpoConfig } = require("@sentry/react-native/metro");
-  const config = getSentryExpoConfig(__dirname, { includeWebReplay: true });
-
-  // For RN
-  const { getDefaultConfig } = require('@react-native/metro-config');
-  const { withSentryConfig } = require('@sentry/react-native/metro');
-  module.exports = withSentryConfig(getDefaultConfig(__dirname), { includeWebReplay: true });
-  ```
 
 - Support `metro@0.80.10` new `sourceMapString` export ([#4004](https://github.com/getsentry/sentry-react-native/pull/4004))
 - `Sentry.captureMessage` stack trace is in `event.exception` (moved from `event.threads`) ([#3635](https://github.com/getsentry/sentry-react-native/pull/3635), [#3988](https://github.com/getsentry/sentry-react-native/pull/3988))
