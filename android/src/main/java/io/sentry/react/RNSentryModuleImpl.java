@@ -852,6 +852,10 @@ public class RNSentryModuleImpl {
         return packageInfo.packageName;
     }
 
+    public void crashedLastRun(Promise promise) {
+        promise.resolve(Sentry.isCrashedLastRun());
+    }
+
     private void setEventOriginTag(SentryEvent event) {
         SdkVersion sdk = event.getSdk();
         if (sdk != null) {
