@@ -13,6 +13,7 @@
     "set-version-samples": "bash scripts/set-version-samples.sh"
   },
   "devDependencies": {
+    "@sentry/cli": "2.31.2",
     "downlevel-dts": "^0.11.0",
     "lerna": "^8.1.8",
     "npm-run-all2": "^6.2.2",

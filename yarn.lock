@@ -18743,18 +18743,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-gesture-handler@npm:^2.14.0":
-  version: 2.18.1
-  resolution: "react-native-gesture-handler@npm:2.18.1"
+"react-native-gesture-handler@npm:2.14.0":
+  version: 2.14.0
+  resolution: "react-native-gesture-handler@npm:2.14.0"
   dependencies:
-    "@egjs/hammerjs": "npm:^2.0.17"
-    hoist-non-react-statics: "npm:^3.3.0"
-    invariant: "npm:^2.2.4"
-    prop-types: "npm:^15.7.2"
+    "@egjs/hammerjs": ^2.0.17
+    hoist-non-react-statics: ^3.3.0
+    invariant: ^2.2.4
+    lodash: ^4.17.21
+    prop-types: ^15.7.2
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 49b5b9a232fc60ddc38124a804410150070af5b20efbba1550831221560d71df704b7a7edfa2fb70d84fde32faf8675ad6118aea8b40f50c2a9d80eb7a08eb1c
+  checksum: 8227d3f66f2f41932d3b7d12cc029d4ff1f57ba93249d71844cb1b75bae887cc50f9df516da52863746a2df8af4da013c1eb28b484caf181f782bcfe35bc59b0
   languageName: node
   linkType: hard
 
@@ -20159,7 +20160,7 @@ __metadata:
     prettier: 2.8.8
     react: 18.2.0
     react-native: 0.73.9
-    react-native-gesture-handler: ^2.14.0
+    react-native-gesture-handler: 2.14.0
     react-native-macos: 0.73.34
     react-native-reanimated: 3.8.1
     react-native-safe-area-context: 4.8.0
@@ -20177,6 +20178,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sentry-react-native@workspace:."
   dependencies:
+    "@sentry/cli": 2.31.2
     downlevel-dts: ^0.11.0
     lerna: ^8.1.8
     npm-run-all2: ^6.2.2
