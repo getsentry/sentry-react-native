@@ -22,6 +22,14 @@ const monorepoPackages = {
   '@sentry/react-native': path.resolve(monorepoRoot, 'packages/core'),
 };
 
+const exclusionList = [...Object.values(monorepoPackages).map(p => new RegExp(`${p}/node_modules/react-native/.*`))];
+
+if (config.resolver.blacklistRE) {
+  config.resolver.blacklistRE.push(...exclusionList);
+} else {
+  config.resolver.blacklistRE = exclusionList;
+}
+
 // 1. Watch the local app directory, and only the shared packages (limiting the scope and speeding it up)
 // Note how we change this from `monorepoRoot` to `projectRoot`. This is part of the optimization!
 config.watchFolders = [projectRoot, ...Object.values(monorepoPackages)];
@@ -30,7 +38,10 @@ config.watchFolders = [projectRoot, ...Object.values(monorepoPackages)];
 // If your monorepo tooling creates workspace symlinks in the `node_modules` directory,
 // you can either add symlink support to Metro or set the `extraNodeModules` to avoid the symlinks.
 // See: https://metrobundler.dev/docs/configuration/#extranodemodules
-config.resolver.extraNodeModules = monorepoPackages;
+config.resolver.extraNodeModules = {
+  ...monorepoPackages,
+  'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
+};
 
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
