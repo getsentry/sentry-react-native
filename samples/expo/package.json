@@ -28,7 +28,6 @@
     "react-native-safe-area-context": "4.8.2",
     "react-native-screens": "~3.29.0",
     "react-native-web": "~0.19.6",
-    "ts-node": "^10.9.2",
     "typescript": "^5.3.2"
   },
   "devDependencies": {

@@ -5,9 +5,11 @@ const path = require('path');
 const { getSentryExpoConfig } = require('@sentry/react-native/metro');
 
 /** @type {import('expo/metro-config').MetroConfig} */
-const config = getDefaultConfig(__dirname, {
+const config = getSentryExpoConfig(__dirname, {
   // [Web-only]: Enables CSS support in Metro.
   isCSSEnabled: true,
+  getDefaultConfig,
+  annotateReactComponents: true,
 });
 
 const projectRoot = __dirname;
@@ -34,7 +36,5 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   ...Object.values(monorepoPackages).map(p => path.resolve(p, 'node_modules')),
 ];
-
-console.log('here', config.resolver.nodeModulesPaths);
 
 module.exports = config;
