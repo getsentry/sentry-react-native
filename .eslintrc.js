@@ -17,15 +17,8 @@ module.exports = {
     'coverage/**/*',
     'test/typescript/**/*',
     'metro.d.ts',
-    'samples/**/*',
     'plugin/build/**/*',
     'expo.d.ts',
-    'dist',
-    'samples/react-native',
-    'performance-tests/TestApp*',
-    'dangerfile.js',
-    // Android Test App includes js in JVM test reports
-    'RNSentryAndroidTester/**/*',
   ],
   overrides: [
     {

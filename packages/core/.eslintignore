@@ -1,0 +1,8 @@
+# Ignore build generated dir
+dist
+
+# Ignore dangerfile
+dangerfile.js
+
+# Android Test App includes js in JVM test reports
+RNSentryAndroidTester
