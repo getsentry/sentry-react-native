@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "packages": [
     "packages/*",
-    "samples/*"
+    "samples/*",
+    "performance-tests/*"
   ],
   "npmClient": "yarn"
 }

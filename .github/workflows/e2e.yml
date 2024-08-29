@@ -42,11 +42,11 @@ jobs:
           - platform: ios
             runs-on: macos-12
             name: iOS
-            appPlain: test/perf/test-app-plain.ipa
+            appPlain: performance-tests/test-app-plain.ipa
           - platform: android
             runs-on: ubuntu-latest
             name: Android
-            appPlain: test/perf/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
+            appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
       - uses: actions/checkout@v4
 
@@ -56,9 +56,13 @@ jobs:
       - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' }}
 
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
@@ -66,24 +70,15 @@ jobs:
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
       - name: Install Global Dependencies
-        run: yarn global add react-native-cli @sentry/cli yalc
-      - uses: actions/cache@v4
-        id: deps-cache
-        with:
-          path: |
-            node_modules
-            test/perf/TestAppSentry/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'test/perf/TestAppSentry/yarn.lock') }}
+        run: npm i -g react-native-cli @sentry/cli yalc
       - name: Install Dependencies
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
       - name: Build SDK
         run: yarn build
       - name: Package SDK
+        working-directory: packages/core
         run: yalc publish
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
+
       - uses: actions/cache@v4
         id: app-plain-cache
         with:
@@ -91,12 +86,11 @@ jobs:
           # if the whole plain app folder is hashed the cache is never hit as there are files generated in the folder
           # the cache key is calculated both at cache retrieval and save time
           # hashFiles fails when there are rn android new arch generated files in the folder (exact reason unknown)
-          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('test/perf/TestAppPlain/yarn.lock') }}
+          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('yarn.lock') }}
       - name: Build app plain
         if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
-        working-directory: ./test/perf/TestAppPlain
+        working-directory: ./performance-tests/TestAppPlain
         run: |
-          yarn install
           cd ${{ matrix.platform }}
           if [[ "${{ matrix.platform }}" == "android" ]]; then
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
@@ -121,10 +115,8 @@ jobs:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
       - name: Build app with Sentry
-        working-directory: ./test/perf/TestAppSentry
+        working-directory: ./performance-tests/TestAppSentry
         run: |
-          yalc add @sentry/react-native
-          yarn install
           cd ${{ matrix.platform }}
           if [[ "${{ matrix.platform }}" == "android" ]]; then
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
@@ -141,8 +133,6 @@ jobs:
             fastlane build_perf_test_app_sentry
             cd TestAppSentry
           fi
-          # Remove after build so that the cache isn't invaldiated due to the changes in yarn.lock.
-          yarn remove @sentry/react-native
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
@@ -155,7 +145,7 @@ jobs:
         uses: getsentry/action-app-sdk-overhead-metrics@v1
         with:
           name: ${{ matrix.name }} (${{ matrix.rn-architecture }})
-          config: ./test/perf/metrics-${{ matrix.platform }}.yml
+          config: ./performance-tests/metrics-${{ matrix.platform }}.yml
           sauce-user: ${{ secrets.SAUCE_USERNAME }}
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
 
