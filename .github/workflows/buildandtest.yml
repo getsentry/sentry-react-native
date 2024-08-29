@@ -104,17 +104,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: dist
+          path: packages/core/dist
       - name: Archive ts3.8
         uses: actions/upload-artifact@v4
         with:
           name: ts3.8
-          path: ts3.8
+          path: packages/core/ts3.8
       - name: Archive Expo Plugin
         uses: actions/upload-artifact@v4
         with:
           name: expo-plugin
-          path: plugin/build
+          path: packages/core/plugin/build
       - name: Pack
         run: yarn pack
       - name: Archive Artifacts
@@ -122,7 +122,7 @@ jobs:
         with:
           name: ${{ github.sha }}
           path: |
-            ${{ github.workspace }}/*.tgz
+            ${{ github.workspace }}/packages/core/*.tgz
 
   job_type_check:
     name: Type Check Typescript 3.8
@@ -138,21 +138,22 @@ jobs:
       - uses: actions/cache@v4
         id: cache
         with:
-          path: test/typescript/ts3.8/node_modules
+          path: packages/core/test/typescript/ts3.8/node_modules
           key: ${{ runner.os }}-${{ github.sha }}-ts3.8
       - name: Download dist
         uses: actions/download-artifact@v4
         with:
           name: dist
-          path: dist
+          path: packages/core/dist
       - name: Download ts3.8
         uses: actions/download-artifact@v4
         with:
           name: ts3.8
-          path: ts3.8
+          path: packages/core/ts3.8
       - name: Install Global Dependencies
-        run: yarn global add yalc
+        run: npm i -g add yalc
       - name: Publish SDK
+        working-directory: packages/core
         run: yalc publish
       - name: Install SDK
         working-directory: test/typescript/ts3.8
@@ -189,12 +190,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dist
-          path: dist
+          path: packages/core/dist
       - name: Download Expo Plugin
         uses: actions/download-artifact@v4
         with:
           name: expo-plugin
-          path: plugin/build
+          path: packages/core/plugin/build
       - name: Run madge
         run: yarn circularDepCheck
 
@@ -219,21 +220,13 @@ jobs:
         uses: actions/cache@v4
         id: cache
         with:
-          path: node_modules
-          key: ${{ runner.os }}-${{ github.sha }}
-      - name: Cache Sample Dependencies
-        uses: actions/cache@v4
-        id: cache-sample
-        with:
-          path: samples/react-native/node_modules
+          path: |
+            node_modules
+            samples/react-native/node_modules
           key: ${{ runner.os }}-${{ hashFiles('samples/react-native/yarn.lock') }}
       - name: Install Dependencies
         if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
-      - name: Install Sample Dependencies
-        if: ${{ steps.cache-sample.outputs['cache-hit'] != 'true' }}
-        run: yarn install
-        working-directory: samples/react-native
       - name: Build
         run: yarn build
       - name: Make Sample Build Directory
