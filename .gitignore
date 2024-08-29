@@ -78,3 +78,9 @@ node_modules.bak
 
 # Created by Sentry Metro Plugin
 .sentry/
+
+# Yarn
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+.pnp.*

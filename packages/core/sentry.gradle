@@ -1,0 +1,453 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+project.ext.shouldSentryAutoUpload = { ->
+  return System.getenv('SENTRY_DISABLE_AUTO_UPLOAD') != 'true'
+}
+
+def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
+
+gradle.projectsEvaluated {
+    def releases = extractReleasesInfo()
+
+    if (config.flavorAware && config.sentryProperties) {
+        throw new GradleException("Incompatible sentry configuration. " +
+                "You cannot use both `flavorAware` and `sentryProperties`. " +
+                "Please remove one of these from the project.ext.sentryCli configuration.")
+    }
+
+    if (config.sentryProperties instanceof String) {
+        config.sentryProperties = file(config.sentryProperties)
+    }
+
+    if (config.sentryProperties) {
+        if (!config.sentryProperties.exists()) {
+            throw new GradleException("project.ext.sentryCli configuration defines a non-existant 'sentryProperties' file: " + config.sentryProperties.getAbsolutePath())
+        }
+        logger.info("Using 'sentry.properties' at: " + config.sentryProperties.getAbsolutePath())
+    }
+
+    if (config.flavorAware) {
+        println "**********************************"
+        println "* Flavor aware sentry properties *"
+        println "**********************************"
+    }
+
+    // separately we then hook into the bundle task of react native to inject
+    // sourcemap generation parameters.  In case for whatever reason no release
+    // was found for the asset folder we just bail.
+    def bundleTasks = tasks.findAll { task -> (task.name.startsWith("createBundle") || task.name.startsWith("bundle")) && task.name.endsWith("JsAndAssets") && !task.name.contains("Debug") && task.enabled }
+    bundleTasks.each { bundleTask ->
+        def shouldCleanUp
+        def sourcemapOutput
+        def bundleOutput
+        def packagerSourcemapOutput
+        def bundleCommand
+        def props = bundleTask.getProperties()
+        def reactRoot = props.get("workingDir")
+        if (reactRoot == null) {
+            reactRoot = props.get("root").get() // RN 0.71 and above
+        }
+        def modulesOutput = "$reactRoot/android/app/src/main/assets/modules.json"
+        def modulesTask = null
+
+        (shouldCleanUp, bundleOutput, sourcemapOutput, packagerSourcemapOutput, bundleCommand) = forceSourceMapOutputFromBundleTask(bundleTask)
+
+        // Lets leave this here if we need to debug
+        // println bundleTask.properties
+        //     .sort{it.key}
+        //     .collect{it}
+        //     .findAll{!['class', 'active'].contains(it.key)}
+        //     .join('\n')
+
+        def currentVariants = extractCurrentVariants(bundleTask, releases)
+        if (currentVariants == null) return
+
+        def variant = null
+        def releaseName = null
+        def versionCode = null
+        def previousCliTask = null
+        def applicationVariant = null
+
+        def nameCleanup = "${bundleTask.name}_SentryUploadCleanUp"
+        def nameModulesCleanup = "${bundleTask.name}_SentryCollectModulesCleanUp"
+        // Upload the source map several times if necessary: once for each release and versionCode.
+        currentVariants.each { key, currentVariant ->
+          variant = currentVariant[0]
+          releaseName = currentVariant[1]
+          versionCode = currentVariant[2]
+          applicationVariant = currentVariant[3]
+
+          try {
+            if (versionCode instanceof String) {
+                versionCode = Integer.parseInt(versionCode)
+                versionCode = Math.abs(versionCode)
+            }
+          } catch (NumberFormatException e) {
+            project.logger.info("versionCode: '$versionCode' isn't an Integer, using the plain value.")
+          }
+
+          // The Sentry server distinguishes source maps by release (`--release` in the command
+          // below) and distribution identifier (`--dist` below).  Give the task a unique name
+          // based on where we're uploading to.
+          def nameCliTask = "${bundleTask.name}_SentryUpload_${releaseName}_${versionCode}"
+          def nameModulesTask = "${bundleTask.name}_SentryCollectModules_${releaseName}_${versionCode}"
+
+          // If several outputs have the same releaseName and versionCode, we'd do the exact same
+          // upload for each of them.  No need to repeat.
+          try { tasks.named(nameCliTask); return } catch (Exception e) {}
+
+          /** Upload source map file to the sentry server via CLI call. */
+          def cliTask = tasks.create(nameCliTask) {
+              onlyIf { shouldSentryAutoUpload() }
+              description = "upload debug symbols to sentry"
+              group = 'sentry.io'
+
+              def extraArgs = []
+
+              def sentryPackage = resolveSentryReactNativeSDKPath(reactRoot)
+              def copyDebugIdScript = config.copyDebugIdScript
+                  ? file(config.copyDebugIdScript).getAbsolutePath()
+                  : "$sentryPackage/scripts/copy-debugid.js"
+              def hasSourceMapDebugIdScript = config.hasSourceMapDebugIdScript
+                  ? file(config.hasSourceMapDebugIdScript).getAbsolutePath()
+                  : "$sentryPackage/scripts/has-sourcemap-debugid.js"
+
+              doFirst {
+                  // Copy Debug ID from packager source map to Hermes composed source map
+                  exec {
+                      def args = ["node",
+                          copyDebugIdScript,
+                          packagerSourcemapOutput,
+                          sourcemapOutput]
+                      def osCompatibilityCopyCommand = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c'] : []
+                      commandLine(*osCompatibilityCopyCommand, *args)
+                  }
+
+                  // Add release and dist for backward compatibility if no Debug ID detected in output soruce map
+                  def process = ["node", hasSourceMapDebugIdScript, sourcemapOutput].execute(null, new File("$reactRoot"))
+                  def exitValue = process.waitFor()
+                  project.logger.lifecycle("Check generated source map for Debug ID: ${process.text}")
+
+                  project.logger.lifecycle("Sentry Source Maps upload will include the release name and dist.")
+                  extraArgs.addAll([
+                      "--release", releaseName,
+                      "--dist", versionCode
+                  ])
+              }
+
+              doLast {
+                  exec {
+                      workingDir reactRoot
+
+                      def propertiesFile = config.sentryProperties
+                        ? config.sentryProperties
+                        : "$reactRoot/android/sentry.properties"
+
+                      if (config.flavorAware) {
+                          propertiesFile = "$reactRoot/android/sentry-${variant}.properties"
+                          project.logger.info("For $variant using: $propertiesFile")
+                      } else {
+                          environment("SENTRY_PROPERTIES", propertiesFile)
+                      }
+
+                      Properties sentryProps = new Properties()
+                      try {
+                          sentryProps.load(new FileInputStream(propertiesFile))
+                      } catch (FileNotFoundException e) {
+                          project.logger.info("file not found '$propertiesFile' for '$variant'")
+                      }
+
+                      def resolvedCliPackage = null
+                      try {
+                          resolvedCliPackage = new File(["node", "--print", "require.resolve('@sentry/cli/package.json')"].execute(null, rootDir).text.trim()).getParentFile();
+                      } catch (Throwable ignored) {}
+                      def cliPackage = resolvedCliPackage != null && resolvedCliPackage.exists() ? resolvedCliPackage.getAbsolutePath() : "$reactRoot/node_modules/@sentry/cli"
+                      def cliExecutable = sentryProps.get("cli.executable", "$cliPackage/bin/sentry-cli")
+
+                      // fix path separator for Windows
+                      if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                          cliExecutable = cliExecutable.replaceAll("/", "\\\\")
+                      }
+
+                      //
+                      // based on:
+                      //   https://github.com/getsentry/sentry-cli/blob/master/src/commands/react_native_gradle.rs
+                      //
+                      def args = [cliExecutable]
+
+                      args.addAll(!config.logLevel ? [] : [
+                          "--log-level", config.logLevel      // control verbosity of the output
+                      ])
+                      args.addAll(!config.flavorAware ? [] : [
+                          "--url", sentryProps.get("defaults.url"),
+                          "--auth-token", sentryProps.get("auth.token") ?: System.getenv("SENTRY_AUTH_TOKEN")
+                      ])
+                      args.addAll(["react-native", "gradle",
+                          "--bundle", bundleOutput,           // The path to a bundle that should be uploaded.
+                          "--sourcemap", sourcemapOutput      // The path to a sourcemap that should be uploaded.
+                      ])
+                      args.addAll(!config.flavorAware ? [] : [
+                          "--org", sentryProps.get("defaults.org"),
+                          "--project", sentryProps.get("defaults.project")
+                      ])
+
+                      args.addAll(extraArgs)
+
+                      project.logger.lifecycle("Sentry-CLI arguments: ${args}")
+                      def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
+                      commandLine(*osCompatibility, *args)
+                  }
+              }
+
+              enabled true
+          }
+
+          modulesTask = tasks.create(nameModulesTask, Exec) {
+              description = "collect javascript modules from bundle source map"
+              group = 'sentry.io'
+
+              workingDir reactRoot
+
+              def sentryPackage = resolveSentryReactNativeSDKPath(reactRoot)
+
+              def collectModulesScript = config.collectModulesScript
+                  ? file(config.collectModulesScript).getAbsolutePath()
+                  : "$sentryPackage/dist/js/tools/collectModules.js"
+              def modulesPaths = config.modulesPaths
+                  ? config.modulesPaths.join(',')
+                  : "$reactRoot/node_modules"
+              def args = ["node",
+                          collectModulesScript,
+                          sourcemapOutput,
+                          modulesOutput,
+                          modulesPaths
+              ]
+
+              if ((new File(collectModulesScript)).exists()) {
+                  project.logger.info("Sentry-CollectModules arguments: ${args}")
+                  commandLine(*args)
+
+                  def skip = config.skipCollectModules
+                    ? config.skipCollectModules == true
+                    : false
+                  enabled !skip
+              } else {
+                  project.logger.info("collectModulesScript not found: $collectModulesScript")
+                  enabled false
+              }
+          }
+
+          // chain the upload tasks so they run sequentially in order to run
+          // the cliCleanUpTask after the final upload task is run
+          if (previousCliTask != null) {
+            previousCliTask.finalizedBy cliTask
+          } else {
+            bundleTask.finalizedBy cliTask
+          }
+          previousCliTask = cliTask
+          cliTask.finalizedBy modulesTask
+        }
+
+        def modulesCleanUpTask = tasks.create(name: nameModulesCleanup, type: Delete) {
+            description = "clean up collected modules generated file"
+            group = 'sentry.io'
+
+            delete modulesOutput
+        }
+
+        def packageTasks = tasks.findAll {
+          task -> (
+            "package${applicationVariant}".equalsIgnoreCase(task.name)
+              || "package${applicationVariant}Bundle".equalsIgnoreCase(task.name)
+            ) && task.enabled
+        }
+        packageTasks.each { packageTask ->
+            packageTask.dependsOn modulesTask
+            packageTask.finalizedBy modulesCleanUpTask
+        }
+
+        /** Delete sourcemap files */
+        def cliCleanUpTask = tasks.create(name: nameCleanup, type: Delete) {
+            description = "clean up extra sourcemap"
+            group = 'sentry.io'
+
+            delete sourcemapOutput
+            delete "$buildDir/intermediates/assets/release/index.android.bundle.map"
+            // react native default bundle dir
+        }
+
+        // register clean task extension
+        cliCleanUpTask.onlyIf { shouldCleanUp }
+        // due to chaining the last value of previousCliTask will be the final
+        // upload task, after which the cleanup can be done
+        previousCliTask.finalizedBy cliCleanUpTask
+    }
+}
+
+def resolveSentryReactNativeSDKPath(reactRoot) {
+    def resolvedSentryPath = null
+    try {
+        resolvedSentryPath = new File(["node", "--print", "require.resolve('@sentry/react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile();
+    } catch (Throwable ignored) {} // if the resolve fails we fallback to the default path
+    def sentryPackage = resolvedSentryPath != null && resolvedSentryPath.exists() ? resolvedSentryPath.getAbsolutePath() : "$reactRoot/node_modules/@sentry/react-native"
+    return sentryPackage
+}
+
+/** Compose lookup map of build variants - to - outputs. */
+def extractReleasesInfo() {
+    def releases = [:]
+
+    android.applicationVariants.each { variant ->
+
+        variant.outputs.each { output ->
+            def defaultVersionCode = output.getVersionCode()
+            def versionCode = System.getenv("SENTRY_DIST") ?: defaultVersionCode
+            def defaultReleaseName = "${variant.getApplicationId()}@${variant.getVersionName()}+${versionCode}"
+            def releaseName = System.getenv("SENTRY_RELEASE") ?: defaultReleaseName
+            def variantName = variant.getName()
+            def outputName = output.getName()
+            if (releases[variantName] == null) {
+                releases[variantName] = [:]
+            }
+            releases[variantName][outputName] = [outputName, releaseName, versionCode, variantName]
+        }
+    }
+
+    return releases
+}
+
+/** Extract from arguments collection bundle and sourcemap files output names. */
+static extractBundleTaskArgumentsLegacy(cmdArgs, Project project) {
+    def bundleOutput = null
+    def sourcemapOutput = null
+    def packagerSourcemapOutput = null
+    // packagerBundleOutput doesn't exist, because packager output is overwritten by Hermes
+
+    cmdArgs.eachWithIndex { String arg, int i ->
+        if (arg == "--bundle-output") {
+            bundleOutput = cmdArgs[i + 1]
+            project.logger.info("--bundle-output: `${bundleOutput}`")
+        } else if (arg == "--sourcemap-output") {
+            sourcemapOutput = cmdArgs[i + 1]
+            packagerSourcemapOutput = sourcemapOutput
+            project.logger.info("--sourcemap-output param: `${sourcemapOutput}`")
+        }
+    }
+
+    // Best thing would be if we just had access to the local gradle variables here:
+    // https://github.com/facebook/react-native/blob/ff3b839e9a5a6c9e398a1327cde6dd49a3593092/react.gradle#L89-L97
+    // Now, the issue is that hermes builds have a different pipeline:
+    // `metro -> hermes -> compose-source-maps`, which then combines both intermediate sourcemaps into the final one.
+    // In this function here, we only grep through the first `metro` step, which only generates an intermediate sourcemap,
+    // which is wrong. We need the final one. Luckily, we can just generate the path from the `bundleOutput`, since
+    // the paths seem to be well defined.
+
+    // if sourcemapOutput is null, it means there's no source maps at all
+    // if hermes is enabled and has intermediates folder, we need to fix paths
+    // if hermes is disabled, sourcemapOutput is already ok
+    def enableHermes = project.ext.react.get("enableHermes", false);
+    project.logger.info("enableHermes: `${enableHermes}`")
+
+    if (bundleOutput != null && sourcemapOutput != null && enableHermes) {
+        // react-native < 0.60.1
+        def pattern = Pattern.compile("(/|\\\\)intermediates\\1sourcemaps\\1react\\1")
+        Matcher matcher = pattern.matcher(sourcemapOutput)
+        // if its intermediates/sourcemaps/react then it should be generated/sourcemaps/react
+        if (matcher.find()) {
+            project.logger.info("sourcemapOutput has the wrong path, let's fix it.")
+            // replacing from bundleOutput which is more reliable
+            sourcemapOutput = bundleOutput.replaceAll("(/|\\\\)generated\\1assets\\1react\\1", "\$1generated\$1sourcemaps\$1react\$1") + ".map"
+            project.logger.info("sourcemapOutput new path: `${sourcemapOutput}`")
+        }
+    }
+
+    // get the current bundle command, if not peresent use default plain "bundle"
+    // we use this later to decide how to upload source maps
+    def bundleCommand = project.ext.react.get("bundleCommand", "bundle")
+
+    return [bundleOutput, sourcemapOutput, packagerSourcemapOutput, bundleCommand]
+}
+
+/** Extract bundle and sourcemap paths from bundle task props.
+  * Based on https://github.dev/facebook/react-native/blob/473eb1dd870a4f62c4ebcba27e12bde1e99e3d07/packages/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/tasks/BundleHermesCTask.kt#L109
+  * Output source map path is the same for both Hermes and JSC.
+  */
+static extractBundleTaskArgumentsRN71AndAbove(bundleTask, logger) {
+    def props = bundleTask.getProperties()
+    def bundleAssetName = props.bundleAssetName?.get()
+
+    if (bundleAssetName == null) {
+        return [null, null]
+    }
+
+    def bundleCommand = props.bundleCommand.get()
+    def bundleFile = new File(props.jsBundleDir.get().asFile.absolutePath, bundleAssetName)
+    def outputSourceMap = new File(props.jsSourceMapsDir.get().asFile.absolutePath, "${bundleAssetName}.map")
+    def packagerOutputSourceMap = new File(props.jsIntermediateSourceMapsDir.get().asFile.absolutePath, "${bundleAssetName}.packager.map")
+
+    logger.info("bundleFile: `${bundleFile}`")
+    logger.info("outputSourceMap: `${outputSourceMap}`")
+    logger.info("packagerOutputSourceMap: `${packagerOutputSourceMap}`")
+    return [bundleFile, outputSourceMap, packagerOutputSourceMap, bundleCommand]
+}
+
+/** Force Bundle task to produce sourcemap files if they are not pre-configured by user yet. */
+def forceSourceMapOutputFromBundleTask(bundleTask) {
+    def props = bundleTask.getProperties()
+    def cmd = props.get("commandLine") as List<String>
+    def cmdArgs = props.get("args") as List<String>
+    def shouldCleanUp = false
+    def bundleOutput = null
+    def sourcemapOutput = null
+    def packagerSourcemapOutput = null
+    def bundleCommand = null
+
+    (bundleOutput, sourcemapOutput, packagerSourcemapOutput, bundleCommand) = extractBundleTaskArgumentsRN71AndAbove(bundleTask, logger)
+    if (bundleOutput == null) {
+        (bundleOutput, sourcemapOutput, packagerSourcemapOutput, bundleCommand) = extractBundleTaskArgumentsLegacy(cmdArgs, project)
+    }
+
+    if (sourcemapOutput == null) {
+        sourcemapOutput = bundleOutput + ".map"
+
+        cmd.addAll(["--sourcemap-output", sourcemapOutput])
+        cmdArgs.addAll(["--sourcemap-output", sourcemapOutput])
+
+        shouldCleanUp = true
+
+        bundleTask.setProperty("commandLine", cmd)
+        bundleTask.setProperty("args", cmdArgs)
+
+        project.logger.info("forced sourcemap file output for `${bundleTask.name}` task")
+    } else {
+        project.logger.info("Info: used pre-configured source map files: ${sourcemapOutput}")
+    }
+
+    return [shouldCleanUp, bundleOutput, sourcemapOutput, packagerSourcemapOutput, bundleCommand]
+}
+
+/** compose array with one item - current build flavor name */
+static extractCurrentVariants(bundleTask, releases) {
+    // examples: bundleLocalReleaseJsAndAssets, createBundleYellowDebugJsAndAssets
+    def pattern = Pattern.compile("(?:create)?(?:B|b)undle([A-Z][A-Za-z0-9_]+)JsAndAssets")
+
+    def currentRelease = ""
+
+    Matcher matcher = pattern.matcher(bundleTask.name)
+    if (matcher.find()) {
+        def match = matcher.group(1)
+        currentRelease = match.substring(0, 1).toLowerCase() + match.substring(1)
+    }
+
+    def currentVariants = null
+    releases.each { key, release ->
+        if (key.equalsIgnoreCase(currentRelease)) {
+            currentVariants = release
+        }
+    }
+
+    return currentVariants
+}

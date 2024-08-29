@@ -1,0 +1,11 @@
+require_relative '../node_modules/react-native/scripts/react_native_pods'
+
+platform :ios, '13.4'
+
+target 'RNSentryCocoaTesterTests' do
+  use_react_native!(
+    :hermes_enabled => false,
+  )
+  pod 'RNSentry', :path => '../RNSentry.podspec'
+  pod 'OCMock', '3.9.1'
+end

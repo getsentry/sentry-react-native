@@ -1,0 +1,16 @@
+diff -ruN android/sentry.properties android/sentry.properties
+--- android/sentry.properties	1970-01-01 01:00:00.000000000 +0100
++++ android/sentry.properties	2022-12-06 11:45:37.000000000 +0100
+@@ -0,0 +1,4 @@
++defaults.url=https://sentry.io/
++defaults.org=sentry-sdks
++defaults.project=sentry-react-native
++# auth.token=
+diff -ruN ios/sentry.properties ios/sentry.properties
+--- ios/sentry.properties	1970-01-01 01:00:00.000000000 +0100
++++ ios/sentry.properties	2022-12-06 11:45:31.000000000 +0100
+@@ -0,0 +1,4 @@
++defaults.url=https://sentry.io/
++defaults.org=sentry-sdks
++defaults.project=sentry-react-native
++# auth.token=

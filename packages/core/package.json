@@ -1,0 +1,92 @@
+{
+  "name": "@sentry/react-native",
+  "homepage": "https://github.com/getsentry/sentry-react-native",
+  "repository": "https://github.com/getsentry/sentry-react-native",
+  "version": "6.0.0-alpha.0",
+  "description": "Official Sentry SDK for react-native",
+  "typings": "dist/js/index.d.ts",
+  "types": "dist/js/index.d.ts",
+  "typesVersions": {
+    "<4.9": {
+      "*": [
+        "ts3.8/*"
+      ]
+    }
+  },
+  "typescript": {
+    "definition": "dist/js/index.d.ts"
+  },
+  "main": "dist/js/index.js",
+  "scripts": {
+    "build": "run-s build:sdk downlevel build:tools build:plugin",
+    "build:sdk": "tsc -p tsconfig.build.json",
+    "build:sdk:watch": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
+    "build:tools": "tsc -p tsconfig.build.tools.json",
+    "build:tools:watch": "tsc -p tsconfig.build.tools.json -w --preserveWatchOutput",
+    "build:plugin": "EXPO_NONINTERACTIVE=true expo-module build plugin",
+    "downlevel": "downlevel-dts dist ts3.8/dist --to=3.8",
+    "clean": "rimraf dist coverage && yarn clean:plugin",
+    "clean:plugin": "expo-module clean plugin",
+    "circularDepCheck": "madge --circular dist/js/index.js && madge --circular metro.js && madge --circular expo.js",
+    "test": "yarn test:sdk && yarn test:tools",
+    "test:sdk": "jest",
+    "test:tools": "jest --config jest.config.tools.js",
+    "test:watch": "jest --watch",
+    "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/react @sentry/types @sentry/utils",
+    "fix": "run-s fix:eslint fix:prettier",
+    "fix:eslint": "eslint --config .eslintrc.js --fix .",
+    "fix:prettier": "prettier  --config ../../.prettierrc.json --ignore-path ../../.prettierignore  --write \"{src,test,scripts,plugin/src}/**/**.ts\"",
+    "lint": "run-s lint:eslint",
+    "lint:eslint": "eslint --config .eslintrc.js .",
+    "lint:prettier": "prettier  --config ../../.prettierrc.json --ignore-path ../../.prettierignore --check \"{src,test,scripts,plugin/src}/**/**.ts\""
+  },
+  "bin": {
+    "sentry-expo-upload-sourcemaps": "scripts/expo-upload-sourcemaps.js"
+  },
+  "keywords": [
+    "react-native",
+    "sentry",
+    "crashreporting",
+    "ios"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Sentry",
+  "license": "MIT",
+  "//": [
+    "React version to be compatible with RN",
+    "When bumping make sure to update the version of react, i.e:  https://github.com/facebook/react-native/blob/v0.56.0/package.json"
+  ],
+  "peerDependencies": {
+    "expo": ">=49.0.0",
+    "react": ">=17.0.0",
+    "react-native": ">=0.65.0"
+  },
+  "dependencies": {
+    "@sentry/babel-plugin-component-annotate": "2.20.1",
+    "@sentry/browser": "8.26.0",
+    "@sentry/cli": "2.31.2",
+    "@sentry/core": "8.26.0",
+    "@sentry/react": "8.26.0",
+    "@sentry/types": "8.26.0",
+    "@sentry/utils": "8.26.0"
+  },
+  "devDependencies": {
+    "expo": "^50.0.8",
+    "expo-module-scripts": "3.1.0"
+  },
+  "codegenConfig": {
+    "name": "RNSentrySpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "io.sentry.react"
+    }
+  },
+  "peerDependenciesMeta": {
+    "expo": {
+      "optional": true
+    }
+  }
+}

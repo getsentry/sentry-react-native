@@ -48,7 +48,7 @@
 		5B7EB9410499542E8C5724F5 /* Pods-sentryreactnativesample-sentryreactnativesampleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sentryreactnativesample-sentryreactnativesampleTests.debug.xcconfig"; path = "Target Support Files/Pods-sentryreactnativesample-sentryreactnativesampleTests/Pods-sentryreactnativesample-sentryreactnativesampleTests.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = sentryreactnativesample/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-sentryreactnativesample-sentryreactnativesampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sentryreactnativesample-sentryreactnativesampleTests.release.xcconfig"; path = "Target Support Files/Pods-sentryreactnativesample-sentryreactnativesampleTests/Pods-sentryreactnativesample-sentryreactnativesampleTests.release.xcconfig"; sourceTree = "<group>"; };
-		916F55A329D66130A4DFF319 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = sentryreactnativesample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		916F55A329D66130A4DFF319 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = sentryreactnativesample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AFC2BCCFBDE2DC231B5C04E5 /* libPods-sentryreactnativesample-sentryreactnativesampleTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-sentryreactnativesample-sentryreactnativesampleTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA08EE94AE203638B8C8B74B /* libPods-sentryreactnativesample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-sentryreactnativesample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -279,7 +279,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\nBUNDLE_REACT_NATIVE=\"/bin/sh ../../../scripts/sentry-xcode.sh $REACT_NATIVE_XCODE\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT '$BUNDLE_REACT_NATIVE'\"\n";
+			shellScript = "set -e\n\nLOCAL_NODE_BINARY=node\n\nWITH_ENVIRONMENT=`$LOCAL_NODE_BINARY --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/xcode/with-environment.sh'\"`\nREACT_NATIVE_XCODE=`\"$LOCAL_NODE_BINARY\" --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'\"`\nSENTRY_XCODE=`\"$LOCAL_NODE_BINARY\" --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'\"`\nBUNDLE_REACT_NATIVE=\"/bin/sh $SENTRY_XCODE $REACT_NATIVE_XCODE\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT '$BUNDLE_REACT_NATIVE'\"\n";
 		};
 		00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -328,7 +328,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/bin/sh ../../../scripts/sentry-xcode-debug-files.sh\n";
+			shellScript = "LOCAL_NODE_BINARY=node\n\n/bin/sh `\"$LOCAL_NODE_BINARY\" --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`\n";
 		};
 		A55EABD7B0C7F3A422A6CC61 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -630,10 +630,7 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_CFLAGS = "$(inherited)  ";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",
@@ -641,7 +638,7 @@
 					"-DFOLLY_USE_LIBCPP=1",
 				);
 				OTHER_LDFLAGS = "$(inherited)";
-				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SENTRY_INCLUDE_NATIVE_SOURCES = false;
 				USE_HERMES = true;
@@ -712,10 +709,7 @@
 					"\"$(inherited)\"",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
-				OTHER_CFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_CFLAGS = "$(inherited)  ";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",
@@ -723,7 +717,7 @@
 					"-DFOLLY_USE_LIBCPP=1",
 				);
 				OTHER_LDFLAGS = "$(inherited)";
-				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SENTRY_INCLUDE_NATIVE_SOURCES = false;
 				USE_HERMES = true;

@@ -39,24 +39,7 @@
       "typedRoutes": true
     },
     "plugins": [
-      [
-        "../../expo",
-        {
-          "url": "https://sentry.io/",
-          "project": "sentry-react-native",
-          "organization": "sentry-sdks"
-        }
-      ],
-      "./withSampleSentry.js",
-      [
-        "expo-router",
-        {
-          "asyncRoutes": {
-            "web": true,
-            "default": "development"
-          }
-        }
-      ]
+      "expo-router"
     ]
   }
 }

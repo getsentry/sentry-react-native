@@ -13,6 +13,7 @@
     "postversion": "react-native-version --skip-tag --never-amend"
   },
   "dependencies": {
+    "@sentry/react-native": "6.0.0-alpha.0",
     "@types/react": "18.2.45",
     "expo": "^50.0.8",
     "expo-constants": "~15.4.5",
