@@ -1,11 +1,11 @@
 {
-  "extends": "../../node_modules/@sentry-internal/typescript/tsconfig.json",
-  "include": ["src/js/tools/**/*.ts"],
-  "exclude": ["node_modules", "../../node_modules"],
+  "extends": "./node_modules/@sentry-internal/typescript/tsconfig.json",
+  "include": ["./src/js/tools/**/*.ts"],
+  "exclude": ["node_modules"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "metro": ["../../node_modules/metro/src/index"]
+      "metro": ["./node_modules/metro/src/index"]
     },
     "outDir": "dist",
     "rootDir": "src",

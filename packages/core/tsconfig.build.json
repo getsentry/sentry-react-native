@@ -1,15 +1,15 @@
 {
-  "extends": "../../node_modules/@sentry-internal/typescript/tsconfig.json",
+  "extends": "./node_modules/@sentry-internal/typescript/tsconfig.json",
   "include": [
-    "src/js/*.ts",
-    "src/js/**/*.web.ts",
-    "typings/react-native.d.ts"
+    "./src/js/*.ts",
+    "./src/js/**/*.web.ts",
+    "./typings/react-native.d.ts"
   ],
-  "exclude": ["node_modules", "../../node_modules"],
+  "exclude": ["node_modules"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "metro": ["../../node_modules/metro/src/index"]
+      "metro": ["./node_modules/metro/src/index"]
     },
     "outDir": "dist",
     "rootDir": "src",

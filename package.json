@@ -13,18 +13,10 @@
     "set-version-samples": "bash scripts/set-version-samples.sh"
   },
   "devDependencies": {
-    "@sentry-internal/eslint-config-sdk": "8.26.0",
-    "@sentry-internal/eslint-plugin-sdk": "8.26.0",
-    "@sentry-internal/typescript": "8.26.0",
-    "@sentry/wizard": "3.16.3",
     "downlevel-dts": "^0.11.0",
-    "eslint": "^7.6.0",
-    "eslint-plugin-react": "^7.20.6",
-    "eslint-plugin-react-native": "^3.8.1",
     "lerna": "^8.1.8",
     "npm-run-all2": "^6.2.2",
-    "prettier": "^2.0.5",
-    "typescript": "4.9.5"
+    "prettier": "^2.0.5"
   },
   "workspaces": [
     "packages/core",
