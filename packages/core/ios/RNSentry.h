@@ -1,7 +1,7 @@
 #if __has_include(<React/RCTBridge.h>)
 #import <React/RCTBridge.h>
 #else
-#import <React/RCTBridge.h>
+#import "RCTBridge.h"
 #endif
 
 #import <dlfcn.h>
