@@ -165,13 +165,13 @@ jobs:
       - name: Publish SDK
         working-directory: packages/core
         run: yalc publish
-      - name: Install SDK
-        working-directory: packages/core/test/typescript/ts3.8
-        run: yalc add @sentry/react-native
       - name: Install Dependencies
         if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         working-directory: packages/core/test/typescript/ts3.8
         run: yarn install
+      - name: Install SDK
+        working-directory: packages/core/test/typescript/ts3.8
+        run: yalc add @sentry/react-native
       - name: Type Check
         working-directory: packages/core/test/typescript/ts3.8
         run: yarn type-check
