@@ -20,7 +20,7 @@ project.ext.sentryCli = [
     hasSourceMapDebugIdScript: "../../../../scripts/has-sourcemap-debugid.js",
 ]
 
-apply from: "../../../../sentry.gradle"
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute(null, rootDir).text.trim(), "sentry.gradle")
 
 sentry {
     // Whether the plugin should attempt to auto-upload the mapping file to Sentry or not.
