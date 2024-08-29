@@ -21,6 +21,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+      - run: corepack enable
       - uses: actions/cache@v4
         id: cache
         with:
@@ -39,6 +40,10 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: corepack enable
       - uses: actions/cache@v4
         id: cache
         with:
@@ -77,6 +82,10 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: corepack enable
       - uses: actions/cache@v4
         id: cache
         with:
@@ -100,6 +109,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+      - run: corepack enable
       - uses: actions/cache@v4
         id: cache
         with:
@@ -144,6 +154,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+      - run: corepack enable
       - uses: actions/cache@v4
         id: cache
         with:
@@ -184,6 +195,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+      - run: corepack enable
       - name: Cache Dependencies
         uses: actions/cache@v4
         id: cache
@@ -222,6 +234,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+      - run: corepack enable
       - name: Cache Dependencies
         uses: actions/cache@v4
         id: cache
