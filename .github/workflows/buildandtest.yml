@@ -116,7 +116,11 @@ jobs:
           name: expo-plugin
           path: packages/core/plugin/build
       - name: Pack
-        run: yarn pack
+        run: |
+          cp LICENSE.md packages/core
+          cp CHANGELOG.md packages/core
+          cp README.md packages/core
+          yarn pack
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
         with:
