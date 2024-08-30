@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "packages": [
     "packages/*",
+    "dev-packages/*",
     "samples/*",
     "performance-tests/*"
   ],

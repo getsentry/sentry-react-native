@@ -21,6 +21,8 @@
   },
   "workspaces": [
     "packages/core",
+    "dev-packages/e2e-tests",
+    "dev-packages/type-check",
     "samples/react-native",
     "samples/expo",
     "performance-tests/TestAppPlain",
