@@ -165,7 +165,6 @@ jobs:
       - name: Type Check
         working-directory: dev-packages/type-check
         run: yarn type-check
-
   job_circular_dep_check:
     name: Circular Dependency Check
     runs-on: ubuntu-latest

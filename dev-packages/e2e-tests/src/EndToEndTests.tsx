@@ -19,7 +19,7 @@ const EndToEndTestsScreen = (): JSX.Element => {
   // We only do this to render the eventId onto the UI for end to end tests.
   React.useEffect(() => {
     const client: Sentry.ReactNativeClient | undefined = Sentry.getClient();
-    client.getOptions().beforeSend = (e: Sentry.Event) => {
+    client.getOptions().beforeSend = (e) => {
       setEventId(e.event_id || null);
       return e;
     };

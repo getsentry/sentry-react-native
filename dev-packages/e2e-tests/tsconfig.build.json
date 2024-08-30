@@ -11,14 +11,7 @@
     "jsx": "react-native",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "paths": {
-      "@sentry/react-native": [
-        "../../dist/js/index.js"
-      ],
-      "react-native": [
-        "../../node_modules/react-native/index.js"
-      ]
-    },
+    "moduleResolution": "node",
     "types": [
       "react-native",
     ],
