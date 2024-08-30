@@ -1,6 +1,7 @@
 {
   "private": true,
   "scripts": {
+    "preinstall": "export APPIUM_SKIP_CHROMEDRIVER_INSTALL=1",
     "build": "lerna run build",
     "downlevel": "lerna run downlevel",
     "clean": "lerna run clean",
