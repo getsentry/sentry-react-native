@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StatusBar,
   ScrollView,
@@ -32,6 +32,16 @@ const PerformanceScreen = (props: Props) => {
       }),
     );
   };
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    // Simulate heavy computation for 5 seconds
+    const start = Date.now();
+    while (Date.now() - start < 5000) {
+      // Perform some meaningless computation to occupy the CPU
+      Math.sqrt(Math.random() * Math.random());
+    }
+    setIsLoading(false);
+  }, []);
 
   return (
     <>
@@ -57,6 +67,787 @@ const PerformanceScreen = (props: Props) => {
         />
         <Button title="Performance Timing" onPress={onPressPerformanceTiming} />
         <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />
+        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
+          title="Redux Example"
+          onPress={() => {
+            props.navigation.navigate('Redux');
+          }}
+        />        <Button
+        title="Redux Example"
+        onPress={() => {
+          props.navigation.navigate('Redux');
+        }}
+      />        <Button
+      title="Redux Example"
+      onPress={() => {
+        props.navigation.navigate('Redux');
+      }}
+    />        <Button
+    title="Redux Example"
+    onPress={() => {
+      props.navigation.navigate('Redux');
+    }}
+  />        <Button
+  title="Redux Example"
+  onPress={() => {
+    props.navigation.navigate('Redux');
+  }}
+/>        <Button
           title="Redux Example"
           onPress={() => {
             props.navigation.navigate('Redux');

@@ -16,10 +16,12 @@ export interface Spec extends TurboModule {
       hardCrashed: boolean;
     },
   ): Promise<boolean>;
+
   captureScreenshot(): Promise<NativeScreenshot[] | undefined | null>;
   clearBreadcrumbs(): void;
   crash(): void;
   closeNativeSdk(): Promise<void>;
+  requestAnimationFrame(): Promise<Date | null>;
   disableNativeFramesTracking(): void;
   fetchNativeRelease(): Promise<NativeReleaseResponse>;
   fetchNativeSdkInfo(): Promise<Package | null>;

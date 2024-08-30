@@ -39,6 +39,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void requestAnimationFrame(Promise promise) {
+        this.impl.requestAnimationFrame(promise);
+    }
+
+    @ReactMethod
     public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
         this.impl.initNativeSdk(rnOptions, promise);
     }

@@ -58,6 +58,8 @@ export function createSentryEventEmitter(
       }
 
       const nativeListener = nativeEventEmitter.addListener(eventType, (event: NewFrameEvent) => {
+        logger.log(`OLD EVENT!, .${event.newFrameTimestampInSeconds}`);
+
         const listeners = listenersMap.get(eventType);
         if (!listeners) {
           return;

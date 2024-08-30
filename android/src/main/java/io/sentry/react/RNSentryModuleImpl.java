@@ -1,5 +1,5 @@
 package io.sentry.react;
-
+import android.view.Choreographer;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.sentry.android.core.internal.util.ScreenshotUtils.takeScreenshot;
 import static io.sentry.vendor.Base64.NO_PADDING;
@@ -468,6 +468,22 @@ public class RNSentryModuleImpl {
             promise.resolve(false);
         }
         promise.resolve(true);
+    }
+
+    public void requestAnimationFrame(Promise promise) {
+        Choreographer choreographer = Choreographer.getInstance();
+
+        choreographer.postFrameCallback(new Choreographer.FrameCallback() {
+            @Override
+            public void doFrame(long frameTimeNanos) {
+                final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
+
+                // Invoke the callback after the frame is rendered
+                final SentryDate endDate = dateProvider.now();
+
+                promise.resolve(endDate.nanoTimestamp() / 1e9);
+            }
+        });
     }
 
     public void captureScreenshot(Promise promise) {

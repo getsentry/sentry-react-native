@@ -43,12 +43,15 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
       requestAnimationFrame(() => {
         if (NativeEmitterCalled) {
           NativeEmitterCalled = false;
-          isListening = false;
+          isListening = false;        const timestampInSeconds = timeNowNanosecond();
+          logger.log(`Native timestamp did not reply in time, using fallback.${timestampInSeconds}`);
+
           return;
         }
         const timestampInSeconds = timeNowNanosecond();
         const maxRetries = 3;
         let retries = 0;
+        logger.log(`Native timestamp did not reply in time, using fallback.${timestampInSeconds}`);
 
         const retryCheck = (): void => {
           if (NativeEmitterCalled) {
