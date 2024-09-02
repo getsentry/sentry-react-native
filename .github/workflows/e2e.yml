@@ -257,14 +257,16 @@ jobs:
       - name: Install JS Dependencies
         run: yarn install
 
+      - name: Setup Plain RN ${{ matrix.rn-version }} App
+        run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --create
+
+        # The old node has to be enabled after creating the test app
+        # to avoid issues with the old node version
       - run: corepack disable
       - uses: actions/setup-node@v4
         if: ${{ matrix.rn-version == '0.65.3' }}
         with:
           node-version: 16
-
-      - name: Setup Plain RN ${{ matrix.rn-version }} App
-        run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --create
 
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' }}
