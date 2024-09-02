@@ -169,8 +169,10 @@ export function withSentryResolver(config: MetroConfig, includeWebReplay: boolea
     resolver: {
       ...config.resolver,
       resolveRequest: (context, moduleName, platform) => {
-        if ((includeWebReplay === false || (includeWebReplay === undefined && platform !== 'web'))
-            && moduleName.includes('@sentry/replay')) {
+        if (
+          (includeWebReplay === false || (includeWebReplay === undefined && platform !== 'web')) &&
+          moduleName.includes('@sentry/replay')
+        ) {
           return { type: 'empty' };
         }
         if (originalResolver) {
