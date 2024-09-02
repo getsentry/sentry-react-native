@@ -24,17 +24,13 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: corepack enable
-      - uses: actions/cache@v4
-        id: cache
-        with:
-          path: ${{ env.CACHED_DEPENDENCY_PATHS }}
-          key: ${{ runner.os }}-${{ github.sha }}
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
       - name: Install Dependencies
-        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Test
         run: yarn test
@@ -46,17 +42,13 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: corepack enable
-      - uses: actions/cache@v4
-        id: cache
-        with:
-          path: ${{ env.CACHED_DEPENDENCY_PATHS }}
-          key: ${{ runner.os }}-${{ github.sha }}
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
       - name: Install Dependencies
-        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Lint
         run: yarn lint
@@ -68,15 +60,14 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: corepack enable
-      - uses: actions/cache@v4
-        id: cache
-        with:
-          path: ${{ env.CACHED_DEPENDENCY_PATHS }}
-          key: ${{ runner.os }}-${{ github.sha }}
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+      - name: Install Dependencies
+        run: yarn install
       - name: Save initial lock file
         run: cp yarn.lock yarn.lock.initial
       - name: Install Dependencies (update lock if necessary)
@@ -92,17 +83,13 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: corepack enable
-      - uses: actions/cache@v4
-        id: cache
-        with:
-          path: ${{ env.CACHED_DEPENDENCY_PATHS }}
-          key: ${{ runner.os }}-${{ github.sha }}
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
       - name: Install Dependencies
-        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Build
         run: yarn build
@@ -147,11 +134,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - uses: actions/cache@v4
-        id: cache
-        with:
-          path: dev-packages/type-check/ts3.8-test/node_modules
-          key: ${{ runner.os }}-${{ github.sha }}-ts3.8
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+      - name: Install Dependencies
+        run: yarn install
       - name: Download dist
         uses: actions/download-artifact@v4
         with:
@@ -174,18 +160,13 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: corepack enable
-      - name: Cache Dependencies
-        uses: actions/cache@v4
-        id: cache
-        with:
-          path: ${{ env.CACHED_DEPENDENCY_PATHS }}
-          key: ${{ runner.os }}-${{ github.sha }}
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
       - name: Install Dependencies
-        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Download dist
         uses: actions/download-artifact@v4
@@ -213,18 +194,13 @@ jobs:
         dev: [true, false]
     steps:
       - uses: actions/checkout@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: corepack enable
-      - name: Cache Dependencies
-        uses: actions/cache@v4
-        id: cache
-        with:
-          path: ${{ env.CACHED_DEPENDENCY_PATHS }}
-          key: ${{ runner.os }}-${{ github.sha }}
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
       - name: Install Dependencies
-        if: ${{ steps.cache.outputs['cache-hit'] != 'true' }}
         run: yarn install
       - name: Build
         run: yarn build
