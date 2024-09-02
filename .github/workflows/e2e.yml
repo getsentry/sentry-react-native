@@ -384,8 +384,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Install JS Dependencies
-        run: yarn installls
-
+        run: yarn install
 
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
