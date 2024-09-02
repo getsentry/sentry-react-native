@@ -70,14 +70,11 @@ jobs:
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
       - name: Install Global Dependencies
-        run: npm i -g react-native-cli @sentry/cli yalc
+        run: npm i -g react-native-cli @sentry/cli
       - name: Install Dependencies
         run: yarn install
       - name: Build SDK
         run: yarn build
-      - name: Package SDK
-        working-directory: packages/core
-        run: yalc publish
 
       - uses: actions/cache@v4
         id: app-plain-cache
@@ -86,7 +83,9 @@ jobs:
           # if the whole plain app folder is hashed the cache is never hit as there are files generated in the folder
           # the cache key is calculated both at cache retrieval and save time
           # hashFiles fails when there are rn android new arch generated files in the folder (exact reason unknown)
-          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('yarn.lock') }}
+          # we removed the lock file of the app due to monorepo changes, we use the package.json instead
+          # to avoid frequent rebuilds of the app
+          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('performance-tests/TestAppSentry/package.json') }}
       - name: Build app plain
         if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
         working-directory: ./performance-tests/TestAppPlain
