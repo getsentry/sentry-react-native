@@ -208,3 +208,10 @@ export function withScope<T>(callback: (scope: Scope) => T): T | undefined {
   };
   return coreWithScope(safeCallback);
 }
+
+/**
+ * Returns if the app crashed in the last run.
+ */
+export async function crashedLastRun(): Promise<boolean | null> {
+  return NATIVE.crashedLastRun();
+}

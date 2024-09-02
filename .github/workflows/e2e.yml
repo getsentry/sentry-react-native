@@ -50,6 +50,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: ./.github/actions/disk-cleanup
+        if: ${{ matrix.platform == 'android' }}
+
       - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' }}
 
@@ -217,6 +220,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: ./.github/actions/disk-cleanup
+        if: ${{ matrix.platform == 'android' }}
+
       - name: Sentry Release
         run: |
           SENTRY_RELEASE_CANDIDATE=$(echo 'e2e/${{ github.ref }}' | perl -pe 's/\//-/g')
@@ -365,6 +371,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: ./.github/actions/disk-cleanup
+        if: ${{ matrix.platform == 'android' }}
+
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
         run: which xcbeautify || brew install xcbeautify
@@ -414,7 +423,7 @@ jobs:
 
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
-        uses: reactivecircus/android-emulator-runner@77986be26589807b8ebab3fde7bbf5c60dabec32 # pin@v2.31.0
+        uses: reactivecircus/android-emulator-runner@f0d1ed2dcad93c7479e8b2f2226c83af54494915 # pin@v2.32.0
         with:
           api-level: 30
           force-avd-creation: false

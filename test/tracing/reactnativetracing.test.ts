@@ -59,6 +59,7 @@ describe('ReactNativeTracing', () => {
       });
 
       expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.anything(),
         expect.objectContaining({
           tracePropagationTargets: ['test1', 'test2'],
         }),
@@ -73,6 +74,7 @@ describe('ReactNativeTracing', () => {
       });
 
       expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.anything(),
         expect.objectContaining({
           tracePropagationTargets: ['localhost', /^\/(?!\/)/],
         }),
