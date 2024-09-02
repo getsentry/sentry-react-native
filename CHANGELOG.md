@@ -8,9 +8,9 @@
 
 ### Dependencies
 
-- Bump JavaScript SDK from v8.11.0 to v8.26.0 ([#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8260)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.11.0...8.26.0)
+- Bump JavaScript SDK from v8.11.0 to v8.27.0 ([#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8270)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.11.0...8.27.0)
 
 ## 5.31.1
 
