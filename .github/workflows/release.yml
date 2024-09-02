@@ -22,8 +22,6 @@ jobs:
         with:
           token: ${{ secrets.GH_RELEASE_PAT }}
           fetch-depth: 0
-      - name: Install Dependencies
-        run: yarn install
       - name: Prepare release
         uses: getsentry/action-prepare-release@v1
         env:

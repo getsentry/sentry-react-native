@@ -104,10 +104,8 @@ jobs:
           path: packages/core/plugin/build
       - name: Pack
         run: |
-          cp LICENSE.md packages/core
-          cp CHANGELOG.md packages/core
           cp README.md packages/core
-          yarn pack
+          npm pack
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
         with:
