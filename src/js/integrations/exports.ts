@@ -14,9 +14,10 @@ export { expoContextIntegration } from './expocontext';
 export { spotlightIntegration } from './spotlight';
 export { mobileReplayIntegration } from '../replay/mobilereplay';
 export { appStartIntegration } from '../tracing/integrations/appStart';
-export { nativeFramesIntegration } from '../tracing/integrations/nativeFrames';
+export { nativeFramesIntegration, createNativeFramesIntegrations } from '../tracing/integrations/nativeFrames';
 export { stallTrackingIntegration } from '../tracing/integrations/stalltracking';
 export { userInteractionIntegration } from '../tracing/integrations/userInteraction';
+export { createReactNativeRewriteFrames } from './rewriteframes';
 
 export {
   breadcrumbsIntegration,

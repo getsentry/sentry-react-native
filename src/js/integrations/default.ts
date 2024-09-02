@@ -12,6 +12,8 @@ import {
   browserGlobalHandlersIntegration,
   browserLinkedErrorsIntegration,
   browserReplayIntegration,
+  createNativeFramesIntegrations,
+  createReactNativeRewriteFrames,
   debugSymbolicatorIntegration,
   dedupeIntegration,
   deviceContextIntegration,
@@ -24,7 +26,6 @@ import {
   inboundFiltersIntegration,
   mobileReplayIntegration,
   modulesLoaderIntegration,
-  nativeFramesIntegration,
   nativeLinkedErrorsIntegration,
   nativeReleaseIntegration,
   reactNativeErrorHandlersIntegration,
@@ -36,7 +37,6 @@ import {
   userInteractionIntegration,
   viewHierarchyIntegration,
 } from './exports';
-import { createReactNativeRewriteFrames } from './rewriteframes';
 
 /**
  * Returns the default ReactNative integrations based on the current environment.
@@ -104,8 +104,11 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   if (hasTracingEnabled && options.enableAppStartTracking) {
     integrations.push(appStartIntegration());
   }
-  if (hasTracingEnabled && options.enableNativeFramesTracking) {
-    integrations.push(nativeFramesIntegration());
+  const nativeFramesIntegrationInstance = createNativeFramesIntegrations(
+    hasTracingEnabled && options.enableNativeFramesTracking,
+  );
+  if (nativeFramesIntegrationInstance) {
+    integrations.push(nativeFramesIntegrationInstance);
   }
   if (hasTracingEnabled && options.enableStallTracking) {
     integrations.push(stallTrackingIntegration());

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changes
+
+- Native Frames uses `spanId` to attach frames replacing `traceId` ([#4030](https://github.com/getsentry/sentry-react-native/pull/4030))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v8.11.0 to v8.26.0 ([#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
