@@ -5,9 +5,7 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
-    "start": "react-native start",
-    "test": "jest",
-    "lint": "eslint ."
+    "start": "react-native start"
   },
   "dependencies": {
     "@sentry/react-native": "6.0.0-alpha.0",
