@@ -17,7 +17,8 @@
     "downlevel-dts": "^0.11.0",
     "lerna": "^8.1.8",
     "npm-run-all2": "^6.2.2",
-    "prettier": "^2.0.5"
+    "prettier": "^2.0.5",
+    "replace-in-file": "^7.0.1"
   },
   "workspaces": [
     "packages/core",
