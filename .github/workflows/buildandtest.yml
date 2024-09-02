@@ -139,6 +139,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [job_build, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    env:
+      YARN_ENABLE_IMMUTABLE_INSTALLS: false
     steps:
       - uses: actions/checkout@v4
       - run: corepack enable
