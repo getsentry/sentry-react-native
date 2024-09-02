@@ -340,6 +340,7 @@ function initTestClient(
   const options: Sentry.ReactNativeOptions = {
     dsn: MOCK_DSN,
     enableTracing: true,
+    enableNativeFramesTracking: false,
     _experiments: {
       profilesSampleRate: 1,
     },
