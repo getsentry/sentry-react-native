@@ -7,12 +7,6 @@ on:
       - release/**
   pull_request:
 
-env:
-  CACHED_DEPENDENCY_PATHS: |
-    ${{ github.workspace }}/node_modules
-    ${{ github.workspace }}/packages/*/node_modules
-    ${{ github.workspace }}/samples/*/node_modules
-
 jobs:
   diff_check:
     uses: ./.github/workflows/skip-ci.yml
