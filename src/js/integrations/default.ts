@@ -104,9 +104,11 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   if (hasTracingEnabled && options.enableAppStartTracking) {
     integrations.push(appStartIntegration());
   }
-  const nativeFrames = createNativeFramesIntegrations(hasTracingEnabled && options.enableNativeFramesTracking);
-  if (nativeFrames) {
-    integrations.push(nativeFrames);
+  const nativeFramesIntegrationInstance = createNativeFramesIntegrations(
+    hasTracingEnabled && options.enableNativeFramesTracking,
+  );
+  if (nativeFramesIntegrationInstance) {
+    integrations.push(nativeFramesIntegrationInstance);
   }
   if (hasTracingEnabled && options.enableStallTracking) {
     integrations.push(stallTrackingIntegration());

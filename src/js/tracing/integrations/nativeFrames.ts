@@ -12,16 +12,16 @@ import { NATIVE } from '../../wrapper';
 const FETCH_FRAMES_TIMEOUT_MS = 2_000;
 
 /**
- * Timeout from the final native frames fetch to processing the associated transaction.
- * If the transaction is not processed by this time, the native frames will be dropped
- * and not added to the event.
+ * This is the time end frames data from the native layer will be
+ * kept in memory and waiting for the event processing. This ensures that spans
+ * which are never processed are not leaking memory.
  */
 const END_FRAMES_TIMEOUT_MS = 2_000;
 
 /**
- * Timeout from the final native frames fetch to processing the associated transaction.
- * If the transaction is not processed by this time, the native frames will be dropped
- * and not added to the event.
+ * This is the time start frames data from the native layer will be
+ * kept in memory and waiting for span end. This ensures that spans
+ * which never end or are not processed are not leaking memory.
  */
 const START_FRAMES_TIMEOUT_MS = 60_000;
 
