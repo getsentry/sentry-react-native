@@ -8,6 +8,19 @@
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8260)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/8.11.0...8.26.0)
 
+## 5.31.1
+
+### Fixes
+
+- Sentry CLI passes thru recursive node calls during source maps auto upload from Xcode (([#3843](https://github.com/getsentry/sentry-react-native/pull/3843)))
+  - This fixes React Native 0.75 Xcode auto upload failures
+
+### Dependencies
+
+- Bump CLI from v2.31.2 to v2.34.0 ([#3843](https://github.com/getsentry/sentry-react-native/pull/3843))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2340)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.31.2...2.34.0)
+
 ## 5.31.0
 
 ### Features
