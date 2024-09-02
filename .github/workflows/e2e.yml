@@ -271,7 +271,7 @@ jobs:
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' }}
         with:
-          working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
+          working-directory: dev-packages/e2e-tests/react-native-versions/${{ matrix.rn-version }}/RnDiffApp
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
