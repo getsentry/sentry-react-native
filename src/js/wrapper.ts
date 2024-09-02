@@ -205,8 +205,7 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const nativeIsReady = await RNSentry.requestAnimationFrame();
-    return nativeIsReady;
+    return RNSentry.requestAnimationFrame();
   },
   /**
    * Starts native with the provided options.

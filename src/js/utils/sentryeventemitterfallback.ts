@@ -3,6 +3,7 @@ import type { EmitterSubscription } from 'react-native';
 import { DeviceEventEmitter } from 'react-native';
 
 import { NewFrameEventName } from './sentryeventemitter';
+import { NATIVE } from '../wrapper';
 
 export type FallBackNewFrameEvent = { newFrameTimestampInSeconds: number; isFallback?: boolean };
 export interface SentryEventEmitterFallback {
@@ -38,6 +39,12 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
 
     startListenerAsync() {
       isListening = true;
+
+
+      NATIVE.requestAnimationFrame()
+        .then((time => {
+          logger.log(`New native logger received with time.${time}`);
+        }));
 
       // Schedule the callback to be executed when all UI Frames have flushed.
       requestAnimationFrame(() => {
