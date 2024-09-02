@@ -2,6 +2,7 @@ import {
   addBreadcrumb,
   getClient,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
   spanToJSON,
 } from '@sentry/core';
@@ -132,6 +133,7 @@ export const reactNativeNavigationIntegration = ({
         : getDefaultIdleNavigationSpanOptions(),
       idleSpanOptions,
     );
+    latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'auto.navigation.react_native_navigation');
     if (ignoreEmptyBackNavigationTransactions) {
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
     }

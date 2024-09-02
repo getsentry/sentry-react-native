@@ -1,4 +1,4 @@
-import { getActiveSpan, getSpanDescendants, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
+import { getActiveSpan, getSpanDescendants, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
 import type { Span,StartSpanOptions  } from '@sentry/types';
 import { fill, logger } from '@sentry/utils';
 import * as React from 'react';
@@ -116,9 +116,13 @@ export function startTimeToInitialDisplaySpan(
     return undefined;
   }
 
-  if (!options?.isAutoInstrumented) {
+  if (options?.isAutoInstrumented) {
+    initialDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'auto.ui.time_to_display');
+  } else {
     manualInitialDisplaySpans.set(activeSpan, true);
+    initialDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'manual.ui.time_to_display');
   }
+
   return initialDisplaySpan;
 }
 
@@ -128,7 +132,11 @@ export function startTimeToInitialDisplaySpan(
  * Returns current span if already exists in the currently active span.
  */
 export function startTimeToFullDisplaySpan(
-  options: Omit<StartSpanOptions, 'op' | 'name'> & { name?: string, timeoutMs?: number } = {
+  options: Omit<StartSpanOptions, 'op' | 'name'> & {
+    name?: string,
+    timeoutMs?: number,
+    isAutoInstrumented?: boolean
+  } = {
     timeoutMs: 30_000,
   },
 ): Span | undefined {
@@ -176,6 +184,12 @@ export function startTimeToFullDisplaySpan(
     clearTimeout(timeout);
     originalEnd.call(fullDisplaySpan, endTimestamp);
   });
+
+  if (options?.isAutoInstrumented) {
+    fullDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'auto.ui.time_to_display');
+  } else {
+    fullDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'manual.ui.time_to_display');
+  }
 
   return fullDisplaySpan;
 }
@@ -242,7 +256,9 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
     return;
   }
 
-  const span = startTimeToFullDisplaySpan();
+  const span = startTimeToFullDisplaySpan({
+    isAutoInstrumented: true,
+  });
   if (!span) {
     logger.warn(`[TimeToDisplay] No TimeToFullDisplay span found or created, possibly performance is disabled.`);
     return;

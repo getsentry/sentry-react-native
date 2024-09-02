@@ -4,6 +4,7 @@ import {
   getActiveSpan,
   getClient,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SPAN_STATUS_OK,
   spanToJSON,
   startInactiveSpan,
@@ -191,6 +192,7 @@ export const reactNavigationIntegration = ({
         : getDefaultIdleNavigationSpanOptions(),
       idleSpanOptions,
     );
+    latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'auto.navigation.react_navigation');
     if (ignoreEmptyBackNavigationTransactions) {
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
     }
@@ -201,6 +203,7 @@ export const reactNavigationIntegration = ({
         name: 'Navigation processing',
         startTime: latestNavigationSpan && spanToJSON(latestNavigationSpan).start_timestamp,
       });
+      navigationProcessingSpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'auto.navigation.react_navigation');
     }
 
     stateChangeTimeout = setTimeout(_discardLatestTransaction, routeChangeTimeoutMs);

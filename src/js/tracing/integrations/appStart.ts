@@ -3,6 +3,7 @@ import {
   getCapturedScopesOnSpan,
   getClient,
   getCurrentScope,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SentryNonRecordingSpan,
   startInactiveSpan,
 } from '@sentry/core';
@@ -45,19 +46,32 @@ const MAX_APP_START_AGE_MS = 60_000;
 const APP_START_TX_NAME = 'App Start';
 
 let recordedAppStartEndTimestampMs: number | undefined = undefined;
+let isRecordedAppStartEndTimestampMsManual = false;
+
 let rootComponentCreationTimestampMs: number | undefined = undefined;
+let isRootComponentCreationTimestampMsManual = false;
 
 /**
  * Records the application start end.
  * Used automatically by `Sentry.wrap` and `Sentry.ReactNativeProfiler`.
  */
-export async function captureAppStart(): Promise<void> {
+export function captureAppStart(): Promise<void> {
+  return _captureAppStart({ isManual: true });
+}
+
+/**
+ * For internal use only.
+ *
+ * @private
+ */
+export async function _captureAppStart({ isManual }: { isManual: boolean }): Promise<void> {
   const client = getClient();
   if (!client) {
     logger.warn('[AppStart] Could not capture App Start, missing client.');
     return;
   }
 
+  isRecordedAppStartEndTimestampMsManual = isManual;
   _setAppStartEndTimestampMs(timestampInSeconds() * 1000);
   await client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.captureStandaloneAppStart();
 }
@@ -71,6 +85,17 @@ export function setRootComponentCreationTimestampMs(timestampMs: number): void {
     logger.warn('Setting Root component creation timestamp after app start end is set.');
   rootComponentCreationTimestampMs && logger.warn('Overwriting already set root component creation timestamp.');
   rootComponentCreationTimestampMs = timestampMs;
+  isRootComponentCreationTimestampMsManual = true;
+}
+
+/**
+ * For internal use only.
+ *
+ * @private
+ */
+export function _setRootComponentCreationTimestampMs(timestampMs: number): void {
+  setRootComponentCreationTimestampMs(timestampMs);
+  isRootComponentCreationTimestampMsManual = false;
 }
 
 /**
@@ -234,6 +259,10 @@ export const appStartIntegration = ({
     event.contexts.trace.data[SEMANTIC_ATTRIBUTE_SENTRY_OP] = UI_LOAD_OP;
     event.contexts.trace.op = UI_LOAD_OP;
 
+    const origin = isRecordedAppStartEndTimestampMsManual ? 'manual.app.start' : 'auto.app.start';
+    event.contexts.trace.data[SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN] = origin;
+    event.contexts.trace.origin = origin;
+
     const appStartTimestampSeconds = appStartTimestampMs / 1000;
     event.start_timestamp = appStartTimestampSeconds;
 
@@ -269,7 +298,7 @@ export const appStartIntegration = ({
       timestamp: appStartEndTimestampSeconds,
       trace_id: event.contexts.trace.trace_id,
       parent_span_id: event.contexts.trace.span_id,
-      origin: 'auto',
+      origin,
     });
     const jsExecutionSpanJSON = createJSExecutionStartSpan(appStartSpanJSON, rootComponentCreationTimestampMs);
 
@@ -335,6 +364,7 @@ function createJSExecutionStartSpan(
       description: 'JS Bundle Execution Start',
       start_timestamp: bundleStartTimestampMs / 1000,
       timestamp: bundleStartTimestampMs / 1000,
+      origin: 'auto.app.start',
     });
   }
 
@@ -342,6 +372,7 @@ function createJSExecutionStartSpan(
     description: 'JS Bundle Execution Before React Root',
     start_timestamp: bundleStartTimestampMs / 1000,
     timestamp: rootComponentCreationTimestampMs / 1000,
+    origin: isRootComponentCreationTimestampMsManual ? 'manual.app.start' : 'auto.app.start',
   });
 }
 
@@ -358,6 +389,7 @@ function convertNativeSpansToSpanJSON(parentSpan: SpanJSON, nativeSpans: NativeA
       description: span.description,
       start_timestamp: span.start_timestamp_ms / 1000,
       timestamp: span.end_timestamp_ms / 1000,
+      origin: 'auto.app.start',
     });
   });
 }
@@ -377,12 +409,14 @@ function createUIKitSpan(parentSpan: SpanJSON, nativeUIKitSpan: NativeAppStartRe
       description: 'UIKit Init to JS Exec Start',
       start_timestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
       timestamp: bundleStart / 1000,
+      origin: 'auto.app.start',
     });
   } else {
     return createChildSpanJSON(parentSpan, {
       description: 'UIKit Init',
       start_timestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
       timestamp: nativeUIKitSpan.end_timestamp_ms / 1000,
+      origin: 'auto.app.start',
     });
   }
 }
