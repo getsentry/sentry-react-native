@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add `sentry.origin` to SDK spans to indicated if spans are created by a part of the SDK or manually ([#4066](https://github.com/getsentry/sentry-react-native/pull/4066))
+
 ### Changes
 
 - Native Frames uses `spanId` to attach frames replacing `traceId` ([#4030](https://github.com/getsentry/sentry-react-native/pull/4030))
