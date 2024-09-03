@@ -1,5 +1,6 @@
 import { logger } from '@sentry/utils';
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
+import type { CustomResolutionContext, Resolution } from 'metro-resolver';
 import * as process from 'process';
 import { env } from 'process';
 
@@ -7,7 +8,6 @@ import { enableLogger } from './enableLogger';
 import { cleanDefaultBabelTransformerPath, saveDefaultBabelTransformerPath } from './sentryBabelTransformerUtils';
 import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } from './sentryMetroSerializer';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
-
 export * from './sentryMetroSerializer';
 
 enableLogger();
@@ -51,8 +51,7 @@ export function withSentryConfig(
   if (annotateReactComponents) {
     newConfig = withSentryBabelTransformer(newConfig);
   }
-  const tes = 2;
-  if (includeWebReplay !== true && 2 == tes-1) {
+  if (includeWebReplay !== true) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
   }
 
@@ -81,9 +80,8 @@ export function getSentryExpoConfig(
   if (options.annotateReactComponents) {
     newConfig = withSentryBabelTransformer(newConfig);
   }
-  const tes = 2;
 
-  if (options.includeWebReplay !== true && 2 == tes-1) {
+  if (options.includeWebReplay !== true) {
     newConfig = withSentryResolver(newConfig, options.includeWebReplay);
   }
 
@@ -160,28 +158,83 @@ function withSentryDebugId(config: MetroConfig): MetroConfig {
   };
 }
 
+type ResolverThreeParams = (
+  context: CustomResolutionContext,
+  moduleName: string,
+  platform: string | null,
+) => Resolution;
+type ResolverFourParams = (
+  context: CustomResolutionContext,
+  moduleName: string,
+  platform: string | null,
+  realModuleName?: string,
+) => Resolution;
+
 /**
  * Includes `@sentry/replay` packages based on the `includeWebReplay` flag and current bundle `platform`.
  */
 export function withSentryResolver(config: MetroConfig, includeWebReplay: boolean | undefined): MetroConfig {
-  const originalResolver = config.resolver?.resolveRequest;
+  const originalResolver = config.resolver?.resolveRequest as ResolverThreeParams | ResolverFourParams;
+
+  const hasSentryReplay = (platform: string | null, moduleName: string): boolean => {
+    return (
+      (includeWebReplay === false || (includeWebReplay === undefined && platform !== 'web')) &&
+      moduleName.includes('@sentry/replay')
+    );
+  };
+
+  let resolver: ResolverThreeParams | ResolverFourParams;
+
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const metro = require('metro/package.json') as { version: string };
+  const [major, minor] = metro.version.split('.').map(Number);
+
+  if (minor >= 68 || major >= 1) {
+    // New method introduced on metro 0.68 and newer.
+    resolver = (context: CustomResolutionContext, moduleName: string, platform: string | null) => {
+      if (hasSentryReplay(platform, moduleName)) {
+        return { type: 'empty' } as Resolution;
+      }
+      if (originalResolver) {
+        return originalResolver(context, moduleName, platform);
+      }
+      return context.resolveRequest(context, moduleName, platform);
+    };
+  } else {
+    // On older Metro, the given context from resolver is not the defaultResolver but the called function itself.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
+    const defaultResolver = require('metro-resolver').resolve;
+
+    resolver = (
+      context: CustomResolutionContext,
+      realModuleName: string,
+      platform: string | null,
+      moduleName?: string,
+    ) => {
+      if (moduleName && hasSentryReplay(platform, moduleName)) {
+        return { type: 'empty' };
+      }
+      if (originalResolver) {
+        return originalResolver(context, realModuleName, platform, moduleName);
+      }
+
+      return defaultResolver(
+        {
+          ...context,
+          resolveRequest: null,
+        },
+        moduleName,
+        platform,
+        realModuleName,
+      );
+    };
+  }
 
   return {
     ...config,
     resolver: {
       ...config.resolver,
-      resolveRequest: (context, moduleName, platform) => {
-        if (
-          (includeWebReplay === false || (includeWebReplay === undefined && platform !== 'web')) &&
-          moduleName.includes('@sentry/replay')
-        ) {
-          return { type: 'empty' };
-        }
-        if (originalResolver) {
-          return originalResolver(context, moduleName, platform);
-        }
-        return context.resolveRequest(context, moduleName, platform);
-      },
+      resolveRequest: resolver,
     },
   };
 }

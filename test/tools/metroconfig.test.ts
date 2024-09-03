@@ -19,6 +19,11 @@ import {
 
 type MetroFrame = Parameters<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>[0];
 
+// Mock metro/package.json
+jest.mock('metro/package.json', () => ({
+  version: '0.70.0',
+}));
+
 describe('metroconfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
