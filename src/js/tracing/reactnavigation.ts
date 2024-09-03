@@ -18,6 +18,7 @@ import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
 import { ignoreEmptyBackNavigation } from './onSpanEndUtils';
+import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from './origin';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
@@ -192,7 +193,7 @@ export const reactNavigationIntegration = ({
         : getDefaultIdleNavigationSpanOptions(),
       idleSpanOptions,
     );
-    latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'auto.navigation.react_navigation');
+    latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION);
     if (ignoreEmptyBackNavigationTransactions) {
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
     }
@@ -203,7 +204,10 @@ export const reactNavigationIntegration = ({
         name: 'Navigation processing',
         startTime: latestNavigationSpan && spanToJSON(latestNavigationSpan).start_timestamp,
       });
-      navigationProcessingSpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'auto.navigation.react_navigation');
+      navigationProcessingSpan.setAttribute(
+        SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
+        SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
+      );
     }
 
     stateChangeTimeout = setTimeout(_discardLatestTransaction, routeChangeTimeoutMs);

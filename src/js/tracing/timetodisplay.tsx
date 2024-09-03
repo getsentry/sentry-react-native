@@ -3,6 +3,7 @@ import type { Span,StartSpanOptions  } from '@sentry/types';
 import { fill, logger } from '@sentry/utils';
 import * as React from 'react';
 
+import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
 import { getRNSentryOnDrawReporter, nativeComponentExists } from './timetodisplaynative';
 import type {RNSentryOnDrawNextFrameEvent } from './timetodisplaynative.types';
 import { setSpanDurationAsMeasurement } from './utils';
@@ -117,10 +118,10 @@ export function startTimeToInitialDisplaySpan(
   }
 
   if (options?.isAutoInstrumented) {
-    initialDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'auto.ui.time_to_display');
+    initialDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY);
   } else {
     manualInitialDisplaySpans.set(activeSpan, true);
-    initialDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'manual.ui.time_to_display');
+    initialDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY);
   }
 
   return initialDisplaySpan;
@@ -186,9 +187,9 @@ export function startTimeToFullDisplaySpan(
   });
 
   if (options?.isAutoInstrumented) {
-    fullDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'auto.ui.time_to_display');
+    fullDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY);
   } else {
-    fullDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'manual.ui.time_to_display');
+    fullDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY);
   }
 
   return fullDisplaySpan;

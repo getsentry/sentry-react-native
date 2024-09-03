@@ -14,7 +14,11 @@ import { generatePropagationContext, logger } from '@sentry/utils';
 
 import { isRootSpan } from '../utils/span';
 import { adjustTransactionDuration, cancelInBackground } from './onSpanEndUtils';
-import { SPAN_ORIGIN_AUTO_INTERACTION, SPAN_ORIGIN_MANUAL_INTERACTION } from './origin';
+import {
+  SPAN_ORIGIN_AUTO_INTERACTION,
+  SPAN_ORIGIN_AUTO_NAVIGATION_CUSTOM,
+  SPAN_ORIGIN_MANUAL_INTERACTION,
+} from './origin';
 
 export const DEFAULT_NAVIGATION_SPAN_NAME = 'Route Change';
 
@@ -77,7 +81,7 @@ export const startIdleNavigationSpan = (
 
   adjustTransactionDuration(client, idleSpan, finalTimeout);
 
-  idleSpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, 'auto.navigation.custom');
+  idleSpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_NAVIGATION_CUSTOM);
   return idleSpan;
 };
 

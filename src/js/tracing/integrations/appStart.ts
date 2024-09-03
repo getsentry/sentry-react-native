@@ -23,6 +23,7 @@ import {
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD as UI_LOAD_OP,
 } from '../ops';
+import { SPAN_ORIGIN_AUTO_APP_START, SPAN_ORIGIN_MANUAL_APP_START } from '../origin';
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP } from '../semanticAttributes';
 import { createChildSpanJSON, createSpanJSON, getBundleStartTimestampMs } from '../utils';
 
@@ -259,7 +260,7 @@ export const appStartIntegration = ({
     event.contexts.trace.data[SEMANTIC_ATTRIBUTE_SENTRY_OP] = UI_LOAD_OP;
     event.contexts.trace.op = UI_LOAD_OP;
 
-    const origin = isRecordedAppStartEndTimestampMsManual ? 'manual.app.start' : 'auto.app.start';
+    const origin = isRecordedAppStartEndTimestampMsManual ? SPAN_ORIGIN_MANUAL_APP_START : SPAN_ORIGIN_AUTO_APP_START;
     event.contexts.trace.data[SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN] = origin;
     event.contexts.trace.origin = origin;
 
@@ -364,7 +365,7 @@ function createJSExecutionStartSpan(
       description: 'JS Bundle Execution Start',
       start_timestamp: bundleStartTimestampMs / 1000,
       timestamp: bundleStartTimestampMs / 1000,
-      origin: 'auto.app.start',
+      origin: SPAN_ORIGIN_AUTO_APP_START,
     });
   }
 
@@ -372,7 +373,7 @@ function createJSExecutionStartSpan(
     description: 'JS Bundle Execution Before React Root',
     start_timestamp: bundleStartTimestampMs / 1000,
     timestamp: rootComponentCreationTimestampMs / 1000,
-    origin: isRootComponentCreationTimestampMsManual ? 'manual.app.start' : 'auto.app.start',
+    origin: isRootComponentCreationTimestampMsManual ? SPAN_ORIGIN_MANUAL_APP_START : SPAN_ORIGIN_AUTO_APP_START,
   });
 }
 
@@ -389,7 +390,7 @@ function convertNativeSpansToSpanJSON(parentSpan: SpanJSON, nativeSpans: NativeA
       description: span.description,
       start_timestamp: span.start_timestamp_ms / 1000,
       timestamp: span.end_timestamp_ms / 1000,
-      origin: 'auto.app.start',
+      origin: SPAN_ORIGIN_AUTO_APP_START,
     });
   });
 }
@@ -409,14 +410,14 @@ function createUIKitSpan(parentSpan: SpanJSON, nativeUIKitSpan: NativeAppStartRe
       description: 'UIKit Init to JS Exec Start',
       start_timestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
       timestamp: bundleStart / 1000,
-      origin: 'auto.app.start',
+      origin: SPAN_ORIGIN_AUTO_APP_START,
     });
   } else {
     return createChildSpanJSON(parentSpan, {
       description: 'UIKit Init',
       start_timestamp: nativeUIKitSpan.start_timestamp_ms / 1000,
       timestamp: nativeUIKitSpan.end_timestamp_ms / 1000,
-      origin: 'auto.app.start',
+      origin: SPAN_ORIGIN_AUTO_APP_START,
     });
   }
 }
