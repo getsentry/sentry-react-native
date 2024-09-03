@@ -1,6 +1,7 @@
 {
   "name": "sentry-react-native-e2e-tests",
-  "version": "0.0.0",
+  "version": "6.0.0-alpha.0",
+  "private": true,
   "description": "Sentry React Native End to End Tests Library",
   "main": "dist/index.js",
   "scripts": {

@@ -1,6 +1,7 @@
 const replace = require('replace-in-file');
 
-const pjson = require('../package.json');
+// Root package.json doesn't have a version field, so we need to read it from the core package.json
+const pjson = require('../packages/core/package.json');
 
 replace({
   files: ['packages/core/src/js/version.ts'],
