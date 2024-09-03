@@ -173,4 +173,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public String getCurrentReplayId() {
         return this.impl.getCurrentReplayId();
     }
+
+    @ReactMethod
+    public void crashedLastRun(Promise promise) {
+        this.impl.crashedLastRun(promise);
+    }
 }

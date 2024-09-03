@@ -67,6 +67,7 @@ export type TurboModuleRegistry = {
 
 // Adapted from https://github.com/facebook/react-native/blob/3f8340975b35767b192e3118f05d2b039676052e/packages/react-native/types/public/ReactNativeTypes.d.ts#L137
 export interface HostComponent<P> extends Pick<React.ComponentClass<P>, Exclude<keyof React.ComponentClass<P>, 'new'>> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   new (props: P, context?: any): React.Component<P> & Readonly<unknown>;
 }
 
