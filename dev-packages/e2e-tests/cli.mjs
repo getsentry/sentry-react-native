@@ -76,7 +76,7 @@ const device = env.IOS_DEVICE ? env.IOS_DEVICE : 'iPhone 15';
 // Locally, we may want to get updates from the latest build so do it on every app build.
 if (actions.includes('create') || (env.CI === undefined && actions.includes('build'))) {
   execSync(`yarn build`, { stdio: 'inherit', cwd: workspaceRootDir, env: env });
-  execSync(`yalc publish`, { stdio: 'inherit', cwd: e2eDir, env: env });
+  execSync(`yalc publish --private`, { stdio: 'inherit', cwd: e2eDir, env: env });
   execSync(`yalc publish`, { stdio: 'inherit', cwd: corePackageDir, env: env });
 }
 
