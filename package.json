@@ -2,6 +2,7 @@
   "private": true,
   "scripts": {
     "build": "lerna run build",
+    "build:tarball": "lerna run build:tarball",
     "downlevel": "lerna run downlevel",
     "clean": "lerna run clean",
     "circularDepCheck": "lerna run circularDepCheck",
