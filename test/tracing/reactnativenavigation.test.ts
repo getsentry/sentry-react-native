@@ -11,6 +11,7 @@ import type { Event, StartSpanOptions } from '@sentry/types';
 import type { EmitterSubscription } from 'react-native';
 
 import { reactNativeTracingIntegration } from '../../src/js';
+import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION } from '../../src/js/tracing/origin';
 import type {
   BottomTabPressedEvent,
   ComponentWillAppearEvent,
@@ -81,7 +82,7 @@ describe('React Native Navigation Instrumentation', () => {
               [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_ID]: '0',
               [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_TYPE]: 'Component',
               [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
-              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION,
               [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
@@ -125,7 +126,7 @@ describe('React Native Navigation Instrumentation', () => {
               [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_ID]: '0',
               [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_TYPE]: 'Component',
               [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
-              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION,
               [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
@@ -200,7 +201,7 @@ describe('React Native Navigation Instrumentation', () => {
                 [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_ID]: '0',
                 [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_TYPE]: 'Component',
                 [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
-                [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+                [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION,
                 [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
                 [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
                 [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
@@ -288,7 +289,7 @@ describe('React Native Navigation Instrumentation', () => {
                 [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]: 'Test 1',
                 [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_COMPONENT_ID]: '1',
                 [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_COMPONENT_TYPE]: 'Component',
-                [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+                [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION,
                 [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
                 [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
                 [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
@@ -336,7 +337,7 @@ describe('React Native Navigation Instrumentation', () => {
                 [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_ID]: '1',
                 [SEMANTIC_ATTRIBUTE_ROUTE_COMPONENT_TYPE]: 'Component',
                 [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
-                [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+                [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION,
                 [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
                 [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
                 [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,

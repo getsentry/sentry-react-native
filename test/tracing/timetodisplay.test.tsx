@@ -6,6 +6,8 @@ import type { Event, Measurements, Span, SpanJSON} from '@sentry/types';
 import * as React from "react";
 import * as TestRenderer from 'react-test-renderer';
 
+import { SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
+import { SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '../../src/js/tracing/semanticAttributes';
 import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing/timetodisplay';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
@@ -382,8 +384,8 @@ function getFullDisplaySpan(span?: Span) {
 function expectFinishedInitialDisplaySpan(actualSpan?: Span, expectedParentSpan?: Span) {
   expect(spanToJSON(actualSpan!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
     data: {
-      "sentry.op": "ui.load.initial_display",
-      "sentry.origin": "manual",
+      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: "ui.load.initial_display",
+      [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
     },
     description: 'Time To Initial Display',
     op: 'ui.load.initial_display',
@@ -397,8 +399,8 @@ function expectFinishedInitialDisplaySpan(actualSpan?: Span, expectedParentSpan?
 function expectFinishedFullDisplaySpan(actualSpan?: Span, expectedParentSpan?: Span) {
   expect(spanToJSON(actualSpan!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
     data: {
-      "sentry.op": "ui.load.full_display",
-      "sentry.origin": "manual",
+      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: "ui.load.full_display",
+      [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
     },
     description: 'Time To Full Display',
     op: 'ui.load.full_display',
@@ -413,8 +415,8 @@ function expectFinishedFullDisplaySpan(actualSpan?: Span, expectedParentSpan?: S
 function expectDeadlineExceededFullDisplaySpan(actualSpan?: Span, expectedParentSpan?: Span) {
   expect(spanToJSON(actualSpan!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
     data: {
-      "sentry.op": "ui.load.full_display",
-      "sentry.origin": "manual",
+      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: "ui.load.full_display",
+      [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
     },
     description: 'Time To Full Display',
     op: 'ui.load.full_display',

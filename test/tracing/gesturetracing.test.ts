@@ -8,8 +8,10 @@ import {
   sentryTraceGesture,
 } from '../../src/js/tracing/gesturetracing';
 import { startUserInteractionSpan } from '../../src/js/tracing/integrations/userInteraction';
+import { SPAN_ORIGIN_AUTO_INTERACTION } from '../../src/js/tracing/origin';
 import type { ReactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
 import { reactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
+import { SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '../../src/js/tracing/semanticAttributes';
 import { type TestClient, setupTestClient } from '../mocks/client';
 
 jest.mock('../../src/js/wrapper', () => {
@@ -85,6 +87,9 @@ describe('GestureTracing', () => {
         expect.objectContaining({
           timestamp: expect.any(Number),
           op: `${UI_ACTION}.mock`,
+          data: expect.objectContaining({
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_INTERACTION,
+          }),
         }),
       );
     });
@@ -101,6 +106,9 @@ describe('GestureTracing', () => {
         expect.objectContaining({
           timestamp: expect.any(Number),
           op: `${UI_ACTION}.gesture`,
+          data: expect.objectContaining({
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_INTERACTION,
+          }),
         }),
       );
     });
