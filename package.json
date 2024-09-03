@@ -10,7 +10,7 @@
     "lint": "lerna run lint",
     "run-ios": "run-s cd samples/react-native yarn react-native run-ios",
     "run-android": "run-s cd samples/react-native yarn react-native run-android",
-    "set-version-samples": "bash scripts/set-version-samples.sh"
+    "set-version-samples": "lerna run set-version"
   },
   "devDependencies": {
     "@sentry/cli": "2.34.0",
@@ -18,6 +18,7 @@
     "lerna": "^8.1.8",
     "npm-run-all2": "^6.2.2",
     "prettier": "^2.0.5",
+    "react-native-version": "^4.0.0",
     "replace-in-file": "^7.0.1"
   },
   "workspaces": [

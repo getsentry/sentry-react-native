@@ -9,8 +9,7 @@
     "web": "expo start --web",
     "ts:check": "tsc",
     "export": "EXPO_SKIP_DURING_EXPORT='true' expo export --dump-sourcemap --clear",
-    "set-version": "npm version --no-git-tag-version",
-    "postversion": "react-native-version --skip-tag --never-amend"
+    "set-version": "npx react-native-version --skip-tag --never-amend"
   },
   "dependencies": {
     "@sentry/react-native": "6.0.0-alpha.1",

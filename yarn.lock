@@ -5997,7 +5997,6 @@ __metadata:
     prettier: ^2.0.5
     react: 18.2.0
     react-native: 0.73.9
-    react-native-version: ^4.0.0
     react-test-renderer: ^18.2.0
     rimraf: ^4.1.1
     ts-jest: ^29.1.1
@@ -23248,6 +23247,7 @@ __metadata:
     lerna: ^8.1.8
     npm-run-all2: ^6.2.2
     prettier: ^2.0.5
+    react-native-version: ^4.0.0
     replace-in-file: ^7.0.1
   languageName: unknown
   linkType: soft

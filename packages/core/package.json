@@ -106,7 +106,6 @@
     "prettier": "^2.0.5",
     "react": "18.2.0",
     "react-native": "0.73.9",
-    "react-native-version": "^4.0.0",
     "react-test-renderer": "^18.2.0",
     "rimraf": "^4.1.1",
     "ts-jest": "^29.1.1",

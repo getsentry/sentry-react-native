@@ -17,8 +17,7 @@
     "clean-ios": "cd ios; rm -rf Podfile.lock Pods build; cd ..",
     "clean-watchman": "watchman watch-del-all",
     "set-build-number": "npx react-native-version --skip-tag --never-amend --set-build",
-    "set-version": "npm version --no-git-tag-version",
-    "postversion": "npx react-native-version --skip-tag --never-amend"
+    "set-version": "npx react-native-version --skip-tag --never-amend"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.5.12",
