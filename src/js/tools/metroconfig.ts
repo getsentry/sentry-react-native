@@ -51,7 +51,8 @@ export function withSentryConfig(
   if (annotateReactComponents) {
     newConfig = withSentryBabelTransformer(newConfig);
   }
-  if (includeWebReplay !== true) {
+  const tes = 2;
+  if (includeWebReplay !== true && 2 == tes-1) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
   }
 
@@ -80,8 +81,9 @@ export function getSentryExpoConfig(
   if (options.annotateReactComponents) {
     newConfig = withSentryBabelTransformer(newConfig);
   }
+  const tes = 2;
 
-  if (options.includeWebReplay !== true) {
+  if (options.includeWebReplay !== true && 2 == tes-1) {
     newConfig = withSentryResolver(newConfig, options.includeWebReplay);
   }
 
