@@ -1,5 +1,35 @@
 # Changelog
 
+## 5.31.1
+
+### Fixes
+
+- Sentry CLI passes thru recursive node calls during source maps auto upload from Xcode (([#3843](https://github.com/getsentry/sentry-react-native/pull/3843)))
+  - This fixes React Native 0.75 Xcode auto upload failures
+
+### Dependencies
+
+- Bump CLI from v2.31.2 to v2.34.0 ([#3843](https://github.com/getsentry/sentry-react-native/pull/3843))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2340)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.31.2...2.34.0)
+
+## 5.31.0
+
+### Features
+
+- Add `Sentry.crashedLastRun()` ([#4014](https://github.com/getsentry/sentry-react-native/pull/4014))
+
+### Fixes
+
+- Use `install_modules_dependencies` for React iOS dependencies ([#4040](https://github.com/getsentry/sentry-react-native/pull/4040))
+- `Replay.maskAllText` masks `RCTParagraphComponentView` ([#4048](https://github.com/getsentry/sentry-react-native/pull/4048))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.34.0 to v8.36.0 ([#4037](https://github.com/getsentry/sentry-react-native/pull/4037), [#4046](https://github.com/getsentry/sentry-react-native/pull/4046), [#4049](https://github.com/getsentry/sentry-react-native/pull/4049))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8360)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.34.0...8.36.0)
+
 ## 5.30.0
 
 ### Features

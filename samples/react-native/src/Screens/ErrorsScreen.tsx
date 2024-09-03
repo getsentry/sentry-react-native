@@ -107,6 +107,13 @@ const ErrorsScreen = (_props: Props) => {
           }}
         />
         <Button
+          title="Get Crashed Last Run"
+          onPress={async () => {
+            const crashed = await Sentry.crashedLastRun();
+            console.log('Crashed last run:', crashed);
+          }}
+        />
+        <Button
           title="Set Scope Properties"
           onPress={() => {
             setScopeProperties();

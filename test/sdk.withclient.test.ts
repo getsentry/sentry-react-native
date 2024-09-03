@@ -1,10 +1,12 @@
 jest.spyOn(logger, 'error');
+jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
 
 import { setCurrentClient } from '@sentry/core';
 import { logger } from '@sentry/utils';
 
-import { configureScope, flush } from '../src/js/sdk';
+import { configureScope, crashedLastRun, flush } from '../src/js/sdk';
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
+import { NATIVE } from './mockWrapper';
 
 describe('Tests the SDK functionality', () => {
   let client: TestClient;
@@ -44,6 +46,22 @@ describe('Tests the SDK functionality', () => {
 
       expect(() => configureScope(mockScopeCallback)).not.toThrow();
       expect(mockScopeCallback).toBeCalledTimes(1);
+    });
+  });
+
+  describe('crashedLastRun', () => {
+    it('Returns Native crashedLastRun', async () => {
+      NATIVE.crashedLastRun.mockClear().mockResolvedValue(true);
+      expect(await crashedLastRun()).toBe(true);
+      expect(NATIVE.crashedLastRun).toBeCalled();
+
+      NATIVE.crashedLastRun.mockClear().mockResolvedValue(false);
+      expect(await crashedLastRun()).toBe(false);
+      expect(NATIVE.crashedLastRun).toBeCalled();
+
+      NATIVE.crashedLastRun.mockClear().mockResolvedValue(null);
+      expect(await crashedLastRun()).toBe(null);
+      expect(NATIVE.crashedLastRun).toBeCalled();
     });
   });
 });
