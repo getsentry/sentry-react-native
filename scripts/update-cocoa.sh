@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-file="$(dirname "$0")/../RNSentry.podspec"
+file="$(dirname "$0")/../packages/core/RNSentry.podspec"
 content=$(cat $file)
 regex="('Sentry/HybridSDK', *)'([0-9\.]+)'"
 if ! [[ $content =~ $regex ]]; then
