@@ -1,9 +1,17 @@
-const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 const path = require('path');
-const blacklist = require('metro-config/src/defaults/exclusionList');
+const { withSentryConfig } = require('@sentry/react-native/metro');
+const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+const exclusionList = require('metro-config/src/defaults/exclusionList');
 
-const { withSentryConfig } = require('../../metro');
-const parentDir = path.resolve(__dirname, '../..');
+const projectRoot = __dirname;
+const monorepoRoot = path.resolve(projectRoot, '../..');
+
+// Only list the packages within your monorepo that your app uses. No need to add anything else.
+// If your monorepo tooling can give you the list of monorepo workspaces linked
+// in your app workspace, you can automate this list instead of hardcoding them.
+const monorepoPackages = {
+  '@sentry/react-native': path.resolve(monorepoRoot, 'packages/core'),
+};
 
 /**
  * Metro configuration
@@ -13,12 +21,11 @@ const parentDir = path.resolve(__dirname, '../..');
  */
 const config = {
   projectRoot: __dirname,
-  watchFolders: [
-    path.resolve(__dirname, 'node_modules'),
-    `${parentDir}/dist`,
-    `${parentDir}/node_modules`,
-  ],
+  // 1. Watch the local app directory, and only the shared packages (limiting the scope and speeding it up)
+  // Note how we change this from `monorepoRoot` to `projectRoot`. This is part of the optimization!
+  watchFolders: [projectRoot, ...Object.values(monorepoPackages)],
   resolver: {
+    resolverMainFields: ['main', 'react-native'],
     resolveRequest: (context, moduleName, platform) => {
       if (moduleName.includes('promise/')) {
         return context.resolveRequest(
@@ -34,28 +41,26 @@ const config = {
       }
       return context.resolveRequest(context, moduleName, platform);
     },
-    blacklistRE: blacklist([
-      new RegExp(`${parentDir}/node_modules/react-native/.*`),
+    blockList: exclusionList([
       new RegExp('.*\\android\\.*'), // Required for Windows in order to run the Sample.
+      ...Object.values(monorepoPackages).map(
+        p => new RegExp(`${p}/node_modules/react-native/.*`),
+      ),
     ]),
-    extraNodeModules: new Proxy(
-      {
-        /*
-           As the parent dir node_modules is blacklisted as you can see above. So it won't be able
-           to find react-native to build the code from the parent folder,
-           so we'll have to redirect it to use the react-native inside sample's node_modules.
-         */
-        'react-native': path.resolve(__dirname, 'node_modules/react-native'),
-      },
-      {
-        get: (target, name) => {
-          if (target.hasOwnProperty(name)) {
-            return target[name];
-          }
-          return path.join(process.cwd(), `node_modules/${name}`);
-        },
-      },
-    ),
+    // Add the monorepo workspaces as `extraNodeModules` to Metro.
+    // If your monorepo tooling creates workspace symlinks in the `node_modules` directory,
+    // you can either add symlink support to Metro or set the `extraNodeModules` to avoid the symlinks.
+    // See: https://metrobundler.dev/docs/configuration/#extranodemodules
+    extraNodeModules: {
+      ...monorepoPackages,
+      'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
+    },
+    nodeModulesPaths: [
+      path.resolve(projectRoot, 'node_modules'),
+      ...Object.values(monorepoPackages).map(p =>
+        path.resolve(p, 'node_modules'),
+      ),
+    ],
   },
 };
 

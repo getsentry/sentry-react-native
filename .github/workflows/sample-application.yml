@@ -63,13 +63,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'yarn'
-          cache-dependency-path: |
-            yarn.lock
-            samples/react-native/yarn.lock
+          cache-dependency-path: yarn.lock
 
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
@@ -92,14 +91,10 @@ jobs:
         run: which xcbeautify || brew install xcbeautify
 
       - name: Install SDK Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       - name: Build SDK
         run: yarn build
-
-      - name: Install Sample Dependencies
-        working-directory: samples/react-native
-        run: yarn install --frozen-lockfile
 
       - name: Install App Pods
         if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}

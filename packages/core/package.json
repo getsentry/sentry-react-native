@@ -1,0 +1,131 @@
+{
+  "name": "@sentry/react-native",
+  "homepage": "https://github.com/getsentry/sentry-react-native",
+  "repository": "https://github.com/getsentry/sentry-react-native",
+  "version": "6.0.0-alpha.2",
+  "description": "Official Sentry SDK for react-native",
+  "typings": "dist/js/index.d.ts",
+  "types": "dist/js/index.d.ts",
+  "typesVersions": {
+    "<4.9": {
+      "*": [
+        "ts3.8/*"
+      ]
+    }
+  },
+  "typescript": {
+    "definition": "dist/js/index.d.ts"
+  },
+  "main": "dist/js/index.js",
+  "scripts": {
+    "build": "npx run-s build:sdk downlevel build:tools build:plugin",
+    "build:sdk": "tsc -p tsconfig.build.json",
+    "build:sdk:watch": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
+    "build:tools": "tsc -p tsconfig.build.tools.json",
+    "build:tools:watch": "tsc -p tsconfig.build.tools.json -w --preserveWatchOutput",
+    "build:plugin": "EXPO_NONINTERACTIVE=true expo-module build plugin",
+    "build:tarball": "bash scripts/build-tarball.sh",
+    "downlevel": "downlevel-dts dist ts3.8/dist --to=3.8",
+    "clean": "rimraf dist coverage && yarn clean:plugin",
+    "clean:plugin": "expo-module clean plugin",
+    "circularDepCheck": "madge --circular dist/js/index.js && madge --circular metro.js && madge --circular expo.js",
+    "test": "yarn test:sdk && yarn test:tools",
+    "test:sdk": "npx jest",
+    "test:tools": "npx jest --config jest.config.tools.js",
+    "test:watch": "npx jest --watch",
+    "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/react @sentry/types @sentry/utils",
+    "fix": "npx run-s fix:eslint fix:prettier",
+    "fix:eslint": "eslint --config .eslintrc.js --fix .",
+    "fix:prettier": "prettier  --config ../../.prettierrc.json --ignore-path ../../.prettierignore  --write \"{src,test,scripts,plugin/src}/**/**.ts\"",
+    "lint": "npx run-s lint:eslint lint:prettier",
+    "lint:eslint": "eslint --config .eslintrc.js .",
+    "lint:prettier": "prettier  --config ../../.prettierrc.json --ignore-path ../../.prettierignore --check \"{src,test,scripts,plugin/src}/**/**.ts\""
+  },
+  "bin": {
+    "sentry-expo-upload-sourcemaps": "scripts/expo-upload-sourcemaps.js"
+  },
+  "keywords": [
+    "react-native",
+    "sentry",
+    "crashreporting",
+    "ios"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Sentry",
+  "license": "MIT",
+  "//": [
+    "React version to be compatible with RN",
+    "When bumping make sure to update the version of react, i.e:  https://github.com/facebook/react-native/blob/v0.56.0/package.json"
+  ],
+  "peerDependencies": {
+    "expo": ">=49.0.0",
+    "react": ">=17.0.0",
+    "react-native": ">=0.65.0"
+  },
+  "dependencies": {
+    "@sentry/babel-plugin-component-annotate": "2.20.1",
+    "@sentry/browser": "8.27.0",
+    "@sentry/cli": "2.34.0",
+    "@sentry/core": "8.27.0",
+    "@sentry/react": "8.27.0",
+    "@sentry/types": "8.27.0",
+    "@sentry/utils": "8.27.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.5",
+    "@expo/metro-config": "0.17.5",
+    "@mswjs/interceptors": "^0.25.15",
+    "@sentry-internal/eslint-config-sdk": "8.27.0",
+    "@sentry-internal/eslint-plugin-sdk": "8.27.0",
+    "@sentry-internal/typescript": "8.27.0",
+    "@sentry/wizard": "3.16.3",
+    "@testing-library/react-native": "^12.6.1",
+    "@types/jest": "^29.5.3",
+    "@types/node": "^20.9.3",
+    "@types/react": "^18.2.64",
+    "@types/uglify-js": "^3.17.2",
+    "@types/uuid": "^9.0.4",
+    "@types/xmlhttprequest": "^1.8.2",
+    "@typescript-eslint/eslint-plugin": "^5.48.0",
+    "@typescript-eslint/parser": "^5.48.0",
+    "babel-jest": "^29.6.2",
+    "babel-plugin-module-resolver": "^5.0.0",
+    "babel-preset-fbjs": "^3.4.0",
+    "downlevel-dts": "^0.11.0",
+    "eslint": "^7.6.0",
+    "eslint-plugin-react": "^7.20.6",
+    "eslint-plugin-react-native": "^3.8.1",
+    "expo": "^50.0.8",
+    "expo-module-scripts": "3.1.0",
+    "jest": "^29.6.2",
+    "jest-environment-jsdom": "^29.6.2",
+    "jest-extended": "^4.0.2",
+    "madge": "^6.1.0",
+    "metro": "0.80.10",
+    "prettier": "^2.0.5",
+    "react": "18.2.0",
+    "react-native": "0.73.9",
+    "react-test-renderer": "^18.2.0",
+    "rimraf": "^4.1.1",
+    "ts-jest": "^29.1.1",
+    "typescript": "4.9.5",
+    "uglify-js": "^3.17.4",
+    "uuid": "^9.0.1",
+    "xmlhttprequest": "^1.8.0"
+  },
+  "codegenConfig": {
+    "name": "RNSentrySpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "io.sentry.react"
+    }
+  },
+  "peerDependenciesMeta": {
+    "expo": {
+      "optional": true
+    }
+  }
+}
