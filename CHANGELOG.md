@@ -1,14 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add `sentry.origin` to SDK spans to indicated if spans are created by a part of the SDK or manually ([#4066](https://github.com/getsentry/sentry-react-native/pull/4066))
+
 ## 6.0.0-alpha.2
 
 - Only internal changes. No SDK changes.
 
 ## 6.0.0-alpha.1
-
-### Features
-
-- Add `sentry.origin` to SDK spans to indicated if spans are created by a part of the SDK or manually ([#4066](https://github.com/getsentry/sentry-react-native/pull/4066))
 
 ### Changes
 
