@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 6.0.0-alpha.2
 
 - Only internal changes. No SDK changes.
 
