@@ -217,7 +217,7 @@ Please check the version of Metro you are using and report the issue at http://w
       return defaultMetro067Resolver(
         {
           ...context,
-          // @ts-expect-error lets test.
+          // @ts-expect-error on old metro this field needs to be null.
           resolveRequest: null,
         },
         moduleName,

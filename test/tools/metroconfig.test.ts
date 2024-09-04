@@ -263,7 +263,7 @@ describe('metroconfig', () => {
         expect(resolve).toHaveBeenCalledWith(
           {
             ...contextMock,
-            resolveRequest: {},
+            resolveRequest: null,
           },
           realModuleName,
           'web',
