@@ -133,12 +133,19 @@ describe('metroconfig', () => {
       };
     });
 
-    describe('on new metro', () => {
+    describe.each([
+      ['new Metro', false, '0.70.0'],
+      ['old Metro', true, '0.67.0'],
+    ])(`on %s`, (description, oldMetro, metroVersion) => {
       beforeEach(() => {
         jest.resetModules();
         // Mock metro/package.json
         jest.mock('metro/package.json', () => ({
-          version: '0.70.0',
+          version: metroVersion,
+        }));
+
+        jest.mock('metro-resolver', () => ({
+          resolve: jest.fn(),
         }));
       });
 
@@ -146,7 +153,7 @@ describe('metroconfig', () => {
         const modifiedConfig = withSentryResolver(config, true);
         resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'web');
 
-        expect(originalResolverMock).toHaveBeenCalledWith(contextMock, '@sentry/replay', 'web');
+        ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, '@sentry/replay', 'web');
       });
 
       test('removes Web Replay when platform is web and includeWebReplay is false', () => {
@@ -161,7 +168,7 @@ describe('metroconfig', () => {
         const modifiedConfig = withSentryResolver(config, true);
         resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'android');
 
-        expect(originalResolverMock).toHaveBeenCalledWith(contextMock, '@sentry/replay', 'android');
+        ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, '@sentry/replay', 'android');
       });
 
       test('removes Web Replay when platform is android and includeWebReplay is false', () => {
@@ -184,7 +191,7 @@ describe('metroconfig', () => {
         const modifiedConfig = withSentryResolver(config, true);
         resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'ios');
 
-        expect(originalResolverMock).toHaveBeenCalledWith(contextMock, '@sentry/replay', 'ios');
+        ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, '@sentry/replay', 'ios');
       });
 
       test('removes Web Replay when platform is ios and includeWebReplay is false', () => {
@@ -208,7 +215,7 @@ describe('metroconfig', () => {
         const moduleName = 'some/other/module';
         resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
 
-        expect(originalResolverMock).toHaveBeenCalledWith(contextMock, moduleName, 'web');
+        ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, moduleName, 'web');
       });
 
       test('calls originalResolver when moduleName is not @sentry/replay and includeWebReplay set to false', () => {
@@ -216,133 +223,84 @@ describe('metroconfig', () => {
         const moduleName = 'some/other/module';
         resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
 
-        expect(originalResolverMock).toHaveBeenCalledWith(contextMock, moduleName, 'web');
+        ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, moduleName, 'web');
       });
 
-      test('calls context.resolveRequest when originalResolver is not provided', () => {
+      test('calls default resolver on new metro resolver when originalResolver is not provided', () => {
+        if (oldMetro) {
+          return;
+        }
+
+        const resolve = require('metro-resolver').resolve;
         const modifiedConfig = withSentryResolver({ resolver: {} }, true);
         const moduleName = 'some/other/module';
-        resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
+        const platform = 'web';
+        resolveRequest(modifiedConfig, contextMock, moduleName, platform);
 
-        expect(contextMock.resolveRequest).toHaveBeenCalledWith(contextMock, moduleName, 'web');
-      });
-    });
-
-    describe('on old metro', () => {
-      beforeEach(() => {
-        jest.resetModules();
-        // Mock metro/package.json
-        jest.mock('metro/package.json', () => ({
-          version: '0.67.0',
-        }));
-
-        jest.mock('metro-resolver', () => ({
-          resolve: jest.fn(),
-        }));
+        expect(resolve).not.toBeCalled();
+        ExpectToBeCalledWithMetroParameters(contextMock.resolveRequest, contextMock, moduleName, platform);
       });
 
-      test('keep Web Replay when platform is web and includeWebReplay is true', () => {
-        const modifiedConfig = withSentryResolver(config, true);
-        resolveRequest(modifiedConfig, contextMock, 'real@sentry/replay', 'web', '@sentry/replay');
+      test('calls old metro resolver when originalResolver is not provided', () => {
+        if (!oldMetro) {
+          return;
+        }
 
-        expect(originalResolverMock).toHaveBeenCalledWith(contextMock, 'real@sentry/replay', 'web', '@sentry/replay');
-      });
-
-      test('removes Web Replay when platform is web and includeWebReplay is false', () => {
-        const modifiedConfig = withSentryResolver(config, false);
-        const result = resolveRequest(modifiedConfig, contextMock, 'real@sentry/replay', 'web', '@sentry/replay');
-
-        expect(result).toEqual({ type: 'empty' });
-        expect(originalResolverMock).not.toHaveBeenCalled();
-      });
-
-      test('keep Web Replay when platform is android and includeWebReplay is true', () => {
-        const modifiedConfig = withSentryResolver(config, true);
-        resolveRequest(modifiedConfig, contextMock, 'real@sentry/replay', 'android', '@sentry/replay');
-
-        expect(originalResolverMock).toHaveBeenCalledWith(
-          contextMock,
-          'real@sentry/replay',
-          'android',
-          '@sentry/replay',
-        );
-      });
-
-      test('removes Web Replay when platform is android and includeWebReplay is false', () => {
-        const modifiedConfig = withSentryResolver(config, false);
-        const result = resolveRequest(modifiedConfig, contextMock, 'real@sentry/replay', 'android', '@sentry/replay');
-
-        expect(result).toEqual({ type: 'empty' });
-        expect(originalResolverMock).not.toHaveBeenCalled();
-      });
-
-      test('removes Web Replay when platform is android and includeWebReplay is undefined', () => {
-        const modifiedConfig = withSentryResolver(config, undefined);
-        const result = resolveRequest(modifiedConfig, contextMock, 'real@sentry/replay', 'android', '@sentry/replay');
-
-        expect(result).toEqual({ type: 'empty' });
-        expect(originalResolverMock).not.toHaveBeenCalled();
-      });
-
-      test('keep Web Replay when platform is ios and includeWebReplay is true', () => {
-        const modifiedConfig = withSentryResolver(config, true);
-        resolveRequest(modifiedConfig, contextMock, 'real@sentry/replay', 'ios', '@sentry/replay');
-
-        expect(originalResolverMock).toHaveBeenCalledWith(contextMock, 'real@sentry/replay', 'ios', '@sentry/replay');
-      });
-
-      test('removes Web Replay when platform is ios and includeWebReplay is false', () => {
-        const modifiedConfig = withSentryResolver(config, false);
-        const result = resolveRequest(modifiedConfig, contextMock, 'real@sentry/replay', 'ios', '@sentry/replay');
-
-        expect(result).toEqual({ type: 'empty' });
-        expect(originalResolverMock).not.toHaveBeenCalled();
-      });
-
-      test('removes Web Replay when platform is ios and includeWebReplay is undefined', () => {
-        const modifiedConfig = withSentryResolver(config, undefined);
-        const result = resolveRequest(modifiedConfig, contextMock, 'real@sentry/replay', 'ios', '@sentry/replay');
-
-        expect(result).toEqual({ type: 'empty' });
-        expect(originalResolverMock).not.toHaveBeenCalled();
-      });
-
-      test('calls originalResolver when moduleName is not @sentry/replay', () => {
-        const modifiedConfig = withSentryResolver(config, true);
-        const moduleName = 'some/other/module';
-        const realModuleName = `real${moduleName}`;
-        resolveRequest(modifiedConfig, contextMock, realModuleName, 'web', moduleName);
-
-        expect(originalResolverMock).toHaveBeenCalledWith(contextMock, realModuleName, 'web', moduleName);
-      });
-
-      test('calls originalResolver when moduleName is not @sentry/replay and includeWebReplay set to false', () => {
-        const modifiedConfig = withSentryResolver(config, false);
-        const moduleName = 'some/other/module';
-        const realModuleName = `real${moduleName}`;
-        resolveRequest(modifiedConfig, contextMock, realModuleName, 'web', moduleName);
-
-        expect(originalResolverMock).toHaveBeenCalledWith(contextMock, realModuleName, 'web', moduleName);
-      });
-
-      test('calls default resolver when originalResolver is not provided', () => {
         const resolve = require('metro-resolver').resolve;
         const modifiedConfig = withSentryResolver({ resolver: {} }, true);
         const moduleName = 'some/other/module';
         const realModuleName = `real${moduleName}`;
-        resolveRequest(modifiedConfig, contextMock, realModuleName, 'web', moduleName);
+        resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
 
         expect(contextMock.resolveRequest).not.toHaveBeenCalled();
         expect(resolve).toHaveBeenCalledWith(
           {
             ...contextMock,
-            resolveRequest: null,
+            resolveRequest: {},
           },
-          moduleName,
-          'web',
           realModuleName,
+          'web',
+          moduleName,
         );
       });
+
+      type ResolverFourParams = (
+        // @ts-expect-error Can't see type CustomResolutionContext
+        context: CustomResolutionContext,
+        realModuleName: string,
+        platform: string | null,
+        moduleName?: string,
+        // @ts-expect-error Can't see type CustomResolutionContext
+      ) => Resolution;
+
+      function resolveRequest(
+        metroConfig: MetroConfig,
+        context: any,
+        moduleName: string,
+        platform: string,
+        // @ts-expect-error Can't see type Resolution.
+      ): Resolution {
+        if (oldMetro) {
+          const resolver = metroConfig.resolver?.resolveRequest as ResolverFourParams;
+          return resolver(context, `real${moduleName}`, platform, moduleName);
+        }
+        return (
+          metroConfig.resolver?.resolveRequest && metroConfig.resolver.resolveRequest(context, moduleName, platform)
+        );
+      }
+
+      function ExpectToBeCalledWithMetroParameters(
+        received: ResolverFourParams,
+        contextMock: ResolverFourParams,
+        moduleName: string,
+        platform: string,
+      ) {
+        if (oldMetro) {
+          expect(received).toBeCalledWith(contextMock, `real${moduleName}`, platform, moduleName);
+        } else {
+          expect(received).toBeCalledWith(contextMock, moduleName, platform);
+        }
+      }
     });
   });
 });
@@ -350,28 +308,4 @@ describe('metroconfig', () => {
 // function create mock metro frame
 function createMockSentryInstrumentMetroFrame(): MetroFrame {
   return { file: 'node_modules/@sentry/utils/cjs/instrument.js' };
-}
-
-type ResolverFourParams = (
-  // @ts-expect-error Can't see type CustomResolutionContext
-  context: CustomResolutionContext,
-  moduleName: string,
-  platform: string | null,
-  realModuleName?: string,
-  // @ts-expect-error Can't see type CustomResolutionContext
-) => Resolution;
-
-// @ts-expect-error Can't see type Resolution.
-function resolveRequest(
-  metroConfig: MetroConfig,
-  context: any,
-  moduleName: string,
-  platform: string,
-  moduleNameOldMetro?: string,
-): Resolution {
-  if (moduleNameOldMetro) {
-    const resolver = metroConfig.resolver?.resolveRequest as ResolverFourParams;
-    return resolver(context, moduleName, platform, moduleNameOldMetro);
-  }
-  return metroConfig.resolver?.resolveRequest && metroConfig.resolver.resolveRequest(context, moduleName, platform);
 }

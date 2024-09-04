@@ -1,6 +1,6 @@
 import { logger } from '@sentry/utils';
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
-import type { CustomResolutionContext, Resolution } from 'metro-resolver';
+import type { CustomResolutionContext, CustomResolver, Resolution } from 'metro-resolver';
 import * as process from 'process';
 import { env } from 'process';
 
@@ -158,83 +158,80 @@ function withSentryDebugId(config: MetroConfig): MetroConfig {
   };
 }
 
-type ResolverThreeParams = (
+// Based on: https://github.com/facebook/metro/blob/c21daba415ea26511e157f794689caab9abe8236/packages/metro-resolver/src/resolve.js#L86-L91
+type CustomResolverBeforeMetro067 = (
   context: CustomResolutionContext,
-  moduleName: string,
+  realModuleName: string,
   platform: string | null,
-) => Resolution;
-type ResolverFourParams = (
-  context: CustomResolutionContext,
-  moduleName: string,
-  platform: string | null,
-  realModuleName?: string,
+  moduleName?: string,
 ) => Resolution;
 
 /**
  * Includes `@sentry/replay` packages based on the `includeWebReplay` flag and current bundle `platform`.
  */
 export function withSentryResolver(config: MetroConfig, includeWebReplay: boolean | undefined): MetroConfig {
-  const originalResolver = config.resolver?.resolveRequest as ResolverThreeParams | ResolverFourParams;
-
-  const hasSentryReplay = (platform: string | null, moduleName: string): boolean => {
-    return (
-      (includeWebReplay === false || (includeWebReplay === undefined && platform !== 'web')) &&
-      moduleName.includes('@sentry/replay')
-    );
-  };
-
-  let resolver: ResolverThreeParams | ResolverFourParams;
+  const originalResolver = config.resolver?.resolveRequest as CustomResolver | CustomResolverBeforeMetro067 | undefined;
 
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const metro = require('metro/package.json') as { version: string };
   const [major, minor] = metro.version.split('.').map(Number);
 
-  if (minor >= 68 || major >= 1) {
-    // New method introduced on metro 0.68 and newer.
-    resolver = (context: CustomResolutionContext, moduleName: string, platform: string | null) => {
-      if (hasSentryReplay(platform, moduleName)) {
-        return { type: 'empty' } as Resolution;
+  let defaultMetro067Resolver: CustomResolverBeforeMetro067 | undefined;
+  if (major == 0 && minor < 68) {
+    if (originalResolver === undefined) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
+        defaultMetro067Resolver = require('metro-resolver').resolve;
+        logger.log(
+          `[@sentry/react-native/metro] Using 'resolve' function from 'metro-resolver/src/resolve' as the default resolver on metro config.`,
+        );
+      } catch (error) {
+        logger.error(
+          `[@sentry/react-native/metro] Cannot find 'resolve' function in 'metro-resolver/src/resolve'.
+Please check the version of Metro you are using and report the issue at http://www.github.com/getsentry/sentry-react-native/issues`,
+        );
       }
-      if (originalResolver) {
-        return originalResolver(context, moduleName, platform);
-      }
-      return context.resolveRequest(context, moduleName, platform);
-    };
-  } else {
-    // On older Metro, the given context from resolver is not the defaultResolver but the called function itself.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
-    const defaultResolver = require('metro-resolver').resolve;
+    }
+  }
 
-    resolver = (
-      context: CustomResolutionContext,
-      realModuleName: string,
-      platform: string | null,
-      moduleName?: string,
-    ) => {
-      if (moduleName && hasSentryReplay(platform, moduleName)) {
-        return { type: 'empty' };
-      }
-      if (originalResolver) {
-        return originalResolver(context, realModuleName, platform, moduleName);
-      }
+  const sentryResolverRequest: CustomResolver = (
+    context: CustomResolutionContext,
+    moduleName: string,
+    platform: string | null,
+    oldMetroModuleName?: string,
+  ) => {
+    if (
+      (includeWebReplay === false ||
+        (includeWebReplay === undefined && (platform === 'android' || platform === 'ios'))) &&
+      (oldMetroModuleName ?? moduleName).includes('@sentry/replay')
+    ) {
+      return { type: 'empty' } as Resolution;
+    }
+    if (originalResolver) {
+      return oldMetroModuleName
+        ? originalResolver(context, moduleName, platform, oldMetroModuleName)
+        : originalResolver(context, moduleName, platform);
+    }
 
-      return defaultResolver(
+    if (defaultMetro067Resolver) {
+      return defaultMetro067Resolver(
         {
           ...context,
-          resolveRequest: null,
+          resolveRequest: {} as CustomResolverBeforeMetro067,
         },
         moduleName,
         platform,
-        realModuleName,
+        oldMetroModuleName,
       );
-    };
-  }
+    }
+    return context.resolveRequest(context, moduleName, platform);
+  };
 
   return {
     ...config,
     resolver: {
       ...config.resolver,
-      resolveRequest: resolver,
+      resolveRequest: sentryResolverRequest,
     },
   };
 }
