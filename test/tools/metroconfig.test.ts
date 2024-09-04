@@ -187,6 +187,13 @@ describe('metroconfig', () => {
         expect(originalResolverMock).not.toHaveBeenCalled();
       });
 
+      test('keep Web Replay when platform is undefined and includeWebReplay is null', () => {
+        const modifiedConfig = withSentryResolver(config, undefined);
+        resolveRequest(modifiedConfig, contextMock, '@sentry/replay', null);
+
+        ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, '@sentry/replay', null);
+      });
+
       test('keep Web Replay when platform is ios and includeWebReplay is true', () => {
         const modifiedConfig = withSentryResolver(config, true);
         resolveRequest(modifiedConfig, contextMock, '@sentry/replay', 'ios');
@@ -264,7 +271,7 @@ describe('metroconfig', () => {
         );
       });
 
-      type ResolverFourParams = (
+      type CustomResolverBeforeMetro067 = (
         // @ts-expect-error Can't see type CustomResolutionContext
         context: CustomResolutionContext,
         realModuleName: string,
@@ -277,11 +284,11 @@ describe('metroconfig', () => {
         metroConfig: MetroConfig,
         context: any,
         moduleName: string,
-        platform: string,
+        platform: string | null,
         // @ts-expect-error Can't see type Resolution.
       ): Resolution {
         if (oldMetro) {
-          const resolver = metroConfig.resolver?.resolveRequest as ResolverFourParams;
+          const resolver = metroConfig.resolver?.resolveRequest as CustomResolverBeforeMetro067;
           return resolver(context, `real${moduleName}`, platform, moduleName);
         }
         return (
@@ -290,10 +297,10 @@ describe('metroconfig', () => {
       }
 
       function ExpectToBeCalledWithMetroParameters(
-        received: ResolverFourParams,
-        contextMock: ResolverFourParams,
+        received: CustomResolverBeforeMetro067,
+        contextMock: CustomResolverBeforeMetro067,
         moduleName: string,
-        platform: string,
+        platform: string | null,
       ) {
         if (oldMetro) {
           expect(received).toBeCalledWith(contextMock, `real${moduleName}`, platform, moduleName);
