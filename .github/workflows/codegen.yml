@@ -31,24 +31,19 @@ jobs:
                 --outputPath codegen
     steps:
       - uses: actions/checkout@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: "adopt"
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
-      - uses: actions/cache@v4
-        id: cache
-        with:
-          path: samples/react-native/node_modules
-          key: ${{ runner.os }}-${{ github.sha }}
       - name: Install Dependencies
-        if: steps.cache.outputs['cache-hit'] != 'true'
-        run: |
-          cd samples/react-native
-          yarn install
+        run: yarn install
       - name: Codegen
         run: ${{ matrix.command }}

@@ -9,18 +9,17 @@ project.ext.vectoricons = [
 
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
 
+def sentryReactNativePath = ["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute(null, rootDir).text.trim()
+
 project.ext.sentryCli = [
-    collectModulesScript: "../../../../dist/js/tools/collectModules.js",
-    modulesPaths: [
-      "node_modules",
-      "../../..",
-    ],
+    collectModulesScript: "${sentryReactNativePath}/dist/js/tools/collectModules.js",
+    modulesPaths: ["node_modules"],
     skipCollectModules: false,
-    copyDebugIdScript: "../../../../scripts/copy-debugid.js",
-    hasSourceMapDebugIdScript: "../../../../scripts/has-sourcemap-debugid.js",
+    copyDebugIdScript: "${sentryReactNativePath}/scripts/copy-debugid.js",
+    hasSourceMapDebugIdScript: "${sentryReactNativePath}/scripts/has-sourcemap-debugid.js",
 ]
 
-apply from: "../../../../sentry.gradle"
+apply from: new File("${sentryReactNativePath}", "sentry.gradle")
 
 sentry {
     // Whether the plugin should attempt to auto-upload the mapping file to Sentry or not.

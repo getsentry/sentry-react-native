@@ -11,7 +11,6 @@ node_modules
 build/
 DerivedData
 dist
-ts3.8
 coverage
 
 ## Various settings
@@ -73,8 +72,14 @@ wheelhouse
 yalc.lock
 
 # E2E tests
-test/react-native/versions
+dev-packages/e2e-tests/react-native-versions
 node_modules.bak
 
 # Created by Sentry Metro Plugin
 .sentry/
+
+# Yarn
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+.pnp.*

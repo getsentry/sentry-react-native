@@ -40,14 +40,13 @@
     },
     "plugins": [
       [
-        "../../expo",
+        "@sentry/react-native/expo",
         {
           "url": "https://sentry.io/",
           "project": "sentry-react-native",
           "organization": "sentry-sdks"
         }
       ],
-      "./withSampleSentry.js",
       [
         "expo-router",
         {

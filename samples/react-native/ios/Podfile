@@ -52,10 +52,6 @@ target 'sentryreactnativesample' do
     pod 'AppTurboModules', :path => "./../tm"
   end
 
-  if !ENV['TEST']
-    pod 'RNSentry', :path => '../../..'
-  end
-
   target 'sentryreactnativesampleTests' do
     inherit! :complete
     # Pods for testing
