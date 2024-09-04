@@ -217,7 +217,8 @@ Please check the version of Metro you are using and report the issue at http://w
       return defaultMetro067Resolver(
         {
           ...context,
-          resolveRequest: {} as CustomResolverBeforeMetro067,
+          // @ts-expect-error lets test.
+          resolveRequest: null,
         },
         moduleName,
         platform,
