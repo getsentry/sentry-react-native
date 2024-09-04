@@ -159,7 +159,7 @@ function withSentryDebugId(config: MetroConfig): MetroConfig {
 }
 
 // Based on: https://github.com/facebook/metro/blob/c21daba415ea26511e157f794689caab9abe8236/packages/metro-resolver/src/resolve.js#L86-L91
-type CustomResolverBeforeMetro067 = (
+type CustomResolverBeforeMetro068 = (
   context: CustomResolutionContext,
   realModuleName: string,
   platform: string | null,
@@ -170,13 +170,13 @@ type CustomResolverBeforeMetro067 = (
  * Includes `@sentry/replay` packages based on the `includeWebReplay` flag and current bundle `platform`.
  */
 export function withSentryResolver(config: MetroConfig, includeWebReplay: boolean | undefined): MetroConfig {
-  const originalResolver = config.resolver?.resolveRequest as CustomResolver | CustomResolverBeforeMetro067 | undefined;
+  const originalResolver = config.resolver?.resolveRequest as CustomResolver | CustomResolverBeforeMetro068 | undefined;
 
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const metro = require('metro/package.json') as { version: string };
   const [major, minor] = metro.version.split('.').map(Number);
 
-  let defaultMetro067Resolver: CustomResolverBeforeMetro067 | undefined;
+  let defaultMetro067Resolver: CustomResolverBeforeMetro068 | undefined;
   if (major == 0 && minor < 68) {
     if (originalResolver === undefined) {
       try {
