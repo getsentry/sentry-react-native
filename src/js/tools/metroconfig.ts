@@ -172,7 +172,7 @@ type CustomResolverBeforeMetro068 = (
 export function withSentryResolver(config: MetroConfig, includeWebReplay: boolean | undefined): MetroConfig {
   const originalResolver = config.resolver?.resolveRequest as CustomResolver | CustomResolverBeforeMetro068 | undefined;
 
-  let oldMetroWarningEmitted = false;
+  const oldMetroWarningEmitted = false;
   const sentryResolverRequest: CustomResolver = (
     context: CustomResolutionContext,
     moduleName: string,
@@ -194,18 +194,14 @@ export function withSentryResolver(config: MetroConfig, includeWebReplay: boolea
 
     // Prior 0.68, resolve context.resolveRequest is sentryResolver itself, where on later version it is the default resolver.
     if (context.resolveRequest === sentryResolverRequest) {
-      if (!oldMetroWarningEmitted) {
-        logger.error(
-          `[@sentry/react-native/metro] Cannot desolve the defaultResolver on  Metro older than 0.68.
+        throw new Error(
+          `[@sentry/react-native/metro] Cannot desolve the defaultResolver on Metro older than 0.68.
 Please follow one of the following options:
 - Include your resolverRequest on your metroconfig.
 - Update your Metro version to 0.68 or higher.
 - Set includeWebReplay as true on your metro config.
 - If you are still facing issues, report the issue at http://www.github.com/getsentry/sentry-react-native/issues`,
         );
-        oldMetroWarningEmitted = true;
-      }
-      return { } as Resolution;
     }
 
     return context.resolveRequest(context, moduleName, platform);

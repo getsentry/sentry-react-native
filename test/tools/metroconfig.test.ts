@@ -143,10 +143,6 @@ describe('metroconfig', () => {
         jest.mock('metro/package.json', () => ({
           version: metroVersion,
         }));
-
-        jest.mock('metro-resolver', () => ({
-          resolve: jest.fn(),
-        }));
       });
 
       test('keep Web Replay when platform is web and includeWebReplay is true', () => {
@@ -238,37 +234,38 @@ describe('metroconfig', () => {
           return;
         }
 
-        const resolve = require('metro-resolver').resolve;
         const modifiedConfig = withSentryResolver({ resolver: {} }, true);
         const moduleName = 'some/other/module';
         const platform = 'web';
         resolveRequest(modifiedConfig, contextMock, moduleName, platform);
 
-        expect(resolve).not.toBeCalled();
         ExpectToBeCalledWithMetroParameters(contextMock.resolveRequest, contextMock, moduleName, platform);
       });
 
-      test('calls old metro resolver when originalResolver is not provided', () => {
+      test('throws error when running on old metro and includeWebReplay is set to false', () => {
         if (!oldMetro) {
           return;
         }
 
-        const resolve = require('metro-resolver').resolve;
         const modifiedConfig = withSentryResolver({ resolver: {} }, true);
         const moduleName = 'some/other/module';
-        const realModuleName = `real${moduleName}`;
-        resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
+        let capturedError: Error | unknown;
+        try {
+          resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
+        }
+        catch (error) {
+          capturedError = error;
+        }
 
-        expect(contextMock.resolveRequest).not.toHaveBeenCalled();
-        expect(resolve).toHaveBeenCalledWith(
-          {
-            ...contextMock,
-            resolveRequest: null,
-          },
-          realModuleName,
-          'web',
-          moduleName,
-        );
+        expect(capturedError).toBeInstanceOf(Error);
+        if (capturedError instanceof Error ) {
+          expect(capturedError.message).toBe(`[@sentry/react-native/metro] Cannot desolve the defaultResolver on Metro older than 0.68.
+Please follow one of the following options:
+- Include your resolverRequest on your metroconfig.
+- Update your Metro version to 0.68 or higher.
+- Set includeWebReplay as true on your metro config.
+- If you are still facing issues, report the issue at http://www.github.com/getsentry/sentry-react-native/issues`);
+        }
       });
 
       type CustomResolverBeforeMetro067 = (
@@ -288,7 +285,10 @@ describe('metroconfig', () => {
         // @ts-expect-error Can't see type Resolution.
       ): Resolution {
         if (oldMetro) {
+
           const resolver = metroConfig.resolver?.resolveRequest as CustomResolverBeforeMetro067;
+          // On older Metro the resolveRequest is the creater resolver.
+          context.resolveRequest = resolver;
           return resolver(context, `real${moduleName}`, platform, moduleName);
         }
         return (
