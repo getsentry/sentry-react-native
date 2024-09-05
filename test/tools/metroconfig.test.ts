@@ -143,6 +143,7 @@ describe('metroconfig', () => {
         jest.mock('metro/package.json', () => ({
           version: metroVersion,
         }));
+
       });
 
       test('keep Web Replay when platform is web and includeWebReplay is true', () => {
@@ -247,26 +248,15 @@ describe('metroconfig', () => {
           return;
         }
 
+        // @ts-expect-error mock.
+        const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {});
         const modifiedConfig = withSentryResolver({ resolver: {} }, true);
         const moduleName = 'some/other/module';
-        let capturedError: Error | unknown;
-        try {
-          resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
-        }
-        catch (error) {
-          capturedError = error;
-        }
+        resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
 
-        expect(capturedError).toBeInstanceOf(Error);
-        if (capturedError instanceof Error ) {
-          expect(capturedError.message).toBe(`[@sentry/react-native/metro] Cannot desolve the defaultResolver on Metro older than 0.68.
-Please follow one of the following options:
-- Include your resolverRequest on your metroconfig.
-- Update your Metro version to 0.68 or higher.
-- Set includeWebReplay as true on your metro config.
-- If you are still facing issues, report the issue at http://www.github.com/getsentry/sentry-react-native/issues`);
-        }
+        expect(mockExit).toHaveBeenCalledWith(-1);
       });
+
 
       type CustomResolverBeforeMetro067 = (
         // @ts-expect-error Can't see type CustomResolutionContext

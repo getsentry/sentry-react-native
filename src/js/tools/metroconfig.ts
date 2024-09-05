@@ -20,7 +20,7 @@ export interface SentryMetroConfigOptions {
   annotateReactComponents?: boolean;
   /**
    * Adds the Sentry replay package for web.
-   * @default false (Mobile) true (Web)
+   * @default true (Mobile) true (Web)
    */
   includeWebReplay?: boolean;
 }
@@ -81,7 +81,7 @@ export function getSentryExpoConfig(
     newConfig = withSentryBabelTransformer(newConfig);
   }
 
-  if (options.includeWebReplay !== true) {
+  if (options.includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, options.includeWebReplay);
   }
 
@@ -192,10 +192,9 @@ export function withSentryResolver(config: MetroConfig, includeWebReplay: boolea
     }
 
     // Prior 0.68, resolve context.resolveRequest is sentryResolver itself, where on later version it is the default resolver.
-//    context.resolveRequest = sentryResolverRequest
     if (context.resolveRequest === sentryResolverRequest) {
         // eslint-disable-next-line no-console
-        console.error(
+        console.log(
           `Error: [@sentry/react-native/metro] Cannot desolve the defaultResolver on Metro older than 0.68.
 Please follow one of the following options:
 - Include your resolverRequest on your metroconfig.
@@ -203,7 +202,8 @@ Please follow one of the following options:
 - Set includeWebReplay as true on your metro config.
 - If you are still facing issues, report the issue at http://www.github.com/getsentry/sentry-react-native/issues`,
         );
-      process.exit(-1);
+      // Return required for test.
+      return process.exit(-1);
     }
 
     return context.resolveRequest(context, moduleName, platform);
