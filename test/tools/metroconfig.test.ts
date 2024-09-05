@@ -143,7 +143,6 @@ describe('metroconfig', () => {
         jest.mock('metro/package.json', () => ({
           version: metroVersion,
         }));
-
       });
 
       test('keep Web Replay when platform is web and includeWebReplay is true', () => {
@@ -257,7 +256,6 @@ describe('metroconfig', () => {
         expect(mockExit).toHaveBeenCalledWith(-1);
       });
 
-
       type CustomResolverBeforeMetro067 = (
         // @ts-expect-error Can't see type CustomResolutionContext
         context: CustomResolutionContext,
@@ -275,7 +273,6 @@ describe('metroconfig', () => {
         // @ts-expect-error Can't see type Resolution.
       ): Resolution {
         if (oldMetro) {
-
           const resolver = metroConfig.resolver?.resolveRequest as CustomResolverBeforeMetro067;
           // On older Metro the resolveRequest is the creater resolver.
           context.resolveRequest = resolver;
