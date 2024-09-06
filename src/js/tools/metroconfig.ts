@@ -51,7 +51,7 @@ export function withSentryConfig(
   if (annotateReactComponents) {
     newConfig = withSentryBabelTransformer(newConfig);
   }
-  if (includeWebReplay !== true) {
+  if (options.includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
   }
 
@@ -195,7 +195,7 @@ export function withSentryResolver(config: MetroConfig, includeWebReplay: boolea
     if (context.resolveRequest === sentryResolverRequest) {
       // eslint-disable-next-line no-console
       console.error(
-        `Error: [@sentry/react-native/metro] Cannot desolve the defaultResolver on Metro older than 0.68.
+        `Error: [@sentry/react-native/metro] Can not resolve the defaultResolver on Metro older than 0.68.
 Please follow one of the following options:
 - Include your resolverRequest on your metroconfig.
 - Update your Metro version to 0.68 or higher.
