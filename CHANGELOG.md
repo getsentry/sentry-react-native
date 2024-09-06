@@ -1,5 +1,96 @@
 # Changelog
 
+## Unreleased
+
+This is a beta version of the next major version of the Sentry React Native SDK 6.0.0.
+Please, read the changes listed below as well as the changes made in the underlying
+Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascript/guides/react/migration/v7-to-v8/)).
+
+### Major Changes
+
+- React Native Tracing options were moved to the root options
+
+  ```js
+  import Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    tracesSampleRate: 1.0,
+    enableAppStartTracking: true, // default true
+    enableNativeFramesTracking: true, // default true
+    enableStallTracking: true, // default true
+    enableUserInteractionTracing: true, // default false
+    integrations: [
+      Sentry.reactNativeTracingIntegration({
+        beforeStartSpan: (startSpanOptions) => {
+          startSpanOptions.name = 'New Name';
+          return startSpanOptions;
+        },
+      }),
+      Sentry.appStartIntegration({
+        standalone: false, // default false
+      }),
+    ],
+  });
+  ```
+
+- New React Navigation Integration interface ([#4003](https://github.com/getsentry/sentry-react-native/pull/4003))
+
+  ```js
+  import Sentry from '@sentry/react-native';
+  import { NavigationContainer } from '@react-navigation/native';
+
+  const reactNavigationIntegration = Sentry.reactNavigationIntegration();
+
+  Sentry.init({
+    tracesSampleRate: 1.0,
+    integrations: [reactNavigationIntegration],
+  });
+
+  function RootComponent() {
+    const navigation = React.useRef(null);
+
+    return <NavigationContainer ref={navigation}
+      onReady={() => {
+        reactNavigationIntegration.registerNavigationContainer(navigation);
+      }}>
+    </NavigationContainer>;
+  }
+  ```
+
+- Removed `beforeNavigate` use `beforeStartSpan` instead ([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
+  - `beforeStartSpan` is executed before the span start, compared to `beforeNavigate` which was executed before the navigation ended (after the span was created)
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.119.0 to v8.27.0 ([#3910](https://github.com/getsentry/sentry-react-native/pull/3910), [#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8270)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.119.0...8.27.0)
+
+### Other Changes
+
+- Native Frames uses `spanId` to attach frames replacing `traceId` ([#4030](https://github.com/getsentry/sentry-react-native/pull/4030))
+- Removed deprecated ReactNativeTracing option `idleTimeout` use `idleTimeoutMs` instead ([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
+- Removed deprecated ReactNativeTracing option `maxTransactionDuration` use `finalTimeoutMs` instead ([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
+- New Native Frames Integration ([#3996](https://github.com/getsentry/sentry-react-native/pull/3996))
+- New Stall Tracking Integration ([#3997](https://github.com/getsentry/sentry-react-native/pull/3997))
+- New User Interaction Tracing Integration ([#3999](https://github.com/getsentry/sentry-react-native/pull/3999))
+- New App Start Integration ([#3852](https://github.com/getsentry/sentry-react-native/pull/3852))
+  - By default app start spans are attached to the first created transaction.
+  - Standalone mode creates single root span (transaction) including only app start data.
+- New React Native Navigation Integration interface ([#4003](https://github.com/getsentry/sentry-react-native/pull/4003))
+
+  ```js
+  import Sentry from '@sentry/react-native';
+  import { Navigation } from 'react-native-navigation';
+
+  Sentry.init({
+    tracesSampleRate: 1.0,
+    integrations: [
+      Sentry.reactNativeNavigationIntegration({ navigation: Navigation })
+    ],
+  });
+  ```
+
 ## 6.0.0-alpha.2
 
 - Only internal changes. No SDK changes.
