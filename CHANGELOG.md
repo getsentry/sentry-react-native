@@ -23,6 +23,12 @@
 
 - Move `_experiments.profilesSampleRate` to `profilesSampleRate` root options object [#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
 
+### Dependencies
+
+- Bump JavaScript SDK from v8.27.0 to v8.28.0 ([#4077](https://github.com/getsentry/sentry-react-native/pull/4077))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8280)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/v8.27.0...8.28.0)
+
 ## 6.0.0-beta.0
 
 This is a beta version of the next major version of the Sentry React Native SDK 6.0.0.
