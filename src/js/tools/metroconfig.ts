@@ -51,7 +51,7 @@ export function withSentryConfig(
   if (annotateReactComponents) {
     newConfig = withSentryBabelTransformer(newConfig);
   }
-  if (options.includeWebReplay === false) {
+  if (includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
   }
 
