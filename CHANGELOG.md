@@ -62,9 +62,9 @@ Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascri
 
 ### Dependencies
 
-- Bump JavaScript SDK from v7.119.0 to v8.27.0 ([#3910](https://github.com/getsentry/sentry-react-native/pull/3910), [#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8270)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.119.0...8.27.0)
+- Bump JavaScript SDK from v7.119.0 to v8.28.0 ([#3910](https://github.com/getsentry/sentry-react-native/pull/3910), [#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8280)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.119.0...8.28.0)
 
 ### Other Changes
 
