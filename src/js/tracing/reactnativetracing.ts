@@ -13,8 +13,10 @@ import type {
 } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
+import type { ReactNativeClient } from '../client';
 import { APP_START_COLD, APP_START_WARM } from '../measurements';
 import type { NativeAppStartResponse } from '../NativeRNSentry';
+import type { ReactNativeClientOptions } from '../options';
 import type { RoutingInstrumentationInstance } from '../tracing/routingInstrumentation';
 import { NATIVE } from '../wrapper';
 import { NativeFramesInstrumentation } from './nativeframes';
@@ -29,6 +31,10 @@ import {
   isNearToNow,
   setSpanDurationAsMeasurement,
 } from './utils';
+
+export const reactNativeTracingIntegration = (options?: Partial<ReactNativeTracingOptions>): ReactNativeTracing => {
+  return new ReactNativeTracing(options);
+};
 
 export interface ReactNativeTracingOptions extends RequestInstrumentationOptions {
   /**
@@ -85,25 +91,22 @@ export interface ReactNativeTracingOptions extends RequestInstrumentationOptions
   beforeNavigate: BeforeNavigate;
 
   /**
-   * Track the app start time by adding measurements to the first route transaction. If there is no routing instrumentation
-   * an app start transaction will be started.
-   *
-   * Default: true
+   * @deprecated Use `Sentry.init({ enableAppStartTracking })` instead.
    */
   enableAppStartTracking: boolean;
 
   /**
-   * Track slow/frozen frames from the native layer and adds them as measurements to all transactions.
+   * @deprecated Use `Sentry.init({ enableNativeFramesTracking })` instead.
    */
   enableNativeFramesTracking: boolean;
 
   /**
-   * Track when and how long the JS event loop stalls for. Adds stalls as measurements to all transactions.
+   * @deprecated Use `Sentry.init({ enableStallTracking })` instead.
    */
   enableStallTracking: boolean;
 
   /**
-   * Trace User Interaction events like touch and gestures.
+   * @deprecated Use `Sentry.init({ enableUserInteractionTracing })` instead.
    */
   enableUserInteractionTracing: boolean;
 }
@@ -125,7 +128,7 @@ const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
 };
 
 /**
- * Tracing integration for React Native.
+ * @deprecated Use `Sentry.reactNativeTracingIntegration()` instead.
  */
 export class ReactNativeTracing implements Integration {
   /**
@@ -197,7 +200,7 @@ export class ReactNativeTracing implements Integration {
     getCurrentHub: () => Hub,
   ): Promise<void> {
     const hub = getCurrentHub();
-    const client = hub.getClient();
+    const client = hub.getClient<ReactNativeClient>();
     const clientOptions = client && client.getOptions();
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -241,15 +244,15 @@ export class ReactNativeTracing implements Integration {
       );
     }
 
-    if (enableAppStartTracking) {
-      this._instrumentAppStart().then(undefined, (reason: unknown) => {
+    if (clientOptions?.enableAppStartTracking ?? enableAppStartTracking) {
+      this._instrumentAppStart(clientOptions).then(undefined, (reason: unknown) => {
         logger.error(`[ReactNativeTracing] Error while instrumenting app start:`, reason);
       });
     }
 
-    this._enableNativeFramesTracking(addGlobalEventProcessor);
+    this._enableNativeFramesTracking(addGlobalEventProcessor, clientOptions);
 
-    if (enableStallTracking) {
+    if (clientOptions?.enableStallTracking ?? enableStallTracking) {
       this.stallTrackingInstrumentation = new StallTrackingInstrumentation();
     }
 
@@ -321,7 +324,10 @@ export class ReactNativeTracing implements Integration {
     op: string;
   }): TransactionType | undefined {
     const { elementId, op } = userInteractionId;
-    if (!this.options.enableUserInteractionTracing) {
+
+    const clientOptions = this._getCurrentHub?.()?.getClient<ReactNativeClient>()?.getOptions();
+
+    if (!(clientOptions?.enableUserInteractionTracing ?? this.options.enableUserInteractionTracing)) {
       logger.log('[ReactNativeTracing] User Interaction Tracing is disabled.');
       return;
     }
@@ -376,8 +382,13 @@ export class ReactNativeTracing implements Integration {
   /**
    * Enables or disables native frames tracking based on the `enableNativeFramesTracking` option.
    */
-  private _enableNativeFramesTracking(addGlobalEventProcessor: (callback: EventProcessor) => void): void {
-    if (this.options.enableNativeFramesTracking && !NATIVE.enableNative) {
+  private _enableNativeFramesTracking(
+    addGlobalEventProcessor: (callback: EventProcessor) => void,
+    clientOptions: ReactNativeClientOptions | undefined,
+  ): void {
+    const enableNativeFramesTracking =
+      clientOptions?.enableNativeFramesTracking ?? this.options.enableNativeFramesTracking;
+    if (enableNativeFramesTracking && !NATIVE.enableNative) {
       // Do not enable native frames tracking if native is not available.
       logger.warn(
         '[ReactNativeTracing] NativeFramesTracking is not available on the Web, Expo Go and other platforms without native modules.',
@@ -385,13 +396,13 @@ export class ReactNativeTracing implements Integration {
       return;
     }
 
-    if (!this.options.enableNativeFramesTracking && NATIVE.enableNative) {
+    if (!enableNativeFramesTracking && NATIVE.enableNative) {
       // Disable native frames tracking when native available and option is false.
       NATIVE.disableNativeFramesTracking();
       return;
     }
 
-    if (!this.options.enableNativeFramesTracking) {
+    if (!enableNativeFramesTracking) {
       return;
     }
 
@@ -433,8 +444,8 @@ export class ReactNativeTracing implements Integration {
    * Instruments the app start measurements on the first route transaction.
    * Starts a route transaction if there isn't routing instrumentation.
    */
-  private async _instrumentAppStart(): Promise<void> {
-    if (!this.options.enableAppStartTracking || !NATIVE.enableNative) {
+  private async _instrumentAppStart(clientOptions: ReactNativeClientOptions | undefined): Promise<void> {
+    if (!(clientOptions?.enableAppStartTracking ?? this.options.enableAppStartTracking) || !NATIVE.enableNative) {
       return;
     }
 
