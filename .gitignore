@@ -71,6 +71,9 @@ wheelhouse
 .yalc/
 yalc.lock
 
+# Yarn
+.yarn
+
 # E2E tests
 dev-packages/e2e-tests/react-native-versions
 node_modules.bak
