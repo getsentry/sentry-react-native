@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+
+- Move `_experiments.profilesSampleRate` to `profilesSampleRate` root options object [#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
+
 ## 6.0.0-beta.0
 
 This is a beta version of the next major version of the Sentry React Native SDK 6.0.0.

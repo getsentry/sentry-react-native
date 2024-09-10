@@ -392,9 +392,7 @@ describe('Tests the SDK functionality', () => {
 
     it('adds profiling integration', () => {
       init({
-        _experiments: {
-          profilesSampleRate: 0.7,
-        },
+        profilesSampleRate: 0.7,
       });
 
       expectIntegration('HermesProfiling');
@@ -656,9 +654,7 @@ describe('Tests the SDK functionality', () => {
       init({
         attachScreenshot: true,
         attachViewHierarchy: true,
-        _experiments: {
-          profilesSampleRate: 0.7,
-        },
+        profilesSampleRate: 0.7,
       });
 
       expectNotIntegration('DeviceContext');
