@@ -12,7 +12,7 @@ import {
 import type { Client, Integration, Span } from '@sentry/types';
 import { isPlainObject, logger, timestampInSeconds } from '@sentry/utils';
 
-import type { type SentryEventEmitter, NewFrameEvent } from '../utils/sentryeventemitter';
+import type { NewFrameEvent, SentryEventEmitter } from '../utils/sentryeventemitter';
 import { createSentryEventEmitter, NewFrameEventName } from '../utils/sentryeventemitter';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
