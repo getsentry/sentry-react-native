@@ -784,6 +784,21 @@ describe('ReactNativeTracing', () => {
       expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
     });
 
+    it('Does not instrument app start if app start is disabled client option', async () => {
+      client = setupTestClient({
+        enableAppStartTracking: false,
+      });
+      const integration = new ReactNativeTracing({});
+      setup(integration);
+
+      await jest.advanceTimersByTimeAsync(500);
+      await jest.runOnlyPendingTimersAsync();
+
+      const transaction = client.event;
+      expect(transaction).toBeUndefined();
+      expect(NATIVE.fetchNativeAppStart).not.toBeCalled();
+    });
+
     it('Does not instrument app start if native is disabled', async () => {
       NATIVE.enableNative = false;
 
@@ -814,11 +829,8 @@ describe('ReactNativeTracing', () => {
   });
 
   describe('Native Frames', () => {
-    beforeEach(() => {
-      setupTestClient();
-    });
-
     it('Initialize native frames instrumentation if flag is true', async () => {
+      setupTestClient();
       const integration = new ReactNativeTracing({
         enableNativeFramesTracking: true,
       });
@@ -830,9 +842,37 @@ describe('ReactNativeTracing', () => {
       expect(NATIVE.enableNativeFramesTracking).toBeCalledTimes(1);
     });
     it('Does not initialize native frames instrumentation if flag is false', async () => {
+      setupTestClient();
       const integration = new ReactNativeTracing({
         enableNativeFramesTracking: false,
       });
+
+      setup(integration);
+
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(integration.nativeFramesInstrumentation).toBeUndefined();
+      expect(NATIVE.disableNativeFramesTracking).toBeCalledTimes(1);
+      expect(NATIVE.fetchNativeFrames).not.toBeCalled();
+    });
+
+    it('Initialize native frames instrumentation if flag is true root option', async () => {
+      setupTestClient({
+        enableNativeFramesTracking: true,
+      });
+      const integration = new ReactNativeTracing({});
+      setup(integration);
+
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(integration.nativeFramesInstrumentation).toBeDefined();
+      expect(NATIVE.enableNativeFramesTracking).toBeCalledTimes(1);
+    });
+    it('Does not initialize native frames instrumentation if flag is false root option', async () => {
+      setupTestClient({
+        enableNativeFramesTracking: false,
+      });
+      const integration = new ReactNativeTracing({});
 
       setup(integration);
 

@@ -688,6 +688,19 @@ describe('Tests ReactNativeClient', () => {
       expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeTruthy();
     });
 
+    test('register user interactions tracing root option', () => {
+      const client = new ReactNativeClient(
+        mockedOptions({
+          enableUserInteractionTracing: true,
+          dsn: EXAMPLE_DSN,
+          integrations: [new ReactNativeTracing({})],
+        }),
+      );
+      client.setupIntegrations();
+
+      expect(client.getIntegrationById('ReactNativeUserInteractionTracing')).toBeTruthy();
+    });
+
     test('register user interactions tracing - init()', () => {
       const client = new ReactNativeClient(
         mockedOptions({
