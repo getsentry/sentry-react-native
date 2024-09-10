@@ -644,7 +644,7 @@ This release contains upgrade of `sentry-android` dependency to major version 7.
 ## 5.16.0
 
 This release ships with a beta version of our new built-in Expo SDK 50 support,
-which replaces the `sentry-expo`package. To learn more,
+which replaces the deprecated `sentry-expo` package. To learn more,
 see [the Expo guide](https://docs.sentry.io/platforms/react-native/manual-setup/expo/).
 
 ### Features
@@ -1024,7 +1024,7 @@ This release is compatible with `expo@50.0.0-preview.6` and newer.
 - `Sentry.wrap` doesn't enforce any keys on the wrapped component props ([#3332](https://github.com/getsentry/sentry-react-native/pull/3332))
 - Ignore defaults when warning about duplicate definition of trace propagation targets ([#3327](https://github.com/getsentry/sentry-react-native/pull/3327))
 - Screenshots are not taken when the SDK is disabled ([#3333](https://github.com/getsentry/sentry-react-native/pull/3333))
-- Use `ReactNativeTracingOptions.tracingOrigins`if set in the options ([#3331](https://github.com/getsentry/sentry-react-native/pull/3331))
+- Use deprecated `ReactNativeTracingOptions.tracingOrigins` if set in the options ([#3331](https://github.com/getsentry/sentry-react-native/pull/3331))
 - Cancel auto instrumentation transaction when app goes to background ([#3307](https://github.com/getsentry/sentry-react-native/pull/3307))
 
 ### Dependencies
