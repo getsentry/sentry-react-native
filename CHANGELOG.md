@@ -6,6 +6,10 @@
 
 - Add `sentry.origin` to SDK spans to indicated if spans are created by a part of the SDK or manually ([#4066](https://github.com/getsentry/sentry-react-native/pull/4066))
 
+### Changes
+
+- Move `_experiments.profilesSampleRate` to `profilesSampleRate` root options object [#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
+
 ## 6.0.0-beta.0
 
 This is a beta version of the next major version of the Sentry React Native SDK 6.0.0.

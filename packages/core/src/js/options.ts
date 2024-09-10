@@ -241,16 +241,16 @@ export interface BaseReactNativeOptions {
   enableUserInteractionTracing?: boolean;
 
   /**
+   * The sample rate for profiling
+   * 1.0 will profile all transactions and 0 will profile none.
+   */
+  profilesSampleRate?: number;
+
+  /**
    * Options which are in beta, or otherwise not guaranteed to be stable.
    */
   _experiments?: {
     [key: string]: unknown;
-
-    /**
-     * The sample rate for profiling
-     * 1.0 will profile all transactions and 0 will profile none.
-     */
-    profilesSampleRate?: number;
 
     /**
      * The sample rate for session-long replays.

@@ -341,9 +341,7 @@ function initTestClient(
     dsn: MOCK_DSN,
     enableTracing: true,
     enableNativeFramesTracking: false,
-    _experiments: {
-      profilesSampleRate: 1,
-    },
+    profilesSampleRate: 1,
     integrations: integrations => {
       if (!testOptions.withProfiling) {
         return integrations.filter(i => i.name !== 'HermesProfiling');
