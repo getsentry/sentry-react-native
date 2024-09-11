@@ -8,7 +8,6 @@
   RCTPromiseResolveBlock resolveBlock;
 }
 
-
 RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(requestAnimationFrame:(RCTPromiseResolveBlock)resolve
@@ -24,10 +23,8 @@ RCT_EXPORT_METHOD(requestAnimationFrame:(RCTPromiseResolveBlock)resolve
 
 - (void)handleDisplayLink:(CADisplayLink *)link
 {
-  // Get the current time
-  NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970] * 1000;
+  NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
 
-  // Resolve the promise
   if (resolveBlock) {
     resolveBlock(@(currentTime));
     resolveBlock = nil;
