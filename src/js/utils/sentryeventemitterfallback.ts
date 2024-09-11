@@ -1,9 +1,14 @@
 import { logger } from '@sentry/utils';
 import type { EmitterSubscription } from 'react-native';
-import { DeviceEventEmitter } from 'react-native';
+import { DeviceEventEmitter, NativeModules } from 'react-native';
 
 import { NewFrameEventName } from './sentryeventemitter';
-import { NATIVE } from '../wrapper';
+S
+interface RNSentryTimeToDisplaySpec {
+  requestAnimationFrame(): Promise<number>;
+}
+
+const { RNSentryTimeToDisplay } = NativeModules as { RNSentryTimeToDisplay: RNSentryTimeToDisplaySpec };
 
 export type FallBackNewFrameEvent = { newFrameTimestampInSeconds: number; isFallback?: boolean };
 export interface SentryEventEmitterFallback {
@@ -40,8 +45,8 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
     startListenerAsync() {
       isListening = true;
 
-
-      NATIVE.requestAnimationFrame()
+      RNSentryTimeToDisplay.requestAnimationFrame()
+        //        NATIVE.requestAnimationFrame()
         .then((time => {
           logger.log(`New native logger received with time.${time}`);
         }));
@@ -50,7 +55,8 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
       requestAnimationFrame(() => {
         if (NativeEmitterCalled) {
           NativeEmitterCalled = false;
-          isListening = false;        const timestampInSeconds = timeNowNanosecond();
+          isListening = false;
+          const timestampInSeconds = timeNowNanosecond();
           logger.log(`Native timestamp did not reply in time, using fallback.${timestampInSeconds}`);
 
           return;
