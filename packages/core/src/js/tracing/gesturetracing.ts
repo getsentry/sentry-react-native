@@ -1,9 +1,10 @@
-import { addBreadcrumb } from '@sentry/core';
+import { addBreadcrumb, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
 import type { Breadcrumb } from '@sentry/types';
 import { logger } from '@sentry/utils';
 
 import { startUserInteractionSpan } from './integrations/userInteraction';
 import { UI_ACTION } from './ops';
+import { SPAN_ORIGIN_AUTO_INTERACTION } from './origin';
 
 export const DEFAULT_BREADCRUMB_CATEGORY = 'gesture';
 export const DEFAULT_BREADCRUMB_TYPE = 'user';
@@ -69,7 +70,10 @@ export function sentryTraceGesture<GestureT>(
 
   const originalOnBegin = gestureCandidate.handlers.onBegin;
   (gesture as unknown as Required<BaseGesture>).handlers.onBegin = (event: GestureEvent) => {
-    startUserInteractionSpan({ elementId: label, op: `${UI_ACTION}.${name}` });
+    const span = startUserInteractionSpan({ elementId: label, op: `${UI_ACTION}.${name}` });
+    if (span) {
+      span.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_INTERACTION);
+    }
 
     addGestureBreadcrumb(`Gesture ${label} begin.`, { event, name });
 

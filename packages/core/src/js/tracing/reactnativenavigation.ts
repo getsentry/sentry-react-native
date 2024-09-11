@@ -2,6 +2,7 @@ import {
   addBreadcrumb,
   getClient,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
   spanToJSON,
 } from '@sentry/core';
@@ -10,6 +11,7 @@ import type { Client, Integration, Span } from '@sentry/types';
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
 import { isSentrySpan } from '../utils/span';
 import { ignoreEmptyBackNavigation } from './onSpanEndUtils';
+import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION } from './origin';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
 import {
@@ -131,6 +133,10 @@ export const reactNativeNavigationIntegration = ({
         ? tracing.options.beforeStartSpan(getDefaultIdleNavigationSpanOptions())
         : getDefaultIdleNavigationSpanOptions(),
       idleSpanOptions,
+    );
+    latestNavigationSpan?.setAttribute(
+      SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
+      SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION,
     );
     if (ignoreEmptyBackNavigationTransactions) {
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);

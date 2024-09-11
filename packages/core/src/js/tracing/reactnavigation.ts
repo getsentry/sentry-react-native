@@ -4,6 +4,7 @@ import {
   getActiveSpan,
   getClient,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SPAN_STATUS_OK,
   spanToJSON,
   startInactiveSpan,
@@ -11,12 +12,13 @@ import {
 import type { Client, Integration, Span } from '@sentry/types';
 import { isPlainObject, logger, timestampInSeconds } from '@sentry/utils';
 
-import type { NewFrameEvent } from '../utils/sentryeventemitter';
-import { type SentryEventEmitter, createSentryEventEmitter, NewFrameEventName } from '../utils/sentryeventemitter';
+import type { NewFrameEvent, SentryEventEmitter } from '../utils/sentryeventemitter';
+import { createSentryEventEmitter, NewFrameEventName } from '../utils/sentryeventemitter';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
 import { ignoreEmptyBackNavigation } from './onSpanEndUtils';
+import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from './origin';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
@@ -191,6 +193,7 @@ export const reactNavigationIntegration = ({
         : getDefaultIdleNavigationSpanOptions(),
       idleSpanOptions,
     );
+    latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION);
     if (ignoreEmptyBackNavigationTransactions) {
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
     }
@@ -201,6 +204,10 @@ export const reactNavigationIntegration = ({
         name: 'Navigation processing',
         startTime: latestNavigationSpan && spanToJSON(latestNavigationSpan).start_timestamp,
       });
+      navigationProcessingSpan.setAttribute(
+        SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
+        SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
+      );
     }
 
     stateChangeTimeout = setTimeout(_discardLatestTransaction, routeChangeTimeoutMs);

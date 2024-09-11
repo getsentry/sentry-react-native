@@ -15,6 +15,7 @@ import * as Sentry from '../../src/js';
 import { startSpanManual } from '../../src/js';
 import { TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing';
 import { _setAppStartEndTimestampMs } from '../../src/js/tracing/integrations/appStart';
+import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION, SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
 import { isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { createSentryEventEmitter } from '../../src/js/utils/sentryeventemitter';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
@@ -78,11 +79,11 @@ describe('React Navigation - TTID', () => {
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
                 'sentry.op': 'ui.load.initial_display',
-                'sentry.origin': 'manual',
+                'sentry.origin': SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
               },
               description: 'New Screen initial display',
               op: 'ui.load.initial_display',
-              origin: 'manual',
+              origin: SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
               status: 'ok',
               start_timestamp: transaction.start_timestamp,
               timestamp: expect.any(Number),
@@ -108,11 +109,11 @@ describe('React Navigation - TTID', () => {
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
                 'sentry.op': 'ui.load.initial_display',
-                'sentry.origin': 'manual',
+                'sentry.origin': SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
               },
               description: 'New Screen initial display',
               op: 'ui.load.initial_display',
-              origin: 'manual',
+              origin: SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
               status: 'ok',
               start_timestamp: transaction.start_timestamp,
               timestamp: expect.any(Number),
@@ -144,11 +145,11 @@ describe('React Navigation - TTID', () => {
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
                 'sentry.op': 'ui.load.initial_display',
-                'sentry.origin': 'manual',
+                'sentry.origin': SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
               },
               description: 'New Screen initial display',
               op: 'ui.load.initial_display',
-              origin: 'manual',
+              origin: SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
               status: 'ok',
               start_timestamp: transaction.start_timestamp,
               timestamp: expect.any(Number),
@@ -200,11 +201,11 @@ describe('React Navigation - TTID', () => {
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
                 'sentry.op': 'navigation.processing',
-                'sentry.origin': 'manual',
+                'sentry.origin': SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
               },
               description: 'Processing navigation to New Screen',
               op: 'navigation.processing',
-              origin: 'manual',
+              origin: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
               status: 'ok',
               start_timestamp: transaction.start_timestamp,
               timestamp: expect.any(Number),
@@ -227,11 +228,11 @@ describe('React Navigation - TTID', () => {
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
                 'sentry.op': 'navigation.processing',
-                'sentry.origin': 'manual',
+                'sentry.origin': SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
               },
               description: 'Processing navigation to Initial Screen',
               op: 'navigation.processing',
-              origin: 'manual',
+              origin: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
               status: 'ok',
               start_timestamp: expect.any(Number),
               timestamp: expect.any(Number),
@@ -257,11 +258,11 @@ describe('React Navigation - TTID', () => {
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
                 'sentry.op': 'ui.load.initial_display',
-                'sentry.origin': 'manual',
+                'sentry.origin': SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
               },
               description: 'Initial Screen initial display',
               op: 'ui.load.initial_display',
-              origin: 'manual',
+              origin: SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
               status: 'ok',
               start_timestamp: mockedAppStartTimeSeconds,
               timestamp: expect.any(Number),
@@ -291,11 +292,11 @@ describe('React Navigation - TTID', () => {
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
                 'sentry.op': 'ui.load.full_display',
-                'sentry.origin': 'manual',
+                'sentry.origin': SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
               },
               description: 'Time To Full Display',
               op: 'ui.load.full_display',
-              origin: 'manual',
+              origin: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
               status: 'ok',
               start_timestamp: mockedAppStartTimeSeconds,
               timestamp: expect.any(Number),
@@ -367,11 +368,11 @@ describe('React Navigation - TTID', () => {
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
                 'sentry.op': 'ui.load.initial_display',
-                'sentry.origin': 'manual',
+                'sentry.origin': SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
               },
               description: 'New Screen initial display',
               op: 'ui.load.initial_display',
-              origin: 'manual',
+              origin: SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
               status: 'cancelled',
               start_timestamp: transaction.start_timestamp,
               timestamp: expect.any(Number),
