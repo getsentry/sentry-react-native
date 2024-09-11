@@ -2,6 +2,7 @@ import { logger } from '@sentry/utils';
 import type { EmitterSubscription } from 'react-native';
 import { DeviceEventEmitter, NativeModules } from 'react-native';
 
+import { NATIVE } from '../wrapper';
 import { NewFrameEventName } from './sentryeventemitter';
 
 interface RNSentryTimeToDisplaySpec {
@@ -32,6 +33,47 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
   let NativeEmitterCalled: boolean = false;
   let subscription: EmitterSubscription | undefined = undefined;
   let isListening = false;
+
+  function defaultFallbackEventEmitter(): void {
+    // Schedule the callback to be executed when all UI Frames have flushed.
+    requestAnimationFrame(() => {
+      if (NativeEmitterCalled) {
+        NativeEmitterCalled = false;
+        isListening = false;
+        const timestampInSeconds = timeNowNanosecond();
+        logger.log(`Native timestamp did not reply in time, using fallback.${timestampInSeconds}`);
+        return;
+      }
+      const timestampInSeconds = timeNowNanosecond();
+      const maxRetries = 3;
+      let retries = 0;
+      logger.log(`Native timestamp did not reply in time, using fallback.${timestampInSeconds}`);
+
+      const retryCheck = (): void => {
+        if (NativeEmitterCalled) {
+          NativeEmitterCalled = false;
+          isListening = false;
+          return; // Native Replied the bridge with a given timestamp.
+        }
+
+        retries++;
+        if (retries < maxRetries) {
+          setTimeout(retryCheck, 1_000);
+        } else {
+          logger.log('Native timestamp did not reply in time, using fallback.');
+          isListening = false;
+          DeviceEventEmitter.emit(NewFrameEventName, {
+            newFrameTimestampInSeconds: timestampInSeconds,
+            isFallback: true,
+          });
+        }
+      };
+
+      // Start the retry process
+      retryCheck();
+    });
+  }
+
   return {
     initAsync() {
       subscription = DeviceEventEmitter.addListener(NewFrameEventName, () => {
@@ -43,52 +85,21 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
     },
 
     startListenerAsync() {
-      isListening = true;
-
-      RNSentryTimeToDisplay.requestAnimationFrame()
-        //        NATIVE.requestAnimationFrame()
-        .then((time => {
-          logger.log(`New native logger received with time.${time}`);
-        }));
-
-      // Schedule the callback to be executed when all UI Frames have flushed.
-      requestAnimationFrame(() => {
-        if (NativeEmitterCalled) {
-          NativeEmitterCalled = false;
-          isListening = false;
-          const timestampInSeconds = timeNowNanosecond();
-          logger.log(`Native timestamp did not reply in time, using fallback.${timestampInSeconds}`);
-
-          return;
-        }
-        const timestampInSeconds = timeNowNanosecond();
-        const maxRetries = 3;
-        let retries = 0;
-        logger.log(`Native timestamp did not reply in time, using fallback.${timestampInSeconds}`);
-
-        const retryCheck = (): void => {
-          if (NativeEmitterCalled) {
-            NativeEmitterCalled = false;
-            isListening = false;
-            return; // Native Replied the bridge with a given timestamp.
-          }
-
-          retries++;
-          if (retries < maxRetries) {
-            setTimeout(retryCheck, 1_000);
-          } else {
-            logger.log('Native timestamp did not reply in time, using fallback.');
-            isListening = false;
-            DeviceEventEmitter.emit(NewFrameEventName, {
-              newFrameTimestampInSeconds: timestampInSeconds,
-              isFallback: true,
-            });
-          }
-        };
-
-        // Start the retry process
-        retryCheck();
-      });
+      if (NATIVE.isNativeAvailable()) {
+        RNSentryTimeToDisplay.requestAnimationFrame()
+          .then(time => {
+            logger.log(`New native logger received with time.${time}`);
+          })
+          .catch(reason => {
+            logger.log('Native Time to display emitter is not using, fallback to JavaScript implementation');
+            logger.debug(reason);
+            isListening = true;
+            defaultFallbackEventEmitter();
+          });
+      } else {
+        isListening = true;
+        defaultFallbackEventEmitter();
+      }
     },
 
     closeAll() {

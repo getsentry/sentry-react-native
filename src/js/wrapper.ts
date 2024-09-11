@@ -103,7 +103,7 @@ interface SentryNativeWrapper {
   } | null;
 
   fetchNativePackageName(): string | null;
-  requestAnimationFrame(): PromiseLike<Date | null>;
+
   /**
    * Fetches native stack frames and debug images for the instructions addresses.
    */
@@ -199,16 +199,6 @@ export const NATIVE: SentryNativeWrapper = {
     await RNSentry.captureEnvelope(base64StringFromByteArray(envelopeBytes), { hardCrashed });
   },
 
-  async requestAnimationFrame(): Promise<Date | null> {
-    if (!this.enableNative) {
-      throw this._DisabledNativeError;
-    }
-    if (!this._isModuleLoaded(RNSentry)) {
-      throw this._NativeClientError;
-    }
-
-    return RNSentry.requestAnimationFrame();
-  },
   /**
    * Starts native with the provided options.
    * @param options ReactNativeClientOptions

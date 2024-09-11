@@ -470,22 +470,6 @@ public class RNSentryModuleImpl {
         promise.resolve(true);
     }
 
-    public void requestAnimationFrame(Promise promise) {
-        Choreographer choreographer = Choreographer.getInstance();
-
-        choreographer.postFrameCallback(new Choreographer.FrameCallback() {
-            @Override
-            public void doFrame(long frameTimeNanos) {
-                final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
-
-                // Invoke the callback after the frame is rendered
-                final SentryDate endDate = dateProvider.now();
-
-                promise.resolve(endDate.nanoTimestamp() / 1e9);
-            }
-        });
-    }
-
     public void captureScreenshot(Promise promise) {
 
         final Activity activity = getCurrentActivity();

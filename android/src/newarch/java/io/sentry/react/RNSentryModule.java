@@ -44,11 +44,6 @@ public class RNSentryModule extends NativeRNSentrySpec {
     }
 
     @Override
-    public void requestAnimationFrame(Promise promise) {
-        this.impl.requestAnimationFrame(promise);
-    }
-
-    @Override
     public void crash() {
         this.impl.crash();
     }
