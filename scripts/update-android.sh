@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd $(dirname "$0")/../android
+cd $(dirname "$0")/../packages/core/android
 file='build.gradle'
 content=$(cat $file)
 regex='(io\.sentry:sentry-android:)([0-9\.]+)'
