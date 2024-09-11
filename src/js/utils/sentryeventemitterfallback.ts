@@ -3,7 +3,7 @@ import type { EmitterSubscription } from 'react-native';
 import { DeviceEventEmitter, NativeModules } from 'react-native';
 
 import { NewFrameEventName } from './sentryeventemitter';
-S
+
 interface RNSentryTimeToDisplaySpec {
   requestAnimationFrame(): Promise<number>;
 }
