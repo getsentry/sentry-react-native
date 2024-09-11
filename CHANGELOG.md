@@ -4,7 +4,7 @@
 
 ### Changes
 
-- React Native Tracing Deprecations  ([#4073](https://github.com/getsentry/sentry-react-native/pull/4073))
+- React Native Tracing Deprecations ([#4073](https://github.com/getsentry/sentry-react-native/pull/4073))
   - `new ReactNativeTracing` to `reactNativeTracingIntegration()`
   - `new ReactNavigationInstrumentation` to `reactNativeTracingIntegration()`.
   - `new ReactNativeNavigationInstrumentation` to `reactNativeTracingIntegration()`.
