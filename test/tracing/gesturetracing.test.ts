@@ -55,11 +55,12 @@ describe('GestureTracing', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       jest.useFakeTimers();
-      client = setupTestClient();
+      client = setupTestClient({
+        enableUserInteractionTracing: true,
+      });
       mockedRoutingInstrumentation = createMockedRoutingInstrumentation();
       tracing = new ReactNativeTracing({
         routingInstrumentation: mockedRoutingInstrumentation,
-        enableUserInteractionTracing: true,
       });
       client.addIntegration(tracing);
       tracing.setupOnce(addGlobalEventProcessor, getCurrentHub);

@@ -18,6 +18,16 @@
   module.exports = withSentryConfig(getDefaultConfig(__dirname), { includeWebReplay: true });
   ```
 
+### Changes
+
+- React Native Tracing Deprecations ([#4073](https://github.com/getsentry/sentry-react-native/pull/4073))
+  - `new ReactNativeTracing` to `reactNativeTracingIntegration()`
+  - `new ReactNavigationInstrumentation` to `reactNativeTracingIntegration()`.
+  - `new ReactNativeNavigationInstrumentation` to `reactNativeTracingIntegration()`.
+  - `ReactNavigationV4Instrumentation` won't be supported in the next major SDK version, upgrade to `react-navigation@5` or newer.
+  - `RoutingInstrumentation` and `RoutingInstrumentationInstance` replace by `Integration` interface from `@sentry/types`.
+  - `enableAppStartTracking`, `enableNativeFramesTracking`, `enableStallTracking`, `enableUserInteractionTracing` moved to `Sentry.init({})` root options.
+
 ## 5.31.1
 
 ### Fixes

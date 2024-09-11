@@ -424,6 +424,18 @@ describe('Tests the SDK functionality', () => {
       );
     });
 
+    it('adds profiling integration non experimental', () => {
+      init({
+        profilesSampleRate: 0.7,
+      });
+
+      const actualOptions = usedOptions();
+      const actualIntegrations = actualOptions?.integrations;
+      expect(actualIntegrations).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'HermesProfiling' })]),
+      );
+    });
+
     it('no spotlight integration by default', () => {
       init({});
 
