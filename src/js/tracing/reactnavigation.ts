@@ -63,6 +63,15 @@ const defaultOptions: ReactNavigationOptions = {
  * - `_onStateChange` is then called AFTER the state change happens due to a dispatch and sets the route context onto the active transaction.
  * - If `_onStateChange` isn't called within `STATE_CHANGE_TIMEOUT_DURATION` of the dispatch, then the transaction is not sampled and finished.
  */
+export const reactNavigationIntegration = (
+  options: Partial<ReactNavigationOptions> = {},
+): ReactNavigationInstrumentation => {
+  return new ReactNavigationInstrumentation(options);
+};
+
+/**
+ * @deprecated Please use `Sentry.reactNavigationIntegration()`
+ */
 export class ReactNavigationInstrumentation extends InternalRoutingInstrumentation {
   public static instrumentationName: string = 'react-navigation-v5';
 

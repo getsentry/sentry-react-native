@@ -38,11 +38,10 @@ LogBox.ignoreAllLogs();
 
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 
-const reactNavigationInstrumentation =
-  new Sentry.ReactNavigationInstrumentation({
-    routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
-    enableTimeToInitialDisplay: isMobileOs,
-  });
+const reactNavigationInstrumentation = Sentry.reactNavigationIntegration({
+  routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
+  enableTimeToInitialDisplay: isMobileOs,
+});
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
@@ -64,13 +63,13 @@ Sentry.init({
       didCallNativeInit,
     );
   },
+  enableUserInteractionTracing: true,
   integrations(integrations) {
     integrations.push(
-      new Sentry.ReactNativeTracing({
+      Sentry.reactNativeTracingIntegration({
         // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
         idleTimeout: 5000,
         routingInstrumentation: reactNavigationInstrumentation,
-        enableUserInteractionTracing: true,
         ignoreEmptyBackNavigationTransactions: true,
         beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
           // Example of not sending a transaction for the screen with the name "Manual Tracker"

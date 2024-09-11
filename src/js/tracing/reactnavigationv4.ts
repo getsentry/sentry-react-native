@@ -54,6 +54,8 @@ const defaultOptions: ReactNavigationV4Options = {
 /**
  * Instrumentation for React-Navigation V4.
  * Register the app container with `registerAppContainer` to use, or see docs for more details.
+ *
+ * @deprecated Support for `react-navigation@4` and older will be removed in the next major version of the SDK. Please upgrade to `react-navigation@5` or newer.
  */
 class ReactNavigationV4Instrumentation extends InternalRoutingInstrumentation {
   public static instrumentationName: string = 'react-navigation-v4';

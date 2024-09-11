@@ -367,9 +367,7 @@ function initTestClient(
   const options: Sentry.ReactNativeOptions = {
     dsn: MOCK_DSN,
     enableTracing: true,
-    _experiments: {
-      profilesSampleRate: 1,
-    },
+    profilesSampleRate: 1,
     integrations: integrations => {
       if (!testOptions.withProfiling) {
         return integrations.filter(i => i.name !== 'HermesProfiling');
