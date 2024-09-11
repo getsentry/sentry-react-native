@@ -1,8 +1,9 @@
-import { getActiveSpan, getSpanDescendants, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
+import { getActiveSpan, getSpanDescendants, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
 import type { Span,StartSpanOptions  } from '@sentry/types';
 import { fill, logger } from '@sentry/utils';
 import * as React from 'react';
 
+import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
 import { getRNSentryOnDrawReporter, nativeComponentExists } from './timetodisplaynative';
 import type {RNSentryOnDrawNextFrameEvent } from './timetodisplaynative.types';
 import { setSpanDurationAsMeasurement } from './utils';
@@ -116,9 +117,13 @@ export function startTimeToInitialDisplaySpan(
     return undefined;
   }
 
-  if (!options?.isAutoInstrumented) {
+  if (options?.isAutoInstrumented) {
+    initialDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY);
+  } else {
     manualInitialDisplaySpans.set(activeSpan, true);
+    initialDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY);
   }
+
   return initialDisplaySpan;
 }
 
@@ -128,7 +133,11 @@ export function startTimeToInitialDisplaySpan(
  * Returns current span if already exists in the currently active span.
  */
 export function startTimeToFullDisplaySpan(
-  options: Omit<StartSpanOptions, 'op' | 'name'> & { name?: string, timeoutMs?: number } = {
+  options: Omit<StartSpanOptions, 'op' | 'name'> & {
+    name?: string,
+    timeoutMs?: number,
+    isAutoInstrumented?: boolean
+  } = {
     timeoutMs: 30_000,
   },
 ): Span | undefined {
@@ -176,6 +185,12 @@ export function startTimeToFullDisplaySpan(
     clearTimeout(timeout);
     originalEnd.call(fullDisplaySpan, endTimestamp);
   });
+
+  if (options?.isAutoInstrumented) {
+    fullDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY);
+  } else {
+    fullDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY);
+  }
 
   return fullDisplaySpan;
 }
@@ -242,7 +257,9 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
     return;
   }
 
-  const span = startTimeToFullDisplaySpan();
+  const span = startTimeToFullDisplaySpan({
+    isAutoInstrumented: true,
+  });
   if (!span) {
     logger.warn(`[TimeToDisplay] No TimeToFullDisplay span found or created, possibly performance is disabled.`);
     return;

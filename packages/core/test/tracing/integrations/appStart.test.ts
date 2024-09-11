@@ -22,9 +22,11 @@ import {
 import {
   _clearRootComponentCreationTimestampMs,
   _setAppStartEndTimestampMs,
+  _setRootComponentCreationTimestampMs,
   appStartIntegration,
   setRootComponentCreationTimestampMs,
 } from '../../../src/js/tracing/integrations/appStart';
+import { SPAN_ORIGIN_AUTO_APP_START, SPAN_ORIGIN_MANUAL_APP_START } from '../../../src/js/tracing/origin';
 import { getTimeOriginMilliseconds } from '../../../src/js/tracing/utils';
 import { RN_GLOBAL_OBJ } from '../../../src/js/utils/worldwide';
 import { NATIVE } from '../../../src/js/wrapper';
@@ -153,27 +155,35 @@ describe('App Start Integration', () => {
       );
 
       expect(appStartRootSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
-          description: 'Cold App Start',
+        expect.objectContaining(<Partial<SpanJSON>>{
           span_id: expect.any(String),
+          description: 'Cold App Start',
           op: APP_START_COLD_OP,
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          },
         }),
       );
       expect(bundleStartSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
+        expect.objectContaining(<Partial<SpanJSON>>{
           description: 'JS Bundle Execution Start',
           start_timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
           timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
           parent_span_id: appStartRootSpan!.span_id, // parent is the root app start span
           op: appStartRootSpan!.op, // op is the same as the root app start span
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: appStartRootSpan!.op,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          },
         }),
       );
     });
 
-    it('adds bundle execution before react root', async () => {
+    it('adds bundle execution before react root via private api (used by Sentry.wrap())', async () => {
       mockReactNativeBundleExecutionStartTimestamp();
       const [timeOriginMilliseconds] = mockAppStart({ cold: true });
-      setRootComponentCreationTimestampMs(timeOriginMilliseconds - 10);
+      _setRootComponentCreationTimestampMs(timeOriginMilliseconds - 10);
 
       const actualEvent = await captureStandAloneAppStart();
 
@@ -183,19 +193,27 @@ describe('App Start Integration', () => {
       );
 
       expect(appStartRootSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
-          description: 'Cold App Start',
+        expect.objectContaining(<Partial<SpanJSON>>{
           span_id: expect.any(String),
+          description: 'Cold App Start',
           op: APP_START_COLD_OP,
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          },
         }),
       );
       expect(bundleStartSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
+        expect.objectContaining(<Partial<SpanJSON>>{
           description: 'JS Bundle Execution Before React Root',
           start_timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
           timestamp: (timeOriginMilliseconds - 10) / 1000,
           parent_span_id: appStartRootSpan!.span_id, // parent is the root app start span
           op: appStartRootSpan!.op, // op is the same as the root app start span
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: appStartRootSpan!.op,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          },
         }),
       );
     });
@@ -212,19 +230,27 @@ describe('App Start Integration', () => {
       const nativeSpan = actualEvent!.spans!.find(({ description }) => description === 'test native app start span');
 
       expect(appStartRootSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
-          description: 'Cold App Start',
+        expect.objectContaining(<Partial<SpanJSON>>{
           span_id: expect.any(String),
+          description: 'Cold App Start',
           op: APP_START_COLD_OP,
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          },
         }),
       );
       expect(nativeSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
+        expect.objectContaining(<Partial<SpanJSON>>{
           description: 'test native app start span',
           start_timestamp: (timeOriginMilliseconds - 100) / 1000,
           timestamp: (timeOriginMilliseconds - 50) / 1000,
           parent_span_id: appStartRootSpan!.span_id, // parent is the root app start span
           op: appStartRootSpan!.op, // op is the same as the root app start span
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: appStartRootSpan!.op,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          },
         }),
       );
     });
@@ -250,10 +276,14 @@ describe('App Start Integration', () => {
 
       expect(nativeSpan).toBeDefined();
       expect(nativeSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
+        expect.objectContaining(<Partial<SpanJSON>>{
           description: 'UIKit Init',
           start_timestamp: (timeOriginMilliseconds - 100) / 1000,
           timestamp: (timeOriginMilliseconds - 60) / 1000,
+          origin: SPAN_ORIGIN_AUTO_APP_START,
+          data: expect.objectContaining({
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          }),
         }),
       );
     });
@@ -281,10 +311,14 @@ describe('App Start Integration', () => {
 
       expect(nativeRuntimeInitSpan).toBeDefined();
       expect(nativeRuntimeInitSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
+        expect.objectContaining(<Partial<SpanJSON>>{
           description: 'UIKit Init to JS Exec Start',
           start_timestamp: (timeOriginMilliseconds - 100) / 1000,
           timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
+          origin: SPAN_ORIGIN_AUTO_APP_START,
+          data: expect.objectContaining({
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          }),
         }),
       );
     });
@@ -435,24 +469,34 @@ describe('App Start Integration', () => {
       );
 
       expect(appStartRootSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
+        expect.objectContaining(<Partial<SpanJSON>>{
           description: 'Cold App Start',
           span_id: expect.any(String),
           op: APP_START_COLD_OP,
+          origin: SPAN_ORIGIN_AUTO_APP_START,
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          },
         }),
       );
       expect(bundleStartSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
+        expect.objectContaining(<Partial<SpanJSON>>{
           description: 'JS Bundle Execution Start',
           start_timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
           timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
           parent_span_id: appStartRootSpan!.span_id, // parent is the root app start span
           op: appStartRootSpan!.op, // op is the same as the root app start span
+          origin: SPAN_ORIGIN_AUTO_APP_START,
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: appStartRootSpan!.op,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          },
         }),
       );
     });
 
-    it('adds bundle execution before react root', async () => {
+    it('adds bundle execution before react root via public api', async () => {
       mockReactNativeBundleExecutionStartTimestamp();
       const [timeOriginMilliseconds] = mockAppStart({ cold: true });
       setRootComponentCreationTimestampMs(timeOriginMilliseconds - 10);
@@ -465,19 +509,69 @@ describe('App Start Integration', () => {
       );
 
       expect(appStartRootSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
+        expect.objectContaining(<Partial<SpanJSON>>{
           description: 'Cold App Start',
           span_id: expect.any(String),
           op: APP_START_COLD_OP,
+          origin: SPAN_ORIGIN_AUTO_APP_START,
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          },
         }),
       );
       expect(bundleStartSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
+        expect.objectContaining(<Partial<SpanJSON>>{
           description: 'JS Bundle Execution Before React Root',
           start_timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
           timestamp: (timeOriginMilliseconds - 10) / 1000,
           parent_span_id: appStartRootSpan!.span_id, // parent is the root app start span
           op: appStartRootSpan!.op, // op is the same as the root app start span
+          origin: SPAN_ORIGIN_MANUAL_APP_START,
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: appStartRootSpan!.op,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_APP_START,
+          },
+        }),
+      );
+    });
+
+    it('adds bundle execution before react root via private api (used by Sentry.wrap())', async () => {
+      mockReactNativeBundleExecutionStartTimestamp();
+      const [timeOriginMilliseconds] = mockAppStart({ cold: true });
+      _setRootComponentCreationTimestampMs(timeOriginMilliseconds - 10);
+
+      const actualEvent = await processEvent(getMinimalTransactionEvent());
+
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const bundleStartSpan = actualEvent!.spans!.find(
+        ({ description }) => description === 'JS Bundle Execution Before React Root',
+      );
+
+      expect(appStartRootSpan).toEqual(
+        expect.objectContaining(<Partial<SpanJSON>>{
+          description: 'Cold App Start',
+          span_id: expect.any(String),
+          op: APP_START_COLD_OP,
+          origin: SPAN_ORIGIN_AUTO_APP_START,
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          },
+        }),
+      );
+      expect(bundleStartSpan).toEqual(
+        expect.objectContaining(<Partial<SpanJSON>>{
+          description: 'JS Bundle Execution Before React Root',
+          start_timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
+          timestamp: (timeOriginMilliseconds - 10) / 1000,
+          parent_span_id: appStartRootSpan!.span_id, // parent is the root app start span
+          op: appStartRootSpan!.op, // op is the same as the root app start span
+          origin: SPAN_ORIGIN_AUTO_APP_START,
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: appStartRootSpan!.op,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          },
         }),
       );
     });
@@ -494,19 +588,29 @@ describe('App Start Integration', () => {
       const nativeSpan = actualEvent!.spans!.find(({ description }) => description === 'test native app start span');
 
       expect(appStartRootSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
+        expect.objectContaining(<Partial<SpanJSON>>{
           description: 'Cold App Start',
           span_id: expect.any(String),
           op: APP_START_COLD_OP,
+          origin: SPAN_ORIGIN_AUTO_APP_START,
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          },
         }),
       );
       expect(nativeSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
+        expect.objectContaining(<Partial<SpanJSON>>{
           description: 'test native app start span',
           start_timestamp: (timeOriginMilliseconds - 100) / 1000,
           timestamp: (timeOriginMilliseconds - 50) / 1000,
           parent_span_id: appStartRootSpan!.span_id, // parent is the root app start span
           op: appStartRootSpan!.op, // op is the same as the root app start span
+          origin: SPAN_ORIGIN_AUTO_APP_START,
+          data: {
+            [SEMANTIC_ATTRIBUTE_SENTRY_OP]: appStartRootSpan!.op,
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          },
         }),
       );
     });
@@ -532,10 +636,13 @@ describe('App Start Integration', () => {
 
       expect(nativeSpan).toBeDefined();
       expect(nativeSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
+        expect.objectContaining(<Partial<SpanJSON>>{
           description: 'UIKit Init',
           start_timestamp: (timeOriginMilliseconds - 100) / 1000,
           timestamp: (timeOriginMilliseconds - 60) / 1000,
+          data: expect.objectContaining({
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          }),
         }),
       );
     });
@@ -563,10 +670,13 @@ describe('App Start Integration', () => {
 
       expect(nativeRuntimeInitSpan).toBeDefined();
       expect(nativeRuntimeInitSpan).toEqual(
-        expect.objectContaining(<SpanJSON>{
+        expect.objectContaining(<Partial<SpanJSON>>{
           description: 'UIKit Init to JS Exec Start',
           start_timestamp: (timeOriginMilliseconds - 100) / 1000,
           timestamp: expect.closeTo((timeOriginMilliseconds - 50) / 1000),
+          data: expect.objectContaining({
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+          }),
         }),
       );
     });
@@ -674,8 +784,10 @@ function expectEventWithAttachedColdAppStart({
     contexts: expect.objectContaining({
       trace: expect.objectContaining({
         op: UI_LOAD,
+        origin: SPAN_ORIGIN_AUTO_APP_START,
         data: expect.objectContaining({
           [SEMANTIC_ATTRIBUTE_SENTRY_OP]: UI_LOAD,
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
         }),
       }),
     }),
@@ -694,11 +806,11 @@ function expectEventWithAttachedColdAppStart({
         trace_id: expect.any(String),
         span_id: expect.any(String),
         parent_span_id: '123',
-        origin: 'auto',
+        origin: SPAN_ORIGIN_AUTO_APP_START,
         status: 'ok',
         data: {
           [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
-          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'auto',
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
         },
       },
       {
@@ -726,8 +838,10 @@ function expectEventWithAttachedWarmAppStart({
     contexts: expect.objectContaining({
       trace: expect.objectContaining({
         op: UI_LOAD,
+        origin: SPAN_ORIGIN_AUTO_APP_START,
         data: expect.objectContaining({
           [SEMANTIC_ATTRIBUTE_SENTRY_OP]: UI_LOAD,
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
         }),
       }),
     }),
@@ -746,11 +860,11 @@ function expectEventWithAttachedWarmAppStart({
         trace_id: expect.any(String),
         span_id: expect.any(String),
         parent_span_id: '123',
-        origin: 'auto',
+        origin: SPAN_ORIGIN_AUTO_APP_START,
         status: 'ok',
         data: {
           [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_WARM_OP,
-          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'auto',
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
         },
       },
       {
@@ -781,8 +895,10 @@ function expectEventWithStandaloneColdAppStart(
     contexts: expect.objectContaining({
       trace: expect.objectContaining({
         op: UI_LOAD,
+        origin: SPAN_ORIGIN_AUTO_APP_START,
         data: expect.objectContaining({
           [SEMANTIC_ATTRIBUTE_SENTRY_OP]: UI_LOAD,
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
         }),
       }),
     }),
@@ -801,11 +917,11 @@ function expectEventWithStandaloneColdAppStart(
         trace_id: expect.any(String),
         span_id: expect.any(String),
         parent_span_id: actualEvent!.contexts!.trace!.span_id,
-        origin: 'auto',
+        origin: SPAN_ORIGIN_AUTO_APP_START,
         status: 'ok',
         data: {
           [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
-          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'auto',
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
         },
       },
     ]),
@@ -828,8 +944,10 @@ function expectEventWithStandaloneWarmAppStart(
     contexts: expect.objectContaining({
       trace: expect.objectContaining({
         op: UI_LOAD,
+        origin: SPAN_ORIGIN_AUTO_APP_START,
         data: expect.objectContaining({
           [SEMANTIC_ATTRIBUTE_SENTRY_OP]: UI_LOAD,
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
         }),
       }),
     }),
@@ -848,11 +966,11 @@ function expectEventWithStandaloneWarmAppStart(
         trace_id: expect.any(String),
         span_id: expect.any(String),
         parent_span_id: actualEvent!.contexts!.trace!.span_id,
-        origin: 'auto',
+        origin: SPAN_ORIGIN_AUTO_APP_START,
         status: 'ok',
         data: {
           [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_WARM_OP,
-          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'auto',
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
         },
       },
     ]),

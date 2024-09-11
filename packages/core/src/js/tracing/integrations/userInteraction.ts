@@ -4,7 +4,7 @@ import { logger } from '@sentry/utils';
 
 import type { ReactNativeClientOptions } from '../../options';
 import { onlySampleIfChildSpans } from '../onSpanEndUtils';
-import { SPAN_ORIGIN_AUTO_INTERACTION } from '../origin';
+import { SPAN_ORIGIN_MANUAL_INTERACTION } from '../origin';
 import { getCurrentReactNativeTracingIntegration } from '../reactnativetracing';
 import { clearActiveSpanFromScope, isSentryInteractionSpan, startIdleSpan } from '../span';
 
@@ -86,7 +86,7 @@ export const startUserInteractionSpan = (userInteractionId: {
     idleTimeout: tracing.options.idleTimeoutMs,
     finalTimeout: tracing.options.finalTimeoutMs,
   });
-  newSpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_INTERACTION);
+  newSpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_MANUAL_INTERACTION);
   onlySampleIfChildSpans(client, newSpan);
   logger.log(`[${INTEGRATION_NAME}] User Interaction Tracing Created ${op} transaction ${name}.`);
   return newSpan;

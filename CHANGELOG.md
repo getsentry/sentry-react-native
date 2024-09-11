@@ -4,6 +4,7 @@
 
 ### Features
 
+- Add `sentry.origin` to SDK spans to indicated if spans are created by a part of the SDK or manually ([#4066](https://github.com/getsentry/sentry-react-native/pull/4066))
 - Exclude Sentry Web Replay by default, reducing the code in 130KB. ([#4006](https://github.com/getsentry/sentry-react-native/pull/4006))
   - You can keep Sentry Web Replay by setting `includeWebReplay` to `true` in your metro config as shown in the snippet:
 

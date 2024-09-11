@@ -5,6 +5,7 @@ import { getActiveSpan, getCurrentScope, getGlobalScope, getIsolationScope, setC
 import type { Event, Measurements, StartSpanOptions } from '@sentry/types';
 
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
+import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from '../../src/js/tracing/origin';
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 import { reactNavigationIntegration } from '../../src/js/tracing/reactnavigation';
 import {
@@ -73,7 +74,7 @@ describe('ReactNavigationInstrumentation', () => {
               [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'Initial Screen',
               [SEMANTIC_ATTRIBUTE_ROUTE_KEY]: 'initial_screen',
               [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
-              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
               [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
@@ -182,7 +183,7 @@ describe('ReactNavigationInstrumentation', () => {
               [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
               [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]: 'Initial Screen',
               [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY]: 'initial_screen',
-              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
               [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
@@ -219,7 +220,7 @@ describe('ReactNavigationInstrumentation', () => {
               [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
               [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]: 'New Screen',
               [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY]: 'new_screen',
-              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
               [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
@@ -258,7 +259,7 @@ describe('ReactNavigationInstrumentation', () => {
               [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
               [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]: 'Initial Screen',
               [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY]: 'initial_screen',
-              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: 'manual',
+              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
               [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,

@@ -1,4 +1,4 @@
-import { addBreadcrumb, getClient } from '@sentry/core';
+import { addBreadcrumb, getClient, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
 import type { SeverityLevel } from '@sentry/types';
 import { dropUndefinedKeys, logger } from '@sentry/utils';
 import * as React from 'react';
@@ -8,6 +8,7 @@ import { StyleSheet, View } from 'react-native';
 import { createIntegration } from './integrations/factory';
 import { startUserInteractionSpan } from './tracing/integrations/userInteraction';
 import { UI_ACTION_TOUCH } from './tracing/ops';
+import { SPAN_ORIGIN_AUTO_INTERACTION } from './tracing/origin';
 
 export type TouchEventBoundaryProps = {
   /**
@@ -195,10 +196,13 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
       this._logTouchEvent(touchPath, label);
     }
 
-    startUserInteractionSpan({
+    const span = startUserInteractionSpan({
       elementId: label,
       op: UI_ACTION_TOUCH,
     });
+    if (span) {
+      span.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_INTERACTION);
+    }
   }
 
   /**

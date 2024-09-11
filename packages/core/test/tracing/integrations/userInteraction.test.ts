@@ -13,8 +13,10 @@ import {
   startUserInteractionSpan,
   userInteractionIntegration,
 } from '../../../src/js/tracing/integrations/userInteraction';
+import { SPAN_ORIGIN_MANUAL_INTERACTION } from '../../../src/js/tracing/origin';
 import type { ReactNativeTracingIntegration } from '../../../src/js/tracing/reactnativetracing';
 import { reactNativeTracingIntegration } from '../../../src/js/tracing/reactnativetracing';
+import { SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '../../../src/js/tracing/semanticAttributes';
 import { startIdleNavigationSpan } from '../../../src/js/tracing/span';
 import { NATIVE } from '../../../src/js/wrapper';
 import type { TestClient } from '../../mocks/client';
@@ -111,6 +113,9 @@ describe('User Interaction Tracing', () => {
         expect.objectContaining({
           description: 'mockedRouteName.mockedElementId',
           op: 'mocked.op',
+          data: expect.objectContaining({
+            [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_INTERACTION,
+          }),
         }),
       );
     });
