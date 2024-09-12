@@ -1,12 +1,3 @@
-jest.mock('@sentry/utils', () => {
-  const originalUtils = jest.requireActual('@sentry/utils');
-
-  return {
-    ...originalUtils,
-    timestampInSeconds: jest.fn(originalUtils.timestampInSeconds),
-  };
-});
-
 import * as SentryBrowser from '@sentry/browser';
 import type { Event } from '@sentry/types';
 
@@ -31,7 +22,18 @@ jest.mock('../../src/js/tracing/utils', () => {
   };
 });
 
+jest.mock('@sentry/utils', () => {
+  const originalUtils = jest.requireActual('@sentry/utils');
+
+  return {
+    ...originalUtils,
+    timestampInSeconds: jest.fn(originalUtils.timestampInSeconds),
+  };
+});
+
+jest.mock('../../src/js/utils/environment');
 import { reactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
+import { isWeb } from '../../src/js/utils/environment';
 import type { TestClient } from '../mocks/client';
 import { setupTestClient } from '../mocks/client';
 
@@ -66,7 +68,8 @@ describe('ReactNativeTracing', () => {
       );
     });
 
-    it('uses defaults', () => {
+    it('uses mobile defaults', () => {
+      (isWeb as jest.MockedFunction<typeof isWeb>).mockReturnValue(false);
       const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
       setupTestClient({
         enableStallTracking: false,
@@ -76,7 +79,23 @@ describe('ReactNativeTracing', () => {
       expect(instrumentOutgoingRequests).toBeCalledWith(
         expect.anything(),
         expect.objectContaining({
-          tracePropagationTargets: ['localhost', /^\/(?!\/)/],
+          tracePropagationTargets: [/.*/],
+        }),
+      );
+    });
+
+    it('uses web defaults', () => {
+      (isWeb as jest.MockedFunction<typeof isWeb>).mockReturnValue(true);
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      setupTestClient({
+        enableStallTracking: false,
+        integrations: [reactNativeTracingIntegration()],
+      });
+
+      expect(instrumentOutgoingRequests).toBeCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          tracePropagationTargets: undefined,
         }),
       );
     });

@@ -404,14 +404,6 @@ describe('Tests the SDK functionality', () => {
       expectNotIntegration('Spotlight');
     });
 
-    it('adds spotlight integration with enableSpotlight', () => {
-      init({
-        enableSpotlight: true,
-      });
-
-      expectIntegration('Spotlight');
-    });
-
     it('no app start integration by default', () => {
       init({});
 
