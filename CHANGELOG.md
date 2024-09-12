@@ -21,6 +21,7 @@
 
 ### Changes
 
+- Set `parentSpanIsAlwaysRootSpan` to `true` to make parent of network requests predictable ([#4084](https://github.com/getsentry/sentry-react-native/pull/4084))
 - Remove deprecated `enableSpotlight` and `spotlightSidecarUrl` ([#4086](https://github.com/getsentry/sentry-react-native/pull/4086))
 - `tracePropagationTargets` defaults to all targets on mobile and same origin on the web ([#4083](https://github.com/getsentry/sentry-react-native/pull/4083))
 - Move `_experiments.profilesSampleRate` to `profilesSampleRate` root options object [#3851](https://github.com/getsentry/sentry-react-native/pull/3851))

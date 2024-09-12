@@ -356,6 +356,25 @@ describe('Tests ReactNativeClient', () => {
     });
   });
 
+  describe('parentSpanIsAlwaysRootSpan', () => {
+    it('default is true', () => {
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+      });
+      expect(client.getOptions().parentSpanIsAlwaysRootSpan).toBe(true);
+    });
+
+    it('can be set to false', () => {
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        parentSpanIsAlwaysRootSpan: false,
+      });
+      expect(client.getOptions().parentSpanIsAlwaysRootSpan).toBe(false);
+    });
+  });
+
   describe('envelopeHeader SdkInfo', () => {
     let mockTransportSend: jest.Mock;
     let client: ReactNativeClient;

@@ -40,6 +40,9 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     ignoreRequireCycleLogs();
     options._metadata = options._metadata || {};
     options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
+    // We default this to true, as it is the safer scenario
+    options.parentSpanIsAlwaysRootSpan =
+      options.parentSpanIsAlwaysRootSpan === undefined ? true : options.parentSpanIsAlwaysRootSpan;
     super(options);
 
     this._outcomesBuffer = [];
