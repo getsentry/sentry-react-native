@@ -3,6 +3,7 @@ import { instrumentOutgoingRequests } from '@sentry/browser';
 import { getClient } from '@sentry/core';
 import type { Client, Event, Integration, StartSpanOptions } from '@sentry/types';
 
+import { isWeb } from '../utils/environment';
 import { addDefaultOpForSpanFrom, defaultIdleOptions } from './span';
 
 export const INTEGRATION_NAME = 'ReactNativeTracing';
@@ -60,7 +61,12 @@ export interface ReactNativeTracingOptions {
   shouldCreateSpanForRequest?(this: void, url: string): boolean;
 }
 
-const DEFAULT_TRACE_PROPAGATION_TARGETS = ['localhost', /^\/(?!\/)/];
+function getDefaultTracePropagationTargets(): RegExp[] | undefined {
+  if (isWeb()) {
+    return undefined;
+  }
+  return [/.*/];
+}
 
 export const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
   traceFetch: true,
@@ -98,7 +104,7 @@ export const reactNativeTracingIntegration = (
       traceFetch: finalOptions.traceFetch,
       traceXHR: finalOptions.traceXHR,
       shouldCreateSpanForRequest: finalOptions.shouldCreateSpanForRequest,
-      tracePropagationTargets: client.getOptions().tracePropagationTargets || DEFAULT_TRACE_PROPAGATION_TARGETS,
+      tracePropagationTargets: client.getOptions().tracePropagationTargets || getDefaultTracePropagationTargets(),
     });
   };
 
