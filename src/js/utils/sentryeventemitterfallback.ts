@@ -11,7 +11,7 @@ import { NewFrameEventName } from './sentryeventemitter';
 function getTimeToDisplayModule(): Spec | undefined {
   return isTurboModuleEnabled()
     ? ReactNativeLibraries.TurboModuleRegistry && ReactNativeLibraries.TurboModuleRegistry.get<Spec>('RNSentryTimeToDisplay')
-    : NativeModules.RNSentry;
+    : NativeModules.RNSentryTimeToDisplay;
 }
 
 const RNSentryTimeToDisplay: Spec | undefined = getTimeToDisplayModule();
@@ -45,8 +45,6 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
       if (NativeEmitterCalled) {
         NativeEmitterCalled = false;
         isListening = false;
-        const timestampInSeconds = timeNowNanosecond();
-        logger.log(`Native timestamp did not reply in time, using fallback.${timestampInSeconds}`);
         return;
       }
       const timestampInSeconds = timeNowNanosecond();
