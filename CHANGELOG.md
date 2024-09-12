@@ -29,6 +29,12 @@
   - `RoutingInstrumentation` and `RoutingInstrumentationInstance` replace by `Integration` interface from `@sentry/types`.
   - `enableAppStartTracking`, `enableNativeFramesTracking`, `enableStallTracking`, `enableUserInteractionTracing` moved to `Sentry.init({})` root options.
 
+### Dependencies
+
+- Bump CLI from v2.34.0 to v2.36.1 ([#4055](https://github.com/getsentry/sentry-react-native/pull/4055))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2361)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.34.0...2.36.1)
+
 ## 5.31.1
 
 ### Fixes
