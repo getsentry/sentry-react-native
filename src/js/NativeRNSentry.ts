@@ -158,6 +158,5 @@ export interface RNSentryTimeToDisplayModuleSpec {
   requestAnimationFrame(): Promise<number>;
 }
 
-
 // The export must be here to pass codegen even if not used
 export default TurboModuleRegistry.getEnforcing<Spec>('RNSentry');

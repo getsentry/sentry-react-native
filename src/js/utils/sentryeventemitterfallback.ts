@@ -2,7 +2,7 @@ import { logger } from '@sentry/utils';
 import type { EmitterSubscription } from 'react-native';
 import { DeviceEventEmitter, NativeModules } from 'react-native';
 
-import type {  Spec } from '../NativeRNSentryTimeToDisplay';
+import type { Spec } from '../NativeRNSentryTimeToDisplay';
 import { NATIVE } from '../wrapper';
 import { isTurboModuleEnabled } from './environment';
 import { ReactNativeLibraries } from './rnlibraries';
@@ -10,7 +10,8 @@ import { NewFrameEventName } from './sentryeventemitter';
 
 function getTimeToDisplayModule(): Spec | undefined {
   return isTurboModuleEnabled()
-    ? ReactNativeLibraries.TurboModuleRegistry && ReactNativeLibraries.TurboModuleRegistry.get<Spec>('RNSentryTimeToDisplay')
+    ? ReactNativeLibraries.TurboModuleRegistry &&
+        ReactNativeLibraries.TurboModuleRegistry.get<Spec>('RNSentryTimeToDisplay')
     : NativeModules.RNSentryTimeToDisplay;
 }
 
