@@ -18,6 +18,7 @@ import io.sentry.android.core.SentryAndroidDateProvider;
 
 public class RNSentryTimeToDisplayModule extends NativeRNSentryTimeToDisplaySpec {
 
+    public static final String NAME = "RNSentryTimeToDisplayModule";
 
     public RNSentryTimeToDisplayModule(ReactApplicationContext reactContext) {
         super(reactContext);
