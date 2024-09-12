@@ -21,7 +21,6 @@ export interface Spec extends TurboModule {
   clearBreadcrumbs(): void;
   crash(): void;
   closeNativeSdk(): Promise<void>;
-  requestAnimationFrame(): Promise<Date | null>;
   disableNativeFramesTracking(): void;
   fetchNativeRelease(): Promise<NativeReleaseResponse>;
   fetchNativeSdkInfo(): Promise<Package | null>;
@@ -154,6 +153,11 @@ export type NativeScreenshot = {
   contentType: string;
   filename: string;
 };
+
+export interface RNSentryTimeToDisplayModuleSpec {
+  requestAnimationFrame(): Promise<number>;
+}
+
 
 // The export must be here to pass codegen even if not used
 export default TurboModuleRegistry.getEnforcing<Spec>('RNSentry');

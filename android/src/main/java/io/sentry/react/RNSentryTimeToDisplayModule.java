@@ -4,6 +4,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Promise;
+import com.facebook.react.turbomodule.core.interfaces.TurboModule;
+
 import android.view.Choreographer;
 
 import androidx.annotation.NonNull;
@@ -14,18 +16,11 @@ import io.sentry.SentryDateProvider;
 import io.sentry.android.core.SentryAndroidDateProvider;
 
 
-public class RNSentryTimeToDisplay extends ReactContextBaseJavaModule {
+public class RNSentryTimeToDisplayModule extends NativeRNSentryTimeToDisplaySpec {
 
-    public static final String REACT_CLASS = "RNSentryTimeToDisplay";
 
-    public RNSentryTimeToDisplay(ReactApplicationContext reactContext) {
+    public RNSentryTimeToDisplayModule(ReactApplicationContext reactContext) {
         super(reactContext);
-    }
-
-    @NonNull
-    @Override
-    public String getName() {
-        return REACT_CLASS;
     }
 
     @ReactMethod

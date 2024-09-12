@@ -2,14 +2,19 @@ import { logger } from '@sentry/utils';
 import type { EmitterSubscription } from 'react-native';
 import { DeviceEventEmitter, NativeModules } from 'react-native';
 
+import type {  Spec } from '../NativeRNSentryTimeToDisplay';
 import { NATIVE } from '../wrapper';
+import { isTurboModuleEnabled } from './environment';
+import { ReactNativeLibraries } from './rnlibraries';
 import { NewFrameEventName } from './sentryeventemitter';
 
-interface RNSentryTimeToDisplaySpec {
-  requestAnimationFrame(): Promise<number>;
+function getTimeToDisplayModule(): Spec | undefined {
+  return isTurboModuleEnabled()
+    ? ReactNativeLibraries.TurboModuleRegistry && ReactNativeLibraries.TurboModuleRegistry.get<Spec>('RNSentryTimeToDisplay')
+    : NativeModules.RNSentry;
 }
 
-const { RNSentryTimeToDisplay } = NativeModules as { RNSentryTimeToDisplay: RNSentryTimeToDisplaySpec };
+const RNSentryTimeToDisplay: Spec | undefined = getTimeToDisplayModule();
 
 export type FallBackNewFrameEvent = { newFrameTimestampInSeconds: number; isFallback?: boolean };
 export interface SentryEventEmitterFallback {
@@ -45,33 +50,36 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
         return;
       }
       const timestampInSeconds = timeNowNanosecond();
-      const maxRetries = 3;
-      let retries = 0;
-      logger.log(`Native timestamp did not reply in time, using fallback.${timestampInSeconds}`);
-
-      const retryCheck = (): void => {
-        if (NativeEmitterCalled) {
-          NativeEmitterCalled = false;
-          isListening = false;
-          return; // Native Replied the bridge with a given timestamp.
-        }
-
-        retries++;
-        if (retries < maxRetries) {
-          setTimeout(retryCheck, 1_000);
-        } else {
-          logger.log('Native timestamp did not reply in time, using fallback.');
-          isListening = false;
-          DeviceEventEmitter.emit(NewFrameEventName, {
-            newFrameTimestampInSeconds: timestampInSeconds,
-            isFallback: true,
-          });
-        }
-      };
-
-      // Start the retry process
-      retryCheck();
+      waitForNativeResponseOrFallback(timestampInSeconds, 'JavaScript');
     });
+  }
+
+  function waitForNativeResponseOrFallback(fallbackSeconds: number, origin: string): void {
+    const maxRetries = 3;
+    let retries = 0;
+
+    const retryCheck = (): void => {
+      if (NativeEmitterCalled) {
+        NativeEmitterCalled = false;
+        isListening = false;
+        return; // Native Replied the bridge with a timestamp.
+      }
+
+      retries++;
+      if (retries < maxRetries) {
+        setTimeout(retryCheck, 1_000);
+      } else {
+        logger.log(`[Sentry] Native event emitter did not reply in time. Using ${origin} fallback emitter.`);
+        isListening = false;
+        DeviceEventEmitter.emit(NewFrameEventName, {
+          newFrameTimestampInSeconds: fallbackSeconds,
+          isFallback: true,
+        });
+      }
+    };
+
+    // Start the retry process
+    retryCheck();
   }
 
   return {
@@ -85,19 +93,17 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
     },
 
     startListenerAsync() {
-      if (NATIVE.isNativeAvailable()) {
+      isListening = true;
+      if (NATIVE.isNativeAvailable() && RNSentryTimeToDisplay !== undefined) {
         RNSentryTimeToDisplay.requestAnimationFrame()
-          .then(time => {
-            logger.log(`New native logger received with time.${time}`);
+          .then((time: number) => {
+            waitForNativeResponseOrFallback(time, 'Native');
           })
-          .catch(reason => {
-            logger.log('Native Time to display emitter is not using, fallback to JavaScript implementation');
-            logger.debug(reason);
-            isListening = true;
+          .catch((reason: Error) => {
+            logger.error('Failed to recceive Native fallback timestamp.', reason);
             defaultFallbackEventEmitter();
           });
       } else {
-        isListening = true;
         defaultFallbackEventEmitter();
       }
     },

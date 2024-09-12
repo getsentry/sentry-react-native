@@ -20,11 +20,9 @@ public class RNSentryPackage extends TurboReactPackage {
   @Nullable
   @Override
   public NativeModule getModule(String name, ReactApplicationContext reactContext) {
-    if (name.equals(RNSentryModuleImpl.NAME)) {
-      return new RNSentryModule(reactContext);
-    } else if (name.equals(RNSentryTimeToDisplay.REACT_CLASS))
-      return new RNSentryTimeToDisplay(reactContext);
-    else {
+      if (name.equals(RNSentryModuleImpl.NAME)) {
+        return new RNSentryModule(reactContext);
+      } else {
       return null;
     }
   }
@@ -45,18 +43,6 @@ public class RNSentryPackage extends TurboReactPackage {
               false, // isCxxModule
               isTurboModule // isTurboModule
       ));
-      // Register RNSentryTimeToDisplay
-      moduleInfos.put(
-              RNSentryTimeToDisplay.REACT_CLASS,
-              new ReactModuleInfo(
-                      RNSentryTimeToDisplay.REACT_CLASS,
-                      RNSentryTimeToDisplay.REACT_CLASS,
-                      false, // canOverrideExistingModule
-                      false, // needsEagerInit
-                      true, // hasConstants
-                      false, // isCxxModule
-                      isTurboModule // isTurboModule
-              ));
       return moduleInfos;
     };
   }
@@ -69,5 +55,4 @@ public class RNSentryPackage extends TurboReactPackage {
           new RNSentryOnDrawReporterManager(reactContext)
     );
   }
-
 }
