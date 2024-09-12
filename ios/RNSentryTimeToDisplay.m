@@ -1,8 +1,8 @@
-#import "RNSentryTimeToDisplayModule.h"
+#import "RNSentryTimeToDisplay.h"
 #import <QuartzCore/QuartzCore.h>
 #import <React/RCTLog.h>
 
-@implementation RNSentryTimeToDisplayModule
+@implementation RNSentryTimeToDisplay
 {
   CADisplayLink *displayLink;
   RCTPromiseResolveBlock resolveBlock;
