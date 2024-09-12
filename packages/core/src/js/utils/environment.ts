@@ -53,6 +53,11 @@ export function getExpoSdkVersion(): string | undefined {
   return expoSdkVersion;
 }
 
+/** Checks if the current platform is web */
+export function isWeb(): boolean {
+  return Platform.OS === 'web';
+}
+
 /** Checks if the current platform is not web */
 export function notWeb(): boolean {
   return Platform.OS !== 'web';

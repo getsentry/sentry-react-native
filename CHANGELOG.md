@@ -21,6 +21,7 @@
 
 ### Changes
 
+- `tracePropagationTargets` defaults to all targets on mobile and same origin on the web ([#4083](https://github.com/getsentry/sentry-react-native/pull/4083))
 - Move `_experiments.profilesSampleRate` to `profilesSampleRate` root options object [#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
 - Add Android Logger when new frame event is not emitted ([#4081](https://github.com/getsentry/sentry-react-native/pull/4081))
 - React Native Tracing Deprecations ([#4073](https://github.com/getsentry/sentry-react-native/pull/4073))
