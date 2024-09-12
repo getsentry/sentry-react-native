@@ -18,8 +18,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
+import io.sentry.ILogger;
 import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
+import io.sentry.SentryLevel;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.SentryAndroidDateProvider;
@@ -68,6 +70,8 @@ public class RNSentryOnDrawReporterManager extends SimpleViewManager<RNSentryOnD
 
     public static class RNSentryOnDrawReporterView extends View {
 
+        private static final ILogger logger = new AndroidLogger("RNSentryOnDrawReporterView");
+
         private final @Nullable ReactApplicationContext reactContext;
         private final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
         private final @Nullable Runnable emitInitialDisplayEvent;
@@ -96,6 +100,7 @@ public class RNSentryOnDrawReporterManager extends SimpleViewManager<RNSentryOnD
                 return;
             }
 
+            logger.log(SentryLevel.DEBUG, "[TimeToDisplay] Register full display event emitter.");
             registerForNextDraw(emitFullDisplayEvent);
         }
 
@@ -104,16 +109,27 @@ public class RNSentryOnDrawReporterManager extends SimpleViewManager<RNSentryOnD
                 return;
             }
 
+            logger.log(SentryLevel.DEBUG, "[TimeToDisplay] Register initial display event emitter.");
             registerForNextDraw(emitInitialDisplayEvent);
         }
 
         private void registerForNextDraw(@Nullable Runnable emitter) {
+            if (emitter == null) {
+                logger.log(SentryLevel.ERROR, "[TimeToDisplay] Won't emit next frame drawn event, emitter is null.");
+                return;
+            }
+            if (buildInfo == null) {
+                logger.log(SentryLevel.ERROR, "[TimeToDisplay] Won't emit next frame drawn event, buildInfo is null.");
+                return;
+            }
             if (reactContext == null) {
+                logger.log(SentryLevel.ERROR, "[TimeToDisplay] Won't emit next frame drawn event, reactContext is null.");
                 return;
             }
 
             @Nullable Activity activity = reactContext.getCurrentActivity();
-            if (activity == null || emitter == null || buildInfo == null) {
+            if (activity == null) {
+                logger.log(SentryLevel.ERROR, "[TimeToDisplay] Won't emit next frame drawn event, reactContext is null.");
                 return;
             }
 
@@ -129,6 +145,7 @@ public class RNSentryOnDrawReporterManager extends SimpleViewManager<RNSentryOnD
             event.putDouble("newFrameTimestampInSeconds", endDate.nanoTimestamp() / 1e9);
 
             if (reactContext == null) {
+                logger.log(SentryLevel.ERROR, "[TimeToDisplay] Recorded next frame draw but can't emit the event, reactContext is null.");
                 return;
             }
             reactContext
