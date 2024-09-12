@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.32.0
 
 ### Features
 
