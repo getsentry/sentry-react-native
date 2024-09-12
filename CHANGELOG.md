@@ -22,9 +22,20 @@
 ### Changes
 
 - Move `_experiments.profilesSampleRate` to `profilesSampleRate` root options object [#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
+- Add Android Logger when new frame event is not emitted ([#4081](https://github.com/getsentry/sentry-react-native/pull/4081))
+- React Native Tracing Deprecations ([#4073](https://github.com/getsentry/sentry-react-native/pull/4073))
+  - `new ReactNativeTracing` to `reactNativeTracingIntegration()`
+  - `new ReactNavigationInstrumentation` to `reactNativeTracingIntegration()`.
+  - `new ReactNativeNavigationInstrumentation` to `reactNativeTracingIntegration()`.
+  - `ReactNavigationV4Instrumentation` won't be supported in the next major SDK version, upgrade to `react-navigation@5` or newer.
+  - `RoutingInstrumentation` and `RoutingInstrumentationInstance` replace by `Integration` interface from `@sentry/types`.
+  - `enableAppStartTracking`, `enableNativeFramesTracking`, `enableStallTracking`, `enableUserInteractionTracing` moved to `Sentry.init({})` root options.
 
 ### Dependencies
 
+- Bump CLI from v2.34.0 to v2.36.1 ([#4055](https://github.com/getsentry/sentry-react-native/pull/4055))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2361)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.34.0...2.36.1)
 - Bump JavaScript SDK from v8.27.0 to v8.30.0 ([#4078](https://github.com/getsentry/sentry-react-native/pull/4078))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8280)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/v8.27.0...8.30.0)

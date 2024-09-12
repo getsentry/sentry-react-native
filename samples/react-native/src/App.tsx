@@ -64,6 +64,7 @@ Sentry.init({
       didCallNativeInit,
     );
   },
+  enableUserInteractionTracing: true,
   integrations(integrations) {
     integrations.push(
       reactNavigationIntegration,

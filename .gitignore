@@ -75,7 +75,8 @@ yalc.lock
 .yarn
 
 # E2E tests
-dev-packages/e2e-tests/react-native-versions
+/dev-packages/e2e-tests/react-native-versions
+test/react-native/versions
 node_modules.bak
 
 # Created by Sentry Metro Plugin
@@ -86,3 +87,6 @@ node_modules.bak
 !.yarn/releases
 !.yarn/plugins
 .pnp.*
+
+# Sentry React Native Monorepo
+/packages/core/README.md
