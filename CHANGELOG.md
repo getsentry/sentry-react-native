@@ -20,6 +20,7 @@
 
 ### Changes
 
+- Add Android Logger when new frame event is not emitted ([#4081](https://github.com/getsentry/sentry-react-native/pull/4081))
 - React Native Tracing Deprecations ([#4073](https://github.com/getsentry/sentry-react-native/pull/4073))
   - `new ReactNativeTracing` to `reactNativeTracingIntegration()`
   - `new ReactNavigationInstrumentation` to `reactNativeTracingIntegration()`.
