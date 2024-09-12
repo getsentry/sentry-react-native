@@ -25,7 +25,7 @@
 import { base64StringFromByteArray } from '../../../src/js/vendor';
 
 describe('base64-js', () => {
-  // eslint-disable-next-line jest/no-disabled-tests
+  // eslint-disable-next-line @sentry-internal/sdk/no-skipped-tests
   test.skip('convert big data to base64', () => {
     const SIZE_2MB = 2e6; // scaled down from original 64MiB
     const big = new Uint8Array(SIZE_2MB);
