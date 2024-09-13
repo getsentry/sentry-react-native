@@ -8,6 +8,8 @@
 
 ### Changes
 
+- Xcode Debug Files upload completes in foreground by default ([#4090](https://github.com/getsentry/sentry-react-native/pull/4090))
+  - Use `SENTRY_FORCE_FOREGROUND=false` for background upload
 - Set `parentSpanIsAlwaysRootSpan` to `true` to make parent of network requests predictable ([#4084](https://github.com/getsentry/sentry-react-native/pull/4084))
 - Remove deprecated `enableSpotlight` and `spotlightSidecarUrl` ([#4086](https://github.com/getsentry/sentry-react-native/pull/4086))
 - `tracePropagationTargets` defaults to all targets on mobile and same origin on the web ([#4083](https://github.com/getsentry/sentry-react-native/pull/4083))
