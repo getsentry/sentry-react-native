@@ -5,7 +5,25 @@
 ### Features
 
 - Add `sentry.origin` to SDK spans to indicated if spans are created by a part of the SDK or manually ([#4066](https://github.com/getsentry/sentry-react-native/pull/4066))
-- Exclude Sentry Web Replay by default, reducing the code in 130KB. ([#4006](https://github.com/getsentry/sentry-react-native/pull/4006))
+
+### Changes
+
+- Set `parentSpanIsAlwaysRootSpan` to `true` to make parent of network requests predictable ([#4084](https://github.com/getsentry/sentry-react-native/pull/4084))
+- Remove deprecated `enableSpotlight` and `spotlightSidecarUrl` ([#4086](https://github.com/getsentry/sentry-react-native/pull/4086))
+- `tracePropagationTargets` defaults to all targets on mobile and same origin on the web ([#4083](https://github.com/getsentry/sentry-react-native/pull/4083))
+- Move `_experiments.profilesSampleRate` to `profilesSampleRate` root options object [#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
+
+### Dependencies
+
+- Bump JavaScript SDK from v8.27.0 to v8.30.0 ([#4078](https://github.com/getsentry/sentry-react-native/pull/4078))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8280)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/v8.27.0...8.30.0)
+
+## 5.32.0
+
+### Features
+
+- Exclude Sentry Web Replay, reducing the code in 130KB. ([#4006](https://github.com/getsentry/sentry-react-native/pull/4006))
   - You can keep Sentry Web Replay by setting `includeWebReplay` to `true` in your metro config as shown in the snippet:
 
   ```js
@@ -21,10 +39,6 @@
 
 ### Changes
 
-- Set `parentSpanIsAlwaysRootSpan` to `true` to make parent of network requests predictable ([#4084](https://github.com/getsentry/sentry-react-native/pull/4084))
-- Remove deprecated `enableSpotlight` and `spotlightSidecarUrl` ([#4086](https://github.com/getsentry/sentry-react-native/pull/4086))
-- `tracePropagationTargets` defaults to all targets on mobile and same origin on the web ([#4083](https://github.com/getsentry/sentry-react-native/pull/4083))
-- Move `_experiments.profilesSampleRate` to `profilesSampleRate` root options object [#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
 - Add Android Logger when new frame event is not emitted ([#4081](https://github.com/getsentry/sentry-react-native/pull/4081))
 - React Native Tracing Deprecations ([#4073](https://github.com/getsentry/sentry-react-native/pull/4073))
   - `new ReactNativeTracing` to `reactNativeTracingIntegration()`
@@ -39,9 +53,6 @@
 - Bump CLI from v2.34.0 to v2.36.1 ([#4055](https://github.com/getsentry/sentry-react-native/pull/4055))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2361)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.34.0...2.36.1)
-- Bump JavaScript SDK from v8.27.0 to v8.30.0 ([#4078](https://github.com/getsentry/sentry-react-native/pull/4078))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8280)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/v8.27.0...8.30.0)
 
 ## 6.0.0-beta.0
 
