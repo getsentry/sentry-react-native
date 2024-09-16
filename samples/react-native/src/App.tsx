@@ -96,6 +96,7 @@ Sentry.init({
         maskAllVectors: true,
         // maskAllText: false,
       }),
+      Sentry.hermesProfilingIntegration({platformProfilers: true})
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },

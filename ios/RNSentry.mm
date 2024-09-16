@@ -649,18 +649,22 @@ static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry P
 static SentryId* nativeProfileTraceId = nil;
 static uint64_t nativeProfileStartTime = 0;
 
-RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling)
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling: (BOOL)platformProfilers)
 {
 #if SENTRY_PROFILING_ENABLED
     try {
         facebook::hermes::HermesRuntime::enableSamplingProfiler();
-        if (nativeProfileTraceId == nil && nativeProfileStartTime == 0) {
+        if (nativeProfileTraceId == nil && nativeProfileStartTime == 0 && platformProfilers) {
 #if SENTRY_TARGET_PROFILING_SUPPORTED
             nativeProfileTraceId = [RNSentryId newId];
             nativeProfileStartTime = [PrivateSentrySDKOnly startProfilerForTrace: nativeProfileTraceId];
 #endif
         } else {
-            NSLog(@"Native profiling already in progress. Currently existing trace: %@", nativeProfileTraceId);
+            if (!platformProfilers) {
+                NSLog(@"Native profiling is disabled. Only starting Hermes profiling.");
+            } else {
+                NSLog(@"Native profiling already in progress. Currently existing trace: %@", nativeProfileTraceId);
+            }
         }
         return @{ @"started": @YES };
     } catch (const std::exception& ex) {

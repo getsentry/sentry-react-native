@@ -95,7 +95,7 @@ interface SentryNativeWrapper {
   fetchModules(): Promise<Record<string, string> | null>;
   fetchViewHierarchy(): PromiseLike<Uint8Array | null>;
 
-  startProfiling(): boolean;
+  startProfiling(platformProfilers: boolean): boolean;
   stopProfiling(): {
     hermesProfile: Hermes.Profile;
     nativeProfile?: NativeProfileEvent;
@@ -531,7 +531,7 @@ export const NATIVE: SentryNativeWrapper = {
     return raw ? new Uint8Array(raw) : null;
   },
 
-  startProfiling(): boolean {
+  startProfiling(platformProfilers: boolean): boolean {
     if (!this.enableNative) {
       throw this._DisabledNativeError;
     }
@@ -539,7 +539,7 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const { started, error } = RNSentry.startProfiling();
+    const { started, error } = RNSentry.startProfiling(platformProfilers);
     if (started) {
       logger.log('[NATIVE] Start Profiling');
     } else {
