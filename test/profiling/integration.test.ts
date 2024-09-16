@@ -351,6 +351,24 @@ describe('profiling integration', () => {
       jest.runAllTimers();
     });
   });
+
+  test('platformProviders flag passed down to native', () => {
+    mock = initTestClient({ withProfiling: false });
+    jest.runAllTimers();
+    jest.clearAllMocks();
+
+    const transaction: Transaction = Sentry.startTransaction({
+      name: 'test-name',
+    });
+    getCurrentHub().getScope()?.setSpan(transaction);
+
+    getCurrentHub().getClient()?.addIntegration?.(hermesProfilingIntegration({platformProfilers: false}));
+
+    transaction.finish();
+    jest.runAllTimers();
+
+    expect(mockWrapper.NATIVE.startProfiling).toBeCalledWith(false);
+  });
 });
 
 function initTestClient(

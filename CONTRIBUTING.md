@@ -54,7 +54,7 @@ For android switch `newArchEnabled` to `false` in [android/gradle.properties](ht
 yarn pod-install-legacy
 yarn run-ios
 
-yarn run-androi
+yarn run-android
 
 # Release builds
 yarn pod-install-legacy-production
