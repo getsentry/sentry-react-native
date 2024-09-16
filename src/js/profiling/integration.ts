@@ -5,7 +5,6 @@ import type {
   Event,
   Integration,
   IntegrationClass,
-  IntegrationFn,
   IntegrationFnResult,
   ThreadCpuProfile,
   Transaction,
@@ -50,7 +49,9 @@ const defaultOptions: Required<HermesProfilingOptions> = {
  *
  * @experimental
  */
-export const hermesProfilingIntegration = (initOptions: HermesProfilingOptions = defaultOptions): IntegrationFnResult => {
+export const hermesProfilingIntegration = (
+  initOptions: HermesProfilingOptions = defaultOptions,
+): IntegrationFnResult => {
   let _currentProfile:
     | {
         profile_id: string;

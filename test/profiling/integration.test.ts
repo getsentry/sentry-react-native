@@ -362,7 +362,9 @@ describe('profiling integration', () => {
     });
     getCurrentHub().getScope()?.setSpan(transaction);
 
-    getCurrentHub().getClient()?.addIntegration?.(hermesProfilingIntegration({platformProfilers: false}));
+    getCurrentHub()
+      .getClient()
+      ?.addIntegration?.(hermesProfilingIntegration({ platformProfilers: false }));
 
     transaction.finish();
     jest.runAllTimers();
