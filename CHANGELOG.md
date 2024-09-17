@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add an option to disable native (iOS and Android) profiling for the `HermesProfiling` integration ([#4094](https://github.com/getsentry/sentry-react-native/pull/4094))
+
+  To disable native profilers add the `hermesProfilingIntegration`.
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    integrations: [
+      Sentry.hermesProfilingIntegration({ platformProfilers: false }),
+    ],
+  });
+  ```
+
 ## 5.24.1
 
 ### Fixes

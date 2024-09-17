@@ -695,15 +695,17 @@ public class RNSentryModuleImpl {
         );
     }
 
-    public WritableMap startProfiling() {
+    public WritableMap startProfiling(boolean platformProfilers) {
         final WritableMap result = new WritableNativeMap();
-        if (androidProfiler == null) {
+        if (androidProfiler == null && platformProfilers) {
             initializeAndroidProfiler();
         }
 
         try {
             HermesSamplingProfiler.enable();
-            androidProfiler.start();
+            if (androidProfiler != null) {
+                androidProfiler.start();
+            }
 
             result.putBoolean("started", true);
         } catch (Throwable e) {
@@ -718,7 +720,10 @@ public class RNSentryModuleImpl {
         final WritableMap result = new WritableNativeMap();
         File output = null;
         try {
-            AndroidProfiler.ProfileEndData end = androidProfiler.endAndCollect(false, null);
+            AndroidProfiler.ProfileEndData end = null;
+            if (androidProfiler != null) {
+                end = androidProfiler.endAndCollect(false, null);
+            }
             HermesSamplingProfiler.disable();
 
             output = File.createTempFile(
@@ -730,14 +735,16 @@ public class RNSentryModuleImpl {
             HermesSamplingProfiler.dumpSampledTraceToFile(output.getPath());
             result.putString("profile", readStringFromFile(output));
 
-            WritableMap androidProfile = new WritableNativeMap();
-            byte[] androidProfileBytes = FileUtils.readBytesFromFile(end.traceFile.getPath(), maxTraceFileSize);
-            String base64AndroidProfile = Base64.encodeToString(androidProfileBytes, NO_WRAP | NO_PADDING);
+            if (end != null) {
+                WritableMap androidProfile = new WritableNativeMap();
+                byte[] androidProfileBytes = FileUtils.readBytesFromFile(end.traceFile.getPath(), maxTraceFileSize);
+                String base64AndroidProfile = Base64.encodeToString(androidProfileBytes, NO_WRAP | NO_PADDING);
 
-            androidProfile.putString("sampled_profile", base64AndroidProfile);
-            androidProfile.putInt("android_api_level", buildInfo.getSdkInfoVersion());
-            androidProfile.putString("build_id", getProguardUuid());
-            result.putMap("androidProfile", androidProfile);
+                androidProfile.putString("sampled_profile", base64AndroidProfile);
+                androidProfile.putInt("android_api_level", buildInfo.getSdkInfoVersion());
+                androidProfile.putString("build_id", getProguardUuid());
+                result.putMap("androidProfile", androidProfile);
+            }
         } catch (Throwable e) {
             result.putString("error", e.toString());
         } finally {
