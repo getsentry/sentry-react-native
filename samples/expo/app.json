@@ -4,11 +4,7 @@
     "slug": "sentry-react-native-expo-sample",
     "jsEngine": "hermes",
     "scheme": "sentry-expo-sample",
-<<<<<<< HEAD
-    "version": "5.24.2",
-=======
     "version": "5.32.0",
->>>>>>> main
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
