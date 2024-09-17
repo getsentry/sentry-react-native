@@ -9,7 +9,7 @@ import type { Envelope, Event, Profile, ThreadCpuProfile, Transaction, Transport
 import * as Sentry from '../../src/js';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { getDebugMetadata } from '../../src/js/profiling/debugid';
-import { hermesProfilingIntegration } from '../../src/js/profiling/integration';
+import { hermesProfilingIntegration, HermesProfilingOptions } from '../../src/js/profiling/integration';
 import type { AndroidProfileEvent } from '../../src/js/profiling/types';
 import { getDefaultEnvironment, isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
@@ -353,19 +353,10 @@ describe('profiling integration', () => {
   });
 
   test('platformProviders flag passed down to native', () => {
-    mock = initTestClient({ withProfiling: false });
-    jest.runAllTimers();
-    jest.clearAllMocks();
-
+    mock = initTestClient({ withProfiling: true, hermesProfilingOptions: { platformProfilers: false } });
     const transaction: Transaction = Sentry.startTransaction({
       name: 'test-name',
     });
-    getCurrentHub().getScope()?.setSpan(transaction);
-
-    getCurrentHub()
-      .getClient()
-      ?.addIntegration?.(hermesProfilingIntegration({ platformProfilers: false }));
-
     transaction.finish();
     jest.runAllTimers();
 
@@ -377,6 +368,7 @@ function initTestClient(
   testOptions: {
     withProfiling?: boolean;
     environment?: string;
+    hermesProfilingOptions?: HermesProfilingOptions;
   } = {
     withProfiling: true,
   },
@@ -392,6 +384,12 @@ function initTestClient(
       if (!testOptions.withProfiling) {
         return integrations.filter(i => i.name !== 'HermesProfiling');
       }
+      return integrations.map(integration => {
+        if (integration.name === 'HermesProfiling') {
+          return hermesProfilingIntegration(testOptions.hermesProfilingOptions ?? {});
+        }
+        return integration;
+      });
       return integrations;
     },
     transport: () => ({
