@@ -68,6 +68,17 @@ export interface NavigationDelegate {
  * - `_onComponentWillAppear` is then called AFTER the state change happens due to a dispatch and sets the route context onto the active transaction.
  * - If `_onComponentWillAppear` isn't called within `options.routeChangeTimeoutMs` of the dispatch, then the transaction is not sampled and finished.
  */
+export const reactNativeNavigationIntegration = (
+  options: Partial<ReactNativeNavigationOptions> & {
+    navigation: NavigationDelegate;
+  },
+): ReactNativeNavigationInstrumentation => {
+  return new ReactNativeNavigationInstrumentation(options.navigation, options);
+};
+
+/**
+ * @deprecated Use `Sentry.reactNativeNavigationIntegration({ navigation })` instead.
+ */
 export class ReactNativeNavigationInstrumentation extends InternalRoutingInstrumentation {
   public static instrumentationName: string = 'react-native-navigation';
 

@@ -40,7 +40,6 @@ describe('StallTracking', () => {
     getGlobalScope().clear();
 
     const rnTracing = new ReactNativeTracing({
-      enableStallTracking: true,
       enableNativeFramesTracking: false,
       enableAppStartTracking: false,
     });
@@ -48,6 +47,7 @@ describe('StallTracking', () => {
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
       integrations: [rnTracing],
+      enableStallTracking: true,
     });
     client = new TestClient(options);
     setCurrentClient(client);

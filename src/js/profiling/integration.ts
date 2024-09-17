@@ -12,6 +12,7 @@ import type {
 import { logger, uuid4 } from '@sentry/utils';
 import { Platform } from 'react-native';
 
+import type { ReactNativeClient } from '../client';
 import { isHermesEnabled } from '../utils/environment';
 import { NATIVE } from '../wrapper';
 import { PROFILE_QUEUE } from './cache';
@@ -125,13 +126,16 @@ export const hermesProfilingIntegration = (
       return false;
     }
 
-    const client = getClient();
+    const client = getClient<ReactNativeClient>();
     const options = client && client.getOptions();
 
     const profilesSampleRate =
-      options && options._experiments && typeof options._experiments.profilesSampleRate === 'number'
-        ? options._experiments.profilesSampleRate
-        : undefined;
+      options &&
+      ((typeof options.profilesSampleRate === 'number' && options.profilesSampleRate) ||
+        (options._experiments &&
+          typeof options._experiments.profilesSampleRate === 'number' &&
+          options._experiments.profilesSampleRate) ||
+        undefined);
     if (profilesSampleRate === undefined) {
       logger.log('[Profiling] Profiling disabled, enable it by setting `profilesSampleRate` option to SDK init call.');
       return false;

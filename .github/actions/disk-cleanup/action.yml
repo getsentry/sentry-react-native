@@ -1,0 +1,19 @@
+name: Disk cleanup
+description: Free disk space
+
+runs:
+  using: composite
+
+  steps:
+    - shell: bash
+      run: |
+        df -h
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /usr/local/.ghcup
+        sudo rm -rf /usr/share/swift
+        sudo rm -rf /usr/lib/google-cloud-sdk
+        sudo rm -rf /usr/local/aws*
+        sudo rm -rf /usr/local/julia*
+        sudo rm -rf /usr/local/share/chromium
+        df -h

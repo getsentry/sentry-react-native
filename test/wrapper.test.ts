@@ -276,7 +276,7 @@ describe('Tests Native Wrapper', () => {
               '{"event_id":"event0","message":"test","sdk":{"name":"test-sdk-name","version":"2.1.3"}}\n',
           ),
         ),
-        { store: false },
+        { hardCrashed: false },
       );
     });
     test('serializes class instances', async () => {
@@ -308,7 +308,7 @@ describe('Tests Native Wrapper', () => {
               '{"event_id":"event0","sdk":{"name":"test-sdk-name","version":"2.1.3"},"instance":{"value":0}}\n',
           ),
         ),
-        { store: false },
+        { hardCrashed: false },
       );
     });
     test('does not call RNSentry at all if enableNative is false', async () => {
@@ -345,7 +345,7 @@ describe('Tests Native Wrapper', () => {
               '{"event_id":"event0","message":{"message":"test"}}\n',
           ),
         ),
-        { store: false },
+        { hardCrashed: false },
       );
     });
     test('Keeps breadcrumbs on Android if mechanism.handled is true', async () => {
@@ -384,7 +384,7 @@ describe('Tests Native Wrapper', () => {
               '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
           ),
         ),
-        { store: false },
+        { hardCrashed: false },
       );
     });
     test('Keeps breadcrumbs on Android if there is no exception', async () => {
@@ -413,7 +413,7 @@ describe('Tests Native Wrapper', () => {
               '{"event_id":"event0","breadcrumbs":[{"message":"crumb!"}]}\n',
           ),
         ),
-        { store: false },
+        { hardCrashed: false },
       );
     });
     test('Keeps breadcrumbs on Android if mechanism.handled is false', async () => {
@@ -426,7 +426,7 @@ describe('Tests Native Wrapper', () => {
             {
               mechanism: {
                 handled: false,
-                type: '',
+                type: 'onerror',
               },
             },
           ],
@@ -448,11 +448,11 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":125}\n' +
-              '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":false,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
+              '{"type":"event","content_type":"application/json","length":132}\n' +
+              '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":false,"type":"onerror"}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
           ),
         ),
-        { store: true },
+        { hardCrashed: true },
       );
     });
   });

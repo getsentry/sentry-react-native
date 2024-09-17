@@ -9,16 +9,19 @@ import { HttpClient } from '@sentry/integrations';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
 import { isExpoGo } from '../utils/isExpoGo';
+import { LogBox } from 'react-native';
 
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
 
+LogBox.ignoreAllLogs();
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-const routingInstrumentation = new Sentry.ReactNavigationInstrumentation({
+const routingInstrumentation = Sentry.reactNavigationIntegration({
   enableTimeToInitialDisplay: !isExpoGo(), // This is not supported in Expo Go.
 });
 
@@ -52,7 +55,7 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
         failedRequestTargets: [/.*/],
       }),
       Sentry.metrics.metricsAggregatorIntegration(),
-      new Sentry.ReactNativeTracing({
+      Sentry.reactNativeTracingIntegration({
         routingInstrumentation,
       }),
     );
@@ -78,8 +81,10 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
   // dist: `1`,
   _experiments: {
     profilesSampleRate: 0,
+    // replaysOnErrorSampleRate: 1.0,
+    replaysSessionSampleRate: 1.0,
   },
-  enableSpotlight: true,
+  spotlight: true,
 });
 
 function RootLayout() {

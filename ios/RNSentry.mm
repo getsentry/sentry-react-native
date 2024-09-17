@@ -38,14 +38,14 @@
 #import "RNSentryEvents.h"
 #import "RNSentryDependencyContainer.h"
 
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+#import "RNSentryReplay.h"
+#endif
+
 #if SENTRY_HAS_UIKIT
 #import "RNSentryRNSScreen.h"
 #import "RNSentryFramesTrackerListener.h"
 #endif
-
-@interface SentryTraceContext : NSObject
-- (nullable instancetype)initWithDict:(NSDictionary<NSString *, id> *)dictionary;
-@end
 
 @interface SentrySDK (RNSentry)
 
@@ -106,6 +106,10 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         sentHybridSdkDidBecomeActive = true;
     }
 
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    [RNSentryReplay postInit];
+#endif
+
     resolve(@YES);
 }
 
@@ -117,7 +121,6 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         // Because we sent it already before the app crashed.
         if (nil != event.exceptions.firstObject.type &&
             [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
-            NSLog(@"Unhandled JS Exception");
             return nil;
         }
 
@@ -135,6 +138,10 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
     [mutableOptions removeObjectForKey:@"enableTracing"];
+
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    [RNSentryReplay updateOptions:mutableOptions];
+#endif
 
     SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:errorPointer];
     if (*errorPointer != nil) {
@@ -456,7 +463,7 @@ RCT_EXPORT_METHOD(captureEnvelope:(NSString * _Nonnull)rawBytes
     #if DEBUG
         [PrivateSentrySDKOnly captureEnvelope:envelope];
     #else
-        if ([[options objectForKey:@"store"] boolValue]) {
+        if ([[options objectForKey:@"hardCrashed"] boolValue]) {
             // Storing to disk happens asynchronously with captureEnvelope
             [PrivateSentrySDKOnly storeEnvelope:envelope];
         } else {
@@ -550,6 +557,13 @@ RCT_EXPORT_METHOD(addBreadcrumb:(NSDictionary *)breadcrumb)
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
         [scope addBreadcrumb:[RNSentryBreadcrumb from:breadcrumb]];
     }];
+
+#if SENTRY_HAS_UIKIT
+    NSString *_Nullable screen = [RNSentryBreadcrumb getCurrentScreenFrom:breadcrumb];
+    if (screen != nil) {
+        [PrivateSentrySDKOnly setCurrentScreen:screen];
+    }
+#endif //SENTRY_HAS_UIKIT
 }
 
 RCT_EXPORT_METHOD(clearBreadcrumbs) {
@@ -608,6 +622,27 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // If you're starting the Cocoa SDK manually,
     // you can set the 'enableAutoPerformanceTracing: true' option and
     // the 'tracesSampleRate' or 'tracesSampler' option.
+}
+
+RCT_EXPORT_METHOD(captureReplay: (BOOL)isHardCrash
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+  [PrivateSentrySDKOnly captureReplay];
+  resolve([PrivateSentrySDKOnly getReplayId]);
+#else
+  resolve(nil);
+#endif
+}
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentReplayId)
+{
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+  return [PrivateSentrySDKOnly getReplayId];
+#else
+  return nil;
+#endif
 }
 
 static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";
@@ -724,6 +759,12 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
 #else
     return @{ @"error": enabledProfilingMessage };
 #endif
+}
+
+RCT_EXPORT_METHOD(crashedLastRun:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    resolve(@([SentrySDK crashedLastRun]));
 }
 
 // Thanks to this guard, we won't compile this code when we build for the old architecture.

@@ -18,6 +18,8 @@ import { Alert } from 'react-native';
 import { createIntegration } from './integrations/factory';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import type { ReactNativeClientOptions } from './options';
+import type { mobileReplayIntegration } from './replay/mobilereplay';
+import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
 import { ReactNativeTracing } from './tracing';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
@@ -44,7 +46,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     super(options);
 
     this._outcomesBuffer = [];
-    this._initNativeSdk();
   }
 
   /**
@@ -58,22 +59,26 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @inheritDoc
    */
   public eventFromMessage(message: string, level?: SeverityLevel, hint?: EventHint): PromiseLike<Event> {
-    return eventFromMessage(this._options.stackParser, message, level, hint, this._options.attachStacktrace).then(
-      (event: Event) => {
-        // TMP! Remove this function once JS SDK uses threads for messages
-        if (!event.exception?.values || event.exception.values.length <= 0) {
+    if (this._options.useThreadsForMessageStack) {
+      return eventFromMessage(this._options.stackParser, message, level, hint, this._options.attachStacktrace).then(
+        (event: Event) => {
+          // TMP! Remove this function once JS SDK uses threads for messages
+          if (!event.exception?.values || event.exception.values.length <= 0) {
+            return event;
+          }
+          const values = event.exception.values.map(
+            (exception: Exception): Thread => ({
+              stacktrace: exception.stacktrace,
+            }),
+          );
+          (event as { threads?: { values: Thread[] } }).threads = { values };
+          delete event.exception;
           return event;
-        }
-        const values = event.exception.values.map(
-          (exception: Exception): Thread => ({
-            stacktrace: exception.stacktrace,
-          }),
-        );
-        (event as { threads?: { values: Thread[] } }).threads = { values };
-        delete event.exception;
-        return event;
-      },
-    );
+        },
+      );
+    }
+
+    return eventFromMessage(this._options.stackParser, message, level, hint, this._options.attachStacktrace);
   }
 
   /**
@@ -107,6 +112,14 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   }
 
   /**
+   * @inheritDoc
+   */
+  public init(): void {
+    super.init();
+    this._initNativeSdk();
+  }
+
+  /**
    * Sets up the integrations
    */
   protected _setupIntegrations(): void {
@@ -116,7 +129,8 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     if (routingName) {
       this.addIntegration(createIntegration(routingName));
     }
-    const enableUserInteractionTracing = tracing?.options.enableUserInteractionTracing;
+    const enableUserInteractionTracing =
+      this._options.enableUserInteractionTracing ?? tracing?.options.enableUserInteractionTracing;
     if (enableUserInteractionTracing) {
       this.addIntegration(createIntegration('ReactNativeUserInteractionTracing'));
     }
@@ -160,7 +174,14 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * Starts native client with dsn and options
    */
   private _initNativeSdk(): void {
-    NATIVE.initNativeSdk(this._options)
+    NATIVE.initNativeSdk({
+      ...this._options,
+      mobileReplayOptions:
+        this._integrations[MOBILE_REPLAY_INTEGRATION_NAME] &&
+        'options' in this._integrations[MOBILE_REPLAY_INTEGRATION_NAME]
+          ? (this._integrations[MOBILE_REPLAY_INTEGRATION_NAME] as ReturnType<typeof mobileReplayIntegration>).options
+          : undefined,
+    })
       .then(
         (result: boolean) => {
           return result;

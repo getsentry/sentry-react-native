@@ -166,6 +166,8 @@ export interface BaseReactNativeOptions {
    * More details: https://spotlightjs.com/
    *
    * IMPORTANT: Only set this option to `true` while developing, not in production!
+   *
+   * @deprecated Use `spotlight` instead.
    */
   enableSpotlight?: boolean;
 
@@ -178,8 +180,22 @@ export interface BaseReactNativeOptions {
    * More details: https://spotlightjs.com/
    *
    * @default "http://localhost:8969/stream"
+   *
+   * @deprecated Use `spotlight` instead.
    */
   spotlightSidecarUrl?: string;
+
+  /**
+   * If you use Spotlight by Sentry during development, use
+   * this option to forward captured Sentry events to Spotlight.
+   *
+   * Either set it to true, or provide a specific Spotlight Sidecar URL.
+   *
+   * More details: https://spotlightjs.com/
+   *
+   * IMPORTANT: Only set this option to `true` while developing, not in production!
+   */
+  spotlight?: boolean | string;
 
   /**
    * Sets a callback which is executed before capturing screenshots. Only
@@ -187,6 +203,77 @@ export interface BaseReactNativeOptions {
    * from the function, no screenshot will be attached.
    */
   beforeScreenshot?: (event: Event, hint: EventHint) => boolean;
+
+  /**
+   * The sample rate for profiling
+   * 1.0 will profile all transactions and 0 will profile none.
+   */
+  profilesSampleRate?: number;
+
+  /**
+   * Track the app start time by adding measurements to the first route transaction. If there is no routing instrumentation
+   * an app start transaction will be started.
+   *
+   * Requires performance monitoring to be enabled.
+   *
+   * @default true
+   */
+  enableAppStartTracking?: boolean;
+
+  /**
+   * Track the slow and frozen frames in the application. Enabling this options will add
+   * slow and frozen frames measurements to all created root spans (transactions).
+   *
+   * @default true
+   */
+  enableNativeFramesTracking?: boolean;
+
+  /**
+   * Track when and how long the JS event loop stalls for. Adds stalls as measurements to all transactions.
+   *
+   * @default true
+   */
+  enableStallTracking?: boolean;
+
+  /**
+   * Trace User Interaction events like touch and gestures.
+   *
+   * @default false
+   */
+  enableUserInteractionTracing?: boolean;
+
+  /**
+   * Options which are in beta, or otherwise not guaranteed to be stable.
+   */
+  _experiments?: {
+    [key: string]: unknown;
+
+    /**
+     * @deprecated Use `profilesSampleRate` in the options root instead.
+     */
+    profilesSampleRate?: number;
+
+    /**
+     * The sample rate for session-long replays.
+     * 1.0 will record all sessions and 0 will record none.
+     */
+    replaysSessionSampleRate?: number;
+
+    /**
+     * The sample rate for sessions that has had an error occur.
+     * This is independent of `sessionSampleRate`.
+     * 1.0 will record all sessions and 0 will record none.
+     */
+    replaysOnErrorSampleRate?: number;
+  };
+
+  /**
+   * This options changes the placement of the attached stacktrace of `captureMessage` in the event.
+   *
+   * @default false
+   * @deprecated This option will be removed in the next major version. Use `beforeSend` instead.
+   */
+  useThreadsForMessageStack?: boolean;
 }
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {
@@ -201,10 +288,12 @@ export interface ReactNativeTransportOptions extends BrowserTransportOptions {
  * @see ReactNativeFrontend for more information.
  */
 
-export interface ReactNativeOptions extends Options<ReactNativeTransportOptions>, BaseReactNativeOptions {}
+export interface ReactNativeOptions
+  extends Omit<Options<ReactNativeTransportOptions>, '_experiments'>,
+    BaseReactNativeOptions {}
 
 export interface ReactNativeClientOptions
-  extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel'>,
+  extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel' | '_experiments'>,
     BaseReactNativeOptions {}
 
 export interface ReactNativeWrapperOptions {

@@ -21,5 +21,18 @@ describe('normalize', () => {
       const actualResult = convertToNormalizedObject(null);
       expect(actualResult).toEqual({ value: null });
     });
+
+    test('converts array to an object', () => {
+      const actualResult = convertToNormalizedObject([]);
+      expect(actualResult).toEqual({ value: [] });
+    });
+
+    test('converts custom class to an object', () => {
+      class TestClass {
+        test: string = 'foo';
+      }
+      const actualResult = convertToNormalizedObject(new TestClass());
+      expect(actualResult).toEqual({ test: 'foo' });
+    });
   });
 });

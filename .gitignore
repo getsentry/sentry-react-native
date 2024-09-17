@@ -72,5 +72,22 @@ wheelhouse
 .yalc/
 yalc.lock
 
+# Yarn
+.yarn
+
 # E2E tests
+/dev-packages/e2e-tests/react-native-versions
 test/react-native/versions
+node_modules.bak
+
+# Created by Sentry Metro Plugin
+.sentry/
+
+# Yarn
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+.pnp.*
+
+# Sentry React Native Monorepo
+/packages/core/README.md

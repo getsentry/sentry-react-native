@@ -7,6 +7,11 @@ export type TransactionCreator = (context: TransactionContext) => Transaction | 
 
 export type OnConfirmRoute = (context: TransactionContext) => void;
 
+/**
+ * @deprecated Use `Integration` from `@sentry/types` and `startIdleTransaction` from `@sentry/core` instead.
+ *
+ * Or use `startIdleNavigationSpan` from `@sentry/react-native@^6`.
+ */
 export interface RoutingInstrumentationInstance {
   /**
    * Name of the routing instrumentation
@@ -36,8 +41,9 @@ export interface RoutingInstrumentationInstance {
 }
 
 /**
- * Base Routing Instrumentation. Can be used by users to manually instrument custom routers.
- * Pass this to the tracing integration, and call `onRouteWillChange` every time before a route changes.
+ * @deprecated Use `Integration` from `@sentry/types` and `startIdleTransaction` from `@sentry/core` instead.
+ *
+ * Or use `startIdleNavigationSpan` from `@sentry/react-native@^6`.
  */
 export class RoutingInstrumentation implements RoutingInstrumentationInstance {
   public static instrumentationName: string = 'base-routing-instrumentation';

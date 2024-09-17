@@ -13,7 +13,7 @@ export interface Spec extends TurboModule {
   captureEnvelope(
     bytes: string,
     options: {
-      store: boolean;
+      hardCrashed: boolean;
     },
   ): Promise<boolean>;
   captureScreenshot(): Promise<NativeScreenshot[] | undefined | null>;
@@ -44,6 +44,9 @@ export interface Spec extends TurboModule {
   fetchNativePackageName(): string | undefined | null;
   fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | undefined | null;
   initNativeReactNavigationNewFrameTracking(): Promise<void>;
+  captureReplay(isHardCrash: boolean): Promise<string | undefined | null>;
+  getCurrentReplayId(): string | undefined | null;
+  crashedLastRun(): Promise<boolean | undefined | null>;
 }
 
 export type NativeStackFrame = {

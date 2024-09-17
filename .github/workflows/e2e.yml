@@ -22,7 +22,7 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@01ce38bf961b4e243a6342cbade0dbc8ba3f0432 # pin@0.12.0
+        uses: styfle/cancel-workflow-action@85880fa0301c86cca9da44039ee3bb12d3bedbfa # pin@0.12.1
         with:
           access_token: ${{ github.token }}
 
@@ -49,6 +49,9 @@ jobs:
             appPlain: test/perf/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
       - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/disk-cleanup
+        if: ${{ matrix.platform == 'android' }}
 
       - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' }}
@@ -162,13 +165,17 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     env:
-      SENTRY_DISABLE_AUTO_UPLOAD: 'true' # TODO: Remove this when testing against a mocked Sentry server
-      RN_SENTRY_POD_NAME: RNSentry
-      RN_DIFF_REPOSITORY: https://github.com/react-native-community/rn-diff-purge.git
+      RN_VERSION: ${{ matrix.rn-version }}
+      RN_ENGINE: ${{ matrix.engine }}
+      USE_FRAMEWORKS: ${{ matrix.ios-use-frameworks }}
+      PRODUCTION: ${{ matrix.build-type == 'production' && '1' || '0' }}
+      RCT_NEW_ARCH_ENABLED: ${{ matrix.rn-architecture == 'new' && '1' || '0' }}
+      IOS_RUNTIME: ${{ matrix.runtime }}
+      IOS_DEVICE: ${{ matrix.device }}
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.73.2']
+        rn-version: ['0.65.3', '0.73.9']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -176,7 +183,7 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
-            rn-version: '0.73.2'
+            rn-version: '0.73.9'
             runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
             runtime: 'latest'
             device: 'iPhone 14'
@@ -189,7 +196,7 @@ jobs:
             runs-on: ubuntu-latest
         exclude:
           # exclude JSC for new RN versions (keeping the matrix manageable)
-          - rn-version: '0.73.2'
+          - rn-version: '0.73.9'
             engine: 'jsc'
           # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
@@ -213,6 +220,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: ./.github/actions/disk-cleanup
+        if: ${{ matrix.platform == 'android' }}
+
       - name: Sentry Release
         run: |
           SENTRY_RELEASE_CANDIDATE=$(echo 'e2e/${{ github.ref }}' | perl -pe 's/\//-/g')
@@ -231,20 +241,17 @@ jobs:
       - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' && matrix.rn-version == '0.65.3' }}
 
+      - name: Enable Corepack # RN 0.73.9 and newer are using yarn 3 which requires corepack
+        if: ${{ matrix.rn-version == '0.73.9' }}
+        run: corepack enable
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - uses: actions/setup-java@v4
-        if: ${{ matrix.rn-version == '0.65.3' }}
         with:
-          java-version: '11'
-          distribution: 'adopt'
-
-      - uses: actions/setup-java@v4
-        if: ${{ matrix.rn-version != '0.65.3' }}
-        with:
-          java-version: '17'
+          java-version: ${{ matrix.rn-version == '0.65.3' && '11' || '17' }}
           distribution: 'adopt'
 
       - name: Gradle cache
@@ -273,44 +280,21 @@ jobs:
           key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('test/e2e/yarn.lock') }}
 
       - name: Install SDK JS Dependencies
-        if: ${{ steps.deps-cache.outputs['cache-hit'] != 'true' }}
+        if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
 
       - name: Install E2E Tests Library JS Dependencies
-        if: steps.deps-cache.outputs['deps-cache-e2e-library'] != 'true'
+        if: steps.deps-cache-e2e-library.outputs['cache-hit'] != 'true'
         working-directory: test/e2e
         run: yarn install
-
-      - name: Build SDK
-        run: yarn build
-
-      - name: Build E2E Tests Library
-        working-directory: test/e2e
-        run: yarn build
-
-      - name: Package SDK
-        run: yalc publish
 
       - uses: actions/setup-node@v4
         if: ${{ matrix.rn-version == '0.65.3' }}
         with:
           node-version: 16
 
-      - name: Download Plain RN ${{ matrix.rn-version }} App
-        working-directory: test/react-native/versions
-        run: git clone $RN_DIFF_REPOSITORY --branch release/${{ matrix.rn-version }} --single-branch ${{ matrix.rn-version }}
-
-      - name: Add SDK to App
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: yalc add @sentry/react-native
-
-      - name: Install App JS Dependencies
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: yarn install
-
-      - name: Add E2E Tests Library to App
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: yarn add ../../../../e2e
+      - name: Setup Plain RN ${{ matrix.rn-version }} App
+        run: ./scripts/e2e.mjs ${{ matrix.platform }} --create
 
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' }}
@@ -319,112 +303,16 @@ jobs:
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
-      - run: gem install cocoapods -v 1.15.2 # fixes Hermes pod install https://github.com/CocoaPods/CocoaPods/issues/12226#issuecomment-1930604302
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        if: ${{ matrix.platform == 'ios' }}
 
-      - name: Install App Pods
-        if: ${{ matrix.platform == 'ios' }}
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
-        run: |
-          ../../../../rn.patch.podfile.js --pod-file Podfile --engine ${{ matrix.engine }}
-          [[ "${{ matrix.ios-use-frameworks }}" == "static" ]] && export USE_FRAMEWORKS=static && export NO_FLIPPER=1
-          [[ "${{ matrix.ios-use-frameworks }}" == "dynamic" ]] && export USE_FRAMEWORKS=dynamic && export NO_FLIPPER=1
-          [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
-          [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
-          [[ "${{ matrix.rn-version }}" == "0.65.3" ]] && POD_INSTALL_COMMNAND="pod install" || POD_INSTALL_COMMNAND="bundle exec pod install"
-          echo "ENABLE_PROD=$ENABLE_PROD"
-          echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
-          echo "USE_FRAMEWORKS=$USE_FRAMEWORKS"
-          PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH $POD_INSTALL_COMMNAND
-          cat Podfile.lock | grep $RN_SENTRY_POD_NAME
+      - name: Build Plain RN ${{ matrix.rn-version }} App
+        run: ./scripts/e2e.mjs ${{ matrix.platform }} --build
 
-      - name: Patch App RN
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: |
-          patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ../../../rn.patch
-          ../../../rn.patch.app.js --app .
-          ../../../rn.patch.metro.config.js --path metro.config.js
-
-      - name: Patch Android App RN
-        if: ${{ matrix.platform == 'android' }}
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: |
-          ../../../rn.patch.gradle.properties.js --gradle-properties android/gradle.properties --engine ${{ matrix.engine }}
-          ../../../rn.patch.app.build.gradle.js --app-build-gradle android/app/build.gradle
-
-      - name: Patch iOS App RN
-        if: ${{ matrix.platform == 'ios' }}
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
-        run: |
-          ../../../rn.patch.xcode.js \
-            --project ios/RnDiffApp.xcodeproj/project.pbxproj \
-            --rn-version '${{ matrix.rn-version }}'
-
-      # This prevents modules resolution from outside of the RN Test App projects
-      # during the native app build
-      - name: Clean SDK node_modules
-        run: rm -rf node_modules
-
-      - name: Build Android App
-        if: ${{ matrix.platform == 'android' }}
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/android
-        run: |
-          if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
-            perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
-            echo 'New Architecture enabled'
-          fi
-          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
-          echo "Building $CONFIG"
-          ./gradlew ":app:assemble$CONFIG" -PreactNativeArchitectures=x86
-
-      - name: Build iOS App
-        if: ${{ matrix.platform == 'ios' }}
-        working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios
-        run: |
-          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
-          echo "Building $CONFIG"
-          mkdir -p "DerivedData"
-          derivedData="$(cd "DerivedData" ; pwd -P)"
-          set -o pipefail && xcodebuild \
-            -workspace RnDiffApp.xcworkspace \
-            -configuration "$CONFIG" \
-            -scheme RnDiffApp \
-            -destination 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}' \
-            ONLY_ACTIVE_ARCH=yes \
-            -derivedDataPath "$derivedData" \
-            build \
-            | tee xcodebuild.log \
-            | xcbeautify --quieter --is-ci --disable-colored-output
-
-      - name: Archive Android APK
-        if: matrix.platform == 'android' && matrix.build-type == 'production'
-        run: |
-          BUILD_PATH=test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/android/app/build/outputs/apk/release
-          BUILD_NAME=app-release.apk
-          tar -cvf apk.tar -C $BUILD_PATH $BUILD_NAME
-
-      - name: Archive iOS APP
-        if: matrix.platform == 'ios' && matrix.build-type == 'production'
-        run: |
-          BUILD_PATH=test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios/DerivedData/Build/Products/Release-iphonesimulator
-          BUILD_NAME=RnDiffApp.app
-          tar -cvf app.tar -C $BUILD_PATH $BUILD_NAME
-
-      - name: Upload App APK
-        if: matrix.platform == 'android' && matrix.build-type == 'production'
+      - name: Upload App
+        if: matrix.build-type == 'production'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
-          path: apk.tar
-          retention-days: 1
-
-      - name: Upload App APP
-        if: matrix.platform == 'ios' && matrix.build-type == 'production'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
-          path: app.tar
+          path: test/e2e/RnDiffApp.ap*
           retention-days: 1
 
       - name: Upload logs
@@ -445,7 +333,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.73.2']
+        rn-version: ['0.65.3', '0.73.9']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -453,7 +341,7 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
-            rn-version: '0.73.2'
+            rn-version: '0.73.9'
             runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
             runtime: 'latest'
             device: 'iPhone 14'
@@ -471,10 +359,10 @@ jobs:
           # e2e test only the default combinations
           - rn-version: '0.65.3'
             engine: 'hermes'
-          - rn-version: '0.73.2'
+          - rn-version: '0.73.9'
             engine: 'jsc'
           # E2E timeout due to a race condition https://github.com/facebook/react-native/issues/42123#issuecomment-1881203719
-          - rn-version: '0.73.2'
+          - rn-version: '0.73.9'
             platform: 'ios'
             rn-architecture: 'new'
     env:
@@ -482,6 +370,9 @@ jobs:
       DEVICE: ${{ matrix.device }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/disk-cleanup
+        if: ${{ matrix.platform == 'android' }}
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
@@ -493,10 +384,6 @@ jobs:
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: test/e2e
-
-      - name: Extract App Package
-        working-directory: test/e2e
-        run: tar -xvf *.tar
 
       - uses: actions/setup-node@v4
         with:
@@ -530,47 +417,14 @@ jobs:
           key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('test/e2e/yarn.lock') }}
 
       - name: Install E2E Tests Library JS Dependencies
-        if: steps.deps-cache.outputs['deps-cache-e2e-library'] != 'true'
+        if: steps.deps-cache-e2e-library.outputs['cache-hit'] != 'true'
         working-directory: test/e2e
         run: yarn install
 
-      - name: Build iOS WebDriverAgent
-        if: matrix.platform == 'ios'
-        working-directory: test/e2e
-        run: |
-          mkdir -p "DerivedData"
-          derivedData="$(cd "DerivedData" ; pwd -P)"
-          set -o pipefail && xcodebuild \
-            -project node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
-            -scheme WebDriverAgentRunner \
-            GCC_TREAT_WARNINGS_AS_ERRORS=0 \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            -destination 'platform=iOS Simulator,OS=${{ matrix.runtime }},name=${{ matrix.device }}' \
-            ONLY_ACTIVE_ARCH=yes \
-            -derivedDataPath "$derivedData" \
-            build \
-            | tee xcodebuild.log \
-            | xcbeautify --quieter --is-ci --disable-colored-output
-
-      - name: Start Appium Server
-        working-directory: test/e2e
-        run: yarn run appium --log-timestamp --log-no-colors --log appium.${{ matrix.platform }}.log &
-
-        # Wait until the Appium server starts.
-      - name: Check Appium Server
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # pin@3.0.0
-        with:
-          timeout_seconds: 60
-          max_attempts: 10
-          command: curl --output /dev/null --silent --head --fail http://127.0.0.1:4723/sessions
-
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
-        env:
-          APPIUM_APP: ./app-release.apk
-        uses: reactivecircus/android-emulator-runner@6b0df4b0efb23bb0ec63d881db79aefbc976e4b2 # pin@v2
+        uses: reactivecircus/android-emulator-runner@f0d1ed2dcad93c7479e8b2f2226c83af54494915 # pin@v2.32.0
         with:
-          working-directory: test/e2e
           api-level: 30
           force-avd-creation: false
           disable-animations: true
@@ -586,20 +440,17 @@ jobs:
             -camera-back none
             -camera-front none
             -timezone US/Pacific
-          script: |
-            # Collect logs
-            adb logcat '*:D' 2>&1 >adb.log &
-            adb devices -l
+          script: ./scripts/e2e.mjs ${{ matrix.platform }} --test
 
-            yarn test --verbose
+      - uses: actions/cache@v4
+        if: ${{ matrix.platform == 'ios' }}
+        with:
+          path: test/e2e/DerivedData/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app
+          key: appium-webdriveragent-${{ hashFiles('test/e2e/yarn.lock') }}
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
-        working-directory: test/e2e
-        env:
-          APPIUM_APP: ./RnDiffApp.app
-          APPIUM_DERIVED_DATA: DerivedData
-        run: yarn test --verbose
+        run: ./scripts/e2e.mjs ${{ matrix.platform }} --test
 
       - name: Upload logs
         if: ${{ always() }}

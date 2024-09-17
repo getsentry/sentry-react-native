@@ -2,7 +2,7 @@
   "name": "@sentry/react-native",
   "homepage": "https://github.com/getsentry/sentry-react-native",
   "repository": "https://github.com/getsentry/sentry-react-native",
-  "version": "5.24.2",
+  "version": "5.32.0",
   "description": "Official Sentry SDK for react-native",
   "typings": "dist/js/index.d.ts",
   "types": "dist/js/index.d.ts",
@@ -67,22 +67,23 @@
     "react-native": ">=0.65.0"
   },
   "dependencies": {
-    "@sentry/browser": "7.117.0",
-    "@sentry/cli": "2.31.2",
-    "@sentry/core": "7.117.0",
-    "@sentry/hub": "7.117.0",
-    "@sentry/integrations": "7.117.0",
-    "@sentry/react": "7.117.0",
-    "@sentry/types": "7.117.0",
-    "@sentry/utils": "7.117.0"
+    "@sentry/babel-plugin-component-annotate": "2.20.1",
+    "@sentry/browser": "7.119.0",
+    "@sentry/cli": "2.36.1",
+    "@sentry/core": "7.119.0",
+    "@sentry/hub": "7.119.0",
+    "@sentry/integrations": "7.119.0",
+    "@sentry/react": "7.119.0",
+    "@sentry/types": "7.119.0",
+    "@sentry/utils": "7.119.0"
   },
   "devDependencies": {
     "@babel/core": "^7.23.5",
     "@expo/metro-config": "0.17.5",
     "@mswjs/interceptors": "^0.25.15",
-    "@sentry-internal/eslint-config-sdk": "7.117.0",
-    "@sentry-internal/eslint-plugin-sdk": "7.117.0",
-    "@sentry-internal/typescript": "7.117.0",
+    "@sentry-internal/eslint-config-sdk": "7.119.0",
+    "@sentry-internal/eslint-plugin-sdk": "7.119.0",
+    "@sentry-internal/typescript": "7.119.0",
     "@sentry/wizard": "3.16.3",
     "@types/jest": "^29.5.3",
     "@types/node": "^20.9.3",
@@ -103,10 +104,10 @@
     "jest-environment-jsdom": "^29.6.2",
     "jest-extended": "^4.0.2",
     "madge": "^6.1.0",
-    "metro": "0.76",
+    "metro": "0.80.10",
     "prettier": "^2.0.5",
     "react": "18.2.0",
-    "react-native": "0.73.2",
+    "react-native": "0.73.9",
     "react-native-version": "^4.0.0",
     "react-test-renderer": "^18.2.0",
     "replace-in-file": "^7.0.1",
@@ -129,5 +130,6 @@
     "expo": {
       "optional": true
     }
-  }
+  },
+  "packageManager": "yarn@1.22.22"
 }

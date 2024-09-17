@@ -4,7 +4,11 @@
     "slug": "sentry-react-native-expo-sample",
     "jsEngine": "hermes",
     "scheme": "sentry-expo-sample",
+<<<<<<< HEAD
     "version": "5.24.2",
+=======
+    "version": "5.32.0",
+>>>>>>> main
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -19,7 +23,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "io.sentry.expo.sample",
-      "buildNumber": "12"
+      "buildNumber": "21"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +31,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "io.sentry.expo.sample",
-      "versionCode": 12
+      "versionCode": 21
     },
     "web": {
       "bundler": "metro",
