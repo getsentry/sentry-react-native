@@ -1,6 +1,24 @@
 # Changelog
 
-## Unreleased
+## 5.33.0
+
+### Features
+
+- Add an option to disable native (iOS and Android) profiling for the `HermesProfiling` integration ([#4094](https://github.com/getsentry/sentry-react-native/pull/4094))
+
+  To disable native profilers add the `hermesProfilingIntegration`.
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    integrations: [
+      Sentry.hermesProfilingIntegration({ platformProfilers: false }),
+    ],
+  });
+  ```
+
+## 5.32.0
 
 ### Features
 
@@ -20,13 +38,20 @@
 
 ### Changes
 
+- Add Android Logger when new frame event is not emitted ([#4081](https://github.com/getsentry/sentry-react-native/pull/4081))
 - React Native Tracing Deprecations ([#4073](https://github.com/getsentry/sentry-react-native/pull/4073))
   - `new ReactNativeTracing` to `reactNativeTracingIntegration()`
-  - `new ReactNavigationInstrumentation` to `reactNativeTracingIntegration()`.
-  - `new ReactNativeNavigationInstrumentation` to `reactNativeTracingIntegration()`.
+  - `new ReactNavigationInstrumentation` to `reactNavigationIntegration()`.
+  - `new ReactNativeNavigationInstrumentation` to `reactNativeNavigationIntegration()`.
   - `ReactNavigationV4Instrumentation` won't be supported in the next major SDK version, upgrade to `react-navigation@5` or newer.
   - `RoutingInstrumentation` and `RoutingInstrumentationInstance` replace by `Integration` interface from `@sentry/types`.
   - `enableAppStartTracking`, `enableNativeFramesTracking`, `enableStallTracking`, `enableUserInteractionTracing` moved to `Sentry.init({})` root options.
+
+### Dependencies
+
+- Bump CLI from v2.34.0 to v2.36.1 ([#4055](https://github.com/getsentry/sentry-react-native/pull/4055))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2361)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.34.0...2.36.1)
 
 ## 5.31.1
 
@@ -237,6 +262,24 @@
   - [diff](https://github.com/getsentry/sentry-java/compare/7.9.0-alpha.1...7.11.0-alpha.2)
 
 Access to Mobile Replay is limited to early access orgs on Sentry. If you're interested, [sign up for the waitlist](https://sentry.io/lp/mobile-replay-beta/)
+
+## 5.24.2
+
+### Features
+
+- Add an option to disable native (iOS and Android) profiling for the `HermesProfiling` integration ([#4094](https://github.com/getsentry/sentry-react-native/pull/4094))
+
+  To disable native profilers add the `hermesProfilingIntegration`.
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    integrations: [
+      Sentry.hermesProfilingIntegration({ platformProfilers: false }),
+    ],
+  });
+  ```
 
 ## 5.24.1
 
