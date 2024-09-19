@@ -18,7 +18,7 @@ import io.sentry.android.core.SentryAndroidDateProvider;
 
 public class RNSentryTimeToDisplayModule extends NativeRNSentryTimeToDisplaySpec {
 
-    public static final String NAME = "RNSentryTimeToDisplayModule";
+    public static final String NAME = "RNSentryTimeToDisplay";
 
     public RNSentryTimeToDisplayModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -39,5 +39,10 @@ public class RNSentryTimeToDisplayModule extends NativeRNSentryTimeToDisplaySpec
                 promise.resolve(endDate.nanoTimestamp() / 1e9);
             }
         });
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public boolean isAvailable() {
+        return true;
     }
 }

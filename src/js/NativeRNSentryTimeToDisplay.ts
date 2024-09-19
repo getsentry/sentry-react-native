@@ -5,6 +5,7 @@ import { TurboModuleRegistry } from 'react-native';
 // Only extra allowed definitions are types (probably codegen bug)
 export interface Spec extends TurboModule {
   requestAnimationFrame(): Promise<number>;
+  isAvailable(): boolean;
 }
 
 // The export must be here to pass codegen even if not used

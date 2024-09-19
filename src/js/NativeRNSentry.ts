@@ -156,6 +156,7 @@ export type NativeScreenshot = {
 
 export interface RNSentryTimeToDisplayModuleSpec {
   requestAnimationFrame(): Promise<number>;
+  isAvailable(): boolean;
 }
 
 // The export must be here to pass codegen even if not used

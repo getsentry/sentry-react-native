@@ -3,7 +3,6 @@ import type { EmitterSubscription } from 'react-native';
 import { DeviceEventEmitter, NativeModules } from 'react-native';
 
 import type { Spec } from '../NativeRNSentryTimeToDisplay';
-import { NATIVE } from '../wrapper';
 import { isTurboModuleEnabled } from './environment';
 import { ReactNativeLibraries } from './rnlibraries';
 import { NewFrameEventName } from './sentryeventemitter';
@@ -93,7 +92,7 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
 
     startListenerAsync() {
       isListening = true;
-      if (NATIVE.isNativeAvailable() && RNSentryTimeToDisplay !== undefined) {
+      if (RNSentryTimeToDisplay && RNSentryTimeToDisplay.isAvailable()) {
         RNSentryTimeToDisplay.requestAnimationFrame()
           .then((time: number) => {
             waitForNativeResponseOrFallback(time, 'Native');
