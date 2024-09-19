@@ -143,7 +143,6 @@ describe('SentryEventEmitterFallback', () => {
     );
   });
 
-
   it('should start listener and call native when native module is available', async () => {
     const nativeTimestamp = 12345;
 
