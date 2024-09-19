@@ -18,31 +18,26 @@ import io.sentry.android.core.SentryAndroidDateProvider;
 
 public class RNSentryTimeToDisplayModule extends NativeRNSentryTimeToDisplaySpec {
 
-    public static final String NAME = "RNSentryTimeToDisplay";
+    private final RNSentryTimeToDisplayImpl impl;
 
-    public RNSentryTimeToDisplayModule(ReactApplicationContext reactContext) {
+    RNSentryTimeToDisplayModule(ReactApplicationContext reactContext) {
         super(reactContext);
+        this.impl = new RNSentryTimeToDisplayImpl();
     }
 
-    @ReactMethod
+    @Override
+    @NonNull
+    public String getName() {
+        return RNSentryTimeToDisplayImpl.NAME;
+    }
+
+    @Override
     public void requestAnimationFrame(Promise promise) {
-        Choreographer choreographer = Choreographer.getInstance();
-
-        // Invoke the callback after the frame is rendered
-        choreographer.postFrameCallback(new Choreographer.FrameCallback() {
-            @Override
-            public void doFrame(long frameTimeNanos) {
-                final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
-
-                final SentryDate endDate = dateProvider.now();
-
-                promise.resolve(endDate.nanoTimestamp() / 1e9);
-            }
-        });
+        this.impl.requestAnimationFrame(promise);
     }
 
-    @ReactMethod(isBlockingSynchronousMethod = true)
+    @Override
     public boolean isAvailable() {
-        return true;
+        return this.impl.isAvailable();
     }
 }
