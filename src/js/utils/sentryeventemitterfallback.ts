@@ -5,8 +5,6 @@ import { DeviceEventEmitter } from 'react-native';
 import { NATIVE } from '../wrapper';
 import { NewFrameEventName } from './sentryeventemitter';
 
-
-
 export type FallBackNewFrameEvent = { newFrameTimestampInSeconds: number; isFallback?: boolean };
 export interface SentryEventEmitterFallback {
   /**
@@ -85,14 +83,13 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
       isListening = true;
 
       NATIVE.getNewScreenTimeToDisplay()
-        .then((resolve => {
+        .then(resolve => {
           if (resolve) {
             waitForNativeResponseOrFallback(resolve, 'Native');
-          }
-          else {
+          } else {
             defaultFallbackEventEmitter();
           }
-        }))
+        })
         .catch((reason: Error) => {
           logger.error('Failed to recceive Native fallback timestamp.', reason);
           defaultFallbackEventEmitter();

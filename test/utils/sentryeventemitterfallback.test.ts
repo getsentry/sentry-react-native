@@ -22,7 +22,7 @@ jest.mock('../../src/js/utils/environment', () => ({
   isTurboModuleEnabled: () => false,
 }));
 
-jest.mock('../../src/js/wrapper', () =>  jest.requireActual('../mockWrapper'));
+jest.mock('../../src/js/wrapper', () => jest.requireActual('../mockWrapper'));
 
 jest.mock('@sentry/utils', () => ({
   logger: {
@@ -41,13 +41,13 @@ describe('SentryEventEmitterFallback', () => {
     // @ts-expect-error test
     jest.spyOn(window, 'requestAnimationFrame').mockImplementation(cb => cb());
     emitter = createSentryFallbackEventEmitter();
-    NATIVE.getNewScreenTimeToDisplay = jest.fn(() => Promise.resolve(12345))
+    NATIVE.getNewScreenTimeToDisplay = jest.fn(() => Promise.resolve(12345));
   });
 
   afterEach(() => {
     // @ts-expect-error test
     window.requestAnimationFrame.mockRestore();
-    NATIVE.getNewScreenTimeToDisplay = jest.fn()
+    NATIVE.getNewScreenTimeToDisplay = jest.fn();
   });
 
   it('should initialize and add a listener', () => {
@@ -82,7 +82,6 @@ describe('SentryEventEmitterFallback', () => {
         '[Sentry] Native event emitter did not reply in time. Using JavaScript fallback emitter.',
       ),
     );
-
   });
 
   it('should start listener and use fallback when native call fails', async () => {
@@ -112,7 +111,6 @@ describe('SentryEventEmitterFallback', () => {
       ),
     );
   });
-
 
   it('should start listener and use fallback when native call fails', async () => {
     jest.useFakeTimers();
