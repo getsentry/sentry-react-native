@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Support `metro@0.80.10` new `sourceMapString` export ([#4004](https://github.com/getsentry/sentry-react-native/pull/4004))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.29.1 to v8.36.0 ([#4102](https://github.com/getsentry/sentry-react-native/pull/4102))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8360)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.29.1...8.36.0)
+
 ## 5.24.2
 
 ### Features
