@@ -1,7 +1,7 @@
 #import <React/RCTBridgeModule.h>
 
-@interface RNSentryTimeToDisplay : NSObject <RCTBridgeModule>
+@interface RNSentryTimeToDisplayModule : NSObject
 
-- (void)requestAnimationFrame:(RCTPromiseResolveBlock)resolve
-                    rejecter:(RCTPromiseRejectBlock)reject;
+- (void)getTimeToDisplay:(RCTResponseSenderBlock)callback;
+
 @end

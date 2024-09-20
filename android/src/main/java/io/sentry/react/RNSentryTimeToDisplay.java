@@ -16,14 +16,9 @@ import io.sentry.SentryDateProvider;
 import io.sentry.android.core.SentryAndroidDateProvider;
 
 
-public class RNSentryTimeToDisplayImpl {
+public class RNSentryTimeToDisplay {
 
-    public static final String NAME = "RNSentryTimeToDisplay";
-
-    public RNSentryTimeToDisplayImpl() {
-    }
-
-    public void requestAnimationFrame(Promise promise) {
+    public void GetTimeToDisplay(Promise promise) {
         Choreographer choreographer = Choreographer.getInstance();
 
         // Invoke the callback after the frame is rendered
@@ -37,9 +32,5 @@ public class RNSentryTimeToDisplayImpl {
                 promise.resolve(endDate.nanoTimestamp() / 1e9);
             }
         });
-    }
-
-    public boolean isAvailable() {
-        return true;
     }
 }

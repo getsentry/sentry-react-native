@@ -1,20 +1,11 @@
 import { logger } from '@sentry/utils';
 import type { EmitterSubscription } from 'react-native';
-import { DeviceEventEmitter, NativeModules } from 'react-native';
+import { DeviceEventEmitter } from 'react-native';
 
-import type { Spec } from '../NativeRNSentryTimeToDisplay';
-import { isTurboModuleEnabled } from './environment';
-import { ReactNativeLibraries } from './rnlibraries';
+import { NATIVE } from '../wrapper';
 import { NewFrameEventName } from './sentryeventemitter';
 
-function getTimeToDisplayModule(): Spec | undefined {
-  return isTurboModuleEnabled()
-    ? ReactNativeLibraries.TurboModuleRegistry &&
-        ReactNativeLibraries.TurboModuleRegistry.get<Spec>('RNSentryTimeToDisplay')
-    : NativeModules.RNSentryTimeToDisplay;
-}
 
-const RNSentryTimeToDisplay: Spec | undefined = getTimeToDisplayModule();
 
 export type FallBackNewFrameEvent = { newFrameTimestampInSeconds: number; isFallback?: boolean };
 export interface SentryEventEmitterFallback {
@@ -92,18 +83,20 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
 
     startListenerAsync() {
       isListening = true;
-      if (RNSentryTimeToDisplay && RNSentryTimeToDisplay.isAvailable()) {
-        RNSentryTimeToDisplay.requestAnimationFrame()
-          .then((time: number) => {
-            waitForNativeResponseOrFallback(time, 'Native');
-          })
-          .catch((reason: Error) => {
-            logger.error('Failed to recceive Native fallback timestamp.', reason);
+
+      NATIVE.getNewScreenTimeToDisplay()
+        .then((resolve => {
+          if (resolve) {
+            waitForNativeResponseOrFallback(resolve, 'Native');
+          }
+          else {
             defaultFallbackEventEmitter();
-          });
-      } else {
-        defaultFallbackEventEmitter();
-      }
+          }
+        }))
+        .catch((reason: Error) => {
+          logger.error('Failed to recceive Native fallback timestamp.', reason);
+          defaultFallbackEventEmitter();
+        });
     },
 
     closeAll() {

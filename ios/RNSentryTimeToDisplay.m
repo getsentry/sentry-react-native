@@ -5,47 +5,39 @@
 @implementation RNSentryTimeToDisplay
 {
   CADisplayLink *displayLink;
-  RCTPromiseResolveBlock resolveBlock;
+  RCTResponseSenderBlock resolveBlock;
 }
 
-RCT_EXPORT_MODULE();
-
-RCT_EXPORT_METHOD(requestAnimationFrame:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+// Rename requestAnimationFrame to getTimeToDisplay
+- (void)getTimeToDisplay:(RCTResponseSenderBlock)callback
 {
-  // Store the resolve block to use in the callback
-  resolveBlock = resolve;
+  // Store the resolve block to use in the callback.
+  resolveBlock = callback;
 
 #if TARGET_OS_IOS
-  // Create and add a display link to get the callback after the screen is rendered
+  // Create and add a display link to get the callback after the screen is rendered.
   displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(handleDisplayLink:)];
   [displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
 #else
+  resolveBlock(@[]); // Return nothing if not iOS.
 #endif
 }
 
 #if TARGET_OS_IOS
-- (void)handleDisplayLink:(CADisplayLink *)link
-{
-  NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
+- (void)handleDisplayLink:(CADisplayLink *)link {
+  // Get the current time
+  NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970] * 1000.0; // Convert to milliseconds
+
+  // Ensure the callback is valid and pass the current time back
   if (resolveBlock) {
-    resolveBlock(@(currentTime));
-    resolveBlock = nil;
+    resolveBlock(@[@(currentTime)]); // Call the callback with the current time
+    resolveBlock = nil; // Clear the block after it's called
   }
 
-  // Invalidate the display link
+  // Invalidate the display link to stop future callbacks
   [displayLink invalidate];
   displayLink = nil;
 }
 #endif
-
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isAvailable)
-{
-#if TARGET_OS_IOS
-  return @(YES);
-#else
-  return @(NO); // MacOS
-#endif
-}
 
 @end

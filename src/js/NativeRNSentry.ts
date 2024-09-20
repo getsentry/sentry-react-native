@@ -9,6 +9,7 @@ import type { UnsafeObject } from './utils/rnlibrariesinterface';
 export interface Spec extends TurboModule {
   addListener: (eventType: string) => void;
   removeListeners: (id: number) => void;
+  getNewScreenTimeToDisplay(): Promise<number | undefined | null>;
   addBreadcrumb(breadcrumb: UnsafeObject): void;
   captureEnvelope(
     bytes: string,
@@ -153,11 +154,6 @@ export type NativeScreenshot = {
   contentType: string;
   filename: string;
 };
-
-export interface RNSentryTimeToDisplayModuleSpec {
-  requestAnimationFrame(): Promise<number>;
-  isAvailable(): boolean;
-}
 
 // The export must be here to pass codegen even if not used
 export default TurboModuleRegistry.getEnforcing<Spec>('RNSentry');

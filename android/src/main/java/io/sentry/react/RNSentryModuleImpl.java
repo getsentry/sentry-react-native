@@ -135,10 +135,16 @@ public class RNSentryModuleImpl {
     /** Max trace file size in bytes. */
     private long maxTraceFileSize = 5 * 1024 * 1024;
 
+
+
+  private final RNSentryTimeToDisplay timeToDisplay;
+
+
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
       packageInfo = getPackageInfo(reactApplicationContext);
       this.reactApplicationContext = reactApplicationContext;
       this.emitNewFrameEvent = createEmitNewFrameEvent();
+      this.timeToDisplay = new RNSentryTimeToDisplay();
     }
 
     private ReactApplicationContext getReactApplicationContext() {
@@ -691,6 +697,10 @@ public class RNSentryModuleImpl {
             frameMetricsAggregator.stop();
             frameMetricsAggregator = null;
         }
+    }
+
+    public void getNewScreenTimeToDisplay(Promise promise) {
+        timeToDisplay.GetTimeToDisplay(promise);
     }
 
     private String getProfilingTracesDirPath() {

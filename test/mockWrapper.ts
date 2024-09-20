@@ -55,6 +55,7 @@ const NATIVE: MockInterface<NativeType> = {
   initNativeReactNavigationNewFrameTracking: jest.fn(),
 
   crashedLastRun: jest.fn(),
+  getNewScreenTimeToDisplay: jest.fn().mockResolvedValue(42),  // Returning a number
 };
 
 NATIVE.isNativeAvailable.mockReturnValue(true);

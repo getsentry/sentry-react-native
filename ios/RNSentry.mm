@@ -62,6 +62,7 @@ static NSString* const nativeSdkName = @"sentry.cocoa.react-native";
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
     bool hasListeners;
+    RNSentryTimeToDisplay *_timeToDisplay;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -105,6 +106,8 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 
         sentHybridSdkDidBecomeActive = true;
     }
+
+    _timeToDisplay = [[RNSentryTimeToDisplayModule alloc] init];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     [RNSentryReplay postInit];
@@ -775,5 +778,21 @@ RCT_EXPORT_METHOD(crashedLastRun:(RCTPromiseResolveBlock)resolve
     return std::make_shared<facebook::react::NativeRNSentrySpecJSI>(params);
 }
 #endif
+
+// Expose timeToDisplay to JS as an object with properties
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTimeToDisplay) {
+    NSMutableDictionary *timeToDisplayDict = [NSMutableDictionary new];
+
+    // Expose the methods as key-value pairs
+    timeToDisplayDict[@"requestAnimationFrame"] = @([_timeToDisplay requestAnimationFrame]);
+    timeToDisplayDict[@"isAvailable"] = @([_timeToDisplay isAvailable]);
+
+    return timeToDisplayDict;
+}
+
+RCT_EXPORT_METHOD(getTimeToDisplay:(RCTResponseSenderBlock)callback) {
+  [_timeToDisplay getNewScreenTimeToDisplay:callback];
+}
+
 
 @end
