@@ -1,6 +1,6 @@
 #import <React/RCTBridgeModule.h>
 
-@interface RNSentryTimeToDisplayModule : NSObject
+@interface RNSentryTimeToDisplay : NSObject
 
 - (void)getTimeToDisplay:(RCTResponseSenderBlock)callback;
 

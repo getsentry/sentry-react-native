@@ -1,5 +1,6 @@
 #import <dlfcn.h>
 #import "RNSentry.h"
+#import  "RNSentryTimeToDisplay.h"
 
 #if __has_include(<React/RCTConvert.h>)
 #import <React/RCTConvert.h>
@@ -107,7 +108,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         sentHybridSdkDidBecomeActive = true;
     }
 
-    _timeToDisplay = [[RNSentryTimeToDisplayModule alloc] init];
+    _timeToDisplay = [[RNSentryTimeToDisplay alloc] init];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     [RNSentryReplay postInit];
@@ -779,19 +780,9 @@ RCT_EXPORT_METHOD(crashedLastRun:(RCTPromiseResolveBlock)resolve
 }
 #endif
 
-// Expose timeToDisplay to JS as an object with properties
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTimeToDisplay) {
-    NSMutableDictionary *timeToDisplayDict = [NSMutableDictionary new];
-
-    // Expose the methods as key-value pairs
-    timeToDisplayDict[@"requestAnimationFrame"] = @([_timeToDisplay requestAnimationFrame]);
-    timeToDisplayDict[@"isAvailable"] = @([_timeToDisplay isAvailable]);
-
-    return timeToDisplayDict;
-}
-
-RCT_EXPORT_METHOD(getTimeToDisplay:(RCTResponseSenderBlock)callback) {
-  [_timeToDisplay getNewScreenTimeToDisplay:callback];
+RCT_EXPORT_METHOD(getNewScreenTimeToDisplay:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+  [_timeToDisplay getTimeToDisplay:resolve];
 }
 
 
