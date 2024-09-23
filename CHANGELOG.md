@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Enhanced accuracy of time-to-display spans. ([#4042](https://github.com/getsentry/sentry-react-native/pull/4042))
+
 ## 5.33.1
 
 ### Internal
