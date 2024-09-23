@@ -20,9 +20,9 @@ public class RNSentryPackage extends TurboReactPackage {
   @Nullable
   @Override
   public NativeModule getModule(String name, ReactApplicationContext reactContext) {
-      if (name.equals(RNSentryModuleImpl.NAME)) {
-        return new RNSentryModule(reactContext);
-      } else {
+    if (name.equals(RNSentryModuleImpl.NAME)) {
+      return new RNSentryModule(reactContext);
+    } else {
       return null;
     }
   }

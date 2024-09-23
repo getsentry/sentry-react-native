@@ -785,5 +785,4 @@ RCT_EXPORT_METHOD(getNewScreenTimeToDisplay:(RCTPromiseResolveBlock)resolve
   [_timeToDisplay getTimeToDisplay:resolve];
 }
 
-
 @end

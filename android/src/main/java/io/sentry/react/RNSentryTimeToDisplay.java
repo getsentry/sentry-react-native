@@ -15,7 +15,6 @@ import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
 import io.sentry.android.core.SentryAndroidDateProvider;
 
-
 public class RNSentryTimeToDisplay {
 
     public void GetTimeToDisplay(Promise promise) {
