@@ -23,7 +23,6 @@ public class RNSentryTimeToDisplay {
                 final SentryDate endDate = dateProvider.now();
 
                 promise.resolve(endDate.nanoTimestamp() / 1e9);
-            }
         });
     }
 }
