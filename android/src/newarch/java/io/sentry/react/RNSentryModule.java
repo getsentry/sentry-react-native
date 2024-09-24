@@ -174,8 +174,8 @@ public class RNSentryModule extends NativeRNSentrySpec {
         this.impl.crashedLastRun(promise);
     }
 
-      @Override
-     public void getNewScreenTimeToDisplay(Promise promise) {
+    @Override
+    public void getNewScreenTimeToDisplay(Promise promise) {
         this.impl.getNewScreenTimeToDisplay(promise);
-     }
+    }
 }

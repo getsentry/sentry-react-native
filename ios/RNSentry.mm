@@ -1,6 +1,6 @@
 #import <dlfcn.h>
 #import "RNSentry.h"
-#import  "RNSentryTimeToDisplay.h"
+#import "RNSentryTimeToDisplay.h"
 
 #if __has_include(<React/RCTConvert.h>)
 #import <React/RCTConvert.h>
@@ -782,7 +782,7 @@ RCT_EXPORT_METHOD(crashedLastRun:(RCTPromiseResolveBlock)resolve
 
 RCT_EXPORT_METHOD(getNewScreenTimeToDisplay:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-  [_timeToDisplay getTimeToDisplay:resolve];
+    [_timeToDisplay getTimeToDisplay:resolve];
 }
 
 @end

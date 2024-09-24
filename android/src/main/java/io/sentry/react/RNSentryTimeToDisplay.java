@@ -1,10 +1,6 @@
 package io.sentry.react;
 
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Promise;
-import com.facebook.react.turbomodule.core.interfaces.TurboModule;
 
 import android.view.Choreographer;
 
@@ -21,9 +17,7 @@ public class RNSentryTimeToDisplay {
         Choreographer choreographer = Choreographer.getInstance();
 
         // Invoke the callback after the frame is rendered
-        choreographer.postFrameCallback(new Choreographer.FrameCallback() {
-            @Override
-            public void doFrame(long frameTimeNanos) {
+        choreographer.postFrameCallback(frameTimeNanos -> {
                 final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
 
                 final SentryDate endDate = dateProvider.now();

@@ -1,6 +1,5 @@
 package io.sentry.react;
 
-import android.view.Choreographer;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static io.sentry.android.core.internal.util.ScreenshotUtils.takeScreenshot;
 import static io.sentry.vendor.Base64.NO_PADDING;
@@ -136,7 +135,8 @@ public class RNSentryModuleImpl {
     /** Max trace file size in bytes. */
     private long maxTraceFileSize = 5 * 1024 * 1024;
 
-  private final RNSentryTimeToDisplay timeToDisplay;
+     private final RNSentryTimeToDisplay timeToDisplay;
+     
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
       packageInfo = getPackageInfo(reactApplicationContext);
       this.reactApplicationContext = reactApplicationContext;
