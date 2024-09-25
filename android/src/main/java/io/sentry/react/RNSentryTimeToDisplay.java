@@ -4,8 +4,6 @@ import com.facebook.react.bridge.Promise;
 
 import android.view.Choreographer;
 
-import androidx.annotation.NonNull;
-
 import org.jetbrains.annotations.NotNull;
 import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
