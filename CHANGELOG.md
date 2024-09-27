@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Dependencies
+
+- Bump CLI from v2.36.1 to v2.36.3 ([#4116](https://github.com/getsentry/sentry-react-native/pull/4116))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2363)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.36.1...2.36.3)
+
 ## 5.33.1
 
 ### Internal
