@@ -23,6 +23,7 @@
 
     [crumb setLevel:sentryLevel];
     [crumb setCategory:dict[@"category"]];
+    [crumb setOrigin:dict[@"origin"]];
     [crumb setType:dict[@"type"]];
     [crumb setMessage:dict[@"message"]];
     [crumb setData:dict[@"data"]];
