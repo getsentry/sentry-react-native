@@ -12,9 +12,7 @@
     "pod-install-legacy": "cd macos; bundle exec pod install; cd ..",
     "pod-install-legacy-production": "cd macos; PRODUCTION=1 bundle exec pod install; cd ..",
     "clean-macos": "cd macos; rm -rf Podfile.lock Pods build; cd ..",
-    "clean-watchman": "watchman watch-del-all",
-    "set-build-number": "npx react-native-version --skip-tag --never-amend --set-build",
-    "set-version": "npx react-native-version --skip-tag --never-amend"
+    "clean-watchman": "watchman watch-del-all"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.5.12",
