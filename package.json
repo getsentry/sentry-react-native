@@ -27,6 +27,7 @@
     "dev-packages/e2e-tests",
     "dev-packages/type-check",
     "samples/react-native",
+    "samples/react-native-macos",
     "samples/expo",
     "performance-tests/TestAppPlain",
     "performance-tests/TestAppSentry"
