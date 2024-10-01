@@ -7,6 +7,36 @@
 - Xcode Debug Files upload completes in foreground by default ([#4090](https://github.com/getsentry/sentry-react-native/pull/4090))
   - Use `SENTRY_FORCE_FOREGROUND=false` for background upload
 
+### Dependencies
+
+- Bump CLI from v2.36.1 to v2.36.4 ([#4116](https://github.com/getsentry/sentry-react-native/pull/4116), [#4131](https://github.com/getsentry/sentry-react-native/pull/4131))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2364)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.36.1...2.36.4)
+
+## 5.33.1
+
+### Internal
+
+This is re-release of 5.33.0 with no changes to ensure that 5.33.1 is tagged as latest release on npmjs.com
+
+## 5.33.0
+
+### Features
+
+- Add an option to disable native (iOS and Android) profiling for the `HermesProfiling` integration ([#4094](https://github.com/getsentry/sentry-react-native/pull/4094))
+
+  To disable native profilers add the `hermesProfilingIntegration`.
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    integrations: [
+      Sentry.hermesProfilingIntegration({ platformProfilers: false }),
+    ],
+  });
+  ```
+
 ## 6.0.0-beta.1
 
 ### Features
@@ -467,6 +497,24 @@ Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascri
   - [diff](https://github.com/getsentry/sentry-java/compare/7.9.0-alpha.1...7.11.0-alpha.2)
 
 Access to Mobile Replay is limited to early access orgs on Sentry. If you're interested, [sign up for the waitlist](https://sentry.io/lp/mobile-replay-beta/)
+
+## 5.24.2
+
+### Features
+
+- Add an option to disable native (iOS and Android) profiling for the `HermesProfiling` integration ([#4094](https://github.com/getsentry/sentry-react-native/pull/4094))
+
+  To disable native profilers add the `hermesProfilingIntegration`.
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    integrations: [
+      Sentry.hermesProfilingIntegration({ platformProfilers: false }),
+    ],
+  });
+  ```
 
 ## 5.24.1
 
