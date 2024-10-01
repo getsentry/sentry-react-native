@@ -9,8 +9,8 @@
     "test": "lerna run test",
     "fix": "lerna run fix",
     "lint": "lerna run lint",
-    "run-ios": "run-s cd samples/react-native yarn react-native run-ios",
-    "run-android": "run-s cd samples/react-native yarn react-native run-android",
+    "run-ios": "cd samples/react-native && yarn react-native run-ios",
+    "run-android": "cd samples/react-native && yarn react-native run-android",
     "set-version-samples": "lerna run set-version"
   },
   "devDependencies": {

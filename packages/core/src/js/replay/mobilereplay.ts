@@ -18,7 +18,7 @@ export interface MobileReplayOptions {
   maskAllText?: boolean;
 
   /**
-   * Mask all text in recordings
+   * Mask all images in recordings
    *
    * @default true
    */
