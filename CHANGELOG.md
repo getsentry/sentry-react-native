@@ -2,6 +2,9 @@
 
 ## 6.0.0-rc.0
 
+This is a release candidate version of the next major version of the Sentry React Native SDK 6.0.0.
+This version includes all the changes from the previous 6.0.0-beta.0 and the latest 5.33.1 version.
+
 ### Changes
 
 - Xcode Debug Files upload completes in foreground by default ([#4090](https://github.com/getsentry/sentry-react-native/pull/4090))
