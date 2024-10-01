@@ -66,29 +66,29 @@ For android switch `newArchEnabled` to `false` in [android/gradle.properties](ht
 
 ```sh
 yarn pod-install-legacy
-yarn run-ios
+yarn react-native run-ios
 
-yarn run-android
+yarn react-native run-android
 
 # Release builds
 yarn pod-install-legacy-production
-yarn run-ios --configuration Release
+yarn react-native run-ios --mode=Release
 
-yarn run-android --variant=release
+yarn react-native run-android --mode=release
 ```
 
 ### Run the emulators (new-architecture):
 ```sh
 yarn pod-install
-yarn run-ios
+yarn react-native run-ios
 
-yarn run-android
+yarn react-native run-android
 
 # Release builds
 yarn pod-install-production
-yarn run-ios --configuration Release
+yarn react-native run-ios --mode=Release
 
-yarn run-android --variant=release
+yarn react-native run-android --mode=release
 ```
 
 ## Develop with sentry-cocoa
