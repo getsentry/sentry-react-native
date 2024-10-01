@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "start": "react-native start --experimental-debugger",
-    "lint": "yarn type-check && npx eslint . --ext .js,.jsx,.ts,.tsx",
-    "fix": "yarn type-check && npx eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "lint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
+    "fix": "npx eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "type-check": "tsc --noEmit",
     "pod-install": "cd macos; RCT_NEW_ARCH_ENABLED=1 bundle exec pod install; cd ..",
     "pod-install-production": "cd macos; PRODUCTION=1 RCT_NEW_ARCH_ENABLED=1 bundle exec pod install; cd ..",
