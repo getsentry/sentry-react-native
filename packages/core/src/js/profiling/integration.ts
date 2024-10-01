@@ -24,12 +24,28 @@ const INTEGRATION_NAME = 'HermesProfiling';
 
 const MS_TO_NS: number = 1e6;
 
+export interface HermesProfilingOptions {
+  /**
+   * Enable or disable profiling of native (iOS and Android) threads
+   *
+   * @default true
+   */
+  platformProfilers?: boolean;
+}
+
+const defaultOptions: Required<HermesProfilingOptions> = {
+  platformProfilers: true,
+};
+
 /**
  * Profiling integration creates a profile for each transaction and adds it to the event envelope.
  *
  * @experimental
  */
-export const hermesProfilingIntegration: IntegrationFn = () => {
+export const hermesProfilingIntegration = (
+  initOptions: HermesProfilingOptions = defaultOptions,
+): IntegrationFn => {
+  const usePlatformProfilers = initOptions.platformProfilers ?? true;
   let _currentProfile:
     | {
         span_id: string;
@@ -137,7 +153,7 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
    * Starts a new profile and links it to the transaction.
    */
   const _startNewProfile = (activeSpan: Span): void => {
-    const profileStartTimestampNs = startProfiling();
+    const profileStartTimestampNs = startProfiling(usePlatformProfilers);
     if (!profileStartTimestampNs) {
       return;
     }
@@ -234,8 +250,8 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
 /**
  * Starts Profilers and returns the timestamp when profiling started in nanoseconds.
  */
-export function startProfiling(): number | null {
-  const started = NATIVE.startProfiling();
+export function startProfiling(platformProfilers: boolean): number | null {
+  const started = NATIVE.startProfiling(platformProfilers);
   if (!started) {
     return null;
   }
