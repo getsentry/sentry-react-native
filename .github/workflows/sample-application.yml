@@ -73,7 +73,7 @@ jobs:
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
         with:
-          working-directory: samples/react-native
+          working-directory: ${{ matrix.platform == 'ios' && ' samples/react-native' || ' samples/react-native-macos' }}
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
