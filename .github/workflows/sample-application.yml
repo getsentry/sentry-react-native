@@ -145,7 +145,7 @@ jobs:
 
       - name: Build macOS App
         if: ${{ matrix.platform == 'macos' }}
-        working-directory: samples/react-native-macos
+        working-directory: samples/react-native-macos/macos
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"
