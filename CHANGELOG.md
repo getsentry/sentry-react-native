@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+
+- Xcode Debug Files upload completes in foreground by default ([#4090](https://github.com/getsentry/sentry-react-native/pull/4090))
+  - Use `SENTRY_FORCE_FOREGROUND=false` for background upload
+
 ## 6.0.0-beta.1
 
 ### Features
