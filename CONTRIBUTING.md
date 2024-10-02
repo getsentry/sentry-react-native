@@ -88,7 +88,42 @@ yarn react-native run-android
 yarn pod-install-production
 yarn react-native run-ios --mode=Release
 
-yarn react-native run-android --mode=release
+yarn react-native run-android --mode=Release
+```
+
+## Running the macOS sample
+
+Head to the macOS sample root directory:
+
+```sh
+cd samples/react-native-macos/
+yarn
+bundle install
+yarn pod-install-legacy
+```
+
+You can now build and run the project from command line:
+```sh
+yarn react-native run-macos
+```
+
+or by openning the `samples/react-native-macos/macos/sentry-react-native-sample.xcworkspace`.
+
+_Note that the new architecture is not supported for the macOS sample at this point._
+
+### Optional
+
+You can optionally start the Metro bundler if you want to control where it runs:
+
+```sh
+yarn start --reset-cache
+```
+
+Run the emulators:
+
+```sh
+yarn react-native run-ios
+yarn react-native run-android
 ```
 
 ## Develop with sentry-cocoa
