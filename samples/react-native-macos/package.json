@@ -1,34 +1,32 @@
 {
-  "name": "sentry-react-native-sample",
-  "version": "6.0.0-rc.0",
+  "name": "sentry-react-native-macos-sample",
+  "version": "6.0.0-beta.0",
   "private": true,
   "scripts": {
-    "postinstall": "patch-package",
-    "android": "react-native run-android",
-    "ios": "react-native run-ios",
     "start": "react-native start --experimental-debugger",
-    "test": "jest",
     "lint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
-    "fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
-    "pod-install": "cd ios; RCT_NEW_ARCH_ENABLED=1 bundle exec pod install; cd ..",
-    "pod-install-production": "cd ios; PRODUCTION=1 RCT_NEW_ARCH_ENABLED=1 bundle exec pod install; cd ..",
-    "pod-install-legacy": "cd ios; bundle exec pod install; cd ..",
-    "pod-install-legacy-production": "cd ios; PRODUCTION=1 bundle exec pod install; cd ..",
-    "clean-ios": "cd ios; rm -rf Podfile.lock Pods build; cd ..",
-    "clean-watchman": "watchman watch-del-all",
-    "set-build-number": "npx react-native-version --skip-tag --never-amend --set-build",
-    "set-version": "npx react-native-version --skip-tag --never-amend"
+    "fix": "npx eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "type-check": "tsc --noEmit",
+    "pod-install": "cd macos; RCT_NEW_ARCH_ENABLED=1 bundle exec pod install; cd ..",
+    "pod-install-production": "cd macos; PRODUCTION=1 RCT_NEW_ARCH_ENABLED=1 bundle exec pod install; cd ..",
+    "pod-install-legacy": "cd macos; bundle exec pod install; cd ..",
+    "pod-install-legacy-production": "cd macos; PRODUCTION=1 bundle exec pod install; cd ..",
+    "clean-macos": "cd macos; rm -rf Podfile.lock Pods build; cd ..",
+    "clean-watchman": "watchman watch-del-all"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.5.12",
     "@react-navigation/native": "^6.1.9",
-    "@react-navigation/native-stack": "^6.9.17",
     "@react-navigation/stack": "^6.3.20",
-    "@sentry/react-native": "6.0.0-rc.0",
+    "@sentry/react": "8.30.0",
+    "@sentry/react-native": "6.0.0-beta.1",
+    "@sentry/types": "8.30.0",
+    "@sentry/utils": "8.30.0",
     "delay": "^6.0.0",
     "react": "18.2.0",
     "react-native": "0.73.9",
     "react-native-gesture-handler": "2.14.0",
+    "react-native-macos": "0.73.34",
     "react-native-reanimated": "3.8.1",
     "react-native-safe-area-context": "4.8.0",
     "react-native-screens": "3.29.0",
@@ -45,30 +43,18 @@
     "@react-native/eslint-config": "0.73.2",
     "@react-native/metro-config": "0.73.5",
     "@react-native/typescript-config": "0.73.1",
-    "@sentry/babel-plugin-component-annotate": "^2.18.0",
     "@types/react": "^18.2.65",
     "@types/react-native-vector-icons": "^6.4.18",
     "@types/react-test-renderer": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^5.37.0",
     "@typescript-eslint/parser": "^5.37.0",
-    "babel-jest": "^29.2.1",
     "babel-plugin-module-resolver": "^5.0.0",
     "eslint": "^8.19.0",
     "jest": "^29.6.3",
-    "patch-package": "^8.0.0",
     "prettier": "2.8.8",
-    "react-test-renderer": "18.2.0",
     "typescript": "5.0.4"
   },
   "engines": {
     "node": ">=18"
-  },
-  "codegenConfig": {
-    "name": "AppSpecs",
-    "type": "all",
-    "jsSrcsDir": "tm",
-    "android": {
-      "javaPackageName": "com.facebook.fbreact.specs"
-    }
   }
 }

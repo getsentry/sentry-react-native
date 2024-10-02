@@ -3,7 +3,6 @@ import {
   NavigationContainer,
   NavigationContainerRef,
 } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Animated, {
@@ -121,9 +120,7 @@ Sentry.init({
   autoInitializeNativeSdk: true,
 });
 
-const Stack = isMobileOs
-  ? createNativeStackNavigator()
-  : createStackNavigator();
+const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const TabOneStack = Sentry.withProfiler(
