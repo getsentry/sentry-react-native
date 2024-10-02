@@ -91,21 +91,6 @@ yarn react-native run-ios --mode=Release
 yarn react-native run-android --mode=Release
 ```
 
-### Optional
-
-You can optionally start the Metro bundler if you want to control where it runs:
-
-```sh
-yarn start --reset-cache
-```
-
-Run the emulators:
-
-```sh
-yarn react-native run-ios
-yarn react-native run-android
-```
-
 ## Running the macOS sample
 
 Head to the macOS sample root directory:
