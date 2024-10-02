@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Dependencies
+
+- Bump CLI from v2.36.4 to v2.36.5 ([#4137](https://github.com/getsentry/sentry-react-native/pull/4137))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2365)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.36.4...2.36.5)
+
 ## 6.0.0-rc.0
 
 This is a release candidate version of the next major version of the Sentry React Native SDK 6.0.0.
