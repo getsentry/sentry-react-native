@@ -35,7 +35,6 @@ import { logWithoutTracing } from './utils';
 import { ErrorEvent } from '@sentry/types';
 
 LogBox.ignoreAllLogs();
-
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 
 const reactNavigationIntegration = Sentry.reactNavigationIntegration({

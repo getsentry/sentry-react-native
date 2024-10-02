@@ -9,6 +9,7 @@ import type { Envelope, Event, Integration, Profile, Span, ThreadCpuProfile, Tra
 import * as Sentry from '../../src/js';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { getDebugMetadata } from '../../src/js/profiling/debugid';
+import type { HermesProfilingOptions } from '../../src/js/profiling/integration';
 import { hermesProfilingIntegration } from '../../src/js/profiling/integration';
 import type { AndroidProfileEvent } from '../../src/js/profiling/types';
 import { getDefaultEnvironment, isHermesEnabled, notWeb } from '../../src/js/utils/environment';
@@ -324,12 +325,22 @@ describe('profiling integration', () => {
       );
     });
   });
+
+  test('platformProviders flag passed down to native', () => {
+    mock = initTestClient({ withProfiling: true, hermesProfilingOptions: { platformProfilers: false } });
+    const transaction = Sentry.startSpanManual({ name: 'test-name' }, span => span);
+    transaction.end();
+    jest.runAllTimers();
+
+    expect(mockWrapper.NATIVE.startProfiling).toBeCalledWith(false);
+  });
 });
 
 function initTestClient(
   testOptions: {
     withProfiling?: boolean;
     environment?: string;
+    hermesProfilingOptions?: HermesProfilingOptions;
   } = {
     withProfiling: true,
   },
@@ -346,7 +357,12 @@ function initTestClient(
       if (!testOptions.withProfiling) {
         return integrations.filter(i => i.name !== 'HermesProfiling');
       }
-      return integrations;
+      return integrations.map(integration => {
+        if (integration.name === 'HermesProfiling') {
+          return hermesProfilingIntegration(testOptions.hermesProfilingOptions ?? {});
+        }
+        return integration;
+      });
     },
     transport: () => ({
       send: transportSendMock.mockResolvedValue({}),

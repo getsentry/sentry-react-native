@@ -139,8 +139,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
-    public WritableMap startProfiling() {
-        return this.impl.startProfiling();
+    public WritableMap startProfiling(boolean platformProfilers) {
+        return this.impl.startProfiling(platformProfilers);
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)

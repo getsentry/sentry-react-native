@@ -9,12 +9,12 @@
     "test": "lerna run test",
     "fix": "lerna run fix",
     "lint": "lerna run lint",
-    "run-ios": "run-s cd samples/react-native yarn react-native run-ios",
-    "run-android": "run-s cd samples/react-native yarn react-native run-android",
+    "run-ios": "cd samples/react-native && yarn react-native run-ios",
+    "run-android": "cd samples/react-native && yarn react-native run-android",
     "set-version-samples": "lerna run set-version"
   },
   "devDependencies": {
-    "@sentry/cli": "2.36.1",
+    "@sentry/cli": "2.36.5",
     "downlevel-dts": "^0.11.0",
     "lerna": "^8.1.8",
     "npm-run-all2": "^6.2.2",
@@ -27,6 +27,7 @@
     "dev-packages/e2e-tests",
     "dev-packages/type-check",
     "samples/react-native",
+    "samples/react-native-macos",
     "samples/expo",
     "performance-tests/TestAppPlain",
     "performance-tests/TestAppSentry"
