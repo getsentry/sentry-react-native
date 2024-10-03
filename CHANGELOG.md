@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Emits Bridge log only in debug mode ([#4145](https://github.com/getsentry/sentry-react-native/pull/4145))
+
 ### Dependencies
 
 - Bump CLI from v2.36.1 to v2.36.6 ([#4116](https://github.com/getsentry/sentry-react-native/pull/4116), [#4131](https://github.com/getsentry/sentry-react-native/pull/4131), [#4137](https://github.com/getsentry/sentry-react-native/pull/4137), [#4144](https://github.com/getsentry/sentry-react-native/pull/4144))
