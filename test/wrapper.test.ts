@@ -574,13 +574,13 @@ describe('Tests Native Wrapper', () => {
       (RNSentry.startProfiling as jest.MockedFunction<typeof RNSentry.startProfiling>).mockReturnValue({
         started: true,
       });
-      expect(NATIVE.startProfiling()).toBe(true);
+      expect(NATIVE.startProfiling(true)).toBe(true);
     });
     test('failed start profiling returns false', () => {
       (RNSentry.startProfiling as jest.MockedFunction<typeof RNSentry.startProfiling>).mockReturnValue({
         error: 'error',
       });
-      expect(NATIVE.startProfiling()).toBe(false);
+      expect(NATIVE.startProfiling(true)).toBe(false);
     });
     test('stop profiling returns hermes profile', () => {
       (RNSentry.stopProfiling as jest.MockedFunction<typeof RNSentry.stopProfiling>).mockReturnValue({

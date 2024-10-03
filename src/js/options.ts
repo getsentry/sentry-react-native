@@ -205,14 +205,51 @@ export interface BaseReactNativeOptions {
   beforeScreenshot?: (event: Event, hint: EventHint) => boolean;
 
   /**
+   * The sample rate for profiling
+   * 1.0 will profile all transactions and 0 will profile none.
+   */
+  profilesSampleRate?: number;
+
+  /**
+   * Track the app start time by adding measurements to the first route transaction. If there is no routing instrumentation
+   * an app start transaction will be started.
+   *
+   * Requires performance monitoring to be enabled.
+   *
+   * @default true
+   */
+  enableAppStartTracking?: boolean;
+
+  /**
+   * Track the slow and frozen frames in the application. Enabling this options will add
+   * slow and frozen frames measurements to all created root spans (transactions).
+   *
+   * @default true
+   */
+  enableNativeFramesTracking?: boolean;
+
+  /**
+   * Track when and how long the JS event loop stalls for. Adds stalls as measurements to all transactions.
+   *
+   * @default true
+   */
+  enableStallTracking?: boolean;
+
+  /**
+   * Trace User Interaction events like touch and gestures.
+   *
+   * @default false
+   */
+  enableUserInteractionTracing?: boolean;
+
+  /**
    * Options which are in beta, or otherwise not guaranteed to be stable.
    */
   _experiments?: {
     [key: string]: unknown;
 
     /**
-     * The sample rate for profiling
-     * 1.0 will profile all transactions and 0 will profile none.
+     * @deprecated Use `profilesSampleRate` in the options root instead.
      */
     profilesSampleRate?: number;
 

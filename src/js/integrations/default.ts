@@ -85,7 +85,10 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     if (options.attachViewHierarchy) {
       integrations.push(viewHierarchyIntegration());
     }
-    if (options._experiments && typeof options._experiments.profilesSampleRate === 'number') {
+    if (
+      options.profilesSampleRate ??
+      (options._experiments && typeof options._experiments.profilesSampleRate === 'number')
+    ) {
       integrations.push(hermesProfilingIntegration());
     }
   }

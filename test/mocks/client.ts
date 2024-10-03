@@ -8,7 +8,6 @@ import {
   setCurrentClient,
 } from '@sentry/core';
 import type {
-  ClientOptions,
   Event,
   EventHint,
   Integration,
@@ -19,6 +18,7 @@ import type {
 } from '@sentry/types';
 import { resolvedSyncPromise } from '@sentry/utils';
 
+import type { ReactNativeClientOptions } from '../../src/js/options';
 import { _addTracingExtensions } from '../../src/js/tracing/addTracingExtensions';
 
 export function getDefaultTestClientOptions(options: Partial<TestClientOptions> = {}): TestClientOptions {
@@ -39,14 +39,14 @@ export function getDefaultTestClientOptions(options: Partial<TestClientOptions> 
   };
 }
 
-export interface TestClientOptions extends ClientOptions {
+export interface TestClientOptions extends ReactNativeClientOptions {
   test?: boolean;
   mockInstallFailure?: boolean;
   enableSend?: boolean;
   defaultIntegrations?: Integration[] | false;
 }
 
-export class TestClient extends BaseClient<TestClientOptions> {
+export class TestClient extends BaseClient<ReactNativeClientOptions> {
   public static instance?: TestClient;
   public static sendEventCalled?: (event: Event) => void;
 

@@ -390,11 +390,11 @@ describe('React Native Navigation Instrumentation', () => {
       routingInstrumentation: rNavigation,
       enableStallTracking: false,
       enableNativeFramesTracking: false,
-      enableAppStartTracking: false,
       beforeNavigate: setupOptions.beforeNavigate || (span => span),
     });
 
     const options = getDefaultTestClientOptions({
+      enableAppStartTracking: false,
       tracesSampleRate: 1.0,
       integrations: [rnTracing],
     });

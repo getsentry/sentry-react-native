@@ -5,13 +5,14 @@ import type {
   Event,
   Integration,
   IntegrationClass,
-  IntegrationFn,
+  IntegrationFnResult,
   ThreadCpuProfile,
   Transaction,
 } from '@sentry/types';
 import { logger, uuid4 } from '@sentry/utils';
 import { Platform } from 'react-native';
 
+import type { ReactNativeClient } from '../client';
 import { isHermesEnabled } from '../utils/environment';
 import { NATIVE } from '../wrapper';
 import { PROFILE_QUEUE } from './cache';
@@ -30,12 +31,27 @@ const INTEGRATION_NAME = 'HermesProfiling';
 
 const MS_TO_NS: number = 1e6;
 
+export interface HermesProfilingOptions {
+  /**
+   * Enable or disable profiling of native (iOS and Android) threads
+   *
+   * @default true
+   */
+  platformProfilers?: boolean;
+}
+
+const defaultOptions: Required<HermesProfilingOptions> = {
+  platformProfilers: true,
+};
+
 /**
  * Profiling integration creates a profile for each transaction and adds it to the event envelope.
  *
  * @experimental
  */
-export const hermesProfilingIntegration: IntegrationFn = () => {
+export const hermesProfilingIntegration = (
+  initOptions: HermesProfilingOptions = defaultOptions,
+): IntegrationFnResult => {
   let _currentProfile:
     | {
         profile_id: string;
@@ -43,6 +59,7 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
       }
     | undefined;
   let _currentProfileTimeout: number | undefined;
+  const usePlatformProfilers = initOptions.platformProfilers ?? true;
 
   const setupOnce = (): void => {
     if (!isHermesEnabled()) {
@@ -109,13 +126,16 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
       return false;
     }
 
-    const client = getClient();
+    const client = getClient<ReactNativeClient>();
     const options = client && client.getOptions();
 
     const profilesSampleRate =
-      options && options._experiments && typeof options._experiments.profilesSampleRate === 'number'
-        ? options._experiments.profilesSampleRate
-        : undefined;
+      options &&
+      ((typeof options.profilesSampleRate === 'number' && options.profilesSampleRate) ||
+        (options._experiments &&
+          typeof options._experiments.profilesSampleRate === 'number' &&
+          options._experiments.profilesSampleRate) ||
+        undefined);
     if (profilesSampleRate === undefined) {
       logger.log('[Profiling] Profiling disabled, enable it by setting `profilesSampleRate` option to SDK init call.');
       return false;
@@ -134,7 +154,7 @@ export const hermesProfilingIntegration: IntegrationFn = () => {
    * Starts a new profile and links it to the transaction.
    */
   const _startNewProfile = (transaction: Transaction): void => {
-    const profileStartTimestampNs = startProfiling();
+    const profileStartTimestampNs = startProfiling(usePlatformProfilers);
     if (!profileStartTimestampNs) {
       return;
     }
@@ -223,8 +243,8 @@ export const HermesProfiling = convertIntegrationFnToClass(
 /**
  * Starts Profilers and returns the timestamp when profiling started in nanoseconds.
  */
-export function startProfiling(): number | null {
-  const started = NATIVE.startProfiling();
+export function startProfiling(platformProfilers: boolean): number | null {
+  const started = NATIVE.startProfiling(platformProfilers);
   if (!started) {
     return null;
   }

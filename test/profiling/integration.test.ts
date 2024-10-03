@@ -9,6 +9,7 @@ import type { Envelope, Event, Profile, ThreadCpuProfile, Transaction, Transport
 import * as Sentry from '../../src/js';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { getDebugMetadata } from '../../src/js/profiling/debugid';
+import type { HermesProfilingOptions } from '../../src/js/profiling/integration';
 import { hermesProfilingIntegration } from '../../src/js/profiling/integration';
 import type { AndroidProfileEvent } from '../../src/js/profiling/types';
 import { getDefaultEnvironment, isHermesEnabled, notWeb } from '../../src/js/utils/environment';
@@ -351,12 +352,24 @@ describe('profiling integration', () => {
       jest.runAllTimers();
     });
   });
+
+  test('platformProviders flag passed down to native', () => {
+    mock = initTestClient({ withProfiling: true, hermesProfilingOptions: { platformProfilers: false } });
+    const transaction: Transaction = Sentry.startTransaction({
+      name: 'test-name',
+    });
+    transaction.finish();
+    jest.runAllTimers();
+
+    expect(mockWrapper.NATIVE.startProfiling).toBeCalledWith(false);
+  });
 });
 
 function initTestClient(
   testOptions: {
     withProfiling?: boolean;
     environment?: string;
+    hermesProfilingOptions?: HermesProfilingOptions;
   } = {
     withProfiling: true,
   },
@@ -367,13 +380,17 @@ function initTestClient(
   const options: Sentry.ReactNativeOptions = {
     dsn: MOCK_DSN,
     enableTracing: true,
-    _experiments: {
-      profilesSampleRate: 1,
-    },
+    profilesSampleRate: 1,
     integrations: integrations => {
       if (!testOptions.withProfiling) {
         return integrations.filter(i => i.name !== 'HermesProfiling');
       }
+      return integrations.map(integration => {
+        if (integration.name === 'HermesProfiling') {
+          return hermesProfilingIntegration(testOptions.hermesProfilingOptions ?? {});
+        }
+        return integration;
+      });
       return integrations;
     },
     transport: () => ({
