@@ -4,9 +4,9 @@
 
 ### Dependencies
 
-- Bump CLI from v2.36.1 to v2.36.5 ([#4116](https://github.com/getsentry/sentry-react-native/pull/4116), [#4131](https://github.com/getsentry/sentry-react-native/pull/4131), [#4137](https://github.com/getsentry/sentry-react-native/pull/4137))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2365)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.36.1...2.36.5)
+- Bump CLI from v2.36.1 to v2.36.6 ([#4116](https://github.com/getsentry/sentry-react-native/pull/4116), [#4131](https://github.com/getsentry/sentry-react-native/pull/4131), [#4137](https://github.com/getsentry/sentry-react-native/pull/4137), [#4144](https://github.com/getsentry/sentry-react-native/pull/4144))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2366)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.36.1...2.36.6)
 
 ## 5.33.1
 
