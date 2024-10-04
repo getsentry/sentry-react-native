@@ -387,6 +387,7 @@ public class RNSentryModuleImpl {
         if (!isAppLaunchedInForeground) {
             logger.log(SentryLevel.WARNING, "Invalid app start data: app not launched in foreground.");
             promise.resolve(null);
+            return;
         }
 
         WritableMap mutableMeasurement = (WritableMap) RNSentryMapConverter.convertToWritable(appStartMeasurement);
