@@ -47,7 +47,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import io.sentry.Breadcrumb;
 import io.sentry.DateUtils;
@@ -381,10 +380,8 @@ public class RNSentryModuleImpl {
     }
 
     public void fetchNativeAppStart(Promise promise) {
-        AppStartMetrics appStartMetrics = AppStartMetrics.getInstance();
-        if (!appStartMetrics.isAppLaunchedInForeground() ||
-                appStartMetrics.getAppStartTimeSpan().getDurationMs() > TimeUnit.MINUTES.toMillis(1)) {
-            logger.log(SentryLevel.WARNING, "Invalid app start data: app not launched in foreground or app start took too long (>60s)");
+        if (!AppStartMetrics.getInstance().isAppLaunchedInForeground()) {
+            logger.log(SentryLevel.WARNING, "Invalid app start data: app not launched in foreground.");
             promise.resolve(null);
         }
 
