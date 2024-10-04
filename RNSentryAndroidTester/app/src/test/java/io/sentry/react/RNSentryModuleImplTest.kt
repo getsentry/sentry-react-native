@@ -65,7 +65,7 @@ class RNSentryModuleImplTest {
         val appStartMeasurement = mapOf<String, Any>()
 
         // Call the method
-        module.fetchNativeAppStart(promise, appStartMeasurement, logger, true)
+        module.fetchNativeAppStart(promise, appStartMeasurement, logger, false)
 
         // Verify a warning log is emitted
         verify(logger, org.mockito.kotlin.times(1)).log(
@@ -83,7 +83,7 @@ class RNSentryModuleImplTest {
         val appStartMeasurement = mapOf<String, Any>()
 
         // Call the method
-        module.fetchNativeAppStart(promise, appStartMeasurement, logger, false)
+        module.fetchNativeAppStart(promise, appStartMeasurement, logger, true)
 
         // Verify no logs are emitted
         verify(logger, org.mockito.kotlin.times(0)).log(any(), any())

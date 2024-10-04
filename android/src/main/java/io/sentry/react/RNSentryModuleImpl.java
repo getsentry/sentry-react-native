@@ -384,7 +384,7 @@ public class RNSentryModuleImpl {
     }
 
     protected void fetchNativeAppStart(Promise promise, final Map<String, Object> appStartMeasurement, ILogger logger, boolean isAppLaunchedInForeground) {
-        if (isAppLaunchedInForeground) {
+        if (!isAppLaunchedInForeground) {
             logger.log(SentryLevel.WARNING, "Invalid app start data: app not launched in foreground.");
             promise.resolve(null);
         }
