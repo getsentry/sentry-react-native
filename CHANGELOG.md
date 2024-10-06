@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Fix build multi variant releases on Android ([#4125](https://github.com/getsentry/sentry-react-native/pull/4125))
+
 ## 5.33.1
 
 ### Internal
