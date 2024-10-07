@@ -52,7 +52,7 @@ jobs:
 
       - name: Pod Install
         working-directory: samples/react-native/ios
-        run: NO_FLIPPER=1 PRODUCTION=1 bundle exec pod install
+        run: PRODUCTION=1 bundle exec pod install
 
       - name: Run Fastlane
         working-directory: samples/react-native

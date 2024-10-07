@@ -103,7 +103,6 @@ jobs:
           [[ "${{ matrix.platform }}" == "ios" ]] && cd react-native/ios
           [[ "${{ matrix.platform }}" == "macos" ]] && cd react-native-macos/macos
 
-          export NO_FLIPPER=1 # Flipper is causing build issues on iOS, so we disable it
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic
