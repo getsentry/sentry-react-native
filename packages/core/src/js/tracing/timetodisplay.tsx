@@ -22,7 +22,6 @@ const fullDisplayBeforeInitialDisplay = new WeakMap<Span, true>();
 
 export type TimeToDisplayProps = {
   children?: React.ReactNode;
-  spanName?: string;
   record?: boolean;
 };
 
