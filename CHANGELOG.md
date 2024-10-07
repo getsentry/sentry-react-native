@@ -6,6 +6,7 @@
 
 - Fix build multi variant releases on Android ([#4125](https://github.com/getsentry/sentry-react-native/pull/4125))
 - Emits Bridge log only in debug mode ([#4145](https://github.com/getsentry/sentry-react-native/pull/4145))
+- Remove unused `spanName` from `TimeToDisplayProps` ([#4150](https://github.com/getsentry/sentry-react-native/pull/4150))
 
 ### Dependencies
 

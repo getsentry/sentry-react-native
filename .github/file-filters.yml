@@ -1,0 +1,19 @@
+# This is used by the action https://github.com/dorny/paths-filter
+
+high_risk_code: &high_risk_code
+  # React Native Interface
+  - 'src/js/vendor/react-native/index.ts'
+  - 'src/js/utils/rnlibraries.ts'
+  - 'src/js/utils/rnlibrariesinterface.ts'
+
+  # Touch Integration
+  - 'src/js/touchevents.tsx'
+  
+  # Sentry Native Interface
+  - 'src/js/NativeRNSentry.ts'
+
+  # Source Maps and Native Debug Files Autoupload
+  - 'scripts/sentry-xcode.sh'
+  - 'scripts/sentry-xcode-debug-files.sh'
+  - 'sentry.gradle'
+  
