@@ -17,7 +17,8 @@
     "clean-watchman": "watchman watch-del-all",
     "set-build-number": "npx react-native-version --skip-tag --never-amend --set-build",
     "set-version": "npm version --no-git-tag-version",
-    "postversion": "npx react-native-version --skip-tag --never-amend"
+    "postversion": "npx react-native-version --skip-tag --never-amend",
+    "build-android-release-splits-flavors": "export SENTRY_SAMPLE_ENABLE_ABI_SPLIT=true; export SENTRY_SAMPLE_ENABLE_FLAVORS=true; cd android; ./gradlew assembleRelease; cd .."
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.5.12",
