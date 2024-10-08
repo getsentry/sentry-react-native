@@ -33,7 +33,6 @@ class RNSentryModuleImplTest {
     @Captor
     private lateinit var writableMapCaptor: ArgumentCaptor<WritableMap>
 
-
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
