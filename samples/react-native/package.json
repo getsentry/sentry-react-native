@@ -17,7 +17,8 @@
     "clean-ios": "cd ios; rm -rf Podfile.lock Pods build; cd ..",
     "clean-watchman": "watchman watch-del-all",
     "set-build-number": "npx react-native-version --skip-tag --never-amend --set-build",
-    "set-version": "npx react-native-version --skip-tag --never-amend"
+    "set-version": "npx react-native-version --skip-tag --never-amend",
+    "build-android-release-splits-flavors": "export SENTRY_SAMPLE_ENABLE_ABI_SPLIT=true; export SENTRY_SAMPLE_ENABLE_FLAVORS=true; cd android; ./gradlew assembleRelease; cd .."
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.5.12",

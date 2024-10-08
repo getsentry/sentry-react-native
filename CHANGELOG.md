@@ -2,8 +2,15 @@
 
 ## Unreleased
 
+### Fixes
+
+- Upload source maps for all splits on Android (not only the last found) ([#4125](https://github.com/getsentry/sentry-react-native/pull/4125))
+
 ### Dependencies
 
+- Bump CLI from v2.36.6 to v2.37.0 ([#4153](https://github.com/getsentry/sentry-react-native/pull/4153))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2370)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.36.6...2.37.0)
 - Bump JavaScript SDK from v8.30.0 to v8.33.1` ([#4154](https://github.com/getsentry/sentry-react-native/pull/4154))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8331)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/v8.30.0...8.33.1)
