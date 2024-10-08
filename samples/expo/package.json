@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-expo-sample",
-  "version": "5.33.1",
+  "version": "5.33.2",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
