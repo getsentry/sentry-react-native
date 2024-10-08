@@ -1,5 +1,33 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Upload source maps for all release variants on Android (not only the last found) ([#4125](https://github.com/getsentry/sentry-react-native/pull/4125))
+
+### Dependencies
+
+- Bump CLI from v2.36.6 to v2.37.0 ([#4153](https://github.com/getsentry/sentry-react-native/pull/4153))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2370)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.36.6...2.37.0)
+
+## 5.33.2
+
+### Fixes
+
+- Emits Bridge log only in debug mode ([#4145](https://github.com/getsentry/sentry-react-native/pull/4145))
+- Remove unused `spanName` from `TimeToDisplayProps` ([#4150](https://github.com/getsentry/sentry-react-native/pull/4150))
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.119.0 to v7.119.1 ([#4149](https://github.com/getsentry/sentry-react-native/pull/4149))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/v7/CHANGELOG.md#71191)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.119.0...7.119.1)
+- Bump CLI from v2.36.1 to v2.36.6 ([#4116](https://github.com/getsentry/sentry-react-native/pull/4116), [#4131](https://github.com/getsentry/sentry-react-native/pull/4131), [#4137](https://github.com/getsentry/sentry-react-native/pull/4137), [#4144](https://github.com/getsentry/sentry-react-native/pull/4144))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2366)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.36.1...2.36.6)
+
 ## 5.33.1
 
 ### Internal
