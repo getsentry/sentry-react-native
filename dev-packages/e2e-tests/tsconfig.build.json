@@ -1,0 +1,19 @@
+{
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "baseUrl": ".",
+    "target": "es2015",
+    "jsx": "react-native",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "types": [
+      "react-native",
+    ],
+  }
+}

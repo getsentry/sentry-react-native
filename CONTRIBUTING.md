@@ -1,18 +1,23 @@
 # Contributing
 
-This repository contains a sample project. It can be used to test the SDK as you develop it.
+This repository contains mono repository structure with multiple React Native and Expo project for development and testing.
+
+# Overview
+
+- / -> monorepo root private package
+- /samples -> sample application, expo, rn...
+- /packages -> RN SDK packages
+- /dev-packages -> dev packages, ts-3.8 test runner, e2e tests components and runner
+- /performance-tests -> applications used for measuring performance in CI
 
 # Requirements
 
-You need:
-
-- nodejs 14 or higher
-- yarn 1 or higher
+- nodejs 18 (with corepack enabled)
+- yarn version specified in `package.json` (at the moment version 3.6)
 
 ## Building
 
-First install dependencies of the SDK (the root of the repository)
-This is only needed if dependencies are added/removed.
+Install dependencies using:
 
 ```sh
 yarn
@@ -23,17 +28,19 @@ Once deps are installed, you can build the project:
 ```sh
 yarn build
 
-# Or in watch mode, for development
+# Or in watch mode, for development of the SDK core
 
-yarn build:watch
+cd packages/core
+yarn build:sdk:watch
 ```
 
-## testing
+## Testing
 
 ```sh
 yarn test
 
 # Or the watcher when writing tests:
+cd packages/core
 yarn test:watch
 ```
 
@@ -43,8 +50,15 @@ Now we can go into the sample project, install and build it:
 
 ```sh
 cd samples/react-native/
-yarn
+
+yarn start # Metro development server
+
+npx pod-install
+yarn ios # iOS Development build
+yarn android # Android Development build
 ```
+
+Recommended is to open the native project in `samples/react-native/android` and `samples/react-native/ios` on Android Studio and Xcode respectively.
 
 ### Run the emulators (legacy-architecture):
 
@@ -52,44 +66,51 @@ For android switch `newArchEnabled` to `false` in [android/gradle.properties](ht
 
 ```sh
 yarn pod-install-legacy
-yarn run-ios
+yarn react-native run-ios
 
-yarn run-android
+yarn react-native run-android
 
 # Release builds
 yarn pod-install-legacy-production
-yarn run-ios --configuration Release
+yarn react-native run-ios --mode=Release
 
-yarn run-android --variant=release
+yarn react-native run-android --mode=release
 ```
 
 ### Run the emulators (new-architecture):
 ```sh
 yarn pod-install
-yarn run-ios
+yarn react-native run-ios
 
-yarn run-android
+yarn react-native run-android
 
 # Release builds
 yarn pod-install-production
-yarn run-ios --configuration Release
+yarn react-native run-ios --mode=Release
 
-yarn run-android --variant=release
+yarn react-native run-android --mode=Release
 ```
 
-### Optional
-You can optionally start the Metro bundler if you want to control where it runs:
+## Running the macOS sample
+
+Head to the macOS sample root directory:
 
 ```sh
-yarn start --reset-cache
+cd samples/react-native-macos/
+yarn
+bundle install
+yarn pod-install-legacy
+yarn start
 ```
 
-Run the emulators:
-
+You can now build and run the project from command line:
 ```sh
-yarn react-native run-ios
-yarn react-native run-android
+yarn react-native run-macos
 ```
+
+or by openning the `samples/react-native-macos/macos/sentry-react-native-sample.xcworkspace`.
+
+_Note that the new architecture is not supported for the macOS sample at this point._
 
 ## Develop with sentry-cocoa
 
@@ -100,7 +121,6 @@ Here are step on how to test your changes in `sentry-cocoa` with `sentry-react-n
 ```sh
 cd sentry-cocoa
 make init
-make build-xcframework
 ```
 
 2. Link local `sentry-cocoa` build in `sentry-react-native`

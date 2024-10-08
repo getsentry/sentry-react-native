@@ -63,18 +63,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'yarn'
-          cache-dependency-path: |
-            yarn.lock
-            samples/react-native/yarn.lock
+          cache-dependency-path: yarn.lock
 
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
         with:
-          working-directory: samples/react-native
+          working-directory: ${{ matrix.platform == 'ios' && ' samples/react-native' || ' samples/react-native-macos' }}
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
@@ -92,21 +91,17 @@ jobs:
         run: which xcbeautify || brew install xcbeautify
 
       - name: Install SDK Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       - name: Build SDK
         run: yarn build
 
-      - name: Install Sample Dependencies
-        working-directory: samples/react-native
-        run: yarn install --frozen-lockfile
-
       - name: Install App Pods
         if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
-        working-directory: samples/react-native
+        working-directory: samples
         run: |
-          [[ "${{ matrix.platform }}" == "ios" ]] && cd ios
-          [[ "${{ matrix.platform }}" == "macos" ]] && cd macos
+          [[ "${{ matrix.platform }}" == "ios" ]] && cd react-native/ios
+          [[ "${{ matrix.platform }}" == "macos" ]] && cd react-native-macos/macos
 
           export NO_FLIPPER=1 # Flipper is causing build issues on iOS, so we disable it
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
@@ -150,7 +145,7 @@ jobs:
 
       - name: Build macOS App
         if: ${{ matrix.platform == 'macos' }}
-        working-directory: samples/react-native/macos
+        working-directory: samples/react-native-macos/macos
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"

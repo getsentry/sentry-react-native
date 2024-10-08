@@ -22,8 +22,12 @@ jobs:
         with:
           token: ${{ secrets.GH_RELEASE_PAT }}
           fetch-depth: 0
-      - name: Install Dependencies
-        run: yarn install
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
       - name: Prepare release
         uses: getsentry/action-prepare-release@v1
         env:

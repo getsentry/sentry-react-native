@@ -42,11 +42,11 @@ jobs:
           - platform: ios
             runs-on: macos-12
             name: iOS
-            appPlain: test/perf/test-app-plain.ipa
+            appPlain: performance-tests/test-app-plain.ipa
           - platform: android
             runs-on: ubuntu-latest
             name: Android
-            appPlain: test/perf/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
+            appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
       - uses: actions/checkout@v4
 
@@ -56,9 +56,13 @@ jobs:
       - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' }}
 
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
@@ -66,24 +70,12 @@ jobs:
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
       - name: Install Global Dependencies
-        run: yarn global add react-native-cli @sentry/cli yalc
-      - uses: actions/cache@v4
-        id: deps-cache
-        with:
-          path: |
-            node_modules
-            test/perf/TestAppSentry/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'test/perf/TestAppSentry/yarn.lock') }}
+        run: npm i -g react-native-cli @sentry/cli
       - name: Install Dependencies
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
       - name: Build SDK
         run: yarn build
-      - name: Package SDK
-        run: yalc publish
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
+
       - uses: actions/cache@v4
         id: app-plain-cache
         with:
@@ -91,12 +83,13 @@ jobs:
           # if the whole plain app folder is hashed the cache is never hit as there are files generated in the folder
           # the cache key is calculated both at cache retrieval and save time
           # hashFiles fails when there are rn android new arch generated files in the folder (exact reason unknown)
-          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('test/perf/TestAppPlain/yarn.lock') }}
+          # we removed the lock file of the app due to monorepo changes, we use the package.json instead
+          # to avoid frequent rebuilds of the app
+          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('performance-tests/TestAppSentry/package.json') }}
       - name: Build app plain
         if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
-        working-directory: ./test/perf/TestAppPlain
+        working-directory: ./performance-tests/TestAppPlain
         run: |
-          yarn install
           cd ${{ matrix.platform }}
           if [[ "${{ matrix.platform }}" == "android" ]]; then
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
@@ -121,10 +114,8 @@ jobs:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
       - name: Build app with Sentry
-        working-directory: ./test/perf/TestAppSentry
+        working-directory: ./performance-tests/TestAppSentry
         run: |
-          yalc add @sentry/react-native
-          yarn install
           cd ${{ matrix.platform }}
           if [[ "${{ matrix.platform }}" == "android" ]]; then
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
@@ -141,8 +132,6 @@ jobs:
             fastlane build_perf_test_app_sentry
             cd TestAppSentry
           fi
-          # Remove after build so that the cache isn't invaldiated due to the changes in yarn.lock.
-          yarn remove @sentry/react-native
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
@@ -155,7 +144,7 @@ jobs:
         uses: getsentry/action-app-sdk-overhead-metrics@v1
         with:
           name: ${{ matrix.name }} (${{ matrix.rn-architecture }})
-          config: ./test/perf/metrics-${{ matrix.platform }}.yml
+          config: ./performance-tests/metrics-${{ matrix.platform }}.yml
           sauce-user: ${{ secrets.SAUCE_USERNAME }}
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
 
@@ -241,13 +230,12 @@ jobs:
       - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' && matrix.rn-version == '0.65.3' }}
 
-      - name: Enable Corepack # RN 0.73.9 and newer are using yarn 3 which requires corepack
-        if: ${{ matrix.rn-version == '0.73.9' }}
-        run: corepack enable
-
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
 
       - uses: actions/setup-java@v4
         with:
@@ -259,60 +247,43 @@ jobs:
 
       - name: Setup Global Tools
         run: |
-          yarn global add yalc semver
+          npm i -g yalc semver
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
         run: which xcbeautify || brew install xcbeautify
 
-      - name: NPM cache SDK
-        uses: actions/cache@v4
-        id: deps-cache
-        with:
-          path: node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock') }}
-
-      - name: NPM cache E2E Tests Library
-        uses: actions/cache@v4
-        id: deps-cache-e2e-library
-        with:
-          path: test/e2e/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('test/e2e/yarn.lock') }}
-
-      - name: Install SDK JS Dependencies
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
+      - name: Install JS Dependencies
         run: yarn install
 
-      - name: Install E2E Tests Library JS Dependencies
-        if: steps.deps-cache-e2e-library.outputs['cache-hit'] != 'true'
-        working-directory: test/e2e
-        run: yarn install
+      - name: Setup Plain RN ${{ matrix.rn-version }} App
+        run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --create
 
+        # The old node has to be enabled after creating the test app
+        # to avoid issues with the old node version
+      - run: corepack disable
       - uses: actions/setup-node@v4
         if: ${{ matrix.rn-version == '0.65.3' }}
         with:
           node-version: 16
 
-      - name: Setup Plain RN ${{ matrix.rn-version }} App
-        run: ./scripts/e2e.mjs ${{ matrix.platform }} --create
-
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' }}
         with:
-          working-directory: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp
+          working-directory: dev-packages/e2e-tests/react-native-versions/${{ matrix.rn-version }}/RnDiffApp
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
 
       - name: Build Plain RN ${{ matrix.rn-version }} App
-        run: ./scripts/e2e.mjs ${{ matrix.platform }} --build
+        run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --build
 
       - name: Upload App
         if: matrix.build-type == 'production'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
-          path: test/e2e/RnDiffApp.ap*
+          path: dev-packages/e2e-tests/RnDiffApp.ap*
           retention-days: 1
 
       - name: Upload logs
@@ -320,7 +291,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}
-          path: test/react-native/versions/${{ matrix.rn-version }}/RnDiffApp/ios/*.log
+          path: dev-packages/e2e-tests/react-native-versions/${{ matrix.rn-version }}/RnDiffApp/ios/*.log
 
   react-native-test:
     name:
@@ -383,11 +354,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
-          path: test/e2e
+          path: dev-packages/e2e-tests
 
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
 
       - uses: actions/setup-java@v4
         with:
@@ -409,16 +383,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: NPM cache E2E Tests Library
-        uses: actions/cache@v4
-        id: deps-cache-e2e-library
-        with:
-          path: test/e2e/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('test/e2e/yarn.lock') }}
-
-      - name: Install E2E Tests Library JS Dependencies
-        if: steps.deps-cache-e2e-library.outputs['cache-hit'] != 'true'
-        working-directory: test/e2e
+      - name: Install JS Dependencies
         run: yarn install
 
       - name: Run tests on Android
@@ -440,7 +405,7 @@ jobs:
             -camera-back none
             -camera-front none
             -timezone US/Pacific
-          script: ./scripts/e2e.mjs ${{ matrix.platform }} --test
+          script: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
       - uses: actions/cache@v4
         if: ${{ matrix.platform == 'ios' }}
@@ -450,7 +415,7 @@ jobs:
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
-        run: ./scripts/e2e.mjs ${{ matrix.platform }} --test
+        run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
       - name: Upload logs
         if: ${{ always() }}

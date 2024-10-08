@@ -27,23 +27,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: NPM cache
-        uses: actions/cache@v4
-        id: deps-cache
+      - run: corepack enable
+      - uses: actions/setup-node@v4
         with:
-          path: node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-npm-${{ hashFiles('yarn.lock') }}
+          node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
 
       - name: Install SDK JS Dependencies
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: yarn install
 
       - name: Install App Pods
-        working-directory: RNSentryCocoaTester
+        working-directory: packages/core/RNSentryCocoaTester
         run: pod install
 
       - name: Run iOS Tests
-        working-directory: RNSentryCocoaTester
+        working-directory: packages/core/RNSentryCocoaTester
         env:
           SCHEME: RNSentryCocoaTester
           CONFIGURATION: Release
@@ -74,7 +73,7 @@ jobs:
         uses: gradle/gradle-build-action@v3
 
       - name: Run unit tests
-        working-directory: RNSentryAndroidTester
+        working-directory: packages/core/RNSentryAndroidTester
         run: ./gradlew testDebugUnitTest
 
       - name: Setup KVM
@@ -91,7 +90,7 @@ jobs:
       - name: Run connected tests
         uses: reactivecircus/android-emulator-runner@f0d1ed2dcad93c7479e8b2f2226c83af54494915 #pin@v2.32.0
         with:
-          working-directory: RNSentryAndroidTester
+          working-directory: packages/core/RNSentryAndroidTester
           api-level: 30
           force-avd-creation: false
           disable-animations: true

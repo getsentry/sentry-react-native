@@ -7,4 +7,4 @@ targets:
   - name: registry
     sdks:
       npm:@sentry/react-native:
-        includeNames: /none/
+        includeNames: /^sentry-react-native-\d.*\.tgz$/
