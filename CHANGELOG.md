@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Dependencies
+
+- Upgrade sample and E2E tests to RN 0.75 ([#4155](https://github.com/getsentry/sentry-react-native/pull/4155))
+
 ## 6.0.0-rc.1
 
 ### Fixes
