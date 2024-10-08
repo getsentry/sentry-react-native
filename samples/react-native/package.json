@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-sample",
-  "version": "6.0.0-rc.0",
+  "version": "6.0.0-rc.1",
   "private": true,
   "scripts": {
     "postinstall": "patch-package",
@@ -17,14 +17,15 @@
     "clean-ios": "cd ios; rm -rf Podfile.lock Pods build; cd ..",
     "clean-watchman": "watchman watch-del-all",
     "set-build-number": "npx react-native-version --skip-tag --never-amend --set-build",
-    "set-version": "npx react-native-version --skip-tag --never-amend"
+    "set-version": "npx react-native-version --skip-tag --never-amend",
+    "build-android-release-splits-flavors": "export SENTRY_SAMPLE_ENABLE_ABI_SPLIT=true; export SENTRY_SAMPLE_ENABLE_FLAVORS=true; cd android; ./gradlew assembleRelease; cd .."
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.5.12",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
-    "@react-navigation/stack": "^6.3.21",
-    "@sentry/react-native": "6.0.0-rc.0",
+    "@react-navigation/stack": "^6.3.20",
+    "@sentry/react-native": "6.0.0-rc.1",
     "delay": "^6.0.0",
     "react": "18.3.1",
     "react-native": "0.75.4",

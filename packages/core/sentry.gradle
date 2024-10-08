@@ -65,9 +65,6 @@ gradle.projectsEvaluated {
         def currentVariants = extractCurrentVariants(bundleTask, releases)
         if (currentVariants == null) return
 
-        def variant = null
-        def releaseName = null
-        def versionCode = null
         def previousCliTask = null
         def applicationVariant = null
 
@@ -75,9 +72,9 @@ gradle.projectsEvaluated {
         def nameModulesCleanup = "${bundleTask.name}_SentryCollectModulesCleanUp"
         // Upload the source map several times if necessary: once for each release and versionCode.
         currentVariants.each { key, currentVariant ->
-          variant = currentVariant[0]
-          releaseName = currentVariant[1]
-          versionCode = currentVariant[2]
+          def variant = currentVariant[0]
+          def releaseName = currentVariant[1]
+          def versionCode = currentVariant[2]
           applicationVariant = currentVariant[3]
 
           try {
