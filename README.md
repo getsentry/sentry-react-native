@@ -19,6 +19,14 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 [![Discord Chat](https://img.shields.io/discord/621778831602221064?logo=discord&logoColor=ffffff&color=7389D8)](https://discord.gg/PXa5Apfe7K)
 [![Runs with Expo](https://img.shields.io/badge/Runs%20with%20Expo-4630EB.svg?style=flat-square&logo=EXPO&labelColor=f3f3f3&logoColor=000)](https://expo.dev/)
 
+## Releases
+
+This repo uses the following ways to release SDK updates:
+
+- `Pre-release`: We create pre-releases (alpha, beta, RC,…) for larger and potentially more impactful changes, such as new features or major versions.
+- `Latest`: We continuously release major/minor/hotfix versions from the `main` branch. These releases go through all our internal quality gates and are very safe to use and intended to be the default for most teams.
+- `Stable`: We promote releases from `Latest` when they have been used in the field for some time and in scale, considering time since release, adoption, and other quality and stability metrics. These releases will be indicated on [the releases page](https://github.com/getsentry/sentry-react-native/releases/) with the `Stable` suffix.
+
 ## Requirements
 
 - `react-native >= 0.65.0`
