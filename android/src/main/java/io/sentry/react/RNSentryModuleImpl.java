@@ -317,7 +317,7 @@ public class RNSentryModuleImpl {
 
         androidReplayOptions.setSessionSampleRate(rnExperimentsOptions.hasKey("replaysSessionSampleRate")
                 ? rnExperimentsOptions.getDouble("replaysSessionSampleRate") : null);
-        androidReplayOptions.setErrorSampleRate(rnExperimentsOptions.hasKey("replaysOnErrorSampleRate")
+        androidReplayOptions.setOnErrorSampleRate(rnExperimentsOptions.hasKey("replaysOnErrorSampleRate")
                 ? rnExperimentsOptions.getDouble("replaysOnErrorSampleRate") : null);
 
         if (!rnOptions.hasKey("mobileReplayOptions")) {
@@ -333,7 +333,7 @@ public class RNSentryModuleImpl {
 
         final boolean redactVectors = !rnMobileReplayOptions.hasKey("maskAllVectors") || rnMobileReplayOptions.getBoolean("maskAllVectors");
         if (redactVectors) {
-            androidReplayOptions.addClassToRedact("com.horcrux.svg.SvgView"); // react-native-svg
+            androidReplayOptions.addRedactViewClass("com.horcrux.svg.SvgView"); // react-native-svg
         }
 
         return androidReplayOptions;
