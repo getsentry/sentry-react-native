@@ -50,11 +50,6 @@ if (!env.USE_FRAMEWORKS || env.USE_FRAMEWORKS === 'no') {
   delete env.USE_FRAMEWORKS;
 }
 
-if (platform == 'ios') {
-  // Flipper is causing build issues on iOS, so we disable it
-  env.NO_FLIPPER = 1;
-}
-
 const e2eDir = path.resolve(__dirname);
 const e2eTestPackageName = JSON.parse(fs.readFileSync(`${e2eDir}/package.json`, 'utf8')).name;
 const patchScriptsDir = path.resolve(e2eDir, 'patch-scripts');
