@@ -43,7 +43,9 @@ jobs:
           yarn install
           cd samples/react-native && yarn install
       - name: Build SDK
-        run: yarn build
+        run: |
+          corepack enable
+          yarn build
 
         # We upload a new version to TestFlight on every commit on main
         # So we need to bump the build number each time
