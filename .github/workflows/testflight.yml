@@ -26,6 +26,7 @@ jobs:
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -37,7 +38,6 @@ jobs:
             samples/react-native/node_modules
           key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'samples/react-native/yarn.lock') }}
       - name: Install Dependencies
-        if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: |
           yarn install
           cd samples/react-native && yarn install
