@@ -19,6 +19,7 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - run: corepack enable
       - run: sudo xcode-select -s /Applications/Xcode_15.3.app/Contents/Developer
       - uses: ruby/setup-ruby@v1
         with:
@@ -39,13 +40,10 @@ jobs:
       - name: Install Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: |
-          corepack enable
           yarn install
           cd samples/react-native && yarn install
       - name: Build SDK
-        run: |
-          corepack enable
-          yarn build
+        run: yarn build
 
         # We upload a new version to TestFlight on every commit on main
         # So we need to bump the build number each time
