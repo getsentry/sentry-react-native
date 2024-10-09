@@ -118,6 +118,11 @@ jobs:
           if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
             perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
             echo 'New Architecture enabled'
+          elif [[ ${{ matrix.rn-architecture }} == 'legacy' ]]; then
+              perl -i -pe's/newArchEnabled=true/newArchEnabled=false/g' gradle.properties
+              echo 'Legacy Architecture enabled'
+          else
+              echo 'No changes for architecture: ${{ matrix.rn-architecture }}'
           fi
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"
