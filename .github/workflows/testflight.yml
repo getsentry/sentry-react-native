@@ -39,6 +39,7 @@ jobs:
       - name: Install Dependencies
         if: steps.deps-cache.outputs['cache-hit'] != 'true'
         run: |
+          corepack enable
           yarn install
           cd samples/react-native && yarn install
       - name: Build SDK
