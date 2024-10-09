@@ -380,9 +380,17 @@ public class RNSentryModuleImpl {
     }
 
     public void fetchNativeAppStart(Promise promise) {
-        final Map<String, Object> measurement = InternalSentrySdk.getAppStartMeasurement();
+        fetchNativeAppStart(promise, InternalSentrySdk.getAppStartMeasurement(), logger, AppStartMetrics.getInstance().isAppLaunchedInForeground());
+    }
 
-        WritableMap mutableMeasurement = (WritableMap) RNSentryMapConverter.convertToWritable(measurement);
+    protected void fetchNativeAppStart(Promise promise, final Map<String, Object> appStartMeasurement, ILogger logger, boolean isAppLaunchedInForeground) {
+        if (!isAppLaunchedInForeground) {
+            logger.log(SentryLevel.WARNING, "Invalid app start data: app not launched in foreground.");
+            promise.resolve(null);
+            return;
+        }
+
+        WritableMap mutableMeasurement = (WritableMap) RNSentryMapConverter.convertToWritable(appStartMeasurement);
         mutableMeasurement.putBoolean("has_fetched", hasFetchedAppStart);
 
         // This is always set to true, as we would only allow an app start fetch to only
