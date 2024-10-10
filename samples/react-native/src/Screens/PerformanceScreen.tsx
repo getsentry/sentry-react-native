@@ -11,10 +11,13 @@ import {
 import { StackNavigationProp } from '@react-navigation/stack';
 import { CommonActions } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
+import { Text } from 'react-native';
 
 interface Props {
   navigation: StackNavigationProp<any, 'PerformanceScreen'>;
 }
+
+const Spacer = () => <View style={styles.spacer} />;
 
 const PerformanceScreen = (props: Props) => {
   const onPressPerformanceTiming = () => {
@@ -62,6 +65,21 @@ const PerformanceScreen = (props: Props) => {
             props.navigation.navigate('Redux');
           }}
         />
+        <Spacer />
+        <Text>Heavy Page Navigation that navigates back automatically, right after finishing the display .</Text>
+        <Button
+          title="With Manual TimeToDisplay."
+          onPress={() => {
+            props.navigation.navigate('HeavyFastNavigation', { manualTrack: true });
+          }}
+        />
+        <Button
+          title="With Automatic TimeToDisplay."
+          onPress={() => {
+            props.navigation.navigate('HeavyFastNavigation');
+          }}
+        />
+        <Spacer />
         <View style={styles.mainViewBottomWhiteSpace} />
       </ScrollView>
     </>

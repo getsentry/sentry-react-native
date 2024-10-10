@@ -3,6 +3,7 @@ import type { Span,StartSpanOptions  } from '@sentry/types';
 import { fill, logger } from '@sentry/utils';
 import * as React from 'react';
 
+import { isTurboModuleEnabled } from '../utils/environment';
 import { getRNSentryOnDrawReporter, nativeComponentExists } from './timetodisplaynative';
 import type {RNSentryOnDrawNextFrameEvent } from './timetodisplaynative.types';
 import { setSpanDurationAsMeasurement } from './utils';
@@ -59,8 +60,10 @@ function TimeToDisplay(props: {
   fullDisplay?: boolean;
 }): React.ReactElement {
   const RNSentryOnDrawReporter = getRNSentryOnDrawReporter();
+  const isNewArchitecture = isTurboModuleEnabled();
 
-  if (__DEV__ && !nativeComponentMissingLogged && !nativeComponentExists) {
+  if (isNewArchitecture ||
+    (__DEV__ && !nativeComponentMissingLogged && !nativeComponentExists)) {
     nativeComponentMissingLogged = true;
     // Using setTimeout with a delay of 0 milliseconds to defer execution and avoid printing the React stack trace.
     setTimeout(() => {
