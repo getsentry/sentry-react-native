@@ -55,5 +55,4 @@ public class RNSentryPackage extends TurboReactPackage {
           new RNSentryOnDrawReporterManager(reactContext)
     );
   }
-
 }

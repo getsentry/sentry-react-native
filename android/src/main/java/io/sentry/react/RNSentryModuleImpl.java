@@ -41,15 +41,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
-import io.sentry.Breadcrumb;
-import io.sentry.DateUtils;
 import io.sentry.HubAdapter;
 import io.sentry.ILogger;
 import io.sentry.ISentryExecutorService;
@@ -135,10 +131,13 @@ public class RNSentryModuleImpl {
     /** Max trace file size in bytes. */
     private long maxTraceFileSize = 5 * 1024 * 1024;
 
+     private final RNSentryTimeToDisplay timeToDisplay;
+
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
       packageInfo = getPackageInfo(reactApplicationContext);
       this.reactApplicationContext = reactApplicationContext;
       this.emitNewFrameEvent = createEmitNewFrameEvent();
+      this.timeToDisplay = new RNSentryTimeToDisplay();
     }
 
     private ReactApplicationContext getReactApplicationContext() {
@@ -699,6 +698,10 @@ public class RNSentryModuleImpl {
             frameMetricsAggregator.stop();
             frameMetricsAggregator = null;
         }
+    }
+
+    public void getNewScreenTimeToDisplay(Promise promise) {
+        timeToDisplay.GetTimeToDisplay(promise);
     }
 
     private String getProfilingTracesDirPath() {
