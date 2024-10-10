@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-  Button,
-  View,
-  StyleSheet,
-  Text,
-  ScrollView,
-} from 'react-native';
+import { Button, View, StyleSheet, Text, ScrollView } from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -14,18 +8,20 @@ interface Props {
   navigation: StackNavigationProp<any, 'HeavyNatigationScreen'>;
   route?: {
     params?: {
-      manualTrack: boolean
-    }
-  }
+      manualTrack: boolean;
+    };
+  };
 }
-const buttonTitles = Array.from({ length: 500 }, (_, index) => `Sample button ${index + 1}`);
+const buttonTitles = Array.from(
+  { length: 500 },
+  (_, index) => `Sample button ${index + 1}`,
+);
 
 /**
  * this page takes around 300ms to initially display, we navigate to another page in 100ms.
  * The time to initial display will never be finished on this page.
  */
 const TrackerScreen = (props: Props) => {
-
   const content = (
     <ScrollView style={styles.screen}>
       <View style={styles.titleContainer}>
@@ -34,10 +30,7 @@ const TrackerScreen = (props: Props) => {
         </Text>
       </View>
       {buttonTitles.map((title, index) => (
-        <Button
-          key={index}
-          title={title}
-        />
+        <Button key={index} title={title}/>
       ))}
     </ScrollView>
   );
@@ -46,16 +39,16 @@ const TrackerScreen = (props: Props) => {
     setTimeout(() => {
       props.navigation.goBack();
     }, 250);
-  }, []);
+  });
   return (
     <>
-    {props.route?.params?.manualTrack ? (
-      <Sentry.TimeToInitialDisplay record={true}>
-        {content}
-      </Sentry.TimeToInitialDisplay>
-    ) : (
-      content
-    )}
+      {props.route?.params?.manualTrack ? (
+        <Sentry.TimeToInitialDisplay record={true}>
+          {content}
+        </Sentry.TimeToInitialDisplay>
+      ) : (
+        content
+      )}
     </>
   );
 };
