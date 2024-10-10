@@ -62,8 +62,7 @@ function TimeToDisplay(props: {
   const RNSentryOnDrawReporter = getRNSentryOnDrawReporter();
   const isNewArchitecture = isTurboModuleEnabled();
 
-  if (isNewArchitecture ||
-    (__DEV__ && !nativeComponentMissingLogged && !nativeComponentExists)) {
+  if (__DEV__ && (isNewArchitecture || (!nativeComponentExists && !nativeComponentMissingLogged))){
     nativeComponentMissingLogged = true;
     // Using setTimeout with a delay of 0 milliseconds to defer execution and avoid printing the React stack trace.
     setTimeout(() => {

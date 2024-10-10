@@ -11,7 +11,7 @@ import * as Sentry from '@sentry/react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 
 interface Props {
-  navigation: StackNavigationProp<any, 'HeavyNativationScreen'>;
+  navigation: StackNavigationProp<any, 'HeavyNatigationScreen'>;
   route?: {
     params?: {
       manualTrack: boolean

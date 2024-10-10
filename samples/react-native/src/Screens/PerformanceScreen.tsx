@@ -70,13 +70,13 @@ const PerformanceScreen = (props: Props) => {
         <Button
           title="With Manual TimeToDisplay."
           onPress={() => {
-            props.navigation.navigate('HeavyFastNavigation', { manualTrack: true });
+            props.navigation.navigate('HeavyNavigation', { manualTrack: true });
           }}
         />
         <Button
           title="With Automatic TimeToDisplay."
           onPress={() => {
-            props.navigation.navigate('HeavyFastNavigation');
+            props.navigation.navigate('HeavyNavigation');
           }}
         />
         <Spacer />
