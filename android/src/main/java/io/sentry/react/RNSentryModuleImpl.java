@@ -304,7 +304,7 @@ public class RNSentryModuleImpl {
     }
 
     private SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
-        @NotNull final SentryReplayOptions androidReplayOptions = new SentryReplayOptions();
+        @NotNull final SentryReplayOptions androidReplayOptions = new SentryReplayOptions(false);
 
         @Nullable final ReadableMap rnExperimentsOptions = rnOptions.getMap("_experiments");
         if (rnExperimentsOptions == null) {
