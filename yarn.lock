@@ -2240,10 +2240,18 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@clack/core@0.3.3", "@clack/core@^0.3.3":
+"@clack/core@^0.3.3":
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@clack/core/-/core-0.3.3.tgz#233ccebf779aa5a66fc68ee48df5e58cd226fd94"
   integrity sha512-5ZGyb75BUBjlll6eOa1m/IZBxwk91dooBWhPSL67sWcLS0zt9SnswRL0l26TVdBhb0wnWORRxUn//uH6n4z7+A==
+  dependencies:
+    picocolors "^1.0.0"
+    sisteransi "^1.0.5"
+
+"@clack/core@^0.3.4":
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/@clack/core/-/core-0.3.4.tgz#375e82fc8fe46650b37cab2f2ea8752c6b7f0450"
+  integrity sha512-H4hxZDXgHtWTwV3RAVenqcC4VbJZNegbBjlPvzOzCouXtS2y3sDvlO3IsbrPNWuLWPPlYVYPghQdSF64683Ldw==
   dependencies:
     picocolors "^1.0.0"
     sisteransi "^1.0.5"
@@ -4015,24 +4023,25 @@
   dependencies:
     "@sentry/types" "7.76.0"
 
-"@sentry/wizard@3.16.3":
-  version "3.16.3"
-  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-3.16.3.tgz#73469136408ad8b33d5761a8a0f74693e8b9cc34"
-  integrity sha512-HKSDMosay1GSWGAHdMOn2zvmSW4/G5JRjzYnri82vg2jv/DAXoC5t1vgtLmaWkc/nMmV4x9oBiB5jFLnOpMmyQ==
+"@sentry/wizard@3.34.0":
+  version "3.34.0"
+  resolved "https://registry.yarnpkg.com/@sentry/wizard/-/wizard-3.34.0.tgz#67204052e480de05c0a471e7ab9f570a0f92400d"
+  integrity sha512-GKM5BjaDPNxBkO02PCi/2v8TEggIGVW7CCUF9E23uB8OSbwDPt3w373a1b2g1nD+qgBW8+9nVu/C0EY/yodWNQ==
   dependencies:
-    "@clack/core" "0.3.3"
+    "@clack/core" "^0.3.4"
     "@clack/prompts" "0.7.0"
     "@sentry/cli" "^1.72.0"
     "@sentry/node" "^7.69.0"
-    axios "1.3.5"
+    axios "1.7.4"
     chalk "^2.4.1"
-    glob "^7.1.3"
+    glob "^8.1.0"
     inquirer "^6.2.0"
     lodash "^4.17.15"
     magicast "^0.2.10"
     opn "^5.4.0"
     r2 "^2.0.1"
     read-env "^1.3.0"
+    recast "^0.23.3"
     semver "^7.5.3"
     xcode "3.0.1"
     xml-js "^1.6.11"
@@ -5081,12 +5090,12 @@ available-typed-arrays@^1.0.5:
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
 
-axios@1.3.5:
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.3.5.tgz#e07209b39a0d11848e3e341fa087acd71dadc542"
-  integrity sha512-glL/PvG/E+xCWwV8S6nCHcrfg1exGx7vxyUIivIA1iL7BIh6bePylCfVHwp6k13ao7SATxB6imau2kqY+I67kw==
+axios@1.7.4:
+  version "1.7.4"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.4.tgz#4c8ded1b43683c8dd362973c393f3ede24052aa2"
+  integrity sha512-DukmaFRnY6AzAALSH4J2M3k6PkaC+MfaAGdEERRWcC9q3/TWQwLpHR8ZRLKTdQ3aBDL64EdluRDjJqKw+BPZEw==
   dependencies:
-    follow-redirects "^1.15.0"
+    follow-redirects "^1.15.6"
     form-data "^4.0.0"
     proxy-from-env "^1.1.0"
 
@@ -7637,10 +7646,10 @@ flow-parser@^0.206.0:
   resolved "https://registry.yarnpkg.com/flow-parser/-/flow-parser-0.206.0.tgz#f4f794f8026535278393308e01ea72f31000bfef"
   integrity sha512-HVzoK3r6Vsg+lKvlIZzaWNBVai+FXTX1wdYhz/wVlH13tb/gOdLXmlTqy6odmTBhT5UoWUbq0k8263Qhr9d88w==
 
-follow-redirects@^1.15.0:
-  version "1.15.2"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.2.tgz#b460864144ba63f2681096f274c4e57026da2c13"
-  integrity sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==
+follow-redirects@^1.15.6:
+  version "1.15.9"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.9.tgz#a604fa10e443bf98ca94228d9eebcc2e8a2c8ee1"
+  integrity sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==
 
 fontfaceobserver@^2.1.0:
   version "2.3.0"
