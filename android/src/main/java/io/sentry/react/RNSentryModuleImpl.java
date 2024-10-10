@@ -304,7 +304,7 @@ public class RNSentryModuleImpl {
     }
 
     private SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
-        @NotNull final SentryReplayOptions androidReplayOptions = new SentryReplayOptions();
+        @NotNull final SentryReplayOptions androidReplayOptions = new SentryReplayOptions(false);
 
         @Nullable final ReadableMap rnExperimentsOptions = rnOptions.getMap("_experiments");
         if (rnExperimentsOptions == null) {
@@ -317,7 +317,7 @@ public class RNSentryModuleImpl {
 
         androidReplayOptions.setSessionSampleRate(rnExperimentsOptions.hasKey("replaysSessionSampleRate")
                 ? rnExperimentsOptions.getDouble("replaysSessionSampleRate") : null);
-        androidReplayOptions.setErrorSampleRate(rnExperimentsOptions.hasKey("replaysOnErrorSampleRate")
+        androidReplayOptions.setOnErrorSampleRate(rnExperimentsOptions.hasKey("replaysOnErrorSampleRate")
                 ? rnExperimentsOptions.getDouble("replaysOnErrorSampleRate") : null);
 
         if (!rnOptions.hasKey("mobileReplayOptions")) {
@@ -328,12 +328,12 @@ public class RNSentryModuleImpl {
             return androidReplayOptions;
         }
 
-        androidReplayOptions.setRedactAllText(!rnMobileReplayOptions.hasKey("maskAllText") || rnMobileReplayOptions.getBoolean("maskAllText"));
-        androidReplayOptions.setRedactAllImages(!rnMobileReplayOptions.hasKey("maskAllImages") || rnMobileReplayOptions.getBoolean("maskAllImages"));
+        androidReplayOptions.setMaskAllText(!rnMobileReplayOptions.hasKey("maskAllText") || rnMobileReplayOptions.getBoolean("maskAllText"));
+        androidReplayOptions.setMaskAllImages(!rnMobileReplayOptions.hasKey("maskAllImages") || rnMobileReplayOptions.getBoolean("maskAllImages"));
 
         final boolean redactVectors = !rnMobileReplayOptions.hasKey("maskAllVectors") || rnMobileReplayOptions.getBoolean("maskAllVectors");
         if (redactVectors) {
-            androidReplayOptions.addClassToRedact("com.horcrux.svg.SvgView"); // react-native-svg
+            androidReplayOptions.addMaskViewClass("com.horcrux.svg.SvgView"); // react-native-svg
         }
 
         return androidReplayOptions;
