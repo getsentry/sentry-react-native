@@ -26,11 +26,12 @@ const TrackerScreen = (props: Props) => {
     <ScrollView style={styles.screen}>
       <View style={styles.titleContainer}>
         <Text style={styles.title}>
-          Heavy page only intended for navigating to another page while the page is loading.
+          Heavy page only intended for navigating to another page while the page
+          is loading.
         </Text>
       </View>
       {buttonTitles.map((title, index) => (
-        <Button key={index} title={title}/>
+        <Button key={index} title={title} />
       ))}
     </ScrollView>
   );
