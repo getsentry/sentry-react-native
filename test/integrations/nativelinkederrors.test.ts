@@ -337,6 +337,43 @@ describe('NativeLinkedErrors', () => {
       }),
     );
   });
+
+  it('handles events with a string cause', async () => {
+    const actualEvent = await executeIntegrationFor(
+      {
+        exception: {
+          values: [
+            {
+              type: 'Error',
+              value: 'Captured exception',
+            },
+          ],
+        },
+      },
+      {
+        originalException: createNewError({
+          message: 'Error with string cause',
+          cause: 'string cause',
+        }),
+      },
+    );
+
+    expect(actualEvent).toEqual(
+      expect.objectContaining(<Partial<Event>>{
+        exception: {
+          values: [
+            {
+              type: 'Error',
+              value: 'Captured exception',
+            },
+            {
+              value: 'string cause',
+            },
+          ],
+        },
+      }),
+    );
+  });
 });
 
 function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Event | null {
