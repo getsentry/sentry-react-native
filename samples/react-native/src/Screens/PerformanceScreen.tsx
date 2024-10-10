@@ -66,7 +66,9 @@ const PerformanceScreen = (props: Props) => {
           }}
         />
         <Spacer />
-        <Text>Heavy Page Navigation that navigates back automatically, right after finishing the display .</Text>
+        <Text>
+          Heavy Page Navigation that navigates back automatically, right after finishing the display .
+        </Text>
         <Button
           title="With Manual TimeToDisplay."
           onPress={() => {
