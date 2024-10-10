@@ -1,9 +1,10 @@
 /* eslint-disable import/no-unresolved */
 import path from 'path';
+import { Platform } from 'react-native';
 import type { RemoteOptions } from 'webdriverio';
 import { remote } from 'webdriverio';
 
-import { fetchEvent } from './utils/fetchEvent';
+import { fetchEvent, fetchReplay, fetchReplaySegmentVideo } from './utils/sentryApi';
 import { waitForTruthyResult } from './utils/waitFor';
 
 const DRIVER_NOT_INITIALIZED = 'Driver not initialized';
@@ -130,6 +131,33 @@ describe('End to end tests for common events', () => {
     const sentryEvent = await fetchEvent(eventId);
     expect(sentryEvent.eventID).toMatch(eventId);
   });
+
+  // Currently doesn't work on Android because capturing screenshots doesn't work on emulator in GH Actions.
+  if (Platform.OS !== 'android') {
+    test('captureErrorReplay', async () => {
+      const element = await getElement('captureException');
+      await element.click();
+
+      const eventId = await waitForEventId();
+      const sentryEvent = await fetchEvent(eventId);
+      expect(sentryEvent.eventID).toMatch(eventId);
+
+      expect(sentryEvent.contexts).toBeDefined();
+      const replay = sentryEvent.contexts!['replay'] as any;
+      expect(replay).toBeDefined();
+      expect(replay.replay_id.length).toBe(32);
+
+      const replayInfo = await fetchReplay(replay.replay_id);
+      expect(replayInfo).toBeDefined();
+      expect(replayInfo.data.duration).toBeGreaterThan(0);
+      expect(replayInfo.data.count_segments).toBeGreaterThan(0);
+
+      const video = await fetchReplaySegmentVideo(replay.replay_id, 0);
+      expect(video).toBeDefined();
+      expect(video.size).toBeGreaterThan(1000);
+      expect(await video.slice(4, 12).text()).toMatch('ftypmp42');
+    });
+  }
 
   test('unhandledPromiseRejection', async () => {
     const element = await getElement('unhandledPromiseRejection');

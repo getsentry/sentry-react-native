@@ -430,7 +430,6 @@ jobs:
           disable-animations: true
           disable-spellchecker: true
           target: 'aosp_atd'
-          channel: canary # Necessary for ATDs
           emulator-options: >
             -no-window
             -no-snapshot-save
