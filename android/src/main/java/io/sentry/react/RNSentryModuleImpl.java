@@ -328,12 +328,12 @@ public class RNSentryModuleImpl {
             return androidReplayOptions;
         }
 
-        androidReplayOptions.setRedactAllText(!rnMobileReplayOptions.hasKey("maskAllText") || rnMobileReplayOptions.getBoolean("maskAllText"));
-        androidReplayOptions.setRedactAllImages(!rnMobileReplayOptions.hasKey("maskAllImages") || rnMobileReplayOptions.getBoolean("maskAllImages"));
+        androidReplayOptions.setMaskAllText(!rnMobileReplayOptions.hasKey("maskAllText") || rnMobileReplayOptions.getBoolean("maskAllText"));
+        androidReplayOptions.setMaskAllImages(!rnMobileReplayOptions.hasKey("maskAllImages") || rnMobileReplayOptions.getBoolean("maskAllImages"));
 
         final boolean redactVectors = !rnMobileReplayOptions.hasKey("maskAllVectors") || rnMobileReplayOptions.getBoolean("maskAllVectors");
         if (redactVectors) {
-            androidReplayOptions.addRedactViewClass("com.horcrux.svg.SvgView"); // react-native-svg
+            androidReplayOptions.addMaskViewClass("com.horcrux.svg.SvgView"); // react-native-svg
         }
 
         return androidReplayOptions;
