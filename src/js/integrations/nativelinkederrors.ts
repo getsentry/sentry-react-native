@@ -13,7 +13,7 @@ import type {
   StackFrame,
   StackParser,
 } from '@sentry/types';
-import { isInstanceOf, isPlainObject,isString } from '@sentry/utils';
+import { isInstanceOf, isPlainObject, isString } from '@sentry/utils';
 
 import type { NativeStackFrames } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';
@@ -104,7 +104,9 @@ function walkErrorTree(
   let exception: Exception;
   let exceptionDebugImages: DebugImage[] | undefined;
   if (isString(linkedError)) {
-    exception = { value: linkedError };
+    exception = {
+      value: linkedError,
+    };
   } else if ('stackElements' in linkedError) {
     // isJavaException
     exception = exceptionFromJavaStackElements(linkedError);
