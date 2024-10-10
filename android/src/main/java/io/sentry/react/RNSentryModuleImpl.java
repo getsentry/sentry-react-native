@@ -75,6 +75,7 @@ import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
+import io.sentry.android.core.performance.AppStartMetrics;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryId;
@@ -131,7 +132,7 @@ public class RNSentryModuleImpl {
     private long maxTraceFileSize = 5 * 1024 * 1024;
 
      private final RNSentryTimeToDisplay timeToDisplay;
-     
+
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
       packageInfo = getPackageInfo(reactApplicationContext);
       this.reactApplicationContext = reactApplicationContext;
