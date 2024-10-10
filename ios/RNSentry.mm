@@ -346,7 +346,9 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, fetchNativeStackFramesBy:(NS
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    NSLog(@"Bridge call to: deviceContexts");
+    if (PrivateSentrySDKOnly.options.debug) {
+        NSLog(@"Bridge call to: deviceContexts");
+    }
     __block NSMutableDictionary<NSString *, id> *serializedScope;
     // Temp work around until sorted out this API in sentry-cocoa.
     // TODO: If the callback isnt' executed the promise wouldn't be resolved.

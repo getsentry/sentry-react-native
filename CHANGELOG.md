@@ -5,11 +5,33 @@
 ### Fixes
 
 - Enhanced accuracy of time-to-display spans. ([#4042](https://github.com/getsentry/sentry-react-native/pull/4042))
+- Use `appLaunchedInForeground` to determine invalid app start data on Android ([#4146](https://github.com/getsentry/sentry-react-native/pull/4146))
+- Upload source maps for all release variants on Android (not only the last found) ([#4125](https://github.com/getsentry/sentry-react-native/pull/4125))
+
 ### Dependencies
 
-- Bump CLI from v2.36.1 to v2.36.5 ([#4116](https://github.com/getsentry/sentry-react-native/pull/4116), [#4131](https://github.com/getsentry/sentry-react-native/pull/4131), [#4137](https://github.com/getsentry/sentry-react-native/pull/4137))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2365)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.36.1...2.36.5)
+- Bump CLI from v2.36.6 to v2.37.0 ([#4153](https://github.com/getsentry/sentry-react-native/pull/4153))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2370)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.36.6...2.37.0)
+- Bump Cocoa SDK from v8.36.0 to v8.37.0 ([#4156](https://github.com/getsentry/sentry-react-native/pull/4156))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8370)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.36.0...8.37.0)
+
+## 5.33.2
+
+### Fixes
+
+- Emits Bridge log only in debug mode ([#4145](https://github.com/getsentry/sentry-react-native/pull/4145))
+- Remove unused `spanName` from `TimeToDisplayProps` ([#4150](https://github.com/getsentry/sentry-react-native/pull/4150))
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.119.0 to v7.119.1 ([#4149](https://github.com/getsentry/sentry-react-native/pull/4149))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/v7/CHANGELOG.md#71191)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.119.0...7.119.1)
+- Bump CLI from v2.36.1 to v2.36.6 ([#4116](https://github.com/getsentry/sentry-react-native/pull/4116), [#4131](https://github.com/getsentry/sentry-react-native/pull/4131), [#4137](https://github.com/getsentry/sentry-react-native/pull/4137), [#4144](https://github.com/getsentry/sentry-react-native/pull/4144))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2366)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.36.1...2.36.6)
 
 ## 5.33.1
 
