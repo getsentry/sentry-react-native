@@ -7,7 +7,7 @@ body:
     validations:
       required: true
     attributes:
-      label: What React Native libraries do you use?
+      label: "What React Native libraries do you use?"
       description: "Select all options that describe your application."
       multiple: true
       options:
@@ -29,16 +29,16 @@ body:
     validations:
       required: true
     attributes:
-      label: `@sentry/react-native` Version
-      description: If the issue started after the SDK upgrade, please input both old and new versions.
-      placeholder: 5.33.1 ← should look like this
+      label: "`@sentry/react-native` Version"
+      description: "If the issue started after the SDK upgrade, please input both old and new versions."
+      placeholder: "5.33.1 ← should look like this"
 
   - type: textarea
     id: doctor
     validations:
       required: true
     attributes:
-      label: How does your development environment look like?
+      label: "How does your development environment look like?"
       description: "Output of the command `npx react-native@latest info` or manully describe your development environment?"
       placeholder: |-
         info Fetching system and libraries information...
@@ -56,7 +56,7 @@ body:
     validations:
       required: true
     attributes:
-      label: Sentry.init()
+      label: "Sentry.init()"
       description: "Code snipped of Sentry initialization from your application."
       placeholder: |-
         Sentry.init({
@@ -69,7 +69,7 @@ body:
     validations:
       required: true
     attributes:
-      label: Steps to Reproduce
+      label: "Steps to Reproduce"
       description: "How can we see what you're seeing? Specific is terrific."
       placeholder: |-
         1. Build Android using `npx react-native run-android --mode Debug` 
@@ -81,14 +81,14 @@ body:
     validations:
       required: true
     attributes:
-      label: Expected Result
+      label: "Expected Result"
 
   - type: textarea
     id: actual
     validations:
       required: true
     attributes:
-      label: Actual Result
+      label: "Actual Result"
       description: "JS Console? iOS Console? Logcat? Screenshots? Yes, please."
 
   - type: markdown
