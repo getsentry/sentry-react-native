@@ -33,7 +33,7 @@ import { HttpClient } from '@sentry/integrations';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
 import { logWithoutTracing } from './utils';
-import HeavyNatigationScreen from './Screens/HeavyNatigationScreen';
+import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 
 LogBox.ignoreAllLogs();
 
@@ -171,7 +171,7 @@ const TabTwoStack = Sentry.withProfiler(
             />
             <Stack.Screen
               name="HeavyNavigation"
-              component={HeavyNatigationScreen}
+              component={HeavyNavigationScreen}
             />
             <Stack.Screen
               name="PerformanceTiming"

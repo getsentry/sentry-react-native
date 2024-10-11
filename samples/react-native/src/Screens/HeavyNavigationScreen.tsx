@@ -5,7 +5,7 @@ import * as Sentry from '@sentry/react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 
 interface Props {
-  navigation: StackNavigationProp<any, 'HeavyNatigationScreen'>;
+  navigation: StackNavigationProp<any, 'HeavyNatigavionScreen'>;
   route?: {
     params?: {
       manualTrack: boolean;
@@ -17,11 +17,13 @@ const buttonTitles = Array.from(
   (_, index) => `Sample button ${index + 1}`,
 );
 
+const beforeEffectSpanStart = Date.now();
+
 /**
  * this page takes around 300ms to initially display, we navigate to another page in 100ms.
  * The time to initial display will never be finished on this page.
  */
-const TrackerScreen = (props: Props) => {
+const HeavyNavigationScreen = (props: Props) => {
   const content = (
     <ScrollView style={styles.screen}>
       <View style={styles.titleContainer}>
@@ -37,9 +39,10 @@ const TrackerScreen = (props: Props) => {
   );
 
   React.useEffect(() => {
+    Sentry.startInactiveSpan({ name: "before Effect", startTime: beforeEffectSpanStart})?.end();
     setTimeout(() => {
       props.navigation.goBack();
-    }, 250);
+    }, 1);
   });
   return (
     <>
@@ -54,7 +57,7 @@ const TrackerScreen = (props: Props) => {
   );
 };
 
-export default Sentry.withProfiler(TrackerScreen);
+export default Sentry.withProfiler(HeavyNavigationScreen);
 
 const styles = StyleSheet.create({
   screen: {
@@ -66,32 +69,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
-  },
-  card: {
-    width: '100%',
-    height: 240,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#79628C',
-    borderRadius: 6,
-    backgroundColor: '#F6F6F8',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statisticContainer: {
-    width: '100%',
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  statisticTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  statisticCount: {
-    fontSize: 16,
     fontWeight: '700',
   },
 });

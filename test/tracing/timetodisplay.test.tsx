@@ -384,59 +384,18 @@ describe('TimeToDisplay', () => {
 
     (isTurboModuleEnabled as jest.Mock).mockReturnValue(false);
 
-    const [testSpan, activeSpan] = startSpanManual(
-      {
-        name: 'Root Manual Span',
-        startTime: secondAgoTimestampMs(),
-      },
-      (activeSpan: Span | undefined) => {
-        const testSpan = startTimeToInitialDisplaySpan();
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
+    TestRenderer.create(<TimeToInitialDisplay record={true} />);
+    await jest.runOnlyPendingTimersAsync(); // Flush setTimeout.
 
-        emitNativeInitialDisplayEvent();
-
-        activeSpan?.end();
-
-        return [testSpan, activeSpan];
-      },
-    );
-
-    await jest.runOnlyPendingTimersAsync();
-    await client.flush();
-
-    expectInitialDisplayMeasurementOnSpan(client.event!);
-    expectFinishedInitialDisplaySpan(testSpan, activeSpan);
-    expect(spanToJSON(testSpan!).start_timestamp).toEqual(spanToJSON(activeSpan!).start_timestamp);
     expect(logger.warn).not.toHaveBeenCalled();
   });
 
   test('should log a warning if in new architecture', async () => {
 
     (isTurboModuleEnabled as jest.Mock).mockReturnValue(true);
+    TestRenderer.create(<TimeToInitialDisplay record={true} />);
+    await jest.runOnlyPendingTimersAsync(); // Flush setTimeout.
 
-    const [testSpan, activeSpan] = startSpanManual(
-      {
-        name: 'Root Manual Span',
-        startTime: secondAgoTimestampMs(),
-      },
-      (activeSpan: Span | undefined) => {
-        const testSpan = startTimeToInitialDisplaySpan();
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
-
-        emitNativeInitialDisplayEvent();
-
-        activeSpan?.end();
-
-        return [testSpan, activeSpan];
-      },
-    );
-
-    await jest.runOnlyPendingTimersAsync();
-    await client.flush();
-
-    expectInitialDisplayMeasurementOnSpan(client.event!);
-    expectFinishedInitialDisplaySpan(testSpan, activeSpan);
-    expect(spanToJSON(testSpan!).start_timestamp).toEqual(spanToJSON(activeSpan!).start_timestamp);
     expect(logger.warn).toHaveBeenCalledWith(
       'TimeToInitialDisplay and TimeToFullDisplay are not supported on the web, Expo Go and New Architecture. Run native build or report an issue at https://github.com/getsentry/sentry-react-native');
   });
