@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Handles error with string cause ([#4163](https://github.com/getsentry/sentry-react-native/pull/4163))
+- Use `appLaunchedInForeground` to determine invalid app start data on Android ([#4146](https://github.com/getsentry/sentry-react-native/pull/4146))
+
+- Bump Cocoa SDK from v8.36.0 to v8.37.0 ([#4156](https://github.com/getsentry/sentry-react-native/pull/4156))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8370)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.36.0...8.37.0)
+- Bump Android SDK from v7.14.0 to v7.15.0 ([#4161](https://github.com/getsentry/sentry-react-native/pull/4161))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7150)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.14.0...7.15.0)
+
 ## 6.0.0-rc.1
 
 ### Fixes
@@ -11,7 +25,7 @@
 - Bump CLI from v2.36.6 to v2.37.0 ([#4153](https://github.com/getsentry/sentry-react-native/pull/4153))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2370)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.36.6...2.37.0)
-- Bump JavaScript SDK from v8.30.0 to v8.33.1` ([#4154](https://github.com/getsentry/sentry-react-native/pull/4154))
+- Bump JavaScript SDK from v8.30.0 to v8.33.1 ([#4154](https://github.com/getsentry/sentry-react-native/pull/4154))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8331)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/v8.30.0...8.33.1)
 
