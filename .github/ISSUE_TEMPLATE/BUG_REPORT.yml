@@ -7,8 +7,8 @@ body:
     validations:
       required: true
     attributes:
-      label: Environment
-      description: "What libraries do you use?"
+      label: What React Native libraries do you use?
+      description: "Select all options that describe your application."
       multiple: true
       options:
         - "React Native without Frameworks"
@@ -29,8 +29,8 @@ body:
     validations:
       required: true
     attributes:
-      label: Version
-      description: Which version of `@sentry/react-native` do you use?
+      label: `@sentry/react-native` Version
+      description: If the issue started after the SDK upgrade, please input both old and new versions.
       placeholder: 5.33.1 ← should look like this
 
   - type: textarea
@@ -38,7 +38,7 @@ body:
     validations:
       required: true
     attributes:
-      label: Doctor
+      label: How does your development environment look like?
       description: "Output of the command `npx react-native@latest info` or manully describe your development environment?"
       placeholder: |-
         info Fetching system and libraries information...
