@@ -29,7 +29,7 @@ body:
     validations:
       required: true
     attributes:
-      label: "`@sentry/react-native` Version"
+      label: "@sentry/react-native SDK Version"
       description: "If the issue started after the SDK upgrade, please input both old and new versions."
       placeholder: "5.33.1 ← should look like this"
 
