@@ -4,6 +4,8 @@ labels: ["Platform: React-Native", "Type: 🪲 Bug"]
 body:
   - type: dropdown
     id: environment
+    validations:
+      required: true
     attributes:
       label: Environment
       description: "What libraries do you use?"
@@ -21,25 +23,23 @@ body:
         - "React Native Navigation by Wix"
         - "sentry.io SaS"
         - "Self-Hosted Sentry"
-    validations:
-      required: true
 
   - type: input
     id: version
+    validations:
+      required: true
     attributes:
       label: Version
       description: Which version of `@sentry/react-native` do you use?
       placeholder: 5.33.1 ← should look like this
-    validations:
-      required: true
 
   - type: textarea
     id: doctor
+    validations:
+      required: true
     attributes:
       label: Doctor
       description: "Output of the command `npx react-native@latest info` or manully describe your development environment?"
-      validations:
-        required: true
       placeholder: |-
         info Fetching system and libraries information...
         OS: OS version
@@ -53,11 +53,11 @@ body:
 
   - type: textarea
     id: init
+    validations:
+      required: true
     attributes:
       label: Sentry.init()
       description: "Code snipped of Sentry initialization from your application."
-      validations:
-        required: true
       placeholder: |-
         Sentry.init({
           dsn: 'https://...@sentry.io/...'
@@ -66,11 +66,11 @@ body:
 
   - type: textarea
     id: repro
+    validations:
+      required: true
     attributes:
       label: Steps to Reproduce
       description: "How can we see what you're seeing? Specific is terrific."
-      validations:
-        required: true
       placeholder: |-
         1. Build Android using `npx react-native run-android --mode Debug` 
         2. Start Metro Dev server using `npx react-native start`
@@ -78,18 +78,18 @@ body:
 
   - type: textarea
     id: expected
-    attributes:
-      label: Expected Result
     validations:
       required: true
+    attributes:
+      label: Expected Result
 
   - type: textarea
     id: actual
-    attributes:
-      label: Actual Result
-      description: JS Console? iOS Console? Logcat? Screenshots? Yes, please.
     validations:
       required: true
+    attributes:
+      label: Actual Result
+      description: "JS Console? iOS Console? Logcat? Screenshots? Yes, please."
 
   - type: markdown
     attributes:
