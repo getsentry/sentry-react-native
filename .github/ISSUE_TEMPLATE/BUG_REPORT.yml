@@ -1,0 +1,99 @@
+name: "🐞 Bug Report"
+description: "Tell us about something that's not working the way we (probably) intend."
+labels: ["Platform: React-Native", "Type: 🪲 Bug"]
+body:
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: "What libraries do you use?"
+      multiple: true
+      options:
+        - "React Native without Frameworks"
+        - "React Navigation"
+        - "Hermes"
+        - "RN New Architecture"
+        - "Expo Application Services (EAS)"
+        - "Expo (mobile only)"
+        - "Expo Web"
+        - "Expo Router"
+        - "React Native Web"
+        - "React Native Navigation by Wix"
+        - "sentry.io SaS"
+        - "Self-Hosted Sentry"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Which version of `@sentry/react-native` do you use?
+      placeholder: 5.33.1 ← should look like this
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Doctor
+      description: "Output of the command `npx react-native@latest info` or manully describe your development environment?"
+      validations:
+        required: true
+      placeholder: |-
+        info Fetching system and libraries information...
+        OS: OS version
+        Node: Your version
+        Yarn: Yarn version
+        Expo SDK: Expo SDK version
+        react: React version 
+        react-native: React Native version
+        hermesEnabled: bool
+        newArchEnabled: bool
+
+  - type: textarea
+    id: init
+    attributes:
+      label: Sentry.init()
+      description: "Code snipped of Sentry initialization from your application."
+      validations:
+        required: true
+      placeholder: |-
+        Sentry.init({
+          dsn: 'https://...@sentry.io/...'
+          // other options
+        });
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to Reproduce
+      description: "How can we see what you're seeing? Specific is terrific."
+      validations:
+        required: true
+      placeholder: |-
+        1. Build Android using `npx react-native run-android --mode Debug` 
+        2. Start Metro Dev server using `npx react-native start`
+        3. Click on button executing `Sentry.capture(new Error("This is not captured :("))`
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Result
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Result
+      description: JS Console? iOS Console? Logcat? Screenshots? Yes, please.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |-
+
+        ## Thank you 🙏
+        Check our [triage docs](https://open.sentry.io/triage/) for what to expect next.
