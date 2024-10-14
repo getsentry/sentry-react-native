@@ -69,7 +69,7 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
 
   return {
     initAsync() {
-      subscription = DeviceEventEmitter.addListener(NewFrameEventName, () => {
+      DeviceEventEmitter.addListener(NewFrameEventName, () => {
         // Avoid noise from pages that we do not want to track.
         if (isListening) {
           NativeEmitterCalled = true;
