@@ -60,11 +60,12 @@ describe('SentryEventEmitterFallback', () => {
     jest.useFakeTimers();
     const fallbackTime = Date.now() / 1000;
 
-    const animation = NATIVE.getNewScreenTimeToDisplay as jest.Mock;
-    animation.mockReturnValue(Promise.resolve());
+    (NATIVE.getNewScreenTimeToDisplay as jest.Mock).mockReturnValue(Promise.resolve());
 
     emitter.startListenerAsync();
-    await animation; // wait for the Native execution to be completed.
+
+    // Wait for the next event loop to allow startListenerAsync to call NATIVE.getNewScreenTimeToDisplay
+    await Promise.resolve();
 
     await expect(NATIVE.getNewScreenTimeToDisplay).toHaveBeenCalled();
     expect(logger.error).not.toHaveBeenCalledWith('Failed to recceive Native fallback timestamp.', expect.any(Error));
@@ -88,11 +89,12 @@ describe('SentryEventEmitterFallback', () => {
     jest.useFakeTimers();
     const fallbackTime = Date.now() / 1000;
 
-    const animation = NATIVE.getNewScreenTimeToDisplay as jest.Mock;
-    animation.mockRejectedValueOnce(new Error('Failed'));
+    (NATIVE.getNewScreenTimeToDisplay as jest.Mock).mockRejectedValue(new Error('Failed'));
 
     emitter.startListenerAsync();
-    await animation; // wait for the Native execution to be completed.
+
+    // Wait for the next event loop to allow startListenerAsync to call NATIVE.getNewScreenTimeToDisplay
+    await Promise.resolve();
 
     await expect(NATIVE.getNewScreenTimeToDisplay).toHaveBeenCalled();
     expect(logger.error).toHaveBeenCalledWith('Failed to recceive Native fallback timestamp.', expect.any(Error));
@@ -116,11 +118,12 @@ describe('SentryEventEmitterFallback', () => {
     jest.useFakeTimers();
     const fallbackTime = Date.now() / 1000;
 
-    const animation = NATIVE.getNewScreenTimeToDisplay as jest.Mock;
-    animation.mockRejectedValueOnce(new Error('Failed'));
+    (NATIVE.getNewScreenTimeToDisplay as jest.Mock).mockRejectedValue(new Error('Failed'));
 
     emitter.startListenerAsync();
-    await animation; // wait for the Native execution to be completed.
+
+    // Wait for the next event loop to allow startListenerAsync to call NATIVE.getNewScreenTimeToDisplay
+    await Promise.resolve();
 
     await expect(NATIVE.getNewScreenTimeToDisplay).toHaveBeenCalled();
     expect(logger.error).toHaveBeenCalledWith('Failed to recceive Native fallback timestamp.', expect.any(Error));
@@ -145,10 +148,11 @@ describe('SentryEventEmitterFallback', () => {
     const fallbackTime = Date.now() / 1000;
 
     NATIVE.getNewScreenTimeToDisplay = () => Promise.resolve(null);
-    const animation = NATIVE.getNewScreenTimeToDisplay as jest.Mock;
 
     emitter.startListenerAsync();
-    await animation; // wait for the Native execution to be completed.
+
+    // Wait for the next event loop to allow startListenerAsync to call NATIVE.getNewScreenTimeToDisplay
+    await Promise.resolve();
 
     // Simulate retries and timer
     jest.runAllTimers();
@@ -178,8 +182,6 @@ describe('SentryEventEmitterFallback', () => {
   it('should not emit if original event emitter was called', async () => {
     jest.useFakeTimers();
 
-    const animation = NATIVE.getNewScreenTimeToDisplay as jest.Mock;
-
     const mockAddListener = jest.fn();
     DeviceEventEmitter.addListener = mockAddListener;
 
@@ -199,7 +201,8 @@ describe('SentryEventEmitterFallback', () => {
     emitter.startListenerAsync();
     callback();
 
-    await animation; // wait for the Native execution to be completed.
+    // Wait for the next event loop to allow startListenerAsync to call NATIVE.getNewScreenTimeToDisplay
+    await Promise.resolve();
 
     // Simulate retries and timer
     jest.runAllTimers();
@@ -211,9 +214,10 @@ describe('SentryEventEmitterFallback', () => {
   it('should retry up to maxRetries and emit fallback if no response', async () => {
     jest.useFakeTimers();
 
-    const animation = NATIVE.getNewScreenTimeToDisplay as jest.Mock;
     emitter.startListenerAsync();
-    await animation; // wait for the Native execution to be completed.
+
+    // Wait for the next event loop to allow startListenerAsync to call NATIVE.getNewScreenTimeToDisplay
+    await Promise.resolve();
 
     expect(logger.log).not.toHaveBeenCalled();
 
@@ -227,15 +231,5 @@ describe('SentryEventEmitterFallback', () => {
     expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('Native event emitter did not reply in time'));
 
     jest.useRealTimers();
-  });
-
-  it('should remove subscription when closeAll is called', () => {
-    const mockRemove = jest.fn();
-    (DeviceEventEmitter.addListener as jest.Mock).mockReturnValue({ remove: mockRemove });
-
-    emitter.initAsync();
-    emitter.closeAll();
-
-    expect(mockRemove).toHaveBeenCalled();
   });
 });

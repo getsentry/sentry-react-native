@@ -12,7 +12,6 @@ export interface SentryEventEmitterFallback {
    * This method is synchronous in JS but the event emitter starts asynchronously.
    */
   initAsync: () => void;
-  closeAll: () => void;
   startListenerAsync: () => void;
 }
 
@@ -25,7 +24,6 @@ function timeNowNanosecond(): number {
  */
 export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
   let NativeEmitterCalled: boolean = false;
-  let subscription: EmitterSubscription | undefined = undefined;
   let isListening = false;
 
   function defaultFallbackEventEmitter(): void {
@@ -94,10 +92,6 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
           logger.error('Failed to recceive Native fallback timestamp.', reason);
           defaultFallbackEventEmitter();
         });
-    },
-
-    closeAll() {
-      subscription?.remove();
     },
   };
 }
