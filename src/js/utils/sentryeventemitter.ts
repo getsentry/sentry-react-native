@@ -85,7 +85,6 @@ export function createSentryEventEmitter(
     addListener,
     removeListener,
     once(eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void) {
-
       fallbackEventEmitter?.startListenerAsync();
 
       const tmpListener = (event: NewFrameEvent): void => {
