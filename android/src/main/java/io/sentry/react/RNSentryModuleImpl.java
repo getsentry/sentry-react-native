@@ -131,7 +131,7 @@ public class RNSentryModuleImpl {
     /** Max trace file size in bytes. */
     private long maxTraceFileSize = 5 * 1024 * 1024;
 
-     private final RNSentryTimeToDisplay timeToDisplay;
+    private final RNSentryTimeToDisplay timeToDisplay;
 
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
       packageInfo = getPackageInfo(reactApplicationContext);
