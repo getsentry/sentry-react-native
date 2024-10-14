@@ -1,9 +1,9 @@
 import * as mockWrapper from '../mockWrapper';
-import * as mockedSentryEventEmitter from '../utils/mockedSentryeventemitter';
+import * as mockedSentryEventEmitter from '../utils/mockedSentryeventemitterfallback';
 import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
-jest.mock('../../src/js/utils/sentryeventemitter', () => mockedSentryEventEmitter);
+jest.mock('../../src/js/utils/sentryeventemitterfallback', () => mockedSentryEventEmitter);
 jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
 import { Span } from '@sentry/core';
@@ -16,16 +16,16 @@ import * as Sentry from '../../src/js';
 import { ReactNavigationInstrumentation } from '../../src/js';
 import { TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing';
 import { isHermesEnabled, notWeb } from '../../src/js/utils/environment';
-import { createSentryEventEmitter } from '../../src/js/utils/sentryeventemitter';
+import { createSentryFallbackEventEmitter } from '../../src/js/utils/sentryeventemitterfallback';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { MOCK_DSN } from '../mockDsn';
 import { secondInFutureTimestampMs } from '../testutils';
-import type { MockedSentryEventEmitter } from '../utils/mockedSentryeventemitter';
+import type { MockedSentryEventEmitterFallback } from '../utils/mockedSentryeventemitterfallback';
 import { emitNativeFullDisplayEvent, emitNativeInitialDisplayEvent } from './mockedtimetodisplaynative';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
 
 describe('React Navigation - TTID', () => {
-  let mockedEventEmitter: MockedSentryEventEmitter;
+  let mockedEventEmitter: MockedSentryEventEmitterFallback;
   let transportSendMock: jest.Mock<ReturnType<Transport['send']>, Parameters<Transport['send']>>;
   let mockedNavigation: ReturnType<typeof createMockNavigationAndAttachTo>;
   const mockedAppStartTimeSeconds: number = timestampInSeconds();
@@ -43,8 +43,8 @@ describe('React Navigation - TTID', () => {
         spans: [],
       });
 
-      mockedEventEmitter = mockedSentryEventEmitter.createMockedSentryEventEmitter();
-      (createSentryEventEmitter as jest.Mock).mockReturnValue(mockedEventEmitter);
+      mockedEventEmitter = mockedSentryEventEmitter.createMockedSentryFallbackEventEmitter();
+      (createSentryFallbackEventEmitter as jest.Mock).mockReturnValue(mockedEventEmitter);
 
       const sut = createTestedInstrumentation({ enableTimeToInitialDisplay: true });
       transportSendMock = initSentry(sut).transportSendMock;
