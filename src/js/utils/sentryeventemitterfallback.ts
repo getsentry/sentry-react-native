@@ -1,4 +1,4 @@
-import { logger } from '@sentry/utils';
+import { logger, timestampInSeconds } from '@sentry/utils';
 import { DeviceEventEmitter } from 'react-native';
 
 import { NATIVE } from '../wrapper';
@@ -12,10 +12,6 @@ export interface SentryEventEmitterFallback {
    */
   initAsync: () => void;
   startListenerAsync: () => void;
-}
-
-function timeNowNanosecond(): number {
-  return Date.now() / 1000; // Convert to nanoseconds
 }
 
 /**
@@ -34,8 +30,8 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
         isListening = false;
         return;
       }
-      const timestampInSeconds = timeNowNanosecond();
-      waitForNativeResponseOrFallback(timestampInSeconds, 'JavaScript');
+      const seconds = timestampInSeconds();
+      waitForNativeResponseOrFallback(seconds, 'JavaScript');
     });
   }
 
