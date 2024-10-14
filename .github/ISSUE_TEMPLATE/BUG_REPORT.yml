@@ -21,8 +21,6 @@ body:
         - "Expo Router"
         - "React Native Web"
         - "React Native Navigation by Wix"
-        - "sentry.io SaS"
-        - "Self-Hosted Sentry"
 
   - type: dropdown
     id: sentry
