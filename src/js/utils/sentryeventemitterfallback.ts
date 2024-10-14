@@ -63,8 +63,10 @@ export function createSentryFallbackEventEmitter(
       nativeNewFrameTimestampSeconds = undefined;
 
       const internalListener = (event: NewFrameEvent): void => {
-        clearTimeout(fallbackTimeout);
-        fallbackTimeout = undefined;
+        if (fallbackTimeout) {
+          clearTimeout(fallbackTimeout);
+          fallbackTimeout = undefined;
+        }
         animationFrameTimestampSeconds = undefined;
         nativeNewFrameTimestampSeconds = undefined;
         listener(event);
