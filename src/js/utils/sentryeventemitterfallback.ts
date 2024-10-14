@@ -1,5 +1,4 @@
 import { logger } from '@sentry/utils';
-import type { EmitterSubscription } from 'react-native';
 import { DeviceEventEmitter } from 'react-native';
 
 import { NATIVE } from '../wrapper';
@@ -25,6 +24,7 @@ function timeNowNanosecond(): number {
 export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
   let NativeEmitterCalled: boolean = false;
   let isListening = false;
+  let timeoutId: NodeJS.Timeout | null = null; // Declare a variable to store the timeout ID
 
   function defaultFallbackEventEmitter(): void {
     // Schedule the callback to be executed when all UI Frames have flushed.
@@ -40,19 +40,17 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
   }
 
   function waitForNativeResponseOrFallback(fallbackSeconds: number, origin: string): void {
-    const maxRetries = 3;
-    let retries = 0;
+    let firstAttemptCompleted = false;
 
-    const retryCheck = (): void => {
+    const checkNativeResponse = (): void => {
       if (NativeEmitterCalled) {
         NativeEmitterCalled = false;
         isListening = false;
         return; // Native Replied the bridge with a timestamp.
       }
-
-      retries++;
-      if (retries < maxRetries) {
-        setTimeout(retryCheck, 1_000);
+      if (!firstAttemptCompleted) {
+        firstAttemptCompleted = true;
+        timeoutId = setTimeout(checkNativeResponse, 3_000);
       } else {
         logger.log(`[Sentry] Native event emitter did not reply in time. Using ${origin} fallback emitter.`);
         isListening = false;
@@ -64,17 +62,21 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
     };
 
     // Start the retry process
-    retryCheck();
+    checkNativeResponse();
   }
 
   return {
     initAsync() {
       DeviceEventEmitter.addListener(NewFrameEventName, () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId); // Clear the timeout when native responds
+          timeoutId = null;
+        }
         // Avoid noise from pages that we do not want to track.
         if (isListening) {
           NativeEmitterCalled = true;
         }
-      });
+    });
     },
 
     startListenerAsync() {
