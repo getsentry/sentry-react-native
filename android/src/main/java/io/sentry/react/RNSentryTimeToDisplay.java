@@ -10,14 +10,11 @@ import io.sentry.SentryDateProvider;
 import io.sentry.android.core.SentryAndroidDateProvider;
 
 public class RNSentryTimeToDisplay {
-
-    public void GetTimeToDisplay(Promise promise) {
+    public static void GetTimeToDisplay(Promise promise, SentryDateProvider dateProvider) {
         Choreographer choreographer = Choreographer.getInstance();
 
         // Invoke the callback after the frame is rendered
         choreographer.postFrameCallback(frameTimeNanos -> {
-                final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
-
                 final SentryDate endDate = dateProvider.now();
 
                 promise.resolve(endDate.nanoTimestamp() / 1e9);

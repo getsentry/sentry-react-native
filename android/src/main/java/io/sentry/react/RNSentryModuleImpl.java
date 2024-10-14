@@ -131,13 +131,13 @@ public class RNSentryModuleImpl {
     /** Max trace file size in bytes. */
     private long maxTraceFileSize = 5 * 1024 * 1024;
 
-    private final RNSentryTimeToDisplay timeToDisplay;
+    private final @NotNull SentryDateProvider dateProvider;
 
     public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
       packageInfo = getPackageInfo(reactApplicationContext);
       this.reactApplicationContext = reactApplicationContext;
       this.emitNewFrameEvent = createEmitNewFrameEvent();
-      this.timeToDisplay = new RNSentryTimeToDisplay();
+      this.dateProvider = new SentryAndroidDateProvider();
     }
 
     private ReactApplicationContext getReactApplicationContext() {
@@ -149,8 +149,6 @@ public class RNSentryModuleImpl {
     }
 
     private @NotNull Runnable createEmitNewFrameEvent() {
-        final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
-
         return () -> {
           final SentryDate endDate = dateProvider.now();
           WritableMap event = Arguments.createMap();
@@ -701,7 +699,7 @@ public class RNSentryModuleImpl {
     }
 
     public void getNewScreenTimeToDisplay(Promise promise) {
-        timeToDisplay.GetTimeToDisplay(promise);
+        RNSentryTimeToDisplay.GetTimeToDisplay(promise, dateProvider);
     }
 
     private String getProfilingTracesDirPath() {
