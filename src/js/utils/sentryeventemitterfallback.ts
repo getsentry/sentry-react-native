@@ -23,7 +23,7 @@ export function createSentryFallbackEventEmitter(
   emitter: SentryEventEmitter = createSentryEventEmitter(),
   fallbackTimeoutMs = FALLBACK_TIMEOUT_MS,
 ): SentryEventEmitterFallback {
-  let fallbackTimeout: ReturnType<typeof setTimeout>  | undefined;
+  let fallbackTimeout: ReturnType<typeof setTimeout> | undefined;
   let animationFrameTimestampSeconds: number | undefined;
   let nativeNewFrameTimestampSeconds: number | undefined;
 

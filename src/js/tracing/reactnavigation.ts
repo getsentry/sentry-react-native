@@ -86,7 +86,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
   private _navigationProcessingSpan?: Span;
 
   private _initialStateHandled: boolean = false;
-  private _stateChangeTimeout?:  ReturnType<typeof setTimeout>  | undefined;
+  private _stateChangeTimeout?: ReturnType<typeof setTimeout> | undefined;
   private _recentRouteKeys: string[] = [];
 
   private _options: ReactNavigationOptions;
@@ -248,21 +248,19 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             });
 
           if (!routeHasBeenSeen && latestTtidSpan) {
-            this._newScreenFrameEventEmitter?.onceNewFrame(
-              ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
-                const activeSpan = getActiveSpan();
-                if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
-                  logger.warn(
-                    '[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.',
-                  );
-                  return;
-                }
+            this._newScreenFrameEventEmitter?.onceNewFrame(({ newFrameTimestampInSeconds }: NewFrameEvent) => {
+              const activeSpan = getActiveSpan();
+              if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
+                logger.warn(
+                  '[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.',
+                );
+                return;
+              }
 
-                latestTtidSpan.setStatus('ok');
-                latestTtidSpan.end(newFrameTimestampInSeconds);
-                setSpanDurationAsMeasurementOnTransaction(latestTransaction, 'time_to_initial_display', latestTtidSpan);
-              },
-            );
+              latestTtidSpan.setStatus('ok');
+              latestTtidSpan.end(newFrameTimestampInSeconds);
+              setSpanDurationAsMeasurementOnTransaction(latestTransaction, 'time_to_initial_display', latestTtidSpan);
+            });
           }
 
           this._navigationProcessingSpan?.updateName(`Processing navigation to ${route.name}`);
