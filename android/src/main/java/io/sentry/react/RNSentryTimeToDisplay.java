@@ -11,13 +11,18 @@ import io.sentry.android.core.SentryAndroidDateProvider;
 
 public class RNSentryTimeToDisplay {
     public static void GetTimeToDisplay(Promise promise, SentryDateProvider dateProvider) {
-        Choreographer choreographer = Choreographer.getInstance();
+        try {
+            Choreographer choreographer = Choreographer.getInstance();
 
-        // Invoke the callback after the frame is rendered
-        choreographer.postFrameCallback(frameTimeNanos -> {
+            // Invoke the callback after the frame is rendered
+            choreographer.postFrameCallback(frameTimeNanos -> {
                 final SentryDate endDate = dateProvider.now();
 
                 promise.resolve(endDate.nanoTimestamp() / 1e9);
-        });
+            });
+        }
+        catch (Exception exception) {
+            promise.reject("Failed to receive the instance of Choreographer" ,exception);
+        }
     }
 }
