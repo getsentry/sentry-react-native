@@ -452,7 +452,7 @@ export const NATIVE: SentryNativeWrapper = {
   },
 
   /**
-   * Sets context on the native scope. Not implemented in Android yet.
+   * Sets context on the native scope.
    * @param key string
    * @param context key-value map
    */
@@ -477,9 +477,9 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     if (normalizedContext) {
-      return RNSentry.setContext(key, normalizedContext);
+      RNSentry.setContext(key, normalizedContext);
     } else {
-      return RNSentry.setContext(key, { error: '**non-serializable**' });
+      RNSentry.setContext(key, { error: '**non-serializable**' });
     }
   },
 
