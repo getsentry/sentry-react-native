@@ -25,7 +25,7 @@ body:
         - "Self-Hosted Sentry"
 
   - type: dropdown
-    id: environment
+    id: sentry
     validations:
       required: true
     attributes:
