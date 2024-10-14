@@ -5,6 +5,7 @@
 ### Fixes
 
 - Enhanced accuracy of time-to-display spans. ([#4042](https://github.com/getsentry/sentry-react-native/pull/4042))
+- Handles error with string cause ([#4163](https://github.com/getsentry/sentry-react-native/pull/4163))
 - Use `appLaunchedInForeground` to determine invalid app start data on Android ([#4146](https://github.com/getsentry/sentry-react-native/pull/4146))
 - Upload source maps for all release variants on Android (not only the last found) ([#4125](https://github.com/getsentry/sentry-react-native/pull/4125))
 
@@ -16,6 +17,9 @@
 - Bump Cocoa SDK from v8.36.0 to v8.37.0 ([#4156](https://github.com/getsentry/sentry-react-native/pull/4156))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8370)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.36.0...8.37.0)
+- Bump Android SDK from v7.14.0 to v7.15.0 ([#4161](https://github.com/getsentry/sentry-react-native/pull/4161))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7150)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.14.0...7.15.0)
 
 ## 5.33.2
 
