@@ -17,8 +17,6 @@ const buttonTitles = Array.from(
   (_, index) => `Sample button ${index + 1}`,
 );
 
-const beforeEffectSpanStart = Date.now();
-
 /**
  * this page takes around 300ms to initially display, we navigate to another page in 100ms.
  * The time to initial display will never be finished on this page.
@@ -39,7 +37,6 @@ const HeavyNavigationScreen = (props: Props) => {
   );
 
   React.useEffect(() => {
-    Sentry.startInactiveSpan({ name: "before Effect", startTime: beforeEffectSpanStart})?.end();
     setTimeout(() => {
       props.navigation.goBack();
     }, 1);
