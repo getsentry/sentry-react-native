@@ -587,8 +587,16 @@ RCT_EXPORT_METHOD(setContext:(NSString *)key
                   context:(NSDictionary *)context
 )
 {
+    if (key == nil) {
+        return;
+    }
+
     [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        [scope setContextValue:context forKey:key];
+        if (context == nil) {
+            [scope removeContextForKey:key];
+        } else {
+            [scope setContextValue:context forKey:key];
+        }
     }];
 }
 
