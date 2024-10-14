@@ -22,7 +22,10 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
   let isListening = false;
 
   function defaultFallbackEventEmitter(): void {
-    // Schedule the callback to be executed when all UI Frames have flushed.
+    // https://reactnative.dev/docs/timers#timers
+    // NOTE: The current implementation of requestAnimationFrame is the same
+    // as setTimeout(0). This isn't exactly how requestAnimationFrame
+    // is supposed to work on web, so it doesn't get called when UI Frames are rendered.: https://github.com/facebook/react-native/blob/5106933c750fee2ce49fe1945c3e3763eebc92bc/packages/react-native/ReactCommon/react/runtime/TimerManager.cpp#L442-L443
     requestAnimationFrame(() => {
       if (NativeEmitterCalled) {
         NativeEmitterCalled = false;
