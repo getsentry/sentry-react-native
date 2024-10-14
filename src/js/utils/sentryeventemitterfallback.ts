@@ -1,8 +1,10 @@
 import { logger, timestampInSeconds } from '@sentry/utils';
 
 import { NATIVE } from '../wrapper';
-import type { NewFrameEvent } from './sentryeventemitter';
+import type { NewFrameEvent, SentryEventEmitter } from './sentryeventemitter';
 import { createSentryEventEmitter, NewFrameEventName } from './sentryeventemitter';
+
+export const FALLBACK_TIMEOUT_MS = 10_000;
 
 export type FallBackNewFrameEvent = { newFrameTimestampInSeconds: number; isFallback?: boolean };
 export interface SentryEventEmitterFallback {
@@ -17,9 +19,10 @@ export interface SentryEventEmitterFallback {
 /**
  * Creates emitter that allows to listen to UI Frame events when ready.
  */
-export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
-  const emitter = createSentryEventEmitter();
-
+export function createSentryFallbackEventEmitter(
+  emitter: SentryEventEmitter = createSentryEventEmitter(),
+  fallbackTimeoutMs = FALLBACK_TIMEOUT_MS,
+): SentryEventEmitterFallback {
   let fallbackTimeout: ReturnType<typeof setTimeout> | undefined;
   let animationFrameTimestampSeconds: number | undefined;
   let nativeNewFrameTimestampSeconds: number | undefined;
@@ -68,7 +71,7 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
       };
       fallbackTimeout = setTimeout(() => {
         if (nativeNewFrameTimestampSeconds) {
-          logger.log('Native fallback timestamp received.');
+          logger.log('Native event emitter did not reply in time');
           return listener({
             newFrameTimestampInSeconds: nativeNewFrameTimestampSeconds,
             isFallback: true,
@@ -83,7 +86,7 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
           emitter.removeListener(NewFrameEventName, internalListener);
           logger.error('Failed to receive any fallback timestamp.');
         }
-      }, 3_000);
+      }, fallbackTimeoutMs);
 
       getNativeNewFrameTimestampSeconds();
       getAnimationFrameTimestampSeconds();

@@ -1,22 +1,7 @@
-import { DeviceEventEmitter } from 'react-native';
-
 import { NewFrameEventName } from '../../src/js/utils/sentryeventemitter';
 import { createSentryFallbackEventEmitter } from '../../src/js/utils/sentryeventemitterfallback';
 
 // Mock dependencies
-
-jest.mock('react-native', () => {
-  return {
-    DeviceEventEmitter: {
-      addListener: jest.fn(),
-      emit: jest.fn(),
-    },
-    Platform: {
-      OS: 'ios',
-    },
-  };
-});
-
 jest.mock('../../src/js/utils/environment', () => ({
   isTurboModuleEnabled: () => false,
 }));
@@ -48,12 +33,6 @@ describe('SentryEventEmitterFallback', () => {
     NATIVE.getNewScreenTimeToDisplay = jest.fn();
   });
 
-  it('should initialize and add a listener', () => {
-    emitter.initAsync();
-
-    expect(DeviceEventEmitter.addListener).toHaveBeenCalledWith(NewFrameEventName, expect.any(Function));
-  });
-
   it('should start listener and use fallback when native call returned undefined/null', async () => {
     jest.useFakeTimers();
     const spy = jest.spyOn(require('@sentry/utils'), 'timestampInSeconds');
@@ -62,19 +41,20 @@ describe('SentryEventEmitterFallback', () => {
 
     (NATIVE.getNewScreenTimeToDisplay as jest.Mock).mockReturnValue(Promise.resolve());
 
-    emitter.startListenerAsync();
+    const listener = jest.fn();
+    emitter.onceNewFrame(listener);
 
     // Wait for the next event loop to allow startListenerAsync to call NATIVE.getNewScreenTimeToDisplay
     await Promise.resolve();
 
     await expect(NATIVE.getNewScreenTimeToDisplay).toHaveBeenCalled();
-    expect(logger.error).not.toHaveBeenCalledWith('Failed to recceive Native fallback timestamp.', expect.any(Error));
+    expect(logger.error).not.toHaveBeenCalledWith('Failed to receive Native fallback timestamp.', expect.any(Error));
 
     // Simulate retries and timer
     jest.runAllTimers();
 
     // Ensure fallback event is emitted
-    expect(DeviceEventEmitter.emit).toHaveBeenCalledWith(NewFrameEventName, {
+    expect(listener).toHaveBeenCalledWith({
       newFrameTimestampInSeconds: fallbackTime,
       isFallback: true,
     });
@@ -90,23 +70,24 @@ describe('SentryEventEmitterFallback', () => {
 
     (NATIVE.getNewScreenTimeToDisplay as jest.Mock).mockRejectedValue(new Error('Failed'));
 
-    emitter.startListenerAsync();
-
     const spy = jest.spyOn(require('@sentry/utils'), 'timestampInSeconds');
     const fallbackTime = Date.now() / 1000;
     spy.mockReturnValue(fallbackTime);
+
+    const listener = jest.fn();
+    emitter.onceNewFrame(listener);
 
     // Wait for the next event loop to allow startListenerAsync to call NATIVE.getNewScreenTimeToDisplay
     await Promise.resolve();
 
     await expect(NATIVE.getNewScreenTimeToDisplay).toHaveBeenCalled();
-    expect(logger.error).toHaveBeenCalledWith('Failed to recceive Native fallback timestamp.', expect.any(Error));
+    expect(logger.error).toHaveBeenCalledWith('Failed to receive Native fallback timestamp.', expect.any(Error));
 
     // Simulate retries and timer
     jest.runAllTimers();
 
     // Ensure fallback event is emitted
-    expect(DeviceEventEmitter.emit).toHaveBeenCalledWith(NewFrameEventName, {
+    expect(listener).toHaveBeenCalledWith({
       newFrameTimestampInSeconds: fallbackTime,
       isFallback: true,
     });
@@ -125,19 +106,20 @@ describe('SentryEventEmitterFallback', () => {
 
     (NATIVE.getNewScreenTimeToDisplay as jest.Mock).mockRejectedValue(new Error('Failed'));
 
-    emitter.startListenerAsync();
+    const listener = jest.fn();
+    emitter.onceNewFrame(listener);
 
     // Wait for the next event loop to allow startListenerAsync to call NATIVE.getNewScreenTimeToDisplay
     await Promise.resolve();
 
     await expect(NATIVE.getNewScreenTimeToDisplay).toHaveBeenCalled();
-    expect(logger.error).toHaveBeenCalledWith('Failed to recceive Native fallback timestamp.', expect.any(Error));
+    expect(logger.error).toHaveBeenCalledWith('Failed to receive Native fallback timestamp.', expect.any(Error));
 
     // Simulate retries and timer
     jest.runAllTimers();
 
     // Ensure fallback event is emitted
-    expect(DeviceEventEmitter.emit).toHaveBeenCalledWith(NewFrameEventName, {
+    expect(listener).toHaveBeenCalledWith({
       newFrameTimestampInSeconds: fallbackTime,
       isFallback: true,
     });
@@ -156,7 +138,8 @@ describe('SentryEventEmitterFallback', () => {
 
     NATIVE.getNewScreenTimeToDisplay = () => Promise.resolve(null);
 
-    emitter.startListenerAsync();
+    const listener = jest.fn();
+    emitter.onceNewFrame(listener);
 
     // Wait for the next event loop to allow startListenerAsync to call NATIVE.getNewScreenTimeToDisplay
     await Promise.resolve();
@@ -165,7 +148,7 @@ describe('SentryEventEmitterFallback', () => {
     jest.runAllTimers();
 
     // Ensure fallback event is emitted
-    expect(DeviceEventEmitter.emit).toHaveBeenCalledWith(NewFrameEventName, {
+    expect(listener).toHaveBeenCalledWith({
       newFrameTimestampInSeconds: fallbackTime,
       isFallback: true,
     });
@@ -181,7 +164,8 @@ describe('SentryEventEmitterFallback', () => {
 
     (NATIVE.getNewScreenTimeToDisplay as jest.Mock).mockResolvedValueOnce(nativeTimestamp);
 
-    emitter.startListenerAsync();
+    const listener = jest.fn();
+    emitter.onceNewFrame(listener);
 
     expect(NATIVE.getNewScreenTimeToDisplay).toHaveBeenCalled();
   });
@@ -189,13 +173,10 @@ describe('SentryEventEmitterFallback', () => {
   it('should not emit if original event emitter was called', async () => {
     jest.useFakeTimers();
 
-    const mockAddListener = jest.fn();
-    DeviceEventEmitter.addListener = mockAddListener;
-
     // Capture the callback passed to addListener
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/ban-types
     let callback: Function = () => {};
-    mockAddListener.mockImplementationOnce((eventName, cb) => {
+    const mockOnce = jest.fn().mockImplementationOnce((eventName, cb) => {
       if (eventName === NewFrameEventName) {
         callback = cb;
       }
@@ -204,9 +185,20 @@ describe('SentryEventEmitterFallback', () => {
       };
     });
 
+    emitter = createSentryFallbackEventEmitter({
+      addListener: jest.fn(),
+      initAsync: jest.fn(),
+      closeAllAsync: jest.fn(),
+      removeListener: jest.fn(),
+      once: mockOnce,
+    });
+
     emitter.initAsync();
-    emitter.startListenerAsync();
-    callback();
+    const listener = jest.fn();
+    emitter.onceNewFrame(listener);
+    callback({
+      newFrameTimestampInSeconds: 67890,
+    });
 
     // Wait for the next event loop to allow startListenerAsync to call NATIVE.getNewScreenTimeToDisplay
     await Promise.resolve();
@@ -214,14 +206,19 @@ describe('SentryEventEmitterFallback', () => {
     // Simulate retries and timer
     jest.runAllTimers();
 
-    expect(DeviceEventEmitter.emit).not.toBeCalled();
+    // Ensure fallback event is emitted
+    expect(listener).toHaveBeenCalledWith({
+      newFrameTimestampInSeconds: 67890,
+      isFallback: undefined,
+    });
     expect(logger.log).not.toBeCalled();
   });
 
   it('should retry up to maxRetries and emit fallback if no response', async () => {
     jest.useFakeTimers();
 
-    emitter.startListenerAsync();
+    const listener = jest.fn();
+    emitter.onceNewFrame(listener);
 
     // Wait for the next event loop to allow startListenerAsync to call NATIVE.getNewScreenTimeToDisplay
     await Promise.resolve();
@@ -231,10 +228,7 @@ describe('SentryEventEmitterFallback', () => {
     // Simulate retries and timer
     jest.runAllTimers();
 
-    expect(DeviceEventEmitter.emit).toHaveBeenCalledWith(
-      NewFrameEventName,
-      expect.objectContaining({ isFallback: true }),
-    );
+    expect(listener).toHaveBeenCalledWith(expect.objectContaining({ isFallback: true }));
     expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('Native event emitter did not reply in time'));
 
     jest.useRealTimers();
