@@ -24,6 +24,17 @@ body:
         - "sentry.io SaS"
         - "Self-Hosted Sentry"
 
+  - type: dropdown
+    id: environment
+    validations:
+      required: true
+    attributes:
+      label: "Are you using sentry.io or on-premise?"
+      description: "Select exactly one option."
+      options:
+        - "sentry.io (SaS)"
+        - "on-premise (Self-Hosted)"
+
   - type: input
     id: version
     validations:
