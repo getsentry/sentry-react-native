@@ -3,6 +3,7 @@ import type { EmitterSubscription, NativeModule } from 'react-native';
 import { NativeEventEmitter } from 'react-native';
 
 import { getRNSentryModule } from '../wrapper';
+import { createSentryFallbackEventEmitter } from './sentryeventemitterfallback';
 
 export const NewFrameEventName = 'rn_sentry_new_frame';
 export type NewFrameEventName = typeof NewFrameEventName;
@@ -32,6 +33,7 @@ export function createSentryEventEmitter(
   if (!sentryNativeModule) {
     return createNoopSentryEventEmitter();
   }
+  const fallbackEventEmitter = createSentryFallbackEventEmitter();
 
   const openNativeListeners = new Map<NewFrameEventName, EmitterSubscription>();
   const listenersMap = new Map<NewFrameEventName, Map<(event: NewFrameEvent) => void, true>>();
@@ -70,6 +72,8 @@ export function createSentryEventEmitter(
       openNativeListeners.set(eventType, nativeListener);
 
       listenersMap.set(eventType, new Map());
+
+      fallbackEventEmitter.initAsync();
     },
     closeAllAsync() {
       openNativeListeners.forEach(subscription => {
@@ -81,6 +85,9 @@ export function createSentryEventEmitter(
     addListener,
     removeListener,
     once(eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void) {
+
+      fallbackEventEmitter?.startListenerAsync();
+
       const tmpListener = (event: NewFrameEvent): void => {
         listener(event);
         removeListener(eventType, tmpListener);

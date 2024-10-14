@@ -20,7 +20,7 @@ export interface SentryEventEmitterFallback {
 export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
   let NativeEmitterCalled: boolean = false;
   let isListening = false;
-  let timeoutId: NodeJS.Timeout | null = null; // Declare a variable to store the timeout ID
+  let timeoutId: number | null = null; // Declare a variable to store the timeout ID
 
   function defaultFallbackEventEmitter(): void {
     // Schedule the callback to be executed when all UI Frames have flushed.
@@ -46,6 +46,8 @@ export function createSentryFallbackEventEmitter(): SentryEventEmitterFallback {
       }
       if (!firstAttemptCompleted) {
         firstAttemptCompleted = true;
+        // in React Native, setTimeout returns number, where NodeJS returns NodeJS.Timeout, that is also compatible with number.
+        // the line below is a cosmetic error and will not affect the build.
         timeoutId = setTimeout(checkNativeResponse, 3_000);
       } else {
         logger.log(`[Sentry] Native event emitter did not reply in time. Using ${origin} fallback emitter.`);

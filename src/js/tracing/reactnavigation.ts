@@ -5,7 +5,6 @@ import { logger, timestampInSeconds } from '@sentry/utils';
 
 import type { NewFrameEvent } from '../utils/sentryeventemitter';
 import { type SentryEventEmitter, createSentryEventEmitter, NewFrameEventName } from '../utils/sentryeventemitter';
-import { type SentryEventEmitterFallback, createSentryFallbackEventEmitter } from '../utils/sentryeventemitterfallback';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
@@ -79,7 +78,6 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
 
   private _navigationContainer: NavigationContainer | null = null;
   private _newScreenFrameEventEmitter: SentryEventEmitter | null = null;
-  private _newFallbackEventEmitter: SentryEventEmitterFallback | null = null;
   private readonly _maxRecentRouteLen: number = 200;
 
   private _latestRoute?: NavigationRoute;
@@ -102,9 +100,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
 
     if (this._options.enableTimeToInitialDisplay) {
       this._newScreenFrameEventEmitter = createSentryEventEmitter();
-      this._newFallbackEventEmitter = createSentryFallbackEventEmitter();
       this._newScreenFrameEventEmitter.initAsync(NewFrameEventName);
-      this._newFallbackEventEmitter.initAsync();
       NATIVE.initNativeReactNavigationNewFrameTracking().catch((reason: unknown) => {
         logger.error(`[ReactNavigationInstrumentation] Failed to initialize native new frame tracking: ${reason}`);
       });
@@ -251,7 +247,6 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
             });
 
           if (!routeHasBeenSeen && latestTtidSpan) {
-            this._newFallbackEventEmitter?.startListenerAsync();
             this._newScreenFrameEventEmitter?.once(
               NewFrameEventName,
               ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
