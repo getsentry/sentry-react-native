@@ -409,7 +409,7 @@ export const NATIVE: SentryNativeWrapper = {
       const normalizedExtra = normalize(extra);
       stringifiedExtra = JSON.stringify(normalizedExtra);
     } catch (e) {
-      logger.error('Extra not passed to native SDK, because it contains non-stringifiable values', e);
+      logger.error('Extra for key ${key} not passed to native SDK, because it contains non-stringifiable values', e);
     }
 
     if (typeof stringifiedExtra === 'string') {
@@ -473,7 +473,7 @@ export const NATIVE: SentryNativeWrapper = {
     try {
       normalizedContext = convertToNormalizedObject(context);
     } catch (e) {
-      logger.error('Context not passed to native SDK, because it contains non-serializable values', e);
+      logger.error('Context for key ${key} not passed to native SDK, because it contains non-serializable values', e);
     }
 
     if (normalizedContext) {

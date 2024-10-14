@@ -724,6 +724,7 @@ describe('Tests Native Wrapper', () => {
     test('handles null value by passing null to native method', () => {
       NATIVE.setContext('key', null);
       expect(RNSentry.setContext).toHaveBeenCalledWith('key', null);
+      expect(RNSentry.setContext).toHaveBeenCalledOnce();
     });
 
     test('handles undefined value by converting to object with "value" key', () => {
@@ -737,6 +738,7 @@ describe('Tests Native Wrapper', () => {
       circular.self = circular;
       NATIVE.setContext('key', circular);
       expect(RNSentry.setContext).toHaveBeenCalledWith('key', { self: '[Circular ~]' });
+      expect(RNSentry.setContext).toHaveBeenCalledOnce();
     });
   });
 });
