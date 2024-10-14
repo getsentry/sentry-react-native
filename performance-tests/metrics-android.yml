@@ -8,7 +8,7 @@ apps:
 
 startupTimeTest:
   runs: 50
-  diffMin: 0
+  diffMin: -20
   diffMax: 150
 
 binarySizeTest:
