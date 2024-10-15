@@ -919,11 +919,10 @@ public class RNSentryModuleImpl {
   }
 
   private void setEventOriginTag(SentryEvent event) {
+    // We hardcode native-java as only java events are processed by the Android SDK.
     SdkVersion sdk = event.getSdk();
     if (sdk != null) {
       switch (sdk.getName()) {
-        // If the event is from capacitor js, it gets set there and we do not handle it
-        // here.
         case NATIVE_SDK_NAME:
           setEventEnvironmentTag(event, "native");
           break;
