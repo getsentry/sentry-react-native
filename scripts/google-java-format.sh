@@ -24,7 +24,7 @@ base_cmd="npx google-java-format"
 if [ "$mode" = "fix" ]; then
     base_cmd+=" --replace"
 elif [ "$mode" = "lint" ]; then
-    base_cmd+=" --set-exit-if-changed"
+    base_cmd+=" --set-exit-if-changed --dry-run"
 else
     echo "Invalid mode. Use 'fix' or 'lint'."
     exit 1
@@ -37,7 +37,7 @@ any_failed=0
 for pattern in "${glob_patterns[@]}"; do
     cmd="$base_cmd --glob='$pattern'"
     echo "Executing: $cmd"
-    eval $cmd >> /dev/null
+    eval $cmd
 
     # Check the exit status of the command
     if [ $? -ne 0 ]; then
