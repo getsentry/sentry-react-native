@@ -75,6 +75,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.23.5",
+    "@babel/plugin-transform-private-methods": "^7.25.7",
     "@expo/metro-config": "0.17.5",
     "@mswjs/interceptors": "^0.25.15",
     "@sentry-internal/eslint-config-sdk": "8.33.1",
