@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-expo-sample",
-  "version": "5.34.0",
+  "version": "6.0.0-rc.1",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -9,10 +9,10 @@
     "web": "expo start --web",
     "ts:check": "tsc",
     "export": "EXPO_SKIP_DURING_EXPORT='true' expo export --dump-sourcemap --clear",
-    "set-version": "npm version --no-git-tag-version",
-    "postversion": "react-native-version --skip-tag --never-amend"
+    "set-version": "npx react-native-version --skip-tag --never-amend"
   },
   "dependencies": {
+    "@sentry/react-native": "6.0.0-rc.1",
     "@types/react": "18.2.45",
     "expo": "^50.0.8",
     "expo-constants": "~15.4.5",
@@ -27,7 +27,6 @@
     "react-native-safe-area-context": "4.8.2",
     "react-native-screens": "~3.29.0",
     "react-native-web": "~0.19.6",
-    "ts-node": "^10.9.2",
     "typescript": "^5.3.2"
   },
   "devDependencies": {
