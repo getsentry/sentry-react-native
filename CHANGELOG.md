@@ -9,6 +9,12 @@
 - Native Wrapper method `setExtra` ensures only stringified values are passed ([#4168](https://github.com/getsentry/sentry-react-native/pull/4168))
 - `setContext('key', null)` removes the key value also from platform context ([#4168](https://github.com/getsentry/sentry-react-native/pull/4168))
 
+### Dependencies
+
+- Bump Cocoa SDK from v8.37.0 to v8.38.0 ([#4180](https://github.com/getsentry/sentry-react-native/pull/4180))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8380)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.37.0...8.38.0)
+
 ## 5.34.0
 
 ### Fixes
