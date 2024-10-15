@@ -1968,6 +1968,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/plugin-transform-private-methods@npm:^7.25.7":
+  version: 7.25.7
+  resolution: "@babel/plugin-transform-private-methods@npm:7.25.7"
+  dependencies:
+    "@babel/helper-create-class-features-plugin": ^7.25.7
+    "@babel/helper-plugin-utils": ^7.25.7
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  checksum: c952adc58bfb00ef8c68deb03d2aa12b2d12ba9cd02bcc93b47d9f28f0fa16c08534e5099b916703b1d2f4dc037e5838e7f66b0dce650e7af8c1f41ca69af2c9
+  languageName: node
+  linkType: hard
+
 "@babel/plugin-transform-private-property-in-object@npm:^7.22.11, @babel/plugin-transform-private-property-in-object@npm:^7.24.7":
   version: 7.24.7
   resolution: "@babel/plugin-transform-private-property-in-object@npm:7.24.7"
@@ -6754,6 +6766,7 @@ __metadata:
   resolution: "@sentry/react-native@workspace:packages/core"
   dependencies:
     "@babel/core": ^7.23.5
+    "@babel/plugin-transform-private-methods": ^7.25.7
     "@expo/metro-config": 0.17.5
     "@mswjs/interceptors": ^0.25.15
     "@sentry-internal/eslint-config-sdk": 8.33.1
@@ -6767,15 +6780,15 @@ __metadata:
     "@sentry/types": 8.33.1
     "@sentry/utils": 8.33.1
     "@sentry/wizard": 3.16.3
-    "@testing-library/react-native": ^12.6.1
+    "@testing-library/react-native": ^12.7.2
     "@types/jest": ^29.5.3
     "@types/node": ^20.9.3
     "@types/react": ^18.2.64
     "@types/uglify-js": ^3.17.2
     "@types/uuid": ^9.0.4
     "@types/xmlhttprequest": ^1.8.2
-    "@typescript-eslint/eslint-plugin": ^5.48.0
-    "@typescript-eslint/parser": ^5.48.0
+    "@typescript-eslint/eslint-plugin": ^7.18.0
+    "@typescript-eslint/parser": ^7.18.0
     babel-jest: ^29.6.2
     babel-plugin-module-resolver: ^5.0.0
     babel-preset-fbjs: ^3.4.0
@@ -6791,9 +6804,9 @@ __metadata:
     madge: ^6.1.0
     metro: 0.80.10
     prettier: ^2.0.5
-    react: 18.2.0
-    react-native: 0.73.9
-    react-test-renderer: ^18.2.0
+    react: ^18.3.1
+    react-native: ^0.75.4
+    react-test-renderer: ^18.3.1
     rimraf: ^4.1.1
     ts-jest: ^29.1.1
     typescript: 4.9.5
@@ -7074,9 +7087,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/react-native@npm:^12.6.1":
-  version: 12.6.1
-  resolution: "@testing-library/react-native@npm:12.6.1"
+"@testing-library/react-native@npm:^12.7.2":
+  version: 12.7.2
+  resolution: "@testing-library/react-native@npm:12.7.2"
   dependencies:
     jest-matcher-utils: ^29.7.0
     pretty-format: ^29.7.0
@@ -7089,7 +7102,7 @@ __metadata:
   peerDependenciesMeta:
     jest:
       optional: true
-  checksum: 8966e074e10fc73cafea7630d4f6af35bc0bb42f1f79cc84d2c4336136b50c5c00546216219aea170481c6a3916e82a5dd17dfd5e0109483b52e7438a506bbeb
+  checksum: 7e3d8ab7d549823fcf438c17353e6c40386da88bbb1edfbd0747282a28c673597be27fdc2fa1f3a7d8786b77c72bb2e37f67ad2c9134225e9b68db97838f77e2
   languageName: node
   linkType: hard
 
@@ -23102,7 +23115,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native@npm:0.75.4":
+"react-native@npm:0.75.4, react-native@npm:^0.75.4":
   version: 0.75.4
   resolution: "react-native@npm:0.75.4"
   dependencies:
@@ -23248,7 +23261,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-test-renderer@npm:18.3.1, react-test-renderer@npm:^18.2.0":
+"react-test-renderer@npm:18.3.1, react-test-renderer@npm:^18.3.1":
   version: 18.3.1
   resolution: "react-test-renderer@npm:18.3.1"
   dependencies:
@@ -23279,7 +23292,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.3.1":
+"react@npm:18.3.1, react@npm:^18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
   dependencies:
