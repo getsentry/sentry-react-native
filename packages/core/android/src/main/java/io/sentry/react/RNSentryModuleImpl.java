@@ -639,18 +639,29 @@ public class RNSentryModuleImpl {
     }
 
     public void setExtra(String key, String extra) {
+        if (key == null || extra == null) {
+            logger.log(SentryLevel.ERROR, "RNSentry.setExtra called with null key or value, can't change extra.");
+            return;
+        }
+
         Sentry.configureScope(scope -> {
             scope.setExtra(key, extra);
         });
     }
 
     public void setContext(final String key, final ReadableMap context) {
-        if (key == null || context == null) {
+        if (key == null) {
+            logger.log(SentryLevel.ERROR, "RNSentry.setContext called with null key, can't change context.");
             return;
         }
-        Sentry.configureScope(scope -> {
-            final HashMap<String, Object> contextHashMap = context.toHashMap();
 
+        Sentry.configureScope(scope -> {
+            if (context == null) {
+                scope.removeContexts(key);
+                return;
+            }
+
+            final HashMap<String, Object> contextHashMap = context.toHashMap();
             scope.setContexts(key, contextHashMap);
         });
     }
