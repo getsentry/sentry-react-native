@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-sample",
-  "version": "5.33.2",
+  "version": "5.34.0",
   "private": true,
   "scripts": {
     "postinstall": "patch-package",

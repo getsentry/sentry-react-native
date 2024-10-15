@@ -4,6 +4,12 @@
 
 ### Fixes
 
+- TimetoTisplay correctly warns about not supporting the new React Native architecture ([#4160](https://github.com/getsentry/sentry-react-native/pull/4160))
+
+## 5.34.0
+
+### Fixes
+
 - Handles error with string cause ([#4163](https://github.com/getsentry/sentry-react-native/pull/4163))
 - Use `appLaunchedInForeground` to determine invalid app start data on Android ([#4146](https://github.com/getsentry/sentry-react-native/pull/4146))
 - Upload source maps for all release variants on Android (not only the last found) ([#4125](https://github.com/getsentry/sentry-react-native/pull/4125))
