@@ -1,10 +1,13 @@
 # expects `$repo`, `$tagPrefix` and `$packages` (array) variables to be defined, see e.g. update-javascript.sh
 
-file="$(dirname "$0")/../package.json"
-content=$(cat $file)
+corepack enable # This repository uses Yarn v3 which requires corepack to be enabled
+
+monorepoRoot="$(dirname "$0")/.."
 
 case $1 in
 get-version)
+    file="$(dirname "$0")/../packages/core/package.json"
+    content=$(cat $file)
     regex='"'${packages[0]}'": *"([0-9.]+)"'
     if ! [[ $content =~ $regex ]]; then
         echo "Failed to find plugin '${packages[0]}' version in $file"
@@ -26,8 +29,8 @@ set-version)
         list+="${packages[$i]}@$version "
     done
     (
-        cd "$(dirname "$file")"
-        yarn upgrade --non-interactive $list
+        cd "${monorepoRoot}"
+        yarn up $list
     )
     ;;
 *)

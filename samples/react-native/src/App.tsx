@@ -29,18 +29,19 @@ import { store } from './reduxApp';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { LogBox, Platform, StyleSheet, View } from 'react-native';
-import { HttpClient } from '@sentry/integrations';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
 import { logWithoutTracing } from './utils';
+import { ErrorEvent } from '@sentry/types';
+import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 
 LogBox.ignoreAllLogs();
-
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 
-const reactNavigationInstrumentation = Sentry.reactNavigationIntegration({
+const reactNavigationIntegration = Sentry.reactNavigationIntegration({
   routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
   enableTimeToInitialDisplay: isMobileOs,
+  ignoreEmptyBackNavigationTransactions: true,
 });
 
 Sentry.init({
@@ -48,7 +49,7 @@ Sentry.init({
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   environment: 'dev',
-  beforeSend: (event: Sentry.Event) => {
+  beforeSend: (event: ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
     return event;
   },
@@ -66,21 +67,12 @@ Sentry.init({
   enableUserInteractionTracing: true,
   integrations(integrations) {
     integrations.push(
+      reactNavigationIntegration,
       Sentry.reactNativeTracingIntegration({
         // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
-        idleTimeout: 5000,
-        routingInstrumentation: reactNavigationInstrumentation,
-        ignoreEmptyBackNavigationTransactions: true,
-        beforeNavigate: (context: Sentry.ReactNavigationTransactionContext) => {
-          // Example of not sending a transaction for the screen with the name "Manual Tracker"
-          if (context.data.route.name === 'ManualTracker') {
-            context.sampled = false;
-          }
-
-          return context;
-        },
+        idleTimeoutMs: 5_000,
       }),
-      new HttpClient({
+      Sentry.httpClientIntegration({
         // These options are effective only in JS.
         // This array can contain tuples of `[begin, end]` (both inclusive),
         // Single status codes, or a combinations of both.
@@ -90,18 +82,20 @@ Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
-      Sentry.metrics.metricsAggregatorIntegration(),
       Sentry.mobileReplayIntegration({
         maskAllImages: true,
         maskAllVectors: true,
         // maskAllText: false,
+      }),
+      Sentry.appStartIntegration({
+        standalone: false,
       }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
   enableAutoSessionTracking: true,
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
-  sessionTrackingIntervalMillis: 5000,
+  sessionTrackingIntervalMillis: 30000,
   // This will capture ALL TRACES and likely use up all your quota
   enableTracing: true,
   tracesSampleRate: 1.0,
@@ -117,8 +111,8 @@ Sentry.init({
   // otherwise they will not work.
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
+  profilesSampleRate: 1.0,
   _experiments: {
-    profilesSampleRate: 1.0,
     // replaysSessionSampleRate: 1.0,
     replaysOnErrorSampleRate: 1.0,
   },
@@ -169,6 +163,10 @@ const TabTwoStack = Sentry.withProfiler(
               component={ManualTrackerScreen}
             />
             <Stack.Screen
+              name="HeavyNavigation"
+              component={HeavyNavigationScreen}
+            />
+            <Stack.Screen
               name="PerformanceTiming"
               component={PerformanceTimingScreen}
             />
@@ -189,7 +187,7 @@ function BottomTabs() {
     <NavigationContainer
       ref={navigation}
       onReady={() => {
-        reactNavigationInstrumentation.registerNavigationContainer(navigation);
+        reactNavigationIntegration.registerNavigationContainer(navigation);
       }}>
       <Tab.Navigator
         screenOptions={{
