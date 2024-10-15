@@ -2,18 +2,16 @@ package io.sentry.react;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.facebook.react.TurboReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.module.model.ReactModuleInfo;
 import com.facebook.react.module.model.ReactModuleInfoProvider;
-import com.facebook.react.TurboReactPackage;
 import com.facebook.react.uimanager.ViewManager;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RNSentryPackage extends TurboReactPackage {
 
@@ -42,18 +40,14 @@ public class RNSentryPackage extends TurboReactPackage {
               true, // hasConstants
               false, // isCxxModule
               isTurboModule // isTurboModule
-      ));
+              ));
       return moduleInfos;
     };
   }
 
   @NonNull
   @Override
-  public List<ViewManager> createViewManagers(
-          ReactApplicationContext reactContext) {
-    return Arrays.asList(
-          new RNSentryOnDrawReporterManager(reactContext)
-    );
+  public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
+    return Arrays.asList(new RNSentryOnDrawReporterManager(reactContext));
   }
-
 }
