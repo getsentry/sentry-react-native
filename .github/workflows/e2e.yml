@@ -2,7 +2,9 @@ name: End-to-End Tests
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - v5
   pull_request:
 
 concurrency:
