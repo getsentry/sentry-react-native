@@ -1,13 +1,6 @@
 name: Update Dependencies
 
 on:
-  # Run every day.
-  schedule:
-    - cron: '0 3 * * *'
-  # And on on every PR merge so we get the updated dependencies ASAP, and to make sure the changelog doesn't conflict.
-  push:
-    branches:
-      - main
   pull_request:
 
 jobs:
