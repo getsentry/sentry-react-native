@@ -15182,6 +15182,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"google-java-format@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "google-java-format@npm:1.4.0"
+  dependencies:
+    async: ^3.2.4
+    glob: ^8.1.0
+    resolve: ^1.22.8
+  bin:
+    google-java-format: index.js
+  checksum: 66043dce2152d1195c3d01bdea5533ce0d2786c1f66bb96a553d7da9935970aeb63d9536f2f48af1a1b90be42e1aeeeaabb2f86bbe50622f45bf92a19d0fa286
+  languageName: node
+  linkType: hard
+
 "gopd@npm:^1.0.1":
   version: 1.0.1
   resolution: "gopd@npm:1.0.1"
@@ -23865,7 +23878,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"resolve@patch:resolve@^1.10.1#~builtin<compat/resolve>, resolve@patch:resolve@^1.12.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.18.1#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.1.6#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.10.0#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.14.2#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.20.0#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.21.0#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.22.2#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.22.4#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.22.8#~builtin<compat/resolve>":
+"resolve@patch:resolve@^1.10.1#~builtin<compat/resolve>, resolve@patch:resolve@^1.12.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.18.1#~builtin<compat/resolve>, resolve@patch:resolve@^1.22.8#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.1.6#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.10.0#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.14.2#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.20.0#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.21.0#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.22.2#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.22.4#~builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.22.8#~builtin<compat/resolve>":
   version: 1.22.8
   resolution: "resolve@patch:resolve@npm%3A1.22.8#~builtin<compat/resolve>::version=1.22.8&hash=c3c19d"
   dependencies:
@@ -24515,6 +24528,7 @@ __metadata:
   dependencies:
     "@sentry/cli": 2.37.0
     downlevel-dts: ^0.11.0
+    google-java-format: ^1.4.0
     lerna: ^8.1.8
     npm-run-all2: ^6.2.2
     prettier: ^2.0.5
