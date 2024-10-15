@@ -623,4 +623,122 @@ describe('Tests Native Wrapper', () => {
       expect(NATIVE.stopProfiling()).toBe(null);
     });
   });
+
+  describe('setExtra', () => {
+    test('passes string value to native method', () => {
+      NATIVE.setExtra('key', 'string value');
+      expect(RNSentry.setExtra).toHaveBeenCalledWith('key', 'string value');
+      expect(RNSentry.setExtra).toHaveBeenCalledOnce();
+    });
+
+    test('stringifies number value before passing to native method', () => {
+      NATIVE.setExtra('key', 42);
+      expect(RNSentry.setExtra).toHaveBeenCalledWith('key', '42');
+      expect(RNSentry.setExtra).toHaveBeenCalledOnce();
+    });
+
+    test('stringifies boolean value before passing to native method', () => {
+      NATIVE.setExtra('key', true);
+      expect(RNSentry.setExtra).toHaveBeenCalledWith('key', 'true');
+      expect(RNSentry.setExtra).toHaveBeenCalledOnce();
+    });
+
+    test('stringifies object value before passing to native method', () => {
+      const obj = { foo: 'bar', baz: 123 };
+      NATIVE.setExtra('key', obj);
+      expect(RNSentry.setExtra).toHaveBeenCalledWith('key', JSON.stringify(obj));
+      expect(RNSentry.setExtra).toHaveBeenCalledOnce();
+    });
+
+    test('stringifies array value before passing to native method', () => {
+      const arr = [1, 'two', { three: 3 }];
+      NATIVE.setExtra('key', arr);
+      expect(RNSentry.setExtra).toHaveBeenCalledWith('key', JSON.stringify(arr));
+      expect(RNSentry.setExtra).toHaveBeenCalledOnce();
+    });
+
+    test('handles null value by stringifying', () => {
+      NATIVE.setExtra('key', null);
+      expect(RNSentry.setExtra).toHaveBeenCalledWith('key', 'null');
+      expect(RNSentry.setExtra).toHaveBeenCalledOnce();
+    });
+
+    test('handles undefined value by stringifying', () => {
+      NATIVE.setExtra('key', undefined);
+      expect(RNSentry.setExtra).toHaveBeenCalledWith('key', 'undefined');
+      expect(RNSentry.setExtra).toHaveBeenCalledOnce();
+    });
+
+    test('handles non-serializable value by stringifying', () => {
+      const circular: { self?: unknown } = {};
+      circular.self = circular;
+      NATIVE.setExtra('key', circular);
+      expect(RNSentry.setExtra).toHaveBeenCalledWith('key', '{"self":"[Circular ~]"}');
+      expect(RNSentry.setExtra).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('setContext', () => {
+    test('passes plain JS object to native method', () => {
+      const context = { foo: 'bar', baz: 123 };
+      NATIVE.setContext('key', context);
+      expect(RNSentry.setContext).toHaveBeenCalledWith('key', context);
+      expect(RNSentry.setContext).toHaveBeenCalledOnce();
+    });
+
+    test('converts non-plain JS object to plain object before passing to native method', () => {
+      class TestClass {
+        prop = 'value';
+      }
+      const context = new TestClass();
+      NATIVE.setContext('key', context);
+      expect(RNSentry.setContext).toHaveBeenCalledWith('key', { prop: 'value' });
+      expect(RNSentry.setContext).toHaveBeenCalledOnce();
+    });
+
+    test('converts array to object with "value" key before passing to native method', () => {
+      const context = [1, 'two', { three: 3 }];
+      NATIVE.setContext('key', context);
+      expect(RNSentry.setContext).toHaveBeenCalledWith('key', { value: [1, 'two', { three: 3 }] });
+      expect(RNSentry.setContext).toHaveBeenCalledOnce();
+    });
+
+    test('converts string primitive to object with "value" key before passing to native method', () => {
+      NATIVE.setContext('key', 'string value' as unknown as object);
+      expect(RNSentry.setContext).toHaveBeenCalledWith('key', { value: 'string value' });
+      expect(RNSentry.setContext).toHaveBeenCalledOnce();
+    });
+
+    test('converts number primitive to object with "value" key before passing to native method', () => {
+      NATIVE.setContext('key', 42 as unknown as object);
+      expect(RNSentry.setContext).toHaveBeenCalledWith('key', { value: 42 });
+      expect(RNSentry.setContext).toHaveBeenCalledOnce();
+    });
+
+    test('converts boolean primitive to object with "value" key before passing to native method', () => {
+      NATIVE.setContext('key', true as unknown as object);
+      expect(RNSentry.setContext).toHaveBeenCalledWith('key', { value: true });
+      expect(RNSentry.setContext).toHaveBeenCalledOnce();
+    });
+
+    test('handles null value by passing null to native method', () => {
+      NATIVE.setContext('key', null);
+      expect(RNSentry.setContext).toHaveBeenCalledWith('key', null);
+      expect(RNSentry.setContext).toHaveBeenCalledOnce();
+    });
+
+    test('handles undefined value by converting to object with "value" key', () => {
+      NATIVE.setContext('key', undefined as unknown as object);
+      expect(RNSentry.setContext).toHaveBeenCalledWith('key', { value: undefined });
+      expect(RNSentry.setContext).toHaveBeenCalledOnce();
+    });
+
+    test('handles non-serializable value by converting to normalized object', () => {
+      const circular: { self?: unknown } = {};
+      circular.self = circular;
+      NATIVE.setContext('key', circular);
+      expect(RNSentry.setContext).toHaveBeenCalledWith('key', { self: '[Circular ~]' });
+      expect(RNSentry.setContext).toHaveBeenCalledOnce();
+    });
+  });
 });

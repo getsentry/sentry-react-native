@@ -28,6 +28,7 @@ import type { NativeAndroidProfileEvent, NativeProfileEvent } from './profiling/
 import type { MobileReplayOptions } from './replay/mobilereplay';
 import type { RequiredKeysUser } from './user';
 import { isTurboModuleEnabled } from './utils/environment';
+import { convertToNormalizedObject } from './utils/normalize';
 import { ReactNativeLibraries } from './utils/rnlibraries';
 import { base64StringFromByteArray, utf8ToBytes } from './vendor';
 
@@ -84,7 +85,8 @@ interface SentryNativeWrapper {
   enableNativeFramesTracking(): void;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
-  setContext(key: string, context: { [key: string]: unknown } | null): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setContext(key: string, context: { [key: string]: any } | null): void;
   clearBreadcrumbs(): void;
   setExtra(key: string, extra: unknown): void;
   setUser(user: User | null): void;
@@ -395,10 +397,25 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    // we stringify the extra as native only takes in strings.
-    const stringifiedExtra = typeof extra === 'string' ? extra : JSON.stringify(extra);
+    if (typeof extra === 'string') {
+      return RNSentry.setExtra(key, extra);
+    }
+    if (typeof extra === 'undefined') {
+      return RNSentry.setExtra(key, 'undefined');
+    }
 
-    RNSentry.setExtra(key, stringifiedExtra);
+    let stringifiedExtra: string | undefined;
+    try {
+      const normalizedExtra = normalize(extra);
+      stringifiedExtra = JSON.stringify(normalizedExtra);
+    } catch (e) {
+      logger.error('Extra for key ${key} not passed to native SDK, because it contains non-stringifiable values', e);
+    }
+
+    if (typeof stringifiedExtra === 'string') {
+      return RNSentry.setExtra(key, stringifiedExtra);
+    }
+    return RNSentry.setExtra(key, '**non-stringifiable**');
   },
 
   /**
@@ -435,11 +452,12 @@ export const NATIVE: SentryNativeWrapper = {
   },
 
   /**
-   * Sets context on the native scope. Not implemented in Android yet.
+   * Sets context on the native scope.
    * @param key string
    * @param context key-value map
    */
-  setContext(key: string, context: { [key: string]: unknown } | null): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setContext(key: string, context: { [key: string]: any } | null): void {
     if (!this.enableNative) {
       return;
     }
@@ -447,7 +465,22 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    RNSentry.setContext(key, context !== null ? normalize(context) : null);
+    if (context === null) {
+      return RNSentry.setContext(key, null);
+    }
+
+    let normalizedContext: Record<string, unknown> | undefined;
+    try {
+      normalizedContext = convertToNormalizedObject(context);
+    } catch (e) {
+      logger.error('Context for key ${key} not passed to native SDK, because it contains non-serializable values', e);
+    }
+
+    if (normalizedContext) {
+      RNSentry.setContext(key, normalizedContext);
+    } else {
+      RNSentry.setContext(key, { error: '**non-serializable**' });
+    }
   },
 
   /**

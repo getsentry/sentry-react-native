@@ -5,6 +5,9 @@
 ### Fixes
 
 - TimetoTisplay correctly warns about not supporting the new React Native architecture ([#4160](https://github.com/getsentry/sentry-react-native/pull/4160))
+- Native Wrapper method `setContext` ensures only values convertible to NativeMap are passed ([#4168](https://github.com/getsentry/sentry-react-native/pull/4168))
+- Native Wrapper method `setExtra` ensures only stringified values are passed ([#4168](https://github.com/getsentry/sentry-react-native/pull/4168))
+- `setContext('key', null)` removes the key value also from platform context ([#4168](https://github.com/getsentry/sentry-react-native/pull/4168))
 
 ## 5.34.0
 
