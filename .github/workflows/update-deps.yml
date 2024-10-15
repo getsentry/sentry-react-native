@@ -8,9 +8,11 @@ on:
   push:
     branches:
       - main
+  pull_request: #tmp for testing
 
 jobs:
   android:
+    run: corepack enable
     uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-android.sh
@@ -20,6 +22,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   cocoa:
+    run: corepack enable
     uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-cocoa.sh
@@ -29,6 +32,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   javascript:
+    run: corepack enable
     uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-javascript.sh
@@ -38,6 +42,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   wizard:
+    run: corepack enable
     uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-wizard.sh
@@ -48,6 +53,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   cli:
+    run: corepack enable
     uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-cli.sh
@@ -57,6 +63,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   sample-rn:
+    run: corepack enable
     uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-rn.sh
