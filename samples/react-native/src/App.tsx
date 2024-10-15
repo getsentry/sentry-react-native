@@ -33,6 +33,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
 import { logWithoutTracing } from './utils';
 import { ErrorEvent } from '@sentry/types';
+import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 
 LogBox.ignoreAllLogs();
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
@@ -160,6 +161,10 @@ const TabTwoStack = Sentry.withProfiler(
             <Stack.Screen
               name="ManualTracker"
               component={ManualTrackerScreen}
+            />
+            <Stack.Screen
+              name="HeavyNavigation"
+              component={HeavyNavigationScreen}
             />
             <Stack.Screen
               name="PerformanceTiming"

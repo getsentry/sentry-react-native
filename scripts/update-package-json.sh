@@ -1,5 +1,7 @@
 # expects `$repo`, `$tagPrefix` and `$packages` (array) variables to be defined, see e.g. update-javascript.sh
 
+corepack enable # This repository uses Yarn v3 which requires corepack to be enabled
+
 monorepoRoot="$(dirname "$0")/.."
 
 case $1 in

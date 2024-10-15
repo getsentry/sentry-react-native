@@ -2,7 +2,10 @@ name: Native Tests
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - v5
+      - release/**
   pull_request:
 
 jobs:
