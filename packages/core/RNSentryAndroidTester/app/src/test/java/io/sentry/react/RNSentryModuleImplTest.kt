@@ -1,4 +1,4 @@
-package io.sentry.rnsentryandroidtester
+package io.sentry.react
 
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
