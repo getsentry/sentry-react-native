@@ -7,7 +7,11 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RNSentryBreadcrumb {
+public final class RNSentryBreadcrumb {
+
+  private RNSentryBreadcrumb() {
+    throw new AssertionError("Utility class should not be instantiated");
+  }
 
   @Nullable
   public static String getCurrentScreenFrom(ReadableMap from) {
