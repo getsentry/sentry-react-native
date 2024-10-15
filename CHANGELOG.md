@@ -6,6 +6,14 @@
 
 - Enhanced accuracy of time-to-display spans. ([#4042](https://github.com/getsentry/sentry-react-native/pull/4042))
 - TimetoTisplay correctly warns about not supporting the new React Native architecture ([#4160](https://github.com/getsentry/sentry-react-native/pull/4160))
+- Native Wrapper method `setContext` ensures only values convertible to NativeMap are passed ([#4168](https://github.com/getsentry/sentry-react-native/pull/4168))
+- Native Wrapper method `setExtra` ensures only stringified values are passed ([#4168](https://github.com/getsentry/sentry-react-native/pull/4168))
+- `setContext('key', null)` removes the key value also from platform context ([#4168](https://github.com/getsentry/sentry-react-native/pull/4168))
+
+## 5.34.0
+
+### Fixes
+
 - Handles error with string cause ([#4163](https://github.com/getsentry/sentry-react-native/pull/4163))
 - Use `appLaunchedInForeground` to determine invalid app start data on Android ([#4146](https://github.com/getsentry/sentry-react-native/pull/4146))
 - Upload source maps for all release variants on Android (not only the last found) ([#4125](https://github.com/getsentry/sentry-react-native/pull/4125))
