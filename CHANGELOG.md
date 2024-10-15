@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.34.0
 
 ### Fixes
 
