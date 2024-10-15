@@ -2,21 +2,18 @@ package io.sentry.react;
 
 import io.sentry.Breadcrumb;
 import io.sentry.android.replay.DefaultReplayBreadcrumbConverter;
-import io.sentry.rrweb.RRWebEvent;
 import io.sentry.rrweb.RRWebBreadcrumbEvent;
+import io.sentry.rrweb.RRWebEvent;
 import io.sentry.rrweb.RRWebSpanEvent;
-
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import java.util.List;
-import java.util.Map;
-
 public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadcrumbConverter {
-  public RNSentryReplayBreadcrumbConverter() {
-  }
+  public RNSentryReplayBreadcrumbConverter() {}
 
   @Override
   public @Nullable RRWebEvent convert(final @NotNull Breadcrumb breadcrumb) {
@@ -25,8 +22,8 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     }
 
     // Do not add Sentry Event breadcrumbs to replay
-    if (breadcrumb.getCategory().equals("sentry.event") ||
-      breadcrumb.getCategory().equals("sentry.transaction")) {
+    if (breadcrumb.getCategory().equals("sentry.event")
+        || breadcrumb.getCategory().equals("sentry.transaction")) {
       return null;
     }
     if (breadcrumb.getCategory().equals("http")) {
@@ -49,7 +46,8 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     // ignore native navigation breadcrumbs
     if (nativeBreadcrumb instanceof RRWebBreadcrumbEvent) {
       final RRWebBreadcrumbEvent rrWebBreadcrumb = (RRWebBreadcrumbEvent) nativeBreadcrumb;
-      if (rrWebBreadcrumb.getCategory() != null && rrWebBreadcrumb.getCategory().equals("navigation")) {
+      if (rrWebBreadcrumb.getCategory() != null
+          && rrWebBreadcrumb.getCategory().equals("navigation")) {
         return null;
       }
     }
@@ -71,8 +69,8 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
 
     rrWebBreadcrumb.setCategory("ui.tap");
 
-      rrWebBreadcrumb.setMessage(RNSentryReplayBreadcrumbConverter
-              .getTouchPathMessage(breadcrumb.getData("path")));
+    rrWebBreadcrumb.setMessage(
+        RNSentryReplayBreadcrumbConverter.getTouchPathMessage(breadcrumb.getData("path")));
 
     setRRWebEventDefaultsFrom(rrWebBreadcrumb, breadcrumb);
     return rrWebBreadcrumb;
@@ -93,7 +91,7 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     for (int i = Math.min(3, path.size() - 1); i >= 0; i--) {
       final @Nullable Object maybeItem = path.get(i);
       if (!(maybeItem instanceof Map)) {
-          return null;
+        return null;
       }
 
       final @NotNull Map item = (Map) maybeItem;
@@ -115,19 +113,11 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
       boolean hasElement = maybeElement instanceof String;
       boolean hasFile = maybeFile instanceof String;
       if (hasElement && hasFile) {
-        message.append('(')
-          .append(maybeElement)
-          .append(", ")
-          .append(maybeFile)
-          .append(')');
+        message.append('(').append(maybeElement).append(", ").append(maybeFile).append(')');
       } else if (hasElement) {
-        message.append('(')
-          .append(maybeElement)
-          .append(')');
+        message.append('(').append(maybeElement).append(')');
       } else if (hasFile) {
-        message.append('(')
-          .append(maybeFile)
-          .append(')');
+        message.append('(').append(maybeFile).append(')');
       }
 
       if (i > 0) {
@@ -140,12 +130,16 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
 
   @TestOnly
   public @Nullable RRWebEvent convertNetworkBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
-    final Double startTimestamp = breadcrumb.getData("start_timestamp") instanceof Number
-            ? (Double) breadcrumb.getData("start_timestamp") : null;
-    final Double endTimestamp = breadcrumb.getData("end_timestamp") instanceof Number
-            ? (Double) breadcrumb.getData("end_timestamp") : null;
-    final String url = breadcrumb.getData("url") instanceof String
-            ? (String) breadcrumb.getData("url") : null;
+    final Double startTimestamp =
+        breadcrumb.getData("start_timestamp") instanceof Number
+            ? (Double) breadcrumb.getData("start_timestamp")
+            : null;
+    final Double endTimestamp =
+        breadcrumb.getData("end_timestamp") instanceof Number
+            ? (Double) breadcrumb.getData("end_timestamp")
+            : null;
+    final String url =
+        breadcrumb.getData("url") instanceof String ? (String) breadcrumb.getData("url") : null;
 
     if (startTimestamp == null || endTimestamp == null || url == null) {
       return null;
@@ -177,7 +171,8 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     return rrWebSpanEvent;
   }
 
-  private void setRRWebEventDefaultsFrom(final @NotNull RRWebBreadcrumbEvent rrWebBreadcrumb, final @NotNull Breadcrumb breadcrumb) {
+  private void setRRWebEventDefaultsFrom(
+      final @NotNull RRWebBreadcrumbEvent rrWebBreadcrumb, final @NotNull Breadcrumb breadcrumb) {
     rrWebBreadcrumb.setLevel(breadcrumb.getLevel());
     rrWebBreadcrumb.setData(breadcrumb.getData());
     rrWebBreadcrumb.setTimestamp(breadcrumb.getTimestamp().getTime());
