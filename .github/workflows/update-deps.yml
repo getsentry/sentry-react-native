@@ -8,9 +8,7 @@ on:
   push:
     branches:
       - main
-  pull_request: #tmp for testing
-    branches:
-      - main
+  pull_request:
 
 jobs:
   android:
