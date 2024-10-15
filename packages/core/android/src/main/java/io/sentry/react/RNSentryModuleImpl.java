@@ -5,10 +5,10 @@ import static io.sentry.vendor.Base64.NO_PADDING;
 import static io.sentry.vendor.Base64.NO_WRAP;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.app.Activity;
 import android.content.res.AssetManager;
 import android.util.SparseIntArray;
 import androidx.core.app.FrameMetricsAggregator;
