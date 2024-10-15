@@ -24,7 +24,7 @@ base_cmd="npx google-java-format"
 if [ "$mode" = "fix" ]; then
     base_cmd+=" --replace"
 elif [ "$mode" = "lint" ]; then
-    base_cmd+=" --set-exit-if-changed --dry-run"
+    base_cmd+=" --set-exit-if-changed"
 else
     echo "Invalid mode. Use 'fix' or 'lint'."
     exit 1
