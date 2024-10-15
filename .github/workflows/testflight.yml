@@ -32,13 +32,6 @@ jobs:
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
-      - uses: actions/cache@v4
-        id: deps-cache
-        with:
-          path: |
-            node_modules
-            samples/react-native/node_modules
-          key: ${{ github.workflow }}-${{ github.job }}-${{ hashFiles('yarn.lock', 'samples/react-native/yarn.lock') }}
       - name: Install Dependencies
         run: |
           yarn install
