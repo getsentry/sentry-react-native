@@ -4,7 +4,8 @@ import type { Span, Transaction as TransactionType, TransactionContext } from '@
 import { logger, timestampInSeconds } from '@sentry/utils';
 
 import type { NewFrameEvent } from '../utils/sentryeventemitter';
-import { type SentryEventEmitter, createSentryEventEmitter, NewFrameEventName } from '../utils/sentryeventemitter';
+import type { SentryEventEmitterFallback } from '../utils/sentryeventemitterfallback';
+import { createSentryFallbackEventEmitter } from '../utils/sentryeventemitterfallback';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
 import type { OnConfirmRoute, TransactionCreator } from './routingInstrumentation';
@@ -77,8 +78,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
   public readonly name: string = ReactNavigationInstrumentation.instrumentationName;
 
   private _navigationContainer: NavigationContainer | null = null;
-  private _newScreenFrameEventEmitter: SentryEventEmitter | null = null;
-
+  private _newScreenFrameEventEmitter: SentryEventEmitterFallback | null = null;
   private readonly _maxRecentRouteLen: number = 200;
 
   private _latestRoute?: NavigationRoute;
@@ -86,7 +86,7 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
   private _navigationProcessingSpan?: Span;
 
   private _initialStateHandled: boolean = false;
-  private _stateChangeTimeout?: number | undefined;
+  private _stateChangeTimeout?: ReturnType<typeof setTimeout> | undefined;
   private _recentRouteKeys: string[] = [];
 
   private _options: ReactNavigationOptions;
@@ -100,8 +100,8 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
     };
 
     if (this._options.enableTimeToInitialDisplay) {
-      this._newScreenFrameEventEmitter = createSentryEventEmitter();
-      this._newScreenFrameEventEmitter.initAsync(NewFrameEventName);
+      this._newScreenFrameEventEmitter = createSentryFallbackEventEmitter();
+      this._newScreenFrameEventEmitter.initAsync();
       NATIVE.initNativeReactNavigationNewFrameTracking().catch((reason: unknown) => {
         logger.error(`[ReactNavigationInstrumentation] Failed to initialize native new frame tracking: ${reason}`);
       });
@@ -247,24 +247,21 @@ export class ReactNavigationInstrumentation extends InternalRoutingInstrumentati
               isAutoInstrumented: true,
             });
 
-          !routeHasBeenSeen &&
-            latestTtidSpan &&
-            this._newScreenFrameEventEmitter?.once(
-              NewFrameEventName,
-              ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
-                const activeSpan = getActiveSpan();
-                if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
-                  logger.warn(
-                    '[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.',
-                  );
-                  return;
-                }
+          if (!routeHasBeenSeen && latestTtidSpan) {
+            this._newScreenFrameEventEmitter?.onceNewFrame(({ newFrameTimestampInSeconds }: NewFrameEvent) => {
+              const activeSpan = getActiveSpan();
+              if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
+                logger.warn(
+                  '[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.',
+                );
+                return;
+              }
 
-                latestTtidSpan.setStatus('ok');
-                latestTtidSpan.end(newFrameTimestampInSeconds);
-                setSpanDurationAsMeasurementOnTransaction(latestTransaction, 'time_to_initial_display', latestTtidSpan);
-              },
-            );
+              latestTtidSpan.setStatus('ok');
+              latestTtidSpan.end(newFrameTimestampInSeconds);
+              setSpanDurationAsMeasurementOnTransaction(latestTransaction, 'time_to_initial_display', latestTtidSpan);
+            });
+          }
 
           this._navigationProcessingSpan?.updateName(`Processing navigation to ${route.name}`);
           this._navigationProcessingSpan?.setStatus('ok');

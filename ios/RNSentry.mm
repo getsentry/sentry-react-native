@@ -1,5 +1,6 @@
 #import <dlfcn.h>
 #import "RNSentry.h"
+#import "RNSentryTimeToDisplay.h"
 
 #if __has_include(<React/RCTConvert.h>)
 #import <React/RCTConvert.h>
@@ -62,6 +63,7 @@ static NSString* const nativeSdkName = @"sentry.cocoa.react-native";
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
     bool hasListeners;
+    RNSentryTimeToDisplay *_timeToDisplay;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -105,6 +107,8 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 
         sentHybridSdkDidBecomeActive = true;
     }
+
+    _timeToDisplay = [[RNSentryTimeToDisplay alloc] init];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     [RNSentryReplay postInit];
@@ -785,5 +789,10 @@ RCT_EXPORT_METHOD(crashedLastRun:(RCTPromiseResolveBlock)resolve
     return std::make_shared<facebook::react::NativeRNSentrySpecJSI>(params);
 }
 #endif
+
+RCT_EXPORT_METHOD(getNewScreenTimeToDisplay:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    [_timeToDisplay getTimeToDisplay:resolve];
+}
 
 @end
