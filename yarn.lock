@@ -14341,6 +14341,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"find-java-home@npm:^1.2.2":
+  version: 1.2.2
+  resolution: "find-java-home@npm:1.2.2"
+  dependencies:
+    which: ~1.0.5
+    winreg: ~1.2.2
+  checksum: 8d211909fb1cb7484a7b9ff857d9a6ec17f7e3f3322485ed8d189a8e8e597947e1924130e8ed854c0b8c155816631bca94cf9bcf774be2bae4ba6ee506a7464e
+  languageName: node
+  linkType: hard
+
 "find-up@npm:^2.0.0":
   version: 2.1.0
   resolution: "find-up@npm:2.1.0"
@@ -20588,7 +20598,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:^2.0.0-alpha.8, node-fetch@npm:^2.2.0, node-fetch@npm:^2.6.0, node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.12, node-fetch@npm:^2.6.7":
+"node-fetch@npm:^2.0.0-alpha.8, node-fetch@npm:^2.2.0, node-fetch@npm:^2.6.0, node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.12, node-fetch@npm:^2.6.6, node-fetch@npm:^2.6.7":
   version: 2.7.0
   resolution: "node-fetch@npm:2.7.0"
   dependencies:
@@ -20644,6 +20654,19 @@ __metadata:
   version: 0.4.0
   resolution: "node-int64@npm:0.4.0"
   checksum: d0b30b1ee6d961851c60d5eaa745d30b5c95d94bc0e74b81e5292f7c42a49e3af87f1eb9e89f59456f80645d679202537de751b7d72e9e40ceea40c5e449057e
+  languageName: node
+  linkType: hard
+
+"node-java-connector@npm:1.1.1":
+  version: 1.1.1
+  resolution: "node-java-connector@npm:1.1.1"
+  dependencies:
+    find-java-home: ^1.2.2
+    node-fetch: ^2.6.6
+    tar: ^6.1.11
+    typescript: ^4.5.5
+    yauzl: ^2.10.0
+  checksum: e4853abdc7161a588ab316955e7a957d82d6d7a98305db386160c066708c518a9f9392a3d56fbfb8def8b69633a5de3d0c1645f733e9ef3ad9a18a2beae181dc
   languageName: node
   linkType: hard
 
@@ -22001,6 +22024,17 @@ __metadata:
   version: 8.0.0
   resolution: "pluralize@npm:8.0.0"
   checksum: 08931d4a6a4a5561a7f94f67a31c17e6632cb21e459ab3ff4f6f629d9a822984cf8afef2311d2005fbea5d7ef26016ebb090db008e2d8bce39d0a9a9d218736e
+  languageName: node
+  linkType: hard
+
+"pmd-bin@npm:^2.5.0":
+  version: 2.5.0
+  resolution: "pmd-bin@npm:2.5.0"
+  dependencies:
+    node-java-connector: 1.1.1
+  bin:
+    pmd: pmd
+  checksum: c758bbeae89517d1ce1cf0a01401891d01cd9982c9bb98c85ef782cadde6e9bb1d038cd820aaf19df24a27d6d161dea94f27236966227438aeefd9e0d5322b52
   languageName: node
   linkType: hard
 
@@ -24518,6 +24552,7 @@ __metadata:
     google-java-format: ^1.4.0
     lerna: ^8.1.8
     npm-run-all2: ^6.2.2
+    pmd-bin: ^2.5.0
     prettier: ^2.0.5
     react-native-version: ^4.0.0
     replace-in-file: ^7.0.1
@@ -26569,7 +26604,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.9.5, typescript@npm:^4.0.0, typescript@npm:^4.9.5":
+"typescript@npm:4.9.5, typescript@npm:^4.0.0, typescript@npm:^4.5.5, typescript@npm:^4.9.5":
   version: 4.9.5
   resolution: "typescript@npm:4.9.5"
   bin:
@@ -26619,7 +26654,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@4.9.5#~builtin<compat/typescript>, typescript@patch:typescript@npm%3A^4.0.0#~builtin<compat/typescript>, typescript@patch:typescript@npm%3A^4.9.5#~builtin<compat/typescript>":
+"typescript@patch:typescript@4.9.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.5.5#~builtin<compat/typescript>, typescript@patch:typescript@npm%3A^4.0.0#~builtin<compat/typescript>, typescript@patch:typescript@npm%3A^4.9.5#~builtin<compat/typescript>":
   version: 4.9.5
   resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=289587"
   bin:
@@ -27524,12 +27559,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"which@npm:~1.0.5":
+  version: 1.0.9
+  resolution: "which@npm:1.0.9"
+  bin:
+    which: ./bin/which
+  checksum: 645debd713715e7dd1d33ad7b118b4c7fb98d2f961497791f5460e802e550c8d8895c282c28afa44a538d4f6242db130f50c82f0b97aaddbc6e0120a324160df
+  languageName: node
+  linkType: hard
+
 "wide-align@npm:1.1.5, wide-align@npm:^1.1.5":
   version: 1.1.5
   resolution: "wide-align@npm:1.1.5"
   dependencies:
     string-width: "npm:^1.0.2 || 2 || 3 || 4"
   checksum: d5fc37cd561f9daee3c80e03b92ed3e84d80dde3365a8767263d03dacfc8fa06b065ffe1df00d8c2a09f731482fcacae745abfbb478d4af36d0a891fad4834d3
+  languageName: node
+  linkType: hard
+
+"winreg@npm:~1.2.2":
+  version: 1.2.5
+  resolution: "winreg@npm:1.2.5"
+  checksum: 4bc0f8328ec814bdc7a6029354aebfdf090469d9f31fcaa85c3536b07289c3346d5606552351848bd9bd0af71a58c4a3cfa63760d842c9da1a8a99b9d2d443ab
   languageName: node
   linkType: hard
 

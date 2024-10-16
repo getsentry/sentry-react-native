@@ -13,8 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadcrumbConverter {
-  public RNSentryReplayBreadcrumbConverter() {}
-
   @Override
   public @Nullable RRWebEvent convert(final @NotNull Breadcrumb breadcrumb) {
     if (breadcrumb.getCategory() == null) {
@@ -22,22 +20,22 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     }
 
     // Do not add Sentry Event breadcrumbs to replay
-    if (breadcrumb.getCategory().equals("sentry.event")
-        || breadcrumb.getCategory().equals("sentry.transaction")) {
+    if ("sentry.event".equals(breadcrumb.getCategory())
+        || "sentry.transaction".equals(breadcrumb.getCategory())) {
       return null;
     }
-    if (breadcrumb.getCategory().equals("http")) {
+    if ("http".equals(breadcrumb.getCategory())) {
       // Drop native http breadcrumbs to avoid duplicates
       return null;
     }
 
-    if (breadcrumb.getCategory().equals("touch")) {
+    if ("touch".equals(breadcrumb.getCategory())) {
       return convertTouchBreadcrumb(breadcrumb);
     }
-    if (breadcrumb.getCategory().equals("navigation")) {
+    if ("navigation".equals(breadcrumb.getCategory())) {
       return convertNavigationBreadcrumb(breadcrumb);
     }
-    if (breadcrumb.getCategory().equals("xhr")) {
+    if ("xhr".equals(breadcrumb.getCategory())) {
       return convertNetworkBreadcrumb(breadcrumb);
     }
 
@@ -46,8 +44,7 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     // ignore native navigation breadcrumbs
     if (nativeBreadcrumb instanceof RRWebBreadcrumbEvent) {
       final RRWebBreadcrumbEvent rrWebBreadcrumb = (RRWebBreadcrumbEvent) nativeBreadcrumb;
-      if (rrWebBreadcrumb.getCategory() != null
-          && rrWebBreadcrumb.getCategory().equals("navigation")) {
+      if ("navigation".equals(rrWebBreadcrumb.getCategory())) {
         return null;
       }
     }
@@ -69,8 +66,7 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
 
     rrWebBreadcrumb.setCategory("ui.tap");
 
-    rrWebBreadcrumb.setMessage(
-        RNSentryReplayBreadcrumbConverter.getTouchPathMessage(breadcrumb.getData("path")));
+    rrWebBreadcrumb.setMessage(getTouchPathMessage(breadcrumb.getData("path")));
 
     setRRWebEventDefaultsFrom(rrWebBreadcrumb, breadcrumb);
     return rrWebBreadcrumb;
@@ -83,7 +79,7 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     }
 
     final @NotNull List path = (List) maybePath;
-    if (path.size() == 0) {
+    if (path.isEmpty()) {
       return null;
     }
 
@@ -145,7 +141,7 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
       return null;
     }
 
-    final HashMap<String, Object> data = new HashMap<>();
+    final Map<String, Object> data = new HashMap<>();
     if (breadcrumb.getData("method") instanceof String) {
       data.put("method", breadcrumb.getData("method"));
     }

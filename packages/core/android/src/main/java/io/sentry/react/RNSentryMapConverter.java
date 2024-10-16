@@ -14,10 +14,14 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.Nullable;
 
-public class RNSentryMapConverter {
+public final class RNSentryMapConverter {
   public static final String NAME = "RNSentry.MapConverter";
 
   private static final ILogger logger = new AndroidLogger(NAME);
+
+  private RNSentryMapConverter() {
+    throw new AssertionError("Utility class should not be instantiated");
+  }
 
   public static Object convertToWritable(@Nullable Object serialized) {
     if (serialized instanceof List) {

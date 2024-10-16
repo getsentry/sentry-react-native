@@ -40,7 +40,7 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
       @NotNull Fragment f,
       @NotNull View v,
       @Nullable Bundle savedInstanceState) {
-    if (!("com.swmansion.rnscreens.ScreenStackFragment".equals(f.getClass().getCanonicalName()))) {
+    if (!"com.swmansion.rnscreens.ScreenStackFragment".equals(f.getClass().getCanonicalName())) {
       logger.log(
           SentryLevel.DEBUG,
           "Fragment is not a ScreenStackFragment, won't listen for the first draw.");
