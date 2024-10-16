@@ -91,7 +91,7 @@ public class RNSentryModuleImpl {
   private static final ILogger logger = new AndroidLogger(NAME);
   private static final BuildInfoProvider buildInfo = new BuildInfoProvider(logger);
   private static final String modulesPath = "modules.json";
-  private static final Charset UTF_8 = Charset.forName(Charset.UTF_8);
+  private static final Charset UTF_8 = Charset.forName("UTF-8"); // NOPMD - Allow using UTF-8
 
   private final ReactApplicationContext reactApplicationContext;
   private final PackageInfo packageInfo;

@@ -6,6 +6,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableNativeArray;
+import java.io.IOException;
 import java.io.InputStream;
 
 public class AssetsModule extends ReactContextBaseJavaModule {
@@ -21,9 +22,9 @@ public class AssetsModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void getExampleAssetData(Promise promise) {
+    InputStream stream = null;
     try {
-      InputStream stream = // NOPMD - Stream is closed in finally block
-          this.getReactApplicationContext().getResources().getAssets().open("logo_mini.png");
+      stream = this.getReactApplicationContext().getResources().getAssets().open("logo_mini.png");
       int size = stream.available();
       byte[] buffer = new byte[size];
       stream.read(buffer);
@@ -36,7 +37,9 @@ public class AssetsModule extends ReactContextBaseJavaModule {
       promise.reject(e);
     } finally {
       try {
-        stream.close();
+        if (stream != null) {
+          stream.close();
+        }
       } catch (IOException e) {
         promise.reject(e);
       }
