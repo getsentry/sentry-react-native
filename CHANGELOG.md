@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 6.0.0
 
 This is a new major version 6.0.0 of the Sentry React Native SDK.
 To upgrade from the SDK version 5, please follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/v5-to-v6/).
@@ -109,6 +109,12 @@ To upgrade from the SDK version 5, please follow our [migration guide](https://d
 - Bump JavaScript SDK from v7.119.1 to v8.33.1 ([#3910](https://github.com/getsentry/sentry-react-native/pull/3910), [#3851](https://github.com/getsentry/sentry-react-native/pull/3851), [#4078](https://github.com/getsentry/sentry-react-native/pull/4078), [#4154](https://github.com/getsentry/sentry-react-native/pull/4154))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8331)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.119.1...8.33.1)
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.37.0 to v8.38.0 ([#4180](https://github.com/getsentry/sentry-react-native/pull/4180))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8380)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.37.0...8.38.0)
 
 ## 5.34.0
 
