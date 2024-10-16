@@ -8,4 +8,31 @@ target 'RNSentryCocoaTesterTests' do
   )
   pod 'RNSentry', :path => '../RNSentry.podspec'
   pod 'OCMock', '3.9.1'
+
+  post_install do |installer|
+    set_react_native_path(installer)
+  end
+end
+
+def extract_projects(installer)
+  return installer.aggregate_targets
+      .map{ |t| t.user_project }
+      .uniq{ |p| p.path }
+      .push(installer.pods_project)
+end
+
+def set_react_native_path(installer)
+  # https://github.com/facebook/react-native/blob/9cc6f007ba1cf112466ccf685c0ef918bba69dd7/packages/react-native/scripts/react_native_pods.rb#L378
+  Pod::UI.puts("Setting REACT_NATIVE_PATH build settings")
+
+  projects = extract_projects(installer)
+
+  projects.each do |project|
+    project.build_configurations.each do |config|
+        if config_name == nil || config.name == config_name
+            config.build_settings["REACT_NATIVE_PATH"] = '${PODS_ROOT}/../../node_modules/react-native'
+        end
+    end
+    project.save()
+  end
 end

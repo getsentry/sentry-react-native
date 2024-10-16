@@ -283,6 +283,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 			};
 			name = Debug;
 		};
@@ -336,6 +337,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 			};
 			name = Release;
 		};
@@ -402,6 +404,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 			};
 			name = Debug;
 		};
@@ -467,6 +470,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "RNSentryCocoaTesterTests/RNSentryCocoaTesterTests-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 			};
 			name = Release;
 		};
