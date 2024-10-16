@@ -18,7 +18,7 @@ import java.util.List;
 public class MainApplicationTurboModuleManagerDelegate
     extends ReactPackageTurboModuleManagerDelegate {
 
-  private static volatile boolean sIsSoLibraryLoaded;
+  private static volatile boolean sIsSoLibraryLoaded; // NOPMD - Default RN Template
 
   protected MainApplicationTurboModuleManagerDelegate(
       ReactApplicationContext reactApplicationContext, List<ReactPackage> packages) {

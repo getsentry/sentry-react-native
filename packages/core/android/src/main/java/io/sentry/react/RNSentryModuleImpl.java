@@ -91,7 +91,7 @@ public class RNSentryModuleImpl {
   private static final ILogger logger = new AndroidLogger(NAME);
   private static final BuildInfoProvider buildInfo = new BuildInfoProvider(logger);
   private static final String modulesPath = "modules.json";
-  private static final Charset UTF_8 = Charset.forName("UTF-8");
+  private static final Charset UTF_8 = Charset.forName(Charset.UTF_8);
 
   private final ReactApplicationContext reactApplicationContext;
   private final PackageInfo packageInfo;
@@ -270,7 +270,7 @@ public class RNSentryModuleImpl {
                   if (null != ex && ex.getType().contains("JavascriptException")) {
                     return null;
                   }
-                } catch (Throwable ignored) {
+                } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case
                   // We do nothing
                 }
 
@@ -356,12 +356,12 @@ public class RNSentryModuleImpl {
     throw new RuntimeException("TEST - Sentry Client Crash (only works in release mode)");
   }
 
-  public void addListener(String _eventType) {
+  public void addListener(String eventType) {
     // Is must be defined otherwise the generated interface from TS won't be fulfilled
     logger.log(SentryLevel.ERROR, "addListener of NativeEventEmitter can't be used on Android!");
   }
 
-  public void removeListeners(double _id) {
+  public void removeListeners(double id) {
     // Is must be defined otherwise the generated interface from TS won't be fulfilled
     logger.log(
         SentryLevel.ERROR, "removeListeners of NativeEventEmitter can't be used on Android!");
@@ -369,17 +369,16 @@ public class RNSentryModuleImpl {
 
   public void fetchModules(Promise promise) {
     final AssetManager assets = this.getReactApplicationContext().getResources().getAssets();
-    try (final InputStream stream =
-        new BufferedInputStream(assets.open(RNSentryModuleImpl.modulesPath))) {
+    try (InputStream stream = new BufferedInputStream(assets.open(modulesPath))) {
       int size = stream.available();
       byte[] buffer = new byte[size];
       stream.read(buffer);
       stream.close();
-      String modulesJson = new String(buffer, RNSentryModuleImpl.UTF_8);
+      String modulesJson = new String(buffer, UTF_8);
       promise.resolve(modulesJson);
     } catch (FileNotFoundException e) {
       promise.resolve(null);
-    } catch (Throwable e) {
+    } catch (Throwable e) { // NOPMD - We don't want to crash in any case
       logger.log(SentryLevel.WARNING, "Fetching JS Modules failed.");
       promise.resolve(null);
     }
@@ -462,7 +461,7 @@ public class RNSentryModuleImpl {
         map.putInt("frozenFrames", frozenFrames);
 
         promise.resolve(map);
-      } catch (Throwable ignored) {
+      } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case
         logger.log(SentryLevel.WARNING, "Error fetching native frames.");
         promise.resolve(null);
       }
@@ -493,7 +492,7 @@ public class RNSentryModuleImpl {
     try {
       InternalSentrySdk.captureEnvelope(
           bytes, !options.hasKey("hardCrashed") || !options.getBoolean("hardCrashed"));
-    } catch (Throwable e) {
+    } catch (Throwable e) { // NOPMD - We don't want to crash in any case
       logger.log(SentryLevel.ERROR, "Error while capturing envelope");
       promise.resolve(false);
     }
@@ -511,7 +510,7 @@ public class RNSentryModuleImpl {
 
     final byte[] raw = takeScreenshotOnUiThread(activity);
 
-    if (raw == null) {
+    if (raw == null || raw.length == 0) {
       logger.log(SentryLevel.WARNING, "Screenshot is null, screen was not captured.");
       promise.resolve(null);
       return;
@@ -550,7 +549,7 @@ public class RNSentryModuleImpl {
       doneSignal.await(SCREENSHOT_TIMEOUT_SECONDS, SECONDS);
     } catch (InterruptedException e) {
       logger.log(SentryLevel.ERROR, "Screenshot process was interrupted.");
-      return null;
+      return new byte[0];
     }
 
     return bytesWrapper[0];
@@ -627,7 +626,7 @@ public class RNSentryModuleImpl {
             }
 
             if (userDataKeys != null) {
-              HashMap<String, String> userDataMap = new HashMap<>();
+              Map<String, String> userDataMap = new HashMap<>();
               ReadableMapKeySetIterator it = userDataKeys.keySetIterator();
               while (it.hasNextKey()) {
                 String key = it.nextKey();
@@ -694,7 +693,7 @@ public class RNSentryModuleImpl {
             return;
           }
 
-          final HashMap<String, Object> contextHashMap = context.toHashMap();
+          final Map<String, Object> contextHashMap = context.toHashMap();
           scope.setContexts(key, contextHashMap);
         });
   }
@@ -726,7 +725,7 @@ public class RNSentryModuleImpl {
           frameMetricsAggregator.add(currentActivity);
 
           logger.log(SentryLevel.INFO, "FrameMetricsAggregator installed.");
-        } catch (Throwable ignored) {
+        } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case
           // throws ConcurrentModification when calling addOnFrameMetricsAvailableListener
           // this is a best effort since we can't reproduce it
           logger.log(SentryLevel.ERROR, "Error adding Activity to frameMetricsAggregator.");
@@ -785,7 +784,7 @@ public class RNSentryModuleImpl {
       }
 
       result.putBoolean("started", true);
-    } catch (Throwable e) {
+    } catch (Throwable e) { // NOPMD - We don't want to crash in any case
       result.putBoolean("started", false);
       result.putString("error", e.toString());
     }
@@ -825,7 +824,7 @@ public class RNSentryModuleImpl {
         androidProfile.putString("build_id", getProguardUuid());
         result.putMap("androidProfile", androidProfile);
       }
-    } catch (Throwable e) {
+    } catch (Throwable e) { // NOPMD - We don't want to crash in any case
       result.putString("error", e.toString());
     } finally {
       if (output != null) {
@@ -834,7 +833,7 @@ public class RNSentryModuleImpl {
           if (!wasProfileSuccessfullyDeleted) {
             logger.log(SentryLevel.WARNING, "Profile not deleted from:" + output.getAbsolutePath());
           }
-        } catch (Throwable e) {
+        } catch (Throwable e) { // NOPMD - We don't want to crash in any case
           logger.log(SentryLevel.WARNING, "Profile not deleted from:" + output.getAbsolutePath());
         }
       }
@@ -848,7 +847,7 @@ public class RNSentryModuleImpl {
     }
     isProguardDebugMetaLoaded = true;
     final @Nullable List<Properties> debugMetaList =
-        (new AssetsDebugMetaLoader(this.getReactApplicationContext(), logger)).loadDebugMeta();
+        new AssetsDebugMetaLoader(this.getReactApplicationContext(), logger).loadDebugMeta();
     if (debugMetaList == null) {
       return null;
     }
@@ -866,7 +865,7 @@ public class RNSentryModuleImpl {
   }
 
   private String readStringFromFile(File path) throws IOException {
-    try (final BufferedReader br = new BufferedReader(new FileReader(path)); ) {
+    try (BufferedReader br = new BufferedReader(new FileReader(path)); ) {
 
       final StringBuilder text = new StringBuilder();
       String line;
@@ -943,7 +942,7 @@ public class RNSentryModuleImpl {
   private void addPackages(SentryEvent event, SdkVersion sdk) {
     SdkVersion eventSdk = event.getSdk();
     if (eventSdk != null
-        && eventSdk.getName().equals("sentry.javascript.react-native")
+        && "sentry.javascript.react-native".equals(eventSdk.getName())
         && sdk != null) {
       List<SentryPackage> sentryPackages = sdk.getPackages();
       if (sentryPackages != null) {

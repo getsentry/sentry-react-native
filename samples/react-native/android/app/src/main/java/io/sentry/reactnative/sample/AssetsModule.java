@@ -22,12 +22,11 @@ public class AssetsModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void getExampleAssetData(Promise promise) {
     try {
-      InputStream stream =
+      InputStream stream = // NOPMD - Stream is closed in finally block
           this.getReactApplicationContext().getResources().getAssets().open("logo_mini.png");
       int size = stream.available();
       byte[] buffer = new byte[size];
       stream.read(buffer);
-      stream.close();
       WritableArray array = new WritableNativeArray();
       for (int i = 0; i < size; i++) {
         array.pushInt(buffer[i]);
@@ -35,6 +34,12 @@ public class AssetsModule extends ReactContextBaseJavaModule {
       promise.resolve(array);
     } catch (Exception e) {
       promise.reject(e);
+    } finally {
+      try {
+        stream.close();
+      } catch (IOException e) {
+        promise.reject(e);
+      }
     }
   }
 }
