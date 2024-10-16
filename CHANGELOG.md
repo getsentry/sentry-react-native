@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 6.0.0
 
 This is a new major version 6.0.0 of the Sentry React Native SDK.
 To upgrade from the SDK version 5, please follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/v5-to-v6/).
