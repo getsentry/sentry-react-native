@@ -29,9 +29,7 @@ def set_react_native_path(installer)
 
   projects.each do |project|
     project.build_configurations.each do |config|
-        if config_name == nil || config.name == config_name
-            config.build_settings["REACT_NATIVE_PATH"] = '${PODS_ROOT}/../../node_modules/react-native'
-        end
+      config.build_settings["REACT_NATIVE_PATH"] = '${PODS_ROOT}/../../node_modules/react-native'
     end
     project.save()
   end
