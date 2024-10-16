@@ -105,7 +105,6 @@ jobs:
           [[ "${{ matrix.platform }}" == "ios" ]] && cd react-native/ios
           [[ "${{ matrix.platform }}" == "macos" ]] && cd react-native-macos/macos
 
-          export NO_FLIPPER=1 # Flipper is causing build issues on iOS, so we disable it
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic
@@ -121,6 +120,11 @@ jobs:
           if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
             perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
             echo 'New Architecture enabled'
+          elif [[ ${{ matrix.rn-architecture }} == 'legacy' ]]; then
+              perl -i -pe's/newArchEnabled=true/newArchEnabled=false/g' gradle.properties
+              echo 'Legacy Architecture enabled'
+          else
+              echo 'No changes for architecture: ${{ matrix.rn-architecture }}'
           fi
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"

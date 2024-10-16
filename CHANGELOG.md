@@ -1,14 +1,126 @@
 # Changelog
 
+<!-- prettier-ignore-start -->
+> [!IMPORTANT]
+> If you are upgrading to the `6.x` versions of the Sentry React Native SDK from `5.x` or below,
+> make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
+<!-- prettier-ignore-end -->
+
 ## Unreleased
 
 ### Fixes
 
 - Adds breadcrumb origin field to prevent exception capture context from being overwritten by native scope sync ([#4124](https://github.com/getsentry/sentry-react-native/pull/4124))
-- TimetoTisplay correctly warns about not supporting the new React Native architecture ([#4160](https://github.com/getsentry/sentry-react-native/pull/4160))
+
+## 6.0.0
+
+This is a new major version 6.0.0 of the Sentry React Native SDK.
+To upgrade from the SDK version 5, please follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/v5-to-v6/).
+
+### Major Changes
+
+- React Native Tracing options were moved to the root options
+
+  ```js
+  import Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    tracesSampleRate: 1.0,
+    enableAppStartTracking: true, // default true
+    enableNativeFramesTracking: true, // default true
+    enableStallTracking: true, // default true
+    enableUserInteractionTracing: true, // default false
+    integrations: [
+      Sentry.reactNativeTracingIntegration({
+        beforeStartSpan: (startSpanOptions) => {
+          startSpanOptions.name = 'New Name';
+          return startSpanOptions;
+        },
+      }),
+      Sentry.appStartIntegration({
+        standalone: false, // default false
+      }),
+    ],
+  });
+  ```
+
+- New React Navigation Integration interface ([#4003](https://github.com/getsentry/sentry-react-native/pull/4003))
+
+  ```js
+  import Sentry from '@sentry/react-native';
+  import { NavigationContainer } from '@react-navigation/native';
+
+  const reactNavigationIntegration = Sentry.reactNavigationIntegration();
+
+  Sentry.init({
+    tracesSampleRate: 1.0,
+    integrations: [reactNavigationIntegration],
+  });
+
+  function RootComponent() {
+    const navigation = React.useRef(null);
+
+    return <NavigationContainer ref={navigation}
+      onReady={() => {
+        reactNavigationIntegration.registerNavigationContainer(navigation);
+      }}>
+    </NavigationContainer>;
+  }
+  ```
+
+- Removed `beforeNavigate` use `beforeStartSpan` instead ([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
+  - `beforeStartSpan` is executed before the span start, compared to `beforeNavigate` which was executed before the navigation ended (after the span was created)
+
+### Other Changes
+
+- Add `sentry.origin` to SDK spans to indicated if spans are created by a part of the SDK or manually ([#4066](https://github.com/getsentry/sentry-react-native/pull/4066))
+- Xcode Debug Files upload completes in foreground by default ([#4090](https://github.com/getsentry/sentry-react-native/pull/4090))
+- Set `parentSpanIsAlwaysRootSpan` to `true` to make parent of network requests predictable ([#4084](https://github.com/getsentry/sentry-react-native/pull/4084))
+- Remove deprecated `enableSpotlight` and `spotlightSidecarUrl` ([#4086](https://github.com/getsentry/sentry-react-native/pull/4086))
+- `tracePropagationTargets` defaults to all targets on mobile and same origin on the web ([#4083](https://github.com/getsentry/sentry-react-native/pull/4083))
+- Move `_experiments.profilesSampleRate` to `profilesSampleRate` root options object [#3851](https://github.com/getsentry/sentry-react-native/pull/3851))
+- Native Frames uses `spanId` to attach frames replacing `traceId` ([#4030](https://github.com/getsentry/sentry-react-native/pull/4030))
+- Removed deprecated ReactNativeTracing option `idleTimeout` use `idleTimeoutMs` instead ([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
+- Removed deprecated ReactNativeTracing option `maxTransactionDuration` use `finalTimeoutMs` instead ([#3998](https://github.com/getsentry/sentry-react-native/pull/3998))
+- New Native Frames Integration ([#3996](https://github.com/getsentry/sentry-react-native/pull/3996))
+- New Stall Tracking Integration ([#3997](https://github.com/getsentry/sentry-react-native/pull/3997))
+- New User Interaction Tracing Integration ([#3999](https://github.com/getsentry/sentry-react-native/pull/3999))
+- New App Start Integration ([#3852](https://github.com/getsentry/sentry-react-native/pull/3852))
+  - By default app start spans are attached to the first created transaction.
+  - Standalone mode creates single root span (transaction) including only app start data.
+- New React Native Navigation Integration interface ([#4003](https://github.com/getsentry/sentry-react-native/pull/4003))
+
+  ```js
+  import Sentry from '@sentry/react-native';
+  import { Navigation } from 'react-native-navigation';
+
+  Sentry.init({
+    tracesSampleRate: 1.0,
+    integrations: [
+      Sentry.reactNativeNavigationIntegration({ navigation: Navigation })
+    ],
+  });
+  ```
+
+### Fixes
+
+- TimeToDisplay correctly warns about not supporting the new React Native architecture ([#4160](https://github.com/getsentry/sentry-react-native/pull/4160))
 - Native Wrapper method `setContext` ensures only values convertible to NativeMap are passed ([#4168](https://github.com/getsentry/sentry-react-native/pull/4168))
 - Native Wrapper method `setExtra` ensures only stringified values are passed ([#4168](https://github.com/getsentry/sentry-react-native/pull/4168))
 - `setContext('key', null)` removes the key value also from platform context ([#4168](https://github.com/getsentry/sentry-react-native/pull/4168))
+- Upload source maps for all splits on Android (not only the last found) ([#4125](https://github.com/getsentry/sentry-react-native/pull/4125))
+
+### Dependencies
+
+- Bump JavaScript SDK from v7.119.1 to v8.33.1 ([#3910](https://github.com/getsentry/sentry-react-native/pull/3910), [#3851](https://github.com/getsentry/sentry-react-native/pull/3851), [#4078](https://github.com/getsentry/sentry-react-native/pull/4078), [#4154](https://github.com/getsentry/sentry-react-native/pull/4154))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8331)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/7.119.1...8.33.1)
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.37.0 to v8.38.0 ([#4180](https://github.com/getsentry/sentry-react-native/pull/4180))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8380)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.37.0...8.38.0)
 
 ## 5.34.0
 
