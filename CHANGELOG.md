@@ -110,6 +110,12 @@ To upgrade from the SDK version 5, please follow our [migration guide](https://d
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/master/CHANGELOG.md#8331)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/7.119.1...8.33.1)
 
+### Dependencies
+
+- Bump Cocoa SDK from v8.37.0 to v8.38.0 ([#4180](https://github.com/getsentry/sentry-react-native/pull/4180))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8380)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.37.0...8.38.0)
+
 ## 5.34.0
 
 ### Fixes
