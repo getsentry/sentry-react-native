@@ -750,7 +750,6 @@ public class RNSentryModuleImpl {
     RNSentryTimeToDisplay.GetTimeToDisplay(promise, dateProvider);
   }
 
-
   private String getProfilingTracesDirPath() {
     if (cacheDirPath == null) {
       cacheDirPath =
