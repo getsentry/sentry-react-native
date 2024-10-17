@@ -43,7 +43,7 @@ jobs:
         platform: ["ios", "android"]
         include:
           - platform: ios
-            runs-on: macos-12
+            runs-on: macos-13
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
@@ -181,7 +181,7 @@ jobs:
             device: 'iPhone 14'
           - platform: ios
             rn-version: '0.65.3'
-            runs-on: macos-12
+            runs-on: macos-13
             runtime: 'latest'
             device: 'iPhone 14'
           - platform: android
