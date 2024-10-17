@@ -58,6 +58,7 @@ const NATIVE: MockInterface<NativeType> = {
   getCurrentReplayId: jest.fn(),
 
   crashedLastRun: jest.fn(),
+  getNewScreenTimeToDisplay: jest.fn().mockResolvedValue(42),
 };
 
 NATIVE.isNativeAvailable.mockReturnValue(true);

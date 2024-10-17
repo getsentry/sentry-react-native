@@ -48,7 +48,10 @@ Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
+//  maxBreadcrumbs: 0,
+//  enableNative: true,
   environment: 'dev',
+
   beforeSend: (event: ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
     return event;
@@ -65,13 +68,16 @@ Sentry.init({
     );
   },
   enableUserInteractionTracing: true,
+
   integrations(integrations) {
     integrations.push(
       reactNavigationIntegration,
+
       Sentry.reactNativeTracingIntegration({
         // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
         idleTimeoutMs: 5_000,
       }),
+
       Sentry.httpClientIntegration({
         // These options are effective only in JS.
         // This array can contain tuples of `[begin, end]` (both inclusive),
@@ -82,7 +88,7 @@ Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
-      Sentry.mobileReplayIntegration({
+       Sentry.mobileReplayIntegration({
         maskAllImages: true,
         maskAllVectors: true,
         // maskAllText: false,
@@ -111,9 +117,9 @@ Sentry.init({
   // otherwise they will not work.
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
-  profilesSampleRate: 1.0,
+//  profilesSampleRate: 1.0,
   _experiments: {
-    // replaysSessionSampleRate: 1.0,
+     replaysSessionSampleRate: 1.0,
     replaysOnErrorSampleRate: 1.0,
   },
   spotlight: true,

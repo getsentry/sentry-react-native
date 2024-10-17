@@ -30,7 +30,8 @@ import {
 } from './span';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
 import { setSpanDurationAsMeasurementOnSpan } from './utils';
-
+import type { SentryEventEmitterFallback } from '../utils/sentryeventemitterfallback';
+import { createSentryFallbackEventEmitter } from '../utils/sentryeventemitterfallback';
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
@@ -81,7 +82,7 @@ export const reactNavigationIntegration = ({
   registerNavigationContainer: (navigationContainerRef: unknown) => void;
 } => {
   let navigationContainer: NavigationContainer | undefined;
-  let newScreenFrameEventEmitter: SentryEventEmitter | undefined;
+  let newScreenFrameEventEmitter: SentryEventEmitterFallback | undefined;
 
   let tracing: ReactNativeTracingIntegration | undefined;
   let idleSpanOptions: Parameters<typeof startGenericIdleNavigationSpan>[1] = defaultIdleOptions;
@@ -95,8 +96,8 @@ export const reactNavigationIntegration = ({
   let recentRouteKeys: string[] = [];
 
   if (enableTimeToInitialDisplay) {
-    newScreenFrameEventEmitter = createSentryEventEmitter();
-    newScreenFrameEventEmitter.initAsync(NewFrameEventName);
+    newScreenFrameEventEmitter = createSentryFallbackEventEmitter();
+    newScreenFrameEventEmitter.initAsync();
     NATIVE.initNativeReactNavigationNewFrameTracking().catch((reason: unknown) => {
       logger.error(`${INTEGRATION_NAME} Failed to initialize native new frame tracking: ${reason}`);
     });
@@ -258,9 +259,8 @@ export const reactNavigationIntegration = ({
       });
 
     const navigationSpanWithTtid = latestNavigationSpan;
-    !routeHasBeenSeen &&
-      latestTtidSpan &&
-      newScreenFrameEventEmitter?.once(NewFrameEventName, ({ newFrameTimestampInSeconds }: NewFrameEvent) => {
+    if (!routeHasBeenSeen && latestTtidSpan) {
+      newScreenFrameEventEmitter?.onceNewFrame(({ newFrameTimestampInSeconds }: NewFrameEvent) => {
         const activeSpan = getActiveSpan();
         if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
           logger.warn('[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.');
@@ -271,6 +271,7 @@ export const reactNavigationIntegration = ({
         latestTtidSpan.end(newFrameTimestampInSeconds);
         setSpanDurationAsMeasurementOnSpan('time_to_initial_display', latestTtidSpan, navigationSpanWithTtid);
       });
+    }
 
     navigationProcessingSpan?.updateName(`Processing navigation to ${route.name}`);
     navigationProcessingSpan?.setStatus({ code: SPAN_STATUS_OK });
