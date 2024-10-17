@@ -125,8 +125,8 @@ public class RNSentryModuleImpl {
 
   /** Max trace file size in bytes. */
   private long maxTraceFileSize = 5 * 1024 * 1024;
-
   private final @NotNull SentryDateProvider dateProvider;
+
 
   public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
     packageInfo = getPackageInfo(reactApplicationContext);
@@ -275,129 +275,34 @@ public class RNSentryModuleImpl {
                   // We do nothing
                 }
 
-                options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
-                options.setNativeSdkName(NATIVE_SDK_NAME);
-                options.setSdkVersion(sdkVersion);
+                setEventOriginTag(event);
+                addPackages(event, options.getSdkVersion());
 
-                if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
-                  options.setDebug(true);
-                }
-                if (rnOptions.hasKey("dsn") && rnOptions.getString("dsn") != null) {
-                  String dsn = rnOptions.getString("dsn");
-                  logger.log(SentryLevel.INFO, String.format("Starting with DSN: '%s'", dsn));
-                  options.setDsn(dsn);
-                } else {
-                  // SentryAndroid needs an empty string fallback for the dsn.
-                  options.setDsn("");
-                }
-                if (rnOptions.hasKey("sampleRate")) {
-                  options.setSampleRate(rnOptions.getDouble("sampleRate"));
-                }
-                if (rnOptions.hasKey("sendClientReports")) {
-                  options.setSendClientReports(rnOptions.getBoolean("sendClientReports"));
-                }
-                if (rnOptions.hasKey("maxBreadcrumbs")) {
-                  options.setMaxBreadcrumbs(rnOptions.getInt("maxBreadcrumbs"));
-                }
-                if (rnOptions.hasKey("maxCacheItems")) {
-                  options.setMaxCacheItems(rnOptions.getInt("maxCacheItems"));
-                }
-                if (rnOptions.hasKey("environment") && rnOptions.getString("environment") != null) {
-                  options.setEnvironment(rnOptions.getString("environment"));
-                }
-                if (rnOptions.hasKey("release") && rnOptions.getString("release") != null) {
-                  options.setRelease(rnOptions.getString("release"));
-                }
-                if (rnOptions.hasKey("dist") && rnOptions.getString("dist") != null) {
-                  options.setDist(rnOptions.getString("dist"));
-                }
-                if (rnOptions.hasKey("enableAutoSessionTracking")) {
-                  options.setEnableAutoSessionTracking(rnOptions.getBoolean("enableAutoSessionTracking"));
-                }
-                if (rnOptions.hasKey("sessionTrackingIntervalMillis")) {
-                  options.setSessionTrackingIntervalMillis(
-                          rnOptions.getInt("sessionTrackingIntervalMillis"));
-                }
-                if (rnOptions.hasKey("shutdownTimeout")) {
-                  options.setShutdownTimeoutMillis(rnOptions.getInt("shutdownTimeout"));
-                }
-                if (rnOptions.hasKey("enableNdkScopeSync")) {
-                  options.setEnableScopeSync(rnOptions.getBoolean("enableNdkScopeSync"));
-                }
-                if (rnOptions.hasKey("attachStacktrace")) {
-                  options.setAttachStacktrace(rnOptions.getBoolean("attachStacktrace"));
-                }
-                if (rnOptions.hasKey("attachThreads")) {
-                  // JS use top level stacktrace and android attaches Threads which hides them so
-                  // by default we hide.
-                  options.setAttachThreads(rnOptions.getBoolean("attachThreads"));
-                }
-                if (rnOptions.hasKey("attachScreenshot")) {
-                  options.setAttachScreenshot(rnOptions.getBoolean("attachScreenshot"));
-                }
-                if (rnOptions.hasKey("attachViewHierarchy")) {
-                  options.setAttachViewHierarchy(rnOptions.getBoolean("attachViewHierarchy"));
-                }
-                if (rnOptions.hasKey("sendDefaultPii")) {
-                  options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
-                }
-                if (rnOptions.hasKey("maxQueueSize")) {
-                  options.setMaxQueueSize(rnOptions.getInt("maxQueueSize"));
-                }
-                if (rnOptions.hasKey("enableNdk")) {
-                  options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
-                }
-                if (rnOptions.hasKey("_experiments")) {
-                  options.getExperimental().setSessionReplay(getReplayOptions(rnOptions));
-                  options
-                          .getReplayController()
-                          .setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
-                }
-                options.setBeforeSend(
-                        (event, hint) -> {
-                          // React native internally throws a JavascriptException
-                          // Since we catch it before that, we don't want to send this one
-                          // because we would send it twice
-                          try {
-                            SentryException ex = event.getExceptions().get(0);
-                            if (null != ex && ex.getType().contains("JavascriptException")) {
-                              return null;
-                            }
-                          } catch (Throwable ignored) {
-                            // We do nothing
-                          }
-
-                          setEventOriginTag(event);
-                          addPackages(event, options.getSdkVersion());
-
-                          return event;
-                        });
-
-                if (rnOptions.hasKey("enableNativeCrashHandling")
-                        && !rnOptions.getBoolean("enableNativeCrashHandling")) {
-                  final List<Integration> integrations = options.getIntegrations();
-                  for (final Integration integration : integrations) {
-                    if (integration instanceof UncaughtExceptionHandlerIntegration
-                            || integration instanceof AnrIntegration
-                            || integration instanceof NdkIntegration) {
-                      integrations.remove(integration);
-                    }
-                  }
-                }
-                logger.log(
-                        SentryLevel.INFO,
-                        String.format("Native Integrations '%s'", options.getIntegrations()));
-
-                final CurrentActivityHolder currentActivityHolder = CurrentActivityHolder.getInstance();
-                final Activity currentActivity = getCurrentActivity();
-                if (currentActivity != null) {
-                  currentActivityHolder.setActivity(currentActivity);
-                }
+                return event;
               });
-    }
-    catch (Exception ex){
-      promise.reject(ex);
-    }
+
+          if (rnOptions.hasKey("enableNativeCrashHandling")
+              && !rnOptions.getBoolean("enableNativeCrashHandling")) {
+            final List<Integration> integrations = options.getIntegrations();
+            for (final Integration integration : integrations) {
+              if (integration instanceof UncaughtExceptionHandlerIntegration
+                  || integration instanceof AnrIntegration
+                  || integration instanceof NdkIntegration) {
+                integrations.remove(integration);
+              }
+            }
+          }
+          logger.log(
+              SentryLevel.INFO,
+              String.format("Native Integrations '%s'", options.getIntegrations()));
+
+          final CurrentActivityHolder currentActivityHolder = CurrentActivityHolder.getInstance();
+          final Activity currentActivity = getCurrentActivity();
+          if (currentActivity != null) {
+            currentActivityHolder.setActivity(currentActivity);
+          }
+        });
+
     promise.resolve(true);
   }
 
@@ -844,6 +749,7 @@ public class RNSentryModuleImpl {
   public void getNewScreenTimeToDisplay(Promise promise) {
     RNSentryTimeToDisplay.GetTimeToDisplay(promise, dateProvider);
   }
+
 
   private String getProfilingTracesDirPath() {
     if (cacheDirPath == null) {
