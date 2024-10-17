@@ -12,8 +12,9 @@ import {
 import type { Client, Integration, Span } from '@sentry/types';
 import { isPlainObject, logger, timestampInSeconds } from '@sentry/utils';
 
-import type { NewFrameEvent, SentryEventEmitter } from '../utils/sentryeventemitter';
-import { createSentryEventEmitter, NewFrameEventName } from '../utils/sentryeventemitter';
+import type { NewFrameEvent } from '../utils/sentryeventemitter';
+import type { SentryEventEmitterFallback } from '../utils/sentryeventemitterfallback';
+import { createSentryFallbackEventEmitter } from '../utils/sentryeventemitterfallback';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
@@ -30,8 +31,6 @@ import {
 } from './span';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
 import { setSpanDurationAsMeasurementOnSpan } from './utils';
-import type { SentryEventEmitterFallback } from '../utils/sentryeventemitterfallback';
-import { createSentryFallbackEventEmitter } from '../utils/sentryeventemitterfallback';
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;

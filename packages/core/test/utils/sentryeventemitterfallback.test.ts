@@ -1,3 +1,5 @@
+import { logger } from '@sentry/utils';
+
 import { NewFrameEventName } from '../../src/js/utils/sentryeventemitter';
 import { createSentryFallbackEventEmitter } from '../../src/js/utils/sentryeventemitterfallback';
 
@@ -8,13 +10,11 @@ jest.mock('../../src/js/utils/environment', () => ({
 
 jest.mock('../../src/js/wrapper', () => jest.requireActual('../mockWrapper'));
 
+import { NATIVE } from '../../src/js/wrapper';
+
 jest.spyOn(logger, 'warn');
 jest.spyOn(logger, 'log');
 jest.spyOn(logger, 'error');
-
-import { logger } from '@sentry/utils';
-
-import { NATIVE } from '../../src/js/wrapper';
 
 describe('SentryEventEmitterFallback', () => {
   let emitter: ReturnType<typeof createSentryFallbackEventEmitter>;

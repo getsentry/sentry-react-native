@@ -1,9 +1,10 @@
 import { timestampInSeconds } from '@sentry/utils';
-import EventEmitter from 'events';
+import * as EventEmitter from 'events';
 
 import type { NewFrameEvent } from '../../src/js/utils/sentryeventemitter';
 import type { SentryEventEmitterFallback } from '../../src/js/utils/sentryeventemitterfallback';
 import type { MockInterface } from '../testutils';
+
 export const NewFrameEventName = 'rn_sentry_new_frame';
 export type NewFrameEventName = typeof NewFrameEventName;
 export interface MockedSentryEventEmitterFallback extends MockInterface<SentryEventEmitterFallback> {
