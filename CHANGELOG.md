@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Enhanced accuracy of time-to-display spans. ([#4042](https://github.com/getsentry/sentry-react-native/pull/4042))
+- Enhanced accuracy of time-to-display spans. ([#4189](https://github.com/getsentry/sentry-react-native/pull/4189))
 
 ## 6.0.0
 
