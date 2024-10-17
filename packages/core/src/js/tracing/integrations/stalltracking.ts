@@ -43,7 +43,6 @@ export const stallTrackingIntegration = ({
   const statsByRootSpan: Map<
     Span,
     {
-      longestStallTime: number;
       atStart: StallMeasurements;
       atTimestamp: {
         timestamp: number;
@@ -64,6 +63,8 @@ export const stallTrackingIntegration = ({
     totalStallTime: number;
     /** Total number of stalls that occurred during the current tracking session */
     stallCount: number;
+    /** Longest stall time that occurred during the current tracking session */
+    longestStallTime: number;
     /**
      * Iteration of the stall tracking interval. Measures how long the timer strayed from its expected time of running, and how
      * long the stall is for.
@@ -75,6 +76,7 @@ export const stallTrackingIntegration = ({
     isBackground: false,
     lastIntervalMs: 0,
     totalStallTime: 0,
+    longestStallTime: 0,
     stallCount: 0,
     backgroundEventListener: (appState: AppStateStatus): void => {
       if (appState === ('active' as AppStateStatus)) {
@@ -97,13 +99,8 @@ export const stallTrackingIntegration = ({
         state.stallCount += 1;
         state.totalStallTime += stallTime;
 
-        for (const [transaction, value] of statsByRootSpan.entries()) {
-          const longestStallTime = Math.max(value.longestStallTime ?? 0, stallTime);
-
-          statsByRootSpan.set(transaction, {
-            ...value,
-            longestStallTime,
-          });
+        if (stallTime > state.longestStallTime) {
+          state.longestStallTime = stallTime;
         }
       }
 
@@ -134,7 +131,6 @@ export const stallTrackingIntegration = ({
 
     _startTracking();
     statsByRootSpan.set(rootSpan, {
-      longestStallTime: 0,
       atTimestamp: null,
       atStart: _getCurrentStats(rootSpan),
     });
@@ -273,7 +269,7 @@ export const stallTrackingIntegration = ({
       stall_count: { value: state.stallCount, unit: 'none' },
       stall_total_time: { value: state.totalStallTime, unit: 'millisecond' },
       stall_longest_time: {
-        value: statsByRootSpan.get(span)?.longestStallTime ?? 0,
+        value: state.longestStallTime,
         unit: 'millisecond',
       },
     };
