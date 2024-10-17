@@ -173,7 +173,6 @@ public class RNSentryModuleImpl {
   }
 
   public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
-<<<<<<< HEAD
     SentryAndroid.init(
         this.getReactApplicationContext(),
         options -> {
@@ -274,17 +273,6 @@ public class RNSentryModuleImpl {
                   }
                 } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case
                   // We do nothing
-=======
-    try {
-      SentryAndroid.init(
-              this.getReactApplicationContext(),
-              options -> {
-                @Nullable SdkVersion sdkVersion = options.getSdkVersion();
-                if (sdkVersion == null) {
-                  sdkVersion = new SdkVersion(ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
-                } else {
-                  sdkVersion.setName(ANDROID_SDK_NAME);
->>>>>>> 4ef0e98c (port navigation tracker #4042 to V6 / Todo: Fix tests)
                 }
 
                 options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
