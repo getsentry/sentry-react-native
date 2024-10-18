@@ -9,6 +9,7 @@ import type { UnsafeObject } from './utils/rnlibrariesinterface';
 export interface Spec extends TurboModule {
   addListener: (eventType: string) => void;
   removeListeners: (id: number) => void;
+  getNewScreenTimeToDisplay(): Promise<number | undefined | null>;
   addBreadcrumb(breadcrumb: UnsafeObject): void;
   captureEnvelope(
     bytes: string,
