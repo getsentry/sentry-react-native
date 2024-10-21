@@ -6756,6 +6756,7 @@ __metadata:
     "@babel/core": ^7.23.5
     "@expo/metro-config": 0.17.5
     "@mswjs/interceptors": ^0.25.15
+    "@react-native/babel-preset": 0.75.4
     "@sentry-internal/eslint-config-sdk": 8.34.0
     "@sentry-internal/eslint-plugin-sdk": 8.34.0
     "@sentry-internal/typescript": 8.34.0
@@ -6767,7 +6768,7 @@ __metadata:
     "@sentry/types": 8.34.0
     "@sentry/utils": 8.34.0
     "@sentry/wizard": 3.16.3
-    "@testing-library/react-native": ^12.6.1
+    "@testing-library/react-native": ^12.7.2
     "@types/jest": ^29.5.3
     "@types/node": ^20.9.3
     "@types/react": ^18.2.64
@@ -6791,9 +6792,9 @@ __metadata:
     madge: ^6.1.0
     metro: 0.80.10
     prettier: ^2.0.5
-    react: 18.2.0
-    react-native: 0.73.9
-    react-test-renderer: ^18.2.0
+    react: 18.3.1
+    react-native: 0.75.4
+    react-test-renderer: ^18.3.1
     rimraf: ^4.1.1
     ts-jest: ^29.1.1
     typescript: 4.9.5
@@ -7074,9 +7075,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/react-native@npm:^12.6.1":
-  version: 12.6.1
-  resolution: "@testing-library/react-native@npm:12.6.1"
+"@testing-library/react-native@npm:^12.7.2":
+  version: 12.7.2
+  resolution: "@testing-library/react-native@npm:12.7.2"
   dependencies:
     jest-matcher-utils: ^29.7.0
     pretty-format: ^29.7.0
@@ -7089,7 +7090,7 @@ __metadata:
   peerDependenciesMeta:
     jest:
       optional: true
-  checksum: 8966e074e10fc73cafea7630d4f6af35bc0bb42f1f79cc84d2c4336136b50c5c00546216219aea170481c6a3916e82a5dd17dfd5e0109483b52e7438a506bbeb
+  checksum: 7e3d8ab7d549823fcf438c17353e6c40386da88bbb1edfbd0747282a28c673597be27fdc2fa1f3a7d8786b77c72bb2e37f67ad2c9134225e9b68db97838f77e2
   languageName: node
   linkType: hard
 
@@ -23295,7 +23296,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-test-renderer@npm:18.3.1, react-test-renderer@npm:^18.2.0":
+"react-test-renderer@npm:18.3.1, react-test-renderer@npm:^18.3.1":
   version: 18.3.1
   resolution: "react-test-renderer@npm:18.3.1"
   dependencies:
