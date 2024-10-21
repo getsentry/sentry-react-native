@@ -6792,8 +6792,8 @@ __metadata:
     madge: ^6.1.0
     metro: 0.80.10
     prettier: ^2.0.5
-    react: ^18.3.1
-    react-native: ^0.75.4
+    react: 18.3.1
+    react-native: 0.75.4
     react-test-renderer: ^18.3.1
     rimraf: ^4.1.1
     ts-jest: ^29.1.1
@@ -23150,7 +23150,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native@npm:0.75.4, react-native@npm:^0.75.4":
+"react-native@npm:0.75.4":
   version: 0.75.4
   resolution: "react-native@npm:0.75.4"
   dependencies:
@@ -23327,7 +23327,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.3.1, react@npm:^18.3.1":
+"react@npm:18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
   dependencies:
