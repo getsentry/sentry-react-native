@@ -14,7 +14,7 @@
 typedef int (*SymbolicateCallbackType)(const void *, Dl_info *);
 
 @interface SentryDebugImageProvider ()
-- (NSArray<SentryDebugMeta *> * _Nonnull)getDebugImagesForAddresses:(NSSet<NSString *> * _Nonnull)addresses isCrash:(BOOL)isCrash;
+- (NSArray<SentryDebugMeta *> * _Nonnull)getDebugImagesForImageAddressesFromCache:(NSSet<NSString *> * _Nonnull)addresses;
 @end
 
 @interface

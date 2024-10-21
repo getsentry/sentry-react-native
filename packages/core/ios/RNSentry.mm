@@ -320,7 +320,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, fetchNativePackageName)
   } else {
     NSMutableArray<NSDictionary<NSString *, id> *> * _Nonnull serializedDebugMetaImages = [[NSMutableArray alloc] init];
 
-    NSArray<SentryDebugMeta *> *debugMetaImages = [[[SentryDependencyContainer sharedInstance] debugImageProvider] getDebugImagesForAddresses:imagesAddrToRetrieveDebugMetaImages isCrash:false];
+    NSArray<SentryDebugMeta *> *debugMetaImages = [[[SentryDependencyContainer sharedInstance] debugImageProvider] getDebugImagesForImageAddressesFromCache:imagesAddrToRetrieveDebugMetaImages];
 
     for (SentryDebugMeta *debugImage in debugMetaImages) {
       [serializedDebugMetaImages addObject:[debugImage serialize]];
