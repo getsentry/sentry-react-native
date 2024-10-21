@@ -14,7 +14,7 @@ import com.facebook.soloader.SoLoader;
  * `newArchEnabled` property). Is ignored otherwise.
  */
 @DoNotStrip
-public class MainComponentsRegistry {
+public class MainComponentsRegistry { // NOPMD - Default RN Template
   static {
     SoLoader.loadLibrary("fabricjni");
   }

@@ -44,7 +44,8 @@ public class MainApplicationReactNativeHost extends ReactNativeHost {
 
   @Override
   protected List<ReactPackage> getPackages() {
-    List<ReactPackage> packages = new PackageList(this).getPackages();
+    List<ReactPackage> packages = // NOPMD - Default RN Template
+        new PackageList(this).getPackages();
     // Packages that cannot be autolinked yet can be added manually here, for example:
     //     packages.add(new MyReactNativePackage());
     // TurboModules must also be loaded here providing a valid TurboReactPackage implementation:
