@@ -1968,18 +1968,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-private-methods@npm:^7.25.7":
-  version: 7.25.7
-  resolution: "@babel/plugin-transform-private-methods@npm:7.25.7"
-  dependencies:
-    "@babel/helper-create-class-features-plugin": ^7.25.7
-    "@babel/helper-plugin-utils": ^7.25.7
-  peerDependencies:
-    "@babel/core": ^7.0.0-0
-  checksum: c952adc58bfb00ef8c68deb03d2aa12b2d12ba9cd02bcc93b47d9f28f0fa16c08534e5099b916703b1d2f4dc037e5838e7f66b0dce650e7af8c1f41ca69af2c9
-  languageName: node
-  linkType: hard
-
 "@babel/plugin-transform-private-property-in-object@npm:^7.22.11, @babel/plugin-transform-private-property-in-object@npm:^7.24.7":
   version: 7.24.7
   resolution: "@babel/plugin-transform-private-property-in-object@npm:7.24.7"
@@ -6766,9 +6754,9 @@ __metadata:
   resolution: "@sentry/react-native@workspace:packages/core"
   dependencies:
     "@babel/core": ^7.23.5
-    "@babel/plugin-transform-private-methods": ^7.25.7
     "@expo/metro-config": 0.17.5
     "@mswjs/interceptors": ^0.25.15
+    "@react-native/babel-preset": 0.75.4
     "@sentry-internal/eslint-config-sdk": 8.33.1
     "@sentry-internal/eslint-plugin-sdk": 8.33.1
     "@sentry-internal/typescript": 8.33.1

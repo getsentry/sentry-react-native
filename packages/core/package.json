@@ -75,9 +75,9 @@
   },
   "devDependencies": {
     "@babel/core": "^7.23.5",
-    "@babel/plugin-transform-private-methods": "^7.25.7",
     "@expo/metro-config": "0.17.5",
     "@mswjs/interceptors": "^0.25.15",
+    "@react-native/babel-preset": "0.75.4",
     "@sentry-internal/eslint-config-sdk": "8.33.1",
     "@sentry-internal/eslint-plugin-sdk": "8.33.1",
     "@sentry-internal/typescript": "8.33.1",
