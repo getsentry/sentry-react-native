@@ -6,6 +6,18 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Changes
+
+- Use cached methods SentryDebugImageProvider of the Cocoa SDK ([#4194](https://github.com/getsentry/sentry-react-native/pull/4194))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.38.0 to v8.39.0-beta.1 ([#4194](https://github.com/getsentry/sentry-react-native/pull/4194))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8390-beta1)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.38.0...8.39.0-beta.1)
+
 ## 6.0.0
 
 This is a new major version 6.0.0 of the Sentry React Native SDK.
