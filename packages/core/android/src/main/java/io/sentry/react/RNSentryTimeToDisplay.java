@@ -7,7 +7,12 @@ import com.facebook.react.bridge.Promise;
 import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
 
-public static class RNSentryTimeToDisplay {
+public class RNSentryTimeToDisplay {
+
+  private RNSentryTimeToDisplay() {
+    throw new UnsupportedOperationException("Utility class");
+  }
+
   public static void getTimeToDisplay(Promise promise, SentryDateProvider dateProvider) {
     Looper mainLooper = Looper.getMainLooper();
 
