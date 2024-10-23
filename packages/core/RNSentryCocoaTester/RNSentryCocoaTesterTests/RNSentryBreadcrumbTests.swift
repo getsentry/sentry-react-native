@@ -1,12 +1,13 @@
 import XCTest
 import Sentry
 
-class RNSentryBreadcrumbTests: XCTestCase {
+final class RNSentryBreadcrumbTests: XCTestCase {
 
     func testGeneratesSentryBreadcrumbFromNSDictionary() {
         let actualCrumb = RNSentryBreadcrumb.from([
             "level": "error",
             "category": "testCategory",
+            "origin": "testOrigin",
             "type": "testType",
             "message": "testMessage",
             "data": [
@@ -16,6 +17,7 @@ class RNSentryBreadcrumbTests: XCTestCase {
 
         XCTAssertEqual(actualCrumb!.level, SentryLevel.error)
         XCTAssertEqual(actualCrumb!.category, "testCategory")
+        XCTAssertEqual(actualCrumb!.origin, "testOrigin")
         XCTAssertEqual(actualCrumb!.type, "testType")
         XCTAssertEqual(actualCrumb!.message, "testMessage")
         XCTAssertEqual((actualCrumb!.data)!["test"] as! String, "data")
