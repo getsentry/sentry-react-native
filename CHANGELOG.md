@@ -12,6 +12,21 @@
 
 - Enhanced accuracy of time-to-display spans. ([#4189](https://github.com/getsentry/sentry-react-native/pull/4189))
 
+### Dependencies
+
+- Bump JavaScript SDK from v8.34.0 to v8.35.0 ([#4196](https://github.com/getsentry/sentry-react-native/pull/4196))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8350)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.34.0...8.35.0)
+- Bump CLI from v2.37.0 to v2.38.0 ([#4200](https://github.com/getsentry/sentry-react-native/pull/4200))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2380)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.37.0...2.38.0)
+
+## 6.1.0
+
+- Bump JavaScript SDK from v8.33.1 to v8.34.0 ([#3895](https://github.com/getsentry/sentry-react-native/pull/3895))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8340)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.33.1...8.34.0)
+
 ## 6.0.0
 
 This is a new major version 6.0.0 of the Sentry React Native SDK.
@@ -22,7 +37,7 @@ To upgrade from the SDK version 5, please follow our [migration guide](https://d
 - React Native Tracing options were moved to the root options
 
   ```js
-  import Sentry from '@sentry/react-native';
+  import * as Sentry from '@sentry/react-native';
 
   Sentry.init({
     tracesSampleRate: 1.0,
@@ -47,7 +62,7 @@ To upgrade from the SDK version 5, please follow our [migration guide](https://d
 - New React Navigation Integration interface ([#4003](https://github.com/getsentry/sentry-react-native/pull/4003))
 
   ```js
-  import Sentry from '@sentry/react-native';
+  import * as Sentry from '@sentry/react-native';
   import { NavigationContainer } from '@react-navigation/native';
 
   const reactNavigationIntegration = Sentry.reactNavigationIntegration();
@@ -91,7 +106,7 @@ To upgrade from the SDK version 5, please follow our [migration guide](https://d
 - New React Native Navigation Integration interface ([#4003](https://github.com/getsentry/sentry-react-native/pull/4003))
 
   ```js
-  import Sentry from '@sentry/react-native';
+  import * as Sentry from '@sentry/react-native';
   import { Navigation } from 'react-native-navigation';
 
   Sentry.init({
@@ -272,7 +287,7 @@ Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascri
 - React Native Tracing options were moved to the root options
 
   ```js
-  import Sentry from '@sentry/react-native';
+  import * as Sentry from '@sentry/react-native';
 
   Sentry.init({
     tracesSampleRate: 1.0,
@@ -297,7 +312,7 @@ Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascri
 - New React Navigation Integration interface ([#4003](https://github.com/getsentry/sentry-react-native/pull/4003))
 
   ```js
-  import Sentry from '@sentry/react-native';
+  import * as Sentry from '@sentry/react-native';
   import { NavigationContainer } from '@react-navigation/native';
 
   const reactNavigationIntegration = Sentry.reactNavigationIntegration();
@@ -341,7 +356,7 @@ Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascri
 - New React Native Navigation Integration interface ([#4003](https://github.com/getsentry/sentry-react-native/pull/4003))
 
   ```js
-  import Sentry from '@sentry/react-native';
+  import * as Sentry from '@sentry/react-native';
   import { Navigation } from 'react-native-navigation';
 
   Sentry.init({
@@ -419,7 +434,7 @@ Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascri
   Standalone mode creates single root span (transaction) including only app start data.
 
   ```js
-  import Sentry from '@sentry/react-native';
+  import * as Sentry from '@sentry/react-native';
 
   Sentry.init({
     tracesSampleRate: 1.0,
@@ -444,7 +459,7 @@ Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascri
 - New React Navigation Integration interface ([#4003](https://github.com/getsentry/sentry-react-native/pull/4003))
 
   ```js
-  import Sentry from '@sentry/react-native';
+  import * as Sentry from '@sentry/react-native';
   import { NavigationContainer } from '@react-navigation/native';
 
   const reactNavigationIntegration = Sentry.reactNavigationIntegration();
@@ -468,7 +483,7 @@ Sentry Javascript SDK 8.0.0 ([JS Docs](https://docs.sentry.io/platforms/javascri
 - New React Native Navigation Integration interface ([#4003](https://github.com/getsentry/sentry-react-native/pull/4003))
 
   ```js
-  import Sentry from '@sentry/react-native';
+  import * as Sentry from '@sentry/react-native';
   import { Navigation } from 'react-native-navigation';
 
   Sentry.init({
