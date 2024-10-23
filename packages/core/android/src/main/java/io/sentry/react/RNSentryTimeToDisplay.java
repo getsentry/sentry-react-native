@@ -9,6 +9,8 @@ import io.sentry.SentryDateProvider;
 
 public final class RNSentryTimeToDisplay {
 
+  private RNSentryTimeToDisplay() {}
+
   public static void getTimeToDisplay(Promise promise, SentryDateProvider dateProvider) {
     Looper mainLooper = Looper.getMainLooper();
 
