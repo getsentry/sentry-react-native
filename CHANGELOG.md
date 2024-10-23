@@ -8,15 +8,26 @@
 
 ## Unreleased
 
-### Changes
+### Improvements
 
-- Use cached methods SentryDebugImageProvider of the Cocoa SDK ([#4194](https://github.com/getsentry/sentry-react-native/pull/4194))
+- Speed up getBinaryImages for finishing transactions and capturing events ([#4194](https://github.com/getsentry/sentry-react-native/pull/4194))
 
 ### Dependencies
 
-- Bump Cocoa SDK from v8.38.0 to v8.39.0-beta.1 ([#4194](https://github.com/getsentry/sentry-react-native/pull/4194))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8390-beta1)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.38.0...8.39.0-beta.1)
+- Bump JavaScript SDK from v8.34.0 to v8.35.0 ([#4196](https://github.com/getsentry/sentry-react-native/pull/4196))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8350)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.34.0...8.35.0)
+- Bump CLI from v2.37.0 to v2.38.0 ([#4200](https://github.com/getsentry/sentry-react-native/pull/4200))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2380)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.37.0...2.38.0)
+
+## 6.1.0
+
+### Dependencies
+
+- Bump JavaScript SDK from v8.33.1 to v8.34.0 ([#3895](https://github.com/getsentry/sentry-react-native/pull/3895))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8340)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.33.1...8.34.0)
 
 ## 6.0.0
 
