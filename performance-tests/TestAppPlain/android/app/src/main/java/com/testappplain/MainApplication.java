@@ -65,7 +65,7 @@ public class MainApplication extends Application implements ReactApplication {
    * @param context
    * @param reactInstanceManager
    */
-  private static void initializeFlipper(
+  private static void initializeFlipper( // NOPMD - Default RN Template
       Context context, ReactInstanceManager reactInstanceManager) {
     if (BuildConfig.DEBUG) {
       try {
@@ -79,11 +79,11 @@ public class MainApplication extends Application implements ReactApplication {
             .invoke(null, context, reactInstanceManager);
       } catch (ClassNotFoundException e) {
         e.printStackTrace();
-      } catch (NoSuchMethodException e) {
+      } catch (NoSuchMethodException e) { // NOPMD - Default RN Template
         e.printStackTrace();
-      } catch (IllegalAccessException e) {
+      } catch (IllegalAccessException e) { // NOPMD - Default RN Template
         e.printStackTrace();
-      } catch (InvocationTargetException e) {
+      } catch (InvocationTargetException e) { // NOPMD - Default RN Template
         e.printStackTrace();
       }
     }
