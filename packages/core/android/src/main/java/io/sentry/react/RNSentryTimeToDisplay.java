@@ -7,8 +7,8 @@ import com.facebook.react.bridge.Promise;
 import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
 
-public class RNSentryTimeToDisplay {
-  public static void GetTimeToDisplay(Promise promise, SentryDateProvider dateProvider) {
+public static class RNSentryTimeToDisplay {
+  public static void getTimeToDisplay(Promise promise, SentryDateProvider dateProvider) {
     Looper mainLooper = Looper.getMainLooper();
 
     if (mainLooper == null) {
