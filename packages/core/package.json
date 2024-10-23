@@ -81,7 +81,7 @@
     "@sentry-internal/eslint-config-sdk": "8.35.0",
     "@sentry-internal/eslint-plugin-sdk": "8.35.0",
     "@sentry-internal/typescript": "8.35.0",
-    "@sentry/wizard": "3.16.3",
+    "@sentry/wizard": "3.34.2",
     "@testing-library/react-native": "^12.7.2",
     "@types/jest": "^29.5.3",
     "@types/node": "^20.9.3",
