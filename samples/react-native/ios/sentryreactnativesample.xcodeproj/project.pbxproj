@@ -279,7 +279,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\n\nLOCAL_NODE_BINARY=node\n\nWITH_ENVIRONMENT=`$LOCAL_NODE_BINARY --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/xcode/with-environment.sh'\"`\nREACT_NATIVE_XCODE=`\"$LOCAL_NODE_BINARY\" --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'\"`\nSENTRY_XCODE=`\"$LOCAL_NODE_BINARY\" --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'\"`\nBUNDLE_REACT_NATIVE=\"/bin/sh $SENTRY_XCODE $REACT_NATIVE_XCODE\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT '$BUNDLE_REACT_NATIVE'\"\n";
+			shellScript = "set -e\n\nLOCAL_NODE_BINARY=${NODE_BINARY:-node}\n\nWITH_ENVIRONMENT=`$LOCAL_NODE_BINARY --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/xcode/with-environment.sh'\"`\nREACT_NATIVE_XCODE=`\"$LOCAL_NODE_BINARY\" --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'\"`\nSENTRY_XCODE=`\"$LOCAL_NODE_BINARY\" --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'\"`\nBUNDLE_REACT_NATIVE=\"/bin/sh $SENTRY_XCODE $REACT_NATIVE_XCODE\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT '$BUNDLE_REACT_NATIVE'\"\n";
 		};
 		00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -328,7 +328,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "LOCAL_NODE_BINARY=node\n\n/bin/sh `\"$LOCAL_NODE_BINARY\" --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`\n";
+			shellScript = "LOCAL_NODE_BINARY=${NODE_BINARY:-node}\n\n/bin/sh `\"$LOCAL_NODE_BINARY\" --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`\n";
 		};
 		A55EABD7B0C7F3A422A6CC61 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
