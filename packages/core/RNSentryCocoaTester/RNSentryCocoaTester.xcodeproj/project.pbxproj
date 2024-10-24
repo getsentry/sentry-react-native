@@ -12,6 +12,7 @@
 		33AFDFED2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m */; };
 		33AFDFF12B8D15E500AAB120 /* RNSentryDependencyContainerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainerTests.m */; };
 		33F58AD02977037D008F60EA /* RNSentryTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33F58ACF2977037D008F60EA /* RNSentryTests.mm */; };
+		AEFB00422CC90C4B00EC8A9A /* RNSentryBreadcrumbTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3360843C2C340C76008CC412 /* RNSentryBreadcrumbTests.swift */; };
 		B5859A50A3E865EF5E61465A /* libPods-RNSentryCocoaTesterTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */; };
 /* End PBXBuildFile section */
 
@@ -212,6 +213,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AEFB00422CC90C4B00EC8A9A /* RNSentryBreadcrumbTests.swift in Sources */,
 				33AFDFF12B8D15E500AAB120 /* RNSentryDependencyContainerTests.m in Sources */,
 				336084392C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift in Sources */,
 				33F58AD02977037D008F60EA /* RNSentryTests.mm in Sources */,

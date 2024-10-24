@@ -1,6 +1,7 @@
 package io.sentry.rnsentryandroidtester
 
 import com.facebook.react.bridge.JavaOnlyMap
+import io.sentry.SentryLevel
 import io.sentry.react.RNSentryBreadcrumb
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
@@ -9,6 +10,28 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class RNSentryBreadcrumbTest {
+
+    @Test
+    fun generatesSentryBreadcrumbFromMap() {
+        val testData = JavaOnlyMap.of(
+            "test", "data",
+        )
+        val map = JavaOnlyMap.of(
+            "level", "error",
+            "category", "testCategory",
+            "origin", "testOrigin",
+            "type", "testType",
+            "message", "testMessage",
+            "data", testData,
+        )
+        val actual = RNSentryBreadcrumb.fromMap(map)
+        assertEquals(SentryLevel.ERROR, actual.level)
+        assertEquals("testCategory", actual.category)
+        assertEquals("testOrigin", actual.origin)
+        assertEquals("testType", actual.type)
+        assertEquals("testMessage", actual.message)
+        assertEquals(testData.toHashMap(), actual.data)
+    }
 
     @Test
     fun nullForMissingCategory() {

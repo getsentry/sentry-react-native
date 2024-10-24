@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Adds breadcrumb origin field to prevent exception capture context from being overwritten by native scope sync ([#4124](https://github.com/getsentry/sentry-react-native/pull/4124))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v8.34.0 to v8.35.0 ([#4196](https://github.com/getsentry/sentry-react-native/pull/4196))
