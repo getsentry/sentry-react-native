@@ -215,7 +215,7 @@ int sucessfulSymbolicate(const void *, Dl_info *info){
   OCMStub([sentryDebugImageMock serialize]).andReturn(serializedDebugImage);
 
   id sentryDebugImageProviderMock = OCMClassMock([SentryDebugImageProvider class]);
-  OCMStub([sentryDebugImageProviderMock getDebugImagesForAddresses:[NSSet setWithObject:@"0x000000000001b669"] isCrash:false]).andReturn(@[sentryDebugImageMock]);
+  OCMStub([sentryDebugImageProviderMock getDebugImagesForImageAddressesFromCache:[NSSet setWithObject:@"0x000000000001b669"]]).andReturn(@[sentryDebugImageMock]);
 
   OCMStub([sentryDependencyContainerMock debugImageProvider]).andReturn(sentryDebugImageProviderMock);
 }
