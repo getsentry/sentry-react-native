@@ -10,7 +10,7 @@
   "dependencies": {
     "@sentry/react-native": "6.1.0",
     "react": "18.1.0",
-    "react-native": "0.70.6"
+    "react-native": "0.76.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
