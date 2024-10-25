@@ -1,8 +1,7 @@
-import type { TurboModule } from 'react-native';
-import { TurboModuleRegistry } from 'react-native';
+import {TurboModule, TurboModuleRegistry} from 'react-native';
 
 export interface Spec extends TurboModule {
   crashOrString(): string;
 }
 
-export default TurboModuleRegistry.get<Spec>('NativePlatformSampleModule');
+export default TurboModuleRegistry.getEnforcing<Spec>('NativePlatformSampleModule');

@@ -30,6 +30,8 @@ project(appmodules)
 # This file includes all the necessary to let you build your application with the New Architecture.
 include(${REACT_ANDROID_DIR}/cmake-utils/ReactNative-application.cmake)
 
-# App needs to add and link against tm (TurboModules) folder
-add_subdirectory(${REACT_ANDROID_DIR}/../../../tm/ tm_build)
-target_link_libraries(${CMAKE_PROJECT_NAME} tm)
+# Define where the additional source code lives. We need to crawl back the jni, main, src, app, android folders
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE ../../../../../tm/NativeSampleModule.cpp)
+
+# Define where CMake can find the additional header files. We need to crawl back the jni, main, src, app, android folders
+target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ../../../../../tm)
