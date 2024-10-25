@@ -23088,7 +23088,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-safe-area-context@github:th3rdwave/react-native-safe-area-context#main":
+"react-native-safe-area-context@https://github.com/th3rdwave/react-native-safe-area-context.git#91c426216c18b10558319f8f02383392100b6740":
   version: 4.11.1
   resolution: "react-native-safe-area-context@https://github.com/th3rdwave/react-native-safe-area-context.git#commit=91c426216c18b10558319f8f02383392100b6740"
   peerDependencies:
@@ -24703,7 +24703,7 @@ __metadata:
     react-native: 0.76.0
     react-native-gesture-handler: ^2.20.2
     react-native-reanimated: 3.16.1
-    react-native-safe-area-context: "github:th3rdwave/react-native-safe-area-context#main"
+    react-native-safe-area-context: "https://github.com/th3rdwave/react-native-safe-area-context.git#91c426216c18b10558319f8f02383392100b6740"
     react-native-screens: 4.0.0-beta.14
     react-native-svg: ^15.8.0
     react-native-vector-icons: ^10.0.3
