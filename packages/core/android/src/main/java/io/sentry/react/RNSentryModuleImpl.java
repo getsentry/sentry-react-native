@@ -26,6 +26,8 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+
+import io.sentry.Breadcrumb;
 import io.sentry.HubAdapter;
 import io.sentry.ILogger;
 import io.sentry.IScope;
@@ -75,6 +77,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -891,6 +894,17 @@ public class RNSentryModuleImpl {
     }
 
     final @Nullable IScope currentScope = InternalSentrySdk.getCurrentScope();
+    if (currentScope != null) {
+      // Remove react-native breadcrumbs
+      Iterator<Breadcrumb> breadcrumbsIterator = currentScope.getBreadcrumbs().iterator();
+      while (breadcrumbsIterator.hasNext()) {
+        Breadcrumb breadcrumb = breadcrumbsIterator.next();
+        if ("react-native".equals(breadcrumb.getOrigin())) {
+          breadcrumbsIterator.remove();
+        }
+      }
+    }
+
     final @NotNull Map<String, Object> serialized =
         InternalSentrySdk.serializeScope(context, (SentryAndroidOptions) options, currentScope);
     final @Nullable Object deviceContext = RNSentryMapConverter.convertToWritable(serialized);
