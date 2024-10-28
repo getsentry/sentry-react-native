@@ -26,7 +26,6 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
-
 import io.sentry.Breadcrumb;
 import io.sentry.HubAdapter;
 import io.sentry.ILogger;
