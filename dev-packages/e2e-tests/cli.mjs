@@ -190,7 +190,8 @@ if (actions.includes('build')) {
                   -workspace ${appName}.xcworkspace \
                   -configuration ${buildType} \
                   -scheme ${appName} \
-                  -destination 'platform=iOS Simulator' \
+                  -sdk 'iphonesimulator' \
+                  -destination 'generic/platform=iOS Simulator' \
                   ONLY_ACTIVE_ARCH=yes \
                   -derivedDataPath DerivedData \
                   build | tee xcodebuild.log | xcbeautify`,
