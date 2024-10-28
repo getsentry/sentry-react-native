@@ -64,6 +64,8 @@ const appRepoDir = `${e2eDir}/react-native-versions/${RNVersion}`;
 const appName = 'RnDiffApp';
 const appDir = `${appRepoDir}/${appName}`;
 const testAppName = `${appName}.${platform == 'ios' ? 'app' : 'apk'}`;
+const appId = platform === 'ios' ? 'org.reactjs.native.example.RnDiffApp' : 'com.rndiffapp';
+const sentryAuthToken = env.SENTRY_AUTH_TOKEN;
 
 // Build and publish the SDK - we only need to do this once in CI.
 // Locally, we may want to get updates from the latest build so do it on every app build.
@@ -188,7 +190,7 @@ if (actions.includes('build')) {
                   -workspace ${appName}.xcworkspace \
                   -configuration ${buildType} \
                   -scheme ${appName} \
-                  -destination 'platform=iOS Simulator,OS=${runtime},name=${device}' \
+                  -destination 'platform=iOS Simulator' \
                   ONLY_ACTIVE_ARCH=yes \
                   -derivedDataPath DerivedData \
                   build | tee xcodebuild.log | xcbeautify`,
@@ -212,116 +214,34 @@ if (actions.includes('build')) {
 }
 
 if (actions.includes('test')) {
-  if (
-    platform == 'ios' &&
-    !fs.existsSync(`${e2eDir}/DerivedData/Build/Products/Debug-iphonesimulator/WebDriverAgentRunner-Runner.app`)
-  ) {
-    // Build iOS WebDriverAgent
-    execSync(
-      `set -o pipefail && xcodebuild \
-                  -project node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
-                  -scheme WebDriverAgentRunner \
-                  -destination 'platform=iOS Simulator,OS=${runtime},name=${device}' \
-                  GCC_TREAT_WARNINGS_AS_ERRORS=0 \
-                  COMPILER_INDEX_STORE_ENABLE=NO \
-                  ONLY_ACTIVE_ARCH=yes \
-                  -derivedDataPath DerivedData \
-                  build | tee xcodebuild-agent.log | xcbeautify`,
-      { stdio: 'inherit', cwd: e2eDir, env: env },
-    );
+  // Run e2e tests
+  if (platform == 'ios') {
+    try {
+      execSync('xcrun simctl list devices | grep -q "(Booted)"');
+    } catch (error) {
+      throw new Error('No simulator is currently booted. Please boot a simulator before running this script.');
+    }
+
+    execSync(`xcrun simctl install booted ${testApp}`);
+  } else if (platform == 'android') {
+    try {
+      execSync('adb devices | grep -q "emulator"');
+    } catch (error) {
+      throw new Error('No Android emulator is currently running. Please start an emulator before running this script.');
+    }
+
+    execSync(`adb install -r -d ${testApp}`);
   }
 
-  // Start the appium server.
-  var processesToKill = {};
-  async function newProcess(name, process) {
-    await new Promise((resolve, reject) => {
-      process.on('error', e => {
-        console.error(`Failed to start process '${name}': ${e}`);
-        reject(e);
-      });
-      process.on('spawn', () => {
-        console.log(`Process '${name}' (${process.pid}) started`);
-        resolve();
-      });
-    });
-
-    processesToKill[name] = {
-      process: process,
-      complete: new Promise((resolve, _reject) => {
-        process.on('close', resolve);
-      }),
-    };
-  }
-  await newProcess(
-    'appium',
-    spawn('node_modules/.bin/appium', ['--log-timestamp', '--log-no-colors', '--log', `appium${platform}.log`], {
+  execSync(
+    `maestro test maestro \
+      --env=APP_ID="${appId}" \
+      --env=SENTRY_AUTH_TOKEN="${sentryAuthToken}" \
+      --debug-output maestro-logs \
+      --flatten-debug-output`,
+    {
       stdio: 'inherit',
       cwd: e2eDir,
-      env: env,
-      shell: false,
-    }),
+    },
   );
-
-  try {
-    await waitForAppium();
-
-    // Run e2e tests
-    const testEnv = env;
-    testEnv.PLATFORM = platform;
-    testEnv.APPIUM_APP = `./${testAppName}`;
-
-    if (platform == 'ios') {
-      testEnv.APPIUM_DERIVED_DATA = 'DerivedData';
-    } else if (platform == 'android') {
-      execSync(`adb devices -l`, { stdio: 'inherit', cwd: e2eDir, env: env });
-
-      execSync(`adb logcat -c`, { stdio: 'inherit', cwd: e2eDir, env: env });
-
-      var adbLogStream = fs.createWriteStream(`${e2eDir}/adb.log`);
-      const adbLogProcess = spawn('adb', ['logcat'], { cwd: e2eDir, env: env, shell: false });
-      adbLogProcess.stdout.pipe(adbLogStream);
-      adbLogProcess.stderr.pipe(adbLogStream);
-      adbLogProcess.on('close', () => adbLogStream.close());
-      await newProcess('adb logcat', adbLogProcess);
-    }
-
-    execSync(`yarn test:e2e:runner --verbose`, { stdio: 'inherit', cwd: e2eDir, env: testEnv });
-  } finally {
-    for (const [name, info] of Object.entries(processesToKill)) {
-      console.log(`Sending termination signal to process '${name}' (${info.process.pid})`);
-
-      // Send SIGTERM first to allow graceful shutdown.
-      info.process.kill(15);
-
-      // Also send SIGKILL after 10 seconds.
-      const killTimeout = setTimeout(() => process.kill(9), '10000');
-
-      // Wait for the process to exit (either via SIGTERM or SIGKILL).
-      const code = await info.complete;
-
-      // Successfully exited now, no need to kill (if it hasn't run yet).
-      clearTimeout(killTimeout);
-
-      console.log(`Process '${name}' (${info.process.pid}) exited with code ${code}`);
-    }
-  }
-}
-
-async function waitForAppium() {
-  console.log('Waiting for Appium server to start...');
-  for (let i = 0; i < 60; i++) {
-    try {
-      await fetch('http://127.0.0.1:4723/sessions', { method: 'HEAD' });
-      console.log('Appium server started');
-      return;
-    } catch (error) {
-      console.log(`Appium server hasn't started yet (${error})...`);
-      await sleep(1000);
-    }
-  }
-  throw new Error('Appium server failed to start');
-}
-
-async function sleep(millis) {
-  return new Promise(resolve => setTimeout(resolve, millis));
 }

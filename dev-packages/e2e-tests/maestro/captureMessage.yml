@@ -8,6 +8,11 @@ appId: ${APP_ID}
 
 - tapOn: "Capture Message"
 
+- extendedWaitUntil:
+    visible:
+      id: "eventId"
+    timeout: 60_000
+
 - copyTextFrom:
     id: "eventId"
 - assertTrue: ${maestro.copiedText}

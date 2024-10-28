@@ -3,7 +3,6 @@ import * as React from 'react';
 import { Text, View } from 'react-native';
 import { LaunchArguments } from "react-native-launch-arguments";
 
-import { getTestProps } from './utils/getTestProps';
 import { fetchEvent } from './utils/fetchEvent';
 
 const getSentryAuthToken = ():
@@ -27,15 +26,6 @@ const getSentryAuthToken = ():
 const EndToEndTestsScreen = (): JSX.Element => {
   const [eventId, setEventId] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string>('No error');
-  const [crashedLastRun, setCrashedLastRun] = React.useState<boolean | null>(null);
-
-  React.useEffect(() => {
-    (async () => {
-      const crashedLastRun = await Sentry.crashedLastRun();
-      console.log('crashedLastRun', crashedLastRun);
-      setCrashedLastRun(crashedLastRun);
-    })();
-  }, []);
 
   async function assertEventReceived(eventId: string | undefined) {
     if (!eventId) {
@@ -49,7 +39,12 @@ const EndToEndTestsScreen = (): JSX.Element => {
       return;
     }
 
-    await fetchEvent(eventId, value.token);
+    const event = await fetchEvent(eventId, value.token);
+
+    if (event.event_id !== eventId) {
+      setError('Event ID mismatch');
+      return;
+    }
 
     setEventId(eventId);
   }
@@ -102,13 +97,12 @@ const EndToEndTestsScreen = (): JSX.Element => {
     <View>
       <Text>Sentry RN E2E Tests</Text>
       <Text>{error}</Text>
-      {eventId && <Text {...getTestProps('eventId')}>{eventId}</Text>}
-      {crashedLastRun && <Text {...getTestProps('crashedLastRun')}>Crashed Last Run</Text>}
-      <Text {...getTestProps('clearEventId')} onPress={() => setEventId(null)}>
+      {eventId && <Text testID='eventId'>{eventId}</Text>}
+      <Text onPress={() => setEventId(null)}>
         Clear Event Id
       </Text>
       {testCases.map((testCase) => (
-        <Text key={testCase.id} {...getTestProps(testCase.id)} onPress={testCase.action}>
+        <Text key={testCase.id} onPress={testCase.action}>
           {testCase.name}
         </Text>
       ))}

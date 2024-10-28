@@ -8,6 +8,11 @@ appId: ${APP_ID}
 - assertVisible: "Sentry RN E2E Tests"
 - tapOn: "Unhandled Promise Rejection"
 
+- extendedWaitUntil:
+    visible:
+      id: "eventId"
+    timeout: 60_000
+
 - copyTextFrom:
     id: "eventId"
 - assertTrue: ${maestro.copiedText}
