@@ -6751,6 +6751,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-community/cli@npm:15.0.0":
+  version: 15.0.0
+  resolution: "@react-native-community/cli@npm:15.0.0"
+  dependencies:
+    "@react-native-community/cli-clean": 15.0.0
+    "@react-native-community/cli-config": 15.0.0
+    "@react-native-community/cli-debugger-ui": 15.0.0
+    "@react-native-community/cli-doctor": 15.0.0
+    "@react-native-community/cli-server-api": 15.0.0
+    "@react-native-community/cli-tools": 15.0.0
+    "@react-native-community/cli-types": 15.0.0
+    chalk: ^4.1.2
+    commander: ^9.4.1
+    deepmerge: ^4.3.0
+    execa: ^5.0.0
+    find-up: ^5.0.0
+    fs-extra: ^8.1.0
+    graceful-fs: ^4.1.3
+    prompts: ^2.4.2
+    semver: ^7.5.2
+  bin:
+    rnc-cli: build/bin.js
+  checksum: f056899a3537982efbb5a918e421b6dd9a090b33d95ee89182a0d626013bf56b4456e3e4308498b52d1f8db31bfd309183bca652cef606dad8cf0fd3395b25bf
+  languageName: node
+  linkType: hard
+
 "@react-native-community/cli@npm:9.3.2":
   version: 9.3.2
   resolution: "@react-native-community/cli@npm:9.3.2"
@@ -6775,32 +6801,6 @@ __metadata:
   bin:
     react-native: build/bin.js
   checksum: 474711ebfad0834e34026889004bc823b79817fc50fb9b614e987755b7073e251643d1078884d3b49f195c83b18bc32b0e608c512e3928fb0dec8dd6be42e180
-  languageName: node
-  linkType: hard
-
-"@react-native-community/cli@npm:latest":
-  version: 15.0.0
-  resolution: "@react-native-community/cli@npm:15.0.0"
-  dependencies:
-    "@react-native-community/cli-clean": 15.0.0
-    "@react-native-community/cli-config": 15.0.0
-    "@react-native-community/cli-debugger-ui": 15.0.0
-    "@react-native-community/cli-doctor": 15.0.0
-    "@react-native-community/cli-server-api": 15.0.0
-    "@react-native-community/cli-tools": 15.0.0
-    "@react-native-community/cli-types": 15.0.0
-    chalk: ^4.1.2
-    commander: ^9.4.1
-    deepmerge: ^4.3.0
-    execa: ^5.0.0
-    find-up: ^5.0.0
-    fs-extra: ^8.1.0
-    graceful-fs: ^4.1.3
-    prompts: ^2.4.2
-    semver: ^7.5.2
-  bin:
-    rnc-cli: build/bin.js
-  checksum: f056899a3537982efbb5a918e421b6dd9a090b33d95ee89182a0d626013bf56b4456e3e4308498b52d1f8db31bfd309183bca652cef606dad8cf0fd3395b25bf
   languageName: node
   linkType: hard
 
@@ -24676,7 +24676,7 @@ __metadata:
     "@babel/core": ^7.25.2
     "@babel/preset-env": ^7.25.3
     "@babel/runtime": ^7.25.0
-    "@react-native-community/cli": latest
+    "@react-native-community/cli": 15.0.0
     "@react-native/babel-preset": 0.76.0
     "@react-native/eslint-config": 0.76.0
     "@react-native/metro-config": 0.76.0
