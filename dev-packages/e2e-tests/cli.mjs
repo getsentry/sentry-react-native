@@ -112,9 +112,12 @@ if (actions.includes('create')) {
     env: Object.assign(env, { YARN_ENABLE_IMMUTABLE_INSTALLS: false }),
   });
 
-  console.log(`done`);
-
-  console.log(`done2`);
+  execSync(`yarn add react-native-launch-arguments@4.0.2`, {
+    stdio: 'inherit',
+    cwd: appDir,
+    // yarn v3 run immutable install by default in CI
+    env: Object.assign(env, { YARN_ENABLE_IMMUTABLE_INSTALLS: false }),
+  });
 
   // Patch the app
   execSync(`patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ${patchScriptsDir}/rn.patch`, {
