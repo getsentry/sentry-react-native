@@ -6,32 +6,41 @@ import { LaunchArguments } from "react-native-launch-arguments";
 import { getTestProps } from './utils/getTestProps';
 import { fetchEvent } from './utils/fetchEvent';
 
-const { sentryAuthToken } = LaunchArguments.value<{
-  sentryAuthToken: unknown;
-}>();
+const getSentryAuthToken = ():
+  | { token: string }
+  | { error: string } => {
+  const { sentryAuthToken } = LaunchArguments.value<{
+    sentryAuthToken: unknown;
+  }>();
 
-if (typeof sentryAuthToken !== 'string') {
-  throw new Error('Sentry Auth Token is required');
-}
+  if (typeof sentryAuthToken !== 'string') {
+    return { error: 'Sentry Auth Token is required' };
+  }
 
-if (sentryAuthToken.length === 0) {
-  throw new Error('Sentry Auth Token must not be empty');
-}
+  if (sentryAuthToken.length === 0) {
+    return { error: 'Sentry Auth Token must not be empty' };
+  }
 
+  return { token: sentryAuthToken };
+};
 
 const EndToEndTestsScreen = (): JSX.Element => {
   const [eventId, setEventId] = React.useState<string | null | undefined>();
+  const [error, setError] = React.useState<string>('No error');
 
   async function assertEventReceived(eventId: string | undefined) {
     if (!eventId) {
-      throw new Error('Event ID is required');
+      setError('Event ID is required');
+      return;
     }
 
-    if (!sentryAuthToken || typeof sentryAuthToken !== 'string') {
-      throw new Error('Sentry Auth Token is required');
+    const value = getSentryAuthToken();
+    if ('error' in value) {
+      setError(value.error);
+      return;
     }
 
-    await fetchEvent(eventId, sentryAuthToken);
+    await fetchEvent(eventId, value.token);
 
     setEventId(eventId);
   }
@@ -40,7 +49,8 @@ const EndToEndTestsScreen = (): JSX.Element => {
     const client: Sentry.ReactNativeClient | undefined = Sentry.getClient();
 
     if (!client) {
-      throw new Error('Client is not initialized');
+      setError('Client is not initialized');
+      return;
     }
 
     // WARNING: This is only for testing purposes.
@@ -76,6 +86,7 @@ const EndToEndTestsScreen = (): JSX.Element => {
 
   return (
     <View>
+      <Text>{error}</Text>
       <Text {...getTestProps('eventId')}>{eventId}</Text>
       <Text {...getTestProps('clearEventId')} onPress={() => setEventId('')}>
         Clear Event Id
