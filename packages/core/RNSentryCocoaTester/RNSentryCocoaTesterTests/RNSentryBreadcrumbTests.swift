@@ -23,6 +23,23 @@ final class RNSentryBreadcrumbTests: XCTestCase {
         XCTAssertEqual((actualCrumb!.data)!["test"] as! String, "data")
     }
 
+    func testUsesReactNativeAsDefaultOrigin() {
+        let actualCrumb = RNSentryBreadcrumb.from([
+            "message": "testMessage"
+        ])
+
+        XCTAssertEqual(actualCrumb!.origin, "react-native")
+    }
+    
+    func testKeepsOriginIfSet() {
+        let actualCrumb = RNSentryBreadcrumb.from([
+            "message": "testMessage",
+            "origin": "someOrigin"
+        ])
+
+        XCTAssertEqual(actualCrumb!.origin, "someOrigin")
+    }
+    
     func testUsesInfoAsDefaultSentryLevel() {
         let actualCrumb = RNSentryBreadcrumb.from([
             "message": "testMessage"

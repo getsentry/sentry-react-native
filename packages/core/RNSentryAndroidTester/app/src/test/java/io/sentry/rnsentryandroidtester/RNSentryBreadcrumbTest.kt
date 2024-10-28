@@ -34,6 +34,16 @@ class RNSentryBreadcrumbTest {
     }
 
     @Test
+    fun reactNativeForMissingOrigin() {
+        val map = JavaOnlyMap.of(
+            "message", "testMessage",
+        )
+        val actual = RNSentryBreadcrumb.fromMap(map)
+        assertEquals("testMessage", actual.message)
+        assertEquals("react-native", actual.origin)
+    }
+
+    @Test
     fun nullForMissingCategory() {
         val map = JavaOnlyMap.of()
         val actual = RNSentryBreadcrumb.getCurrentScreenFrom(map)

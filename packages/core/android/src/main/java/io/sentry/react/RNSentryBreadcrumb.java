@@ -53,6 +53,8 @@ public final class RNSentryBreadcrumb {
 
     if (from.hasKey("origin")) {
       breadcrumb.setOrigin(from.getString("origin"));
+    } else {
+      breadcrumb.setOrigin("react-native");
     }
 
     if (from.hasKey("level")) {
