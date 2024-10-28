@@ -157,6 +157,11 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
             sentryOptions.integrations = integrations;
         }
     }
+    
+    // Set spotlight option
+    if ([mutableOptions valueForKey:@"spotlight"] != nil) {
+        sentryOptions.enableSpotlight = [mutableOptions[@"spotlight"] boolValue];
+    }
 
     // Enable the App start and Frames tracking measurements
     if ([mutableOptions valueForKey:@"enableAutoPerformanceTracing"] != nil) {

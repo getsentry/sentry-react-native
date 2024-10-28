@@ -254,6 +254,9 @@ public class RNSentryModuleImpl {
           if (rnOptions.hasKey("enableNdk")) {
             options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
           }
+          if (rnOptions.hasKey("spotlight")) {
+            options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));
+          }
           if (rnOptions.hasKey("_experiments")) {
             options.getExperimental().setSessionReplay(getReplayOptions(rnOptions));
             options
