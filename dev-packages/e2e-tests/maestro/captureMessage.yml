@@ -1,0 +1,13 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+    arguments:
+      sentryAuthToken: ${SENTRY_AUTH_TOKEN}
+
+
+- tapOn: "Capture Message"
+
+- copyTextFrom:
+    id: "eventId"
+- assertTrue: ${maestro.copiedText}

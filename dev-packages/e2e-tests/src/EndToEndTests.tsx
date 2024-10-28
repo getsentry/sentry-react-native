@@ -25,8 +25,17 @@ const getSentryAuthToken = ():
 };
 
 const EndToEndTestsScreen = (): JSX.Element => {
-  const [eventId, setEventId] = React.useState<string | null | undefined>();
+  const [eventId, setEventId] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string>('No error');
+  const [crashedLastRun, setCrashedLastRun] = React.useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    (async () => {
+      const crashedLastRun = await Sentry.crashedLastRun();
+      console.log('crashedLastRun', crashedLastRun);
+      setCrashedLastRun(crashedLastRun);
+    })();
+  }, []);
 
   async function assertEventReceived(eventId: string | undefined) {
     if (!eventId) {
@@ -82,13 +91,20 @@ const EndToEndTestsScreen = (): JSX.Element => {
       name: 'Close',
       action: async () => await Sentry.close(),
     },
+    {
+      id: 'crash',
+      name: 'Crash',
+      action: () => Sentry.nativeCrash(),
+    },
   ];
 
   return (
     <View>
+      <Text>Sentry RN E2E Tests</Text>
       <Text>{error}</Text>
-      <Text {...getTestProps('eventId')}>{eventId}</Text>
-      <Text {...getTestProps('clearEventId')} onPress={() => setEventId('')}>
+      {eventId && <Text {...getTestProps('eventId')}>{eventId}</Text>}
+      {crashedLastRun && <Text {...getTestProps('crashedLastRun')}>Crashed Last Run</Text>}
+      <Text {...getTestProps('clearEventId')} onPress={() => setEventId(null)}>
         Clear Event Id
       </Text>
       {testCases.map((testCase) => (

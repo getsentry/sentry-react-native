@@ -64,8 +64,6 @@ const appRepoDir = `${e2eDir}/react-native-versions/${RNVersion}`;
 const appName = 'RnDiffApp';
 const appDir = `${appRepoDir}/${appName}`;
 const testAppName = `${appName}.${platform == 'ios' ? 'app' : 'apk'}`;
-const runtime = env.IOS_RUNTIME ? env.IOS_RUNTIME : 'latest';
-const device = env.IOS_DEVICE ? env.IOS_DEVICE : 'iPhone 15';
 
 // Build and publish the SDK - we only need to do this once in CI.
 // Locally, we may want to get updates from the latest build so do it on every app build.

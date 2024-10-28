@@ -1,0 +1,10 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+
+- assertVisible: "Sentry RN E2E Tests"
+- tapOn: "Crash"
+
+- launchApp
+- assertVisible: "Sentry RN E2E Tests"

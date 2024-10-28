@@ -1,0 +1,12 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+    arguments:
+      sentryAuthToken: ${SENTRY_AUTH_TOKEN}
+
+- assertVisible: "Sentry RN E2E Tests"
+- tapOn: "Close"
+
+- assertNotVisible:
+    id: "eventId"
