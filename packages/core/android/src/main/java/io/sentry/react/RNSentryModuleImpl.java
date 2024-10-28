@@ -178,7 +178,8 @@ public class RNSentryModuleImpl {
     promise.resolve(true);
   }
 
-  protected SentryAndroidOptions getSentryAndroidOptions(@NotNull ReadableMap rnOptions, ILogger logger) {
+  protected SentryAndroidOptions getSentryAndroidOptions(
+      @NotNull ReadableMap rnOptions, ILogger logger) {
     final SentryAndroidOptions options = new SentryAndroidOptions();
     @Nullable SdkVersion sdkVersion = options.getSdkVersion();
     if (sdkVersion == null) {
