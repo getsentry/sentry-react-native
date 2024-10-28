@@ -143,6 +143,9 @@ if (actions.includes('create')) {
     });
 
     if (fs.existsSync(`${appDir}/Gemfile`)) {
+      // TMP Fix for https://github.com/CocoaPods/Xcodeproj/issues/989
+      fs.appendFileSync(`${appDir}/Gemfile`, "gem 'xcodeproj', '< 1.26.0'\n");
+
       execSync(`bundle install`, { stdio: 'inherit', cwd: appDir, env: env });
       execSync('bundle exec pod install --repo-update', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
     } else {
