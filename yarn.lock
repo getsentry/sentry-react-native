@@ -7561,7 +7561,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-navigation/bottom-tabs@npm:^6.5.12":
+"@react-navigation/bottom-tabs@npm:^6.5.12, @react-navigation/bottom-tabs@npm:^6.6.1":
   version: 6.6.1
   resolution: "@react-navigation/bottom-tabs@npm:6.6.1"
   dependencies:
@@ -7623,7 +7623,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-navigation/native-stack@npm:^6.9.17":
+"@react-navigation/native-stack@npm:^6.11.0":
   version: 6.11.0
   resolution: "@react-navigation/native-stack@npm:6.11.0"
   dependencies:
@@ -7655,7 +7655,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-navigation/native@npm:^6.1.9, @react-navigation/native@npm:~6.1.6":
+"@react-navigation/native@npm:^6.1.18, @react-navigation/native@npm:^6.1.9, @react-navigation/native@npm:~6.1.6":
   version: 6.1.18
   resolution: "@react-navigation/native@npm:6.1.18"
   dependencies:
@@ -7679,7 +7679,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-navigation/stack@npm:^6.3.20":
+"@react-navigation/stack@npm:^6.3.20, @react-navigation/stack@npm:^6.4.1":
   version: 6.4.1
   resolution: "@react-navigation/stack@npm:6.4.1"
   dependencies:
@@ -24681,10 +24681,10 @@ __metadata:
     "@react-native/eslint-config": 0.76.0
     "@react-native/metro-config": 0.76.0
     "@react-native/typescript-config": 0.76.0
-    "@react-navigation/bottom-tabs": ^6.5.12
-    "@react-navigation/native": ^6.1.9
-    "@react-navigation/native-stack": ^6.9.17
-    "@react-navigation/stack": ^6.3.20
+    "@react-navigation/bottom-tabs": ^6.6.1
+    "@react-navigation/native": ^6.1.18
+    "@react-navigation/native-stack": ^6.11.0
+    "@react-navigation/stack": ^6.4.1
     "@sentry/babel-plugin-component-annotate": ^2.18.0
     "@sentry/react-native": 6.1.0
     "@types/react": ^18.2.65
