@@ -3,6 +3,7 @@ package io.sentry.react
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
@@ -92,5 +93,12 @@ class RNSentryModuleImplTest {
         verify(promise).resolve(writableMapCaptor.capture())
         val capturedMap = writableMapCaptor.value
         assertEquals(false, capturedMap.getBoolean("has_fetched"))
+    }
+
+    @Test
+    fun `when the spotlight option is enabled, the spotlight SentryAndroidOption is set to true`() {
+        val options = JavaOnlyMap.of("spotlight", true)
+        val actualOptions = module.getSentryAndroidOptions(options, logger)
+        assert(actualOptions.isEnableSpotlight)
     }
 }
