@@ -141,7 +141,6 @@ if (actions.includes('create')) {
       cwd: `${appDir}/ios`,
       env: env,
     });
-    console.log(`done3`);
 
     if (fs.existsSync(`${appDir}/Gemfile`)) {
       execSync(`bundle install`, { stdio: 'inherit', cwd: appDir, env: env });
