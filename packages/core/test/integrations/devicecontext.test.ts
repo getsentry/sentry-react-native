@@ -158,13 +158,13 @@ describe('Device Context Integration', () => {
     ).expectEvent.toStrictEqualMockEvent();
   });
 
-  it('use only native breadcrumbs', async () => {
+  it('merge native and event breadcrumbs', async () => {
     const { processedEvent } = await processEventWith({
-      nativeContexts: { breadcrumbs: [{ message: 'duplicate-breadcrumb' }, { message: 'native-breadcrumb' }] },
-      mockEvent: { breadcrumbs: [{ message: 'duplicate-breadcrumb' }, { message: 'event-breadcrumb' }] },
+      nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb' }] },
+      mockEvent: { breadcrumbs: [{ message: 'event-breadcrumb' }] },
     });
     expect(processedEvent).toStrictEqual({
-      breadcrumbs: [{ message: 'duplicate-breadcrumb' }, { message: 'native-breadcrumb' }],
+      breadcrumbs: [{ message: 'event-breadcrumb' }, { message: 'native-breadcrumb' }],
     });
   });
 

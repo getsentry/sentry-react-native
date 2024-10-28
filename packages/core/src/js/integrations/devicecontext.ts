@@ -83,7 +83,7 @@ async function processEvent(event: Event): Promise<Event> {
     ? native['breadcrumbs'].map(breadcrumbFromObject)
     : undefined;
   if (nativeBreadcrumbs) {
-    event.breadcrumbs = nativeBreadcrumbs;
+    event.breadcrumbs = (event.breadcrumbs || []).concat(nativeBreadcrumbs);
   }
 
   return event;
