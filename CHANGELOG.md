@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Changes
+
+- Enables Spotlight in Android and iOS SDKs ([#4211](https://github.com/getsentry/sentry-react-native/pull/4211))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v8.34.0 to v8.35.0 ([#4196](https://github.com/getsentry/sentry-react-native/pull/4196))
