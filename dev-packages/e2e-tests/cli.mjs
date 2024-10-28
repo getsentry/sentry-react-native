@@ -64,6 +64,7 @@ const appRepoDir = `${e2eDir}/react-native-versions/${RNVersion}`;
 const appName = 'RnDiffApp';
 const appDir = `${appRepoDir}/${appName}`;
 const testAppName = `${appName}.${platform == 'ios' ? 'app' : 'apk'}`;
+const testApp = `${e2eDir}/${testAppName}`;
 const appId = platform === 'ios' ? 'org.reactjs.native.example.RnDiffApp' : 'com.rndiffapp';
 const sentryAuthToken = env.SENTRY_AUTH_TOKEN;
 
@@ -208,7 +209,6 @@ if (actions.includes('build')) {
     appProduct = `${appDir}/android/app/build/outputs/apk/release/app-release.apk`;
   }
 
-  var testApp = `${e2eDir}/${testAppName}`;
   console.log(`Moving ${appProduct} to ${testApp}`);
   if (fs.existsSync(testApp)) fs.rmSync(testApp, { recursive: true });
   fs.renameSync(appProduct, testApp);
