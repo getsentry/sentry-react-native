@@ -104,7 +104,7 @@ describe('Tests ReactNativeClient', () => {
       });
 
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
-      await expect(RN.LogBox.ignoreLogs).toBeCalled();
+      await expect(RN.LogBox.ignoreLogs).not.toBeCalled();
     });
 
     test('invalid dsn is thrown', () => {
