@@ -137,6 +137,37 @@
     XCTAssertTrue(actualOptions.enableSpotlight , @"Did not enable spotlight");
 }
 
+- (void)testCreateOptionsWithDictionarySpotlightOne
+{
+    RNSentry * rnSentry = [[RNSentry alloc] init];
+    NSError* error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn": @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"spotlight": @1,
+    };
+    SentryOptions* actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertTrue(actualOptions.enableSpotlight , @"Did not enable spotlight");
+}
+
+- (void)testCreateOptionsWithDictionarySpotlightUrl
+{
+    RNSentry * rnSentry = [[RNSentry alloc] init];
+    NSError* error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn": @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"spotlight": @"http://localhost:8969/teststream",
+    };
+    SentryOptions* actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertTrue(actualOptions.enableSpotlight , @"Did not enable spotlight");
+    XCTAssertEqual(actualOptions.spotlightUrl , @"http://localhost:8969/teststream");
+}
+
 - (void)testCreateOptionsWithDictionarySpotlightDisabled
 {
     RNSentry * rnSentry = [[RNSentry alloc] init];
@@ -145,6 +176,21 @@
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn": @"https://abcd@efgh.ingest.sentry.io/123456",
         @"spotlight": @NO,
+    };
+    SentryOptions* actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertFalse(actualOptions.enableSpotlight, @"Did not disable spotlight");
+}
+
+- (void)testCreateOptionsWithDictionarySpotlightZero
+{
+    RNSentry * rnSentry = [[RNSentry alloc] init];
+    NSError* error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn": @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"spotlight": @0,
     };
     SentryOptions* actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");

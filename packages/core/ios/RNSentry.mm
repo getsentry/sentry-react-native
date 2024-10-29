@@ -160,7 +160,14 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     
     // Set spotlight option
     if ([mutableOptions valueForKey:@"spotlight"] != nil) {
-        sentryOptions.enableSpotlight = [mutableOptions[@"spotlight"] boolValue];
+        id spotlightValue = [mutableOptions valueForKey:@"spotlight"];
+        if ([spotlightValue isKindOfClass:[NSString class]]) {
+            NSLog(@"The value is a string: %@", spotlightValue);
+            sentryOptions.enableSpotlight = true;
+            sentryOptions.spotlightUrl = spotlightValue;
+        } else if ([spotlightValue isKindOfClass:[NSNumber class]]) {
+            sentryOptions.enableSpotlight = [spotlightValue boolValue];
+        }
     }
 
     // Enable the App start and Frames tracking measurements
