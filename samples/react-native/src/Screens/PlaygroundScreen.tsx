@@ -12,8 +12,10 @@ import {
   ScrollView,
   SafeAreaView,
   Pressable,
+  Button,
 } from 'react-native';
 import SvgGraphic from '../components/SvgGraphic';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 const multilineText = `This
 is
@@ -23,13 +25,23 @@ input
 text
 `;
 
-const PlaygroundScreen = () => {
+interface Props {
+  navigation: StackNavigationProp<any, 'PlaygroundScreen'>;
+}
+
+const PlaygroundScreen = (props: Props) => {
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView behavior={'padding'} style={styles.container}>
         <ScrollView>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>
+              <Button
+                title="Webview Example"
+                onPress={() => {
+                  props.navigation.navigate('Webview');
+                }}
+              />
               <Text>Text:</Text>
               <Text>{'This is <Text>'}</Text>
               <View style={styles.space} />
@@ -80,7 +92,7 @@ export default PlaygroundScreen;
 
 const styles = StyleSheet.create({
   space: {
-    marginBottom: 50,
+    paddingBottom: 50,
   },
   container: {
     padding: 5,
