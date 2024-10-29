@@ -13,16 +13,13 @@ interface ApiEvent extends Event {
 const RETRY_COUNT = 600;
 const RETRY_INTERVAL = 1000;
 
-const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
+const fetchEvent = async (eventId: string, authToken: string): Promise<ApiEvent> => {
   const url = `https://${domain}${eventEndpoint}${eventId}/`;
-
-  expect(process.env.SENTRY_AUTH_TOKEN).toBeDefined();
-  expect(process.env.SENTRY_AUTH_TOKEN?.length).toBeGreaterThan(0);
 
   const request = () =>
     fetch(url, {
       headers: {
-        Authorization: `Bearer ${process.env.SENTRY_AUTH_TOKEN}`,
+        Authorization: `Bearer ${authToken}`,
         'Content-Type': 'application/json',
       },
       method: 'GET',
@@ -47,6 +44,7 @@ const fetchEvent = async (eventId: string): Promise<ApiEvent> => {
           reject(new Error('Could not fetch event within retry limit.'));
         }
       } else {
+        console.log('Fetched event', jsonResponse.detail);
         resolve(jsonResponse);
       }
     });
