@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Skips ignoring require cycle logs for RN > 0.70 ([#4214](https://github.com/getsentry/sentry-react-native/pull/4214))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v8.34.0 to v8.35.0 ([#4196](https://github.com/getsentry/sentry-react-native/pull/4196))
