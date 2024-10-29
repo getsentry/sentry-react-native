@@ -11,6 +11,7 @@ import io.sentry.ILogger
 import io.sentry.SentryLevel
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -100,5 +101,20 @@ class RNSentryModuleImplTest {
         val options = JavaOnlyMap.of("spotlight", true)
         val actualOptions = module.getSentryAndroidOptions(options, logger)
         assert(actualOptions.isEnableSpotlight)
+    }
+
+    @Test
+    fun `when the spotlight url is passed, the spotlight is enabled for the given url`() {
+        val options = JavaOnlyMap.of("spotlight", "http://localhost:8969/teststream")
+        val actualOptions = module.getSentryAndroidOptions(options, logger)
+        assert(actualOptions.isEnableSpotlight)
+        assertEquals("http://localhost:8969/teststream", actualOptions.spotlightConnectionUrl)
+    }
+
+    @Test
+    fun `when the spotlight option is disabled, the spotlight SentryAndroidOption is set to false`() {
+        val options = JavaOnlyMap.of("spotlight", false)
+        val actualOptions = module.getSentryAndroidOptions(options, logger)
+        assertFalse(actualOptions.isEnableSpotlight)
     }
 }

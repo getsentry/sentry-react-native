@@ -20,6 +20,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -260,7 +261,12 @@ public class RNSentryModuleImpl {
       options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
     }
     if (rnOptions.hasKey("spotlight")) {
-      options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));
+      if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
+        options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));
+      } else if (rnOptions.getType("spotlight") == ReadableType.String) {
+        options.setEnableSpotlight(true);
+        options.setSpotlightConnectionUrl(rnOptions.getString("spotlight"));
+      }
     }
     if (rnOptions.hasKey("_experiments")) {
       options.getExperimental().setSessionReplay(getReplayOptions(rnOptions));
