@@ -1,10 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp:
-    clearState: true
-
-- assertVisible: "Sentry RN E2E Tests"
+- runFlow: utils/launchTestAppClear.yml
 - tapOn: "Crash"
 
 - launchApp
-- assertVisible: "Sentry RN E2E Tests"
+- assertVisible: "E2E Tests Ready"

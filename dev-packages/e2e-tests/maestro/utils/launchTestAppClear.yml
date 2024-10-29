@@ -1,0 +1,8 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+    arguments:
+      sentryAuthToken: ${SENTRY_AUTH_TOKEN}
+
+- assertVisible: "E2E Tests Ready"

@@ -1,11 +1,6 @@
 appId: ${APP_ID}
 ---
-- launchApp:
-    clearState: true
-    arguments:
-      sentryAuthToken: ${SENTRY_AUTH_TOKEN}
-
-- assertVisible: "Sentry RN E2E Tests"
+- runFlow: utils/launchTestAppClear.yml
 - tapOn: "Close"
 
 - assertNotVisible:

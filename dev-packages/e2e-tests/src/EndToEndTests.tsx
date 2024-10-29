@@ -5,6 +5,8 @@ import { LaunchArguments } from "react-native-launch-arguments";
 
 import { fetchEvent } from './utils/fetchEvent';
 
+const E2E_TESTS_READY_TEXT = 'E2E Tests Ready';
+
 const getSentryAuthToken = ():
   | { token: string }
   | { error: string } => {
@@ -24,6 +26,7 @@ const getSentryAuthToken = ():
 };
 
 const EndToEndTestsScreen = (): JSX.Element => {
+  const [isReady, setIsReady] = React.useState(false);
   const [eventId, setEventId] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string>('No error');
 
@@ -63,6 +66,8 @@ const EndToEndTestsScreen = (): JSX.Element => {
       assertEventReceived(e.event_id);
       return e;
     };
+
+    setIsReady(true);
   }, []);
 
   const testCases = [
@@ -95,9 +100,9 @@ const EndToEndTestsScreen = (): JSX.Element => {
 
   return (
     <View>
-      <Text>Sentry RN E2E Tests</Text>
+      <Text>{isReady ? E2E_TESTS_READY_TEXT : 'Loading...'}</Text>
       <Text>{error}</Text>
-      {eventId && <Text testID='eventId'>{eventId}</Text>}
+      {eventId ? <Text testID='eventId'>{eventId}</Text> : <Text>No event ID</Text>}
       <Text onPress={() => setEventId(null)}>
         Clear Event Id
       </Text>

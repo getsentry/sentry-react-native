@@ -1,18 +1,5 @@
 appId: ${APP_ID}
 ---
-- launchApp:
-    clearState: true
-    arguments:
-      sentryAuthToken: ${SENTRY_AUTH_TOKEN}
-
-- assertVisible: "Sentry RN E2E Tests"
+- runFlow: utils/launchTestAppClear.yml
 - tapOn: "Unhandled Promise Rejection"
-
-- extendedWaitUntil:
-    visible:
-      id: "eventId"
-    timeout: 60_000
-
-- copyTextFrom:
-    id: "eventId"
-- assertTrue: ${maestro.copiedText}
+- runFlow: utils/assertEventIdVisible.yml

@@ -6,6 +6,7 @@ const eventEndpoint = 'api/0/projects/sentry-sdks/sentry-react-native/events';
 
 const RETRY_COUNT = 600;
 const FIRST_RETRY_MS = 1_000;
+const MAX_RETRY_TIMEOUT = 5_000;
 
 const fetchEvent = async (eventId: string, authToken: string): Promise<Event> => {
   const url = `https://${domain}/${eventEndpoint}/${eventId}/json/`;
@@ -30,6 +31,8 @@ const fetchEvent = async (eventId: string, authToken: string): Promise<Event> =>
   const response = await pRetry(toRetry, {
     retries: RETRY_COUNT,
     minTimeout: FIRST_RETRY_MS,
+    maxTimeout: MAX_RETRY_TIMEOUT,
+    factor: 2,
     onFailedAttempt: e => {
       console.log(`Failed attempt ${e.attemptNumber} of ${RETRY_COUNT}: ${e.message}`);
     },
