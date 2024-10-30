@@ -21142,6 +21142,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-launch-arguments@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "react-native-launch-arguments@npm:4.0.2"
+  peerDependencies:
+    react: ">=16.8.1"
+    react-native: ">=0.60.0-rc.0 <1.0.x"
+  checksum: 5a73cfa27c603a743939c7fbc98fef3eb790dfc1043ecfe60855d30f238c41251ba1a47775cb660b37ef86f96961b5643f6ff48480f0d60efb0235488d43ff05
+  languageName: node
+  linkType: hard
+
 "react-native-macos@npm:0.73.34":
   version: 0.73.34
   resolution: "react-native-macos@npm:0.73.34"
@@ -22685,10 +22695,13 @@ __metadata:
     minimist: 1.2.8
     react: 18.3.1
     react-native: 0.75.4
+    react-native-launch-arguments: ^4.0.2
     semver: 7.6.3
     typescript: 4.9.5
     webdriverio: ^8.27.0
     xcode: 3.0.1
+  peerDependencies:
+    react-native-launch-arguments: ^4.0.2
   languageName: unknown
   linkType: soft
 
