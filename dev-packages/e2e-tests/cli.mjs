@@ -228,7 +228,7 @@ if (actions.includes('test')) {
       throw new Error('No Android emulator is currently running. Please start an emulator before running this script.');
     }
 
-    execSync(`adb install -r -d ${testApp}`);
+    execFileSync('adb', ['install', '-r', '-d', testApp]);
   }
 
   execSync(
