@@ -174,14 +174,14 @@ public class RNSentryModuleImpl {
 
   public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
     SentryAndroid.init(
-        this.getReactApplicationContext(), options -> getSentryAndroidOptions(rnOptions, logger));
+        this.getReactApplicationContext(),
+        options -> getSentryAndroidOptions(options, rnOptions, logger));
 
     promise.resolve(true);
   }
 
-  protected SentryAndroidOptions getSentryAndroidOptions(
-      @NotNull ReadableMap rnOptions, ILogger logger) {
-    final SentryAndroidOptions options = new SentryAndroidOptions();
+  protected void getSentryAndroidOptions(
+      @NotNull SentryAndroidOptions options, @NotNull ReadableMap rnOptions, ILogger logger) {
     @Nullable SdkVersion sdkVersion = options.getSdkVersion();
     if (sdkVersion == null) {
       sdkVersion = new SdkVersion(ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
@@ -312,7 +312,6 @@ public class RNSentryModuleImpl {
     if (currentActivity != null) {
       currentActivityHolder.setActivity(currentActivity);
     }
-    return options;
   }
 
   private SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {

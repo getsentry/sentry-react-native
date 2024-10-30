@@ -9,6 +9,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import io.sentry.ILogger
 import io.sentry.SentryLevel
+import io.sentry.android.core.SentryAndroidOptions
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -102,7 +103,8 @@ class RNSentryModuleImplTest {
             "spotlight", true,
             "defaultSidecarUrl", "http://localhost:8969/teststream"
         )
-        val actualOptions = module.getSentryAndroidOptions(options, logger)
+        val actualOptions = SentryAndroidOptions()
+        module.getSentryAndroidOptions(actualOptions, options, logger)
         assert(actualOptions.isEnableSpotlight)
         assertEquals("http://localhost:8969/teststream", actualOptions.spotlightConnectionUrl)
     }
@@ -110,7 +112,8 @@ class RNSentryModuleImplTest {
     @Test
     fun `when the spotlight url is passed, the spotlight is enabled for the given url`() {
         val options = JavaOnlyMap.of("spotlight", "http://localhost:8969/teststream")
-        val actualOptions = module.getSentryAndroidOptions(options, logger)
+        val actualOptions = SentryAndroidOptions()
+        module.getSentryAndroidOptions(actualOptions, options, logger)
         assert(actualOptions.isEnableSpotlight)
         assertEquals("http://localhost:8969/teststream", actualOptions.spotlightConnectionUrl)
     }
@@ -118,7 +121,8 @@ class RNSentryModuleImplTest {
     @Test
     fun `when the spotlight option is disabled, the spotlight SentryAndroidOption is set to false`() {
         val options = JavaOnlyMap.of("spotlight", false)
-        val actualOptions = module.getSentryAndroidOptions(options, logger)
+        val actualOptions = SentryAndroidOptions()
+        module.getSentryAndroidOptions(actualOptions, options, logger)
         assertFalse(actualOptions.isEnableSpotlight)
     }
 }
