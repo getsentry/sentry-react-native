@@ -3,8 +3,8 @@ import path from 'path';
 import type { RemoteOptions } from 'webdriverio';
 import { remote } from 'webdriverio';
 
-import { fetchEvent } from './utils/fetchEvent';
 import { waitForTruthyResult } from './utils/waitFor';
+import { expect, jest, beforeAll, afterAll, beforeEach, afterEach, describe, test } from '@jest/globals';
 
 const DRIVER_NOT_INITIALIZED = 'Driver not initialized';
 
@@ -58,6 +58,7 @@ beforeAll(async () => {
       platformName: 'Android',
       'appium:automationName': 'UIAutomator2',
       'appium:app': process.env.APPIUM_APP,
+      'appium:optionalIntentArguments': `--es sentryAuthToken '${process.env.SENTRY_AUTH_TOKEN}'`,
     };
   } else {
     conf.capabilities = {
@@ -68,6 +69,7 @@ beforeAll(async () => {
       'appium:derivedDataPath': path.resolve(process.env.APPIUM_DERIVED_DATA || ''),
       'appium:showXcodeLog': true,
       'appium:usePrebuiltWDA': true,
+      'appium:processArguments': { args: ['-sentryAuthToken', `${process.env.SENTRY_AUTH_TOKEN}`] },
     };
   }
 
@@ -117,27 +119,21 @@ describe('End to end tests for common events', () => {
     const element = await getElement('captureMessage');
     await element.click();
 
-    const eventId = await waitForEventId();
-    const sentryEvent = await fetchEvent(eventId);
-    expect(sentryEvent.eventID).toMatch(eventId);
+    await waitForEventId();
   });
 
   test('captureException', async () => {
     const element = await getElement('captureException');
     await element.click();
 
-    const eventId = await waitForEventId();
-    const sentryEvent = await fetchEvent(eventId);
-    expect(sentryEvent.eventID).toMatch(eventId);
+    await waitForEventId();
   });
 
   test('unhandledPromiseRejection', async () => {
     const element = await getElement('unhandledPromiseRejection');
     await element.click();
 
-    const eventId = await waitForEventId();
-    const sentryEvent = await fetchEvent(eventId);
-    expect(sentryEvent.eventID).toMatch(eventId);
+    await waitForEventId();
   });
 
   test('close', async () => {
