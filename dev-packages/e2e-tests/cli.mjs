@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-import { execSync, spawn } from 'child_process';
+import { execSync, execFileSync, spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { argv, env } from 'process';
@@ -220,7 +220,7 @@ if (actions.includes('test')) {
       throw new Error('No simulator is currently booted. Please boot a simulator before running this script.');
     }
 
-    execSync(`xcrun simctl install booted ${testApp}`);
+    execFileSync('xcrun', ['simctl', 'install', 'booted', testApp]);
   } else if (platform == 'android') {
     try {
       execSync('adb devices | grep -q "emulator"');
