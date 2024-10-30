@@ -130,11 +130,13 @@
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn": @"https://abcd@efgh.ingest.sentry.io/123456",
         @"spotlight": @YES,
+        @"defaultSidecarUrl": @"http://localhost:8969/teststream",
     };
     SentryOptions* actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertTrue(actualOptions.enableSpotlight , @"Did not enable spotlight");
+    XCTAssertEqual(actualOptions.spotlightUrl , @"http://localhost:8969/teststream");
 }
 
 - (void)testCreateOptionsWithDictionarySpotlightOne
@@ -145,11 +147,13 @@
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn": @"https://abcd@efgh.ingest.sentry.io/123456",
         @"spotlight": @1,
+        @"defaultSidecarUrl": @"http://localhost:8969/teststream",
     };
     SentryOptions* actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertTrue(actualOptions.enableSpotlight , @"Did not enable spotlight");
+    XCTAssertEqual(actualOptions.spotlightUrl , @"http://localhost:8969/teststream");
 }
 
 - (void)testCreateOptionsWithDictionarySpotlightUrl

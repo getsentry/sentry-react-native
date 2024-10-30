@@ -97,10 +97,14 @@ class RNSentryModuleImplTest {
     }
 
     @Test
-    fun `when the spotlight option is enabled, the spotlight SentryAndroidOption is set to true`() {
-        val options = JavaOnlyMap.of("spotlight", true)
+    fun `when the spotlight option is enabled, the spotlight SentryAndroidOption is set to true and the default url is used`() {
+        val options = JavaOnlyMap.of(
+            "spotlight", true,
+            "defaultSidecarUrl", "http://localhost:8969/teststream"
+        )
         val actualOptions = module.getSentryAndroidOptions(options, logger)
         assert(actualOptions.isEnableSpotlight)
+        assertEquals("http://localhost:8969/teststream", actualOptions.spotlightConnectionUrl)
     }
 
     @Test

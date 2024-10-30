@@ -263,6 +263,7 @@ public class RNSentryModuleImpl {
     if (rnOptions.hasKey("spotlight")) {
       if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
         options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));
+        options.setSpotlightConnectionUrl(rnOptions.getString("defaultSidecarUrl"));
       } else if (rnOptions.getType("spotlight") == ReadableType.String) {
         options.setEnableSpotlight(true);
         options.setSpotlightConnectionUrl(rnOptions.getString("spotlight"));

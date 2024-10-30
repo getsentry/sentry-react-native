@@ -167,6 +167,10 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
             sentryOptions.spotlightUrl = spotlightValue;
         } else if ([spotlightValue isKindOfClass:[NSNumber class]]) {
             sentryOptions.enableSpotlight = [spotlightValue boolValue];
+            id defaultSpotlightUrl = [mutableOptions valueForKey:@"defaultSidecarUrl"];
+            if (defaultSpotlightUrl != nil) {
+                sentryOptions.spotlightUrl = defaultSpotlightUrl;
+            }
         }
     }
 
