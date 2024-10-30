@@ -1,0 +1,10 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+    arguments:
+      sentryAuthToken: ${SENTRY_AUTH_TOKEN}
+
+- extendedWaitUntil:
+    visible: "E2E Tests Ready"
+    timeout: 120_000 # 2 minutes

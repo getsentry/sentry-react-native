@@ -34,6 +34,7 @@ import PlaygroundScreen from './Screens/PlaygroundScreen';
 import { logWithoutTracing } from './utils';
 import { ErrorEvent } from '@sentry/types';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
+import WebviewScreen from './Screens/WebviewScreen';
 
 LogBox.ignoreAllLogs();
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
@@ -85,7 +86,7 @@ Sentry.init({
       Sentry.mobileReplayIntegration({
         maskAllImages: true,
         maskAllVectors: true,
-        // maskAllText: false,
+        maskAllText: true,
       }),
       Sentry.appStartIntegration({
         standalone: false,
@@ -113,7 +114,7 @@ Sentry.init({
   // dist: `1`,
   profilesSampleRate: 1.0,
   _experiments: {
-    // replaysSessionSampleRate: 1.0,
+    replaysSessionSampleRate: 1.0,
     replaysOnErrorSampleRate: 1.0,
   },
   spotlight: true,
@@ -127,7 +128,7 @@ const Stack = isMobileOs
   : createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const TabOneStack = Sentry.withProfiler(
+const ErrorsTabNavigator = Sentry.withProfiler(
   () => {
     return (
       <GestureHandlerRootView style={styles.wrapper}>
@@ -146,7 +147,7 @@ const TabOneStack = Sentry.withProfiler(
   { name: 'ErrorsTab' },
 );
 
-const TabTwoStack = Sentry.withProfiler(
+const PerformanceTabNavigator = Sentry.withProfiler(
   () => {
     return (
       <GestureHandlerRootView style={styles.wrapper}>
@@ -180,15 +181,8 @@ const TabTwoStack = Sentry.withProfiler(
   { name: 'PerformanceTab' },
 );
 
-function BottomTabs() {
-  const navigation = React.useRef<NavigationContainerRef<{}>>(null);
-
+function BottomTabsNavigator() {
   return (
-    <NavigationContainer
-      ref={navigation}
-      onReady={() => {
-        reactNavigationIntegration.registerNavigationContainer(navigation);
-      }}>
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
@@ -197,9 +191,10 @@ function BottomTabs() {
       >
         <Tab.Screen
           name="ErrorsTab"
-          component={TabOneStack}
+          component={ErrorsTabNavigator}
           options={{
             tabBarLabel: 'Errors',
+            // eslint-disable-next-line react/no-unstable-nested-components
             tabBarIcon: ({ focused, color, size }) => (
               <Ionicons
                 name={focused ? 'bug' : 'bug-outline'}
@@ -211,9 +206,10 @@ function BottomTabs() {
         />
         <Tab.Screen
           name="PerformanceTab"
-          component={TabTwoStack}
+          component={PerformanceTabNavigator}
           options={{
             tabBarLabel: 'Performance',
+            // eslint-disable-next-line react/no-unstable-nested-components
             tabBarIcon: ({ focused, color, size }) => (
               <Ionicons
                 name={focused ? 'speedometer' : 'speedometer-outline'}
@@ -228,6 +224,7 @@ function BottomTabs() {
           component={PlaygroundScreen}
           options={{
             tabBarLabel: 'Playground',
+            // eslint-disable-next-line react/no-unstable-nested-components
             tabBarIcon: ({ focused, color, size }) => (
               <Ionicons
                 name={
@@ -240,8 +237,35 @@ function BottomTabs() {
           }}
         />
       </Tab.Navigator>
-      <RunningIndicator />
+  );
+}
+
+function RootNavigationContainer() {
+  const navigation = React.useRef<NavigationContainerRef<{}>>(null);
+
+  return (
+    <NavigationContainer
+      ref={navigation}
+      onReady={() => {
+        reactNavigationIntegration.registerNavigationContainer(navigation);
+      }}>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}>
+        <Stack.Screen name="BottomTabs" component={BottomTabsNavigator} />
+        <Stack.Screen name="Webview" component={WebviewScreen} options={{ headerShown: true }} />
+      </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+function App() {
+  return (
+    <>
+      <RootNavigationContainer />
+      <RunningIndicator />
+    </>
   );
 }
 
@@ -295,4 +319,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Sentry.wrap(BottomTabs);
+export default Sentry.wrap(App);
