@@ -1,64 +1,101 @@
-/* eslint-disable import/no-unresolved, @typescript-eslint/no-unsafe-member-access */
 import * as Sentry from '@sentry/react-native';
 import * as React from 'react';
 import { Text, View } from 'react-native';
+import { LaunchArguments } from "react-native-launch-arguments";
 
 import { getTestProps } from './utils/getTestProps';
+import { fetchEvent } from './utils/fetchEvent';
 
-export { getTestProps };
-/**
- * This screen is for internal end-to-end testing purposes only. Do not use.
- * Not visible through the UI (no button to load it).
- */
-// Deprecated in https://github.com/DefinitelyTyped/DefinitelyTyped/commit/f1b25591890978a92c610ce575ea2ba2bbde6a89
-// eslint-disable-next-line deprecation/deprecation
+const getSentryAuthToken = ():
+  | { token: string }
+  | { error: string } => {
+  const { sentryAuthToken } = LaunchArguments.value<{
+    sentryAuthToken: unknown;
+  }>();
+
+  if (typeof sentryAuthToken !== 'string') {
+    return { error: 'Sentry Auth Token is required' };
+  }
+
+  if (sentryAuthToken.length === 0) {
+    return { error: 'Sentry Auth Token must not be empty' };
+  }
+
+  return { token: sentryAuthToken };
+};
+
 const EndToEndTestsScreen = (): JSX.Element => {
   const [eventId, setEventId] = React.useState<string | null | undefined>();
+  const [error, setError] = React.useState<string>('No error');
 
-  // !!! WARNING: This is only for testing purposes.
-  // We only do this to render the eventId onto the UI for end to end tests.
+  async function assertEventReceived(eventId: string | undefined) {
+    if (!eventId) {
+      setError('Event ID is required');
+      return;
+    }
+
+    const value = getSentryAuthToken();
+    if ('error' in value) {
+      setError(value.error);
+      return;
+    }
+
+    await fetchEvent(eventId, value.token);
+
+    setEventId(eventId);
+  }
+
   React.useEffect(() => {
     const client: Sentry.ReactNativeClient | undefined = Sentry.getClient();
+
+    if (!client) {
+      setError('Client is not initialized');
+      return;
+    }
+
+    // WARNING: This is only for testing purposes.
+    // We only do this to render the eventId onto the UI for end to end tests.
     client.getOptions().beforeSend = (e) => {
-      setEventId(e.event_id || null);
+      assertEventReceived(e.event_id);
       return e;
     };
   }, []);
 
+  const testCases = [
+    {
+      id: 'captureMessage',
+      name: 'Capture Message',
+      action: () => Sentry.captureMessage('React Native Test Message'),
+    },
+    {
+      id: 'captureException',
+      name: 'Capture Exception',
+      action: () => Sentry.captureException(new Error('captureException test')),
+    },
+    {
+      id: 'unhandledPromiseRejection',
+      name: 'Unhandled Promise Rejection',
+      action: async () => await Promise.reject(new Error('Unhandled Promise Rejection')),
+    },
+    {
+      id: 'close',
+      name: 'Close',
+      action: async () => await Sentry.close(),
+    },
+  ];
+
   return (
     <View>
+      <Text>{error}</Text>
       <Text {...getTestProps('eventId')}>{eventId}</Text>
       <Text {...getTestProps('clearEventId')} onPress={() => setEventId('')}>
         Clear Event Id
       </Text>
-      <Text
-        {...getTestProps('captureMessage')}
-        onPress={() => {
-          Sentry.captureMessage('React Native Test Message');
-        }}>
-        captureMessage
-      </Text>
-      <Text
-        {...getTestProps('captureException')}
-        onPress={() => {
-          Sentry.captureException(new Error('captureException test'));
-        }}>
-        captureException
-      </Text>
-      <Text
-        onPress={async () => {
-          await Promise.reject(new Error('Unhandled Promise Rejection'));
-        }}
-        {...getTestProps('unhandledPromiseRejection')}>
-        Unhandled Promise Rejection
-      </Text>
-      <Text
-        {...getTestProps('close')}
-        onPress={async () => {
-          await Sentry.close();
-        }}>
-        close
-      </Text>
+      {testCases.map((testCase) => (
+        <Text key={testCase.id} {...getTestProps(testCase.id)} onPress={testCase.action}>
+          {testCase.name}
+        </Text>
+      ))}
     </View>
   );
 };

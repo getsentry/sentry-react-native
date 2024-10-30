@@ -15049,7 +15049,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"invariant@npm:^2.2.2, invariant@npm:^2.2.4":
+"invariant@npm:2.2.4, invariant@npm:^2.2.2, invariant@npm:^2.2.4":
   version: 2.2.4
   resolution: "invariant@npm:2.2.4"
   dependencies:
@@ -21142,6 +21142,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-launch-arguments@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "react-native-launch-arguments@npm:4.0.2"
+  peerDependencies:
+    react: ">=16.8.1"
+    react-native: ">=0.60.0-rc.0 <1.0.x"
+  checksum: 5a73cfa27c603a743939c7fbc98fef3eb790dfc1043ecfe60855d30f238c41251ba1a47775cb660b37ef86f96961b5643f6ff48480f0d60efb0235488d43ff05
+  languageName: node
+  linkType: hard
+
 "react-native-macos@npm:0.73.34":
   version: 0.73.34
   resolution: "react-native-macos@npm:0.73.34"
@@ -21373,6 +21383,19 @@ __metadata:
     react: ^18.0.0
     react-dom: ^18.0.0
   checksum: 676b1ba510c92e01dc69cb3102080f83976d2d209647323fb0a3a14113a455a6a506cf78d3e392c3fa33015135b61e2d6a3eed837a6876665064a6eb87516781
+  languageName: node
+  linkType: hard
+
+"react-native-webview@npm:^13.12.3":
+  version: 13.12.3
+  resolution: "react-native-webview@npm:13.12.3"
+  dependencies:
+    escape-string-regexp: ^4.0.0
+    invariant: 2.2.4
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 94d824fedc6b5c0402926b99a96f71f4752416e4f038be827552015c0bf6d595d71ba656079618402662aec5e2c539018b0bff2906b6f95261f70893e5dd5d80
   languageName: node
   linkType: hard
 
@@ -22685,10 +22708,13 @@ __metadata:
     minimist: 1.2.8
     react: 18.3.1
     react-native: 0.75.4
+    react-native-launch-arguments: ^4.0.2
     semver: 7.6.3
     typescript: 4.9.5
     webdriverio: ^8.27.0
     xcode: 3.0.1
+  peerDependencies:
+    react-native-launch-arguments: ^4.0.2
   languageName: unknown
   linkType: soft
 
@@ -22799,6 +22825,7 @@ __metadata:
     react-native-screens: 3.34.0
     react-native-svg: ^15.6.0
     react-native-vector-icons: ^10.0.3
+    react-native-webview: ^13.12.3
     react-redux: ^8.1.3
     react-test-renderer: 18.3.1
     redux: ^4.2.1

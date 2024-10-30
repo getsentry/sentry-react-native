@@ -112,9 +112,12 @@ if (actions.includes('create')) {
     env: Object.assign(env, { YARN_ENABLE_IMMUTABLE_INSTALLS: false }),
   });
 
-  console.log(`done`);
-
-  console.log(`done2`);
+  execSync(`yarn add react-native-launch-arguments@4.0.2`, {
+    stdio: 'inherit',
+    cwd: appDir,
+    // yarn v3 run immutable install by default in CI
+    env: Object.assign(env, { YARN_ENABLE_IMMUTABLE_INSTALLS: false }),
+  });
 
   // Patch the app
   execSync(`patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ${patchScriptsDir}/rn.patch`, {
@@ -138,9 +141,11 @@ if (actions.includes('create')) {
       cwd: `${appDir}/ios`,
       env: env,
     });
-    console.log(`done3`);
 
     if (fs.existsSync(`${appDir}/Gemfile`)) {
+      // TMP Fix for https://github.com/CocoaPods/Xcodeproj/issues/989
+      fs.appendFileSync(`${appDir}/Gemfile`, "gem 'xcodeproj', '< 1.26.0'\n");
+
       execSync(`bundle install`, { stdio: 'inherit', cwd: appDir, env: env });
       execSync('bundle exec pod install --repo-update', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
     } else {
