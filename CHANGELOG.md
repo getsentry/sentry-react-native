@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Skips ignoring require cycle logs for RN > 0.70 ([#4214](https://github.com/getsentry/sentry-react-native/pull/4214))
+- Skips ignoring require cycle logs for RN 0.70 or newer ([#4214](https://github.com/getsentry/sentry-react-native/pull/4214))
 
 ### Dependencies
 
