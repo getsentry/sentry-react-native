@@ -96,7 +96,12 @@ describe('Tests Native Wrapper', () => {
 
   describe('startWithOptions', () => {
     test('calls native module', async () => {
-      await NATIVE.initNativeSdk({ dsn: 'test', enableNative: true, mobileReplayOptions: undefined });
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
 
       expect(RNSentry.initNativeSdk).toBeCalled();
     });
@@ -104,7 +109,7 @@ describe('Tests Native Wrapper', () => {
     test('warns if there is no dsn', async () => {
       logger.warn = jest.fn();
 
-      await NATIVE.initNativeSdk({ enableNative: true, mobileReplayOptions: undefined });
+      await NATIVE.initNativeSdk({ enableNative: true, defaultSidecarUrl: undefined, mobileReplayOptions: undefined });
 
       expect(RNSentry.initNativeSdk).not.toBeCalled();
       expect(logger.warn).toHaveBeenLastCalledWith(
@@ -119,6 +124,7 @@ describe('Tests Native Wrapper', () => {
         dsn: 'test',
         enableNative: false,
         enableNativeNagger: true,
+        defaultSidecarUrl: undefined,
         mobileReplayOptions: undefined,
       });
 
@@ -133,6 +139,7 @@ describe('Tests Native Wrapper', () => {
         enableNative: true,
         autoInitializeNativeSdk: true,
         beforeSend: jest.fn(),
+        defaultSidecarUrl: undefined,
         mobileReplayOptions: undefined,
       });
 
@@ -149,6 +156,7 @@ describe('Tests Native Wrapper', () => {
         enableNative: true,
         autoInitializeNativeSdk: true,
         beforeBreadcrumb: jest.fn(),
+        defaultSidecarUrl: undefined,
         mobileReplayOptions: undefined,
       });
 
@@ -165,6 +173,7 @@ describe('Tests Native Wrapper', () => {
         enableNative: true,
         autoInitializeNativeSdk: true,
         beforeSendTransaction: jest.fn(),
+        defaultSidecarUrl: undefined,
         mobileReplayOptions: undefined,
       });
 
@@ -181,6 +190,7 @@ describe('Tests Native Wrapper', () => {
         enableNative: true,
         autoInitializeNativeSdk: true,
         integrations: [],
+        defaultSidecarUrl: undefined,
         mobileReplayOptions: undefined,
       });
 
@@ -199,6 +209,7 @@ describe('Tests Native Wrapper', () => {
         dsn: 'test',
         enableNative: true,
         autoInitializeNativeSdk: false,
+        defaultSidecarUrl: undefined,
         mobileReplayOptions: undefined,
       });
 
@@ -238,6 +249,7 @@ describe('Tests Native Wrapper', () => {
       logger.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
+        defaultSidecarUrl: undefined,
         mobileReplayOptions: undefined,
         dsn: 'test',
         enableNative: false,
@@ -320,7 +332,12 @@ describe('Tests Native Wrapper', () => {
     });
     test('does not call RNSentry at all if enableNative is false', async () => {
       try {
-        await NATIVE.initNativeSdk({ dsn: 'test-dsn', enableNative: false, mobileReplayOptions: undefined });
+        await NATIVE.initNativeSdk({
+          dsn: 'test-dsn',
+          enableNative: false,
+          defaultSidecarUrl: undefined,
+          mobileReplayOptions: undefined,
+        });
 
         // @ts-expect-error for testing, does not accept an empty class.
         await NATIVE.sendEnvelope({});
@@ -512,7 +529,12 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.crash).toBeCalled();
     });
     test('does not call crash if enableNative is false', async () => {
-      await NATIVE.initNativeSdk({ dsn: 'test-dsn', enableNative: false, mobileReplayOptions: undefined });
+      await NATIVE.initNativeSdk({
+        dsn: 'test-dsn',
+        enableNative: false,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
       NATIVE.nativeCrash();
 
       expect(RNSentry.crash).not.toBeCalled();

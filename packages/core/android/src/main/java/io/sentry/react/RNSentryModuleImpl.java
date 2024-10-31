@@ -20,6 +20,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -126,10 +127,13 @@ public class RNSentryModuleImpl {
   /** Max trace file size in bytes. */
   private long maxTraceFileSize = 5 * 1024 * 1024;
 
+  private final @NotNull SentryDateProvider dateProvider;
+
   public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
     packageInfo = getPackageInfo(reactApplicationContext);
     this.reactApplicationContext = reactApplicationContext;
     this.emitNewFrameEvent = createEmitNewFrameEvent();
+    this.dateProvider = new SentryAndroidDateProvider();
   }
 
   private ReactApplicationContext getReactApplicationContext() {
@@ -141,8 +145,6 @@ public class RNSentryModuleImpl {
   }
 
   private @NotNull Runnable createEmitNewFrameEvent() {
-    final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
-
     return () -> {
       final SentryDate endDate = dateProvider.now();
       WritableMap event = Arguments.createMap();
@@ -174,135 +176,143 @@ public class RNSentryModuleImpl {
   public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
     SentryAndroid.init(
         this.getReactApplicationContext(),
-        options -> {
-          @Nullable SdkVersion sdkVersion = options.getSdkVersion();
-          if (sdkVersion == null) {
-            sdkVersion = new SdkVersion(ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
-          } else {
-            sdkVersion.setName(ANDROID_SDK_NAME);
-          }
-
-          options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
-          options.setNativeSdkName(NATIVE_SDK_NAME);
-          options.setSdkVersion(sdkVersion);
-
-          if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
-            options.setDebug(true);
-          }
-          if (rnOptions.hasKey("dsn") && rnOptions.getString("dsn") != null) {
-            String dsn = rnOptions.getString("dsn");
-            logger.log(SentryLevel.INFO, String.format("Starting with DSN: '%s'", dsn));
-            options.setDsn(dsn);
-          } else {
-            // SentryAndroid needs an empty string fallback for the dsn.
-            options.setDsn("");
-          }
-          if (rnOptions.hasKey("sampleRate")) {
-            options.setSampleRate(rnOptions.getDouble("sampleRate"));
-          }
-          if (rnOptions.hasKey("sendClientReports")) {
-            options.setSendClientReports(rnOptions.getBoolean("sendClientReports"));
-          }
-          if (rnOptions.hasKey("maxBreadcrumbs")) {
-            options.setMaxBreadcrumbs(rnOptions.getInt("maxBreadcrumbs"));
-          }
-          if (rnOptions.hasKey("maxCacheItems")) {
-            options.setMaxCacheItems(rnOptions.getInt("maxCacheItems"));
-          }
-          if (rnOptions.hasKey("environment") && rnOptions.getString("environment") != null) {
-            options.setEnvironment(rnOptions.getString("environment"));
-          }
-          if (rnOptions.hasKey("release") && rnOptions.getString("release") != null) {
-            options.setRelease(rnOptions.getString("release"));
-          }
-          if (rnOptions.hasKey("dist") && rnOptions.getString("dist") != null) {
-            options.setDist(rnOptions.getString("dist"));
-          }
-          if (rnOptions.hasKey("enableAutoSessionTracking")) {
-            options.setEnableAutoSessionTracking(rnOptions.getBoolean("enableAutoSessionTracking"));
-          }
-          if (rnOptions.hasKey("sessionTrackingIntervalMillis")) {
-            options.setSessionTrackingIntervalMillis(
-                rnOptions.getInt("sessionTrackingIntervalMillis"));
-          }
-          if (rnOptions.hasKey("shutdownTimeout")) {
-            options.setShutdownTimeoutMillis(rnOptions.getInt("shutdownTimeout"));
-          }
-          if (rnOptions.hasKey("enableNdkScopeSync")) {
-            options.setEnableScopeSync(rnOptions.getBoolean("enableNdkScopeSync"));
-          }
-          if (rnOptions.hasKey("attachStacktrace")) {
-            options.setAttachStacktrace(rnOptions.getBoolean("attachStacktrace"));
-          }
-          if (rnOptions.hasKey("attachThreads")) {
-            // JS use top level stacktrace and android attaches Threads which hides them so
-            // by default we hide.
-            options.setAttachThreads(rnOptions.getBoolean("attachThreads"));
-          }
-          if (rnOptions.hasKey("attachScreenshot")) {
-            options.setAttachScreenshot(rnOptions.getBoolean("attachScreenshot"));
-          }
-          if (rnOptions.hasKey("attachViewHierarchy")) {
-            options.setAttachViewHierarchy(rnOptions.getBoolean("attachViewHierarchy"));
-          }
-          if (rnOptions.hasKey("sendDefaultPii")) {
-            options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
-          }
-          if (rnOptions.hasKey("maxQueueSize")) {
-            options.setMaxQueueSize(rnOptions.getInt("maxQueueSize"));
-          }
-          if (rnOptions.hasKey("enableNdk")) {
-            options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
-          }
-          if (rnOptions.hasKey("_experiments")) {
-            options.getExperimental().setSessionReplay(getReplayOptions(rnOptions));
-            options
-                .getReplayController()
-                .setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
-          }
-          options.setBeforeSend(
-              (event, hint) -> {
-                // React native internally throws a JavascriptException
-                // Since we catch it before that, we don't want to send this one
-                // because we would send it twice
-                try {
-                  SentryException ex = event.getExceptions().get(0);
-                  if (null != ex && ex.getType().contains("JavascriptException")) {
-                    return null;
-                  }
-                } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case
-                  // We do nothing
-                }
-
-                setEventOriginTag(event);
-                addPackages(event, options.getSdkVersion());
-
-                return event;
-              });
-
-          if (rnOptions.hasKey("enableNativeCrashHandling")
-              && !rnOptions.getBoolean("enableNativeCrashHandling")) {
-            final List<Integration> integrations = options.getIntegrations();
-            for (final Integration integration : integrations) {
-              if (integration instanceof UncaughtExceptionHandlerIntegration
-                  || integration instanceof AnrIntegration
-                  || integration instanceof NdkIntegration) {
-                integrations.remove(integration);
-              }
-            }
-          }
-          logger.log(
-              SentryLevel.INFO,
-              String.format("Native Integrations '%s'", options.getIntegrations()));
-
-          final CurrentActivityHolder currentActivityHolder = CurrentActivityHolder.getInstance();
-          final Activity currentActivity = getCurrentActivity();
-          if (currentActivity != null) {
-            currentActivityHolder.setActivity(currentActivity);
-          }
-        });
+        options -> getSentryAndroidOptions(options, rnOptions, logger));
 
     promise.resolve(true);
+  }
+
+  protected void getSentryAndroidOptions(
+      @NotNull SentryAndroidOptions options, @NotNull ReadableMap rnOptions, ILogger logger) {
+    @Nullable SdkVersion sdkVersion = options.getSdkVersion();
+    if (sdkVersion == null) {
+      sdkVersion = new SdkVersion(ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
+    } else {
+      sdkVersion.setName(ANDROID_SDK_NAME);
+    }
+
+    options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
+    options.setNativeSdkName(NATIVE_SDK_NAME);
+    options.setSdkVersion(sdkVersion);
+
+    if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
+      options.setDebug(true);
+    }
+    if (rnOptions.hasKey("dsn") && rnOptions.getString("dsn") != null) {
+      String dsn = rnOptions.getString("dsn");
+      logger.log(SentryLevel.INFO, String.format("Starting with DSN: '%s'", dsn));
+      options.setDsn(dsn);
+    } else {
+      // SentryAndroid needs an empty string fallback for the dsn.
+      options.setDsn("");
+    }
+    if (rnOptions.hasKey("sampleRate")) {
+      options.setSampleRate(rnOptions.getDouble("sampleRate"));
+    }
+    if (rnOptions.hasKey("sendClientReports")) {
+      options.setSendClientReports(rnOptions.getBoolean("sendClientReports"));
+    }
+    if (rnOptions.hasKey("maxBreadcrumbs")) {
+      options.setMaxBreadcrumbs(rnOptions.getInt("maxBreadcrumbs"));
+    }
+    if (rnOptions.hasKey("maxCacheItems")) {
+      options.setMaxCacheItems(rnOptions.getInt("maxCacheItems"));
+    }
+    if (rnOptions.hasKey("environment") && rnOptions.getString("environment") != null) {
+      options.setEnvironment(rnOptions.getString("environment"));
+    }
+    if (rnOptions.hasKey("release") && rnOptions.getString("release") != null) {
+      options.setRelease(rnOptions.getString("release"));
+    }
+    if (rnOptions.hasKey("dist") && rnOptions.getString("dist") != null) {
+      options.setDist(rnOptions.getString("dist"));
+    }
+    if (rnOptions.hasKey("enableAutoSessionTracking")) {
+      options.setEnableAutoSessionTracking(rnOptions.getBoolean("enableAutoSessionTracking"));
+    }
+    if (rnOptions.hasKey("sessionTrackingIntervalMillis")) {
+      options.setSessionTrackingIntervalMillis(rnOptions.getInt("sessionTrackingIntervalMillis"));
+    }
+    if (rnOptions.hasKey("shutdownTimeout")) {
+      options.setShutdownTimeoutMillis(rnOptions.getInt("shutdownTimeout"));
+    }
+    if (rnOptions.hasKey("enableNdkScopeSync")) {
+      options.setEnableScopeSync(rnOptions.getBoolean("enableNdkScopeSync"));
+    }
+    if (rnOptions.hasKey("attachStacktrace")) {
+      options.setAttachStacktrace(rnOptions.getBoolean("attachStacktrace"));
+    }
+    if (rnOptions.hasKey("attachThreads")) {
+      // JS use top level stacktrace and android attaches Threads which hides them so
+      // by default we hide.
+      options.setAttachThreads(rnOptions.getBoolean("attachThreads"));
+    }
+    if (rnOptions.hasKey("attachScreenshot")) {
+      options.setAttachScreenshot(rnOptions.getBoolean("attachScreenshot"));
+    }
+    if (rnOptions.hasKey("attachViewHierarchy")) {
+      options.setAttachViewHierarchy(rnOptions.getBoolean("attachViewHierarchy"));
+    }
+    if (rnOptions.hasKey("sendDefaultPii")) {
+      options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
+    }
+    if (rnOptions.hasKey("maxQueueSize")) {
+      options.setMaxQueueSize(rnOptions.getInt("maxQueueSize"));
+    }
+    if (rnOptions.hasKey("enableNdk")) {
+      options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
+    }
+    if (rnOptions.hasKey("spotlight")) {
+      if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
+        options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));
+        options.setSpotlightConnectionUrl(rnOptions.getString("defaultSidecarUrl"));
+      } else if (rnOptions.getType("spotlight") == ReadableType.String) {
+        options.setEnableSpotlight(true);
+        options.setSpotlightConnectionUrl(rnOptions.getString("spotlight"));
+      }
+    }
+    if (rnOptions.hasKey("_experiments")) {
+      options.getExperimental().setSessionReplay(getReplayOptions(rnOptions));
+      options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
+    }
+    options.setBeforeSend(
+        (event, hint) -> {
+          // React native internally throws a JavascriptException
+          // Since we catch it before that, we don't want to send this one
+          // because we would send it twice
+          try {
+            SentryException ex = event.getExceptions().get(0);
+            if (null != ex && ex.getType().contains("JavascriptException")) {
+              return null;
+            }
+          } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case
+            // We do nothing
+          }
+
+          setEventOriginTag(event);
+          addPackages(event, options.getSdkVersion());
+
+          return event;
+        });
+
+    if (rnOptions.hasKey("enableNativeCrashHandling")
+        && !rnOptions.getBoolean("enableNativeCrashHandling")) {
+      final List<Integration> integrations = options.getIntegrations();
+      for (final Integration integration : integrations) {
+        if (integration instanceof UncaughtExceptionHandlerIntegration
+            || integration instanceof AnrIntegration
+            || integration instanceof NdkIntegration) {
+          integrations.remove(integration);
+        }
+      }
+    }
+    logger.log(
+        SentryLevel.INFO, String.format("Native Integrations '%s'", options.getIntegrations()));
+
+    final CurrentActivityHolder currentActivityHolder = CurrentActivityHolder.getInstance();
+    final Activity currentActivity = getCurrentActivity();
+    if (currentActivity != null) {
+      currentActivityHolder.setActivity(currentActivity);
+    }
   }
 
   private SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
@@ -743,6 +753,10 @@ public class RNSentryModuleImpl {
       frameMetricsAggregator.stop();
       frameMetricsAggregator = null;
     }
+  }
+
+  public void getNewScreenTimeToDisplay(Promise promise) {
+    RNSentryTimeToDisplay.getTimeToDisplay(promise, dateProvider);
   }
 
   private String getProfilingTracesDirPath() {

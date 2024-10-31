@@ -15,12 +15,14 @@ import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 import { Alert } from 'react-native';
 
 import { defaultSdkInfo } from './integrations/sdkinfo';
+import { getDefaultSidecarUrl } from './integrations/spotlight';
 import type { ReactNativeClientOptions } from './options';
 import type { mobileReplayIntegration } from './replay/mobilereplay';
 import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';
+import { ReactNativeLibraries } from './utils/rnlibraries';
 import { NATIVE } from './wrapper';
 
 /**
@@ -37,7 +39,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
    * @param options Configuration options for this SDK.
    */
   public constructor(options: ReactNativeClientOptions) {
-    ignoreRequireCycleLogs();
+    ignoreRequireCycleLogs(ReactNativeLibraries.ReactNativeVersion?.version);
     options._metadata = options._metadata || {};
     options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
     // We default this to true, as it is the safer scenario
@@ -143,6 +145,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   private _initNativeSdk(): void {
     NATIVE.initNativeSdk({
       ...this._options,
+      defaultSidecarUrl: getDefaultSidecarUrl(),
       mobileReplayOptions:
         this._integrations[MOBILE_REPLAY_INTEGRATION_NAME] &&
         'options' in this._integrations[MOBILE_REPLAY_INTEGRATION_NAME]

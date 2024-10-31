@@ -50,6 +50,8 @@ export interface Screenshot {
 }
 
 export type NativeSdkOptions = Partial<ReactNativeClientOptions> & {
+  defaultSidecarUrl: string | undefined;
+} & {
   mobileReplayOptions: MobileReplayOptions | undefined;
 };
 
@@ -116,6 +118,7 @@ interface SentryNativeWrapper {
   getCurrentReplayId(): string | null;
 
   crashedLastRun(): Promise<boolean | null>;
+  getNewScreenTimeToDisplay(): Promise<number | null | undefined>;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -688,6 +691,14 @@ export const NATIVE: SentryNativeWrapper = {
 
     const result = RNSentry.crashedLastRun();
     return typeof result === 'boolean' ? result : null;
+  },
+
+  getNewScreenTimeToDisplay(): Promise<number | null | undefined> {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry)) {
+      return Promise.resolve(null);
+    }
+
+    return RNSentry.getNewScreenTimeToDisplay();
   },
 
   /**

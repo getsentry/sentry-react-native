@@ -6,7 +6,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
-    "test:e2e:runner": "NODE_OPTIONS=--experimental-vm-modules jest"
+    "test:ios": "./cli.mjs ios --create --build --test",
+    "test:android": "./cli.mjs android --create --build --test"
   },
   "license": "MIT",
   "devDependencies": {
@@ -23,12 +24,17 @@
     "jest": "^29.7.0",
     "react": "18.3.1",
     "react-native": "0.75.4",
+    "react-native-launch-arguments": "^4.0.2",
     "typescript": "4.9.5",
     "webdriverio": "^8.27.0"
   },
   "dependencies": {
     "minimist": "1.2.8",
+    "p-retry": "^6.2.0",
     "semver": "7.6.3",
     "xcode": "3.0.1"
+  },
+  "peerDependencies": {
+    "react-native-launch-arguments": "^4.0.2"
   }
 }

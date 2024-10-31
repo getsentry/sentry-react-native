@@ -1,0 +1,5 @@
+appId: ${APP_ID}
+---
+- runFlow: utils/launchTestAppClear.yml
+- tapOn: "Unhandled Promise Rejection"
+- runFlow: utils/assertEventIdVisible.yml
