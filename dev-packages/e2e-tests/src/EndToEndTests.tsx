@@ -3,8 +3,9 @@ import * as React from 'react';
 import { Text, View } from 'react-native';
 import { LaunchArguments } from "react-native-launch-arguments";
 
-import { getTestProps } from './utils/getTestProps';
 import { fetchEvent } from './utils/fetchEvent';
+
+const E2E_TESTS_READY_TEXT = 'E2E Tests Ready';
 
 const getSentryAuthToken = ():
   | { token: string }
@@ -25,7 +26,8 @@ const getSentryAuthToken = ():
 };
 
 const EndToEndTestsScreen = (): JSX.Element => {
-  const [eventId, setEventId] = React.useState<string | null | undefined>();
+  const [isReady, setIsReady] = React.useState(false);
+  const [eventId, setEventId] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string>('No error');
 
   async function assertEventReceived(eventId: string | undefined) {
@@ -40,7 +42,12 @@ const EndToEndTestsScreen = (): JSX.Element => {
       return;
     }
 
-    await fetchEvent(eventId, value.token);
+    const event = await fetchEvent(eventId, value.token);
+
+    if (event.event_id !== eventId) {
+      setError('Event ID mismatch');
+      return;
+    }
 
     setEventId(eventId);
   }
@@ -59,6 +66,8 @@ const EndToEndTestsScreen = (): JSX.Element => {
       assertEventReceived(e.event_id);
       return e;
     };
+
+    setIsReady(true);
   }, []);
 
   const testCases = [
@@ -82,17 +91,23 @@ const EndToEndTestsScreen = (): JSX.Element => {
       name: 'Close',
       action: async () => await Sentry.close(),
     },
+    {
+      id: 'crash',
+      name: 'Crash',
+      action: () => Sentry.nativeCrash(),
+    },
   ];
 
   return (
     <View>
+      <Text>{isReady ? E2E_TESTS_READY_TEXT : 'Loading...'}</Text>
       <Text>{error}</Text>
-      <Text {...getTestProps('eventId')}>{eventId}</Text>
-      <Text {...getTestProps('clearEventId')} onPress={() => setEventId('')}>
+      {eventId ? <Text testID='eventId'>{eventId}</Text> : <Text>No event ID</Text>}
+      <Text onPress={() => setEventId(null)}>
         Clear Event Id
       </Text>
       {testCases.map((testCase) => (
-        <Text key={testCase.id} {...getTestProps(testCase.id)} onPress={testCase.action}>
+        <Text key={testCase.id} onPress={testCase.action}>
           {testCase.name}
         </Text>
       ))}

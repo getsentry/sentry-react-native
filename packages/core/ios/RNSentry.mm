@@ -1,5 +1,6 @@
 #import <dlfcn.h>
 #import "RNSentry.h"
+#import "RNSentryTimeToDisplay.h"
 
 #if __has_include(<React/RCTConvert.h>)
 #import <React/RCTConvert.h>
@@ -62,6 +63,7 @@ static NSString* const nativeSdkName = @"sentry.cocoa.react-native";
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
     bool hasListeners;
+    RNSentryTimeToDisplay *_timeToDisplay;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -139,6 +141,8 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [mutableOptions removeObjectForKey:@"tracesSampler"];
     [mutableOptions removeObjectForKey:@"enableTracing"];
 
+    _timeToDisplay = [[RNSentryTimeToDisplay alloc] init];
+
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     [RNSentryReplay updateOptions:mutableOptions];
 #endif
@@ -155,6 +159,22 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
             NSMutableArray *integrations = sentryOptions.integrations.mutableCopy;
             [integrations removeObject:@"SentryCrashIntegration"];
             sentryOptions.integrations = integrations;
+        }
+    }
+    
+    // Set spotlight option
+    if ([mutableOptions valueForKey:@"spotlight"] != nil) {
+        id spotlightValue = [mutableOptions valueForKey:@"spotlight"];
+        if ([spotlightValue isKindOfClass:[NSString class]]) {
+            NSLog(@"Using Spotlight on address: %@", spotlightValue);
+            sentryOptions.enableSpotlight = true;
+            sentryOptions.spotlightUrl = spotlightValue;
+        } else if ([spotlightValue isKindOfClass:[NSNumber class]]) {
+            sentryOptions.enableSpotlight = [spotlightValue boolValue];
+            id defaultSpotlightUrl = [mutableOptions valueForKey:@"defaultSidecarUrl"];
+            if (defaultSpotlightUrl != nil) {
+                sentryOptions.spotlightUrl = defaultSpotlightUrl;
+            }
         }
     }
 
@@ -785,5 +805,10 @@ RCT_EXPORT_METHOD(crashedLastRun:(RCTPromiseResolveBlock)resolve
     return std::make_shared<facebook::react::NativeRNSentrySpecJSI>(params);
 }
 #endif
+
+RCT_EXPORT_METHOD(getNewScreenTimeToDisplay:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    [_timeToDisplay getTimeToDisplay:resolve];
+}
 
 @end
