@@ -74,3 +74,5 @@ export {
 } from './tracing';
 
 export type { TimeToDisplayProps } from './tracing';
+
+export { SentryMask, SentryUnmask } from './replay/customRedact';

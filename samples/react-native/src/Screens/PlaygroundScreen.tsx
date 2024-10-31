@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import SvgGraphic from '../components/SvgGraphic';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { SentryMask, SentryUnmask } from '@sentry/react-native';
 
 const multilineText = `This
 is
@@ -42,6 +43,15 @@ const PlaygroundScreen = (props: Props) => {
                   props.navigation.navigate('Webview');
                 }}
               />
+              <Text>Custom Mask:</Text>
+              <View>
+                <SentryMask>
+                  <Text>This is masked</Text>
+                  <SentryUnmask>
+                    <Text>This is unmasked</Text>
+                  </SentryUnmask>
+                </SentryMask>
+              </View>
               <Text>Text:</Text>
               <Text>{'This is <Text>'}</Text>
               <View style={styles.space} />

@@ -1,5 +1,6 @@
 #import "RNSentryReplay.h"
 #import "RNSentryReplayBreadcrumbConverter.h"
+#import "React/RCTTextView.h"
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 
@@ -53,6 +54,7 @@
     }
   }
   if ([replayOptions[@"maskAllText"] boolValue] == YES) {
+    [classesToRedact addObject:[RCTTextView self]];
     Class _Nullable maybeRCTTextClass = NSClassFromString(@"RCTTextView");
     if (maybeRCTTextClass != nil) {
       [classesToRedact addObject:maybeRCTTextClass];
