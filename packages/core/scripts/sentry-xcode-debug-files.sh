@@ -35,8 +35,8 @@ XCODE_BUILD_CONFIGURATION="${CONFIGURATION}"
 
 if [ "$SENTRY_DISABLE_AUTO_UPLOAD" == true ]; then
   echo "SENTRY_DISABLE_AUTO_UPLOAD=true, skipping debug files upload"
-elif [ "$SENTRY_DISABLE_DIF_UPLOAD" == true ]; then
-  echo "SENTRY_DISABLE_DEBUG_FILE_UPLOAD=true, skipping native debug files upload"
+elif [ "$SENTRY_DISABLE_XCODE_DEBUG_UPLOAD" == true ]; then
+  echo "SENTRY_DISABLE_XCODE_DEBUG_UPLOAD=true, skipping native debug files upload"
 elif echo "$XCODE_BUILD_CONFIGURATION" | grep -iq "debug"; then # case insensitive check for "debug"
   echo "Skipping debug files upload for *Debug* configuration"
 else
