@@ -1,3 +1,4 @@
+import { getClient } from '@sentry/core';
 import type { Client, Event, EventHint, SeverityLevel } from '@sentry/types';
 
 import { deviceContextIntegration } from '../../src/js/integrations/devicecontext';
@@ -11,6 +12,13 @@ jest.mock('react-native', () => ({
   AppState: new Proxy({}, { get: () => mockCurrentAppState }),
   NativeModules: {},
   Platform: {},
+}));
+jest.mock('@sentry/core', () => ({
+  getClient: jest.fn().mockReturnValue({
+    getOptions: jest.fn().mockReturnValue({
+      maxBreadcrumbs: 100, // Default value
+    }),
+  }),
 }));
 
 describe('Device Context Integration', () => {
@@ -158,13 +166,55 @@ describe('Device Context Integration', () => {
     ).expectEvent.toStrictEqualMockEvent();
   });
 
-  it('merge native and event breadcrumbs', async () => {
+  it('merge native and event breadcrumbs (default maxBreadcrumbs = 100)', async () => {
+    const { processedEvent } = await processEventWith({
+      nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb-1' }, { message: 'native-breadcrumb-2' }] },
+      mockEvent: { breadcrumbs: [{ message: 'event-breadcrumb-1' }, { message: 'event-breadcrumb-2' }] },
+    });
+    expect(processedEvent).toStrictEqual({
+      breadcrumbs: [
+        { message: 'native-breadcrumb-1' },
+        { message: 'native-breadcrumb-2' },
+        { message: 'event-breadcrumb-1' },
+        { message: 'event-breadcrumb-2' },
+      ],
+    });
+  });
+
+  it('merge a native breadcrumb and an event breadcrumb with maxBreadcrumbs = 1', async () => {
+    getClient().getOptions().maxBreadcrumbs = 1;
     const { processedEvent } = await processEventWith({
       nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb' }] },
       mockEvent: { breadcrumbs: [{ message: 'event-breadcrumb' }] },
     });
     expect(processedEvent).toStrictEqual({
-      breadcrumbs: [{ message: 'event-breadcrumb' }, { message: 'native-breadcrumb' }],
+      breadcrumbs: [{ message: 'native-breadcrumb' }],
+    });
+  });
+
+  it('merge 2 native breadcrumbs and 2 event breadcrumbs with maxBreadcrumbs = 3', async () => {
+    getClient().getOptions().maxBreadcrumbs = 3;
+    const { processedEvent } = await processEventWith({
+      nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb-1' }, { message: 'native-breadcrumb-2' }] },
+      mockEvent: { breadcrumbs: [{ message: 'event-breadcrumb-1' }, { message: 'event-breadcrumb-2' }] },
+    });
+    expect(processedEvent).toStrictEqual({
+      breadcrumbs: [
+        { message: 'native-breadcrumb-1' },
+        { message: 'native-breadcrumb-2' },
+        { message: 'event-breadcrumb-1' },
+      ],
+    });
+  });
+
+  it('merge native and event breadcrumbs with maxBreadcrumbs = 0', async () => {
+    getClient().getOptions().maxBreadcrumbs = 0;
+    const { processedEvent } = await processEventWith({
+      nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb' }] },
+      mockEvent: { breadcrumbs: [{ message: 'event-breadcrumb' }] },
+    });
+    expect(processedEvent).toStrictEqual({
+      breadcrumbs: [],
     });
   });
 

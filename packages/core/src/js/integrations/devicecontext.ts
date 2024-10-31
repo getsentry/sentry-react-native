@@ -1,4 +1,5 @@
 /* eslint-disable complexity */
+import { getClient } from '@sentry/core';
 import type { Event, Integration } from '@sentry/types';
 import { logger, severityLevelFromString } from '@sentry/utils';
 import { AppState } from 'react-native';
@@ -83,7 +84,8 @@ async function processEvent(event: Event): Promise<Event> {
     ? native['breadcrumbs'].map(breadcrumbFromObject)
     : undefined;
   if (nativeBreadcrumbs) {
-    event.breadcrumbs = (event.breadcrumbs || []).concat(nativeBreadcrumbs);
+    const maxBreadcrumbs = getClient()?.getOptions().maxBreadcrumbs ?? 100; // Default is 100.
+    event.breadcrumbs = nativeBreadcrumbs.concat(event.breadcrumbs || []).slice(0, maxBreadcrumbs);
   }
 
   return event;
