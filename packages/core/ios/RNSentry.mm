@@ -388,13 +388,10 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
     [serializedScope removeObjectForKey:@"context"];
         
     // Remove react-native breadcrumbs
-    NSMutableArray<NSDictionary<NSString *, id> *> *breadcrumbs = [serializedScope[@"breadcrumbs"] mutableCopy];
-    for (NSInteger i = breadcrumbs.count - 1; i >= 0; i--) {
-        NSDictionary<NSString *, id> *breadcrumb = breadcrumbs[i];
-        if ([breadcrumb[@"origin"] isEqualToString:@"react-native"]) {
-            [breadcrumbs removeObjectAtIndex:i];
-        }
-    }
+    NSPredicate *removeRNBreadcrumbsPredicate = [NSPredicate predicateWithBlock:^BOOL(NSDictionary *breadcrumb, NSDictionary *bindings) {
+        return ![breadcrumb[@"origin"] isEqualToString:@"react-native"];
+    }];
+    NSArray *breadcrumbs = [[serializedScope[@"breadcrumbs"] mutableCopy] filteredArrayUsingPredicate:removeRNBreadcrumbsPredicate];
     [serializedScope setValue:breadcrumbs forKey:@"breadcrumbs"];
 
     resolve(serializedScope);
