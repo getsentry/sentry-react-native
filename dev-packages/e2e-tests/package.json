@@ -6,7 +6,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
-    "test:e2e:runner": "NODE_OPTIONS=--experimental-vm-modules jest"
+    "test:ios": "./cli.mjs ios --create --build --test",
+    "test:android": "./cli.mjs android --create --build --test"
   },
   "license": "MIT",
   "devDependencies": {
@@ -29,6 +30,7 @@
   },
   "dependencies": {
     "minimist": "1.2.8",
+    "p-retry": "^6.2.0",
     "semver": "7.6.3",
     "xcode": "3.0.1"
   },

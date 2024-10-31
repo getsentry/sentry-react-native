@@ -1,0 +1,5 @@
+appId: ${APP_ID}
+---
+- runFlow: utils/launchTestAppClear.yml
+- tapOn: "Capture Message"
+- runFlow: utils/assertEventIdVisible.yml

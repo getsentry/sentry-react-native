@@ -3,4 +3,5 @@
 *.app
 *.apk
 
-react-native-versions
+/react-native-versions
+/maestro-logs
