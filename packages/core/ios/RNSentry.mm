@@ -166,7 +166,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     if ([mutableOptions valueForKey:@"spotlight"] != nil) {
         id spotlightValue = [mutableOptions valueForKey:@"spotlight"];
         if ([spotlightValue isKindOfClass:[NSString class]]) {
-            NSLog(@"The value is a string: %@", spotlightValue);
+            NSLog(@"Using Spotlight on address: %@", spotlightValue);
             sentryOptions.enableSpotlight = true;
             sentryOptions.spotlightUrl = spotlightValue;
         } else if ([spotlightValue isKindOfClass:[NSNumber class]]) {
