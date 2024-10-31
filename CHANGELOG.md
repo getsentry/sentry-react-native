@@ -11,15 +11,23 @@
 ### Fixes
 
 - Adds breadcrumb origin field to prevent exception capture context from being overwritten by native scope sync ([#4124](https://github.com/getsentry/sentry-react-native/pull/4124))
+- Skips ignoring require cycle logs for RN 0.70 or newer ([#4214](https://github.com/getsentry/sentry-react-native/pull/4214))
+- Enhanced accuracy of time-to-display spans. ([#4189](https://github.com/getsentry/sentry-react-native/pull/4189))
 
 ### Dependencies
 
 - Bump JavaScript SDK from v8.34.0 to v8.35.0 ([#4196](https://github.com/getsentry/sentry-react-native/pull/4196))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8350)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/8.34.0...8.35.0)
-- Bump CLI from v2.37.0 to v2.38.0 ([#4200](https://github.com/getsentry/sentry-react-native/pull/4200))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2380)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.37.0...2.38.0)
+- Bump CLI from v2.37.0 to v2.38.1 ([#4200](https://github.com/getsentry/sentry-react-native/pull/4200), [#4220](https://github.com/getsentry/sentry-react-native/pull/4220))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2381)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.37.0...2.38.1)
+- Bump Android SDK from v7.15.0 to v7.16.0 ([#4202](https://github.com/getsentry/sentry-react-native/pull/4202))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7160)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.15.0...7.16.0)
+- Bump Cocoa SDK from v8.38.0 to v8.39.0 ([#4212](https://github.com/getsentry/sentry-react-native/pull/4212))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8390)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.38.0...8.39.0)
 
 ## 6.1.0
 
