@@ -8,6 +8,17 @@
 
 ## Unreleased
 
+### Features
+
+- Add env flag `SENTRY_DISABLE_XCODE_DEBUG_UPLOAD` to allow disabling the debug file upload ([#4223](https://github.com/getsentry/sentry-react-native/pull/4223))
+
+  How to use in Xcode? Make sure you are using `scripts/sentry-xcode.sh` and `scripts/sentry-xcode-debug-files.sh` in your
+  build phases. And add the following to your `ios/.xcode.env.local` file.
+
+  ```bash
+  export SENTRY_DISABLE_XCODE_DEBUG_UPLOAD=true
+  ```
+
 ### Fixes
 
 - Skips ignoring require cycle logs for RN 0.70 or newer ([#4214](https://github.com/getsentry/sentry-react-native/pull/4214))
