@@ -15,6 +15,7 @@ import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 import { Alert } from 'react-native';
 
 import { defaultSdkInfo } from './integrations/sdkinfo';
+import { getDefaultSidecarUrl } from './integrations/spotlight';
 import type { ReactNativeClientOptions } from './options';
 import type { mobileReplayIntegration } from './replay/mobilereplay';
 import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
@@ -144,6 +145,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   private _initNativeSdk(): void {
     NATIVE.initNativeSdk({
       ...this._options,
+      defaultSidecarUrl: getDefaultSidecarUrl(),
       mobileReplayOptions:
         this._integrations[MOBILE_REPLAY_INTEGRATION_NAME] &&
         'options' in this._integrations[MOBILE_REPLAY_INTEGRATION_NAME]
