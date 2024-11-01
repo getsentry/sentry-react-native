@@ -166,7 +166,7 @@ describe('Device Context Integration', () => {
     ).expectEvent.toStrictEqualMockEvent();
   });
 
-  it('merge native and event breadcrumbs (default maxBreadcrumbs = 100)', async () => {
+  it('merge native and event breadcrumbs', async () => {
     const { processedEvent } = await processEventWith({
       nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb-1' }, { message: 'native-breadcrumb-2' }] },
       mockEvent: { breadcrumbs: [{ message: 'event-breadcrumb-1' }, { message: 'event-breadcrumb-2' }] },
@@ -181,7 +181,7 @@ describe('Device Context Integration', () => {
     });
   });
 
-  it('merge a native breadcrumb and an event breadcrumb with maxBreadcrumbs = 1', async () => {
+  it('use only native breadcrumb if the maxBreadcrumbs limit does not leave space for event breadcrumbs', async () => {
     getClient().getOptions().maxBreadcrumbs = 1;
     const { processedEvent } = await processEventWith({
       nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb' }] },
@@ -192,7 +192,7 @@ describe('Device Context Integration', () => {
     });
   });
 
-  it('merge 2 native breadcrumbs and 2 event breadcrumbs with maxBreadcrumbs = 3', async () => {
+  it('use native breadcrumbs and pick only the event breadcrumbs that fit the maxBreadcrumbs limit', async () => {
     getClient().getOptions().maxBreadcrumbs = 3;
     const { processedEvent } = await processEventWith({
       nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb-1' }, { message: 'native-breadcrumb-2' }] },
@@ -207,7 +207,7 @@ describe('Device Context Integration', () => {
     });
   });
 
-  it('merge native and event breadcrumbs with maxBreadcrumbs = 0', async () => {
+  it('do not use any breadcrumbs if the maxBreadcrumbs limit is set to zero', async () => {
     getClient().getOptions().maxBreadcrumbs = 0;
     const { processedEvent } = await processEventWith({
       nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb' }] },
