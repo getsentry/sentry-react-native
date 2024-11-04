@@ -5,7 +5,7 @@
 @implementation RNSentryFramesTrackerListener
 
 - (instancetype)initWithSentryFramesTracker:(SentryFramesTracker *)framesTracker
-                            andEventEmitter:(RNSentryEmitNewFrameEvent) emitNewFrameEvent;
+                            andEventEmitter:(RNSentryEmitNewFrameEvent)emitNewFrameEvent;
 {
     self = [super init];
     if (self) {
@@ -17,16 +17,18 @@
 
 - (void)framesTrackerHasNewFrame:(NSDate *)newFrameDate
 {
-  [_framesTracker removeListener:self];
-  NSNumber *newFrameTimestampInSeconds = [NSNumber numberWithDouble:[newFrameDate timeIntervalSince1970]];
+    [_framesTracker removeListener:self];
+    NSNumber *newFrameTimestampInSeconds =
+        [NSNumber numberWithDouble:[newFrameDate timeIntervalSince1970]];
 
-  if (_emitNewFrameEvent) {
-      _emitNewFrameEvent(newFrameTimestampInSeconds);
-  }
+    if (_emitNewFrameEvent) {
+        _emitNewFrameEvent(newFrameTimestampInSeconds);
+    }
 }
 
-- (void)startListening {
-  [_framesTracker addListener:self];
+- (void)startListening
+{
+    [_framesTracker addListener:self];
 }
 
 @end
