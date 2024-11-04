@@ -275,8 +275,8 @@ public class RNSentryModuleImpl {
       options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
     }
 
-    // React native internally throws a JavascriptException. Since we catch it before that,
-    // we don't want to ignore it on the native side to avoid sending it twice.
+    // React native internally throws a JavascriptException.
+    // we want to ignore it on the native side to avoid sending it twice.
     options.addIgnoredExceptionForType(JavascriptException.class);
 
     options.setBeforeSend(
