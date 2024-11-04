@@ -404,7 +404,7 @@ jobs:
             -timezone US/Pacific
           script: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
-      - uses: futureware-tech/simulator-action@bfa03d93ec9de6dacb0c5553bbf8da8afc6c2ee9 # pin@v3
+      - uses: futureware-tech/simulator-action@dab10d813144ef59b48d401cd95da151222ef8cd # pin@v4
         if: ${{ matrix.platform == 'ios' }}
         with:
           model: ${{ env.IOS_DEVICE }}
