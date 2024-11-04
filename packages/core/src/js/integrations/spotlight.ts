@@ -83,7 +83,10 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
   });
 }
 
-function getDefaultSidecarUrl(): string {
+/**
+ * Gets the default Spotlight sidecar URL.
+ */
+export function getDefaultSidecarUrl(): string {
   try {
     const { url } = ReactNativeLibraries.Devtools?.getDevServer();
     return `http://${getHostnameFromString(url)}:8969/stream`;

@@ -3,13 +3,16 @@ package io.sentry.react
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import io.sentry.ILogger
 import io.sentry.SentryLevel
+import io.sentry.android.core.SentryAndroidOptions
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -92,5 +95,34 @@ class RNSentryModuleImplTest {
         verify(promise).resolve(writableMapCaptor.capture())
         val capturedMap = writableMapCaptor.value
         assertEquals(false, capturedMap.getBoolean("has_fetched"))
+    }
+
+    @Test
+    fun `when the spotlight option is enabled, the spotlight SentryAndroidOption is set to true and the default url is used`() {
+        val options = JavaOnlyMap.of(
+            "spotlight", true,
+            "defaultSidecarUrl", "http://localhost:8969/teststream"
+        )
+        val actualOptions = SentryAndroidOptions()
+        module.getSentryAndroidOptions(actualOptions, options, logger)
+        assert(actualOptions.isEnableSpotlight)
+        assertEquals("http://localhost:8969/teststream", actualOptions.spotlightConnectionUrl)
+    }
+
+    @Test
+    fun `when the spotlight url is passed, the spotlight is enabled for the given url`() {
+        val options = JavaOnlyMap.of("spotlight", "http://localhost:8969/teststream")
+        val actualOptions = SentryAndroidOptions()
+        module.getSentryAndroidOptions(actualOptions, options, logger)
+        assert(actualOptions.isEnableSpotlight)
+        assertEquals("http://localhost:8969/teststream", actualOptions.spotlightConnectionUrl)
+    }
+
+    @Test
+    fun `when the spotlight option is disabled, the spotlight SentryAndroidOption is set to false`() {
+        val options = JavaOnlyMap.of("spotlight", false)
+        val actualOptions = SentryAndroidOptions()
+        module.getSentryAndroidOptions(actualOptions, options, logger)
+        assertFalse(actualOptions.isEnableSpotlight)
     }
 }
