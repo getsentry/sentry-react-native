@@ -161,6 +161,22 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
             sentryOptions.integrations = integrations;
         }
     }
+    
+    // Set spotlight option
+    if ([mutableOptions valueForKey:@"spotlight"] != nil) {
+        id spotlightValue = [mutableOptions valueForKey:@"spotlight"];
+        if ([spotlightValue isKindOfClass:[NSString class]]) {
+            NSLog(@"Using Spotlight on address: %@", spotlightValue);
+            sentryOptions.enableSpotlight = true;
+            sentryOptions.spotlightUrl = spotlightValue;
+        } else if ([spotlightValue isKindOfClass:[NSNumber class]]) {
+            sentryOptions.enableSpotlight = [spotlightValue boolValue];
+            id defaultSpotlightUrl = [mutableOptions valueForKey:@"defaultSidecarUrl"];
+            if (defaultSpotlightUrl != nil) {
+                sentryOptions.spotlightUrl = defaultSpotlightUrl;
+            }
+        }
+    }
 
     // Enable the App start and Frames tracking measurements
     if ([mutableOptions valueForKey:@"enableAutoPerformanceTracing"] != nil) {

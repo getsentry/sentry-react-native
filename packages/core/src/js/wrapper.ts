@@ -50,6 +50,8 @@ export interface Screenshot {
 }
 
 export type NativeSdkOptions = Partial<ReactNativeClientOptions> & {
+  defaultSidecarUrl: string | undefined;
+} & {
   mobileReplayOptions: MobileReplayOptions | undefined;
 };
 
