@@ -26,6 +26,7 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
+import com.facebook.react.common.JavascriptException;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import io.sentry.HubAdapter;
 import io.sentry.ILogger;
@@ -58,7 +59,6 @@ import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
 import io.sentry.android.core.performance.AppStartMetrics;
 import io.sentry.protocol.SdkVersion;
-import io.sentry.protocol.SentryException;
 import io.sentry.protocol.SentryId;
 import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
@@ -274,20 +274,13 @@ public class RNSentryModuleImpl {
       options.getExperimental().setSessionReplay(getReplayOptions(rnOptions));
       options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
     }
+
+    // React native internally throws a JavascriptException. Since we catch it before that,
+    // we don't want to ignore it on the native side to avoid sending it twice.
+    options.addIgnoredExceptionForType(JavascriptException.class);
+
     options.setBeforeSend(
         (event, hint) -> {
-          // React native internally throws a JavascriptException
-          // Since we catch it before that, we don't want to send this one
-          // because we would send it twice
-          try {
-            SentryException ex = event.getExceptions().get(0);
-            if (null != ex && ex.getType().contains("JavascriptException")) {
-              return null;
-            }
-          } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case
-            // We do nothing
-          }
-
           setEventOriginTag(event);
           addPackages(event, options.getSdkVersion());
 
