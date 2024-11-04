@@ -25,7 +25,7 @@ jobs:
 
   metrics:
     runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check]
+    needs: [diff_check, auth_token_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.auth_token_check.outputs.skip_ci != 'true' }}
     env:
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'

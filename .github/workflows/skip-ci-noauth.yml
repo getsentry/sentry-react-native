@@ -1,9 +1,9 @@
-name: Skip CI when the Auth token is not accessible
+name: Skip CI when the auth token is not accessible
 on:
   workflow_call:
     outputs:
       skip_ci:
-        description: "Value yes if the CI can access the auth token."
+        description: "Value yes if the CI cannot access the SENTRY_AUTH_TOKEN."
         value: ${{ jobs.auth_token_check.outputs.skip_ci }}
 
 jobs:
@@ -20,4 +20,5 @@ jobs:
             echo "Cannot access SENTRY_AUTH_TOKEN, skipping CI."
           else
             echo "skip_ci=false" >> $GITHUB_OUTPUT
+            echo "SENTRY_AUTH_TOKEN is accessible, continuing the CI checks."
           fi
