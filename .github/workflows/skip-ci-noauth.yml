@@ -10,12 +10,12 @@ on:
 jobs:
   auth_token_check:
     runs-on: ubuntu-latest
-    env:
-      auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
     outputs:
       skip_ci: ${{ steps.set_skip_ci.outputs.skip_ci }}
     steps:
-      - id: set_skip_ci  # This ID is required to set the output at the job level
+      - id: set_skip_ci
+        env:
+          auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
         if: ${{ env.auth_token == '' }}
         run: |
           echo "skip_ci=true" >> $GITHUB_OUTPUT
