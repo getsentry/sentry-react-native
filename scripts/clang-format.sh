@@ -24,6 +24,7 @@ cmd="find . -type f \( \
     -path \"**Build/*\" -or \
     -path \"**ios/build/**\" -or \
     -path \"**android/build/**\" -or \
+    -path \"**.cxx/**\" -or \
     -path \"**build/generated/**\" -or \
     -path \"**/Carthage/Checkouts/*\" -or \
     -path \"**/libs/**\" -or \
