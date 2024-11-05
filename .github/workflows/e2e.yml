@@ -20,11 +20,14 @@ env:
 jobs:
   diff_check:
     uses: ./.github/workflows/skip-ci.yml
+  auth_token_check:
+    uses: ./.github/workflows/skip-ci-noauth.yml
+    secrets: inherit
 
   metrics:
     runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check]
-    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    needs: [diff_check, auth_token_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.auth_token_check.outputs.skip_ci != 'true' }}
     env:
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
     strategy:
@@ -44,44 +47,34 @@ jobs:
             appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
       - uses: actions/checkout@v4
-        if: ${{ env.SENTRY_AUTH_TOKEN != null }}
 
       - uses: ./.github/actions/disk-cleanup
-        if: ${{ matrix.platform == 'android' && env.SENTRY_AUTH_TOKEN != null }}
+        if: ${{ matrix.platform == 'android' }}
 
       - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
-        if: ${{ matrix.platform == 'ios' && env.SENTRY_AUTH_TOKEN != null }}
+        if: ${{ matrix.platform == 'ios' }}
 
       - run: corepack enable
-        if: ${{ env.SENTRY_AUTH_TOKEN != null }}
-
       - uses: actions/setup-node@v4
-        if: ${{ env.SENTRY_AUTH_TOKEN != null }}
         with:
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
       - uses: actions/setup-java@v4
-        if: ${{ env.SENTRY_AUTH_TOKEN != null }}
         with:
           java-version: '17'
           distribution: "adopt"
       - name: Gradle cache
-        if: ${{ env.SENTRY_AUTH_TOKEN != null }}
         uses: gradle/gradle-build-action@v3
       - name: Install Global Dependencies
-        if: ${{ env.SENTRY_AUTH_TOKEN != null }}
         run: npm i -g react-native-cli @sentry/cli
       - name: Install Dependencies
-        if: ${{ env.SENTRY_AUTH_TOKEN != null }}
         run: yarn install
       - name: Build SDK
-        if: ${{ env.SENTRY_AUTH_TOKEN != null }}
         run: yarn build
 
       - uses: actions/cache@v4
-        if: ${{ env.SENTRY_AUTH_TOKEN != null }}
         id: app-plain-cache
         with:
           path: ${{ matrix.appPlain }}
@@ -92,7 +85,7 @@ jobs:
           # to avoid frequent rebuilds of the app
           key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('performance-tests/TestAppSentry/package.json') }}
       - name: Build app plain
-        if: ${{ steps.app-plain-cache.outputs['cache-hit'] != 'true' && env.SENTRY_AUTH_TOKEN != null }}
+        if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
         working-directory: ./performance-tests/TestAppPlain
         run: |
           cd ${{ matrix.platform }}
@@ -119,7 +112,6 @@ jobs:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
       - name: Build app with Sentry
-        if: ${{ env.SENTRY_AUTH_TOKEN != null }}
         working-directory: ./performance-tests/TestAppSentry
         run: |
           cd ${{ matrix.platform }}
@@ -147,7 +139,6 @@ jobs:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
       - name: Collect apps metrics
-        if: ${{ env.SENTRY_AUTH_TOKEN != null }}
         uses: getsentry/action-app-sdk-overhead-metrics@v1
         with:
           name: ${{ matrix.name }} (${{ matrix.rn-architecture }})
