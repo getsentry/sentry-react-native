@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.35.0
+
+### Various fixes & improvements
+
+- fix(changelog): Fix TimeToDisplay typo (d8c87ad9) by @krystofwoldrich
+
 ## 5.35.0-beta.0
 
 ### Fixes
