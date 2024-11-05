@@ -3,7 +3,7 @@
 
 @interface
 SentrySDK (PrivateTests)
-- (nullable SentryOptions *) options;
+- (nullable SentryOptions *)options;
 @end
 
 @interface SentryBinaryImageInfo : NSObject
