@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import SvgGraphic from '../components/SvgGraphic';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { SentryMask, SentryUnmask } from '@sentry/react-native';
+import * as Sentry from '@sentry/react-native';
 
 const multilineText = `This
 is
@@ -45,12 +45,12 @@ const PlaygroundScreen = (props: Props) => {
               />
               <Text>Custom Mask:</Text>
               <View>
-                <SentryMask>
+                <Sentry.Mask>
                   <Text>This is masked</Text>
-                  <SentryUnmask>
+                  <Sentry.Unmask>
                     <Text>This is unmasked</Text>
-                  </SentryUnmask>
-                </SentryMask>
+                  </Sentry.Unmask>
+                </Sentry.Mask>
               </View>
               <Text>Text:</Text>
               <Text>{'This is <Text>'}</Text>

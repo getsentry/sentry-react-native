@@ -11,7 +11,7 @@
 !react-native.config.js
 !/ios/**/*
 !/android/**/*
-!src/js/NativeRNSentry.ts
+!src/**/*
 !scripts/collect-modules.sh
 !scripts/copy-debugid.js
 !scripts/has-sourcemap-debugid.js
