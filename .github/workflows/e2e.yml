@@ -47,14 +47,14 @@ jobs:
         if: ${{ env.SENTRY_AUTH_TOKEN != null }}
 
       - uses: ./.github/actions/disk-cleanup
-        if: ${{ matrix.platform == 'android' && env.SENTRY_AUTH_TOKEN != null}}
+        if: ${{ matrix.platform == 'android' && env.SENTRY_AUTH_TOKEN != null }}
 
       - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
-        if: ${{ matrix.platform == 'ios' && env.SENTRY_AUTH_TOKEN != null}}
+        if: ${{ matrix.platform == 'ios' && env.SENTRY_AUTH_TOKEN != null }}
 
       - run: corepack enable
         if: ${{ env.SENTRY_AUTH_TOKEN != null }}
-        
+
       - uses: actions/setup-node@v4
         if: ${{ env.SENTRY_AUTH_TOKEN != null }}
         with:
