@@ -30,6 +30,27 @@
   export SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD=true
   ```
 
+- Add Replay Custom Masking for iOS ([#4238](https://github.com/getsentry/sentry-react-native/pull/4224))
+
+  ```jsx
+  import * as Sentry from '@sentry/react-native'
+
+  const Example = () => {
+    return (
+      <View>
+        <Sentry.Mask>
+          <View>
+            <Text>${"This text will be masked"}</Text>
+            <Sentry.Unmask>
+              <Text>${"This text won't be masked"}</Text>
+            </Sentry.Unmask>
+          </View>
+        </Sentry.Mask>
+      </View>
+    );
+  };
+  ```
+
 ### Fixes
 
 - Skips ignoring require cycle logs for RN 0.70 or newer ([#4214](https://github.com/getsentry/sentry-react-native/pull/4214))
