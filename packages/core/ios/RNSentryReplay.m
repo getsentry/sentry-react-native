@@ -1,8 +1,6 @@
 #import "RNSentryReplay.h"
 #import "RNSentryReplayBreadcrumbConverter.h"
 #import "React/RCTTextView.h"
-#import "Replay/RNSentryReplayMask.h"
-#import "Replay/RNSentryReplayUnmask.h"
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 
@@ -43,8 +41,8 @@
 + (void)addReplayRNRedactClasses:(NSDictionary *_Nullable)replayOptions
 {
     NSMutableArray *_Nonnull classesToRedact = [[NSMutableArray alloc] init];
-    [classesToRedact addObject:RNSentryReplayMask.class];
-    [classesToRedact addObject:RNSentryReplayUnmask.class];
+    [classesToRedact addObject:NSClassFromString(@"RNSentryReplayMask")];
+    [classesToRedact addObject:NSClassFromString(@"RNSentryReplayUnmask")];
 
     if ([replayOptions[@"maskAllVectors"] boolValue] == YES) {
         Class _Nullable maybeRNSVGViewClass = NSClassFromString(@"RNSVGSvgView");
