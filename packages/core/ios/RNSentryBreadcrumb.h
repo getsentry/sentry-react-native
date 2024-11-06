@@ -6,8 +6,8 @@
 
 @interface RNSentryBreadcrumb : NSObject
 
-+ (SentryBreadcrumb *)from: (NSDictionary *) dict;
++ (SentryBreadcrumb *)from:(NSDictionary *)dict;
 
-+ (NSString *_Nullable) getCurrentScreenFrom: (NSDictionary *) dict;
++ (NSString *_Nullable)getCurrentScreenFrom:(NSDictionary *)dict;
 
 @end

@@ -8,6 +8,28 @@
 
 ## Unreleased
 
+### Features
+
+- Add env flag `SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD` to allow disabling the debug file upload ([#4223](https://github.com/getsentry/sentry-react-native/pull/4223))
+
+  How to use in Android project? It works by default, just set `export SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD=true` in your build environment. For Sentry Android Gradle Plugin add the following to your `android/app/build.gradle`.
+
+  ```gradle
+  apply from: "../../../sentry.gradle"
+
+  sentry {
+      autoUploadProguardMapping = shouldSentryAutoUpload()
+      uploadNativeSymbols = shouldSentryAutoUpload()
+  }
+  ```
+
+  How to use in Xcode? Make sure you are using `scripts/sentry-xcode.sh` and `scripts/sentry-xcode-debug-files.sh` in your
+  build phases. And add the following to your `ios/.xcode.env.local` file.
+
+  ```bash
+  export SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD=true
+  ```
+
 ### Fixes
 
 - Prevents exception capture context from being overwritten by native scope sync ([#4124](https://github.com/getsentry/sentry-react-native/pull/4124))
@@ -23,9 +45,9 @@
 - Bump JavaScript SDK from v8.34.0 to v8.36.0 ([#4196](https://github.com/getsentry/sentry-react-native/pull/4196), [#4222](https://github.com/getsentry/sentry-react-native/pull/4222))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8360)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/8.34.0...8.36.0)
-- Bump CLI from v2.37.0 to v2.38.1 ([#4200](https://github.com/getsentry/sentry-react-native/pull/4200), [#4220](https://github.com/getsentry/sentry-react-native/pull/4220))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2381)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.37.0...2.38.1)
+- Bump CLI from v2.37.0 to v2.38.2 ([#4200](https://github.com/getsentry/sentry-react-native/pull/4200), [#4220](https://github.com/getsentry/sentry-react-native/pull/4220), [#4231](https://github.com/getsentry/sentry-react-native/pull/4231))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2382)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.37.0...2.38.2)
 - Bump Android SDK from v7.15.0 to v7.16.0 ([#4202](https://github.com/getsentry/sentry-react-native/pull/4202))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7160)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.15.0...7.16.0)
