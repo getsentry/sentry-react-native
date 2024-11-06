@@ -32,6 +32,7 @@
 
 ### Fixes
 
+- Excludes Dev Server and Sentry Dsn requests from Breadcrums ([#4240](https://github.com/getsentry/sentry-react-native/pull/4240))
 - Prevents exception capture context from being overwritten by native scope sync ([#4124](https://github.com/getsentry/sentry-react-native/pull/4124))
 - Skips ignoring require cycle logs for RN 0.70 or newer ([#4214](https://github.com/getsentry/sentry-react-native/pull/4214))
 - Enhanced accuracy of time-to-display spans. ([#4189](https://github.com/getsentry/sentry-react-native/pull/4189))
