@@ -23,7 +23,7 @@
     "set-version-samples": "lerna run set-version"
   },
   "devDependencies": {
-    "@sentry/cli": "2.38.1",
+    "@sentry/cli": "2.38.2",
     "clang-format": "^1.8.0",
     "downlevel-dts": "^0.11.0",
     "google-java-format": "^1.4.0",
