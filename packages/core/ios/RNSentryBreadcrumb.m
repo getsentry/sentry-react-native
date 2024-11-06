@@ -3,11 +3,11 @@
 
 @implementation RNSentryBreadcrumb
 
-+(SentryBreadcrumb*) from: (NSDictionary *) dict
++ (SentryBreadcrumb *)from:(NSDictionary *)dict
 {
-    SentryBreadcrumb* crumb = [[SentryBreadcrumb alloc] init];
+    SentryBreadcrumb *crumb = [[SentryBreadcrumb alloc] init];
 
-    NSString * levelString = dict[@"level"];
+    NSString *levelString = dict[@"level"];
     SentryLevel sentryLevel;
     if ([levelString isEqualToString:@"fatal"]) {
         sentryLevel = kSentryLevelFatal;
@@ -30,13 +30,14 @@
     return crumb;
 }
 
-+ (NSString *_Nullable) getCurrentScreenFrom: (NSDictionary<NSString*, id> *_Nonnull) dict {
++ (NSString *_Nullable)getCurrentScreenFrom:(NSDictionary<NSString *, id> *_Nonnull)dict
+{
     NSString *_Nullable maybeCategory = [dict valueForKey:@"category"];
     if (![maybeCategory isEqualToString:@"navigation"]) {
         return nil;
     }
 
-    NSDictionary<NSString*, id> *_Nullable maybeData = [dict valueForKey:@"data"];
+    NSDictionary<NSString *, id> *_Nullable maybeData = [dict valueForKey:@"data"];
     if (![maybeData isKindOfClass:[NSDictionary class]]) {
         return nil;
     }
@@ -45,7 +46,7 @@
     if (![maybeCurrentScreen isKindOfClass:[NSString class]]) {
         return nil;
     }
-    
+
     return maybeCurrentScreen;
 }
 

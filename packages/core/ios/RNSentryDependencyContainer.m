@@ -2,8 +2,8 @@
 #import <Sentry/SentryDependencyContainer.h>
 
 @implementation RNSentryDependencyContainer {
-     NSObject *sentryDependencyContainerLock;
- }
+    NSObject *sentryDependencyContainerLock;
+}
 
 + (instancetype)sharedInstance
 {
@@ -25,10 +25,11 @@
 
 - (void)initializeFramesTrackerListenerWith:(RNSentryEmitNewFrameEvent)eventEmitter
 {
-  @synchronized(sentryDependencyContainerLock) {
-    _framesTrackerListener = [[RNSentryFramesTrackerListener alloc] initWithSentryFramesTracker:[[SentryDependencyContainer sharedInstance] framesTracker]
-                                                                                andEventEmitter: eventEmitter];
-  }
+    @synchronized(sentryDependencyContainerLock) {
+        _framesTrackerListener = [[RNSentryFramesTrackerListener alloc]
+            initWithSentryFramesTracker:[[SentryDependencyContainer sharedInstance] framesTracker]
+                        andEventEmitter:eventEmitter];
+    }
 }
 
 #endif

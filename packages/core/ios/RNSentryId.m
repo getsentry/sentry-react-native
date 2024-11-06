@@ -3,7 +3,8 @@
 
 @implementation RNSentryId
 
-+ (SentryId *)newId {
++ (SentryId *)newId
+{
     return [[SentryId alloc] init];
 }
 
