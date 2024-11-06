@@ -6,20 +6,20 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
-  self.moduleName = @"sentry-react-native-sample";
-  // You can add your custom initial props in the dictionary below.
-  // They will be passed down to the ViewController used by React Native.
-  self.initialProps = @{};
+    self.moduleName = @"sentry-react-native-sample";
+    // You can add your custom initial props in the dictionary below.
+    // They will be passed down to the ViewController used by React Native.
+    self.initialProps = @{};
 
-  return [super applicationDidFinishLaunching:notification];
+    return [super applicationDidFinishLaunching:notification];
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
 #if DEBUG
-  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
+    return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
-  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+    return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
 }
 
@@ -31,9 +31,9 @@
 - (BOOL)concurrentRootEnabled
 {
 #ifdef RN_FABRIC_ENABLED
-  return true;
+    return true;
 #else
-  return false;
+    return false;
 #endif
 }
 
