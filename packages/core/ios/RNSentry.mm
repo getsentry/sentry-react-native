@@ -1,54 +1,55 @@
-#import <dlfcn.h>
 #import "RNSentry.h"
 #import "RNSentryTimeToDisplay.h"
+#import <dlfcn.h>
 
 #if __has_include(<React/RCTConvert.h>)
-#import <React/RCTConvert.h>
+#    import <React/RCTConvert.h>
 #else
-#import "RCTConvert.h"
+#    import "RCTConvert.h"
 #endif
 
 #if __has_include(<hermes/hermes.h>) && SENTRY_PROFILING_SUPPORTED
-#define SENTRY_PROFILING_ENABLED 1
-#import <Sentry/SentryProfilingConditionals.h>
+#    define SENTRY_PROFILING_ENABLED 1
+#    import <Sentry/SentryProfilingConditionals.h>
 #else
-#define SENTRY_PROFILING_ENABLED 0
-#define SENTRY_TARGET_PROFILING_SUPPORTED 0
+#    define SENTRY_PROFILING_ENABLED 0
+#    define SENTRY_TARGET_PROFILING_SUPPORTED 0
 #endif
 
+#import "RNSentryBreadcrumb.h"
+#import "RNSentryId.h"
 #import <Sentry/PrivateSentrySDKOnly.h>
-#import <Sentry/SentryScreenFrames.h>
-#import <Sentry/SentryOptions+HybridSDKs.h>
+#import <Sentry/SentryAppStartMeasurement.h>
 #import <Sentry/SentryBinaryImageCache.h>
 #import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentryFormatter.h>
-#import <Sentry/SentryAppStartMeasurement.h>
-#import "RNSentryId.h"
-#import "RNSentryBreadcrumb.h"
+#import <Sentry/SentryOptions+HybridSDKs.h>
+#import <Sentry/SentryScreenFrames.h>
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
-#import <hermes/hermes.h>
+#    import <hermes/hermes.h>
 #endif
 
 // Thanks to this guard, we won't import this header when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED
-#import "RNSentrySpec.h"
+#    import "RNSentrySpec.h"
 #endif
 
-#import "RNSentryEvents.h"
 #import "RNSentryDependencyContainer.h"
+#import "RNSentryEvents.h"
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-#import "RNSentryReplay.h"
+#    import "RNSentryReplay.h"
 #endif
 
 #if SENTRY_HAS_UIKIT
-#import "RNSentryRNSScreen.h"
-#import "RNSentryFramesTrackerListener.h"
+#    import "RNSentryFramesTrackerListener.h"
+#    import "RNSentryRNSScreen.h"
 #endif
 
-@interface SentrySDK (RNSentry)
+@interface
+SentrySDK (RNSentry)
 
 + (void)captureEnvelope:(SentryEnvelope *)envelope;
 
@@ -58,7 +59,7 @@
 
 static bool hasFetchedAppStart;
 
-static NSString* const nativeSdkName = @"sentry.cocoa.react-native";
+static NSString *const nativeSdkName = @"sentry.cocoa.react-native";
 
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
@@ -71,39 +72,44 @@ static NSString* const nativeSdkName = @"sentry.cocoa.react-native";
     return dispatch_get_main_queue();
 }
 
-+ (BOOL)requiresMainQueueSetup {
++ (BOOL)requiresMainQueueSetup
+{
     return YES;
 }
 
 RCT_EXPORT_MODULE()
 
-RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
-                  resolve:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(initNativeSdk
+                  : (NSDictionary *_Nonnull)options resolve
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
     NSError *error = nil;
-    SentryOptions* sentryOptions = [self createOptionsWithDictionary:options error:&error];
+    SentryOptions *sentryOptions = [self createOptionsWithDictionary:options error:&error];
     if (error != nil) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
 
     NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
-    [PrivateSentrySDKOnly setSdkName: nativeSdkName andVersionString: sdkVersion];
+    [PrivateSentrySDKOnly setSdkName:nativeSdkName andVersionString:sdkVersion];
 
     [SentrySDK startWithOptions:sentryOptions];
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-    BOOL appIsActive = [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
+    BOOL appIsActive =
+        [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
 #else
     BOOL appIsActive = [[NSApplication sharedApplication] isActive];
 #endif
 
-    // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive notification, send it.
-    if (appIsActive && !sentHybridSdkDidBecomeActive && (PrivateSentrySDKOnly.options.enableAutoSessionTracking || PrivateSentrySDKOnly.options.enableWatchdogTerminationTracking)) {
-        [[NSNotificationCenter defaultCenter]
-            postNotificationName:@"SentryHybridSdkDidBecomeActive"
-            object:nil];
+    // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive
+    // notification, send it.
+    if (appIsActive && !sentHybridSdkDidBecomeActive
+        && (PrivateSentrySDKOnly.options.enableAutoSessionTracking
+            || PrivateSentrySDKOnly.options.enableWatchdogTerminationTracking)) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"SentryHybridSdkDidBecomeActive"
+                                                            object:nil];
 
         sentHybridSdkDidBecomeActive = true;
     }
@@ -116,13 +122,15 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 }
 
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
-                                         error: (NSError *_Nonnull *_Nonnull) errorPointer
+                                                  error:(NSError *_Nonnull *_Nonnull)errorPointer
 {
-    SentryBeforeSendEventCallback beforeSend = ^SentryEvent*(SentryEvent *event) {
-        // We don't want to send an event after startup that came from a Unhandled JS Exception of react native
-        // Because we sent it already before the app crashed.
+    SentryBeforeSendEventCallback beforeSend = ^SentryEvent *(SentryEvent *event)
+    {
+        // We don't want to send an event after startup that came from a Unhandled JS Exception of
+        // react native Because we sent it already before the app crashed.
         if (nil != event.exceptions.firstObject.type &&
-            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
+            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location
+                != NSNotFound) {
             return nil;
         }
 
@@ -131,12 +139,12 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
         return event;
     };
 
-    NSMutableDictionary * mutableOptions =[options mutableCopy];
+    NSMutableDictionary *mutableOptions = [options mutableCopy];
     [mutableOptions setValue:beforeSend forKey:@"beforeSend"];
 
-    // remove performance traces sample rate and traces sampler since we don't want to synchronize these configurations
-    // to the Native SDKs.
-    // The user could tho initialize the SDK manually and set themselves.
+    // remove performance traces sample rate and traces sampler since we don't want to synchronize
+    // these configurations to the Native SDKs. The user could tho initialize the SDK manually and
+    // set themselves.
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
     [mutableOptions removeObjectForKey:@"enableTracing"];
@@ -147,7 +155,8 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     [RNSentryReplay updateOptions:mutableOptions];
 #endif
 
-    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions didFailWithError:errorPointer];
+    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions
+                                                      didFailWithError:errorPointer];
     if (*errorPointer != nil) {
         return nil;
     }
@@ -161,7 +170,7 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
             sentryOptions.integrations = integrations;
         }
     }
-    
+
     // Set spotlight option
     if ([mutableOptions valueForKey:@"spotlight"] != nil) {
         id spotlightValue = [mutableOptions valueForKey:@"spotlight"];
@@ -180,7 +189,8 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
 
     // Enable the App start and Frames tracking measurements
     if ([mutableOptions valueForKey:@"enableAutoPerformanceTracing"] != nil) {
-        BOOL enableAutoPerformanceTracing = [mutableOptions[@"enableAutoPerformanceTracing"] boolValue];
+        BOOL enableAutoPerformanceTracing =
+            [mutableOptions[@"enableAutoPerformanceTracing"] boolValue];
         PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracing;
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
         PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracing;
@@ -190,46 +200,47 @@ RCT_EXPORT_METHOD(initNativeSdk:(NSDictionary *_Nonnull)options
     return sentryOptions;
 }
 
-- (void)setEventOriginTag:(SentryEvent *)event {
-  if (event.sdk != nil) {
-    NSString *sdkName = event.sdk[@"name"];
+- (void)setEventOriginTag:(SentryEvent *)event
+{
+    if (event.sdk != nil) {
+        NSString *sdkName = event.sdk[@"name"];
 
-    // If the event is from react native, it gets set
-    // there and we do not handle it here.
-    if ([sdkName isEqual:nativeSdkName]) {
-      [self setEventEnvironmentTag:event origin:@"ios" environment:@"native"];
+        // If the event is from react native, it gets set
+        // there and we do not handle it here.
+        if ([sdkName isEqual:nativeSdkName]) {
+            [self setEventEnvironmentTag:event origin:@"ios" environment:@"native"];
+        }
     }
-  }
 }
 
 - (void)setEventEnvironmentTag:(SentryEvent *)event
                         origin:(NSString *)origin
-                   environment:(NSString *)environment {
-  NSMutableDictionary *newTags = [NSMutableDictionary new];
+                   environment:(NSString *)environment
+{
+    NSMutableDictionary *newTags = [NSMutableDictionary new];
 
-  if (nil != event.tags && [event.tags count] > 0) {
-    [newTags addEntriesFromDictionary:event.tags];
-  }
-  if (nil != origin) {
-    [newTags setValue:origin forKey:@"event.origin"];
-  }
-  if (nil != environment) {
-    [newTags setValue:environment forKey:@"event.environment"];
-  }
+    if (nil != event.tags && [event.tags count] > 0) {
+        [newTags addEntriesFromDictionary:event.tags];
+    }
+    if (nil != origin) {
+        [newTags setValue:origin forKey:@"event.origin"];
+    }
+    if (nil != environment) {
+        [newTags setValue:environment forKey:@"event.environment"];
+    }
 
-  event.tags = newTags;
+    event.tags = newTags;
 }
 
-RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking:(RCTPromiseResolveBlock)resolve
-                                                   rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_HAS_UIKIT
     if ([[NSThread currentThread] isMainThread]) {
         [RNSentryRNSScreen swizzleViewDidAppear];
     } else {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [RNSentryRNSScreen swizzleViewDidAppear];
-        });
+        dispatch_async(dispatch_get_main_queue(), ^{ [RNSentryRNSScreen swizzleViewDidAppear]; });
     }
 
     [self initFramesTracking];
@@ -237,48 +248,57 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking:(RCTPromiseResolveBl
     resolve(nil);
 }
 
-- (void)initFramesTracking {
+- (void)initFramesTracking
+{
 #if SENTRY_HAS_UIKIT
 
-  RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
-    if (self->hasListeners) {
-      [self sendEventWithName:RNSentryNewFrameEvent body:@{ @"newFrameTimestampInSeconds": newFrameTimestampInSeconds }];
-    }
-  };
-  [[RNSentryDependencyContainer sharedInstance] initializeFramesTrackerListenerWith: emitNewFrameEvent];
+    RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
+        if (self->hasListeners) {
+            [self
+                sendEventWithName:RNSentryNewFrameEvent
+                             body:@{ @"newFrameTimestampInSeconds" : newFrameTimestampInSeconds }];
+        }
+    };
+    [[RNSentryDependencyContainer sharedInstance]
+        initializeFramesTrackerListenerWith:emitNewFrameEvent];
 #endif
 }
 
 // Will be called when this module's first listener is added.
--(void)startObserving {
+- (void)startObserving
+{
     hasListeners = YES;
 }
 
 // Will be called when this module's last listener is removed, or on dealloc.
--(void)stopObserving {
+- (void)stopObserving
+{
     hasListeners = NO;
 }
 
-- (NSArray<NSString *> *)supportedEvents {
-  return @[RNSentryNewFrameEvent];
-}
-
-RCT_EXPORT_METHOD(fetchNativeSdkInfo:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+- (NSArray<NSString *> *)supportedEvents
 {
-    resolve(@{
-        @"name": PrivateSentrySDKOnly.getSdkName,
-        @"version": PrivateSentrySDKOnly.getSdkVersionString
-            });
+    return @[ RNSentryNewFrameEvent ];
 }
 
-RCT_EXPORT_METHOD(fetchModules:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(fetchNativeSdkInfo
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
+{
+    resolve(@ {
+        @"name" : PrivateSentrySDKOnly.getSdkName,
+        @"version" : PrivateSentrySDKOnly.getSdkVersionString
+    });
+}
+
+RCT_EXPORT_METHOD(fetchModules
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
     NSString *filePath = [[NSBundle mainBundle] pathForResource:@"modules" ofType:@"json"];
-    NSString* modulesString = [NSString stringWithContentsOfFile:filePath
-                                                  encoding:NSUTF8StringEncoding
-                                                     error:nil];
+    NSString *modulesString = [NSString stringWithContentsOfFile:filePath
+                                                        encoding:NSUTF8StringEncoding
+                                                           error:nil];
     resolve(modulesString);
 }
 
@@ -288,79 +308,90 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, fetchNativePackageName)
     return packageName;
 }
 
-- (NSDictionary*) fetchNativeStackFramesBy: (NSArray<NSNumber*>*)instructionsAddr
-                               symbolicate: (SymbolicateCallbackType) symbolicate
+- (NSDictionary *)fetchNativeStackFramesBy:(NSArray<NSNumber *> *)instructionsAddr
+                               symbolicate:(SymbolicateCallbackType)symbolicate
 {
-  BOOL shouldSymbolicateLocally = [SentrySDK.options debug];
-  NSString *appPackageName = [[NSBundle mainBundle] executablePath];
+    BOOL shouldSymbolicateLocally = [SentrySDK.options debug];
+    NSString *appPackageName = [[NSBundle mainBundle] executablePath];
 
-  NSMutableSet<NSString *> * _Nonnull imagesAddrToRetrieveDebugMetaImages = [[NSMutableSet alloc] init];
-  NSMutableArray<NSDictionary<NSString *, id> *> * _Nonnull serializedFrames = [[NSMutableArray alloc] init];
+    NSMutableSet<NSString *> *_Nonnull imagesAddrToRetrieveDebugMetaImages =
+        [[NSMutableSet alloc] init];
+    NSMutableArray<NSDictionary<NSString *, id> *> *_Nonnull serializedFrames =
+        [[NSMutableArray alloc] init];
 
-  for (NSNumber *addr in instructionsAddr) {
-    SentryBinaryImageInfo * _Nullable image = [[[SentryDependencyContainer sharedInstance] binaryImageCache] imageByAddress:[addr unsignedLongLongValue]];
-    if (image != nil) {
-      NSString * imageAddr = sentry_formatHexAddressUInt64([image address]);
-      [imagesAddrToRetrieveDebugMetaImages addObject: imageAddr];
+    for (NSNumber *addr in instructionsAddr) {
+        SentryBinaryImageInfo *_Nullable image = [[[SentryDependencyContainer sharedInstance]
+            binaryImageCache] imageByAddress:[addr unsignedLongLongValue]];
+        if (image != nil) {
+            NSString *imageAddr = sentry_formatHexAddressUInt64([image address]);
+            [imagesAddrToRetrieveDebugMetaImages addObject:imageAddr];
 
-      NSDictionary<NSString *, id> * _Nonnull nativeFrame = @{
-        @"platform": @"cocoa",
-        @"instruction_addr": sentry_formatHexAddress(addr),
-        @"package": [image name],
-        @"image_addr": imageAddr,
-        @"in_app": [NSNumber numberWithBool:[appPackageName isEqualToString:[image name]]],
-      };
+            NSDictionary<NSString *, id> *_Nonnull nativeFrame = @{
+                @"platform" : @"cocoa",
+                @"instruction_addr" : sentry_formatHexAddress(addr),
+                @"package" : [image name],
+                @"image_addr" : imageAddr,
+                @"in_app" : [NSNumber numberWithBool:[appPackageName isEqualToString:[image name]]],
+            };
 
-      if (shouldSymbolicateLocally) {
-        Dl_info symbolsBuffer;
-        bool symbols_succeed = false;
-        symbols_succeed = symbolicate((void *) [addr unsignedLongLongValue], &symbolsBuffer) != 0;
-        if (symbols_succeed) {
-          NSMutableDictionary<NSString *, id> * _Nonnull symbolicated = nativeFrame.mutableCopy;
-          symbolicated[@"symbol_addr"] = sentry_formatHexAddressUInt64((uintptr_t)symbolsBuffer.dli_saddr);
-          symbolicated[@"function"] = [NSString stringWithCString:symbolsBuffer.dli_sname encoding:NSUTF8StringEncoding];
+            if (shouldSymbolicateLocally) {
+                Dl_info symbolsBuffer;
+                bool symbols_succeed = false;
+                symbols_succeed
+                    = symbolicate((void *)[addr unsignedLongLongValue], &symbolsBuffer) != 0;
+                if (symbols_succeed) {
+                    NSMutableDictionary<NSString *, id> *_Nonnull symbolicated
+                        = nativeFrame.mutableCopy;
+                    symbolicated[@"symbol_addr"]
+                        = sentry_formatHexAddressUInt64((uintptr_t)symbolsBuffer.dli_saddr);
+                    symbolicated[@"function"] = [NSString stringWithCString:symbolsBuffer.dli_sname
+                                                                   encoding:NSUTF8StringEncoding];
 
-          nativeFrame = symbolicated;
+                    nativeFrame = symbolicated;
+                }
+            }
+
+            [serializedFrames addObject:nativeFrame];
+        } else {
+            [serializedFrames addObject:@{
+                @"platform" : @"cocoa",
+                @"instruction_addr" : sentry_formatHexAddress(addr),
+            }];
         }
-      }
+    }
 
-      [serializedFrames addObject:nativeFrame];
+    if (shouldSymbolicateLocally) {
+        return @{
+            @"frames" : serializedFrames,
+        };
     } else {
-      [serializedFrames addObject: @{
-        @"platform": @"cocoa",
-        @"instruction_addr": sentry_formatHexAddress(addr),
-      }];
+        NSMutableArray<NSDictionary<NSString *, id> *> *_Nonnull serializedDebugMetaImages =
+            [[NSMutableArray alloc] init];
+
+        NSArray<SentryDebugMeta *> *debugMetaImages =
+            [[[SentryDependencyContainer sharedInstance] debugImageProvider]
+                getDebugImagesForImageAddressesFromCache:imagesAddrToRetrieveDebugMetaImages];
+
+        for (SentryDebugMeta *debugImage in debugMetaImages) {
+            [serializedDebugMetaImages addObject:[debugImage serialize]];
+        }
+
+        return @{
+            @"frames" : serializedFrames,
+            @"debugMetaImages" : serializedDebugMetaImages,
+        };
     }
-  }
-
-  if (shouldSymbolicateLocally) {
-    return @{
-      @"frames": serializedFrames,
-    };
-  } else {
-    NSMutableArray<NSDictionary<NSString *, id> *> * _Nonnull serializedDebugMetaImages = [[NSMutableArray alloc] init];
-
-    NSArray<SentryDebugMeta *> *debugMetaImages = [[[SentryDependencyContainer sharedInstance] debugImageProvider] getDebugImagesForImageAddressesFromCache:imagesAddrToRetrieveDebugMetaImages];
-
-    for (SentryDebugMeta *debugImage in debugMetaImages) {
-      [serializedDebugMetaImages addObject:[debugImage serialize]];
-    }
-
-    return @{
-      @"frames": serializedFrames,
-      @"debugMetaImages": serializedDebugMetaImages,
-    };
-  }
 }
 
-RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, fetchNativeStackFramesBy:(NSArray *)instructionsAddr)
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, fetchNativeStackFramesBy
+                                    : (NSArray *)instructionsAddr)
 {
-  return [self fetchNativeStackFramesBy:instructionsAddr
-                             symbolicate:dladdr];
+    return [self fetchNativeStackFramesBy:instructionsAddr symbolicate:dladdr];
 }
 
-RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(fetchNativeDeviceContexts
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
     if (PrivateSentrySDKOnly.options.debug) {
         NSLog(@"Bridge call to: deviceContexts");
@@ -368,36 +399,41 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
     __block NSMutableDictionary<NSString *, id> *serializedScope;
     // Temp work around until sorted out this API in sentry-cocoa.
     // TODO: If the callback isnt' executed the promise wouldn't be resolved.
-    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
         serializedScope = [[scope serialize] mutableCopy];
 
-        NSDictionary<NSString *, id>  *user = [serializedScope valueForKey:@"user"];
+        NSDictionary<NSString *, id> *user = [serializedScope valueForKey:@"user"];
         if (user == nil) {
-            [serializedScope
-                setValue:@{ @"id": PrivateSentrySDKOnly.installationID }
-                forKey:@"user"];
+            [serializedScope setValue:@ { @"id" : PrivateSentrySDKOnly.installationID }
+                               forKey:@"user"];
         }
 
         if (PrivateSentrySDKOnly.options.debug) {
-            NSData *data = [NSJSONSerialization dataWithJSONObject:serializedScope options:0 error:nil];
-            NSString *debugContext = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            NSData *data = [NSJSONSerialization dataWithJSONObject:serializedScope
+                                                           options:0
+                                                             error:nil];
+            NSString *debugContext = [[NSString alloc] initWithData:data
+                                                           encoding:NSUTF8StringEncoding];
             NSLog(@"Contexts: %@", debugContext);
         }
     }];
 
     NSDictionary<NSString *, id> *extraContext = [PrivateSentrySDKOnly getExtraContext];
-    NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *contexts = [serializedScope[@"context"] mutableCopy];
+    NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *contexts =
+        [serializedScope[@"context"] mutableCopy];
 
     if (extraContext && [extraContext[@"device"] isKindOfClass:[NSDictionary class]]) {
-      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *deviceContext = [contexts[@"device"] mutableCopy];
-      [deviceContext addEntriesFromDictionary:extraContext[@"device"]];
-      [contexts setValue:deviceContext forKey:@"device"];
+        NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *deviceContext =
+            [contexts[@"device"] mutableCopy];
+        [deviceContext addEntriesFromDictionary:extraContext[@"device"]];
+        [contexts setValue:deviceContext forKey:@"device"];
     }
 
     if (extraContext && [extraContext[@"app"] isKindOfClass:[NSDictionary class]]) {
-      NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *appContext = [contexts[@"app"] mutableCopy];
-      [appContext addEntriesFromDictionary:extraContext[@"app"]];
-      [contexts setValue:appContext forKey:@"app"];
+        NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *appContext =
+            [contexts[@"app"] mutableCopy];
+        [appContext addEntriesFromDictionary:extraContext[@"app"]];
+        [contexts setValue:appContext forKey:@"app"];
     }
 
     [serializedScope setValue:contexts forKey:@"contexts"];
@@ -405,18 +441,22 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts:(RCTPromiseResolveBlock)resolve
     resolve(serializedScope);
 }
 
-RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(fetchNativeAppStart
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_HAS_UIKIT
-    NSDictionary<NSString *, id> *measurements = [PrivateSentrySDKOnly appStartMeasurementWithSpans];
+    NSDictionary<NSString *, id> *measurements =
+        [PrivateSentrySDKOnly appStartMeasurementWithSpans];
     if (measurements == nil) {
         resolve(nil);
         return;
     }
 
-    NSMutableDictionary<NSString *, id> *mutableMeasurements = [[NSMutableDictionary alloc] initWithDictionary:measurements];
-    [mutableMeasurements setValue:[NSNumber numberWithBool:hasFetchedAppStart] forKey:@"has_fetched"];
+    NSMutableDictionary<NSString *, id> *mutableMeasurements =
+        [[NSMutableDictionary alloc] initWithDictionary:measurements];
+    [mutableMeasurements setValue:[NSNumber numberWithBool:hasFetchedAppStart]
+                           forKey:@"has_fetched"];
 
     // This is always set to true, as we would only allow an app start fetch to only happen once
     // in the case of a JS bundle reload, we do not want it to be instrumented again.
@@ -428,8 +468,9 @@ RCT_EXPORT_METHOD(fetchNativeAppStart:(RCTPromiseResolveBlock)resolve
 #endif
 }
 
-RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(fetchNativeFrames
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
@@ -445,79 +486,82 @@ RCT_EXPORT_METHOD(fetchNativeFrames:(RCTPromiseResolveBlock)resolve
         NSNumber *frozen = [NSNumber numberWithLong:frames.frozen];
         NSNumber *slow = [NSNumber numberWithLong:frames.slow];
 
-        resolve(@{
-            @"totalFrames": total,
-            @"frozenFrames": frozen,
-            @"slowFrames": slow,
+        resolve(@ {
+            @"totalFrames" : total,
+            @"frozenFrames" : frozen,
+            @"slowFrames" : slow,
         });
     } else {
-      resolve(nil);
+        resolve(nil);
     }
 #else
     resolve(nil);
 #endif
 }
 
-RCT_EXPORT_METHOD(fetchNativeRelease:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(fetchNativeRelease
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
     NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
-    resolve(@{
-              @"id": infoDict[@"CFBundleIdentifier"],
-              @"version": infoDict[@"CFBundleShortVersionString"],
-              @"build": infoDict[@"CFBundleVersion"],
-              });
+    resolve(@ {
+        @"id" : infoDict[@"CFBundleIdentifier"],
+        @"version" : infoDict[@"CFBundleShortVersionString"],
+        @"build" : infoDict[@"CFBundleVersion"],
+    });
 }
 
-RCT_EXPORT_METHOD(captureEnvelope:(NSString * _Nonnull)rawBytes
-                  options: (NSDictionary * _Nonnull)options
-                  resolve:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(captureEnvelope
+                  : (NSString *_Nonnull)rawBytes options
+                  : (NSDictionary *_Nonnull)options resolve
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
     NSData *data = [[NSData alloc] initWithBase64EncodedString:rawBytes options:0];
 
     SentryEnvelope *envelope = [PrivateSentrySDKOnly envelopeWithData:data];
     if (envelope == nil) {
-        reject(@"SentryReactNative",@"Failed to parse envelope from byte array.", nil);
+        reject(@"SentryReactNative", @"Failed to parse envelope from byte array.", nil);
         return;
     }
 
-    #if DEBUG
+#if DEBUG
+    [PrivateSentrySDKOnly captureEnvelope:envelope];
+#else
+    if ([[options objectForKey:@"hardCrashed"] boolValue]) {
+        // Storing to disk happens asynchronously with captureEnvelope
+        [PrivateSentrySDKOnly storeEnvelope:envelope];
+    } else {
         [PrivateSentrySDKOnly captureEnvelope:envelope];
-    #else
-        if ([[options objectForKey:@"hardCrashed"] boolValue]) {
-            // Storing to disk happens asynchronously with captureEnvelope
-            [PrivateSentrySDKOnly storeEnvelope:envelope];
-        } else {
-            [PrivateSentrySDKOnly captureEnvelope:envelope];
-        }
-    #endif
+    }
+#endif
     resolve(@YES);
 }
 
-RCT_EXPORT_METHOD(captureScreenshot: (RCTPromiseResolveBlock)resolve
-                  rejecter: (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(captureScreenshot
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-    NSArray<NSData *>* rawScreenshots = [PrivateSentrySDKOnly captureScreenshots];
+    NSArray<NSData *> *rawScreenshots = [PrivateSentrySDKOnly captureScreenshots];
     NSMutableArray *screenshotsArray = [NSMutableArray arrayWithCapacity:[rawScreenshots count]];
 
     int counter = 1;
-    for (NSData* raw in rawScreenshots) {
+    for (NSData *raw in rawScreenshots) {
         NSMutableArray *screenshot = [NSMutableArray arrayWithCapacity:raw.length];
-        const char *bytes = (char*) [raw bytes];
+        const char *bytes = (char *)[raw bytes];
         for (int i = 0; i < [raw length]; i++) {
             [screenshot addObject:[[NSNumber alloc] initWithChar:bytes[i]]];
         }
 
-        NSString* filename = @"screenshot.png";
+        NSString *filename = @"screenshot.png";
         if (counter > 1) {
             filename = [NSString stringWithFormat:@"screenshot-%d.png", counter];
         }
-        [screenshotsArray addObject:@{
-            @"data": screenshot,
-            @"contentType": @"image/png",
-            @"filename": filename,
+        [screenshotsArray addObject:@ {
+            @"data" : screenshot,
+            @"contentType" : @"image/png",
+            @"filename" : filename,
         }];
         counter++;
     }
@@ -528,14 +572,15 @@ RCT_EXPORT_METHOD(captureScreenshot: (RCTPromiseResolveBlock)resolve
 #endif
 }
 
-RCT_EXPORT_METHOD(fetchViewHierarchy: (RCTPromiseResolveBlock)resolve
-                  rejecter: (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(fetchViewHierarchy
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-    NSData * rawViewHierarchy = [PrivateSentrySDKOnly captureViewHierarchy];
+    NSData *rawViewHierarchy = [PrivateSentrySDKOnly captureViewHierarchy];
 
     NSMutableArray *viewHierarchy = [NSMutableArray arrayWithCapacity:rawViewHierarchy.length];
-    const char *bytes = (char*) [rawViewHierarchy bytes];
+    const char *bytes = (char *)[rawViewHierarchy bytes];
     for (int i = 0; i < [rawViewHierarchy length]; i++) {
         [viewHierarchy addObject:[[NSNumber alloc] initWithChar:bytes[i]]];
     }
@@ -546,16 +591,13 @@ RCT_EXPORT_METHOD(fetchViewHierarchy: (RCTPromiseResolveBlock)resolve
 #endif
 }
 
-
-RCT_EXPORT_METHOD(setUser:(NSDictionary *)userKeys
-                  otherUserKeys:(NSDictionary *)userDataKeys
-)
+RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictionary *)userDataKeys)
 {
-    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
         if (nil == userKeys && nil == userDataKeys) {
             [scope setUser:nil];
         } else {
-            SentryUser* userInstance = [[SentryUser alloc] init];
+            SentryUser *userInstance = [[SentryUser alloc] init];
 
             if (nil != userKeys) {
                 [userInstance setUserId:userKeys[@"id"]];
@@ -574,9 +616,9 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary *)userKeys
     }];
 }
 
-RCT_EXPORT_METHOD(addBreadcrumb:(NSDictionary *)breadcrumb)
+RCT_EXPORT_METHOD(addBreadcrumb : (NSDictionary *)breadcrumb)
 {
-    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
         [scope addBreadcrumb:[RNSentryBreadcrumb from:breadcrumb]];
     }];
 
@@ -585,33 +627,27 @@ RCT_EXPORT_METHOD(addBreadcrumb:(NSDictionary *)breadcrumb)
     if (screen != nil) {
         [PrivateSentrySDKOnly setCurrentScreen:screen];
     }
-#endif //SENTRY_HAS_UIKIT
+#endif // SENTRY_HAS_UIKIT
 }
 
-RCT_EXPORT_METHOD(clearBreadcrumbs) {
-    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        [scope clearBreadcrumbs];
-    }];
-}
-
-RCT_EXPORT_METHOD(setExtra:(NSString *)key
-                  extra:(NSString *)extra
-)
+RCT_EXPORT_METHOD(clearBreadcrumbs)
 {
-    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        [scope setExtraValue:extra forKey:key];
-    }];
+    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) { [scope clearBreadcrumbs]; }];
 }
 
-RCT_EXPORT_METHOD(setContext:(NSString *)key
-                  context:(NSDictionary *)context
-)
+RCT_EXPORT_METHOD(setExtra : (NSString *)key extra : (NSString *)extra)
+{
+    [SentrySDK
+        configureScope:^(SentryScope *_Nonnull scope) { [scope setExtraValue:extra forKey:key]; }];
+}
+
+RCT_EXPORT_METHOD(setContext : (NSString *)key context : (NSDictionary *)context)
 {
     if (key == nil) {
         return;
     }
 
-    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
+    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
         if (context == nil) {
             [scope removeContextForKey:key];
         } else {
@@ -620,25 +656,20 @@ RCT_EXPORT_METHOD(setContext:(NSString *)key
     }];
 }
 
-RCT_EXPORT_METHOD(setTag:(NSString *)key
-                  value:(NSString *)value
-)
+RCT_EXPORT_METHOD(setTag : (NSString *)key value : (NSString *)value)
 {
-    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        [scope setTagValue:value forKey:key];
-    }];
+    [SentrySDK
+        configureScope:^(SentryScope *_Nonnull scope) { [scope setTagValue:value forKey:key]; }];
 }
 
-RCT_EXPORT_METHOD(crash)
-{
-    [SentrySDK crash];
-}
+RCT_EXPORT_METHOD(crash) { [SentrySDK crash]; }
 
-RCT_EXPORT_METHOD(closeNativeSdk:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(closeNativeSdk
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
-  [SentrySDK close];
-  resolve(@YES);
+    [SentrySDK close];
+    resolve(@YES);
 }
 
 RCT_EXPORT_METHOD(disableNativeFramesTracking)
@@ -654,70 +685,76 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 
-RCT_EXPORT_METHOD(captureReplay: (BOOL)isHardCrash
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(captureReplay
+                  : (BOOL)isHardCrash resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-  [PrivateSentrySDKOnly captureReplay];
-  resolve([PrivateSentrySDKOnly getReplayId]);
+    [PrivateSentrySDKOnly captureReplay];
+    resolve([PrivateSentrySDKOnly getReplayId]);
 #else
-  resolve(nil);
+    resolve(nil);
 #endif
 }
 
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentReplayId)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-  return [PrivateSentrySDKOnly getReplayId];
+    return [PrivateSentrySDKOnly getReplayId];
 #else
-  return nil;
+    return nil;
 #endif
 }
 
-static NSString* const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";
-static SentryId* nativeProfileTraceId = nil;
+static NSString *const enabledProfilingMessage = @"Enable Hermes to use Sentry Profiling.";
+static SentryId *nativeProfileTraceId = nil;
 static uint64_t nativeProfileStartTime = 0;
 
-RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling: (BOOL)platformProfilers)
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling : (BOOL)platformProfilers)
 {
 #if SENTRY_PROFILING_ENABLED
     try {
         facebook::hermes::HermesRuntime::enableSamplingProfiler();
         if (nativeProfileTraceId == nil && nativeProfileStartTime == 0 && platformProfilers) {
-#if SENTRY_TARGET_PROFILING_SUPPORTED
+#    if SENTRY_TARGET_PROFILING_SUPPORTED
             nativeProfileTraceId = [RNSentryId newId];
-            nativeProfileStartTime = [PrivateSentrySDKOnly startProfilerForTrace: nativeProfileTraceId];
-#endif
+            nativeProfileStartTime =
+                [PrivateSentrySDKOnly startProfilerForTrace:nativeProfileTraceId];
+#    endif
         } else {
             if (!platformProfilers) {
                 NSLog(@"Native profiling is disabled. Only starting Hermes profiling.");
             } else {
-                NSLog(@"Native profiling already in progress. Currently existing trace: %@", nativeProfileTraceId);
+                NSLog(@"Native profiling already in progress. Currently existing trace: %@",
+                    nativeProfileTraceId);
             }
         }
-        return @{ @"started": @YES };
-    } catch (const std::exception& ex) {
+        return @{@"started" : @YES};
+    } catch (const std::exception &ex) {
         if (nativeProfileTraceId != nil) {
-#if SENTRY_TARGET_PROFILING_SUPPORTED
-            [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
-#endif
+#    if SENTRY_TARGET_PROFILING_SUPPORTED
+            [PrivateSentrySDKOnly discardProfilerForTrace:nativeProfileTraceId];
+#    endif
             nativeProfileTraceId = nil;
         }
         nativeProfileStartTime = 0;
-        return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
+        return @ {
+            @"error" : [NSString stringWithCString:ex.what()
+                                          encoding:[NSString defaultCStringEncoding]]
+        };
     } catch (...) {
         if (nativeProfileTraceId != nil) {
-#if SENTRY_TARGET_PROFILING_SUPPORTED
-            [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
-#endif
+#    if SENTRY_TARGET_PROFILING_SUPPORTED
+            [PrivateSentrySDKOnly discardProfilerForTrace:nativeProfileTraceId];
+#    endif
             nativeProfileTraceId = nil;
         }
         nativeProfileStartTime = 0;
-        return @{ @"error": @"Failed to start profiling" };
+        return @ { @"error" : @"Failed to start profiling" };
     }
 #else
-    return @{ @"error": enabledProfilingMessage };
+    return @ { @"error" : enabledProfilingMessage };
 #endif
 }
 
@@ -725,12 +762,14 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
 {
 #if SENTRY_PROFILING_ENABLED
     try {
-        NSDictionary<NSString *, id> * nativeProfile = nil;
+        NSDictionary<NSString *, id> *nativeProfile = nil;
         if (nativeProfileTraceId != nil && nativeProfileStartTime != 0) {
-#if SENTRY_TARGET_PROFILING_SUPPORTED
+#    if SENTRY_TARGET_PROFILING_SUPPORTED
             uint64_t nativeProfileStopTime = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
-            nativeProfile = [PrivateSentrySDKOnly collectProfileBetween:nativeProfileStartTime and:nativeProfileStopTime forTrace:nativeProfileTraceId];
-#endif
+            nativeProfile = [PrivateSentrySDKOnly collectProfileBetween:nativeProfileStartTime
+                                                                    and:nativeProfileStopTime
+                                                               forTrace:nativeProfileTraceId];
+#    endif
         }
         // Cleanup native profiles
         nativeProfileTraceId = nil;
@@ -742,57 +781,66 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
         facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
 
         std::string s = ss.str();
-        NSString *data = [NSString stringWithCString:s.c_str() encoding:[NSString defaultCStringEncoding]];
+        NSString *data = [NSString stringWithCString:s.c_str()
+                                            encoding:[NSString defaultCStringEncoding]];
 
-#if SENTRY_PROFILING_DEBUG_ENABLED
+#    if SENTRY_PROFILING_DEBUG_ENABLED
         NSString *rawProfileFileName = @"hermes.profile";
         NSError *error = nil;
-        NSString *rawProfileFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:rawProfileFileName];
-        if (![data writeToFile:rawProfileFilePath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
+        NSString *rawProfileFilePath =
+            [NSTemporaryDirectory() stringByAppendingPathComponent:rawProfileFileName];
+        if (![data writeToFile:rawProfileFilePath
+                    atomically:YES
+                      encoding:NSUTF8StringEncoding
+                         error:&error]) {
             NSLog(@"Error writing Raw Hermes Profile to %@: %@", rawProfileFilePath, error);
         } else {
             NSLog(@"Raw Hermes Profile saved to %@", rawProfileFilePath);
         }
-#endif
+#    endif
 
         if (data == nil) {
-          return @{ @"error": @"Failed to retrieve Hermes profile." };
+            return @ { @"error" : @"Failed to retrieve Hermes profile." };
         }
 
         if (nativeProfile == nil) {
-          return @{ @"profile": data };
+            return @ { @"profile" : data };
         }
 
-        return @{
-          @"profile": data,
-          @"nativeProfile": nativeProfile,
+        return @ {
+            @"profile" : data,
+            @"nativeProfile" : nativeProfile,
         };
-    } catch (const std::exception& ex) {
+    } catch (const std::exception &ex) {
         if (nativeProfileTraceId != nil) {
-#if SENTRY_TARGET_PROFILING_SUPPORTED
-          [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
-#endif
-          nativeProfileTraceId = nil;
+#    if SENTRY_TARGET_PROFILING_SUPPORTED
+            [PrivateSentrySDKOnly discardProfilerForTrace:nativeProfileTraceId];
+#    endif
+            nativeProfileTraceId = nil;
         }
         nativeProfileStartTime = 0;
-        return @{ @"error": [NSString stringWithCString: ex.what() encoding:[NSString defaultCStringEncoding]] };
+        return @ {
+            @"error" : [NSString stringWithCString:ex.what()
+                                          encoding:[NSString defaultCStringEncoding]]
+        };
     } catch (...) {
         if (nativeProfileTraceId != nil) {
-#if SENTRY_TARGET_PROFILING_SUPPORTED
-          [PrivateSentrySDKOnly discardProfilerForTrace: nativeProfileTraceId];
-#endif
-          nativeProfileTraceId = nil;
+#    if SENTRY_TARGET_PROFILING_SUPPORTED
+            [PrivateSentrySDKOnly discardProfilerForTrace:nativeProfileTraceId];
+#    endif
+            nativeProfileTraceId = nil;
         }
         nativeProfileStartTime = 0;
-        return @{ @"error": @"Failed to stop profiling" };
+        return @ { @"error" : @"Failed to stop profiling" };
     }
 #else
-    return @{ @"error": enabledProfilingMessage };
+    return @ { @"error" : enabledProfilingMessage };
 #endif
 }
 
-RCT_EXPORT_METHOD(crashedLastRun:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(crashedLastRun
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
     resolve(@([SentrySDK crashedLastRun]));
 }
@@ -806,8 +854,10 @@ RCT_EXPORT_METHOD(crashedLastRun:(RCTPromiseResolveBlock)resolve
 }
 #endif
 
-RCT_EXPORT_METHOD(getNewScreenTimeToDisplay:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getNewScreenTimeToDisplay
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
+{
     [_timeToDisplay getTimeToDisplay:resolve];
 }
 
