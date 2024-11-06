@@ -1,19 +1,24 @@
-#import <React/RCTViewManager.h>
-#import <UIKit/UIKit.h>
+#import <Sentry/SentryDefines.h>
 
-#ifdef RCT_NEW_ARCH_ENABLED
-#    import <React/RCTViewComponentView.h>
-#else
-#    import <React/RCTView.h>
-#endif
+#if SENTRY_HAS_UIKIT
+
+#    import <React/RCTViewManager.h>
+
+#    ifdef RCT_NEW_ARCH_ENABLED
+#        import <React/RCTViewComponentView.h>
+#    else
+#        import <React/RCTView.h>
+#    endif
 
 @interface RNSentryReplayMaskManager : RCTViewManager
 @end
 
 @interface RNSentryReplayMask :
-#ifdef RCT_NEW_ARCH_ENABLED
+#    ifdef RCT_NEW_ARCH_ENABLED
     RCTViewComponentView
-#else
+#    else
     RCTView
-#endif
+#    endif
 @end
+
+#endif

@@ -25,7 +25,7 @@ const config = {
   // Note how we change this from `monorepoRoot` to `projectRoot`. This is part of the optimization!
   watchFolders: [projectRoot, ...Object.values(monorepoPackages)],
   resolver: {
-    resolverMainFields: ['main', 'react-native'],
+    resolverMainFields: ['react-native', 'main'],
     resolveRequest: (context, moduleName, platform) => {
       if (moduleName.includes('promise/')) {
         return context.resolveRequest(
