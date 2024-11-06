@@ -3,6 +3,8 @@ import type { HostComponent, ViewProps } from 'react-native';
 // eslint-disable-next-line import/default
 import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
 
-export type NativeProps = ViewProps;
+// If changed to type NativeProps = ViewProps, react native codegen will fail finding the NativeProps type
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface NativeProps extends ViewProps {}
 
 export default codegenNativeComponent<NativeProps>('RNSentryReplayUnmask') as HostComponent<NativeProps>;
