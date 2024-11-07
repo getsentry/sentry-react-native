@@ -20,11 +20,14 @@ env:
 jobs:
   diff_check:
     uses: ./.github/workflows/skip-ci.yml
+  auth_token_check:
+    uses: ./.github/workflows/skip-ci-noauth.yml
+    secrets: inherit
 
   metrics:
     runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check]
-    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && env.SENTRY_AUTH_TOKEN != null }}
+    needs: [diff_check, auth_token_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.auth_token_check.outputs.skip_ci != 'true' }}
     env:
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
     strategy:

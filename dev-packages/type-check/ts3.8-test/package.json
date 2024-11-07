@@ -9,7 +9,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/react": "17.0.58",
+    "@types/react": "17.0.83",
     "@types/react-native": "0.65.30",
     "typescript": "3.8.3"
   },
