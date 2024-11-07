@@ -14,12 +14,6 @@
 typedef int (*SymbolicateCallbackType)(const void *, Dl_info *);
 
 @interface
-SentryDebugImageProvider ()
-- (NSArray<SentryDebugMeta *> *_Nonnull)getDebugImagesForImageAddressesFromCache:
-    (NSSet<NSString *> *_Nonnull)addresses;
-@end
-
-@interface
 SentrySDK (Private)
 @property (nonatomic, nullable, readonly, class) SentryOptions *options;
 @end

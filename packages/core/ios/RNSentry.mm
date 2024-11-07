@@ -21,6 +21,7 @@
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryAppStartMeasurement.h>
 #import <Sentry/SentryBinaryImageCache.h>
+#import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentryFormatter.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
