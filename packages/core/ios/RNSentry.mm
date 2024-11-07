@@ -21,6 +21,7 @@
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryAppStartMeasurement.h>
 #import <Sentry/SentryBinaryImageCache.h>
+#import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentryFormatter.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
@@ -368,9 +369,9 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, fetchNativePackageName)
         NSMutableArray<NSDictionary<NSString *, id> *> *_Nonnull serializedDebugMetaImages =
             [[NSMutableArray alloc] init];
 
-        NSArray<SentryDebugMeta *> *debugMetaImages = [[[SentryDependencyContainer sharedInstance]
-            debugImageProvider] getDebugImagesForAddresses:imagesAddrToRetrieveDebugMetaImages
-                                                   isCrash:false];
+        NSArray<SentryDebugMeta *> *debugMetaImages =
+            [[[SentryDependencyContainer sharedInstance] debugImageProvider]
+                getDebugImagesForImageAddressesFromCache:imagesAddrToRetrieveDebugMetaImages];
 
         for (SentryDebugMeta *debugImage in debugMetaImages) {
             [serializedDebugMetaImages addObject:[debugImage serialize]];

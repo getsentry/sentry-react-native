@@ -30,40 +30,28 @@
             @"errorSampleRate" : experiments[@"replaysOnErrorSampleRate"] ?: [NSNull null],
             @"redactAllImages" : replayOptions[@"maskAllImages"] ?: [NSNull null],
             @"redactAllText" : replayOptions[@"maskAllText"] ?: [NSNull null],
+            @"maskedViewClasses" : [RNSentryReplay getReplayRNRedactClasses:replayOptions],
         }
     }
                forKey:@"experimental"];
-
-    [RNSentryReplay addReplayRNRedactClasses:replayOptions];
 }
 
-+ (void)addReplayRNRedactClasses:(NSDictionary *_Nullable)replayOptions
++ (NSArray *_Nonnull)getReplayRNRedactClasses:(NSDictionary *_Nullable)replayOptions
 {
     NSMutableArray *_Nonnull classesToRedact = [[NSMutableArray alloc] init];
+
     if ([replayOptions[@"maskAllVectors"] boolValue] == YES) {
-        Class _Nullable maybeRNSVGViewClass = NSClassFromString(@"RNSVGSvgView");
-        if (maybeRNSVGViewClass != nil) {
-            [classesToRedact addObject:maybeRNSVGViewClass];
-        }
+        [classesToRedact addObject:@"RNSVGSvgView"];
     }
     if ([replayOptions[@"maskAllImages"] boolValue] == YES) {
-        Class _Nullable maybeRCTImageClass = NSClassFromString(@"RCTImageView");
-        if (maybeRCTImageClass != nil) {
-            [classesToRedact addObject:maybeRCTImageClass];
-        }
+        [classesToRedact addObject:@"RCTImageView"];
     }
     if ([replayOptions[@"maskAllText"] boolValue] == YES) {
-        Class _Nullable maybeRCTTextClass = NSClassFromString(@"RCTTextView");
-        if (maybeRCTTextClass != nil) {
-            [classesToRedact addObject:maybeRCTTextClass];
-        }
-        Class _Nullable maybeRCTParagraphComponentViewClass
-            = NSClassFromString(@"RCTParagraphComponentView");
-        if (maybeRCTParagraphComponentViewClass != nil) {
-            [classesToRedact addObject:maybeRCTParagraphComponentViewClass];
-        }
+        [classesToRedact addObject:@"RCTTextView"];
+        [classesToRedact addObject:@"RCTParagraphComponentView"];
     }
-    [PrivateSentrySDKOnly addReplayRedactClasses:classesToRedact];
+
+    return classesToRedact;
 }
 
 + (void)postInit
