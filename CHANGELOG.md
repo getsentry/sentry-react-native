@@ -32,9 +32,11 @@
 
 ### Fixes
 
+- Ignore JavascriptException to filter out obfuscated duplicate JS Errors on Android ([#4232](https://github.com/getsentry/sentry-react-native/pull/4232))
 - Skips ignoring require cycle logs for RN 0.70 or newer ([#4214](https://github.com/getsentry/sentry-react-native/pull/4214))
 - Enhanced accuracy of time-to-display spans. ([#4189](https://github.com/getsentry/sentry-react-native/pull/4189))
 - Fix Replay redacting of RN Classes on iOS ([#4243](https://github.com/getsentry/sentry-react-native/pull/4243))
+- Speed up getBinaryImages for finishing transactions and capturing events ([#4194](https://github.com/getsentry/sentry-react-native/pull/4194))
 
 ### Features
 
