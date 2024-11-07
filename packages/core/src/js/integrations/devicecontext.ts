@@ -85,7 +85,10 @@ async function processEvent(event: Event): Promise<Event> {
     : undefined;
   if (nativeBreadcrumbs) {
     const maxBreadcrumbs = getClient()?.getOptions().maxBreadcrumbs ?? 100; // Default is 100.
-    event.breadcrumbs = nativeBreadcrumbs.concat(event.breadcrumbs || []).slice(0, maxBreadcrumbs);
+    event.breadcrumbs = nativeBreadcrumbs
+      .concat(event.breadcrumbs || []) // concatenate the native and js breadcrumbs
+      .sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0)) // sort by timestamp
+      .slice(-maxBreadcrumbs); // keep the last maxBreadcrumbs
   }
 
   return event;
