@@ -20,11 +20,14 @@ env:
 jobs:
   diff_check:
     uses: ./.github/workflows/skip-ci.yml
+  auth_token_check:
+    uses: ./.github/workflows/skip-ci-noauth.yml
+    secrets: inherit
 
   metrics:
     runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check]
-    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    needs: [diff_check, auth_token_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.auth_token_check.outputs.skip_ci != 'true' }}
     env:
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
     strategy:
@@ -404,7 +407,7 @@ jobs:
             -timezone US/Pacific
           script: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
-      - uses: futureware-tech/simulator-action@bfa03d93ec9de6dacb0c5553bbf8da8afc6c2ee9 # pin@v3
+      - uses: futureware-tech/simulator-action@dab10d813144ef59b48d401cd95da151222ef8cd # pin@v4
         if: ${{ matrix.platform == 'ios' }}
         with:
           model: ${{ env.IOS_DEVICE }}

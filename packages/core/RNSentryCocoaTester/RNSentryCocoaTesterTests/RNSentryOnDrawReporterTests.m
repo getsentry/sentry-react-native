@@ -1,5 +1,5 @@
-#import <XCTest/XCTest.h>
 #import "RNSentryOnDrawReporter.h"
+#import <XCTest/XCTest.h>
 
 @interface RNSentryOnDrawReporterTests : XCTestCase
 
@@ -9,8 +9,8 @@
 
 - (void)testRNSentryOnDrawReporterViewIsAvailableWhenUIKitIs
 {
-  RNSentryOnDrawReporterView* view = [[RNSentryOnDrawReporterView alloc] init];
-  XCTAssertNotNil(view);
+    RNSentryOnDrawReporterView *view = [[RNSentryOnDrawReporterView alloc] init];
+    XCTAssertNotNil(view);
 }
 
 @end
