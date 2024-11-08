@@ -38,6 +38,7 @@
 - Enhanced accuracy of time-to-display spans. ([#4189](https://github.com/getsentry/sentry-react-native/pull/4189))
 - Fix Replay redacting of RN Classes on iOS ([#4243](https://github.com/getsentry/sentry-react-native/pull/4243))
 - Speed up getBinaryImages for finishing transactions and capturing events ([#4194](https://github.com/getsentry/sentry-react-native/pull/4194))
+- Remove duplicate HTTP Client Errors on iOS ([#4250](https://github.com/getsentry/sentry-react-native/pull/4250))
 
 ### Dependencies
 
