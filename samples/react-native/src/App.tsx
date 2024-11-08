@@ -35,6 +35,7 @@ import { logWithoutTracing } from './utils';
 import { ErrorEvent } from '@sentry/types';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
+import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
 
 LogBox.ignoreAllLogs();
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
@@ -90,6 +91,13 @@ Sentry.init({
       }),
       Sentry.appStartIntegration({
         standalone: false,
+      }),
+      Sentry.reactNativeErrorHandlersIntegration({
+        patchGlobalPromise: Platform.OS === 'ios' && isTurboModuleEnabled()
+          // The global patch doesn't work on iOS with the New Architecture in this Sample app
+          // In
+          ? false
+          : true,
       }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
