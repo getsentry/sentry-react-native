@@ -45,12 +45,15 @@ const PlaygroundScreen = (props: Props) => {
               />
               <Text>Custom Mask:</Text>
               <View>
-                <Sentry.Mask>
-                  <Text>This is masked</Text>
-                  <Sentry.Unmask>
-                    <Text>This is unmasked</Text>
-                  </Sentry.Unmask>
-                </Sentry.Mask>
+                <Sentry.Unmask>
+                  <Text>This is masked if all text is masked</Text>
+                  <Sentry.Mask>
+                    <Text>This is masked always because it's a child of a masked view</Text>
+                    <Sentry.Unmask>
+                      <Text>This is masked because all children of masked view are masked</Text>
+                    </Sentry.Unmask>
+                  </Sentry.Mask>
+                </Sentry.Unmask>
               </View>
               <Text>Text:</Text>
               <Text>{'This is <Text>'}</Text>
