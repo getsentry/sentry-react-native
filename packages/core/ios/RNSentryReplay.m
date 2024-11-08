@@ -32,9 +32,15 @@
             @"redactAllImages" : replayOptions[@"maskAllImages"] ?: [NSNull null],
             @"redactAllText" : replayOptions[@"maskAllText"] ?: [NSNull null],
             @"maskedViewClasses" : [RNSentryReplay getReplayRNRedactClasses:replayOptions],
+            @"unmaskedViewClasses" : [RNSentryReplay getReplayRNUnmaskClasses],
         }
     }
                forKey:@"experimental"];
+}
+
++ (NSArray *_Nonnull)getReplayRNUnmaskClasses
+{
+    return @[ @"RNSentryReplayUnmask" ];
 }
 
 + (NSArray *_Nonnull)getReplayRNRedactClasses:(NSDictionary *_Nullable)replayOptions
