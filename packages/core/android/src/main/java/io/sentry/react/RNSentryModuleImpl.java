@@ -888,18 +888,24 @@ public class RNSentryModuleImpl {
 
   public void fetchNativeDeviceContexts(Promise promise) {
     final @NotNull SentryOptions options = HubAdapter.getInstance().getOptions();
+    final @Nullable Context context = this.getReactApplicationContext().getApplicationContext();
+    final @Nullable IScope currentScope = InternalSentrySdk.getCurrentScope();
+    fetchNativeDeviceContexts(promise, options, context, currentScope);
+  }
+
+  protected void fetchNativeDeviceContexts(
+      Promise promise,
+      final @NotNull SentryOptions options,
+      final @Nullable Context context,
+      final @Nullable IScope currentScope) {
     if (!(options instanceof SentryAndroidOptions)) {
       promise.resolve(null);
       return;
     }
-
-    final @Nullable Context context = this.getReactApplicationContext().getApplicationContext();
     if (context == null) {
       promise.resolve(null);
       return;
     }
-
-    final @Nullable IScope currentScope = InternalSentrySdk.getCurrentScope();
     if (currentScope != null) {
       // Remove react-native breadcrumbs
       Iterator<Breadcrumb> breadcrumbsIterator = currentScope.getBreadcrumbs().iterator();
