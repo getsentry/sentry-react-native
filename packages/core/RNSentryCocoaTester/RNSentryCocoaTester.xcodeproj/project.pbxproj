@@ -27,6 +27,8 @@
 		3360843A2C32E3A8008CC412 /* RNSentryReplayBreadcrumbConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryReplayBreadcrumbConverter.h; path = ../ios/RNSentryReplayBreadcrumbConverter.h; sourceTree = "<group>"; };
 		3360843C2C340C76008CC412 /* RNSentryBreadcrumbTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryBreadcrumbTests.swift; sourceTree = "<group>"; };
 		3360898D29524164007C7730 /* RNSentryCocoaTesterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RNSentryCocoaTesterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3380C6C12CDEC5850018B9B6 /* RNSentryReplayUnmask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryReplayUnmask.h; path = ../ios/Replay/RNSentryReplayUnmask.h; sourceTree = SOURCE_ROOT; };
+		3380C6C22CDEC6630018B9B6 /* RNSentryReplayMask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryReplayMask.h; path = ../ios/Replay/RNSentryReplayMask.h; sourceTree = SOURCE_ROOT; };
 		338739072A7D7D2800950DDD /* RNSentryReplay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryReplay.h; path = ../ios/RNSentryReplay.h; sourceTree = "<group>"; };
 		33958C672BFCEF5A00AD1FB6 /* RNSentryOnDrawReporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryOnDrawReporter.h; path = ../ios/RNSentryOnDrawReporter.h; sourceTree = "<group>"; };
 		33958C682BFCF12600AD1FB6 /* RNSentryOnDrawReporterTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryOnDrawReporterTests.m; sourceTree = "<group>"; };
@@ -98,9 +100,19 @@
 			path = RNSentryCocoaTesterTests;
 			sourceTree = "<group>";
 		};
+		3380C6C02CDEC56B0018B9B6 /* Replay */ = {
+			isa = PBXGroup;
+			children = (
+				3380C6C22CDEC6630018B9B6 /* RNSentryReplayMask.h */,
+				3380C6C12CDEC5850018B9B6 /* RNSentryReplayUnmask.h */,
+			);
+			path = Replay;
+			sourceTree = "<group>";
+		};
 		33AFE0122B8F319000AAB120 /* RNSentry */ = {
 			isa = PBXGroup;
 			children = (
+				3380C6C02CDEC56B0018B9B6 /* Replay */,
 				332D33482CDBDC7300547D76 /* RNSentry.h */,
 				3360843A2C32E3A8008CC412 /* RNSentryReplayBreadcrumbConverter.h */,
 				330F308D2C0F385A002A0D4E /* RNSentryBreadcrumb.h */,

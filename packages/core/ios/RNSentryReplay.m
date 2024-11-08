@@ -40,14 +40,17 @@
 
 + (NSArray *_Nonnull)getReplayRNUnmaskClasses
 {
+    // We can't import RNSentryReplayUnmask.h here because it's Objective-C++
+    // To avoid typos, we test the class existens in the tests
     return @[ @"RNSentryReplayUnmask" ];
 }
 
 + (NSArray *_Nonnull)getReplayRNRedactClasses:(NSDictionary *_Nullable)replayOptions
 {
     NSMutableArray *_Nonnull classesToRedact = [[NSMutableArray alloc] init];
+    // We can't import RNSentryReplayMask.h here because it's Objective-C++
+    // To avoid typos, we test the class existens in the tests
     [classesToRedact addObject:@"RNSentryReplayMask"];
-    [classesToRedact addObject:@"RNSentryReplayUnmask"];
 
     if ([replayOptions[@"maskAllVectors"] boolValue] == YES) {
         [classesToRedact addObject:@"RNSVGSvgView"];

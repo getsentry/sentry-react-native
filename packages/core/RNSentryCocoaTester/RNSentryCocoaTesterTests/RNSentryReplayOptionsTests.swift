@@ -64,12 +64,13 @@ final class RNSentryReplayOptions: XCTestCase {
     }
 
     func assertAllDefaultReplayOptionsAreNotNil(replayOptions: [String: Any]) {
-        XCTAssertEqual(replayOptions.count, 5)
+        XCTAssertEqual(replayOptions.count, 6)
         XCTAssertNotNil(replayOptions["sessionSampleRate"])
         XCTAssertNotNil(replayOptions["errorSampleRate"])
         XCTAssertNotNil(replayOptions["redactAllImages"])
         XCTAssertNotNil(replayOptions["redactAllText"])
         XCTAssertNotNil(replayOptions["maskedViewClasses"])
+        XCTAssertNotNil(replayOptions["unmaskedViewClasses"])
     }
 
     func testSessionSampleRate() {
@@ -109,11 +110,7 @@ final class RNSentryReplayOptions: XCTestCase {
         let sessionReplay = experimental["sessionReplay"] as! [String:Any]
 
         let maskedViewClasses = sessionReplay["maskedViewClasses"] as! [String]
-        XCTAssertEqual(maskedViewClasses.count, 1)
-        XCTAssertEqual(maskedViewClasses[0], "RNSVGSvgView")
-
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        XCTAssertEqual(actualOptions.experimental.sessionReplay.maskedViewClasses.count, 0)
+        XCTAssertTrue(maskedViewClasses.contains("RNSVGSvgView"))
     }
 
     func testMaskAllImages() {
@@ -128,9 +125,7 @@ final class RNSentryReplayOptions: XCTestCase {
         let actualOptions = try! Options(dict: optionsDict as! [String: Any])
 
         XCTAssertEqual(actualOptions.experimental.sessionReplay.maskAllImages, true)
-        XCTAssertEqual(actualOptions.experimental.sessionReplay.maskedViewClasses.count, 1)
-        XCTAssertNotNil(actualOptions.experimental.sessionReplay.maskedViewClasses[0])
-        XCTAssertEqual(ObjectIdentifier(actualOptions.experimental.sessionReplay.maskedViewClasses[0]), ObjectIdentifier(NSClassFromString("RCTImageView")!))
+        assertContainsClass(classArray: actualOptions.experimental.sessionReplay.maskedViewClasses, stringClass: "RCTImageView")
     }
 
     func testMaskAllText() {
@@ -145,11 +140,33 @@ final class RNSentryReplayOptions: XCTestCase {
         let actualOptions = try! Options(dict: optionsDict as! [String: Any])
 
         XCTAssertEqual(actualOptions.experimental.sessionReplay.maskAllText, true)
-        XCTAssertEqual(actualOptions.experimental.sessionReplay.maskedViewClasses.count, 2)
-        XCTAssertNotNil(actualOptions.experimental.sessionReplay.maskedViewClasses[0])
-        XCTAssertNotNil(actualOptions.experimental.sessionReplay.maskedViewClasses[1])
-        XCTAssertEqual(ObjectIdentifier(actualOptions.experimental.sessionReplay.maskedViewClasses[0]), ObjectIdentifier(NSClassFromString("RCTTextView")!))
-        XCTAssertEqual(ObjectIdentifier(actualOptions.experimental.sessionReplay.maskedViewClasses[1]), ObjectIdentifier(NSClassFromString("RCTParagraphComponentView")!))
+        assertContainsClass(classArray: actualOptions.experimental.sessionReplay.maskedViewClasses, stringClass: "RCTTextView")
+        assertContainsClass(classArray: actualOptions.experimental.sessionReplay.maskedViewClasses, stringClass: "RCTParagraphComponentView")
     }
 
+    func testMaskRNSentryReplayCustomComponents() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "_experiments": [ "replaysOnErrorSampleRate": 0.75 ],
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        assertContainsClass(classArray: actualOptions.experimental.sessionReplay.maskedViewClasses, anyClass: RNSentryReplayMask.self)
+        assertContainsClass(classArray: actualOptions.experimental.sessionReplay.unmaskedViewClasses, anyClass: RNSentryReplayUnmask.self)
+    }
+
+    func assertContainsClass(classArray: [AnyClass], anyClass: AnyClass) {
+        XCTAssertTrue(mapToObjectIdentifiers(classArray: classArray).contains(ObjectIdentifier(anyClass)))
+    }
+
+    func assertContainsClass(classArray: [AnyClass], stringClass: String) {
+        XCTAssertTrue(mapToObjectIdentifiers(classArray: classArray).contains(ObjectIdentifier(NSClassFromString(stringClass)!)))
+    }
+
+    func mapToObjectIdentifiers(classArray: [AnyClass]) -> [ObjectIdentifier] {
+        return classArray.map { ObjectIdentifier($0) }
+    }
 }
