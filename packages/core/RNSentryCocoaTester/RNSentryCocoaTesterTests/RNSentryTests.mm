@@ -1,6 +1,7 @@
 #import "RNSentryTests.h"
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
+#import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 
@@ -327,9 +328,9 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     OCMStub([sentryDebugImageMock serialize]).andReturn(serializedDebugImage);
 
     id sentryDebugImageProviderMock = OCMClassMock([SentryDebugImageProvider class]);
-    OCMStub([sentryDebugImageProviderMock
-                getDebugImagesForAddresses:[NSSet setWithObject:@"0x000000000001b669"]
-                                   isCrash:false])
+    OCMStub(
+        [sentryDebugImageProviderMock
+            getDebugImagesForImageAddressesFromCache:[NSSet setWithObject:@"0x000000000001b669"]])
         .andReturn(@[ sentryDebugImageMock ]);
 
     OCMStub([sentryDependencyContainerMock debugImageProvider])

@@ -7,12 +7,14 @@ import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
+import com.facebook.react.common.JavascriptException
 import io.sentry.ILogger
 import io.sentry.SentryLevel
 import io.sentry.android.core.SentryAndroidOptions
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -124,5 +126,12 @@ class RNSentryModuleImplTest {
         val actualOptions = SentryAndroidOptions()
         module.getSentryAndroidOptions(actualOptions, options, logger)
         assertFalse(actualOptions.isEnableSpotlight)
+    }
+
+    @Test
+    fun `the JavascriptException is added to the ignoredExceptionsForType list on initialisation`() {
+        val actualOptions = SentryAndroidOptions()
+        module.getSentryAndroidOptions(actualOptions, JavaOnlyMap.of(), logger)
+        assertTrue(actualOptions.ignoredExceptionsForType.contains(JavascriptException::class.java))
     }
 }
