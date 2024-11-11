@@ -23,6 +23,7 @@
     "set-version-samples": "lerna run set-version"
   },
   "devDependencies": {
+    "@expo/swiftlint": "^0.57.1",
     "@sentry/cli": "2.38.2",
     "clang-format": "^1.8.0",
     "downlevel-dts": "^0.11.0",
