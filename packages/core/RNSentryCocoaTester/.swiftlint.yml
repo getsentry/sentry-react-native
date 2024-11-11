@@ -1,0 +1,11 @@
+parent_config: ../../../.swiftlint.yml
+
+disabled_rules:
+  - force_cast
+  - force_try
+  - force_unwrapping
+  - function_body_length
+  - identifier_name
+  - large_tuple
+  - type_body_length
+  - weak_delegate

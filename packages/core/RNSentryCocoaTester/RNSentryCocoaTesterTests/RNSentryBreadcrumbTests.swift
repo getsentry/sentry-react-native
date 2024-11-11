@@ -1,5 +1,5 @@
-import XCTest
 import Sentry
+import XCTest
 
 class RNSentryBreadcrumbTests: XCTestCase {
 
