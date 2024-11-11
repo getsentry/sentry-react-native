@@ -32,7 +32,6 @@
             @"redactAllImages" : replayOptions[@"maskAllImages"] ?: [NSNull null],
             @"redactAllText" : replayOptions[@"maskAllText"] ?: [NSNull null],
             @"maskedViewClasses" : [RNSentryReplay getReplayRNRedactClasses:replayOptions],
-            @"unmaskedViewClasses" : [RNSentryReplay getReplayRNUnmaskClasses],
         }
     }
                forKey:@"experimental"];
@@ -48,9 +47,6 @@
 + (NSArray *_Nonnull)getReplayRNRedactClasses:(NSDictionary *_Nullable)replayOptions
 {
     NSMutableArray *_Nonnull classesToRedact = [[NSMutableArray alloc] init];
-    // We can't import RNSentryReplayMask.h here because it's Objective-C++
-    // To avoid typos, we test the class existens in the tests
-    [classesToRedact addObject:@"RNSentryReplayMask"];
 
     if ([replayOptions[@"maskAllVectors"] boolValue] == YES) {
         [classesToRedact addObject:@"RNSVGSvgView"];
@@ -68,6 +64,10 @@
 
 + (void)postInit
 {
+    // We can't import RNSentryReplayMask.h here because it's Objective-C++
+    // To avoid typos, we test the class existens in the tests
+    [PrivateSentrySDKOnly setRedactContainerClass:NSClassFromString(@"RNSentryReplayMask")];
+    [PrivateSentrySDKOnly setIgnoreContainerClass:NSClassFromString(@"RNSentryReplayUnmask")];
     RNSentryReplayBreadcrumbConverter *breadcrumbConverter =
         [[RNSentryReplayBreadcrumbConverter alloc] init];
     [PrivateSentrySDKOnly configureSessionReplayWith:breadcrumbConverter screenshotProvider:nil];
