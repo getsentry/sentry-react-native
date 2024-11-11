@@ -1,6 +1,5 @@
 /* eslint-disable complexity */
-import { getClient } from '@sentry/core';
-import type { Event, Integration } from '@sentry/types';
+import type { Client, Event, EventHint, Integration } from '@sentry/types';
 import { logger, severityLevelFromString } from '@sentry/utils';
 import { AppState } from 'react-native';
 
@@ -21,7 +20,7 @@ export const deviceContextIntegration = (): Integration => {
   };
 };
 
-async function processEvent(event: Event): Promise<Event> {
+async function processEvent(event: Event, _hint: EventHint, client: Client): Promise<Event> {
   let native: NativeDeviceContextsResponse | null = null;
   try {
     native = await NATIVE.fetchNativeDeviceContexts();
@@ -84,7 +83,7 @@ async function processEvent(event: Event): Promise<Event> {
     ? native['breadcrumbs'].map(breadcrumbFromObject)
     : undefined;
   if (nativeBreadcrumbs) {
-    const maxBreadcrumbs = getClient()?.getOptions().maxBreadcrumbs ?? 100; // Default is 100.
+    const maxBreadcrumbs = client?.getOptions().maxBreadcrumbs ?? 100; // Default is 100.
     event.breadcrumbs = nativeBreadcrumbs
       .concat(event.breadcrumbs || []) // concatenate the native and js breadcrumbs
       .sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0)) // sort by timestamp
