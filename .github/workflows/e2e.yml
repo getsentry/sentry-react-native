@@ -326,10 +326,7 @@ jobs:
             engine: 'hermes'
           - rn-version: '0.76.0'
             engine: 'jsc'
-          # E2E timeout due to a race condition https://github.com/facebook/react-native/issues/42123#issuecomment-1881203719
-          - rn-version: '0.76.0'
-            platform: 'ios'
-            rn-architecture: 'new'
+
     steps:
       - uses: actions/checkout@v4
 
