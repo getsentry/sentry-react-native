@@ -112,7 +112,7 @@ Sentry.init({
   // otherwise they will not work.
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
-  // profilesSampleRate: 1.0,
+  profilesSampleRate: 1.0,
   _experiments: {
     replaysSessionSampleRate: 1.0,
     replaysOnErrorSampleRate: 1.0,
