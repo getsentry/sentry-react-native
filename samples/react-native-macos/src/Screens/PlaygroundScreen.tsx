@@ -35,7 +35,7 @@ const PlaygroundScreen = () => {
               <Text>{'This is <Text>'}</Text>
               <Text>Custom Mask:</Text>
               <View>
-                {/* Replay is not supported on macOS, this test that the unavailable components do not crash the app */}
+                {/* Replay is not supported on macOS. This sample demonstrates that unavailable components do not cause the app to crash. */}
                 <Sentry.Mask>
                   <Text>This is masked</Text>
                 </Sentry.Mask>
