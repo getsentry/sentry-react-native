@@ -35,12 +35,13 @@ const PlaygroundScreen = () => {
               <Text>{'This is <Text>'}</Text>
               <Text>Custom Mask:</Text>
               <View>
+                {/* Replay is not supported on macOS, this test that the unavailable components do not crash the app */}
                 <Sentry.Mask>
                   <Text>This is masked</Text>
-                  <Sentry.Unmask>
-                    <Text>This is unmasked</Text>
-                  </Sentry.Unmask>
                 </Sentry.Mask>
+                <Sentry.Unmask>
+                  <Text>This is unmasked</Text>
+                </Sentry.Unmask>
               </View>
               <View style={styles.space} />
               <Text>TextInput:</Text>

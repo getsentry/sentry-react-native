@@ -40,13 +40,11 @@
     return (
       <View>
         <Sentry.Mask>
-          <View>
-            <Text>${"This text will be masked"}</Text>
-            <Sentry.Unmask>
-              <Text>${"This text won't be masked"}</Text>
-            </Sentry.Unmask>
-          </View>
+          <Text>${"All children of Sentry.Mask will be masked."}</Text>
         </Sentry.Mask>
+        <Sentry.Unmask>
+          <Text>${"Only direct children will be unmasked."}</Text>
+        </Sentry.Unmask>
       </View>
     );
   };
