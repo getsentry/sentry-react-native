@@ -1,5 +1,5 @@
-import XCTest
 import Sentry
+import XCTest
 
 final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
 
@@ -12,7 +12,7 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         testBreadcrumb.category = "navigation"
         testBreadcrumb.data = [
             "from": "HomeScreen",
-            "to": "ProfileScreen",
+            "to": "ProfileScreen"
         ]
         let actual = converter.convert(from: testBreadcrumb)
 
@@ -36,7 +36,7 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         testBreadcrumb.type = "navigation"
         testBreadcrumb.category = "navigation"
         testBreadcrumb.data = [
-            "to": "ProfileScreen",
+            "to": "ProfileScreen"
         ]
         let actual = converter.convert(from: testBreadcrumb)
 
@@ -48,7 +48,7 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         assertRRWebBreadcrumbDefaults(actual: event)
         XCTAssertEqual("info", payload["level"] as! String)
         XCTAssertEqual("navigation", payload["category"] as! String)
-        XCTAssertNil(payloadData["from"] ?? nil)
+        XCTAssertNil(payloadData["from"])
         XCTAssertEqual("ProfileScreen", payloadData["to"] as! String)
     }
 
@@ -63,7 +63,7 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         XCTAssertNotNil(actual)
         let event = actual!.serialize()
         let data = event["data"] as! [String: Any?]
-        let payload = data["payload"] as! [String: Any?];
+        let payload = data["payload"] as! [String: Any?]
         assertRRWebBreadcrumbDefaults(actual: event)
         XCTAssertEqual(payload["category"] as! String, "app.foreground")
     }
@@ -79,7 +79,7 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         XCTAssertNotNil(actual)
         let event = actual!.serialize()
         let data = event["data"] as! [String: Any?]
-        let payload = data["payload"] as! [String: Any?];
+        let payload = data["payload"] as! [String: Any?]
         assertRRWebBreadcrumbDefaults(actual: event)
         XCTAssertEqual(payload["category"] as! String, "app.background")
     }
@@ -132,18 +132,18 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
 
     func testTouchMessageReturnsNilOnEmptyArray() throws {
         let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: [])
-        XCTAssertEqual(actual, nil);
+        XCTAssertEqual(actual, nil)
     }
 
     func testTouchMessageReturnsNilOnNilArray() throws {
         let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: nil as [Any]?)
-        XCTAssertEqual(actual, nil);
+        XCTAssertEqual(actual, nil)
     }
 
     func testTouchMessageReturnsNilOnMissingNameAndLevel() throws {
         let testPath: [Any?] = [["element": "element4", "file": "file4"]]
         let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: testPath as [Any])
-        XCTAssertEqual(actual, nil);
+        XCTAssertEqual(actual, nil)
     }
 
     func testTouchMessageReturnsMessageOnValidPathExample1() throws {
@@ -153,10 +153,10 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
             ["name": "item2", "label": "label2"],
             ["name": "item3", "label": "label3", "element": "element3"],
             ["name": "item4", "label": "label4", "file": "file4"],
-            ["name": "item5", "label": "label5", "element": "element5", "file": "file5"],
+            ["name": "item5", "label": "label5", "element": "element5", "file": "file5"]
         ]
         let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: testPath as [Any])
-        XCTAssertEqual(actual, "label3(element3) > label2 > name1 > label0");
+        XCTAssertEqual(actual, "label3(element3) > label2 > name1 > label0")
     }
 
     func testTouchMessageReturnsMessageOnValidPathExample2() throws {
@@ -166,17 +166,17 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
             ["name": "item4", "label": "label4", "file": "file4"],
             ["name": "item5", "label": "label5", "element": "element5", "file": "file5"],
             ["label": "label6"],
-            ["name": "name7"],
+            ["name": "name7"]
         ]
         let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: testPath as [Any])
-        XCTAssertEqual(actual, "label5(element5, file5) > label4(file4) > label3(element3) > label2");
+        XCTAssertEqual(actual, "label5(element5, file5) > label4(file4) > label3(element3) > label2")
     }
 
     private func assertRRWebBreadcrumbDefaults(actual: [String: Any?]) {
         let data = actual["data"] as! [String: Any?]
         let payload = data["payload"] as! [String: Any?]
         XCTAssertEqual("default", payload["type"] as! String)
-        XCTAssertEqual((payload["timestamp"] as! Double) * 1000.0, Double(actual["timestamp"] as! Int), accuracy: 1.0)
+        XCTAssertEqual((payload["timestamp"] as! Double) * 1_000.0, Double(actual["timestamp"] as! Int), accuracy: 1.0)
         XCTAssertTrue(payload["timestamp"] as! Double > 0.0)
     }
 
