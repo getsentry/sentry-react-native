@@ -39,6 +39,7 @@
 - Fix Replay redacting of RN Classes on iOS ([#4243](https://github.com/getsentry/sentry-react-native/pull/4243))
 - Speed up getBinaryImages for finishing transactions and capturing events ([#4194](https://github.com/getsentry/sentry-react-native/pull/4194))
 - Replay `maskAll*` set to `false` on iOS kept all masked ([#4257](https://github.com/getsentry/sentry-react-native/pull/4257))
+- Add missing `getRootSpan`, `withActiveSpan` and `suppressTracing` exports from `@sentry/core` ([#4254](https://github.com/getsentry/sentry-react-native/pull/4254))
 
 ### Dependencies
 
