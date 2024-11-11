@@ -66,11 +66,21 @@
 {
     // We can't import RNSentryReplayMask.h here because it's Objective-C++
     // To avoid typos, we test the class existens in the tests
-    [PrivateSentrySDKOnly setRedactContainerClass:NSClassFromString(@"RNSentryReplayMask")];
-    [PrivateSentrySDKOnly setIgnoreContainerClass:NSClassFromString(@"RNSentryReplayUnmask")];
+    [PrivateSentrySDKOnly setRedactContainerClass:[self getMaskClass]];
+    [PrivateSentrySDKOnly setIgnoreContainerClass:[self getUnmaskClass]];
     RNSentryReplayBreadcrumbConverter *breadcrumbConverter =
         [[RNSentryReplayBreadcrumbConverter alloc] init];
     [PrivateSentrySDKOnly configureSessionReplayWith:breadcrumbConverter screenshotProvider:nil];
+}
+
++ (Class) getMaskClass
+{
+    return NSClassFromString(@"RNSentryReplayMask");
+}
+
++ (Class) getUnmaskClass
+{
+    return NSClassFromString(@"RNSentryReplayUnmask");
 }
 
 @end

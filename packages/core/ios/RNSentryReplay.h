@@ -5,4 +5,8 @@
 
 + (void)postInit;
 
++ (Class)getMaskClass;
+
++ (Class)getUnmaskClass;
+
 @end

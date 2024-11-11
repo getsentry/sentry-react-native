@@ -64,13 +64,12 @@ final class RNSentryReplayOptions: XCTestCase {
     }
 
     func assertAllDefaultReplayOptionsAreNotNil(replayOptions: [String: Any]) {
-        XCTAssertEqual(replayOptions.count, 6)
+        XCTAssertEqual(replayOptions.count, 5)
         XCTAssertNotNil(replayOptions["sessionSampleRate"])
         XCTAssertNotNil(replayOptions["errorSampleRate"])
         XCTAssertNotNil(replayOptions["redactAllImages"])
         XCTAssertNotNil(replayOptions["redactAllText"])
         XCTAssertNotNil(replayOptions["maskedViewClasses"])
-        XCTAssertNotNil(replayOptions["unmaskedViewClasses"])
     }
 
     func testSessionSampleRate() {
@@ -142,24 +141,6 @@ final class RNSentryReplayOptions: XCTestCase {
         XCTAssertEqual(actualOptions.experimental.sessionReplay.maskAllText, true)
         assertContainsClass(classArray: actualOptions.experimental.sessionReplay.maskedViewClasses, stringClass: "RCTTextView")
         assertContainsClass(classArray: actualOptions.experimental.sessionReplay.maskedViewClasses, stringClass: "RCTParagraphComponentView")
-    }
-
-    func testMaskRNSentryReplayCustomComponents() {
-        let optionsDict = ([
-            "dsn": "https://abc@def.ingest.sentry.io/1234567",
-            "_experiments": [ "replaysOnErrorSampleRate": 0.75 ],
-        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
-
-        RNSentryReplay.updateOptions(optionsDict)
-
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-
-        assertContainsClass(classArray: actualOptions.experimental.sessionReplay.maskedViewClasses, anyClass: RNSentryReplayMask.self)
-        assertContainsClass(classArray: actualOptions.experimental.sessionReplay.unmaskedViewClasses, anyClass: RNSentryReplayUnmask.self)
-    }
-
-    func assertContainsClass(classArray: [AnyClass], anyClass: AnyClass) {
-        XCTAssertTrue(mapToObjectIdentifiers(classArray: classArray).contains(ObjectIdentifier(anyClass)))
     }
 
     func assertContainsClass(classArray: [AnyClass], stringClass: String) {
