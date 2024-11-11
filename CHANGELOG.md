@@ -10,6 +10,7 @@
 
 ### Features
 
+- Enables Spotlight in Android and iOS SDKs ([#4211](https://github.com/getsentry/sentry-react-native/pull/4211))
 - Add env flag `SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD` to allow disabling the debug file upload ([#4223](https://github.com/getsentry/sentry-react-native/pull/4223))
 
   How to use in Android project? It works by default, just set `export SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD=true` in your build environment. For Sentry Android Gradle Plugin add the following to your `android/app/build.gradle`.
@@ -38,10 +39,8 @@
 - Enhanced accuracy of time-to-display spans. ([#4189](https://github.com/getsentry/sentry-react-native/pull/4189))
 - Fix Replay redacting of RN Classes on iOS ([#4243](https://github.com/getsentry/sentry-react-native/pull/4243))
 - Speed up getBinaryImages for finishing transactions and capturing events ([#4194](https://github.com/getsentry/sentry-react-native/pull/4194))
-
-### Features
-
-- Enables Spotlight in Android and iOS SDKs ([#4211](https://github.com/getsentry/sentry-react-native/pull/4211))
+- Replay `maskAll*` set to `false` on iOS kept all masked ([#4257](https://github.com/getsentry/sentry-react-native/pull/4257))
+- Add missing `getRootSpan`, `withActiveSpan` and `suppressTracing` exports from `@sentry/core` ([#4254](https://github.com/getsentry/sentry-react-native/pull/4254))
 
 ### Dependencies
 
@@ -54,9 +53,9 @@
 - Bump Android SDK from v7.15.0 to v7.16.0 ([#4202](https://github.com/getsentry/sentry-react-native/pull/4202))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7160)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.15.0...7.16.0)
-- Bump Cocoa SDK from v8.38.0 to v8.40.0 ([#4212](https://github.com/getsentry/sentry-react-native/pull/4212), [#4239](https://github.com/getsentry/sentry-react-native/pull/4239))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8400)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.38.0...8.40.0)
+- Bump Cocoa SDK from v8.38.0 to v8.40.1 ([#4212](https://github.com/getsentry/sentry-react-native/pull/4212), [#4239](https://github.com/getsentry/sentry-react-native/pull/4239), [#4248](https://github.com/getsentry/sentry-react-native/pull/4248))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8401)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.38.0...8.40.1)
 
 ## 6.1.0
 

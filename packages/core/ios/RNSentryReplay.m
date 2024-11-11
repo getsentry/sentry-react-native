@@ -28,8 +28,8 @@
         @"sessionReplay" : @ {
             @"sessionSampleRate" : experiments[@"replaysSessionSampleRate"] ?: [NSNull null],
             @"errorSampleRate" : experiments[@"replaysOnErrorSampleRate"] ?: [NSNull null],
-            @"redactAllImages" : replayOptions[@"maskAllImages"] ?: [NSNull null],
-            @"redactAllText" : replayOptions[@"maskAllText"] ?: [NSNull null],
+            @"maskAllImages" : replayOptions[@"maskAllImages"] ?: [NSNull null],
+            @"maskAllText" : replayOptions[@"maskAllText"] ?: [NSNull null],
             @"maskedViewClasses" : [RNSentryReplay getReplayRNRedactClasses:replayOptions],
         }
     }
