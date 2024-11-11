@@ -67,8 +67,8 @@ final class RNSentryReplayOptions: XCTestCase {
         XCTAssertEqual(replayOptions.count, 6)
         XCTAssertNotNil(replayOptions["sessionSampleRate"])
         XCTAssertNotNil(replayOptions["errorSampleRate"])
-        XCTAssertNotNil(replayOptions["redactAllImages"])
-        XCTAssertNotNil(replayOptions["redactAllText"])
+        XCTAssertNotNil(replayOptions["maskAllImages"])
+        XCTAssertNotNil(replayOptions["maskAllText"])
         XCTAssertNotNil(replayOptions["maskedViewClasses"])
         XCTAssertNotNil(replayOptions["unmaskedViewClasses"])
     }
@@ -128,6 +128,21 @@ final class RNSentryReplayOptions: XCTestCase {
         assertContainsClass(classArray: actualOptions.experimental.sessionReplay.maskedViewClasses, stringClass: "RCTImageView")
     }
 
+    func testMaskAllImagesFalse() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "_experiments": [ "replaysOnErrorSampleRate": 0.75 ],
+            "mobileReplayOptions": [ "maskAllImages": false ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertEqual(actualOptions.experimental.sessionReplay.maskAllImages, false)
+        XCTAssertEqual(actualOptions.experimental.sessionReplay.maskedViewClasses.count, 0)
+    }
+
     func testMaskAllText() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
@@ -169,4 +184,20 @@ final class RNSentryReplayOptions: XCTestCase {
     func mapToObjectIdentifiers(classArray: [AnyClass]) -> [ObjectIdentifier] {
         return classArray.map { ObjectIdentifier($0) }
     }
+
+    func testMaskAllTextFalse() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "_experiments": [ "replaysOnErrorSampleRate": 0.75 ],
+            "mobileReplayOptions": [ "maskAllText": false ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertEqual(actualOptions.experimental.sessionReplay.maskAllText, false)
+        XCTAssertEqual(actualOptions.experimental.sessionReplay.maskedViewClasses.count, 0)
+    }
+
 }
