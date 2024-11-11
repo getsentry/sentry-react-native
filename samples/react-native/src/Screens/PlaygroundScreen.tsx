@@ -46,11 +46,12 @@ const PlaygroundScreen = (props: Props) => {
               <Text>Custom Mask:</Text>
               <View>
                 <Sentry.Unmask>
-                  <Text>This is masked if all text is masked</Text>
+                  <Text>This is unmasked because it's direct child of Sentry.Unmask (can be masked if Sentry.Masked is used higher in the hierarchy)</Text>
                   <Sentry.Mask>
-                    <Text>This is masked always because it's a child of a masked view</Text>
+                    <Text>This is masked always because it's a child of a Sentry.Mask</Text>
                     <Sentry.Unmask>
-                      <Text>This is masked because all children of masked view are masked</Text>
+                      {/* Sentry.Unmask does not override the Sentry.Mask from above in the hierarchy */}
+                      <Text>This is masked always because it's a child of Sentry.Mask</Text>
                     </Sentry.Unmask>
                   </Sentry.Mask>
                 </Sentry.Unmask>
