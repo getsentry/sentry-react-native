@@ -8,7 +8,8 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.module.model.ReactModuleInfo;
 import com.facebook.react.module.model.ReactModuleInfoProvider;
 import com.facebook.react.uimanager.ViewManager;
-import java.util.Arrays;
+import io.sentry.react.replay.RNSentryReplayMaskManager;
+import io.sentry.react.replay.RNSentryReplayUnmaskManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,8 +19,12 @@ public class RNSentryPackage extends TurboReactPackage {
   @Nullable
   @Override
   public NativeModule getModule(String name, ReactApplicationContext reactContext) {
-    if (name.equals(RNSentryModuleImpl.NAME)) {
+    if (RNSentryModuleImpl.NAME.equals(name)) {
       return new RNSentryModule(reactContext);
+    } else if (RNSentryReplayMaskManager.REACT_CLASS.equals(name)) {
+      return new RNSentryReplayMaskManager();
+    } else if (RNSentryReplayUnmaskManager.REACT_CLASS.equals(name)) {
+      return new RNSentryReplayUnmaskManager();
     } else {
       return null;
     }
@@ -41,6 +46,26 @@ public class RNSentryPackage extends TurboReactPackage {
               false, // isCxxModule
               isTurboModule // isTurboModule
               ));
+      moduleInfos.put(
+          RNSentryReplayMaskManager.REACT_CLASS,
+          new ReactModuleInfo(
+              RNSentryReplayMaskManager.REACT_CLASS, // name
+              RNSentryReplayMaskManager.REACT_CLASS, // className
+              false, // canOverrideExistingModule
+              false, // needsEagerInit
+              false, // isCxxModule
+              true // isTurboModule
+              ));
+      moduleInfos.put(
+          RNSentryReplayUnmaskManager.REACT_CLASS,
+          new ReactModuleInfo(
+              RNSentryReplayUnmaskManager.REACT_CLASS, // name
+              RNSentryReplayUnmaskManager.REACT_CLASS, // className
+              false, // canOverrideExistingModule
+              false, // needsEagerInit
+              false, // isCxxModule
+              true // isTurboModule
+              ));
       return moduleInfos;
     };
   }
@@ -48,6 +73,9 @@ public class RNSentryPackage extends TurboReactPackage {
   @NonNull
   @Override
   public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-    return Arrays.asList(new RNSentryOnDrawReporterManager(reactContext));
+    return List.of(
+        new RNSentryOnDrawReporterManager(reactContext),
+        new RNSentryReplayMaskManager(),
+        new RNSentryReplayUnmaskManager());
   }
 }
