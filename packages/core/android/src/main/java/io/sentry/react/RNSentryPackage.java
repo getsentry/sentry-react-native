@@ -9,21 +9,33 @@ import com.facebook.react.module.model.ReactModuleInfo;
 import com.facebook.react.module.model.ReactModuleInfoProvider;
 import com.facebook.react.uimanager.ViewManager;
 import io.sentry.react.replay.RNSentryReplayMaskManager;
+import io.sentry.react.replay.RNSentryReplayMaskManagerImpl;
 import io.sentry.react.replay.RNSentryReplayUnmaskManager;
+import io.sentry.react.replay.RNSentryReplayUnmaskManagerImpl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class RNSentryPackage extends TurboReactPackage {
 
+  private static final boolean isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
+
   @Nullable
   @Override
   public NativeModule getModule(String name, ReactApplicationContext reactContext) {
     if (RNSentryModuleImpl.NAME.equals(name)) {
       return new RNSentryModule(reactContext);
-    } else if (RNSentryReplayMaskManager.REACT_CLASS.equals(name)) {
+    } else if (isTurboModule) {
+      return getFabricComponentNativeModule(name);
+    } else {
+      return null;
+    }
+  }
+
+  private NativeModule getFabricComponentNativeModule(String name) {
+    if (RNSentryReplayMaskManagerImpl.REACT_CLASS.equals(name)) {
       return new RNSentryReplayMaskManager();
-    } else if (RNSentryReplayUnmaskManager.REACT_CLASS.equals(name)) {
+    } else if (RNSentryReplayUnmaskManagerImpl.REACT_CLASS.equals(name)) {
       return new RNSentryReplayUnmaskManager();
     } else {
       return null;
@@ -34,7 +46,6 @@ public class RNSentryPackage extends TurboReactPackage {
   public ReactModuleInfoProvider getReactModuleInfoProvider() {
     return () -> {
       final Map<String, ReactModuleInfo> moduleInfos = new HashMap<>();
-      boolean isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
       moduleInfos.put(
           RNSentryModuleImpl.NAME,
           new ReactModuleInfo(
@@ -46,26 +57,28 @@ public class RNSentryPackage extends TurboReactPackage {
               false, // isCxxModule
               isTurboModule // isTurboModule
               ));
-      moduleInfos.put(
-          RNSentryReplayMaskManager.REACT_CLASS,
-          new ReactModuleInfo(
-              RNSentryReplayMaskManager.REACT_CLASS, // name
-              RNSentryReplayMaskManager.REACT_CLASS, // className
-              false, // canOverrideExistingModule
-              false, // needsEagerInit
-              false, // isCxxModule
-              true // isTurboModule
-              ));
-      moduleInfos.put(
-          RNSentryReplayUnmaskManager.REACT_CLASS,
-          new ReactModuleInfo(
-              RNSentryReplayUnmaskManager.REACT_CLASS, // name
-              RNSentryReplayUnmaskManager.REACT_CLASS, // className
-              false, // canOverrideExistingModule
-              false, // needsEagerInit
-              false, // isCxxModule
-              true // isTurboModule
-              ));
+      if (isTurboModule) {
+        moduleInfos.put(
+            RNSentryReplayMaskManagerImpl.REACT_CLASS,
+            new ReactModuleInfo(
+                RNSentryReplayMaskManagerImpl.REACT_CLASS, // name
+                RNSentryReplayMaskManagerImpl.REACT_CLASS, // className
+                false, // canOverrideExistingModule
+                false, // needsEagerInit
+                false, // isCxxModule
+                true // isTurboModule
+                ));
+        moduleInfos.put(
+            RNSentryReplayUnmaskManagerImpl.REACT_CLASS,
+            new ReactModuleInfo(
+                RNSentryReplayUnmaskManagerImpl.REACT_CLASS, // name
+                RNSentryReplayUnmaskManagerImpl.REACT_CLASS, // className
+                false, // canOverrideExistingModule
+                false, // needsEagerInit
+                false, // isCxxModule
+                true // isTurboModule
+                ));
+      }
       return moduleInfos;
     };
   }

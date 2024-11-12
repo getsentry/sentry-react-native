@@ -8,7 +8,7 @@ import com.facebook.react.uimanager.ViewManagerDelegate;
 import com.facebook.react.viewmanagers.RNSentryReplayMaskManagerDelegate;
 import com.facebook.react.viewmanagers.RNSentryReplayMaskManagerInterface;
 
-@ReactModule(name = RNSentryReplayMaskManager.REACT_CLASS)
+@ReactModule(name = RNSentryReplayMaskManagerImpl.REACT_CLASS)
 public class RNSentryReplayMaskManager extends ViewGroupManager<RNSentryReplayMask>
     implements RNSentryReplayMaskManagerInterface<RNSentryReplayMask> {
   private final RNSentryReplayMaskManagerDelegate<RNSentryReplayMask, RNSentryReplayMaskManager>
@@ -22,7 +22,7 @@ public class RNSentryReplayMaskManager extends ViewGroupManager<RNSentryReplayMa
   @NonNull
   @Override
   public String getName() {
-    return REACT_CLASS;
+    return RNSentryReplayMaskManagerImpl.REACT_CLASS;
   }
 
   @NonNull
@@ -30,6 +30,4 @@ public class RNSentryReplayMaskManager extends ViewGroupManager<RNSentryReplayMa
   public RNSentryReplayMask createViewInstance(@NonNull ThemedReactContext context) {
     return new RNSentryReplayMask(context);
   }
-
-  public static final String REACT_CLASS = "RNSentryReplayMask";
 }
