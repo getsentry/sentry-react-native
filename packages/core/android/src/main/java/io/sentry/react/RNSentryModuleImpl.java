@@ -277,6 +277,21 @@ public class RNSentryModuleImpl {
       options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
     }
 
+    // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
+    String dsn = rnOptions.getString("dsn") != null ? rnOptions.getString("dsn") : "";
+    String devServerUrl =
+        rnOptions.getString("devServerUrl") != null ? rnOptions.getString("devServerUrl") : "";
+    options.setBeforeBreadcrumb(
+        (breadcrumb, hint) -> {
+          Object urlObject = breadcrumb.getData("url");
+          String url = urlObject instanceof String ? (String) urlObject : "";
+          if ("http".equals(breadcrumb.getType())
+              && (url.contains(dsn) || url.contains(devServerUrl))) {
+            return null;
+          }
+          return breadcrumb;
+        });
+
     // React native internally throws a JavascriptException.
     // we want to ignore it on the native side to avoid sending it twice.
     options.addIgnoredExceptionForType(JavascriptException.class);
