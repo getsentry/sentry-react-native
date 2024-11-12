@@ -1,13 +1,12 @@
 /* eslint-disable complexity */
 import { getClient } from '@sentry/core';
-import type { Breadcrumb, Event, Integration } from '@sentry/types';
+import type { Event, Integration } from '@sentry/types';
 import { logger, severityLevelFromString } from '@sentry/utils';
 import { AppState } from 'react-native';
 
 import { breadcrumbFromObject } from '../breadcrumb';
 import type { NativeDeviceContextsResponse } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';
-import { getDevServer } from './debugsymbolicatorutils';
 
 const INTEGRATION_NAME = 'DeviceContext';
 
@@ -85,27 +84,9 @@ async function processEvent(event: Event): Promise<Event> {
     ? native['breadcrumbs'].map(breadcrumbFromObject)
     : undefined;
   if (nativeBreadcrumbs) {
-    // Concatenate nativeBreadcrumbs first, then event.breadcrumbs
-    event.breadcrumbs = nativeBreadcrumbs.concat(event.breadcrumbs || []);
+    const maxBreadcrumbs = getClient()?.getOptions().maxBreadcrumbs ?? 100; // Default is 100.
+    event.breadcrumbs = nativeBreadcrumbs.concat(event.breadcrumbs || []).slice(0, maxBreadcrumbs);
   }
-
-  const options = getClient()?.getOptions();
-  const maxBreadcrumbs = options.maxBreadcrumbs ?? 100; // Default is 100.
-  const devServerUrl = getDevServer()?.url || '';
-  const dsn = options.dsn || '';
-
-  let allBreadcrumbs = event.breadcrumbs || [];
-
-  // Filter out Dev Server and Sentry DSN request breadcrumbs
-  allBreadcrumbs = allBreadcrumbs.filter((breadcrumb: Breadcrumb) => {
-    const type = breadcrumb.type || '';
-    const url = breadcrumb.data?.url || '';
-    return !(type === 'http' && (url.includes(devServerUrl) || url.includes(dsn)));
-  });
-
-  // Ensure the maxBreadcrumbs limit is not exceeded after merging event and native breadcrumbs
-  // and filtering out Dev Server and Sentry DSN request breadcrumbs
-  event.breadcrumbs = allBreadcrumbs.slice(0, maxBreadcrumbs);
 
   return event;
 }
