@@ -21,15 +21,17 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
-import org.mockito.Mockito.*
-import org.mockito.MockitoAnnotations
 import org.mockito.MockedStatic
+import org.mockito.Mockito.anyInt
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito.verify
+import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class RNSentryModuleImplTest {
-
     private lateinit var module: RNSentryModuleImpl
     private lateinit var promise: Promise
     private lateinit var logger: ILogger
@@ -74,7 +76,7 @@ class RNSentryModuleImplTest {
         // Verify a warning log is emitted
         verify(logger, org.mockito.kotlin.times(1)).log(
             SentryLevel.WARNING,
-            "Invalid app start data: app not launched in foreground."
+            "Invalid app start data: app not launched in foreground.",
         )
 
         // Verify the promise is resolved with null
@@ -101,10 +103,13 @@ class RNSentryModuleImplTest {
 
     @Test
     fun `when the spotlight option is enabled, the spotlight SentryAndroidOption is set to true and the default url is used`() {
-        val options = JavaOnlyMap.of(
-            "spotlight", true,
-            "defaultSidecarUrl", "http://localhost:8969/teststream"
-        )
+        val options =
+            JavaOnlyMap.of(
+                "spotlight",
+                true,
+                "defaultSidecarUrl",
+                "http://localhost:8969/teststream",
+            )
         val actualOptions = SentryAndroidOptions()
         module.getSentryAndroidOptions(actualOptions, options, logger)
         assert(actualOptions.isEnableSpotlight)
