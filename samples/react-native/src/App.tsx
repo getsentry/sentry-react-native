@@ -28,7 +28,7 @@ import { Provider } from 'react-redux';
 import { store } from './reduxApp';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
-import { LogBox, Platform, StyleSheet, View } from 'react-native';
+import { LogBox, Platform, StyleSheet, Text, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
 import { logWithoutTracing } from './utils';
@@ -120,7 +120,7 @@ Sentry.init({
   // otherwise they will not work.
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
-  // profilesSampleRate: 1.0,
+  profilesSampleRate: 1.0,
   _experiments: {
     replaysSessionSampleRate: 1.0,
     replaysOnErrorSampleRate: 1.0,
@@ -273,6 +273,11 @@ function App() {
     <>
       <RootNavigationContainer />
       <RunningIndicator />
+      <Text>
+        <Text>
+          Hello
+        </Text>
+      </Text>
     </>
   );
 }
