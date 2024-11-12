@@ -1,4 +1,3 @@
-import { getClient } from '@sentry/core';
 import type { Client, Event, EventHint, SeverityLevel } from '@sentry/types';
 
 import { deviceContextIntegration } from '../../src/js/integrations/devicecontext';
@@ -7,18 +6,17 @@ import { NATIVE } from '../../src/js/wrapper';
 
 let mockCurrentAppState: string = 'unknown';
 
+const mockClient = {
+  getOptions: jest.fn().mockReturnValue({
+    maxBreadcrumbs: undefined, // Default 100
+  }),
+} as unknown as Client;
+
 jest.mock('../../src/js/wrapper');
 jest.mock('react-native', () => ({
   AppState: new Proxy({}, { get: () => mockCurrentAppState }),
   NativeModules: {},
   Platform: {},
-}));
-jest.mock('@sentry/core', () => ({
-  getClient: jest.fn().mockReturnValue({
-    getOptions: jest.fn().mockReturnValue({
-      maxBreadcrumbs: 100, // Default value
-    }),
-  }),
 }));
 
 describe('Device Context Integration', () => {
@@ -167,10 +165,13 @@ describe('Device Context Integration', () => {
   });
 
   it('merge native and event breadcrumbs', async () => {
-    const { processedEvent } = await processEventWith({
-      nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb-1' }, { message: 'native-breadcrumb-2' }] },
-      mockEvent: { breadcrumbs: [{ message: 'event-breadcrumb-1' }, { message: 'event-breadcrumb-2' }] },
-    });
+    const { processedEvent } = await processEventWith(
+      {
+        nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb-1' }, { message: 'native-breadcrumb-2' }] },
+        mockEvent: { breadcrumbs: [{ message: 'event-breadcrumb-1' }, { message: 'event-breadcrumb-2' }] },
+      },
+      mockClient,
+    );
     expect(processedEvent).toStrictEqual({
       breadcrumbs: [
         { message: 'native-breadcrumb-1' },
@@ -181,40 +182,63 @@ describe('Device Context Integration', () => {
     });
   });
 
-  it('use only native breadcrumb if the maxBreadcrumbs limit does not leave space for event breadcrumbs', async () => {
-    getClient().getOptions().maxBreadcrumbs = 1;
-    const { processedEvent } = await processEventWith({
-      nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb' }] },
-      mockEvent: { breadcrumbs: [{ message: 'event-breadcrumb' }] },
-    });
-    expect(processedEvent).toStrictEqual({
-      breadcrumbs: [{ message: 'native-breadcrumb' }],
-    });
-  });
-
-  it('use native breadcrumbs and pick only the event breadcrumbs that fit the maxBreadcrumbs limit', async () => {
-    getClient().getOptions().maxBreadcrumbs = 3;
-    const { processedEvent } = await processEventWith({
-      nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb-1' }, { message: 'native-breadcrumb-2' }] },
-      mockEvent: { breadcrumbs: [{ message: 'event-breadcrumb-1' }, { message: 'event-breadcrumb-2' }] },
-    });
+  it('respect breadcrumb order when merging', async () => {
+    const { processedEvent } = await processEventWith(
+      {
+        nativeContexts: {
+          breadcrumbs: [
+            { message: 'native-breadcrumb-3', timestamp: 'Thursday, November 7, 2024 3:24:59 PM GMT+02:00' }, // 1730985899
+            { message: 'native-breadcrumb-1', timestamp: 'Thursday, November 7, 2024 3:24:57 PM GMT+02:00' }, // 1730985897
+          ],
+        },
+        mockEvent: {
+          breadcrumbs: [
+            { message: 'event-breadcrumb-4', timestamp: 1730985999 },
+            { message: 'event-breadcrumb-2', timestamp: 1730985898 },
+          ],
+        },
+      },
+      mockClient,
+    );
     expect(processedEvent).toStrictEqual({
       breadcrumbs: [
-        { message: 'native-breadcrumb-1' },
-        { message: 'native-breadcrumb-2' },
-        { message: 'event-breadcrumb-1' },
+        { message: 'native-breadcrumb-1', timestamp: 1730985897 },
+        { message: 'event-breadcrumb-2', timestamp: 1730985898 },
+        { message: 'native-breadcrumb-3', timestamp: 1730985899 },
+        { message: 'event-breadcrumb-4', timestamp: 1730985999 },
       ],
     });
   });
 
-  it('do not use any breadcrumbs if the maxBreadcrumbs limit is set to zero', async () => {
-    getClient().getOptions().maxBreadcrumbs = 0;
-    const { processedEvent } = await processEventWith({
-      nativeContexts: { breadcrumbs: [{ message: 'native-breadcrumb' }] },
-      mockEvent: { breadcrumbs: [{ message: 'event-breadcrumb' }] },
-    });
+  it('keep the last maxBreadcrumbs when merging', async () => {
+    const mockClient = {
+      getOptions: jest.fn().mockReturnValue({
+        maxBreadcrumbs: 3,
+      }),
+    } as unknown as Client;
+    const { processedEvent } = await processEventWith(
+      {
+        nativeContexts: {
+          breadcrumbs: [
+            { message: 'native-breadcrumb-3', timestamp: 'Thursday, November 7, 2024 3:24:59 PM GMT+02:00' }, // 1730985899
+            { message: 'native-breadcrumb-1', timestamp: 'Thursday, November 7, 2024 3:24:57 PM GMT+02:00' }, // 1730985897
+          ],
+        },
+        mockEvent: {
+          breadcrumbs: [
+            { message: 'event-breadcrumb-4', timestamp: 1730985999 },
+            { message: 'event-breadcrumb-2', timestamp: 1730985898 },
+          ],
+        },
+      },
+      mockClient,
+    );
     expect(processedEvent).toStrictEqual({
-      breadcrumbs: [],
+      breadcrumbs: [
+        { message: 'event-breadcrumb-2', timestamp: 1730985898 },
+        { message: 'native-breadcrumb-3', timestamp: 1730985899 },
+        { message: 'event-breadcrumb-4', timestamp: 1730985999 },
+      ],
     });
   });
 
@@ -263,13 +287,16 @@ describe('Device Context Integration', () => {
   });
 });
 
-async function processEventWith({
-  nativeContexts,
-  mockEvent,
-}: {
-  nativeContexts: Record<string, unknown>;
-  mockEvent?: Event;
-}): Promise<{
+async function processEventWith(
+  {
+    nativeContexts,
+    mockEvent,
+  }: {
+    nativeContexts: Record<string, unknown>;
+    mockEvent?: Event;
+  },
+  client: Client = {} as undefined as Client,
+): Promise<{
   processedEvent: Event | null;
   expectEvent: {
     toStrictEqualToNativeContexts: () => void;
@@ -281,7 +308,7 @@ async function processEventWith({
   );
   const originalNativeContexts = { ...nativeContexts };
   const originalMockEvent = { ...mockEvent };
-  const processedEvent = await processEvent(mockEvent ?? {});
+  const processedEvent = await processEvent(mockEvent ?? {}, client);
   return {
     processedEvent,
     expectEvent: {
@@ -291,6 +318,6 @@ async function processEventWith({
   };
 }
 
-function processEvent(mockedEvent: Event): Event | null | PromiseLike<Event | null> {
-  return deviceContextIntegration().processEvent!(mockedEvent, {} as EventHint, {} as Client);
+function processEvent(mockedEvent: Event, client: Client): Event | null | PromiseLike<Event | null> {
+  return deviceContextIntegration().processEvent!(mockedEvent, {} as EventHint, client);
 }
