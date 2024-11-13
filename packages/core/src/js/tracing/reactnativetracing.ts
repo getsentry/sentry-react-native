@@ -120,7 +120,7 @@ export const reactNativeTracingIntegration = (
     instrumentOutgoingRequests(client, {
       traceFetch: finalOptions.traceFetch,
       traceXHR: finalOptions.traceXHR,
-      shouldCreateSpanForRequest: finalShouldCreateSpanForRequest,
+      shouldCreateSpanForRequest: finalOptions.shouldCreateSpanForRequest,
       tracePropagationTargets: client.getOptions().tracePropagationTargets || getDefaultTracePropagationTargets(),
     });
   };
