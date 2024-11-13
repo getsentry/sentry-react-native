@@ -98,14 +98,21 @@ export const reactNativeTracingIntegration = (
     idleTimeoutMs: options.idleTimeoutMs ?? defaultIdleOptions.idleTimeout,
   };
 
+  const userShouldCreateSpanForRequest = finalOptions.shouldCreateSpanForRequest;
+
   // Drop Dev Server Spans
   const devServerUrl = getDevServer()?.url || '';
   const finalShouldCreateSpanForRequest = (url: string): boolean => {
     if (url.includes(devServerUrl)) {
       return false;
     }
-    return finalOptions.shouldCreateSpanForRequest(url);
+    if (userShouldCreateSpanForRequest) {
+      return userShouldCreateSpanForRequest(url);
+    }
+    return true;
   };
+
+  finalOptions.shouldCreateSpanForRequest = finalShouldCreateSpanForRequest;
 
   const setup = (client: Client): void => {
     addDefaultOpForSpanFrom(client);

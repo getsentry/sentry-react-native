@@ -24,6 +24,7 @@ import { DEFAULT_NAVIGATION_SPAN_NAME } from '../../src/js/tracing/span';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';
+import { getDevServer } from './../../src/js/integrations/debugsymbolicatorutils';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
 
 const dummyRoute = {
@@ -32,6 +33,9 @@ const dummyRoute = {
 };
 
 jest.mock('../../src/js/wrapper.ts', () => jest.requireActual('../mockWrapper.ts'));
+jest.mock('./../../src/js/integrations/debugsymbolicatorutils', () => ({
+  getDevServer: jest.fn(),
+}));
 jest.useFakeTimers({ advanceTimers: true });
 
 class MockNavigationContainer {
@@ -389,6 +393,45 @@ describe('ReactNavigationInstrumentation', () => {
       jest.advanceTimersByTime(20);
 
       expect(mockTransaction['_sampled']).toBe(false);
+    });
+  });
+
+  describe('shouldCreateSpanForRequest', () => {
+    it('should return false for Dev Server URLs', () => {
+      const devServerUrl = 'http://localhost:8081';
+      (getDevServer as jest.Mock).mockReturnValue({ url: devServerUrl });
+
+      const rnTracing = reactNativeTracingIntegration();
+
+      const result = rnTracing.options.shouldCreateSpanForRequest(devServerUrl);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return true for non Dev Server URLs', () => {
+      const devServerUrl = 'http://localhost:8081';
+      (getDevServer as jest.Mock).mockReturnValue({ url: devServerUrl });
+
+      const rnTracing = reactNativeTracingIntegration();
+
+      const result = rnTracing.options.shouldCreateSpanForRequest('http://some-other-url.com');
+
+      expect(result).toBe(true);
+    });
+
+    it('should chain the user defined shouldCreateSpanForRequest if defined', () => {
+      const devServerUrl = 'http://localhost:8081';
+      (getDevServer as jest.Mock).mockReturnValue({ url: devServerUrl });
+
+      const userShouldCreateSpanForRequest = (_url: string): boolean => {
+        return false;
+      };
+
+      const rnTracing = reactNativeTracingIntegration({ shouldCreateSpanForRequest: userShouldCreateSpanForRequest });
+
+      const result = rnTracing.options.shouldCreateSpanForRequest('http://some-other-url.com');
+
+      expect(result).toBe(false);
     });
   });
 
