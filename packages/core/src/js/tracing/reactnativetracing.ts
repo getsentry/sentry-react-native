@@ -4,6 +4,7 @@ import { getClient } from '@sentry/core';
 import type { Client, Event, Integration, StartSpanOptions } from '@sentry/types';
 
 import { isWeb } from '../utils/environment';
+import { getDevServer } from './../integrations/debugsymbolicatorutils';
 import { addDefaultOpForSpanFrom, defaultIdleOptions } from './span';
 
 export const INTEGRATION_NAME = 'ReactNativeTracing';
@@ -97,13 +98,22 @@ export const reactNativeTracingIntegration = (
     idleTimeoutMs: options.idleTimeoutMs ?? defaultIdleOptions.idleTimeout,
   };
 
+  // Drop Dev Server Spans
+  const devServerUrl = getDevServer()?.url || '';
+  const finalShouldCreateSpanForRequest = (url: string): boolean => {
+    if (url.includes(devServerUrl)) {
+      return false;
+    }
+    return finalOptions.shouldCreateSpanForRequest(url);
+  };
+
   const setup = (client: Client): void => {
     addDefaultOpForSpanFrom(client);
 
     instrumentOutgoingRequests(client, {
       traceFetch: finalOptions.traceFetch,
       traceXHR: finalOptions.traceXHR,
-      shouldCreateSpanForRequest: finalOptions.shouldCreateSpanForRequest,
+      shouldCreateSpanForRequest: finalShouldCreateSpanForRequest,
       tracePropagationTargets: client.getOptions().tracePropagationTargets || getDefaultTracePropagationTargets(),
     });
   };
