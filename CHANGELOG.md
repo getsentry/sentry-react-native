@@ -31,7 +31,7 @@
   export SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD=true
   ```
 
-- Add Replay Custom Masking for iOS ([#4238](https://github.com/getsentry/sentry-react-native/pull/4224))
+- Add Replay Custom Masking for iOS and Web ([#4238](https://github.com/getsentry/sentry-react-native/pull/4224), ([#4272](https://github.com/getsentry/sentry-react-native/pull/4272)))
 
   ```jsx
   import * as Sentry from '@sentry/react-native';

@@ -13,6 +13,7 @@ export { viewHierarchyIntegration } from './viewhierarchy';
 export { expoContextIntegration } from './expocontext';
 export { spotlightIntegration } from './spotlight';
 export { mobileReplayIntegration } from '../replay/mobilereplay';
+export { browserReplayIntegration } from '../replay/browserReplay';
 export { appStartIntegration } from '../tracing/integrations/appStart';
 export { nativeFramesIntegration, createNativeFramesIntegrations } from '../tracing/integrations/nativeFrames';
 export { stallTrackingIntegration } from '../tracing/integrations/stalltracking';
@@ -30,5 +31,4 @@ export {
   inboundFiltersIntegration,
   linkedErrorsIntegration as browserLinkedErrorsIntegration,
   rewriteFramesIntegration,
-  replayIntegration as browserReplayIntegration,
 } from '@sentry/react';

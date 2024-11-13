@@ -2,7 +2,9 @@
   "extends": "./node_modules/@sentry-internal/typescript/tsconfig.json",
   "include": [
     "./src/js/*.ts",
+    "./src/js/*.tsx",
     "./src/js/**/*.web.ts",
+    "./src/js/**/*.web.tsx",
     "./typings/react-native.d.ts"
   ],
   "exclude": ["node_modules"],
