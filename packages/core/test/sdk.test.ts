@@ -1,8 +1,16 @@
 import { initAndBind } from '@sentry/core';
 import { makeFetchTransport } from '@sentry/react';
-import type { BaseTransportOptions, ClientOptions, Integration, Scope } from '@sentry/types';
+import type {
+  BaseTransportOptions,
+  Breadcrumb,
+  BreadcrumbHint,
+  ClientOptions,
+  Integration,
+  Scope,
+} from '@sentry/types';
 import { logger } from '@sentry/utils';
 
+import { getDevServer } from '../src/js/integrations/debugsymbolicatorutils';
 import { init, withScope } from '../src/js/sdk';
 import type { ReactNativeTracingIntegration } from '../src/js/tracing';
 import { REACT_NATIVE_TRACING_INTEGRATION_NAME, reactNativeTracingIntegration } from '../src/js/tracing';
@@ -17,6 +25,9 @@ jest.mock('../src/js/utils/environment');
 jest.mock('@sentry/core', () => ({
   ...jest.requireActual('@sentry/core'),
   initAndBind: jest.fn(),
+}));
+jest.mock('../src/js/integrations/debugsymbolicatorutils', () => ({
+  getDevServer: jest.fn(),
 }));
 
 describe('Tests the SDK functionality', () => {
@@ -289,6 +300,109 @@ describe('Tests the SDK functionality', () => {
         usedOptions()?.tracesSampler?.({} as any);
       }).not.toThrow();
       expect(mockTraceSampler).toBeCalledTimes(1);
+    });
+  });
+
+  describe('beforeBreadcrumb', () => {
+    it('should filters out dev server breadcrumbs', () => {
+      const devServerUrl = 'http://localhost:8081';
+      (getDevServer as jest.Mock).mockReturnValue({ url: devServerUrl });
+
+      const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
+        return breadcrumb;
+      };
+
+      const passedOptions = {
+        dsn: 'https://example@sentry.io/123',
+        beforeBreadcrumb: mockBeforeBreadcrumb,
+      };
+
+      init(passedOptions);
+
+      const breadcrumb: Breadcrumb = {
+        type: 'http',
+        data: { url: devServerUrl },
+      };
+
+      const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+      expect(result).toBeNull();
+    });
+
+    it('should filters out dsn breadcrumbs', () => {
+      const mockDsn = 'https://example@sentry.io/123';
+      (getDevServer as jest.Mock).mockReturnValue({ url: 'http://localhost:8081' });
+
+      const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
+        return breadcrumb;
+      };
+
+      const passedOptions = {
+        dsn: mockDsn,
+        beforeBreadcrumb: mockBeforeBreadcrumb,
+      };
+
+      init(passedOptions);
+
+      const breadcrumb: Breadcrumb = {
+        type: 'http',
+        data: { url: mockDsn },
+      };
+
+      const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+      expect(result).toBeNull();
+    });
+
+    it('should keep non dev server or dsn breadcrumbs', () => {
+      (getDevServer as jest.Mock).mockReturnValue({ url: 'http://localhost:8081' });
+
+      const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
+        return breadcrumb;
+      };
+
+      const passedOptions = {
+        dsn: 'https://example@sentry.io/123',
+        beforeBreadcrumb: mockBeforeBreadcrumb,
+      };
+
+      init(passedOptions);
+
+      const breadcrumb: Breadcrumb = {
+        type: 'http',
+        data: { url: 'http://testurl.com/service' },
+      };
+
+      const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+      expect(result).toEqual(breadcrumb);
+    });
+
+    it('verify the user beforeBreadcrumb is chained', () => {
+      const devServerUrl = 'http://localhost:8081';
+
+      (getDevServer as jest.Mock).mockReturnValue({ url: devServerUrl });
+
+      const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
+        breadcrumb.data = { url: devServerUrl }; // Set to an excuded url
+        return breadcrumb;
+      };
+
+      const passedOptions = {
+        dsn: 'https://example@sentry.io/123',
+        beforeBreadcrumb: mockBeforeBreadcrumb,
+      };
+
+      init(passedOptions);
+
+      const breadcrumb: Breadcrumb = {
+        type: 'http',
+        data: { url: 'http://testurl.com/service' }, // Not an excuded url
+      };
+
+      const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+      expect(result).toBeNull();
     });
   });
 
