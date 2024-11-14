@@ -26,6 +26,13 @@ Sentry.init({
   release: '${SENTRY_RELEASE}',
   dist: '${SENTRY_DIST}',
   dsn: 'https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561',
+  debug: true,
+  _experiments: {
+    replaysOnErrorSampleRate: 1.0,
+  },
+  integrations: [
+    Sentry.mobileReplayIntegration(),
+  ],
 });
 `;
 const e2eComponentPatch = '<EndToEndTestsScreen />';

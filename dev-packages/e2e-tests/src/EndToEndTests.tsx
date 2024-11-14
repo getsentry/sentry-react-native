@@ -1,15 +1,13 @@
 import * as Sentry from '@sentry/react-native';
 import * as React from 'react';
 import { Text, View } from 'react-native';
-import { LaunchArguments } from "react-native-launch-arguments";
+import { LaunchArguments } from 'react-native-launch-arguments';
 
-import { fetchEvent } from './utils/fetchEvent';
+import * as SentryApi from './utils/fetchEvent';
 
 const E2E_TESTS_READY_TEXT = 'E2E Tests Ready';
 
-const getSentryAuthToken = ():
-  | { token: string }
-  | { error: string } => {
+const getSentryAuthToken = (): { token: string } | { error: string } => {
   const { sentryAuthToken } = LaunchArguments.value<{
     sentryAuthToken: unknown;
   }>();
@@ -28,6 +26,7 @@ const getSentryAuthToken = ():
 const EndToEndTestsScreen = (): JSX.Element => {
   const [isReady, setIsReady] = React.useState(false);
   const [eventId, setEventId] = React.useState<string | null>(null);
+  const [replayInfo, setReplayInfo] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string>('No error');
 
   async function assertEventReceived(eventId: string | undefined) {
@@ -42,7 +41,7 @@ const EndToEndTestsScreen = (): JSX.Element => {
       return;
     }
 
-    const event = await fetchEvent(eventId, value.token);
+    const event = await SentryApi.fetchEvent(eventId, value.token);
 
     if (event.event_id !== eventId) {
       setError('Event ID mismatch');
@@ -50,6 +49,26 @@ const EndToEndTestsScreen = (): JSX.Element => {
     }
 
     setEventId(eventId);
+
+    const replayInfo = {
+      id: '',
+      duration: '',
+      segments: '',
+      type: '',
+      error: '',
+    };
+    try {
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+      replayInfo.id = (event as any)._dsc.replay_id;
+      const replay = await SentryApi.fetchReplay(replayInfo.id, value.token);
+      replayInfo.duration = replay.data.duration;
+      replayInfo.segments = replay.data.count_segments;
+      const video = await SentryApi.fetchReplaySegmentVideo(replayInfo.id, 0, value.token);
+      replayInfo.type = await video.slice(4, 12).text();
+    } catch (error) {
+      replayInfo.error = error instanceof Error ? error.message + error.stack : 'Unknown error';
+    }
+    setReplayInfo(JSON.stringify(replayInfo));
   }
 
   React.useEffect(() => {
@@ -62,7 +81,7 @@ const EndToEndTestsScreen = (): JSX.Element => {
 
     // WARNING: This is only for testing purposes.
     // We only do this to render the eventId onto the UI for end to end tests.
-    client.getOptions().beforeSend = (e) => {
+    client.getOptions().beforeSend = e => {
       assertEventReceived(e.event_id);
       return e;
     };
@@ -102,15 +121,15 @@ const EndToEndTestsScreen = (): JSX.Element => {
     <View>
       <Text>{isReady ? E2E_TESTS_READY_TEXT : 'Loading...'}</Text>
       <Text>{error}</Text>
-      {eventId ? <Text testID='eventId'>{eventId}</Text> : <Text>No event ID</Text>}
-      <Text onPress={() => setEventId(null)}>
-        Clear Event Id
-      </Text>
-      {testCases.map((testCase) => (
+      {eventId ? <Text testID="eventId">{eventId}</Text> : <Text>No event ID</Text>}
+      <Text onPress={() => setEventId(null)}>Clear Event Id</Text>
+      {testCases.map(testCase => (
         <Text key={testCase.id} onPress={testCase.action}>
           {testCase.name}
         </Text>
       ))}
+      <Text>ReplayInfo:</Text>
+      {replayInfo ? <Text testID="replayInfo">{replayInfo}</Text> : <Text>n/a</Text>}
     </View>
   );
 };
