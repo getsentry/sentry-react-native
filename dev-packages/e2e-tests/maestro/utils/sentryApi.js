@@ -4,12 +4,21 @@ const RETRY_COUNT = 600;
 const RETRY_INTERVAL = 1000;
 const requestHeaders = { 'Authorization': `Bearer ${sentryAuthToken}` }
 
-// Top-level async doesn't seem to work so we can't sleep.
-// Seems to work fine without it though, from the logs it seems to be rather slow anyway.
-// TODO reach out on to Maestro & GrallJS GitHub issues
-// function sleep(ms) {
-//   return new Promise(resolve => setTimeout(resolve, ms));
-// }
+function sleep(ms) {
+  // Top-level async doesn't seem to work.
+  // TODO reach out on to Maestro & GrallJS GitHub issues
+  //   return new Promise(resolve => setTimeout(resolve, ms));
+  // Instead, we need to do a busy wait.
+  const until = Date.now() + ms;
+  while (Date.now() < until) {
+    // console.log(`Sleeping for ${until - Date.now()} ms`);
+    try {
+      http.get('http://127.0.0.1:1');
+    } catch (e) {
+      // Ignore
+    }
+  }
+}
 
 function fetchFromSentry(url) {
   console.log(`Fetching ${url}`);
@@ -22,7 +31,7 @@ function fetchFromSentry(url) {
         throw new Error(`Could not fetch ${url}: ${response.status} | ${response.body}`);
       default:
         if (retries++ < RETRY_COUNT) {
-          console.log(`Request failed, retrying: ${retries}/${RETRY_COUNT}`);
+          console.log(`Request failed (HTTP ${response.status}), retrying: ${retries}/${RETRY_COUNT}`);
           return true;
         }
         throw new Error(`Could not fetch ${url} within retry limit: ${response.status} | ${response.body}`);
@@ -32,35 +41,41 @@ function fetchFromSentry(url) {
   while (true) {
     const response = http.get(url, { headers: requestHeaders })
     if (!shouldRetry(response)) {
-      console.log('Received data:');
-      console.log(response.body);
+      console.log(`Received HTTP ${response.status}: body length ${response.body.length}`);
       return json(response.body);
     }
-    // await sleep(RETRY_INTERVAL);
+    sleep(RETRY_INTERVAL);
   }
 };
 
 function setOutput(data) {
   for (const [key, value] of Object.entries(data)) {
+    console.log(`Setting output.${key} = '${value}'`);
     output[key] = value;
   }
 }
 
-// Note: "fetch" and "id" are script inputs, see for example assertEventIdIVisible.yml
+// Note: "fetch", "id", "eventId", etc. are script inputs, see for example assertEventIdIVisible.yml
 switch (fetch) {
   case 'event': {
     const data = fetchFromSentry(`${baseUrl}/events/${id}/json/`);
-    setOutput(data);
+    setOutput({ eventId: data.event_id });
     break;
   }
   case 'replay': {
-    const data = fetchFromSentry(`${baseUrl}/replays/${id}/`);
-    setOutput(data);
+    const event = fetchFromSentry(`${baseUrl}/events/${eventId}/json/`);
+    const replayId = event._dsc.replay_id;
+    const replay = fetchFromSentry(`${baseUrl}/replays/${replayId}/`);
+    const segment = fetchFromSentry(`${baseUrl}/replays/${replayId}/videos/0/`);
+
+    setOutput({
+      replayId: replayId,
+      replayDuration: replay.data.duration,
+      replaySegments: replay.data.count_segments,
+      replayCodec: segment.slice(4, 12)
+    });
     break;
   }
-  case 'replaySegment': {
-    const data = fetchFromSentry(`${baseUrl}/replays/${replayId}/videos/${segment}/`);
-    setOutput(data);
-    break;
-  }
+  default:
+    throw new Error(`Unknown "fetch" value: '${fetch}'`);
 }

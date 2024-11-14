@@ -12,8 +12,11 @@ appId: ${APP_ID}
 - runScript:
     file: sentryApi.js
     env:
-      fetch: event
+      fetch: replay
       id: ${maestro.copiedText}
       sentryAuthToken: ${SENTRY_AUTH_TOKEN}
 
-- assertTrue: ${output.eventId == maestro.copiedText}
+- assertTrue: ${output.replayId}
+- assertTrue: ${output.replayDuration}
+- assertTrue: ${output.replaySegments}
+- assertTrue: ${output.replayCodec == 'ftypmp42'}

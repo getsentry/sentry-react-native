@@ -4,3 +4,4 @@ jsEngine: graaljs
 - runFlow: utils/launchTestAppClear.yml
 - tapOn: 'Capture Exception'
 - runFlow: utils/assertEventIdVisible.yml
+- runFlow: utils/assertReplay.yml
