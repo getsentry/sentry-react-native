@@ -163,15 +163,16 @@ RCT_EXPORT_METHOD(initNativeSdk
     }
 
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
-    NSString *dsn = [mutableOptions valueForKey:@"dsn"] ?: @"";
-    NSString *devServerUrl = [mutableOptions valueForKey:@"devServerUrl"] ?: @"";
+    NSString *dsn = [mutableOptions valueForKey:@"dsn"];
+    NSString *devServerUrl = [mutableOptions valueForKey:@"devServerUrl"];
     sentryOptions.beforeBreadcrumb
         = ^SentryBreadcrumb *_Nullable(SentryBreadcrumb *_Nonnull breadcrumb)
     {
         NSString *url = breadcrumb.data[@"url"] ?: @"";
 
         if ([@"http" isEqualToString:breadcrumb.type]
-            && ([url containsString:dsn] || [url containsString:devServerUrl])) {
+            && ([url containsString:dsn]
+                || (devServerUrl != nil && [url containsString:devServerUrl]))) {
             return nil;
         }
         return breadcrumb;

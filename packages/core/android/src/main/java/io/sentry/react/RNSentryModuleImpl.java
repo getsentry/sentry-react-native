@@ -278,15 +278,15 @@ public class RNSentryModuleImpl {
     }
 
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
-    String dsn = rnOptions.getString("dsn") != null ? rnOptions.getString("dsn") : "";
-    String devServerUrl =
-        rnOptions.getString("devServerUrl") != null ? rnOptions.getString("devServerUrl") : "";
+    String dsn = rnOptions.getString("dsn");
+    String devServerUrl = rnOptions.getString("devServerUrl");
     options.setBeforeBreadcrumb(
         (breadcrumb, hint) -> {
           Object urlObject = breadcrumb.getData("url");
           String url = urlObject instanceof String ? (String) urlObject : "";
           if ("http".equals(breadcrumb.getType())
-              && (url.contains(dsn) || url.contains(devServerUrl))) {
+              && ((dsn != null && url.contains(dsn))
+                  || (devServerUrl != null && url.contains(devServerUrl)))) {
             return null;
           }
           return breadcrumb;
