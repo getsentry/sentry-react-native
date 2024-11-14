@@ -171,7 +171,7 @@ RCT_EXPORT_METHOD(initNativeSdk
         NSString *url = breadcrumb.data[@"url"] ?: @"";
 
         if ([@"http" isEqualToString:breadcrumb.type]
-            && ([url containsString:dsn]
+            && ((dsn != nil && [url containsString:dsn])
                 || (devServerUrl != nil && [url containsString:devServerUrl]))) {
             return nil;
         }
