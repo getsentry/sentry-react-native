@@ -433,6 +433,28 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(result).toBe(false);
     });
+
+    it('should handle undefined devServerUrls by using only the user defined shouldCreateSpanForRequest', () => {
+      (getDevServer as jest.Mock).mockReturnValue({ url: undefined });
+
+      const userShouldCreateSpanForRequest = (_url: string): boolean => {
+        return true;
+      };
+
+      const rnTracing = reactNativeTracingIntegration({ shouldCreateSpanForRequest: userShouldCreateSpanForRequest });
+
+      const result = rnTracing.options.shouldCreateSpanForRequest('http://any-url.com');
+
+      expect(result).toBe(true);
+    });
+
+    it('should not set the shouldCreateSpanForRequest if not user provided and the devServerUrl is undefined', () => {
+      (getDevServer as jest.Mock).mockReturnValue({ url: undefined });
+
+      const rnTracing = reactNativeTracingIntegration();
+
+      expect(rnTracing.options.shouldCreateSpanForRequest).toBe(undefined);
+    });
   });
 
   function setupTestClient(
