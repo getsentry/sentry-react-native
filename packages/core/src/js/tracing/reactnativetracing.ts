@@ -101,16 +101,19 @@ export const reactNativeTracingIntegration = (
   const userShouldCreateSpanForRequest = finalOptions.shouldCreateSpanForRequest;
 
   // Drop Dev Server Spans
-  const devServerUrl = getDevServer()?.url || '';
-  const finalShouldCreateSpanForRequest = (url: string): boolean => {
-    if (url.includes(devServerUrl)) {
-      return false;
-    }
-    if (userShouldCreateSpanForRequest) {
-      return userShouldCreateSpanForRequest(url);
-    }
-    return true;
-  };
+  const devServerUrl = getDevServer()?.url;
+  const finalShouldCreateSpanForRequest =
+    devServerUrl === undefined
+      ? userShouldCreateSpanForRequest
+      : (url: string): boolean => {
+          if (url.includes(devServerUrl)) {
+            return false;
+          }
+          if (userShouldCreateSpanForRequest) {
+            return userShouldCreateSpanForRequest(url);
+          }
+          return true;
+        };
 
   finalOptions.shouldCreateSpanForRequest = finalShouldCreateSpanForRequest;
 
