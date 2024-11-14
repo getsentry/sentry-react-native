@@ -330,7 +330,6 @@ describe('Tests the SDK functionality', () => {
     });
 
     it('should filters out dsn breadcrumbs', () => {
-      const mockDsn = 'https://example@sentry.io/123';
       (getDevServer as jest.Mock).mockReturnValue({ url: 'http://localhost:8081' });
 
       const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
@@ -338,7 +337,7 @@ describe('Tests the SDK functionality', () => {
       };
 
       const passedOptions = {
-        dsn: mockDsn,
+        dsn: 'https://abc@def.ingest.sentry.io/1234567',
         beforeBreadcrumb: mockBeforeBreadcrumb,
       };
 
@@ -346,7 +345,7 @@ describe('Tests the SDK functionality', () => {
 
       const breadcrumb: Breadcrumb = {
         type: 'http',
-        data: { url: mockDsn },
+        data: { url: 'https://def.ingest.sentry.io/1234567' },
       };
 
       const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);

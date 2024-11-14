@@ -163,7 +163,7 @@ RCT_EXPORT_METHOD(initNativeSdk
     }
 
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
-    NSString *dsn = [mutableOptions valueForKey:@"dsn"];
+    NSString *dsn = [self getURLFromDSN:[mutableOptions valueForKey:@"dsn"]];
     NSString *devServerUrl = [mutableOptions valueForKey:@"devServerUrl"];
     sentryOptions.beforeBreadcrumb
         = ^SentryBreadcrumb *_Nullable(SentryBreadcrumb *_Nonnull breadcrumb)
@@ -215,6 +215,15 @@ RCT_EXPORT_METHOD(initNativeSdk
     }
 
     return sentryOptions;
+}
+
+- (NSString *_Nullable)getURLFromDSN:(NSString *)dsn
+{
+    NSURL *url = [NSURL URLWithString:dsn];
+    if (!url) {
+        return nil;
+    }
+    return [NSString stringWithFormat:@"%@://%@", url.scheme, url.host];
 }
 
 - (void)setEventOriginTag:(SentryEvent *)event

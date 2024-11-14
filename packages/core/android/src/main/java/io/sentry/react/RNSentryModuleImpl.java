@@ -75,6 +75,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -278,7 +280,7 @@ public class RNSentryModuleImpl {
     }
 
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
-    String dsn = rnOptions.getString("dsn");
+    String dsn = getURLFromDSN(rnOptions.getString("dsn"));
     String devServerUrl = rnOptions.getString("devServerUrl");
     options.setBeforeBreadcrumb(
         (breadcrumb, hint) -> {
@@ -1015,5 +1017,18 @@ public class RNSentryModuleImpl {
 
   private boolean isFrameMetricsAggregatorAvailable() {
     return androidXAvailable && frameMetricsAggregator != null;
+  }
+
+  public static @Nullable String getURLFromDSN(@Nullable String dsn) {
+    if (dsn == null) {
+      return null;
+    }
+    URI uri = null;
+    try {
+      uri = new URI(dsn);
+    } catch (URISyntaxException e) {
+      return null;
+    }
+    return uri.getScheme() + "://" + uri.getHost();
   }
 }

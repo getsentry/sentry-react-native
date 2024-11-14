@@ -63,11 +63,19 @@ export function init(passedOptions: ReactNativeOptions): void {
     enableSyncToNative(getIsolationScope());
   }
 
+  const getURLFromDSN = (dsn: string | null): string | undefined => {
+    if (!dsn) {
+      return undefined;
+    }
+    const url = new URL(dsn);
+    return `${url.protocol}//${url.host}`;
+  };
+
   const userBeforeBreadcrumb = safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' });
 
   // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
   const devServerUrl = getDevServer()?.url;
-  const dsn = passedOptions.dsn;
+  const dsn = getURLFromDSN(passedOptions.dsn);
   const defaultBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint): Breadcrumb | null => {
     const type = breadcrumb.type || '';
     const url = typeof breadcrumb.data?.url === 'string' ? breadcrumb.data.url : '';

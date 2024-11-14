@@ -243,15 +243,15 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
-    NSString *mockDsn = @"https://abc@def.ingest.sentry.io/1234567";
-
-    NSDictionary *_Nonnull mockedDictionary =
-        @{ @"dsn" : mockDsn, @"devServerUrl" : @"http://localhost:8081" };
+    NSDictionary *_Nonnull mockedDictionary = @{
+        @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
+        @"devServerUrl" : @"http://localhost:8081"
+    };
     SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
 
     SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
     breadcrumb.type = @"http";
-    breadcrumb.data = @{ @"url" : mockDsn };
+    breadcrumb.data = @{ @"url" : @"https://def.ingest.sentry.io/1234567" };
 
     SentryBreadcrumb *result = options.beforeBreadcrumb(breadcrumb);
 

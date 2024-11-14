@@ -139,17 +139,16 @@ class RNSentryModuleImplTest {
 
     @Test
     fun `beforeBreadcrumb callback filters out Sentry DSN requests breadcrumbs`() {
-        val mockDsn = "https://abc@def.ingest.sentry.io/1234567"
         val options = SentryAndroidOptions()
         val rnOptions = JavaOnlyMap.of(
-            "dsn", mockDsn,
+            "dsn", "https://abc@def.ingest.sentry.io/1234567",
             "devServerUrl", "http://localhost:8081",
         )
         module.getSentryAndroidOptions(options, rnOptions, logger)
 
         val breadcrumb = Breadcrumb().apply {
             type = "http"
-            setData("url", mockDsn)
+            setData("url", "https://def.ingest.sentry.io/1234567")
         }
 
         val result = options.beforeBreadcrumb?.execute(breadcrumb, mock())
