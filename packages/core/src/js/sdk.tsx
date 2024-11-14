@@ -66,12 +66,12 @@ export function init(passedOptions: ReactNativeOptions): void {
   const userBeforeBreadcrumb = safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' });
 
   // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
-  const devServerUrl = getDevServer()?.url || '';
+  const devServerUrl = getDevServer()?.url';
   const dsn = passedOptions.dsn || '';
   const defaultBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint): Breadcrumb | null => {
     const type = breadcrumb.type || '';
     const url = typeof breadcrumb.data?.url === 'string' ? breadcrumb.data.url : '';
-    if (type === 'http' && (url.includes(devServerUrl) || url.includes(dsn))) {
+    if (type === 'http' && (devServerUrl && url.includes(devServerUrl) || url.includes(dsn))) {
       return null;
     }
     return breadcrumb;
