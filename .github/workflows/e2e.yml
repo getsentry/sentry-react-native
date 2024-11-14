@@ -348,7 +348,10 @@ jobs:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: dev-packages/e2e-tests
 
-      - run: corepack enable
+      - name: Enable Corepack
+        run: |
+          npm install -g corepack@0.29.4
+          corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 20
