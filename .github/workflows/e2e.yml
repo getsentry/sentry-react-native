@@ -15,7 +15,8 @@ concurrency:
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   MAESTRO_VERSION: '1.39.0'
-  IOS_DEVICE: 'iPhone 14'
+  IOS_DEVICE: 'iPhone 16'
+  IOS_VERSION: '18.1'
 
 jobs:
   diff_check:
@@ -157,8 +158,6 @@ jobs:
       USE_FRAMEWORKS: ${{ matrix.ios-use-frameworks }}
       PRODUCTION: ${{ matrix.build-type == 'production' && '1' || '0' }}
       RCT_NEW_ARCH_ENABLED: ${{ matrix.rn-architecture == 'new' && '1' || '0' }}
-      IOS_RUNTIME: ${{ matrix.runtime }}
-      IOS_DEVICE: ${{ matrix.device }}
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
@@ -171,12 +170,10 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.76.0'
-            runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
-            runtime: 'latest'
+            runs-on: macos-14
           - platform: ios
             rn-version: '0.65.3'
             runs-on: macos-13
-            runtime: 'latest'
           - platform: android
             runs-on: ubuntu-latest
         exclude:
@@ -309,12 +306,10 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.76.0'
-            runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
-            runtime: 'latest'
+            runs-on: macos-15
           - platform: ios
             rn-version: '0.65.3'
-            runs-on: macos-latest
-            runtime: 'latest'
+            runs-on: macos-15
           - platform: android
             runs-on: ubuntu-latest
         exclude:
@@ -408,6 +403,7 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         with:
           model: ${{ env.IOS_DEVICE }}
+          os_version: ${{ env.IOS_VERSION }}
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
