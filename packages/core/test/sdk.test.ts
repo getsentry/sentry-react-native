@@ -436,6 +436,21 @@ describe('Tests the SDK functionality', () => {
     expect(result).toEqual(breadcrumb);
   });
 
+  it('should keep the breadcrumb when the dev server is undefined and the dsn does not match', () => {
+    (getDevServer as jest.Mock).mockReturnValue({ url: undefined });
+
+    init({ dsn: 'https://example@sentry.io/123' });
+
+    const breadcrumb: Breadcrumb = {
+      type: 'http',
+      data: { url: 'http://testurl.com/service' },
+    };
+
+    const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+    expect(result).toEqual(breadcrumb);
+  });
+
   describe('withScope', () => {
     test('withScope callback does not throw', () => {
       const mockScopeCallback = jest.fn(() => {

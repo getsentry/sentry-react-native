@@ -195,4 +195,51 @@ class RNSentryModuleImplTest {
 
         assertEquals(breadcrumb, result)
     }
+
+    @Test
+    fun `the breadcrumb is not filtered out when the dev server url and dsn are not passed`() {
+        val options = SentryAndroidOptions()
+        module.getSentryAndroidOptions(options, JavaOnlyMap(), logger)
+
+        val breadcrumb = Breadcrumb().apply {
+            type = "http"
+            setData("url", "http://testurl.com/service")
+        }
+
+        val result = options.beforeBreadcrumb?.execute(breadcrumb, mock())
+
+        assertEquals(breadcrumb, result)
+    }
+
+    @Test
+    fun `the breadcrumb is not filtered out when the dev server url is not passed and the dsn does not match`() {
+        val options = SentryAndroidOptions()
+        val rnOptions = JavaOnlyMap.of("dsn", "https://abc@def.ingest.sentry.io/1234567")
+        module.getSentryAndroidOptions(options, rnOptions, logger)
+
+        val breadcrumb = Breadcrumb().apply {
+            type = "http"
+            setData("url", "http://testurl.com/service")
+        }
+
+        val result = options.beforeBreadcrumb?.execute(breadcrumb, mock())
+
+        assertEquals(breadcrumb, result)
+    }
+
+    @Test
+    fun `the breadcrumb is not filtered out when the dev server url does not match and the dsn is not passed`() {
+        val options = SentryAndroidOptions()
+        val rnOptions = JavaOnlyMap.of("devServerUrl", "http://localhost:8081")
+        module.getSentryAndroidOptions(options, rnOptions, logger)
+
+        val breadcrumb = Breadcrumb().apply {
+            type = "http"
+            setData("url", "http://testurl.com/service")
+        }
+
+        val result = options.beforeBreadcrumb?.execute(breadcrumb, mock())
+
+        assertEquals(breadcrumb, result)
+    }
 }
