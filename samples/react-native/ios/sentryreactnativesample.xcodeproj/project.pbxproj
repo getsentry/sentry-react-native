@@ -499,9 +499,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 97JCY7859U;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = sentryreactnativesample/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Sentry RN";
@@ -517,6 +519,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = io.sentry.reactnative.sample;
 				PRODUCT_NAME = sentryreactnativesample;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AppStore io.sentry.reactnative.sample";
 				RCT_NEW_ARCH_ENABLED = 1;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -531,9 +534,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 97JCY7859U;
 				INFOPLIST_FILE = sentryreactnativesample/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Sentry RN";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -548,6 +553,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = io.sentry.reactnative.sample;
 				PRODUCT_NAME = sentryreactnativesample;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AppStore io.sentry.reactnative.sample";
 				RCT_NEW_ARCH_ENABLED = 1;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
