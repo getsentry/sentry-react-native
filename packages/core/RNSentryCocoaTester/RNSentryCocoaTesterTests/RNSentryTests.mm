@@ -303,7 +303,7 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
-    NSDictionary *_Nonnull mockedDictionary = @{ // dsn is always validated in SentryOptions initialisation
+    NSDictionary *_Nonnull mockedDictionary = @{ // dsn is always validated in SentryOptions initialization
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567"
     };
     SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
