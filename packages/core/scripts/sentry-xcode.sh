@@ -10,7 +10,7 @@ set -x -e
 LOCAL_NODE_BINARY=${NODE_BINARY:-node}
 
 # The project root by default is one level up from the ios directory
-RN_PROJECT_ROOT="$PROJECT_DIR"/..
+RN_PROJECT_ROOT="${PROJECT_DIR}/.."
 
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
 [ -z "$SENTRY_DOTENV_PATH" ] && export SENTRY_DOTENV_PATH="$RN_PROJECT_ROOT/.env.sentry-build-plugin"
