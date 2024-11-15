@@ -287,8 +287,8 @@ public class RNSentryModuleImpl {
           Object urlObject = breadcrumb.getData("url");
           String url = urlObject instanceof String ? (String) urlObject : "";
           if ("http".equals(breadcrumb.getType())
-              && ((dsn != null && url.contains(dsn))
-                  || (devServerUrl != null && url.contains(devServerUrl)))) {
+              && ((dsn != null && url.startsWith(dsn))
+                  || (devServerUrl != null && url.startsWith(devServerUrl)))) {
             return null;
           }
           return breadcrumb;
