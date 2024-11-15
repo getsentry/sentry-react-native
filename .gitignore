@@ -90,3 +90,4 @@ node_modules.bak
 
 # Sentry React Native Monorepo
 /packages/core/README.md
+.env.sentry-build-plugin
