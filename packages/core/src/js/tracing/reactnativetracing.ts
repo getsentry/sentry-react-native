@@ -106,7 +106,7 @@ export const reactNativeTracingIntegration = (
     devServerUrl === undefined
       ? userShouldCreateSpanForRequest
       : (url: string): boolean => {
-          if (url.includes(devServerUrl)) {
+          if (url.startsWith(devServerUrl)) {
             return false;
           }
           if (userShouldCreateSpanForRequest) {
