@@ -396,7 +396,7 @@ describe('Tests the SDK functionality', () => {
 
       const breadcrumb: Breadcrumb = {
         type: 'http',
-        data: { url: 'http://testurl.com/service' }, // Not an excuded url
+        data: { url: 'http://testurl.com/service' }, // Not an excluded url
       };
 
       const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
