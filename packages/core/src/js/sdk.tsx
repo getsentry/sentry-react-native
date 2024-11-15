@@ -79,7 +79,7 @@ export function init(passedOptions: ReactNativeOptions): void {
   const defaultBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint): Breadcrumb | null => {
     const type = breadcrumb.type || '';
     const url = typeof breadcrumb.data?.url === 'string' ? breadcrumb.data.url : '';
-    if (type === 'http' && ((devServerUrl && url.includes(devServerUrl)) || (dsn && url.includes(dsn)))) {
+    if (type === 'http' && ((devServerUrl && url.startsWith(devServerUrl)) || (dsn && url.startsWith(dsn)))) {
       return null;
     }
     return breadcrumb;
