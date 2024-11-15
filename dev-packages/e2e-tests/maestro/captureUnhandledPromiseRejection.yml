@@ -1,5 +1,6 @@
 appId: ${APP_ID}
+jsEngine: graaljs
 ---
 - runFlow: utils/launchTestAppClear.yml
-- tapOn: "Unhandled Promise Rejection"
+- tapOn: 'Unhandled Promise Rejection'
 - runFlow: utils/assertEventIdVisible.yml
