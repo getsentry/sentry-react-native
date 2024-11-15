@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "minimist": "1.2.8",
-    "p-retry": "^6.2.0",
+    "p-retry": "6.2.0",
     "semver": "7.6.3",
     "xcode": "3.0.1"
   },
