@@ -5,8 +5,7 @@ const RETRY_INTERVAL = 1000;
 const requestHeaders = { 'Authorization': `Bearer ${sentryAuthToken}` }
 
 function sleep(ms) {
-  // Top-level async doesn't seem to work.
-  // TODO reach out on to Maestro & GrallJS GitHub issues
+  // TODO reach out to Maestro & GrallJS via GitHub issues.
   //   return new Promise(resolve => setTimeout(resolve, ms));
   // Instead, we need to do a busy wait.
   const until = Date.now() + ms;
@@ -42,7 +41,7 @@ function fetchFromSentry(url) {
     const response = http.get(url, { headers: requestHeaders })
     if (!shouldRetry(response)) {
       console.log(`Received HTTP ${response.status}: body length ${response.body.length}`);
-      return json(response.body);
+      return response.body;
     }
     sleep(RETRY_INTERVAL);
   }
@@ -58,18 +57,18 @@ function setOutput(data) {
 // Note: "fetch", "id", "eventId", etc. are script inputs, see for example assertEventIdIVisible.yml
 switch (fetch) {
   case 'event': {
-    const data = fetchFromSentry(`${baseUrl}/events/${id}/json/`);
+    const data = json(fetchFromSentry(`${baseUrl}/events/${id}/json/`));
     setOutput({ eventId: data.event_id });
     break;
   }
   case 'replay': {
-    const event = fetchFromSentry(`${baseUrl}/events/${eventId}/json/`);
-    const replayId = event._dsc.replay_id;
-    const replay = fetchFromSentry(`${baseUrl}/replays/${replayId}/`);
+    const event = json(fetchFromSentry(`${baseUrl}/events/${eventId}/json/`));
+    const replayId = event._dsc.replay_id.replace(/\-/g, '');
+    const replay = json(fetchFromSentry(`${baseUrl}/replays/${replayId}/`));
     const segment = fetchFromSentry(`${baseUrl}/replays/${replayId}/videos/0/`);
 
     setOutput({
-      replayId: replayId,
+      replayId: replay.data.id,
       replayDuration: replay.data.duration,
       replaySegments: replay.data.count_segments,
       replayCodec: segment.slice(4, 12)

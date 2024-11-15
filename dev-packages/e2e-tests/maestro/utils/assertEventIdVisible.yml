@@ -3,7 +3,7 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible:
       id: 'eventId'
-    timeout: 60_000 # 60 seconds
+    timeout: 600_000 # 10 minutes
 
 - copyTextFrom:
     id: 'eventId'

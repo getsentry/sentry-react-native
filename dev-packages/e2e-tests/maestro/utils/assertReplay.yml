@@ -13,7 +13,7 @@ appId: ${APP_ID}
     file: sentryApi.js
     env:
       fetch: replay
-      id: ${maestro.copiedText}
+      eventId: ${maestro.copiedText}
       sentryAuthToken: ${SENTRY_AUTH_TOKEN}
 
 - assertTrue: ${output.replayId}
