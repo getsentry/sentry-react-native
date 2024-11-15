@@ -383,7 +383,7 @@ describe('Tests the SDK functionality', () => {
       (getDevServer as jest.Mock).mockReturnValue({ url: devServerUrl });
 
       const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
-        breadcrumb.data = { url: devServerUrl }; // Set to an excuded url
+        breadcrumb.data = { url: devServerUrl }; // Set to an excluded url
         return breadcrumb;
       };
 
