@@ -9,6 +9,7 @@ import { cleanDefaultBabelTransformerPath, saveDefaultBabelTransformerPath } fro
 import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } from './sentryMetroSerializer';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 export * from './sentryMetroSerializer';
+import { withSentryMiddleware } from './metroMiddleware';
 
 enableLogger();
 
@@ -23,6 +24,11 @@ export interface SentryMetroConfigOptions {
    * @default true
    */
   includeWebReplay?: boolean;
+  /**
+   * Add Sentry Metro Server Middleware for stack frames context.
+   * @default true
+   */
+  enabledSentryMiddleware?: boolean;
 }
 
 export interface SentryExpoConfigOptions {
@@ -40,7 +46,7 @@ export interface SentryExpoConfigOptions {
  */
 export function withSentryConfig(
   config: MetroConfig,
-  { annotateReactComponents = false, includeWebReplay = true }: SentryMetroConfigOptions = {},
+  { annotateReactComponents = false, includeWebReplay = true, enabledSentryMiddleware = true }: SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
 
@@ -53,6 +59,9 @@ export function withSentryConfig(
   }
   if (includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
+  }
+  if (enabledSentryMiddleware) {
+    newConfig = withSentryMiddleware(newConfig);
   }
 
   return newConfig;
@@ -83,6 +92,10 @@ export function getSentryExpoConfig(
 
   if (options.includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, options.includeWebReplay);
+  }
+
+  if (options.enabledSentryMiddleware === false) {
+    newConfig = withSentryMiddleware(newConfig);
   }
 
   return newConfig;
