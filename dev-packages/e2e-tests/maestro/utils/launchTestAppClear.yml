@@ -1,11 +1,15 @@
 appId: ${APP_ID}
 jsEngine: graaljs
 ---
+# Ensure the app is killed, otherwise we may see "INTERNAL: UiAutomation not connected" errors on Android.
+# They seem to be casued by a previous test case running for a long time without UI interactions (e.g. runScript).
+- killApp
+
 - launchApp:
     clearState: true
     arguments:
       sentryAuthToken: ${SENTRY_AUTH_TOKEN}
 
 - extendedWaitUntil:
-    visible: "E2E Tests Ready"
+    visible: 'E2E Tests Ready'
     timeout: 120_000 # 2 minutes
