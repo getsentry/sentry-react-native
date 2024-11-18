@@ -1,3 +1,16 @@
+// Polyfill setImmediate if it doesn't exist
+if (typeof setImmediate === 'undefined') {
+  global.setImmediate = (callback, ...args) => {
+    return setTimeout(callback, 0, ...args);
+  };
+}
+
+if (typeof clearImmediate === 'undefined') {
+  global.clearImmediate = (id) => {
+    return clearTimeout(id);
+  };
+}
+
 import React from 'react';
 import {
   NavigationContainer,
