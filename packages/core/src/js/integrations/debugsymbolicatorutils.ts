@@ -1,9 +1,9 @@
 import type { StackFrame as SentryStackFrame } from '@sentry/types';
+import { logger } from '@sentry/utils';
 
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 import type * as ReactNative from '../vendor/react-native';
-import { logger } from '@sentry/utils';
 
 /**
  * Fetches source context for the Sentry Middleware (/__sentry/context)
@@ -31,7 +31,7 @@ export async function fetchSourceContext(frames: SentryStackFrame[]): Promise<Se
           }
 
           try {
-            const response = JSON.parse(xhr.responseText);
+            const response: { stack?: SentryStackFrame[] } = JSON.parse(xhr.responseText);
             if (Array.isArray(response.stack)) {
               resolve(response.stack);
             } else {

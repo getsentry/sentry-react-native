@@ -1,17 +1,20 @@
-import { InputConfigT, Middleware } from 'metro-config';
-import { IncomingMessage, ServerResponse } from 'http';
-import { readFile } from 'fs';
-import { promisify } from 'util';
-import { StackFrame } from '@sentry/types';
+import type { StackFrame } from '@sentry/types';
 import { addContextToFrame, logger } from '@sentry/utils';
+import { readFile } from 'fs';
+import type { IncomingMessage, ServerResponse } from 'http';
+import type { InputConfigT, Middleware } from 'metro-config';
+import { promisify } from 'util';
 
 const readFileAsync = promisify(readFile);
 
 /**
- * Accepts stack frames from Metro Symbolication and
- * outputs them in the Sentry format with source context.
+ * Accepts Sentry formatted stack frames and
+ * adds source context to the in app frames.
  */
-const stackFramesContextMiddleware: Middleware = async (request: IncomingMessage, response: ServerResponse): Promise<void> => {
+export const stackFramesContextMiddleware: Middleware = async (
+  request: IncomingMessage,
+  response: ServerResponse,
+): Promise<void> => {
   logger.debug('[@sentry/react-native/metro] Received request for stack frames context.');
   request.setEncoding('utf8');
   const rawBody = await getRawBody(request);
@@ -36,6 +39,7 @@ const stackFramesContextMiddleware: Middleware = async (request: IncomingMessage
 
   const stackWithSourceContext = await Promise.all(stack.map(addSourceContext));
   response.setHeader('Content-Type', 'application/json');
+  response.statusCode = 200;
   response.end(JSON.stringify({ stack: stackWithSourceContext }));
   logger.debug('[@sentry/react-native/metro] Sent stack frames context.');
 };
@@ -51,14 +55,14 @@ async function addSourceContext(frame: StackFrame): Promise<StackFrame> {
       return frame;
     }
 
-    const source = await readFileAsync(frame.filename, 'utf8');
+    const source = await readFileAsync(frame.filename, { encoding: 'utf8' });
     const lines = source.split('\n');
     addContextToFrame(lines, frame);
   } catch (error) {
     logger.warn('[@sentry/react-native/metro] Could not read source context for frame.', error);
   }
   return frame;
-};
+}
 
 function badRequest(response: ServerResponse, message: string): void {
   response.statusCode = 400;
@@ -81,16 +85,22 @@ function getRawBody(request: IncomingMessage): Promise<string> {
 const SENTRY_MIDDLEWARE_PATH = '/__sentry';
 const SENTRY_CONTEXT_REQUEST_PATH = `${SENTRY_MIDDLEWARE_PATH}/context`;
 
-const createSentryMetroMiddleware = (middleware: Middleware): Middleware => {
+/**
+ * Creates a middleware that adds source context to the Sentry formatted stack frames.
+ */
+export const createSentryMetroMiddleware = (middleware: Middleware): Middleware => {
   return (request: IncomingMessage, response: ServerResponse, next: unknown) => {
     if (request.url?.startsWith(SENTRY_CONTEXT_REQUEST_PATH)) {
       return stackFramesContextMiddleware(request, response);
     }
     return middleware(request, response, next);
   };
-}
+};
 
-const withSentryMiddleware = (config: InputConfigT): InputConfigT => {
+/**
+ * Adds the Sentry middleware to the Metro server config.
+ */
+export const withSentryMiddleware = (config: InputConfigT): InputConfigT => {
   if (!config.server) {
     // @ts-expect-error server is typed read only
     config.server = {};
@@ -99,12 +109,7 @@ const withSentryMiddleware = (config: InputConfigT): InputConfigT => {
   const originalEnhanceMiddleware = config.server.enhanceMiddleware;
   config.server.enhanceMiddleware = (middleware, server) => {
     const sentryMiddleware = createSentryMetroMiddleware(middleware);
-    return originalEnhanceMiddleware?.(sentryMiddleware, server) ?? sentryMiddleware;
+    return originalEnhanceMiddleware ? originalEnhanceMiddleware(sentryMiddleware, server) : sentryMiddleware;
   };
   return config;
 };
-
-export {
-  createSentryMetroMiddleware,
-  withSentryMiddleware,
-}
