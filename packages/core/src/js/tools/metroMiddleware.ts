@@ -41,6 +41,10 @@ const stackFramesContextMiddleware: Middleware = async (request: IncomingMessage
 };
 
 async function addSourceContext(frame: StackFrame): Promise<StackFrame> {
+  if (!frame.in_app) {
+    return frame;
+  }
+
   try {
     if (typeof frame.filename !== 'string') {
       logger.warn('[@sentry/react-native/metro] Could not read source context for frame without filename.');
