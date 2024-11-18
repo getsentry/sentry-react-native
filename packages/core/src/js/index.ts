@@ -4,6 +4,7 @@ export type {
   SdkInfo,
   Event,
   Exception,
+  SeverityLevel,
   StackFrame,
   Stacktrace,
   Thread,
