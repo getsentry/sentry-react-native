@@ -21,16 +21,12 @@ describe('Integration execution order', () => {
     it('NativeLinkedErrors is before RewriteFrames', async () => {
       // NativeLinkedErrors has to process event before RewriteFrames
       // otherwise the linked errors stack trace frames won't be rewritten
-      // DebugSymbolicator has to be called after RewriteFrames
-      // otherwise symbolicated stack will be overwritten by the RewriteFrames
-      // which will cause difference between Debug and Release builds where symbolication is done on Sentry Server
 
       const client = createTestClient();
       const { integrations } = client.getOptions();
 
       const nativeLinkedErrors = spyOnIntegrationById('NativeLinkedErrors', integrations);
       const rewriteFrames = spyOnIntegrationById('RewriteFrames', integrations);
-      const debugSymbolicator = spyOnIntegrationById('DebugSymbolicator', integrations);
 
       client.init();
 
@@ -38,7 +34,6 @@ describe('Integration execution order', () => {
       await client.flush();
 
       expect(nativeLinkedErrors.preprocessEvent).toHaveBeenCalledBefore(rewriteFrames.processEvent!);
-      expect(rewriteFrames.processEvent!).toHaveBeenCalledBefore(debugSymbolicator.processEvent!);
     });
   });
 

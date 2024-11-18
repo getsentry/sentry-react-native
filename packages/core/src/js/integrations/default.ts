@@ -74,6 +74,10 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   integrations.push(sdkInfoIntegration());
   integrations.push(reactNativeInfoIntegration());
 
+  if (__DEV__ && notWeb()) {
+    integrations.push(debugSymbolicatorIntegration());
+  }
+
   integrations.push(createReactNativeRewriteFrames());
 
   if (options.enableNative) {
@@ -137,10 +141,6 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
       (options as BrowserOptions).replaysOnErrorSampleRate = options._experiments.replaysOnErrorSampleRate;
       (options as BrowserOptions).replaysSessionSampleRate = options._experiments.replaysSessionSampleRate;
     }
-  }
-
-  if (__DEV__ && notWeb()) {
-    integrations.push(debugSymbolicatorIntegration());
   }
 
   return integrations;
