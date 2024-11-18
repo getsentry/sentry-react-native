@@ -5,8 +5,6 @@ import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 import type * as ReactNative from '../vendor/react-native';
 import { logger } from '@sentry/utils';
 
-const SENTRY_CONTEXT_URL = `${getDevServer().url}__sentry/context`;
-
 /**
  * Fetches source context for the Sentry Middleware (/__sentry/context)
  *
@@ -22,7 +20,7 @@ export async function fetchSourceContext(frames: SentryStackFrame[]): Promise<Se
         return;
       }
 
-      xhr.open('POST', SENTRY_CONTEXT_URL, true);
+      xhr.open('POST', getSentryMetroSourceContextUrl(), true);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.send(JSON.stringify({ stack: frames }));
 
@@ -52,6 +50,10 @@ export async function fetchSourceContext(frames: SentryStackFrame[]): Promise<Se
       resolve(frames);
     }
   });
+}
+
+function getSentryMetroSourceContextUrl(): string {
+  return `${getDevServer().url}__sentry/context`;
 }
 
 /**
