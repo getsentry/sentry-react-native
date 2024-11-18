@@ -33,7 +33,7 @@
 
 - Add support for `.env.sentry-build-plugin` ([#4281](https://github.com/getsentry/sentry-react-native/pull/4281))
 
-  Don't committing the file to your repository. Use it to set your Sentry Auth Token.
+  Don't commit the file to your repository. Use it to set your Sentry Auth Token.
 
   ```
   SENTRY_AUTH_TOKEN=your_token_here
