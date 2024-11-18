@@ -231,8 +231,8 @@ if (actions.includes('test')) {
     execFileSync('adb', ['install', '-r', '-d', testApp]);
   }
 
-  if (sentryAuthToken === undefined) {
-    console.log('Skipping maestro test due to unavailable SENTRY_AUTH_TOKEN');
+  if (!sentryAuthToken) {
+    console.log('Skipping maestro test due to unavailable or empty SENTRY_AUTH_TOKEN');
   } else {
     execSync(
       `maestro test maestro \
