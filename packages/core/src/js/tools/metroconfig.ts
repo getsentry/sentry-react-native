@@ -94,7 +94,7 @@ export function getSentryExpoConfig(
     newConfig = withSentryResolver(newConfig, options.includeWebReplay);
   }
 
-  if (options.enabledSentryMiddleware === false) {
+  if (options.enabledSentryMiddleware ?? true) {
     newConfig = withSentryMiddleware(newConfig);
   }
 
