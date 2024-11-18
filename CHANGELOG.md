@@ -31,6 +31,25 @@
   export SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD=true
   ```
 
+- Add Sentry Metro Server Source Context middleware ([#4287](https://github.com/getsentry/sentry-react-native/pull/4287))
+
+  This enables the SDK to add source context to locally symbolicated event using the Metro Development Server.
+  The middleware can be disabled in `metro.config.js` using the `enableSourceContextInDevelopment` option.
+
+  ```js
+  // Expo
+  const { getSentryExpoConfig } = require('@sentry/react-native/metro');
+  const config = getSentryExpoConfig(__dirname, {
+    enableSourceContextInDevelopment: false,
+  });
+
+  // React Native
+  const { withSentryConfig } = require('@sentry/react-native/metro');
+  module.exports = withSentryConfig(config, {
+    enableSourceContextInDevelopment: false,
+  });
+  ```
+
 ### Fixes
 
 - Ignore JavascriptException to filter out obfuscated duplicate JS Errors on Android ([#4232](https://github.com/getsentry/sentry-react-native/pull/4232))

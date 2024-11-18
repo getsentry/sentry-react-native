@@ -25,10 +25,11 @@ export interface SentryMetroConfigOptions {
    */
   includeWebReplay?: boolean;
   /**
-   * Add Sentry Metro Server Middleware for stack frames context.
+   * Add Sentry Metro Server Middleware which
+   * enables the app to fetch stack frames source context.
    * @default true
    */
-  enabledSentryMiddleware?: boolean;
+  enableSourceContextInDevelopment?: boolean;
 }
 
 export interface SentryExpoConfigOptions {
@@ -46,7 +47,11 @@ export interface SentryExpoConfigOptions {
  */
 export function withSentryConfig(
   config: MetroConfig,
-  { annotateReactComponents = false, includeWebReplay = true, enabledSentryMiddleware = true }: SentryMetroConfigOptions = {},
+  {
+    annotateReactComponents = false,
+    includeWebReplay = true,
+    enableSourceContextInDevelopment = true,
+  }: SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
 
@@ -60,7 +65,7 @@ export function withSentryConfig(
   if (includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
   }
-  if (enabledSentryMiddleware) {
+  if (enableSourceContextInDevelopment) {
     newConfig = withSentryMiddleware(newConfig);
   }
 
@@ -94,7 +99,7 @@ export function getSentryExpoConfig(
     newConfig = withSentryResolver(newConfig, options.includeWebReplay);
   }
 
-  if (options.enabledSentryMiddleware ?? true) {
+  if (options.enableSourceContextInDevelopment ?? true) {
     newConfig = withSentryMiddleware(newConfig);
   }
 
