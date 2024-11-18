@@ -3,9 +3,16 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
+project.ext.shouldSentryAutoUploadNative = { -> 
+  return System.getenv('SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD') != 'true'
+}
+
+project.ext.shouldSentryAutoUploadGeneral = { ->
+  return System.getenv('SENTRY_DISABLE_AUTO_UPLOAD') != 'true'
+}
+
 project.ext.shouldSentryAutoUpload = { ->
-  return System.getenv('SENTRY_DISABLE_AUTO_UPLOAD') != 'true' ||
-         System.getenv('SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD') != 'true'
+  return shouldSentryAutoUploadGeneral() && shouldSentryAutoUploadNative()
 }
 
 def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
@@ -99,7 +106,7 @@ gradle.projectsEvaluated {
 
           /** Upload source map file to the sentry server via CLI call. */
           def cliTask = tasks.create(nameCliTask) {
-              onlyIf { shouldSentryAutoUpload() }
+              onlyIf { shouldSentryAutoUploadGeneral() }
               description = "upload debug symbols to sentry"
               group = 'sentry.io'
 
