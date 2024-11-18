@@ -8,6 +8,12 @@
 
 ## Unreleased
 
+### Fixes
+
+- Prevents exception capture context from being overwritten by native scope sync ([#4124](https://github.com/getsentry/sentry-react-native/pull/4124))
+
+## 6.2.0
+
 ### Features
 
 - Enables Spotlight in Android and iOS SDKs ([#4211](https://github.com/getsentry/sentry-react-native/pull/4211))

@@ -89,6 +89,13 @@ const ErrorsScreen = (_props: Props) => {
           }}
         />
         <Button
+          title="Capture exception with breadcrumb"
+          onPress={() => {
+            Sentry.captureException(new Error('Captured exception with breadcrumb'),
+              context => context.addBreadcrumb({ message: 'error with breadcrumb' }));
+          }}
+        />
+        <Button
           title="Uncaught Thrown Error"
           onPress={() => {
             throw new Error('Uncaught Thrown Error');
