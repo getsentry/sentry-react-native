@@ -4,6 +4,7 @@ import { getClient } from '@sentry/core';
 import type { Client, Event, Integration, StartSpanOptions } from '@sentry/types';
 
 import { isWeb } from '../utils/environment';
+import { getDevServer } from './../integrations/debugsymbolicatorutils';
 import { addDefaultOpForSpanFrom, defaultIdleOptions } from './span';
 
 export const INTEGRATION_NAME = 'ReactNativeTracing';
@@ -96,6 +97,25 @@ export const reactNativeTracingIntegration = (
     finalTimeoutMs: options.finalTimeoutMs ?? defaultIdleOptions.finalTimeout,
     idleTimeoutMs: options.idleTimeoutMs ?? defaultIdleOptions.idleTimeout,
   };
+
+  const userShouldCreateSpanForRequest = finalOptions.shouldCreateSpanForRequest;
+
+  // Drop Dev Server Spans
+  const devServerUrl = getDevServer()?.url;
+  const finalShouldCreateSpanForRequest =
+    devServerUrl === undefined
+      ? userShouldCreateSpanForRequest
+      : (url: string): boolean => {
+          if (url.startsWith(devServerUrl)) {
+            return false;
+          }
+          if (userShouldCreateSpanForRequest) {
+            return userShouldCreateSpanForRequest(url);
+          }
+          return true;
+        };
+
+  finalOptions.shouldCreateSpanForRequest = finalShouldCreateSpanForRequest;
 
   const setup = (client: Client): void => {
     addDefaultOpForSpanFrom(client);
