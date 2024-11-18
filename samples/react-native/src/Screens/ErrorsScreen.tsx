@@ -19,7 +19,6 @@ import { UserFeedbackModal } from '../components/UserFeedbackModal';
 import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
 import NativePlatformSampleModule from '../../tm/NativePlatformSampleModule';
-import { timestampInSeconds } from '@sentry/utils';
 
 const { AssetsModule, CppModule, CrashModule } = NativeModules;
 
@@ -28,25 +27,6 @@ interface Props {
 }
 
 const ErrorsScreen = (_props: Props) => {
-  const [componentMountStartTimestamp] = React.useState<number>(() => {
-    return timestampInSeconds();
-  });
-
-  React.useEffect(() => {
-    if (componentMountStartTimestamp) {
-      // Distributions help you get the most insights from your data by allowing you to obtain aggregations such as p90, min, max, and avg.
-      Sentry.metrics.distribution(
-        'home_mount_time',
-        timestampInSeconds() - componentMountStartTimestamp,
-        {
-          unit: 'seconds',
-        },
-      );
-    }
-    // We only want this to run once.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // Show bad code inside error boundary to trigger it.
   const [showBadCode, setShowBadCode] = React.useState(false);
   const [isFeedbackVisible, setFeedbackVisible] = React.useState(false);
