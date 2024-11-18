@@ -67,8 +67,13 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (!dsn) {
       return undefined;
     }
-    const url = new URL(dsn);
-    return `${url.protocol}//${url.host}`;
+    try {
+      const url = new URL(dsn);
+      return `${url.protocol}//${url.host}`;
+    } catch (e) {
+      logger.error('Failed to extract url from DSN', e);
+      return undefined;
+    }
   };
 
   const userBeforeBreadcrumb = safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' });
