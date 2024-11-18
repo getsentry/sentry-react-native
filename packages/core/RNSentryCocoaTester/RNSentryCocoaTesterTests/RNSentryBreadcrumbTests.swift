@@ -1,12 +1,13 @@
 import Sentry
 import XCTest
 
-class RNSentryBreadcrumbTests: XCTestCase {
+final class RNSentryBreadcrumbTests: XCTestCase {
 
     func testGeneratesSentryBreadcrumbFromNSDictionary() {
         let actualCrumb = RNSentryBreadcrumb.from([
             "level": "error",
             "category": "testCategory",
+            "origin": "testOrigin",
             "type": "testType",
             "message": "testMessage",
             "data": [
@@ -16,11 +17,29 @@ class RNSentryBreadcrumbTests: XCTestCase {
 
         XCTAssertEqual(actualCrumb!.level, SentryLevel.error)
         XCTAssertEqual(actualCrumb!.category, "testCategory")
+        XCTAssertEqual(actualCrumb!.origin, "testOrigin")
         XCTAssertEqual(actualCrumb!.type, "testType")
         XCTAssertEqual(actualCrumb!.message, "testMessage")
         XCTAssertEqual((actualCrumb!.data)!["test"] as! String, "data")
     }
 
+    func testUsesReactNativeAsDefaultOrigin() {
+        let actualCrumb = RNSentryBreadcrumb.from([
+            "message": "testMessage"
+        ])
+
+        XCTAssertEqual(actualCrumb!.origin, "react-native")
+    }
+    
+    func testKeepsOriginIfSet() {
+        let actualCrumb = RNSentryBreadcrumb.from([
+            "message": "testMessage",
+            "origin": "someOrigin"
+        ])
+
+        XCTAssertEqual(actualCrumb!.origin, "someOrigin")
+    }
+    
     func testUsesInfoAsDefaultSentryLevel() {
         let actualCrumb = RNSentryBreadcrumb.from([
             "message": "testMessage"
