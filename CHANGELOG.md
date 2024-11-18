@@ -8,6 +8,20 @@
 
 ## Unreleased
 
+### Fixes
+
+- Prevents exception capture context from being overwritten by native scope sync ([#4124](https://github.com/getsentry/sentry-react-native/pull/4124))
+- Excludes Dev Server and Sentry Dsn requests from Breadcrumbs ([#4240](https://github.com/getsentry/sentry-react-native/pull/4240))
+- Skips development server spans ([#4271](https://github.com/getsentry/sentry-react-native/pull/4271))
+
+### Dependencies
+
+- Bump JavaScript SDK from v8.37.1 to v8.38.0 ([#4267](https://github.com/getsentry/sentry-react-native/pull/4267))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8380)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.37.1...8.38.0)
+
+## 6.2.0
+
 ### Features
 
 - Enables Spotlight in Android and iOS SDKs ([#4211](https://github.com/getsentry/sentry-react-native/pull/4211))
