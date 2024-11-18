@@ -6524,7 +6524,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/react-native@6.1.0, @sentry/react-native@workspace:packages/core":
+"@sentry/react-native@6.2.0, @sentry/react-native@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@sentry/react-native@workspace:packages/core"
   dependencies:
@@ -8219,7 +8219,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.12.9
     "@babel/runtime": ^7.12.5
-    "@sentry/react-native": 6.1.0
+    "@sentry/react-native": 6.2.0
     metro-react-native-babel-preset: ^0.72.3
     react: 18.1.0
     react-native: 0.70.6
@@ -22752,7 +22752,7 @@ __metadata:
   dependencies:
     "@babel/preset-env": ^7.20.2
     "@babel/preset-typescript": ^7.18.6
-    "@sentry/react-native": 6.1.0
+    "@sentry/react-native": 6.2.0
     "@sentry/utils": 8.37.1
     "@types/node": ^20.9.3
     "@types/react": ^18.2.64
@@ -22782,7 +22782,7 @@ __metadata:
     "@babel/core": ^7.20.0
     "@babel/preset-env": 7.1.6
     "@sentry/babel-plugin-component-annotate": ^2.18.0
-    "@sentry/react-native": 6.1.0
+    "@sentry/react-native": 6.2.0
     "@types/node": 20.10.4
     "@types/react": 18.2.45
     expo: ^50.0.8
@@ -22817,7 +22817,7 @@ __metadata:
     "@react-navigation/native": ^6.1.9
     "@react-navigation/stack": ^6.3.20
     "@sentry/react": 8.37.1
-    "@sentry/react-native": 6.1.0
+    "@sentry/react-native": 6.2.0
     "@sentry/types": 8.37.1
     "@sentry/utils": 8.37.1
     "@types/react": ^18.2.65
@@ -22861,7 +22861,7 @@ __metadata:
     "@react-navigation/native-stack": ^6.9.17
     "@react-navigation/stack": ^6.3.20
     "@sentry/babel-plugin-component-annotate": ^2.18.0
-    "@sentry/react-native": 6.1.0
+    "@sentry/react-native": 6.2.0
     "@types/react": ^18.2.65
     "@types/react-native-vector-icons": ^6.4.18
     "@types/react-test-renderer": ^18.0.0
