@@ -10,6 +10,14 @@
 
 ### Features
 
+- Add support for `.env.sentry-build-plugin` ([#4281](https://github.com/getsentry/sentry-react-native/pull/4281))
+
+  Don't commit the file to your repository. Use it to set your Sentry Auth Token.
+
+  ```
+  SENTRY_AUTH_TOKEN=your_token_here
+  ```
+
 - Add Sentry Metro Server Source Context middleware ([#4287](https://github.com/getsentry/sentry-react-native/pull/4287))
 
   This enables the SDK to add source context to locally symbolicated events using the Metro Development Server.
