@@ -9,6 +9,7 @@ jsEngine: graaljs
     clearState: true
     arguments:
       sentryAuthToken: ${SENTRY_AUTH_TOKEN}
+      replaysOnErrorSampleRate: ${replaysOnErrorSampleRate}
 
 - extendedWaitUntil:
     visible: "E2E Tests Ready"
