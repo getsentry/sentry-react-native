@@ -8,6 +8,16 @@
 
 ## Unreleased
 
+### Features
+
+- Add support for `.env.sentry-build-plugin` ([#4281](https://github.com/getsentry/sentry-react-native/pull/4281))
+
+  Don't commit the file to your repository. Use it to set your Sentry Auth Token.
+
+  ```
+  SENTRY_AUTH_TOKEN=your_token_here
+  ```
+
 ### Fixes
 
 - Prevents exception capture context from being overwritten by native scope sync ([#4124](https://github.com/getsentry/sentry-react-native/pull/4124))
@@ -45,14 +55,6 @@
 
   ```bash
   export SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD=true
-  ```
-
-- Add support for `.env.sentry-build-plugin` ([#4281](https://github.com/getsentry/sentry-react-native/pull/4281))
-
-  Don't commit the file to your repository. Use it to set your Sentry Auth Token.
-
-  ```
-  SENTRY_AUTH_TOKEN=your_token_here
   ```
 
 ### Fixes
