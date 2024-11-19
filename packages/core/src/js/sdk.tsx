@@ -4,11 +4,12 @@ import {
   defaultStackParser,
   makeFetchTransport,
 } from '@sentry/react';
-import type { Integration, Scope,UserFeedback } from '@sentry/types';
+import type { Breadcrumb, BreadcrumbHint, Integration, Scope, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
 import { ReactNativeClient } from './client';
+import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { getDefaultIntegrations } from './integrations/default';
 import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { shouldEnableNativeNagger } from './options';
@@ -62,6 +63,45 @@ export function init(passedOptions: ReactNativeOptions): void {
     enableSyncToNative(getIsolationScope());
   }
 
+  const getURLFromDSN = (dsn: string | null): string | undefined => {
+    if (!dsn) {
+      return undefined;
+    }
+    try {
+      const url = new URL(dsn);
+      return `${url.protocol}//${url.host}`;
+    } catch (e) {
+      logger.error('Failed to extract url from DSN', e);
+      return undefined;
+    }
+  };
+
+  const userBeforeBreadcrumb = safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' });
+
+  // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
+  const devServerUrl = getDevServer()?.url;
+  const dsn = getURLFromDSN(passedOptions.dsn);
+  const defaultBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint): Breadcrumb | null => {
+    const type = breadcrumb.type || '';
+    const url = typeof breadcrumb.data?.url === 'string' ? breadcrumb.data.url : '';
+    if (type === 'http' && ((devServerUrl && url.startsWith(devServerUrl)) || (dsn && url.startsWith(dsn)))) {
+      return null;
+    }
+    return breadcrumb;
+  };
+
+  const chainedBeforeBreadcrumb = (breadcrumb: Breadcrumb, hint?: BreadcrumbHint): Breadcrumb | null => {
+    let modifiedBreadcrumb = breadcrumb;
+    if (userBeforeBreadcrumb) {
+      const result = userBeforeBreadcrumb(breadcrumb, hint);
+      if (result === null) {
+        return null;
+      }
+      modifiedBreadcrumb = result;
+    }
+    return defaultBeforeBreadcrumb(modifiedBreadcrumb, hint);
+  };
+
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
@@ -81,7 +121,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     maxQueueSize,
     integrations: [],
     stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser),
-    beforeBreadcrumb: safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' }),
+    beforeBreadcrumb: chainedBeforeBreadcrumb,
     initialScope: safeFactory(passedOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
   };
   if ('tracesSampler' in options) {

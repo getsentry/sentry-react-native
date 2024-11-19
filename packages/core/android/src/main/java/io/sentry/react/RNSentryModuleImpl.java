@@ -75,6 +75,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -276,6 +278,21 @@ public class RNSentryModuleImpl {
       options.getExperimental().setSessionReplay(getReplayOptions(rnOptions));
       options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
     }
+
+    // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
+    String dsn = getURLFromDSN(rnOptions.getString("dsn"));
+    String devServerUrl = rnOptions.getString("devServerUrl");
+    options.setBeforeBreadcrumb(
+        (breadcrumb, hint) -> {
+          Object urlObject = breadcrumb.getData("url");
+          String url = urlObject instanceof String ? (String) urlObject : "";
+          if ("http".equals(breadcrumb.getType())
+              && ((dsn != null && url.startsWith(dsn))
+                  || (devServerUrl != null && url.startsWith(devServerUrl)))) {
+            return null;
+          }
+          return breadcrumb;
+        });
 
     // React native internally throws a JavascriptException.
     // we want to ignore it on the native side to avoid sending it twice.
@@ -1000,5 +1017,18 @@ public class RNSentryModuleImpl {
 
   private boolean isFrameMetricsAggregatorAvailable() {
     return androidXAvailable && frameMetricsAggregator != null;
+  }
+
+  public static @Nullable String getURLFromDSN(@Nullable String dsn) {
+    if (dsn == null) {
+      return null;
+    }
+    URI uri = null;
+    try {
+      uri = new URI(dsn);
+    } catch (URISyntaxException e) {
+      return null;
+    }
+    return uri.getScheme() + "://" + uri.getHost();
   }
 }
