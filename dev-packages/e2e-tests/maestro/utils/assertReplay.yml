@@ -3,11 +3,11 @@ jsEngine: graaljs
 ---
 - extendedWaitUntil:
     visible:
-      id: 'eventId'
+      id: "eventId"
     timeout: 60_000 # 60 seconds
 
 - copyTextFrom:
-    id: 'eventId'
+    id: "eventId"
 - assertTrue: ${maestro.copiedText}
 
 - runScript:
@@ -20,4 +20,4 @@ jsEngine: graaljs
 - assertTrue: ${output.replayId}
 - assertTrue: ${output.replayDuration}
 - assertTrue: ${output.replaySegments}
-- assertTrue: ${output.replayCodec == 'ftypmp42'}
+- assertTrue: ${output.replayCodec == "ftypmp42"}

@@ -3,11 +3,11 @@ jsEngine: graaljs
 ---
 - extendedWaitUntil:
     visible:
-      id: 'eventId'
+      id: "eventId"
     timeout: 600_000 # 10 minutes
 
 - copyTextFrom:
-    id: 'eventId'
+    id: "eventId"
 - assertTrue: ${maestro.copiedText}
 
 - runScript:

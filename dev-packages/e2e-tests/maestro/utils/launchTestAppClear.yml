@@ -11,5 +11,5 @@ jsEngine: graaljs
       sentryAuthToken: ${SENTRY_AUTH_TOKEN}
 
 - extendedWaitUntil:
-    visible: 'E2E Tests Ready'
+    visible: "E2E Tests Ready"
     timeout: 120_000 # 2 minutes
