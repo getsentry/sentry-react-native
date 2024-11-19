@@ -63,7 +63,9 @@ const { ActivityStarter } = NativeModules;
 
 const App: () => Node = () => {
   useEffect(() => {
-    ActivityStarter.startAppReadyActivity();
+    if (Platform.OS === 'android') {
+      ActivityStarter.startAppReadyActivity();
+    }
   }, []);
 
   const isDarkMode = useColorScheme() === 'dark';
