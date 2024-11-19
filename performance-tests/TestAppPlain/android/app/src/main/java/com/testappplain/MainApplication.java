@@ -7,10 +7,15 @@ import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
+import com.facebook.react.bridge.NativeModule;
+import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.config.ReactFeatureFlags;
+import com.facebook.react.uimanager.ViewManager;
 import com.facebook.soloader.SoLoader;
 import com.testappplain.newarchitecture.MainApplicationReactNativeHost;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class MainApplication extends Application implements ReactApplication {
@@ -22,12 +27,23 @@ public class MainApplication extends Application implements ReactApplication {
           return BuildConfig.DEBUG;
         }
 
+        ReactPackage appReadyPackage = new ReactPackage() { // Register the package
+              @Override
+              public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
+                return Arrays.<NativeModule>asList(new AppReadyModule(reactContext));
+              }
+
+              @Override
+              public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
+                return Collections.emptyList();
+              }
+            };
+
         @Override
         protected List<ReactPackage> getPackages() {
           @SuppressWarnings("UnnecessaryLocalVariable")
           List<ReactPackage> packages = new PackageList(this).getPackages();
-          // Packages that cannot be autolinked yet can be added manually here, for example:
-          // packages.add(new MyReactNativePackage());
+          packages.add(appReadyPackage);
           return packages;
         }
 
