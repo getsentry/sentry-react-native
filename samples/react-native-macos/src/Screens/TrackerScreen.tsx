@@ -53,9 +53,6 @@ const TrackerScreen = () => {
   };
 
   const onRefreshButtonPress = () => {
-    Sentry.metrics.increment('tracker_screen.refresh_button_press', 1, {
-      tags: { graph: 'none', public_data: true },
-    });
     loadData();
   };
 

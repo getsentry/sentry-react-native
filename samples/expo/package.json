@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-expo-sample",
-  "version": "6.1.0",
+  "version": "6.2.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -12,7 +12,7 @@
     "set-version": "npx react-native-version --skip-tag --never-amend"
   },
   "dependencies": {
-    "@sentry/react-native": "6.1.0",
+    "@sentry/react-native": "6.2.0",
     "@types/react": "18.2.45",
     "expo": "^50.0.8",
     "expo-constants": "~15.4.5",

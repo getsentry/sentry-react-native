@@ -14,6 +14,7 @@ import type {
 import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 import { Alert } from 'react-native';
 
+import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { getDefaultSidecarUrl } from './integrations/spotlight';
 import type { ReactNativeClientOptions } from './options';
@@ -146,6 +147,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     NATIVE.initNativeSdk({
       ...this._options,
       defaultSidecarUrl: getDefaultSidecarUrl(),
+      devServerUrl: getDevServer()?.url || '',
       mobileReplayOptions:
         this._integrations[MOBILE_REPLAY_INTEGRATION_NAME] &&
         'options' in this._integrations[MOBILE_REPLAY_INTEGRATION_NAME]
