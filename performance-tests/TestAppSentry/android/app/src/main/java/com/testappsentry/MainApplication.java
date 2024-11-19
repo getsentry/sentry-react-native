@@ -27,7 +27,8 @@ public class MainApplication extends Application implements ReactApplication {
           return BuildConfig.DEBUG;
         }
 
-        ReactPackage appReadyPackage = new ReactPackage() { // Register the package
+        ReactPackage appReadyPackage =
+            new ReactPackage() {
               @Override
               public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
                 return Arrays.<NativeModule>asList(new AppReadyModule(reactContext));
