@@ -44,6 +44,7 @@
 - Skips development server spans ([#4271](https://github.com/getsentry/sentry-react-native/pull/4271))
 - Execute `DebugSymbolicator` after `RewriteFrames` to avoid overwrites by default ([#4285](https://github.com/getsentry/sentry-react-native/pull/4285))
   - If custom `RewriteFrames` is provided the order changes
+- `browserReplayIntegration` is no longer included by default on React Native Web ([#4270](https://github.com/getsentry/sentry-react-native/pull/4270))
 
 ### Dependencies
 
