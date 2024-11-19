@@ -648,6 +648,102 @@ describe('Tests the SDK functionality', () => {
 
     expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'ExpoContext' })]));
   });
+
+  it('adds mobile replay integration when _experiments.replaysOnErrorSampleRate is set', () => {
+    init({
+      _experiments: {
+        replaysOnErrorSampleRate: 1.0,
+      },
+    });
+
+    const actualOptions = usedOptions();
+    const actualIntegrations = actualOptions?.integrations;
+    expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'MobileReplay' })]));
+  });
+
+  it('adds mobile replay integration when _experiments.replaysSessionSampleRate is set', () => {
+    init({
+      _experiments: {
+        replaysSessionSampleRate: 1.0,
+      },
+    });
+
+    const actualOptions = usedOptions();
+    const actualIntegrations = actualOptions?.integrations;
+    expect(actualIntegrations).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'MobileReplay' })]));
+  });
+
+  it('does not add mobile replay integration when no replay sample rates are set', () => {
+    init({
+      _experiments: {},
+    });
+
+    const actualOptions = usedOptions();
+    const actualIntegrations = actualOptions?.integrations;
+    expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'MobileReplay' })]));
+  });
+
+  it('does not add any replay integration when on web even with on error sample rate', () => {
+    (notWeb as jest.Mock).mockImplementation(() => false);
+    init({
+      _experiments: {
+        replaysOnErrorSampleRate: 1.0,
+      },
+    });
+
+    const actualOptions = usedOptions();
+    const actualIntegrations = actualOptions?.integrations;
+    expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'Replay' })]));
+    expect(actualIntegrations).toEqual(
+      expect.not.arrayContaining([expect.objectContaining({ name: 'MobileReplay' })]),
+    );
+  });
+
+  it('does not add any replay integration when on web even with session sample rate', () => {
+    (notWeb as jest.Mock).mockImplementation(() => false);
+    init({
+      _experiments: {
+        replaysSessionSampleRate: 1.0,
+      },
+    });
+
+    const actualOptions = usedOptions();
+    const actualIntegrations = actualOptions?.integrations;
+    expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'Replay' })]));
+    expect(actualIntegrations).toEqual(
+      expect.not.arrayContaining([expect.objectContaining({ name: 'MobileReplay' })]),
+    );
+  });
+
+  it('does not add any replay integration when on web', () => {
+    (notWeb as jest.Mock).mockImplementation(() => false);
+    init({});
+
+    const actualOptions = usedOptions();
+    const actualIntegrations = actualOptions?.integrations;
+    expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'Replay' })]));
+    expect(actualIntegrations).toEqual(
+      expect.not.arrayContaining([expect.objectContaining({ name: 'MobileReplay' })]),
+    );
+  });
+
+  it('converts experimental replay options to standard web options when on web', () => {
+    (notWeb as jest.Mock).mockImplementation(() => false);
+    init({
+      _experiments: {
+        replaysOnErrorSampleRate: 0.5,
+        replaysSessionSampleRate: 0.1,
+      },
+    });
+
+    const actualOptions = usedOptions();
+    expect(actualOptions).toEqual(
+      expect.objectContaining({
+        replaysOnErrorSampleRate: 0.5,
+        replaysSessionSampleRate: 0.1,
+      }),
+    );
+  });
 });
 
 function createMockedIntegration({ name }: { name?: string } = {}): Integration {
