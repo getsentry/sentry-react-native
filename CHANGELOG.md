@@ -10,6 +10,51 @@
 
 ### Features
 
+- Add support for `.env.sentry-build-plugin` ([#4281](https://github.com/getsentry/sentry-react-native/pull/4281))
+
+  Don't commit the file to your repository. Use it to set your Sentry Auth Token.
+
+  ```
+  SENTRY_AUTH_TOKEN=your_token_here
+  ```
+
+- Add Sentry Metro Server Source Context middleware ([#4287](https://github.com/getsentry/sentry-react-native/pull/4287))
+
+  This enables the SDK to add source context to locally symbolicated events using the Metro Development Server.
+  The middleware can be disabled in `metro.config.js` using the `enableSourceContextInDevelopment` option.
+
+  ```js
+  // Expo
+  const { getSentryExpoConfig } = require('@sentry/react-native/metro');
+  const config = getSentryExpoConfig(__dirname, {
+    enableSourceContextInDevelopment: false,
+  });
+
+  // React Native
+  const { withSentryConfig } = require('@sentry/react-native/metro');
+  module.exports = withSentryConfig(config, {
+    enableSourceContextInDevelopment: false,
+  });
+  ```
+
+### Fixes
+
+- Prevents exception capture context from being overwritten by native scope sync ([#4124](https://github.com/getsentry/sentry-react-native/pull/4124))
+- Excludes Dev Server and Sentry Dsn requests from Breadcrumbs ([#4240](https://github.com/getsentry/sentry-react-native/pull/4240))
+- Skips development server spans ([#4271](https://github.com/getsentry/sentry-react-native/pull/4271))
+- Execute `DebugSymbolicator` after `RewriteFrames` to avoid overwrites by default ([#4285](https://github.com/getsentry/sentry-react-native/pull/4285))
+  - If custom `RewriteFrames` is provided the order changes
+
+### Dependencies
+
+- Bump JavaScript SDK from v8.37.1 to v8.38.0 ([#4267](https://github.com/getsentry/sentry-react-native/pull/4267))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8380)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.37.1...8.38.0)
+
+## 6.2.0
+
+### Features
+
 - Enables Spotlight in Android and iOS SDKs ([#4211](https://github.com/getsentry/sentry-react-native/pull/4211))
 - Add env flag `SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD` to allow disabling the debug file upload ([#4223](https://github.com/getsentry/sentry-react-native/pull/4223))
 
@@ -51,9 +96,9 @@
 - Bump CLI from v2.37.0 to v2.38.2 ([#4200](https://github.com/getsentry/sentry-react-native/pull/4200), [#4220](https://github.com/getsentry/sentry-react-native/pull/4220), [#4231](https://github.com/getsentry/sentry-react-native/pull/4231))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2382)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.37.0...2.38.2)
-- Bump Android SDK from v7.15.0 to v7.16.0 ([#4202](https://github.com/getsentry/sentry-react-native/pull/4202))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7160)
-  - [diff](https://github.com/getsentry/sentry-java/compare/7.15.0...7.16.0)
+- Bump Android SDK from v7.15.0 to v7.17.0 ([#4202](https://github.com/getsentry/sentry-react-native/pull/4202), [#4266](https://github.com/getsentry/sentry-react-native/pull/4266))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7170)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.15.0...7.17.0)
 - Bump Cocoa SDK from v8.38.0 to v8.40.1 ([#4212](https://github.com/getsentry/sentry-react-native/pull/4212), [#4239](https://github.com/getsentry/sentry-react-native/pull/4239), [#4248](https://github.com/getsentry/sentry-react-native/pull/4248))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8401)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.38.0...8.40.1)

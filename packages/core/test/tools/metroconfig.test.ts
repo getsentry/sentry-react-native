@@ -1,5 +1,6 @@
 jest.mock('fs', () => {
   return {
+    readFile: jest.fn(),
     mkdirSync: jest.fn(),
     writeFileSync: jest.fn(),
     unlinkSync: jest.fn(),

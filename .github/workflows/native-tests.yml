@@ -18,13 +18,16 @@ jobs:
 
   test-ios:
     name: ios
-    runs-on: macos-14 # uses m1 https://github.blog/changelog/2024-01-30-github-actions-macos-14-sonoma-is-now-available/
+    runs-on: macos-15
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
 
-      - run: corepack enable
+      - name: Enable Corepack
+        run: |
+          npm install -g corepack@0.29.4
+          corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -43,7 +46,7 @@ jobs:
         env:
           SCHEME: RNSentryCocoaTester
           CONFIGURATION: Release
-          DESTINATION: 'platform=iOS Simulator,OS=latest,name=iPhone 14'
+          DESTINATION: 'platform=iOS Simulator,OS=latest,name=iPhone 16'
         run: |
           env NSUnbufferedIO=YES \
             xcodebuild -workspace *.xcworkspace \

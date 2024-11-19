@@ -203,6 +203,9 @@ gradle.projectsEvaluated {
 
                       project.logger.lifecycle("Sentry-CLI arguments: ${args}")
                       def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
+                      if (!System.getenv('SENTRY_DOTENV_PATH')) {
+                          environment('SENTRY_DOTENV_PATH', "$reactRoot/.env.sentry-build-plugin")
+                      }
                       commandLine(*osCompatibility, *args)
                   }
               }

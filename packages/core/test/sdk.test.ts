@@ -1,8 +1,16 @@
 import { initAndBind } from '@sentry/core';
 import { makeFetchTransport } from '@sentry/react';
-import type { BaseTransportOptions, ClientOptions, Integration, Scope } from '@sentry/types';
+import type {
+  BaseTransportOptions,
+  Breadcrumb,
+  BreadcrumbHint,
+  ClientOptions,
+  Integration,
+  Scope,
+} from '@sentry/types';
 import { logger } from '@sentry/utils';
 
+import { getDevServer } from '../src/js/integrations/debugsymbolicatorutils';
 import { init, withScope } from '../src/js/sdk';
 import type { ReactNativeTracingIntegration } from '../src/js/tracing';
 import { REACT_NATIVE_TRACING_INTEGRATION_NAME, reactNativeTracingIntegration } from '../src/js/tracing';
@@ -17,6 +25,9 @@ jest.mock('../src/js/utils/environment');
 jest.mock('@sentry/core', () => ({
   ...jest.requireActual('@sentry/core'),
   initAndBind: jest.fn(),
+}));
+jest.mock('../src/js/integrations/debugsymbolicatorutils', () => ({
+  getDevServer: jest.fn(),
 }));
 
 describe('Tests the SDK functionality', () => {
@@ -290,6 +301,186 @@ describe('Tests the SDK functionality', () => {
       }).not.toThrow();
       expect(mockTraceSampler).toBeCalledTimes(1);
     });
+  });
+
+  describe('beforeBreadcrumb', () => {
+    it('should filters out dev server breadcrumbs', () => {
+      const devServerUrl = 'http://localhost:8081';
+      (getDevServer as jest.Mock).mockReturnValue({ url: devServerUrl });
+
+      const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
+        return breadcrumb;
+      };
+
+      const passedOptions = {
+        dsn: 'https://example@sentry.io/123',
+        beforeBreadcrumb: mockBeforeBreadcrumb,
+      };
+
+      init(passedOptions);
+
+      const breadcrumb: Breadcrumb = {
+        type: 'http',
+        data: { url: devServerUrl },
+      };
+
+      const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+      expect(result).toBeNull();
+    });
+
+    it('should filters out dsn breadcrumbs', () => {
+      (getDevServer as jest.Mock).mockReturnValue({ url: 'http://localhost:8081' });
+
+      const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
+        return breadcrumb;
+      };
+
+      const passedOptions = {
+        dsn: 'https://abc@def.ingest.sentry.io/1234567',
+        beforeBreadcrumb: mockBeforeBreadcrumb,
+      };
+
+      init(passedOptions);
+
+      const breadcrumb: Breadcrumb = {
+        type: 'http',
+        data: { url: 'https://def.ingest.sentry.io/1234567' },
+      };
+
+      const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+      expect(result).toBeNull();
+    });
+
+    it('should keep breadcrumbs matching dsn if the url parsing fails for dsn', () => {
+      (getDevServer as jest.Mock).mockReturnValue({ url: 'http://localhost:8081' });
+
+      const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
+        return breadcrumb;
+      };
+
+      // Mock the URL constructor to throw an exception for this test case
+      const originalURL = (global as any).URL;
+      jest.spyOn(global as any, 'URL').mockImplementationOnce(() => {
+        throw new Error('Failed to parse DSN URL');
+      });
+
+      const passedOptions = {
+        dsn: 'https://abc@def.ingest.sentry.io/1234567',
+        beforeBreadcrumb: mockBeforeBreadcrumb,
+      };
+
+      init(passedOptions);
+
+      const breadcrumb: Breadcrumb = {
+        type: 'http',
+        data: { url: 'https://def.ingest.sentry.io/1234567' },
+      };
+
+      const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+      expect(result).toEqual(breadcrumb);
+
+      // Restore the original URL constructor
+      (global as any).URL = originalURL;
+    });
+
+    it('should keep non dev server or dsn breadcrumbs', () => {
+      (getDevServer as jest.Mock).mockReturnValue({ url: 'http://localhost:8081' });
+
+      const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
+        return breadcrumb;
+      };
+
+      const passedOptions = {
+        dsn: 'https://example@sentry.io/123',
+        beforeBreadcrumb: mockBeforeBreadcrumb,
+      };
+
+      init(passedOptions);
+
+      const breadcrumb: Breadcrumb = {
+        type: 'http',
+        data: { url: 'http://testurl.com/service' },
+      };
+
+      const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+      expect(result).toEqual(breadcrumb);
+    });
+
+    it('verify the user beforeBreadcrumb is chained', () => {
+      const devServerUrl = 'http://localhost:8081';
+
+      (getDevServer as jest.Mock).mockReturnValue({ url: devServerUrl });
+
+      const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
+        breadcrumb.data = { url: devServerUrl }; // Set to an excluded url
+        return breadcrumb;
+      };
+
+      const passedOptions = {
+        dsn: 'https://example@sentry.io/123',
+        beforeBreadcrumb: mockBeforeBreadcrumb,
+      };
+
+      init(passedOptions);
+
+      const breadcrumb: Breadcrumb = {
+        type: 'http',
+        data: { url: 'http://testurl.com/service' }, // Not an excluded url
+      };
+
+      const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  it('should keep the breadcrumb when the dev server and dsn are undefined', () => {
+    (getDevServer as jest.Mock).mockReturnValue({ url: undefined });
+
+    init({});
+
+    const breadcrumb: Breadcrumb = {
+      type: 'http',
+      data: { url: 'http://testurl.com/service' },
+    };
+
+    const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+    expect(result).toEqual(breadcrumb);
+  });
+
+  it('should keep the breadcrumb when the dev server does not match and the dsn is undefined', () => {
+    (getDevServer as jest.Mock).mockReturnValue({ url: 'http://localhost:8081' });
+
+    init({});
+
+    const breadcrumb: Breadcrumb = {
+      type: 'http',
+      data: { url: 'http://testurl.com/service' },
+    };
+
+    const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+    expect(result).toEqual(breadcrumb);
+  });
+
+  it('should keep the breadcrumb when the dev server is undefined and the dsn does not match', () => {
+    (getDevServer as jest.Mock).mockReturnValue({ url: undefined });
+
+    init({ dsn: 'https://example@sentry.io/123' });
+
+    const breadcrumb: Breadcrumb = {
+      type: 'http',
+      data: { url: 'http://testurl.com/service' },
+    };
+
+    const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+    expect(result).toEqual(breadcrumb);
   });
 
   describe('withScope', () => {

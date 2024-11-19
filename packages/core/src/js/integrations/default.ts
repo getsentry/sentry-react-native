@@ -73,10 +73,6 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   integrations.push(sdkInfoIntegration());
   integrations.push(reactNativeInfoIntegration());
 
-  if (__DEV__ && notWeb()) {
-    integrations.push(debugSymbolicatorIntegration());
-  }
-
   integrations.push(createReactNativeRewriteFrames());
 
   if (options.enableNative) {
@@ -143,6 +139,10 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     } else {
       integrations.push(mobileReplayIntegration());
     }
+  }
+
+  if (__DEV__ && notWeb()) {
+    integrations.push(debugSymbolicatorIntegration());
   }
 
   return integrations;

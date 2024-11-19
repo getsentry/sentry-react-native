@@ -238,6 +238,85 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
     XCTAssertNotNil(error, @"Did not created error on invalid dsn");
 }
 
+- (void)testBeforeBreadcrumbsCallbackFiltersOutSentryDsnRequestBreadcrumbs
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedDictionary = @{
+        @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
+        @"devServerUrl" : @"http://localhost:8081"
+    };
+    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
+
+    SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
+    breadcrumb.type = @"http";
+    breadcrumb.data = @{ @"url" : @"https://def.ingest.sentry.io/1234567" };
+
+    SentryBreadcrumb *result = options.beforeBreadcrumb(breadcrumb);
+
+    XCTAssertNil(result, @"Breadcrumb should be filtered out");
+}
+
+- (void)testBeforeBreadcrumbsCallbackFiltersOutDevServerRequestBreadcrumbs
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+
+    NSString *mockDevServer = @"http://localhost:8081";
+
+    NSDictionary *_Nonnull mockedDictionary =
+        @{ @"dsn" : @"https://abc@def.ingest.sentry.io/1234567", @"devServerUrl" : mockDevServer };
+    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
+
+    SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
+    breadcrumb.type = @"http";
+    breadcrumb.data = @{ @"url" : mockDevServer };
+
+    SentryBreadcrumb *result = options.beforeBreadcrumb(breadcrumb);
+
+    XCTAssertNil(result, @"Breadcrumb should be filtered out");
+}
+
+- (void)testBeforeBreadcrumbsCallbackDoesNotFiltersOutNonDevServerOrDsnRequestBreadcrumbs
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedDictionary = @{
+        @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
+        @"devServerUrl" : @"http://localhost:8081"
+    };
+    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
+
+    SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
+    breadcrumb.type = @"http";
+    breadcrumb.data = @{ @"url" : @"http://testurl.com/service" };
+
+    SentryBreadcrumb *result = options.beforeBreadcrumb(breadcrumb);
+
+    XCTAssertEqual(breadcrumb, result);
+}
+
+- (void)testBeforeBreadcrumbsCallbackKeepsBreadcrumbWhenDevServerUrlIsNotPassedAndDsnDoesNotMatch
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedDictionary = @{ // dsn is always validated in SentryOptions initialization
+        @"dsn" : @"https://abc@def.ingest.sentry.io/1234567"
+    };
+    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
+
+    SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
+    breadcrumb.type = @"http";
+    breadcrumb.data = @{ @"url" : @"http://testurl.com/service" };
+
+    SentryBreadcrumb *result = options.beforeBreadcrumb(breadcrumb);
+
+    XCTAssertEqual(breadcrumb, result);
+}
+
 - (void)testEventFromSentryCocoaReactNativeHasOriginAndEnvironmentTags
 {
     RNSentry *rnSentry = [[RNSentry alloc] init];
