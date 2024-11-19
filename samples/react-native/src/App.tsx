@@ -1,16 +1,3 @@
-// Polyfill setImmediate if it doesn't exist
-if (typeof setImmediate === 'undefined') {
-  global.setImmediate = (callback, ...args) => {
-    return setTimeout(callback, 0, ...args);
-  };
-}
-
-if (typeof clearImmediate === 'undefined') {
-  global.clearImmediate = (id) => {
-    return clearTimeout(id);
-  };
-}
-
 import React from 'react';
 import {
   NavigationContainer,
@@ -49,6 +36,10 @@ import { ErrorEvent } from '@sentry/types';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
+
+if (typeof setImmediate === 'undefined') {
+  require('setimmediate');
+}
 
 LogBox.ignoreAllLogs();
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
