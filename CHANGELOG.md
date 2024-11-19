@@ -14,7 +14,7 @@
 
   Don't commit the file to your repository. Use it to set your Sentry Auth Token.
 
-  ```sh
+  ```
   SENTRY_AUTH_TOKEN=your_token_here
   ```
 
