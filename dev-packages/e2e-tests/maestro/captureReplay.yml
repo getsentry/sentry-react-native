@@ -2,5 +2,9 @@ appId: ${APP_ID}
 jsEngine: graaljs
 ---
 - runFlow: utils/launchTestAppClear.yml
-- tapOn: "Unhandled Promise Rejection"
+- tapOn: "Capture Exception"
 - runFlow: utils/assertEventIdVisible.yml
+- runFlow:
+    file: utils/assertReplay.yml
+    when:
+      platform: iOS

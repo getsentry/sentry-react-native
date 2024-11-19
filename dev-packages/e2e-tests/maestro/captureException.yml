@@ -2,9 +2,5 @@ appId: ${APP_ID}
 jsEngine: graaljs
 ---
 - runFlow: utils/launchTestAppClear.yml
-- tapOn: 'Capture Exception'
+- tapOn: "Capture Exception"
 - runFlow: utils/assertEventIdVisible.yml
-- runFlow:
-    file: utils/assertReplay.yml
-    when:
-      platform: iOS
