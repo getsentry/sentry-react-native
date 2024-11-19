@@ -1,7 +1,10 @@
 package com.testappsentry;
 
 import android.os.Bundle;
-import android.os.Handler;
+import android.view.Gravity;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class AppReadyActivity extends AppCompatActivity {
@@ -9,17 +12,21 @@ public class AppReadyActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    setContentView(android.R.layout.simple_list_item_1); // An empty view
+    // Create a LinearLayout to hold the TextView
+    LinearLayout layout = new LinearLayout(this);
+    layout.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+    layout.setGravity(Gravity.CENTER);
 
-    // Close the activity after 1 second
-    new Handler()
-        .postDelayed(
-            new Runnable() {
-              @Override
-              public void run() {
-                finish();
-              }
-            },
-            1000);
+    // Create a TextView with the text "App Ready"
+    TextView textView = new TextView(this);
+    textView.setText("The App is fully loaded!\nTap/swipe back to close this view.");
+    textView.setTextSize(24); // Set text size
+    textView.setGravity(Gravity.CENTER);
+
+    // Add the TextView to the LinearLayout
+    layout.addView(textView);
+
+    // Set the LinearLayout as the content view
+    setContentView(layout);
   }
 }
