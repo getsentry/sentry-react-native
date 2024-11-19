@@ -44,6 +44,7 @@
 - Skips development server spans ([#4271](https://github.com/getsentry/sentry-react-native/pull/4271))
 - Execute `DebugSymbolicator` after `RewriteFrames` to avoid overwrites by default ([#4285](https://github.com/getsentry/sentry-react-native/pull/4285))
   - If custom `RewriteFrames` is provided the order changes
+- `browserReplayIntegration` is no longer included by default on React Native Web ([#4270](https://github.com/getsentry/sentry-react-native/pull/4270))
 
 ### Dependencies
 
@@ -86,7 +87,6 @@
 - Remove duplicate HTTP Client Errors on iOS ([#4250](https://github.com/getsentry/sentry-react-native/pull/4250))
 - Replay `maskAll*` set to `false` on iOS kept all masked ([#4257](https://github.com/getsentry/sentry-react-native/pull/4257))
 - Add missing `getRootSpan`, `withActiveSpan` and `suppressTracing` exports from `@sentry/core`, and `SeverityLevel` export from `@sentry/types` ([#4254](https://github.com/getsentry/sentry-react-native/pull/4254), [#4260](https://github.com/getsentry/sentry-react-native/pull/4260))
-- `browserReplayIntegration` is no longer included by default on React Native Web ([#4270](https://github.com/getsentry/sentry-react-native/pull/4270))
 
 ### Dependencies
 
