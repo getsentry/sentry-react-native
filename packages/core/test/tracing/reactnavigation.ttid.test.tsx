@@ -202,6 +202,7 @@ describe('React Navigation - TTID', () => {
               data: {
                 'sentry.op': 'navigation.processing',
                 'sentry.origin': SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
+                'sentry.source': 'custom',
               },
               description: 'Processing navigation to New Screen',
               op: 'navigation.processing',
@@ -229,6 +230,7 @@ describe('React Navigation - TTID', () => {
               data: {
                 'sentry.op': 'navigation.processing',
                 'sentry.origin': SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
+                'sentry.source': 'custom',
               },
               description: 'Processing navigation to Initial Screen',
               op: 'navigation.processing',
