@@ -6,6 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.40.1 to v8.41.0-beta.1 ([#4295](https://github.com/getsentry/sentry-react-native/pull/4295))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8410-beta1)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.40.1...8.41.0-beta.1)
+
 ## 6.3.0-beta.1
 
 ### Features
