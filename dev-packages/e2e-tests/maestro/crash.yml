@@ -5,4 +5,5 @@ jsEngine: graaljs
 - tapOn: "Crash"
 
 - launchApp
-- assertVisible: "E2E Tests Ready"
+
+- runFlow: utils/assertTestReady.yml

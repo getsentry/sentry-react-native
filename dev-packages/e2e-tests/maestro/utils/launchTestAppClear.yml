@@ -11,6 +11,4 @@ jsEngine: graaljs
       sentryAuthToken: ${SENTRY_AUTH_TOKEN}
       replaysOnErrorSampleRate: ${replaysOnErrorSampleRate}
 
-- extendedWaitUntil:
-    visible: "E2E Tests Ready"
-    timeout: 120_000 # 2 minutes
+- runFlow: assertTestReady.yml
