@@ -6,6 +6,13 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Remove `.sentry` tmp directory and use environmental variables instead to save default Babel transformer path ([#4298](https://github.com/getsentry/sentry-react-native/pull/4298))
+  - This resolves concurrency issues when running multiple bundle processes
+
 ## 6.3.0-beta.1
 
 ### Features
