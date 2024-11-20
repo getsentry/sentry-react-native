@@ -140,7 +140,7 @@ jobs:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
       - name: Collect apps metrics
-        uses: antonis/action-app-sdk-overhead-metrics@b625ac8dc220e111955eed4327b5715e4e766d70
+        uses: antonis/action-app-sdk-overhead-metrics@5749115863261dcaf107d075e5ef9456b0530aa9
         with:
           name: ${{ matrix.name }} (${{ matrix.rn-architecture }})
           config: ./performance-tests/metrics-${{ matrix.platform }}.yml
