@@ -4,7 +4,7 @@ jsEngine: graaljs
 - extendedWaitUntil:
     visible:
       id: "eventId"
-    timeout: 600_000 # 10 minutes
+    timeout: 60_000 # 60 seconds
 
 - copyTextFrom:
     id: "eventId"
@@ -13,8 +13,11 @@ jsEngine: graaljs
 - runScript:
     file: sentryApi.js
     env:
-      fetch: event
-      id: ${maestro.copiedText}
+      fetch: replay
+      eventId: ${maestro.copiedText}
       sentryAuthToken: ${SENTRY_AUTH_TOKEN}
 
-- assertTrue: ${output.eventId == maestro.copiedText}
+- assertTrue: ${output.replayId}
+- assertTrue: ${output.replayDuration}
+- assertTrue: ${output.replaySegments}
+- assertTrue: ${output.replayCodec == "ftypmp42"}
