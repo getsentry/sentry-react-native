@@ -1,10 +1,10 @@
 import type { Event, EventHint, Exception, Integration, StackFrame as SentryStackFrame } from '@sentry/types';
-import { addContextToFrame, logger } from '@sentry/utils';
+import { logger } from '@sentry/utils';
 
 import type { ExtendedError } from '../utils/error';
 import { getFramesToPop, isErrorLike } from '../utils/error';
 import type * as ReactNative from '../vendor/react-native';
-import { fetchSourceContext, getDevServer, parseErrorStack, symbolicateStackTrace } from './debugsymbolicatorutils';
+import { fetchSourceContext, parseErrorStack, symbolicateStackTrace } from './debugsymbolicatorutils';
 
 const INTEGRATION_NAME = 'DebugSymbolicator';
 
@@ -89,7 +89,8 @@ async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promi
       (frame: { file?: string }) => frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null,
     );
 
-    return await convertReactNativeFramesToSentryFrames(stackWithoutInternalCallsites);
+    const sentryFrames = await convertReactNativeFramesToSentryFrames(stackWithoutInternalCallsites);
+    return await fetchSourceContext(sentryFrames);
   } catch (error) {
     if (error instanceof Error) {
       logger.warn(`Unable to symbolicate stack trace: ${error.message}`);
@@ -120,10 +121,6 @@ async function convertReactNativeFramesToSentryFrames(frames: ReactNative.StackF
         in_app: inApp,
       };
 
-      if (inApp) {
-        await addSourceContext(newFrame);
-      }
-
       return newFrame;
     }),
   );
@@ -149,41 +146,6 @@ function replaceThreadFramesInEvent(event: Event, frames: SentryStackFrame[]): v
   if (event.threads && event.threads.values && event.threads.values[0] && event.threads.values[0].stacktrace) {
     event.threads.values[0].stacktrace.frames = frames.reverse();
   }
-}
-
-/**
- * This tries to add source context for in_app Frames
- *
- * @param frame StackFrame
- * @param getDevServer function from RN to get DevServer URL
- */
-async function addSourceContext(frame: SentryStackFrame): Promise<void> {
-  let sourceContext: string | null = null;
-
-  const segments = frame.filename?.split('/') ?? [];
-
-  const serverUrl = getDevServer()?.url;
-  if (!serverUrl) {
-    return;
-  }
-
-  for (const idx in segments) {
-    if (!Object.prototype.hasOwnProperty.call(segments, idx)) {
-      continue;
-    }
-
-    sourceContext = await fetchSourceContext(serverUrl, segments, -idx);
-    if (sourceContext) {
-      break;
-    }
-  }
-
-  if (!sourceContext) {
-    return;
-  }
-
-  const lines = sourceContext.split('\n');
-  addContextToFrame(lines, frame);
 }
 
 /**

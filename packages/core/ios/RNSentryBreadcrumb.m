@@ -23,6 +23,12 @@
 
     [crumb setLevel:sentryLevel];
     [crumb setCategory:dict[@"category"]];
+    id origin = dict[@"origin"];
+    if (origin != nil) {
+        [crumb setOrigin:origin];
+    } else {
+        [crumb setOrigin:@"react-native"];
+    }
     [crumb setType:dict[@"type"]];
     [crumb setMessage:dict[@"message"]];
     [crumb setData:dict[@"data"]];

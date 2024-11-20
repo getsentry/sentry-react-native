@@ -231,15 +231,19 @@ if (actions.includes('test')) {
     execFileSync('adb', ['install', '-r', '-d', testApp]);
   }
 
-  execSync(
-    `maestro test maestro \
-      --env=APP_ID="${appId}" \
-      --env=SENTRY_AUTH_TOKEN="${sentryAuthToken}" \
-      --debug-output maestro-logs \
-      --flatten-debug-output`,
-    {
-      stdio: 'inherit',
-      cwd: e2eDir,
-    },
-  );
+  if (!sentryAuthToken) {
+    console.log('Skipping maestro test due to unavailable or empty SENTRY_AUTH_TOKEN');
+  } else {
+    execSync(
+      `maestro test maestro \
+        --env=APP_ID="${appId}" \
+        --env=SENTRY_AUTH_TOKEN="${sentryAuthToken}" \
+        --debug-output maestro-logs \
+        --flatten-debug-output`,
+      {
+        stdio: 'inherit',
+        cwd: e2eDir,
+      },
+    );
+  }
 }
