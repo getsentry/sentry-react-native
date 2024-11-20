@@ -1,9 +1,11 @@
 apps:
   - name: com.testappplain
-    activity: AppReadyActivity
+    activity: MainActivity
+    measureActivity: AppReadyActivity
     path: TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
   - name: com.testappsentry
-    activity: AppReadyActivity
+    activity: MainActivity
+    measureActivity: AppReadyActivity
     path: TestAppSentry/android/app/build/outputs/apk/release/app-release.apk
 
 startupTimeTest:
