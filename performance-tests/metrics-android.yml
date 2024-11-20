@@ -1,7 +1,6 @@
 apps:
   - name: com.testappplain
     activity: MainActivity
-    measureActivity: AppReadyActivity
     path: TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
   - name: com.testappsentry
     activity: MainActivity
