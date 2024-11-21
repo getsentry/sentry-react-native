@@ -1,14 +1,8 @@
-jest.mock('fs', () => {
-  return {
-    readFileSync: jest.fn(),
-  };
-});
+import * as process from 'process';
 
-import * as fs from 'fs';
+import { SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH } from '../../src/js/tools/sentryBabelTransformerUtils';
 
-// needs to be defined before sentryBabelTransformer is imported
-// the transformer is created on import (side effect)
-(fs.readFileSync as jest.Mock).mockReturnValue(require.resolve('./fixtures/mockBabelTransformer.js'));
+process.env[SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH] = require.resolve('./fixtures/mockBabelTransformer.js');
 
 import * as SentryBabelTransformer from '../../src/js/tools/sentryBabelTransformer';
 import type { BabelTransformerArgs } from '../../src/js/tools/vendor/metro/metroBabelTransformer';

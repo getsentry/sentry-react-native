@@ -5,7 +5,7 @@ import * as process from 'process';
 import { env } from 'process';
 
 import { enableLogger } from './enableLogger';
-import { cleanDefaultBabelTransformerPath, saveDefaultBabelTransformerPath } from './sentryBabelTransformerUtils';
+import { setSentryDefaultBabelTransformerPathEnv } from './sentryBabelTransformerUtils';
 import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } from './sentryMetroSerializer';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 export * from './sentryMetroSerializer';
@@ -143,10 +143,7 @@ export function withSentryBabelTransformer(config: MetroConfig): MetroConfig {
   }
 
   if (defaultBabelTransformerPath) {
-    saveDefaultBabelTransformerPath(defaultBabelTransformerPath);
-    process.on('exit', () => {
-      cleanDefaultBabelTransformerPath();
-    });
+    setSentryDefaultBabelTransformerPathEnv(defaultBabelTransformerPath);
   }
 
   return {
