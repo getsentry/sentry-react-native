@@ -162,6 +162,22 @@ RCT_EXPORT_METHOD(initNativeSdk
         return nil;
     }
 
+    // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
+    NSString *dsn = [self getURLFromDSN:[mutableOptions valueForKey:@"dsn"]];
+    NSString *devServerUrl = [mutableOptions valueForKey:@"devServerUrl"];
+    sentryOptions.beforeBreadcrumb
+        = ^SentryBreadcrumb *_Nullable(SentryBreadcrumb *_Nonnull breadcrumb)
+    {
+        NSString *url = breadcrumb.data[@"url"] ?: @"";
+
+        if ([@"http" isEqualToString:breadcrumb.type]
+            && ((dsn != nil && [url hasPrefix:dsn])
+                || (devServerUrl != nil && [url hasPrefix:devServerUrl]))) {
+            return nil;
+        }
+        return breadcrumb;
+    };
+
     if ([mutableOptions valueForKey:@"enableNativeCrashHandling"] != nil) {
         BOOL enableNativeCrashHandling = [mutableOptions[@"enableNativeCrashHandling"] boolValue];
 
@@ -198,7 +214,19 @@ RCT_EXPORT_METHOD(initNativeSdk
 #endif
     }
 
+    // Failed requests can only be enabled in one SDK to avoid duplicates
+    sentryOptions.enableCaptureFailedRequests = @NO;
+
     return sentryOptions;
+}
+
+- (NSString *_Nullable)getURLFromDSN:(NSString *)dsn
+{
+    NSURL *url = [NSURL URLWithString:dsn];
+    if (!url) {
+        return nil;
+    }
+    return [NSString stringWithFormat:@"%@://%@", url.scheme, url.host];
 }
 
 - (void)setEventOriginTag:(SentryEvent *)event
@@ -439,6 +467,16 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts
 
     [serializedScope setValue:contexts forKey:@"contexts"];
     [serializedScope removeObjectForKey:@"context"];
+
+    // Remove react-native breadcrumbs
+    NSPredicate *removeRNBreadcrumbsPredicate =
+        [NSPredicate predicateWithBlock:^BOOL(NSDictionary *breadcrumb, NSDictionary *bindings) {
+            return ![breadcrumb[@"origin"] isEqualToString:@"react-native"];
+        }];
+    NSArray *breadcrumbs = [[serializedScope[@"breadcrumbs"] mutableCopy]
+        filteredArrayUsingPredicate:removeRNBreadcrumbsPredicate];
+    [serializedScope setValue:breadcrumbs forKey:@"breadcrumbs"];
+
     resolve(serializedScope);
 }
 
