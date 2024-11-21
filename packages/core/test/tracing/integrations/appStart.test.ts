@@ -33,6 +33,8 @@ import { NATIVE } from '../../../src/js/wrapper';
 import { getDefaultTestClientOptions, TestClient } from '../../mocks/client';
 import { mockFunction } from '../../testutils';
 
+let dateNowSpy: jest.SpyInstance;
+
 jest.mock('../../../src/js/wrapper', () => {
   return {
     NATIVE: {
@@ -1075,6 +1077,10 @@ function mockTooOldAppStart() {
 function mockReactNativeBundleExecutionStartTimestamp() {
   RN_GLOBAL_OBJ.nativePerformanceNow = () => 100; // monotonic clock like `performance.now()`
   RN_GLOBAL_OBJ.__BUNDLE_START_TIME__ = 50; // 50ms after time origin
+
+  const currentTimeMilliseconds = Date.now();
+  dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => currentTimeMilliseconds);
+  Date.now = jest.fn(() => currentTimeMilliseconds);
 }
 
 /**
@@ -1083,6 +1089,10 @@ function mockReactNativeBundleExecutionStartTimestamp() {
 function clearReactNativeBundleExecutionStartTimestamp() {
   delete RN_GLOBAL_OBJ.nativePerformanceNow;
   delete RN_GLOBAL_OBJ.__BUNDLE_START_TIME__;
+
+  if (dateNowSpy) {
+    dateNowSpy.mockRestore();
+  }
 }
 
 function set__DEV__(value: boolean) {
