@@ -40,7 +40,7 @@
 + (NSArray *_Nonnull)getReplayRNUnmaskClasses
 {
     // We can't import RNSentryReplayUnmask.h here because it's Objective-C++
-    // To avoid typos, we test the class existens in the tests
+    // To avoid typos, we test the class existence in the tests
     return @[ @"RNSentryReplayUnmask" ];
 }
 
@@ -65,7 +65,7 @@
 + (void)postInit
 {
     // We can't import RNSentryReplayMask.h here because it's Objective-C++
-    // To avoid typos, we test the class existens in the tests
+    // To avoid typos, we test the class existence in the tests
     [PrivateSentrySDKOnly setRedactContainerClass:[self getMaskClass]];
     [PrivateSentrySDKOnly setIgnoreContainerClass:[self getUnmaskClass]];
     RNSentryReplayBreadcrumbConverter *breadcrumbConverter =
@@ -73,12 +73,12 @@
     [PrivateSentrySDKOnly configureSessionReplayWith:breadcrumbConverter screenshotProvider:nil];
 }
 
-+ (Class) getMaskClass
++ (Class)getMaskClass
 {
     return NSClassFromString(@"RNSentryReplayMask");
 }
 
-+ (Class) getUnmaskClass
++ (Class)getUnmaskClass
 {
     return NSClassFromString(@"RNSentryReplayUnmask");
 }
