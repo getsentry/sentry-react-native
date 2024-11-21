@@ -26,7 +26,7 @@ describe('Debug Symbolicator Integration', () => {
     (getDevServer as jest.Mock).mockReturnValue(<ReactNative.DevServerInfo>{
       url: 'http://localhost:8081',
     });
-    (fetchSourceContext as jest.Mock).mockReturnValue(Promise.resolve(null));
+    (fetchSourceContext as jest.Mock).mockImplementation((frames: StackFrame[]) => Promise.resolve(frames));
   });
 
   describe('parse stack', () => {

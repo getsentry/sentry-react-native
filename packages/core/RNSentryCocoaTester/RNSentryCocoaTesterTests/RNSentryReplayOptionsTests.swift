@@ -1,5 +1,5 @@
-import XCTest
 import Sentry
+import XCTest
 
 final class RNSentryReplayOptions: XCTestCase {
 
@@ -26,8 +26,8 @@ final class RNSentryReplayOptions: XCTestCase {
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
         RNSentryReplay.updateOptions(optionsDict)
 
-        let experimental = optionsDict["experimental"] as! [String:Any]
-        let sessionReplay = experimental["sessionReplay"] as! [String:Any]
+        let experimental = optionsDict["experimental"] as! [String: Any]
+        let sessionReplay = experimental["sessionReplay"] as! [String: Any]
 
         assertAllDefaultReplayOptionsAreNotNil(replayOptions: sessionReplay)
     }
@@ -41,8 +41,8 @@ final class RNSentryReplayOptions: XCTestCase {
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
         RNSentryReplay.updateOptions(optionsDict)
 
-        let experimental = optionsDict["experimental"] as! [String:Any]
-        let sessionReplay = experimental["sessionReplay"] as! [String:Any]
+        let experimental = optionsDict["experimental"] as! [String: Any]
+        let sessionReplay = experimental["sessionReplay"] as! [String: Any]
 
         assertAllDefaultReplayOptionsAreNotNil(replayOptions: sessionReplay)
     }
@@ -57,8 +57,8 @@ final class RNSentryReplayOptions: XCTestCase {
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
         RNSentryReplay.updateOptions(optionsDict)
 
-        let experimental = optionsDict["experimental"] as! [String:Any]
-        let sessionReplay = experimental["sessionReplay"] as! [String:Any]
+        let experimental = optionsDict["experimental"] as! [String: Any]
+        let sessionReplay = experimental["sessionReplay"] as! [String: Any]
 
         assertAllDefaultReplayOptionsAreNotNil(replayOptions: sessionReplay)
     }
@@ -105,8 +105,8 @@ final class RNSentryReplayOptions: XCTestCase {
 
         XCTAssertEqual(optionsDict.count, 3)
 
-        let experimental = optionsDict["experimental"] as! [String:Any]
-        let sessionReplay = experimental["sessionReplay"] as! [String:Any]
+        let experimental = optionsDict["experimental"] as! [String: Any]
+        let sessionReplay = experimental["sessionReplay"] as! [String: Any]
 
         let maskedViewClasses = sessionReplay["maskedViewClasses"] as! [String]
         XCTAssertTrue(maskedViewClasses.contains("RNSVGSvgView"))

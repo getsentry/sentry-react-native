@@ -1,0 +1,104 @@
+# We have to narrow down the included files to avoid minutes long lint runs due to node_modules
+included:
+  - 'samples/react-native/ios/**'
+  - 'packages/core/RNSentryCocoaTester/RNSentryCocoaTesterTests/**'
+  - 'packages/core/ios/**'
+  - 'performance-tests/TestAppPlain/ios/**'
+  - 'performance-tests/TestAppSentry/ios/**'
+
+excluded:
+  - 'samples/react-native/ios/Pods'
+  - 'samples/react-native/ios/build'
+  - 'performance-tests/TestAppPlain/ios/Pods'
+  - 'performance-tests/TestAppPlain/ios/build'
+  - 'performance-tests/TestAppSentry/ios/Pods'
+  - 'performance-tests/TestAppSentry/ios/build'
+
+only_rules:
+  - class_delegate_protocol
+  - closing_brace
+  - closure_end_indentation
+  - closure_parameter_position
+  - closure_spacing
+  - colon
+  - comma
+  - compiler_protocol_init
+  - control_statement
+  - custom_rules
+  - cyclomatic_complexity
+  - dynamic_inline
+  - empty_parameters
+  - empty_parentheses_with_trailing_closure
+  - explicit_init
+  - file_length
+  - first_where
+  - force_cast
+  - force_try
+  - force_unwrapping
+  - function_body_length
+  - generic_type_name
+  - implicit_getter
+  - large_tuple
+  - leading_whitespace
+  - legacy_cggeometry_functions
+  - legacy_constant
+  - legacy_constructor
+  - legacy_nsgeometry_functions
+  - line_length
+  - mark
+  - nimble_operator
+  - number_separator
+  - opening_brace
+  - operator_usage_whitespace
+  - operator_whitespace
+  - overridden_super_call
+  - private_outlet
+  - private_unit_test
+  - prohibited_super_call
+  - redundant_nil_coalescing
+  - redundant_optional_initialization
+  - redundant_string_enum_value
+  - redundant_void_return
+  - return_arrow_whitespace
+  - shorthand_operator
+  - sorted_imports
+  - statement_position
+  - syntactic_sugar
+  - todo
+  - trailing_comma
+  - trailing_newline
+  - trailing_semicolon
+  - type_body_length
+  - type_name
+  - unused_closure_parameter
+  - unused_enumerated
+  - unused_optional_binding
+  - valid_ibinspectable
+  - identifier_name
+  - vertical_parameter_alignment
+  - vertical_whitespace
+  - void_return
+  - weak_delegate
+  - yoda_condition
+
+identifier_name:
+  allowed_symbols:
+    - i
+    - _
+  min_length:
+    - 1
+  max_length:
+    warning: 50
+    error: 50
+
+line_length:
+  - 1000
+type_name:
+  min_length:
+    - 2
+    - 1
+  max_length:
+    warning: 50
+    error: 50
+large_tuple:
+    - 3

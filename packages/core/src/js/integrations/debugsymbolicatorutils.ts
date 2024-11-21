@@ -1,45 +1,59 @@
+import type { StackFrame as SentryStackFrame } from '@sentry/types';
+import { logger } from '@sentry/utils';
+
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 import type * as ReactNative from '../vendor/react-native';
 
 /**
- * Get source context for segment
+ * Fetches source context for the Sentry Middleware (/__sentry/context)
+ *
+ * @param frame StackFrame
+ * @param getDevServer function from RN to get DevServer URL
  */
-export async function fetchSourceContext(url: string, segments: Array<string>, start: number): Promise<string | null> {
+export async function fetchSourceContext(frames: SentryStackFrame[]): Promise<SentryStackFrame[]> {
   return new Promise(resolve => {
-    const fullUrl = `${url}${segments.slice(start).join('/')}`;
-
-    const xhr = createStealthXhr();
-    if (!xhr) {
-      resolve(null);
-      return;
-    }
-
-    xhr.open('GET', fullUrl, true);
-    xhr.send();
-
-    xhr.onreadystatechange = (): void => {
-      if (xhr.readyState === XHR_READYSTATE_DONE) {
-        if (xhr.status !== 200) {
-          resolve(null);
-        }
-        const response = xhr.responseText;
-        if (
-          typeof response !== 'string' ||
-          // Expo Dev Server responses with status 200 and config JSON
-          // when web support not enabled and requested file not found
-          response.startsWith('{')
-        ) {
-          resolve(null);
-        }
-
-        resolve(response);
+    try {
+      const xhr = createStealthXhr();
+      if (!xhr) {
+        resolve(frames);
+        return;
       }
-    };
-    xhr.onerror = (): void => {
-      resolve(null);
-    };
+
+      xhr.open('POST', getSentryMetroSourceContextUrl(), true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify({ stack: frames }));
+
+      xhr.onreadystatechange = (): void => {
+        if (xhr.readyState === XHR_READYSTATE_DONE) {
+          if (xhr.status !== 200) {
+            resolve(frames);
+          }
+
+          try {
+            const response: { stack?: SentryStackFrame[] } = JSON.parse(xhr.responseText);
+            if (Array.isArray(response.stack)) {
+              resolve(response.stack);
+            } else {
+              resolve(frames);
+            }
+          } catch (error) {
+            resolve(frames);
+          }
+        }
+      };
+      xhr.onerror = (): void => {
+        resolve(frames);
+      };
+    } catch (error) {
+      logger.error('Could not fetch source context.', error);
+      resolve(frames);
+    }
   });
+}
+
+function getSentryMetroSourceContextUrl(): string {
+  return `${getDevServer().url}__sentry/context`;
 }
 
 /**

@@ -78,7 +78,7 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
   // otherwise they will not work.
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
-  profilesSampleRate: 0,
+  profilesSampleRate: 1.0,
   _experiments: {
     // replaysOnErrorSampleRate: 1.0,
     replaysSessionSampleRate: 1.0,

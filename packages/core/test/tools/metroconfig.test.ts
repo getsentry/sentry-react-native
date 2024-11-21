@@ -1,15 +1,5 @@
-jest.mock('fs', () => {
-  return {
-    mkdirSync: jest.fn(),
-    writeFileSync: jest.fn(),
-    unlinkSync: jest.fn(),
-  };
-});
-
 import type { getDefaultConfig } from 'expo/metro-config';
-import * as fs from 'fs';
 import type { MetroConfig } from 'metro';
-import * as path from 'path';
 import * as process from 'process';
 
 import {
@@ -18,6 +8,7 @@ import {
   withSentryFramesCollapsed,
   withSentryResolver,
 } from '../../src/js/tools/metroconfig';
+import { SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH } from '../../src/js/tools/sentryBabelTransformerUtils';
 
 type MetroFrame = Parameters<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>[0];
 
@@ -68,43 +59,16 @@ describe('metroconfig', () => {
       },
     );
 
-    test.each([
-      [{ transformer: { babelTransformerPath: 'babelTransformerPath' }, projectRoot: 'project/root' }],
-      [{ transformer: { babelTransformerPath: 'babelTransformerPath' } }],
-    ])('save default babel transformer path to a file', () => {
+    test('save default babel transformer path to environment variable', () => {
       const defaultBabelTransformerPath = '/default/babel/transformer';
 
       withSentryBabelTransformer({
         transformer: {
           babelTransformerPath: defaultBabelTransformerPath,
         },
-        projectRoot: 'project/root',
       });
 
-      expect(fs.mkdirSync).toHaveBeenCalledWith(path.join(process.cwd(), '.sentry'), { recursive: true });
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(process.cwd(), '.sentry/.defaultBabelTransformerPath'),
-        defaultBabelTransformerPath,
-      );
-    });
-
-    test('clean default babel transformer path file on exit', () => {
-      const processOnSpy: jest.SpyInstance = jest.spyOn(process, 'on');
-
-      const defaultBabelTransformerPath = 'defaultBabelTransformerPath';
-
-      withSentryBabelTransformer({
-        transformer: {
-          babelTransformerPath: defaultBabelTransformerPath,
-        },
-        projectRoot: 'project/root',
-      });
-
-      const actualExitHandler: () => void | undefined = processOnSpy.mock.calls[0][1];
-      actualExitHandler?.();
-
-      expect(processOnSpy).toHaveBeenCalledWith('exit', expect.any(Function));
-      expect(fs.unlinkSync).toHaveBeenCalledWith(path.join(process.cwd(), '.sentry/.defaultBabelTransformerPath'));
+      expect(process.env[SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH]).toBe(defaultBabelTransformerPath);
     });
 
     test('return config with sentry babel transformer path', () => {
