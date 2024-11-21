@@ -1,10 +1,11 @@
 apps:
   - name: com.testappplain
     activity: MainActivity
+    logLoadedTimestampRegex: "'AppReadyTimestampMs:',\\s*(\\d+)"
     path: TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
   - name: com.testappsentry
     activity: MainActivity
-    measureActivity: AppReadyActivity
+    logLoadedTimestampRegex: "'AppReadyTimestampMs:',\\s*(\\d+)"
     path: TestAppSentry/android/app/build/outputs/apk/release/app-release.apk
 
 startupTimeTest:
