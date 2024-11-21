@@ -8,6 +8,27 @@
 
 ## Unreleased
 
+### Features
+
+- Add Replay Custom Masking for iOS ([#4238](https://github.com/getsentry/sentry-react-native/pull/4224))
+
+  ```jsx
+  import * as Sentry from '@sentry/react-native';
+
+  const Example = () => {
+    return (
+      <View>
+        <Sentry.Mask>
+          <Text>${"All children of Sentry.Mask will be masked."}</Text>
+        </Sentry.Mask>
+        <Sentry.Unmask>
+          <Text>${"Only direct children of Sentry.Unmask will be unmasked."}</Text>
+        </Sentry.Unmask>
+      </View>
+    );
+  };
+  ```
+
 ### Fixes
 
 - Remove `.sentry` tmp directory and use environmental variables instead to save default Babel transformer path ([#4298](https://github.com/getsentry/sentry-react-native/pull/4298))
@@ -93,25 +114,6 @@
 
   ```bash
   export SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD=true
-  ```
-
-- Add Replay Custom Masking for iOS ([#4238](https://github.com/getsentry/sentry-react-native/pull/4224))
-
-  ```jsx
-  import * as Sentry from '@sentry/react-native';
-
-  const Example = () => {
-    return (
-      <View>
-        <Sentry.Mask>
-          <Text>${"All children of Sentry.Mask will be masked."}</Text>
-        </Sentry.Mask>
-        <Sentry.Unmask>
-          <Text>${"Only direct children will be unmasked."}</Text>
-        </Sentry.Unmask>
-      </View>
-    );
-  };
   ```
 
 ### Fixes
