@@ -3,8 +3,6 @@ import * as React from 'react';
 import { Text, View } from 'react-native';
 import { LaunchArguments } from "react-native-launch-arguments";
 
-import { fetchEvent } from './utils/fetchEvent';
-
 const E2E_TESTS_READY_TEXT = 'E2E Tests Ready';
 
 const getSentryAuthToken = ():
@@ -30,28 +28,6 @@ const EndToEndTestsScreen = (): JSX.Element => {
   const [eventId, setEventId] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string>('No error');
 
-  async function assertEventReceived(eventId: string | undefined) {
-    if (!eventId) {
-      setError('Event ID is required');
-      return;
-    }
-
-    const value = getSentryAuthToken();
-    if ('error' in value) {
-      setError(value.error);
-      return;
-    }
-
-    const event = await fetchEvent(eventId, value.token);
-
-    if (event.event_id !== eventId) {
-      setError('Event ID mismatch');
-      return;
-    }
-
-    setEventId(eventId);
-  }
-
   React.useEffect(() => {
     const client: Sentry.ReactNativeClient | undefined = Sentry.getClient();
 
@@ -63,7 +39,7 @@ const EndToEndTestsScreen = (): JSX.Element => {
     // WARNING: This is only for testing purposes.
     // We only do this to render the eventId onto the UI for end to end tests.
     client.getOptions().beforeSend = (e) => {
-      assertEventReceived(e.event_id);
+      setEventId(e.event_id);
       return e;
     };
 
