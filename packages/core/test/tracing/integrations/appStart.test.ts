@@ -1062,7 +1062,6 @@ function mockReactNativeBundleExecutionStartTimestamp() {
 
   const currentTimeMilliseconds = Date.now();
   dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => currentTimeMilliseconds);
-  Date.now = jest.fn(() => currentTimeMilliseconds);
 }
 
 /**
