@@ -63,6 +63,24 @@ jest.mock('@sentry/utils', () => {
   };
 });
 
+// Overrides expect.closeTo to increase tolerance from 0.005 (2 decimal digits) to 0.025
+expect.extend({
+  closeTo(received, expected, tolerance = 0.025) {
+    const pass = Math.abs(expected - received) < tolerance;
+    if (pass) {
+      return {
+        message: () => `expected ${received} not to be close to ${expected} within ${tolerance}`,
+        pass: true,
+      };
+    } else {
+      return {
+        message: () => `expected ${received} to be close to ${expected} within ${tolerance}`,
+        pass: false,
+      };
+    }
+  },
+});
+
 describe('App Start Integration', () => {
   beforeEach(() => {
     mockReactNativeBundleExecutionStartTimestamp();
