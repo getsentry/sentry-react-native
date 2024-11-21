@@ -102,6 +102,20 @@ function groupAssets(assetPaths) {
   return groups;
 }
 
+function loadDotenv(dotenvPath) {
+  try {
+    const dotenvFile = fs.readFileSync(dotenvPath, 'utf-8');
+    // NOTE: Do not use the dotenv.config API directly to read the dotenv file! For some ungodly reason, it falls back to reading `${process.cwd()}/.env` which is absolutely not what we want.
+    // dotenv is dependency of @expo/env, so we can just require it here
+    const dotenvResult = require('dotenv').parse(dotenvFile);
+
+    Object.assign(process.env, dotenvResult);
+  } catch (error) {
+    console.warn('⚠️ Failed to load environment variables using dotenv.');
+    console.warn(error);
+  }
+}
+
 process.env.NODE_ENV = process.env.NODE_ENV || 'development'; // Ensures precedence .env.development > .env (the same as @expo/cli)
 const projectRoot = '.'; // Assume script is run from the project root
 try {
@@ -110,6 +124,8 @@ try {
   console.warn('⚠️ Failed to load environment variables using @expo/env.');
   console.warn(error);
 }
+
+loadDotenv(path.join(projectRoot, '.env.sentry-build-plugin'));
 
 let sentryOrg = getEnvVar(SENTRY_ORG);
 let sentryUrl = getEnvVar(SENTRY_URL);

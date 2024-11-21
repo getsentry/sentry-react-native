@@ -4,14 +4,13 @@ import type { Integration } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../options';
 import { reactNativeTracingIntegration } from '../tracing';
-import { isExpoGo, notWeb } from '../utils/environment';
+import { isExpoGo, isWeb, notWeb } from '../utils/environment';
 import {
   appStartIntegration,
   breadcrumbsIntegration,
   browserApiErrorsIntegration,
   browserGlobalHandlersIntegration,
   browserLinkedErrorsIntegration,
-  browserReplayIntegration,
   createNativeFramesIntegrations,
   createReactNativeRewriteFrames,
   debugSymbolicatorIntegration,
@@ -74,10 +73,6 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   integrations.push(sdkInfoIntegration());
   integrations.push(reactNativeInfoIntegration());
 
-  if (__DEV__ && notWeb()) {
-    integrations.push(debugSymbolicatorIntegration());
-  }
-
   integrations.push(createReactNativeRewriteFrames());
 
   if (options.enableNative) {
@@ -136,11 +131,18 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     (options._experiments && typeof options._experiments.replaysOnErrorSampleRate === 'number') ||
     (options._experiments && typeof options._experiments.replaysSessionSampleRate === 'number')
   ) {
-    integrations.push(notWeb() ? mobileReplayIntegration() : browserReplayIntegration());
-    if (!notWeb()) {
+    if (isWeb()) {
+      // We can't create and add browserReplayIntegration as it overrides the users supplied one
+      // The browser replay integration works differently than the rest of default integrations
       (options as BrowserOptions).replaysOnErrorSampleRate = options._experiments.replaysOnErrorSampleRate;
       (options as BrowserOptions).replaysSessionSampleRate = options._experiments.replaysSessionSampleRate;
+    } else {
+      integrations.push(mobileReplayIntegration());
     }
+  }
+
+  if (__DEV__ && notWeb()) {
+    integrations.push(debugSymbolicatorIntegration());
   }
 
   return integrations;
