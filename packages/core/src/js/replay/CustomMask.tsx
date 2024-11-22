@@ -49,4 +49,4 @@ const Unmask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> =>
   return require('../RNSentryReplayUnmaskNativeComponent').default;
 })();
 
-export { Mask, Unmask };
+export { Mask, Unmask, MaskFallback, UnmaskFallback };

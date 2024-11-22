@@ -1,6 +1,9 @@
 #import "RNSentryReplay.h"
-#import "RNSentryReplayBreadcrumbConverter.h"
+#import "RNSentryReplayBreadcrumbConverterHelper.h"
 #import "React/RCTTextView.h"
+#import "Replay/RNSentryReplayMask.h"
+#import "Replay/RNSentryReplayUnmask.h"
+#import <Sentry/PrivateSentrySDKOnly.h>
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 
@@ -37,13 +40,6 @@
                forKey:@"experimental"];
 }
 
-+ (NSArray *_Nonnull)getReplayRNUnmaskClasses
-{
-    // We can't import RNSentryReplayUnmask.h here because it's Objective-C++
-    // To avoid typos, we test the class existens in the tests
-    return @[ @"RNSentryReplayUnmask" ];
-}
-
 + (NSArray *_Nonnull)getReplayRNRedactClasses:(NSDictionary *_Nullable)replayOptions
 {
     NSMutableArray *_Nonnull classesToRedact = [[NSMutableArray alloc] init];
@@ -65,22 +61,20 @@
 + (void)postInit
 {
     // We can't import RNSentryReplayMask.h here because it's Objective-C++
-    // To avoid typos, we test the class existens in the tests
-    [PrivateSentrySDKOnly setRedactContainerClass:[self getMaskClass]];
-    [PrivateSentrySDKOnly setIgnoreContainerClass:[self getUnmaskClass]];
-    RNSentryReplayBreadcrumbConverter *breadcrumbConverter =
-        [[RNSentryReplayBreadcrumbConverter alloc] init];
-    [PrivateSentrySDKOnly configureSessionReplayWith:breadcrumbConverter screenshotProvider:nil];
+    // To avoid typos, we test the class existence in the tests
+    [PrivateSentrySDKOnly setRedactContainerClass:[RNSentryReplay getMaskClass]];
+    [PrivateSentrySDKOnly setIgnoreContainerClass:[RNSentryReplay getUnmaskClass]];
+    [RNSentryReplayBreadcrumbConverterHelper configureSessionReplayWithConverter];
 }
 
-+ (Class) getMaskClass
++ (Class)getMaskClass
 {
-    return NSClassFromString(@"RNSentryReplayMask");
+    return RNSentryReplayMask.class;
 }
 
-+ (Class) getUnmaskClass
++ (Class)getUnmaskClass
 {
-    return NSClassFromString(@"RNSentryReplayUnmask");
+    return RNSentryReplayUnmask.class;
 }
 
 @end

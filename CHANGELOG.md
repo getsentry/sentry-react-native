@@ -8,10 +8,37 @@
 
 ## Unreleased
 
+### Features
+
+- Add Replay Custom Masking for iOS and Android ([#4238](https://github.com/getsentry/sentry-react-native/pull/4224), [#4265](https://github.com/getsentry/sentry-react-native/pull/4265), [#4272](https://github.com/getsentry/sentry-react-native/pull/4272))
+
+  ```jsx
+  import * as Sentry from '@sentry/react-native';
+
+  const Example = () => {
+    return (
+      <View>
+        <Sentry.Mask>
+          <Text>${"All children of Sentry.Mask will be masked."}</Text>
+        </Sentry.Mask>
+        <Sentry.Unmask>
+          <Text>${"Only direct children of Sentry.Unmask will be unmasked."}</Text>
+        </Sentry.Unmask>
+      </View>
+    );
+  };
+  ```
+
 ### Fixes
 
 - Remove `.sentry` tmp directory and use environmental variables instead to save default Babel transformer path ([#4298](https://github.com/getsentry/sentry-react-native/pull/4298))
   - This resolves concurrency issues when running multiple bundle processes
+
+### Dependencies
+
+- Bump JavaScript SDK from v8.38.0 to v8.39.0 ([#4293](https://github.com/getsentry/sentry-react-native/pull/4293))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8390)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.38.0...8.39.0)
 
 ## 6.3.0-beta.2
 
@@ -93,25 +120,6 @@
 
   ```bash
   export SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD=true
-  ```
-
-- Add Replay Custom Masking for iOS and Web ([#4238](https://github.com/getsentry/sentry-react-native/pull/4224), ([#4272](https://github.com/getsentry/sentry-react-native/pull/4272)))
-
-  ```jsx
-  import * as Sentry from '@sentry/react-native';
-
-  const Example = () => {
-    return (
-      <View>
-        <Sentry.Mask>
-          <Text>${"All children of Sentry.Mask will be masked."}</Text>
-        </Sentry.Mask>
-        <Sentry.Unmask>
-          <Text>${"Only direct children will be unmasked."}</Text>
-        </Sentry.Unmask>
-      </View>
-    );
-  };
   ```
 
 ### Fixes
