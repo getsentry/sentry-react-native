@@ -15,7 +15,7 @@ import { init, withScope } from '../src/js/sdk';
 import type { ReactNativeTracingIntegration } from '../src/js/tracing';
 import { REACT_NATIVE_TRACING_INTEGRATION_NAME, reactNativeTracingIntegration } from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
-import { getDefaultEnvironment, isExpoGo, notWeb } from '../src/js/utils/environment';
+import { getDefaultEnvironment, isExpoGo, isWeb, notWeb } from '../src/js/utils/environment';
 import { NATIVE } from './mockWrapper';
 import { firstArg, secondArg } from './testutils';
 
@@ -853,6 +853,84 @@ describe('Tests the SDK functionality', () => {
     init({});
 
     expectIntegration('ExpoContext');
+  });
+
+  it('adds mobile replay integration when _experiments.replaysOnErrorSampleRate is set', () => {
+    init({
+      _experiments: {
+        replaysOnErrorSampleRate: 1.0,
+      },
+    });
+
+    expectIntegration('MobileReplay');
+  });
+
+  it('adds mobile replay integration when _experiments.replaysSessionSampleRate is set', () => {
+    init({
+      _experiments: {
+        replaysSessionSampleRate: 1.0,
+      },
+    });
+
+    expectIntegration('MobileReplay');
+  });
+
+  it('does not add mobile replay integration when no replay sample rates are set', () => {
+    init({
+      _experiments: {},
+    });
+
+    expectNotIntegration('MobileReplay');
+  });
+
+  it('does not add any replay integration when on web even with on error sample rate', () => {
+    (isWeb as jest.Mock).mockImplementation(() => true);
+    init({
+      _experiments: {
+        replaysOnErrorSampleRate: 1.0,
+      },
+    });
+
+    expectNotIntegration('Replay');
+    expectNotIntegration('MobileReplay');
+  });
+
+  it('does not add any replay integration when on web even with session sample rate', () => {
+    (isWeb as jest.Mock).mockImplementation(() => true);
+    init({
+      _experiments: {
+        replaysSessionSampleRate: 1.0,
+      },
+    });
+
+    expectNotIntegration('Replay');
+    expectNotIntegration('MobileReplay');
+  });
+
+  it('does not add any replay integration when on web', () => {
+    (isWeb as jest.Mock).mockImplementation(() => true);
+    init({});
+
+    expectNotIntegration('Replay');
+    expectNotIntegration('MobileReplay');
+  });
+
+  it('converts experimental replay options to standard web options when on web', () => {
+    (isWeb as jest.Mock).mockImplementation(() => true);
+    init({
+      _experiments: {
+        replaysOnErrorSampleRate: 0.5,
+        replaysSessionSampleRate: 0.1,
+      },
+    });
+
+    const actualOptions = usedOptions();
+    expect(actualOptions).toEqual(
+      expect.objectContaining({
+        replaysOnErrorSampleRate: 0.5,
+        replaysSessionSampleRate: 0.1,
+      }),
+    );
   });
 });
 
