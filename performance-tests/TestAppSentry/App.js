@@ -64,7 +64,7 @@ const { ActivityStarter } = NativeModules;
 const App: () => Node = () => {
   useEffect(() => {
     if (Platform.OS === 'android') {
-      console.log('AppIsLoaded');
+      ActivityStarter.startAppReadyActivity();
     }
   }, []);
 

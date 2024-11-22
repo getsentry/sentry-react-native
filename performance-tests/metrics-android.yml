@@ -1,11 +1,11 @@
 apps:
   - name: com.testappplain
     activity: MainActivity
-    appLoadedLog: AppIsLoaded
+    measureActivity: AppReadyActivity
     path: TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
   - name: com.testappsentry
     activity: MainActivity
-    appLoadedLog: AppIsLoaded
+    measureActivity: AppReadyActivity
     path: TestAppSentry/android/app/build/outputs/apk/release/app-release.apk
 
 startupTimeTest:
