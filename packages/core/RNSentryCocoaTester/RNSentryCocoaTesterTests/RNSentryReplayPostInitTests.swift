@@ -1,5 +1,5 @@
-import XCTest
 import Sentry
+import XCTest
 
 final class RNSentryReplayPostInitTests: XCTestCase {
 

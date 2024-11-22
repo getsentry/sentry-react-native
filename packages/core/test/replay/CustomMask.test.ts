@@ -11,10 +11,10 @@ describe('CustomMask', () => {
       View: jest.fn(),
     }));
 
-    const { Mask, Unmask } = require('../../src/js/replay/CustomMask');
+    const { Mask, Unmask, MaskFallback, UnmaskFallback } = require('../../src/js/replay/CustomMask');
 
-    expect(Mask).toBeDefined();
-    expect(Unmask).toBeDefined();
+    expect(Mask).toBe(MaskFallback);
+    expect(Unmask).toBe(UnmaskFallback);
   });
 
   it('returns a fallback component when native view manager config is missing', () => {
@@ -25,10 +25,10 @@ describe('CustomMask', () => {
       View: jest.fn(),
     }));
 
-    const { Mask, Unmask } = require('../../src/js/replay/CustomMask');
+    const { Mask, Unmask, MaskFallback, UnmaskFallback } = require('../../src/js/replay/CustomMask');
 
-    expect(Mask).toBeDefined();
-    expect(Unmask).toBeDefined();
+    expect(Mask).toBe(MaskFallback);
+    expect(Unmask).toBe(UnmaskFallback);
   });
 
   it('returns native components when native components exist', () => {
