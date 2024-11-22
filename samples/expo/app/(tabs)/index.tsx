@@ -2,6 +2,7 @@ import { Button, StyleSheet } from 'react-native';
 import Constants from 'expo-constants';
 import * as Sentry from '@sentry/react-native';
 import * as Updates from 'expo-updates';
+import { reloadAppAsync } from 'expo';
 
 import { Text, View } from '@/components/Themed';
 import { setScopeProperties } from '@/utils/setScopeProperties';
@@ -84,6 +85,7 @@ export default function TabOneScreen() {
         }}
       />
       <Button title="Fetch update" onPress={onFetchUpdateAsync} />
+      <Button title="Reload" onPress={() => reloadAppAsync()} />
     </View>
   );
 }
