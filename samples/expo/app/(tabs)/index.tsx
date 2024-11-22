@@ -1,6 +1,7 @@
 import { Button, StyleSheet } from 'react-native';
 import Constants from 'expo-constants';
 import * as Sentry from '@sentry/react-native';
+import { reloadAppAsync } from 'expo';
 
 import { Text, View } from '@/components/Themed';
 import { setScopeProperties } from '@/utils/setScopeProperties';
@@ -82,6 +83,7 @@ export default function TabOneScreen() {
           console.log('Sentry.close() completed.');
         }}
       />
+      <Button title="Reload" onPress={() => reloadAppAsync()} />
     </View>
   );
 }
