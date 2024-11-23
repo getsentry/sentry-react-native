@@ -16,7 +16,6 @@
   "typescript": {
     "definition": "dist/js/index.d.ts"
   },
-  "react-native": "src/js/index.ts",
   "main": "dist/js/index.js",
   "scripts": {
     "build": "npx run-s build:sdk downlevel build:tools build:plugin",
