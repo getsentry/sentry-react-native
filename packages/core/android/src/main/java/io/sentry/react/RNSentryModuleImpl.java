@@ -64,6 +64,8 @@ import io.sentry.protocol.SentryId;
 import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
+import io.sentry.react.replay.RNSentryReplayMask;
+import io.sentry.react.replay.RNSentryReplayUnmask;
 import io.sentry.util.DebugMetaPropertiesApplier;
 import io.sentry.util.FileUtils;
 import io.sentry.util.JsonSerializationUtils;
@@ -370,6 +372,9 @@ public class RNSentryModuleImpl {
     if (redactVectors) {
       androidReplayOptions.addMaskViewClass("com.horcrux.svg.SvgView"); // react-native-svg
     }
+
+    androidReplayOptions.setMaskViewContainerClass(RNSentryReplayMask.class.getName());
+    androidReplayOptions.setUnmaskViewContainerClass(RNSentryReplayUnmask.class.getName());
 
     return androidReplayOptions;
   }
