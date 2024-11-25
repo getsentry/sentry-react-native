@@ -1,7 +1,7 @@
 import { logger } from '@sentry/utils';
 import * as React from 'react';
 import type { HostComponent, ViewProps } from 'react-native';
-import { UIManager, View } from 'react-native';
+import { UIManager, View, requireNativeComponent } from 'react-native';
 
 const NativeComponentRegistry: {
   get<T, C extends Record<string, unknown>>(componentName: string, createViewConfig: () => C): HostComponent<T>;
@@ -40,6 +40,8 @@ const Mask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> => {
     return MaskFallback;
   }
 
+  // Based on @react-native/babel-plugin-codegen output
+  // https://github.com/facebook/react-native/blob/b32c6c2cc1bc566a85a883901dbf5e23b5a75b61/packages/react-native-codegen/src/generators/components/GenerateViewConfigJs.js#L139
   return NativeComponentRegistry.get(MaskNativeComponentName, () => ({
     uiViewClassName: MaskNativeComponentName,
   }));
@@ -51,6 +53,8 @@ const Unmask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> =>
     return UnmaskFallback;
   }
 
+  // Based on @react-native/babel-plugin-codegen output
+  // https://github.com/facebook/react-native/blob/b32c6c2cc1bc566a85a883901dbf5e23b5a75b61/packages/react-native-codegen/src/generators/components/GenerateViewConfigJs.js#L139
   return NativeComponentRegistry.get(UnmaskNativeComponentName, () => ({
     uiViewClassName: UnmaskNativeComponentName,
   }));
