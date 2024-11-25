@@ -19,6 +19,14 @@
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8400)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/8.38.0...8.40.0)
 
+## 6.3.0-beta.2
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.40.1 to v8.41.0-beta.1 ([#4295](https://github.com/getsentry/sentry-react-native/pull/4295))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8410-beta1)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.40.1...8.41.0-beta.1)
+
 ## 6.3.0-beta.1
 
 ### Features
