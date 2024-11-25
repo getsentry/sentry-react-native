@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add Replay Custom Masking for iOS ([#4238](https://github.com/getsentry/sentry-react-native/pull/4224))
+- Add Replay Custom Masking for iOS ([#4224](https://github.com/getsentry/sentry-react-native/pull/4224))
 
   ```jsx
   import * as Sentry from '@sentry/react-native';
