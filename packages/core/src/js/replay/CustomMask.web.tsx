@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { View, ViewProps } from 'react-native';
+import type { ViewProps } from 'react-native';
+import { View } from 'react-native';
 
 // Wrapping children in a View and div can cause styling issues
 // but with the current implementation of react-native-web
