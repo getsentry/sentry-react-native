@@ -3,6 +3,11 @@ import * as React from 'react';
 import type { HostComponent, ViewProps } from 'react-native';
 import { UIManager, View } from 'react-native';
 
+const NativeComponentRegistry: {
+  get<T, C extends Record<string, unknown>>(componentName: string, createViewConfig: () => C): HostComponent<T>;
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('react-native/Libraries/NativeComponent/NativeComponentRegistry');
+
 const MaskNativeComponentName = 'RNSentryReplayMask';
 const UnmaskNativeComponentName = 'RNSentryReplayUnmask';
 
@@ -35,8 +40,9 @@ const Mask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> => {
     return MaskFallback;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-  return require('../RNSentryReplayMaskNativeComponent').default;
+  return NativeComponentRegistry.get(MaskNativeComponentName, () => ({
+    uiViewClassName: MaskNativeComponentName,
+  }));
 })()
 
 const Unmask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> => {
@@ -45,8 +51,9 @@ const Unmask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> =>
     return UnmaskFallback;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-  return require('../RNSentryReplayUnmaskNativeComponent').default;
+  return NativeComponentRegistry.get(UnmaskNativeComponentName, () => ({
+    uiViewClassName: UnmaskNativeComponentName,
+  }));
 })();
 
 export { Mask, Unmask, MaskFallback, UnmaskFallback };
