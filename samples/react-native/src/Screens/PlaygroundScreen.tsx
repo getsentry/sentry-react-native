@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import SvgGraphic from '../components/SvgGraphic';
 import { StackNavigationProp } from '@react-navigation/stack';
+import * as Sentry from '@sentry/react-native';
 
 const multilineText = `This
 is
@@ -42,6 +43,19 @@ const PlaygroundScreen = (props: Props) => {
                   props.navigation.navigate('Webview');
                 }}
               />
+              <Text>Custom Mask:</Text>
+              <View>
+                <Sentry.Unmask>
+                  <Text>This is unmasked because it's direct child of Sentry.Unmask (can be masked if Sentry.Masked is used higher in the hierarchy)</Text>
+                  <Sentry.Mask>
+                    <Text>This is masked always because it's a child of a Sentry.Mask</Text>
+                    <Sentry.Unmask>
+                      {/* Sentry.Unmask does not override the Sentry.Mask from above in the hierarchy */}
+                      <Text>This is masked always because it's a child of Sentry.Mask</Text>
+                    </Sentry.Unmask>
+                  </Sentry.Mask>
+                </Sentry.Unmask>
+              </View>
               <Text>Text:</Text>
               <Text>{'This is <Text>'}</Text>
               <View style={styles.space} />

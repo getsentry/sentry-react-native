@@ -118,7 +118,7 @@
   },
   "codegenConfig": {
     "name": "RNSentrySpec",
-    "type": "modules",
+    "type": "all",
     "jsSrcsDir": "src",
     "android": {
       "javaPackageName": "io.sentry.react"

@@ -14,6 +14,7 @@ import {
   Pressable,
 } from 'react-native';
 import SvgGraphic from '../components/SvgGraphic';
+import * as Sentry from '@sentry/react-native';
 
 const multilineText = `This
 is
@@ -32,6 +33,16 @@ const PlaygroundScreen = () => {
             <View style={styles.container}>
               <Text>Text:</Text>
               <Text>{'This is <Text>'}</Text>
+              <Text>Custom Mask:</Text>
+              <View>
+                {/* Replay is not supported on macOS. This sample demonstrates that unavailable components do not cause the app to crash. */}
+                <Sentry.Mask>
+                  <Text>This is masked</Text>
+                </Sentry.Mask>
+                <Sentry.Unmask>
+                  <Text>This is unmasked</Text>
+                </Sentry.Unmask>
+              </View>
               <View style={styles.space} />
               <Text>TextInput:</Text>
               <TextInput

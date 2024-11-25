@@ -11,7 +11,13 @@
 !react-native.config.js
 !/ios/**/*
 !/android/**/*
+
+# New Architecture Codegen
 !src/js/NativeRNSentry.ts
+!src/js/RNSentryReplayMaskNativeComponent.ts
+!src/js/RNSentryReplayUnmaskNativeComponent.ts
+
+# Scripts
 !scripts/collect-modules.sh
 !scripts/copy-debugid.js
 !scripts/has-sourcemap-debugid.js

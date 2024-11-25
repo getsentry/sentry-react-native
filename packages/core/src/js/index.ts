@@ -78,3 +78,5 @@ export {
 } from './tracing';
 
 export type { TimeToDisplayProps } from './tracing';
+
+export { Mask, Unmask } from './replay/CustomMask';
