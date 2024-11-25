@@ -34,13 +34,18 @@ describe('CustomMask', () => {
   it('returns native components when native components exist', () => {
     const mockMaskComponent = jest.fn();
     const mockUnmaskComponent = jest.fn();
+    const mockNativeComponentRegistryGet = jest.fn().mockImplementation((componentName: string) => {
+      if (componentName === 'RNSentryReplayMask') {
+        return mockMaskComponent;
+      } else if (componentName === 'RNSentryReplayUnmask') {
+        return mockUnmaskComponent;
+      } else {
+        throw new Error(`Unknown component name: ${componentName}`);
+      }
+    });
 
-    jest.mock('../../src/js/RNSentryReplayMaskNativeComponent', () => ({
-      default: mockMaskComponent,
-    }));
-
-    jest.mock('../../src/js/RNSentryReplayUnmaskNativeComponent', () => ({
-      default: mockUnmaskComponent,
+    jest.mock('react-native/Libraries/NativeComponent/NativeComponentRegistry', () => ({
+      get: mockNativeComponentRegistryGet,
     }));
 
     jest.mock('react-native', () => ({
@@ -54,5 +59,9 @@ describe('CustomMask', () => {
 
     expect(Mask).toBe(mockMaskComponent);
     expect(Unmask).toBe(mockUnmaskComponent);
+
+    expect(mockNativeComponentRegistryGet).toBeCalledTimes(2);
+    expect(mockNativeComponentRegistryGet).toBeCalledWith('RNSentryReplayMask', expect.any(Function));
+    expect(mockNativeComponentRegistryGet).toBeCalledWith('RNSentryReplayUnmask', expect.any(Function));
   });
 });
