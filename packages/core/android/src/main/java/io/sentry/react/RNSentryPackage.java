@@ -65,6 +65,7 @@ public class RNSentryPackage extends TurboReactPackage {
                 RNSentryReplayMaskManagerImpl.REACT_CLASS, // className
                 false, // canOverrideExistingModule
                 false, // needsEagerInit
+                false, // hasConstants, required in RN 0.65
                 false, // isCxxModule
                 true // isTurboModule
                 ));
@@ -75,6 +76,7 @@ public class RNSentryPackage extends TurboReactPackage {
                 RNSentryReplayUnmaskManagerImpl.REACT_CLASS, // className
                 false, // canOverrideExistingModule
                 false, // needsEagerInit
+                false, // hasConstants, required in RN 0.65
                 false, // isCxxModule
                 true // isTurboModule
                 ));

@@ -1,5 +1,6 @@
 #import "AppDelegate.h"
 
+#import <RCTAppDelegate+Protected.h>
 #import <React/CoreModulesPlugins.h>
 #import <React/RCTBundleURLProvider.h>
 #import <ReactCommon/RCTTurboModuleManager.h>

@@ -28,7 +28,7 @@ import { Provider } from 'react-redux';
 import { store } from './reduxApp';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import GesturesTracingScreen from './Screens/GesturesTracingScreen';
-import { LogBox, Platform, StyleSheet, Text, View } from 'react-native';
+import { LogBox, Platform, StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
 import { logWithoutTracing } from './utils';
@@ -36,6 +36,10 @@ import { ErrorEvent } from '@sentry/types';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
+
+if (typeof setImmediate === 'undefined') {
+  require('setimmediate');
+}
 
 LogBox.ignoreAllLogs();
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
@@ -273,11 +277,6 @@ function App() {
     <>
       <RootNavigationContainer />
       <RunningIndicator />
-      <Text>
-        <Text>
-          Hello
-        </Text>
-      </Text>
     </>
   );
 }

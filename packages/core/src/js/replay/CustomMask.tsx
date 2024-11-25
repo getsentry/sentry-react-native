@@ -3,6 +3,11 @@ import * as React from 'react';
 import type { HostComponent, ViewProps } from 'react-native';
 import { UIManager, View } from 'react-native';
 
+const NativeComponentRegistry: {
+  get<T, C extends Record<string, unknown>>(componentName: string, createViewConfig: () => C): HostComponent<T>;
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('react-native/Libraries/NativeComponent/NativeComponentRegistry');
+
 const MaskNativeComponentName = 'RNSentryReplayMask';
 const UnmaskNativeComponentName = 'RNSentryReplayUnmask';
 
@@ -35,8 +40,11 @@ const Mask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> => {
     return MaskFallback;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-  return require('../RNSentryReplayMaskNativeComponent').default;
+  // Based on @react-native/babel-plugin-codegen output
+  // https://github.com/facebook/react-native/blob/b32c6c2cc1bc566a85a883901dbf5e23b5a75b61/packages/react-native-codegen/src/generators/components/GenerateViewConfigJs.js#L139
+  return NativeComponentRegistry.get(MaskNativeComponentName, () => ({
+    uiViewClassName: MaskNativeComponentName,
+  }));
 })()
 
 const Unmask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> => {
@@ -45,8 +53,11 @@ const Unmask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> =>
     return UnmaskFallback;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-  return require('../RNSentryReplayUnmaskNativeComponent').default;
+  // Based on @react-native/babel-plugin-codegen output
+  // https://github.com/facebook/react-native/blob/b32c6c2cc1bc566a85a883901dbf5e23b5a75b61/packages/react-native-codegen/src/generators/components/GenerateViewConfigJs.js#L139
+  return NativeComponentRegistry.get(UnmaskNativeComponentName, () => ({
+    uiViewClassName: UnmaskNativeComponentName,
+  }));
 })();
 
 export { Mask, Unmask, MaskFallback, UnmaskFallback };

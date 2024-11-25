@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add Replay Custom Masking for iOS and Android ([#4238](https://github.com/getsentry/sentry-react-native/pull/4224), [#4265](https://github.com/getsentry/sentry-react-native/pull/4265), [#4272](https://github.com/getsentry/sentry-react-native/pull/4272))
+- Add Replay Custom Masking for iOS, Android and Web ([#4224](https://github.com/getsentry/sentry-react-native/pull/4224), [#4265](https://github.com/getsentry/sentry-react-native/pull/4265), [#4272](https://github.com/getsentry/sentry-react-native/pull/4272))
 
   ```jsx
   import * as Sentry from '@sentry/react-native';
@@ -36,9 +36,9 @@
 
 ### Dependencies
 
-- Bump JavaScript SDK from v8.38.0 to v8.39.0 ([#4293](https://github.com/getsentry/sentry-react-native/pull/4293))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8390)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.38.0...8.39.0)
+- Bump JavaScript SDK from v8.38.0 to v8.40.0 ([#4293](https://github.com/getsentry/sentry-react-native/pull/4293), [#4304](https://github.com/getsentry/sentry-react-native/pull/4304))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8400)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.38.0...8.40.0)
 
 ## 6.3.0-beta.2
 
