@@ -4,7 +4,16 @@
 
 ### Fixes
 
+
 - `browserReplayIntegration` is no longer included by default on React Native Web ([#4270](https://github.com/getsentry/sentry-react-native/pull/4270), [#4308](https://github.com/getsentry/sentry-react-native/pull/4308))
+- Replay `maskAll*` set to `false` on iOS kept all masked ([#4257](https://github.com/getsentry/sentry-react-native/pull/4257), [#4309](https://github.com/getsentry/sentry-react-native/pull/4309))
+- Fix Replay redacting of RN Classes on iOS ([#4243](https://github.com/getsentry/sentry-react-native/pull/4243), [#4309](https://github.com/getsentry/sentry-react-native/pull/4309))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.37.0 to v8.41.0 ([#4309](https://github.com/getsentry/sentry-react-native/pull/4309))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8410)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.37.0...8.41.0)
 
 ## 5.35.0
 
