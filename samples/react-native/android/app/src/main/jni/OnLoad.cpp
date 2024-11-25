@@ -29,6 +29,7 @@
 
 #include <DefaultComponentsRegistry.h>
 #include <DefaultTurboModuleManagerDelegate.h>
+#include <NativeSampleModule.h>
 #include <autolinking.h>
 #include <fbjni/fbjni.h>
 #include <react/renderer/componentregistry/ComponentDescriptorProviderRegistry.h>
@@ -71,6 +72,9 @@ cxxModuleProvider(const std::string &name, const std::shared_ptr<CallInvoker> &j
     // if (name == NativeCxxModuleExample::kModuleName) {
     //   return std::make_shared<NativeCxxModuleExample>(jsInvoker);
     // }
+    if (name == NativeSampleModule::kModuleName) {
+        return std::make_shared<NativeSampleModule>(jsInvoker);
+    }
 
     // And we fallback to the CXX module providers autolinked
     return autolinking_cxxModuleProvider(name, jsInvoker);
