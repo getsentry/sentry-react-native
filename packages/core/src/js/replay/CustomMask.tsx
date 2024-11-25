@@ -1,7 +1,7 @@
 import { logger } from '@sentry/utils';
 import * as React from 'react';
 import type { HostComponent, ViewProps } from 'react-native';
-import { UIManager, View, requireNativeComponent } from 'react-native';
+import { UIManager, View } from 'react-native';
 
 const NativeComponentRegistry: {
   get<T, C extends Record<string, unknown>>(componentName: string, createViewConfig: () => C): HostComponent<T>;
