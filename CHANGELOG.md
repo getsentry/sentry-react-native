@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Return `lastEventId` export from `@sentry/core` ([#4315](https://github.com/getsentry/sentry-react-native/pull/4315))
+
 ## 6.4.0-beta.1
 
 ### Features
