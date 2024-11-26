@@ -28,7 +28,7 @@ jobs:
   metrics:
     runs-on: ${{ matrix.runs-on }}
     needs: [diff_check, auth_token_check]
-    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.auth_token_check.outputs.skip_ci != 'true' && !startsWith(github.ref, 'refs/heads/release/') && !startsWith(github.ref, 'refs/heads/kw/ci') }}
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.auth_token_check.outputs.skip_ci != 'true' && !startsWith(github.ref, 'refs/heads/release/') && !startsWith(github.ref, 'refs/heads/kw') }}
     env:
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
     strategy:
