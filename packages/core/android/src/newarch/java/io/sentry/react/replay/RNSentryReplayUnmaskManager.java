@@ -8,7 +8,7 @@ import com.facebook.react.uimanager.ViewManagerDelegate;
 import com.facebook.react.viewmanagers.RNSentryReplayUnmaskManagerDelegate;
 import com.facebook.react.viewmanagers.RNSentryReplayUnmaskManagerInterface;
 
-@ReactModule(name = RNSentryReplayUnmaskManager.REACT_CLASS)
+@ReactModule(name = RNSentryReplayMaskManagerImpl.REACT_CLASS)
 public class RNSentryReplayUnmaskManager extends ViewGroupManager<RNSentryReplayUnmask>
     implements RNSentryReplayUnmaskManagerInterface<RNSentryReplayUnmask> {
   private final RNSentryReplayUnmaskManagerDelegate<
@@ -23,7 +23,7 @@ public class RNSentryReplayUnmaskManager extends ViewGroupManager<RNSentryReplay
   @NonNull
   @Override
   public String getName() {
-    return REACT_CLASS;
+    return RNSentryReplayMaskManagerImpl.REACT_CLASS;
   }
 
   @NonNull
@@ -31,6 +31,4 @@ public class RNSentryReplayUnmaskManager extends ViewGroupManager<RNSentryReplay
   public RNSentryReplayUnmask createViewInstance(@NonNull ThemedReactContext context) {
     return new RNSentryReplayUnmask(context);
   }
-
-  public static final String REACT_CLASS = "RNSentryReplayUnmask";
 }
