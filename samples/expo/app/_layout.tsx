@@ -56,6 +56,7 @@ process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
       }),
       navigationIntegration,
       Sentry.reactNativeTracingIntegration(),
+      Sentry.browserReplayIntegration(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
