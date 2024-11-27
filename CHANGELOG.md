@@ -13,14 +13,14 @@
 - Adds new `captureFeedback` and deprecates the `captureUserFeedback` API ([#4320](https://github.com/getsentry/sentry-react-native/pull/4320), [#4322](https://github.com/getsentry/sentry-react-native/pull/4322))
 
   ```jsx
-  import * as Sentry from "@sentry/react-native";
-  import { SendFeedbackParams } from "@sentry/react-native";
+  import * as Sentry from '@sentry/react-native';
+  import { SendFeedbackParams } from '@sentry/react-native';
 
-  const eventId = Sentry.captureMessage("My Message");
+  const eventId = Sentry.captureMessage('My Message');
   // OR: const eventId = Sentry.lastEventId();
 
   const userFeedback: SendFeedbackParams = {
-    name: 'John Doe",
+    name: 'John Doe',
     email: 'john@doe.com',
     message: 'Hello World!',
     associatedEventId: eventId,// Optional
