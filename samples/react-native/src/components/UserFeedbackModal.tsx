@@ -66,6 +66,35 @@ export function UserFeedbackModal(props: { onDismiss: () => void }) {
           />
           <View style={styles.buttonSpacer} />
           <Button
+            title="Send feedback with attachment and tags"
+            color="#6C5FC7"
+            onPress={async () => {
+              onDismiss();
+
+              const base64Image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgUBA+kZYq8AAAAASUVORK5CYII=';
+
+              const userFeedback: SendFeedbackParams = {
+                message: comments,
+                name: 'John Doe',
+                email: 'john@doe.com',
+              };
+
+              Sentry.captureFeedback(userFeedback, {
+                captureContext: {
+                  tags: { testtag: 'testvalue' },
+                },
+                attachments: [
+                  {
+                    filename: 'screenshot.png',
+                    data: base64Image,
+                  },
+                ],
+              });
+              clearComments();
+            }}
+          />
+          <View style={styles.buttonSpacer} />
+          <Button
             title="Close"
             color="#6C5FC7"
             onPress={async () => {
