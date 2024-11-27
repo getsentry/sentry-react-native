@@ -296,7 +296,6 @@ describe('Tests ReactNativeClient', () => {
 
   describe('UserFeedback', () => {
     test('sends UserFeedback', () => {
-      const mockTransportSend: jest.Mock = jest.fn(() => Promise.resolve());
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
