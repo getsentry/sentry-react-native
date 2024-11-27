@@ -1,4 +1,4 @@
-import type { Session, Transport, UserFeedback } from '@sentry/types';
+import type { Session, Transport } from '@sentry/types';
 import { rejectedSyncPromise } from '@sentry/utils';
 
 export type MockInterface<T> = {
@@ -34,13 +34,6 @@ export const getMockSession = (): Session => ({
     status: 'ok',
     errors: -1,
   }),
-});
-
-export const getMockUserFeedback = (): UserFeedback => ({
-  comments: 'comments_test_value',
-  email: 'email_test_value',
-  name: 'name_test_value',
-  event_id: 'event_id_test_value',
 });
 
 export const getSyncPromiseRejectOnFirstCall = <Y extends any[]>(reason: unknown): jest.Mock => {

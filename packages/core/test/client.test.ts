@@ -1,8 +1,15 @@
 import * as mockedtimetodisplaynative from './tracing/mockedtimetodisplaynative';
 jest.mock('../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
-import { defaultStackParser } from '@sentry/browser';
-import type { Envelope, Event, Outcome, Transport, TransportMakeRequestResponse } from '@sentry/types';
+import { captureFeedback as captureFeedbackApi, defaultStackParser } from '@sentry/browser';
+import type {
+  Envelope,
+  Event,
+  Outcome,
+  SendFeedbackParams,
+  Transport,
+  TransportMakeRequestResponse,
+} from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 import * as RN from 'react-native';
 
@@ -19,7 +26,6 @@ import {
   envelopeItems,
   firstArg,
   getMockSession,
-  getMockUserFeedback,
   getSyncPromiseRejectOnFirstCall,
 } from './testutils';
 
@@ -75,6 +81,14 @@ jest.mock(
     },
   }),
 );
+
+jest.mock('@sentry/browser', () => {
+  const actual = jest.requireActual('@sentry/browser');
+  return {
+    ...actual,
+    captureFeedback: jest.fn(),
+  };
+});
 
 const EXAMPLE_DSN = 'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053';
 
@@ -187,15 +201,6 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransport.send).not.toBeCalled();
     });
 
-    test('captureUserFeedback does not call transport when enabled false', () => {
-      const mockTransport = createMockTransport();
-      const client = createDisabledClientWith(mockTransport);
-
-      client.captureUserFeedback(getMockUserFeedback());
-
-      expect(mockTransport.send).not.toBeCalled();
-    });
-
     function createDisabledClientWith(transport: Transport) {
       return new ReactNativeClient({
         ...DEFAULT_OPTIONS,
@@ -290,34 +295,26 @@ describe('Tests ReactNativeClient', () => {
   });
 
   describe('UserFeedback', () => {
-    test('sends UserFeedback to native Layer', () => {
+    test('sends UserFeedback', () => {
       const mockTransportSend: jest.Mock = jest.fn(() => Promise.resolve());
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
         dsn: EXAMPLE_DSN,
-        transport: () => ({
-          send: mockTransportSend,
-          flush: jest.fn(),
-        }),
       });
+      jest.mock('@sentry/browser', () => ({
+        captureFeedback: jest.fn(),
+      }));
 
-      client.captureUserFeedback({
-        comments: 'Test Comments',
+      const feedback: SendFeedbackParams = {
+        message: 'Test Comments',
         email: 'test@email.com',
         name: 'Test User',
-        event_id: 'testEvent123',
-      });
+        associatedEventId: 'testEvent123',
+      };
 
-      expect(mockTransportSend.mock.calls[0][firstArg][envelopeHeader].event_id).toEqual('testEvent123');
-      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemHeader].type).toEqual(
-        'user_report',
-      );
-      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload]).toEqual({
-        comments: 'Test Comments',
-        email: 'test@email.com',
-        name: 'Test User',
-        event_id: 'testEvent123',
-      });
+      client.captureFeedback(feedback);
+
+      expect(captureFeedbackApi).toHaveBeenCalledWith(feedback);
     });
   });
 
@@ -415,11 +412,6 @@ describe('Tests ReactNativeClient', () => {
 
     test('send SdkInfo in the session envelope header', () => {
       client.captureSession(getMockSession());
-      expect(getSdkInfoFrom(mockTransportSend)).toStrictEqual(expectedSdkInfo);
-    });
-
-    test('send SdkInfo in the user feedback envelope header', () => {
-      client.captureUserFeedback(getMockUserFeedback());
       expect(getSdkInfoFrom(mockTransportSend)).toStrictEqual(expectedSdkInfo);
     });
   });
