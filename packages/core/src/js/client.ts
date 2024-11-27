@@ -86,8 +86,8 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   /**
    * Sends user feedback to Sentry.
    */
-  public captureFeedback(feedback: SendFeedbackParams): void {
-    captureFeedbackApi(feedback);
+  public captureFeedback(feedback: SendFeedbackParams, hint?: EventHint): void {
+    captureFeedbackApi(feedback, hint);
   }
 
   /**

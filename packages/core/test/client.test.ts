@@ -313,7 +313,40 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureFeedback(feedback);
 
-      expect(captureFeedbackApi).toHaveBeenCalledWith(feedback);
+      expect(captureFeedbackApi).toHaveBeenCalledWith(feedback, undefined);
+    });
+
+    test('sends UserFeedback with hint', () => {
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+      });
+      jest.mock('@sentry/browser', () => ({
+        captureFeedback: jest.fn(),
+      }));
+
+      const feedback: SendFeedbackParams = {
+        message: 'Test Comments',
+        email: 'test@email.com',
+        name: 'Test User',
+        associatedEventId: 'testEvent123',
+      };
+
+      const hint = {
+        captureContext: {
+          tags: { testtag: 'testvalue' },
+        },
+        attachments: [
+          {
+            filename: 'screenshot.png',
+            data: 'base64Image',
+          },
+        ],
+      };
+
+      client.captureFeedback(feedback, hint);
+
+      expect(captureFeedbackApi).toHaveBeenCalledWith(feedback, hint);
     });
   });
 

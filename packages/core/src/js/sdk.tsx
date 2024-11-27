@@ -4,7 +4,7 @@ import {
   defaultStackParser,
   makeFetchTransport,
 } from '@sentry/react';
-import type { Breadcrumb, BreadcrumbHint, Integration, Scope, SendFeedbackParams, UserFeedback } from '@sentry/types';
+import type { Breadcrumb, BreadcrumbHint, EventHint, Integration, Scope, SendFeedbackParams, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -234,8 +234,8 @@ export function captureUserFeedback(feedback: UserFeedback): void {
 /**
  * Captures user feedback and sends it to Sentry.
  */
-export function captureFeedback(feedbackParams: SendFeedbackParams): void {
-  getClient<ReactNativeClient>()?.captureFeedback(feedbackParams);
+export function captureFeedback(feedbackParams: SendFeedbackParams, hint?: EventHint): void {
+  getClient<ReactNativeClient>()?.captureFeedback(feedbackParams, hint);
 }
 
 /**
