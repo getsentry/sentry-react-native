@@ -71,7 +71,8 @@ export function UserFeedbackModal(props: { onDismiss: () => void }) {
             onPress={async () => {
               onDismiss();
 
-              const base64Image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgUBA+kZYq8AAAAASUVORK5CYII=';
+              const base64Image =
+                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgUBA+kZYq8AAAAASUVORK5CYII=';
 
               const userFeedback: SendFeedbackParams = {
                 message: comments,
