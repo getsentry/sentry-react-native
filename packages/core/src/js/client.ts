@@ -1,6 +1,5 @@
-import { eventFromMessage } from '@sentry/core';
 import { eventFromException } from '@sentry/browser';
-import { BaseClient } from '@sentry/core';
+import { BaseClient, eventFromMessage } from '@sentry/core';
 import type {
   ClientReportEnvelope,
   ClientReportItem,
