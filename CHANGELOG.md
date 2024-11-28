@@ -12,7 +12,6 @@
 
 - Adds new `captureFeedback` and deprecates the `captureUserFeedback` API ([#4320](https://github.com/getsentry/sentry-react-native/pull/4320))
 
-
   ```jsx
   import * as Sentry from "@sentry/react-native";
 

@@ -9,6 +9,7 @@ import type {
   Outcome,
   SeverityLevel,
   TransportMakeRequestResponse,
+  UserFeedback,
 } from '@sentry/types';
 import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 import { Alert } from 'react-native';
@@ -19,7 +20,7 @@ import { getDefaultSidecarUrl } from './integrations/spotlight';
 import type { ReactNativeClientOptions } from './options';
 import type { mobileReplayIntegration } from './replay/mobilereplay';
 import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
-import { items } from './utils/envelope';
+import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';
 import { ReactNativeLibraries } from './utils/rnlibraries';
@@ -80,6 +81,20 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     return super.close().then((result: boolean) => {
       return NATIVE.closeNativeSdk().then(() => result) as PromiseLike<boolean>;
     });
+  }
+
+  /**
+   * Sends user feedback to Sentry.
+   * @deprecated Use `Sentry.captureFeedback` instead.
+   */
+  public captureUserFeedback(feedback: UserFeedback): void {
+    const envelope = createUserFeedbackEnvelope(feedback, {
+      metadata: this._options._metadata,
+      dsn: this.getDsn(),
+      tunnel: undefined,
+    });
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.sendEnvelope(envelope);
   }
 
   /**
