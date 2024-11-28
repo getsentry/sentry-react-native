@@ -1,15 +1,8 @@
 import * as mockedtimetodisplaynative from './tracing/mockedtimetodisplaynative';
 jest.mock('../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
-import { captureFeedback as captureFeedbackApi, defaultStackParser } from '@sentry/browser';
-import type {
-  Envelope,
-  Event,
-  Outcome,
-  SendFeedbackParams,
-  Transport,
-  TransportMakeRequestResponse,
-} from '@sentry/types';
+import { defaultStackParser } from '@sentry/browser';
+import type { Envelope, Event, Outcome, Transport, TransportMakeRequestResponse } from '@sentry/types';
 import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 import * as RN from 'react-native';
 
@@ -81,14 +74,6 @@ jest.mock(
     },
   }),
 );
-
-jest.mock('@sentry/browser', () => {
-  const actual = jest.requireActual('@sentry/browser');
-  return {
-    ...actual,
-    captureFeedback: jest.fn(),
-  };
-});
 
 const EXAMPLE_DSN = 'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053';
 
@@ -291,62 +276,6 @@ describe('Tests ReactNativeClient', () => {
       client.nativeCrash();
 
       expect(RN.NativeModules.RNSentry.crash).toBeCalled();
-    });
-  });
-
-  describe('UserFeedback', () => {
-    test('sends UserFeedback', () => {
-      const client = new ReactNativeClient({
-        ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
-      });
-      jest.mock('@sentry/browser', () => ({
-        captureFeedback: jest.fn(),
-      }));
-
-      const feedback: SendFeedbackParams = {
-        message: 'Test Comments',
-        email: 'test@email.com',
-        name: 'Test User',
-        associatedEventId: 'testEvent123',
-      };
-
-      client.captureFeedback(feedback);
-
-      expect(captureFeedbackApi).toHaveBeenCalledWith(feedback, undefined);
-    });
-
-    test('sends UserFeedback with hint', () => {
-      const client = new ReactNativeClient({
-        ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
-      });
-      jest.mock('@sentry/browser', () => ({
-        captureFeedback: jest.fn(),
-      }));
-
-      const feedback: SendFeedbackParams = {
-        message: 'Test Comments',
-        email: 'test@email.com',
-        name: 'Test User',
-        associatedEventId: 'testEvent123',
-      };
-
-      const hint = {
-        captureContext: {
-          tags: { testtag: 'testvalue' },
-        },
-        attachments: [
-          {
-            filename: 'screenshot.png',
-            data: 'base64Image',
-          },
-        ],
-      };
-
-      client.captureFeedback(feedback, hint);
-
-      expect(captureFeedbackApi).toHaveBeenCalledWith(feedback, hint);
     });
   });
 

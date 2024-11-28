@@ -17,6 +17,7 @@ export {
   addBreadcrumb,
   captureException,
   captureEvent,
+  captureFeedback,
   captureMessage,
   Scope,
   setContext,
@@ -60,17 +61,7 @@ export { SDK_NAME, SDK_VERSION } from './version';
 export type { ReactNativeOptions } from './options';
 export { ReactNativeClient } from './client';
 
-export {
-  init,
-  wrap,
-  nativeCrash,
-  flush,
-  close,
-  captureFeedback,
-  captureUserFeedback,
-  withScope,
-  crashedLastRun,
-} from './sdk';
+export { init, wrap, nativeCrash, flush, close, captureUserFeedback, withScope, crashedLastRun } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 
 export {

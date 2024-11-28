@@ -1,4 +1,4 @@
-import { captureFeedback as captureFeedbackApi, eventFromException, eventFromMessage } from '@sentry/browser';
+import { eventFromException, eventFromMessage } from '@sentry/browser';
 import { BaseClient } from '@sentry/core';
 import type {
   ClientReportEnvelope,
@@ -7,7 +7,6 @@ import type {
   Event,
   EventHint,
   Outcome,
-  SendFeedbackParams,
   SeverityLevel,
   TransportMakeRequestResponse,
 } from '@sentry/types';
@@ -81,13 +80,6 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     return super.close().then((result: boolean) => {
       return NATIVE.closeNativeSdk().then(() => result) as PromiseLike<boolean>;
     });
-  }
-
-  /**
-   * Sends user feedback to Sentry.
-   */
-  public captureFeedback(feedback: SendFeedbackParams, hint?: EventHint): void {
-    captureFeedbackApi(feedback, hint);
   }
 
   /**
