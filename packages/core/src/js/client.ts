@@ -1,4 +1,5 @@
-import { captureFeedback as captureFeedbackApi, eventFromException, eventFromMessage } from '@sentry/browser';
+import { eventFromMessage } from '@sentry/core';
+import { eventFromException } from '@sentry/browser';
 import { BaseClient } from '@sentry/core';
 import type {
   ClientReportEnvelope,
