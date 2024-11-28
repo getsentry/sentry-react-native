@@ -71,9 +71,6 @@ export function UserFeedbackModal(props: { onDismiss: () => void }) {
             onPress={async () => {
               onDismiss();
 
-              const base64Image =
-                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgUBA+kZYq8AAAAASUVORK5CYII=';
-
               const userFeedback: SendFeedbackParams = {
                 message: comments,
                 name: 'John Doe',
@@ -86,8 +83,8 @@ export function UserFeedbackModal(props: { onDismiss: () => void }) {
                 },
                 attachments: [
                   {
-                    filename: 'screenshot.png',
-                    data: base64Image,
+                    filename: 'hello.txt',
+                    data: 'Hello, World!',
                   },
                 ],
               });
