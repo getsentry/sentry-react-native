@@ -10,7 +10,7 @@
 
 ### Features
 
-- Adds new `captureFeedback` and deprecates the `captureUserFeedback` API ([#4320](https://github.com/getsentry/sentry-react-native/pull/4320), [#4322](https://github.com/getsentry/sentry-react-native/pull/4322))
+- Adds new `captureFeedback` and deprecates the `captureUserFeedback` API ([#4320](https://github.com/getsentry/sentry-react-native/pull/4320))
 
 
   ```jsx
