@@ -57,6 +57,7 @@ export const startIdleNavigationSpan = (
   }
 
   const activeSpan = getActiveSpan();
+  clearActiveSpanFromScope(getCurrentScope());
   if (activeSpan && isRootSpan(activeSpan) && isSentryInteractionSpan(activeSpan)) {
     logger.log(
       `[startIdleNavigationSpan] Canceling ${
@@ -128,9 +129,9 @@ export function isSentryInteractionSpan(span: Span): boolean {
   return [SPAN_ORIGIN_AUTO_INTERACTION, SPAN_ORIGIN_MANUAL_INTERACTION].includes(spanToJSON(span).origin);
 }
 
-const SCOPE_SPAN_FIELD = '_sentrySpan';
+export const SCOPE_SPAN_FIELD = '_sentrySpan';
 
-type ScopeWithMaybeSpan = Scope & {
+export type ScopeWithMaybeSpan = Scope & {
   [SCOPE_SPAN_FIELD]?: Span;
 };
 
