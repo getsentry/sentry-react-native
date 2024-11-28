@@ -19,6 +19,7 @@ import {
   envelopeItems,
   firstArg,
   getMockSession,
+  getMockUserFeedback,
   getSyncPromiseRejectOnFirstCall,
 } from './testutils';
 
@@ -186,6 +187,15 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransport.send).not.toBeCalled();
     });
 
+    test('captureUserFeedback does not call transport when enabled false', () => {
+      const mockTransport = createMockTransport();
+      const client = createDisabledClientWith(mockTransport);
+
+      client.captureUserFeedback(getMockUserFeedback());
+
+      expect(mockTransport.send).not.toBeCalled();
+    });
+
     function createDisabledClientWith(transport: Transport) {
       return new ReactNativeClient({
         ...DEFAULT_OPTIONS,
@@ -276,6 +286,38 @@ describe('Tests ReactNativeClient', () => {
       client.nativeCrash();
 
       expect(RN.NativeModules.RNSentry.crash).toBeCalled();
+    });
+  });
+
+  describe('UserFeedback', () => {
+    test('sends UserFeedback to native Layer', () => {
+      const mockTransportSend: jest.Mock = jest.fn(() => Promise.resolve());
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+      });
+
+      client.captureUserFeedback({
+        comments: 'Test Comments',
+        email: 'test@email.com',
+        name: 'Test User',
+        event_id: 'testEvent123',
+      });
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeHeader].event_id).toEqual('testEvent123');
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemHeader].type).toEqual(
+        'user_report',
+      );
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload]).toEqual({
+        comments: 'Test Comments',
+        email: 'test@email.com',
+        name: 'Test User',
+        event_id: 'testEvent123',
+      });
     });
   });
 
@@ -373,6 +415,11 @@ describe('Tests ReactNativeClient', () => {
 
     test('send SdkInfo in the session envelope header', () => {
       client.captureSession(getMockSession());
+      expect(getSdkInfoFrom(mockTransportSend)).toStrictEqual(expectedSdkInfo);
+    });
+
+    test('send SdkInfo in the user feedback envelope header', () => {
+      client.captureUserFeedback(getMockUserFeedback());
       expect(getSdkInfoFrom(mockTransportSend)).toStrictEqual(expectedSdkInfo);
     });
   });
