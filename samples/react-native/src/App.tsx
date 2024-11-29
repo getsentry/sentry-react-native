@@ -160,6 +160,16 @@ const ErrorsTabNavigator = Sentry.withProfiler(
                 <FeedbackFormScreen
                   {...props}
                   closeScreen={props.navigation.goBack}
+                  styles={{
+                    submitButton: {
+                      backgroundColor: '#ff0000',
+                      paddingVertical: 15,
+                      borderRadius: 5,
+                      alignItems: 'center',
+                      marginBottom: 10,
+                    },
+                  }}
+                  text={{namePlaceholder: 'Fullname', addAttachmentButton: 'Add Attachment'}}
                 />
               )}
             </Stack.Screen>
