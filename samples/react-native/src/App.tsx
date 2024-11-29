@@ -16,6 +16,7 @@ import Animated, {
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
+import { FeedbackFormScreen } from '@sentry/react-native';
 
 import { SENTRY_INTERNAL_DSN } from './dsn';
 import ErrorsScreen from './Screens/ErrorsScreen';
@@ -151,6 +152,17 @@ const ErrorsTabNavigator = Sentry.withProfiler(
               component={ErrorsScreen}
               options={{ title: 'Errors' }}
             />
+            <Stack.Screen
+              name="FeedbackForm"
+              options={{ presentation: 'modal', headerShown: false }}
+            >
+              {(props) => (
+                <FeedbackFormScreen
+                  {...props}
+                  closeScreen={props.navigation.goBack}
+                />
+              )}
+            </Stack.Screen>
           </Stack.Navigator>
         </Provider>
       </GestureHandlerRootView>
