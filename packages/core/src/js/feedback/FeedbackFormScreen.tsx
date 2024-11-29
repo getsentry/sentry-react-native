@@ -1,9 +1,8 @@
 import { captureFeedback } from '@sentry/core';
+import type { SendFeedbackParams } from '@sentry/types';
 import React, { useState } from 'react';
 import type { KeyboardTypeOptions, TextStyle,ViewStyle } from 'react-native';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
-import type { SendFeedbackParams } from '..';
 
 interface FeedbackFormScreenProps {
   closeScreen: () => void;
