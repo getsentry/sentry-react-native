@@ -25,17 +25,6 @@ const defaultStyles = StyleSheet.create({
     height: 100,
     textAlignVertical: 'top',
   },
-  screenshotButton: {
-    backgroundColor: '#eee',
-    padding: 15,
-    borderRadius: 5,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  screenshotText: {
-    color: '#333',
-    fontSize: 16,
-  },
   submitButton: {
     backgroundColor: '#6a1b9a',
     paddingVertical: 15,

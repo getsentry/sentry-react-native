@@ -40,11 +40,6 @@ export class FeedbackFormScreen extends React.Component<FeedbackFormScreenProps,
     closeScreen();
   };
 
-  public addScreenshot: () => void = () => {
-    Alert.alert('Info', 'Attachments are not supported yet.');
-    // TODO
-  };
-
   /**
    * Renders the feedback form screen.
    */
@@ -78,10 +73,6 @@ export class FeedbackFormScreen extends React.Component<FeedbackFormScreenProps,
         onChangeText={(value) => this.setState({ description: value })}
         multiline
       />
-
-      <TouchableOpacity style={styles?.screenshotButton || defaultStyles.screenshotButton} onPress={this.addScreenshot}>
-        <Text style={styles?.screenshotText || defaultStyles.screenshotText}>{text?.addAttachmentButton || 'Add Screenshot'}</Text>
-      </TouchableOpacity>
 
       <TouchableOpacity style={styles?.submitButton || defaultStyles.submitButton} onPress={this.handleFeedbackSubmit}>
         <Text style={styles?.submitText || defaultStyles.submitText}>{text?.submitButton || 'Send Feedback'}</Text>

@@ -169,7 +169,7 @@ const ErrorsTabNavigator = Sentry.withProfiler(
                       marginBottom: 10,
                     },
                   }}
-                  text={{namePlaceholder: 'Fullname', addAttachmentButton: 'Add Attachment'}}
+                  text={{namePlaceholder: 'Fullname'}}
                 />
               )}
             </Stack.Screen>
