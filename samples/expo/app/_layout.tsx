@@ -25,7 +25,7 @@ const navigationIntegration = Sentry.reactNavigationIntegration({
   enableTimeToInitialDisplay: !isExpoGo(), // This is not supported in Expo Go.
 });
 
-process.env.EXPO_SKIP_DURING_EXPORT !== 'true' && Sentry.init({
+Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
