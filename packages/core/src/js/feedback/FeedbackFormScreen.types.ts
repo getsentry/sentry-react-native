@@ -14,6 +14,7 @@ export interface FeedbackFormText {
   submitButton?: string;
   cancelButton?: string;
   formError?: string;
+  emailError?: string;
 }
 
 export interface FeedbackFormScreenStyles {

@@ -24,9 +24,18 @@ export class FeedbackFormScreen extends React.Component<FeedbackFormScreenProps,
     const { name, email, description } = this.state;
     const { closeScreen, text } = this.props;
 
-    if (!name || !email || !description) {
+    const trimmedName = name?.trim();
+    const trimmedEmail = email?.trim();
+    const trimmedDescription = description?.trim();
+
+    if (!trimmedName || !trimmedEmail || !trimmedDescription) {
       const errorMessage = text?.formError || 'Please fill out all required fields.';
       Alert.alert('Error', errorMessage);
+      return;
+    }
+
+    if (!this._isValidEmail(trimmedEmail)) {
+      Alert.alert('Error', text?.emailError || 'Please enter a valid email address.');
       return;
     }
 
@@ -84,4 +93,9 @@ export class FeedbackFormScreen extends React.Component<FeedbackFormScreenProps,
     </View>
     );
   }
+
+  private _isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 }
