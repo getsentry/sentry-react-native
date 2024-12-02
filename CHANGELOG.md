@@ -28,8 +28,8 @@
     },
     attachments: [
       {
-        filename: "screenshot.png",
-        data: "base64-encoded-image",
+        filename: 'hello.txt',
+        data: 'Hello, World!',
       },
     ],
   });
