@@ -40,9 +40,9 @@ export class FeedbackFormScreen extends React.Component<FeedbackFormScreenProps,
     }
 
     const userFeedback: SendFeedbackParams = {
-      message: description,
-      name,
-      email,
+      message: trimmedDescription,
+      name: trimmedName,
+      email: trimmedEmail,
     };
 
     captureFeedback(userFeedback);
