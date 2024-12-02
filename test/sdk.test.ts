@@ -694,9 +694,7 @@ describe('Tests the SDK functionality', () => {
     const actualOptions = usedOptions();
     const actualIntegrations = actualOptions?.integrations;
     expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'Replay' })]));
-    expect(actualIntegrations).toEqual(
-      expect.not.arrayContaining([expect.objectContaining({ name: 'MobileReplay' })]),
-    );
+    expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'MobileReplay' })]));
   });
 
   it('does not add any replay integration when on web even with session sample rate', () => {
@@ -710,9 +708,7 @@ describe('Tests the SDK functionality', () => {
     const actualOptions = usedOptions();
     const actualIntegrations = actualOptions?.integrations;
     expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'Replay' })]));
-    expect(actualIntegrations).toEqual(
-      expect.not.arrayContaining([expect.objectContaining({ name: 'MobileReplay' })]),
-    );
+    expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'MobileReplay' })]));
   });
 
   it('does not add any replay integration when on web', () => {
@@ -722,9 +718,7 @@ describe('Tests the SDK functionality', () => {
     const actualOptions = usedOptions();
     const actualIntegrations = actualOptions?.integrations;
     expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'Replay' })]));
-    expect(actualIntegrations).toEqual(
-      expect.not.arrayContaining([expect.objectContaining({ name: 'MobileReplay' })]),
-    );
+    expect(actualIntegrations).toEqual(expect.not.arrayContaining([expect.objectContaining({ name: 'MobileReplay' })]));
   });
 
   it('converts experimental replay options to standard web options when on web', () => {
