@@ -8,6 +8,33 @@
 
 ## Unreleased
 
+### Features
+
+- Adds new `captureFeedback` and deprecates the `captureUserFeedback` API ([#4320](https://github.com/getsentry/sentry-react-native/pull/4320))
+
+  ```jsx
+  import * as Sentry from "@sentry/react-native";
+
+  const eventId = Sentry.lastEventId();
+
+  Sentry.captureFeedback({
+    name: "John Doe",
+    email: "john@doe.com",
+    message: "Hello World!",
+    associatedEventId: eventId, // optional
+  }, {
+    captureContext: {
+      tags: { "tag-key": "tag-value" },
+    },
+    attachments: [
+      {
+        filename: 'hello.txt',
+        data: 'Hello, World!',
+      },
+    ],
+  });
+  ```
+
 ### Fixes
 
 - Return `lastEventId` export from `@sentry/core` ([#4315](https://github.com/getsentry/sentry-react-native/pull/4315))
