@@ -26,6 +26,7 @@
   ```
 
 - Adds feedback form ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
+
   You can add the form component in your UI and customise it like:
   ```jsx
   import { FeedbackFormScreen } from "@sentry/react-native";
