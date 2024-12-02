@@ -1,0 +1,37 @@
+import type { TextStyle, ViewStyle } from 'react-native';
+
+export interface FeedbackFormScreenProps {
+  closeScreen: () => void;
+  text: FeedbackFormText;
+  styles?: FeedbackFormScreenStyles;
+}
+
+export interface FeedbackFormText {
+  formTitle?: string;
+  namePlaceholder?: string;
+  emailPlaceholder?: string;
+  descriptionPlaceholder?: string;
+  addAttachmentButton?: string;
+  submitButton?: string;
+  cancelButton?: string;
+  formError?: string;
+}
+
+export interface FeedbackFormScreenStyles {
+  container?: ViewStyle;
+  title?: TextStyle;
+  input?: TextStyle;
+  textArea?: ViewStyle;
+  screenshotButton?: ViewStyle;
+  screenshotText?: TextStyle;
+  submitButton?: ViewStyle;
+  submitText?: TextStyle;
+  cancelButton?: ViewStyle;
+  cancelText?: TextStyle;
+}
+
+export interface FeedbackFormScreenState {
+  name: string;
+  email: string;
+  description: string;
+}
