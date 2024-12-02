@@ -13,6 +13,7 @@ export interface FeedbackFormText {
   descriptionPlaceholder?: string;
   submitButton?: string;
   cancelButton?: string;
+  errorTitle?: string;
   formError?: string;
   emailError?: string;
 }

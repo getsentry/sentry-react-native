@@ -30,12 +30,13 @@ export class FeedbackFormScreen extends React.Component<FeedbackFormScreenProps,
 
     if (!trimmedName || !trimmedEmail || !trimmedDescription) {
       const errorMessage = text?.formError || 'Please fill out all required fields.';
-      Alert.alert('Error', errorMessage);
+      Alert.alert(text?.errorTitle || 'Error', errorMessage);
       return;
     }
 
     if (!this._isValidEmail(trimmedEmail)) {
-      Alert.alert('Error', text?.emailError || 'Please enter a valid email address.');
+      const errorMessage = text?.emailError || 'Please enter a valid email address.';
+      Alert.alert(text?.errorTitle || 'Error', errorMessage);
       return;
     }
 
