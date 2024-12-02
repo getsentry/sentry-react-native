@@ -26,6 +26,7 @@ import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';
 import { NATIVE } from './wrapper';
 
+
 /**
  * The Sentry React Native SDK Client.
  *
