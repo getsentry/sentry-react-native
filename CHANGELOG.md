@@ -28,11 +28,16 @@
 ### Fixes
 
 - Return `lastEventId` export from `@sentry/core` ([#4315](https://github.com/getsentry/sentry-react-native/pull/4315))
+- Navigation Span should have no parent by default ([#4326](https://github.com/getsentry/sentry-react-native/pull/4326))
+
 ### Dependencies
 
 - Bump CLI from v2.38.2 to v2.39.1 ([#4305](https://github.com/getsentry/sentry-react-native/pull/4305), [#4316](https://github.com/getsentry/sentry-react-native/pull/4316))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2391)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.38.2...2.39.1)
+- Bump Android SDK from v7.18.0 to v7.18.1 ([#4329](https://github.com/getsentry/sentry-react-native/pull/4329))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7181)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.18.0...7.18.1)
 
 ## 6.4.0-beta.1
 
