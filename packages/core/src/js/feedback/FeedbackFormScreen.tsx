@@ -1,7 +1,6 @@
 import { captureFeedback } from '@sentry/core';
 import type { SendFeedbackParams } from '@sentry/types';
 import * as React from 'react';
-import { useState } from 'react';
 import type { KeyboardTypeOptions, TextStyle,ViewStyle } from 'react-native';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -35,74 +34,11 @@ interface FeedbackFormScreenStyles {
   cancelText?: TextStyle;
 }
 
-export const FeedbackFormScreen: React.FC<FeedbackFormScreenProps> = ({ closeScreen, text, styles }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [description, setDescription] = useState('');
-
-  const handleFeedbackSubmit = (): void => {
-    if (!name || !email || !description) {
-      const errorMessage = text?.formError || 'Please fill out all required fields.';
-      Alert.alert('Error', errorMessage);
-      return;
-    }
-    const userFeedback: SendFeedbackParams = {
-      message: description,
-      name: name,
-      email: email,
-    };
-
-    captureFeedback(userFeedback);
-
-    closeScreen();
-  };
-
-  const addScreenshot = (): void => {
-    Alert.alert('Info', 'Attachments are not supported yet.');
-    // TODO
-  };
-
-  return (
-    <View style={styles?.container || defaultStyles.container}>
-      <Text style={styles?.title || defaultStyles.title}>{text?.formTitle || 'Feedback Form'}</Text>
-
-      <TextInput
-        style={styles?.input || defaultStyles.input}
-        placeholder={text?.namePlaceholder || 'Name'}
-        value={name}
-        onChangeText={setName}
-      />
-
-      <TextInput
-        style={styles?.input || defaultStyles.input}
-        placeholder={text?.emailPlaceholder || 'Email'}
-        keyboardType={'email-address' as KeyboardTypeOptions}
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      <TextInput
-        style={[styles?.input || defaultStyles.input, styles?.textArea || defaultStyles.textArea]}
-        placeholder={text?.descriptionPlaceholder || 'Description (required)'}
-        value={description}
-        onChangeText={setDescription}
-        multiline
-      />
-
-      <TouchableOpacity style={styles?.screenshotButton || defaultStyles.screenshotButton} onPress={addScreenshot}>
-        <Text style={styles?.screenshotText || defaultStyles.screenshotText}>{text?.addAttachmentButton || 'Add Screenshot'}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles?.submitButton || defaultStyles.submitButton} onPress={handleFeedbackSubmit}>
-        <Text style={styles?.submitText || defaultStyles.submitText}>{text?.submitButton || 'Send Feedback'}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles?.cancelButton || defaultStyles.cancelButton} onPress={closeScreen}>
-        <Text style={styles?.cancelText || defaultStyles.cancelText}>{text?.cancelButton || 'Cancel'}</Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
+interface FeedbackFormScreenState {
+  name: string;
+  email: string;
+  description: string;
+}
 
 const defaultStyles = StyleSheet.create({
   container: {
@@ -161,3 +97,91 @@ const defaultStyles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+/**
+ *
+ */
+export class FeedbackFormScreen extends React.Component<FeedbackFormScreenProps, FeedbackFormScreenState> {
+  public constructor(props: FeedbackFormScreenProps) {
+    super(props);
+    this.state = {
+      name: '',
+      email: '',
+      description: '',
+    };
+  }
+
+  public handleFeedbackSubmit: () => void = () => {
+    const { name, email, description } = this.state;
+    const { closeScreen, text } = this.props;
+
+    if (!name || !email || !description) {
+      const errorMessage = text?.formError || 'Please fill out all required fields.';
+      Alert.alert('Error', errorMessage);
+      return;
+    }
+
+    const userFeedback: SendFeedbackParams = {
+      message: description,
+      name,
+      email,
+    };
+
+    captureFeedback(userFeedback);
+    closeScreen();
+  };
+
+  public addScreenshot: () => void = () => {
+    Alert.alert('Info', 'Attachments are not supported yet.');
+    // TODO
+  };
+
+  /**
+   *
+   */
+  public render(): React.ReactNode {
+    const { closeScreen, text, styles } = this.props;
+    const { name, email, description } = this.state;
+
+    return (
+    <View style={styles?.container || defaultStyles.container}>
+      <Text style={styles?.title || defaultStyles.title}>{text?.formTitle || 'Feedback Form'}</Text>
+
+      <TextInput
+        style={styles?.input || defaultStyles.input}
+        placeholder={text?.namePlaceholder || 'Name'}
+        value={name}
+        onChangeText={(value) => this.setState({ name: value })}
+        />
+
+      <TextInput
+        style={styles?.input || defaultStyles.input}
+        placeholder={text?.emailPlaceholder || 'Email'}
+        keyboardType={'email-address' as KeyboardTypeOptions}
+        value={email}
+        onChangeText={(value) => this.setState({ email: value })}
+        />
+
+      <TextInput
+        style={[styles?.input || defaultStyles.input, styles?.textArea || defaultStyles.textArea]}
+        placeholder={text?.descriptionPlaceholder || 'Description (required)'}
+        value={description}
+        onChangeText={(value) => this.setState({ description: value })}
+        multiline
+      />
+
+      <TouchableOpacity style={styles?.screenshotButton || defaultStyles.screenshotButton} onPress={this.addScreenshot}>
+        <Text style={styles?.screenshotText || defaultStyles.screenshotText}>{text?.addAttachmentButton || 'Add Screenshot'}</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles?.submitButton || defaultStyles.submitButton} onPress={this.handleFeedbackSubmit}>
+        <Text style={styles?.submitText || defaultStyles.submitText}>{text?.submitButton || 'Send Feedback'}</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles?.cancelButton || defaultStyles.cancelButton} onPress={closeScreen}>
+        <Text style={styles?.cancelText || defaultStyles.cancelText}>{text?.cancelButton || 'Cancel'}</Text>
+      </TouchableOpacity>
+    </View>
+    );
+  }
+}
