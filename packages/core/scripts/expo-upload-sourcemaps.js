@@ -111,8 +111,12 @@ function loadDotenv(dotenvPath) {
 
     Object.assign(process.env, dotenvResult);
   } catch (error) {
-    console.warn('⚠️ Failed to load environment variables using dotenv.');
-    console.warn(error);
+    if (error.code === 'ENOENT') {
+      // noop if file does not exist
+    } else {
+      console.warn('⚠️ Failed to load environment variables using dotenv.');
+      console.warn(error);
+    }
   }
 }
 
