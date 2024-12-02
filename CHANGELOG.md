@@ -22,6 +22,16 @@
     email: "john@doe.com",
     message: "Hello World!",
     associatedEventId: eventId, // optional
+  }, {
+    captureContext: {
+      tags: { "tag-key": "tag-value" },
+    },
+    attachments: [
+      {
+        filename: 'hello.txt',
+        data: 'Hello, World!',
+      },
+    ],
   });
   ```
 
