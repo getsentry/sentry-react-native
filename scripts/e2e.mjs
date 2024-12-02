@@ -181,7 +181,8 @@ if (actions.includes('test')) {
     execSync(`set -o pipefail && xcodebuild \
                   -project node_modules/appium-webdriveragent/WebDriverAgent.xcodeproj \
                   -scheme WebDriverAgentRunner \
-                  -destination 'platform=iOS Simulator,OS=${runtime},name=${device}' \
+                  -sdk 'iphonesimulator' \
+                  -destination 'generic/platform=iOS Simulator' \
                   GCC_TREAT_WARNINGS_AS_ERRORS=0 \
                   COMPILER_INDEX_STORE_ENABLE=NO \
                   ONLY_ACTIVE_ARCH=yes \
