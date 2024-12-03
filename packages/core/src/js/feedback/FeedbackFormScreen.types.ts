@@ -11,6 +11,7 @@ export interface FeedbackFormText {
   namePlaceholder?: string;
   emailPlaceholder?: string;
   descriptionPlaceholder?: string;
+  attachmentButton?: string;
   submitButton?: string;
   cancelButton?: string;
   errorTitle?: string;
@@ -23,6 +24,8 @@ export interface FeedbackFormScreenStyles {
   title?: TextStyle;
   input?: TextStyle;
   textArea?: ViewStyle;
+  attachmentButton?: ViewStyle;
+  attachmentText?: TextStyle;
   submitButton?: ViewStyle;
   submitText?: TextStyle;
   cancelButton?: ViewStyle;

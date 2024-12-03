@@ -21,6 +21,7 @@ const defaultProps: FeedbackFormScreenProps = {
     namePlaceholder: 'Name',
     emailPlaceholder: 'Email',
     descriptionPlaceholder: 'Description',
+    attachmentButton: 'Add Attachment',
     submitButton: 'Submit',
     cancelButton: 'Cancel',
     errorTitle: 'Error',
@@ -41,6 +42,7 @@ describe('FeedbackFormScreen', () => {
     expect(getByPlaceholderText(defaultProps.text.namePlaceholder)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.text.emailPlaceholder)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.text.descriptionPlaceholder)).toBeTruthy();
+    expect(getByText(defaultProps.text.attachmentButton)).toBeTruthy();
     expect(getByText(defaultProps.text.submitButton)).toBeTruthy();
     expect(getByText(defaultProps.text.cancelButton)).toBeTruthy();
   });
