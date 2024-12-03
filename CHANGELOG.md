@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- `browserReplayIntegration` is no longer included by default on React Native Web ([#4270](https://github.com/getsentry/sentry-react-native/pull/4270), [#4308](https://github.com/getsentry/sentry-react-native/pull/4308))
+
 ## 5.35.0
 
 ### Fixes

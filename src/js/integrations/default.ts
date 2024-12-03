@@ -10,7 +10,6 @@ import {
   browserApiErrorsIntegration,
   browserGlobalHandlersIntegration,
   browserLinkedErrorsIntegration,
-  browserReplayIntegration,
   debugSymbolicatorIntegration,
   dedupeIntegration,
   deviceContextIntegration,
@@ -120,10 +119,13 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     (options._experiments && typeof options._experiments.replaysOnErrorSampleRate === 'number') ||
     (options._experiments && typeof options._experiments.replaysSessionSampleRate === 'number')
   ) {
-    integrations.push(notWeb() ? mobileReplayIntegration() : browserReplayIntegration());
     if (!notWeb()) {
+      // We can't create and add browserReplayIntegration as it overrides the users supplied one
+      // The browser replay integration works differently than the rest of default integrations
       (options as BrowserOptions).replaysOnErrorSampleRate = options._experiments.replaysOnErrorSampleRate;
       (options as BrowserOptions).replaysSessionSampleRate = options._experiments.replaysSessionSampleRate;
+    } else {
+      integrations.push(mobileReplayIntegration());
     }
   }
 
