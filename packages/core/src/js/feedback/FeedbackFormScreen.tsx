@@ -4,6 +4,7 @@ import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { base64ToUint8Array } from '../utils/base64ToUint8Array';
 import defaultStyles from './FeedbackFormScreen.styles';
 import type { FeedbackFormScreenProps, FeedbackFormScreenState } from './FeedbackFormScreen.types';
 
@@ -46,54 +47,118 @@ export class FeedbackFormScreen extends React.Component<FeedbackFormScreenProps,
       email: trimmedEmail,
     };
 
-    captureFeedback(userFeedback);
+    const attachement = (this.state?.attachment instanceof Uint8Array)? this.state?.attachment : base64ToUint8Array(this.state?.attachment);
+
+    const attachments = this.state.filename && this.state.attachment
+    ? [
+        {
+          filename: this.state.filename,
+          data: attachement,
+        },
+      ]
+    : undefined;
+
+    captureFeedback(userFeedback, attachments ? { attachments } : undefined);
+
     closeScreen();
   };
+
+  public addAttachment: () => void = () => {
+    this.props?.chooseFile((filename: string, attachement: string | Uint8Array) => {
+      this.setState({ filename, attachment: attachement });
+    });
+  }
 
   /**
    * Renders the feedback form screen.
    */
   public render(): React.ReactNode {
-    const { closeScreen, text, styles } = this.props;
+    const { closeScreen, chooseFile, text, styles } = this.props;
     const { name, email, description } = this.state;
 
     return (
     <View style={styles?.container || defaultStyles.container}>
       <Text style={styles?.title || defaultStyles.title}>{text?.formTitle || 'Feedback Form'}</Text>
 
-      <TextInput
-        style={styles?.input || defaultStyles.input}
-        placeholder={text?.namePlaceholder || 'Name'}
-        value={name}
-        onChangeText={(value) => this.setState({ name: value })}
-        />
+      {this._renderTextInput(
+        'name',
+        name,
+        text?.namePlaceholder || 'Name',
+        (value) => this.setState({ name: value })
+      )}
 
-      <TextInput
-        style={styles?.input || defaultStyles.input}
-        placeholder={text?.emailPlaceholder || 'Email'}
-        keyboardType={'email-address' as KeyboardTypeOptions}
-        value={email}
-        onChangeText={(value) => this.setState({ email: value })}
-        />
+      {this._renderTextInput(
+        'email',
+        email,
+        text?.emailPlaceholder || 'Email',
+        (value) => this.setState({ email: value }),
+        styles?.input || defaultStyles.input,
+        'email-address'
+      )}
 
-      <TextInput
-        style={[styles?.input || defaultStyles.input, styles?.textArea || defaultStyles.textArea]}
-        placeholder={text?.descriptionPlaceholder || 'Description (required)'}
-        value={description}
-        onChangeText={(value) => this.setState({ description: value })}
-        multiline
-      />
+      {this._renderTextInput(
+        'description',
+        description,
+        text?.descriptionPlaceholder || 'Description (required)',
+        (value) => this.setState({ description: value }),
+        [styles?.input || defaultStyles.input, styles?.textArea || defaultStyles.textArea],
+        undefined,
+        true
+      )}
 
-      <TouchableOpacity style={styles?.submitButton || defaultStyles.submitButton} onPress={this.handleFeedbackSubmit}>
-        <Text style={styles?.submitText || defaultStyles.submitText}>{text?.submitButton || 'Send Feedback'}</Text>
-      </TouchableOpacity>
+      {chooseFile && this._renderButton(
+        text?.attachmentButton || 'Add Screenshot',
+        this.addAttachment,
+        styles?.attachmentButton || defaultStyles.attachmentButton,
+        styles?.attachmentText || defaultStyles.attachmentText
+      )}
 
-      <TouchableOpacity style={styles?.cancelButton || defaultStyles.cancelButton} onPress={closeScreen}>
-        <Text style={styles?.cancelText || defaultStyles.cancelText}>{text?.cancelButton || 'Cancel'}</Text>
-      </TouchableOpacity>
+      {this._renderButton(
+        text?.submitButton || 'Send Feedback',
+        this.handleFeedbackSubmit,
+        styles?.submitButton || defaultStyles.submitButton,
+        styles?.submitText || defaultStyles.submitText
+      )}
+
+      {this._renderButton(
+        text?.cancelButton || 'Cancel',
+        closeScreen,
+        styles?.cancelButton || defaultStyles.cancelButton,
+        styles?.cancelText || defaultStyles.cancelText
+      )}
     </View>
     );
   }
+
+  private _renderTextInput = (
+    key: string,
+    value: string,
+    placeholder: string,
+    onChange: (value: string) => void,
+    style?: any,
+    keyboardType?: KeyboardTypeOptions,
+    multiline: boolean = false
+  ): React.ReactNode => {
+    const { styles } = this.props;
+
+    return (
+      <TextInput
+        key={key}
+        style={style || styles?.input || defaultStyles.input}
+        placeholder={placeholder}
+        value={value}
+        onChangeText={onChange}
+        keyboardType={keyboardType}
+        multiline={multiline}
+      />
+    );
+  };
+
+  private _renderButton = (text: string, onPress: () => void, style: any, textStyle: any): JSX.Element => (
+    <TouchableOpacity style={style} onPress={onPress}>
+      <Text style={textStyle}>{text}</Text>
+    </TouchableOpacity>
+  );
 
   private _isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

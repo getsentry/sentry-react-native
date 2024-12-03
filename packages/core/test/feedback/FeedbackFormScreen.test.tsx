@@ -7,6 +7,7 @@ import { FeedbackFormScreen } from '../../src/js/feedback/FeedbackFormScreen';
 import type { FeedbackFormScreenProps } from '../../src/js/feedback/FeedbackFormScreen.types';
 
 const mockCloseScreen = jest.fn();
+const mockAttachAction = jest.fn();
 
 jest.spyOn(Alert, 'alert');
 
@@ -21,6 +22,7 @@ const defaultProps: FeedbackFormScreenProps = {
     namePlaceholder: 'Name',
     emailPlaceholder: 'Email',
     descriptionPlaceholder: 'Description',
+    attachmentButton: 'Add Attachment',
     submitButton: 'Submit',
     cancelButton: 'Cancel',
     errorTitle: 'Error',
@@ -35,12 +37,25 @@ describe('FeedbackFormScreen', () => {
   });
 
   it('renders correctly', () => {
-    const { getByPlaceholderText, getByText } = render(<FeedbackFormScreen {...defaultProps} />);
+    const { getByPlaceholderText, getByText, queryByText } = render(<FeedbackFormScreen {...defaultProps} />);
 
     expect(getByText(defaultProps.text.formTitle)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.text.namePlaceholder)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.text.emailPlaceholder)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.text.descriptionPlaceholder)).toBeTruthy();
+    expect(queryByText(defaultProps.text.attachmentButton)).toBeNull();
+    expect(getByText(defaultProps.text.submitButton)).toBeTruthy();
+    expect(getByText(defaultProps.text.cancelButton)).toBeTruthy();
+  });
+
+  it('renders attachment button when the chooseFile method is set', () => {
+    const { getByPlaceholderText, getByText } = render(<FeedbackFormScreen {...defaultProps} chooseFile={mockAttachAction} />);
+
+    expect(getByText(defaultProps.text.formTitle)).toBeTruthy();
+    expect(getByPlaceholderText(defaultProps.text.namePlaceholder)).toBeTruthy();
+    expect(getByPlaceholderText(defaultProps.text.emailPlaceholder)).toBeTruthy();
+    expect(getByPlaceholderText(defaultProps.text.descriptionPlaceholder)).toBeTruthy();
+    expect(getByText(defaultProps.text.attachmentButton)).toBeTruthy();
     expect(getByText(defaultProps.text.submitButton)).toBeTruthy();
     expect(getByText(defaultProps.text.cancelButton)).toBeTruthy();
   });
@@ -83,7 +98,7 @@ describe('FeedbackFormScreen', () => {
         message: 'This is a feedback message.',
         name: 'John Doe',
         email: 'john.doe@example.com',
-      });
+      }, undefined);
     });
   });
 

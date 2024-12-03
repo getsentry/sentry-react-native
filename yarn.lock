@@ -22680,6 +22680,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-image-picker@npm:^7.2.2":
+  version: 7.2.2
+  resolution: "react-native-image-picker@npm:7.2.2"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 34289e29a28c3f8d869db46fdf5bfdeec8b37221ee4dcd9a63698b106f0097d11f4c40f3a2789c23a728dc94e37e02a0cf61add80aa04ffe60a6cf82115cddea
+  languageName: node
+  linkType: hard
+
 "react-native-is-edge-to-edge@npm:^1.1.6":
   version: 1.1.6
   resolution: "react-native-is-edge-to-edge@npm:1.1.6"
@@ -24422,6 +24432,7 @@ __metadata:
     react: 18.3.1
     react-native: 0.76.3
     react-native-gesture-handler: ^2.21.1
+    react-native-image-picker: ^7.2.2
     react-native-reanimated: 3.16.1
     react-native-safe-area-context: 4.14.0
     react-native-screens: 4.1.0
