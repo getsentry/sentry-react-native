@@ -2,6 +2,7 @@ import type { TextStyle, ViewStyle } from 'react-native';
 
 export interface FeedbackFormScreenProps {
   closeScreen: () => void;
+  chooseFile?: (attachFile: (filename: string, base64Attachment: string) => void) => void;
   text: FeedbackFormText;
   styles?: FeedbackFormScreenStyles;
 }
@@ -36,4 +37,6 @@ export interface FeedbackFormScreenState {
   name: string;
   email: string;
   description: string;
+  filename?: string;
+  attachment?: string;
 }

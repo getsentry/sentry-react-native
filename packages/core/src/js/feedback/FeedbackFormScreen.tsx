@@ -46,19 +46,33 @@ export class FeedbackFormScreen extends React.Component<FeedbackFormScreenProps,
       email: trimmedEmail,
     };
 
-    captureFeedback(userFeedback);
+    const attachments = this.state.filename && this.state.attachment
+    ? [
+        {
+          filename: this.state.filename,
+          data: this.state.attachment,
+        },
+      ]
+    : undefined;
+
+    captureFeedback(userFeedback, attachments ? { attachments } : undefined);
+
     closeScreen();
   };
 
   public addAttachment: () => void = () => {
-    Alert.alert('Info', 'Attachments are not supported yet.'); // TODO: Implement attachment support
-  };
+    this.props?.chooseFile((filename: string, base64Attachment: string) => {
+      this.setState({ filename, attachment: base64Attachment });
+
+      Alert.alert('Success', `File "${filename}" attached successfully.`);
+    });
+  }
 
   /**
    * Renders the feedback form screen.
    */
   public render(): React.ReactNode {
-    const { closeScreen, text, styles } = this.props;
+    const { closeScreen, chooseFile, text, styles } = this.props;
     const { name, email, description } = this.state;
 
     return (
@@ -88,9 +102,11 @@ export class FeedbackFormScreen extends React.Component<FeedbackFormScreenProps,
         multiline
       />
 
-      <TouchableOpacity style={styles?.attachmentButton || defaultStyles.attachmentButton} onPress={this.addAttachment}>
-        <Text style={styles?.attachmentText || defaultStyles.attachmentText}>{text?.attachmentButton || 'Add Screenshot'}</Text>
-      </TouchableOpacity>
+      {chooseFile && (
+        <TouchableOpacity style={styles?.attachmentButton || defaultStyles.attachmentButton} onPress={this.addAttachment}>
+          <Text style={styles?.attachmentText || defaultStyles.attachmentText}>{text?.attachmentButton || 'Add Screenshot'}</Text>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity style={styles?.submitButton || defaultStyles.submitButton} onPress={this.handleFeedbackSubmit}>
         <Text style={styles?.submitText || defaultStyles.submitText}>{text?.submitButton || 'Send Feedback'}</Text>

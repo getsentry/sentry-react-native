@@ -7,6 +7,7 @@ import { FeedbackFormScreen } from '../../src/js/feedback/FeedbackFormScreen';
 import type { FeedbackFormScreenProps } from '../../src/js/feedback/FeedbackFormScreen.types';
 
 const mockCloseScreen = jest.fn();
+const mockAttachAction = jest.fn();
 
 jest.spyOn(Alert, 'alert');
 
@@ -16,6 +17,7 @@ jest.mock('@sentry/core', () => ({
 
 const defaultProps: FeedbackFormScreenProps = {
   closeScreen: mockCloseScreen,
+  chooseFile: mockAttachAction,
   text: {
     formTitle: 'Feedback Form',
     namePlaceholder: 'Name',
@@ -85,7 +87,7 @@ describe('FeedbackFormScreen', () => {
         message: 'This is a feedback message.',
         name: 'John Doe',
         email: 'john.doe@example.com',
-      });
+      }, undefined);
     });
   });
 
