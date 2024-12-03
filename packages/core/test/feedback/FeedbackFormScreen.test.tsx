@@ -17,7 +17,6 @@ jest.mock('@sentry/core', () => ({
 
 const defaultProps: FeedbackFormScreenProps = {
   closeScreen: mockCloseScreen,
-  chooseFile: mockAttachAction,
   text: {
     formTitle: 'Feedback Form',
     namePlaceholder: 'Name',
@@ -38,7 +37,19 @@ describe('FeedbackFormScreen', () => {
   });
 
   it('renders correctly', () => {
-    const { getByPlaceholderText, getByText } = render(<FeedbackFormScreen {...defaultProps} />);
+    const { getByPlaceholderText, getByText, queryByText } = render(<FeedbackFormScreen {...defaultProps} />);
+
+    expect(getByText(defaultProps.text.formTitle)).toBeTruthy();
+    expect(getByPlaceholderText(defaultProps.text.namePlaceholder)).toBeTruthy();
+    expect(getByPlaceholderText(defaultProps.text.emailPlaceholder)).toBeTruthy();
+    expect(getByPlaceholderText(defaultProps.text.descriptionPlaceholder)).toBeTruthy();
+    expect(queryByText(defaultProps.text.attachmentButton)).toBeNull();
+    expect(getByText(defaultProps.text.submitButton)).toBeTruthy();
+    expect(getByText(defaultProps.text.cancelButton)).toBeTruthy();
+  });
+
+  it('renders attachment button when the chooseFile method is set', () => {
+    const { getByPlaceholderText, getByText } = render(<FeedbackFormScreen {...defaultProps} chooseFile={mockAttachAction} />);
 
     expect(getByText(defaultProps.text.formTitle)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.text.namePlaceholder)).toBeTruthy();
