@@ -1,10 +1,10 @@
 /* eslint-disable complexity */
-import { getClient, getGlobalScope,getIntegrationsToSetup, getIsolationScope,initAndBind, withScope as coreWithScope } from '@sentry/core';
+import { captureFeedback, getClient, getGlobalScope,getIntegrationsToSetup, getIsolationScope,initAndBind, withScope as coreWithScope } from '@sentry/core';
 import {
   defaultStackParser,
   makeFetchTransport,
 } from '@sentry/react';
-import type { Breadcrumb, BreadcrumbHint, Integration, Scope, UserFeedback } from '@sentry/types';
+import type { Breadcrumb, BreadcrumbHint, Integration, Scope, SendFeedbackParams, UserFeedback } from '@sentry/types';
 import { logger, stackParserFromStackParserOptions } from '@sentry/utils';
 import * as React from 'react';
 
@@ -219,9 +219,16 @@ export async function close(): Promise<void> {
 
 /**
  * Captures user feedback and sends it to Sentry.
+ * @deprecated Use `Sentry.captureFeedback` instead.
  */
 export function captureUserFeedback(feedback: UserFeedback): void {
-  getClient<ReactNativeClient>()?.captureUserFeedback(feedback);
+  const feedbackParams: SendFeedbackParams = {
+    name: feedback.name,
+    email: feedback.email,
+    message: feedback.comments,
+    associatedEventId: feedback.event_id,
+  };
+  captureFeedback(feedbackParams);
 }
 
 /**

@@ -1,4 +1,5 @@
 appId: ${APP_ID}
+jsEngine: graaljs
 ---
 - extendedWaitUntil:
     visible:
@@ -8,3 +9,12 @@ appId: ${APP_ID}
 - copyTextFrom:
     id: "eventId"
 - assertTrue: ${maestro.copiedText}
+
+- runScript:
+    file: sentryApi.js
+    env:
+      fetch: event
+      id: ${maestro.copiedText}
+      sentryAuthToken: ${SENTRY_AUTH_TOKEN}
+
+- assertTrue: ${output.eventId == maestro.copiedText}

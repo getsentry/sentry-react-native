@@ -1,0 +1,9 @@
+appId: ${APP_ID}
+jsEngine: graaljs
+---
+- extendedWaitUntil:
+    visible: "E2E Tests Ready"
+    timeout: 300_000 # 5 minutes
+
+# The RN 0.65 takes a long time to start on iOS.
+# Even locally it can take up to 10 seconds.

@@ -5,3 +5,5 @@
 #import "RNSentryBreadcrumb.h"
 #import "RNSentryReplay.h"
 #import "RNSentryReplayBreadcrumbConverter.h"
+#import "RNSentryReplayMask.h"
+#import "RNSentryReplayUnmask.h"

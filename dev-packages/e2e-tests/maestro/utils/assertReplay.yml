@@ -1,0 +1,23 @@
+appId: ${APP_ID}
+jsEngine: graaljs
+---
+- extendedWaitUntil:
+    visible:
+      id: "eventId"
+    timeout: 60_000 # 60 seconds
+
+- copyTextFrom:
+    id: "eventId"
+- assertTrue: ${maestro.copiedText}
+
+- runScript:
+    file: sentryApi.js
+    env:
+      fetch: replay
+      eventId: ${maestro.copiedText}
+      sentryAuthToken: ${SENTRY_AUTH_TOKEN}
+
+- assertTrue: ${output.replayId}
+- assertTrue: ${output.replayDuration}
+- assertTrue: ${output.replaySegments}
+- assertTrue: ${output.replayCodec == "ftypmp42"}

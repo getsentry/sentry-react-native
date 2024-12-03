@@ -4,6 +4,7 @@ export type {
   SdkInfo,
   Event,
   Exception,
+  SendFeedbackParams,
   SeverityLevel,
   StackFrame,
   Stacktrace,
@@ -16,6 +17,7 @@ export {
   addBreadcrumb,
   captureException,
   captureEvent,
+  captureFeedback,
   captureMessage,
   Scope,
   setContext,
@@ -41,6 +43,7 @@ export {
   setCurrentClient,
   addEventProcessor,
   metricsDefault as metrics,
+  lastEventId,
 } from '@sentry/core';
 
 export {
@@ -78,3 +81,5 @@ export {
 } from './tracing';
 
 export type { TimeToDisplayProps } from './tracing';
+
+export { Mask, Unmask } from './replay/CustomMask';

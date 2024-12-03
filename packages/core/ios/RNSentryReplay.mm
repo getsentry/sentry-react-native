@@ -1,5 +1,9 @@
 #import "RNSentryReplay.h"
-#import "RNSentryReplayBreadcrumbConverter.h"
+#import "RNSentryReplayBreadcrumbConverterHelper.h"
+#import "React/RCTTextView.h"
+#import "Replay/RNSentryReplayMask.h"
+#import "Replay/RNSentryReplayUnmask.h"
+#import <Sentry/PrivateSentrySDKOnly.h>
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 
@@ -56,9 +60,21 @@
 
 + (void)postInit
 {
-    RNSentryReplayBreadcrumbConverter *breadcrumbConverter =
-        [[RNSentryReplayBreadcrumbConverter alloc] init];
-    [PrivateSentrySDKOnly configureSessionReplayWith:breadcrumbConverter screenshotProvider:nil];
+    // We can't import RNSentryReplayMask.h here because it's Objective-C++
+    // To avoid typos, we test the class existence in the tests
+    [PrivateSentrySDKOnly setRedactContainerClass:[RNSentryReplay getMaskClass]];
+    [PrivateSentrySDKOnly setIgnoreContainerClass:[RNSentryReplay getUnmaskClass]];
+    [RNSentryReplayBreadcrumbConverterHelper configureSessionReplayWithConverter];
+}
+
++ (Class)getMaskClass
+{
+    return RNSentryReplayMask.class;
+}
+
++ (Class)getUnmaskClass
+{
+    return RNSentryReplayUnmask.class;
 }
 
 @end

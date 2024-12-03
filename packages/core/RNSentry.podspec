@@ -37,7 +37,7 @@ Pod::Spec.new do |s|
 
   s.compiler_flags = other_cflags
 
-  s.dependency 'Sentry/HybridSDK', '8.40.1'
+  s.dependency 'Sentry/HybridSDK', '8.41.0'
 
   if defined? install_modules_dependencies
     # Default React Native dependencies for 0.71 and above (new and legacy architecture)
@@ -52,6 +52,7 @@ Pod::Spec.new do |s|
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
       }
 
+      s.dependency "React-RCTFabric" # Required for Fabric Components (like RCTViewComponentView)
       s.dependency "React-Codegen"
       s.dependency "RCT-Folly"
       s.dependency "RCTRequired"

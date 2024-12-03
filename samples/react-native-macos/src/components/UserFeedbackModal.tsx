@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Text, TextInput, Image, Button } from 'react-native';
 import * as Sentry from '@sentry/react-native';
-import { UserFeedback } from '@sentry/react-native';
+import { SendFeedbackParams, UserFeedback } from '@sentry/react-native';
 
 export const DEFAULT_COMMENTS = "It's broken again! Please fix it.";
 
@@ -44,6 +44,50 @@ export function UserFeedbackModal(props: { onDismiss: () => void }) {
               };
 
               Sentry.captureUserFeedback(userFeedback);
+              clearComments();
+            }}
+          />
+          <View style={styles.buttonSpacer} />
+          <Button
+            title="Send feedback without event"
+            color="#6C5FC7"
+            onPress={async () => {
+              onDismiss();
+
+              const userFeedback: SendFeedbackParams = {
+                message: comments,
+                name: 'John Doe',
+                email: 'john@doe.com',
+              };
+
+              Sentry.captureFeedback(userFeedback);
+              clearComments();
+            }}
+          />
+          <View style={styles.buttonSpacer} />
+          <Button
+            title="Send feedback with attachment and tags"
+            color="#6C5FC7"
+            onPress={async () => {
+              onDismiss();
+
+              const userFeedback: SendFeedbackParams = {
+                message: comments,
+                name: 'John Doe',
+                email: 'john@doe.com',
+              };
+
+              Sentry.captureFeedback(userFeedback, {
+                captureContext: {
+                  tags: { testtag: 'testvalue' },
+                },
+                attachments: [
+                  {
+                    filename: 'hello.txt',
+                    data: 'Hello, World!',
+                  },
+                ],
+              });
               clearComments();
             }}
           />
