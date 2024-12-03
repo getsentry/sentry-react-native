@@ -44,6 +44,7 @@
   <FeedbackFormScreen
     {...props}
     closeScreen={props.navigation.goBack}
+    handleChooseFile={ /*If set an attachment button is added to the form*/ }
     styles={{
       submitButton: {
         backgroundColor: '#6a1b9a',
