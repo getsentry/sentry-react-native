@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.36.0
 
 ### Fixes
 
