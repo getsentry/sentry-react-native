@@ -143,7 +143,7 @@ const Stack = isMobileOs
   : createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const handleChooseFile = (attachFile: (filename: string, base64Attachment: string) => void): void => {
+const handleChooseFile = (attachFile: (filename: string, base64Attachment: string | Uint8Array) => void): void => {
   launchImageLibrary({ mediaType: 'photo', includeBase64: true }, (response) => {
     if (response.didCancel) {
       console.log('User cancelled image picker');

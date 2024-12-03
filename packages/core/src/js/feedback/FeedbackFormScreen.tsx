@@ -4,6 +4,7 @@ import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { base64ToUint8Array } from '../utils/base64ToUint8Array';
 import defaultStyles from './FeedbackFormScreen.styles';
 import type { FeedbackFormScreenProps, FeedbackFormScreenState } from './FeedbackFormScreen.types';
 
@@ -46,11 +47,13 @@ export class FeedbackFormScreen extends React.Component<FeedbackFormScreenProps,
       email: trimmedEmail,
     };
 
+    const attachement = (this.state?.attachment instanceof Uint8Array)? this.state?.attachment : base64ToUint8Array(this.state?.attachment);
+
     const attachments = this.state.filename && this.state.attachment
     ? [
         {
           filename: this.state.filename,
-          data: this.state.attachment,
+          data: attachement,
         },
       ]
     : undefined;
@@ -61,10 +64,8 @@ export class FeedbackFormScreen extends React.Component<FeedbackFormScreenProps,
   };
 
   public addAttachment: () => void = () => {
-    this.props?.chooseFile((filename: string, base64Attachment: string) => {
-      this.setState({ filename, attachment: base64Attachment });
-
-      Alert.alert('Success', `File "${filename}" attached successfully.`);
+    this.props?.chooseFile((filename: string, attachement: string | Uint8Array) => {
+      this.setState({ filename, attachment: attachement });
     });
   }
 
