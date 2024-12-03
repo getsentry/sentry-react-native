@@ -38,6 +38,8 @@ import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
 
+import { launchImageLibrary } from 'react-native-image-picker';
+
 if (typeof setImmediate === 'undefined') {
   require('setimmediate');
 }
@@ -141,6 +143,22 @@ const Stack = isMobileOs
   : createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+const handleChooseFile = (attachFile: (filename: string, base64Attachment: string) => void): void => {
+  launchImageLibrary({ mediaType: 'photo', includeBase64: true }, (response) => {
+    if (response.didCancel) {
+      console.log('User cancelled image picker');
+    } else if (response.errorCode) {
+      console.log('ImagePicker Error: ', response.errorMessage);
+    } else if (response.assets && response.assets.length > 0) {
+      const filename = response.assets[0].fileName;
+      const base64String = response.assets[0].base64;
+      if (filename && base64String) {
+        attachFile(filename, base64String);
+      }
+    }
+  });
+};
+
 const ErrorsTabNavigator = Sentry.withProfiler(
   () => {
     return (
@@ -160,6 +178,7 @@ const ErrorsTabNavigator = Sentry.withProfiler(
                 <FeedbackFormScreen
                   {...props}
                   closeScreen={props.navigation.goBack}
+                  chooseFile={handleChooseFile}
                   styles={{
                     submitButton: {
                       backgroundColor: '#6a1b9a',
