@@ -6,6 +6,29 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Add Replay Custom Masking for iOS, Android and Web ([#4224](https://github.com/getsentry/sentry-react-native/pull/4224), [#4265](https://github.com/getsentry/sentry-react-native/pull/4265), [#4272](https://github.com/getsentry/sentry-react-native/pull/4272), [#4314](https://github.com/getsentry/sentry-react-native/pull/4314))
+
+  ```jsx
+  import * as Sentry from '@sentry/react-native';
+
+  const Example = () => {
+    return (
+      <View>
+        <Sentry.Mask>
+          <Text>${"All children of Sentry.Mask will be masked."}</Text>
+        </Sentry.Mask>
+        <Sentry.Unmask>
+          <Text>${"Only direct children of Sentry.Unmask will be unmasked."}</Text>
+        </Sentry.Unmask>
+      </View>
+    );
+  };
+  ```
+
 ## 6.4.0-beta.1
 
 ### Features
