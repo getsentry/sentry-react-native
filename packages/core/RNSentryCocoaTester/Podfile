@@ -1,6 +1,6 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 
-platform :ios, '13.4'
+platform :ios, '15.1'
 
 target 'RNSentryCocoaTesterTests' do
   use_react_native!(

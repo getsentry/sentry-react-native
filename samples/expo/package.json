@@ -10,7 +10,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "ts:check": "tsc",
-    "export": "EXPO_SKIP_DURING_EXPORT='true' expo export --dump-sourcemap --clear",
+    "export": "expo export --dump-sourcemap --clear --platform all",
+    "export:web": "expo export --dump-sourcemap --clear --platform web",
     "prebuild": "expo prebuild --clean --no-install",
     "set-version": "npx react-native-version --skip-tag --never-amend"
   },

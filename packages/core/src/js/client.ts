@@ -85,6 +85,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
   /**
    * Sends user feedback to Sentry.
+   * @deprecated Use `Sentry.captureFeedback` instead.
    */
   public captureUserFeedback(feedback: UserFeedback): void {
     const envelope = createUserFeedbackEnvelope(feedback, {
