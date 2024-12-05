@@ -22,12 +22,23 @@
     email: "john@doe.com",
     message: "Hello World!",
     associatedEventId: eventId, // optional
+  }, {
+    captureContext: {
+      tags: { "tag-key": "tag-value" },
+    },
+    attachments: [
+      {
+        filename: 'hello.txt',
+        data: 'Hello, World!',
+      },
+    ],
   });
   ```
 
 ### Fixes
 
 - Return `lastEventId` export from `@sentry/core` ([#4315](https://github.com/getsentry/sentry-react-native/pull/4315))
+- Don't log file not found errors when loading envs in `sentry-expo-upload-sourcemaps` ([#4332](https://github.com/getsentry/sentry-react-native/pull/4332))
 - Navigation Span should have no parent by default ([#4326](https://github.com/getsentry/sentry-react-native/pull/4326))
 
 ### Dependencies
