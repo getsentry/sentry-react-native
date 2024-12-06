@@ -8,6 +8,7 @@ import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState } from './FeedbackForm.types';
 
 /**
+ * @beta
  * Implements a feedback form screen that sends feedback to Sentry using Sentry.captureFeedback.
  */
 export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFormState> {
