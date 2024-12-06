@@ -215,7 +215,7 @@ RCT_EXPORT_METHOD(initNativeSdk
     }
 
     // Failed requests can only be enabled in one SDK to avoid duplicates
-    sentryOptions.enableCaptureFailedRequests = @NO;
+    sentryOptions.enableCaptureFailedRequests = NO;
 
     return sentryOptions;
 }
