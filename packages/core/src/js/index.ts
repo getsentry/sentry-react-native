@@ -6,6 +6,7 @@ export type {
   Exception,
   SendFeedbackParams,
   SeverityLevel,
+  Span,
   StackFrame,
   Stacktrace,
   Thread,
