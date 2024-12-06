@@ -7,6 +7,16 @@ import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState } from './FeedbackForm.types';
 
+const defaultFormTitle = 'Feedback Form';
+const defaultNamePlaceholder ='Name';
+const defaultEmailPlaceholder = 'Email';
+const defaultDescriptionPlaceholder = 'Description (required)';
+const defaultSubmitButton = 'Send Feedback';
+const defaultCancelButton = 'Cancel';
+const defaultErrorTitle = 'Error';
+const defaultFormError = 'Please fill out all required fields.';
+const defaultEmailError = 'Please enter a valid email address.';
+
 /**
  * @beta
  * Implements a feedback form screen that sends feedback to Sentry using Sentry.captureFeedback.
@@ -30,14 +40,14 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     const trimmedDescription = description?.trim();
 
     if (!trimmedName || !trimmedEmail || !trimmedDescription) {
-      const errorMessage = text?.formError || 'Please fill out all required fields.';
-      Alert.alert(text?.errorTitle || 'Error', errorMessage);
+      const errorMessage = text?.formError || defaultFormError;
+      Alert.alert(text?.errorTitle || defaultErrorTitle, errorMessage);
       return;
     }
 
     if (!this._isValidEmail(trimmedEmail)) {
-      const errorMessage = text?.emailError || 'Please enter a valid email address.';
-      Alert.alert(text?.errorTitle || 'Error', errorMessage);
+      const errorMessage = text?.emailError || defaultEmailError;
+      Alert.alert(text?.errorTitle || defaultErrorTitle, errorMessage);
       return;
     }
 
@@ -60,18 +70,18 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     return (
     <View style={styles?.container || defaultStyles.container}>
-      <Text style={styles?.title || defaultStyles.title}>{text?.formTitle || 'Feedback Form'}</Text>
+      <Text style={styles?.title || defaultStyles.title}>{text?.formTitle || defaultFormTitle}</Text>
 
       <TextInput
         style={styles?.input || defaultStyles.input}
-        placeholder={text?.namePlaceholder || 'Name'}
+        placeholder={text?.namePlaceholder || defaultNamePlaceholder}
         value={name}
         onChangeText={(value) => this.setState({ name: value })}
         />
 
       <TextInput
         style={styles?.input || defaultStyles.input}
-        placeholder={text?.emailPlaceholder || 'Email'}
+        placeholder={text?.emailPlaceholder || defaultEmailPlaceholder}
         keyboardType={'email-address' as KeyboardTypeOptions}
         value={email}
         onChangeText={(value) => this.setState({ email: value })}
@@ -79,18 +89,18 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
       <TextInput
         style={[styles?.input || defaultStyles.input, styles?.textArea || defaultStyles.textArea]}
-        placeholder={text?.descriptionPlaceholder || 'Description (required)'}
+        placeholder={text?.descriptionPlaceholder || defaultDescriptionPlaceholder}
         value={description}
         onChangeText={(value) => this.setState({ description: value })}
         multiline
       />
 
       <TouchableOpacity style={styles?.submitButton || defaultStyles.submitButton} onPress={this.handleFeedbackSubmit}>
-        <Text style={styles?.submitText || defaultStyles.submitText}>{text?.submitButton || 'Send Feedback'}</Text>
+        <Text style={styles?.submitText || defaultStyles.submitText}>{text?.submitButton || defaultSubmitButton}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles?.cancelButton || defaultStyles.cancelButton} onPress={closeScreen}>
-        <Text style={styles?.cancelText || defaultStyles.cancelText}>{text?.cancelButton || 'Cancel'}</Text>
+        <Text style={styles?.cancelText || defaultStyles.cancelText}>{text?.cancelButton || defaultCancelButton}</Text>
       </TouchableOpacity>
     </View>
     );
