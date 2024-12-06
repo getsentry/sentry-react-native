@@ -38,6 +38,22 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be passed to native");
 }
 
+- (void)testCaptureFailedRequestsIsDisabled
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+    };
+    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
+                                                                   error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertFalse(actualOptions.enableCaptureFailedRequests);
+}
+
 - (void)testCreateOptionsWithDictionaryNativeCrashHandlingDefault
 {
     RNSentry *rnSentry = [[RNSentry alloc] init];
