@@ -1,9 +1,9 @@
 import type { TextStyle, ViewStyle } from 'react-native';
 
-export interface FeedbackFormScreenProps {
+export interface FeedbackFormProps {
   closeScreen: () => void;
   text: FeedbackFormText;
-  styles?: FeedbackFormScreenStyles;
+  styles?: FeedbackFormStyles;
 }
 
 export interface FeedbackFormText {
@@ -18,7 +18,7 @@ export interface FeedbackFormText {
   emailError?: string;
 }
 
-export interface FeedbackFormScreenStyles {
+export interface FeedbackFormStyles {
   container?: ViewStyle;
   title?: TextStyle;
   input?: TextStyle;
@@ -29,7 +29,7 @@ export interface FeedbackFormScreenStyles {
   cancelText?: TextStyle;
 }
 
-export interface FeedbackFormScreenState {
+export interface FeedbackFormState {
   name: string;
   email: string;
   description: string;

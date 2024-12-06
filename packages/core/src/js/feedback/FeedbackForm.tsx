@@ -4,14 +4,14 @@ import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-import defaultStyles from './FeedbackFormScreen.styles';
-import type { FeedbackFormScreenProps, FeedbackFormScreenState } from './FeedbackFormScreen.types';
+import defaultStyles from './FeedbackForm.styles';
+import type { FeedbackFormProps, FeedbackFormState } from './FeedbackForm.types';
 
 /**
  * Implements a feedback form screen that sends feedback to Sentry using Sentry.captureFeedback.
  */
-export class FeedbackFormScreen extends React.Component<FeedbackFormScreenProps, FeedbackFormScreenState> {
-  public constructor(props: FeedbackFormScreenProps) {
+export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFormState> {
+  public constructor(props: FeedbackFormProps) {
     super(props);
     this.state = {
       name: '',

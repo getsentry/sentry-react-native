@@ -39,9 +39,9 @@
 
   You can add the form component in your UI and customise it like:
   ```jsx
-  import { FeedbackFormScreen } from "@sentry/react-native";
+  import { FeedbackForm } from "@sentry/react-native";
   ...
-  <FeedbackFormScreen
+  <FeedbackForm
     {...props}
     closeScreen={props.navigation.goBack}
     styles={{

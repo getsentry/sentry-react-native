@@ -3,8 +3,8 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
 import { Alert } from 'react-native';
 
-import { FeedbackFormScreen } from '../../src/js/feedback/FeedbackFormScreen';
-import type { FeedbackFormScreenProps } from '../../src/js/feedback/FeedbackFormScreen.types';
+import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
+import type { FeedbackFormProps } from '../../src/js/feedback/FeedbackForm.types';
 
 const mockCloseScreen = jest.fn();
 
@@ -14,7 +14,7 @@ jest.mock('@sentry/core', () => ({
   captureFeedback: jest.fn(),
 }));
 
-const defaultProps: FeedbackFormScreenProps = {
+const defaultProps: FeedbackFormProps = {
   closeScreen: mockCloseScreen,
   text: {
     formTitle: 'Feedback Form',
@@ -29,13 +29,13 @@ const defaultProps: FeedbackFormScreenProps = {
   },
 };
 
-describe('FeedbackFormScreen', () => {
+describe('FeedbackForm', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders correctly', () => {
-    const { getByPlaceholderText, getByText } = render(<FeedbackFormScreen {...defaultProps} />);
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
     expect(getByText(defaultProps.text.formTitle)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.text.namePlaceholder)).toBeTruthy();
@@ -46,7 +46,7 @@ describe('FeedbackFormScreen', () => {
   });
 
   it('shows an error message if required fields are empty', async () => {
-    const { getByText } = render(<FeedbackFormScreen {...defaultProps} />);
+    const { getByText } = render(<FeedbackForm {...defaultProps} />);
 
     fireEvent.press(getByText(defaultProps.text.submitButton));
 
@@ -56,7 +56,7 @@ describe('FeedbackFormScreen', () => {
   });
 
   it('shows an error message if the email is not valid', async () => {
-    const { getByPlaceholderText, getByText } = render(<FeedbackFormScreen {...defaultProps} />);
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
     fireEvent.changeText(getByPlaceholderText(defaultProps.text.namePlaceholder), 'John Doe');
     fireEvent.changeText(getByPlaceholderText(defaultProps.text.emailPlaceholder), 'not-an-email');
@@ -70,7 +70,7 @@ describe('FeedbackFormScreen', () => {
   });
 
   it('calls captureFeedback when the form is submitted successfully', async () => {
-    const { getByPlaceholderText, getByText } = render(<FeedbackFormScreen {...defaultProps} />);
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
     fireEvent.changeText(getByPlaceholderText(defaultProps.text.namePlaceholder), 'John Doe');
     fireEvent.changeText(getByPlaceholderText(defaultProps.text.emailPlaceholder), 'john.doe@example.com');
@@ -88,7 +88,7 @@ describe('FeedbackFormScreen', () => {
   });
 
   it('calls closeScreen when the form is submitted successfully', async () => {
-    const { getByPlaceholderText, getByText } = render(<FeedbackFormScreen {...defaultProps} />);
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
     fireEvent.changeText(getByPlaceholderText(defaultProps.text.namePlaceholder), 'John Doe');
     fireEvent.changeText(getByPlaceholderText(defaultProps.text.emailPlaceholder), 'john.doe@example.com');
@@ -102,7 +102,7 @@ describe('FeedbackFormScreen', () => {
   });
 
   it('calls closeScreen when the cancel button is pressed', () => {
-    const { getByText } = render(<FeedbackFormScreen {...defaultProps} />);
+    const { getByText } = render(<FeedbackForm {...defaultProps} />);
 
     fireEvent.press(getByText(defaultProps.text.cancelButton));
 
