@@ -22,8 +22,8 @@ jest.mock('../../src/js/tracing/utils', () => {
   };
 });
 
-jest.mock('@sentry/utils', () => {
-  const originalUtils = jest.requireActual('@sentry/utils');
+jest.mock('@sentry/core', () => {
+  const originalUtils = jest.requireActual('@sentry/core');
 
   return {
     ...originalUtils,
