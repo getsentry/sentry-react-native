@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
+import { forEachEnvelopeItem, logger } from '@sentry/core';
 import type { Envelope, Event, ThreadCpuProfile } from '@sentry/types';
-import { forEachEnvelopeItem, logger } from '@sentry/utils';
 
 import { getDefaultEnvironment } from '../utils/environment';
 import { getDebugMetadata } from './debugid';

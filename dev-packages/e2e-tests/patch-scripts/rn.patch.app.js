@@ -5,7 +5,7 @@ const path = require('path');
 const { argv, env } = require('process');
 
 const parseArgs = require('minimist');
-const { logger } = require('@sentry/utils');
+const { logger } = require('@sentry/core');
 logger.enable();
 
 const SENTRY_RELEASE = env.SENTRY_RELEASE;

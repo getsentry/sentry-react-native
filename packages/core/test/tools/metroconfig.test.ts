@@ -274,5 +274,5 @@ describe('metroconfig', () => {
 
 // function create mock metro frame
 function createMockSentryInstrumentMetroFrame(): MetroFrame {
-  return { file: 'node_modules/@sentry/utils/cjs/instrument.js' };
+  return { file: 'node_modules/@sentry/core/cjs/instrument.js' };
 }

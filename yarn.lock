@@ -7835,7 +7835,6 @@ __metadata:
     "@sentry/core": 8.41.0
     "@sentry/react": 8.41.0
     "@sentry/types": 8.41.0
-    "@sentry/utils": 8.41.0
     "@sentry/wizard": 3.36.0
     "@testing-library/react-native": ^12.7.2
     "@types/jest": ^29.5.3
@@ -7916,16 +7915,6 @@ __metadata:
   dependencies:
     "@sentry/types": 7.119.2
   checksum: 30044c5f420bf1194807664bc27f5e6c76ac210188a62c75fb76bf9262ee88455ba771d53f1d393c1bd581eb2b346023825aff00dd4f7739b638d63243c409b0
-  languageName: node
-  linkType: hard
-
-"@sentry/utils@npm:8.41.0":
-  version: 8.41.0
-  resolution: "@sentry/utils@npm:8.41.0"
-  dependencies:
-    "@sentry/core": 8.41.0
-    "@sentry/types": 8.41.0
-  checksum: 09a820928f54a87d385c628a5c8ba0fdf5b3e93befcbaf05237e6db26323d10b17900924f68384fdecece95908cd6462f9870b34000caa80ed34c599db065156
   languageName: node
   linkType: hard
 
@@ -24294,8 +24283,8 @@ __metadata:
   dependencies:
     "@babel/preset-env": ^7.25.3
     "@babel/preset-typescript": ^7.18.6
+    "@sentry/core": 8.41.0
     "@sentry/react-native": 6.4.0-beta.1
-    "@sentry/utils": 8.41.0
     "@types/node": ^20.9.3
     "@types/react": ^18.2.64
     appium: 2.4.1
@@ -24358,10 +24347,10 @@ __metadata:
     "@react-navigation/bottom-tabs": ^6.5.12
     "@react-navigation/native": ^6.1.9
     "@react-navigation/stack": ^6.3.20
+    "@sentry/core": 8.41.0
     "@sentry/react": 8.41.0
     "@sentry/react-native": 6.4.0-beta.1
     "@sentry/types": 8.41.0
-    "@sentry/utils": 8.41.0
     "@types/react": ^18.2.65
     "@types/react-native-vector-icons": ^6.4.18
     "@types/react-test-renderer": ^18.0.0

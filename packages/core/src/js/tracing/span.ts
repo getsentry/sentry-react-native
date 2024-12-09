@@ -1,7 +1,9 @@
 import {
+  generatePropagationContext,
   getActiveSpan,
   getClient,
   getCurrentScope,
+  logger,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SentryNonRecordingSpan,
@@ -10,7 +12,6 @@ import {
   startIdleSpan as coreStartIdleSpan,
 } from '@sentry/core';
 import type { Client, Scope, Span, StartSpanOptions } from '@sentry/types';
-import { generatePropagationContext, logger } from '@sentry/utils';
 
 import { isRootSpan } from '../utils/span';
 import { adjustTransactionDuration, cancelInBackground } from './onSpanEndUtils';

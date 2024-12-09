@@ -1,5 +1,5 @@
+import { logger } from '@sentry/core';
 import type { Event, Integration, Package, SdkInfo as SdkInfoType } from '@sentry/types';
-import { logger } from '@sentry/utils';
 
 import { isExpoGo, notWeb } from '../utils/environment';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../version';

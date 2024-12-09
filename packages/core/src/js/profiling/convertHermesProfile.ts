@@ -1,5 +1,5 @@
+import { logger } from '@sentry/core';
 import type { FrameId, StackId, ThreadCpuFrame, ThreadCpuSample, ThreadCpuStack, ThreadId } from '@sentry/types';
-import { logger } from '@sentry/utils';
 
 import { MAX_PROFILE_DURATION_MS } from './constants';
 import type * as Hermes from './hermes';

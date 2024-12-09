@@ -3,12 +3,13 @@ import {
   getCapturedScopesOnSpan,
   getClient,
   getCurrentScope,
+  logger,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SentryNonRecordingSpan,
   startInactiveSpan,
+  timestampInSeconds,
 } from '@sentry/core';
 import type { Client, Event, Integration, SpanJSON, TransactionEvent } from '@sentry/types';
-import { logger, timestampInSeconds } from '@sentry/utils';
 
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,

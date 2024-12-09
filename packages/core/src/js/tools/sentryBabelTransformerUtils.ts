@@ -1,4 +1,4 @@
-import { logger } from '@sentry/utils';
+import { logger } from '@sentry/core';
 import * as process from 'process';
 
 import type { BabelTransformer } from './vendor/metro/metroBabelTransformer';

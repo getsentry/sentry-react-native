@@ -1,4 +1,4 @@
-import { logger, timestampInSeconds } from '@sentry/utils';
+import { logger, timestampInSeconds } from '@sentry/core';
 
 import { NATIVE } from '../wrapper';
 import type { NewFrameEvent, SentryEventEmitter } from './sentryeventemitter';
