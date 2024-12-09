@@ -50,6 +50,29 @@
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7181)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.18.0...7.18.1)
 
+## 6.4.0
+
+### Features
+
+- Add Replay Custom Masking for iOS, Android and Web ([#4224](https://github.com/getsentry/sentry-react-native/pull/4224), [#4265](https://github.com/getsentry/sentry-react-native/pull/4265), [#4272](https://github.com/getsentry/sentry-react-native/pull/4272), [#4314](https://github.com/getsentry/sentry-react-native/pull/4314))
+
+  ```jsx
+  import * as Sentry from '@sentry/react-native';
+
+  const Example = () => {
+    return (
+      <View>
+        <Sentry.Mask>
+          <Text>${"All children of Sentry.Mask will be masked."}</Text>
+        </Sentry.Mask>
+        <Sentry.Unmask>
+          <Text>${"Only direct children of Sentry.Unmask will be unmasked."}</Text>
+        </Sentry.Unmask>
+      </View>
+    );
+  };
+  ```
+
 ## 6.4.0-beta.1
 
 ### Features
