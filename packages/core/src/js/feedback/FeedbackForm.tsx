@@ -62,8 +62,8 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       email: trimmedEmail,
     };
 
-    captureFeedback(userFeedback);
     closeScreen();
+    captureFeedback(userFeedback);
   };
 
   /**
