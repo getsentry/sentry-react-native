@@ -6,7 +6,7 @@ import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { defaultConfiguration } from './constants';
 import defaultStyles from './FeedbackForm.styles';
-import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackTextConfiguration } from './FeedbackForm.types';
+import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration } from './FeedbackForm.types';
 
 /**
  * @beta
@@ -25,18 +25,19 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
   public handleFeedbackSubmit: () => void = () => {
     const { name, email, description } = this.state;
     const { closeScreen } = this.props;
+    const config: FeedbackGeneralConfiguration = { ...defaultConfiguration, ...this.props };
     const text: FeedbackTextConfiguration = { ...defaultConfiguration, ...this.props };
 
     const trimmedName = name?.trim();
     const trimmedEmail = email?.trim();
     const trimmedDescription = description?.trim();
 
-    if (!trimmedName || !trimmedEmail || !trimmedDescription) {
+    if ((config.isNameRequired && !trimmedName) || (config.isEmailRequired && !trimmedEmail) || !trimmedDescription) {
       Alert.alert(text.errorTitle, text.formError);
       return;
     }
 
-    if (!this._isValidEmail(trimmedEmail)) {
+    if (config.isEmailRequired && !this._isValidEmail(trimmedEmail)) {
       Alert.alert(text.errorTitle, text.emailError);
       return;
     }
@@ -57,6 +58,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
   public render(): React.ReactNode {
     const { closeScreen } = this.props;
     const { name, email, description } = this.state;
+    const config: FeedbackGeneralConfiguration = { ...defaultConfiguration, ...this.props };
     const text: FeedbackTextConfiguration = { ...defaultConfiguration, ...this.props };
     const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
 
@@ -66,7 +68,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
       <Text style={styles.label}>
           {text.nameLabel}
-          {true && ` ${text.isRequiredLabel}`}
+          {config.isNameRequired && ` ${text.isRequiredLabel}`}
       </Text>
       <TextInput
         style={styles.input}
@@ -77,7 +79,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
       <Text style={styles.label}>
           {text.emailLabel}
-          {true && ` ${text.isRequiredLabel}`}
+          {config.isEmailRequired && ` ${text.isRequiredLabel}`}
       </Text>
       <TextInput
         style={styles.input}
@@ -89,7 +91,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
       <Text style={styles.label}>
         {text.messageLabel}
-        {true && ` ${text.isRequiredLabel}`}
+        {` ${text.isRequiredLabel}`}
       </Text>
       <TextInput
         style={[styles.input, styles.textArea]}

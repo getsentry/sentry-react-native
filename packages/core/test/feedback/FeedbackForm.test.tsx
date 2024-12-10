@@ -40,9 +40,9 @@ describe('FeedbackForm', () => {
     const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
     expect(getByText(defaultProps.formTitle)).toBeTruthy();
-    expect(getByText(`${defaultProps.nameLabel  } ${  defaultProps.isRequiredLabel}`)).toBeTruthy();
+    expect(getByText(defaultProps.nameLabel)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.namePlaceholder)).toBeTruthy();
-    expect(getByText(`${defaultProps.emailLabel } ${  defaultProps.isRequiredLabel}`)).toBeTruthy();
+    expect(getByText(defaultProps.emailLabel)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.emailPlaceholder)).toBeTruthy();
     expect(getByText(`${defaultProps.messageLabel } ${  defaultProps.isRequiredLabel}`)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.messagePlaceholder)).toBeTruthy();
@@ -60,8 +60,9 @@ describe('FeedbackForm', () => {
     });
   });
 
-  it('shows an error message if the email is not valid', async () => {
-    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+  it('shows an error message if the email is not valid and the email is required', async () => {
+    const withEmailProps = {...defaultProps, ...{isEmailRequired: true}};
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...withEmailProps} />);
 
     fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
     fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'not-an-email');

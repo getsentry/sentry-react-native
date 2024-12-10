@@ -15,6 +15,12 @@ const FORM_ERROR = 'Please fill out all required fields.';
 const EMAIL_ERROR = 'Please enter a valid email address.';
 
 export const defaultConfiguration: Partial<FeedbackFormProps> = {
+  // FeedbackGeneralConfiguration
+  isEmailRequired: false,
+  isNameRequired: false,
+  showEmail: true,
+  showName: true,
+
   // FeedbackTextConfiguration
   cancelButtonLabel: CANCEL_BUTTON_LABEL,
   emailLabel: EMAIL_LABEL,
