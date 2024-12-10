@@ -169,7 +169,7 @@ const ErrorsTabNavigator = Sentry.withProfiler(
                       marginBottom: 10,
                     },
                   }}
-                  text={{namePlaceholder: 'Fullname'}}
+                  namePlaceholder={'Fullname'}
                 />
               )}
             </Stack.Screen>

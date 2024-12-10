@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Alert } from 'react-native';
 
 import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
-import type { FeedbackFormProps } from '../../src/js/feedback/config';
+import type { FeedbackFormProps } from '../../src/js/feedback/FeedbackForm.types';
 
 const mockCloseScreen = jest.fn();
 
@@ -16,17 +16,19 @@ jest.mock('@sentry/core', () => ({
 
 const defaultProps: FeedbackFormProps = {
   closeScreen: mockCloseScreen,
-  text: {
-    formTitle: 'Feedback Form',
-    namePlaceholder: 'Name',
-    emailPlaceholder: 'Email',
-    descriptionPlaceholder: 'Description',
-    submitButton: 'Submit',
-    cancelButton: 'Cancel',
-    errorTitle: 'Error',
-    formError: 'Please fill out all required fields.',
-    emailError: 'The email address is not valid.',
-  },
+  formTitle: 'Feedback Form',
+  nameLabel: 'Name',
+  namePlaceholder: 'Name Placeholder',
+  emailLabel: 'Email',
+  emailPlaceholder: 'Email Placeholder',
+  messageLabel: 'Description',
+  messagePlaceholder: 'Description Placeholder',
+  submitButtonLabel: 'Submit',
+  cancelButtonLabel: 'Cancel',
+  isRequiredLabel: '(required)',
+  errorTitle: 'Error',
+  formError: 'Please fill out all required fields.',
+  emailError: 'The email address is not valid.',
 };
 
 describe('FeedbackForm', () => {
@@ -37,46 +39,49 @@ describe('FeedbackForm', () => {
   it('renders correctly', () => {
     const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
-    expect(getByText(defaultProps.text.formTitle)).toBeTruthy();
-    expect(getByPlaceholderText(defaultProps.text.namePlaceholder)).toBeTruthy();
-    expect(getByPlaceholderText(defaultProps.text.emailPlaceholder)).toBeTruthy();
-    expect(getByPlaceholderText(defaultProps.text.descriptionPlaceholder)).toBeTruthy();
-    expect(getByText(defaultProps.text.submitButton)).toBeTruthy();
-    expect(getByText(defaultProps.text.cancelButton)).toBeTruthy();
+    expect(getByText(defaultProps.formTitle)).toBeTruthy();
+    expect(getByText(`${defaultProps.nameLabel  } ${  defaultProps.isRequiredLabel}`)).toBeTruthy();
+    expect(getByPlaceholderText(defaultProps.namePlaceholder)).toBeTruthy();
+    expect(getByText(`${defaultProps.emailLabel } ${  defaultProps.isRequiredLabel}`)).toBeTruthy();
+    expect(getByPlaceholderText(defaultProps.emailPlaceholder)).toBeTruthy();
+    expect(getByText(`${defaultProps.messageLabel } ${  defaultProps.isRequiredLabel}`)).toBeTruthy();
+    expect(getByPlaceholderText(defaultProps.messagePlaceholder)).toBeTruthy();
+    expect(getByText(defaultProps.submitButtonLabel)).toBeTruthy();
+    expect(getByText(defaultProps.cancelButtonLabel)).toBeTruthy();
   });
 
   it('shows an error message if required fields are empty', async () => {
     const { getByText } = render(<FeedbackForm {...defaultProps} />);
 
-    fireEvent.press(getByText(defaultProps.text.submitButton));
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.text.errorTitle, defaultProps.text.formError);
+      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.errorTitle, defaultProps.formError);
     });
   });
 
   it('shows an error message if the email is not valid', async () => {
     const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
-    fireEvent.changeText(getByPlaceholderText(defaultProps.text.namePlaceholder), 'John Doe');
-    fireEvent.changeText(getByPlaceholderText(defaultProps.text.emailPlaceholder), 'not-an-email');
-    fireEvent.changeText(getByPlaceholderText(defaultProps.text.descriptionPlaceholder), 'This is a feedback message.');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'not-an-email');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
 
-    fireEvent.press(getByText(defaultProps.text.submitButton));
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.text.errorTitle, defaultProps.text.emailError);
+      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.errorTitle, defaultProps.emailError);
     });
   });
 
   it('calls captureFeedback when the form is submitted successfully', async () => {
     const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
-    fireEvent.changeText(getByPlaceholderText(defaultProps.text.namePlaceholder), 'John Doe');
-    fireEvent.changeText(getByPlaceholderText(defaultProps.text.emailPlaceholder), 'john.doe@example.com');
-    fireEvent.changeText(getByPlaceholderText(defaultProps.text.descriptionPlaceholder), 'This is a feedback message.');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
 
-    fireEvent.press(getByText(defaultProps.text.submitButton));
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
 
     await waitFor(() => {
       expect(captureFeedback).toHaveBeenCalledWith({
@@ -90,11 +95,11 @@ describe('FeedbackForm', () => {
   it('calls closeScreen when the form is submitted successfully', async () => {
     const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
-    fireEvent.changeText(getByPlaceholderText(defaultProps.text.namePlaceholder), 'John Doe');
-    fireEvent.changeText(getByPlaceholderText(defaultProps.text.emailPlaceholder), 'john.doe@example.com');
-    fireEvent.changeText(getByPlaceholderText(defaultProps.text.descriptionPlaceholder), 'This is a feedback message.');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
 
-    fireEvent.press(getByText(defaultProps.text.submitButton));
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
 
     await waitFor(() => {
       expect(mockCloseScreen).toHaveBeenCalled();
@@ -104,7 +109,7 @@ describe('FeedbackForm', () => {
   it('calls closeScreen when the cancel button is pressed', () => {
     const { getByText } = render(<FeedbackForm {...defaultProps} />);
 
-    fireEvent.press(getByText(defaultProps.text.cancelButton));
+    fireEvent.press(getByText(defaultProps.cancelButtonLabel));
 
     expect(mockCloseScreen).toHaveBeenCalled();
   });

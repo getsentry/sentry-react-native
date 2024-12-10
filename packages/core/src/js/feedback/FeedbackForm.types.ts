@@ -1,0 +1,94 @@
+import type { TextStyle, ViewStyle } from 'react-native';
+
+export interface FeedbackFormProps extends FeedbackTextConfiguration {
+  closeScreen: () => void;
+  styles?: FeedbackFormStyles;
+}
+
+/**
+ * All of the different text labels that can be customized
+ */
+export interface FeedbackTextConfiguration {
+  /**
+   * The label for the Feedback form cancel button that closes dialog
+   */
+  cancelButtonLabel?: string;
+
+  /**
+   * The label for the Feedback form submit button that sends feedback
+   */
+  submitButtonLabel?: string;
+
+  /**
+   * The title of the Feedback form
+   */
+  formTitle?: string;
+
+  /**
+   * Label for the email input
+   */
+  emailLabel?: string;
+
+  /**
+   * Placeholder text for Feedback email input
+   */
+  emailPlaceholder?: string;
+
+  /**
+   * Label for the message input
+   */
+  messageLabel?: string;
+
+  /**
+   * Placeholder text for Feedback message input
+   */
+  messagePlaceholder?: string;
+
+  /**
+   * Label for the name input
+   */
+  nameLabel?: string;
+
+  /**
+   * Placeholder text for Feedback name input
+   */
+  namePlaceholder?: string;
+
+  /**
+   * Text which indicates that a field is required
+   */
+  isRequiredLabel?: string;
+
+  /**
+   * The title of the error dialog
+   */
+  errorTitle?: string;
+
+  /**
+   * The error message when the form is invalid
+   */
+  formError?: string;
+
+  /**
+   * The error message when the email is invalid
+   */
+  emailError?: string;
+}
+
+export interface FeedbackFormStyles {
+  container?: ViewStyle;
+  title?: TextStyle;
+  label?: TextStyle;
+  input?: TextStyle;
+  textArea?: TextStyle;
+  submitButton?: ViewStyle;
+  submitText?: TextStyle;
+  cancelButton?: ViewStyle;
+  cancelText?: TextStyle;
+}
+
+export interface FeedbackFormState {
+  name: string;
+  email: string;
+  description: string;
+}

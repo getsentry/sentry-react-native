@@ -1,6 +1,6 @@
-import { StyleSheet } from 'react-native';
+import type { FeedbackFormStyles } from './FeedbackForm.types';
 
-const defaultStyles = StyleSheet.create({
+const defaultStyles: FeedbackFormStyles = {
   container: {
     flex: 1,
     padding: 20,
@@ -49,6 +49,6 @@ const defaultStyles = StyleSheet.create({
     color: '#6a1b9a',
     fontSize: 16,
   },
-});
+};
 
 export default defaultStyles;
