@@ -39,7 +39,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       return;
     }
 
-    if (config.isEmailRequired && !this._isValidEmail(trimmedEmail)) {
+    if ((config.isEmailRequired || trimmedEmail.length > 0) && !this._isValidEmail(trimmedEmail)) {
       Alert.alert(text.errorTitle, text.emailError);
       return;
     }
@@ -115,7 +115,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
   }
 
   private _isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
     return emailRegex.test(email);
   };
 }
