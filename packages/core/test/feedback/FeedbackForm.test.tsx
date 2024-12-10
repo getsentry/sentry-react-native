@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Alert } from 'react-native';
 
 import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
-import type { FeedbackFormProps } from '../../src/js/feedback/FeedbackForm.types';
+import type { FeedbackFormProps } from '../../src/js/feedback/config';
 
 const mockCloseScreen = jest.fn();
 

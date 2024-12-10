@@ -19,7 +19,7 @@ import {
   NAME_PLACEHOLDER,
   SUBMIT_BUTTON_LABEL} from './constants';
 import defaultStyles from './FeedbackForm.styles';
-import type { FeedbackFormProps, FeedbackFormState } from './FeedbackForm.types';
+import type { FeedbackFormProps, FeedbackFormState } from './config';
 import LabelText from './LabelText';
 
 /**
