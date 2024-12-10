@@ -70,7 +70,8 @@
     "@sentry/cli": "2.39.1",
     "@sentry/core": "8.41.0",
     "@sentry/react": "8.41.0",
-    "@sentry/types": "8.41.0"
+    "@sentry/types": "8.41.0",
+    "@sentry/utils": "8.41.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
