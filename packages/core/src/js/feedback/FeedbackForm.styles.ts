@@ -12,6 +12,10 @@ const defaultStyles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+  label: {
+    marginBottom: 4,
+    fontSize: 16,
+  },
   input: {
     height: 50,
     borderColor: '#ccc',

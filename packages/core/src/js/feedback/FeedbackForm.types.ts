@@ -8,9 +8,13 @@ export interface FeedbackFormProps {
 
 export interface FeedbackFormText {
   formTitle?: string;
+  nameLabel?: string;
   namePlaceholder?: string;
+  emailLabel?: string;
   emailPlaceholder?: string;
+  descriptionLabel?: string;
   descriptionPlaceholder?: string;
+  isRequiredLabel?: string;
   submitButton?: string;
   cancelButton?: string;
   errorTitle?: string;
@@ -21,6 +25,7 @@ export interface FeedbackFormText {
 export interface FeedbackFormStyles {
   container?: ViewStyle;
   title?: TextStyle;
+  label?: TextStyle;
   input?: TextStyle;
   textArea?: ViewStyle;
   submitButton?: ViewStyle;

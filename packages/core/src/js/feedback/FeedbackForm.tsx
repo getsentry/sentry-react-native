@@ -7,15 +7,20 @@ import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import {
   CANCEL_BUTTON_LABEL,
   EMAIL_ERROR,
+  EMAIL_LABEL,
   EMAIL_PLACEHOLDER,
   ERROR_TITLE,
   FORM_ERROR,
   FORM_TITLE,
+  IS_REQUIRED_LABEL,
+  MESSAGE_LABEL,
   MESSAGE_PLACEHOLDER,
+  NAME_LABEL,
   NAME_PLACEHOLDER,
   SUBMIT_BUTTON_LABEL} from './constants';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState } from './FeedbackForm.types';
+import LabelText from './LabelText';
 
 /**
  * @beta
@@ -72,13 +77,24 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     <View style={styles?.container || defaultStyles.container}>
       <Text style={styles?.title || defaultStyles.title}>{text?.formTitle || FORM_TITLE}</Text>
 
+      <LabelText
+          label={text?.nameLabel || NAME_LABEL}
+          isRequired={true}
+          isRequiredLabel={text?.isRequiredLabel || IS_REQUIRED_LABEL}
+          styles={styles?.label || defaultStyles.label}
+        />
       <TextInput
         style={styles?.input || defaultStyles.input}
         placeholder={text?.namePlaceholder || NAME_PLACEHOLDER}
         value={name}
         onChangeText={(value) => this.setState({ name: value })}
         />
-
+      <LabelText
+          label={text?.emailLabel || EMAIL_LABEL}
+          isRequired={true}
+          isRequiredLabel={text?.isRequiredLabel || IS_REQUIRED_LABEL}
+          styles={styles?.label || defaultStyles.label}
+        />
       <TextInput
         style={styles?.input || defaultStyles.input}
         placeholder={text?.emailPlaceholder || EMAIL_PLACEHOLDER}
@@ -86,7 +102,12 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
         value={email}
         onChangeText={(value) => this.setState({ email: value })}
         />
-
+      <LabelText
+          label={text?.descriptionLabel || MESSAGE_LABEL}
+          isRequired={true}
+          isRequiredLabel={text?.isRequiredLabel || IS_REQUIRED_LABEL}
+          styles={styles?.label || defaultStyles.label}
+        />
       <TextInput
         style={[styles?.input || defaultStyles.input, styles?.textArea || defaultStyles.textArea]}
         placeholder={text?.descriptionPlaceholder || MESSAGE_PLACEHOLDER}

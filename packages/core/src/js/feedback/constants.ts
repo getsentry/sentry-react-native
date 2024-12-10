@@ -1,7 +1,11 @@
 export const FORM_TITLE = 'Report a Bug';
-export const NAME_PLACEHOLDER = 'Name';
-export const EMAIL_PLACEHOLDER = 'Email';
-export const MESSAGE_PLACEHOLDER = 'Description';
+export const NAME_PLACEHOLDER = 'Your Name';
+export const NAME_LABEL = 'Name';
+export const EMAIL_PLACEHOLDER = 'your.email@example.org';
+export const EMAIL_LABEL = 'Email';
+export const MESSAGE_PLACEHOLDER = "What's the bug? What did you expect?";
+export const MESSAGE_LABEL = 'Description';
+export const IS_REQUIRED_LABEL = '(required)';
 export const SUBMIT_BUTTON_LABEL = 'Send Bug Report';
 export const CANCEL_BUTTON_LABEL = 'Cancel';
 export const ERROR_TITLE = 'Error';
