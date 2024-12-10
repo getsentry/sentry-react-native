@@ -1,4 +1,4 @@
-import { logger } from '@sentry/utils';
+import { logger } from '@sentry/core';
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import type { CustomResolutionContext, CustomResolver, Resolution } from 'metro-resolver';
 import * as process from 'process';
@@ -246,8 +246,8 @@ export function withSentryFramesCollapsed(config: MetroConfig): MetroConfig {
   const originalCustomizeFrame = config.symbolicator?.customizeFrame;
   const collapseSentryInternalFrames = (frame: MetroFrame): boolean =>
     typeof frame.file === 'string' &&
-    (frame.file.includes('node_modules/@sentry/utils/cjs/instrument.js') ||
-      frame.file.includes('node_modules/@sentry/utils/cjs/logger.js'));
+    (frame.file.includes('node_modules/@sentry/core/cjs/instrument.js') ||
+      frame.file.includes('node_modules/@sentry/core/cjs/logger.js'));
 
   const customizeFrame = (frame: MetroFrame): MetroCustomizeFrameReturnValue => {
     const originalOrSentryCustomizeFrame = (

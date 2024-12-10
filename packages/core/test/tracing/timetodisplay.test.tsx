@@ -1,4 +1,4 @@
-import { logger } from '@sentry/utils';
+import { getActiveSpan, getCurrentScope, getGlobalScope, getIsolationScope, getSpanDescendants, logger , setCurrentClient, spanToJSON, startSpanManual} from '@sentry/core';
 jest.spyOn(logger, 'warn');
 
 import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
@@ -9,7 +9,6 @@ jest.mock('../../src/js/utils/environment', () => ({
   isTurboModuleEnabled: jest.fn().mockReturnValue(false),
 }));
 
-import { getActiveSpan, getCurrentScope, getGlobalScope, getIsolationScope, getSpanDescendants, setCurrentClient, spanToJSON, startSpanManual} from '@sentry/core';
 import type { Event, Measurements, Span, SpanJSON} from '@sentry/types';
 import * as React from "react";
 import * as TestRenderer from 'react-test-renderer';

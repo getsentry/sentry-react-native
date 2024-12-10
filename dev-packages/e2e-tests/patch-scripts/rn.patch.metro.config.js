@@ -4,7 +4,7 @@ const fs = require('fs');
 const { argv } = require('process');
 
 const parseArgs = require('minimist');
-const { logger } = require('@sentry/utils');
+const { logger } = require('@sentry/core');
 logger.enable();
 
 const args = parseArgs(argv.slice(2));

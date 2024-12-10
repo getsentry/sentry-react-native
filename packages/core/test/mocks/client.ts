@@ -5,6 +5,7 @@ import {
   getGlobalScope,
   getIsolationScope,
   initAndBind,
+  resolvedSyncPromise,
   setCurrentClient,
 } from '@sentry/core';
 import type {
@@ -16,7 +17,6 @@ import type {
   Session,
   SeverityLevel,
 } from '@sentry/types';
-import { resolvedSyncPromise } from '@sentry/utils';
 
 import type { ReactNativeClientOptions } from '../../src/js/options';
 

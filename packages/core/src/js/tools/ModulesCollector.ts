@@ -1,4 +1,4 @@
-import { logger } from '@sentry/utils';
+import { logger } from '@sentry/core';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { posix, sep } from 'path';
 
