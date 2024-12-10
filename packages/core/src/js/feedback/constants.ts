@@ -1,0 +1,9 @@
+export const FORM_TITLE = 'Report a Bug';
+export const NAME_PLACEHOLDER = 'Name';
+export const EMAIL_PLACEHOLDER = 'Email';
+export const MESSAGE_PLACEHOLDER = 'Description';
+export const SUBMIT_BUTTON_LABEL = 'Send Bug Report';
+export const CANCEL_BUTTON_LABEL = 'Cancel';
+export const ERROR_TITLE = 'Error';
+export const FORM_ERROR = 'Please fill out all required fields.';
+export const EMAIL_ERROR = 'Please enter a valid email address.';

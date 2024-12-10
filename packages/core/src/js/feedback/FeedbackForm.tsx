@@ -4,18 +4,18 @@ import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import {
+  CANCEL_BUTTON_LABEL,
+  EMAIL_ERROR,
+  EMAIL_PLACEHOLDER,
+  ERROR_TITLE,
+  FORM_ERROR,
+  FORM_TITLE,
+  MESSAGE_PLACEHOLDER,
+  NAME_PLACEHOLDER,
+  SUBMIT_BUTTON_LABEL} from './constants';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState } from './FeedbackForm.types';
-
-const defaultFormTitle = 'Feedback Form';
-const defaultNamePlaceholder ='Name';
-const defaultEmailPlaceholder = 'Email';
-const defaultDescriptionPlaceholder = 'Description (required)';
-const defaultSubmitButton = 'Send Feedback';
-const defaultCancelButton = 'Cancel';
-const defaultErrorTitle = 'Error';
-const defaultFormError = 'Please fill out all required fields.';
-const defaultEmailError = 'Please enter a valid email address.';
 
 /**
  * @beta
@@ -40,14 +40,14 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     const trimmedDescription = description?.trim();
 
     if (!trimmedName || !trimmedEmail || !trimmedDescription) {
-      const errorMessage = text?.formError || defaultFormError;
-      Alert.alert(text?.errorTitle || defaultErrorTitle, errorMessage);
+      const errorMessage = text?.formError || FORM_ERROR;
+      Alert.alert(text?.errorTitle || ERROR_TITLE, errorMessage);
       return;
     }
 
     if (!this._isValidEmail(trimmedEmail)) {
-      const errorMessage = text?.emailError || defaultEmailError;
-      Alert.alert(text?.errorTitle || defaultErrorTitle, errorMessage);
+      const errorMessage = text?.emailError || EMAIL_ERROR;
+      Alert.alert(text?.errorTitle || ERROR_TITLE, errorMessage);
       return;
     }
 
@@ -70,18 +70,18 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     return (
     <View style={styles?.container || defaultStyles.container}>
-      <Text style={styles?.title || defaultStyles.title}>{text?.formTitle || defaultFormTitle}</Text>
+      <Text style={styles?.title || defaultStyles.title}>{text?.formTitle || FORM_TITLE}</Text>
 
       <TextInput
         style={styles?.input || defaultStyles.input}
-        placeholder={text?.namePlaceholder || defaultNamePlaceholder}
+        placeholder={text?.namePlaceholder || NAME_PLACEHOLDER}
         value={name}
         onChangeText={(value) => this.setState({ name: value })}
         />
 
       <TextInput
         style={styles?.input || defaultStyles.input}
-        placeholder={text?.emailPlaceholder || defaultEmailPlaceholder}
+        placeholder={text?.emailPlaceholder || EMAIL_PLACEHOLDER}
         keyboardType={'email-address' as KeyboardTypeOptions}
         value={email}
         onChangeText={(value) => this.setState({ email: value })}
@@ -89,18 +89,18 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
       <TextInput
         style={[styles?.input || defaultStyles.input, styles?.textArea || defaultStyles.textArea]}
-        placeholder={text?.descriptionPlaceholder || defaultDescriptionPlaceholder}
+        placeholder={text?.descriptionPlaceholder || MESSAGE_PLACEHOLDER}
         value={description}
         onChangeText={(value) => this.setState({ description: value })}
         multiline
       />
 
       <TouchableOpacity style={styles?.submitButton || defaultStyles.submitButton} onPress={this.handleFeedbackSubmit}>
-        <Text style={styles?.submitText || defaultStyles.submitText}>{text?.submitButton || defaultSubmitButton}</Text>
+        <Text style={styles?.submitText || defaultStyles.submitText}>{text?.submitButton || SUBMIT_BUTTON_LABEL}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles?.cancelButton || defaultStyles.cancelButton} onPress={closeScreen}>
-        <Text style={styles?.cancelText || defaultStyles.cancelText}>{text?.cancelButton || defaultCancelButton}</Text>
+        <Text style={styles?.cancelText || defaultStyles.cancelText}>{text?.cancelButton || CANCEL_BUTTON_LABEL}</Text>
       </TouchableOpacity>
     </View>
     );
