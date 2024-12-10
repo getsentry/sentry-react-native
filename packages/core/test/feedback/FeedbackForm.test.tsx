@@ -12,6 +12,12 @@ jest.spyOn(Alert, 'alert');
 
 jest.mock('@sentry/core', () => ({
   captureFeedback: jest.fn(),
+  getCurrentScope: jest.fn(() => ({
+    getUser: jest.fn(() => ({
+      email: 'test@example.com',
+      name: 'Test User',
+    })),
+  })),
 }));
 
 const defaultProps: FeedbackFormProps = {
@@ -48,6 +54,16 @@ describe('FeedbackForm', () => {
     expect(getByPlaceholderText(defaultProps.messagePlaceholder)).toBeTruthy();
     expect(getByText(defaultProps.submitButtonLabel)).toBeTruthy();
     expect(getByText(defaultProps.cancelButtonLabel)).toBeTruthy();
+  });
+
+  it('name and email are prefilled when sentry user is set', () => {
+    const { getByPlaceholderText } = render(<FeedbackForm {...defaultProps} />);
+
+    const nameInput = getByPlaceholderText(defaultProps.namePlaceholder);
+    const emailInput = getByPlaceholderText(defaultProps.emailPlaceholder);
+
+    expect(nameInput.props.value).toBe('Test User');
+    expect(emailInput.props.value).toBe('test@example.com');
   });
 
   it('shows an error message if required fields are empty', async () => {

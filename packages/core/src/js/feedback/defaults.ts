@@ -1,3 +1,5 @@
+import { getCurrentScope } from '@sentry/core';
+
 import type { FeedbackFormProps } from './FeedbackForm.types';
 
 const FORM_TITLE = 'Report a Bug';
@@ -20,6 +22,10 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
   isNameRequired: false,
   showEmail: true,
   showName: true,
+  useSentryUser: {
+    email: getCurrentScope().getUser().email || '',
+    name: getCurrentScope().getUser().name || '',
+  },
 
   // FeedbackTextConfiguration
   cancelButtonLabel: CANCEL_BUTTON_LABEL,

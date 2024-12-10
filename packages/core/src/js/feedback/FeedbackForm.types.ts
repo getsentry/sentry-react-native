@@ -28,6 +28,15 @@ export interface FeedbackGeneralConfiguration {
    * Should the name input field be visible? Note: name will still be collected if set via `Sentry.setUser()`
    */
   showName?: boolean;
+
+  /**
+   * Fill in email/name input fields with Sentry user context if it exists.
+   * The value of the email/name keys represent the properties of your user context.
+   */
+  useSentryUser?: {
+    email: string;
+    name: string;
+  };
 }
 
 /**

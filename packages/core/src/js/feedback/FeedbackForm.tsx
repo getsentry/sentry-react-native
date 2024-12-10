@@ -4,7 +4,7 @@ import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-import { defaultConfiguration } from './constants';
+import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration } from './FeedbackForm.types';
 
@@ -15,9 +15,11 @@ import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackG
 export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFormState> {
   public constructor(props: FeedbackFormProps) {
     super(props);
+
+    const config: FeedbackGeneralConfiguration = { ...defaultConfiguration, ...props };
     this.state = {
-      name: '',
-      email: '',
+      name: config.useSentryUser.name,
+      email: config.useSentryUser.email,
       description: '',
     };
   }
