@@ -114,9 +114,9 @@ jobs:
           mkdir -p "DerivedData"
           derivedData="$(cd "DerivedData" ; pwd -P)"
           set -o pipefail && xcodebuild \
-            -workspace sentryreactnativesample.xcworkspace \
+            -workspace sentryreactnativeexposample.xcworkspace \
             -configuration "$CONFIG" \
-            -scheme sentryreactnativesample \
+            -scheme sentryreactnativeexposample \
             -sdk 'iphonesimulator' \
             -destination 'generic/platform=iOS Simulator' \
             ONLY_ACTIVE_ARCH=yes \
