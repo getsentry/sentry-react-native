@@ -18,6 +18,7 @@ jest.mock('@sentry/core', () => ({
       name: 'Test User',
     })),
   })),
+  lastEventId: jest.fn(),
 }));
 
 const defaultProps: FeedbackFormProps = {
