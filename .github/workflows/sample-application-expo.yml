@@ -104,8 +104,9 @@ jobs:
         if: ${{ matrix.platform == 'android' }}
         working-directory: samples/expo/android
         run: |
-          ./gradlew assembleRelease
-          echo "> Building Native project. OK"
+          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          echo "Building $CONFIG"
+          ./gradlew ":app:assemble$CONFIG" -PreactNativeArchitectures=x86
 
       - name: Build iOS App
         if: ${{ matrix.platform == 'ios' }}
