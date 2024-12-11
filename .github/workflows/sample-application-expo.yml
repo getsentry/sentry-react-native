@@ -82,6 +82,11 @@ jobs:
       - name: Build SDK
         run: yarn build
 
+      - name: Prebuild apps
+        if: ${{ matrix.platform == 'android' || matrix.platform == 'ios' }}
+        working-directory: samples/expo
+        run: npx expo prebuild
+
       - name: Install App Pods
         if: ${{ matrix.platform == 'ios' }}
         working-directory: samples
@@ -94,11 +99,6 @@ jobs:
           echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
           PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH bundle exec pod install
           cat Podfile.lock | grep $RN_SENTRY_POD_NAME
-
-      - name: Prebuild apps
-        if: ${{ matrix.platform == 'android' || matrix.platform == 'ios' }}
-        working-directory: samples/expo
-        run: npx expo prebuild
 
       - name: Build Android App
         if: ${{ matrix.platform == 'android' }}
