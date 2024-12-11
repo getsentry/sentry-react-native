@@ -80,28 +80,36 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     <View style={styles.container}>
       <Text style={styles.title}>{text.formTitle}</Text>
 
-      <Text style={styles.label}>
+      {config.showName && (
+      <>
+        <Text style={styles.label}>
           {text.nameLabel}
           {config.isNameRequired && ` ${text.isRequiredLabel}`}
-      </Text>
-      <TextInput
-        style={styles.input}
-        placeholder={text.namePlaceholder}
-        value={name}
-        onChangeText={(value) => this.setState({ name: value })}
+        </Text>
+        <TextInput
+          style={styles.input}
+          placeholder={text.namePlaceholder}
+          value={name}
+          onChangeText={(value) => this.setState({ name: value })}
         />
+      </>
+      )}
 
-      <Text style={styles.label}>
+      {config.showEmail && (
+      <>
+        <Text style={styles.label}>
           {text.emailLabel}
           {config.isEmailRequired && ` ${text.isRequiredLabel}`}
-      </Text>
-      <TextInput
-        style={styles.input}
-        placeholder={text.emailPlaceholder}
-        keyboardType={'email-address' as KeyboardTypeOptions}
-        value={email}
-        onChangeText={(value) => this.setState({ email: value })}
+        </Text>
+        <TextInput
+          style={styles.input}
+          placeholder={text.emailPlaceholder}
+          keyboardType={'email-address' as KeyboardTypeOptions}
+          value={email}
+          onChangeText={(value) => this.setState({ email: value })}
         />
+      </>
+      )}
 
       <Text style={styles.label}>
         {text.messageLabel}
