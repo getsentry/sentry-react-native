@@ -84,6 +84,11 @@ export interface FeedbackTextConfiguration {
   nameLabel?: string;
 
   /**
+   * Message after feedback was sent successfully
+   */
+  successMessageText?: string;
+
+  /**
    * Placeholder text for Feedback name input
    */
   namePlaceholder?: string;

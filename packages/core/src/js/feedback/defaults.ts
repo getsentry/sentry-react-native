@@ -15,6 +15,7 @@ const CANCEL_BUTTON_LABEL = 'Cancel';
 const ERROR_TITLE = 'Error';
 const FORM_ERROR = 'Please fill out all required fields.';
 const EMAIL_ERROR = 'Please enter a valid email address.';
+const SUCCESS_MESSAGE_TEXT = 'Thank you for your report!';
 
 export const defaultConfiguration: Partial<FeedbackFormProps> = {
   // FeedbackGeneralConfiguration
@@ -41,4 +42,5 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
   errorTitle: ERROR_TITLE,
   formError: FORM_ERROR,
   emailError: EMAIL_ERROR,
+  successMessageText: SUCCESS_MESSAGE_TEXT,
 };

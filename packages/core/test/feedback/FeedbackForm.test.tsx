@@ -35,6 +35,7 @@ const defaultProps: FeedbackFormProps = {
   errorTitle: 'Error',
   formError: 'Please fill out all required fields.',
   emailError: 'The email address is not valid.',
+  successMessageText: 'Feedback success',
 };
 
 describe('FeedbackForm', () => {
@@ -106,6 +107,20 @@ describe('FeedbackForm', () => {
         name: 'John Doe',
         email: 'john.doe@example.com',
       });
+    });
+  });
+
+  it('shows success message when the form is submitted successfully', async () => {
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.successMessageText);
     });
   });
 

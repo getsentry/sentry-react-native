@@ -52,6 +52,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     closeScreen();
     captureFeedback(userFeedback);
+    Alert.alert(text.successMessageText);
   };
 
   /**
