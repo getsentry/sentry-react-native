@@ -41,20 +41,7 @@
   ```jsx
   import { FeedbackForm } from "@sentry/react-native";
   ...
-  <FeedbackForm
-    {...props}
-    closeScreen={props.navigation.goBack}
-    styles={{
-      submitButton: {
-        backgroundColor: '#6a1b9a',
-        paddingVertical: 15,
-        borderRadius: 5,
-        alignItems: 'center',
-        marginBottom: 10,
-      },
-    }}
-    text={{namePlaceholder: 'Fullname'}}
-  />
+  <FeedbackForm/>
   ```
   Check [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/) for more configuration options.
 
