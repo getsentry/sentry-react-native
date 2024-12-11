@@ -1,7 +1,6 @@
 import type { TextStyle, ViewStyle } from 'react-native';
 
-export interface FeedbackFormProps extends FeedbackGeneralConfiguration, FeedbackTextConfiguration {
-  closeScreen: () => void;
+export interface FeedbackFormProps extends FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackCallbacks {
   styles?: FeedbackFormStyles;
 }
 
@@ -114,6 +113,16 @@ export interface FeedbackTextConfiguration {
   emailError?: string;
 }
 
+/**
+ * The public callbacks available for the feedback integration
+ */
+export interface FeedbackCallbacks {
+  /**
+   * Callback when form is closed and not submitted
+   */
+  onFormClose?: () => void;
+}
+
 export interface FeedbackFormStyles {
   container?: ViewStyle;
   title?: TextStyle;
@@ -127,6 +136,7 @@ export interface FeedbackFormStyles {
 }
 
 export interface FeedbackFormState {
+  isVisible: boolean;
   name: string;
   email: string;
   description: string;

@@ -18,6 +18,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     const config: FeedbackGeneralConfiguration = { ...defaultConfiguration, ...props };
     this.state = {
+      isVisible: true,
       name: config.useSentryUser.name,
       email: config.useSentryUser.email,
       description: '',
@@ -26,7 +27,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
   public handleFeedbackSubmit: () => void = () => {
     const { name, email, description } = this.state;
-    const { closeScreen } = this.props;
+    const { onFormClose } = { ...defaultConfiguration, ...this.props };
     const config: FeedbackGeneralConfiguration = { ...defaultConfiguration, ...this.props };
     const text: FeedbackTextConfiguration = { ...defaultConfiguration, ...this.props };
 
@@ -50,7 +51,9 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       email: trimmedEmail,
     };
 
-    closeScreen();
+    onFormClose();
+    this.setState({ isVisible: false });
+
     captureFeedback(userFeedback);
     Alert.alert(text.successMessageText);
   };
@@ -59,11 +62,19 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
    * Renders the feedback form screen.
    */
   public render(): React.ReactNode {
-    const { closeScreen } = this.props;
     const { name, email, description } = this.state;
+    const { onFormClose } = { ...defaultConfiguration, ...this.props };
     const config: FeedbackGeneralConfiguration = { ...defaultConfiguration, ...this.props };
     const text: FeedbackTextConfiguration = { ...defaultConfiguration, ...this.props };
     const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
+    const onCancel = (): void => {
+      onFormClose();
+      this.setState({ isVisible: false });
+    }
+
+    if (!this.state.isVisible) {
+      return null;
+    }
 
     return (
     <View style={styles.container}>
@@ -108,7 +119,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
         <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.cancelButton} onPress={closeScreen}>
+      <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
         <Text style={styles.cancelText}>{text.cancelButtonLabel}</Text>
       </TouchableOpacity>
     </View>

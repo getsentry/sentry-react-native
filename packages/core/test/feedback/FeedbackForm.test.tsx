@@ -6,7 +6,7 @@ import { Alert } from 'react-native';
 import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
 import type { FeedbackFormProps } from '../../src/js/feedback/FeedbackForm.types';
 
-const mockCloseScreen = jest.fn();
+const mockOnFormClose = jest.fn();
 
 jest.spyOn(Alert, 'alert');
 
@@ -21,7 +21,7 @@ jest.mock('@sentry/core', () => ({
 }));
 
 const defaultProps: FeedbackFormProps = {
-  closeScreen: mockCloseScreen,
+  onFormClose: mockOnFormClose,
   formTitle: 'Feedback Form',
   nameLabel: 'Name',
   namePlaceholder: 'Name Placeholder',
@@ -124,7 +124,7 @@ describe('FeedbackForm', () => {
     });
   });
 
-  it('calls closeScreen when the form is submitted successfully', async () => {
+  it('calls onFormClose when the form is submitted successfully', async () => {
     const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
     fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
@@ -134,15 +134,15 @@ describe('FeedbackForm', () => {
     fireEvent.press(getByText(defaultProps.submitButtonLabel));
 
     await waitFor(() => {
-      expect(mockCloseScreen).toHaveBeenCalled();
+      expect(mockOnFormClose).toHaveBeenCalled();
     });
   });
 
-  it('calls closeScreen when the cancel button is pressed', () => {
+  it('calls onFormClose when the cancel button is pressed', () => {
     const { getByText } = render(<FeedbackForm {...defaultProps} />);
 
     fireEvent.press(getByText(defaultProps.cancelButtonLabel));
 
-    expect(mockCloseScreen).toHaveBeenCalled();
+    expect(mockOnFormClose).toHaveBeenCalled();
   });
 });

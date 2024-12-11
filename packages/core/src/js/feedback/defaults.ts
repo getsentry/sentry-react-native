@@ -18,6 +18,11 @@ const EMAIL_ERROR = 'Please enter a valid email address.';
 const SUCCESS_MESSAGE_TEXT = 'Thank you for your report!';
 
 export const defaultConfiguration: Partial<FeedbackFormProps> = {
+  // FeedbackCallbacks
+  onFormClose: () => {
+    // By default the form is just unmounted
+  },
+
   // FeedbackGeneralConfiguration
   isEmailRequired: false,
   isNameRequired: false,
