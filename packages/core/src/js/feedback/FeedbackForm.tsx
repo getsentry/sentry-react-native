@@ -2,7 +2,7 @@ import { captureFeedback } from '@sentry/core';
 import type { SendFeedbackParams } from '@sentry/types';
 import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
-import { Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
@@ -78,12 +78,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     return (
     <View style={styles.container}>
-      <View style={styles.titleContainer}>
-          <Text style={styles.title}>{text.formTitle}</Text>
-          {config.showBranding && (
-            <Image source={require('../../../assets/sentrylogo.png')} style={styles.sentryLogo} />
-          )}
-      </View>
+      <Text style={styles.title}>{text.formTitle}</Text>
 
       {config.showName && (
       <>

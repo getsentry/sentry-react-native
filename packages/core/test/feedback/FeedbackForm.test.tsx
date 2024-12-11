@@ -36,7 +36,6 @@ const defaultProps: FeedbackFormProps = {
   formError: 'Please fill out all required fields.',
   emailError: 'The email address is not valid.',
   successMessageText: 'Feedback success',
-  showBranding: false,
 };
 
 describe('FeedbackForm', () => {

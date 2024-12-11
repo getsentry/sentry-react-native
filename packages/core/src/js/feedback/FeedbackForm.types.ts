@@ -1,8 +1,5 @@
-import type { ImageStyle, TextStyle, ViewStyle } from 'react-native';
+import type { TextStyle, ViewStyle } from 'react-native';
 
-/**
- * The props for the feedback form
- */
 export interface FeedbackFormProps extends FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackCallbacks {
   styles?: FeedbackFormStyles;
 }
@@ -11,11 +8,6 @@ export interface FeedbackFormProps extends FeedbackGeneralConfiguration, Feedbac
  * General feedback configuration
  */
 export interface FeedbackGeneralConfiguration {
-  /**
-   * Show the Sentry branding
-   */
-  showBranding?: boolean;
-
   /**
    * Should the email field be required?
    */
@@ -131,9 +123,6 @@ export interface FeedbackCallbacks {
   onFormClose?: () => void;
 }
 
-/**
- * The styles for the feedback form
- */
 export interface FeedbackFormStyles {
   container?: ViewStyle;
   title?: TextStyle;
@@ -144,13 +133,8 @@ export interface FeedbackFormStyles {
   submitText?: TextStyle;
   cancelButton?: ViewStyle;
   cancelText?: TextStyle;
-  titleContainer?: ViewStyle;
-  sentryLogo?: ImageStyle;
 }
 
-/**
- * The state of the feedback form
- */
 export interface FeedbackFormState {
   isVisible: boolean;
   name: string;
