@@ -89,7 +89,7 @@ jobs:
 
       - name: Install App Pods
         if: ${{ matrix.platform == 'ios' }}
-        working-directory: samples/ios
+        working-directory: samples/expo/ios
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic
