@@ -1,4 +1,5 @@
 import { getCurrentScope } from '@sentry/core';
+import { Alert } from 'react-native';
 
 import type { FeedbackFormProps } from './FeedbackForm.types';
 
@@ -20,7 +21,12 @@ const SUCCESS_MESSAGE_TEXT = 'Thank you for your report!';
 export const defaultConfiguration: Partial<FeedbackFormProps> = {
   // FeedbackCallbacks
   onFormClose: () => {
-    // By default the form is just unmounted
+    if (__DEV__) {
+      Alert.alert(
+        'Development note',
+        'onFormClose callback is not implemented. By default the form is just unmounted.',
+      );
+    }
   },
 
   // FeedbackGeneralConfiguration
