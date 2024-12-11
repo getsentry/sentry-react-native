@@ -31,7 +31,7 @@ jobs:
       fail-fast: false
       matrix:
         ios-use-frameworks: ['no-frameworks', 'dynamic-frameworks']
-        platform: ['android', 'ios', 'macos']
+        platform: ['android', 'ios']
         build-type: ['dev', 'production']
         include:
           - platform: ios
