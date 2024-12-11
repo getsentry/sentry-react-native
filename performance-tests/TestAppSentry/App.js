@@ -6,7 +6,8 @@
  * @flow strict-local
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { NativeModules } from 'react-native';
 import type {Node} from 'react';
 import {
   SafeAreaView,
@@ -58,7 +59,15 @@ const Section = ({children, title}): Node => {
   );
 };
 
+const { ActivityStarter } = NativeModules;
+
 const App: () => Node = () => {
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      ActivityStarter.startAppReadyActivity();
+    }
+  }, []);
+
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
