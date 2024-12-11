@@ -10,7 +10,8 @@ const defaultStyles: FeedbackFormStyles = {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: 'left',
+    flex: 1,
   },
   label: {
     marginBottom: 4,
@@ -48,6 +49,14 @@ const defaultStyles: FeedbackFormStyles = {
   cancelText: {
     color: '#6a1b9a',
     fontSize: 16,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    width: '100%',
+  },
+  sentryLogo: {
+    width: 40,
+    height: 40,
   },
 };
 
