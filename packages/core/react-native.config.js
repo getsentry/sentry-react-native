@@ -7,5 +7,6 @@ module.exports = {
         packageImportPath: 'import io.sentry.react.RNSentryPackage;'
       }
     }
-  }
+  },
+  assets: ['./assets/'],
 };
