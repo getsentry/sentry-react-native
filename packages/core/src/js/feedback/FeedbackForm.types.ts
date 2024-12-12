@@ -111,6 +111,11 @@ export interface FeedbackTextConfiguration {
    * The error message when the email is invalid
    */
   emailError?: string;
+
+  /**
+   * Message when there is a network error
+   */
+  networkError?: string;
 }
 
 /**

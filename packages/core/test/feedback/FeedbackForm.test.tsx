@@ -5,6 +5,7 @@ import { Alert } from 'react-native';
 
 import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
 import type { FeedbackFormProps } from '../../src/js/feedback/FeedbackForm.types';
+import { checkInternetConnection } from '../../src/js/feedback/utils';
 
 const mockOnFormClose = jest.fn();
 
@@ -19,6 +20,10 @@ jest.mock('@sentry/core', () => ({
     })),
   })),
   lastEventId: jest.fn(),
+}));
+jest.mock('../../src/js/feedback/utils', () => ({
+  ...jest.requireActual('../../src/js/feedback/utils'),
+  checkInternetConnection: jest.fn(),
 }));
 
 const defaultProps: FeedbackFormProps = {
@@ -37,9 +42,15 @@ const defaultProps: FeedbackFormProps = {
   formError: 'Please fill out all required fields.',
   emailError: 'The email address is not valid.',
   successMessageText: 'Feedback success',
+  networkError: 'Network error',
 };
 
 describe('FeedbackForm', () => {
+  beforeEach(() => {
+    (checkInternetConnection as jest.Mock).mockImplementation((onConnected, _) => {
+      onConnected();
+    });
+  });
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -122,6 +133,24 @@ describe('FeedbackForm', () => {
 
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(defaultProps.successMessageText);
+    });
+  });
+
+  it('shows an error message when the form when there is no network connection', async () => {
+    (checkInternetConnection as jest.Mock).mockImplementationOnce((_, onDisconnected) => {
+      onDisconnected();
+    });
+
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.errorTitle, defaultProps.networkError);
     });
   });
 

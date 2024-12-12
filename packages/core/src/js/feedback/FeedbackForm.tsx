@@ -7,6 +7,7 @@ import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration } from './FeedbackForm.types';
+import { checkInternetConnection, isValidEmail } from './utils';
 
 /**
  * @beta
@@ -40,7 +41,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       return;
     }
 
-    if ((config.isEmailRequired || trimmedEmail.length > 0) && !this._isValidEmail(trimmedEmail)) {
+    if ((config.isEmailRequired || trimmedEmail.length > 0) && !isValidEmail(trimmedEmail)) {
       Alert.alert(text.errorTitle, text.emailError);
       return;
     }
@@ -53,11 +54,15 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       associatedEventId: eventId,
     };
 
-    onFormClose();
-    this.setState({ isVisible: false });
-
-    captureFeedback(userFeedback);
-    Alert.alert(text.successMessageText);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    checkInternetConnection(() => {
+      onFormClose();
+      this.setState({ isVisible: false });
+      captureFeedback(userFeedback);
+      Alert.alert(text.successMessageText);
+    }, () => {
+      Alert.alert(text.errorTitle, text.networkError);
+    });
   };
 
   /**
@@ -135,9 +140,4 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     </View>
     );
   }
-
-  private _isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-    return emailRegex.test(email);
-  };
 }
