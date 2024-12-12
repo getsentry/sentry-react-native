@@ -136,7 +136,7 @@ describe('FeedbackForm', () => {
     });
   });
 
-  it('shows an error message when the form when there is no network connection', async () => {
+  it('shows an error message when there is no network connection', async () => {
     (checkInternetConnection as jest.Mock).mockImplementationOnce((_, onDisconnected) => {
       onDisconnected();
     });
