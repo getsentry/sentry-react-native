@@ -40,6 +40,11 @@
 - Return `lastEventId` export from `@sentry/core` ([#4315](https://github.com/getsentry/sentry-react-native/pull/4315))
 - Don't log file not found errors when loading envs in `sentry-expo-upload-sourcemaps` ([#4332](https://github.com/getsentry/sentry-react-native/pull/4332))
 - Navigation Span should have no parent by default ([#4326](https://github.com/getsentry/sentry-react-native/pull/4326))
+- Disable HTTP Client Errors on iOS ([#4347](https://github.com/getsentry/sentry-react-native/pull/4347))
+
+### Changes
+
+- Falsy values of `options.environment` (empty string, undefined...) default to `production`
 
 ### Dependencies
 
