@@ -35,7 +35,7 @@
   });
   ```
 
-- Adds feedback form ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328), [#4338](https://github.com/getsentry/sentry-react-native/pull/4338))
+- Adds feedback form ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
 
   You can add the form component in your UI and customise it like:
   ```jsx
