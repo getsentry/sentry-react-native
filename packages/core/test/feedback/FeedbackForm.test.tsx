@@ -12,6 +12,7 @@ const mockOnFormClose = jest.fn();
 jest.spyOn(Alert, 'alert');
 
 jest.mock('@sentry/core', () => ({
+  ...jest.requireActual('@sentry/core'),
   captureFeedback: jest.fn(),
   getCurrentScope: jest.fn(() => ({
     getUser: jest.fn(() => ({
