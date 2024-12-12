@@ -44,11 +44,12 @@ const defaultProps: FeedbackFormProps = {
   emailError: 'The email address is not valid.',
   successMessageText: 'Feedback success',
   networkError: 'Network error',
+  genericError: 'Generic error',
 };
 
 describe('FeedbackForm', () => {
   beforeEach(() => {
-    (checkInternetConnection as jest.Mock).mockImplementation((onConnected, _) => {
+    (checkInternetConnection as jest.Mock).mockImplementation((onConnected, _onDisconnected, _onError) => {
       onConnected();
     });
   });
@@ -138,8 +139,26 @@ describe('FeedbackForm', () => {
   });
 
   it('shows an error message when there is no network connection', async () => {
-    (checkInternetConnection as jest.Mock).mockImplementationOnce((_, onDisconnected) => {
+    (checkInternetConnection as jest.Mock).mockImplementationOnce((_onConnected, onDisconnected, _onError) => {
       onDisconnected();
+    });
+
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.errorTitle, defaultProps.networkError);
+    });
+  });
+
+  it('shows an error message when there is a generic connection', async () => {
+    (checkInternetConnection as jest.Mock).mockImplementationOnce((_onConnected, _onDisconnected, onError) => {
+      onError();
     });
 
     const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);

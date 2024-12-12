@@ -18,6 +18,7 @@ const FORM_ERROR = 'Please fill out all required fields.';
 const EMAIL_ERROR = 'Please enter a valid email address.';
 const SUCCESS_MESSAGE_TEXT = 'Thank you for your report!';
 const CONNECTIONS_ERROR_TEXT = 'Unable to send Feedback due to network issues.';
+const GENERIC_ERROR_TEXT = 'Unable to send feedback due to an unexpected error.';
 
 export const defaultConfiguration: Partial<FeedbackFormProps> = {
   // FeedbackCallbacks
@@ -56,4 +57,5 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
   emailError: EMAIL_ERROR,
   successMessageText: SUCCESS_MESSAGE_TEXT,
   networkError: CONNECTIONS_ERROR_TEXT,
+  genericError: GENERIC_ERROR_TEXT,
 };

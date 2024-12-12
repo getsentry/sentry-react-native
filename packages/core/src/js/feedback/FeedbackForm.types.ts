@@ -116,6 +116,11 @@ export interface FeedbackTextConfiguration {
    * Message when there is a network error
    */
   networkError?: string;
+
+  /**
+   * Message when there is a network error
+   */
+  genericError?: string;
 }
 
 /**

@@ -1,4 +1,8 @@
-export const checkInternetConnection = async (onConnected: () => void, onDisconnected: () => void): Promise<void> => {
+export const checkInternetConnection = async (
+  onConnected: () => void,
+  onDisconnected: () => void,
+  onError: () => void,
+): Promise<void> => {
   try {
     const response = await fetch('https://sentry.io', { method: 'HEAD' });
     if (response.ok) {
@@ -7,7 +11,7 @@ export const checkInternetConnection = async (onConnected: () => void, onDisconn
       onDisconnected();
     }
   } catch (error) {
-    onDisconnected();
+    onError();
   }
 };
 

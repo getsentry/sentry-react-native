@@ -55,14 +55,17 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     };
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    checkInternetConnection(() => {
+    checkInternetConnection(() => { // onConnected
       onFormClose();
       this.setState({ isVisible: false });
       captureFeedback(userFeedback);
       Alert.alert(text.successMessageText);
-    }, () => {
+    }, () => { // onDisconnected
       Alert.alert(text.errorTitle, text.networkError);
       logger.error(`Feedback form submission failed: ${text.networkError}`);
+    }, () => { // onError
+      Alert.alert(text.errorTitle, text.genericError);
+      logger.error(`Feedback form submission failed: ${text.genericError}`);
     });
   };
 
