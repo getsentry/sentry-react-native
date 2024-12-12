@@ -42,6 +42,10 @@
 - Navigation Span should have no parent by default ([#4326](https://github.com/getsentry/sentry-react-native/pull/4326))
 - Disable HTTP Client Errors on iOS ([#4347](https://github.com/getsentry/sentry-react-native/pull/4347))
 
+### Changes
+
+- Falsy values of `options.environment` (empty string, undefined...) default to `production`
+
 ### Dependencies
 
 - Bump CLI from v2.38.2 to v2.39.1 ([#4305](https://github.com/getsentry/sentry-react-native/pull/4305), [#4316](https://github.com/getsentry/sentry-react-native/pull/4316))
@@ -50,6 +54,9 @@
 - Bump Android SDK from v7.18.0 to v7.18.1 ([#4329](https://github.com/getsentry/sentry-react-native/pull/4329))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7181)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.18.0...7.18.1)
+- Bump JavaScript SDK from v8.40.0 to v8.41.0 ([#4351](https://github.com/getsentry/sentry-react-native/pull/4351))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8410)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.40.0...8.41.0)
 
 ## 6.4.0
 
