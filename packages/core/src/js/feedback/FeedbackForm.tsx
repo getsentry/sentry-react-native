@@ -1,4 +1,4 @@
-import { captureFeedback, lastEventId } from '@sentry/core';
+import { captureFeedback, lastEventId, logger } from '@sentry/core';
 import type { SendFeedbackParams } from '@sentry/types';
 import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
@@ -62,6 +62,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       Alert.alert(text.successMessageText);
     }, () => {
       Alert.alert(text.errorTitle, text.networkError);
+      logger.error(`Feedback form submission failed: ${text.networkError}`);
     });
   };
 
