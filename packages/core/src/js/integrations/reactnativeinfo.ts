@@ -1,4 +1,4 @@
-import type { Context, Event, EventHint, Integration } from '@sentry/types';
+import type { Context, Event, EventHint, Integration } from '@sentry/core';
 
 import {
   getExpoGoVersion,

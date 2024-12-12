@@ -1,4 +1,4 @@
-import type { Client, Event } from '@sentry/types';
+import type { Client, Event } from '@sentry/core';
 
 import { expoContextIntegration } from '../../src/js/integrations/expocontext';
 import { getExpoDevice } from '../../src/js/utils/expomodules';

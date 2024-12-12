@@ -1,4 +1,4 @@
-import type { Outcome } from '@sentry/types';
+import type { Outcome } from '@sentry/core';
 
 /**
  * Merges buffer with new outcomes.

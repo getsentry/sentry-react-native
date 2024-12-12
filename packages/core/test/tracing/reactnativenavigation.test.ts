@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
+import type { Event, StartSpanOptions } from '@sentry/core';
 import {
   getActiveSpan,
   getCurrentScope,
@@ -7,7 +8,6 @@ import {
   setCurrentClient,
   spanToJSON,
 } from '@sentry/core';
-import type { Event, StartSpanOptions } from '@sentry/types';
 import type { EmitterSubscription } from 'react-native';
 
 import { reactNativeTracingIntegration } from '../../src/js';
