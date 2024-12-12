@@ -40,6 +40,11 @@
 - Return `lastEventId` export from `@sentry/core` ([#4315](https://github.com/getsentry/sentry-react-native/pull/4315))
 - Don't log file not found errors when loading envs in `sentry-expo-upload-sourcemaps` ([#4332](https://github.com/getsentry/sentry-react-native/pull/4332))
 - Navigation Span should have no parent by default ([#4326](https://github.com/getsentry/sentry-react-native/pull/4326))
+- Disable HTTP Client Errors on iOS ([#4347](https://github.com/getsentry/sentry-react-native/pull/4347))
+
+### Changes
+
+- Falsy values of `options.environment` (empty string, undefined...) default to `production`
 
 ### Dependencies
 
@@ -52,6 +57,29 @@
 - Bump JavaScript SDK from v8.40.0 to v8.41.0 ([#4351](https://github.com/getsentry/sentry-react-native/pull/4351))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8410)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/8.40.0...8.41.0)
+
+## 6.4.0
+
+### Features
+
+- Add Replay Custom Masking for iOS, Android and Web ([#4224](https://github.com/getsentry/sentry-react-native/pull/4224), [#4265](https://github.com/getsentry/sentry-react-native/pull/4265), [#4272](https://github.com/getsentry/sentry-react-native/pull/4272), [#4314](https://github.com/getsentry/sentry-react-native/pull/4314))
+
+  ```jsx
+  import * as Sentry from '@sentry/react-native';
+
+  const Example = () => {
+    return (
+      <View>
+        <Sentry.Mask>
+          <Text>${"All children of Sentry.Mask will be masked."}</Text>
+        </Sentry.Mask>
+        <Sentry.Unmask>
+          <Text>${"Only direct children of Sentry.Unmask will be unmasked."}</Text>
+        </Sentry.Unmask>
+      </View>
+    );
+  };
+  ```
 
 ## 6.4.0-beta.1
 
