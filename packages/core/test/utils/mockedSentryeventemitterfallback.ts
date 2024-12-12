@@ -1,4 +1,4 @@
-import { timestampInSeconds } from '@sentry/utils';
+import { timestampInSeconds } from '@sentry/core';
 import * as EventEmitter from 'events';
 
 import type { NewFrameEvent } from '../../src/js/utils/sentryeventemitter';

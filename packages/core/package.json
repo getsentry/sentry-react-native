@@ -33,7 +33,7 @@
     "test:sdk": "npx jest",
     "test:tools": "npx jest --config jest.config.tools.js",
     "test:watch": "npx jest --watch",
-    "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/react @sentry/types @sentry/utils",
+    "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/react @sentry/types",
     "fix": "npx run-s fix:eslint fix:prettier",
     "fix:eslint": "eslint --config .eslintrc.js --fix .",
     "fix:prettier": "prettier  --config ../../.prettierrc.json --ignore-path ../../.prettierignore  --write \"{src,test,scripts,plugin/src}/**/**.ts\"",

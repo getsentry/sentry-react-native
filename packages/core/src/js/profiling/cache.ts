@@ -1,4 +1,4 @@
-import { makeFifoCache } from '@sentry/utils';
+import { makeFifoCache } from '@sentry/core';
 
 import type { AndroidCombinedProfileEvent, CombinedProfileEvent } from './types';
 
