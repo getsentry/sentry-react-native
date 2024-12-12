@@ -1,4 +1,4 @@
-import { captureFeedback } from '@sentry/core';
+import { captureFeedback, lastEventId } from '@sentry/core';
 import type { SendFeedbackParams } from '@sentry/types';
 import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
@@ -45,10 +45,12 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       return;
     }
 
+    const eventId = lastEventId();
     const userFeedback: SendFeedbackParams = {
       message: trimmedDescription,
       name: trimmedName,
       email: trimmedEmail,
+      associatedEventId: eventId,
     };
 
     onFormClose();
