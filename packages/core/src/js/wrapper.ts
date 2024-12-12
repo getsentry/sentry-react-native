@@ -1,4 +1,5 @@
 /* eslint-disable max-lines */
+import { logger, normalize, SentryError } from '@sentry/core';
 import type {
   BaseEnvelopeItemHeaders,
   Breadcrumb,
@@ -9,7 +10,6 @@ import type {
   SeverityLevel,
   User,
 } from '@sentry/types';
-import { logger, normalize, SentryError } from '@sentry/utils';
 import { NativeModules, Platform } from 'react-native';
 
 import { isHardCrash } from './misc';
