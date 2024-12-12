@@ -16,7 +16,7 @@ import Animated, {
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
-import { FeedbackFormScreen } from '@sentry/react-native';
+import { FeedbackForm } from '@sentry/react-native';
 
 import { SENTRY_INTERNAL_DSN } from './dsn';
 import ErrorsScreen from './Screens/ErrorsScreen';
@@ -175,10 +175,11 @@ const ErrorsTabNavigator = Sentry.withProfiler(
               options={{ presentation: 'modal', headerShown: false }}
             >
               {(props) => (
-                <FeedbackFormScreen
+                <FeedbackForm
                   {...props}
-                  closeScreen={props.navigation.goBack}
-                  chooseFile={handleChooseFile}
+                  enableScreenshot={true}
+                  onFileChosen={handleChooseFile}
+                  onFormClose={props.navigation.goBack}
                   styles={{
                     submitButton: {
                       backgroundColor: '#6a1b9a',
@@ -188,7 +189,7 @@ const ErrorsTabNavigator = Sentry.withProfiler(
                       marginBottom: 10,
                     },
                   }}
-                  text={{namePlaceholder: 'Fullname', attachmentButton: 'Add Attachment'}}
+                  namePlaceholder={'Fullname'}
                 />
               )}
             </Stack.Screen>

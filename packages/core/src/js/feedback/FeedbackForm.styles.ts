@@ -1,6 +1,6 @@
-import { StyleSheet } from 'react-native';
+import type { FeedbackFormStyles } from './FeedbackForm.types';
 
-const defaultStyles = StyleSheet.create({
+const defaultStyles: FeedbackFormStyles = {
   container: {
     flex: 1,
     padding: 20,
@@ -11,6 +11,10 @@ const defaultStyles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+  },
+  label: {
+    marginBottom: 4,
+    fontSize: 16,
   },
   input: {
     height: 50,
@@ -25,14 +29,14 @@ const defaultStyles = StyleSheet.create({
     height: 100,
     textAlignVertical: 'top',
   },
-  attachmentButton: {
+  screenshotButton: {
     backgroundColor: '#eee',
     padding: 15,
     borderRadius: 5,
     marginBottom: 20,
     alignItems: 'center',
   },
-  attachmentText: {
+  screenshotText: {
     color: '#333',
     fontSize: 16,
   },
@@ -56,6 +60,6 @@ const defaultStyles = StyleSheet.create({
     color: '#6a1b9a',
     fontSize: 16,
   },
-});
+};
 
 export default defaultStyles;
