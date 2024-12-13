@@ -37,7 +37,6 @@ const defaultProps: FeedbackFormProps = {
   formError: 'Please fill out all required fields.',
   emailError: 'The email address is not valid.',
   successMessageText: 'Feedback success',
-  showBranding: false,
 };
 
 describe('FeedbackForm', () => {
@@ -46,9 +45,10 @@ describe('FeedbackForm', () => {
   });
 
   it('renders correctly', () => {
-    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+    const { getByPlaceholderText, getByText, getByTestId } = render(<FeedbackForm {...defaultProps} />);
 
     expect(getByText(defaultProps.formTitle)).toBeTruthy();
+    expect(getByTestId('sentry-logo')).toBeTruthy(); // default showBranding is true
     expect(getByText(defaultProps.nameLabel)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.namePlaceholder)).toBeTruthy();
     expect(getByText(defaultProps.emailLabel)).toBeTruthy();
@@ -57,6 +57,12 @@ describe('FeedbackForm', () => {
     expect(getByPlaceholderText(defaultProps.messagePlaceholder)).toBeTruthy();
     expect(getByText(defaultProps.submitButtonLabel)).toBeTruthy();
     expect(getByText(defaultProps.cancelButtonLabel)).toBeTruthy();
+  });
+
+  it('does not render the sentry logo when showBranding is false', () => {
+    const { queryByTestId } = render(<FeedbackForm {...defaultProps} showBranding={false} />);
+
+    expect(queryByTestId('sentry-logo')).toBeNull();
   });
 
   it('name and email are prefilled when sentry user is set', () => {
