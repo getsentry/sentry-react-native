@@ -54,7 +54,6 @@
       }}
     />
   ```
-  Check [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/) for more configuration options.
 
 - Export `Span` type from `@sentry/types` ([#4345](https://github.com/getsentry/sentry-react-native/pull/4345))
 
