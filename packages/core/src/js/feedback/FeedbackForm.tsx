@@ -28,7 +28,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
   public handleFeedbackSubmit: () => void = () => {
     const { name, email, description } = this.state;
-    const { onFormClose, onSubmitSuccess, onSubmitError, onFormSubmitted } = { ...defaultConfiguration, ...this.props };
+    const { onSubmitSuccess, onSubmitError, onFormSubmitted } = { ...defaultConfiguration, ...this.props };
     const config: FeedbackGeneralConfiguration = { ...defaultConfiguration, ...this.props };
     const text: FeedbackTextConfiguration = { ...defaultConfiguration, ...this.props };
 
@@ -56,7 +56,6 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     checkInternetConnection(() => { // onConnected
-      onFormClose();
       this.setState({ isVisible: false });
       captureFeedback(userFeedback);
       onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: undefined });
