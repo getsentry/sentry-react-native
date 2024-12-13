@@ -98,8 +98,8 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     }
 
     return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView behavior={'padding'} style={styles.container}>
+    <SafeAreaView>
+      <KeyboardAvoidingView behavior={'padding'}>
         <ScrollView>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>
