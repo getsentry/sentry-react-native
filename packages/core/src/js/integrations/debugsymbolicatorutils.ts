@@ -1,5 +1,5 @@
+import { logger } from '@sentry/core';
 import type { StackFrame as SentryStackFrame } from '@sentry/types';
-import { logger } from '@sentry/utils';
 
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';

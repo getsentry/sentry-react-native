@@ -1,4 +1,4 @@
-import { normalize } from '@sentry/utils';
+import { normalize } from '@sentry/core';
 
 const KEY = 'value';
 

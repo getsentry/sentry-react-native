@@ -6,9 +6,9 @@ import {
   startIdleSpan,
   startSpan,
   startSpanManual,
+  timestampInSeconds,
 } from '@sentry/core';
 import type { Span } from '@sentry/types';
-import { timestampInSeconds } from '@sentry/utils';
 
 import { stallTrackingIntegration } from '../../../../src/js/tracing/integrations/stalltracking';
 import { getDefaultTestClientOptions, TestClient } from '../../../mocks/client';
