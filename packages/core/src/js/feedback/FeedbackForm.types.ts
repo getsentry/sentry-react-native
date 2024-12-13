@@ -15,6 +15,11 @@ export interface FeedbackGeneralConfiguration {
   isEmailRequired?: boolean;
 
   /**
+   * Should the email field be validated?
+   */
+  shouldValidateEmail?: boolean;
+
+  /**
    * Should the name field be required?
    */
   isNameRequired?: boolean;
