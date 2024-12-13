@@ -35,7 +35,7 @@
   });
   ```
 
-- Adds feedback form (beta) ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
+- User Feedback From Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
 
    To collect user feedback from inside your application add the `FeedbackFrom` component.
 
