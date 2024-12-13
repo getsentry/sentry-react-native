@@ -13,6 +13,8 @@ export interface FeedbackFormProps extends FeedbackGeneralConfiguration, Feedbac
 export interface FeedbackGeneralConfiguration {
   /**
    * Show the Sentry branding
+   *
+   * @default true
    */
   showBranding?: boolean;
 
