@@ -2,8 +2,8 @@ import * as mockedtimetodisplaynative from './tracing/mockedtimetodisplaynative'
 jest.mock('../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
 import { defaultStackParser } from '@sentry/browser';
+import { rejectedSyncPromise, SentryError } from '@sentry/core';
 import type { Envelope, Event, Outcome, Transport, TransportMakeRequestResponse } from '@sentry/types';
-import { rejectedSyncPromise, SentryError } from '@sentry/utils';
 import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';

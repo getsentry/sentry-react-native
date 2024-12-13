@@ -37,13 +37,16 @@
 
 - Adds feedback form ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
 
-  You can add the form component in your UI and customise it like:
+  You can add the form component in your UI like:
   ```jsx
   import { FeedbackForm } from "@sentry/react-native";
   ...
   <FeedbackForm/>
   ```
   Check [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/) for more configuration options.
+
+- Export `Span` type from `@sentry/types` ([#4345](https://github.com/getsentry/sentry-react-native/pull/4345))
+
 
 ### Fixes
 
@@ -52,14 +55,21 @@
 - Navigation Span should have no parent by default ([#4326](https://github.com/getsentry/sentry-react-native/pull/4326))
 - Disable HTTP Client Errors on iOS ([#4347](https://github.com/getsentry/sentry-react-native/pull/4347))
 
+### Changes
+
+- Falsy values of `options.environment` (empty string, undefined...) default to `production`
+
 ### Dependencies
 
 - Bump CLI from v2.38.2 to v2.39.1 ([#4305](https://github.com/getsentry/sentry-react-native/pull/4305), [#4316](https://github.com/getsentry/sentry-react-native/pull/4316))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2391)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.38.2...2.39.1)
-- Bump Android SDK from v7.18.0 to v7.18.1 ([#4329](https://github.com/getsentry/sentry-react-native/pull/4329))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7181)
-  - [diff](https://github.com/getsentry/sentry-java/compare/7.18.0...7.18.1)
+- Bump Android SDK from v7.18.0 to v7.19.0 ([#4329](https://github.com/getsentry/sentry-react-native/pull/4329), [#4365](https://github.com/getsentry/sentry-react-native/pull/4365))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7190)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.18.0...7.19.0)
+- Bump JavaScript SDK from v8.40.0 to v8.44.0 ([#4351](https://github.com/getsentry/sentry-react-native/pull/4351), [#4325](https://github.com/getsentry/sentry-react-native/pull/4325))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8440)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.40.0...8.44.0)
 
 ## 6.4.0
 
