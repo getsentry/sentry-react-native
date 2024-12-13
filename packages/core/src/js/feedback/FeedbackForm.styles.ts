@@ -1,10 +1,15 @@
 import type { FeedbackFormStyles } from './FeedbackForm.types';
 
+const PURPLE = 'rgba(88, 74, 192, 1)';
+const FORGROUND_COLOR = '#2b2233';
+const BACKROUND_COLOR = '#fff';
+const BORDER_COLOR = 'rgba(41, 35, 47, 0.13)';
+
 const defaultStyles: FeedbackFormStyles = {
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: BACKROUND_COLOR,
   },
   title: {
     fontSize: 24,
@@ -12,42 +17,45 @@ const defaultStyles: FeedbackFormStyles = {
     marginBottom: 20,
     textAlign: 'left',
     flex: 1,
+    color: FORGROUND_COLOR,
   },
   label: {
     marginBottom: 4,
     fontSize: 16,
+    color: FORGROUND_COLOR,
   },
   input: {
     height: 50,
-    borderColor: '#ccc',
+    borderColor: BORDER_COLOR,
     borderWidth: 1,
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 15,
     fontSize: 16,
+    color: FORGROUND_COLOR,
   },
   textArea: {
     height: 100,
     textAlignVertical: 'top',
+    color: FORGROUND_COLOR,
   },
   submitButton: {
-    backgroundColor: '#6a1b9a',
+    backgroundColor: PURPLE,
     paddingVertical: 15,
     borderRadius: 5,
     alignItems: 'center',
     marginBottom: 10,
   },
   submitText: {
-    color: '#fff',
+    color: BACKROUND_COLOR,
     fontSize: 18,
-    fontWeight: 'bold',
   },
   cancelButton: {
     paddingVertical: 15,
     alignItems: 'center',
   },
   cancelText: {
-    color: '#6a1b9a',
+    color: FORGROUND_COLOR,
     fontSize: 16,
   },
   titleContainer: {

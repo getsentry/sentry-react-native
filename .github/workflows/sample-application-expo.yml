@@ -1,0 +1,139 @@
+name: Sample Application Expo
+
+on:
+  push:
+    branches:
+      - main
+      - v5
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  RN_SENTRY_POD_NAME: RNSentry
+
+jobs:
+  diff_check:
+    uses: ./.github/workflows/skip-ci.yml
+
+  build:
+    name: Build ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks}}
+    runs-on: ${{ matrix.runs-on }}
+    needs: [diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    env:
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+    strategy:
+      # we want that the matrix keeps running, default is to cancel them if it fails.
+      fail-fast: false
+      matrix:
+        ios-use-frameworks: ['no-frameworks', 'dynamic-frameworks']
+        platform: ['android', 'ios']
+        build-type: ['dev', 'production']
+        include:
+          - platform: ios
+            runs-on: macos-15
+          - platform: android
+            runs-on: ubuntu-latest
+          - platform: web
+            runs-on: ubuntu-latest
+        exclude:
+          - platform: 'android'
+            ios-use-frameworks: 'dynamic-frameworks'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: |
+          npm install -g corepack@0.29.4
+          corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - uses: ruby/setup-ruby@v1
+        if: ${{ matrix.platform == 'ios' }}
+        with:
+          working-directory: ${{ matrix.platform == 'ios' && ' samples/expo' }}
+          ruby-version: '3.3.0' # based on what is used in the sample
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 1 # cache the installed gems
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1 # v3.5.0
+
+      - name: Setup Global Xcode Tools
+        if: ${{ matrix.platform == 'ios' }}
+        run: which xcbeautify || brew install xcbeautify
+
+      - name: Install SDK Dependencies
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Prebuild apps
+        if: ${{ matrix.platform == 'android' || matrix.platform == 'ios' }}
+        working-directory: samples/expo
+        run: npx expo prebuild
+
+      - name: Install App Pods
+        if: ${{ matrix.platform == 'ios' }}
+        working-directory: samples/expo/ios
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
+          [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic
+          echo "ENABLE_PROD=$ENABLE_PROD"
+          PRODUCTION=$ENABLE_PROD pod install
+          cat Podfile.lock | grep $RN_SENTRY_POD_NAME
+
+      - name: Build Android App
+        if: ${{ matrix.platform == 'android' }}
+        working-directory: samples/expo/android
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          echo "Building $CONFIG"
+          ./gradlew ":app:assemble$CONFIG" -PreactNativeArchitectures=x86
+
+      - name: Build iOS App
+        if: ${{ matrix.platform == 'ios' }}
+        working-directory: samples/expo/ios
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          echo "Building $CONFIG"
+          mkdir -p "DerivedData"
+          derivedData="$(cd "DerivedData" ; pwd -P)"
+          set -o pipefail && xcodebuild \
+            -workspace sentryreactnativeexposample.xcworkspace \
+            -configuration "$CONFIG" \
+            -scheme sentryreactnativeexposample \
+            -sdk 'iphonesimulator' \
+            -destination 'generic/platform=iOS Simulator' \
+            ONLY_ACTIVE_ARCH=yes \
+            -derivedDataPath "$derivedData" \
+            build \
+            | tee xcodebuild.log \
+            | xcbeautify --quieter --is-ci --disable-colored-output
+
+      - name: Build Web App
+        if: ${{ matrix.platform == 'web' }}
+        working-directory: samples/expo
+        run: |
+          npx expo export -p web
+
+      - name: Upload logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-sample-expo-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
+          path: samples/expo/${{ matrix.platform }}/*.log
