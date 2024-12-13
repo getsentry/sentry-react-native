@@ -48,7 +48,6 @@ const defaultStyles: FeedbackFormStyles = {
   submitText: {
     color: BACKROUND_COLOR,
     fontSize: 18,
-    fontWeight: 'bold',
   },
   cancelButton: {
     paddingVertical: 15,
