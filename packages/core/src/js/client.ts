@@ -1,5 +1,5 @@
 import { eventFromException, eventFromMessage } from '@sentry/browser';
-import { BaseClient } from '@sentry/core';
+import { BaseClient, dateTimestampInSeconds, logger, SentryError } from '@sentry/core';
 import type {
   ClientReportEnvelope,
   ClientReportItem,
@@ -11,7 +11,6 @@ import type {
   TransportMakeRequestResponse,
   UserFeedback,
 } from '@sentry/types';
-import { dateTimestampInSeconds, logger, SentryError } from '@sentry/utils';
 import { Alert } from 'react-native';
 
 import { getDevServer } from './integrations/debugsymbolicatorutils';

@@ -1,5 +1,5 @@
+import { createEnvelope, dsnToString } from '@sentry/core';
 import type { DsnComponents, EventEnvelope, SdkMetadata, UserFeedback, UserFeedbackItem } from '@sentry/types';
-import { createEnvelope, dsnToString } from '@sentry/utils';
 
 export const header = 0;
 export const items = 1;

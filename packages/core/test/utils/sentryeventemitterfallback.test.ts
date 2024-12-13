@@ -1,4 +1,4 @@
-import { logger } from '@sentry/utils';
+import { logger } from '@sentry/core';
 
 import { NewFrameEventName } from '../../src/js/utils/sentryeventemitter';
 import { createSentryFallbackEventEmitter } from '../../src/js/utils/sentryeventemitterfallback';
@@ -35,7 +35,7 @@ describe('SentryEventEmitterFallback', () => {
 
   it('should start listener and use fallback when native call returned undefined/null', async () => {
     jest.useFakeTimers();
-    const spy = jest.spyOn(require('@sentry/utils'), 'timestampInSeconds');
+    const spy = jest.spyOn(require('@sentry/core'), 'timestampInSeconds');
     const fallbackTime = Date.now() / 1000;
     spy.mockReturnValue(fallbackTime);
 
@@ -70,7 +70,7 @@ describe('SentryEventEmitterFallback', () => {
 
     (NATIVE.getNewScreenTimeToDisplay as jest.Mock).mockRejectedValue(new Error('Failed'));
 
-    const spy = jest.spyOn(require('@sentry/utils'), 'timestampInSeconds');
+    const spy = jest.spyOn(require('@sentry/core'), 'timestampInSeconds');
     const fallbackTime = Date.now() / 1000;
     spy.mockReturnValue(fallbackTime);
 
@@ -100,7 +100,7 @@ describe('SentryEventEmitterFallback', () => {
 
   it('should start listener and use fallback when native call fails', async () => {
     jest.useFakeTimers();
-    const spy = jest.spyOn(require('@sentry/utils'), 'timestampInSeconds');
+    const spy = jest.spyOn(require('@sentry/core'), 'timestampInSeconds');
     const fallbackTime = Date.now() / 1000;
     spy.mockReturnValue(fallbackTime);
 
@@ -132,7 +132,7 @@ describe('SentryEventEmitterFallback', () => {
 
   it('should start listener and use fallback when native call is not available', async () => {
     jest.useFakeTimers();
-    const spy = jest.spyOn(require('@sentry/utils'), 'timestampInSeconds');
+    const spy = jest.spyOn(require('@sentry/core'), 'timestampInSeconds');
     const fallbackTime = Date.now() / 1000;
     spy.mockReturnValue(fallbackTime);
 
