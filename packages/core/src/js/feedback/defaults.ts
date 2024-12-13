@@ -1,4 +1,3 @@
-import { getCurrentScope } from '@sentry/core';
 import { Alert } from 'react-native';
 
 import type { FeedbackFormProps } from './FeedbackForm.types';
@@ -35,10 +34,6 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
   isNameRequired: false,
   showEmail: true,
   showName: true,
-  useSentryUser: {
-    email: getCurrentScope().getUser().email || '',
-    name: getCurrentScope().getUser().name || '',
-  },
 
   // FeedbackTextConfiguration
   cancelButtonLabel: CANCEL_BUTTON_LABEL,

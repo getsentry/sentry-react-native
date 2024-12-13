@@ -1,4 +1,4 @@
-import { captureFeedback, lastEventId } from '@sentry/core';
+import { captureFeedback, getCurrentScope, lastEventId } from '@sentry/core';
 import type { SendFeedbackParams } from '@sentry/types';
 import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
@@ -29,7 +29,14 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
   public constructor(props: FeedbackFormProps) {
     super(props);
 
-    this._config = { ...defaultConfiguration, ...props };
+    const currentUser = {
+      useSentryUser: {
+        email: getCurrentScope().getUser().email || '',
+        name: getCurrentScope().getUser().name || '',
+      }
+    }
+
+    this._config = { ...defaultConfiguration, ...currentUser, ...props };
     this.state = {
       isVisible: true,
       name: this._config.useSentryUser.name,
