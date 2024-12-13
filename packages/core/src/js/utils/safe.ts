@@ -1,4 +1,4 @@
-import { logger } from '@sentry/utils';
+import { logger } from '@sentry/core';
 
 import type { ReactNativeOptions } from '../options';
 

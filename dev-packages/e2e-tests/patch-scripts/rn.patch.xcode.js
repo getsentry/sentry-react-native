@@ -6,7 +6,7 @@ const { argv } = require('process');
 const xcode = require('xcode');
 const parseArgs = require('minimist');
 const semver = require('semver');
-const { logger } = require('@sentry/utils');
+const { logger } = require('@sentry/core');
 logger.enable();
 
 const args = parseArgs(argv.slice(2));
