@@ -1,8 +1,19 @@
-import { captureFeedback, lastEventId, logger } from '@sentry/core';
+import { captureFeedback, getCurrentScope, lastEventId, logger } from '@sentry/core';
 import type { SendFeedbackParams } from '@sentry/types';
 import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
-import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
+} from 'react-native';
 
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
@@ -38,14 +49,23 @@ export const showFeedbackForm = (navigation: Navigation): void => {
  * Implements a feedback form screen that sends feedback to Sentry using Sentry.captureFeedback.
  */
 export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFormState> {
+  private _config: FeedbackFormProps;
+
   public constructor(props: FeedbackFormProps) {
     super(props);
 
-    const config: FeedbackGeneralConfiguration = { ...defaultConfiguration, ...props };
+    const currentUser = {
+      useSentryUser: {
+        email: getCurrentScope().getUser().email || '',
+        name: getCurrentScope().getUser().name || '',
+      }
+    }
+
+    this._config = { ...defaultConfiguration, ...currentUser, ...props };
     this.state = {
       isVisible: true,
-      name: config.useSentryUser.name,
-      email: config.useSentryUser.email,
+      name: this._config.useSentryUser.name,
+      email: this._config.useSentryUser.email,
       description: '',
     };
   }
@@ -59,20 +79,19 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
   public handleFeedbackSubmit: () => void = () => {
     const { name, email, description } = this.state;
-    const { onFormClose } = { ...defaultConfiguration, ...this.props };
-    const config: FeedbackGeneralConfiguration = { ...defaultConfiguration, ...this.props };
-    const text: FeedbackTextConfiguration = { ...defaultConfiguration, ...this.props };
+    const { onFormClose } = this._config;
+    const text: FeedbackTextConfiguration = this._config;
 
     const trimmedName = name?.trim();
     const trimmedEmail = email?.trim();
     const trimmedDescription = description?.trim();
 
-    if ((config.isNameRequired && !trimmedName) || (config.isEmailRequired && !trimmedEmail) || !trimmedDescription) {
+    if ((this._config.isNameRequired && !trimmedName) || (this._config.isEmailRequired && !trimmedEmail) || !trimmedDescription) {
       Alert.alert(text.errorTitle, text.formError);
       return;
     }
 
-    if ((config.isEmailRequired || trimmedEmail.length > 0) && !this._isValidEmail(trimmedEmail)) {
+    if (this._config.shouldValidateEmail && (this._config.isEmailRequired || trimmedEmail.length > 0) && !this._isValidEmail(trimmedEmail)) {
       Alert.alert(text.errorTitle, text.emailError);
       return;
     }
@@ -97,9 +116,9 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
    */
   public render(): React.ReactNode {
     const { name, email, description } = this.state;
-    const { onFormClose } = { ...defaultConfiguration, ...this.props };
-    const config: FeedbackGeneralConfiguration = { ...defaultConfiguration, ...this.props };
-    const text: FeedbackTextConfiguration = { ...defaultConfiguration, ...this.props };
+    const { onFormClose } = this._config;
+    const config: FeedbackGeneralConfiguration = this._config;
+    const text: FeedbackTextConfiguration = this._config;
     const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
     const onCancel = (): void => {
       onFormClose();
@@ -111,60 +130,68 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     }
 
     return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{text.formTitle}</Text>
+    <SafeAreaView style={[styles.container, { padding: 0 }]}>
+      <KeyboardAvoidingView behavior={'padding'} style={[styles.container, { padding: 0 }]}>
+        <ScrollView>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.container}>
+              <Text style={styles.title}>{text.formTitle}</Text>
 
-      {config.showName && (
-      <>
-        <Text style={styles.label}>
-          {text.nameLabel}
-          {config.isNameRequired && ` ${text.isRequiredLabel}`}
-        </Text>
-        <TextInput
-          style={styles.input}
-          placeholder={text.namePlaceholder}
-          value={name}
-          onChangeText={(value) => this.setState({ name: value })}
-        />
-      </>
-      )}
+              {config.showName && (
+              <>
+                <Text style={styles.label}>
+                  {text.nameLabel}
+                  {config.isNameRequired && ` ${text.isRequiredLabel}`}
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={text.namePlaceholder}
+                  value={name}
+                  onChangeText={(value) => this.setState({ name: value })}
+                />
+              </>
+              )}
 
-      {config.showEmail && (
-      <>
-        <Text style={styles.label}>
-          {text.emailLabel}
-          {config.isEmailRequired && ` ${text.isRequiredLabel}`}
-        </Text>
-        <TextInput
-          style={styles.input}
-          placeholder={text.emailPlaceholder}
-          keyboardType={'email-address' as KeyboardTypeOptions}
-          value={email}
-          onChangeText={(value) => this.setState({ email: value })}
-        />
-      </>
-      )}
+              {config.showEmail && (
+              <>
+                <Text style={styles.label}>
+                  {text.emailLabel}
+                  {config.isEmailRequired && ` ${text.isRequiredLabel}`}
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={text.emailPlaceholder}
+                  keyboardType={'email-address' as KeyboardTypeOptions}
+                  value={email}
+                  onChangeText={(value) => this.setState({ email: value })}
+                />
+              </>
+              )}
 
-      <Text style={styles.label}>
-        {text.messageLabel}
-        {` ${text.isRequiredLabel}`}
-      </Text>
-      <TextInput
-        style={[styles.input, styles.textArea]}
-        placeholder={text.messagePlaceholder}
-        value={description}
-        onChangeText={(value) => this.setState({ description: value })}
-        multiline
-      />
+              <Text style={styles.label}>
+                {text.messageLabel}
+                {` ${text.isRequiredLabel}`}
+              </Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder={text.messagePlaceholder}
+                value={description}
+                onChangeText={(value) => this.setState({ description: value })}
+                multiline
+              />
 
-      <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
-        <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
-      </TouchableOpacity>
+              <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
+                <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
+              </TouchableOpacity>
 
-      <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-        <Text style={styles.cancelText}>{text.cancelButtonLabel}</Text>
-      </TouchableOpacity>
-    </View>
+              <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+                <Text style={styles.cancelText}>{text.cancelButtonLabel}</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
     );
   }
 

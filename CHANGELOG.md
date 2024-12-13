@@ -35,9 +35,10 @@
   });
   ```
 
-- Adds feedback form (beta) ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
+- User Feedback From Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
 
-  You can add the form component in your UI like:
+   To collect user feedback from inside your application add the `FeedbackFrom` component.
+
   ```jsx
   import { FeedbackForm } from "@sentry/react-native";
   ...
@@ -56,7 +57,6 @@
   ```
 
 - Export `Span` type from `@sentry/types` ([#4345](https://github.com/getsentry/sentry-react-native/pull/4345))
-
 
 ### Fixes
 
