@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { useColorScheme } from '@/components/useColorScheme';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
-import { ErrorEvent } from '@sentry/types';
+import { ErrorEvent } from '@sentry/core';
 import { isExpoGo } from '../utils/isExpoGo';
 import { LogBox } from 'react-native';
 

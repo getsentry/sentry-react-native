@@ -1,4 +1,5 @@
 /* eslint-disable complexity */
+import type { Client, Event, Integration, SpanJSON, TransactionEvent } from '@sentry/core';
 import {
   getCapturedScopesOnSpan,
   getClient,
@@ -9,7 +10,6 @@ import {
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
-import type { Client, Event, Integration, SpanJSON, TransactionEvent } from '@sentry/types';
 
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
