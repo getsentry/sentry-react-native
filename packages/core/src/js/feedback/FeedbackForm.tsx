@@ -83,7 +83,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       <View style={styles.titleContainer}>
           <Text style={styles.title}>{text.formTitle}</Text>
           {config.showBranding && (
-            <Image source={require('../../../assets/sentrylogo.png')} style={styles.sentryLogo} />
+            <Image source={{uri: 'https://sentry-brand.storage.googleapis.com/sentry-glyph-black.png'}} style={styles.sentryLogo} />
           )}
       </View>
 
