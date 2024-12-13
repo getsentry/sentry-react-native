@@ -28,7 +28,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
   public handleFeedbackSubmit: () => void = () => {
     const { name, email, description } = this.state;
-    const { onFormClose } = { ...defaultConfiguration, ...this.props };
+    const { onFormClose, onSubmitSuccess, onSubmitError, onFormSubmitted } = { ...defaultConfiguration, ...this.props };
     const config: FeedbackGeneralConfiguration = { ...defaultConfiguration, ...this.props };
     const text: FeedbackTextConfiguration = { ...defaultConfiguration, ...this.props };
 
@@ -59,13 +59,17 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       onFormClose();
       this.setState({ isVisible: false });
       captureFeedback(userFeedback);
+      onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: undefined });
       Alert.alert(text.successMessageText);
+      onFormSubmitted();
     }, () => { // onDisconnected
       Alert.alert(text.errorTitle, text.networkError);
       logger.error(`Feedback form submission failed: ${text.networkError}`);
     }, () => { // onError
+      const errorString = `Feedback form submission failed: ${text.genericError}`;
+      onSubmitError(new Error(errorString));
       Alert.alert(text.errorTitle, text.genericError);
-      logger.error(`Feedback form submission failed: ${text.genericError}`);
+      logger.error(errorString);
     });
   };
 

@@ -22,6 +22,9 @@ const GENERIC_ERROR_TEXT = 'Unable to send feedback due to an unexpected error.'
 
 export const defaultConfiguration: Partial<FeedbackFormProps> = {
   // FeedbackCallbacks
+  onFormOpen: () => {
+    // Does nothing by default
+  },
   onFormClose: () => {
     if (__DEV__) {
       Alert.alert(
@@ -29,6 +32,15 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
         'onFormClose callback is not implemented. By default the form is just unmounted.',
       );
     }
+  },
+  onSubmitSuccess: () => {
+    // Does nothing by default
+  },
+  onSubmitError: () => {
+    // Does nothing by default
+  },
+  onFormSubmitted: () => {
+    // Does nothing by default
   },
 
   // FeedbackGeneralConfiguration
