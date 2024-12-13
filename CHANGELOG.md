@@ -43,6 +43,17 @@
   ...
   <FeedbackForm/>
   ```
+  or auto-inject it by calling the `showFeedbackForm`:
+    ```jsx
+  import { showFeedbackForm } from '@sentry/react-native';
+  ...
+    <Button
+      title="Show feedback form"
+      onPress={() => {
+        showFeedbackForm(_props.navigation);
+      }}
+    />
+  ```
   Check [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/) for more configuration options.
 
 - Export `Span` type from `@sentry/types` ([#4345](https://github.com/getsentry/sentry-react-native/pull/4345))

@@ -1,4 +1,4 @@
-import { captureFeedback, lastEventId } from '@sentry/core';
+import { captureFeedback, lastEventId, logger } from '@sentry/core';
 import type { SendFeedbackParams } from '@sentry/types';
 import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
@@ -7,6 +7,31 @@ import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration } from './FeedbackForm.types';
+
+let feedbackFormHandler: (() => void) | null = null;
+
+const setFeedbackFormHandler = (handler: () => void): void => {
+  feedbackFormHandler = handler;
+};
+
+const clearFeedbackFormHandler = (): void => {
+  feedbackFormHandler = null;
+};
+
+type Navigation = {
+  navigate: (screen: string, params?: Record<string, unknown>) => void;
+};
+
+export const showFeedbackForm = (navigation: Navigation): void => {
+  setFeedbackFormHandler(() => {
+    navigation?.navigate?.('FeedbackForm');
+  });
+  if (feedbackFormHandler) {
+    feedbackFormHandler();
+  } else {
+    logger.error('FeedbackForm handler is not set. Please ensure it is initialized.');
+  }
+};
 
 /**
  * @beta
@@ -23,6 +48,13 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       email: config.useSentryUser.email,
       description: '',
     };
+  }
+
+  /**
+   * Clear the handler when the component unmounts
+   */
+  public componentWillUnmount(): void {
+    clearFeedbackFormHandler();
   }
 
   public handleFeedbackSubmit: () => void = () => {
