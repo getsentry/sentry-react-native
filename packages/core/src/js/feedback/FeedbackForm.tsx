@@ -2,7 +2,18 @@ import { captureFeedback, lastEventId } from '@sentry/core';
 import type { SendFeedbackParams } from '@sentry/types';
 import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
-import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
+} from 'react-native';
 
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
@@ -79,60 +90,68 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     }
 
     return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{text.formTitle}</Text>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView behavior={'padding'} style={styles.container}>
+        <ScrollView>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.container}>
+              <Text style={styles.title}>{text.formTitle}</Text>
 
-      {config.showName && (
-      <>
-        <Text style={styles.label}>
-          {text.nameLabel}
-          {config.isNameRequired && ` ${text.isRequiredLabel}`}
-        </Text>
-        <TextInput
-          style={styles.input}
-          placeholder={text.namePlaceholder}
-          value={name}
-          onChangeText={(value) => this.setState({ name: value })}
-        />
-      </>
-      )}
+              {config.showName && (
+              <>
+                <Text style={styles.label}>
+                  {text.nameLabel}
+                  {config.isNameRequired && ` ${text.isRequiredLabel}`}
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={text.namePlaceholder}
+                  value={name}
+                  onChangeText={(value) => this.setState({ name: value })}
+                />
+              </>
+              )}
 
-      {config.showEmail && (
-      <>
-        <Text style={styles.label}>
-          {text.emailLabel}
-          {config.isEmailRequired && ` ${text.isRequiredLabel}`}
-        </Text>
-        <TextInput
-          style={styles.input}
-          placeholder={text.emailPlaceholder}
-          keyboardType={'email-address' as KeyboardTypeOptions}
-          value={email}
-          onChangeText={(value) => this.setState({ email: value })}
-        />
-      </>
-      )}
+              {config.showEmail && (
+              <>
+                <Text style={styles.label}>
+                  {text.emailLabel}
+                  {config.isEmailRequired && ` ${text.isRequiredLabel}`}
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={text.emailPlaceholder}
+                  keyboardType={'email-address' as KeyboardTypeOptions}
+                  value={email}
+                  onChangeText={(value) => this.setState({ email: value })}
+                />
+              </>
+              )}
 
-      <Text style={styles.label}>
-        {text.messageLabel}
-        {` ${text.isRequiredLabel}`}
-      </Text>
-      <TextInput
-        style={[styles.input, styles.textArea]}
-        placeholder={text.messagePlaceholder}
-        value={description}
-        onChangeText={(value) => this.setState({ description: value })}
-        multiline
-      />
+              <Text style={styles.label}>
+                {text.messageLabel}
+                {` ${text.isRequiredLabel}`}
+              </Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder={text.messagePlaceholder}
+                value={description}
+                onChangeText={(value) => this.setState({ description: value })}
+                multiline
+              />
 
-      <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
-        <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
-      </TouchableOpacity>
+              <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
+                <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
+              </TouchableOpacity>
 
-      <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-        <Text style={styles.cancelText}>{text.cancelButtonLabel}</Text>
-      </TouchableOpacity>
-    </View>
+              <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+                <Text style={styles.cancelText}>{text.cancelButtonLabel}</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
     );
   }
 
