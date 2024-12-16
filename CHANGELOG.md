@@ -35,9 +35,9 @@
   });
   ```
 
-- User Feedback From Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
+- User Feedback Form Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
 
-   To collect user feedback from inside your application add the `FeedbackFrom` component.
+   To collect user feedback from inside your application add the `FeedbackForm` component.
 
   ```jsx
   import { FeedbackForm } from "@sentry/react-native";
