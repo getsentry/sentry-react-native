@@ -49,6 +49,8 @@
 #    import "RNSentryRNSScreen.h"
 #endif
 
+#import "RNSentryVersion.h"
+
 @interface
 SentrySDK (RNSentry)
 
@@ -59,8 +61,6 @@ SentrySDK (RNSentry)
 @end
 
 static bool hasFetchedAppStart;
-
-static NSString *const nativeSdkName = @"sentry.cocoa.react-native";
 
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
@@ -93,7 +93,9 @@ RCT_EXPORT_METHOD(initNativeSdk
     }
 
     NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
-    [PrivateSentrySDKOnly setSdkName:nativeSdkName andVersionString:sdkVersion];
+    [PrivateSentrySDKOnly setSdkName:NATIVE_SDK_NAME andVersionString:sdkVersion];
+    [PrivateSentrySDKOnly addSdkPackage:REACT_NATIVE_SDK_PACKAGE_NAME
+                                version:REACT_NATIVE_SDK_PACKAGE_VERSION];
 
     [SentrySDK startWithOptions:sentryOptions];
 
