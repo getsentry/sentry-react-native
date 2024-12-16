@@ -16,6 +16,7 @@ import {
   View
 } from 'react-native';
 
+import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration } from './FeedbackForm.types';
@@ -108,7 +109,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
                 <Text style={styles.title}>{text.formTitle}</Text>
                 {config.showBranding && (
                   <Image
-                    source={{ uri: 'https://sentry-brand.storage.googleapis.com/sentry-glyph-black.png' }}
+                    source={{ uri: sentryLogo }}
                     style={styles.sentryLogo}
                     testID='sentry-logo'
                   />
