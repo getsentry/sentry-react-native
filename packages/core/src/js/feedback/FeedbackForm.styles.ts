@@ -57,6 +57,31 @@ const defaultStyles: FeedbackFormStyles = {
     color: FORGROUND_COLOR,
     fontSize: 16,
   },
+  triggerButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    backgroundColor: BACKROUND_COLOR,
+    padding: 15,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: BORDER_COLOR,
+    shadowOffset: { width: 1, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+    flexDirection: 'row',
+  },
+  triggerText: {
+    color: FORGROUND_COLOR,
+    fontSize: 18,
+  },
+  triggerIcon: {
+    width: 24,
+    height: 24,
+    padding: 4,
+  },
 };
 
 export default defaultStyles;

@@ -12,6 +12,7 @@ const MESSAGE_LABEL = 'Description';
 const IS_REQUIRED_LABEL = '(required)';
 const SUBMIT_BUTTON_LABEL = 'Send Bug Report';
 const CANCEL_BUTTON_LABEL = 'Cancel';
+const TRIGGER_LABEL = 'Report a Bug';
 const ERROR_TITLE = 'Error';
 const FORM_ERROR = 'Please fill out all required fields.';
 const EMAIL_ERROR = 'Please enter a valid email address.';
@@ -36,6 +37,8 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
   showName: true,
 
   // FeedbackTextConfiguration
+  triggerLabel: TRIGGER_LABEL,
+  triggerAriaLabel: '',
   cancelButtonLabel: CANCEL_BUTTON_LABEL,
   emailLabel: EMAIL_LABEL,
   emailPlaceholder: EMAIL_PLACEHOLDER,
