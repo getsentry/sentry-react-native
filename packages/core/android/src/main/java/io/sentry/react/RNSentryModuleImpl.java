@@ -93,8 +93,6 @@ public class RNSentryModuleImpl {
 
   public static final String NAME = "RNSentry";
 
-  private static final String NATIVE_SDK_NAME = "sentry.native.android.react-native";
-  private static final String ANDROID_SDK_NAME = "sentry.java.android.react-native";
   private static final ILogger logger = new AndroidLogger(NAME);
   private static final BuildInfoProvider buildInfo = new BuildInfoProvider(logger);
   private static final String modulesPath = "modules.json";
@@ -191,13 +189,14 @@ public class RNSentryModuleImpl {
       @NotNull SentryAndroidOptions options, @NotNull ReadableMap rnOptions, ILogger logger) {
     @Nullable SdkVersion sdkVersion = options.getSdkVersion();
     if (sdkVersion == null) {
-      sdkVersion = new SdkVersion(ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
+      sdkVersion = new SdkVersion(RNSentryVersion.ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
     } else {
-      sdkVersion.setName(ANDROID_SDK_NAME);
+      sdkVersion.setName(RNSentryVersion.ANDROID_SDK_NAME);
     }
+    sdkVersion.addPackage(RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_NAME, RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
 
     options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
-    options.setNativeSdkName(NATIVE_SDK_NAME);
+    options.setNativeSdkName(RNSentryVersion.NATIVE_SDK_NAME);
     options.setSdkVersion(sdkVersion);
 
     if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
@@ -970,10 +969,10 @@ public class RNSentryModuleImpl {
     SdkVersion sdk = event.getSdk();
     if (sdk != null) {
       switch (sdk.getName()) {
-        case NATIVE_SDK_NAME:
+        case RNSentryVersion.NATIVE_SDK_NAME:
           setEventEnvironmentTag(event, "native");
           break;
-        case ANDROID_SDK_NAME:
+        case RNSentryVersion.ANDROID_SDK_NAME:
           setEventEnvironmentTag(event, "java");
           break;
         default:
