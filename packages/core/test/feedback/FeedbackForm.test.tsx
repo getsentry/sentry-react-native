@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Alert } from 'react-native';
 
 import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
-import type { FeedbackFormProps } from '../../src/js/feedback/FeedbackForm.types';
+import type { FeedbackFormProps, FeedbackFormStyles } from '../../src/js/feedback/FeedbackForm.types';
 
 const mockOnFormClose = jest.fn();
 
@@ -24,24 +24,78 @@ jest.mock('@sentry/core', () => ({
 const defaultProps: FeedbackFormProps = {
   onFormClose: mockOnFormClose,
   formTitle: 'Feedback Form',
-  nameLabel: 'Name',
+  nameLabel: 'Name Label',
   namePlaceholder: 'Name Placeholder',
-  emailLabel: 'Email',
+  emailLabel: 'Email Label',
   emailPlaceholder: 'Email Placeholder',
-  messageLabel: 'Description',
-  messagePlaceholder: 'Description Placeholder',
-  submitButtonLabel: 'Submit',
-  cancelButtonLabel: 'Cancel',
-  isRequiredLabel: '(required)',
+  messageLabel: 'Message Label',
+  messagePlaceholder: 'Message Placeholder',
+  submitButtonLabel: 'Submit Button Label',
+  cancelButtonLabel: 'Cancel Button Label',
+  isRequiredLabel: '(is required label)',
   errorTitle: 'Error',
   formError: 'Please fill out all required fields.',
   emailError: 'The email address is not valid.',
   successMessageText: 'Feedback success',
 };
 
+const customStyles: FeedbackFormStyles = {
+  container: {
+    backgroundColor: '#ffffff',
+  },
+  title: {
+    fontSize: 20,
+    color: '#ff0000',
+  },
+  label: {
+    fontSize: 15,
+    color: '#00ff00',
+  },
+  input: {
+    height: 50,
+    borderColor: '#0000ff',
+    fontSize: 13,
+    color: '#000000',
+  },
+  textArea: {
+    height: 50,
+    color: '#00ff00',
+  },
+  submitButton: {
+    backgroundColor: '#ffff00',
+  },
+  submitText: {
+    color: '#ff0000',
+    fontSize: 12,
+  },
+  cancelButton: {
+    paddingVertical: 10,
+  },
+  cancelText: {
+    color: '#ff0000',
+    fontSize: 10,
+  },
+};
+
 describe('FeedbackForm', () => {
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('matches the snapshot with default configuration', () => {
+    const { toJSON } = render(<FeedbackForm/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches the snapshot with custom texts', () => {
+    const { toJSON } = render(<FeedbackForm {...defaultProps}/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches the snapshot with custom styles', () => {
+    const customStyleProps = {styles: customStyles};
+    const { toJSON } = render(<FeedbackForm {...customStyleProps}/>);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly', () => {
