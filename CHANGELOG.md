@@ -35,9 +35,9 @@
   });
   ```
 
-- User Feedback From Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
+- User Feedback Form Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
 
-   To collect user feedback from inside your application add the `FeedbackFrom` component.
+   To collect user feedback from inside your application add the `FeedbackForm` component.
 
   ```jsx
   import { FeedbackForm } from "@sentry/react-native";
@@ -66,9 +66,9 @@
 - Bump Android SDK from v7.18.0 to v7.19.0 ([#4329](https://github.com/getsentry/sentry-react-native/pull/4329), [#4365](https://github.com/getsentry/sentry-react-native/pull/4365))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7190)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.18.0...7.19.0)
-- Bump JavaScript SDK from v8.40.0 to v8.44.0 ([#4351](https://github.com/getsentry/sentry-react-native/pull/4351), [#4325](https://github.com/getsentry/sentry-react-native/pull/4325))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8440)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.40.0...8.44.0)
+- Bump JavaScript SDK from v8.40.0 to v8.45.1 ([#4351](https://github.com/getsentry/sentry-react-native/pull/4351), [#4325](https://github.com/getsentry/sentry-react-native/pull/4325), [#4371](https://github.com/getsentry/sentry-react-native/pull/4371), [#4382](https://github.com/getsentry/sentry-react-native/pull/4382))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8451)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.40.0...8.45.1)
 
 ## 6.4.0
 
