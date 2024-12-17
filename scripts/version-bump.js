@@ -4,7 +4,7 @@ const replace = require('replace-in-file');
 const pjson = require('../packages/core/package.json');
 
 replace({
-  files: ['packages/core/src/js/version.ts'],
+  files: ['packages/core/src/js/version.ts', 'packages/core/ios/RNSentryVersion.m'],
   from: /\d+\.\d+.\d+(?:-\w+(?:\.\w+)?)?/g,
   to: pjson.version,
 })
