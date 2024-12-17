@@ -276,8 +276,10 @@ public class RNSentryModuleImpl {
         options.setSpotlightConnectionUrl(rnOptions.getString("spotlight"));
       }
     }
-    if (rnOptions.hasKey("_experiments")) {
-      options.getExperimental().setSessionReplay(getReplayOptions(rnOptions));
+
+    SentryReplayOptions replayOptions = getReplayOptions(rnOptions);
+    options.setSessionReplay(replayOptions);
+    if (isReplayEnabled(replayOptions)) {
       options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
     }
 
@@ -329,26 +331,26 @@ public class RNSentryModuleImpl {
     }
   }
 
+  private boolean isReplayEnabled(SentryReplayOptions replayOptions) {
+    return replayOptions.getSessionSampleRate() != null
+        || replayOptions.getOnErrorSampleRate() != null;
+  }
+
   private SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
     @NotNull final SentryReplayOptions androidReplayOptions = new SentryReplayOptions(false);
 
-    @Nullable final ReadableMap rnExperimentsOptions = rnOptions.getMap("_experiments");
-    if (rnExperimentsOptions == null) {
-      return androidReplayOptions;
-    }
-
-    if (!(rnExperimentsOptions.hasKey("replaysSessionSampleRate")
-        || rnExperimentsOptions.hasKey("replaysOnErrorSampleRate"))) {
+    if (!(rnOptions.hasKey("replaysSessionSampleRate")
+        || rnOptions.hasKey("replaysOnErrorSampleRate"))) {
       return androidReplayOptions;
     }
 
     androidReplayOptions.setSessionSampleRate(
-        rnExperimentsOptions.hasKey("replaysSessionSampleRate")
-            ? rnExperimentsOptions.getDouble("replaysSessionSampleRate")
+        rnOptions.hasKey("replaysSessionSampleRate")
+            ? rnOptions.getDouble("replaysSessionSampleRate")
             : null);
     androidReplayOptions.setOnErrorSampleRate(
-        rnExperimentsOptions.hasKey("replaysOnErrorSampleRate")
-            ? rnExperimentsOptions.getDouble("replaysOnErrorSampleRate")
+        rnOptions.hasKey("replaysOnErrorSampleRate")
+            ? rnOptions.getDouble("replaysOnErrorSampleRate")
             : null);
 
     if (!rnOptions.hasKey("mobileReplayOptions")) {
