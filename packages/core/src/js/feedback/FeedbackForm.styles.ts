@@ -2,7 +2,7 @@ import type { FeedbackFormStyles } from './FeedbackForm.types';
 
 const PURPLE = 'rgba(88, 74, 192, 1)';
 const FORGROUND_COLOR = '#2b2233';
-const BACKROUND_COLOR = '#fff';
+const BACKROUND_COLOR = '#ffffff';
 const BORDER_COLOR = 'rgba(41, 35, 47, 0.13)';
 
 const defaultStyles: FeedbackFormStyles = {
