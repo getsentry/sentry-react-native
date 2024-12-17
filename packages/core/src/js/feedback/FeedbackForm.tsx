@@ -1,5 +1,5 @@
+import type { SendFeedbackParams } from '@sentry/core';
 import { captureFeedback, getCurrentScope, lastEventId } from '@sentry/core';
-import type { SendFeedbackParams } from '@sentry/types';
 import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
 import {
@@ -24,7 +24,7 @@ import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackG
  * Implements a feedback form screen that sends feedback to Sentry using Sentry.captureFeedback.
  */
 export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFormState> {
-  private _config: FeedbackFormProps;
+  public static defaultProps: Partial<FeedbackFormProps>;
 
   public constructor(props: FeedbackFormProps) {
     super(props);
@@ -36,30 +36,30 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       }
     }
 
-    this._config = { ...defaultConfiguration, ...currentUser, ...props };
+    FeedbackForm.defaultProps = { ...defaultConfiguration, ...currentUser, ...props };
     this.state = {
       isVisible: true,
-      name: this._config.useSentryUser.name,
-      email: this._config.useSentryUser.email,
+      name: currentUser.useSentryUser.name,
+      email: currentUser.useSentryUser.email,
       description: '',
     };
   }
 
   public handleFeedbackSubmit: () => void = () => {
     const { name, email, description } = this.state;
-    const { onFormClose } = this._config;
-    const text: FeedbackTextConfiguration = this._config;
+    const { onFormClose } = FeedbackForm.defaultProps;
+    const text: FeedbackTextConfiguration = FeedbackForm.defaultProps;
 
     const trimmedName = name?.trim();
     const trimmedEmail = email?.trim();
     const trimmedDescription = description?.trim();
 
-    if ((this._config.isNameRequired && !trimmedName) || (this._config.isEmailRequired && !trimmedEmail) || !trimmedDescription) {
+    if ((FeedbackForm.defaultProps.isNameRequired && !trimmedName) || (FeedbackForm.defaultProps.isEmailRequired && !trimmedEmail) || !trimmedDescription) {
       Alert.alert(text.errorTitle, text.formError);
       return;
     }
 
-    if (this._config.shouldValidateEmail && (this._config.isEmailRequired || trimmedEmail.length > 0) && !this._isValidEmail(trimmedEmail)) {
+    if (FeedbackForm.defaultProps.shouldValidateEmail && (FeedbackForm.defaultProps.isEmailRequired || trimmedEmail.length > 0) && !this._isValidEmail(trimmedEmail)) {
       Alert.alert(text.errorTitle, text.emailError);
       return;
     }
@@ -84,9 +84,9 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
    */
   public render(): React.ReactNode {
     const { name, email, description } = this.state;
-    const { onFormClose } = this._config;
-    const config: FeedbackGeneralConfiguration = this._config;
-    const text: FeedbackTextConfiguration = this._config;
+    const { onFormClose } = FeedbackForm.defaultProps;
+    const config: FeedbackGeneralConfiguration = FeedbackForm.defaultProps;
+    const text: FeedbackTextConfiguration = FeedbackForm.defaultProps;
     const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
     const onCancel = (): void => {
       onFormClose();
