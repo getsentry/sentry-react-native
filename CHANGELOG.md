@@ -10,7 +10,7 @@
 
 ### Features
 
-- Mobile Session Replay is now generally available and ready for production use ([#4383](https://github.com/getsentry/sentry-react-native/pull/4383))
+- Mobile Session Replay is now generally available and ready for production use ([#4384](https://github.com/getsentry/sentry-react-native/pull/4384))
 
   To learn about privacy, custom masking or performance overhead visit [the documentation](https://docs.sentry.io/platforms/react-native/session-replay/).
 
@@ -67,7 +67,7 @@
 ### Changes
 
 - Falsy values of `options.environment` (empty string, undefined...) default to `production`
-- Deprecated `_experiments.replaysSessionSampleRate` and `_experiments.replaysOnErrorSampleRate` use `replaysSessionSampleRate` and `replaysOnErrorSampleRate` ([#4383](https://github.com/getsentry/sentry-react-native/pull/4383))
+- Deprecated `_experiments.replaysSessionSampleRate` and `_experiments.replaysOnErrorSampleRate` use `replaysSessionSampleRate` and `replaysOnErrorSampleRate` ([#4384](https://github.com/getsentry/sentry-react-native/pull/4384))
 
 ### Dependencies
 
