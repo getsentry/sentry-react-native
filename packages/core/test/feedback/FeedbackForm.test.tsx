@@ -11,6 +11,10 @@ const mockOnFormClose = jest.fn();
 const mockOnSubmitSuccess = jest.fn();
 const mockOnFormSubmitted = jest.fn();
 const mockOnSubmitError = jest.fn();
+const mockGetUser = jest.fn(() => ({
+  email: 'test@example.com',
+  name: 'Test User',
+}));
 
 jest.spyOn(Alert, 'alert');
 
@@ -18,10 +22,7 @@ jest.mock('@sentry/core', () => ({
   ...jest.requireActual('@sentry/core'),
   captureFeedback: jest.fn(),
   getCurrentScope: jest.fn(() => ({
-    getUser: jest.fn(() => ({
-      email: 'test@example.com',
-      name: 'Test User',
-    })),
+    getUser: mockGetUser,
   })),
   lastEventId: jest.fn(),
 }));
@@ -85,6 +86,17 @@ describe('FeedbackForm', () => {
 
     expect(nameInput.props.value).toBe('Test User');
     expect(emailInput.props.value).toBe('test@example.com');
+  });
+
+  it('ensure getUser is called only after the component is rendered', () => {
+    // Ensure getUser is not called before render
+    expect(mockGetUser).not.toHaveBeenCalled();
+
+    // Render the component
+    render(<FeedbackForm />);
+
+    // After rendering, check that getUser was called twice (email and name)
+    expect(mockGetUser).toHaveBeenCalledTimes(2);
   });
 
   it('shows an error message if required fields are empty', async () => {
