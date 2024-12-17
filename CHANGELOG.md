@@ -25,7 +25,7 @@
   });
   ```
 
-To learn how to attach context data to the feedback vistit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/).
+To learn how to attach context data to the feedback visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/).
 
 - User Feedback Form Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
 
