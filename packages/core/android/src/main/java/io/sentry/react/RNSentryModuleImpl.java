@@ -193,7 +193,9 @@ public class RNSentryModuleImpl {
     } else {
       sdkVersion.setName(RNSentryVersion.ANDROID_SDK_NAME);
     }
-    sdkVersion.addPackage(RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_NAME, RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
+    sdkVersion.addPackage(
+        RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_NAME,
+        RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
 
     options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
     options.setNativeSdkName(RNSentryVersion.NATIVE_SDK_NAME);
