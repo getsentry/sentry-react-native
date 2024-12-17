@@ -250,7 +250,7 @@ exports[`FeedbackForm matches the snapshot with custom texts 1`] = `
   style={
     [
       {
-        "backgroundColor": "#fff",
+        "backgroundColor": "#ffffff",
         "flex": 1,
         "padding": 20,
       },
@@ -266,7 +266,7 @@ exports[`FeedbackForm matches the snapshot with custom texts 1`] = `
       [
         [
           {
-            "backgroundColor": "#fff",
+            "backgroundColor": "#ffffff",
             "flex": 1,
             "padding": 20,
           },
@@ -303,7 +303,7 @@ exports[`FeedbackForm matches the snapshot with custom texts 1`] = `
           onStartShouldSetResponder={[Function]}
           style={
             {
-              "backgroundColor": "#fff",
+              "backgroundColor": "#ffffff",
               "flex": 1,
               "padding": 20,
             }
@@ -458,7 +458,7 @@ exports[`FeedbackForm matches the snapshot with custom texts 1`] = `
             <Text
               style={
                 {
-                  "color": "#fff",
+                  "color": "#ffffff",
                   "fontSize": 18,
                 }
               }
@@ -525,7 +525,7 @@ exports[`FeedbackForm matches the snapshot with default configuration 1`] = `
   style={
     [
       {
-        "backgroundColor": "#fff",
+        "backgroundColor": "#ffffff",
         "flex": 1,
         "padding": 20,
       },
@@ -541,7 +541,7 @@ exports[`FeedbackForm matches the snapshot with default configuration 1`] = `
       [
         [
           {
-            "backgroundColor": "#fff",
+            "backgroundColor": "#ffffff",
             "flex": 1,
             "padding": 20,
           },
@@ -578,7 +578,7 @@ exports[`FeedbackForm matches the snapshot with default configuration 1`] = `
           onStartShouldSetResponder={[Function]}
           style={
             {
-              "backgroundColor": "#fff",
+              "backgroundColor": "#ffffff",
               "flex": 1,
               "padding": 20,
             }
@@ -733,7 +733,7 @@ exports[`FeedbackForm matches the snapshot with default configuration 1`] = `
             <Text
               style={
                 {
-                  "color": "#fff",
+                  "color": "#ffffff",
                   "fontSize": 18,
                 }
               }
