@@ -1,5 +1,6 @@
-import { captureFeedback, getCurrentScope, lastEventId, logger } from '@sentry/core';
-import type { SendFeedbackParams } from '@sentry/types';
+import { sendFeedback } from '@sentry-internal/feedback';
+import type { EventHint, SendFeedbackParams } from '@sentry/core';
+import { getCurrentScope, lastEventId, logger } from '@sentry/core';
 import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
 import {
@@ -19,6 +20,15 @@ import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration } from './FeedbackForm.types';
 import { checkInternetConnection, isValidEmail } from './utils';
+
+const submitFeedback = async (feedbackParams: SendFeedbackParams, hint: EventHint, success: () => void, error: (e: string) => void): Promise<void> => {
+  try {
+    await sendFeedback(feedbackParams, hint);
+    success();
+  } catch (e) {
+    error(e.toString());
+  }
+};
 
 /**
  * @beta
@@ -75,11 +85,16 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     checkInternetConnection(() => { // onConnected
-      this.setState({ isVisible: false });
-      captureFeedback(userFeedback);
-      onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: undefined });
-      Alert.alert(text.successMessageText);
-      onFormSubmitted();
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      submitFeedback(userFeedback, undefined, () => { // success
+        this.setState({ isVisible: false });
+        onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: undefined });
+        Alert.alert(text.successMessageText);
+        onFormSubmitted();
+      }, (error: string) => { // error
+        Alert.alert(text.errorTitle, error);
+        logger.error(`Feedback form submission failed: ${error}`);
+      });
     }, () => { // onDisconnected
       Alert.alert(text.errorTitle, text.networkError);
       logger.error(`Feedback form submission failed: ${text.networkError}`);
