@@ -22,18 +22,10 @@
     email: "john@doe.com",
     message: "Hello World!",
     associatedEventId: eventId, // optional
-  }, {
-    captureContext: {
-      tags: { "tag-key": "tag-value" },
-    },
-    attachments: [
-      {
-        filename: 'hello.txt',
-        data: 'Hello, World!',
-      },
-    ],
   });
   ```
+
+To learn how to attach context data to the feedback visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/).
 
 - User Feedback Form Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
 
@@ -46,6 +38,7 @@
   ```
 
 - Export `Span` type from `@sentry/types` ([#4345](https://github.com/getsentry/sentry-react-native/pull/4345))
+- Add RN SDK package to `sdk.packages` on Android ([#4380](https://github.com/getsentry/sentry-react-native/pull/4380))
 
 ### Fixes
 
@@ -66,9 +59,9 @@
 - Bump Android SDK from v7.18.0 to v7.19.0 ([#4329](https://github.com/getsentry/sentry-react-native/pull/4329), [#4365](https://github.com/getsentry/sentry-react-native/pull/4365))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7190)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.18.0...7.19.0)
-- Bump JavaScript SDK from v8.40.0 to v8.45.0 ([#4351](https://github.com/getsentry/sentry-react-native/pull/4351), [#4325](https://github.com/getsentry/sentry-react-native/pull/4325), [#4371](https://github.com/getsentry/sentry-react-native/pull/4371))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8450)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.40.0...8.45.0)
+- Bump JavaScript SDK from v8.40.0 to v8.45.1 ([#4351](https://github.com/getsentry/sentry-react-native/pull/4351), [#4325](https://github.com/getsentry/sentry-react-native/pull/4325), [#4371](https://github.com/getsentry/sentry-react-native/pull/4371), [#4382](https://github.com/getsentry/sentry-react-native/pull/4382))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8451)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.40.0...8.45.1)
 
 ## 6.4.0
 
