@@ -1,3 +1,4 @@
+import type { Span } from '@sentry/core';
 import {
   getCurrentScope,
   getGlobalScope,
@@ -8,7 +9,6 @@ import {
   startSpanManual,
   timestampInSeconds,
 } from '@sentry/core';
-import type { Span } from '@sentry/types';
 
 import { stallTrackingIntegration } from '../../../../src/js/tracing/integrations/stalltracking';
 import { getDefaultTestClientOptions, TestClient } from '../../../mocks/client';
