@@ -36,6 +36,7 @@ export interface FeedbackGeneralConfiguration {
   /**
    * Should the screen shots field be included?
    * Screen shots cannot be marked as required
+   * @default false
    */
   enableScreenshot?: boolean;
 
