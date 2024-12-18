@@ -80,7 +80,8 @@ const defaultStyles: FeedbackFormStyles = {
   triggerIcon: {
     width: 24,
     height: 24,
-    padding: 4,
+    padding: 2,
+    marginEnd: 6,
   },
 };
 
