@@ -284,6 +284,7 @@ const styles = StyleSheet.create({
   },
   mainViewBottomWhiteSpace: {
     marginTop: 32,
+    marginBottom: 75,
   },
 });
 
