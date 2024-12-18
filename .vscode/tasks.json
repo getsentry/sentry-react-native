@@ -10,7 +10,7 @@
         "panel": "new"
       },
       "group": {
-        "kind": "none",
+        "kind": "build",
         "isDefault": true
       }
     }
