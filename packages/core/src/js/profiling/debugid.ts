@@ -1,5 +1,5 @@
+import type { DebugImage } from '@sentry/core';
 import { GLOBAL_OBJ, logger } from '@sentry/core';
-import type { DebugImage } from '@sentry/types';
 
 import { DEFAULT_BUNDLE_NAME } from './hermes';
 

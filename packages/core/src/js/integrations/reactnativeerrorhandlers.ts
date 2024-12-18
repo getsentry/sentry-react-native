@@ -1,5 +1,5 @@
+import type { EventHint, Integration, SeverityLevel } from '@sentry/core';
 import { addExceptionMechanism, captureException, getClient, getCurrentScope, logger } from '@sentry/core';
-import type { EventHint, Integration, SeverityLevel } from '@sentry/types';
 
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';

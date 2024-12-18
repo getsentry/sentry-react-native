@@ -12,7 +12,7 @@ export type {
   Thread,
   User,
   UserFeedback,
-} from '@sentry/types';
+} from '@sentry/core';
 
 export {
   addBreadcrumb,

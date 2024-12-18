@@ -1,3 +1,4 @@
+import type { ErrorEvent, Event, SpanJSON, TransactionEvent } from '@sentry/core';
 import {
   getCurrentScope,
   getGlobalScope,
@@ -7,7 +8,6 @@ import {
   setCurrentClient,
   timestampInSeconds,
 } from '@sentry/core';
-import type { ErrorEvent, Event, SpanJSON, TransactionEvent } from '@sentry/types';
 
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,

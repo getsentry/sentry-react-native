@@ -1,4 +1,5 @@
 /* eslint-disable max-lines */
+import type { Client, Integration, Span } from '@sentry/core';
 import {
   addBreadcrumb,
   getActiveSpan,
@@ -12,7 +13,6 @@ import {
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
-import type { Client, Integration, Span } from '@sentry/types';
 
 import type { NewFrameEvent } from '../utils/sentryeventemitter';
 import type { SentryEventEmitterFallback } from '../utils/sentryeventemitterfallback';

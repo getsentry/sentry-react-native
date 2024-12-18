@@ -1,4 +1,4 @@
-import type { Event, Integration } from '@sentry/types';
+import type { Event, Integration } from '@sentry/core';
 
 const INTEGRATION_NAME = 'EventOrigin';
 
