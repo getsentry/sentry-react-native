@@ -1,4 +1,4 @@
-import type { Client } from '@sentry/types';
+import type { Client } from '@sentry/core';
 
 import { nativeReleaseIntegration } from '../../src/js/integrations/release';
 

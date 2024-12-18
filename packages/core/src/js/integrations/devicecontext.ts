@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
+import type { Client, Event, EventHint, Integration } from '@sentry/core';
 import { logger, severityLevelFromString } from '@sentry/core';
-import type { Client, Event, EventHint, Integration } from '@sentry/types';
 import { AppState } from 'react-native';
 
 import { breadcrumbFromObject } from '../breadcrumb';

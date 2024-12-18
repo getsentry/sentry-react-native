@@ -1,3 +1,4 @@
+import type { Event, EventHint, Integration, Outcome, ParameterizedString, Session, SeverityLevel } from '@sentry/core';
 import {
   BaseClient,
   createTransport,
@@ -8,15 +9,6 @@ import {
   resolvedSyncPromise,
   setCurrentClient,
 } from '@sentry/core';
-import type {
-  Event,
-  EventHint,
-  Integration,
-  Outcome,
-  ParameterizedString,
-  Session,
-  SeverityLevel,
-} from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../../src/js/options';
 

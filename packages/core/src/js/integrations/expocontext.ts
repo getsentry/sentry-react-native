@@ -1,4 +1,4 @@
-import type { DeviceContext, Event, Integration, OsContext } from '@sentry/types';
+import type { DeviceContext, Event, Integration, OsContext } from '@sentry/core';
 
 import { getExpoDevice } from '../utils/expomodules';
 

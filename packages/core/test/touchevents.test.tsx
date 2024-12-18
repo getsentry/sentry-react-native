@@ -1,8 +1,8 @@
 /**
  * @jest-environment jsdom
  */
+import type { SeverityLevel } from '@sentry/core';
 import * as core from '@sentry/core';
-import type { SeverityLevel } from '@sentry/types';
 
 import { TouchEventBoundary } from '../src/js/touchevents';
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';

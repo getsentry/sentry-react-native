@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
+import type { Integration } from '@sentry/core';
 import type { BrowserOptions } from '@sentry/react';
-import type { Integration } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../options';
 import { reactNativeTracingIntegration } from '../tracing';

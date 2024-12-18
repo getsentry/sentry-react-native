@@ -1,10 +1,10 @@
 /* eslint-disable complexity */
+import type { Breadcrumb, BreadcrumbHint, Integration, Scope, SendFeedbackParams, UserFeedback } from '@sentry/core';
 import { captureFeedback, getClient, getGlobalScope, getIntegrationsToSetup, getIsolationScope, initAndBind, logger, stackParserFromStackParserOptions, withScope as coreWithScope } from '@sentry/core';
 import {
   defaultStackParser,
   makeFetchTransport,
 } from '@sentry/react';
-import type { Breadcrumb, BreadcrumbHint, Integration, Scope, SendFeedbackParams, UserFeedback } from '@sentry/types';
 import * as React from 'react';
 
 import { ReactNativeClient } from './client';
