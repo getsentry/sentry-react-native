@@ -1,3 +1,4 @@
+import type { MeasurementUnit, Span, SpanJSON, TransactionSource } from '@sentry/core';
 import {
   dropUndefinedKeys,
   getSpanDescendants,
@@ -11,7 +12,6 @@ import {
   timestampInSeconds,
   uuid4,
 } from '@sentry/core';
-import type { MeasurementUnit, Span, SpanJSON, TransactionSource } from '@sentry/types';
 
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 

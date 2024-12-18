@@ -1,3 +1,4 @@
+import type { Integration, Span, StartSpanOptions } from '@sentry/core';
 import {
   getActiveSpan,
   getClient,
@@ -6,7 +7,6 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   spanToJSON,
 } from '@sentry/core';
-import type { Integration, Span, StartSpanOptions } from '@sentry/types';
 
 import type { ReactNativeClientOptions } from '../../options';
 import { onlySampleIfChildSpans } from '../onSpanEndUtils';

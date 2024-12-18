@@ -1,5 +1,5 @@
+import type { Span } from '@sentry/core';
 import { getActiveSpan, getCurrentScope, spanToJSON, startSpanManual } from '@sentry/core';
-import type { Span } from '@sentry/types';
 import type { AppState, AppStateStatus } from 'react-native';
 
 import type { ScopeWithMaybeSpan } from '../../src/js/tracing/span';

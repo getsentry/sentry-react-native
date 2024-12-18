@@ -1,3 +1,4 @@
+import type { Client, Scope, Span, StartSpanOptions } from '@sentry/core';
 import {
   generatePropagationContext,
   getActiveSpan,
@@ -11,7 +12,6 @@ import {
   spanToJSON,
   startIdleSpan as coreStartIdleSpan,
 } from '@sentry/core';
-import type { Client, Scope, Span, StartSpanOptions } from '@sentry/types';
 
 import { isRootSpan } from '../utils/span';
 import { adjustTransactionDuration, cancelInBackground } from './onSpanEndUtils';
