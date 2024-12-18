@@ -1,4 +1,4 @@
-import type { Span } from '@sentry/types';
+import type { Span } from '@sentry/core';
 
 export interface ReactNavigationRoute {
   name: string;

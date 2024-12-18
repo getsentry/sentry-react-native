@@ -1,4 +1,4 @@
-import type { ThreadCpuSample } from '@sentry/types';
+import type { ThreadCpuSample } from '@sentry/core';
 
 import { convertToSentryProfile, mapSamples } from '../../src/js/profiling/convertHermesProfile';
 import type * as Hermes from '../../src/js/profiling/hermes';

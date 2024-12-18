@@ -19,7 +19,6 @@
     "@sentry/core": "8.46.0",
     "@sentry/react": "8.46.0",
     "@sentry/react-native": "6.4.0",
-    "@sentry/types": "8.46.0",
     "delay": "^6.0.0",
     "react": "18.2.0",
     "react-native": "0.73.9",

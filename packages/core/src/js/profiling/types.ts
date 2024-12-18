@@ -1,4 +1,4 @@
-import type { DebugImage, MeasurementUnit, Profile, ThreadCpuFrame, ThreadCpuProfile } from '@sentry/types';
+import type { DebugImage, MeasurementUnit, Profile, ThreadCpuFrame, ThreadCpuProfile } from '@sentry/core';
 
 import type { NativeProfileEvent } from './nativeTypes';
 

@@ -24354,7 +24354,6 @@ __metadata:
     "@sentry/core": 8.46.0
     "@sentry/react": 8.46.0
     "@sentry/react-native": 6.4.0
-    "@sentry/types": 8.46.0
     "@types/react": ^18.2.65
     "@types/react-native-vector-icons": ^6.4.18
     "@types/react-test-renderer": ^18.0.0

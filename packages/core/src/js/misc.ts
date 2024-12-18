@@ -1,4 +1,4 @@
-import type { EnvelopeItem, Exception } from '@sentry/types';
+import type { EnvelopeItem, Exception } from '@sentry/core';
 
 type EnvelopeItemPayload = EnvelopeItem[1];
 
