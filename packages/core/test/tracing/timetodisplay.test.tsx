@@ -9,7 +9,7 @@ jest.mock('../../src/js/utils/environment', () => ({
   isTurboModuleEnabled: jest.fn().mockReturnValue(false),
 }));
 
-import type { Event, Measurements, Span, SpanJSON} from '@sentry/types';
+import type { Event, Measurements, Span, SpanJSON} from '@sentry/core';
 import * as React from "react";
 import * as TestRenderer from 'react-test-renderer';
 

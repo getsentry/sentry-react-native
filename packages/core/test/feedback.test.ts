@@ -1,3 +1,4 @@
+import type { Span } from '@sentry/core';
 import {
   addBreadcrumb,
   captureFeedback,
@@ -8,7 +9,6 @@ import {
   withIsolationScope,
   withScope,
 } from '@sentry/core';
-import type { Span } from '@sentry/types';
 
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
 

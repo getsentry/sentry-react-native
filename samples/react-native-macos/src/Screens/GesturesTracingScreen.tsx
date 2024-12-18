@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { sentryTraceGesture, startSpanManual } from '@sentry/react-native';
-import { Span } from '@sentry/types';
+import { Span } from '@sentry/core';
 
 const GesturesTracingScreen = () => {
   const gesture = Gesture.Pinch().onBegin(() => {

@@ -1,4 +1,4 @@
-import type { Client } from '@sentry/types';
+import type { Client } from '@sentry/core';
 
 import { eventOriginIntegration } from '../../src/js/integrations/eventorigin';
 
