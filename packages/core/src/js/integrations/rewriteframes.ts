@@ -1,5 +1,5 @@
+import type { Integration, StackFrame } from '@sentry/core';
 import { rewriteFramesIntegration } from '@sentry/core';
-import type { Integration, StackFrame } from '@sentry/types';
 import { Platform } from 'react-native';
 
 import { isExpo, isHermesEnabled } from '../utils/environment';

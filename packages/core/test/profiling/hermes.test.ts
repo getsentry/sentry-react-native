@@ -1,4 +1,4 @@
-import type { ThreadCpuFrame } from '@sentry/types';
+import type { ThreadCpuFrame } from '@sentry/core';
 
 import { parseHermesJSStackFrame } from '../../src/js/profiling/convertHermesProfile';
 

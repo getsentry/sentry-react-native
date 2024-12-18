@@ -1,5 +1,5 @@
+import type { Breadcrumb } from '@sentry/core';
 import { getActiveSpan, spanToJSON, startSpan } from '@sentry/core';
-import type { Breadcrumb } from '@sentry/types';
 
 import { UI_ACTION } from '../../src/js/tracing';
 import {
