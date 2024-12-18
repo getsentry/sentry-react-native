@@ -34,8 +34,7 @@ export interface FeedbackGeneralConfiguration {
   showName?: boolean;
 
   /**
-   * Should the screen shots field be included?
-   * Screen shots cannot be marked as required
+   * This flag determines whether the "Add Screenshot" button is displayed
    * @default false
    */
   enableScreenshot?: boolean;
