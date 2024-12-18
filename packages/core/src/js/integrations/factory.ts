@@ -1,4 +1,4 @@
-import type { Integration } from '@sentry/types';
+import type { Integration } from '@sentry/core';
 
 /**
  * Creates an integration out of the provided name and setup function.

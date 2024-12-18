@@ -1,4 +1,4 @@
-import type { Client } from '@sentry/types';
+import type { Client } from '@sentry/core';
 
 /**
  * Checks if the provided Sentry client has hooks implemented.

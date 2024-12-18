@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
+import type { Client, Integration, Measurements, MeasurementUnit, Span } from '@sentry/core';
 import { getRootSpan, logger, spanToJSON, timestampInSeconds } from '@sentry/core';
-import type { Client, Integration, Measurements, MeasurementUnit, Span } from '@sentry/types';
 import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
 

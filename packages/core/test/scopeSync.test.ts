@@ -1,7 +1,7 @@
 jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
+import type { Breadcrumb } from '@sentry/core';
 import * as SentryCore from '@sentry/core';
 import { Scope } from '@sentry/core';
-import type { Breadcrumb } from '@sentry/types';
 
 import { enableSyncToNative } from '../src/js/scopeSync';
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
