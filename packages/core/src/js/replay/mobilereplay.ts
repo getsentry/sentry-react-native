@@ -1,5 +1,5 @@
+import type { Client, DynamicSamplingContext, Event, Integration } from '@sentry/core';
 import { logger } from '@sentry/core';
-import type { Client, DynamicSamplingContext, Event, Integration } from '@sentry/types';
 
 import { isHardCrash } from '../misc';
 import { hasHooks } from '../utils/clientutils';

@@ -1,6 +1,6 @@
 jest.mock('../../src/js/integrations/debugsymbolicatorutils');
 
-import type { Client, Event, EventHint, StackFrame } from '@sentry/types';
+import type { Client, Event, EventHint, StackFrame } from '@sentry/core';
 
 import { debugSymbolicatorIntegration } from '../../src/js/integrations/debugsymbolicator';
 import {

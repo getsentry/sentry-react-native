@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
+import type { Envelope, Event, Integration, Span, ThreadCpuProfile } from '@sentry/core';
 import { getActiveSpan, getClient, logger, spanIsSampled, uuid4 } from '@sentry/core';
-import type { Envelope, Event, Integration, Span, ThreadCpuProfile } from '@sentry/types';
 import { Platform } from 'react-native';
 
 import type { ReactNativeClient } from '../client';

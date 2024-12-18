@@ -1,4 +1,4 @@
-import type { Client, Event, EventHint } from '@sentry/types';
+import type { Client, Event, EventHint } from '@sentry/core';
 
 import { viewHierarchyIntegration } from '../../src/js/integrations/viewhierarchy';
 import { NATIVE } from '../../src/js/wrapper';

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
-import { Span } from '@sentry/types';
+import { Span } from '@sentry/core';
 
 /**
  * An example of how to add a Sentry Transaction to a React component manually.

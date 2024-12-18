@@ -1,6 +1,6 @@
 import type { HttpRequestEventMap } from '@mswjs/interceptors';
 import { XMLHttpRequestInterceptor } from '@mswjs/interceptors/XMLHttpRequest';
-import type { Client, Envelope } from '@sentry/types';
+import type { Client, Envelope } from '@sentry/core';
 
 import { spotlightIntegration } from '../../src/js/integrations/spotlight';
 
