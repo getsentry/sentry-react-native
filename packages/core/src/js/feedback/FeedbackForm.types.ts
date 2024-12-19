@@ -4,6 +4,9 @@ export type Navigation = {
   navigate: (screen: string, params?: Record<string, unknown>) => void;
 };
 
+/**
+ * The props for the feedback form
+ */
 export interface FeedbackFormProps extends FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackCallbacks {
   styles?: FeedbackFormStyles;
   navigation?: Navigation;
@@ -13,6 +16,13 @@ export interface FeedbackFormProps extends FeedbackGeneralConfiguration, Feedbac
  * General feedback configuration
  */
 export interface FeedbackGeneralConfiguration {
+  /**
+   * Show the Sentry branding
+   *
+   * @default true
+   */
+  showBranding?: boolean;
+
   /**
    * Should the email field be required?
    */
@@ -143,6 +153,9 @@ export interface FeedbackCallbacks {
   onFormClose?: () => void;
 }
 
+/**
+ * The styles for the feedback form
+ */
 export interface FeedbackFormStyles {
   container?: ViewStyle;
   title?: TextStyle;
@@ -156,8 +169,13 @@ export interface FeedbackFormStyles {
   triggerButton?: ViewStyle;
   triggerText?: TextStyle;
   triggerIcon?: ImageStyle;
+  titleContainer?: ViewStyle;
+  sentryLogo?: ImageStyle;
 }
 
+/**
+ * The state of the feedback form
+ */
 export interface FeedbackFormState {
   isVisible: boolean;
   name: string;

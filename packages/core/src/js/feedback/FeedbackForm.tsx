@@ -16,6 +16,7 @@ import {
   View
 } from 'react-native';
 
+import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration, Navigation } from './FeedbackForm.types';
@@ -164,7 +165,16 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
         <ScrollView>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>
-              <Text style={styles.title}>{text.formTitle}</Text>
+              <View style={styles.titleContainer}>
+                <Text style={styles.title}>{text.formTitle}</Text>
+                {config.showBranding && (
+                  <Image
+                    source={{ uri: sentryLogo }}
+                    style={styles.sentryLogo}
+                    testID='sentry-logo'
+                  />
+                )}
+              </View>
 
               {config.showName && (
               <>
