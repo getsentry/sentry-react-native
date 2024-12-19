@@ -36,6 +36,7 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
   },
 
   // FeedbackGeneralConfiguration
+  showBranding: true,
   isEmailRequired: false,
   shouldValidateEmail: true,
   isNameRequired: false,

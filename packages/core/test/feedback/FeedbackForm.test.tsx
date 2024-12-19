@@ -49,9 +49,10 @@ describe('FeedbackForm', () => {
   });
 
   it('renders correctly', () => {
-    const { getByPlaceholderText, getByText, queryByText } = render(<FeedbackForm {...defaultProps} />);
+    const { getByPlaceholderText, getByText, getByTestId, queryByText } = render(<FeedbackForm {...defaultProps} />);
 
     expect(getByText(defaultProps.formTitle)).toBeTruthy();
+    expect(getByTestId('sentry-logo')).toBeTruthy(); // default showBranding is true
     expect(getByText(defaultProps.nameLabel)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.namePlaceholder)).toBeTruthy();
     expect(getByText(defaultProps.emailLabel)).toBeTruthy();
@@ -67,6 +68,12 @@ describe('FeedbackForm', () => {
     const { getByText } = render(<FeedbackForm {...defaultProps} enableScreenshot={true} />);
 
     expect(getByText(defaultProps.addScreenshotButtonLabel)).toBeTruthy();
+  });
+
+  it('does not render the sentry logo when showBranding is false', () => {
+    const { queryByTestId } = render(<FeedbackForm {...defaultProps} showBranding={false} />);
+
+    expect(queryByTestId('sentry-logo')).toBeNull();
   });
 
   it('name and email are prefilled when sentry user is set', () => {
