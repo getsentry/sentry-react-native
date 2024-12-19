@@ -29,7 +29,8 @@
 
 - User Feedback Form Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
 
-  To collect user feedback from inside your application add the `FeedbackForm` component.
+  To collect user feedback from inside your application you can use:
+   1. the `FeedbackForm` component:
 
   ```jsx
   import { FeedbackForm } from "@sentry/react-native";
@@ -37,6 +38,26 @@
   <FeedbackForm/>
   ```
   or auto-inject it by calling the `showFeedbackForm`:
+    ```jsx
+  import { showFeedbackForm } from '@sentry/react-native';
+  ...
+    <Button
+      title="Show feedback form"
+      onPress={() => {
+        showFeedbackForm(_props.navigation);
+      }}
+    />
+  ```
+
+   2. the `FeedbackButton` component:
+
+  ```jsx
+  import { FeedbackButton } from "@sentry/react-native";
+  ...
+  <FeedbackButton navigation={_props.navigation} />
+  ```
+
+   3. the `showFeedbackForm` function:
     ```jsx
   import { showFeedbackForm } from '@sentry/react-native';
   ...

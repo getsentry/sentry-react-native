@@ -19,7 +19,8 @@ import {
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
-import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration } from './FeedbackForm.types';
+import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration, Navigation } from './FeedbackForm.types';
+import { feedbackIcon }  from './icons';
 
 let feedbackFormHandler: (() => void) | null = null;
 
@@ -31,10 +32,11 @@ const clearFeedbackFormHandler = (): void => {
   feedbackFormHandler = null;
 };
 
-type Navigation = {
-  navigate: (screen: string, params?: Record<string, unknown>) => void;
-};
-
+/**
+ * @beta
+ * Shows the feedback form screen that sends feedback to Sentry using Sentry.captureFeedback.
+ * @param navigation The navigation object from React Navigation
+ */
 export const showFeedbackForm = (navigation: Navigation): void => {
   setFeedbackFormHandler(() => {
     navigation?.navigate?.('FeedbackForm');
@@ -45,6 +47,31 @@ export const showFeedbackForm = (navigation: Navigation): void => {
     logger.error('FeedbackForm handler is not set. Please ensure it is initialized.');
   }
 };
+
+/**
+ * @beta
+ * Implements a feedback button that opens the feedback form screen to Sentry using Sentry.captureFeedback.
+ */
+export class FeedbackButton extends React.Component<FeedbackFormProps> {
+  /**
+   *
+   */
+  public render(): React.ReactNode {
+    const text: FeedbackTextConfiguration = { ...defaultConfiguration, ...this.props };
+    const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
+
+    return (
+      <TouchableOpacity
+        style={styles.triggerButton}
+        onPress={() => showFeedbackForm(this.props?.navigation)}
+        accessibilityLabel={text.triggerAriaLabel}
+      >
+        <Image source={{ uri: feedbackIcon }} style={styles.triggerIcon}/>
+        <Text style={styles.triggerText}>{text.triggerLabel}</Text>
+      </TouchableOpacity>
+    );
+  }
+}
 
 /**
  * @beta
