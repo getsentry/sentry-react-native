@@ -25,11 +25,11 @@
   });
   ```
 
-To learn how to attach context data to the feedback visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/).
+  To learn how to attach context data to the feedback visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/).
 
 - User Feedback Form Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
 
-   To collect user feedback from inside your application you can use:
+  To collect user feedback from inside your application you can use:
    1. the `FeedbackForm` component:
 
   ```jsx
