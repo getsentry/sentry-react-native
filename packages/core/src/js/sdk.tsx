@@ -67,8 +67,15 @@ export function init(passedOptions: ReactNativeOptions): void {
       return undefined;
     }
     try {
-      const url = new URL(dsn);
-      return `${url.protocol}//${url.host}`;
+      const regex = /^(https?):\/\/(?:[^@]+@)?([^/]+)(?:\/.*)?$/;
+      const matches = dsn.match(regex);
+
+      if (matches) {
+        const [, protocol, host] = matches;
+        return `${protocol}://${host}`;
+      }
+      logger.error('Failed to extract url from DSN: ', dsn);
+      return undefined;
     } catch (e) {
       logger.error('Failed to extract url from DSN', e);
       return undefined;
