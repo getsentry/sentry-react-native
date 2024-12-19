@@ -36,6 +36,17 @@ To learn how to attach context data to the feedback visit [the documentation](ht
   ...
   <FeedbackForm/>
   ```
+  or auto-inject it by calling the `showFeedbackForm`:
+    ```jsx
+  import { showFeedbackForm } from '@sentry/react-native';
+  ...
+    <Button
+      title="Show feedback form"
+      onPress={() => {
+        showFeedbackForm(_props.navigation);
+      }}
+    />
+  ```
 
 - Export `Span` type from `@sentry/types` ([#4345](https://github.com/getsentry/sentry-react-native/pull/4345))
 - Add RN SDK package to `sdk.packages` on Android ([#4380](https://github.com/getsentry/sentry-react-native/pull/4380))
