@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
+import { showFeedbackForm } from '@sentry/react-native';
 
 import { setScopeProperties } from '../setScopeProperties';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -218,6 +219,18 @@ const ErrorsScreen = (_props: Props) => {
             } catch (error) {
               //ignore the error, it will be send to Sentry automatically
             }
+          }}
+        />
+        <Button
+          title="Feedback form"
+          onPress={() => {
+            _props.navigation.navigate('FeedbackForm');
+          }}
+        />
+        <Button
+          title="Feedback form (autoinject)"
+          onPress={() => {
+            showFeedbackForm(_props.navigation);
           }}
         />
         <Button
