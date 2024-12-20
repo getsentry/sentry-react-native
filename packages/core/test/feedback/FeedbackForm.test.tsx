@@ -1,10 +1,10 @@
-import { captureFeedback } from '@sentry/core';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
 import { Alert } from 'react-native';
 
 import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
 import type { FeedbackFormProps } from '../../src/js/feedback/FeedbackForm.types';
+import { sendFeedback } from '../../src/js/feedback/sendFeedback';
 import { checkInternetConnection } from '../../src/js/feedback/utils';
 
 const mockOnFormClose = jest.fn();
@@ -20,7 +20,6 @@ jest.spyOn(Alert, 'alert');
 
 jest.mock('@sentry/core', () => ({
   ...jest.requireActual('@sentry/core'),
-  captureFeedback: jest.fn(),
   getCurrentScope: jest.fn(() => ({
     getUser: mockGetUser,
   })),
@@ -29,6 +28,9 @@ jest.mock('@sentry/core', () => ({
 jest.mock('../../src/js/feedback/utils', () => ({
   ...jest.requireActual('../../src/js/feedback/utils'),
   checkInternetConnection: jest.fn(),
+}));
+jest.mock('../../src/js/feedback/sendFeedback', () => ({
+  sendFeedback: jest.fn(),
 }));
 
 const defaultProps: FeedbackFormProps = {
@@ -131,7 +133,7 @@ describe('FeedbackForm', () => {
     });
   });
 
-  it('calls captureFeedback when the form is submitted successfully', async () => {
+  it('calls sendFeedback when the form is submitted successfully', async () => {
     const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
     fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
@@ -141,11 +143,11 @@ describe('FeedbackForm', () => {
     fireEvent.press(getByText(defaultProps.submitButtonLabel));
 
     await waitFor(() => {
-      expect(captureFeedback).toHaveBeenCalledWith({
+      expect(sendFeedback).toHaveBeenCalledWith({
         message: 'This is a feedback message.',
         name: 'John Doe',
         email: 'john.doe@example.com',
-      });
+      }, undefined);
     });
   });
 
