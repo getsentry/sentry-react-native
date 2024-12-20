@@ -1,4 +1,3 @@
-import { sendFeedback } from '@sentry-internal/feedback';
 import type { EventHint, SendFeedbackParams } from '@sentry/core';
 import { getCurrentScope, lastEventId, logger } from '@sentry/core';
 import * as React from 'react';
@@ -21,6 +20,7 @@ import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration } from './FeedbackForm.types';
+import { sendFeedback } from './sendFeedback';
 import { checkInternetConnection, isValidEmail } from './utils';
 
 const submitFeedback = async (feedbackParams: SendFeedbackParams, hint: EventHint, success: () => void, error: (e: string) => void): Promise<void> => {

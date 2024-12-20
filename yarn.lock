@@ -7591,15 +7591,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry-internal/feedback@npm:8.45.1":
-  version: 8.45.1
-  resolution: "@sentry-internal/feedback@npm:8.45.1"
-  dependencies:
-    "@sentry/core": 8.45.1
-  checksum: aa0d50078350dbfd3ebdfed448a0d4279324d624fb464bc411d3ec286d6895e52753bc9217bcdfe75a35e184d479588227d1e503bf766ea39bd5392103431b25
-  languageName: node
-  linkType: hard
-
 "@sentry-internal/feedback@npm:8.47.0":
   version: 8.47.0
   resolution: "@sentry-internal/feedback@npm:8.47.0"
@@ -7788,13 +7779,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/core@npm:8.45.1":
-  version: 8.45.1
-  resolution: "@sentry/core@npm:8.45.1"
-  checksum: 81ed72485685d7baf246ed35c01428664a97eece445ab7b801b908e93dcb58652eaca588c2f9f80baa95419590eb78251305f9e5258ba8a1efee839cb40b15c8
-  languageName: node
-  linkType: hard
-
 "@sentry/core@npm:8.47.0":
   version: 8.47.0
   resolution: "@sentry/core@npm:8.47.0"
@@ -7837,7 +7821,6 @@ __metadata:
     "@react-native/babel-preset": 0.76.3
     "@sentry-internal/eslint-config-sdk": 8.47.0
     "@sentry-internal/eslint-plugin-sdk": 8.47.0
-    "@sentry-internal/feedback": 8.45.1
     "@sentry-internal/typescript": 8.47.0
     "@sentry/babel-plugin-component-annotate": 2.20.1
     "@sentry/browser": 8.47.0

@@ -1,10 +1,10 @@
-import { sendFeedback } from '@sentry-internal/feedback';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
 import { Alert } from 'react-native';
 
 import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
 import type { FeedbackFormProps } from '../../src/js/feedback/FeedbackForm.types';
+import { sendFeedback } from '../../src/js/feedback/sendFeedback';
 import { checkInternetConnection } from '../../src/js/feedback/utils';
 
 const mockOnFormClose = jest.fn();
@@ -29,7 +29,7 @@ jest.mock('../../src/js/feedback/utils', () => ({
   ...jest.requireActual('../../src/js/feedback/utils'),
   checkInternetConnection: jest.fn(),
 }));
-jest.mock('@sentry-internal/feedback', () => ({
+jest.mock('../../src/js/feedback/sendFeedback', () => ({
   sendFeedback: jest.fn(),
 }));
 
