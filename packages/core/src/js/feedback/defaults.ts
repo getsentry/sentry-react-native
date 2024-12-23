@@ -39,7 +39,12 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
     // Does nothing by default
   },
   onFormSubmitted: () => {
-    // Does nothing by default
+    if (__DEV__) {
+      Alert.alert(
+        'Development note',
+        'onFormSubmitted callback is not implemented. By default the form is just unmounted.',
+      );
+    }
   },
 
   // FeedbackGeneralConfiguration
