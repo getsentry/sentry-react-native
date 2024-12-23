@@ -5,8 +5,12 @@ import { Alert } from 'react-native';
 
 import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
 import type { FeedbackFormProps } from '../../src/js/feedback/FeedbackForm.types';
+import { checkInternetConnection } from '../../src/js/feedback/utils';
 
 const mockOnFormClose = jest.fn();
+const mockOnSubmitSuccess = jest.fn();
+const mockOnFormSubmitted = jest.fn();
+const mockOnSubmitError = jest.fn();
 const mockGetUser = jest.fn(() => ({
   email: 'test@example.com',
   name: 'Test User',
@@ -15,15 +19,23 @@ const mockGetUser = jest.fn(() => ({
 jest.spyOn(Alert, 'alert');
 
 jest.mock('@sentry/core', () => ({
+  ...jest.requireActual('@sentry/core'),
   captureFeedback: jest.fn(),
   getCurrentScope: jest.fn(() => ({
     getUser: mockGetUser,
   })),
   lastEventId: jest.fn(),
 }));
+jest.mock('../../src/js/feedback/utils', () => ({
+  ...jest.requireActual('../../src/js/feedback/utils'),
+  checkInternetConnection: jest.fn(),
+}));
 
 const defaultProps: FeedbackFormProps = {
   onFormClose: mockOnFormClose,
+  onSubmitSuccess: mockOnSubmitSuccess,
+  onFormSubmitted: mockOnFormSubmitted,
+  onSubmitError: mockOnSubmitError,
   formTitle: 'Feedback Form',
   nameLabel: 'Name',
   namePlaceholder: 'Name Placeholder',
@@ -38,9 +50,16 @@ const defaultProps: FeedbackFormProps = {
   formError: 'Please fill out all required fields.',
   emailError: 'The email address is not valid.',
   successMessageText: 'Feedback success',
+  networkError: 'Network error',
+  genericError: 'Generic error',
 };
 
 describe('FeedbackForm', () => {
+  beforeEach(() => {
+    (checkInternetConnection as jest.Mock).mockImplementation((onConnected, _onDisconnected, _onError) => {
+      onConnected();
+    });
+  });
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -144,7 +163,11 @@ describe('FeedbackForm', () => {
     });
   });
 
-  it('calls onFormClose when the form is submitted successfully', async () => {
+  it('shows an error message when there is no network connection', async () => {
+    (checkInternetConnection as jest.Mock).mockImplementationOnce((_onConnected, onDisconnected, _onError) => {
+      onDisconnected();
+    });
+
     const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
     fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
@@ -154,7 +177,71 @@ describe('FeedbackForm', () => {
     fireEvent.press(getByText(defaultProps.submitButtonLabel));
 
     await waitFor(() => {
-      expect(mockOnFormClose).toHaveBeenCalled();
+      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.errorTitle, defaultProps.networkError);
+    });
+  });
+
+  it('shows an error message when there is a generic connection', async () => {
+    (checkInternetConnection as jest.Mock).mockImplementationOnce((_onConnected, _onDisconnected, onError) => {
+      onError();
+    });
+
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.errorTitle, defaultProps.genericError);
+    });
+  });
+
+  it('calls onSubmitError when there is an error', async () => {
+    (checkInternetConnection as jest.Mock).mockImplementationOnce((_onConnected, _onDisconnected, onError) => {
+      onError();
+    });
+
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(mockOnSubmitError).toHaveBeenCalled();
+    });
+  });
+
+  it('calls onSubmitSuccess when the form is submitted successfully', async () => {
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(mockOnSubmitSuccess).toHaveBeenCalled();
+    });
+  });
+
+  it('calls onFormSubmitted when the form is submitted successfully', async () => {
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(mockOnFormSubmitted).toHaveBeenCalled();
     });
   });
 
