@@ -7829,7 +7829,7 @@ __metadata:
     "@sentry/react": 8.47.0
     "@sentry/types": 8.47.0
     "@sentry/utils": 8.47.0
-    "@sentry/wizard": 3.36.0
+    "@sentry/wizard": 3.37.0
     "@testing-library/react-native": ^12.7.2
     "@types/jest": ^29.5.3
     "@types/node": ^20.9.3
@@ -7922,9 +7922,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/wizard@npm:3.36.0":
-  version: 3.36.0
-  resolution: "@sentry/wizard@npm:3.36.0"
+"@sentry/wizard@npm:3.37.0":
+  version: 3.37.0
+  resolution: "@sentry/wizard@npm:3.37.0"
   dependencies:
     "@clack/core": ^0.3.4
     "@clack/prompts": 0.7.0
@@ -7946,7 +7946,7 @@ __metadata:
     yargs: ^16.2.0
   bin:
     sentry-wizard: dist/bin.js
-  checksum: 39c4e8066ea96f6e128c270cf00ebeb7d9992f9228edbe5ca290efab8b1b4817e54191860a53e917df5428d133b97cec6395ea3ee857e5156c0ed47832f51758
+  checksum: a3bbe5348df6e5b25b8ffe2d3526772b394a4e36766438cd462b578da8b1b714fab2fc6e0eb83e4dbcbe61406237ff450f6879f98b3a24c14b3c7df3437d6e18
   languageName: node
   linkType: hard
 
@@ -12287,15 +12287,15 @@ __metadata:
   linkType: hard
 
 "cross-spawn@npm:^6.0.0":
-  version: 6.0.5
-  resolution: "cross-spawn@npm:6.0.5"
+  version: 6.0.6
+  resolution: "cross-spawn@npm:6.0.6"
   dependencies:
-    nice-try: "npm:^1.0.4"
-    path-key: "npm:^2.0.1"
-    semver: "npm:^5.5.0"
-    shebang-command: "npm:^1.2.0"
-    which: "npm:^1.2.9"
-  checksum: f893bb0d96cd3d5751d04e67145bdddf25f99449531a72e82dcbbd42796bbc8268c1076c6b3ea51d4d455839902804b94bc45dfb37ecbb32ea8e54a6741c3ab9
+    nice-try: ^1.0.4
+    path-key: ^2.0.1
+    semver: ^5.5.0
+    shebang-command: ^1.2.0
+    which: ^1.2.9
+  checksum: a6e2e5b04a0e0f806c1df45f92cd079b65f95fbe5a7650ee1ab60318c33a6c156a8a2f8b6898f57764f7363ec599a0625e9855dfa78d52d2d73dbd32eb11c25e
   languageName: node
   linkType: hard
 
