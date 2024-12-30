@@ -37,7 +37,7 @@ final class RNSentryReplayOptions: XCTestCase {
     func testReplayOptionsDictContainsAllOptionsKeysWhenErrorAndSessionSampleRatesUsed() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
-                            "replaysOnErrorSampleRate": 0.75,
+            "replaysOnErrorSampleRate": 0.75,
             "replaysSessionSampleRate": 0.75
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
         RNSentryReplay.updateOptions(optionsDict)
