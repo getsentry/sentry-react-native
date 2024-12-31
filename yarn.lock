@@ -5120,6 +5120,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@naturalcycles/ktlint@npm:^1.13.0":
+  version: 1.13.0
+  resolution: "@naturalcycles/ktlint@npm:1.13.0"
+  bin:
+    ktlint: resources/ktlint
+  checksum: de8c75dd59993117ba04236adde7377d559349dda6cdfa94ef35c7ebe35b3671631eda7b442aca317eb7844f8f4e71b35d05c317d9537c8b74e80332ba984e00
+  languageName: node
+  linkType: hard
+
 "@nicolo-ribaudo/chokidar-2@npm:2.1.8-no-fsevents.3":
   version: 2.1.8-no-fsevents.3
   resolution: "@nicolo-ribaudo/chokidar-2@npm:2.1.8-no-fsevents.3"
@@ -24438,6 +24447,7 @@ __metadata:
   resolution: "sentry-react-native@workspace:."
   dependencies:
     "@expo/swiftlint": ^0.57.1
+    "@naturalcycles/ktlint": ^1.13.0
     "@sentry/cli": 2.39.1
     clang-format: ^1.8.0
     downlevel-dts: ^0.11.0
