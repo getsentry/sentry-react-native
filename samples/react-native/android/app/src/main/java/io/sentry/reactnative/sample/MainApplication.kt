@@ -13,12 +13,12 @@ import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 import io.sentry.Hint
 import io.sentry.SentryEvent
-import io.sentry.SentryLevel
 import io.sentry.SentryOptions.BeforeSendCallback
 import io.sentry.android.core.SentryAndroid
 
-
-class MainApplication() : Application(), ReactApplication {
+class MainApplication :
+    Application(),
+    ReactApplication {
     override val reactNativeHost: ReactNativeHost =
         object : DefaultReactNativeHost(this) {
             override fun getPackages(): List<ReactPackage> =
@@ -28,7 +28,9 @@ class MainApplication() : Application(), ReactApplication {
                 }
 
             override fun getJSMainModuleName(): String = "index"
+
             override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
+
             override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
             override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
         }
@@ -55,21 +57,22 @@ class MainApplication() : Application(), ReactApplication {
             options.dsn = "https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561"
             options.isDebug = true
 
-            options.beforeSend = BeforeSendCallback { event: SentryEvent, hint: Hint? ->
-                // React native internally throws a JavascriptException
-                // Since we catch it before that, we don't want to send this one
-                // because we would send it twice
-                try {
-                    val ex = event.exceptions!![0]
-                    if (null != ex && ex.type!!.contains("JavascriptException")) {
-                        return@BeforeSendCallback null
+            options.beforeSend =
+                BeforeSendCallback { event: SentryEvent, hint: Hint? ->
+                    // React native internally throws a JavascriptException
+                    // Since we catch it before that, we don't want to send this one
+                    // because we would send it twice
+                    try {
+                        val ex = event.exceptions!![0]
+                        if (null != ex && ex.type!!.contains("JavascriptException")) {
+                            return@BeforeSendCallback null
+                        }
+                    } catch (ignored: Throwable) {
+                        // We do nothing
                     }
-                } catch (ignored: Throwable) {
-                    // We do nothing
-                }
 
-                event
-            }
+                    event
+                }
         }
     }
 }
