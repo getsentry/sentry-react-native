@@ -16,6 +16,7 @@ import {
   View
 } from 'react-native';
 
+import { base64ToUint8Array } from '../utils/base64ToUint8Array';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
@@ -99,6 +100,17 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       return;
     }
 
+    const attachement = (this.state?.attachment instanceof Uint8Array)? this.state?.attachment : base64ToUint8Array(this.state?.attachment);
+
+    const attachments = this.state.filename && this.state.attachment
+    ? [
+        {
+          filename: this.state.filename,
+          data: attachement,
+        },
+      ]
+    : undefined;
+
     const eventId = lastEventId();
     const userFeedback: SendFeedbackParams = {
       message: trimmedDescription,
@@ -110,9 +122,20 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     onFormClose();
     this.setState({ isVisible: false });
 
-    captureFeedback(userFeedback);
+    captureFeedback(userFeedback, attachments ? { attachments } : undefined);
     Alert.alert(text.successMessageText);
   };
+
+  public addRemoveAttachment: () => void = () => {
+    if (!this.state.filename && !this.state.attachment) {
+      const { onFileChosen } = { ...defaultConfiguration, ...this.props };
+      onFileChosen((filename: string, attachement: string | Uint8Array) => {
+        this.setState({ filename, attachment: attachement });
+      });
+    } else {
+      this.setState({ filename: undefined, attachment: undefined });
+    }
+  }
 
   /**
    * Renders the feedback form screen.
@@ -191,6 +214,16 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
                 onChangeText={(value) => this.setState({ description: value })}
                 multiline
               />
+
+              {config.enableScreenshot && (
+                <TouchableOpacity style={styles.screenshotButton} onPress={this.addRemoveAttachment}>
+                  <Text style={styles.screenshotText}>
+                  {!this.state.filename && !this.state.attachment
+                    ? text.addScreenshotButtonLabel
+                    : text.removeScreenshotButtonLabel}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
                 <Text style={styles.submitText}>{text.submitButtonLabel}</Text>

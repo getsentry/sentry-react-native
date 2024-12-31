@@ -7,6 +7,7 @@ import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
 import type { FeedbackFormProps } from '../../src/js/feedback/FeedbackForm.types';
 
 const mockOnFormClose = jest.fn();
+const mockOnFileChosen = jest.fn();
 const mockGetUser = jest.fn(() => ({
   email: 'test@example.com',
   name: 'Test User',
@@ -24,6 +25,8 @@ jest.mock('@sentry/core', () => ({
 
 const defaultProps: FeedbackFormProps = {
   onFormClose: mockOnFormClose,
+  onFileChosen: mockOnFileChosen,
+  addScreenshotButtonLabel: 'Add Screenshot',
   formTitle: 'Feedback Form',
   nameLabel: 'Name',
   namePlaceholder: 'Name Placeholder',
@@ -46,7 +49,7 @@ describe('FeedbackForm', () => {
   });
 
   it('renders correctly', () => {
-    const { getByPlaceholderText, getByText, getByTestId } = render(<FeedbackForm {...defaultProps} />);
+    const { getByPlaceholderText, getByText, getByTestId, queryByText } = render(<FeedbackForm {...defaultProps} />);
 
     expect(getByText(defaultProps.formTitle)).toBeTruthy();
     expect(getByTestId('sentry-logo')).toBeTruthy(); // default showBranding is true
@@ -56,8 +59,15 @@ describe('FeedbackForm', () => {
     expect(getByPlaceholderText(defaultProps.emailPlaceholder)).toBeTruthy();
     expect(getByText(`${defaultProps.messageLabel } ${  defaultProps.isRequiredLabel}`)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.messagePlaceholder)).toBeTruthy();
+    expect(queryByText(defaultProps.addScreenshotButtonLabel)).toBeNull(); // default false
     expect(getByText(defaultProps.submitButtonLabel)).toBeTruthy();
     expect(getByText(defaultProps.cancelButtonLabel)).toBeTruthy();
+  });
+
+  it('renders attachment button when the enableScreenshot is true', () => {
+    const { getByText } = render(<FeedbackForm {...defaultProps} enableScreenshot={true} />);
+
+    expect(getByText(defaultProps.addScreenshotButtonLabel)).toBeTruthy();
   });
 
   it('does not render the sentry logo when showBranding is false', () => {
@@ -126,7 +136,7 @@ describe('FeedbackForm', () => {
         message: 'This is a feedback message.',
         name: 'John Doe',
         email: 'john.doe@example.com',
-      });
+      }, undefined);
     });
   });
 
@@ -155,6 +165,16 @@ describe('FeedbackForm', () => {
 
     await waitFor(() => {
       expect(mockOnFormClose).toHaveBeenCalled();
+    });
+  });
+
+  it('calls onFileChosen when the screenshot button is pressed', async () => {
+    const { getByText } = render(<FeedbackForm {...defaultProps} enableScreenshot={true} />);
+
+    fireEvent.press(getByText(defaultProps.addScreenshotButtonLabel));
+
+    await waitFor(() => {
+      expect(mockOnFileChosen).toHaveBeenCalled();
     });
   });
 
