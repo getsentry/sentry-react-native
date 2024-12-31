@@ -1,6 +1,5 @@
-import { addBreadcrumb, getClient, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
-import type { SeverityLevel } from '@sentry/types';
-import { dropUndefinedKeys, logger } from '@sentry/utils';
+import type { SeverityLevel } from '@sentry/core';
+import { addBreadcrumb, dropUndefinedKeys, getClient, logger, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
 import * as React from 'react';
 import type { GestureResponderEvent } from 'react-native';
 import { StyleSheet, View } from 'react-native';

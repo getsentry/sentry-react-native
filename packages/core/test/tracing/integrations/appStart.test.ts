@@ -1,3 +1,4 @@
+import type { ErrorEvent, Event, SpanJSON, TransactionEvent } from '@sentry/core';
 import {
   getCurrentScope,
   getGlobalScope,
@@ -5,9 +6,8 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   setCurrentClient,
+  timestampInSeconds,
 } from '@sentry/core';
-import type { ErrorEvent, Event, SpanJSON, TransactionEvent } from '@sentry/types';
-import { timestampInSeconds } from '@sentry/utils';
 
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
@@ -56,8 +56,8 @@ jest.mock('../../../src/js/tracing/utils', () => {
   };
 });
 
-jest.mock('@sentry/utils', () => {
-  const originalUtils = jest.requireActual('@sentry/utils');
+jest.mock('@sentry/core', () => {
+  const originalUtils = jest.requireActual('@sentry/core');
 
   return {
     ...originalUtils,

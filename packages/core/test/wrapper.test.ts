@@ -1,5 +1,5 @@
-import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/types';
-import { createEnvelope, logger } from '@sentry/utils';
+import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/core';
+import { createEnvelope, logger } from '@sentry/core';
 import * as RN from 'react-native';
 
 import type { Spec } from '../src/js/NativeRNSentry';

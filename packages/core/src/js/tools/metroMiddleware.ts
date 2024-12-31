@@ -1,5 +1,5 @@
-import type { StackFrame } from '@sentry/types';
-import { addContextToFrame, logger } from '@sentry/utils';
+import type { StackFrame } from '@sentry/core';
+import { addContextToFrame, logger } from '@sentry/core';
 import { readFile } from 'fs';
 import type { IncomingMessage, ServerResponse } from 'http';
 import type { InputConfigT, Middleware } from 'metro-config';

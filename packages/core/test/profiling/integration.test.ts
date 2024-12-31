@@ -3,11 +3,10 @@ jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
 jest.mock('../../src/js/profiling/debugid');
 
+import type { Envelope, Event, Integration, Profile, Span, ThreadCpuProfile, Transport } from '@sentry/core';
 import { getClient, spanToJSON } from '@sentry/core';
-import type { Envelope, Event, Integration, Profile, Span, ThreadCpuProfile, Transport } from '@sentry/types';
 
 import * as Sentry from '../../src/js';
-import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { getDebugMetadata } from '../../src/js/profiling/debugid';
 import type { HermesProfilingOptions } from '../../src/js/profiling/integration';
 import { hermesProfilingIntegration } from '../../src/js/profiling/integration';
@@ -79,9 +78,6 @@ describe('profiling integration', () => {
   describe('environment', () => {
     beforeEach(() => {
       (getDefaultEnvironment as jest.Mock).mockReturnValue('mocked');
-      mockWrapper.NATIVE.fetchNativeDeviceContexts.mockResolvedValue(<NativeDeviceContextsResponse>{
-        environment: 'native',
-      });
     });
 
     const expectTransactionWithEnvironment = (envelope: Envelope | undefined, env: string | undefined) => {
@@ -114,7 +110,7 @@ describe('profiling integration', () => {
       expectProfileWithEnvironment(envelope, 'mocked');
     });
 
-    test('should use native environment for transaction and profile if user value is nullish', () => {
+    test('should use production environment (default JS) for transaction and profile if user value is nullish', () => {
       mock = initTestClient({ withProfiling: true, environment: '' });
 
       Sentry.startSpan({ name: 'test-name' }, () => {});
@@ -122,14 +118,11 @@ describe('profiling integration', () => {
       jest.runAllTimers();
 
       const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
-      expectTransactionWithEnvironment(envelope, 'native');
-      expectProfileWithEnvironment(envelope, 'native');
+      expectTransactionWithEnvironment(envelope, 'production');
+      expectProfileWithEnvironment(envelope, 'production');
     });
 
-    test('should keep nullish for transaction and profile uses default', () => {
-      mockWrapper.NATIVE.fetchNativeDeviceContexts.mockResolvedValue(<NativeDeviceContextsResponse>{
-        environment: undefined,
-      });
+    test('should use production environment (default JS) for transaction and profile if user value is undefined', () => {
       mock = initTestClient({ withProfiling: true, environment: undefined });
 
       Sentry.startSpan({ name: 'test-name' }, () => {});
@@ -137,8 +130,8 @@ describe('profiling integration', () => {
       jest.runAllTimers();
 
       const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
-      expectTransactionWithEnvironment(envelope, undefined);
-      expectProfileWithEnvironment(envelope, 'mocked');
+      expectTransactionWithEnvironment(envelope, 'production');
+      expectProfileWithEnvironment(envelope, 'production');
     });
 
     test('should keep custom environment for transaction and profile', () => {

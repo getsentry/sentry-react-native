@@ -6,12 +6,13 @@ export type {
   Exception,
   SendFeedbackParams,
   SeverityLevel,
+  Span,
   StackFrame,
   Stacktrace,
   Thread,
   User,
   UserFeedback,
-} from '@sentry/types';
+} from '@sentry/core';
 
 export {
   addBreadcrumb,

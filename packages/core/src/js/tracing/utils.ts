@@ -1,14 +1,17 @@
+import type { MeasurementUnit, Span, SpanJSON, TransactionSource } from '@sentry/core';
 import {
+  dropUndefinedKeys,
   getSpanDescendants,
+  logger,
   SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_UNIT,
   SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_VALUE,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   setMeasurement,
   spanToJSON,
+  timestampInSeconds,
+  uuid4,
 } from '@sentry/core';
-import type { MeasurementUnit, Span, SpanJSON, TransactionSource } from '@sentry/types';
-import { dropUndefinedKeys, logger, timestampInSeconds, uuid4 } from '@sentry/utils';
 
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 

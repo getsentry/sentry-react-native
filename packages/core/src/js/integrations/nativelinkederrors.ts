@@ -9,8 +9,8 @@ import type {
   Integration,
   StackFrame,
   StackParser,
-} from '@sentry/types';
-import { isInstanceOf, isPlainObject, isString } from '@sentry/utils';
+} from '@sentry/core';
+import { isInstanceOf, isPlainObject, isString } from '@sentry/core';
 
 import type { NativeStackFrames } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';

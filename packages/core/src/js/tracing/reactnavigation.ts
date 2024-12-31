@@ -1,16 +1,18 @@
 /* eslint-disable max-lines */
+import type { Client, Integration, Span } from '@sentry/core';
 import {
   addBreadcrumb,
   getActiveSpan,
   getClient,
+  isPlainObject,
+  logger,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SPAN_STATUS_OK,
   spanToJSON,
   startInactiveSpan,
+  timestampInSeconds,
 } from '@sentry/core';
-import type { Client, Integration, Span } from '@sentry/types';
-import { isPlainObject, logger, timestampInSeconds } from '@sentry/utils';
 
 import type { NewFrameEvent } from '../utils/sentryeventemitter';
 import type { SentryEventEmitterFallback } from '../utils/sentryeventemitterfallback';

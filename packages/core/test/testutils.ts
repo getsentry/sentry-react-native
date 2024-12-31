@@ -1,5 +1,5 @@
-import type { Session, Transport, UserFeedback } from '@sentry/types';
-import { rejectedSyncPromise } from '@sentry/utils';
+import type { Session, Transport, UserFeedback } from '@sentry/core';
+import { rejectedSyncPromise } from '@sentry/core';
 
 export type MockInterface<T> = {
   [K in keyof T]: T[K] extends (...args: infer A) => infer B ? jest.Mock<B, A> : T[K];

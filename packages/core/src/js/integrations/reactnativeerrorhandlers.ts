@@ -1,6 +1,5 @@
-import { captureException, getClient, getCurrentScope } from '@sentry/core';
-import type { EventHint, Integration, SeverityLevel } from '@sentry/types';
-import { addExceptionMechanism, logger } from '@sentry/utils';
+import type { EventHint, Integration, SeverityLevel } from '@sentry/core';
+import { addExceptionMechanism, captureException, getClient, getCurrentScope, logger } from '@sentry/core';
 
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';

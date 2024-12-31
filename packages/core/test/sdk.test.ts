@@ -1,14 +1,6 @@
-import { initAndBind } from '@sentry/core';
+import type { BaseTransportOptions, Breadcrumb, BreadcrumbHint, ClientOptions, Integration, Scope } from '@sentry/core';
+import { initAndBind, logger } from '@sentry/core';
 import { makeFetchTransport } from '@sentry/react';
-import type {
-  BaseTransportOptions,
-  Breadcrumb,
-  BreadcrumbHint,
-  ClientOptions,
-  Integration,
-  Scope,
-} from '@sentry/types';
-import { logger } from '@sentry/utils';
 
 import { getDevServer } from '../src/js/integrations/debugsymbolicatorutils';
 import { init, withScope } from '../src/js/sdk';

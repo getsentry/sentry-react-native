@@ -1,6 +1,5 @@
-import { addBreadcrumb, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
-import type { Breadcrumb } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import type { Breadcrumb } from '@sentry/core';
+import { addBreadcrumb, logger, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
 
 import { startUserInteractionSpan } from './integrations/userInteraction';
 import { UI_ACTION } from './ops';

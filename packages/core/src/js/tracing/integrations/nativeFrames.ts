@@ -1,5 +1,5 @@
-import type { Client, Event, Integration, Measurements, MeasurementUnit, Span } from '@sentry/types';
-import { logger, timestampInSeconds } from '@sentry/utils';
+import type { Client, Event, Integration, Measurements, MeasurementUnit, Span } from '@sentry/core';
+import { logger, timestampInSeconds } from '@sentry/core';
 
 import type { NativeFramesResponse } from '../../NativeRNSentry';
 import { AsyncExpiringMap } from '../../utils/AsyncExpiringMap';

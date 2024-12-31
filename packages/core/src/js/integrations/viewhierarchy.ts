@@ -1,5 +1,5 @@
-import type { Attachment, Event, EventHint, Integration } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import type { Attachment, Event, EventHint, Integration } from '@sentry/core';
+import { logger } from '@sentry/core';
 
 import { NATIVE } from '../wrapper';
 

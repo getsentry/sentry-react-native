@@ -8,8 +8,8 @@ import type {
   Package,
   SeverityLevel,
   User,
-} from '@sentry/types';
-import { logger, normalize, SentryError } from '@sentry/utils';
+} from '@sentry/core';
+import { logger, normalize, SentryError } from '@sentry/core';
 import { NativeModules, Platform } from 'react-native';
 
 import { isHardCrash } from './misc';

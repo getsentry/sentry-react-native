@@ -1,5 +1,5 @@
-import type { Event, EventHint, Exception, Integration, StackFrame as SentryStackFrame } from '@sentry/types';
-import { logger } from '@sentry/utils';
+import type { Event, EventHint, Exception, Integration, StackFrame as SentryStackFrame } from '@sentry/core';
+import { logger } from '@sentry/core';
 
 import type { ExtendedError } from '../utils/error';
 import { getFramesToPop, isErrorLike } from '../utils/error';
