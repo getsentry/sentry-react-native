@@ -87,7 +87,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        XCTAssertEqual(optionsDict.count, 3)
+        XCTAssertEqual(optionsDict.count, 4)
 
         let sessionReplay = optionsDict["sessionReplay"] as! [String: Any]
 
