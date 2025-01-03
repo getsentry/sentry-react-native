@@ -1,3 +1,4 @@
+import type { Client, Integration, Span } from '@sentry/core';
 import {
   addBreadcrumb,
   getClient,
@@ -6,7 +7,6 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
   spanToJSON,
 } from '@sentry/core';
-import type { Client, Integration, Span } from '@sentry/types';
 
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
 import { isSentrySpan } from '../utils/span';

@@ -1,5 +1,5 @@
+import type { Scope, Span, SpanJSON, TransactionEvent, Transport } from '@sentry/core';
 import { timestampInSeconds } from '@sentry/core';
-import type { Scope, Span, SpanJSON, TransactionEvent, Transport } from '@sentry/types';
 import * as TestRenderer from '@testing-library/react-native'
 import * as React from "react";
 

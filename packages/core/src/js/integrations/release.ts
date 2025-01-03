@@ -1,4 +1,4 @@
-import type { BaseTransportOptions, Client, ClientOptions, Event, EventHint, Integration } from '@sentry/types';
+import type { BaseTransportOptions, Client, ClientOptions, Event, EventHint, Integration } from '@sentry/core';
 
 import { NATIVE } from '../wrapper';
 

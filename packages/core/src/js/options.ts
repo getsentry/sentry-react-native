@@ -1,6 +1,6 @@
 import type { makeFetchTransport } from '@sentry/browser';
+import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@sentry/core';
 import type { Profiler } from '@sentry/react';
-import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@sentry/types';
 import type * as React from 'react';
 import { Platform } from 'react-native';
 

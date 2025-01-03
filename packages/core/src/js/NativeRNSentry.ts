@@ -1,4 +1,4 @@
-import type { Package } from '@sentry/types';
+import type { Package } from '@sentry/core';
 import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 

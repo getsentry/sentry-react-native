@@ -1,5 +1,4 @@
 import { exceptionFromError } from '@sentry/browser';
-import { isInstanceOf, isPlainObject, isString } from '@sentry/core';
 import type {
   Client,
   DebugImage,
@@ -10,7 +9,8 @@ import type {
   Integration,
   StackFrame,
   StackParser,
-} from '@sentry/types';
+} from '@sentry/core';
+import { isInstanceOf, isPlainObject, isString } from '@sentry/core';
 
 import type { NativeStackFrames } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';
