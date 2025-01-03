@@ -338,7 +338,13 @@ public class RNSentryModuleImpl {
   }
 
   private SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
-    @NotNull final SentryReplayOptions androidReplayOptions = new SentryReplayOptions(false);
+    final SdkVersion replaySdkVersion =
+        new SdkVersion(
+            RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_NAME,
+            RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
+    @NotNull
+    final SentryReplayOptions androidReplayOptions =
+        new SentryReplayOptions(false, replaySdkVersion);
 
     if (!(rnOptions.hasKey("replaysSessionSampleRate")
         || rnOptions.hasKey("replaysOnErrorSampleRate"))) {
