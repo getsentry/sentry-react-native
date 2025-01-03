@@ -19,7 +19,6 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class RNSentryModuleImplTest {
-
     private lateinit var module: RNSentryModuleImpl
     private lateinit var context: Context
 
@@ -35,12 +34,13 @@ class RNSentryModuleImplTest {
     fun fetchNativeDeviceContextsWithNullContext() {
         val options = SentryAndroidOptions()
         val scope = Scope(options)
-        val promise = PromiseImpl({
-            assertEquals(1, it.size)
-            assertEquals(null, it[0])
-        }, {
-            fail("Promise was rejected unexpectedly")
-        })
+        val promise =
+            PromiseImpl({
+                assertEquals(1, it.size)
+                assertEquals(null, it[0])
+            }, {
+                fail("Promise was rejected unexpectedly")
+            })
         module.fetchNativeDeviceContexts(promise, options, null, scope)
     }
 
@@ -50,12 +50,13 @@ class RNSentryModuleImplTest {
 
         val options = NotAndroidSentryOptions()
         val scope = Scope(options)
-        val promise = PromiseImpl({
-            assertEquals(1, it.size)
-            assertEquals(null, it[0])
-        }, {
-            fail("Promise was rejected unexpectedly")
-        })
+        val promise =
+            PromiseImpl({
+                assertEquals(1, it.size)
+                assertEquals(null, it[0])
+            }, {
+                fail("Promise was rejected unexpectedly")
+            })
         module.fetchNativeDeviceContexts(promise, options, context, scope)
     }
 
@@ -69,17 +70,18 @@ class RNSentryModuleImplTest {
         scope.addBreadcrumb(Breadcrumb("Breadcrumb2-RN").apply { origin = "react-native" })
         scope.addBreadcrumb(Breadcrumb("Breadcrumb2-RN").apply { origin = "react-native" })
 
-        val promise = PromiseImpl({
-            assertEquals(1, it.size)
-            assertEquals(true, it[0] is WritableMap)
-            val actual = it[0] as WritableMap
-            val breadcrumbs = actual.getArray("breadcrumbs")
-            assertEquals(2, breadcrumbs?.size())
-            assertEquals("Breadcrumb2-Native", breadcrumbs?.getMap(0)?.getString("message"))
-            assertEquals("Breadcrumb3-Native", breadcrumbs?.getMap(1)?.getString("message"))
-        }, {
-            fail("Promise was rejected unexpectedly")
-        })
+        val promise =
+            PromiseImpl({
+                assertEquals(1, it.size)
+                assertEquals(true, it[0] is WritableMap)
+                val actual = it[0] as WritableMap
+                val breadcrumbs = actual.getArray("breadcrumbs")
+                assertEquals(2, breadcrumbs?.size())
+                assertEquals("Breadcrumb2-Native", breadcrumbs?.getMap(0)?.getString("message"))
+                assertEquals("Breadcrumb3-Native", breadcrumbs?.getMap(1)?.getString("message"))
+            }, {
+                fail("Promise was rejected unexpectedly")
+            })
 
         module.fetchNativeDeviceContexts(promise, options, context, scope)
     }

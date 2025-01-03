@@ -11,29 +11,28 @@ class TurboSamplePackage : TurboReactPackage() {
     @Nullable
     override fun getModule(
         name: String,
-        reactApplicationContext: ReactApplicationContext
-    ): NativeModule? {
-        return if (name == NativePlatformSampleModule.NAME) {
+        reactApplicationContext: ReactApplicationContext,
+    ): NativeModule? =
+        if (name == NativePlatformSampleModule.NAME) {
             NativePlatformSampleModule(reactApplicationContext)
         } else {
             null
         }
-    }
 
-    override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
-        return ReactModuleInfoProvider {
+    override fun getReactModuleInfoProvider(): ReactModuleInfoProvider =
+        ReactModuleInfoProvider {
             val moduleInfos: MutableMap<String, ReactModuleInfo> =
                 HashMap()
-            moduleInfos[NativePlatformSampleModule.NAME] = ReactModuleInfo(
-                NativePlatformSampleModule.NAME,
-                NativePlatformSampleModule.NAME,
-                false,  // canOverrideExistingModule
-                false,  // needsEagerInit
-                true,  // hasConstants
-                false,  // isCxxModule
-                true // isTurboModule
-            )
+            moduleInfos[NativePlatformSampleModule.NAME] =
+                ReactModuleInfo(
+                    NativePlatformSampleModule.NAME,
+                    NativePlatformSampleModule.NAME,
+                    false, // canOverrideExistingModule
+                    false, // needsEagerInit
+                    true, // hasConstants
+                    false, // isCxxModule
+                    true, // isTurboModule
+                )
             moduleInfos
         }
-    }
 }

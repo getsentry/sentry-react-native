@@ -25,18 +25,17 @@ import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class RNSentryReactFragmentLifecycleTracerTest {
-
     private var mockUIManager: MockedStatic<UIManagerHelper>? = null
 
     @After
     fun after() {
-        mockUIManager?.close();
+        mockUIManager?.close()
     }
 
     @Test
     fun tracerAddsListenerForValidRNScreenFragment() {
-        val mockEventDispatcher = mock<EventDispatcher>();
-        mockUIManager(mockEventDispatcher);
+        val mockEventDispatcher = mock<EventDispatcher>()
+        mockUIManager(mockEventDispatcher)
 
         callOnFragmentViewCreated(mock<ScreenStackFragment>(), mockScreenViewWithReactContext())
         verify(mockEventDispatcher, times(1)).addListener(any())
@@ -44,8 +43,8 @@ class RNSentryReactFragmentLifecycleTracerTest {
 
     @Test
     fun tracerDoesNotAddListenerForGenericFragment() {
-        val mockEventDispatcher = mock<EventDispatcher>();
-        mockUIManager(mockEventDispatcher);
+        val mockEventDispatcher = mock<EventDispatcher>()
+        mockUIManager(mockEventDispatcher)
 
         callOnFragmentViewCreated(mock<Fragment>(), mockScreenViewWithReactContext())
         verify(mockEventDispatcher, times(0)).addListener(any())
@@ -53,8 +52,8 @@ class RNSentryReactFragmentLifecycleTracerTest {
 
     @Test
     fun tracerDoesNotAddListenerForViewWithoutChild() {
-        val mockEventDispatcher = mock<EventDispatcher>();
-        mockUIManager(mockEventDispatcher);
+        val mockEventDispatcher = mock<EventDispatcher>()
+        mockUIManager(mockEventDispatcher)
 
         callOnFragmentViewCreated(mock<ScreenStackFragment>(), mockScreenViewWithoutChild())
         verify(mockEventDispatcher, times(0)).addListener(any())
@@ -62,8 +61,8 @@ class RNSentryReactFragmentLifecycleTracerTest {
 
     @Test
     fun tracerDoesNotAddListenerForViewWithoutReactContext() {
-        val mockEventDispatcher = mock<EventDispatcher>();
-        mockUIManager(mockEventDispatcher);
+        val mockEventDispatcher = mock<EventDispatcher>()
+        mockUIManager(mockEventDispatcher)
 
         callOnFragmentViewCreated(mock<ScreenStackFragment>(), mockScreenViewWithGenericContext())
         verify(mockEventDispatcher, times(0)).addListener(any())
@@ -71,8 +70,8 @@ class RNSentryReactFragmentLifecycleTracerTest {
 
     @Test
     fun tracerDoesNotAddListenerForViewWithNoId() {
-        val mockEventDispatcher = mock<EventDispatcher>();
-        mockUIManager(mockEventDispatcher);
+        val mockEventDispatcher = mock<EventDispatcher>()
+        mockUIManager(mockEventDispatcher)
 
         callOnFragmentViewCreated(mock<ScreenStackFragment>(), mockScreenViewWithNoId())
         verify(mockEventDispatcher, times(0)).addListener(any())
@@ -80,12 +79,15 @@ class RNSentryReactFragmentLifecycleTracerTest {
 
     @Test
     fun tracerDoesNotAddListenerForViewWithoutEventDispatcher() {
-        mockUIManagerToReturnNullEventDispatcher();
+        mockUIManagerToReturnNullEventDispatcher()
 
         callOnFragmentViewCreated(mock<ScreenStackFragment>(), mockScreenViewWithGenericContext())
     }
 
-    private fun callOnFragmentViewCreated(mockFragment: Fragment, mockView: View) {
+    private fun callOnFragmentViewCreated(
+        mockFragment: Fragment,
+        mockView: View,
+    ) {
         createSutWith().onFragmentViewCreated(
             mock(),
             mockFragment,
@@ -101,51 +103,56 @@ class RNSentryReactFragmentLifecycleTracerTest {
         return RNSentryReactFragmentLifecycleTracer(
             buildInfo,
             mock(),
-            logger
+            logger,
         )
     }
 
     private fun mockScreenViewWithReactContext(): View {
-        val screenMock: View = mock() {
-            whenever(it.id).thenReturn(123)
-            whenever(it.context).thenReturn(mock<ReactContext>())
-        }
-        val mockView = mock<ViewGroup> {
-            whenever(it.childCount).thenReturn(1)
-            whenever(it.getChildAt(0)).thenReturn(screenMock)
-        }
-        return mockView;
+        val screenMock: View =
+            mock {
+                whenever(it.id).thenReturn(123)
+                whenever(it.context).thenReturn(mock<ReactContext>())
+            }
+        val mockView =
+            mock<ViewGroup> {
+                whenever(it.childCount).thenReturn(1)
+                whenever(it.getChildAt(0)).thenReturn(screenMock)
+            }
+        return mockView
     }
 
     private fun mockScreenViewWithGenericContext(): View {
-        val screenMock: View = mock() {
-            whenever(it.id).thenReturn(123)
-            whenever(it.context).thenReturn(mock())
-        }
-        val mockView = mock<ViewGroup> {
-            whenever(it.childCount).thenReturn(1)
-            whenever(it.getChildAt(0)).thenReturn(screenMock)
-        }
-        return mockView;
+        val screenMock: View =
+            mock {
+                whenever(it.id).thenReturn(123)
+                whenever(it.context).thenReturn(mock())
+            }
+        val mockView =
+            mock<ViewGroup> {
+                whenever(it.childCount).thenReturn(1)
+                whenever(it.getChildAt(0)).thenReturn(screenMock)
+            }
+        return mockView
     }
 
     private fun mockScreenViewWithNoId(): View {
-        val screenMock: View = mock() {
-            whenever(it.id).thenReturn(-1)
-            whenever(it.context).thenReturn(mock<ReactContext>())
-        }
-        val mockView = mock<ViewGroup> {
-            whenever(it.childCount).thenReturn(1)
-            whenever(it.getChildAt(0)).thenReturn(screenMock)
-        }
-        return mockView;
+        val screenMock: View =
+            mock {
+                whenever(it.id).thenReturn(-1)
+                whenever(it.context).thenReturn(mock<ReactContext>())
+            }
+        val mockView =
+            mock<ViewGroup> {
+                whenever(it.childCount).thenReturn(1)
+                whenever(it.getChildAt(0)).thenReturn(screenMock)
+            }
+        return mockView
     }
 
-    private fun mockScreenViewWithoutChild(): View {
-        return mock<ViewGroup> {
+    private fun mockScreenViewWithoutChild(): View =
+        mock<ViewGroup> {
             whenever(it.childCount).thenReturn(0)
         }
-    }
 
     private fun mockUIManager(mockEventDispatcher: EventDispatcher) {
         mockUIManager = mockStatic(UIManagerHelper::class.java)

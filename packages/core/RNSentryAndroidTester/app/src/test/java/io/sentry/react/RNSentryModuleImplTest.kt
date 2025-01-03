@@ -23,15 +23,18 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
-import org.mockito.Mockito.*
-import org.mockito.MockitoAnnotations
 import org.mockito.MockedStatic
+import org.mockito.Mockito.any
+import org.mockito.Mockito.anyInt
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito.verify
+import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class RNSentryModuleImplTest {
-
     private lateinit var module: RNSentryModuleImpl
     private lateinit var promise: Promise
     private lateinit var logger: ILogger
@@ -76,7 +79,7 @@ class RNSentryModuleImplTest {
         // Verify a warning log is emitted
         verify(logger, org.mockito.kotlin.times(1)).log(
             SentryLevel.WARNING,
-            "Invalid app start data: app not launched in foreground."
+            "Invalid app start data: app not launched in foreground.",
         )
 
         // Verify the promise is resolved with null
@@ -103,10 +106,13 @@ class RNSentryModuleImplTest {
 
     @Test
     fun `when the spotlight option is enabled, the spotlight SentryAndroidOption is set to true and the default url is used`() {
-        val options = JavaOnlyMap.of(
-            "spotlight", true,
-            "defaultSidecarUrl", "http://localhost:8969/teststream"
-        )
+        val options =
+            JavaOnlyMap.of(
+                "spotlight",
+                true,
+                "defaultSidecarUrl",
+                "http://localhost:8969/teststream",
+            )
         val actualOptions = SentryAndroidOptions()
         module.getSentryAndroidOptions(actualOptions, options, logger)
         assert(actualOptions.isEnableSpotlight)
@@ -140,16 +146,20 @@ class RNSentryModuleImplTest {
     @Test
     fun `beforeBreadcrumb callback filters out Sentry DSN requests breadcrumbs`() {
         val options = SentryAndroidOptions()
-        val rnOptions = JavaOnlyMap.of(
-            "dsn", "https://abc@def.ingest.sentry.io/1234567",
-            "devServerUrl", "http://localhost:8081",
-        )
+        val rnOptions =
+            JavaOnlyMap.of(
+                "dsn",
+                "https://abc@def.ingest.sentry.io/1234567",
+                "devServerUrl",
+                "http://localhost:8081",
+            )
         module.getSentryAndroidOptions(options, rnOptions, logger)
 
-        val breadcrumb = Breadcrumb().apply {
-            type = "http"
-            setData("url", "https://def.ingest.sentry.io/1234567")
-        }
+        val breadcrumb =
+            Breadcrumb().apply {
+                type = "http"
+                setData("url", "https://def.ingest.sentry.io/1234567")
+            }
 
         val result = options.beforeBreadcrumb?.execute(breadcrumb, mock())
 
@@ -160,16 +170,20 @@ class RNSentryModuleImplTest {
     fun `beforeBreadcrumb callback filters out dev server breadcrumbs`() {
         val mockDevServerUrl = "http://localhost:8081"
         val options = SentryAndroidOptions()
-        val rnOptions = JavaOnlyMap.of(
-            "dsn", "https://abc@def.ingest.sentry.io/1234567",
-            "devServerUrl", mockDevServerUrl,
-        )
+        val rnOptions =
+            JavaOnlyMap.of(
+                "dsn",
+                "https://abc@def.ingest.sentry.io/1234567",
+                "devServerUrl",
+                mockDevServerUrl,
+            )
         module.getSentryAndroidOptions(options, rnOptions, logger)
 
-        val breadcrumb = Breadcrumb().apply {
-            type = "http"
-            setData("url", mockDevServerUrl)
-        }
+        val breadcrumb =
+            Breadcrumb().apply {
+                type = "http"
+                setData("url", mockDevServerUrl)
+            }
 
         val result = options.beforeBreadcrumb?.execute(breadcrumb, mock())
 
@@ -179,16 +193,20 @@ class RNSentryModuleImplTest {
     @Test
     fun `beforeBreadcrumb callback does not filter out non dev server or dsn breadcrumbs`() {
         val options = SentryAndroidOptions()
-        val rnOptions = JavaOnlyMap.of(
-            "dsn", "https://abc@def.ingest.sentry.io/1234567",
-            "devServerUrl", "http://localhost:8081",
-        )
+        val rnOptions =
+            JavaOnlyMap.of(
+                "dsn",
+                "https://abc@def.ingest.sentry.io/1234567",
+                "devServerUrl",
+                "http://localhost:8081",
+            )
         module.getSentryAndroidOptions(options, rnOptions, logger)
 
-        val breadcrumb = Breadcrumb().apply {
-            type = "http"
-            setData("url", "http://testurl.com/service")
-        }
+        val breadcrumb =
+            Breadcrumb().apply {
+                type = "http"
+                setData("url", "http://testurl.com/service")
+            }
 
         val result = options.beforeBreadcrumb?.execute(breadcrumb, mock())
 
@@ -200,10 +218,11 @@ class RNSentryModuleImplTest {
         val options = SentryAndroidOptions()
         module.getSentryAndroidOptions(options, JavaOnlyMap(), logger)
 
-        val breadcrumb = Breadcrumb().apply {
-            type = "http"
-            setData("url", "http://testurl.com/service")
-        }
+        val breadcrumb =
+            Breadcrumb().apply {
+                type = "http"
+                setData("url", "http://testurl.com/service")
+            }
 
         val result = options.beforeBreadcrumb?.execute(breadcrumb, mock())
 
@@ -216,10 +235,11 @@ class RNSentryModuleImplTest {
         val rnOptions = JavaOnlyMap.of("dsn", "https://abc@def.ingest.sentry.io/1234567")
         module.getSentryAndroidOptions(options, rnOptions, logger)
 
-        val breadcrumb = Breadcrumb().apply {
-            type = "http"
-            setData("url", "http://testurl.com/service")
-        }
+        val breadcrumb =
+            Breadcrumb().apply {
+                type = "http"
+                setData("url", "http://testurl.com/service")
+            }
 
         val result = options.beforeBreadcrumb?.execute(breadcrumb, mock())
 
@@ -232,10 +252,11 @@ class RNSentryModuleImplTest {
         val rnOptions = JavaOnlyMap.of("devServerUrl", "http://localhost:8081")
         module.getSentryAndroidOptions(options, rnOptions, logger)
 
-        val breadcrumb = Breadcrumb().apply {
-            type = "http"
-            setData("url", "http://testurl.com/service")
-        }
+        val breadcrumb =
+            Breadcrumb().apply {
+                type = "http"
+                setData("url", "http://testurl.com/service")
+            }
 
         val result = options.beforeBreadcrumb?.execute(breadcrumb, mock())
 
