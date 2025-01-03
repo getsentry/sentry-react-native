@@ -15,6 +15,14 @@ public class MainActivity extends ReactActivity {
     return "TestAppPlain";
   }
 
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
+    Intent intent = new Intent(this, AppReadyActivity.class);
+    startActivity(intent);
+  }
+
   /**
    * Returns the instance of the {@link ReactActivityDelegate}. There the RootView is created and
    * you can specify the renderer you wish to use - the new renderer (Fabric) or the old renderer
