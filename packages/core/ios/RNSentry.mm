@@ -238,7 +238,7 @@ RCT_EXPORT_METHOD(initNativeSdk
 
         // If the event is from react native, it gets set
         // there and we do not handle it here.
-        if ([sdkName isEqual:nativeSdkName]) {
+        if ([sdkName isEqual:NATIVE_SDK_NAME]) {
             [self setEventEnvironmentTag:event origin:@"ios" environment:@"native"];
         }
     }
