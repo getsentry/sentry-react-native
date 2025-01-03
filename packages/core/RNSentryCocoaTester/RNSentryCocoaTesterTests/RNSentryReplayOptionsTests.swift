@@ -10,24 +10,14 @@ final class RNSentryReplayOptions: XCTestCase {
         XCTAssertEqual(optionsDict.count, 0)
     }
 
-    func testExperimentalOptionsWithoutReplaySampleRatesAreRemoved() {
-        let optionsDict = (["_experiments": [:]] as NSDictionary).mutableCopy() as! NSMutableDictionary
-        RNSentryReplay.updateOptions(optionsDict)
-
-        XCTAssertEqual(optionsDict.count, 0)
-    }
-
     func testReplayOptionsDictContainsAllOptionsKeysWhenSessionSampleRateUsed() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
-            "_experiments": [
-                "replaysSessionSampleRate": 0.75
-            ]
+            "replaysSessionSampleRate": 0.75
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
         RNSentryReplay.updateOptions(optionsDict)
 
-        let experimental = optionsDict["experimental"] as! [String: Any]
-        let sessionReplay = experimental["sessionReplay"] as! [String: Any]
+        let sessionReplay = optionsDict["sessionReplay"] as! [String: Any]
 
         assertAllDefaultReplayOptionsAreNotNil(replayOptions: sessionReplay)
     }
@@ -35,14 +25,11 @@ final class RNSentryReplayOptions: XCTestCase {
     func testReplayOptionsDictContainsAllOptionsKeysWhenErrorSampleRateUsed() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
-            "_experiments": [
-                "replaysOnErrorSampleRate": 0.75
-            ]
+            "replaysOnErrorSampleRate": 0.75
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
         RNSentryReplay.updateOptions(optionsDict)
 
-        let experimental = optionsDict["experimental"] as! [String: Any]
-        let sessionReplay = experimental["sessionReplay"] as! [String: Any]
+        let sessionReplay = optionsDict["sessionReplay"] as! [String: Any]
 
         assertAllDefaultReplayOptionsAreNotNil(replayOptions: sessionReplay)
     }
@@ -50,15 +37,12 @@ final class RNSentryReplayOptions: XCTestCase {
     func testReplayOptionsDictContainsAllOptionsKeysWhenErrorAndSessionSampleRatesUsed() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
-            "_experiments": [
-                "replaysOnErrorSampleRate": 0.75,
-                "replaysSessionSampleRate": 0.75
-            ]
+            "replaysOnErrorSampleRate": 0.75,
+            "replaysSessionSampleRate": 0.75
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
         RNSentryReplay.updateOptions(optionsDict)
 
-        let experimental = optionsDict["experimental"] as! [String: Any]
-        let sessionReplay = experimental["sessionReplay"] as! [String: Any]
+        let sessionReplay = optionsDict["sessionReplay"] as! [String: Any]
 
         assertAllDefaultReplayOptionsAreNotNil(replayOptions: sessionReplay)
     }
@@ -75,29 +59,29 @@ final class RNSentryReplayOptions: XCTestCase {
     func testSessionSampleRate() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
-            "_experiments": [ "replaysSessionSampleRate": 0.75 ]
+            "replaysSessionSampleRate": 0.75
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
         RNSentryReplay.updateOptions(optionsDict)
 
         let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        XCTAssertEqual(actualOptions.experimental.sessionReplay.sessionSampleRate, 0.75)
+        XCTAssertEqual(actualOptions.sessionReplay.sessionSampleRate, 0.75)
     }
 
     func testOnErrorSampleRate() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
-            "_experiments": [ "replaysOnErrorSampleRate": 0.75 ]
+            "replaysOnErrorSampleRate": 0.75
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
         RNSentryReplay.updateOptions(optionsDict)
 
         let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        XCTAssertEqual(actualOptions.experimental.sessionReplay.onErrorSampleRate, 0.75)
+        XCTAssertEqual(actualOptions.sessionReplay.onErrorSampleRate, 0.75)
     }
 
     func testMaskAllVectors() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
-            "_experiments": [ "replaysOnErrorSampleRate": 0.75 ],
+            "replaysOnErrorSampleRate": 0.75,
             "mobileReplayOptions": [ "maskAllVectors": true ]
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
 
@@ -105,8 +89,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         XCTAssertEqual(optionsDict.count, 3)
 
-        let experimental = optionsDict["experimental"] as! [String: Any]
-        let sessionReplay = experimental["sessionReplay"] as! [String: Any]
+        let sessionReplay = optionsDict["sessionReplay"] as! [String: Any]
 
         let maskedViewClasses = sessionReplay["maskedViewClasses"] as! [String]
         XCTAssertTrue(maskedViewClasses.contains("RNSVGSvgView"))
@@ -115,7 +98,7 @@ final class RNSentryReplayOptions: XCTestCase {
     func testMaskAllImages() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
-            "_experiments": [ "replaysOnErrorSampleRate": 0.75 ],
+            "replaysOnErrorSampleRate": 0.75,
             "mobileReplayOptions": [ "maskAllImages": true ]
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
 
@@ -123,14 +106,14 @@ final class RNSentryReplayOptions: XCTestCase {
 
         let actualOptions = try! Options(dict: optionsDict as! [String: Any])
 
-        XCTAssertEqual(actualOptions.experimental.sessionReplay.maskAllImages, true)
-        assertContainsClass(classArray: actualOptions.experimental.sessionReplay.maskedViewClasses, stringClass: "RCTImageView")
+        XCTAssertEqual(actualOptions.sessionReplay.maskAllImages, true)
+        assertContainsClass(classArray: actualOptions.sessionReplay.maskedViewClasses, stringClass: "RCTImageView")
     }
 
     func testMaskAllImagesFalse() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
-            "_experiments": [ "replaysOnErrorSampleRate": 0.75 ],
+            "replaysOnErrorSampleRate": 0.75,
             "mobileReplayOptions": [ "maskAllImages": false ]
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
 
@@ -138,14 +121,14 @@ final class RNSentryReplayOptions: XCTestCase {
 
         let actualOptions = try! Options(dict: optionsDict as! [String: Any])
 
-        XCTAssertEqual(actualOptions.experimental.sessionReplay.maskAllImages, false)
-        XCTAssertEqual(actualOptions.experimental.sessionReplay.maskedViewClasses.count, 0)
+        XCTAssertEqual(actualOptions.sessionReplay.maskAllImages, false)
+        XCTAssertEqual(actualOptions.sessionReplay.maskedViewClasses.count, 0)
     }
 
     func testMaskAllText() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
-            "_experiments": [ "replaysOnErrorSampleRate": 0.75 ],
+            "replaysOnErrorSampleRate": 0.75,
             "mobileReplayOptions": [ "maskAllText": true ]
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
 
@@ -153,9 +136,9 @@ final class RNSentryReplayOptions: XCTestCase {
 
         let actualOptions = try! Options(dict: optionsDict as! [String: Any])
 
-        XCTAssertEqual(actualOptions.experimental.sessionReplay.maskAllText, true)
-        assertContainsClass(classArray: actualOptions.experimental.sessionReplay.maskedViewClasses, stringClass: "RCTTextView")
-        assertContainsClass(classArray: actualOptions.experimental.sessionReplay.maskedViewClasses, stringClass: "RCTParagraphComponentView")
+        XCTAssertEqual(actualOptions.sessionReplay.maskAllText, true)
+        assertContainsClass(classArray: actualOptions.sessionReplay.maskedViewClasses, stringClass: "RCTTextView")
+        assertContainsClass(classArray: actualOptions.sessionReplay.maskedViewClasses, stringClass: "RCTParagraphComponentView")
     }
 
     func assertContainsClass(classArray: [AnyClass], stringClass: String) {
@@ -169,7 +152,7 @@ final class RNSentryReplayOptions: XCTestCase {
     func testMaskAllTextFalse() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
-            "_experiments": [ "replaysOnErrorSampleRate": 0.75 ],
+            "replaysOnErrorSampleRate": 0.75,
             "mobileReplayOptions": [ "maskAllText": false ]
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
 
@@ -177,8 +160,8 @@ final class RNSentryReplayOptions: XCTestCase {
 
         let actualOptions = try! Options(dict: optionsDict as! [String: Any])
 
-        XCTAssertEqual(actualOptions.experimental.sessionReplay.maskAllText, false)
-        XCTAssertEqual(actualOptions.experimental.sessionReplay.maskedViewClasses.count, 0)
+        XCTAssertEqual(actualOptions.sessionReplay.maskAllText, false)
+        XCTAssertEqual(actualOptions.sessionReplay.maskedViewClasses.count, 0)
     }
 
 }
