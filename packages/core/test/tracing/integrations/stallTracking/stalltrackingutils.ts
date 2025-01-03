@@ -1,4 +1,4 @@
-import type { Measurements } from '@sentry/types';
+import type { Measurements } from '@sentry/core';
 
 export function expectStallMeasurements(measurements: Measurements | undefined) {
   expect(measurements).toBeDefined();

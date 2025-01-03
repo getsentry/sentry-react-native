@@ -1,6 +1,6 @@
 import type { makeFetchTransport } from '@sentry/browser';
+import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@sentry/core';
 import type { Profiler } from '@sentry/react';
-import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@sentry/types';
 import type * as React from 'react';
 import { Platform } from 'react-native';
 
@@ -222,21 +222,35 @@ export interface BaseReactNativeOptions {
   profilesSampleRate?: number;
 
   /**
+   * The sample rate for session-long replays.
+   * 1.0 will record all sessions and 0 will record none.
+   */
+  replaysSessionSampleRate?: number;
+
+  /**
+   * The sample rate for sessions that has had an error occur.
+   * This is independent of `sessionSampleRate`.
+   * 1.0 will record all sessions and 0 will record none.
+   */
+  replaysOnErrorSampleRate?: number;
+
+  /**
    * Options which are in beta, or otherwise not guaranteed to be stable.
    */
   _experiments?: {
     [key: string]: unknown;
 
     /**
-     * The sample rate for session-long replays.
-     * 1.0 will record all sessions and 0 will record none.
+     * @deprecated Use `replaysSessionSampleRate` in the options root instead.
+     *
+     * This will be removed in the next major version.
      */
     replaysSessionSampleRate?: number;
 
     /**
-     * The sample rate for sessions that has had an error occur.
-     * This is independent of `sessionSampleRate`.
-     * 1.0 will record all sessions and 0 will record none.
+     * @deprecated Use `replaysOnErrorSampleRate` in the options root instead.
+     *
+     * This will be removed in the next major version.
      */
     replaysOnErrorSampleRate?: number;
   };

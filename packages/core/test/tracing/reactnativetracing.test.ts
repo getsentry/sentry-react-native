@@ -1,5 +1,5 @@
 import * as SentryBrowser from '@sentry/browser';
-import type { Event } from '@sentry/types';
+import type { Event } from '@sentry/core';
 
 jest.mock('../../src/js/wrapper', () => {
   return {

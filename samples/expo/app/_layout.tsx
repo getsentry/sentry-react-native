@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { useColorScheme } from '@/components/useColorScheme';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
-import { ErrorEvent } from '@sentry/types';
+import { ErrorEvent } from '@sentry/core';
 import { isExpoGo } from '../utils/isExpoGo';
 import { LogBox } from 'react-native';
 
@@ -79,10 +79,8 @@ Sentry.init({
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
   profilesSampleRate: 1.0,
-  _experiments: {
-    // replaysOnErrorSampleRate: 1.0,
-    replaysSessionSampleRate: 1.0,
-  },
+  // replaysOnErrorSampleRate: 1.0,
+  replaysSessionSampleRate: 1.0,
   spotlight: true,
 });
 

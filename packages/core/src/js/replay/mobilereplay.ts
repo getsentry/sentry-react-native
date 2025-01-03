@@ -1,5 +1,5 @@
+import type { Client, DynamicSamplingContext, Event, Integration } from '@sentry/core';
 import { logger } from '@sentry/core';
-import type { Client, DynamicSamplingContext, Event, Integration } from '@sentry/types';
 
 import { isHardCrash } from '../misc';
 import { hasHooks } from '../utils/clientutils';
@@ -49,10 +49,8 @@ type MobileReplayIntegration = Integration & {
  *
  * ```javascript
  * Sentry.init({
- *  _experiments: {
- *    replaysOnErrorSampleRate: 1.0,
- *    replaysSessionSampleRate: 1.0,
- *  },
+ *  replaysOnErrorSampleRate: 1.0,
+ *  replaysSessionSampleRate: 1.0,
  *  integrations: [mobileReplayIntegration({
  *    // Adjust the default options
  *  })],
