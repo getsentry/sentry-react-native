@@ -49,10 +49,8 @@ type MobileReplayIntegration = Integration & {
  *
  * ```javascript
  * Sentry.init({
- *  _experiments: {
- *    replaysOnErrorSampleRate: 1.0,
- *    replaysSessionSampleRate: 1.0,
- *  },
+ *  replaysOnErrorSampleRate: 1.0,
+ *  replaysSessionSampleRate: 1.0,
  *  integrations: [mobileReplayIntegration({
  *    // Adjust the default options
  *  })],
