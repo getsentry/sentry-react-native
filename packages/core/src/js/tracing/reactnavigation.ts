@@ -203,7 +203,7 @@ export const reactNavigationIntegration = ({
     if (enableTimeToInitialDisplay) {
       navigationProcessingSpan = startInactiveSpan({
         op: 'navigation.processing',
-        name: 'Navigation processing',
+        name: 'Navigation dispatch to screen mounted or navigation cancelled',
         startTime: latestNavigationSpan && spanToJSON(latestNavigationSpan).start_timestamp,
       });
       navigationProcessingSpan.setAttribute(
