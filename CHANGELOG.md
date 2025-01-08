@@ -10,7 +10,7 @@
 
 ### Changes
 
-- Rename `Navigation Processing` span to more expressive `Navigation dispatch to screen mounted or navigation cancelled` ([#4423](https://github.com/getsentry/sentry-react-native/pull/4423))
+- Rename `navigation.processing` span to more expressive `Navigation dispatch to screen A mounted/navigation cancelled` ([#4423](https://github.com/getsentry/sentry-react-native/pull/4423))
 
 ### Dependencies
 
