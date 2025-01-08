@@ -274,7 +274,7 @@ export const reactNavigationIntegration = ({
       });
     }
 
-    navigationProcessingSpan?.updateName(`Navigation dispatch to ${route.name} mounted`);
+    navigationProcessingSpan?.updateName(`Navigation dispatch to screen ${route.name} mounted`);
     navigationProcessingSpan?.setStatus({ code: SPAN_STATUS_OK });
     navigationProcessingSpan?.end(stateChangedTimestamp);
     navigationProcessingSpan = undefined;
