@@ -43,7 +43,8 @@ jobs:
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
-            runs-on: ubuntu-latest
+            # Not using the latest version due to a known issue: https://github.com/getsentry/sentry-react-native/issues/4418
+            runs-on: ubuntu-22.04
             name: Android
             appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
