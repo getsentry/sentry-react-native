@@ -83,6 +83,32 @@ const PerformanceScreen = (props: Props) => {
           }}
         />
         <Spacer />
+        <Button
+          title="Redirect"
+          onPress={() => {
+            props.navigation.navigate('RedirectToRedirectedScreen');
+          }}
+        />
+        <Button
+          title="Dispatch Unhandled Navigation Action"
+          onPress={() => {
+            props.navigation.dispatch({
+              type: '__UNHANDLED_NAVIGATION_ACTION',
+            });
+          }}
+        />
+        <Button
+          title="Dispatch Custom Navigation Action To Tracker"
+          onPress={() => {
+            props.navigation.dispatch({
+              type: 'NAVIGATE',
+              payload: {
+                name: 'Tracker',
+                custom: 'value',
+              },
+            });
+          }}
+        />
         <View style={styles.mainViewBottomWhiteSpace} />
       </ScrollView>
     </>

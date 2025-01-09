@@ -37,6 +37,51 @@ export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
 
+// MIT License https://github.com/react-navigation/react-navigation/blob/bddcc44ab0e0ad5630f7ee0feb69496412a00217/packages/routers/LICENSE#L1
+// https://github.com/react-navigation/react-navigation/blob/bddcc44ab0e0ad5630f7ee0feb69496412a00217/packages/routers/src/types.tsx#L99-L100
+export type NavigationAction = Readonly<{
+  /**
+   * Type of the action (e.g. `NAVIGATE`)
+   */
+  type: string;
+  /**
+   * Additional data for the action
+   */
+  payload?: object;
+  /**
+   * Key of the route which dispatched this action.
+   */
+  source?: string;
+  /**
+   * Key of the navigator which should handle this action.
+   */
+  target?: string;
+}>;
+
+// MIT License https://github.com/react-navigation/react-navigation/blob/bddcc44ab0e0ad5630f7ee0feb69496412a00217/packages/routers/LICENSE#L1
+// https://github.com/react-navigation/react-navigation/blob/bddcc44ab0e0ad5630f7ee0feb69496412a00217/packages/core/src/types.tsx#L765
+/**
+ * Event which fires when an action is dispatched.
+ * Only intended for debugging purposes, don't use it for app logic.
+ * This event will be emitted before state changes have been applied.
+ */
+export type __unsafe_action__Event = {
+  data: {
+    /**
+     * The action object which was dispatched.
+     */
+    action: NavigationAction;
+    /**
+     * Whether the action was a no-op, i.e. resulted any state changes.
+     */
+    noop: boolean;
+    /**
+     * Stack trace of the action, this will only be available during development.
+     */
+    stack: string | undefined;
+  };
+};
+
 interface ReactNavigationIntegrationOptions {
   /**
    * How long the instrumentation will wait for the route to mount after a change has been initiated,
@@ -182,17 +227,35 @@ export const reactNavigationIntegration = ({
    * It does not name the transaction or populate it with route information. Instead, it waits for the state to fully change
    * and gets the route information from there, @see updateLatestNavigationSpanWithCurrentRoute
    */
-  const startIdleNavigationSpan = (): void => {
+  // TODO: do not pass the event directly
+  const startIdleNavigationSpan = (event?: __unsafe_action__Event): void => {
+    // TODO: handle only known action types, depending on the action
+    // payload name and key could have different meaning, especially for custom user actions
+    const actionType: string | undefined = event?.data.action.type;
+    const sourceRouteKey: string | undefined = event?.data.action.source;
+    // TODO: extract safely
+    const targetRouteKey: string | undefined = (event?.data.action.payload as any)?.key;
+    const targetRouteName: string | undefined = (event?.data.action.payload as any)?.name;
+
     if (latestNavigationSpan) {
       logger.log(`${INTEGRATION_NAME} A transaction was detected that turned out to be a noop, discarding.`);
       _discardLatestTransaction();
       clearStateChangeTimeout();
     }
 
+    const defaultOptions = getDefaultIdleNavigationSpanOptions();
+    defaultOptions.attributes = defaultOptions.attributes || {};
+    defaultOptions.attributes['route.action'] = actionType;
+    defaultOptions.attributes['route.name'] = targetRouteName;
+    defaultOptions.attributes['route.key'] = targetRouteKey;
+    if (targetRouteName) {
+      defaultOptions.name = targetRouteName;
+    }
+    if (sourceRouteKey) {
+      defaultOptions.attributes['previous_route.key'] = sourceRouteKey;
+    }
     latestNavigationSpan = startGenericIdleNavigationSpan(
-      tracing && tracing.options.beforeStartSpan
-        ? tracing.options.beforeStartSpan(getDefaultIdleNavigationSpanOptions())
-        : getDefaultIdleNavigationSpanOptions(),
+      tracing && tracing.options.beforeStartSpan ? tracing.options.beforeStartSpan(defaultOptions) : defaultOptions,
       idleSpanOptions,
     );
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION);

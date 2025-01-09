@@ -36,6 +36,7 @@ import { ErrorEvent } from '@sentry/core';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
+import { RedirectToRedirectedScreen, RedirectedScreen } from './Screens/Redirect';
 
 if (typeof setImmediate === 'undefined') {
   require('setimmediate');
@@ -181,6 +182,9 @@ const PerformanceTabNavigator = Sentry.withProfiler(
               name="PerformanceTiming"
               component={PerformanceTimingScreen}
             />
+            <Stack.Screen name="RedirectToRedirectedScreen" component={RedirectToRedirectedScreen}
+            />
+            <Stack.Screen name="RedirectedScreen" component={RedirectedScreen} />
             <Stack.Screen name="Redux" component={ReduxScreen} />
             <Stack.Screen name="Gestures" component={GesturesTracingScreen} />
           </Stack.Navigator>
