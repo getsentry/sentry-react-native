@@ -229,6 +229,7 @@ export const reactNavigationIntegration = ({
    */
   // TODO: do not pass the event directly
   const startIdleNavigationSpan = (event?: __unsafe_action__Event): void => {
+    // TODO: Do not start navigation span for non-navigation actions (PRELOAD, SET_PARAMS, TOGGLE_DRAWER, etc.)
     // TODO: handle only known action types, depending on the action
     // payload name and key could have different meaning, especially for custom user actions
     const actionType: string | undefined = event?.data.action.type;
