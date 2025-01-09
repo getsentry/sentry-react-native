@@ -8,6 +8,29 @@
 
 ## Unreleased
 
+### Features
+
+- User Feedback Form Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
+
+  To collect user feedback from inside your application add the `FeedbackForm` component.
+
+  ```jsx
+  import { FeedbackForm } from "@sentry/react-native";
+  ...
+  <FeedbackForm/>
+  ```
+  or auto-inject it by calling the `showFeedbackForm`:
+    ```jsx
+  import { showFeedbackForm } from '@sentry/react-native';
+  ...
+    <Button
+      title="Show feedback form"
+      onPress={() => {
+        showFeedbackForm(_props.navigation);
+      }}
+    />
+  ```
+
 ### Changes
 
 - Rename `navigation.processing` span to more expressive `Navigation dispatch to screen A mounted/navigation cancelled` ([#4423](https://github.com/getsentry/sentry-react-native/pull/4423))
@@ -61,27 +84,6 @@
   ```
 
   To learn how to attach context data to the feedback visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/).
-
-- User Feedback Form Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
-
-  To collect user feedback from inside your application add the `FeedbackForm` component.
-
-  ```jsx
-  import { FeedbackForm } from "@sentry/react-native";
-  ...
-  <FeedbackForm/>
-  ```
-  or auto-inject it by calling the `showFeedbackForm`:
-    ```jsx
-  import { showFeedbackForm } from '@sentry/react-native';
-  ...
-    <Button
-      title="Show feedback form"
-      onPress={() => {
-        showFeedbackForm(_props.navigation);
-      }}
-    />
-  ```
 
 - Export `Span` type from `@sentry/types` ([#4345](https://github.com/getsentry/sentry-react-native/pull/4345))
 - Add RN SDK package to `sdk.packages` on Android ([#4380](https://github.com/getsentry/sentry-react-native/pull/4380))
