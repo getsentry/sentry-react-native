@@ -340,7 +340,7 @@ public class RNSentryModuleImpl {
   private SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
     final SdkVersion replaySdkVersion =
         new SdkVersion(
-            RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_NAME,
+            RNSentryVersion.REACT_NATIVE_SDK_NAME,
             RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
     @NotNull
     final SentryReplayOptions androidReplayOptions =
