@@ -1,10 +1,15 @@
 import type { ImageStyle, TextStyle, ViewStyle } from 'react-native';
 
+export type Navigation = {
+  navigate: (screen: string, params?: Record<string, unknown>) => void;
+};
+
 /**
  * The props for the feedback form
  */
 export interface FeedbackFormProps extends FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackCallbacks {
   styles?: FeedbackFormStyles;
+  navigation?: Navigation;
 }
 
 /**
@@ -57,6 +62,16 @@ export interface FeedbackGeneralConfiguration {
  * All of the different text labels that can be customized
  */
 export interface FeedbackTextConfiguration {
+  /**
+   * The label for the Feedback widget button that opens the dialog
+   */
+  triggerLabel?: string;
+
+  /**
+   * The aria label for the Feedback widget button that opens the dialog
+   */
+  triggerAriaLabel?: string;
+
   /**
    * The label for the Feedback form cancel button that closes dialog
    */
@@ -151,6 +166,9 @@ export interface FeedbackFormStyles {
   submitText?: TextStyle;
   cancelButton?: ViewStyle;
   cancelText?: TextStyle;
+  triggerButton?: ViewStyle;
+  triggerText?: TextStyle;
+  triggerIcon?: ImageStyle;
   titleContainer?: ViewStyle;
   sentryLogo?: ImageStyle;
 }
