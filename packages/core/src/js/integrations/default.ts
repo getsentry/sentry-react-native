@@ -1,10 +1,9 @@
 /* eslint-disable complexity */
 import type { Integration } from '@sentry/core';
-import type { BrowserOptions } from '@sentry/react';
 
 import type { ReactNativeClientOptions } from '../options';
 import { reactNativeTracingIntegration } from '../tracing';
-import { isExpoGo, isWeb, notWeb } from '../utils/environment';
+import { isExpoGo, notWeb } from '../utils/environment';
 import {
   appStartIntegration,
   breadcrumbsIntegration,
@@ -127,18 +126,22 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(spotlightIntegration({ sidecarUrl }));
   }
 
-  if (
+  const hasReplayOptions =
+    typeof options.replaysOnErrorSampleRate === 'number' || typeof options.replaysSessionSampleRate === 'number';
+  const hasExperimentsReplayOptions =
     (options._experiments && typeof options._experiments.replaysOnErrorSampleRate === 'number') ||
-    (options._experiments && typeof options._experiments.replaysSessionSampleRate === 'number')
-  ) {
-    if (isWeb()) {
-      // We can't create and add browserReplayIntegration as it overrides the users supplied one
-      // The browser replay integration works differently than the rest of default integrations
-      (options as BrowserOptions).replaysOnErrorSampleRate = options._experiments.replaysOnErrorSampleRate;
-      (options as BrowserOptions).replaysSessionSampleRate = options._experiments.replaysSessionSampleRate;
-    } else {
-      integrations.push(mobileReplayIntegration());
-    }
+    (options._experiments && typeof options._experiments.replaysSessionSampleRate === 'number');
+
+  if (!hasReplayOptions && hasExperimentsReplayOptions) {
+    // Remove in the next major version (v7)
+    options.replaysOnErrorSampleRate = options._experiments.replaysOnErrorSampleRate;
+    options.replaysSessionSampleRate = options._experiments.replaysSessionSampleRate;
+  }
+
+  if ((hasReplayOptions || hasExperimentsReplayOptions) && notWeb()) {
+    // We can't create and add browserReplayIntegration as it overrides the users supplied one
+    // The browser replay integration works differently than the rest of default integrations
+    integrations.push(mobileReplayIntegration());
   }
 
   if (__DEV__ && notWeb()) {

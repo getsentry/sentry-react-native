@@ -12,15 +12,8 @@
 
 + (void)updateOptions:(NSMutableDictionary *)options
 {
-    NSDictionary *experiments = options[@"_experiments"];
-    [options removeObjectForKey:@"_experiments"];
-    if (experiments == nil) {
-        NSLog(@"Session replay disabled via configuration");
-        return;
-    }
-
-    if (experiments[@"replaysSessionSampleRate"] == nil
-        && experiments[@"replaysOnErrorSampleRate"] == nil) {
+    if (options[@"replaysSessionSampleRate"] == nil
+        && options[@"replaysOnErrorSampleRate"] == nil) {
         NSLog(@"Session replay disabled via configuration");
         return;
     }
@@ -29,15 +22,13 @@
     NSDictionary *replayOptions = options[@"mobileReplayOptions"] ?: @{};
 
     [options setValue:@{
-        @"sessionReplay" : @ {
-            @"sessionSampleRate" : experiments[@"replaysSessionSampleRate"] ?: [NSNull null],
-            @"errorSampleRate" : experiments[@"replaysOnErrorSampleRate"] ?: [NSNull null],
-            @"maskAllImages" : replayOptions[@"maskAllImages"] ?: [NSNull null],
-            @"maskAllText" : replayOptions[@"maskAllText"] ?: [NSNull null],
-            @"maskedViewClasses" : [RNSentryReplay getReplayRNRedactClasses:replayOptions],
-        }
+        @"sessionSampleRate" : options[@"replaysSessionSampleRate"] ?: [NSNull null],
+        @"errorSampleRate" : options[@"replaysOnErrorSampleRate"] ?: [NSNull null],
+        @"maskAllImages" : replayOptions[@"maskAllImages"] ?: [NSNull null],
+        @"maskAllText" : replayOptions[@"maskAllText"] ?: [NSNull null],
+        @"maskedViewClasses" : [RNSentryReplay getReplayRNRedactClasses:replayOptions],
     }
-               forKey:@"experimental"];
+               forKey:@"sessionReplay"];
 }
 
 + (NSArray *_Nonnull)getReplayRNRedactClasses:(NSDictionary *_Nullable)replayOptions

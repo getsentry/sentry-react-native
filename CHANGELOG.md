@@ -10,23 +10,6 @@
 
 ### Features
 
-- Adds new `captureFeedback` and deprecates the `captureUserFeedback` API ([#4320](https://github.com/getsentry/sentry-react-native/pull/4320))
-
-  ```jsx
-  import * as Sentry from "@sentry/react-native";
-
-  const eventId = Sentry.lastEventId();
-
-  Sentry.captureFeedback({
-    name: "John Doe",
-    email: "john@doe.com",
-    message: "Hello World!",
-    associatedEventId: eventId, // optional
-  });
-  ```
-
-  To learn how to attach context data to the feedback visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/).
-
 - User Feedback Form Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
 
   To collect user feedback from inside your application you can use:
@@ -38,7 +21,7 @@
   <FeedbackForm/>
   ```
   or auto-inject it by calling the `showFeedbackForm`:
-    ```jsx
+  ```jsx
   import { showFeedbackForm } from '@sentry/react-native';
   ...
     <Button
@@ -69,6 +52,60 @@
     />
   ```
 
+### Changes
+
+- Rename `navigation.processing` span to more expressive `Navigation dispatch to screen A mounted/navigation cancelled` ([#4423](https://github.com/getsentry/sentry-react-native/pull/4423))
+
+### Dependencies
+
+- Bump CLI from v2.39.1 to v2.40.0 ([#4412](https://github.com/getsentry/sentry-react-native/pull/4412))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2400)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.39.1...2.40.0)
+- Bump JavaScript SDK from v8.47.0 to v8.48.0 ([#4421](https://github.com/getsentry/sentry-react-native/pull/4421))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8480)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.47.0...8.48.0)
+
+## 6.5.0
+
+### Features
+
+- Mobile Session Replay is now generally available and ready for production use ([#4384](https://github.com/getsentry/sentry-react-native/pull/4384))
+
+  To learn about privacy, custom masking or performance overhead visit [the documentation](https://docs.sentry.io/platforms/react-native/session-replay/).
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    replaysSessionSampleRate: 1.0,
+    replaysOnErrorSampleRate: 1.0,
+    integrations: [
+      Sentry.mobileReplayIntegration({
+        maskAllImages: true,
+        maskAllVectors: true,
+        maskAllText: true,
+      }),
+    ],
+  });
+  ```
+
+- Adds new `captureFeedback` and deprecates the `captureUserFeedback` API ([#4320](https://github.com/getsentry/sentry-react-native/pull/4320))
+
+  ```jsx
+  import * as Sentry from "@sentry/react-native";
+
+  const eventId = Sentry.lastEventId();
+
+  Sentry.captureFeedback({
+    name: "John Doe",
+    email: "john@doe.com",
+    message: "Hello World!",
+    associatedEventId: eventId, // optional
+  });
+  ```
+
+  To learn how to attach context data to the feedback visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/).
+
 - Export `Span` type from `@sentry/types` ([#4345](https://github.com/getsentry/sentry-react-native/pull/4345))
 - Add RN SDK package to `sdk.packages` on Android ([#4380](https://github.com/getsentry/sentry-react-native/pull/4380))
 
@@ -82,21 +119,22 @@
 ### Changes
 
 - Falsy values of `options.environment` (empty string, undefined...) default to `production`
+- Deprecated `_experiments.replaysSessionSampleRate` and `_experiments.replaysOnErrorSampleRate` use `replaysSessionSampleRate` and `replaysOnErrorSampleRate` ([#4384](https://github.com/getsentry/sentry-react-native/pull/4384))
 
 ### Dependencies
 
 - Bump CLI from v2.38.2 to v2.39.1 ([#4305](https://github.com/getsentry/sentry-react-native/pull/4305), [#4316](https://github.com/getsentry/sentry-react-native/pull/4316))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2391)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.38.2...2.39.1)
-- Bump Android SDK from v7.18.0 to v7.19.0 ([#4329](https://github.com/getsentry/sentry-react-native/pull/4329), [#4365](https://github.com/getsentry/sentry-react-native/pull/4365))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7190)
-  - [diff](https://github.com/getsentry/sentry-java/compare/7.18.0...7.19.0)
+- Bump Android SDK from v7.18.0 to v7.20.0 ([#4329](https://github.com/getsentry/sentry-react-native/pull/4329), [#4365](https://github.com/getsentry/sentry-react-native/pull/4365), [#4405](https://github.com/getsentry/sentry-react-native/pull/4405), [#4411](https://github.com/getsentry/sentry-react-native/pull/4411))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7200)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.18.0...7.20.0)
 - Bump JavaScript SDK from v8.40.0 to v8.47.0 ([#4351](https://github.com/getsentry/sentry-react-native/pull/4351), [#4325](https://github.com/getsentry/sentry-react-native/pull/4325), [#4371](https://github.com/getsentry/sentry-react-native/pull/4371), [#4382](https://github.com/getsentry/sentry-react-native/pull/4382), [#4388](https://github.com/getsentry/sentry-react-native/pull/4388), [#4393](https://github.com/getsentry/sentry-react-native/pull/4393))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8470)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/8.40.0...8.47.0)
-- Bump Cocoa SDK from v8.41.0 to v8.42.1 ([#4387](https://github.com/getsentry/sentry-react-native/pull/4387), [#4399](https://github.com/getsentry/sentry-react-native/pull/4399))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8421)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.41.0...8.42.1)
+- Bump Cocoa SDK from v8.41.0 to v8.43.0 ([#4387](https://github.com/getsentry/sentry-react-native/pull/4387), [#4399](https://github.com/getsentry/sentry-react-native/pull/4399), [#4410](https://github.com/getsentry/sentry-react-native/pull/4410))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8430)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.41.0...8.43.0)
 
 ## 6.4.0
 
