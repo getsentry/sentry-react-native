@@ -1,6 +1,6 @@
 {
   "name": "TestAppPlain",
-  "version": "6.4.0",
+  "version": "6.5.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "react": "18.1.0",
-    "react-native": "0.70.6"
+    "react-native": "0.70.15"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
