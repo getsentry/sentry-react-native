@@ -152,7 +152,7 @@ describe('FeedbackForm', () => {
     });
   });
 
-  it('shows an error message when there is a generic connection', async () => {
+  it('shows an error message when there is a an error in captureFeedback', async () => {
     (captureFeedback as jest.Mock).mockImplementationOnce(() => {
       throw new Error('Test error');
     });
