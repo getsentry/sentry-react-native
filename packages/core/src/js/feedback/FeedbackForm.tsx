@@ -1,5 +1,5 @@
 import type { SendFeedbackParams } from '@sentry/core';
-import { captureFeedback, getCurrentScope, lastEventId } from '@sentry/core';
+import { captureFeedback, getCurrentScope, lastEventId, logger } from '@sentry/core';
 import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
 import {
