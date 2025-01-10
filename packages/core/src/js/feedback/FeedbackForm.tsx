@@ -94,10 +94,10 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     Alert.alert(text.successMessageText);
   };
 
-  public addRemoveAttachment: () => void = () => {
+  public addRemoveScreenshot: () => void = () => {
     if (!this.state.filename && !this.state.attachment) {
-      const { onFileChosen } = { ...defaultConfiguration, ...this.props };
-      onFileChosen((filename: string, attachement: string | Uint8Array) => {
+      const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
+      onAddScreenshot((filename: string, attachement: string | Uint8Array) => {
         this.setState({ filename, attachment: attachement });
       });
     } else {
@@ -183,7 +183,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
                 multiline
               />
               {config.enableScreenshot && (
-                <TouchableOpacity style={styles.screenshotButton} onPress={this.addRemoveAttachment}>
+                <TouchableOpacity style={styles.screenshotButton} onPress={this.addRemoveScreenshot}>
                   <Text style={styles.screenshotText}>
                   {!this.state.filename && !this.state.attachment
                     ? text.addScreenshotButtonLabel

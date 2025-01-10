@@ -7,7 +7,7 @@ import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
 import type { FeedbackFormProps } from '../../src/js/feedback/FeedbackForm.types';
 
 const mockOnFormClose = jest.fn();
-const mockOnFileChosen = jest.fn();
+const mockOnAddScreenshot = jest.fn();
 const mockGetUser = jest.fn(() => ({
   email: 'test@example.com',
   name: 'Test User',
@@ -25,7 +25,7 @@ jest.mock('@sentry/core', () => ({
 
 const defaultProps: FeedbackFormProps = {
   onFormClose: mockOnFormClose,
-  onFileChosen: mockOnFileChosen,
+  onAddScreenshot: mockOnAddScreenshot,
   addScreenshotButtonLabel: 'Add Screenshot',
   formTitle: 'Feedback Form',
   nameLabel: 'Name',
@@ -168,13 +168,13 @@ describe('FeedbackForm', () => {
     });
   });
 
-  it('calls onFileChosen when the screenshot button is pressed', async () => {
+  it('calls onAddScreenshot when the screenshot button is pressed', async () => {
     const { getByText } = render(<FeedbackForm {...defaultProps} enableScreenshot={true} />);
 
     fireEvent.press(getByText(defaultProps.addScreenshotButtonLabel));
 
     await waitFor(() => {
-      expect(mockOnFileChosen).toHaveBeenCalled();
+      expect(mockOnAddScreenshot).toHaveBeenCalled();
     });
   });
 

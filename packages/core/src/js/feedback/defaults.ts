@@ -29,9 +29,9 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
       );
     }
   },
-  onFileChosen: (_: (filename: string, base64Attachment: string | Uint8Array) => void) => {
+  onAddScreenshot: (_: (filename: string, base64Attachment: string | Uint8Array) => void) => {
     if (__DEV__) {
-      Alert.alert('Development note', 'onFileChosen callback is not implemented.');
+      Alert.alert('Development note', 'onAddScreenshot callback is not implemented.');
     }
   },
 

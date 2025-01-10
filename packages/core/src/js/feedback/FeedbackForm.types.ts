@@ -154,9 +154,9 @@ export interface FeedbackCallbacks {
   onFormClose?: () => void;
 
   /**
-   * Callback when a file is chosen for attachment
+   * Callback when a screenshot is added
    */
-  onFileChosen?: (attachFile: (filename: string, base64Attachment: string | Uint8Array) => void) => void;
+  onAddScreenshot?: (attachFile: (filename: string, base64Attachment: string | Uint8Array) => void) => void;
 }
 
 /**
