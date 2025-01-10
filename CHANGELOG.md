@@ -20,6 +20,10 @@
   <FeedbackForm/>
   ```
 
+### Fixes
+
+- Use proper SDK name for Session Replay tags ([#4428](https://github.com/getsentry/sentry-react-native/pull/4428))
+
 ### Changes
 
 - Rename `navigation.processing` span to more expressive `Navigation dispatch to screen A mounted/navigation cancelled` ([#4423](https://github.com/getsentry/sentry-react-native/pull/4423))
