@@ -156,7 +156,7 @@ export interface FeedbackCallbacks {
   /**
    * Callback when a screenshot is added
    */
-  onAddScreenshot?: (attachFile: (filename: string, base64Attachment: string | Uint8Array) => void) => void;
+  onAddScreenshot?: (attachFile: (filename: string, base64Attachment: Uint8Array) => void) => void;
 }
 
 /**

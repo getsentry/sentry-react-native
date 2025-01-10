@@ -16,7 +16,6 @@ import {
   View
 } from 'react-native';
 
-import { base64ToUint8Array } from '../utils/base64ToUint8Array';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
@@ -68,13 +67,11 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       return;
     }
 
-    const attachement = (this.state?.attachment instanceof Uint8Array)? this.state?.attachment : base64ToUint8Array(this.state?.attachment);
-
     const attachments = this.state.filename && this.state.attachment
     ? [
         {
           filename: this.state.filename,
-          data: attachement,
+          data: this.state.attachment,
         },
       ]
     : undefined;
