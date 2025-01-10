@@ -84,3 +84,5 @@ export {
 export type { TimeToDisplayProps } from './tracing';
 
 export { Mask, Unmask } from './replay/CustomMask';
+
+export { FeedbackForm } from './feedback/FeedbackForm';

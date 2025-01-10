@@ -8,6 +8,18 @@
 
 ## Unreleased
 
+### Features
+
+- User Feedback Form Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
+
+  To collect user feedback from inside your application add the `FeedbackForm` component.
+
+  ```jsx
+  import { FeedbackForm } from "@sentry/react-native";
+  ...
+  <FeedbackForm/>
+  ```
+
 ### Fixes
 
 - Use proper SDK name for Session Replay tags ([#4428](https://github.com/getsentry/sentry-react-native/pull/4428))
