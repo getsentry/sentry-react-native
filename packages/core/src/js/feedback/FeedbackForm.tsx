@@ -20,7 +20,7 @@ import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration } from './FeedbackForm.types';
-import { checkInternetConnection, isValidEmail } from './utils';
+import { isValidEmail } from './utils';
 
 /**
  * @beta
@@ -76,22 +76,18 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       associatedEventId: eventId,
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    checkInternetConnection(() => { // onConnected
+    try {
       this.setState({ isVisible: false });
       captureFeedback(userFeedback);
       onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: undefined });
       Alert.alert(text.successMessageText);
       onFormSubmitted();
-    }, () => { // onDisconnected
-      Alert.alert(text.errorTitle, text.networkError);
-      logger.error(`Feedback form submission failed: ${text.networkError}`);
-    }, () => { // onError
-      const errorString = `Feedback form submission failed: ${text.genericError}`;
+    } catch (error) {
+      const errorString = `Feedback form submission failed: ${error}`;
       onSubmitError(new Error(errorString));
       Alert.alert(text.errorTitle, text.genericError);
-      logger.error(errorString);
-    });
+      logger.error(`Feedback form submission failed: ${error}`);
+    }
   };
 
   /**

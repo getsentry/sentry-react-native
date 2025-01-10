@@ -129,12 +129,7 @@ export interface FeedbackTextConfiguration {
   emailError?: string;
 
   /**
-   * Message when there is a network error
-   */
-  networkError?: string;
-
-  /**
-   * Message when there is a network error
+   * Message when there is a generic error
    */
   genericError?: string;
 }

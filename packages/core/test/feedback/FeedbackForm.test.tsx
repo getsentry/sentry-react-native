@@ -5,7 +5,6 @@ import { Alert } from 'react-native';
 
 import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
 import type { FeedbackFormProps } from '../../src/js/feedback/FeedbackForm.types';
-import { checkInternetConnection } from '../../src/js/feedback/utils';
 
 const mockOnFormClose = jest.fn();
 const mockOnSubmitSuccess = jest.fn();
@@ -25,10 +24,6 @@ jest.mock('@sentry/core', () => ({
     getUser: mockGetUser,
   })),
   lastEventId: jest.fn(),
-}));
-jest.mock('../../src/js/feedback/utils', () => ({
-  ...jest.requireActual('../../src/js/feedback/utils'),
-  checkInternetConnection: jest.fn(),
 }));
 
 const defaultProps: FeedbackFormProps = {
@@ -50,16 +45,10 @@ const defaultProps: FeedbackFormProps = {
   formError: 'Please fill out all required fields.',
   emailError: 'The email address is not valid.',
   successMessageText: 'Feedback success',
-  networkError: 'Network error',
   genericError: 'Generic error',
 };
 
 describe('FeedbackForm', () => {
-  beforeEach(() => {
-    (checkInternetConnection as jest.Mock).mockImplementation((onConnected, _onDisconnected, _onError) => {
-      onConnected();
-    });
-  });
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -163,27 +152,9 @@ describe('FeedbackForm', () => {
     });
   });
 
-  it('shows an error message when there is no network connection', async () => {
-    (checkInternetConnection as jest.Mock).mockImplementationOnce((_onConnected, onDisconnected, _onError) => {
-      onDisconnected();
-    });
-
-    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
-
-    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
-    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
-    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
-
-    fireEvent.press(getByText(defaultProps.submitButtonLabel));
-
-    await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.errorTitle, defaultProps.networkError);
-    });
-  });
-
   it('shows an error message when there is a generic connection', async () => {
-    (checkInternetConnection as jest.Mock).mockImplementationOnce((_onConnected, _onDisconnected, onError) => {
-      onError();
+    (captureFeedback as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('Test error');
     });
 
     const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
@@ -200,8 +171,8 @@ describe('FeedbackForm', () => {
   });
 
   it('calls onSubmitError when there is an error', async () => {
-    (checkInternetConnection as jest.Mock).mockImplementationOnce((_onConnected, _onDisconnected, onError) => {
-      onError();
+    (captureFeedback as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('Test error');
     });
 
     const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
