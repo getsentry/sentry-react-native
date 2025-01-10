@@ -19,17 +19,10 @@
   ...
   <FeedbackForm/>
   ```
-  or auto-inject it by calling the `showFeedbackForm`:
-    ```jsx
-  import { showFeedbackForm } from '@sentry/react-native';
-  ...
-    <Button
-      title="Show feedback form"
-      onPress={() => {
-        showFeedbackForm(_props.navigation);
-      }}
-    />
-  ```
+
+### Fixes
+
+- Use proper SDK name for Session Replay tags ([#4428](https://github.com/getsentry/sentry-react-native/pull/4428))
 
 ### Changes
 
