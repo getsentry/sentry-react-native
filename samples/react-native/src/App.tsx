@@ -171,7 +171,7 @@ const base64ToUint8Array = (base64?: string): Uint8Array | undefined => {
   return new Uint8Array(bytes);
 };
 
-const handleChooseImage = (attachFile: (filename: string, base64Attachment: Uint8Array) => void): void => {
+const handleChooseImage = (attachFile: (filename: string, data: Uint8Array) => void): void => {
   launchImageLibrary({ mediaType: 'photo', includeBase64: true }, (response) => {
     if (response.didCancel) {
       console.log('User cancelled image picker');

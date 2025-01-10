@@ -29,7 +29,7 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
       );
     }
   },
-  onAddScreenshot: (_: (filename: string, base64Attachment: Uint8Array) => void) => {
+  onAddScreenshot: (_: (filename: string, data: Uint8Array) => void) => {
     if (__DEV__) {
       Alert.alert('Development note', 'onAddScreenshot callback is not implemented.');
     }

@@ -94,7 +94,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
   public addRemoveScreenshot: () => void = () => {
     if (!this.state.filename && !this.state.attachment) {
       const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
-      onAddScreenshot((filename: string, attachement: string | Uint8Array) => {
+      onAddScreenshot((filename: string, attachement: Uint8Array) => {
         this.setState({ filename, attachment: attachement });
       });
     } else {
