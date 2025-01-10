@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import type { Breadcrumb, BreadcrumbHint, Integration, Scope, SendFeedbackParams, UserFeedback } from '@sentry/core';
-import { captureFeedback, getClient, getGlobalScope, getIntegrationsToSetup, getIsolationScope, initAndBind, logger, stackParserFromStackParserOptions, withScope as coreWithScope } from '@sentry/core';
+import { captureFeedback, getClient, getGlobalScope, getIntegrationsToSetup, getIsolationScope, initAndBind, logger, makeDsn, stackParserFromStackParserOptions, withScope as coreWithScope } from '@sentry/core';
 import {
   defaultStackParser,
   makeFetchTransport,
@@ -66,20 +66,13 @@ export function init(passedOptions: ReactNativeOptions): void {
     if (!dsn) {
       return undefined;
     }
-    try {
-      const regex = /^(https?):\/\/(?:[^@]+@)?([^/]+)(?:\/.*)?$/;
-      const matches = dsn.match(regex);
-
-      if (matches) {
-        const [, protocol, host] = matches;
-        return `${protocol}://${host}`;
-      }
+    const dsnComponents = makeDsn(dsn);
+    if (!dsnComponents) {
       logger.error('Failed to extract url from DSN: ', dsn);
       return undefined;
-    } catch (e) {
-      logger.error('Failed to extract url from DSN', e);
-      return undefined;
     }
+    const port = dsnComponents.port ? `:${dsnComponents.port}` : '';
+    return `${dsnComponents.protocol}://${dsnComponents.host}${port}`;
   };
 
   const userBeforeBreadcrumb = safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' });
