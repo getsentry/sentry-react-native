@@ -19,17 +19,6 @@
   ...
   <FeedbackForm/>
   ```
-  or auto-inject it by calling the `showFeedbackForm`:
-    ```jsx
-  import { showFeedbackForm } from '@sentry/react-native';
-  ...
-    <Button
-      title="Show feedback form"
-      onPress={() => {
-        showFeedbackForm(_props.navigation);
-      }}
-    />
-  ```
 
 ### Changes
 
