@@ -228,12 +228,6 @@ const ErrorsScreen = (_props: Props) => {
           }}
         />
         <Button
-          title="Feedback form (autoinject)"
-          onPress={() => {
-            showFeedbackForm(_props.navigation);
-          }}
-        />
-        <Button
           title="Send user feedback"
           onPress={() => {
             setFeedbackVisible(true);
