@@ -44,7 +44,13 @@
         {
           "url": "https://sentry.io/",
           "project": "sentry-react-native",
-          "organization": "sentry-sdks"
+          "organization": "sentry-sdks",
+          "experimental_android": {
+            "sentryAndroidGradlePluginVersion": "4.14.1",
+            "uploadNativeSymbols": true,
+            "includeNativeSources": true,
+            "autoInstallationEnabled": false
+          }
         }
       ],
       [
