@@ -17,6 +17,10 @@
 - Rename `navigation.processing` span to more expressive `Navigation dispatch to screen A mounted/navigation cancelled` ([#4423](https://github.com/getsentry/sentry-react-native/pull/4423))
 - Add RN SDK package to `sdk.packages` for Cocoa ([#4381](https://github.com/getsentry/sentry-react-native/pull/4381))
 
+### Internal
+
+- Initialize `RNSentryTimeToDisplay` during native module `init` on iOS ([#4443](https://github.com/getsentry/sentry-react-native/pull/4443))
+
 ### Dependencies
 
 - Bump CLI from v2.39.1 to v2.40.0 ([#4412](https://github.com/getsentry/sentry-react-native/pull/4412))
