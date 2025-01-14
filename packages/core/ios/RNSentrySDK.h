@@ -4,7 +4,7 @@
 SENTRY_NO_INIT
 
 + (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
-error:(NSError *_Nonnull *_Nonnull)errorPointer;
+                                                  error:(NSError *_Nonnull *_Nonnull)errorPointer;
 
 /**
  * @experimental
@@ -17,4 +17,3 @@ error:(NSError *_Nonnull *_Nonnull)errorPointer;
 + (void)startWithOptions:(SentryOptions *)options NS_SWIFT_NAME(start(options:));
 
 @end
-

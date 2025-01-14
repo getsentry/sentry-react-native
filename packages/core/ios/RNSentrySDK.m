@@ -28,7 +28,7 @@
         // react native Because we sent it already before the app crashed.
         if (nil != event.exceptions.firstObject.type &&
             [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location
-            != NSNotFound) {
+                != NSNotFound) {
             return nil;
         }
 
@@ -61,7 +61,7 @@
     NSString *dsn = [self getURLFromDSN:[mutableOptions valueForKey:@"dsn"]];
     NSString *devServerUrl = [mutableOptions valueForKey:@"devServerUrl"];
     sentryOptions.beforeBreadcrumb
-    = ^SentryBreadcrumb *_Nullable(SentryBreadcrumb *_Nonnull breadcrumb)
+        = ^SentryBreadcrumb *_Nullable(SentryBreadcrumb *_Nonnull breadcrumb)
     {
         NSString *url = breadcrumb.data[@"url"] ?: @"";
 
@@ -102,7 +102,7 @@
     // Enable the App start and Frames tracking measurements
     if ([mutableOptions valueForKey:@"enableAutoPerformanceTracing"] != nil) {
         BOOL enableAutoPerformanceTracing =
-        [mutableOptions[@"enableAutoPerformanceTracing"] boolValue];
+            [mutableOptions[@"enableAutoPerformanceTracing"] boolValue];
         PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracing;
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
         PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracing;

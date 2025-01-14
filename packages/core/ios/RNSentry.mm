@@ -50,6 +50,7 @@
 #endif
 
 #import "RNSentrySDK.h"
+#import "RNSentryVersion.h"
 
 @interface
 SentrySDK (RNSentry)
