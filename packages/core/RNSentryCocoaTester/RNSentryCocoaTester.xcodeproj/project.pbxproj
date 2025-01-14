@@ -25,6 +25,8 @@
 		332D33482CDBDC7300547D76 /* RNSentry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentry.h; path = ../ios/RNSentry.h; sourceTree = SOURCE_ROOT; };
 		332D33492CDCC8E100547D76 /* RNSentryTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSentryTests.h; sourceTree = "<group>"; };
 		332D334A2CDCC8EB00547D76 /* RNSentryCocoaTesterTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RNSentryCocoaTesterTests-Bridging-Header.h"; sourceTree = "<group>"; };
+		333B58A82D35BA93000F8D04 /* RNSentryStart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryStart.h; path = ../ios/RNSentryStart.h; sourceTree = SOURCE_ROOT; };
+		333B58A92D35BB2D000F8D04 /* RNSentryStart+Test.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RNSentryStart+Test.h"; path = "RNSentryCocoaTesterTests/RNSentryStart+Test.h"; sourceTree = SOURCE_ROOT; };
 		336084382C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RNSentryReplayBreadcrumbConverterTests.swift; sourceTree = "<group>"; };
 		3360843A2C32E3A8008CC412 /* RNSentryReplayBreadcrumbConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryReplayBreadcrumbConverter.h; path = ../ios/RNSentryReplayBreadcrumbConverter.h; sourceTree = "<group>"; };
 		3360843C2C340C76008CC412 /* RNSentryBreadcrumbTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryBreadcrumbTests.swift; sourceTree = "<group>"; };
@@ -116,6 +118,8 @@
 		33AFE0122B8F319000AAB120 /* RNSentry */ = {
 			isa = PBXGroup;
 			children = (
+				333B58A92D35BB2D000F8D04 /* RNSentryStart+Test.h */,
+				333B58A82D35BA93000F8D04 /* RNSentryStart.h */,
 				3380C6C02CDEC56B0018B9B6 /* Replay */,
 				332D33482CDBDC7300547D76 /* RNSentry.h */,
 				3360843A2C32E3A8008CC412 /* RNSentryReplayBreadcrumbConverter.h */,

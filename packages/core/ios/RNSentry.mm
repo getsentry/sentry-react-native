@@ -95,13 +95,13 @@ RCT_EXPORT_METHOD(initNativeSdk
                   : (RCTPromiseRejectBlock)reject)
 {
     NSError *error = nil;
-    SentryOptions *sentryOptions = [RNSentrySDK createOptionsWithDictionary:options error:&error];
+    SentryOptions *sentryOptions = [RNSentryStart createOptionsWithDictionary:options error:&error];
     if (error != nil) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
 
-    [RNSentrySDK startWithOptions:sentryOptions];
+    [RNSentryStart startWithOptions:sentryOptions];
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     BOOL appIsActive =

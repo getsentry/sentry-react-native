@@ -1,6 +1,6 @@
 #import <Sentry/Sentry.h>
 
-@interface RNSentrySDK : NSObject
+@interface RNSentryStart : NSObject
 SENTRY_NO_INIT
 
 + (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options

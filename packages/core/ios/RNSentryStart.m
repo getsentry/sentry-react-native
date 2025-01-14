@@ -5,14 +5,14 @@
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
 
-@implementation RNSentrySDK
+@implementation RNSentryStart
 
 + (void)startWithOptions:(SentryOptions *)options NS_SWIFT_NAME(start(options:))
 {
     NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
     [PrivateSentrySDKOnly setSdkName:nativeSdkName andVersionString:sdkVersion];
 
-    [SentrySDK startWithOptions:options];
+    [self startWithOptions:options];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     [RNSentryReplay postInit];
