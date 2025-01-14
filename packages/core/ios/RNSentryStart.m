@@ -18,6 +18,8 @@
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     [RNSentryReplay postInit];
 #endif
+
+    [self postDidBecomeActiveNotification];
 }
 
 + (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
@@ -155,6 +157,29 @@
         return nil;
     }
     return [NSString stringWithFormat:@"%@://%@", url.scheme, url.host];
+}
+
+static bool sentHybridSdkDidBecomeActive = NO;
+
++ (void)postDidBecomeActiveNotification
+{
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+    BOOL appIsActive =
+    [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
+#else
+    BOOL appIsActive = [[NSApplication sharedApplication] isActive];
+#endif
+
+    // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive
+    // notification, send it.
+    if (appIsActive && !sentHybridSdkDidBecomeActive
+        && (PrivateSentrySDKOnly.options.enableAutoSessionTracking
+            || PrivateSentrySDKOnly.options.enableWatchdogTerminationTracking)) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"SentryHybridSdkDidBecomeActive"
+                                                            object:nil];
+
+        sentHybridSdkDidBecomeActive = true;
+    }
 }
 
 @end

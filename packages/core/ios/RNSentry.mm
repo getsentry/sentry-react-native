@@ -64,7 +64,6 @@ SentrySDK (RNSentry)
 static bool hasFetchedAppStart;
 
 @implementation RNSentry {
-    bool sentHybridSdkDidBecomeActive;
     bool hasListeners;
     RNSentryTimeToDisplay *_timeToDisplay;
 }
@@ -102,25 +101,6 @@ RCT_EXPORT_METHOD(initNativeSdk
     }
 
     [RNSentryStart startWithOptions:sentryOptions];
-
-#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-    BOOL appIsActive =
-        [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
-#else
-    BOOL appIsActive = [[NSApplication sharedApplication] isActive];
-#endif
-
-    // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive
-    // notification, send it.
-    if (appIsActive && !sentHybridSdkDidBecomeActive
-        && (PrivateSentrySDKOnly.options.enableAutoSessionTracking
-            || PrivateSentrySDKOnly.options.enableWatchdogTerminationTracking)) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"SentryHybridSdkDidBecomeActive"
-                                                            object:nil];
-
-        sentHybridSdkDidBecomeActive = true;
-    }
-
     resolve(@YES);
 }
 
