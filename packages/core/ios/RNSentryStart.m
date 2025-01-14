@@ -128,7 +128,7 @@
 
         // If the event is from react native, it gets set
         // there and we do not handle it here.
-        if ([sdkName isEqual:REACT_NATIVE_SDK_PACKAGE_NAME]) {
+        if ([sdkName isEqual:NATIVE_SDK_NAME]) {
             [self setEventEnvironmentTag:event origin:@"ios" environment:@"native"];
         }
     }
