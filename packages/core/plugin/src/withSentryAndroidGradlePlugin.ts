@@ -2,8 +2,13 @@ import { withAppBuildGradle, withProjectBuildGradle } from '@expo/config-plugins
 
 export interface SentryAndroidGradlePluginOptions {
   sentryAndroidGradlePluginVersion?: string;
+  includeProguardMapping?: boolean;
+  dexguardEnabled?: boolean;
+  autoUploadNativeSymbols?: boolean;
+  autoUploadProguardMappings?: boolean;
   uploadNativeSymbols?: boolean;
   includeNativeSources?: boolean;
+  includeSourceContext?: boolean;
   autoInstallationEnabled?: boolean;
 }
 
@@ -13,8 +18,13 @@ export interface SentryAndroidGradlePluginOptions {
  */
 export function withSentryAndroidGradlePlugin(config: any, options: SentryAndroidGradlePluginOptions = {}): any {
   const version = options.sentryAndroidGradlePluginVersion;
+  const includeProguardMapping = options.includeProguardMapping ?? true;
+  const dexguardEnabled = options.dexguardEnabled ?? false;
+  const autoUploadProguardMappings = options.autoUploadProguardMappings ?? true;
   const uploadNativeSymbols = options.uploadNativeSymbols ?? true;
+  const autoUploadNativeSymbols = options.autoUploadNativeSymbols ?? true;
   const includeNativeSources = options.includeNativeSources ?? true;
+  const includeSourceContext = options.includeSourceContext ?? false;
   const autoInstallationEnabled = options.autoInstallationEnabled ?? false;
 
   // Modify android/build.gradle
@@ -48,8 +58,13 @@ export function withSentryAndroidGradlePlugin(config: any, options: SentryAndroi
         const sentryPlugin = `apply plugin: "io.sentry.android.gradle"`;
         const sentryConfig = `
   sentry {
+      autoUploadProguardMappings = ${autoUploadProguardMappings}
+      includeProguardMapping = ${includeProguardMapping}
+      dexguardEnabled = ${dexguardEnabled}
       uploadNativeSymbols = ${uploadNativeSymbols}
+      autoUploadNativeSymbols = ${autoUploadNativeSymbols}
       includeNativeSources = ${includeNativeSources}
+      includeSourceContext = ${includeSourceContext}
       autoInstallation {
           enabled = ${autoInstallationEnabled}
       }

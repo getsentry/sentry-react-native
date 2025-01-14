@@ -47,8 +47,10 @@
           "organization": "sentry-sdks",
           "experimental_android": {
             "sentryAndroidGradlePluginVersion": "4.14.1",
+            "autoUploadProguardMapping": true,
             "uploadNativeSymbols": true,
             "includeNativeSources": true,
+            "includeSourceContext": true,
             "autoInstallationEnabled": false
           }
         }
