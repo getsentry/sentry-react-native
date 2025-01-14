@@ -369,7 +369,7 @@ describe('Tests the SDK functionality', () => {
       expect(result).toBeNull();
     });
 
-    it('should filters out dsn breadcrumbs that the ports do not match', () => {
+    it('should keep breadcrumbs if the ports do not match', () => {
       (getDevServer as jest.Mock).mockReturnValue({ url: 'http://localhost:8081' });
 
       const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
