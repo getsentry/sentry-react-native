@@ -2,6 +2,7 @@
 #import "RNSentryReplay.h"
 #import "RNSentryVersion.h"
 
+#import <Sentry/Sentry.h>
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
 
@@ -12,7 +13,7 @@
     NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
     [PrivateSentrySDKOnly setSdkName:nativeSdkName andVersionString:sdkVersion];
 
-    [self startWithOptions:options];
+    [SentrySDK startWithOptions:options];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     [RNSentryReplay postInit];
