@@ -10,7 +10,7 @@
 
 ### Features
 
-- User Feedback Form Component Beta ([#4320](https://github.com/getsentry/sentry-react-native/pull/4328))
+- User Feedback Form Component Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
 
   To collect user feedback from inside your application add the `FeedbackForm` component.
 
