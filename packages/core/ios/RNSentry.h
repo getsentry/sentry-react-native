@@ -20,11 +20,6 @@ SentrySDK (Private)
 
 @interface RNSentry : RCTEventEmitter <RCTBridgeModule>
 
-- (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
-                                                  error:(NSError *_Nullable *_Nonnull)errorPointer;
-
-- (void)setEventOriginTag:(SentryEvent *)event;
-
 - (NSDictionary *_Nonnull)fetchNativeStackFramesBy:(NSArray<NSNumber *> *)instructionsAddr
                                        symbolicate:(SymbolicateCallbackType)symbolicate;
 
