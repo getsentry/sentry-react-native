@@ -26,6 +26,10 @@
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8480)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/8.47.0...8.48.0)
 
+### Internal
+
+- Extract Android native initialization to standalone structures ([#4445](https://github.com/getsentry/sentry-react-native/pull/4445))
+
 ## 6.5.0
 
 ### Features
