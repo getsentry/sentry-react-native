@@ -1,4 +1,5 @@
-#import <Sentry/Sentry.h>
+#import <Sentry/SentryDefines.h>
+#import <Sentry/SentryOptions.h>
 
 @interface RNSentryStart : NSObject
 SENTRY_NO_INIT
