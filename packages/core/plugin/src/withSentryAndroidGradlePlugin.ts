@@ -5,7 +5,7 @@ export interface SentryAndroidGradlePluginOptions {
   includeProguardMapping?: boolean;
   dexguardEnabled?: boolean;
   autoUploadNativeSymbols?: boolean;
-  autoUploadProguardMappings?: boolean;
+  autoUploadProguardMapping?: boolean;
   uploadNativeSymbols?: boolean;
   includeNativeSources?: boolean;
   includeSourceContext?: boolean;
@@ -20,7 +20,7 @@ export function withSentryAndroidGradlePlugin(config: any, options: SentryAndroi
   const version = options.sentryAndroidGradlePluginVersion;
   const includeProguardMapping = options.includeProguardMapping ?? true;
   const dexguardEnabled = options.dexguardEnabled ?? false;
-  const autoUploadProguardMappings = options.autoUploadProguardMappings ?? true;
+  const autoUploadProguardMapping = options.autoUploadProguardMapping ?? true;
   const uploadNativeSymbols = options.uploadNativeSymbols ?? true;
   const autoUploadNativeSymbols = options.autoUploadNativeSymbols ?? true;
   const includeNativeSources = options.includeNativeSources ?? true;
@@ -58,7 +58,7 @@ export function withSentryAndroidGradlePlugin(config: any, options: SentryAndroi
         const sentryPlugin = `apply plugin: "io.sentry.android.gradle"`;
         const sentryConfig = `
   sentry {
-      autoUploadProguardMappings = ${autoUploadProguardMappings}
+      autoUploadProguardMapping = ${autoUploadProguardMapping}
       includeProguardMapping = ${includeProguardMapping}
       dexguardEnabled = ${dexguardEnabled}
       uploadNativeSymbols = ${uploadNativeSymbols}

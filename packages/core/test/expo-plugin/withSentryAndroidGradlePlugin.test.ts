@@ -66,7 +66,7 @@ describe('withSentryAndroidGradlePlugin', () => {
 
   it('adds the Sentry plugin configuration to app/build.gradle', () => {
     const options: SentryAndroidGradlePluginOptions = {
-      autoUploadProguardMappings: true,
+      autoUploadProguardMapping: true,
       includeProguardMapping: true,
       dexguardEnabled: false,
       uploadNativeSymbols: true,
@@ -98,7 +98,7 @@ describe('withSentryAndroidGradlePlugin', () => {
     expect(modifiedGradle.modResults.contents).toContain('apply plugin: "io.sentry.android.gradle"');
     expect(modifiedGradle.modResults.contents).toContain(`
   sentry {
-      autoUploadProguardMappings = true
+      autoUploadProguardMapping = true
       includeProguardMapping = true
       dexguardEnabled = false
       uploadNativeSymbols = true
