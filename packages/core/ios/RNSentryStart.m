@@ -168,7 +168,7 @@ static bool sentHybridSdkDidBecomeActive = NO;
 {
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     BOOL appIsActive =
-    [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
+        [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
 #else
     BOOL appIsActive = [[NSApplication sharedApplication] isActive];
 #endif
@@ -178,8 +178,10 @@ static bool sentHybridSdkDidBecomeActive = NO;
     if (appIsActive && !sentHybridSdkDidBecomeActive
         && (PrivateSentrySDKOnly.options.enableAutoSessionTracking
             || PrivateSentrySDKOnly.options.enableWatchdogTerminationTracking)) {
-        // Updates Native App State Manager https://github.com/getsentry/sentry-cocoa/blob/888a145b144b8077e03151a886520f332e47e297/Sources/Sentry/SentryAppStateManager.m#L136
-        // Triggers Session Tracker https://github.com/getsentry/sentry-cocoa/blob/888a145b144b8077e03151a886520f332e47e297/Sources/Sentry/SentrySessionTracker.m#L144
+        // Updates Native App State Manager
+        // https://github.com/getsentry/sentry-cocoa/blob/888a145b144b8077e03151a886520f332e47e297/Sources/Sentry/SentryAppStateManager.m#L136
+        // Triggers Session Tracker
+        // https://github.com/getsentry/sentry-cocoa/blob/888a145b144b8077e03151a886520f332e47e297/Sources/Sentry/SentrySessionTracker.m#L144
         [[NSNotificationCenter defaultCenter] postNotificationName:@"SentryHybridSdkDidBecomeActive"
                                                             object:nil];
 
