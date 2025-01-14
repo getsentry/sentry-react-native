@@ -49,7 +49,7 @@
 #    import "RNSentryRNSScreen.h"
 #endif
 
-#import "RNSentrySDK.h"
+#import "RNSentryStart.h"
 #import "RNSentryVersion.h"
 
 @interface

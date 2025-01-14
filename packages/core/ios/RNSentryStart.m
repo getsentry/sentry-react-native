@@ -1,4 +1,4 @@
-#import "RNSentrySDK.h"
+#import "RNSentryStart.h"
 #import "RNSentryReplay.h"
 #import "RNSentryVersion.h"
 
