@@ -76,6 +76,7 @@
         return breadcrumb;
     };
 
+    // JS options.enableNativeCrashHandling equals to native options.enableCrashHandler
     if ([mutableOptions valueForKey:@"enableNativeCrashHandling"] != nil) {
         BOOL enableNativeCrashHandling = [mutableOptions[@"enableNativeCrashHandling"] boolValue];
 
