@@ -11,7 +11,9 @@
 + (void)startWithOptions:(SentryOptions *)options NS_SWIFT_NAME(start(options:))
 {
     NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
-    [PrivateSentrySDKOnly setSdkName:nativeSdkName andVersionString:sdkVersion];
+    [PrivateSentrySDKOnly setSdkName:NATIVE_SDK_NAME andVersionString:sdkVersion];
+    [PrivateSentrySDKOnly addSdkPackage:REACT_NATIVE_SDK_PACKAGE_NAME
+                                version:REACT_NATIVE_SDK_PACKAGE_VERSION];
 
     [SentrySDK startWithOptions:options];
 
@@ -126,7 +128,7 @@
 
         // If the event is from react native, it gets set
         // there and we do not handle it here.
-        if ([sdkName isEqual:nativeSdkName]) {
+        if ([sdkName isEqual:REACT_NATIVE_SDK_PACKAGE_NAME]) {
             [self setEventEnvironmentTag:event origin:@"ios" environment:@"native"];
         }
     }
