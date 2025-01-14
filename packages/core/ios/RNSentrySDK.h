@@ -11,6 +11,16 @@ SENTRY_NO_INIT
  * @discussion Call this method on the main thread. When calling it from a background thread, the
  * SDK starts on the main thread async.
  */
++ (void)start;
+
+/**
+ * @experimental
+ * Inits and configures Sentry for React Native applications. Make sure to
+ * set a valid DSN.
+ *
+ * @discussion Call this method on the main thread. When calling it from a background thread, the
+ * SDK starts on the main thread async.
+ */
 + (void)startWithConfigureOptions:(void (^)(SentryOptions *options))configureOptions
     NS_SWIFT_NAME(start(configureOptions:));
 
