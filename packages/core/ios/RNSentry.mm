@@ -78,6 +78,14 @@ static bool hasFetchedAppStart;
     return YES;
 }
 
+- (instancetype)init
+{
+    if (self = [super init]) {
+        _timeToDisplay = [[RNSentryTimeToDisplay alloc] init];
+    }
+    return self;
+}
+
 RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(initNativeSdk
@@ -151,8 +159,6 @@ RCT_EXPORT_METHOD(initNativeSdk
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
     [mutableOptions removeObjectForKey:@"enableTracing"];
-
-    _timeToDisplay = [[RNSentryTimeToDisplay alloc] init];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     [RNSentryReplay updateOptions:mutableOptions];
