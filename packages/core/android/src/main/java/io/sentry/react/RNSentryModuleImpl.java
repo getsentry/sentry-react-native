@@ -165,7 +165,8 @@ public class RNSentryModuleImpl {
   }
 
   public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
-    sdk.startWithOptions(this.getReactApplicationContext(), rnOptions, getCurrentActivity(), logger);
+    sdk.startWithOptions(
+        this.getReactApplicationContext(), rnOptions, getCurrentActivity(), logger);
 
     promise.resolve(true);
   }
