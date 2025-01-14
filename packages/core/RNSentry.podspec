@@ -33,7 +33,7 @@ Pod::Spec.new do |s|
   s.preserve_paths = '*.js'
 
   s.source_files = 'ios/**/*.{h,m,mm}'
-  s.public_header_files = 'ios/RNSentry.h'
+  s.public_header_files = 'ios/RNSentry.h', 'ios/RNSentrySDK.h'
 
   s.compiler_flags = other_cflags
 

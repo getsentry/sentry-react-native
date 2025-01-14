@@ -94,13 +94,11 @@ RCT_EXPORT_METHOD(initNativeSdk
                   : (RCTPromiseRejectBlock)reject)
 {
     NSError *error = nil;
-    SentryOptions *sentryOptions = [RNSentryStart createOptionsWithDictionary:options error:&error];
+    [RNSentryStart startWithOptions:options error:&error];
     if (error != nil) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
-
-    [RNSentryStart startWithOptions:sentryOptions];
     resolve(@YES);
 }
 

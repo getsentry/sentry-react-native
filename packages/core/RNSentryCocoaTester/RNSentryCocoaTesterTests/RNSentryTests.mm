@@ -2,6 +2,7 @@
 #import "RNSentryStart+Test.h"
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
+#import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
@@ -12,9 +13,8 @@
 
 @implementation RNSentryInitNativeSdkTests
 
-- (void)testCreateOptionsWithDictionaryRemovesPerformanceProperties
+- (void)testStartWithDictionaryRemovesPerformanceProperties
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary =
@@ -26,9 +26,8 @@
 , @"enableTracing" : @YES,
 }
 ;
-SentryOptions *actualOptions =
-    [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
-
+[RNSentryStart startWithOptions:mockedReactNativeDictionary error:&error];
+SentryOptions *actualOptions = PrivateSentrySDKOnly.options;
 XCTAssertNotNil(actualOptions, @"Did not create sentry options");
 XCTAssertNil(error, @"Should not pass no error");
 XCTAssertNotNil(
@@ -41,14 +40,13 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testCaptureFailedRequestsIsDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
     };
-    SentryOptions *actualOptions =
-        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    [RNSentryStart startWithOptions:mockedReactNativeDictionary error:&error];
+    SentryOptions *actualOptions = PrivateSentrySDKOnly.options;
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -57,7 +55,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testCreateOptionsWithDictionaryNativeCrashHandlingDefault
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -73,7 +70,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingDefault
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -89,7 +85,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testCreateOptionsWithDictionaryNativeCrashHandlingEnabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -106,7 +101,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingEnabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -123,7 +117,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testCreateOptionsWithDictionaryNativeCrashHandlingDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -140,7 +133,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -157,7 +149,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testCreateOptionsWithDictionarySpotlightEnabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -175,7 +166,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testCreateOptionsWithDictionarySpotlightOne
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -193,7 +183,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testCreateOptionsWithDictionarySpotlightUrl
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -210,7 +199,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testCreateOptionsWithDictionarySpotlightDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -226,7 +214,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testCreateOptionsWithDictionarySpotlightZero
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -242,7 +229,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testPassesErrorOnWrongDsn
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -257,7 +243,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testBeforeBreadcrumbsCallbackFiltersOutSentryDsnRequestBreadcrumbs
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedDictionary = @{
@@ -278,7 +263,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testBeforeBreadcrumbsCallbackFiltersOutDevServerRequestBreadcrumbs
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSString *mockDevServer = @"http://localhost:8081";
@@ -299,7 +283,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testBeforeBreadcrumbsCallbackDoesNotFiltersOutNonDevServerOrDsnRequestBreadcrumbs
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedDictionary = @{
@@ -320,7 +303,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testBeforeBreadcrumbsCallbackKeepsBreadcrumbWhenDevServerUrlIsNotPassedAndDsnDoesNotMatch
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedDictionary = @{ // dsn is always validated in SentryOptions initialization
@@ -340,7 +322,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testEventFromSentryCocoaReactNativeHasOriginAndEnvironmentTags
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     SentryEvent *testEvent = [[SentryEvent alloc] init];
     testEvent.sdk = @{
         @"name" : @"sentry.cocoa.react-native",
@@ -354,7 +335,6 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
 - (void)testEventFromSentryReactNativeOriginAndEnvironmentTagsAreOverwritten
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     SentryEvent *testEvent = [[SentryEvent alloc] init];
     testEvent.sdk = @{
         @"name" : @"sentry.cocoa.react-native",
