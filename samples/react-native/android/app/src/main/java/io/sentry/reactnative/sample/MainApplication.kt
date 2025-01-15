@@ -15,6 +15,7 @@ import io.sentry.Hint
 import io.sentry.SentryEvent
 import io.sentry.SentryOptions.BeforeSendCallback
 import io.sentry.android.core.SentryAndroid
+import io.sentry.react.RNSentrySDK
 
 class MainApplication :
     Application(),
@@ -43,6 +44,8 @@ class MainApplication :
         // When the native init is enabled the `autoInitializeNativeSdk`
         // in JS has to be set to `false`
         // this.initializeSentry()
+        val sdk = RNSentrySDK()
+        sdk.start(this)
         SoLoader.init(this, OpenSourceMergedSoMapping)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
