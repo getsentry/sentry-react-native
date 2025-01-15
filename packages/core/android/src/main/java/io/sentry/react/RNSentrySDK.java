@@ -3,14 +3,17 @@ package io.sentry.react;
 import android.content.Context;
 import com.facebook.react.bridge.ReadableMap;
 import io.sentry.ILogger;
+import io.sentry.SentryLevel;
 import io.sentry.android.core.AndroidLogger;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public final class RNSentrySDK {
-  // private static final String CONFIGURATION_FILE = "sentry.options.json";
+  private static final String CONFIGURATION_FILE = "sentry.options.json";
   private static final String NAME = "RNSentrySDK";
 
   private static final ILogger logger = new AndroidLogger(NAME);
@@ -43,13 +46,37 @@ public final class RNSentrySDK {
    * @param context Android Context
    */
   public static void start(@NotNull final Context context) {
-    String json =
-        "{\"dsn\": \"https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561\"}";
     try {
-      ReadableMap rnOptions = RNSentryMapConverter.jsonObjectToReadableMap(new JSONObject(json));
+      JSONObject jsonObject = getOptionsFromConfigurationFile(context);
+      ReadableMap rnOptions = RNSentryMapConverter.jsonObjectToReadableMap(jsonObject);
       startWithOptions(context, rnOptions);
-    } catch (JSONException e) {
+    } catch (Exception e) {
+      logger.log(
+          SentryLevel.ERROR, "Failed to start Sentry with options from configuration file.", e);
       throw new RuntimeException(e);
+    }
+  }
+
+  private static JSONObject getOptionsFromConfigurationFile(Context context) {
+    try (InputStream inputStream = context.getAssets().open(CONFIGURATION_FILE);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+
+      StringBuilder stringBuilder = new StringBuilder();
+      String line;
+      while ((line = reader.readLine()) != null) {
+        stringBuilder.append(line);
+      }
+      String configFileContent = stringBuilder.toString();
+      return new JSONObject(configFileContent);
+
+    } catch (Exception e) {
+      logger.log(
+          SentryLevel.ERROR,
+          "Failed to read configuration file. Please make sure "
+              + CONFIGURATION_FILE
+              + " exists in the root of your project.",
+          e);
+      return null;
     }
   }
 }
