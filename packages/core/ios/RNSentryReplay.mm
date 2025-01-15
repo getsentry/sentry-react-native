@@ -4,6 +4,7 @@
 #import "Replay/RNSentryReplayMask.h"
 #import "Replay/RNSentryReplayUnmask.h"
 #import <Sentry/PrivateSentrySDKOnly.h>
+#import "RNSentryVersion.h"
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 
@@ -27,6 +28,10 @@
         @"maskAllImages" : replayOptions[@"maskAllImages"] ?: [NSNull null],
         @"maskAllText" : replayOptions[@"maskAllText"] ?: [NSNull null],
         @"maskedViewClasses" : [RNSentryReplay getReplayRNRedactClasses:replayOptions],
+        @"sdkInfo": @{
+            @"name": REACT_NATIVE_SDK_NAME,
+            @"version": REACT_NATIVE_SDK_PACKAGE_VERSION
+        }
     }
                forKey:@"sessionReplay"];
 }
