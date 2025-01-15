@@ -1,3 +1,4 @@
+import type { FeedbackFormData } from '@sentry/core';
 import type { ImageStyle, TextStyle, ViewStyle } from 'react-native';
 
 /**
@@ -126,6 +127,11 @@ export interface FeedbackTextConfiguration {
    * The error message when the email is invalid
    */
   emailError?: string;
+
+  /**
+   * Message when there is a generic error
+   */
+  genericError?: string;
 }
 
 /**
@@ -133,9 +139,31 @@ export interface FeedbackTextConfiguration {
  */
 export interface FeedbackCallbacks {
   /**
+   * Callback when form is opened
+   */
+  onFormOpen?: () => void;
+
+  /**
    * Callback when form is closed and not submitted
    */
   onFormClose?: () => void;
+
+  /**
+   * Callback when feedback is successfully submitted
+   *
+   * After this you'll see a SuccessMessage on the screen for a moment.
+   */
+  onSubmitSuccess?: (data: FeedbackFormData) => void;
+
+  /**
+   * Callback when feedback is unsuccessfully submitted
+   */
+  onSubmitError?: (error: Error) => void;
+
+  /**
+   * Callback when the feedback form is submitted successfully, and the SuccessMessage is complete, or dismissed
+   */
+  onFormSubmitted?: () => void;
 }
 
 /**

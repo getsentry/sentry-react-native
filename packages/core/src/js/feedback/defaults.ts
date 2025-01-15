@@ -16,14 +16,32 @@ const ERROR_TITLE = 'Error';
 const FORM_ERROR = 'Please fill out all required fields.';
 const EMAIL_ERROR = 'Please enter a valid email address.';
 const SUCCESS_MESSAGE_TEXT = 'Thank you for your report!';
+const GENERIC_ERROR_TEXT = 'Unable to send feedback due to an unexpected error.';
 
 export const defaultConfiguration: Partial<FeedbackFormProps> = {
   // FeedbackCallbacks
+  onFormOpen: () => {
+    // Does nothing by default
+  },
   onFormClose: () => {
     if (__DEV__) {
       Alert.alert(
         'Development note',
         'onFormClose callback is not implemented. By default the form is just unmounted.',
+      );
+    }
+  },
+  onSubmitSuccess: () => {
+    // Does nothing by default
+  },
+  onSubmitError: () => {
+    // Does nothing by default
+  },
+  onFormSubmitted: () => {
+    if (__DEV__) {
+      Alert.alert(
+        'Development note',
+        'onFormSubmitted callback is not implemented. By default the form is just unmounted.',
       );
     }
   },
@@ -51,4 +69,5 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
   formError: FORM_ERROR,
   emailError: EMAIL_ERROR,
   successMessageText: SUCCESS_MESSAGE_TEXT,
+  genericError: GENERIC_ERROR_TEXT,
 };
