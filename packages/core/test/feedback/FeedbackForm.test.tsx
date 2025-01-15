@@ -8,6 +8,9 @@ import type { FeedbackFormProps, FeedbackFormStyles } from '../../src/js/feedbac
 
 const mockOnFormClose = jest.fn();
 const mockOnAddScreenshot = jest.fn();
+const mockOnSubmitSuccess = jest.fn();
+const mockOnFormSubmitted = jest.fn();
+const mockOnSubmitError = jest.fn();
 const mockGetUser = jest.fn(() => ({
   email: 'test@example.com',
   name: 'Test User',
@@ -16,6 +19,7 @@ const mockGetUser = jest.fn(() => ({
 jest.spyOn(Alert, 'alert');
 
 jest.mock('@sentry/core', () => ({
+  ...jest.requireActual('@sentry/core'),
   captureFeedback: jest.fn(),
   getCurrentScope: jest.fn(() => ({
     getUser: mockGetUser,
@@ -26,6 +30,9 @@ jest.mock('@sentry/core', () => ({
 const defaultProps: FeedbackFormProps = {
   onFormClose: mockOnFormClose,
   onAddScreenshot: mockOnAddScreenshot,
+  onSubmitSuccess: mockOnSubmitSuccess,
+  onFormSubmitted: mockOnFormSubmitted,
+  onSubmitError: mockOnSubmitError,
   addScreenshotButtonLabel: 'Add Screenshot',
   formTitle: 'Feedback Form',
   nameLabel: 'Name Label',
@@ -41,6 +48,7 @@ const defaultProps: FeedbackFormProps = {
   formError: 'Please fill out all required fields.',
   emailError: 'The email address is not valid.',
   successMessageText: 'Feedback success',
+  genericError: 'Generic error',
 };
 
 const customStyles: FeedbackFormStyles = {
@@ -231,7 +239,11 @@ describe('FeedbackForm', () => {
     });
   });
 
-  it('calls onFormClose when the form is submitted successfully', async () => {
+  it('shows an error message when there is a an error in captureFeedback', async () => {
+    (captureFeedback as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('Test error');
+    });
+
     const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
     fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
@@ -241,7 +253,53 @@ describe('FeedbackForm', () => {
     fireEvent.press(getByText(defaultProps.submitButtonLabel));
 
     await waitFor(() => {
-      expect(mockOnFormClose).toHaveBeenCalled();
+      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.errorTitle, defaultProps.genericError);
+    });
+  });
+
+  it('calls onSubmitError when there is an error', async () => {
+    (captureFeedback as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('Test error');
+    });
+
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(mockOnSubmitError).toHaveBeenCalled();
+    });
+  });
+
+  it('calls onSubmitSuccess when the form is submitted successfully', async () => {
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(mockOnSubmitSuccess).toHaveBeenCalled();
+    });
+  });
+
+  it('calls onFormSubmitted when the form is submitted successfully', async () => {
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(mockOnFormSubmitted).toHaveBeenCalled();
     });
   });
 

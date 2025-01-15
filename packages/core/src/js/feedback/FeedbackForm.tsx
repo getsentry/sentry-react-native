@@ -1,5 +1,5 @@
 import type { SendFeedbackParams } from '@sentry/core';
-import { captureFeedback, getCurrentScope, lastEventId } from '@sentry/core';
+import { captureFeedback, getCurrentScope, lastEventId, logger } from '@sentry/core';
 import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
 import {
@@ -20,6 +20,7 @@ import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration } from './FeedbackForm.types';
+import { isValidEmail } from './utils';
 
 /**
  * @beta
@@ -50,7 +51,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
   public handleFeedbackSubmit: () => void = () => {
     const { name, email, description } = this.state;
-    const { onFormClose } = this.props;
+    const { onSubmitSuccess, onSubmitError, onFormSubmitted } = this.props;
     const text: FeedbackTextConfiguration = this.props;
 
     const trimmedName = name?.trim();
@@ -62,7 +63,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       return;
     }
 
-    if (this.props.shouldValidateEmail && (this.props.isEmailRequired || trimmedEmail.length > 0) && !this._isValidEmail(trimmedEmail)) {
+    if (this.props.shouldValidateEmail && (this.props.isEmailRequired || trimmedEmail.length > 0) && !isValidEmail(trimmedEmail)) {
       Alert.alert(text.errorTitle, text.emailError);
       return;
     }
@@ -84,11 +85,18 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       associatedEventId: eventId,
     };
 
-    onFormClose();
-    this.setState({ isVisible: false });
-
-    captureFeedback(userFeedback, attachments ? { attachments } : undefined);
-    Alert.alert(text.successMessageText);
+    try {
+      this.setState({ isVisible: false });
+      captureFeedback(userFeedback, attachments ? { attachments } : undefined);
+      onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: undefined });
+      Alert.alert(text.successMessageText);
+      onFormSubmitted();
+    } catch (error) {
+      const errorString = `Feedback form submission failed: ${error}`;
+      onSubmitError(new Error(errorString));
+      Alert.alert(text.errorTitle, text.genericError);
+      logger.error(`Feedback form submission failed: ${error}`);
+    }
   };
 
   public addRemoveScreenshot: () => void = () => {
@@ -202,9 +210,4 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     </SafeAreaView>
     );
   }
-
-  private _isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-    return emailRegex.test(email);
-  };
 }
