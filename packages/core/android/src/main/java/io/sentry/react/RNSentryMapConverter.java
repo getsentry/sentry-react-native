@@ -138,9 +138,13 @@ public final class RNSentryMapConverter {
   }
 
   public static ReadableMap jsonObjectToReadableMap(JSONObject jsonObject) {
+    Map<String, Object> map = jsonObjectToMap(jsonObject);
+    return mapToReadableMap(map);
+  }
+
+  public static ReadableMap mapToReadableMap(Map<String, Object> map) {
     // We are not directly using `convertToWritable` since `Arguments.createArray()`
     // fails before bridge initialisation
-    Map<String, Object> map = jsonObjectToMap(jsonObject);
     Object[] keysAndValues = new Object[map.size() * 2];
     int index = 0;
     for (Map.Entry<String, Object> entry : map.entrySet()) {
