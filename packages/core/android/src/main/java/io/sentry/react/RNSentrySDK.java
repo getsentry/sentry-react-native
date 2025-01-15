@@ -27,6 +27,7 @@ public class RNSentrySDK {
 
   /**
    * Start the Native Android SDK with the provided options
+   *
    * @param context Android Context
    * @param options Map with options
    */
@@ -38,6 +39,7 @@ public class RNSentrySDK {
 
   /**
    * Start the Native Android SDK with options from `sentry.options.json` configuration file
+   *
    * @param context Android Context
    */
   public void start(@NotNull final Context context) {
