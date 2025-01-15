@@ -158,6 +158,7 @@ const ErrorsTabNavigator = Sentry.withProfiler(
                 <FeedbackForm
                   {...props}
                   onFormClose={props.navigation.goBack}
+                  onFormSubmitted={props.navigation.goBack}
                   styles={{
                     submitButton: {
                       backgroundColor: '#6a1b9a',
