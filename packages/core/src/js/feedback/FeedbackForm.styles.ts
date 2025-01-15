@@ -39,6 +39,17 @@ const defaultStyles: FeedbackFormStyles = {
     textAlignVertical: 'top',
     color: FORGROUND_COLOR,
   },
+  screenshotButton: {
+    backgroundColor: '#eee',
+    padding: 15,
+    borderRadius: 5,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  screenshotText: {
+    color: '#333',
+    fontSize: 16,
+  },
   submitButton: {
     backgroundColor: PURPLE,
     paddingVertical: 15,

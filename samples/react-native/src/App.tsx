@@ -38,6 +38,8 @@ import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
 
+import { launchImageLibrary } from 'react-native-image-picker';
+
 if (typeof setImmediate === 'undefined') {
   require('setimmediate');
 }
@@ -139,6 +141,53 @@ const Stack = isMobileOs
   : createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+/* eslint-disable no-bitwise */
+const base64ToUint8Array = (base64?: string): Uint8Array | undefined => {
+  if (!base64) return undefined;
+
+  const cleanedBase64 = base64.replace(/^data:.*;base64,/, ''); // Remove any prefix before the base64 string
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const bytes: number[] = [];
+
+  let buffer = 0;
+  let bits = 0;
+
+  for (const char of cleanedBase64) {
+    if (char === '=') break;
+
+    const value = chars.indexOf(char); // Validate each character
+    if (value === -1) return undefined;
+
+    buffer = (buffer << 6) | value; // Shift 6 bits to the left and add the value
+    bits += 6;
+
+    if (bits >= 8) {
+      // Add a byte when we have 8 or more bits
+      bits -= 8;
+      bytes.push((buffer >> bits) & 0xff);
+    }
+  }
+
+  return new Uint8Array(bytes);
+};
+
+const handleChooseImage = (attachFile: (filename: string, data: Uint8Array) => void): void => {
+  launchImageLibrary({ mediaType: 'photo', includeBase64: true }, (response) => {
+    if (response.didCancel) {
+      console.log('User cancelled image picker');
+    } else if (response.errorCode) {
+      console.log('ImagePicker Error: ', response.errorMessage);
+    } else if (response.assets && response.assets.length > 0) {
+      const filename = response.assets[0].fileName;
+      const base64String = response.assets[0].base64;
+      const screenShotUint8Array = base64ToUint8Array(base64String);
+      if (filename && screenShotUint8Array) {
+        attachFile(filename, screenShotUint8Array);
+      }
+    }
+  });
+};
+
 const ErrorsTabNavigator = Sentry.withProfiler(
   () => {
     return (
@@ -157,6 +206,8 @@ const ErrorsTabNavigator = Sentry.withProfiler(
               {(props) => (
                 <FeedbackForm
                   {...props}
+                  enableScreenshot={true}
+                  onAddScreenshot={handleChooseImage}
                   onFormClose={props.navigation.goBack}
                   styles={{
                     submitButton: {
