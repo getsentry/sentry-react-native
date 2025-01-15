@@ -8,6 +8,24 @@
 
 ## Unreleased
 
+### Features
+
+- Adds Sentry Android Gradle Plugin as an experimental expo plugin feature ([#4440](https://github.com/getsentry/sentry-react-native/pull/4440))
+
+  To enable the plugin add the `sentryAndroidGradlePluginVersion` in the `@sentry/react-native/expo` plugin.
+  
+  ```js
+  "plugins": [
+    [
+      "@sentry/react-native/expo",
+      {
+        "experimental_android": {
+          "sentryAndroidGradlePluginVersion": "4.14.1",
+        }
+      }
+    ],
+  ```
+
 ### Fixes
 
 - Use proper SDK name for Session Replay tags ([#4428](https://github.com/getsentry/sentry-react-native/pull/4428))
