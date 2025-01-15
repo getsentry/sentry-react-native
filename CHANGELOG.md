@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Send Sentry react-native SDK version in the session replay event ()
+
 ### Fixes
 
 - Use proper SDK name for Session Replay tags ([#4428](https://github.com/getsentry/sentry-react-native/pull/4428))
