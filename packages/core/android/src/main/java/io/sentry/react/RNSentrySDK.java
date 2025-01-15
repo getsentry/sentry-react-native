@@ -9,18 +9,18 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class RNSentrySDK {
+public final class RNSentrySDK {
   // private static final String CONFIGURATION_FILE = "sentry.options.json";
   private static final String NAME = "RNSentrySDK";
 
   private static final ILogger logger = new AndroidLogger(NAME);
-  private RNSentryStart startSdk;
+  private static final RNSentryStart startSdk = new RNSentryStart();
 
-  public RNSentrySDK() {
-    startSdk = new RNSentryStart();
+  private RNSentrySDK() {
+    throw new AssertionError("Utility class should not be instantiated");
   }
 
-  private void startWithOptions(
+  private static void startWithOptions(
       @NotNull final Context context, @NotNull final ReadableMap rnOptions) {
     startSdk.startWithOptions(context, rnOptions, null, logger);
   }
@@ -31,7 +31,7 @@ public class RNSentrySDK {
    * @param context Android Context
    * @param options Map with options
    */
-  public void startWithOptions(
+  public static void startWithOptions(
       @NotNull final Context context, @NotNull final Map<String, Object> options) {
     ReadableMap rnOptions = RNSentryMapConverter.mapToReadableMap(options);
     startWithOptions(context, rnOptions);
@@ -42,7 +42,7 @@ public class RNSentrySDK {
    *
    * @param context Android Context
    */
-  public void start(@NotNull final Context context) {
+  public static void start(@NotNull final Context context) {
     String json =
         "{\"dsn\": \"https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561\"}";
     try {

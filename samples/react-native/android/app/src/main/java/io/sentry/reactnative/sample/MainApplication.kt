@@ -44,8 +44,17 @@ class MainApplication :
         // When the native init is enabled the `autoInitializeNativeSdk`
         // in JS has to be set to `false`
         // this.initializeSentry()
-        val sdk = RNSentrySDK()
-        sdk.start(this)
+
+//        RNSentrySDK.startWithOptions(
+//            this,
+//            mapOf(
+//                "dsn" to "https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561",
+//                "debug" to true,
+//            ),
+//        )
+
+        RNSentrySDK.start(this)
+
         SoLoader.init(this, OpenSourceMergedSoMapping)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
