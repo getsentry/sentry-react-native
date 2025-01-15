@@ -268,6 +268,320 @@ exports[`FeedbackForm matches the snapshot with custom styles 1`] = `
 </RCTSafeAreaView>
 `;
 
+exports[`FeedbackForm matches the snapshot with custom styles and screenshot button 1`] = `
+<RCTSafeAreaView
+  style={
+    [
+      {
+        "backgroundColor": "#ffffff",
+      },
+      {
+        "padding": 0,
+      },
+    ]
+  }
+>
+  <View
+    onLayout={[Function]}
+    style={
+      [
+        [
+          {
+            "backgroundColor": "#ffffff",
+          },
+          {
+            "padding": 0,
+          },
+        ],
+        {
+          "paddingBottom": 0,
+        },
+      ]
+    }
+  >
+    <RCTScrollView>
+      <View>
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessible={true}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "width": "100%",
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#ff0000",
+                  "fontSize": 20,
+                }
+              }
+            >
+              Report a Bug
+            </Text>
+            <Image
+              source={
+                {
+                  "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
+                }
+              }
+              style={
+                {
+                  "height": 40,
+                  "width": 40,
+                }
+              }
+              testID="sentry-logo"
+            />
+          </View>
+          <Text
+            style={
+              {
+                "color": "#00ff00",
+                "fontSize": 15,
+              }
+            }
+          >
+            Name
+          </Text>
+          <TextInput
+            onChangeText={[Function]}
+            placeholder="Your Name"
+            style={
+              {
+                "borderColor": "#0000ff",
+                "color": "#000000",
+                "fontSize": 13,
+                "height": 50,
+              }
+            }
+            value="Test User"
+          />
+          <Text
+            style={
+              {
+                "color": "#00ff00",
+                "fontSize": 15,
+              }
+            }
+          >
+            Email
+          </Text>
+          <TextInput
+            keyboardType="email-address"
+            onChangeText={[Function]}
+            placeholder="your.email@example.org"
+            style={
+              {
+                "borderColor": "#0000ff",
+                "color": "#000000",
+                "fontSize": 13,
+                "height": 50,
+              }
+            }
+            value="test@example.com"
+          />
+          <Text
+            style={
+              {
+                "color": "#00ff00",
+                "fontSize": 15,
+              }
+            }
+          >
+            Description
+             (required)
+          </Text>
+          <TextInput
+            multiline={true}
+            onChangeText={[Function]}
+            placeholder="What's the bug? What did you expect?"
+            style={
+              [
+                {
+                  "borderColor": "#0000ff",
+                  "color": "#000000",
+                  "fontSize": 13,
+                  "height": 50,
+                },
+                {
+                  "color": "#00ff00",
+                  "height": 50,
+                },
+              ]
+            }
+            value=""
+          />
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "backgroundColor": "#00ff00",
+                "opacity": 1,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#0000ff",
+                  "fontSize": 13,
+                }
+              }
+            >
+              Add a screenshot
+            </Text>
+          </View>
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "backgroundColor": "#ffff00",
+                "opacity": 1,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#ff0000",
+                  "fontSize": 12,
+                }
+              }
+            >
+              Send Bug Report
+            </Text>
+          </View>
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "opacity": 1,
+                "paddingVertical": 10,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#ff0000",
+                  "fontSize": 10,
+                }
+              }
+            >
+              Cancel
+            </Text>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+</RCTSafeAreaView>
+`;
+
 exports[`FeedbackForm matches the snapshot with custom texts 1`] = `
 <RCTSafeAreaView
   style={
@@ -567,6 +881,355 @@ exports[`FeedbackForm matches the snapshot with custom texts 1`] = `
 </RCTSafeAreaView>
 `;
 
+exports[`FeedbackForm matches the snapshot with custom texts and screenshot button 1`] = `
+<RCTSafeAreaView
+  style={
+    [
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+        "padding": 20,
+      },
+      {
+        "padding": 0,
+      },
+    ]
+  }
+>
+  <View
+    onLayout={[Function]}
+    style={
+      [
+        [
+          {
+            "backgroundColor": "#ffffff",
+            "flex": 1,
+            "padding": 20,
+          },
+          {
+            "padding": 0,
+          },
+        ],
+        {
+          "paddingBottom": 0,
+        },
+      ]
+    }
+  >
+    <RCTScrollView>
+      <View>
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessible={true}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "flex": 1,
+              "padding": 20,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "width": "100%",
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#2b2233",
+                  "flex": 1,
+                  "fontSize": 24,
+                  "fontWeight": "bold",
+                  "marginBottom": 20,
+                  "textAlign": "left",
+                }
+              }
+            >
+              Feedback Form
+            </Text>
+            <Image
+              source={
+                {
+                  "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
+                }
+              }
+              style={
+                {
+                  "height": 40,
+                  "width": 40,
+                }
+              }
+              testID="sentry-logo"
+            />
+          </View>
+          <Text
+            style={
+              {
+                "color": "#2b2233",
+                "fontSize": 16,
+                "marginBottom": 4,
+              }
+            }
+          >
+            Name Label
+          </Text>
+          <TextInput
+            onChangeText={[Function]}
+            placeholder="Name Placeholder"
+            style={
+              {
+                "borderColor": "rgba(41, 35, 47, 0.13)",
+                "borderRadius": 5,
+                "borderWidth": 1,
+                "color": "#2b2233",
+                "fontSize": 16,
+                "height": 50,
+                "marginBottom": 15,
+                "paddingHorizontal": 10,
+              }
+            }
+            value="Test User"
+          />
+          <Text
+            style={
+              {
+                "color": "#2b2233",
+                "fontSize": 16,
+                "marginBottom": 4,
+              }
+            }
+          >
+            Email Label
+          </Text>
+          <TextInput
+            keyboardType="email-address"
+            onChangeText={[Function]}
+            placeholder="Email Placeholder"
+            style={
+              {
+                "borderColor": "rgba(41, 35, 47, 0.13)",
+                "borderRadius": 5,
+                "borderWidth": 1,
+                "color": "#2b2233",
+                "fontSize": 16,
+                "height": 50,
+                "marginBottom": 15,
+                "paddingHorizontal": 10,
+              }
+            }
+            value="test@example.com"
+          />
+          <Text
+            style={
+              {
+                "color": "#2b2233",
+                "fontSize": 16,
+                "marginBottom": 4,
+              }
+            }
+          >
+            Message Label
+             (is required label)
+          </Text>
+          <TextInput
+            multiline={true}
+            onChangeText={[Function]}
+            placeholder="Message Placeholder"
+            style={
+              [
+                {
+                  "borderColor": "rgba(41, 35, 47, 0.13)",
+                  "borderRadius": 5,
+                  "borderWidth": 1,
+                  "color": "#2b2233",
+                  "fontSize": 16,
+                  "height": 50,
+                  "marginBottom": 15,
+                  "paddingHorizontal": 10,
+                },
+                {
+                  "color": "#2b2233",
+                  "height": 100,
+                  "textAlignVertical": "top",
+                },
+              ]
+            }
+            value=""
+          />
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#eee",
+                "borderRadius": 5,
+                "marginBottom": 20,
+                "opacity": 1,
+                "padding": 15,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#333",
+                  "fontSize": 16,
+                }
+              }
+            >
+              Add Screenshot
+            </Text>
+          </View>
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "rgba(88, 74, 192, 1)",
+                "borderRadius": 5,
+                "marginBottom": 10,
+                "opacity": 1,
+                "paddingVertical": 15,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontSize": 18,
+                }
+              }
+            >
+              Submit Button Label
+            </Text>
+          </View>
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "opacity": 1,
+                "paddingVertical": 15,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#2b2233",
+                  "fontSize": 16,
+                }
+              }
+            >
+              Cancel Button Label
+            </Text>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+</RCTSafeAreaView>
+`;
+
 exports[`FeedbackForm matches the snapshot with default configuration 1`] = `
 <RCTSafeAreaView
   style={
@@ -762,6 +1425,355 @@ exports[`FeedbackForm matches the snapshot with default configuration 1`] = `
             }
             value=""
           />
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "rgba(88, 74, 192, 1)",
+                "borderRadius": 5,
+                "marginBottom": 10,
+                "opacity": 1,
+                "paddingVertical": 15,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontSize": 18,
+                }
+              }
+            >
+              Send Bug Report
+            </Text>
+          </View>
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "opacity": 1,
+                "paddingVertical": 15,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#2b2233",
+                  "fontSize": 16,
+                }
+              }
+            >
+              Cancel
+            </Text>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+</RCTSafeAreaView>
+`;
+
+exports[`FeedbackForm matches the snapshot with default configuration and screenshot button 1`] = `
+<RCTSafeAreaView
+  style={
+    [
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+        "padding": 20,
+      },
+      {
+        "padding": 0,
+      },
+    ]
+  }
+>
+  <View
+    onLayout={[Function]}
+    style={
+      [
+        [
+          {
+            "backgroundColor": "#ffffff",
+            "flex": 1,
+            "padding": 20,
+          },
+          {
+            "padding": 0,
+          },
+        ],
+        {
+          "paddingBottom": 0,
+        },
+      ]
+    }
+  >
+    <RCTScrollView>
+      <View>
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessible={true}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "flex": 1,
+              "padding": 20,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "width": "100%",
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#2b2233",
+                  "flex": 1,
+                  "fontSize": 24,
+                  "fontWeight": "bold",
+                  "marginBottom": 20,
+                  "textAlign": "left",
+                }
+              }
+            >
+              Report a Bug
+            </Text>
+            <Image
+              source={
+                {
+                  "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
+                }
+              }
+              style={
+                {
+                  "height": 40,
+                  "width": 40,
+                }
+              }
+              testID="sentry-logo"
+            />
+          </View>
+          <Text
+            style={
+              {
+                "color": "#2b2233",
+                "fontSize": 16,
+                "marginBottom": 4,
+              }
+            }
+          >
+            Name
+          </Text>
+          <TextInput
+            onChangeText={[Function]}
+            placeholder="Your Name"
+            style={
+              {
+                "borderColor": "rgba(41, 35, 47, 0.13)",
+                "borderRadius": 5,
+                "borderWidth": 1,
+                "color": "#2b2233",
+                "fontSize": 16,
+                "height": 50,
+                "marginBottom": 15,
+                "paddingHorizontal": 10,
+              }
+            }
+            value="Test User"
+          />
+          <Text
+            style={
+              {
+                "color": "#2b2233",
+                "fontSize": 16,
+                "marginBottom": 4,
+              }
+            }
+          >
+            Email
+          </Text>
+          <TextInput
+            keyboardType="email-address"
+            onChangeText={[Function]}
+            placeholder="your.email@example.org"
+            style={
+              {
+                "borderColor": "rgba(41, 35, 47, 0.13)",
+                "borderRadius": 5,
+                "borderWidth": 1,
+                "color": "#2b2233",
+                "fontSize": 16,
+                "height": 50,
+                "marginBottom": 15,
+                "paddingHorizontal": 10,
+              }
+            }
+            value="test@example.com"
+          />
+          <Text
+            style={
+              {
+                "color": "#2b2233",
+                "fontSize": 16,
+                "marginBottom": 4,
+              }
+            }
+          >
+            Description
+             (required)
+          </Text>
+          <TextInput
+            multiline={true}
+            onChangeText={[Function]}
+            placeholder="What's the bug? What did you expect?"
+            style={
+              [
+                {
+                  "borderColor": "rgba(41, 35, 47, 0.13)",
+                  "borderRadius": 5,
+                  "borderWidth": 1,
+                  "color": "#2b2233",
+                  "fontSize": 16,
+                  "height": 50,
+                  "marginBottom": 15,
+                  "paddingHorizontal": 10,
+                },
+                {
+                  "color": "#2b2233",
+                  "height": 100,
+                  "textAlignVertical": "top",
+                },
+              ]
+            }
+            value=""
+          />
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#eee",
+                "borderRadius": 5,
+                "marginBottom": 20,
+                "opacity": 1,
+                "padding": 15,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#333",
+                  "fontSize": 16,
+                }
+              }
+            >
+              Add a screenshot
+            </Text>
+          </View>
           <View
             accessibilityState={
               {

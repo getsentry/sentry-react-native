@@ -79,6 +79,13 @@ const customStyles: FeedbackFormStyles = {
     color: '#ff0000',
     fontSize: 10,
   },
+  screenshotButton: {
+    backgroundColor: '#00ff00',
+  },
+  screenshotText: {
+    color: '#0000ff',
+    fontSize: 13,
+  },
 };
 
 describe('FeedbackForm', () => {
@@ -99,6 +106,22 @@ describe('FeedbackForm', () => {
   it('matches the snapshot with custom styles', () => {
     const customStyleProps = {styles: customStyles};
     const { toJSON } = render(<FeedbackForm {...customStyleProps}/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches the snapshot with default configuration and screenshot button', () => {
+    const { toJSON } = render(<FeedbackForm enableScreenshot={true}/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches the snapshot with custom texts and screenshot button', () => {
+    const { toJSON } = render(<FeedbackForm {...defaultProps} enableScreenshot={true}/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches the snapshot with custom styles and screenshot button', () => {
+    const customStyleProps = {styles: customStyles};
+    const { toJSON } = render(<FeedbackForm {...customStyleProps} enableScreenshot={true}/>);
     expect(toJSON()).toMatchSnapshot();
   });
 
