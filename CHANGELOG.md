@@ -10,7 +10,7 @@
 
 ### Features
 
-- Send Sentry react-native SDK version in the session replay event ()
+- Send Sentry react-native SDK version in the session replay event (#4450)
 
 ### Fixes
 
