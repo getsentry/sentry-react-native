@@ -39,6 +39,11 @@ export function withSentryAndroidGradlePlugin(
         warnOnce('android/build.gradle content is missing or undefined.');
         return config;
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (projectBuildGradle.modResults.language !== 'groovy') {
+        warnOnce('Cannot configure Sentry in android/build.gradle because it is not in Groovy.');
+        return config;
+      }
 
       const dependency = `classpath("io.sentry:sentry-android-gradle-plugin:${version}")`;
 

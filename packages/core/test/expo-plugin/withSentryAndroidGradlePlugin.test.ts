@@ -48,7 +48,7 @@ describe('withSentryAndroidGradlePlugin', () => {
 
     (withProjectBuildGradle as jest.Mock).mockImplementation((config, callback) => {
       const projectBuildGradle = {
-        modResults: { contents: mockedBuildGradle },
+        modResults: { language: 'groovy', contents: mockedBuildGradle },
       };
       const modified = callback(projectBuildGradle);
       return modified;
@@ -61,7 +61,7 @@ describe('withSentryAndroidGradlePlugin', () => {
 
     const calledCallback = (withProjectBuildGradle as jest.Mock).mock.calls[0][1];
     const modifiedGradle = calledCallback({
-      modResults: { contents: mockedBuildGradle },
+      modResults: { language: 'groovy', contents: mockedBuildGradle },
     });
 
     expect(modifiedGradle.modResults.contents).toContain(
@@ -126,6 +126,20 @@ describe('withSentryAndroidGradlePlugin', () => {
     withSentryAndroidGradlePlugin(mockConfig, {});
 
     expect(warnOnce).toHaveBeenCalledWith('android/build.gradle content is missing or undefined.');
+
+    expect(withProjectBuildGradle).toHaveBeenCalled();
+  });
+
+  it('warnOnce if android/build.gradle is not Groovy', () => {
+    (withProjectBuildGradle as jest.Mock).mockImplementation((config, callback) => {
+      callback({ modResults: { language: 'kotlin', contents: mockedAppBuildGradle } });
+    });
+
+    withSentryAndroidGradlePlugin(mockConfig, {});
+
+    expect(warnOnce).toHaveBeenCalledWith(
+      'Cannot configure Sentry in android/build.gradle because it is not in Groovy.',
+    );
 
     expect(withProjectBuildGradle).toHaveBeenCalled();
   });
