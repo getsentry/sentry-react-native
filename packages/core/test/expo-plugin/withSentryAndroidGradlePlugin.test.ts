@@ -73,7 +73,6 @@ describe('withSentryAndroidGradlePlugin', () => {
       autoUploadNativeSymbols: true,
       includeNativeSources: false,
       includeSourceContext: true,
-      autoInstallationEnabled: false,
     };
 
     // Mock withAppBuildGradle

@@ -9,7 +9,6 @@ export interface SentryAndroidGradlePluginOptions {
   uploadNativeSymbols?: boolean;
   includeNativeSources?: boolean;
   includeSourceContext?: boolean;
-  autoInstallationEnabled?: boolean;
 }
 
 /**
@@ -25,7 +24,6 @@ export function withSentryAndroidGradlePlugin(config: any, options: SentryAndroi
   const autoUploadNativeSymbols = options.autoUploadNativeSymbols ?? true;
   const includeNativeSources = options.includeNativeSources ?? true;
   const includeSourceContext = options.includeSourceContext ?? false;
-  const autoInstallationEnabled = options.autoInstallationEnabled ?? false;
 
   // Modify android/build.gradle
   const withSentryProjectBuildGradle = (config: any): any => {
@@ -66,7 +64,7 @@ export function withSentryAndroidGradlePlugin(config: any, options: SentryAndroi
       includeNativeSources = ${includeNativeSources}
       includeSourceContext = ${includeSourceContext}
       autoInstallation {
-          enabled = ${autoInstallationEnabled}
+          enabled = false
       }
   }`;
 

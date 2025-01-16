@@ -51,7 +51,6 @@
             "uploadNativeSymbols": true,
             "includeNativeSources": true,
             "includeSourceContext": true,
-            "autoInstallationEnabled": false
           }
         }
       ],
