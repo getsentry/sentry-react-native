@@ -56,9 +56,11 @@ export function withSentryAndroidGradlePlugin(
   const withSentryAppBuildGradle = (config: any): any => {
     return withAppBuildGradle(config, (config: any) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (config.modResults.language === 'groovy') {
-        const sentryPlugin = `apply plugin: "io.sentry.android.gradle"`;
-        const sentryConfig = `
+      if (config.modResults.language !== 'groovy') {
+        throw new Error('Cannot configure Sentry in android/app/build.gradle because it is not in Groovy.');
+      }
+      const sentryPlugin = `apply plugin: "io.sentry.android.gradle"`;
+      const sentryConfig = `
   sentry {
       autoUploadProguardMapping = ${autoUploadProguardMapping}
       includeProguardMapping = ${includeProguardMapping}
@@ -75,24 +77,21 @@ export function withSentryAndroidGradlePlugin(
       }
   }`;
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        let contents = config.modResults.contents;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      let contents = config.modResults.contents;
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (!contents.includes(sentryPlugin)) {
-          contents = `${sentryPlugin}\n${contents}`;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (!contents.includes('sentry {')) {
-          contents = `${contents}\n${sentryConfig}`;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        config.modResults.contents = contents;
-      } else {
-        throw new Error('Cannot configure Sentry in android/app/build.gradle because it is not in Groovy.');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (!contents.includes(sentryPlugin)) {
+        contents = `${sentryPlugin}\n${contents}`;
       }
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (!contents.includes('sentry {')) {
+        contents = `${contents}\n${sentryConfig}`;
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      config.modResults.contents = contents;
       return config;
     });
   };
